@@ -18,11 +18,11 @@ main() async {
   // `throw a!` means `throw (a!)`, not `(throw a)!`.  Since it's a compile-time
   // error for a thrown expression to be potentially nullable, this is
   // sufficient to verify that the compiler has resolved the ambiguity
-  // correctly.  Unforunately there's no good way to test the runtime behavior
-  // because `throw a` wouldn't complete anyway.
+  // correctly.  We check the runtime behavior by verifying that the error that
+  // is thrown is not `NullThrownError`.
   Expect.throws(() {
       throw a!;
-  });
+    }, (error) => error is! NullThrownError);
 
   // `() => a!` means `() => (a!)`, not `(() => a)!`.  We check the compile-time
   // behavior by trying to assign to a function returning non-null.  We check
@@ -64,6 +64,7 @@ main() async {
   int? i = 2;
   x6 * i!;
   var x7 = new C();
+  i = null;
   Expect.throws(() {
       x7 * i!;
   });

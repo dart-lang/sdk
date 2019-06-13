@@ -24,23 +24,28 @@ class InvalidVisibilityAnnotationTest extends DriverResolutionTest
   }
 
   test_fields_multipleMixed() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a, b;
 }
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.UNUSED_FIELD, 68, 2),
+    ]);
   }
 
   test_fields_multiplePrivate() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a, _b;
 }
 ''', [
-      HintCode.INVALID_VISIBILITY_ANNOTATION,
-      HintCode.INVALID_VISIBILITY_ANNOTATION
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.UNUSED_FIELD, 68, 2),
+      error(HintCode.UNUSED_FIELD, 72, 2),
     ]);
   }
 
@@ -54,88 +59,119 @@ class C {
   }
 
   test_privateClass() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 58, 2),
+    ]);
   }
 
   test_privateConstructor() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting C._() {}
 }
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+    ]);
   }
 
   test_privateEnum() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b, c}
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 57, 2),
+    ]);
   }
 
   test_privateField() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting int _a;
 }
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.UNUSED_FIELD, 68, 2),
+    ]);
   }
 
   test_privateMethod() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class C {
   @visibleForTesting void _m() {}
 }
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 45, 18),
+      error(HintCode.UNUSED_ELEMENT, 69, 2),
+    ]);
   }
 
   test_privateMixin() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 58, 2),
+    ]);
   }
 
   test_privateTopLevelFunction() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 57, 2),
+    ]);
   }
 
   test_privateTopLevelVariable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 58, 2),
+    ]);
   }
 
   test_privateTypedef() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 60, 2),
+    ]);
   }
 
   test_topLevelVariable_multipleMixed() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
-''', [HintCode.INVALID_VISIBILITY_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 58, 2),
+    ]);
   }
 
   test_topLevelVariable_multiplePrivate() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
 ''', [
-      HintCode.INVALID_VISIBILITY_ANNOTATION,
-      HintCode.INVALID_VISIBILITY_ANNOTATION
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(HintCode.UNUSED_ELEMENT, 58, 2),
+      error(HintCode.UNUSED_ELEMENT, 66, 2),
     ]);
   }
 

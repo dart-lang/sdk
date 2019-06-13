@@ -23,7 +23,7 @@ Bytecode {
   StoreLocal           r0
   Push                 r0
   PushConstant         CP#1
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   Drop1
   ReturnTOS
 }
@@ -49,7 +49,7 @@ Bytecode {
   StoreLocal           r0
   Push                 r0
   PushConstant         CP#2
-  DirectCall           2, CP#3
+  DirectCall           CP#3, 2
   Drop1
   Drop1
   PushConstant         CP#6
@@ -57,7 +57,7 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#7
+  DirectCall           CP#7, 1
   Drop1
   Drop1
   PushNull
@@ -93,7 +93,7 @@ Bytecode {
   AllocateT
   StoreLocal           r1
   Push                 r1
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   Drop1
   PushNull
@@ -116,7 +116,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushConstant         CP#0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   Drop1
   PushNull
   ReturnTOS
@@ -137,11 +137,11 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushNull
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   PushInt              42
-  DirectCall           2, CP#2
+  DirectCall           CP#2, 2
   Drop1
   PushNull
   ReturnTOS
@@ -164,7 +164,7 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   PushInt              0
-  DirectCall           2, CP#1
+  DirectCall           CP#1, 2
   ReturnTOS
 }
 ConstantPool {
@@ -184,7 +184,7 @@ Bytecode {
   CheckStack           0
   PushConstant         CP#0
   Push                 FP[-5]
-  DirectCall           2, CP#1
+  DirectCall           CP#1, 2
   ReturnTOS
 }
 ConstantPool {
@@ -202,12 +202,12 @@ Function 'main', static, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  DirectCall           0, CP#0
+  DirectCall           CP#0, 0
   Drop1
-  DirectCall           0, CP#2
+  DirectCall           CP#2, 0
   Drop1
   PushConstant         CP#4
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   ReturnTOS
@@ -246,7 +246,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   PushInt              4
@@ -274,8 +274,8 @@ Bytecode {
   PushNull
   InstantiateType      CP#6
   StoreIndexedTOS
-  DirectCall           1, CP#7
-  DirectCall           1, CP#9
+  DirectCall           CP#7, 1
+  DirectCall           CP#9, 1
   Drop1
   PushNull
   ReturnTOS
@@ -320,7 +320,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-6]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -352,7 +352,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   PushInt              2
@@ -369,8 +369,8 @@ Bytecode {
   PushNull
   InstantiateType      CP#3
   StoreIndexedTOS
-  DirectCall           1, CP#5
-  DirectCall           1, CP#7
+  DirectCall           CP#5, 1
+  DirectCall           CP#7, 1
   Drop1
   PushNull
   ReturnTOS
@@ -410,7 +410,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   Push                 FP[-6]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   PushInt              2
@@ -424,8 +424,8 @@ Bytecode {
   PushInt              1
   Push                 FP[-5]
   StoreIndexedTOS
-  DirectCall           1, CP#3
-  DirectCall           1, CP#5
+  DirectCall           CP#3, 1
+  DirectCall           CP#5, 1
   Drop1
   PushNull
   ReturnTOS
@@ -463,7 +463,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -484,7 +484,7 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   LoadTypeArgumentsField CP#0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   ReturnTOS
 }
 ConstantPool {
@@ -517,7 +517,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -538,7 +538,7 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   LoadTypeArgumentsField CP#0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   ReturnTOS
 }
 ConstantPool {
@@ -571,7 +571,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -598,7 +598,7 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
   ReturnTOS
 }
@@ -633,7 +633,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -665,7 +665,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-6]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -691,7 +691,7 @@ Bytecode {
   StoreLocal           r2
   Push                 r2
   Push                 r1
-  DirectCall           2, CP#3
+  DirectCall           CP#3, 2
   Drop1
   ReturnTOS
 }
@@ -710,7 +710,7 @@ ConstantPool {
     constructor •(dynamic param) → #lib::I
       : super dart.core::Object::•()
       ;
-    static factory test_factory2({dynamic param = #C1}) → #lib::I
+    static factory test_factory2({dynamic param = null}) → #lib::I
       return new #lib::I::•(param);
   }
 [@vm.bytecode=
@@ -738,7 +738,7 @@ ConstantPool {
 
 }
 ]  class J extends dart.core::Object {
-    @#C3
+    @dart._internal::ExternalName::•("agent_J")
     external static factory •() → #lib::J;
   }
 [@vm.bytecode=
@@ -760,7 +760,7 @@ Bytecode {
   AllocateT
   StoreLocal           r0
   Push                 r0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   Drop1
   ReturnTOS
 }
@@ -791,7 +791,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -834,9 +834,4 @@ ConstantPool {
     #lib::foo2();
     #lib::foo3<dart.core::String>();
   }
-}
-constants  {
-  #C1 = null
-  #C2 = "agent_J"
-  #C3 = dart._internal::ExternalName {name: #C2}
 }

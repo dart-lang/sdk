@@ -109,6 +109,7 @@ namespace dart {
   F(Bytecode, function_)                                                       \
   F(Bytecode, exception_handlers_)                                             \
   F(Bytecode, pc_descriptors_)                                                 \
+  F(Bytecode, closures_)                                                       \
   F(ExceptionHandlers, handled_types_data_)                                    \
   F(Context, parent_)                                                          \
   F(SingleTargetCache, target_)                                                \
@@ -191,7 +192,13 @@ namespace dart {
   F(Pointer, type_arguments_)                                                  \
   F(Pointer, c_memory_address_)                                                \
   F(DynamicLibrary, handle_)                                                   \
-  F(FfiTrampolineData, signature_type_)
+  F(FfiTrampolineData, signature_type_)                                        \
+  F(FfiTrampolineData, c_signature_)                                           \
+  F(FfiTrampolineData, callback_target_)                                       \
+  F(TypedDataBase, data_)                                                      \
+  F(TypedDataBase, length_)                                                    \
+  F(TypedDataView, typed_data_)                                                \
+  F(TypedDataView, offset_in_bytes_)
 
 OffsetsTable::OffsetsTable(Zone* zone) : cached_offsets_(zone) {
   for (intptr_t i = 0; offsets_table[i].class_id != -1; ++i) {

@@ -504,9 +504,21 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           // indicate that the socket is fully connected.
           socket.setHandlers(write: () {
             timer.cancel();
+            connecting.remove(socket);
+            // From 'man 2 connect':
+            // After select(2) indicates writability, use getsockopt(2) to read
+            // the SO_ERROR option at level SOL_SOCKET to determine whether
+            // connect() completed successfully (SO_ERROR is zero) or
+            // unsuccessfully.
+            OSError osError = socket.nativeGetError();
+            if (osError.errorCode != 0) {
+              socket.close();
+              if (error == null) error = osError;
+              if (connecting.isEmpty) connectNext();
+              return;
+            }
             socket.setListening(read: false, write: false);
             completer.complete(socket);
-            connecting.remove(socket);
             connecting.forEach((s, t) {
               t.cancel();
               s.close();

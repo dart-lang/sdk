@@ -87,14 +87,22 @@ and flaws still linger in the system.
 Over the years, fuzz testing has gained popularity as a testing technique for
 discovering such lingering bugs, including bugs that can bring down a system
 in an unexpected way. Fuzzing refers to feeding a large amount of random data
-as input to a system in an attempt to find bugs or make it crash. Generation-
-based fuzz testing constructs random, but properly formatted input data.
-Mutation-based fuzz testing applies small random changes to existing inputs
-in order to detect shortcomings in a system. Profile-guided or coverage-guided
-fuzz testing adds a direction to the way these random changes are applied.
-Multi-layered approaches generate random inputs that are subsequently mutated
-at various stages of execution.
+as input to a system in an attempt to find bugs or make it crash.
+Generation-based fuzz testing constructs random, but properly formatted input
+data. Mutation-based fuzz testing applies small random changes to existing
+inputs in order to detect shortcomings in a system. Profile-guided or
+coverage-guided fuzz testing adds a direction to the way these random changes
+are applied. Multi-layered approaches generate random inputs that are
+subsequently mutated at various stages of execution.
 
 The randomness of fuzz testing implies that the size and scope of testing is
 no longer bounded. Every new run can potentially discover bugs and crashes
 that were hereto undetected.
+
+Links
+=====
+
+* [Dart bugs found with fuzzing](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=label%3Adartfuzz+)
+* [DartFuzz](https://github.com/dart-lang/sdk/tree/master/runtime/tools/dartfuzz)
+* [DartLibFuzzer](https://github.com/dart-lang/sdk/tree/master/runtime/vm/libfuzzer)
+* [LibFuzzer](https://llvm.org/docs/LibFuzzer.html)

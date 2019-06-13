@@ -114,6 +114,7 @@ class Zone;
   V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
     StubCode::ICCallThroughCode().raw(), NULL)                                 \
+  V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
     StubCode::DeoptimizeLazyFromReturn().raw(), NULL)                          \
@@ -166,8 +167,9 @@ class Zone;
     StubCode::MegamorphicCall().EntryPoint(), 0)                               \
   V(uword, monomorphic_miss_entry_, StubCode::MonomorphicMiss().EntryPoint(),  \
     0)                                                                         \
-  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)
-
+  V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
+  V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
+  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0)
 #endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
@@ -313,6 +315,10 @@ class Thread : public ThreadState {
     return OFFSET_OF(Thread, safepoint_state_);
   }
 
+  static intptr_t callback_code_offset() {
+    return OFFSET_OF(Thread, ffi_callback_code_);
+  }
+
   TaskKind task_kind() const { return task_kind_; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
@@ -337,7 +343,7 @@ class Thread : public ThreadState {
   }
 
   // Monitor corresponding to this thread.
-  Monitor* thread_lock() const { return thread_lock_; }
+  Monitor* thread_lock() const { return &thread_lock_; }
 
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
@@ -450,12 +456,8 @@ class Thread : public ThreadState {
   Heap* heap() const { return heap_; }
   static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
-  void set_top(uword value) {
-    top_ = value;
-  }
-  void set_end(uword value) {
-    end_ = value;
-  }
+  void set_top(uword value) { top_ = value; }
+  void set_end(uword value) { end_ = value; }
 
   uword top() { return top_; }
   uword end() { return end_; }
@@ -770,6 +772,13 @@ class Thread : public ThreadState {
     }
   }
 
+  int32_t AllocateFfiCallbackId();
+  void SetFfiCallbackCode(int32_t callback_id, const Code& code);
+
+  // Ensure that 'entry' points within the code of the callback identified by
+  // 'callback_id'. Aborts otherwise.
+  void VerifyCallbackIsolate(int32_t callback_id, uword entry);
+
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
@@ -785,6 +794,17 @@ class Thread : public ThreadState {
   void InitVMConstants();
 
   uint64_t GetRandomUInt64() { return thread_random_.NextUInt64(); }
+
+  uint64_t* GetFfiMarshalledArguments(intptr_t size) {
+    if (ffi_marshalled_arguments_size_ < size) {
+      if (ffi_marshalled_arguments_size_ > 0) {
+        free(ffi_marshalled_arguments_);
+      }
+      ffi_marshalled_arguments_ =
+          reinterpret_cast<uint64_t*>(malloc(size * sizeof(uint64_t)));
+    }
+    return ffi_marshalled_arguments_;
+  }
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
@@ -852,6 +872,7 @@ class Thread : public ThreadState {
   uword resume_pc_;
   uword execution_state_;
   uword safepoint_state_;
+  RawGrowableObjectArray* ffi_callback_code_;
 
   // ---- End accessed from generated code. ----
 
@@ -862,7 +883,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
-  Monitor* thread_lock_;
+  mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
   int32_t no_callback_scope_depth_;
@@ -886,6 +907,9 @@ class Thread : public ThreadState {
   RawError* sticky_error_;
 
   Random thread_random_;
+
+  intptr_t ffi_marshalled_arguments_size_ = 0;
+  uint64_t* ffi_marshalled_arguments_;
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;

@@ -13,7 +13,7 @@ import 'package:observatory/src/elements/isolate/location.dart';
 import 'package:observatory/src/elements/isolate/run_state.dart';
 import 'package:observatory/src/elements/isolate/shared_summary.dart';
 
-class IsolateSummaryElement extends HtmlElement implements Renderable {
+class IsolateSummaryElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<IsolateSummaryElement>('isolate-summary', dependencies: const [
     IsolateRefElement.tag,
@@ -42,7 +42,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     assert(isolates != null);
     assert(events != null);
     assert(scripts != null);
-    IsolateSummaryElement e = document.createElement(tag.name);
+    IsolateSummaryElement e = new IsolateSummaryElement.created();
     e._r = new RenderingScheduler<IsolateSummaryElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
@@ -51,7 +51,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  IsolateSummaryElement.created() : super.created();
+  IsolateSummaryElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -71,7 +71,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
     if (_loadedIsolate == null) {
       children = <Element>[
         new SpanElement()..text = 'loading ',
-        new IsolateRefElement(_isolate, _events, queue: _r.queue)
+        new IsolateRefElement(_isolate, _events, queue: _r.queue).element
       ];
     } else {
       children = <Element>[
@@ -82,14 +82,17 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
               ..classes = ['isolate-ref-container']
               ..children = <Element>[
                 new IsolateRefElement(_isolate, _events, queue: _r.queue)
+                    .element
               ],
             new DivElement()..style.flex = '1',
             new DivElement()
               ..classes = ['flex-row', 'isolate-state-container']
               ..children = <Element>[
-                new IsolateRunStateElement(_isolate, _events, queue: _r.queue),
+                new IsolateRunStateElement(_isolate, _events, queue: _r.queue)
+                    .element,
                 new IsolateLocationElement(_isolate, _events, _scripts,
-                    queue: _r.queue),
+                        queue: _r.queue)
+                    .element,
                 new SpanElement()..text = ' [',
                 new AnchorElement(href: Uris.debugger(_isolate))
                   ..text = 'debug',
@@ -98,6 +101,7 @@ class IsolateSummaryElement extends HtmlElement implements Renderable {
           ],
         new BRElement(),
         new IsolateSharedSummaryElement(_isolate, _events, queue: _r.queue)
+            .element
       ];
     }
   }

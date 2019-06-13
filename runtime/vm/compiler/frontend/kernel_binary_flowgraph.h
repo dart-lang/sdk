@@ -43,7 +43,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
         direct_call_metadata_helper_(this),
         inferred_type_metadata_helper_(this),
         procedure_attributes_metadata_helper_(this),
-        call_site_attributes_metadata_helper_(this, &type_translator_) {}
+        call_site_attributes_metadata_helper_(this, &type_translator_),
+        closure_owner_(Object::Handle(flow_graph_builder->zone_)) {}
 
   virtual ~StreamingFlowGraphBuilder() {}
 
@@ -358,6 +359,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   CallSiteAttributesMetadataHelper call_site_attributes_metadata_helper_;
+  Object& closure_owner_;
 
   friend class KernelLoader;
 

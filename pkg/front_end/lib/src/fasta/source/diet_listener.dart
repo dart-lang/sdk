@@ -287,8 +287,8 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     buildFields(count, beginToken, false);
   }
@@ -318,8 +318,14 @@ class DietListener extends StackListener {
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("TopLevelFields");
     buildFields(count, beginToken, true);
   }
@@ -357,10 +363,8 @@ class DietListener extends StackListener {
   @override
   void endLibraryName(Token libraryKeyword, Token semicolon) {
     debugEvent("endLibraryName");
-    pop(); // name
-
-    Token metadata = pop();
-    parseMetadata(library, metadata, library.target);
+    pop(); // Name.
+    pop(); // Annotations.
   }
 
   @override
@@ -531,7 +535,6 @@ class DietListener extends StackListener {
 
     ProcedureBuilder builder = lookupConstructor(beginToken, name);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
-      parseMetadata(builder, metadata, builder.target);
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
     } else {
@@ -703,18 +706,14 @@ class DietListener extends StackListener {
     debugEvent("beginClassOrMixinBody");
     Token beginToken = pop();
     Object name = pop();
-    Token metadata = pop();
+    pop(); // Annotation begin token.
     assert(currentClass == null);
     assert(memberScope == library.scope);
     if (name is ParserRecovery) {
       currentClassIsParserRecovery = true;
       return;
     }
-
-    Declaration classBuilder = lookupBuilder(beginToken, null, name);
-    parseMetadata(classBuilder, metadata, classBuilder.target);
-
-    currentClass = classBuilder;
+    currentClass = lookupBuilder(beginToken, null, name);
     memberScope = currentClass.scope;
   }
 
@@ -741,26 +740,9 @@ class DietListener extends StackListener {
   @override
   void endEnum(Token enumKeyword, Token leftBrace, int count) {
     debugEvent("Enum");
-    List<Object> metadataAndValues =
-        const FixedNullableList<Object>().pop(stack, count * 2);
-    Object name = pop();
-    Token metadata = pop();
-    checkEmpty(enumKeyword.charOffset);
-    if (name is ParserRecovery) return;
-
-    ClassBuilder enumBuilder = lookupBuilder(enumKeyword, null, name);
-    parseMetadata(enumBuilder, metadata, enumBuilder.target);
-    if (metadataAndValues != null) {
-      for (int i = 0; i < metadataAndValues.length; i += 2) {
-        Token metadata = metadataAndValues[i];
-        String valueName = metadataAndValues[i + 1];
-        Declaration declaration = enumBuilder.scope.local[valueName];
-        if (metadata != null) {
-          parseMetadata(declaration, metadata, declaration.target);
-        }
-      }
-    }
-
+    const FixedNullableList<Object>().pop(stack, count * 2);
+    pop(); // Name.
+    pop(); // Annotations begin token.
     checkEmpty(enumKeyword.charOffset);
   }
 
@@ -769,20 +751,9 @@ class DietListener extends StackListener {
       Token equals, Token implementsKeyword, Token endToken) {
     debugEvent("NamedMixinApplication");
 
-    Object name = pop();
-    Token metadata = pop();
+    pop(); // Name.
+    pop(); // Annotations begin token.
     checkEmpty(beginToken.charOffset);
-    if (name is ParserRecovery) return;
-
-    Declaration classBuilder = library.scopeBuilder[name];
-    if (classBuilder != null) {
-      // TODO(ahe): We shouldn't have to check for null here. The problem is
-      // that we don't create a named mixin application if the mixins or
-      // supertype are missing. Could we create a class instead? The nested
-      // declarations wouldn't match up.
-      parseMetadata(classBuilder, metadata, classBuilder.target);
-      checkEmpty(beginToken.charOffset);
-    }
   }
 
   AsyncMarker getAsyncMarker(StackListener listener) => listener.pop();
@@ -794,13 +765,11 @@ class DietListener extends StackListener {
   void listenerFinishFunction(
       StackListener listener,
       Token token,
-      Token metadata,
       MemberKind kind,
-      List metadataConstants,
       dynamic formals,
       AsyncMarker asyncModifier,
       dynamic body) {
-    listener.finishFunction(metadataConstants, formals, asyncModifier, body);
+    listener.finishFunction(formals, asyncModifier, body);
   }
 
   /// Invokes the listener's [finishFields] method.
@@ -817,10 +786,9 @@ class DietListener extends StackListener {
     Token token = startToken;
     try {
       Parser parser = new Parser(listener);
-      List metadataConstants;
       if (metadata != null) {
         parser.parseMetadataStar(parser.syntheticPreviousToken(metadata));
-        metadataConstants = listener.pop();
+        listener.pop(); // Annotations.
       }
       token = parser.parseFormalParametersOpt(
           parser.syntheticPreviousToken(token), kind);
@@ -834,8 +802,8 @@ class DietListener extends StackListener {
       parser.parseFunctionBody(token, isExpression, allowAbstract);
       var body = listener.pop();
       listener.checkEmpty(token.charOffset);
-      listenerFinishFunction(listener, startToken, metadata, kind,
-          metadataConstants, formals, asyncModifier, body);
+      listenerFinishFunction(
+          listener, startToken, kind, formals, asyncModifier, body);
     } on DebugAbort {
       rethrow;
     } catch (e, s) {

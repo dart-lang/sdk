@@ -170,6 +170,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       const Duration(seconds: 1),
       onTimeout: () {
         didTimeout = true;
+        return null;
       },
     );
 
@@ -179,13 +180,100 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   test_uninitialized_rejectsRequests() async {
     final request = makeRequest(new Method.fromJson('randomRequest'), null);
-    final logParams = await expectErrorNotification<LogMessageParams>(() async {
-      final response = await channel.sendRequestToServer(request);
-      expect(response.id, equals(request.id));
-      expect(response.result, isNull);
-      expect(response.error, isNotNull);
-      expect(response.error.code, ErrorCodes.ServerNotInitialized);
+    final response = await channel.sendRequestToServer(request);
+    expect(response.id, equals(request.id));
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error.code, ErrorCodes.ServerNotInitialized);
+  }
+
+  test_dynamicRegistration_notSupportedByClient() async {
+    // If the client doesn't send any dynamicRegistration settings then there
+    // should be no `client/registerCapability` calls.
+
+    // Set a flag if any registerCapability request comes through.
+    bool didGetRegisterCapabilityRequest = false;
+    requestsFromServer
+        .firstWhere((n) => n.method == Method.client_registerCapability)
+        .then((params) {
+      didGetRegisterCapabilityRequest = true;
     });
-    expect(logParams.type, equals(MessageType.Error));
+
+    // Initialize with no dynamic registrations advertised.
+    await initialize();
+    await pumpEventQueue();
+
+    expect(didGetRegisterCapabilityRequest, isFalse);
+  }
+
+  test_dynamicRegistration_onlyForClientSupportedMethods() async {
+    // Check that when the server calls client/registerCapability it only includes
+    // the items we advertised dynamic registration support for.
+    List<Registration> registrations;
+    await handleExpectedRequest<void, RegistrationParams, void>(
+      Method.client_registerCapability,
+      () => initialize(
+          textDocumentCapabilities: withHoverDynamicRegistration(
+              emptyTextDocumentClientCapabilities)),
+      handler: (registrationParams) =>
+          registrations = registrationParams.registrations,
+    );
+
+    expect(registrations, hasLength(1));
+    expect(registrations.single.method,
+        equals(Method.textDocument_hover.toJson()));
+  }
+
+  test_dynamicRegistration_containsAppropriateSettings() async {
+    // Basic check that the server responds with the capabilities we'd expect,
+    // for ex including analysis_options.yaml in text synchronization but not
+    // for hovers.
+    List<Registration> registrations;
+    await handleExpectedRequest<void, RegistrationParams, void>(
+      Method.client_registerCapability,
+      () => initialize(
+          // Support dynamic registration for both text sync + hovers.
+          textDocumentCapabilities: withTextSyncDynamicRegistration(
+              withHoverDynamicRegistration(
+                  emptyTextDocumentClientCapabilities))),
+      handler: (registrationParams) =>
+          registrations = registrationParams.registrations,
+    );
+
+    // Should container Hover, DidOpen, DidClose, DidChange.
+    expect(registrations, hasLength(4));
+    final hover =
+        registrationOptionsFor(registrations, Method.textDocument_hover);
+    final change =
+        registrationOptionsFor(registrations, Method.textDocument_didChange);
+    expect(registrationOptionsFor(registrations, Method.textDocument_didOpen),
+        isNotNull);
+    expect(registrationOptionsFor(registrations, Method.textDocument_didClose),
+        isNotNull);
+
+    // The hover capability should only specific Dart.
+    expect(hover, isNotNull);
+    expect(hover.documentSelector, hasLength(1));
+    expect(hover.documentSelector.single.language, equals('dart'));
+
+    // didChange should also include pubspec + analysis_options.
+    expect(change, isNotNull);
+    expect(change.documentSelector, hasLength(greaterThanOrEqualTo(3)));
+    expect(change.documentSelector.any((ds) => ds.language == 'dart'), isTrue);
+    expect(change.documentSelector.any((ds) => ds.pattern == '**/pubspec.yaml'),
+        isTrue);
+    expect(
+        change.documentSelector
+            .any((ds) => ds.pattern == '**/analysis_options.yaml'),
+        isTrue);
+  }
+
+  TextDocumentRegistrationOptions registrationOptionsFor(
+    List<Registration> registrations,
+    Method method,
+  ) {
+    return registrations
+        .singleWhere((r) => r.method == method.toJson(), orElse: () => null)
+        ?.registerOptions;
   }
 }

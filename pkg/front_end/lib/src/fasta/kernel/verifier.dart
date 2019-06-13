@@ -11,7 +11,6 @@ import 'package:kernel/ast.dart'
         Component,
         ExpressionStatement,
         Field,
-        InvalidInitializer,
         Let,
         Library,
         Member,
@@ -172,11 +171,6 @@ class FastaVerifyingVisitor extends VerifyingVisitor
   visitProcedure(Procedure node) {
     fileUri = checkLocation(node, node.name.name, node.fileUri);
     super.visitProcedure(node);
-  }
-
-  @override
-  visitInvalidInitializer(InvalidInitializer node) {
-    problem(node, "Invalid initializer.");
   }
 
   @override

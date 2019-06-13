@@ -150,6 +150,19 @@ void runTests(bool isKernel) {
       expect((await futureProcessOutput).join(), isEmpty);
       expect(outputJsFile.existsSync(), isTrue);
     });
+
+    test('can compile in basic mode with "legacy" modules', () async {
+      var args = List<String>.from(executableArgs)
+        ..add('--modules')
+        ..add('legacy')
+        ..addAll(compilerArgs);
+      var result = Process.runSync(executable, args);
+
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isTrue);
+    });
   });
 
   group('$mode: Hello World with Summaries', () {

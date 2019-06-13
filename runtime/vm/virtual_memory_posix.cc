@@ -35,12 +35,29 @@ namespace dart {
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
+#if defined(TARGET_OS_LINUX)
+DECLARE_FLAG(bool, generate_perf_events_symbols);
+DECLARE_FLAG(bool, generate_perf_jitdump);
+#endif
+
 uword VirtualMemory::page_size_ = 0;
 
 void VirtualMemory::Init() {
   page_size_ = getpagesize();
 
 #if defined(DUAL_MAPPING_SUPPORTED)
+// Perf is Linux-specific and the flags aren't defined in Product.
+#if defined(TARGET_OS_LINUX) && !defined(PRODUCT)
+  // Perf interacts strangely with memfds, leading it to sometimes collect
+  // garbled return addresses.
+  if (FLAG_generate_perf_events_symbols || FLAG_generate_perf_jitdump) {
+    LOG_INFO(
+        "Dual code mapping disabled to generate perf events or jitdump.\n");
+    FLAG_dual_map_code = false;
+    return;
+  }
+#endif
+
   // Detect dual mapping exec permission limitation on some platforms,
   // such as on docker containers, and disable dual mapping in this case.
   // Also detect for missing support of memfd_create syscall.

@@ -67,6 +67,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
                                      BlockLabel* on_no_match);
   virtual void CheckNotBackReferenceIgnoreCase(intptr_t start_reg,
                                                bool read_backward,
+                                               bool unicode,
                                                BlockLabel* on_no_match);
   virtual void CheckNotCharacter(uint32_t c, BlockLabel* on_not_equal);
   virtual void CheckNotCharacterAfterAnd(uint32_t c,

@@ -203,7 +203,14 @@ class Utils {
     return (static_cast<int64_t>(high) << 32) | (low & 0x0ffffffffLL);
   }
 
-  static bool IsDecimalDigit(char c) { return ('0' <= c) && (c <= '9'); }
+  static inline constexpr bool IsAlphaNumeric(uint32_t c) {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+           IsDecimalDigit(c);
+  }
+
+  static inline constexpr bool IsDecimalDigit(uint32_t c) {
+    return ('0' <= c) && (c <= '9');
+  }
 
   static bool IsHexDigit(char c) {
     return IsDecimalDigit(c) || (('A' <= c) && (c <= 'F')) ||
@@ -386,6 +393,10 @@ class Utils {
   static int SNPrint(char* str, size_t size, const char* format, ...)
       PRINTF_ATTRIBUTE(3, 4);
   static int VSNPrint(char* str, size_t size, const char* format, va_list args);
+
+  // Allocate a string and print formatted output into a malloc'd buffer.
+  static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
+  static char* VSCreate(const char* format, va_list args);
 };
 
 }  // namespace dart

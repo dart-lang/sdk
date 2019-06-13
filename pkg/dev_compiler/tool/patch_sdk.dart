@@ -9,6 +9,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+// ignore: deprecated_member_use
 import 'package:analyzer/analyzer.dart'
     show parseCompilationUnit, parseDirectives;
 import 'package:analyzer/dart/ast/ast.dart';
@@ -21,9 +22,12 @@ void main(List<String> argv) {
   var self = path.relative(path.fromUri(Platform.script));
   if (argv.length < 3) {
     var toolDir = path.relative(path.dirname(path.fromUri(Platform.script)));
+    var dartDir = path.dirname(path
+        .dirname(path.dirname(path.dirname(path.fromUri(Platform.script)))));
 
     var repoExample = path.join(toolDir, '..', '..', '..');
-    var patchExample = path.join(toolDir, 'input_sdk');
+    var patchExample =
+        path.join(dartDir, 'sdk', 'lib', '_internal', 'js_dev_runtime');
     var outExample =
         path.relative(path.normalize(path.join('gen', 'patched_sdk')));
 
@@ -270,7 +274,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   void _maybePatch(Declaration node) {
     if (node is FieldDeclaration) return;
 
-    Token externalKeyword = (node as dynamic).externalKeyword;
+    var externalKeyword = (node as dynamic).externalKeyword as Token;
     if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
@@ -360,7 +364,7 @@ String _qualifiedName(Declaration node) {
     result = "${parent.name.name}.";
   }
 
-  SimpleIdentifier name = (node as dynamic).name;
+  var name = (node as dynamic).name as SimpleIdentifier;
   if (name != null) result += name.name;
 
   // Make sure setters and getters don't collide.
@@ -391,7 +395,7 @@ class StringEditBuffer {
   /// Creates a new transaction.
   StringEditBuffer(this.original);
 
-  bool get hasEdits => _edits.length > 0;
+  bool get hasEdits => _edits.isNotEmpty;
 
   /// Edit the original text, replacing text on the range [begin] and
   /// exclusive [end] with the [replacement] string.
@@ -415,9 +419,10 @@ class StringEditBuffer {
   ///
   /// Throws [UnsupportedError] if the edits were overlapping. If no edits were
   /// made, the original string will be returned.
+  @override
   String toString() {
     var sb = StringBuffer();
-    if (_edits.length == 0) return original;
+    if (_edits.isEmpty) return original;
 
     // Sort edits by start location.
     _edits.sort();
@@ -461,8 +466,10 @@ class _StringEdit implements Comparable<_StringEdit> {
 
   int get length => end - begin;
 
+  @override
   String toString() => '(Edit @ $begin,$end: "$replace")';
 
+  @override
   int compareTo(_StringEdit other) {
     int diff = begin - other.begin;
     if (diff != 0) return diff;

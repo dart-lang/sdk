@@ -16,7 +16,13 @@ dart pkg/analysis_server/bin/server.dart --lsp
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
-## Message Status
+## Initialization Options
+
+- `onlyAnalyzeProjectsWithOpenFiles`: When set to `true`, analysis will only be performed for projects that have open files rather than the root workspace folder. Defaults to `false`.
+- `suggestFromUnimportedLibraries`: When set to `false`, completion will not include synbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
+- `closingLabels`: When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
+
+## Method Status
 
 Below is a list of LSP methods and their implementation status.
 
@@ -31,14 +37,14 @@ Below is a list of LSP methods and their implementation status.
 | initialize | ✅ | ✅ | ✅ | ✅ | trace and other options NYI
 | initialized | ✅ | ✅ | ✅ | ✅ |
 | shutdown | ✅ | ✅ | ✅ | ✅ | supported but does nothing |
-| exit | | | | | |
-| $/cancelRequest | | | | | ignored (unsupported) |
+| exit | ✅ | ✅ | ✅ | ✅ |
+| $/cancelRequest | ✅ | ✅ | ✅ | ✅ |
 | window/showMessage | ✅ | | | |
 | window/showMessageRequest | | | | |
 | window/logMessage | ✅ | | | |
 | telemetry/event | | | | |
-| client/registerCapability | | | | | unused, but should be used for DocumentSelector at least
-| client/unregisterCapability | | | | |
+| client/registerCapability | ✅ | ✅ | ✅ | ✅ |
+| client/unregisterCapability | | | | | (unused, capabilities don't change currently)
 | workspace/workspaceFolders | | | | |
 | workspace/didChangeWorkspaceFolders | ✅ | ✅ | ✅ | ✅ |
 | workspace/configuration | | | | |
@@ -59,7 +65,7 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/declaration | | | | |
 | textDocument/definition | ✅ | ✅ | ✅ | ✅ |
 | textDocument/typeDefinition | | | | |
-| textDocument/implementation | | | | |
+| textDocument/implementation | ✅ | ✅ | ✅ | ✅ |
 | textDocument/references | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentHighlight | ✅ | ✅ | ✅ | ✅ |
 | textDocument/documentSymbol | ✅ | ✅ | ✅ | ✅ |
@@ -81,4 +87,36 @@ Below is a list of LSP methods and their implementation status.
 | textDocument/prepareRename | | | | |
 | textDocument/foldingRange | ✅ | ✅ | ✅ | ✅ |
 
+## Custom Methods
 
+The following custom methods are also provided by the Dart LSP server:
+
+### dart/diagnosticServer Method
+
+Direction: Client -> Server
+Params: None
+Returns: `{ port: number }`
+
+Starts the analzyer diagnostics server (if not already running) and returns the port number it's listening on.
+
+### dart/textDocument/super Method
+
+Direction: Client -> Server
+Params: `TextDocumentPositionParams`
+Returns: `Location | null`
+
+Returns the location of the super definition of the class or method at the provided position or `null` if there isn't one.
+
+### $/analyzerStatus Notification
+
+Direction: Server -> Client
+Params: `{ isAnalyzing: boolean }`
+
+Notifies the client when analysis starts/completes.
+
+### dart/textDocument/publishClosingLabels Notification
+
+Direction: Server -> Client
+Params: `{ uri: string, abels: { label: string, range: Range }[] }`
+
+Notifies the client when closing label information is available (or updated) for a file.

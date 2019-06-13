@@ -16,19 +16,6 @@
 
 namespace dart {
 
-ISOLATE_UNIT_TEST_CASE(CompileScript) {
-  const char* kScriptChars =
-      "class A {\n"
-      "  static foo() { return 42; }\n"
-      "}\n";
-  String& url = String::Handle(String::New("dart-test:CompileScript"));
-  String& source = String::Handle(String::New(kScriptChars));
-  Script& script =
-      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
-  Library& lib = Library::Handle(Library::CoreLibrary());
-  EXPECT(CompilerTest::TestCompileScript(lib, script));
-}
-
 ISOLATE_UNIT_TEST_CASE(CompileFunction) {
   const char* kScriptChars =
       "class A {\n"

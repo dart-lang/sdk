@@ -166,14 +166,13 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
 }
 
 AllocationSampleBuffer::AllocationSampleBuffer(intptr_t capacity)
-    : SampleBuffer(capacity), mutex_(new Mutex()), free_sample_list_(NULL) {}
+    : SampleBuffer(capacity), mutex_(), free_sample_list_(NULL) {}
 
 SampleBuffer::~SampleBuffer() {
   delete memory_;
 }
 
 AllocationSampleBuffer::~AllocationSampleBuffer() {
-  delete mutex_;
 }
 
 Sample* SampleBuffer::At(intptr_t idx) const {
@@ -208,7 +207,7 @@ Sample* SampleBuffer::ReserveSampleAndLink(Sample* previous) {
 }
 
 void AllocationSampleBuffer::FreeAllocationSample(Sample* sample) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   while (sample != NULL) {
     intptr_t continuation_index = -1;
     if (sample->is_continuation_sample()) {
@@ -243,7 +242,7 @@ intptr_t AllocationSampleBuffer::ReserveSampleSlotLocked() {
 }
 
 Sample* AllocationSampleBuffer::ReserveSampleAndLink(Sample* previous) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   ASSERT(previous != NULL);
   intptr_t next_index = ReserveSampleSlotLocked();
   if (next_index < 0) {
@@ -262,7 +261,7 @@ Sample* AllocationSampleBuffer::ReserveSampleAndLink(Sample* previous) {
 }
 
 Sample* AllocationSampleBuffer::ReserveSample() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   intptr_t index = ReserveSampleSlotLocked();
   if (index < 0) {
     return NULL;
@@ -791,7 +790,8 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
         return;
       }
 
-      if ((pc + 1) < pc) {
+      const uword pc_value = reinterpret_cast<uword>(pc);
+      if ((pc_value + 1) < pc_value) {
         // It is not uncommon to encounter an invalid pc as we
         // traverse a stack frame.  Most of these we can tolerate.  If
         // the pc is so large that adding one to it will cause an
@@ -805,7 +805,7 @@ class ProfilerNativeStackWalker : public ProfilerStackWalker {
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
 
-      if (!Append(reinterpret_cast<uword>(pc), reinterpret_cast<uword>(fp))) {
+      if (!Append(pc_value, reinterpret_cast<uword>(fp))) {
         return;
       }
     }

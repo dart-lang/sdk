@@ -50,18 +50,27 @@ abstract class TargetImplementation extends Target {
 
   bool enableConstantUpdate2018;
   bool enableControlFlowCollections;
+  bool enableExtensionMethods;
+  bool enableNonNullable;
   bool enableSetLiterals;
   bool enableSpreadCollections;
+  bool enableTripleShift;
 
   TargetImplementation(Ticker ticker, this.uriTranslator, this.backendTarget)
       : enableConstantUpdate2018 = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.constantUpdate2018),
         enableControlFlowCollections = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.controlFlowCollections),
+        enableExtensionMethods = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.extensionMethods),
+        enableNonNullable = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.nonNullable),
         enableSetLiterals = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.setLiterals),
         enableSpreadCollections = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.spreadCollections),
+        enableTripleShift = CompilerContext.current.options
+            .isExperimentEnabled(ExperimentalFlag.tripleShift),
         super(ticker);
 
   /// Creates a [LibraryBuilder] corresponding to [uri], if one doesn't exist

@@ -4,6 +4,7 @@
 
 #include "vm/symbols.h"
 
+#include "platform/unicode.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -13,7 +14,6 @@
 #include "vm/reusable_handles.h"
 #include "vm/snapshot_ids.h"
 #include "vm/type_table.h"
-#include "vm/unicode.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -573,7 +573,7 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
   Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    data ^= vm_isolate->object_store()->symbol_table();
+    data = vm_isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
@@ -581,7 +581,7 @@ RawString* Symbols::NewSymbol(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->symbols_mutex());
-    data ^= isolate->object_store()->symbol_table();
+    data = isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
@@ -602,7 +602,7 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   Array& data = thread->ArrayHandle();
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    data ^= vm_isolate->object_store()->symbol_table();
+    data = vm_isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();
@@ -610,7 +610,7 @@ RawString* Symbols::Lookup(Thread* thread, const StringType& str) {
   if (symbol.IsNull()) {
     Isolate* isolate = thread->isolate();
     SafepointMutexLocker ml(isolate->symbols_mutex());
-    data ^= isolate->object_store()->symbol_table();
+    data = isolate->object_store()->symbol_table();
     SymbolTable table(&key, &value, &data);
     symbol ^= table.GetOrNull(str);
     table.Release();

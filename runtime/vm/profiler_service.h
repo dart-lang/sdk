@@ -78,6 +78,9 @@ class ProfileFunction : public ZoneAllocated {
 
   const Function* function() const { return &function_; }
 
+  // Returns the resolved_url for the script containing this function.
+  const char* ResolvedScriptUrl() const;
+
   bool is_visible() const;
 
   intptr_t table_index() const { return table_index_; }
@@ -208,13 +211,13 @@ class ProfileCode : public ZoneAllocated {
 
   void PrintToJSONArray(JSONArray* codes);
 
+  ProfileFunction* function() const { return function_; }
+
  private:
   void Tick(uword pc, bool exclusive, intptr_t serial);
   void TickAddress(uword pc, bool exclusive);
 
   ProfileFunction* SetFunctionAndName(ProfileFunctionTable* table);
-
-  ProfileFunction* function() const { return function_; }
 
   void PrintNativeCode(JSONObject* profile_code_obj);
   void PrintCollectedCode(JSONObject* profile_code_obj);

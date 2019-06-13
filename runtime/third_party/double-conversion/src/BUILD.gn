@@ -2,15 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-static_library("libdouble_conversion") {
+source_set("libdouble_conversion") {
   configs += [
     "../../..:dart_arch_config",
     "../../..:dart_config",
     "../../..:dart_os_config",
   ]
-  if (is_fuchsia) {
-    configs -= [ "//build/config:symbol_visibility_hidden" ]
-  }
   sources = [
     "bignum-dtoa.cc",
     "bignum-dtoa.h",

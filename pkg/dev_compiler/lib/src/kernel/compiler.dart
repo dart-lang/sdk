@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:math' show max, min;
 
 import 'package:front_end/src/api_unstable/ddc.dart' show TypeSchemaEnvironment;
@@ -166,6 +167,24 @@ class ProgramCompiler extends Object
   /// label name that was assigned to it.
   final _labelNames = HashMap<Statement, String>.identity();
 
+  /// Indicates that the current context exists within a switch statement that
+  /// uses at least one continue statement with a target label.
+  ///
+  /// JS forbids labels at case statement boundaries, so these switch
+  /// statements must be generated less directly.
+  /// Updated from the method 'visitSwitchStatement'.
+  bool _inLabeledContinueSwitch = false;
+
+  /// A map from switch statements to their state information.
+  /// State information includes the names of the switch statement's implicit
+  /// label name and implicit state variable name.
+  ///
+  /// Entries are only created for switch statements that contain labeled
+  /// continue statements and are used to simulate "jumping" to case statements.
+  /// State variables hold the next constant case expression, while labels act
+  /// as targets for continue and break.
+  final _switchLabelStates = HashMap<Statement, SwitchLabelState>();
+
   final Class _jsArrayClass;
   final Class privateSymbolClass;
   final Class linkedHashMapImplClass;
@@ -298,7 +317,9 @@ class ProgramCompiler extends Object
   @override
   String jsLibraryName(Library library) {
     var uri = library.importUri;
-    if (uri.scheme == 'dart') return uri.path;
+    if (uri.scheme == 'dart') {
+      return isSdkInternalRuntime(library) ? 'dart' : uri.path;
+    }
 
     // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
     Iterable<String> segments;
@@ -317,13 +338,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  String jsLibraryDebuggerName(Library library) {
-    var uri = library.importUri;
-    // For package: and dart: uris show the entire
-    if (uri.scheme == 'dart' || uri.scheme == 'package') return uri.toString();
-    // TODO(jmesserly): this is not unique typically.
-    return uri.pathSegments.last;
-  }
+  String jsLibraryDebuggerName(Library library) => '${library.importUri}';
+
+  @override
+  Iterable<String> jsPartDebuggerNames(Library library) =>
+      library.parts.map((part) => part.partUri);
 
   @override
   bool isSdkInternalRuntime(Library l) {
@@ -533,10 +552,11 @@ class ProgramCompiler extends Object
       className ?? JS.Identifier(name)
     ]);
 
-    var genericArgs = [typeConstructor];
-    if (deferredBaseClass != null && deferredBaseClass.isNotEmpty) {
-      genericArgs.add(js.call('(#) => { #; }', [jsFormals, deferredBaseClass]));
-    }
+    var genericArgs = [
+      typeConstructor,
+      if (deferredBaseClass != null && deferredBaseClass.isNotEmpty)
+        js.call('(#) => { #; }', [jsFormals, deferredBaseClass]),
+    ];
 
     var genericCall = runtimeCall('generic(#)', [genericArgs]);
 
@@ -705,12 +725,12 @@ class ProgramCompiler extends Object
         _currentUri = ctor.enclosingClass.fileUri;
         var jsParams = _emitParameters(ctor.function);
         _currentUri = savedUri;
-        var ctorBody = <JS.Statement>[];
-        if (mixinCtor != null) ctorBody.add(mixinCtor);
         var name = ctor.name.name;
-        if (name != '' || hasUnnamedSuper) {
-          ctorBody.add(_emitSuperConstructorCall(className, name, jsParams));
-        }
+        var ctorBody = [
+          if (mixinCtor != null) mixinCtor,
+          if (name != '' || hasUnnamedSuper)
+            _emitSuperConstructorCall(className, name, jsParams),
+        ];
         body.add(_addConstructorToClass(
             c, className, name, JS.Fun(jsParams, JS.Block(ctorBody))));
       }
@@ -1146,7 +1166,7 @@ class ProgramCompiler extends Object
     var savedClass = _classEmittingSignatures;
     _classEmittingSignatures = c;
 
-    var interfaces = List.from(c.implementedTypes)
+    var interfaces = c.implementedTypes.toList()
       ..addAll(c.superclassConstraints());
     if (interfaces.isNotEmpty) {
       body.add(js.statement('#[#.implements] = () => [#];', [
@@ -1250,6 +1270,10 @@ class ProgramCompiler extends Object
     emitSignature('Setter', instanceSetters);
     emitSignature('StaticGetter', staticGetters);
     emitSignature('StaticSetter', staticSetters);
+    body.add(runtimeStatement('setLibraryUri(#, #)', [
+      className,
+      js.escapedString(jsLibraryDebuggerName(c.enclosingLibrary))
+    ]));
 
     var instanceFields = <JS.Property>[];
     var staticFields = <JS.Property>[];
@@ -1270,8 +1294,10 @@ class ProgramCompiler extends Object
 
     if (emitMetadata) {
       var constructors = <JS.Property>[];
-      var allConstructors = List<Member>.from(c.constructors)
-        ..addAll(c.procedures.where((p) => p.isFactory));
+      var allConstructors = [
+        ...c.constructors,
+        ...c.procedures.where((p) => p.isFactory),
+      ];
       for (var ctor in allConstructors) {
         var memberName = _constructorName(ctor.name.name);
         var type = _emitAnnotatedFunctionType(
@@ -1534,7 +1560,7 @@ class ProgramCompiler extends Object
     if (expr == null) return null;
     var jsExpr = _visitExpression(expr);
     if (!isNullable(expr)) return jsExpr;
-    return runtimeCall('notNull(#)', jsExpr);
+    return runtimeCall('notNull(#)', [jsExpr]);
   }
 
   /// If the class has only factory constructors, and it can be mixed in,
@@ -1978,8 +2004,8 @@ class ProgramCompiler extends Object
       Class c, String jsPeerName, List<JS.Statement> body) {
     var className = _emitTopLevelName(c);
     if (_typeRep.isPrimitive(c.rawType)) {
-      body.add(
-          runtimeStatement('definePrimitiveHashCode(#.prototype)', className));
+      body.add(runtimeStatement(
+          'definePrimitiveHashCode(#.prototype)', [className]));
     }
     body.add(runtimeStatement(
         'registerExtension(#, #)', [js.string(jsPeerName), className]));
@@ -2419,22 +2445,22 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultDartType(type) => _emitInvalidNode(type);
+  JS.Expression defaultDartType(DartType type) => _emitInvalidNode(type);
 
   @override
-  visitInvalidType(type) => defaultDartType(type);
+  JS.Expression visitInvalidType(InvalidType type) => defaultDartType(type);
 
   @override
-  visitDynamicType(type) => runtimeCall('dynamic');
+  JS.Expression visitDynamicType(DynamicType type) => runtimeCall('dynamic');
 
   @override
-  visitVoidType(type) => runtimeCall('void');
+  JS.Expression visitVoidType(VoidType type) => runtimeCall('void');
 
   @override
-  visitBottomType(type) => runtimeCall('bottom');
+  JS.Expression visitBottomType(BottomType type) => runtimeCall('bottom');
 
   @override
-  visitInterfaceType(type) {
+  JS.Expression visitInterfaceType(InterfaceType type) {
     var c = type.classNode;
     _declareBeforeUse(c);
 
@@ -2453,7 +2479,7 @@ class ProgramCompiler extends Object
     // have to use a helper to define them.
     if (isJSAnonymousType(c)) {
       return runtimeCall(
-          'anonymousJSType(#)', js.escapedString(getLocalClassName(c)));
+          'anonymousJSType(#)', [js.escapedString(getLocalClassName(c))]);
     }
     var jsName = _getJSNameWithoutGlobal(c);
     if (jsName != null) {
@@ -2462,7 +2488,7 @@ class ProgramCompiler extends Object
     }
 
     var args = type.typeArguments;
-    Iterable<JS.Expression> jsArgs = null;
+    Iterable<JS.Expression> jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
     }
@@ -2492,7 +2518,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitFunctionType(type, {Member member, bool lazy = false}) {
+  JS.Expression visitFunctionType(type, {Member member, bool lazy = false}) {
     var requiredTypes =
         type.positionalParameters.take(type.requiredParameterCount).toList();
     var function = member?.function;
@@ -2647,14 +2673,15 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTypeParameterType(type) => _emitTypeParameter(type.parameter);
+  JS.Expression visitTypeParameterType(TypeParameterType type) =>
+      _emitTypeParameter(type.parameter);
 
-  JS.Identifier _emitTypeParameter(TypeParameter t) {
-    return JS.Identifier(getTypeParameterName(t));
-  }
+  JS.Identifier _emitTypeParameter(TypeParameter t) =>
+      JS.Identifier(getTypeParameterName(t));
 
   @override
-  visitTypedefType(type) => visitFunctionType(type.unalias);
+  JS.Expression visitTypedefType(TypedefType type) =>
+      visitFunctionType(type.unalias as FunctionType);
 
   JS.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
@@ -2680,11 +2707,11 @@ class ProgramCompiler extends Object
 
   List<JS.Parameter> _emitParameters(FunctionNode f) {
     var positional = f.positionalParameters;
-    var result = List<JS.Parameter>.from(positional.map(_emitVariableDef));
+    var result = List<JS.Parameter>.of(positional.map(_emitVariableDef));
     if (positional.isNotEmpty &&
         f.requiredParameterCount == positional.length &&
         positional.last.annotations.any(isJsRestAnnotation)) {
-      result.last = JS.RestParameter(result.last);
+      result.last = JS.RestParameter(result.last as JS.Identifier);
     }
     if (f.namedParameters.isNotEmpty) result.add(namedArgumentTemp);
     return result;
@@ -2771,8 +2798,9 @@ class ProgramCompiler extends Object
             .toList();
         return mutatedParams;
       });
-      if (mutatedParams.isNotEmpty)
+      if (mutatedParams.isNotEmpty) {
         gen = js.call('() => #(#)', [gen, mutatedParams]);
+      }
 
       var returnType =
           _getExpectedReturnType(function, coreTypes.iterableClass);
@@ -3004,9 +3032,10 @@ class ProgramCompiler extends Object
       // (sync*/async/async*). Our code generator assumes it can emit names for
       // named argument initialization, and sync* functions also emit locally
       // modified parameters into the function's scope.
-      var parameterNames = HashSet<String>()
-        ..addAll(f.positionalParameters.map((p) => p.name))
-        ..addAll(f.namedParameters.map((p) => p.name));
+      var parameterNames = {
+        for (var p in f.positionalParameters) p.name,
+        for (var p in f.namedParameters) p.name,
+      };
 
       return jsBody.toScopedBlock(parameterNames);
     }
@@ -3041,11 +3070,11 @@ class ProgramCompiler extends Object
 
     if (node is AsExpression && node.isTypeError) {
       assert(node.getStaticType(types) == types.boolType);
-      return runtimeCall('dtest(#)', _visitExpression(node.operand));
+      return runtimeCall('dtest(#)', [_visitExpression(node.operand)]);
     }
 
     var result = _visitExpression(node);
-    if (isNullable(node)) result = runtimeCall('test(#)', result);
+    if (isNullable(node)) result = runtimeCall('test(#)', [result]);
     return result;
   }
 
@@ -3098,6 +3127,8 @@ class ProgramCompiler extends Object
       // TODO(jmesserly): figure out why this is throwing. Perhaps the file URI
       // and offset are mismatched and don't correspond to the same source?
       return null;
+    } on RangeError catch (_) {
+      return null;
     }
   }
 
@@ -3114,10 +3145,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultStatement(Statement node) => _emitInvalidNode(node).toStatement();
+  JS.Statement defaultStatement(Statement node) =>
+      _emitInvalidNode(node).toStatement();
 
   @override
-  visitExpressionStatement(ExpressionStatement node) {
+  JS.Statement visitExpressionStatement(ExpressionStatement node) {
     var expr = node.expression;
     if (expr is StaticInvocation) {
       if (isInlineJS(expr.target)) {
@@ -3131,7 +3163,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBlock(Block node) {
+  JS.Statement visitBlock(Block node) {
     // If this is the block body of a function, don't mark it as a separate
     // scope, because the function is the scope. This avoids generating an
     // unncessary nested block.
@@ -3145,17 +3177,17 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitEmptyStatement(EmptyStatement node) => JS.EmptyStatement();
+  JS.Statement visitEmptyStatement(EmptyStatement node) => JS.EmptyStatement();
 
   @override
-  visitAssertBlock(AssertBlock node) {
+  JS.Statement visitAssertBlock(AssertBlock node) {
     // AssertBlocks are introduced by the VM-specific async elimination
     // transformation.  We do not expect them to arise here.
     throw UnsupportedError('compilation of an assert block');
   }
 
   @override
-  visitAssertStatement(AssertStatement node) {
+  JS.Statement visitAssertStatement(AssertStatement node) {
     if (!options.enableAsserts) return JS.EmptyStatement();
     var condition = node.condition;
     var conditionType = condition.getStaticType(types);
@@ -3165,16 +3197,30 @@ class ProgramCompiler extends Object
     if (conditionType is FunctionType &&
         conditionType.requiredParameterCount == 0 &&
         conditionType.returnType == boolType) {
-      jsCondition = runtimeCall('test(#())', jsCondition);
+      jsCondition = runtimeCall('test(#())', [jsCondition]);
     } else if (conditionType != boolType) {
-      jsCondition = runtimeCall('dassert(#)', jsCondition);
+      jsCondition = runtimeCall('dassert(#)', [jsCondition]);
     } else if (isNullable(condition)) {
-      jsCondition = runtimeCall('test(#)', jsCondition);
+      jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
-    return js.statement(' if (!#) #.assertFailed(#);', [
+
+    var encodedConditionSource = node
+        .enclosingComponent.uriToSource[node.location.file].source
+        .sublist(node.conditionStartOffset, node.conditionEndOffset);
+    var conditionSource = utf8.decode(encodedConditionSource);
+    var location = _getLocation(node.conditionStartOffset);
+    return js.statement(' if (!#) #.assertFailed(#, #, #, #, #);', [
       jsCondition,
       runtimeModule,
-      node.message != null ? [_visitExpression(node.message)] : []
+      if (node.message == null)
+        JS.LiteralNull()
+      else
+        _visitExpression(node.message),
+      js.escapedString(location.sourceUrl.toString()),
+      // Lines and columns are typically printed with 1 based indexing.
+      js.number(location.line + 1),
+      js.number(location.column + 1),
+      js.escapedString(conditionSource),
     ]);
   }
 
@@ -3189,7 +3235,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLabeledStatement(LabeledStatement node) {
+  JS.Statement visitLabeledStatement(LabeledStatement node) {
     List<LabeledStatement> saved;
     var target = _effectiveTargets[node];
     // If the effective target is known then this statement is either contained
@@ -3205,7 +3251,9 @@ class ProgramCompiler extends Object
         statements.add(labeled);
         target = labeled.body;
       }
-      for (var statement in statements) _effectiveTargets[statement] = target;
+      for (var statement in statements) {
+        _effectiveTargets[statement] = target;
+      }
 
       // If the effective target will compile to something that can have a
       // break from it without a label (e.g., a loop but not a block), then any
@@ -3225,7 +3273,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBreakStatement(BreakStatement node) {
+  JS.Statement visitBreakStatement(BreakStatement node) {
+    // Switch statements with continue labels must explicitly break to their
+    // implicit label due to their being wrapped in a loop.
+    if (_inLabeledContinueSwitch &&
+        _switchLabelStates.containsKey(node.target.body)) {
+      return JS.Break(_switchLabelStates[node.target.body].label);
+    }
     // Can it be compiled to a break without a label?
     if (_currentBreakTargets.contains(node.target)) {
       return JS.Break(null);
@@ -3238,7 +3292,7 @@ class ProgramCompiler extends Object
     // Ensure the effective target is labeled.  Labels are named globally per
     // Kernel binary.
     //
-    // TODO(kmillikin): Preserve Dart label names in Kernel and here.
+    // TODO(markzipan): Retrieve the real label name with source offsets
     var target = _effectiveTargets[node.target];
     var name = _labelNames[target];
     if (name == null) _labelNames[target] = name = 'L${_labelNames.length}';
@@ -3406,44 +3460,103 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  JS.Statement visitSwitchStatement(SwitchStatement node) {
+    // Switches with labeled continues are generated as an infinite loop with
+    // an explicit variable for holding the switch's next case state and an
+    // explicit label. Any implicit breaks are made explicit (e.g., when break
+    // is omitted for the final case statement).
+    var previous = _inLabeledContinueSwitch;
+    _inLabeledContinueSwitch = hasLabeledContinue(node);
+
     var cases = <JS.SwitchCase>[];
-    var emptyBlock = JS.Block.empty();
-    for (var c in node.cases) {
-      // TODO(jmesserly): make sure we are statically checking fall through
-      var body = _visitStatement(c.body).toBlock();
-      var expressions = c.expressions;
-      var last =
-          expressions.isNotEmpty && !c.isDefault ? expressions.last : null;
-      for (var e in expressions) {
-        var jsExpr = _visitExpression(e);
-        cases.add(JS.SwitchCase(jsExpr, e == last ? body : emptyBlock));
+
+    if (_inLabeledContinueSwitch) {
+      var labelState = JS.TemporaryId("labelState");
+      // TODO(markzipan): Retrieve the real label name with source offsets
+      var labelName = 'SL${_switchLabelStates.length}';
+      _switchLabelStates[node] = SwitchLabelState(labelName, labelState);
+
+      for (var c in node.cases) {
+        var subcases =
+            _visitSwitchCase(c, lastSwitchCase: c == node.cases.last);
+        if (subcases.isNotEmpty) cases.addAll(subcases);
       }
-      if (c.isDefault) cases.add(JS.SwitchCase.defaultCase(body));
+
+      var switchExpr = _visitExpression(node.expression);
+      var switchStmt = JS.Switch(labelState, cases);
+      var loopBody = JS.Block([switchStmt, JS.Break(null)]);
+      var loopStmt = JS.While(js.boolean(true), loopBody);
+      // Note: Cannot use _labelNames, as the label must be on the loop.
+      // not the block surrounding the switch statement.
+      var labeledStmt = JS.LabeledStatement(labelName, loopStmt);
+      var block = JS.Block([
+        js.statement('let # = #', [labelState, switchExpr]),
+        labeledStmt
+      ]);
+      _inLabeledContinueSwitch = previous;
+      return block;
     }
 
-    return JS.Switch(_visitExpression(node.expression), cases);
+    for (var c in node.cases) {
+      var subcases = _visitSwitchCase(c);
+      if (subcases.isNotEmpty) cases.addAll(subcases);
+    }
+
+    var stmt = JS.Switch(_visitExpression(node.expression), cases);
+    _inLabeledContinueSwitch = previous;
+    return stmt;
+  }
+
+  /// Helper for visiting a SwitchCase statement.
+  ///
+  /// lastSwitchCase is only used when the current switch statement contains
+  /// labeled continues. Dart permits the final case to implicitly break, but
+  /// switch statements with labeled continues must explicitly break/continue
+  /// to escape the surrounding infinite loop.
+  List<JS.SwitchCase> _visitSwitchCase(SwitchCase node,
+      {bool lastSwitchCase = false}) {
+    var cases = <JS.SwitchCase>[];
+    var emptyBlock = JS.Block.empty();
+    // TODO(jmesserly): make sure we are statically checking fall through
+    var body = _visitStatement(node.body).toBlock();
+    var expressions = node.expressions;
+    var lastExpr =
+        expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
+    for (var e in expressions) {
+      var jsExpr = _visitExpression(e);
+      cases.add(JS.SwitchCase(jsExpr, e == lastExpr ? body : emptyBlock));
+    }
+    if (node.isDefault) {
+      cases.add(JS.SwitchCase.defaultCase(body));
+    }
+    // Switch statements with continue labels must explicitly break from their
+    // last case to escape the additional loop around the switch.
+    if (lastSwitchCase && _inLabeledContinueSwitch && cases.isNotEmpty) {
+      // TODO(markzipan): avoid generating unreachable breaks
+      assert(_switchLabelStates.containsKey(node.parent));
+      var breakStmt = JS.Break(_switchLabelStates[node.parent].label);
+      var switchBody = JS.Block(cases.last.body.statements..add(breakStmt));
+      var updatedSwitch = JS.SwitchCase(cases.last.expression, switchBody);
+      cases.removeLast();
+      cases.add(updatedSwitch);
+    }
+    return cases;
   }
 
   @override
-  visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    SwitchCase switchCase;
-    for (Statement current = node;;) {
-      var parent = current.parent;
-      if (parent is Block && parent.statements.last == current) {
-        current = parent;
-        continue;
-      }
-      if (parent is SwitchCase) switchCase = parent;
-      break;
-    }
-    if (switchCase != null) {
-      var switchCases = (switchCase.parent as SwitchStatement).cases;
-      var fromIndex = switchCases.indexOf(switchCase);
-      var toIndex = switchCases.indexOf(node.target);
-      if (toIndex == fromIndex + 1) {
-        return JS.Comment('continue to next case');
-      }
+  JS.Statement visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    var switchStmt = node.target.parent;
+    if (_inLabeledContinueSwitch &&
+        _switchLabelStates.containsKey(switchStmt)) {
+      var switchState = _switchLabelStates[switchStmt];
+      // Use the first constant expression that can match the collated switch
+      // case. Use an unused symbol otherwise to force the default case.
+      var jsExpr = node.target.expressions.isEmpty
+          ? js.call("Symbol('_default')", [])
+          : _visitExpression(node.target.expressions[0]);
+      var setStateStmt = js.statement("# = #", [switchState.variable, jsExpr]);
+      var continueStmt = JS.Continue(switchState.label);
+      return JS.Block([setStateStmt, continueStmt]);
     }
     return _emitInvalidNode(
             node, 'see https://github.com/dart-lang/sdk/issues/29352')
@@ -3451,7 +3564,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  JS.Statement visitIfStatement(IfStatement node) {
     return JS.If(_visitTest(node.condition), _visitScope(node.then),
         _visitScope(node.otherwise));
   }
@@ -3477,7 +3590,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTryCatch(TryCatch node) {
+  JS.Statement visitTryCatch(TryCatch node) {
     return JS.Try(
         _visitStatement(node.body).toBlock(), _visitCatch(node.catches), null);
   }
@@ -3512,15 +3625,14 @@ class ProgramCompiler extends Object
         runtimeModule,
         _emitVariableRef(caughtError)
       ]),
+      if (stackTraceParameter != null)
+        js.statement('let # = #.stackTrace(#)', [
+          _emitVariableDef(stackTraceParameter),
+          runtimeModule,
+          _emitVariableRef(caughtError)
+        ]),
+      catchBody,
     ];
-    if (stackTraceParameter != null) {
-      catchStatements.add(js.statement('let # = #.stackTrace(#)', [
-        _emitVariableDef(stackTraceParameter),
-        runtimeModule,
-        _emitVariableRef(caughtError)
-      ]));
-    }
-    catchStatements.add(catchBody);
     _rethrowParameter = savedRethrow;
     return JS.Catch(_emitVariableDef(caughtError), JS.Block(catchStatements));
   }
@@ -3559,7 +3671,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitTryFinally(TryFinally node) {
+  JS.Statement visitTryFinally(TryFinally node) {
     var body = _visitStatement(node.body);
     var finallyBlock =
         _superDisallowed(() => _visitStatement(node.finalizer).toBlock());
@@ -3574,7 +3686,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitYieldStatement(YieldStatement node) {
+  JS.Statement visitYieldStatement(YieldStatement node) {
     var jsExpr = _visitExpression(node.expression);
     var star = node.isYieldStar;
     if (_asyncStarController != null) {
@@ -3601,7 +3713,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  JS.Statement visitVariableDeclaration(VariableDeclaration node) {
     // TODO(jmesserly): casts are sometimes required here.
     // Kernel does not represent these explicitly.
     var v = _emitVariableDef(node);
@@ -3610,7 +3722,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  JS.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     var func = node.function;
     var fn = _emitFunction(func, node.variable.name);
 
@@ -3628,20 +3740,22 @@ class ProgramCompiler extends Object
   }
 
   @override
-  defaultExpression(Expression node) => _emitInvalidNode(node);
+  JS.Expression defaultExpression(Expression node) => _emitInvalidNode(node);
 
   @override
-  defaultBasicLiteral(BasicLiteral node) => defaultExpression(node);
+  JS.Expression defaultBasicLiteral(BasicLiteral node) =>
+      defaultExpression(node);
 
   @override
-  visitInvalidExpression(InvalidExpression node) => defaultExpression(node);
+  JS.Expression visitInvalidExpression(InvalidExpression node) =>
+      defaultExpression(node);
 
   @override
-  visitConstantExpression(ConstantExpression node) =>
-      node.constant.accept(this);
+  JS.Expression visitConstantExpression(ConstantExpression node) =>
+      node.constant.accept(this) as JS.Expression;
 
   @override
-  visitVariableGet(VariableGet node) {
+  JS.Expression visitVariableGet(VariableGet node) {
     var v = node.variable;
     var id = _emitVariableRef(v);
     if (id.name == v.name) {
@@ -3681,28 +3795,29 @@ class ProgramCompiler extends Object
 
   // TODO(jmesserly): resugar operators for kernel, such as ++x, x++, x+=.
   @override
-  visitVariableSet(VariableSet node) => _visitExpression(node.value)
-      .toAssignExpression(_emitVariableRef(node.variable));
+  JS.Expression visitVariableSet(VariableSet node) =>
+      _visitExpression(node.value)
+          .toAssignExpression(_emitVariableRef(node.variable));
 
   @override
-  visitPropertyGet(PropertyGet node) {
+  JS.Expression visitPropertyGet(PropertyGet node) {
     return _emitPropertyGet(
         node.receiver, node.interfaceTarget, node.name.name);
   }
 
   @override
-  visitPropertySet(PropertySet node) {
+  JS.Expression visitPropertySet(PropertySet node) {
     return _emitPropertySet(
         node.receiver, node.interfaceTarget, node.value, node.name.name);
   }
 
   @override
-  visitDirectPropertyGet(DirectPropertyGet node) {
+  JS.Expression visitDirectPropertyGet(DirectPropertyGet node) {
     return _emitPropertyGet(node.receiver, node.target);
   }
 
   @override
-  visitDirectPropertySet(DirectPropertySet node) {
+  JS.Expression visitDirectPropertySet(DirectPropertySet node) {
     return _emitPropertySet(node.receiver, node.target, node.value);
   }
 
@@ -3767,7 +3882,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSuperPropertyGet(SuperPropertyGet node) {
+  JS.Expression visitSuperPropertyGet(SuperPropertyGet node) {
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target);
     if (_reifyTearoff(target)) {
@@ -3777,14 +3892,14 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSuperPropertySet(SuperPropertySet node) {
+  JS.Expression visitSuperPropertySet(SuperPropertySet node) {
     var target = node.interfaceTarget;
     var jsTarget = _emitSuperTarget(target, setter: true);
     return _visitExpression(node.value).toAssignExpression(jsTarget);
   }
 
   @override
-  visitStaticGet(StaticGet node) => _emitStaticGet(node.target);
+  JS.Expression visitStaticGet(StaticGet node) => _emitStaticGet(node.target);
 
   JS.Expression _emitStaticGet(Member target) {
     // TODO(vsm): Re-inline constants.  See:
@@ -3800,19 +3915,19 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStaticSet(StaticSet node) {
+  JS.Expression visitStaticSet(StaticSet node) {
     return _visitExpression(node.value)
         .toAssignExpression(_emitStaticTarget(node.target));
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  JS.Expression visitMethodInvocation(MethodInvocation node) {
     return _emitMethodCall(
         node.receiver, node.interfaceTarget, node.arguments, node);
   }
 
   @override
-  visitDirectMethodInvocation(DirectMethodInvocation node) {
+  JS.Expression visitDirectMethodInvocation(DirectMethodInvocation node) {
     return _emitMethodCall(node.receiver, node.target, node.arguments, node);
   }
 
@@ -3920,7 +4035,7 @@ class ProgramCompiler extends Object
     return null;
   }
 
-  _isDynamicOrFunction(DartType t) =>
+  bool _isDynamicOrFunction(DartType t) =>
       t == coreTypes.functionClass.rawType || t == const DynamicType();
 
   JS.Expression _emitUnaryOperator(
@@ -4276,7 +4391,7 @@ class ProgramCompiler extends Object
 
   // TODO(jmesserly): optimize super operators for kernel
   @override
-  visitSuperMethodInvocation(SuperMethodInvocation node) {
+  JS.Expression visitSuperMethodInvocation(SuperMethodInvocation node) {
     var target = node.interfaceTarget;
     return JS.Call(_emitSuperTarget(target),
         _emitArgumentList(node.arguments, target: target));
@@ -4310,13 +4425,12 @@ class ProgramCompiler extends Object
             isGetter: !setter, isSetter: setter);
       } else {
         var function = member.function;
-        var params = _emitTypeFormals(function.typeParameters);
-        for (var param in function.positionalParameters) {
-          params.add(JS.Identifier(param.name));
-        }
-        if (function.namedParameters.isNotEmpty) {
-          params.add(namedArgumentTemp);
-        }
+        var params = [
+          ..._emitTypeFormals(function.typeParameters),
+          for (var param in function.positionalParameters)
+            JS.Identifier(param.name),
+          if (function.namedParameters.isNotEmpty) namedArgumentTemp,
+        ];
 
         var fn = js.fun(
             'function(#) { return super[#](#); }', [params, jsName, params]);
@@ -4328,7 +4442,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStaticInvocation(StaticInvocation node) {
+  JS.Expression visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
     if (isInlineJS(target)) return _emitInlineJSCode(node) as JS.Expression;
     if (target.isFactory) return _emitFactoryInvocation(node);
@@ -4429,26 +4543,18 @@ class ProgramCompiler extends Object
   List<JS.Expression> _emitArgumentList(Arguments node,
       {bool types = true, Member target}) {
     types = types && _reifyGenericFunction(target);
-    var args = <JS.Expression>[];
-    if (types) {
-      for (var typeArg in node.types) {
-        args.add(_emitType(typeArg));
-      }
-    }
-    for (var arg in node.positional) {
-      if (arg is StaticInvocation &&
-          isJSSpreadInvocation(arg.target) &&
-          arg.arguments.positional.length == 1) {
-        args.add(JS.Spread(_visitExpression(arg.arguments.positional[0])));
-      } else {
-        args.add(_visitExpression(arg));
-      }
-    }
-    if (node.named.isNotEmpty) {
-      args.add(
-          JS.ObjectInitializer(node.named.map(_emitNamedExpression).toList()));
-    }
-    return args;
+    return [
+      if (types) for (var typeArg in node.types) _emitType(typeArg),
+      for (var arg in node.positional)
+        if (arg is StaticInvocation &&
+            isJSSpreadInvocation(arg.target) &&
+            arg.arguments.positional.length == 1)
+          JS.Spread(_visitExpression(arg.arguments.positional[0]))
+        else
+          _visitExpression(arg),
+      if (node.named.isNotEmpty)
+        JS.ObjectInitializer(node.named.map(_emitNamedExpression).toList()),
+    ];
   }
 
   JS.Property _emitNamedExpression(NamedExpression arg) {
@@ -4563,7 +4669,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitConstructorInvocation(ConstructorInvocation node) {
+  JS.Expression visitConstructorInvocation(ConstructorInvocation node) {
     var ctor = node.target;
     var args = node.arguments;
     var result = JS.New(_emitConstructorName(node.constructedType, ctor),
@@ -4586,7 +4692,9 @@ class ProgramCompiler extends Object
 
     if (isFromEnvironmentInvocation(coreTypes, node)) {
       var value = _constants.evaluate(node);
-      if (value is PrimitiveConstant) return value.accept(this);
+      if (value is PrimitiveConstant) {
+        return value.accept(this) as JS.Expression;
+      }
     }
 
     if (args.positional.isEmpty &&
@@ -4659,7 +4767,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitNot(Not node) {
+  JS.Expression visitNot(Not node) {
     var operand = node.operand;
     if (operand is MethodInvocation && operand.name.name == '==') {
       return _emitEqualityOperator(operand.receiver, operand.interfaceTarget,
@@ -4681,14 +4789,14 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLogicalExpression(LogicalExpression node) {
+  JS.Expression visitLogicalExpression(LogicalExpression node) {
     // The operands of logical boolean operators are subject to boolean
     // conversion.
     return _visitTest(node);
   }
 
   @override
-  visitConditionalExpression(ConditionalExpression node) {
+  JS.Expression visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
       _visitTest(node.condition),
       _visitExpression(node.then),
@@ -4698,7 +4806,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringConcatenation(StringConcatenation node) {
+  JS.Expression visitStringConcatenation(StringConcatenation node) {
     var parts = <JS.Expression>[];
     for (var e in node.expressions) {
       var jsExpr = _visitExpression(e);
@@ -4707,20 +4815,20 @@ class ProgramCompiler extends Object
       }
       parts.add(e.getStaticType(types) == types.stringType && !isNullable(e)
           ? jsExpr
-          : runtimeCall('str(#)', jsExpr));
+          : runtimeCall('str(#)', [jsExpr]));
     }
     if (parts.isEmpty) return js.string('');
     return JS.Expression.binary(parts, '+');
   }
 
   @override
-  visitListConcatenation(ListConcatenation node) {
+  JS.Expression visitListConcatenation(ListConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is ListConcatenation)
+      if (node is ListConcatenation) {
         node.lists.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var list = node.constant as ListConstant;
@@ -4736,13 +4844,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSetConcatenation(SetConcatenation node) {
+  JS.Expression visitSetConcatenation(SetConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is SetConcatenation)
+      if (node is SetConcatenation) {
         node.sets.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var set = node.constant as SetConstant;
@@ -4758,13 +4866,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitMapConcatenation(MapConcatenation node) {
+  JS.Expression visitMapConcatenation(MapConcatenation node) {
     // Only occurs inside unevaluated constants.
     List<JS.Expression> entries = [];
     _concatenate(Expression node) {
-      if (node is MapConcatenation)
+      if (node is MapConcatenation) {
         node.maps.forEach(_concatenate);
-      else {
+      } else {
         node.accept(this);
         if (node is ConstantExpression) {
           var map = node.constant as MapConstant;
@@ -4786,13 +4894,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitInstanceCreation(InstanceCreation node) {
+  JS.Expression visitInstanceCreation(InstanceCreation node) {
     // Only occurs inside unevaluated constants.
     throw new UnsupportedError("Instance creation");
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  JS.Expression visitIsExpression(IsExpression node) {
     return _emitIsExpression(node.operand, node.type);
   }
 
@@ -4809,7 +4917,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  JS.Expression visitAsExpression(AsExpression node) {
     Expression fromExpr = node.operand;
     var to = node.type;
     var jsFrom = _visitExpression(fromExpr);
@@ -4843,7 +4951,7 @@ class ProgramCompiler extends Object
         // TODO(jmesserly): fuse this with notNull check.
         // TODO(jmesserly): this does not correctly distinguish user casts from
         // required-for-soundness casts.
-        return runtimeCall('asInt(#)', jsFrom);
+        return runtimeCall('asInt(#)', [jsFrom]);
       }
 
       // A no-op in JavaScript.
@@ -4862,32 +4970,34 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSymbolLiteral(SymbolLiteral node) => emitDartSymbol(node.value);
+  JS.Expression visitSymbolLiteral(SymbolLiteral node) =>
+      emitDartSymbol(node.value);
 
   @override
-  visitTypeLiteral(TypeLiteral node) => _emitTypeLiteral(node.type);
+  JS.Expression visitTypeLiteral(TypeLiteral node) =>
+      _emitTypeLiteral(node.type);
 
-  _emitTypeLiteral(DartType type) {
+  JS.Expression _emitTypeLiteral(DartType type) {
     var typeRep = _emitType(type);
     // If the type is a type literal expression in Dart code, wrap the raw
     // runtime type in a "Type" instance.
-    return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', typeRep);
+    return _isInForeignJS ? typeRep : runtimeCall('wrapType(#)', [typeRep]);
   }
 
   @override
-  visitThisExpression(ThisExpression node) => JS.This();
+  JS.Expression visitThisExpression(ThisExpression node) => JS.This();
 
   @override
-  visitRethrow(Rethrow node) {
-    return runtimeCall('rethrow(#)', _emitVariableRef(_rethrowParameter));
+  JS.Expression visitRethrow(Rethrow node) {
+    return runtimeCall('rethrow(#)', [_emitVariableRef(_rethrowParameter)]);
   }
 
   @override
-  visitThrow(Throw node) =>
-      runtimeCall('throw(#)', _visitExpression(node.expression));
+  JS.Expression visitThrow(Throw node) =>
+      runtimeCall('throw(#)', [_visitExpression(node.expression)]);
 
   @override
-  visitListLiteral(ListLiteral node) {
+  JS.Expression visitListLiteral(ListLiteral node) {
     var elementType = node.typeArgument;
     var elements = _visitExpressionList(node.expressions);
     // TODO(markzipan): remove const check when we use front-end const eval
@@ -4919,7 +5029,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitSetLiteral(SetLiteral node) {
+  JS.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
       var setType = visitInterfaceType(
@@ -4941,12 +5051,13 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitMapLiteral(MapLiteral node) {
-    var entries = <JS.Expression>[];
-    for (var e in node.entries) {
-      entries.add(_visitExpression(e.key));
-      entries.add(_visitExpression(e.value));
-    }
+  JS.Expression visitMapLiteral(MapLiteral node) {
+    var entries = [
+      for (var e in node.entries) ...[
+        _visitExpression(e.key),
+        _visitExpression(e.value),
+      ],
+    ];
 
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
@@ -4967,11 +5078,11 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitAwaitExpression(AwaitExpression node) =>
+  JS.Expression visitAwaitExpression(AwaitExpression node) =>
       JS.Yield(_visitExpression(node.operand));
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  JS.Expression visitFunctionExpression(FunctionExpression node) {
     var fn = _emitArrowFunction(node);
     if (!_reifyFunctionType(node.function)) return fn;
     return _emitFunctionTagged(fn, node.getStaticType(types) as FunctionType);
@@ -4983,11 +5094,11 @@ class ProgramCompiler extends Object
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is JS.Block) {
-      JS.Block block = body;
+      var block = body as JS.Block;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
         if (s is JS.Block) {
-          block = s;
+          block = s as JS.Block;
           s = block.statements.length == 1 ? block.statements[0] : null;
         }
         if (s is JS.Return && s.value != null) body = s.value;
@@ -5000,22 +5111,24 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringLiteral(StringLiteral node) => js.escapedString(node.value, '"');
+  JS.Expression visitStringLiteral(StringLiteral node) =>
+      js.escapedString(node.value, '"');
 
   @override
-  visitIntLiteral(IntLiteral node) => js.uint64(node.value);
+  JS.Expression visitIntLiteral(IntLiteral node) => js.uint64(node.value);
 
   @override
-  visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);
+  JS.Expression visitDoubleLiteral(DoubleLiteral node) => js.number(node.value);
 
   @override
-  visitBoolLiteral(BoolLiteral node) => JS.LiteralBool(node.value);
+  JS.Expression visitBoolLiteral(BoolLiteral node) =>
+      JS.LiteralBool(node.value);
 
   @override
-  visitNullLiteral(NullLiteral node) => JS.LiteralNull();
+  JS.Expression visitNullLiteral(NullLiteral node) => JS.LiteralNull();
 
   @override
-  visitLet(Let node) {
+  JS.Expression visitLet(Let node) {
     var v = node.variable;
     var init = _visitExpression(v.initializer);
     var body = _visitExpression(node.body);
@@ -5037,12 +5150,12 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitBlockExpression(BlockExpression node) {
+  JS.Expression visitBlockExpression(BlockExpression node) {
     var jsExpr = _visitExpression(node.value);
-    List<JS.Statement> jsStmts = node.body.statements
-        .map(_visitStatement)
-        .toList()
-          ..add(JS.Return(jsExpr));
+    var jsStmts = [
+      for (var s in node.body.statements) _visitStatement(s),
+      JS.Return(jsExpr),
+    ];
     var jsBlock = JS.Block(jsStmts);
     // BlockExpressions with async operations must be constructed
     // with a generator instead of a lambda.
@@ -5060,7 +5173,7 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitInstantiation(Instantiation node) {
+  JS.Expression visitInstantiation(Instantiation node) {
     return runtimeCall('gbind(#, #)', [
       _visitExpression(node.expression),
       node.typeArguments.map(_emitType).toList()
@@ -5068,14 +5181,16 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitLoadLibrary(LoadLibrary node) => runtimeCall('loadLibrary()');
+  JS.Expression visitLoadLibrary(LoadLibrary node) =>
+      runtimeCall('loadLibrary()');
 
   // TODO(jmesserly): DDC loads all libraries eagerly.
   // See
   // https://github.com/dart-lang/sdk/issues/27776
   // https://github.com/dart-lang/sdk/issues/27777
   @override
-  visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) => js.boolean(true);
+  JS.Expression visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) =>
+      js.boolean(true);
 
   bool _reifyFunctionType(FunctionNode f) {
     if (_currentLibrary.importUri.scheme != 'dart') return true;
@@ -5118,18 +5233,19 @@ class ProgramCompiler extends Object
   /// Calls [findAnnotation] followed by [getNameFromAnnotation].
   String getAnnotationName(NamedNode node, bool test(Expression value)) {
     return _constants.getFieldValueFromAnnotation(
-        findAnnotation(node, test), 'name');
+        findAnnotation(node, test), 'name') as String;
   }
 
-  JS.Expression visitConstant(Constant node) => node.accept(this);
+  JS.Expression visitConstant(Constant node) =>
+      node.accept(this) as JS.Expression;
   @override
-  visitNullConstant(NullConstant node) => JS.LiteralNull();
+  JS.Expression visitNullConstant(NullConstant node) => JS.LiteralNull();
   @override
-  visitBoolConstant(BoolConstant node) => js.boolean(node.value);
+  JS.Expression visitBoolConstant(BoolConstant node) => js.boolean(node.value);
   @override
-  visitIntConstant(IntConstant node) => js.number(node.value);
+  JS.Expression visitIntConstant(IntConstant node) => js.number(node.value);
   @override
-  visitDoubleConstant(DoubleConstant node) {
+  JS.Expression visitDoubleConstant(DoubleConstant node) {
     var value = node.value;
 
     // Emit the constant as an integer, if possible.
@@ -5147,41 +5263,41 @@ class ProgramCompiler extends Object
   }
 
   @override
-  visitStringConstant(StringConstant node) => js.escapedString(node.value, '"');
+  JS.Expression visitStringConstant(StringConstant node) =>
+      js.escapedString(node.value, '"');
 
   // DDC does not currently use the non-primivite constant nodes; rather these
   // are emitted via their normal expression nodes.
   @override
-  defaultConstant(Constant node) => _emitInvalidNode(node);
+  JS.Expression defaultConstant(Constant node) => _emitInvalidNode(node);
 
   @override
-  visitSymbolConstant(node) => emitDartSymbol(node.name);
+  JS.Expression visitSymbolConstant(SymbolConstant node) =>
+      emitDartSymbol(node.name);
 
   @override
-  visitMapConstant(node) {
-    var entries = <JS.Expression>[];
-    for (var e in node.entries) {
-      entries.add(visitConstant(e.key));
-      entries.add(visitConstant(e.value));
-    }
-
+  JS.Expression visitMapConstant(MapConstant node) {
+    var entries = [
+      for (var e in node.entries) ...[
+        visitConstant(e.key),
+        visitConstant(e.value),
+      ],
+    ];
     return _emitConstMap(node.keyType, node.valueType, entries);
   }
 
   @override
-  visitListConstant(node) => _emitConstList(
+  JS.Expression visitListConstant(ListConstant node) => _emitConstList(
       node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
-  visitSetConstant(node) {
-    return _emitConstSet(
-        node.typeArgument, node.entries.map(visitConstant).toList());
-  }
+  JS.Expression visitSetConstant(SetConstant node) => _emitConstSet(
+      node.typeArgument, node.entries.map(visitConstant).toList());
 
   @override
-  visitInstanceConstant(node) {
+  JS.Expression visitInstanceConstant(InstanceConstant node) {
     entryToProperty(MapEntry<Reference, Constant> entry) {
-      var constant = entry.value.accept(this);
+      var constant = entry.value.accept(this) as JS.Expression;
       var member = entry.key.asField;
       return JS.Property(
           _emitMemberName(member.name.name, member: member), constant);
@@ -5189,30 +5305,33 @@ class ProgramCompiler extends Object
 
     var type = visitInterfaceType(node.getType(types) as InterfaceType);
     var prototype = js.call("#.prototype", [type]);
-    var properties = [JS.Property(propertyName("__proto__"), prototype)]
-      ..addAll(node.fieldValues.entries.map(entryToProperty));
+    var properties = [
+      JS.Property(propertyName("__proto__"), prototype),
+      for (var e in node.fieldValues.entries) entryToProperty(e),
+    ];
     return canonicalizeConstObject(
         JS.ObjectInitializer(properties, multiline: true));
   }
 
   @override
-  visitTearOffConstant(node) => _emitStaticGet(node.procedure);
+  JS.Expression visitTearOffConstant(TearOffConstant node) =>
+      _emitStaticGet(node.procedure);
 
   @override
-  visitTypeLiteralConstant(node) => _emitTypeLiteral(node.type);
+  JS.Expression visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      _emitTypeLiteral(node.type);
 
   @override
-  visitPartialInstantiationConstant(node) {
-    return runtimeCall('gbind(#, #)', [
-      visitConstant(node.tearOffConstant),
-      node.types.map(_emitType).toList()
-    ]);
-  }
+  JS.Expression visitPartialInstantiationConstant(
+          PartialInstantiationConstant node) =>
+      runtimeCall('gbind(#, #)', [
+        visitConstant(node.tearOffConstant),
+        node.types.map(_emitType).toList()
+      ]);
 
   @override
-  visitUnevaluatedConstant(node) {
-    return _visitExpression(node.expression);
-  }
+  JS.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
+      _visitExpression(node.expression);
 }
 
 bool _isInlineJSFunction(Statement body) {
@@ -5260,4 +5379,11 @@ bool _isObjectMethodCall(String name, Arguments args) {
         args.types.isEmpty;
   }
   return false;
+}
+
+class SwitchLabelState {
+  String label;
+  JS.Identifier variable;
+
+  SwitchLabelState(this.label, this.variable);
 }

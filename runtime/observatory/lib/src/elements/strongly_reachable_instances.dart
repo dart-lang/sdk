@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class StronglyReachableInstancesElement extends HtmlElement
+class StronglyReachableInstancesElement extends CustomElement
     implements Renderable {
   static const tag = const Tag<StronglyReachableInstancesElement>(
       'strongly-reachable-instances',
@@ -42,7 +42,8 @@ class StronglyReachableInstancesElement extends HtmlElement
     assert(cls != null);
     assert(stronglyReachable != null);
     assert(objects != null);
-    StronglyReachableInstancesElement e = document.createElement(tag.name);
+    StronglyReachableInstancesElement e =
+        new StronglyReachableInstancesElement.created();
     e._r = new RenderingScheduler<StronglyReachableInstancesElement>(e,
         queue: queue);
     e._isolate = isolate;
@@ -52,7 +53,7 @@ class StronglyReachableInstancesElement extends HtmlElement
     return e;
   }
 
-  StronglyReachableInstancesElement.created() : super.created();
+  StronglyReachableInstancesElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -69,14 +70,15 @@ class StronglyReachableInstancesElement extends HtmlElement
 
   void render() {
     children = <Element>[
-      new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
-        ..content = _createContent()
-        ..onToggle.listen((e) async {
-          _expanded = e.control.expanded;
-          e.control.disabled = true;
-          await _refresh();
-          e.control.disabled = false;
-        })
+      (new CurlyBlockElement(expanded: _expanded, queue: _r.queue)
+            ..content = _createContent()
+            ..onToggle.listen((e) async {
+              _expanded = e.control.expanded;
+              e.control.disabled = true;
+              await _refresh();
+              e.control.disabled = false;
+            }))
+          .element
     ];
   }
 

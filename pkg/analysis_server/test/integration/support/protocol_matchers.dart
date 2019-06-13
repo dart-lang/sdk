@@ -35,6 +35,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "correction": optional String
  *   "code": String
  *   "url": optional String
+ *   "contextMessages": optional List<DiagnosticMessage>
  *   "hasFix": optional bool
  * }
  */
@@ -48,6 +49,7 @@ final Matcher isAnalysisError =
         }, optionalFields: {
           "correction": isString,
           "url": isString,
+          "contextMessages": isListOf(isDiagnosticMessage),
           "hasFix": isBool
         }));
 
@@ -170,6 +172,7 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
  *
  * {
  *   "label": String
+ *   "declaringLibraryUri": String
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
@@ -184,6 +187,7 @@ final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAvailableSuggestion =
     new LazyMatcher(() => new MatchesJsonObject("AvailableSuggestion", {
           "label": isString,
+          "declaringLibraryUri": isString,
           "element": isElement
         }, optionalFields: {
           "defaultArgumentListString": isString,
@@ -387,6 +391,17 @@ final Matcher isDartFixSuggestion = new LazyMatcher(() => new MatchesJsonObject(
     optionalFields: {"location": isLocation}));
 
 /**
+ * DiagnosticMessage
+ *
+ * {
+ *   "message": String
+ *   "location": Location
+ * }
+ */
+final Matcher isDiagnosticMessage = new LazyMatcher(() => new MatchesJsonObject(
+    "DiagnosticMessage", {"message": isString, "location": isLocation}));
+
+/**
  * Element
  *
  * {
@@ -545,6 +560,29 @@ final Matcher isExecutionContextId = isString;
  */
 final Matcher isExecutionService =
     new MatchesEnum("ExecutionService", ["LAUNCH_DATA"]);
+
+/**
+ * ExistingImport
+ *
+ * {
+ *   "uri": int
+ *   "elements": List<int>
+ * }
+ */
+final Matcher isExistingImport = new LazyMatcher(() => new MatchesJsonObject(
+    "ExistingImport", {"uri": isInt, "elements": isListOf(isInt)}));
+
+/**
+ * ExistingImports
+ *
+ * {
+ *   "elements": ImportedElementSet
+ *   "imports": List<ExistingImport>
+ * }
+ */
+final Matcher isExistingImports = new LazyMatcher(() => new MatchesJsonObject(
+    "ExistingImports",
+    {"elements": isImportedElementSet, "imports": isListOf(isExistingImport)}));
 
 /**
  * FileKind
@@ -933,6 +971,22 @@ final Matcher isImplementedClass = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
     "ImplementedMember", {"offset": isInt, "length": isInt}));
+
+/**
+ * ImportedElementSet
+ *
+ * {
+ *   "strings": List<String>
+ *   "uris": List<int>
+ *   "names": List<int>
+ * }
+ */
+final Matcher isImportedElementSet = new LazyMatcher(() =>
+    new MatchesJsonObject("ImportedElementSet", {
+      "strings": isListOf(isString),
+      "uris": isListOf(isInt),
+      "names": isListOf(isInt)
+    }));
 
 /**
  * ImportedElements
@@ -2179,6 +2233,18 @@ final Matcher isCompletionAvailableSuggestionsParams = new LazyMatcher(() =>
         }));
 
 /**
+ * completion.existingImports params
+ *
+ * {
+ *   "file": FilePath
+ *   "imports": ExistingImports
+ * }
+ */
+final Matcher isCompletionExistingImportsParams = new LazyMatcher(() =>
+    new MatchesJsonObject("completion.existingImports params",
+        {"file": isFilePath, "imports": isExistingImports}));
+
+/**
  * completion.getSuggestionDetails params
  *
  * {
@@ -2275,6 +2341,7 @@ final Matcher isCompletionRegisterLibraryPathsResult = isNull;
  *   "replacementLength": int
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
+ *   "libraryFile": optional FilePath
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
  *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
@@ -2288,6 +2355,7 @@ final Matcher isCompletionResultsParams =
           "results": isListOf(isCompletionSuggestion),
           "isLast": isBool
         }, optionalFields: {
+          "libraryFile": isFilePath,
           "includedSuggestionSets": isListOf(isIncludedSuggestionSet),
           "includedElementKinds": isListOf(isElementKind),
           "includedSuggestionRelevanceTags":
@@ -2388,6 +2456,7 @@ final Matcher isEditDartfixParams =
  *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
+ *   "details": optional List<String>
  * }
  */
 final Matcher isEditDartfixResult =
@@ -2396,6 +2465,8 @@ final Matcher isEditDartfixResult =
           "otherSuggestions": isListOf(isDartFixSuggestion),
           "hasErrors": isBool,
           "edits": isListOf(isSourceFileEdit)
+        }, optionalFields: {
+          "details": isListOf(isString)
         }));
 
 /**

@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/compiler/ffi.h"
+#include "lib/ffi.h"
+
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/ffi.h"
+#include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
@@ -42,9 +45,9 @@ static bool IsPointerType(const AbstractType& type) {
       Class::Handle(Isolate::Current()->object_store()->ffi_pointer_class());
   AbstractType& pointer_type =
       AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type ^= pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                               Object::null_type_arguments(),
-                                               kNoneFree, NULL, Heap::kNew);
+  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
+                                              Object::null_type_arguments(),
+                                              kNoneFree, NULL, Heap::kNew);
   ASSERT(pointer_type.IsInstantiated());
   ASSERT(type.IsInstantiated());
   return type.IsSubtypeOf(pointer_type, Heap::kNew);
@@ -544,57 +547,72 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
   return raw_closure;
 }
 
-// Generates assembly to trampoline from C++ back into Dart.
-static void* GenerateFfiInverseTrampoline(const Function& signature,
-                                          void* dart_entry_point) {
+// Generates assembly to trampoline from native code into Dart.
+static uword CompileNativeCallback(const Function& c_signature,
+                                   const Function& dart_target) {
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   UNREACHABLE();
-#elif !defined(TARGET_ARCH_X64)
+#elif defined(TARGET_ARCH_DBC)
   // https://github.com/dart-lang/sdk/issues/35774
-  UNREACHABLE();
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_WINDOWS)
-  // https://github.com/dart-lang/sdk/issues/35760 Arm32 && Android
-  // https://github.com/dart-lang/sdk/issues/35772 Arm64
-  // https://github.com/dart-lang/sdk/issues/35773 DBC
-  UNREACHABLE();
+  // FFI is supported, but callbacks are not.
+  Exceptions::ThrowUnsupportedError(
+      "FFI callbacks are not yet supported on DBC.");
 #else
+  Thread* const thread = Thread::Current();
+  const int32_t callback_id = thread->AllocateFfiCallbackId();
 
-  // TODO(dacoharkes): Implement this.
-  // https://github.com/dart-lang/sdk/issues/35761
-  // Look at StubCode::GenerateInvokeDartCodeStub.
-  UNREACHABLE();
+  // Create a new Function named 'FfiCallback' and stick it in the 'dart:ffi'
+  // library. Note that these functions will never be invoked by Dart, so it
+  // doesn't matter that they all have the same name.
+  Zone* const Z = thread->zone();
+  const String& name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), "FfiCallback"));
+  const Library& lib = Library::Handle(Library::FfiLibrary());
+  const Class& owner_class = Class::Handle(lib.toplevel_class());
+  const Function& function =
+      Function::Handle(Z, Function::New(name, RawFunction::kFfiTrampoline,
+                                        /*is_static=*/true,
+                                        /*is_const=*/false,
+                                        /*is_abstract=*/false,
+                                        /*is_external=*/false,
+                                        /*is_native=*/false, owner_class,
+                                        TokenPosition::kMinSource));
+  function.set_is_debuggable(false);
+
+  // Set callback-specific fields which the flow-graph builder needs to generate
+  // the body.
+  function.SetFfiCSignature(c_signature);
+  function.SetFfiCallbackId(callback_id);
+  function.SetFfiCallbackTarget(dart_target);
+
+  // We compile the callback immediately because we need to return a pointer to
+  // the entry-point. Native calls do not use patching like Dart calls, so we
+  // cannot compile it lazily.
+  const Object& result =
+      Object::Handle(Z, Compiler::CompileOptimizedFunction(thread, function));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+  }
+  ASSERT(result.IsCode());
+  const Code& code = Code::Cast(result);
+
+  thread->SetFfiCallbackCode(callback_id, code);
+
+  return code.EntryPoint();
 #endif
 }
 
-// TODO(dacoharkes): Implement this feature.
-// https://github.com/dart-lang/sdk/issues/35761
-// For now, it always returns Pointer with address 0.
 DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
 
-  Function& c_signature = Function::Handle(((Type&)type_arg).signature());
-
+  const Function& native_signature =
+      Function::Handle(((Type&)type_arg).signature());
   Function& func = Function::Handle(closure.function());
-  Code& code = Code::Handle(func.EnsureHasCode());
-  void* entryPoint = reinterpret_cast<void*>(code.EntryPoint());
-
-  THR_Print("Ffi_fromFunction: %s\n", type_arg.ToCString());
-  THR_Print("Ffi_fromFunction: %s\n", c_signature.ToCString());
-  THR_Print("Ffi_fromFunction: %s\n", closure.ToCString());
-  THR_Print("Ffi_fromFunction: %s\n", func.ToCString());
-  THR_Print("Ffi_fromFunction: %s\n", code.ToCString());
-  THR_Print("Ffi_fromFunction: %p\n", entryPoint);
-  THR_Print("Ffi_fromFunction: %" Pd "\n", code.Size());
-
-  intptr_t address = reinterpret_cast<intptr_t>(
-      GenerateFfiInverseTrampoline(c_signature, entryPoint));
-
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args ^= type_args.Canonicalize();
+  type_args = type_args.Canonicalize();
 
   Class& native_function_class = Class::Handle(
       Isolate::Current()->class_table()->At(kFfiNativeFunctionCid));
@@ -606,12 +624,131 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
       ClassFinalizer::FinalizeType(Class::Handle(), native_function_type);
   native_function_type ^= native_function_type.Canonicalize();
 
-  address = 0;  // https://github.com/dart-lang/sdk/issues/35761
+  // The FE verifies that the target of a 'fromFunction' is a static method, so
+  // the value we see here must be a static tearoff. See ffi_use_sites.dart for
+  // details.
+  //
+  // TODO(36748): Define hot-reload semantics of native callbacks. We may need
+  // to look up the target by name.
+  ASSERT(func.IsImplicitClosureFunction());
+  func = func.parent_function();
+  ASSERT(func.is_static());
 
-  Pointer& result = Pointer::Handle(Pointer::New(
+  const uword address = CompileNativeCallback(native_signature, func);
+
+  const Pointer& result = Pointer::Handle(Pointer::New(
       native_function_type, Integer::Handle(zone, Integer::New(address))));
 
   return result.raw();
 }
+
+#if defined(TARGET_ARCH_DBC)
+
+void FfiMarshalledArguments::SetFunctionAddress(uint64_t value) const {
+  data_[kOffsetFunctionAddress] = value;
+}
+
+static intptr_t ArgumentHostRegisterIndex(host::Register reg) {
+  for (intptr_t i = 0; i < host::CallingConventions::kNumArgRegs; i++) {
+    if (host::CallingConventions::ArgumentRegisters[i] == reg) {
+      return i;
+    }
+  }
+  UNREACHABLE();
+}
+
+void FfiMarshalledArguments::SetRegister(host::Register reg,
+                                         uint64_t value) const {
+  const intptr_t reg_index = ArgumentHostRegisterIndex(reg);
+  ASSERT(host::CallingConventions::ArgumentRegisters[reg_index] == reg);
+  const intptr_t index = kOffsetRegisters + reg_index;
+  data_[index] = value;
+}
+
+void FfiMarshalledArguments::SetFpuRegister(host::FpuRegister reg,
+                                            uint64_t value) const {
+  const intptr_t fpu_index = static_cast<intptr_t>(reg);
+  ASSERT(host::CallingConventions::FpuArgumentRegisters[fpu_index] == reg);
+  const intptr_t index = kOffsetFpuRegisters + fpu_index;
+  data_[index] = value;
+}
+
+void FfiMarshalledArguments::SetNumStackSlots(intptr_t num_args) const {
+  data_[kOffsetNumStackSlots] = num_args;
+}
+
+intptr_t FfiMarshalledArguments::GetNumStackSlots() const {
+  return data_[kOffsetNumStackSlots];
+}
+
+void FfiMarshalledArguments::SetStackSlotValue(intptr_t index,
+                                               uint64_t value) const {
+  ASSERT(0 <= index && index < GetNumStackSlots());
+  data_[kOffsetStackSlotValues + index] = value;
+}
+
+uint64_t* FfiMarshalledArguments::New(
+    const compiler::ffi::FfiSignatureDescriptor& signature,
+    const uint64_t* arg_values) {
+  const intptr_t num_stack_slots = signature.num_stack_slots();
+  const intptr_t size =
+      FfiMarshalledArguments::kOffsetStackSlotValues + num_stack_slots;
+  uint64_t* data = Thread::Current()->GetFfiMarshalledArguments(size);
+  const auto& descr = FfiMarshalledArguments(data);
+
+  descr.SetFunctionAddress(arg_values[compiler::ffi::kFunctionAddressRegister]);
+  const intptr_t num_args = signature.length();
+  descr.SetNumStackSlots(num_stack_slots);
+  for (int i = 0; i < num_args; i++) {
+    uint64_t arg_value = arg_values[compiler::ffi::kFirstArgumentRegister + i];
+    HostLocation loc = signature.LocationAt(i);
+    // TODO(36809): For 32 bit, support pair locations.
+    if (loc.IsRegister()) {
+      descr.SetRegister(loc.reg(), arg_value);
+    } else if (loc.IsFpuRegister()) {
+      descr.SetFpuRegister(loc.fpu_reg(), arg_value);
+    } else {
+      ASSERT(loc.IsStackSlot() || loc.IsDoubleStackSlot());
+      ASSERT(loc.stack_index() < num_stack_slots);
+      descr.SetStackSlotValue(loc.stack_index(), arg_value);
+    }
+  }
+
+  return data;
+}
+
+#if defined(DEBUG)
+void FfiMarshalledArguments::Print() const {
+  OS::PrintErr("FfiMarshalledArguments data_ 0x%" Pp "\n",
+               reinterpret_cast<intptr_t>(data_));
+  OS::PrintErr("  00 0x%016" Px64 " (function address, int result)\n",
+               data_[0]);
+  for (intptr_t i = 0; i < host::CallingConventions::kNumArgRegs; i++) {
+    const intptr_t index = kOffsetRegisters + i;
+    const char* result_str = i == 0 ? ", float result" : "";
+    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (%s%s)\n", index, data_[index],
+                 RegisterNames::RegisterName(
+                     host::CallingConventions::ArgumentRegisters[i]),
+                 result_str);
+  }
+  for (intptr_t i = 0; i < host::CallingConventions::kNumFpuArgRegs; i++) {
+    const intptr_t index = kOffsetFpuRegisters + i;
+    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (%s)\n", index, data_[index],
+                 RegisterNames::FpuRegisterName(
+                     host::CallingConventions::FpuArgumentRegisters[i]));
+  }
+  const intptr_t index = kOffsetNumStackSlots;
+  const intptr_t num_stack_slots = data_[index];
+  OS::PrintErr("  %02" Pd " 0x%" Pp " (number of stack slots)\n", index,
+               num_stack_slots);
+  for (intptr_t i = 0; i < num_stack_slots; i++) {
+    const intptr_t index = kOffsetStackSlotValues + i;
+    OS::PrintErr("  %02" Pd " 0x%016" Px64 " (stack slot %" Pd ")\n", index,
+                 data_[index], i);
+  }
+}
+#endif  // defined(DEBUG)
+
+#endif  // defined(TARGET_ARCH_DBC)
 
 }  // namespace dart

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -83,6 +82,17 @@ class OpType {
   bool includeVarNameSuggestions = false;
 
   /**
+   * Indicates whether the completion location is in a field declaration.
+   */
+  bool inFieldDeclaration = false;
+
+  /**
+   * Indicates whether the completion location is in a top-level variable
+   * declaration.
+   */
+  bool inTopLevelVariableDeclaration = false;
+
+  /**
    * Indicates whether the completion location is in the body of a static method.
    */
   bool inStaticMethodBody = false;
@@ -150,6 +160,11 @@ class OpType {
         optype.inStaticMethodBody = parent.isStatic;
       }
     }
+
+    optype.inFieldDeclaration =
+        targetNode.thisOrAncestorOfType<FieldDeclaration>() != null;
+    optype.inTopLevelVariableDeclaration =
+        targetNode.thisOrAncestorOfType<TopLevelVariableDeclaration>() != null;
 
     // If a value should be suggested, suggest also constructors.
     if (optype.includeReturnValueSuggestions) {
@@ -622,6 +637,22 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitForElement(ForElement node) {
+    // for (^) {}
+    // for (Str^ str = null;) {}
+    // In theory it is possible to specify any expression in initializer,
+    // but for any practical use we need only types.
+    if (entity == node.forLoopParts) {
+      optype.includeTypeNameSuggestions = true;
+    }
+
+    if (entity == node.body) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     dynamic entity = this.entity;
     if (entity is Token) {
@@ -633,28 +664,27 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
         }
       }
     }
+
+    // Find the containing parameter.
+    var parameter = CompletionTarget.findFormalParameter(node, offset);
+    if (parameter == null) return;
+
     // Handle default normal parameter just as a normal parameter.
-    if (entity is DefaultFormalParameter) {
-      entity = entity.parameter;
+    if (parameter is DefaultFormalParameter) {
+      parameter = (parameter as DefaultFormalParameter).parameter;
     }
+
     // "(^ this.field)"
-    if (entity is FieldFormalParameter) {
-      if (offset < entity.thisKeyword.offset) {
+    if (parameter is FieldFormalParameter) {
+      if (offset < parameter.thisKeyword.offset) {
         optype.includeTypeNameSuggestions = true;
       }
+      return;
     }
+
     // "(Type name)"
-    if (entity is SimpleFormalParameter) {
-      // "(Type^)" is parsed as a parameter with the _name_ "Type".
-      if (entity.type == null) {
-        optype.includeTypeNameSuggestions = true;
-      }
-      // If inside of "Type" in "(Type^ name)", then include types.
-      if (entity.type != null &&
-          entity.type.offset <= offset &&
-          offset <= entity.type.end) {
-        optype.includeTypeNameSuggestions = true;
-      }
+    if (parameter is SimpleFormalParameter) {
+      visitSimpleFormalParameter(parameter);
     }
   }
 
@@ -688,22 +718,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    var entity = this.entity;
-    var entity2 = entity; // Work around limitations of type promotion
-    if (entity2 is SyntacticEntity &&
-        entity2.offset >= node.forLoopParts.offset &&
-        entity2.end <= node.forLoopParts.end) {
-      // Older versions of the analyzer yield elements of `node.forLoopParts`
-      // when iterating through children of `ForEachStatement`.  Handle this
-      // situation by simulating the behavior of newer versions of the analyzer.
-      // TODO(paulberry): remove this case once we require a version of analyzer
-      // containing a1349ac52972a4c69e1b05079ed1662b3b0f8c3f
-      if (entity2.offset == node.forLoopParts.offset) {
-        entity = node.forLoopParts;
-      } else {
-        return node.forLoopParts.accept(this);
-      }
-    }
     // for (^) {}
     // for (Str^ str = null;) {}
     // In theory it is possible to specify any expression in initializer,
@@ -732,6 +746,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.returnType) ||
         identical(entity, node.name) && node.returnType == null) {
       optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  visitIfElement(IfElement node) {
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    } else if (identical(entity, node.thenElement) ||
+        identical(entity, node.elseElement)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+      optype.includeVoidReturnSuggestions = true;
     }
   }
 
@@ -962,11 +989,58 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    var type = node.type;
+    var name = node.identifier;
+
+    // "(Type^)" is parsed as a parameter with the _name_ "Type".
+    if (type == null &&
+        name != null &&
+        name.offset <= offset &&
+        offset <= name.end) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(^ Type)", then include types.
+    if (type == null && offset < name.offset) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(Type ^)", then include parameter names.
+    if (type == null && name.end < offset && offset <= name.token.next.offset) {
+      optype.includeVarNameSuggestions = true;
+      return;
+    }
+
+    // If inside of "Type" in "(Type^ name)", then include types.
+    if (type != null && type.offset <= offset && offset <= type.end) {
+      optype.includeTypeNameSuggestions = true;
+      return;
+    }
+
+    // If "(Type name^)", then include parameter names.
+    if (type != null && name.offset <= offset && offset <= name.end) {
+      optype.includeVarNameSuggestions = true;
+      return;
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // This should never happen; the containingNode will always be some node
     // higher up in the parse tree, and the SimpleIdentifier will be the
     // entity.
     assert(false);
+  }
+
+  @override
+  visitSpreadElement(SpreadElement node) {
+    if (identical(entity, node.expression)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override

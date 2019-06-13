@@ -6,7 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/visitor.dart' show GeneralizingAstVisitor;
 import 'package:analyzer/dart/element/type.dart' show DartType;
-import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show
+        FunctionBodyImpl,
+        FunctionExpressionInvocationImpl,
+        MethodInvocationImpl;
 import 'package:analyzer/src/dart/ast/utilities.dart'
     show AstCloner, NodeReplacer;
 import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
@@ -182,6 +186,22 @@ class _TreeCloner extends AstCloner {
     var clone = super.visitExpressionFunctionBody(node);
     (clone as FunctionBodyImpl).localVariableInfo =
         (node as FunctionBodyImpl).localVariableInfo;
+    return clone;
+  }
+
+  @override
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    var clone = super.visitFunctionExpressionInvocation(node);
+    (clone as FunctionExpressionInvocationImpl).typeArgumentTypes =
+        node.typeArgumentTypes;
+    return clone;
+  }
+
+  @override
+  MethodInvocation visitMethodInvocation(MethodInvocation node) {
+    var clone = super.visitMethodInvocation(node);
+    (clone as MethodInvocationImpl).typeArgumentTypes = node.typeArgumentTypes;
     return clone;
   }
 

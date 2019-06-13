@@ -285,12 +285,13 @@ class AstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = astFactory.compilationUnit(
-        cloneToken(node.beginToken),
-        cloneNode(node.scriptTag),
-        cloneNodeList(node.directives),
-        cloneNodeList(node.declarations),
-        cloneToken(node.endToken));
+    CompilationUnit clone = astFactory.compilationUnit2(
+        beginToken: cloneToken(node.beginToken),
+        scriptTag: cloneNode(node.scriptTag),
+        directives: cloneNodeList(node.directives),
+        declarations: cloneNodeList(node.declarations),
+        endToken: cloneToken(node.endToken),
+        featureSet: node.featureSet);
     clone.lineInfo = node.lineInfo;
     return clone;
   }
@@ -449,6 +450,20 @@ class AstCloner
           cloneToken(node.extendsKeyword), cloneNode(node.superclass));
 
   @override
+  ExtensionDeclaration visitExtensionDeclaration(ExtensionDeclaration node) =>
+      astFactory.extensionDeclaration(
+          comment: cloneNode(node.documentationComment),
+          metadata: cloneNodeList(node.metadata),
+          extensionKeyword: cloneToken(node.extensionKeyword),
+          name: cloneNode(node.name),
+          typeParameters: cloneNode(node.typeParameters),
+          onKeyword: cloneToken(node.onKeyword),
+          extendedType: cloneNode(node.extendedType),
+          leftBracket: cloneToken(node.leftBracket),
+          members: cloneNodeList(node.members),
+          rightBracket: cloneToken(node.rightBracket));
+
+  @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
       astFactory.fieldDeclaration2(
           comment: cloneNode(node.documentationComment),
@@ -585,7 +600,8 @@ class AstCloner
           returnType: cloneNode(node.returnType),
           identifier: cloneNode(node.identifier),
           typeParameters: cloneNode(node.typeParameters),
-          parameters: cloneNode(node.parameters));
+          parameters: cloneNode(node.parameters),
+          question: cloneToken(node.question));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -1573,6 +1589,22 @@ class AstComparator
     ExtendsClause other = _other as ExtendsClause;
     return isEqualTokens(node.extendsKeyword, other.extendsKeyword) &&
         isEqualNodes(node.superclass, other.superclass);
+  }
+
+  @override
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionDeclaration other = _other as ExtensionDeclaration;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.extensionKeyword, other.extensionKeyword) &&
+        isEqualNodes(node.name, other.name) &&
+        isEqualNodes(node.typeParameters, other.typeParameters) &&
+        isEqualTokens(node.onKeyword, other.onKeyword) &&
+        isEqualNodes(node.extendedType, other.extendedType) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.members, other.members) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
@@ -2642,12 +2674,13 @@ class IncrementalAstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnitImpl copy = astFactory.compilationUnit(
-        _mapToken(node.beginToken),
-        _cloneNode(node.scriptTag),
-        _cloneNodeList(node.directives),
-        _cloneNodeList(node.declarations),
-        _mapToken(node.endToken));
+    CompilationUnitImpl copy = astFactory.compilationUnit2(
+        beginToken: _mapToken(node.beginToken),
+        scriptTag: _cloneNode(node.scriptTag),
+        directives: _cloneNodeList(node.directives),
+        declarations: _cloneNodeList(node.declarations),
+        endToken: _mapToken(node.endToken),
+        featureSet: node.featureSet);
     copy.lineInfo = node.lineInfo;
     copy.declaredElement = node.declaredElement;
     return copy;
@@ -2815,6 +2848,20 @@ class IncrementalAstCloner
           _mapToken(node.extendsKeyword), _cloneNode(node.superclass));
 
   @override
+  ExtensionDeclaration visitExtensionDeclaration(ExtensionDeclaration node) =>
+      astFactory.extensionDeclaration(
+          comment: _cloneNode(node.documentationComment),
+          metadata: _cloneNodeList(node.metadata),
+          extensionKeyword: _mapToken(node.extensionKeyword),
+          name: _cloneNode(node.name),
+          typeParameters: _cloneNode(node.typeParameters),
+          onKeyword: _mapToken(node.onKeyword),
+          extendedType: _cloneNode(node.extendedType),
+          leftBracket: _mapToken(node.leftBracket),
+          members: _cloneNodeList(node.members),
+          rightBracket: _mapToken(node.rightBracket));
+
+  @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
       astFactory.fieldDeclaration2(
           comment: _cloneNode(node.documentationComment),
@@ -2963,7 +3010,8 @@ class IncrementalAstCloner
           returnType: _cloneNode(node.returnType),
           identifier: _cloneNode(node.identifier),
           typeParameters: _cloneNode(node.typeParameters),
-          parameters: _cloneNode(node.parameters));
+          parameters: _cloneNode(node.parameters),
+          question: _mapToken(node.question));
 
   @override
   AstNode visitGenericFunctionType(GenericFunctionType node) =>
@@ -4223,6 +4271,29 @@ class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
   bool visitExtendsClause(ExtendsClause node) {
     if (identical(node.superclass, _oldNode)) {
       node.superclass = _newNode as TypeName;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    if (identical(node.documentationComment, _oldNode)) {
+      node.documentationComment = _newNode as Comment;
+      return true;
+    } else if (_replaceInList(node.metadata)) {
+      return true;
+    } else if (identical(node.name, _oldNode)) {
+      (node as ExtensionDeclarationImpl).name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (identical(node.typeParameters, _oldNode)) {
+      (node as ExtensionDeclarationImpl).typeParameters =
+          _newNode as TypeParameterList;
+      return true;
+    } else if (identical(node.extendedType, _oldNode)) {
+      (node as ExtensionDeclarationImpl).extendedType =
+          _newNode as TypeAnnotation;
+      return true;
+    } else if (_replaceInList(node.members)) {
       return true;
     }
     return visitNode(node);
@@ -5580,6 +5651,25 @@ class ResolutionCopier
     ExtendsClause toNode = this._toNode as ExtendsClause;
     return _and(_isEqualTokens(node.extendsKeyword, toNode.extendsKeyword),
         _isEqualNodes(node.superclass, toNode.superclass));
+  }
+
+  @override
+  bool visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionDeclaration toNode = this._toNode as ExtensionDeclaration;
+    if (_and(
+        _isEqualNodes(node.documentationComment, toNode.documentationComment),
+        _isEqualNodeLists(node.metadata, toNode.metadata),
+        _isEqualTokens(node.extensionKeyword, toNode.extensionKeyword),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualNodes(node.typeParameters, toNode.typeParameters),
+        _isEqualTokens(node.onKeyword, toNode.onKeyword),
+        _isEqualNodes(node.extendedType, toNode.extendedType),
+        _isEqualTokens(node.leftBracket, toNode.leftBracket),
+        _isEqualNodeLists(node.members, toNode.members),
+        _isEqualTokens(node.rightBracket, toNode.rightBracket))) {
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -7059,6 +7149,9 @@ class ToSourceVisitor
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (node.isRequiredNamed) {
+      _writer.print('required ');
+    }
     _visitNode(node.parameter);
     if (node.separator != null) {
       if (node.separator.lexeme != ":") {
@@ -7147,6 +7240,21 @@ class ToSourceVisitor
   void visitExtendsClause(ExtendsClause node) {
     _writer.print("extends ");
     _visitNode(node.superclass);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    _visitTokenWithSuffix(node.extensionKeyword, ' ');
+    _visitNode(node.name);
+    _visitNode(node.typeParameters);
+    _writer.print(' ');
+    _visitToken(node.onKeyword);
+    _writer.print(' ');
+    _visitNodeWithSuffix(node.extendedType, ' ');
+    _visitToken(node.leftBracket);
+    _visitNodeListWithSeparator(node.members, ' ');
+    _visitToken(node.rightBracket);
   }
 
   @override
@@ -7300,6 +7408,9 @@ class ToSourceVisitor
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
   }
 
   @override
@@ -7780,6 +7891,7 @@ class ToSourceVisitor
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitTokenWithSuffix(node.lateKeyword, " ");
     _visitTokenWithSuffix(node.keyword, " ");
     _visitNodeWithSuffix(node.type, " ");
     _visitNodeListWithSeparator(node.variables, ", ");
@@ -7917,6 +8029,15 @@ class ToSourceVisitor
     if (node != null) {
       node.accept(this);
       _writer.print(suffix);
+    }
+  }
+
+  /**
+   * Safely visit the given [token].
+   */
+  void _visitToken(Token token) {
+    if (token != null) {
+      _writer.print(token.lexeme);
     }
   }
 
@@ -8066,6 +8187,16 @@ class ToSourceVisitor2
     if (node != null) {
       node.accept(this);
       sink.write(suffix);
+    }
+  }
+
+  /**
+   * Safely visit the given [token].
+   */
+  @protected
+  void safelyVisitToken(Token token) {
+    if (token != null) {
+      sink.write(token.lexeme);
     }
   }
 
@@ -8320,6 +8451,9 @@ class ToSourceVisitor2
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
+    if (node.isRequiredNamed) {
+      sink.write('required ');
+    }
     safelyVisitNode(node.parameter);
     if (node.separator != null) {
       if (node.separator.lexeme != ":") {
@@ -8408,6 +8542,21 @@ class ToSourceVisitor2
   void visitExtendsClause(ExtendsClause node) {
     sink.write("extends ");
     safelyVisitNode(node.superclass);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.extensionKeyword, ' ');
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeParameters);
+    sink.write(' ');
+    safelyVisitToken(node.onKeyword);
+    sink.write(' ');
+    safelyVisitNodeWithSuffix(node.extendedType, ' ');
+    safelyVisitToken(node.leftBracket);
+    safelyVisitNodeListWithSeparator(node.members, ' ');
+    safelyVisitToken(node.rightBracket);
   }
 
   @override
@@ -8561,6 +8710,9 @@ class ToSourceVisitor2
     safelyVisitNode(node.identifier);
     safelyVisitNode(node.typeParameters);
     safelyVisitNode(node.parameters);
+    if (node.question != null) {
+      sink.write('?');
+    }
   }
 
   @override
@@ -9038,6 +9190,7 @@ class ToSourceVisitor2
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.lateKeyword, " ");
     safelyVisitTokenWithSuffix(node.keyword, " ");
     safelyVisitNodeWithSuffix(node.type, " ");
     safelyVisitNodeListWithSeparator(node.variables, ", ");

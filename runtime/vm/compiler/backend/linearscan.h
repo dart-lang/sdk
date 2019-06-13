@@ -52,7 +52,8 @@ struct ExtraLoopInfo;
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
-  static const intptr_t kDoubleSpillFactor = kDoubleSize / kWordSize;
+  static const intptr_t kDoubleSpillFactor =
+      kDoubleSize / compiler::target::kWordSize;
 
   explicit FlowGraphAllocator(const FlowGraph& flow_graph,
                               bool intrinsic_mode = false);
@@ -525,16 +526,16 @@ class LiveRange : public ZoneAllocated {
   Location spill_slot() const { return spill_slot_; }
 
   bool HasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) const {
-    if (loop_id < kBitsPerWord) {
-      const intptr_t mask = static_cast<intptr_t>(1) << loop_id;
+    if (loop_id < kMaxLoops) {
+      const uint64_t mask = static_cast<uint64_t>(1) << loop_id;
       return (has_only_any_uses_in_loops_ & mask) != 0;
     }
     return false;
   }
 
   void MarkHasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) {
-    if (loop_id < kBitsPerWord) {
-      has_only_any_uses_in_loops_ |= static_cast<intptr_t>(1) << loop_id;
+    if (loop_id < kMaxLoops) {
+      has_only_any_uses_in_loops_ |= static_cast<uint64_t>(1) << loop_id;
     }
   }
 
@@ -576,7 +577,8 @@ class LiveRange : public ZoneAllocated {
 
   LiveRange* next_sibling_;
 
-  intptr_t has_only_any_uses_in_loops_;
+  static constexpr intptr_t kMaxLoops = sizeof(uint64_t) * kBitsPerByte;
+  uint64_t has_only_any_uses_in_loops_;
   bool is_loop_phi_;
 
   AllocationFinger finger_;

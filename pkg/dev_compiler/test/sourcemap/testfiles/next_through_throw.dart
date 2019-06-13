@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   try {
     throw /*bc:1*/ foo();
   } catch (e) {

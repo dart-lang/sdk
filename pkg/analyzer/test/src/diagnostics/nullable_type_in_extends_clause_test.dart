@@ -29,10 +29,12 @@ class B extends A {}
   }
 
   test_class_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 class B extends A? {}
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 27, 2),
+    ]);
   }
 
   test_classAlias_withClass_nonNullable() async {
@@ -44,11 +46,13 @@ class C = A with B;
   }
 
   test_classAlias_withClass_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 class B {}
 class C = A? with B;
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 32, 2),
+    ]);
   }
 
   test_classAlias_withMixin_nonNullable() async {
@@ -60,10 +64,12 @@ class C = A with B;
   }
 
   test_classAlias_withMixin_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 mixin B {}
 class C = A? with B;
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 32, 2),
+    ]);
   }
 }

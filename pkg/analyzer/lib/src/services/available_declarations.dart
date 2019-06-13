@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -56,6 +57,7 @@ class Declaration {
   final String typeParameters;
 
   List<String> _relevanceTags;
+  Uri _locationLibraryUri;
 
   Declaration({
     @required this.children,
@@ -82,6 +84,8 @@ class Declaration {
     @required this.returnType,
     @required this.typeParameters,
   }) : _relevanceTags = relevanceTags;
+
+  Uri get locationLibraryUri => _locationLibraryUri;
 
   List<String> get relevanceTags => _relevanceTags;
 
@@ -473,6 +477,12 @@ class DeclarationsTracker {
     _changedPaths.add(path);
   }
 
+  /// Discard the [analysisContext], but don't discard any libraries that it
+  /// might have in its dependencies.
+  void discardContext(AnalysisContext analysisContext) {
+    _contexts.remove(analysisContext);
+  }
+
   /// Discard all contexts and libraries, notify the [changes] stream that
   /// these libraries are removed.
   void discardContexts() {
@@ -626,19 +636,35 @@ class DeclarationsTracker {
     var file = _getFileByPath(containingContext, path);
     if (file == null) return;
 
-    var isLibrary = file.isLibrary;
-    var library = isLibrary ? file : file.library;
-    if (library == null) return;
+    var wasLibrary = file.isLibrary;
+    var oldLibrary = wasLibrary ? file : file.library;
 
-    if (isLibrary) {
-      file.refresh(containingContext);
-    } else {
-      file.refresh(containingContext);
-      library.refresh(containingContext);
-    }
+    file.refresh(containingContext);
+    var isLibrary = file.isLibrary;
+    var newLibrary = isLibrary ? file : file.library;
 
     var invalidatedLibraries = Set<_File>();
-    _invalidateExportedDeclarations(invalidatedLibraries, library);
+    var notLibraries = <_File>[];
+    if (wasLibrary) {
+      if (isLibrary) {
+        _invalidateExportedDeclarations(invalidatedLibraries, file);
+      } else {
+        notLibraries.add(file);
+        if (newLibrary != null) {
+          newLibrary.refresh(containingContext);
+          _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
+        }
+      }
+    } else {
+      if (oldLibrary != null) {
+        oldLibrary.refresh(containingContext);
+        _invalidateExportedDeclarations(invalidatedLibraries, oldLibrary);
+      }
+      if (newLibrary != null && newLibrary != oldLibrary) {
+        newLibrary.refresh(containingContext);
+        _invalidateExportedDeclarations(invalidatedLibraries, newLibrary);
+      }
+    }
     _computeExportedDeclarations(invalidatedLibraries);
 
     var changedLibraries = <Library>[];
@@ -658,6 +684,10 @@ class DeclarationsTracker {
         _idToLibrary.remove(libraryFile.id);
         removedLibraries.add(libraryFile.id);
       }
+    }
+    for (var file in notLibraries) {
+      _idToLibrary.remove(file.id);
+      removedLibraries.add(file.id);
     }
     _changesController.add(
       LibraryChange._(changedLibraries, removedLibraries),
@@ -1065,7 +1095,10 @@ class _File {
 
     // Set back pointers.
     for (var export in exports) {
-      export.file.directExporters.add(this);
+      var directExporters = export.file.directExporters;
+      if (!directExporters.contains(this)) {
+        directExporters.add(this);
+      }
     }
     for (var part in parts) {
       part.file.library = this;
@@ -1080,6 +1113,7 @@ class _File {
         libraryDeclarations.addAll(part.file.fileDeclarations);
       }
       _computeRelevanceTags(libraryDeclarations);
+      _setLocationLibraryUri();
     }
   }
 
@@ -1353,6 +1387,19 @@ class _File {
           returnType: _getTypeAnnotationString(functionType.returnType),
           typeParameters: functionType.typeParameters?.toSource(),
         );
+      } else if (node is FunctionTypeAlias) {
+        var parameters = node.parameters;
+        addDeclaration(
+          isDeprecated: isDeprecated,
+          kind: DeclarationKind.FUNCTION_TYPE_ALIAS,
+          name: node.name,
+          parameters: parameters.toSource(),
+          parameterNames: _getFormalParameterNames(parameters),
+          parameterTypes: _getFormalParameterTypes(parameters),
+          requiredParameterCount: _getFormalParameterRequiredCount(parameters),
+          returnType: _getTypeAnnotationString(node.returnType),
+          typeParameters: node.typeParameters?.toSource(),
+        );
       } else if (node is MixinDeclaration) {
         addDeclaration(
           isDeprecated: isDeprecated,
@@ -1479,6 +1526,12 @@ class _File {
     templateValues = idlFile.directiveInfo.templateValues.toList();
   }
 
+  void _setLocationLibraryUri() {
+    for (var declaration in libraryDeclarations) {
+      declaration._locationLibraryUri = uri;
+    }
+  }
+
   static _DefaultArguments _computeDefaultArguments(
       FormalParameterList parameters) {
     var buffer = StringBuffer();
@@ -1487,6 +1540,10 @@ class _File {
       if (parameter.isRequired) {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
+        }
+        if (parameter.isNamed) {
+          buffer.write(parameter.identifier.name);
+          buffer.write(': ');
         }
         var valueOffset = buffer.length;
         buffer.write(parameter.identifier.name);
@@ -1527,7 +1584,7 @@ class _File {
     if (parameters == null) return null;
 
     return parameters.parameters
-        .takeWhile((parameter) => parameter.isRequired)
+        .takeWhile((parameter) => parameter.isRequiredPositional)
         .length;
   }
 
@@ -1588,10 +1645,14 @@ class _File {
     var source = StringSource(content, '');
 
     var reader = new CharSequenceReader(content);
-    var scanner = new Scanner(null, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate FeatureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    var scanner = new Scanner(null, reader, errorListener)
+      ..configureFeatures(featureSet);
     var token = scanner.tokenize();
 
-    var parser = new Parser(source, errorListener, useFasta: true);
+    var parser = new Parser(source, errorListener,
+        featureSet: featureSet, useFasta: true);
     var unit = parser.parseCompilationUnit(token);
     unit.lineInfo = LineInfo(scanner.lineStarts);
 
@@ -1629,7 +1690,11 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 
   @override
   List<_LibraryNode> computeDependencies() {
-    return file.exports.map((e) => e.file).map(walker.getNode).toList();
+    return file.exports
+        .map((export) => export.file)
+        .where((file) => file.isLibrary)
+        .map(walker.getNode)
+        .toList();
   }
 }
 
@@ -1643,8 +1708,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     resultSet.addAll(file.libraryDeclarations);
 
     for (var export in file.exports) {
-      var exportedDeclarations = export.file.exportedDeclarations;
-      resultSet.addAll(export.filter(exportedDeclarations));
+      var file = export.file;
+      if (file.isLibrary) {
+        var exportedDeclarations = file.exportedDeclarations;
+        resultSet.addAll(export.filter(exportedDeclarations));
+      }
     }
 
     file.exportedDeclarations = resultSet.toList();

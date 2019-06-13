@@ -76,6 +76,16 @@ class CompilerOptions implements DiagnosticOptions {
   /// If this is set, the compilation stops after type inference.
   Uri writeDataUri;
 
+  /// Location from which codegen data is read.
+  ///
+  /// If this is set, the compilation starts at codegen enqueueing.
+  Uri readCodegenUri;
+
+  /// Location to which codegen data is serialized.
+  ///
+  /// If this is set, the compilation stops after code generation.
+  Uri writeCodegenUri;
+
   /// Whether to run only the CFE and emit the generated kernel file in
   /// [outputUri].
   bool cfeOnly = false;
@@ -215,9 +225,6 @@ class CompilerOptions implements DiagnosticOptions {
   /// Whether to generate code containing user's `assert` statements.
   bool enableUserAssertions = false;
 
-  /// Whether to generate output even when there are compile-time errors.
-  bool generateCodeWithCompileTimeErrors = false;
-
   /// Whether to generate a source-map file together with the output program.
   bool generateSourceMap = true;
 
@@ -328,6 +335,13 @@ class CompilerOptions implements DiagnosticOptions {
   /// If specified, a bundle of optimizations to enable (or disable).
   int optimizationLevel = null;
 
+  /// The shard to serialize when using [writeCodegenUri].
+  int codegenShard;
+
+  /// The number of shards to serialize when using [writeCodegenUri] or to
+  /// deserialize when using [readCodegenUri].
+  int codegenShards;
+
   // -------------------------------------------------
   // Options for deprecated features
   // -------------------------------------------------
@@ -385,8 +399,6 @@ class CompilerOptions implements DiagnosticOptions {
       ..experimentCallInstrumentation =
           _hasOption(options, Flags.experimentCallInstrumentation)
       ..experimentNewRti = _hasOption(options, Flags.experimentNewRti)
-      ..generateCodeWithCompileTimeErrors =
-          _hasOption(options, Flags.generateCodeWithCompileTimeErrors)
       ..generateSourceMap = !_hasOption(options, Flags.noSourceMaps)
       ..outputUri = _extractUriOption(options, '--out=')
       ..platformBinaries =
@@ -412,6 +424,10 @@ class CompilerOptions implements DiagnosticOptions {
           _extractUriListOption(options, '${Flags.dillDependencies}')
       ..readDataUri = _extractUriOption(options, '${Flags.readData}=')
       ..writeDataUri = _extractUriOption(options, '${Flags.writeData}=')
+      ..readCodegenUri = _extractUriOption(options, '${Flags.readCodegen}=')
+      ..writeCodegenUri = _extractUriOption(options, '${Flags.writeCodegen}=')
+      ..codegenShard = _extractIntOption(options, '${Flags.codegenShard}=')
+      ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference);
   }
@@ -463,9 +479,6 @@ class CompilerOptions implements DiagnosticOptions {
         trustPrimitives = true;
       }
     }
-
-    // TODO(johnniwinther): Should we support this in the future?
-    generateCodeWithCompileTimeErrors = false;
 
     // Strong mode always trusts type annotations (inferred or explicit), so
     // assignments checks should be trusted.
@@ -541,8 +554,13 @@ String _extractStringOption(
 }
 
 Uri _extractUriOption(List<String> options, String prefix) {
-  var option = _extractStringOption(options, prefix, null);
+  String option = _extractStringOption(options, prefix, null);
   return (option == null) ? null : Uri.parse(option);
+}
+
+int _extractIntOption(List<String> options, String prefix) {
+  String option = _extractStringOption(options, prefix, null);
+  return (option == null) ? null : int.parse(option);
 }
 
 bool _hasOption(List<String> options, String option) {

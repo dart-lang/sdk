@@ -8,7 +8,7 @@ import 'dart:io';
 // - "windows" -> "win".
 // - "macos" -> "mac".
 // - toString() on enum classes is just name.
-// - builderTag defaults to empty string, not null.
+// - builderTag and babel default to empty string, not null.
 // Need to migrate test.dart to not expect the above before it can use this.
 
 // READ ME! If you add a new field to this, make sure to add it to
@@ -247,6 +247,7 @@ class Configuration {
 
     var configuration = Configuration(
         name, architecture, compiler, mode, runtime, system,
+        babel: stringOption("babel"),
         builderTag: stringOption("builder-tag"),
         vmOptions: stringListOption("vm-options"),
         dart2jsOptions: stringListOption("dart2js-options"),
@@ -260,6 +261,7 @@ class Configuration {
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
         useBlobs: boolOption("use-blobs"),
+        useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
         useSdk: boolOption("use-sdk"));
@@ -284,13 +286,15 @@ class Configuration {
 
   final System system;
 
+  final String babel;
+
   final String builderTag;
 
   final List<String> vmOptions;
 
   final List<String> dart2jsOptions;
 
-  int timeout;
+  final int timeout;
 
   final bool enableAsserts;
 
@@ -313,6 +317,7 @@ class Configuration {
 
   // TODO(rnystrom): What is this?
   final bool useBlobs;
+  final bool useElf;
 
   final bool useHotReload;
   final bool useHotReloadRollback;
@@ -321,7 +326,8 @@ class Configuration {
 
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
-      {String builderTag,
+      {String babel,
+      String builderTag,
       List<String> vmOptions,
       List<String> dart2jsOptions,
       int timeout,
@@ -334,13 +340,15 @@ class Configuration {
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
       bool useBlobs,
+      bool useElf,
       bool useHotReload,
       bool useHotReloadRollback,
       bool useSdk})
-      : builderTag = builderTag ?? "",
+      : babel = babel ?? "",
+        builderTag = builderTag ?? "",
         vmOptions = vmOptions ?? <String>[],
         dart2jsOptions = dart2jsOptions ?? <String>[],
-        timeout = timeout,
+        timeout = timeout ?? -1,
         enableAsserts = enableAsserts ?? false,
         isChecked = isChecked ?? false,
         isCsp = isCsp ?? false,
@@ -350,6 +358,7 @@ class Configuration {
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
         useBlobs = useBlobs ?? false,
+        useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
         useSdk = useSdk ?? false;
@@ -362,6 +371,7 @@ class Configuration {
       mode == other.mode &&
       runtime == other.runtime &&
       system == other.system &&
+      babel == other.babel &&
       builderTag == other.builderTag &&
       vmOptions.join(" & ") == other.vmOptions.join(" & ") &&
       dart2jsOptions.join(" & ") == other.dart2jsOptions.join(" & ") &&
@@ -375,6 +385,7 @@ class Configuration {
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
       useBlobs == other.useBlobs &&
+      useElf == other.useElf &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
       useSdk == other.useSdk;
@@ -392,6 +403,7 @@ class Configuration {
       mode.hashCode ^
       runtime.hashCode ^
       system.hashCode ^
+      babel.hashCode ^
       builderTag.hashCode ^
       vmOptions.join(" & ").hashCode ^
       dart2jsOptions.join(" & ").hashCode ^
@@ -406,6 +418,7 @@ class Configuration {
         useAnalyzerCfe,
         useAnalyzerFastaParser,
         useBlobs,
+        useElf,
         useHotReload,
         useHotReloadRollback,
         useSdk
@@ -423,11 +436,13 @@ class Configuration {
     fields.add("runtime: $runtime");
     fields.add("system: $system");
 
-    if (builderTag != "") fields.add("builder-tag: $builderTag");
-    if (vmOptions != "") fields.add("vm-options: [${vmOptions.join(", ")}]");
-    if (dart2jsOptions != "")
+    if (babel.isNotEmpty) fields.add("babel: $babel");
+    if (builderTag.isNotEmpty) fields.add("builder-tag: $builderTag");
+    if (vmOptions.isNotEmpty)
+      fields.add("vm-options: [${vmOptions.join(", ")}]");
+    if (dart2jsOptions.isNotEmpty)
       fields.add("dart2js-options: [${dart2jsOptions.join(", ")}]");
-    if (timeout != 0) fields.add("timeout: $timeout");
+    if (timeout > 0) fields.add("timeout: $timeout");
     if (enableAsserts) fields.add("enable-asserts");
     if (isChecked) fields.add("checked");
     if (isCsp) fields.add("csp");
@@ -458,20 +473,25 @@ class Configuration {
     fields.add("runtime: $runtime ${other.runtime}");
     fields.add("system: $system ${other.system}");
 
-    if (builderTag != "" || other.builderTag != "") {
-      var tag = builderTag == "" ? "(none)" : builderTag;
-      var otherTag = other.builderTag == "" ? "(none)" : other.builderTag;
-      fields.add("builder-tag: $tag $otherTag");
+    if (babel.isNotEmpty || other.babel.isNotEmpty) {
+      var ours = babel == "" ? "(none)" : babel;
+      var theirs = other.babel == "" ? "(none)" : other.babel;
+      fields.add("babel: $ours $theirs");
     }
-    if (vmOptions != "" || other.vmOptions != "") {
-      var tag = "[${vmOptions.join(", ")}]";
-      var otherTag = "[${other.vmOptions.join(", ")}]";
-      fields.add("vm-options: $tag $otherTag");
+    if (builderTag.isNotEmpty || other.builderTag.isNotEmpty) {
+      var ours = builderTag == "" ? "(none)" : builderTag;
+      var theirs = other.builderTag == "" ? "(none)" : other.builderTag;
+      fields.add("builder-tag: $ours $theirs");
     }
-    if (dart2jsOptions != "" || other.dart2jsOptions != "") {
-      var tag = "[${dart2jsOptions.join(", ")}]";
-      var otherTag = "[${other.dart2jsOptions.join(", ")}]";
-      fields.add("dart2js-options: $tag $otherTag");
+    if (vmOptions.isNotEmpty || other.vmOptions.isNotEmpty) {
+      var ours = "[${vmOptions.join(", ")}]";
+      var theirs = "[${other.vmOptions.join(", ")}]";
+      fields.add("vm-options: $ours $theirs");
+    }
+    if (dart2jsOptions.isNotEmpty || other.dart2jsOptions.isNotEmpty) {
+      var ours = "[${dart2jsOptions.join(", ")}]";
+      var theirs = "[${other.dart2jsOptions.join(", ")}]";
+      fields.add("dart2js-options: $ours $theirs");
     }
     fields.add("timeout: $timeout ${other.timeout}");
     if (enableAsserts || other.enableAsserts) {
@@ -636,6 +656,9 @@ class Compiler extends NamedEnum {
         return const [
           Runtime.none,
           Runtime.chrome,
+          Runtime.edge,
+          Runtime.firefox,
+          Runtime.safari,
         ];
 
       case Compiler.dart2analyzer:

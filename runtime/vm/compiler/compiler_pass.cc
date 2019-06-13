@@ -178,7 +178,7 @@ void CompilerPass::Run(CompilerPassState* state) const {
       repeat = DoBody(state);
       thread->CheckForSafepoint();
 #if defined(DEBUG)
-      FlowGraphChecker(state->flow_graph).Check();
+      FlowGraphChecker(state->flow_graph).Check(name());
 #endif
     }
     PrintGraph(state, kTraceAfter, round);
@@ -206,6 +206,21 @@ void CompilerPass::PrintGraph(CompilerPassState* state,
 
 #define INVOKE_PASS(Name)                                                      \
   CompilerPass::Get(CompilerPass::k##Name)->Run(pass_state);
+
+void CompilerPass::RunGraphIntrinsicPipeline(CompilerPassState* pass_state) {
+  INVOKE_PASS(AllocateRegistersForGraphIntrinsic);
+}
+
+void CompilerPass::RunInliningPipeline(PipelineMode mode,
+                                       CompilerPassState* pass_state) {
+  INVOKE_PASS(ApplyClassIds);
+  INVOKE_PASS(TypePropagation);
+  INVOKE_PASS(ApplyICData);
+  INVOKE_PASS(Canonicalize);
+  // Optimize (a << b) & c patterns, merge instructions. Must occur
+  // before 'SelectRepresentations' which inserts conversion nodes.
+  INVOKE_PASS(TryOptimizePatterns);
+}
 
 void CompilerPass::RunPipeline(PipelineMode mode,
                                CompilerPassState* pass_state) {
@@ -412,6 +427,14 @@ COMPILER_PASS(AllocateRegisters, {
   allocator.AllocateRegisters();
 });
 
+COMPILER_PASS(AllocateRegistersForGraphIntrinsic, {
+  // Ensure loop hierarchy has been computed.
+  flow_graph->GetLoopHierarchy();
+  // Perform register allocation on the SSA graph.
+  FlowGraphAllocator allocator(*flow_graph, /*intrinsic_mode=*/true);
+  allocator.AllocateRegisters();
+});
+
 COMPILER_PASS(ReorderBlocks, {
   if (state->reorder_blocks) {
     state->block_scheduler->ReorderBlocks();
@@ -425,8 +448,8 @@ static void WriteBarrierElimination(FlowGraph* flow_graph) {
     Definition* last_allocated = nullptr;
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
-        if (!current->CanTriggerGC()) {
+      if (!current->CanTriggerGC()) {
+        if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
           if (instr->instance()->definition() == last_allocated) {
             instr->set_emit_store_barrier(kNoStoreBarrier);
           }
@@ -434,10 +457,11 @@ static void WriteBarrierElimination(FlowGraph* flow_graph) {
         }
       }
 
-      AllocationInstr* alloc = current->AsAllocation();
-      if (alloc != nullptr && alloc->WillAllocateNewOrRemembered()) {
-        last_allocated = alloc;
-        continue;
+      if (AllocationInstr* alloc = current->AsAllocation()) {
+        if (alloc->WillAllocateNewOrRemembered()) {
+          last_allocated = alloc;
+          continue;
+        }
       }
 
       if (current->CanTriggerGC()) {

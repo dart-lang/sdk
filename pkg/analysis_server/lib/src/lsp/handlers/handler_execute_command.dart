@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
@@ -21,6 +22,8 @@ class ExecuteCommandHandler
       : commandHandlers = {
           Commands.sortMembers: new SortMembersCommandHandler(server),
           Commands.organizeImports: new OrganizeImportsCommandHandler(server),
+          Commands.sendWorkspaceEdit:
+              new SendWorkspaceEditCommandHandler(server),
         },
         super(server);
 
@@ -30,7 +33,8 @@ class ExecuteCommandHandler
   LspJsonHandler<ExecuteCommandParams> get jsonHandler =>
       ExecuteCommandParams.jsonHandler;
 
-  Future<ErrorOr<Object>> handle(ExecuteCommandParams params) async {
+  Future<ErrorOr<Object>> handle(
+      ExecuteCommandParams params, CancellationToken token) async {
     final handler = commandHandlers[params.command];
     if (handler == null) {
       return error(ServerErrorCodes.UnknownCommand,

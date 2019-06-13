@@ -173,6 +173,9 @@ class Keyword extends TokenType {
 
   static const Keyword EXTENDS = const Keyword("extends", "EXTENDS");
 
+  static const Keyword EXTENSION = const Keyword("extension", "EXTENSION",
+      isBuiltIn: true, isTopLevelKeyword: true);
+
   static const Keyword EXTERNAL =
       const Keyword("external", "EXTERNAL", isBuiltIn: true, isModifier: true);
 
@@ -211,6 +214,8 @@ class Keyword extends TokenType {
   static const Keyword IS =
       const Keyword("is", "IS", precedence: RELATIONAL_PRECEDENCE);
 
+  static const Keyword LATE = const Keyword("late", "LATE", isModifier: true);
+
   static const Keyword LIBRARY = const Keyword("library", "LIBRARY",
       isBuiltIn: true, isTopLevelKeyword: true);
 
@@ -235,6 +240,9 @@ class Keyword extends TokenType {
       const Keyword("part", "PART", isBuiltIn: true, isTopLevelKeyword: true);
 
   static const Keyword PATCH = const Keyword("patch", "PATCH", isPseudo: true);
+
+  static const Keyword REQUIRED =
+      const Keyword("required", "REQUIRED", isBuiltIn: true, isModifier: true);
 
   static const Keyword RETHROW = const Keyword("rethrow", "RETHROW");
 
@@ -298,6 +306,7 @@ class Keyword extends TokenType {
     ENUM,
     EXPORT,
     EXTENDS,
+    EXTENSION,
     EXTERNAL,
     FACTORY,
     FALSE,
@@ -313,6 +322,7 @@ class Keyword extends TokenType {
     IN,
     INTERFACE,
     IS,
+    LATE,
     LIBRARY,
     MIXIN,
     NATIVE,
@@ -323,6 +333,7 @@ class Keyword extends TokenType {
     OPERATOR,
     PART,
     PATCH,
+    REQUIRED,
     RETHROW,
     RETURN,
     SET,
@@ -1146,7 +1157,7 @@ class TokenType {
       stringValue: null);
 
   static const TokenType IDENTIFIER = const TokenType(
-      'identifier', 'STRING_INT', NO_PRECEDENCE, IDENTIFIER_TOKEN,
+      'identifier', 'IDENTIFIER', NO_PRECEDENCE, IDENTIFIER_TOKEN,
       stringValue: null);
 
   static const TokenType INT = const TokenType(

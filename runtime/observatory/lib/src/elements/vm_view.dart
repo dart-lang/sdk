@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 import 'package:observatory/utils.dart';
 
-class VMViewElement extends HtmlElement implements Renderable {
+class VMViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<VMViewElement>('vm-view', dependencies: const [
     IsolateSummaryElement.tag,
     NavTopMenuElement.tag,
@@ -60,7 +60,7 @@ class VMViewElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(isolates != null);
     assert(scripts != null);
-    VMViewElement e = document.createElement(tag.name);
+    VMViewElement e = new VMViewElement.created();
     e._r = new RenderingScheduler<VMViewElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
@@ -71,7 +71,7 @@ class VMViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  VMViewElement.created() : super.created();
+  VMViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -100,15 +100,16 @@ class VMViewElement extends HtmlElement implements Renderable {
     final isolates = _vm.isolates.toList();
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _vm = await _vms.get(_vm);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _vm = await _vms.get(_vm);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -291,13 +292,14 @@ class VMViewElement extends HtmlElement implements Renderable {
                         ..classes = ['list-group-item']
                         ..children = <Element>[
                           new IsolateSummaryElement(
-                              i, _isolates, _events, _scripts,
-                              queue: _r.queue)
+                                  i, _isolates, _events, _scripts,
+                                  queue: _r.queue)
+                              .element
                         ],
                       new HRElement()
                     ])
                 .toList(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

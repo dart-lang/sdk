@@ -149,6 +149,11 @@ testMacros(String sdkRoot) async {
 
     match = matchComplete(field, line);
     if (match != null && currentClass != null) {
+      if (fields[currentClass] == null) {
+        hasMissingFields = true;
+        print("$currentClass is missing entirely.");
+        continue;
+      }
       if (!fields[currentClass].contains(match.group(2))) {
         hasMissingFields = true;
         print("$currentClass is missing ${match.group(2)}.");

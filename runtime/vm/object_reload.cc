@@ -763,7 +763,7 @@ void ICData::Reset(Zone* zone) const {
     } else {
       // Super call.
       Function& caller = Function::Handle(zone);
-      caller ^= Owner();
+      caller = Owner();
       ASSERT(!caller.is_static());
       Class& cls = Class::Handle(zone, caller.Owner());
       cls = cls.SuperClass();

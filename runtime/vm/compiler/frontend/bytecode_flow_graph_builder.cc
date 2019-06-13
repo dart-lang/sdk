@@ -26,7 +26,6 @@ DEFINE_FLAG(bool,
 
 namespace kernel {
 
-// 8-bit unsigned operand at bits 8-15.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandA() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -36,7 +35,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandA() {
   }
 }
 
-// 8-bit unsigned operand at bits 16-23.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandB() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -46,7 +44,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandB() {
   }
 }
 
-// 8-bit unsigned operand at bits 24-31.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandC() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -56,7 +53,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandC() {
   }
 }
 
-// 16-bit unsigned operand at bits 16-31.
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandD() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -66,7 +62,24 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandD() {
   }
 }
 
-// 16-bit signed operand at bits 16-31.
+BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandE() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  } else {
+    intptr_t value = KernelBytecode::DecodeE(bytecode_instr_);
+    return Operand(value);
+  }
+}
+
+BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandF() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  } else {
+    intptr_t value = KernelBytecode::DecodeF(bytecode_instr_);
+    return Operand(value);
+  }
+}
+
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandX() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -76,7 +89,15 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandX() {
   }
 }
 
-// 24-bit signed operand at bits 8-31.
+BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandY() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  } else {
+    intptr_t value = KernelBytecode::DecodeY(bytecode_instr_);
+    return Operand(value);
+  }
+}
+
 BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandT() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -84,22 +105,6 @@ BytecodeFlowGraphBuilder::Operand BytecodeFlowGraphBuilder::DecodeOperandT() {
     intptr_t value = KernelBytecode::DecodeT(bytecode_instr_);
     return Operand(value);
   }
-}
-
-KBCInstr BytecodeFlowGraphBuilder::InstructionAt(
-    intptr_t pc,
-    KernelBytecode::Opcode expect_opcode) {
-  ASSERT(!is_generating_interpreter());
-  ASSERT((0 <= pc) && (pc < bytecode_length_));
-
-  const KBCInstr instr = raw_bytecode_[pc];
-  if (KernelBytecode::DecodeOpcode(instr) != expect_opcode) {
-    FATAL3("Expected bytecode instruction %s, but found %s at %" Pd "",
-           KernelBytecode::NameOf(KernelBytecode::Encode(expect_opcode)),
-           KernelBytecode::NameOf(instr), pc);
-  }
-
-  return instr;
 }
 
 BytecodeFlowGraphBuilder::Constant BytecodeFlowGraphBuilder::ConstantAt(
@@ -369,17 +374,50 @@ void BytecodeFlowGraphBuilder::DropUnusedValuesFromStack() {
 
 void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
   switch (opcode) {
-#define BUILD_BYTECODE_CASE(name, encoding, op1, op2, op3)                     \
+#define WIDE_CASE(name) case KernelBytecode::k##name##_Wide:
+#define WIDE_CASE_0(name)
+#define WIDE_CASE_A(name)
+#define WIDE_CASE_D(name) WIDE_CASE(name)
+#define WIDE_CASE_X(name) WIDE_CASE(name)
+#define WIDE_CASE_T(name) WIDE_CASE(name)
+#define WIDE_CASE_A_E(name) WIDE_CASE(name)
+#define WIDE_CASE_A_Y(name) WIDE_CASE(name)
+#define WIDE_CASE_D_F(name) WIDE_CASE(name)
+#define WIDE_CASE_A_B_C(name)
+
+#define BUILD_BYTECODE_CASE(name, encoding, kind, op1, op2, op3)               \
+  BUILD_BYTECODE_CASE_##kind(name, encoding)
+
+#define BUILD_BYTECODE_CASE_OLD(name, encoding)
+#define BUILD_BYTECODE_CASE_WIDE(name, encoding)
+#define BUILD_BYTECODE_CASE_RESV(name, encoding)
+#define BUILD_BYTECODE_CASE_ORDN(name, encoding)                               \
   case KernelBytecode::k##name:                                                \
-    Build##name();                                                             \
+  case KernelBytecode::k##name##_Old:                                          \
+    WIDE_CASE_##encoding(name) Build##name();                                  \
     break;
 
     PUBLIC_KERNEL_BYTECODES_LIST(BUILD_BYTECODE_CASE)
 
+#undef WIDE_CASE
+#undef WIDE_CASE_0
+#undef WIDE_CASE_A
+#undef WIDE_CASE_D
+#undef WIDE_CASE_X
+#undef WIDE_CASE_T
+#undef WIDE_CASE_A_E
+#undef WIDE_CASE_A_Y
+#undef WIDE_CASE_D_F
+#undef WIDE_CASE_A_B_C
 #undef BUILD_BYTECODE_CASE
+#undef BUILD_BYTECODE_CASE_OLD
+#undef BUILD_BYTECODE_CASE_WIDE
+#undef BUILD_BYTECODE_CASE_RESV
+#undef BUILD_BYTECODE_CASE_ORDN
+
     default:
       FATAL1("Unsupported bytecode instruction %s\n",
-             KernelBytecode::NameOf(bytecode_instr_));
+             KernelBytecode::NameOf(opcode));
   }
 }
 
@@ -396,7 +434,7 @@ void BytecodeFlowGraphBuilder::BuildEntryFixed() {
   const intptr_t num_fixed_params = DecodeOperandA().value();
   ASSERT(num_fixed_params == function().num_fixed_parameters());
 
-  AllocateLocalVariables(DecodeOperandD());
+  AllocateLocalVariables(DecodeOperandE());
   AllocateFixedParameters();
 
   Fragment check_args;
@@ -444,8 +482,12 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
   const intptr_t num_load_const = num_opt_pos_params + 2 * num_opt_named_params;
 
-  const KBCInstr frame_instr =
-      InstructionAt(pc_ + 1 + num_load_const, KernelBytecode::kFrame);
+  const KBCInstr* instr = KernelBytecode::Next(bytecode_instr_);
+  const KBCInstr* frame_instr = instr;
+  for (intptr_t i = 0; i < num_load_const; ++i) {
+    frame_instr = KernelBytecode::Next(frame_instr);
+  }
+  ASSERT(KernelBytecode::IsFrameOpcode(frame_instr));
   const intptr_t num_extra_locals = KernelBytecode::DecodeD(frame_instr);
   const intptr_t num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
@@ -467,11 +509,12 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
   }
 
   for (intptr_t i = 0; i < num_opt_pos_params; ++i, ++param) {
-    const KBCInstr load_value_instr =
-        InstructionAt(pc_ + 1 + i, KernelBytecode::kLoadConstant);
-    const Object& default_value =
-        ConstantAt(Operand(KernelBytecode::DecodeD(load_value_instr))).value();
+    const KBCInstr* load_value_instr = instr;
+    instr = KernelBytecode::Next(instr);
+    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
     ASSERT(KernelBytecode::DecodeA(load_value_instr) == param);
+    const Object& default_value =
+        ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr))).value();
 
     LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
     raw_parameters->Add(param_var);
@@ -487,16 +530,17 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
     temp_var = scratch_var_;
 
     for (intptr_t i = 0; i < num_opt_named_params; ++i, ++param) {
-      const KBCInstr load_name_instr =
-          InstructionAt(pc_ + 1 + i * 2, KernelBytecode::kLoadConstant);
-      const KBCInstr load_value_instr =
-          InstructionAt(pc_ + 1 + i * 2 + 1, KernelBytecode::kLoadConstant);
+      const KBCInstr* load_name_instr = instr;
+      const KBCInstr* load_value_instr = KernelBytecode::Next(load_name_instr);
+      instr = KernelBytecode::Next(load_value_instr);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
       const String& param_name = String::Cast(
-          ConstantAt(Operand(KernelBytecode::DecodeD(load_name_instr)))
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_name_instr)))
               .value());
       ASSERT(param_name.IsSymbol());
       const Object& default_value =
-          ConstantAt(Operand(KernelBytecode::DecodeD(load_value_instr)))
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr)))
               .value();
 
       intptr_t param_index = num_fixed_params;
@@ -520,6 +564,8 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
       (*raw_parameters)[param_index] = param_var;
     }
   }
+
+  ASSERT(instr == frame_instr);
 
   parsed_function()->set_default_parameter_values(default_values);
   parsed_function()->SetRawParameters(raw_parameters);
@@ -556,7 +602,7 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
       PrologueInfo(prologue_entry->block_id(), prologue_exit->block_id() - 1);
 
   // Skip LoadConstant and Frame instructions.
-  pc_ += num_load_const + 1;
+  next_pc_ = pc_ + (KernelBytecode::Next(instr) - bytecode_instr_);
 
   ASSERT(IsStackEmpty());
 }
@@ -585,7 +631,7 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
   }
 
   const intptr_t expected_num_type_args = DecodeOperandA().value();
-  LocalVariable* type_args_var = LocalVariableAt(DecodeOperandD().value());
+  LocalVariable* type_args_var = LocalVariableAt(DecodeOperandE().value());
   ASSERT(function().IsGeneric());
 
   if (throw_no_such_method_ == nullptr) {
@@ -628,7 +674,8 @@ void BytecodeFlowGraphBuilder::BuildCheckFunctionTypeArgs() {
     store_type_args += B->LoadArgDescriptor();
     store_type_args += B->LoadNativeField(Slot::ArgumentsDescriptor_count());
     store_type_args += B->LoadFpRelativeSlot(
-        kWordSize * (1 + compiler::target::frame_layout.param_end_from_fp),
+        compiler::target::kWordSize *
+            (1 + compiler::target::frame_layout.param_end_from_fp),
         CompileType::CreateNullable(/*is_nullable=*/true, kTypeArgumentsCid));
     store_type_args +=
         B->StoreLocalRaw(TokenPosition::kNoSource, type_args_var);
@@ -710,42 +757,13 @@ void BytecodeFlowGraphBuilder::BuildPush() {
   LoadLocal(local_index);
 }
 
-void BytecodeFlowGraphBuilder::BuildIndirectStaticCall() {
-  if (is_generating_interpreter()) {
-    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
-  }
-
-  const ICData& icdata = ICData::Cast(PopConstant().value());
-
-  const Function& target = Function::ZoneHandle(Z, icdata.GetTargetAt(0));
-  const ArgumentsDescriptor arg_desc(
-      Array::Cast(ConstantAt(DecodeOperandD()).value()));
-  intptr_t argc = DecodeOperandA().value();
-  ASSERT(ic_data_array_->At(icdata.deopt_id())->Original() == icdata.raw());
-
-  ArgumentArray arguments = GetArguments(argc);
-
-  // TODO(alexmarkov): pass ICData::kSuper for super calls
-  // (need to distinguish them in bytecode).
-  StaticCallInstr* call = new (Z) StaticCallInstr(
-      position_, target, arg_desc.TypeArgsLen(),
-      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
-      *ic_data_array_, icdata.deopt_id(), ICData::kStatic);
-
-  // TODO(alexmarkov): add type info
-  // SetResultTypeForStaticCall(call, target, argument_count, result_type);
-
-  code_ <<= call;
-  B->Push(call);
-}
-
 void BytecodeFlowGraphBuilder::BuildDirectCall() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
-  const intptr_t argc = DecodeOperandA().value();
+  const intptr_t argc = DecodeOperandF().value();
 
   // Recognize identical() call.
   // Note: similar optimization is performed in AST flow graph builder - see
@@ -795,18 +813,20 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
 
-  const intptr_t argc = DecodeOperandA().value();
+  const intptr_t argc = DecodeOperandF().value();
   Token::Kind token_kind = MethodTokenRecognizer::RecognizeTokenKind(name);
 
   intptr_t checked_argument_count = 1;
-  if ((token_kind != Token::kILLEGAL) ||
-      (name.raw() ==
-       Library::PrivateCoreLibName(Symbols::_simpleInstanceOf()).raw())) {
+  if (token_kind != Token::kILLEGAL) {
     intptr_t argument_count = arg_desc.Count();
     ASSERT(argument_count <= 2);
     checked_argument_count = argument_count;
-  } else if (name.raw() ==
-             Library::PrivateCoreLibName(Symbols::_instanceOf()).raw()) {
+  } else if (Library::IsPrivateCoreLibName(name,
+                                           Symbols::_simpleInstanceOf())) {
+    ASSERT(arg_desc.Count() == 2);
+    checked_argument_count = 2;
+    token_kind = Token::kIS;
+  } else if (Library::IsPrivateCoreLibName(name, Symbols::_instanceOf())) {
     token_kind = Token::kIS;
   }
 
@@ -843,7 +863,7 @@ void BytecodeFlowGraphBuilder::BuildDynamicCall() {
   const ICData& icdata = ICData::Cast(ConstantAt(DecodeOperandD()).value());
   ASSERT(ic_data_array_->At(icdata.deopt_id())->Original() == icdata.raw());
 
-  const intptr_t argc = DecodeOperandA().value();
+  const intptr_t argc = DecodeOperandF().value();
   const ArgumentsDescriptor arg_desc(
       Array::Handle(Z, icdata.arguments_descriptor()));
 
@@ -1103,7 +1123,7 @@ void BytecodeFlowGraphBuilder::BuildAllocateContext() {
   }
 
   const intptr_t context_id = DecodeOperandA().value();
-  const intptr_t num_context_vars = DecodeOperandD().value();
+  const intptr_t num_context_vars = DecodeOperandE().value();
 
   auto& context_variables = CompilerState::Current().GetDummyContextVariables(
       context_id, num_context_vars);
@@ -1117,7 +1137,7 @@ void BytecodeFlowGraphBuilder::BuildCloneContext() {
 
   LoadStackSlots(1);
   const intptr_t context_id = DecodeOperandA().value();
-  const intptr_t num_context_vars = DecodeOperandD().value();
+  const intptr_t num_context_vars = DecodeOperandE().value();
 
   auto& context_variables = CompilerState::Current().GetDummyContextVariables(
       context_id, num_context_vars);
@@ -1213,7 +1233,7 @@ void BytecodeFlowGraphBuilder::BuildStoreContextVar() {
 
   LoadStackSlots(2);
   const intptr_t context_id = DecodeOperandA().value();
-  const intptr_t var_index = DecodeOperandD().value();
+  const intptr_t var_index = DecodeOperandE().value();
 
   auto var =
       CompilerState::Current().GetDummyCapturedVariable(context_id, var_index);
@@ -1228,7 +1248,7 @@ void BytecodeFlowGraphBuilder::BuildLoadContextVar() {
 
   LoadStackSlots(1);
   const intptr_t context_id = DecodeOperandA().value();
-  const intptr_t var_index = DecodeOperandD().value();
+  const intptr_t var_index = DecodeOperandE().value();
 
   auto var =
       CompilerState::Current().GetDummyCapturedVariable(context_id, var_index);
@@ -1298,7 +1318,7 @@ void BytecodeFlowGraphBuilder::BuildInstantiateTypeArgumentsTOS() {
   }
 
   const TypeArguments& type_args =
-      TypeArguments::Cast(ConstantAt(DecodeOperandD()).value());
+      TypeArguments::Cast(ConstantAt(DecodeOperandE()).value());
 
   LoadStackSlots(2);
   code_ += B->InstantiateTypeArguments(type_args);
@@ -1372,9 +1392,8 @@ void BytecodeFlowGraphBuilder::BuildJumpIfNoAsserts() {
     // (if it contains jumps) and generated. The problem is that generated
     // code may expect values left on the stack from unreachable
     // (and not generated) code which immediately follows this Jump.
-    const intptr_t target_pc = pc_ + DecodeOperandT().value();
-    ASSERT(target_pc > pc_);
-    pc_ = target_pc - 1;
+    next_pc_ = pc_ + DecodeOperandT().value();
+    ASSERT(next_pc_ > pc_);
   }
 }
 
@@ -1407,24 +1426,22 @@ void BytecodeFlowGraphBuilder::BuildJumpIfStrictCompare(Token::Kind cmp_kind) {
 
   LoadStackSlots(2);
 
-  TargetEntryInstr* eq_branch = nullptr;
-  TargetEntryInstr* ne_branch = nullptr;
-  code_ += B->BranchIfStrictEqual(&eq_branch, &ne_branch);
-
-  TargetEntryInstr* then_entry =
-      (cmp_kind == Token::kEQ) ? eq_branch : ne_branch;
-  TargetEntryInstr* else_entry =
-      (cmp_kind == Token::kEQ) ? ne_branch : eq_branch;
+  // Fallthrough should correspond to 'then' branch target.
+  // This results in a slightly better regalloc.
+  TargetEntryInstr* then_entry = nullptr;
+  TargetEntryInstr* else_entry = nullptr;
+  code_ += B->BranchIfEqual(&then_entry, &else_entry,
+                            /* negate = */ (cmp_kind == Token::kEQ));
 
   const intptr_t target_pc = pc_ + DecodeOperandT().value();
   JoinEntryInstr* join = jump_targets_.Lookup(target_pc);
   ASSERT(join != nullptr);
 
-  code_ = Fragment(then_entry);
+  code_ = Fragment(else_entry);
   code_ += B->Goto(join);
   PropagateStackState(target_pc);
 
-  code_ = Fragment(else_entry);
+  code_ = Fragment(then_entry);
 }
 
 void BytecodeFlowGraphBuilder::BuildJumpIfEqStrict() {
@@ -1522,7 +1539,7 @@ void BytecodeFlowGraphBuilder::BuildMoveSpecial() {
   }
 
   code_ += B->LoadLocal(special_var);
-  StoreLocal(DecodeOperandX());
+  StoreLocal(DecodeOperandY());
   code_ += B->Drop();
 }
 
@@ -1784,15 +1801,22 @@ JoinEntryInstr* BytecodeFlowGraphBuilder::EnsureControlFlowJoin(
   return join;
 }
 
-bool BytecodeFlowGraphBuilder::RequiresScratchVar(KBCInstr instr) {
+bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kEntryOptional:
+    case KernelBytecode::kEntryOptional_Old:
       return KernelBytecode::DecodeC(instr) > 0;
+
     case KernelBytecode::kEqualsNull:
+    case KernelBytecode::kEqualsNull_Old:
       return true;
+
     case KernelBytecode::kNativeCall:
+    case KernelBytecode::kNativeCall_Wide:
+    case KernelBytecode::kNativeCall_Old:
       return MethodRecognizer::RecognizeKind(function()) ==
              MethodRecognizer::kListFactory;
+
     default:
       return false;
   }
@@ -1802,14 +1826,13 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     const PcDescriptors& descriptors,
     const ExceptionHandlers& handlers,
     GraphEntryInstr* graph_entry) {
-  for (intptr_t pc = 0; pc < bytecode_length_; ++pc) {
-    const KBCInstr instr = raw_bytecode_[pc];
+  for (intptr_t pc = 0; pc < bytecode_length_;) {
+    const KBCInstr* instr = &(raw_bytecode_[pc]);
 
     if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
-    } else if ((KernelBytecode::DecodeOpcode(instr) ==
-                KernelBytecode::kCheckStack) &&
+    } else if (KernelBytecode::IsCheckStackOpcode(instr) &&
                (KernelBytecode::DecodeA(instr) != 0)) {
       // (dartbug.com/36590) BlockEntryInstr::FindOsrEntryAndRelink assumes
       // that CheckStackOverflow instruction is at the beginning of a join
@@ -1822,6 +1845,8 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
           LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
                         Symbols::ExprTemp(), Object::dynamic_type());
     }
+
+    pc += (KernelBytecode::Next(instr) - instr);
   }
 
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
@@ -1858,7 +1883,7 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     JoinEntryInstr* join = EnsureControlFlowJoin(descriptors, handler_pc);
 
     // Make sure exception handler starts with SetFrame bytecode instruction.
-    InstructionAt(handler_pc, KernelBytecode::kSetFrame);
+    ASSERT(KernelBytecode::IsSetFrameOpcode(&(raw_bytecode_[handler_pc])));
 
     const Array& handler_types =
         Array::ZoneHandle(Z, handlers.GetHandledTypes(try_index));
@@ -1879,7 +1904,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
 
   object_pool_ = bytecode.object_pool();
-  raw_bytecode_ = reinterpret_cast<KBCInstr*>(bytecode.PayloadStart());
+  raw_bytecode_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
   bytecode_length_ = bytecode.Size() / sizeof(KBCInstr);
 
   ProcessICDataInObjectPool(object_pool_);
@@ -1902,8 +1927,9 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   code_ = Fragment(normal_entry);
 
-  for (pc_ = 0; pc_ < bytecode_length_; ++pc_) {
-    bytecode_instr_ = raw_bytecode_[pc_];
+  for (pc_ = 0; pc_ < bytecode_length_; pc_ = next_pc_) {
+    bytecode_instr_ = &(raw_bytecode_[pc_]);
+    next_pc_ = pc_ + (KernelBytecode::Next(bytecode_instr_) - bytecode_instr_);
 
     JoinEntryInstr* join = jump_targets_.Lookup(pc_);
     if (join != nullptr) {
@@ -1926,7 +1952,7 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
     }
 
     while (update_position &&
-           pc_ >= source_pos_iter.BytecodeInstructionIndex()) {
+           static_cast<uword>(pc_) >= source_pos_iter.PcOffset()) {
       position_ = source_pos_iter.TokenPos();
       update_position = source_pos_iter.MoveNext();
     }

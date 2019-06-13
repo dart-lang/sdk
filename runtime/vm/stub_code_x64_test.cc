@@ -83,7 +83,7 @@ static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
   __ LoadObject(CallingConventions::kArg2Reg, lhs_index);
   __ LoadObject(CallingConventions::kArg3Reg, rhs_index);
   __ LoadObject(CallingConventions::kArg4Reg, length);
-  __ CallRuntime(kCaseInsensitiveCompareUC16RuntimeEntry, 4);
+  __ CallRuntime(kCaseInsensitiveCompareUCS2RuntimeEntry, 4);
   __ LeaveStubFrame();
   __ ret();  // Return value is in RAX.
 }

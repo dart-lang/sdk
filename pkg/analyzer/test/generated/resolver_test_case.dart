@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -567,10 +568,12 @@ class ResolverTestCase extends EngineTestCase with ResourceProviderMixin {
         new CompilationUnitElementImpl();
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
+    var featureSet = context.analysisOptions.contextFeatures;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
         context,
         driver?.currentSession,
-        AstTestFactory.libraryIdentifier2([libraryName]));
+        AstTestFactory.libraryIdentifier2([libraryName]),
+        featureSet.isEnabled(Feature.non_nullable));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
     return library;
@@ -791,6 +794,18 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
     expect(functionType.typeParameters.toString(), typeParams);
     expect(functionType.typeArguments.toString(), typeArgs);
     expect(functionType.typeFormals.toString(), typeFormals);
+    return functionType;
+  }
+
+  /**
+   * Looks up the identifier with [name] and validates that its type type
+   * stringifies to [type] and that its generics match the given stringified
+   * output.
+   */
+  FunctionTypeImpl expectFunctionType2(String name, String type) {
+    SimpleIdentifier identifier = findIdentifier(name);
+    FunctionTypeImpl functionType = identifier.staticType;
+    expect('$functionType', type);
     return functionType;
   }
 

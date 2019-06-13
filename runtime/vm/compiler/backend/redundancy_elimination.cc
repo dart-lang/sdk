@@ -310,6 +310,23 @@ class Place : public ValueObject {
                  RoundByteOffset(to, index_constant_));
   }
 
+  // Given alias X[ByteOffs|S], smaller element size S' and index from 0 to
+  // S/S' - 1 return alias X[ByteOffs + S'*index|S'] - this is the byte offset
+  // of a smaller typed array element which is contained within this typed
+  // array element.
+  // For example X[8|kInt32] contains inside X[8|kInt16] (index is 0) and
+  // X[10|kInt16] (index is 1).
+  Place ToSmallerElement(ElementSize to, intptr_t index) const {
+    ASSERT(kind() == kConstantIndexed);
+    ASSERT(element_size() != kNoSize);
+    ASSERT(element_size() > to);
+    ASSERT(index >= 0);
+    ASSERT(index <
+           ElementSizeMultiplier(element_size()) / ElementSizeMultiplier(to));
+    return Place(ElementSizeBits::update(to, flags_), instance_,
+                 ByteOffsetToSmallerElement(to, index, index_constant_));
+  }
+
   intptr_t id() const { return id_; }
 
   Kind kind() const { return KindBits::decode(flags_); }
@@ -546,6 +563,12 @@ class Place : public ValueObject {
 
   static intptr_t RoundByteOffset(ElementSize size, intptr_t offset) {
     return offset & ~(ElementSizeMultiplier(size) - 1);
+  }
+
+  static intptr_t ByteOffsetToSmallerElement(ElementSize size,
+                                             intptr_t index,
+                                             intptr_t base_offset) {
+    return base_offset + index * ElementSizeMultiplier(size);
   }
 
   class KindBits : public BitField<uword, Kind, 0, 3> {};
@@ -890,13 +913,42 @@ class AliasedSet : public ZoneAllocated {
 
             // X[C|S] aliases with X[RoundDown(C, S')|S'] and likewise
             // *[C|S] aliases with *[RoundDown(C, S')|S'].
-            const Place larger_alias =
-                alias->ToLargerElement(static_cast<Place::ElementSize>(i));
-            CrossAlias(alias, larger_alias);
-            if (has_aliased_instance) {
-              // If X is an aliased instance then X[C|S] aliases
-              // with *[RoundDown(C, S')|S'].
-              CrossAlias(alias, larger_alias.CopyWithoutInstance());
+            CrossAlias(alias, alias->ToLargerElement(
+                                  static_cast<Place::ElementSize>(i)));
+          }
+
+          if (has_aliased_instance) {
+            // If X is an aliased instance then X[C|S] aliases *[C'|S'] for all
+            // related combinations of C' and S'.
+            // Caveat: this propagation is not symmetric (we would not know
+            // to propagate aliasing from *[C'|S'] to X[C|S] when visiting
+            // *[C'|S']) and thus we need to handle both element sizes smaller
+            // and larger than S.
+            const Place no_instance_alias = alias->CopyWithoutInstance();
+            for (intptr_t i = Place::kInt8; i <= Place::kLargestElementSize;
+                 i++) {
+              // Skip element sizes that a guaranteed to have no
+              // representatives.
+              if (!typed_data_access_sizes_.Contains(alias->element_size())) {
+                continue;
+              }
+
+              const auto other_size = static_cast<Place::ElementSize>(i);
+              if (other_size > alias->element_size()) {
+                // X[C|S] aliases all larger elements which cover it:
+                // *[RoundDown(C, S')|S'] for S' > S.
+                CrossAlias(alias,
+                           no_instance_alias.ToLargerElement(other_size));
+              } else if (other_size < alias->element_size()) {
+                // X[C|S] aliases all sub-elements of smaller size:
+                // *[C+j*S'|S'] for S' < S and j from 0 to S/S' - 1.
+                const auto num_smaller_elements =
+                    1 << (alias->element_size() - other_size);
+                for (intptr_t j = 0; j < num_smaller_elements; j++) {
+                  CrossAlias(alias,
+                             no_instance_alias.ToSmallerElement(other_size, j));
+                }
+              }
             }
           }
         }
@@ -1673,10 +1725,9 @@ class LoadOptimizer : public ValueObject {
               Definition* forward_def = graph_->constant_null();
               if (alloc->ArgumentCount() > 0) {
                 ASSERT(alloc->ArgumentCount() == 1);
-                intptr_t type_args_offset =
-                    alloc->cls().type_arguments_field_offset();
-                if (load->slot().IsTypeArguments() &&
-                    load->slot().offset_in_bytes() == type_args_offset) {
+                const Slot& type_args_slot = Slot::GetTypeArgumentsSlotFor(
+                    graph_->thread(), alloc->cls());
+                if (load->slot().IsIdentical(type_args_slot)) {
                   forward_def = alloc->PushArgumentAt(0)->value()->definition();
                 }
               }
@@ -3497,6 +3548,7 @@ void TryCatchAnalyzer::Optimize() {
             new (flow_graph_->zone()) ConstantInstr(orig->value());
         copy->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
         old->ReplaceUsesWith(copy);
+        copy->set_previous(old->previous());  // partial link
         (*idefs)[j] = copy;
       }
     }

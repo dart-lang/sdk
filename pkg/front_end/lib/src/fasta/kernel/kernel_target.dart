@@ -279,6 +279,7 @@ class KernelTarget extends TargetImplementation {
       loader.checkRedirectingFactories(myClasses);
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
+      loader.buildOutlineExpressions();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;
@@ -651,10 +652,14 @@ class KernelTarget extends TargetImplementation {
           superTarget ??= defaultSuperConstructor(cls);
           Initializer initializer;
           if (superTarget == null) {
+            int offset = constructor.fileOffset;
+            if (offset == -1 && constructor.isSynthetic) {
+              offset = cls.fileOffset;
+            }
             builder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass.name),
-                constructor.fileOffset,
+                offset,
                 noLength);
             initializer = new InvalidInitializer();
           } else {
@@ -770,6 +775,12 @@ class KernelTarget extends TargetImplementation {
   /// Run all transformations that are needed when building a bundle of
   /// libraries for the first time.
   void runBuildTransformations() {
+    backendTarget.performPreConstantEvaluationTransformations(
+        component,
+        loader.coreTypes,
+        loader.libraries,
+        new KernelDiagnosticReporter(loader),
+        logger: (String msg) => ticker.logMs(msg));
     if (loader.target.enableConstantUpdate2018) {
       TypeEnvironment environment =
           new TypeEnvironment(loader.coreTypes, loader.hierarchy);

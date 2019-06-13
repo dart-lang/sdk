@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   if (/*bc:1*/ foo() == /*bc:2*/ bar()) {
     print("wat?!?");
   }

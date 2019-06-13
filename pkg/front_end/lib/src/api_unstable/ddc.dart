@@ -29,6 +29,8 @@ import '../kernel_generator_impl.dart' show generateKernel;
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
 
+import 'util.dart' show equalLists, equalMaps;
+
 export '../api_prototype/compiler_options.dart' show CompilerOptions;
 
 export '../api_prototype/diagnostic_message.dart' show DiagnosticMessage;
@@ -71,6 +73,8 @@ class DdcResult {
 
 Future<InitializedCompilerState> initializeCompiler(
     InitializedCompilerState oldState,
+    bool compileSdk,
+    Uri sdkRoot,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -79,29 +83,14 @@ Future<InitializedCompilerState> initializeCompiler(
     {FileSystem fileSystem,
     Map<ExperimentalFlag, bool> experiments}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
-  bool listEqual(List<Uri> a, List<Uri> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; ++i) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
-
-  bool mapEqual(Map<ExperimentalFlag, bool> a, Map<ExperimentalFlag, bool> b) {
-    if (a == null || b == null) return a == b;
-    if (a.length != b.length) return false;
-    for (var flag in a.keys) {
-      if (!b.containsKey(flag) || a[flag] != b[flag]) return false;
-    }
-    return true;
-  }
 
   if (oldState != null &&
+      oldState.options.compileSdk == compileSdk &&
       oldState.options.sdkSummary == sdkSummary &&
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
-      listEqual(oldState.options.inputSummaries, inputSummaries) &&
-      mapEqual(oldState.options.experimentalFlags, experiments)) {
+      equalLists(oldState.options.inputSummaries, inputSummaries) &&
+      equalMaps(oldState.options.experimentalFlags, experiments)) {
     // Reuse old state.
 
     // These libraries are marked external when compiling. If not un-marking
@@ -118,6 +107,8 @@ Future<InitializedCompilerState> initializeCompiler(
   }
 
   CompilerOptions options = new CompilerOptions()
+    ..compileSdk = compileSdk
+    ..sdkRoot = sdkRoot
     ..sdkSummary = sdkSummary
     ..packagesFileUri = packagesFile
     ..inputSummaries = inputSummaries
@@ -134,6 +125,8 @@ Future<InitializedCompilerState> initializeCompiler(
 Future<InitializedCompilerState> initializeIncrementalCompiler(
     InitializedCompilerState oldState,
     List<Component> doneInputSummaries,
+    bool compileSdk,
+    Uri sdkRoot,
     Uri sdkSummary,
     Uri packagesFile,
     Uri librariesSpecificationUri,
@@ -154,9 +147,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
+      oldState.options.compileSdk != compileSdk ||
       cachedSdkInput == null) {
     // No previous state.
     options = new CompilerOptions()
+      ..compileSdk = compileSdk
+      ..sdkRoot = sdkRoot
       ..sdkSummary = sdkSummary
       ..packagesFileUri = packagesFile
       ..inputSummaries = inputSummaries
@@ -164,6 +160,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..target = target
       ..fileSystem = fileSystem ?? StandardFileSystem.instance;
     if (experiments != null) options.experimentalFlags = experiments;
+
+    // We'll load a new sdk, anything loaded already will have a wrong root.
+    workerInputCache.clear();
 
     processedOpts = new ProcessedOptions(options: options);
 
@@ -180,17 +179,17 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     for (var lib in cachedSdkInput.component.libraries) {
       lib.isExternal = false;
     }
+    cachedSdkInput.component.adoptChildren();
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
-    cachedSdkInput.component.unbindCanonicalNames();
-    cachedSdkInput.component.computeCanonicalNames();
 
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
     incrementalCompiler.invalidateAllSources();
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
+    processedOpts.clearFileSystemCache();
   }
   InitializedCompilerState compilerState = new InitializedCompilerState(
       options, processedOpts,
@@ -219,9 +218,6 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      // We don't unbind as the root was unbound already. We do have to
-      // compute the canonical names though, to rebind everything in the
-      // component.
       component.computeCanonicalNames();
       doneInputSummaries[i] = component;
     }
@@ -232,7 +228,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Uri summary = inputSummaries[index];
     List<int> data = await fileSystem.entityForUri(summary).readAsBytes();
     WorkerInputComponent cachedInput = WorkerInputComponent(
-        data, await compilerState.processedOpts.loadComponent(data, nameRoot));
+        data,
+        await compilerState.processedOpts
+            .loadComponent(data, nameRoot, alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
   }

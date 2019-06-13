@@ -14,8 +14,14 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:dev_compiler/src/kernel/compiler.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
-    show CompilerOptions, kernelForComponent;
+    show
+        CompilerOptions,
+        kernelForComponent,
+        DiagnosticMessage,
+        printDiagnosticMessage,
+        Severity;
 import 'package:kernel/kernel.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:path/path.dart' as path;
 
 Future main(List<String> args) async {
@@ -37,14 +43,25 @@ Future main(List<String> args) async {
   }
 
   var librarySpecPath = parserOptions['libraries'] as String;
+  var packagesPath = path.join(ddcPath, '../../.packages');
 
-  var target = DevCompilerTarget();
+  var target = DevCompilerTarget(TargetFlags());
+  void onDiagnostic(DiagnosticMessage message) {
+    printDiagnosticMessage(message, print);
+    if (message.severity == Severity.error ||
+        message.severity == Severity.internalProblem) {
+      exitCode = 1;
+    }
+  }
+
   var options = CompilerOptions()
     ..compileSdk = true
-    // TODO(sigmund): remove this unnecessary option when possible.
+    // TODO(sigmund): remove these two unnecessary options when possible.
     ..sdkRoot = Uri.base
+    ..packagesFileUri = Uri.base.resolveUri(Uri.file(packagesPath))
     ..librariesSpecificationUri = Uri.base.resolveUri(Uri.file(librarySpecPath))
-    ..target = target;
+    ..target = target
+    ..onDiagnostic = onDiagnostic;
 
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
   var component = await kernelForComponent(inputs, options);

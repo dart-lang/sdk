@@ -108,6 +108,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   String jsLibraryDebuggerName(Library library);
 
+  /// Debugger friendly names for all parts in a Dart [library].
+  @protected
+  Iterable<String> jsPartDebuggerNames(Library library);
+
   /// Gets the module import URI that contains [library].
   @protected
   String libraryToModule(Library library);
@@ -142,7 +146,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     if (name == '[]=') {
       _operatorSetResultStack.add(isLastParamMutated()
           ? JS.TemporaryId((formals.last as JS.Identifier).name)
-          : formals.last);
+          : formals.last as JS.Identifier);
     } else {
       _operatorSetResultStack.add(null);
     }
@@ -202,34 +206,21 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   ///
   /// For example:
   ///
-  ///     runtimeCall('asInt(#)', expr)
+  ///     runtimeCall('asInt(#)', [<expr>])
   ///
   /// Generates a JS AST representing:
   ///
   ///     dart.asInt(<expr>)
   ///
   @protected
-  JS.Expression runtimeCall(String code, [args]) {
-    if (args != null) {
-      var newArgs = <Object>[runtimeModule];
-      if (args is Iterable) {
-        newArgs.addAll(args);
-      } else {
-        newArgs.add(args);
-      }
-      args = newArgs;
-    } else {
-      args = runtimeModule;
-    }
-    return js.call('#.$code', args);
-  }
+  JS.Expression runtimeCall(String code, [List<Object> args]) =>
+      js.call('#.$code', <Object>[runtimeModule, ...?args]);
 
   /// Calls [runtimeCall] and uses `toStatement()` to convert the resulting
   /// expression into a statement.
   @protected
-  JS.Statement runtimeStatement(String code, [args]) {
-    return runtimeCall(code, args).toStatement();
-  }
+  JS.Statement runtimeStatement(String code, [List<Object> args]) =>
+      runtimeCall(code, args).toStatement();
 
   /// Emits a private name JS Symbol for [name] scoped to the Dart [library].
   ///
@@ -342,7 +333,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// constant instance of a user-defined class stored in [expr].
   @protected
   JS.Expression canonicalizeConstObject(JS.Expression expr) =>
-      cacheConst(runtimeCall('const(#)', expr));
+      cacheConst(runtimeCall('const(#)', [expr]));
 
   /// Emits preamble for the module containing [libraries], and returns the
   /// list of module items for further items to be added.
@@ -486,19 +477,25 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   void _emitDebuggerExtensionInfo(String name) {
     var properties = <JS.Property>[];
+    var parts = <JS.Property>[];
     _libraries.forEach((library, value) {
       // TODO(jacobr): we could specify a short library name instead of the
       // full library uri if we wanted to save space.
-      properties.add(
-          JS.Property(js.escapedString(jsLibraryDebuggerName(library)), value));
+      var libraryName = js.escapedString(jsLibraryDebuggerName(library));
+      properties.add(JS.Property(libraryName, value));
+      var partNames = jsPartDebuggerNames(library);
+      if (partNames.isNotEmpty) {
+        parts.add(JS.Property(libraryName, js.stringArray(partNames)));
+      }
     });
     var module = JS.ObjectInitializer(properties, multiline: true);
+    var partMap = JS.ObjectInitializer(parts, multiline: true);
 
     // Track the module name for each library in the module.
     // This data is only required for debugging.
     moduleItems.add(js.statement(
-        '#.trackLibraries(#, #, $sourceMapLocationID);',
-        [runtimeModule, js.string(name), module]));
+        '#.trackLibraries(#, #, #, $sourceMapLocationID);',
+        [runtimeModule, js.string(name), module, partMap]));
   }
 
   /// Finishes the module created by [startModule], by combining the preable
@@ -585,10 +582,12 @@ class _IdentifierFinder extends JS.BaseVisitor<void> {
 
   static final instance = _IdentifierFinder();
 
+  @override
   visitIdentifier(node) {
     if (node.name == nameToFind) found = true;
   }
 
+  @override
   visitNode(node) {
     if (!found) super.visitNode(node);
   }

@@ -23,7 +23,11 @@ class DefinitionHandler
       TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<List<Location>>> handle(
-      TextDocumentPositionParams params) async {
+      TextDocumentPositionParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);

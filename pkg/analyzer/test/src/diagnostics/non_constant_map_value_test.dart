@@ -12,66 +12,58 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapValueTest);
-    defineReflectiveTests(NonConstantMapValueWithUiAsCodeAndConstantsTest);
-    defineReflectiveTests(NonConstantMapValueWithUiAsCodeTest);
+    defineReflectiveTests(NonConstantMapValueWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class NonConstantMapValueTest extends DriverResolutionTest {
-  test_const_topLevel() async {
-    await assertErrorCodesInCode(r'''
-final dynamic a = 0;
-var v = const {'a' : a};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
-  }
-}
-
-@reflectiveTest
-class NonConstantMapValueWithUiAsCodeAndConstantsTest
-    extends NonConstantMapValueWithUiAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class NonConstantMapValueWithUiAsCodeTest extends NonConstantMapValueTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_const_ifTrue_elseFinal() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
+              ]
             : [
-                CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
-                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 18),
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 81, 1),
               ]);
   }
 
   test_const_ifTrue_thenFinal() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 71, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 55, 17),
+              ]);
   }
+
+  test_const_topLevel() async {
+    await assertErrorsInCode(r'''
+final dynamic a = 0;
+var v = const {'a' : a};
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 42, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonConstantMapValueWithConstantsTest extends NonConstantMapValueTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

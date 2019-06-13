@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -31,13 +30,18 @@ class LinkingBundleContext {
   );
 
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
-  int _nextTypeParameterId = 1;
   int _nextSyntheticTypeParameterId = 0x10000;
 
   LinkingBundleContext(this.dynamicReference);
 
-  void addTypeParameter(TypeParameterElement element) {
-    _typeParameters[element] = _nextTypeParameterId++;
+  /// We need indexes for references during linking, but once we are done,
+  /// we must clear indexes to make references ready for linking a next bundle.
+  void clearIndexes() {
+    for (var reference in references) {
+      if (reference != null) {
+        reference.index = null;
+      }
+    }
   }
 
   int idOfTypeParameter(TypeParameterElement element) {
@@ -46,13 +50,10 @@ class LinkingBundleContext {
 
   int indexOfElement(Element element) {
     if (element == null) return 0;
+    assert(element is! Member);
 
     if (identical(element, DynamicElementImpl.instance)) {
       return indexOfReference(dynamicReference);
-    }
-
-    if (element is Member) {
-      element = (element as Member).baseElement;
     }
 
     var reference = (element as ElementImpl).reference;
@@ -91,13 +92,25 @@ class LinkingBundleContext {
         kind: LinkedNodeTypeKind.interface,
         interfaceClass: indexOfElement(type.element),
         interfaceTypeArguments: type.typeArguments.map(writeType).toList(),
+        nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type is TypeParameterType) {
       TypeParameterElementImpl element = type.element;
-      return LinkedNodeTypeBuilder(
-        kind: LinkedNodeTypeKind.typeParameter,
-        typeParameterId: _typeParameters[element],
-      );
+      var id = _typeParameters[element];
+      if (id != null) {
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
+          typeParameterId: id,
+        );
+      } else {
+        var index = indexOfElement(element);
+        return LinkedNodeTypeBuilder(
+          kind: LinkedNodeTypeKind.typeParameter,
+          nullabilitySuffix: _nullabilitySuffix(type),
+          typeParameterElement: index,
+        );
+      }
     } else if (type is VoidType) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.void_,
@@ -108,15 +121,17 @@ class LinkingBundleContext {
   }
 
   LinkedNodeFormalParameterKind _formalParameterKind(ParameterElement p) {
-    // ignore: deprecated_member_use_from_same_package
-    var kind = p.parameterKind;
-    if (kind == ParameterKind.NAMED) {
-      return LinkedNodeFormalParameterKind.optionalNamed;
-    }
-    if (kind == ParameterKind.POSITIONAL) {
+    if (p.isRequiredPositional) {
+      return LinkedNodeFormalParameterKind.requiredPositional;
+    } else if (p.isRequiredNamed) {
+      return LinkedNodeFormalParameterKind.requiredNamed;
+    } else if (p.isOptionalPositional) {
       return LinkedNodeFormalParameterKind.optionalPositional;
+    } else if (p.isOptionalNamed) {
+      return LinkedNodeFormalParameterKind.optionalNamed;
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
     }
-    return LinkedNodeFormalParameterKind.required;
   }
 
   FunctionType _toSyntheticFunctionType(FunctionType type) {
@@ -163,6 +178,7 @@ class LinkingBundleContext {
           .toList(),
       functionReturnType: writeType(type.returnType),
       functionTypeParameters: typeParameterBuilders,
+      nullabilitySuffix: _nullabilitySuffix(type),
     );
 
     for (var typeParameter in typeParameters) {
@@ -171,5 +187,19 @@ class LinkingBundleContext {
     }
 
     return result;
+  }
+
+  static EntityRefNullabilitySuffix _nullabilitySuffix(DartType type) {
+    var nullabilitySuffix = (type as TypeImpl).nullabilitySuffix;
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return EntityRefNullabilitySuffix.question;
+      case NullabilitySuffix.star:
+        return EntityRefNullabilitySuffix.starOrIrrelevant;
+      case NullabilitySuffix.none:
+        return EntityRefNullabilitySuffix.none;
+      default:
+        throw StateError('$nullabilitySuffix');
+    }
   }
 }

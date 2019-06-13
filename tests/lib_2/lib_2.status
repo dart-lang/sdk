@@ -139,7 +139,6 @@ async/periodic_timer3_test: Pass, RuntimeError # Flaky. Issue 32094
 async/periodic_timer4_test: Pass, RuntimeError # Flaky. Issue 32094
 
 [ $csp ]
-isolate/browser/package_resolve_browser_hook_test: SkipByDesign # Test written in a way that violates CSP.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
 [ $hot_reload ]
@@ -149,23 +148,10 @@ mirrors/dynamic_load_test: RuntimeError # Issue 26869 - Reload fails to preserve
 [ $jscl ]
 isolate/spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ !$strong ]
-async/future_test: SkipByDesign # Uses Dart 2 syntax.
-async/stream_first_where_test/badType: MissingCompileTimeError
-async/stream_from_iterable_test: SkipByDesign # Uses Dart 2 syntax.
-async/stream_last_where_test/badType: MissingCompileTimeError
-mirrors/redirecting_factory_different_type_test/02: MissingCompileTimeError
-
 [ $builder_tag == mac10_7 && $runtime == safari ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
-
-[ $compiler != dart2analyzer && $compiler != fasta && !$strong ]
-async/future_or_type_test: Fail # Strong mode implements FutureOr, non-strong treats it as dynamic.
-
-[ $compiler != dartdevc && $checked && !$strong ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
 
 [ $compiler == dartk && $system == macos && $hot_reload && ($arch == simdbc || $arch == simdbc64) ]
 isolate/unresolved_ports_test: Pass, RuntimeError #  Issue 35410
@@ -198,18 +184,6 @@ html/custom_elements_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
 html/transition_event_test: Skip # Times out. Issue 22167
 
-[ !$checked && !$strong ]
-async/future_or_only_in_async_test/00: MissingCompileTimeError
-async/multiple_timer_test: Pass, Fail # Timing related
-isolate/issue_24243_parent_isolate_test: SkipByDesign # Requires type checks.
-
-[ !$fasta && !$strong ]
-isolate/isolate_import_test/01: MissingCompileTimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
-
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
@@ -240,7 +214,6 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 async/stream_timeout_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == dart_precompiled || $runtime == vm ]
-isolate/browser/*: SkipByDesign # Browser specific tests
 isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
 isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 

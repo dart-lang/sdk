@@ -195,8 +195,8 @@ main() {}
         new Name(methodName, elementEnvironment.mainLibrary),
         CallStructure.NO_ARGS);
     WorldImpact impact = new WorldImpactBuilderImpl()
-      ..registerDynamicUse(new ConstrainedDynamicUse(
-          selector, createConstraint(cls), const <DartType>[]));
+      ..registerDynamicUse(
+          new DynamicUse(selector, createConstraint(cls), const <DartType>[]));
     enqueuer.applyImpact(impact);
   }
 

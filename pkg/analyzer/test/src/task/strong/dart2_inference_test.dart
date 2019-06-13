@@ -51,15 +51,15 @@ class C {
       return invocation.staticInvokeType.toString();
     }
 
-    expect(getType('f()); // 1'), '() → bool');
+    expect(getType('f()); // 1'), 'bool Function()');
 
-    expect(getType('f(), '), '() → bool');
-    expect(getType('f()); // 2'), '() → dynamic');
+    expect(getType('f(), '), 'bool Function()');
+    expect(getType('f()); // 2'), 'dynamic Function()');
 
-    expect(getType('f()), // 3'), '() → bool');
+    expect(getType('f()), // 3'), 'bool Function()');
 
-    expect(getType('f(), '), '() → bool');
-    expect(getType('f()); // 4'), '() → dynamic');
+    expect(getType('f(), '), 'bool Function()');
+    expect(getType('f()); // 4'), 'dynamic Function()');
   }
 
   test_bool_logical() async {
@@ -80,7 +80,7 @@ main() {
 
     void assertType(String prefix) {
       var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticInvokeType.toString(), '() → bool');
+      expect(invocation.staticInvokeType.toString(), 'bool Function()');
     }
 
     assertType('f() || f(); // 1');
@@ -111,7 +111,7 @@ main() {
 
     void assertType(String prefix) {
       var invocation = _findMethodInvocation(unit, code, prefix);
-      expect(invocation.staticInvokeType.toString(), '() → bool');
+      expect(invocation.staticInvokeType.toString(), 'bool Function()');
     }
 
     assertType('f()) {} // 1');
@@ -132,7 +132,7 @@ void main() {
     var unit = analysisResult.unit;
 
     Expression closure = _findExpression(unit, code, '() => 42');
-    expect(closure.staticType.toString(), '() → List<int>');
+    expect(closure.staticType.toString(), 'List<int> Function()');
   }
 
   test_closure_downwardReturnType_block() async {
@@ -149,7 +149,7 @@ void main() {
     var unit = analysisResult.unit;
 
     Expression closure = _findExpression(unit, code, '() { // mark');
-    expect(closure.staticType.toString(), '() → List<int>');
+    expect(closure.staticType.toString(), 'List<int> Function()');
   }
 
   test_compoundAssignment_index() async {

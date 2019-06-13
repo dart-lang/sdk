@@ -29,7 +29,7 @@ import 'package:observatory/src/elements/source_inset.dart';
 import 'package:observatory/src/elements/source_link.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class FunctionViewElement extends HtmlElement implements Renderable {
+class FunctionViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<FunctionViewElement>('function-view', dependencies: const [
     ClassRefElement.tag,
@@ -102,7 +102,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     assert(retainingPaths != null);
     assert(scripts != null);
     assert(objects != null);
-    FunctionViewElement e = document.createElement(tag.name);
+    FunctionViewElement e = new FunctionViewElement.created();
     e._r = new RenderingScheduler<FunctionViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -123,7 +123,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  FunctionViewElement.created() : super.created();
+  FunctionViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -148,8 +148,9 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Function ${_function.name}',
           new HRElement(),
           new ObjectCommonElement(_isolate, _function, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
@@ -160,35 +161,38 @@ class FunctionViewElement extends HtmlElement implements Renderable {
                 ? const []
                 : [
                     new SourceInsetElement(_isolate, _function.location,
-                        _scripts, _objects, _events,
-                        queue: _r.queue)
+                            _scripts, _objects, _events,
+                            queue: _r.queue)
+                        .element
                   ],
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }
 
   List<Element> _createMenu() {
     final menu = <Element>[
-      new NavTopMenuElement(queue: _r.queue),
-      new NavVMMenuElement(_vm, _events, queue: _r.queue),
-      new NavIsolateMenuElement(_isolate, _events, queue: _r.queue)
+      new NavTopMenuElement(queue: _r.queue).element,
+      new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+      new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element
     ];
     if (_library != null) {
-      menu.add(new NavLibraryMenuElement(_isolate, _library,
-          queue: _r.queue));
+      menu.add(new NavLibraryMenuElement(_isolate, _library, queue: _r.queue)
+          .element);
     } else if (_function.dartOwner is M.ClassRef) {
       menu.add(new NavClassMenuElement(_isolate, _function.dartOwner,
-          queue: _r.queue));
+              queue: _r.queue)
+          .element);
     }
     menu.addAll(<Element>[
       navMenu(_function.name),
-      new NavRefreshElement(queue: _r.queue)
-        ..onRefresh.listen((e) {
-          e.element.disabled = true;
-          _refresh();
-        }),
-      new NavNotifyElement(_notifications, queue: _r.queue)
+      (new NavRefreshElement(queue: _r.queue)
+            ..onRefresh.listen((e) {
+              e.element.disabled = true;
+              _refresh();
+            }))
+          .element,
+      new NavNotifyElement(_notifications, queue: _r.queue).element
     ]);
     return menu;
   }
@@ -205,8 +209,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new SpanElement()
-                ..text = '${_function.isStatic ? "static ": ""}'
-                    '${_function.isConst ? "const ": ""}'
+                ..text = '${_function.isStatic ? "static " : ""}'
+                    '${_function.isConst ? "const " : ""}'
                     '${_functionKindToString(_function.kind)}'
             ]
         ],
@@ -237,7 +241,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new FieldRefElement(_isolate, _function.field, _objects,
-                  queue: _r.queue)
+                      queue: _r.queue)
+                  .element
             ]
         ]);
     }
@@ -251,7 +256,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           ..classes = ['memberName']
           ..children = <Element>[
             new SourceLinkElement(_isolate, _function.location, _scripts,
-                queue: _r.queue)
+                    queue: _r.queue)
+                .element
           ]
       ]);
     if (_function.code != null) {
@@ -265,6 +271,7 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new CodeRefElement(_isolate, _function.code, queue: _r.queue)
+                  .element
             ]
         ]);
     }
@@ -279,12 +286,13 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new CodeRefElement(_isolate, _function.unoptimizedCode,
-                  queue: _r.queue),
+                      queue: _r.queue)
+                  .element,
               new SpanElement()
                 ..title = 'This count is used to determine when a function '
                     'will be optimized.  It is a combination of call '
                     'counts and other factors.'
-                ..text = ' (usage count: ${function.usageCounter })'
+                ..text = ' (usage count: ${function.usageCounter})'
             ]
         ]);
     }
@@ -298,8 +306,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
           new DivElement()
             ..classes = ['memberName']
             ..children = <Element>[
-              new CodeRefElement(_isolate, _function.bytecode,
-                  queue: _r.queue),
+              new CodeRefElement(_isolate, _function.bytecode, queue: _r.queue)
+                  .element,
             ]
         ]);
     }
@@ -318,7 +326,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
             ..classes = ['memberName']
             ..children = <Element>[
               new InstanceRefElement(_isolate, _function.icDataArray, _objects,
-                  queue: _r.queue)
+                      queue: _r.queue)
+                  .element
             ]
         ]);
     }
@@ -426,8 +435,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         return 'implicit getter';
       case M.FunctionKind.implicitSetter:
         return 'implicit setter';
-      case M.FunctionKind.implicitStaticFinalGetter:
-        return 'implicit static final getter';
+      case M.FunctionKind.implicitStaticGetter:
+        return 'implicit static getter';
       case M.FunctionKind.staticFieldInitializer:
         return 'field initializer';
       case M.FunctionKind.irregexpFunction:
@@ -442,6 +451,8 @@ class FunctionViewElement extends HtmlElement implements Renderable {
         return 'collected';
       case M.FunctionKind.native:
         return 'native';
+      case M.FunctionKind.ffiTrampoline:
+        return 'ffi trampoline';
       case M.FunctionKind.stub:
         return 'stub';
       case M.FunctionKind.tag:

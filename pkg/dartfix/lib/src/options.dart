@@ -4,9 +4,9 @@
 
 import 'dart:io';
 
-import 'package:dartfix/src/context.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
 /// Command line options for `dartfix`.
@@ -22,12 +22,12 @@ class Options {
   final List<String> excludeFixes;
 
   final bool force;
-  final bool listFixes;
+  final bool showHelp;
   final bool overwrite;
   final bool useColor;
   final bool verbose;
 
-  static Options parse(List<String> args, {Context context, Logger logger}) {
+  static Options parse(List<String> args, Context context, Logger logger) {
     final parser = new ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
       ..addMultiOption(includeOption,
@@ -37,11 +37,6 @@ class Options {
       ..addFlag(requiredOption,
           abbr: 'r',
           help: 'Apply required fixes.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag(listOption,
-          abbr: 'l',
-          help: 'Display a list of fixes that can be applied.',
           defaultsTo: false,
           negatable: false)
       ..addSeparator('Modifying files:')
@@ -55,10 +50,7 @@ class Options {
           help: 'Overwrite files even if there are errors.',
           defaultsTo: false,
           negatable: false)
-      ..addSeparator('Miscelaneous:')
-      ..addFlag(_colorOption,
-          help: 'Use ansi colors when printing messages.',
-          defaultsTo: Ansi.terminalSupportsAnsi)
+      ..addSeparator('Miscellaneous:')
       ..addFlag(_helpOption,
           abbr: 'h',
           help: 'Display this help message.',
@@ -68,7 +60,10 @@ class Options {
           abbr: 'v',
           defaultsTo: false,
           help: 'Verbose output.',
-          negatable: false);
+          negatable: false)
+      ..addFlag(_colorOption,
+          help: 'Use ansi colors when printing messages.',
+          defaultsTo: Ansi.terminalSupportsAnsi);
 
     context ??= new Context();
 
@@ -78,6 +73,7 @@ class Options {
     } on FormatException catch (e) {
       logger ??= new Logger.standard(ansi: new Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
+      logger.stderr('\n');
       _showUsage(parser, logger);
       context.exit(15);
     }
@@ -98,13 +94,9 @@ class Options {
     }
     options.logger = logger;
 
-    if (results[_helpOption] as bool) {
-      _showUsage(parser, logger);
-      context.exit(1);
-    }
-
-    if (options.listFixes) {
-      _showUsage(parser, logger, showListHint: false);
+    // For '--help', we short circuit the logic to validate the sdk and project.
+    if (options.showHelp) {
+      _showUsage(parser, logger, showHelpHint: false);
       return options;
     }
 
@@ -112,19 +104,17 @@ class Options {
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       logger.stderr('No Dart SDK found.');
-      _showUsage(parser, logger);
       context.exit(15);
     }
+
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
-      _showUsage(parser, logger);
       context.exit(15);
     }
 
     // Check for files and/or directories to analyze.
     if (options.targets == null || options.targets.isEmpty) {
       logger.stderr('Expected at least one file or directory to analyze.');
-      _showUsage(parser, logger);
       context.exit(15);
     }
 
@@ -138,7 +128,6 @@ class Options {
         } else {
           logger.stderr('Expected directory, but found: $target');
         }
-        _showUsage(parser, logger);
         context.exit(15);
       }
     }
@@ -159,10 +148,10 @@ class Options {
             (results[includeOption] as List ?? []).cast<String>().toList(),
         excludeFixes =
             (results[excludeOption] as List ?? []).cast<String>().toList(),
-        listFixes = results[listOption] as bool,
         overwrite = results[overwriteOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
+        showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
         useColor = results.wasParsed(_colorOption)
             ? results[_colorOption] as bool
@@ -183,21 +172,18 @@ class Options {
   }
 
   static _showUsage(ArgParser parser, Logger logger,
-      {bool showListHint = true}) {
-    logger.stderr('Usage: $_binaryName [options...] <directory paths>');
-    logger.stderr('');
-    logger.stderr(parser.usage);
-    logger.stderr('''
-
-If neither --$includeOption nor --$requiredOption is specified, then all fixes
-will be applied. Any fixes specified using --$excludeOption will not be applied
-regardless of whether they are required or specifed using --$includeOption.''');
-    if (showListHint) {
-      logger.stderr('''
-
-Use --list to display the fixes that can be specified
-using either --$includeOption or --$excludeOption.''');
-    }
+      {bool showHelpHint = true}) {
+    Function(String message) out = showHelpHint ? logger.stderr : logger.stdout;
+    // show help on stdout when showHelp is true and showHelpHint is false
+    out('''
+Usage: $_binaryName [options...] <directory paths>
+''');
+    out(parser.usage);
+    out(showHelpHint
+        ? '''
+Use --$_helpOption to display the fixes that can be specified using either
+--$includeOption or --$excludeOption.'''
+        : '');
   }
 }
 
@@ -211,5 +197,4 @@ const _verboseOption = 'verbose';
 // options only supported by server 1.22.2 and greater
 const excludeOption = 'exclude';
 const includeOption = 'include';
-const listOption = 'list';
 const requiredOption = 'required';

@@ -12,43 +12,29 @@ import 'package:analyzer/dart/analysis/uri_converter.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as driver;
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/analysis/uri_converter.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * A concrete implementation of an analysis session.
- */
+/// A concrete implementation of an analysis session.
 class AnalysisSessionImpl implements AnalysisSession {
-  /**
-   * The analysis driver performing analysis for this session.
-   */
+  /// The analysis driver performing analysis for this session.
   final driver.AnalysisDriver _driver;
 
-  /**
-   * The type provider being used by the analysis driver.
-   */
+  /// The type provider being used by the analysis driver.
   TypeProvider _typeProvider;
 
-  /**
-   * The type system being used by the analysis driver.
-   */
+  /// The type system being used by the analysis driver.
   TypeSystem _typeSystem;
 
-  /**
-   * The URI converter used to convert between URI's and file paths.
-   */
+  /// The URI converter used to convert between URI's and file paths.
   UriConverter _uriConverter;
 
-  /**
-   * The cache of libraries for URIs.
-   */
+  /// The cache of libraries for URIs.
   final Map<String, LibraryElement> _uriToLibraryCache = {};
 
-  /**
-   * Initialize a newly created analysis session.
-   */
+  /// Initialize a newly created analysis session.
   AnalysisSessionImpl(this._driver);
 
   @override
@@ -172,13 +158,6 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<List<TopLevelDeclarationInSource>> getTopLevelDeclarations(
-      String name) {
-    _checkConsistency();
-    return _driver.getTopLevelNameDeclarations(name);
-  }
-
-  @override
   Future<UnitElementResult> getUnitElement(String path) {
     _checkConsistency();
     return _driver.getUnitElement(path);
@@ -190,10 +169,8 @@ class AnalysisSessionImpl implements AnalysisSession {
     return _driver.getUnitElementSignature(path);
   }
 
-  /**
-   * Check to see that results from this session will be consistent, and throw
-   * an [InconsistentAnalysisException] if they might not be.
-   */
+  /// Check to see that results from this session will be consistent, and throw
+  /// an [InconsistentAnalysisException] if they might not be.
   void _checkConsistency() {
     if (_driver.currentSession != this) {
       throw new InconsistentAnalysisException();
@@ -206,5 +183,40 @@ class AnalysisSessionImpl implements AnalysisSession {
           '(${element.runtimeType}) $element was not produced by '
           'this session.');
     }
+  }
+}
+
+/// Data structure containing information about the analysis session that is
+/// available synchronously.
+class SynchronousSession {
+  final AnalysisOptionsImpl analysisOptions;
+
+  final DeclaredVariables declaredVariables;
+
+  TypeProvider _typeProvider;
+
+  TypeSystem _typeSystem;
+
+  SynchronousSession(this.analysisOptions, this.declaredVariables);
+
+  TypeProvider get typeProvider => _typeProvider;
+
+  set typeProvider(TypeProvider typeProvider) {
+    if (_typeProvider != null) {
+      throw StateError('TypeProvider can be set only once.');
+    }
+    _typeProvider = typeProvider;
+  }
+
+  TypeSystem get typeSystem {
+    return _typeSystem ??= Dart2TypeSystem(
+      typeProvider,
+      implicitCasts: analysisOptions.implicitCasts,
+    );
+  }
+
+  void clearTypeProvider() {
+    _typeProvider = null;
+    _typeSystem = null;
   }
 }

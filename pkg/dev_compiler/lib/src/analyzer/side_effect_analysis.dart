@@ -132,3 +132,39 @@ class ConstFieldVisitor {
     return initializer.accept(constantVisitor);
   }
 }
+
+class LabelContinueFinder extends SimpleAstVisitor {
+  var found = false;
+  visit(Statement s) {
+    if (!found && s != null) s.accept(this);
+  }
+
+  @override
+  visitBlock(Block node) => node.statements.forEach(visit);
+  @override
+  visitWhileStatement(WhileStatement node) => visit(node.body);
+  @override
+  visitDoStatement(DoStatement node) => visit(node.body);
+  @override
+  visitForStatement(ForStatement node) => visit(node.body);
+  @override
+  visitLabeledStatement(LabeledStatement node) => visit(node.statement);
+  @override
+  visitContinueStatement(ContinueStatement node) => found = node.label != null;
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    node.members.forEach((m) => m.statements.forEach(visit));
+  }
+
+  @override
+  visitIfStatement(IfStatement node) {
+    visit(node.thenStatement);
+    visit(node.elseStatement);
+  }
+
+  @override
+  visitTryStatement(TryStatement node) {
+    node.body.accept(this);
+    node.finallyBlock.accept(this);
+  }
+}

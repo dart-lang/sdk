@@ -715,6 +715,29 @@ class C {
         functionBody: true);
   }
 
+  test_ForElement_body() async {
+    addTestSource('main(args) {[for (var foo in [0]) ^];}');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true);
+  }
+
+  test_ForElement_forEachParts_iterable() async {
+    addTestSource('main(args) {[for (var foo in ^) foo];}');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true);
+  }
+
+  test_ForElement_forEachParts_type() async {
+    addTestSource('main(args) {[for (i^ foo in [0]) foo];}');
+    await assertOpType(typeNames: true, functionBody: true);
+  }
+
   test_FormalParameter_partialType() async {
     // FormalParameterList MethodDeclaration
     addTestSource('class A {a(b.^ f) { }}');
@@ -778,6 +801,47 @@ class C {
         returnValue: true,
         typeNames: true,
         functionBody: true);
+  }
+
+  test_IfElement_condition() async {
+    addTestSource('''
+main() {
+  [if (^)];
+}
+''');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true);
+  }
+
+  test_IfElement_else() async {
+    addTestSource('''
+main() {
+  [if (true) 0 else ^];
+}
+''');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true,
+        voidReturn: true);
+  }
+
+  test_IfElement_then() async {
+    addTestSource('''
+main() {
+  [if (true) ^];
+}
+''');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true,
+        voidReturn: true);
   }
 
   test_IfStatement() async {
@@ -1043,6 +1107,19 @@ class C {
         functionBody: true);
   }
 
+  test_SpreadElement() async {
+    addTestSource(r'''
+main() {
+  [...^];
+}
+''');
+    await assertOpType(
+        constructors: true,
+        returnValue: true,
+        typeNames: true,
+        functionBody: true);
+  }
+
   test_SwitchCase_between() async {
     // SwitchCase  SwitchStatement  Block
     addTestSource('main() {switch(k) {case 1: ^ case 2: return}}');
@@ -1234,7 +1311,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
       'main() { new A.b(^); }'
-          'class A{ A.b({one, two}) {} }',
+      'class A{ A.b({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1243,7 +1320,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
       'main() { new A.b(o^); }'
-          'class A { A.b({one, two}) {} }',
+      'class A { A.b({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1252,7 +1329,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
       'main() { new A(^); }'
-          'class A{ A({one, two}) {} }',
+      'class A{ A({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1261,7 +1338,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
       'main() { new A(o^); }'
-          'class A { A({one, two}) {} }',
+      'class A { A({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1270,7 +1347,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
       'main() { new A.b(^); }'
-          'class A{ factory A.b({one, two}) {} }',
+      'class A{ factory A.b({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1279,7 +1356,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
       'main() { new A.b(o^); }'
-          'class A { factory A.b({one, two}) {} }',
+      'class A { factory A.b({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1288,7 +1365,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement Block
     addTestSource(
       'main() { new A(^); }'
-          'class A{ factory A({one, two}) {} }',
+      'class A{ factory A({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -1297,7 +1374,7 @@ class OpTypeTest extends OpTypeTestCommon {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addTestSource(
       'main() { new A(o^); }'
-          'class A { factory A({one, two}) {} }',
+      'class A { factory A({one, two}) {} }',
     );
     await assertOpType(namedArgs: true, functionBody: true);
   }
@@ -2054,23 +2131,35 @@ void f(int a, {int b}) {}
     await assertOpType(functionBody: true);
   }
 
-//
   test_SimpleFormalParameter_closure() async {
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }');
     await assertOpType(typeNames: true, functionBody: true);
   }
 
-  test_SimpleFormalParameter_name1() async {
-    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
-    addTestSource('m(String na^) {}');
-    await assertOpType(typeNames: false);
+  test_SimpleFormalParameter_name_typed() async {
+    addTestSource('f(String ^, int b) {}');
+    await assertOpType(typeNames: false, varNames: true);
   }
 
-  test_SimpleFormalParameter_name2() async {
-    // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
-    addTestSource('m(int first, String na^) {}');
-    await assertOpType(typeNames: false);
+  test_SimpleFormalParameter_name_typed_hasName() async {
+    addTestSource('f(String n^, int b) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_name_typed_last() async {
+    addTestSource('f(String ^) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_name_typed_last_hasName() async {
+    addTestSource('f(String n^) {}');
+    await assertOpType(typeNames: false, varNames: true);
+  }
+
+  test_SimpleFormalParameter_type_named() async {
+    addTestSource('f(^ name) {}');
+    await assertOpType(typeNames: true, varNames: false);
   }
 
   test_SimpleFormalParameter_type_optionalNamed() async {
@@ -2107,6 +2196,11 @@ void f(int a, {int b}) {}
     // SimpleIdentifier  SimpleFormalParameter  FormalParameterList
     addTestSource('m(int first, Str^) {}');
     await assertOpType(typeNames: true);
+  }
+
+  test_SimpleFormalParameter_untyped() async {
+    addTestSource('main(final ^) {}');
+    await assertOpType(typeNames: true, varNames: false);
   }
 
   test_SwitchCase_before() async {

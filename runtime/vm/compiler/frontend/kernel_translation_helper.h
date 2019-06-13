@@ -262,8 +262,8 @@ class FunctionNodeHelper {
   TokenPosition end_position_;
   AsyncMarker async_marker_;
   AsyncMarker dart_async_marker_;
-  intptr_t total_parameter_count_;
-  intptr_t required_parameter_count_;
+  intptr_t total_parameter_count_ = 0;
+  intptr_t required_parameter_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -314,7 +314,7 @@ class TypeParameterHelper {
   }
 
   TokenPosition position_;
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
 
  private:
@@ -373,9 +373,9 @@ class VariableDeclarationHelper {
 
   TokenPosition position_;
   TokenPosition equals_position_;
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
-  intptr_t annotation_count_;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -416,9 +416,7 @@ class FieldHelper {
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
-      : helper_(helper),
-        next_read_(kStart),
-        has_function_literal_initializer_(false) {}
+      : helper_(helper), next_read_(kStart) {}
 
   FieldHelper(KernelReaderHelper* helper, intptr_t offset);
 
@@ -426,8 +424,7 @@ class FieldHelper {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
   }
 
-  void ReadUntilExcluding(Field field,
-                          bool detect_function_literal_initializer = false);
+  void ReadUntilExcluding(Field field);
 
   void SetNext(Field field) { next_read_ = field; }
   void SetJustRead(Field field) { next_read_ = field + 1; }
@@ -440,29 +437,16 @@ class FieldHelper {
     return (flags_ & kIsGenericCovariantImpl) != 0;
   }
 
-  bool FieldHasFunctionLiteralInitializer(TokenPosition* start,
-                                          TokenPosition* end) {
-    if (has_function_literal_initializer_) {
-      *start = function_literal_start_;
-      *end = function_literal_end_;
-    }
-    return has_function_literal_initializer_;
-  }
-
   NameIndex canonical_name_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
   intptr_t next_read_;
-
-  bool has_function_literal_initializer_;
-  TokenPosition function_literal_start_;
-  TokenPosition function_literal_end_;
 
   DISALLOW_COPY_AND_ASSIGN(FieldHelper);
 };
@@ -542,9 +526,9 @@ class ProcedureHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   Kind kind_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
   // Only valid if the 'isForwardingStub' flag is set.
   NameIndex forwarding_stub_super_target_;
@@ -606,9 +590,9 @@ class ConstructorHelper {
   TokenPosition start_position_;
   TokenPosition position_;
   TokenPosition end_position_;
-  uint8_t flags_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
+  uint8_t flags_ = 0;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -679,10 +663,10 @@ class ClassHelper {
   TokenPosition position_;
   TokenPosition end_position_;
   StringIndex name_index_;
-  intptr_t source_uri_index_;
-  intptr_t annotation_count_;
-  intptr_t procedure_count_;
-  uint8_t flags_;
+  intptr_t source_uri_index_ = 0;
+  intptr_t annotation_count_ = 0;
+  intptr_t procedure_count_ = 0;
+  uint8_t flags_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -741,10 +725,10 @@ class LibraryHelper {
   bool IsExternal() const { return (flags_ & kExternal) != 0; }
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
 
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   NameIndex canonical_name_;
   StringIndex name_index_;
-  intptr_t source_uri_index_;
+  intptr_t source_uri_index_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -775,7 +759,7 @@ class LibraryDependencyHelper {
   };
 
   explicit LibraryDependencyHelper(KernelReaderHelper* helper)
-      : annotation_count_(0), helper_(helper), next_read_(kFileOffset) {}
+      : helper_(helper), next_read_(kFileOffset) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -783,10 +767,10 @@ class LibraryDependencyHelper {
 
   void ReadUntilExcluding(Field field);
 
-  uint8_t flags_;
+  uint8_t flags_ = 0;
   StringIndex name_index_;
   NameIndex target_library_canonical_name_;
-  intptr_t annotation_count_;
+  intptr_t annotation_count_ = 0;
 
  private:
   KernelReaderHelper* helper_;
@@ -802,6 +786,11 @@ class MetadataHelper {
   MetadataHelper(KernelReaderHelper* helper,
                  const char* tag,
                  bool precompiler_only);
+
+#if defined(DEBUG)
+  static void VerifyMetadataMappings(
+      const ExternalTypedData& metadata_mappings);
+#endif
 
  protected:
   // Look for metadata mapping with node offset greater or equal than the given.

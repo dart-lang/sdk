@@ -101,12 +101,27 @@ Language/Classes/Setters/return_type_not_void_t01: MissingCompileTimeError
 Language/Classes/Setters/same_name_getter_different_type_t01: MissingCompileTimeError
 Language/Classes/Setters/syntax_t04: MissingCompileTimeError
 Language/Classes/Setters/syntax_t05: MissingCompileTimeError
+Language/Classes/Setters/syntax_t06: CompileTimeError
+Language/Classes/Static_Methods/declaration_t04: CompileTimeError
 Language/Classes/Static_Methods/same_name_method_and_setter_t01: CompileTimeError
+Language/Classes/Static_Variables/type_alias_t01: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t07: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t08: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/inheritance_t09: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/overriding_t06: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/overriding_t07: CompileTimeError
+Language/Classes/Superclasses/Inheritance_and_Overriding/overriding_t08: CompileTimeError
+Language/Classes/Superclasses/extends_clause_t02: CompileTimeError
+Language/Classes/Superclasses/transition_t02: CompileTimeError
 Language/Classes/Superclasses/wrong_superclass_t08: MissingCompileTimeError # Issue 30273
+Language/Classes/Superinterfaces/no_member_t07: CompileTimeError
+Language/Classes/Superinterfaces/syntax_t03: CompileTimeError
 Language/Classes/Superinterfaces/wrong_type_t05: MissingCompileTimeError # Issue 30273
 Language/Classes/method_definition_t06: MissingCompileTimeError # Legal
+Language/Enums/restrictions_t10: Crash
 Language/Enums/syntax_t08: CompileTimeError
 Language/Enums/syntax_t09: CompileTimeError
+Language/Enums/syntax_t10: CompileTimeError
 Language/Expressions/Assignable_Expressions/syntax_t01: CompileTimeError
 Language/Expressions/Assignment/Compound_Assignment/expression_assignment_t12: Skip # triple-shift flag
 Language/Expressions/Assignment/Compound_Assignment/indexed_expression_assignment_t12: Skip # triple-shift flag
@@ -128,8 +143,6 @@ Language/Expressions/Constants/bitwise_operators_t07: Skip # triple-shift flag
 Language/Expressions/Constants/bitwise_operators_t08: Skip # triple-shift flag
 Language/Expressions/Constants/constant_list_t02: MissingCompileTimeError # Legal because of implicit const
 Language/Expressions/Constants/constant_map_t02: MissingCompileTimeError # Legal because of implicit const
-Language/Expressions/Constants/depending_on_itself_t03: MissingCompileTimeError # Issue 34189
-Language/Expressions/Constants/equals_expression_t03: MissingCompileTimeError # Issue 34192
 Language/Expressions/Equality/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Function_Expressions/syntax_t05: CompileTimeError
 Language/Expressions/Function_Invocation/async_cleanup_t01: CompileTimeError
@@ -150,8 +163,6 @@ Language/Expressions/Lists/constant_list_t01: CompileTimeError
 Language/Expressions/Lists/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Maps/constant_map_t02: MissingCompileTimeError
 Language/Expressions/Maps/constant_map_type_t01: CompileTimeError
-Language/Expressions/Maps/equal_keys_t01/01: MissingCompileTimeError
-Language/Expressions/Maps/equal_keys_t01/02: MissingCompileTimeError
 Language/Expressions/Maps/key_value_equals_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Expressions/Maps/syntax_t01: Skip # triple-shift flag
 Language/Expressions/Method_Invocation/Ordinary_Invocation/accessible_instance_member_t04: CompileTimeError
@@ -207,6 +218,15 @@ Language/Generics/typedef_A01_t06/none: CompileTimeError
 Language/Generics/typedef_A01_t07: CompileTimeError
 Language/Generics/typedef_A01_t08: CompileTimeError
 Language/Generics/typedef_A01_t10: CompileTimeError
+Language/Generics/typedef_A04_t01: CompileTimeError
+Language/Generics/typedef_A04_t02: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t13: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/inheritance_t14: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/not_overriden_members_t03: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_t03: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_t04: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t10: CompileTimeError
+Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_getters_type_t11: CompileTimeError
 Language/Libraries_and_Scripts/Imports/library_name_t01: MissingCompileTimeError # Expects an error, but this is a warning in Dart 2
 Language/Mixins/Mixin_Application/abstract_t09: Crash
 Language/Mixins/Mixin_Application/abstract_t10: Crash
@@ -231,8 +251,11 @@ Language/Mixins/Mixin_Application/superinterfaces_t13: Crash
 Language/Mixins/Mixin_Application/superinterfaces_t14: Crash
 Language/Mixins/Mixin_Application/syntax_t26: Crash
 Language/Mixins/Mixin_Application/warning_t04: Crash
+Language/Mixins/Mixin_Application/wrong_mixin_type_t09: Crash
+Language/Mixins/Mixin_Composition/order_t02: Crash
 Language/Mixins/declaring_constructor_t05: MissingCompileTimeError # Mixin constructor
 Language/Mixins/declaring_constructor_t06: MissingCompileTimeError # Mixin constructor
+Language/Mixins/declaring_constructor_t11: Crash
 Language/Overview/Privacy/private_and_public_t11: CompileTimeError
 Language/Reference/Operator_Precedence/precedence_01_assignment_t14: Skip # triple-shift experimental flag
 Language/Reference/Operator_Precedence/precedence_12_Shift_t04: Skip # triple-shift experimental flag
@@ -274,6 +297,7 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/04: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/05: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/06: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t03/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t04: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/01: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/02: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t04/03: Crash
@@ -291,6 +315,8 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/02: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/03: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/04: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t07: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/01: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/02: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t07/03: Crash
@@ -304,6 +330,21 @@ LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/03: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/04: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/05: Crash
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t08/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t09: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/06: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t10/none: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t11: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/01: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/02: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/03: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/04: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/05: Crash
+LanguageFeatures/Constant-update-2018/NewOperators_A01_t12/none: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t01: Crash
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t02: CompileTimeError
 LanguageFeatures/Instantiate-to-bound/class/dynamic/class_FutureOr_l1_t03: Crash
@@ -556,13 +597,6 @@ LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t15/01: 
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t17/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t18/01: MissingCompileTimeError
 LanguageFeatures/Instantiate-to-bound/typedef/static/typedef_typedef_l1_t19/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t02/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t03/03: MissingCompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A02_t02: CompileTimeError
 LanguageFeatures/Set-literals/disambiguating_A02_t03: Crash
 LanguageFeatures/Set-literals/exact_types_of_literals_A01_t03: RuntimeError
@@ -579,8 +613,6 @@ LanguageFeatures/Simple-bounds/static/typedef_l2_t02/none: CompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/01: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t04/02: MissingCompileTimeError
 LanguageFeatures/Simple-bounds/static/typedef_typedef_l1_t10: CompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A09_t09/04: MissingCompileTimeError
-LanguageFeatures/Spread-collections/ConstSpreads_A10_t09/04: MissingCompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t03/06: MissingCompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t03/07: MissingCompileTimeError
 LanguageFeatures/Spread-collections/TypeInference_A01_t03/08: MissingCompileTimeError
@@ -687,35 +719,12 @@ LibTest/isolate/Isolate/removeErrorListener_A02_t01: Crash, Pass
 
 [ $compiler != dart2js && $runtime != vm && $fasta ]
 Language/Classes/Constructors/Constant_Constructors/invalid_constant_initializer_t02: MissingCompileTimeError # Issue 34192
-Language/Expressions/Constants/exception_t01: MissingCompileTimeError # Issue 31936
-Language/Expressions/Constants/exception_t03: MissingCompileTimeError # Issue 31936
-Language/Expressions/Constants/exception_t04: MissingCompileTimeError # Issue 31936
-Language/Expressions/Constants/no_other_constant_expressions_t11: MissingCompileTimeError # Issue 34192
-Language/Expressions/Constants/ternary_operator_t02: MissingCompileTimeError # Issue 34192
 Language/Expressions/Instance_Creation/Const/exception_t01: MissingCompileTimeError # Issue 31936
 Language/Metadata/compilation_t03: MissingCompileTimeError # Issue 34205
 
 [ $compiler != dart2js && $fasta ]
-Language/Expressions/Constants/literal_string_t02: MissingCompileTimeError # Issue 34192
 Language/Statements/Switch/equal_operator_t01: MissingCompileTimeError # Issue 32557
 Language/Statements/Switch/equal_operator_t02: MissingCompileTimeError # Issue 32557
-
-[ $compiler != dartkp && $fasta ]
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A02_t04/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/01: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/02: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/03: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/04: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/05: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/06: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/07: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/08: MissingCompileTimeError
-LanguageFeatures/Set-literals/constant_set_literals_A05_t01/09: MissingCompileTimeError
 
 [ $mode == debug && $runtime == vm && $system == linux && ($compiler == dartk || $compiler == dartkb) ]
 LibTest/io/Stdin/readByteSync_A02_t01: RuntimeError, Pass
@@ -1165,10 +1174,9 @@ LibTest/typed_data/Uint8ClampedList/last_A01_t02: RuntimeError
 LibTest/typed_data/Uint8List/first_A01_t02: RuntimeError
 LibTest/typed_data/Uint8List/last_A01_t02: RuntimeError
 
-[ $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $compiler == dartk || $compiler == dartkb ]
 Language/Expressions/Additive_Expressions/syntax_t01: RuntimeError
 Language/Expressions/Assignment/null_aware_assignment_static_type_t01: RuntimeError
-Language/Expressions/Constants/depending_on_itself_t03: Crash
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Fail
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Fail
 Language/Expressions/Instance_Creation/Const/canonicalized_t05: RuntimeError

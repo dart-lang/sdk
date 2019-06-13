@@ -96,7 +96,7 @@ class Interpreter {
   }
 
   // Identify an entry frame by looking at its pc marker value.
-  static bool IsEntryFrameMarker(uint32_t* pc) {
+  static bool IsEntryFrameMarker(const KBCInstr* pc) {
     return reinterpret_cast<word>(pc) == kEntryFramePcMarker;
   }
 
@@ -122,6 +122,11 @@ class Interpreter {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
   void MajorGC() { lookup_cache_.Clear(); }
 
+#ifndef PRODUCT
+  void set_is_debugging(bool value) { is_debugging_ = value; }
+  bool is_debugging() const { return is_debugging_; }
+#endif  // !PRODUCT
+
  private:
   uintptr_t* stack_;
   uword stack_base_;
@@ -129,7 +134,7 @@ class Interpreter {
   uword stack_limit_;
 
   RawObject** volatile fp_;
-  uint32_t* volatile pc_;
+  const KBCInstr* volatile pc_;
   DEBUG_ONLY(uint64_t icount_;)
 
   InterpreterSetjmpBuffer* last_setjmp_buffer_;
@@ -144,29 +149,28 @@ class Interpreter {
   void Exit(Thread* thread,
             RawObject** base,
             RawObject** exit_frame,
-            uint32_t* pc);
+            const KBCInstr* pc);
 
   bool Invoke(Thread* thread,
               RawObject** call_base,
               RawObject** call_top,
-              uint32_t** pc,
+              const KBCInstr** pc,
               RawObject*** FP,
               RawObject*** SP);
-
-  bool ProcessInvocation(bool* invoked,
-                         Thread* thread,
-                         RawFunction* function,
-                         RawObject** call_base,
-                         RawObject** call_top,
-                         uint32_t** pc,
-                         RawObject*** FP,
-                         RawObject*** SP);
 
   bool InvokeCompiled(Thread* thread,
                       RawFunction* function,
                       RawObject** call_base,
                       RawObject** call_top,
-                      uint32_t** pc,
+                      const KBCInstr** pc,
+                      RawObject*** FP,
+                      RawObject*** SP);
+
+  bool InvokeBytecode(Thread* thread,
+                      RawFunction* function,
+                      RawObject** call_base,
+                      RawObject** call_top,
+                      const KBCInstr** pc,
                       RawObject*** FP,
                       RawObject*** SP);
 
@@ -175,7 +179,7 @@ class Interpreter {
                        RawICData* icdata,
                        RawObject** call_base,
                        RawObject** top,
-                       uint32_t* pc,
+                       const KBCInstr* pc,
                        RawObject** FP,
                        RawObject** SP);
 
@@ -183,7 +187,7 @@ class Interpreter {
                      RawString* target_name,
                      RawObject** call_base,
                      RawObject** call_top,
-                     uint32_t** pc,
+                     const KBCInstr** pc,
                      RawObject*** FP,
                      RawObject*** SP);
 
@@ -191,7 +195,7 @@ class Interpreter {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     uint32_t** pc,
+                     const KBCInstr** pc,
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
@@ -200,13 +204,13 @@ class Interpreter {
                      RawICData* icdata,
                      RawObject** call_base,
                      RawObject** call_top,
-                     uint32_t** pc,
+                     const KBCInstr** pc,
                      RawObject*** FP,
                      RawObject*** SP,
                      bool optimized);
 
   bool AssertAssignable(Thread* thread,
-                        uint32_t* pc,
+                        const KBCInstr* pc,
                         RawObject** FP,
                         RawObject** call_top,
                         RawObject** args,
@@ -214,37 +218,37 @@ class Interpreter {
 
   bool AllocateMint(Thread* thread,
                     int64_t value,
-                    uint32_t* pc,
+                    const KBCInstr* pc,
                     RawObject** FP,
                     RawObject** SP);
   bool AllocateDouble(Thread* thread,
                       double value,
-                      uint32_t* pc,
+                      const KBCInstr* pc,
                       RawObject** FP,
                       RawObject** SP);
   bool AllocateFloat32x4(Thread* thread,
                          simd128_value_t value,
-                         uint32_t* pc,
+                         const KBCInstr* pc,
                          RawObject** FP,
                          RawObject** SP);
   bool AllocateFloat64x2(Thread* thread,
                          simd128_value_t value,
-                         uint32_t* pc,
+                         const KBCInstr* pc,
                          RawObject** FP,
                          RawObject** SP);
   bool AllocateArray(Thread* thread,
                      RawTypeArguments* type_args,
                      RawObject* length,
-                     uint32_t* pc,
+                     const KBCInstr* pc,
                      RawObject** FP,
                      RawObject** SP);
   bool AllocateContext(Thread* thread,
                        intptr_t num_variables,
-                       uint32_t* pc,
+                       const KBCInstr* pc,
                        RawObject** FP,
                        RawObject** SP);
   bool AllocateClosure(Thread* thread,
-                       uint32_t* pc,
+                       const KBCInstr* pc,
                        RawObject** FP,
                        RawObject** SP);
 
@@ -253,11 +257,11 @@ class Interpreter {
   bool IsTracingExecution() const;
 
   // Prints bytecode instruction at given pc for instruction tracing.
-  void TraceInstruction(uint32_t* pc) const;
+  void TraceInstruction(const KBCInstr* pc) const;
 
   bool IsWritingTraceFile() const;
   void FlushTraceBuffer();
-  void WriteInstructionToTrace(uint32_t* pc);
+  void WriteInstructionToTrace(const KBCInstr* pc);
 
   void* trace_file_;
   uint64_t trace_file_bytes_written_;
@@ -274,6 +278,10 @@ class Interpreter {
   void set_last_setjmp_buffer(InterpreterSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }
+
+#ifndef PRODUCT
+  bool is_debugging_;
+#endif  // !PRODUCT
 
   friend class InterpreterSetjmpBuffer;
   DISALLOW_COPY_AND_ASSIGN(Interpreter);

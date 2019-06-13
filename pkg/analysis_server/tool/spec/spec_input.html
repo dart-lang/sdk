@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.26.0</version>
+  <version>1.27.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -1588,6 +1588,17 @@
           returned for the indicated completion.
         </p>
       </field>
+      <field name="libraryFile" optional="true">
+        <ref>FilePath</ref>
+        <p>
+          The library file that contains the file where completion was
+          requested. The client might use it for example together with the
+          <tt>existingImports</tt> notification to filter out available
+          suggestions. If there were changes to existing imports in the library,
+          the corresponding <tt>existingImports</tt> notification will be sent
+          before the completion notification.
+        </p>
+      </field>
       <field name="includedSuggestionSets" optional="true">
         <list>
           <ref>IncludedSuggestionSet</ref>
@@ -1654,6 +1665,27 @@
         </list>
         <p>
           A list of library ids that no longer apply.
+        </p>
+      </field>
+    </params>
+  </notification>
+  <notification event="existingImports">
+    <p>
+      Reports existing imports in a library. This notification may be sent
+      multiple times for a library. When a notification is processed, clients
+      should replace any previous information for the library.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The defining file of the library.
+        </p>
+      </field>
+      <field name="imports">
+        <ref>ExistingImports</ref>
+        <p>
+          The existing imports in the library.
         </p>
       </field>
     </params>
@@ -2219,6 +2251,18 @@
         </list>
         <p>
           A list of source edits to apply the recommended changes.
+        </p>
+      </field>
+      <field name="details" optional="true">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          Messages that should be displayed to the user that describe details of
+          the fix generation. For example, the messages might (a) point out
+          details that users might want to explore before committing the changes
+          or (b) describe exceptions that were thrown but that did not stop the
+          fixes from being produced. The list will be omitted if it is empty.
         </p>
       </field>
     </result>
@@ -3566,6 +3610,14 @@
           The identifier to present to the user for code completion.
         </p>
       </field>
+      <field name="declaringLibraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library that declares the element being suggested,
+          not the URI of the library associated with the enclosing
+          <tt>AvailableSuggestionSet</tt>.
+        </p>
+      </field>
       <field name="element">
         <ref>Element</ref>
         <p>
@@ -3669,6 +3721,86 @@
       </field>
     </object>
   </type>
+  <type name="ExistingImport">
+    <p>
+      Information about an existing import, with elements that it provides.
+    </p>
+    <object>
+      <field name="uri">
+        <ref>int</ref>
+        <p>
+          The URI of the imported library.
+          It is an index in the <tt>strings</tt> field, in the enclosing
+          <tt>ExistingImports</tt> and its <tt>ImportedElementSet</tt> object.
+        </p>
+      </field>
+      <field name="elements">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The list of indexes of elements, in the enclosing
+          <tt>ExistingImports</tt> object.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ExistingImports">
+    <p>
+      Information about all existing imports in a library.
+    </p>
+    <object>
+      <field name="elements">
+        <ref>ImportedElementSet</ref>
+        <p>
+          The set of all unique imported elements for all imports.
+        </p>
+      </field>
+      <field name="imports">
+        <list>
+          <ref>ExistingImport</ref>
+        </list>
+        <p>
+          The list of imports in the library.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="ImportedElementSet">
+    <p>
+      The set of top-level elements encoded as pairs of the defining library
+      URI and the name, and stored in the parallel lists <tt>elementUris</tt>
+      and <tt>elementNames</tt>.
+    </p>
+    <object>
+      <field name="strings">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The list of unique strings in this object.
+        </p>
+      </field>
+      <field name="uris">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The library URI part of the element.
+          It is an index in the <tt>strings</tt> field.
+        </p>
+      </field>
+      <field name="names">
+        <list>
+          <ref>int</ref>
+        </list>
+        <p>
+          The name part of a the element.
+          It is an index in the <tt>strings</tt> field.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="IncludedSuggestionSet">
     <p>
       A reference to an <tt>AvailableSuggestionSet</tt> noting
@@ -3737,10 +3869,14 @@
       <value>
         <code>AVAILABLE_SUGGESTION_SETS</code>
         <p>
-          The client will receive notifications once subscribed with completion suggestion sets from
-          the libraries of interest. The client should keep an up-to-date record of these in
+          The client will receive <tt>availableSuggestions</tt> notifications
+          once subscribed with completion suggestion sets from the libraries of
+          interest. The client should keep an up-to-date record of these in
           memory so that it will be able to union these candidates with other
           completion suggestions when applicable at completion time.
+        </p>
+        <p>
+          The client will also receive <tt>existingImports</tt> notifications.
         </p>
       </value>
     </enum>
@@ -4212,10 +4348,10 @@
       <field name="containingLibraryName" optional="true">
         <ref>String</ref>
         <p>
-          The name of the library in which the referenced element is
-          declared. This data is omitted if there is no referenced
-          element, or if the element is declared inside an HTML
-          file.
+          The URI of the containing library, examples here include
+          "dart:core", "package:.." and file uris represented by the
+          path on disk, "/..". The data is omitted if the element is
+          declared inside an HTML file.
         </p>
       </field>
       <field name="containingClassDescription" optional="true">

@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-/*strong.class: global#JSArray:deps=[ArrayIterator,List],direct,explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],needsArgs*/
+/*strong.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
 /*omit.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
 
 /*strong.element: method:implicit=[method.T],indirect,needsArgs*/

@@ -32,6 +32,7 @@ import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';
 import '../universe/function_set.dart' show FunctionSet;
+import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
 import 'element_map.dart';
@@ -93,6 +94,8 @@ class JsClosedWorld implements JClosedWorld {
   final OutputUnitData outputUnitData;
   Sorter _sorter;
 
+  final Map<MemberEntity, MemberAccess> memberAccess;
+
   JsClosedWorld(
       this.elementMap,
       this.nativeData,
@@ -113,7 +116,8 @@ class JsClosedWorld implements JClosedWorld {
       this.annotationsData,
       this.globalLocalsMap,
       this.closureDataLookup,
-      this.outputUnitData) {
+      this.outputUnitData,
+      this.memberAccess) {
     _abstractValueDomain = abstractValueStrategy.createDomain(this);
   }
 
@@ -137,7 +141,7 @@ class JsClosedWorld implements JClosedWorld {
         source, elementMap.commonElements);
     NativeData nativeData = new NativeData.readFromDataSource(
         source, elementMap.elementEnvironment);
-    elementMap.nativeBasicData = nativeData;
+    elementMap.nativeData = nativeData;
     InterceptorData interceptorData = new InterceptorData.readFromDataSource(
         source, nativeData, elementMap.commonElements);
     BackendUsage backendUsage = new BackendUsage.readFromDataSource(source);
@@ -166,6 +170,11 @@ class JsClosedWorld implements JClosedWorld {
 
     OutputUnitData outputUnitData =
         new OutputUnitData.readFromDataSource(source);
+    elementMap.lateOutputUnitDataBuilder =
+        new LateOutputUnitDataBuilder(outputUnitData);
+
+    Map<MemberEntity, MemberAccess> memberAccess =
+        source.readMemberMap(() => new MemberAccess.readFromDataSource(source));
 
     source.end(tag);
 
@@ -189,7 +198,8 @@ class JsClosedWorld implements JClosedWorld {
         annotationsData,
         globalLocalsMap,
         closureData,
-        outputUnitData);
+        outputUnitData,
+        memberAccess);
   }
 
   /// Serializes this [JsClosedWorld] to [sink].
@@ -217,6 +227,8 @@ class JsClosedWorld implements JClosedWorld {
     annotationsData.writeToDataSink(sink);
     closureDataLookup.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
+    sink.writeMemberMap(
+        memberAccess, (MemberAccess access) => access.writeToDataSink(sink));
     sink.end(tag);
   }
 
@@ -538,6 +550,11 @@ class JsClosedWorld implements JClosedWorld {
   bool _isNamedMixinApplication(ClassEntity cls) {
     return elementEnvironment.isMixinApplication(cls) &&
         !elementEnvironment.isUnnamedMixinApplication(cls);
+  }
+
+  @override
+  MemberAccess getMemberAccess(MemberEntity member) {
+    return memberAccess[member];
   }
 }
 

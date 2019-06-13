@@ -170,4 +170,15 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_CompileAll();
 
 DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_ReadAllBytecode();
 
+/**
+ * Finalizes all classes.
+ */
+DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_FinalizeAllClasses();
+
+/*  This function is intentionally undocumented.
+ *
+ *  It should not be used outside internal tests.
+ */
+DART_EXPORT void Dart_ExecuteInternalCommand(const char* command);
+
 #endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

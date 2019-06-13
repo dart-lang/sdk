@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -24,19 +24,15 @@ import 'resolver_test_case.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(StrongModeCastsTest);
     defineReflectiveTests(StrongModeLocalInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
     defineReflectiveTests(StrongModeTypePropagationTest);
-    defineReflectiveTests(StrongModeCastsWithUiAsCodeTest);
   });
 }
 
 @reflectiveTest
-class StrongModeCastsWithUiAsCodeTest extends ResolverTestCase {
-  @override
-  List<String> get enabledExperiments =>
-      [EnableString.spread_collections, EnableString.control_flow_collections];
-
+class StrongModeCastsTest extends ResolverTestCase {
   test_implicitCastMetadata_ifElement_condition() async {
     var source = addSource(r'''
 class C {
@@ -2532,8 +2528,8 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'double' for 'T' which doesn't work:
-  Parameter 'f' declared as     '(T) → T'
-                but argument is '(int) → double'.
+  Parameter 'f' declared as     'T Function(T)'
+                but argument is 'double Function(int)'.
 
 Consider passing explicit type argument(s) to the generic.
 
@@ -2559,10 +2555,10 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
-  Parameter 'a' declared as     '(T) → T'
-                but argument is '(int) → double'.
-  Parameter 'b' declared as     '(T) → T'
-                but argument is '(double) → int'.
+  Parameter 'a' declared as     'T Function(T)'
+                but argument is 'double Function(int)'.
+  Parameter 'b' declared as     'T Function(T)'
+                but argument is 'int Function(double)'.
 
 Consider passing explicit type argument(s) to the generic.
 
@@ -2589,7 +2585,7 @@ test() {
         .variables
         .variables[0];
     var call = h.initializer as MethodInvocation;
-    expect(call.staticInvokeType.toString(), '(Null, Null) → Null');
+    expect(call.staticInvokeType.toString(), 'Null Function(Null, Null)');
   }
 
   test_inference_error_extendsFromReturn2() async {
@@ -2610,8 +2606,8 @@ Couldn't infer type parameter 'T'.
 Tried to infer 'String' for 'T' which doesn't work:
   Type parameter 'T' declared to extend 'num'.
 The type 'String' was inferred from:
-  Return type declared as '(T) → T'
-              used where  '(String) → String' is required.
+  Return type declared as 'T Function(T)'
+              used where  'String Function(String)' is required.
 
 Consider passing explicit type argument(s) to the generic.
 
@@ -2637,8 +2633,8 @@ test(Iterable values) {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'dynamic' for 'T' which doesn't work:
-  Function type declared as '<T extends num>(T, T) → T'
-                used where  '(num, dynamic) → num' is required.
+  Function type declared as 'T Function<T extends num>(T, T)'
+                used where  'num Function(num, dynamic)' is required.
 
 Consider passing explicit type argument(s) to the generic.
 
@@ -2660,8 +2656,8 @@ test() {
 Couldn't infer type parameter 'T'.
 
 Tried to infer 'num' for 'T' which doesn't work:
-  Return type declared as '(T) → T'
-              used where  '(num) → int' is required.
+  Return type declared as 'T Function(T)'
+              used where  'int Function(num)' is required.
 
 Consider passing explicit type argument(s) to the generic.
 
@@ -2702,8 +2698,13 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType',
+            'void Function(T Function(T), int Function(T, T), T Function(T))');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2729,8 +2730,12 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', 'void Function(List<T>, int Function(T, T), List<T>)');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2756,8 +2761,12 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     var stmts = body.block.statements;
     for (ExpressionStatement stmt in stmts) {
       MethodInvocation invoke = stmt.expression;
-      ParameterizedType fType = invoke.staticInvokeType;
-      expect(fType.typeArguments[0].toString(), 'T');
+      FunctionType fType = invoke.staticInvokeType;
+      if (AnalysisDriver.useSummary2) {
+        expect('$fType', 'void Function(T, int Function(T, T), T)');
+      } else {
+        expect(fType.typeArguments[0].toString(), 'T');
+      }
     }
   }
 
@@ -2780,10 +2789,10 @@ test() {
         .variables[0];
     _isDynamic(h.declaredElement.type);
     var fCall = h.initializer as MethodInvocation;
-    expect(
-        fCall.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(fCall.staticInvokeType.toString(),
+        'dynamic Function(dynamic Function(dynamic))');
     var g = fCall.argumentList.arguments[0];
-    expect(g.staticType.toString(), '(dynamic) → dynamic');
+    expect(g.staticType.toString(), 'dynamic Function(dynamic)');
   }
 
   test_inferGenericInstantiation2() async {
@@ -2808,11 +2817,11 @@ num test(Iterable values) => values.fold(values.first as num, max);
             .functionExpression
             .body as ExpressionFunctionBody)
         .expression as MethodInvocation;
-    expect(
-        fold.staticInvokeType.toString(), '(num, (num, dynamic) → num) → num');
+    expect(fold.staticInvokeType.toString(),
+        'num Function(num, num Function(num, dynamic))');
     var max = fold.argumentList.arguments[1];
-    // TODO(jmesserly): arguably (num, num) → num is better here.
-    expect(max.staticType.toString(), '(dynamic, dynamic) → dynamic');
+    // TODO(jmesserly): arguably num Function(num, num) is better here.
+    expect(max.staticType.toString(), 'dynamic Function(dynamic, dynamic)');
   }
 
   test_inferredFieldDeclaration_propagation() async {
@@ -3600,7 +3609,7 @@ class B<T2, U2> {
     expect(typeName.type.toString(), 'A<T2, U2>');
 
     var constructorMember = redirected.staticElement;
-    expect(constructorMember.toString(), 'A.named() → A<T2, U2>');
+    expect(constructorMember.toString(), 'A<T2, U2> A.named()');
     expect(redirected.name.staticElement, constructorMember);
   }
 
@@ -3637,7 +3646,7 @@ class B<T2, U2> {
     expect(typeName.type.toString(), 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.staticElement.toString(), 'A() → A<T2, U2>');
+    expect(redirected.staticElement.toString(), 'A<T2, U2> A()');
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3898,74 +3907,16 @@ class B<T2, U2> {
 }
 
 @reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
-    with StrongModeStaticTypeAnalyzer2TestCases {
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  void expectStaticInvokeType(String search, String type) {
+    var invocation = findIdentifier(search).parent as MethodInvocation;
+    expect(invocation.staticInvokeType.toString(), type);
+  }
+
   void setUp() {
     super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     resetWith(options: options);
-  }
-
-  @failingTest
-  @override
-  test_genericFunction_parameter() {
-    return super.test_genericFunction_parameter();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() {
-    return super
-        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() {
-    return super
-        .test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_functionTypedParameter_explicit() {
-    return super
-        .test_genericMethod_functionInvocation_functionTypedParameter_explicit();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionInvocation_functionTypedParameter_inferred() {
-    return super
-        .test_genericMethod_functionInvocation_functionTypedParameter_inferred();
-  }
-
-  @failingTest
-  @override
-  test_genericMethod_functionTypedParameter_tearoff() {
-    return super.test_genericMethod_functionTypedParameter_tearoff();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_nestedCaptureBounds() {
-    // https://github.com/dart-lang/sdk/issues/30236
-    return super.test_genericMethod_nestedCaptureBounds();
-  }
-
-  @override
-  @failingTest
-  test_genericMethod_tearoff_instantiated() {
-    return super.test_genericMethod_tearoff_instantiated();
-  }
-}
-
-/// Test cases for [StrongModeStaticTypeAnalyzer2Test]
-mixin StrongModeStaticTypeAnalyzer2TestCases
-    implements StaticTypeAnalyzer2TestShared {
-  void expectStaticInvokeType(String search, String type) {
-    var invocation = findIdentifier(search).parent as MethodInvocation;
-    expect(invocation.staticInvokeType.toString(), type);
   }
 
   test_dynamicObjectGetter_hashCode() async {
@@ -4034,32 +3985,30 @@ void main() {
 
   test_genericFunction() async {
     await resolveTestUnit(r'T f<T>(T x) => null;');
-    expectFunctionType('f', '<T>(T) → T',
+    expectFunctionType('f', 'T Function<T>(T)',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), '(String) → String');
+    expect(ft.toString(), 'String Function(String)');
   }
 
   test_genericFunction_bounds() async {
     await resolveTestUnit(r'T f<T extends num>(T x) => null;');
-    expectFunctionType('f', '<T extends num>(T) → T',
+    expectFunctionType('f', 'T Function<T extends num>(T)',
         elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
   }
 
   test_genericFunction_parameter() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void g(T f<T>(T x)) {}
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
-    expectFunctionType('f', '<T>(T) → T',
-        elementTypeParams: '[]', typeFormals: '[T]');
-    SimpleIdentifier f = findIdentifier('f');
-    ParameterElementImpl e = f.staticElement;
-    FunctionType type = e.type;
+''');
+    var type = expectFunctionType2('f', 'T Function<T>(T)');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), '(String) → String');
+    expect(ft.toString(), 'String Function(String)');
   }
 
   test_genericFunction_static() async {
@@ -4068,12 +4017,12 @@ class C<E> {
   static T f<T>(T x) => null;
 }
 ''');
-    expectFunctionType('f', '<T>(T) → T',
+    expectFunctionType('f', 'T Function<T>(T)',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), '(String) → String');
+    expect(ft.toString(), 'String Function(String)');
   }
 
   test_genericFunction_typedef() async {
@@ -4154,16 +4103,16 @@ main() {
   C<String> cOfString;
 }
 ''');
-    expectFunctionType('f', '<T>(E) → List<T>',
+    expectFunctionType('f', 'List<T> Function<T>(E)',
         elementTypeParams: '[T]',
         typeParams: '[E]',
         typeArgs: '[E]',
         typeFormals: '[T]');
     SimpleIdentifier c = findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), '<T>(String) → List<T>');
+    expect(ft.toString(), 'List<T> Function<T>(String)');
     ft = ft.instantiate([typeProvider.intType]);
-    expect(ft.toString(), '(String) → List<int>');
+    expect(ft.toString(), 'List<int> Function(String)');
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
@@ -4179,7 +4128,7 @@ main() {
 ''');
     MethodInvocation f = findIdentifier('f<int>').parent;
     FunctionType ft = f.staticInvokeType;
-    expect(ft.toString(), '(String) → List<int>');
+    expect(ft.toString(), 'List<int> Function(String)');
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
 
     SimpleIdentifier x = findIdentifier('x');
@@ -4222,26 +4171,33 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_explicit() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_functionTypedParameter_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = (pf)(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionExpressionInvocation_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 class C<E> {
   T f<T>(T e) => null;
@@ -4264,8 +4220,7 @@ void test<S>(T Function<T>(T) pf) {
   var localCall = (lf)(3);
   var paramCall = (pf)(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('methodCall', "int");
     expectIdentifierType('staticCall', "int");
     expectIdentifierType('staticFieldCall', "int");
@@ -4308,22 +4263,26 @@ void test<S>(T Function<T>(T) pf) {
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_explicit() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf<int>(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
   test_genericMethod_functionInvocation_functionTypedParameter_inferred() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramCall = pf(3);
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
+''');
     expectIdentifierType('paramCall', "int");
   }
 
@@ -4367,7 +4326,7 @@ main() {
   C<String> cOfString;
 }
 ''');
-    expectFunctionType('f', '<T>((E) → T) → List<T>',
+    expectFunctionType('f', 'List<T> Function<T>(T Function(E))',
         elementTypeParams: '[T]',
         typeParams: '[E]',
         typeArgs: '[E]',
@@ -4375,19 +4334,21 @@ main() {
 
     SimpleIdentifier c = findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), '<T>((String) → T) → List<T>');
+    expect(ft.toString(), 'List<T> Function<T>(T Function(String))');
     ft = ft.instantiate([typeProvider.intType]);
-    expect(ft.toString(), '((String) → int) → List<int>');
+    expect(ft.toString(), 'List<int> Function(int Function(String))');
   }
 
   test_genericMethod_functionTypedParameter_tearoff() async {
+    // TODO(paulberry): remove when dartbug.com/28515 fixed.
+    if (!AnalysisDriver.useSummary2) return;
+
     await resolveTestUnit(r'''
 void test<S>(T pf<T>(T e)) {
   var paramTearOff = pf;
 }
-''', noErrors: false // TODO(paulberry): remove when dartbug.com/28515 fixed.
-        );
-    expectIdentifierType('paramTearOff', "<T>(T) → T");
+''');
+    expectIdentifierType('paramTearOff', "T Function<T>(T)");
   }
 
   test_genericMethod_implicitDynamic() async {
@@ -4403,13 +4364,17 @@ void foo() {
   list.map((e) => e);
   list.map((e) => 3);
 }''');
-    expectIdentifierType('map((e) => e);', '<T>((dynamic) → T) → T');
-    expectIdentifierType('map((e) => 3);', '<T>((dynamic) → T) → T');
+    expectIdentifierType(
+        'map((e) => e);', 'T Function<T>(T Function(dynamic))');
+    expectIdentifierType(
+        'map((e) => 3);', 'T Function<T>(T Function(dynamic))');
 
     MethodInvocation m1 = findIdentifier('map((e) => e);').parent;
-    expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(m1.staticInvokeType.toString(),
+        'dynamic Function(dynamic Function(dynamic))');
     MethodInvocation m2 = findIdentifier('map((e) => 3);').parent;
-    expect(m2.staticInvokeType.toString(), '((dynamic) → int) → int');
+    expect(
+        m2.staticInvokeType.toString(), 'int Function(int Function(dynamic))');
   }
 
   test_genericMethod_max_doubleDouble() async {
@@ -4490,13 +4455,14 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findIdentifier('f<int>(3);').parent;
-    expect(f.staticInvokeType.toString(), '(int) → S');
+    expect(f.staticInvokeType.toString(), 'S Function(int)');
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
-    expectIdentifierType('f;', '<S₀>(S₀) → S');
+    expectIdentifierType('f;', 'S Function<S₀>(S₀)');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/30236')
   test_genericMethod_nestedCaptureBounds() async {
     await resolveTestUnit(r'''
 class C<T> {
@@ -4508,12 +4474,12 @@ class C<T> {
 }
 ''');
     MethodInvocation f = findIdentifier('f<int>(3);').parent;
-    expect(f.staticInvokeType.toString(), '(int) → S');
+    expect(f.staticInvokeType.toString(), 'S Function(int)');
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}',
         '[S, int]/[T, S extends T]');
 
-    expectIdentifierType('f;', '<S₀ extends S>(S₀) → S');
+    expectIdentifierType('f;', 'S Function<S₀ extends S>(S₀)');
   }
 
   test_genericMethod_nestedFunctions() async {
@@ -4523,8 +4489,8 @@ S f<S>(S x) {
   return null;
 }
 ''');
-    expectIdentifierType('f', '<S>(S) → S');
-    expectIdentifierType('g', '<S>(S) → <S>(S) → S');
+    expectIdentifierType('f', 'S Function<S>(S)');
+    expectIdentifierType('g', 'S Function<S>(S) Function<S>(S)');
   }
 
   test_genericMethod_override() async {
@@ -4536,12 +4502,12 @@ class D extends C {
   T f<T>(T x) => null; // from D
 }
 ''');
-    expectFunctionType('f<T>(T x) => null; // from D', '<T>(T) → T',
+    expectFunctionType('f<T>(T x) => null; // from D', 'T Function<T>(T)',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = findIdentifier('f<T>(T x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), '(String) → String');
+    expect(ft.toString(), 'String Function(String)');
   }
 
   test_genericMethod_override_bounds() async {
@@ -4697,15 +4663,16 @@ void test<S>(T Function<T>(T) pf) {
   var paramTearOff = pf;
 }
 ''');
-    expectIdentifierType('methodTearOff', "<T>(int) → T");
-    expectIdentifierType('staticTearOff', "<T>(T) → T");
-    expectIdentifierType('staticFieldTearOff', "<T>(T) → T");
-    expectIdentifierType('topFunTearOff', "<T>(T) → T");
-    expectIdentifierType('topFieldTearOff', "<T>(T) → T");
-    expectIdentifierType('localTearOff', "<T>(T) → T");
-    expectIdentifierType('paramTearOff', "<T>(T) → T");
+    expectIdentifierType('methodTearOff', "T Function<T>(int)");
+    expectIdentifierType('staticTearOff', "T Function<T>(T)");
+    expectIdentifierType('staticFieldTearOff', "T Function<T>(T)");
+    expectIdentifierType('topFunTearOff', "T Function<T>(T)");
+    expectIdentifierType('topFieldTearOff', "T Function<T>(T)");
+    expectIdentifierType('localTearOff', "T Function<T>(T)");
+    expectIdentifierType('paramTearOff', "T Function<T>(T)");
   }
 
+  @failingTest
   test_genericMethod_tearoff_instantiated() async {
     await resolveTestUnit(r'''
 class C<E> {
@@ -4728,13 +4695,13 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOffInst = pf<int>;
 }
 ''');
-    expectIdentifierType('methodTearOffInst', "(int) → int");
-    expectIdentifierType('staticTearOffInst', "(int) → int");
-    expectIdentifierType('staticFieldTearOffInst', "(int) → int");
-    expectIdentifierType('topFunTearOffInst', "(int) → int");
-    expectIdentifierType('topFieldTearOffInst', "(int) → int");
-    expectIdentifierType('localTearOffInst', "(int) → int");
-    expectIdentifierType('paramTearOffInst', "(int) → int");
+    expectIdentifierType('methodTearOffInst', "int Function(int)");
+    expectIdentifierType('staticTearOffInst', "int Function(int)");
+    expectIdentifierType('staticFieldTearOffInst', "int Function(int)");
+    expectIdentifierType('topFunTearOffInst', "int Function(int)");
+    expectIdentifierType('topFieldTearOffInst', "int Function(int)");
+    expectIdentifierType('localTearOffInst', "int Function(int)");
+    expectIdentifierType('paramTearOffInst', "int Function(int)");
   }
 
   test_genericMethod_then() async {
@@ -4792,7 +4759,7 @@ void test() {
   var fieldRead = C.h;
 }
 ''');
-    expectIdentifierType('fieldRead', "<T>(T) → T");
+    expectIdentifierType('fieldRead', "T Function<T>(T)");
   }
 
   test_implicitBounds() async {
@@ -4914,7 +4881,7 @@ C c;
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertNoErrors(testSource);
-    expectIdentifierType('c;', 'C<(dynamic) → dynamic>');
+    expectIdentifierType('c;', 'C<dynamic Function(dynamic)>');
   }
 
   test_instantiateToBounds_class_ok_implicitDynamic_multi() async {
@@ -5017,7 +4984,7 @@ class C<T> {
 ''';
     await resolveTestUnit(code);
     assertNoErrors(testSource);
-    expectStaticInvokeType('m(null', '(Null, Null) → void');
+    expectStaticInvokeType('m(null', 'void Function(Null, Null)');
   }
 
   test_instantiateToBounds_method_ok_referenceOther_before2() async {
@@ -5032,7 +4999,7 @@ class C<T> {
 ''';
     await resolveTestUnit(code);
     assertNoErrors(testSource);
-    expectStaticInvokeType('m();', '() → Map<T, List<T>>');
+    expectStaticInvokeType('m();', 'Map<T, List<T>> Function()');
   }
 
   test_instantiateToBounds_method_ok_simpleBounds() async {
@@ -5047,7 +5014,7 @@ class C<T> {
 ''';
     await resolveTestUnit(code);
     assertNoErrors(testSource);
-    expectStaticInvokeType('m(null)', '(Null) → void');
+    expectStaticInvokeType('m(null)', 'void Function(Null)');
   }
 
   test_instantiateToBounds_method_ok_simpleBounds2() async {
@@ -5062,7 +5029,7 @@ class C<T> {
 ''';
     await resolveTestUnit(code);
     assertNoErrors(testSource);
-    expectStaticInvokeType('m();', '() → T');
+    expectStaticInvokeType('m();', 'T Function()');
   }
 
   test_issue32396() async {
@@ -5468,10 +5435,10 @@ main() {
   Future<void> _objectMethodOnFunctions_helper2(String code) async {
     await resolveTestUnit(code);
     expectIdentifierType('t0', "String");
-    expectIdentifierType('t1', "() → String");
+    expectIdentifierType('t1', "String Function()");
     expectIdentifierType('t2', "int");
     expectIdentifierType('t3', "String");
-    expectIdentifierType('t4', "() → String");
+    expectIdentifierType('t4', "String Function()");
     expectIdentifierType('t5', "int");
   }
 }

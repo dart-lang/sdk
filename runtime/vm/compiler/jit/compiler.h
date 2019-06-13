@@ -226,10 +226,10 @@ class BackgroundCompiler {
 
   Isolate* isolate_;
 
-  Monitor* queue_monitor_;  // Controls access to the queue.
+  Monitor queue_monitor_;  // Controls access to the queue.
   BackgroundCompilationQueue* function_queue_;
 
-  Monitor* done_monitor_;   // Notify/wait that the thread is done.
+  Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
 

@@ -35,6 +35,7 @@ import 'generics.dart'
         hasFreeTypeParameters,
         hasInstantiatorTypeArguments,
         isUncheckedCall;
+import 'local_variable_table.dart' show LocalVariableTable;
 import 'local_vars.dart' show LocalVariables;
 import 'nullability_detector.dart' show NullabilityDetector;
 import 'object_table.dart' show ObjectHandle, ObjectTable, NameAndType;
@@ -43,6 +44,8 @@ import 'source_positions.dart' show SourcePositions;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
+import 'dart:math' as math;
+
 // This symbol is used as the name in assert assignable's to indicate it comes
 // from an explicit 'as' check.  This will cause the runtime to throw the right
 // exception.
@@ -50,17 +53,21 @@ const String symbolForTypeCast = ' in type cast';
 
 void generateBytecode(
   ast.Component component, {
+  bool enableAsserts: true,
   bool emitSourcePositions: false,
+  bool emitLocalVarInfo: false,
   bool emitAnnotations: false,
   bool omitAssertSourcePositions: false,
   bool useFutureBytecodeFormat: false,
   Map<String, String> environmentDefines: const <String, String>{},
   ErrorReporter errorReporter,
   List<Library> libraries,
+  ClassHierarchy hierarchy,
 }) {
+  verifyBytecodeInstructionDeclarations();
   final coreTypes = new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
-  final hierarchy = new ClassHierarchy(component,
+  hierarchy ??= new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   final constantsBackend = new VmConstantsBackend(coreTypes);
@@ -73,7 +80,9 @@ void generateBytecode(
       typeEnvironment,
       constantsBackend,
       environmentDefines,
+      enableAsserts,
       emitSourcePositions,
+      emitLocalVarInfo,
       emitAnnotations,
       omitAssertSourcePositions,
       useFutureBytecodeFormat,
@@ -89,7 +98,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final TypeEnvironment typeEnvironment;
   final ConstantsBackend constantsBackend;
   final Map<String, String> environmentDefines;
+  final bool enableAsserts;
   final bool emitSourcePositions;
+  final bool emitLocalVarInfo;
   final bool emitAnnotations;
   final bool omitAssertSourcePositions;
   final bool useFutureBytecodeFormat;
@@ -129,6 +140,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   List<BytecodeAssembler> savedAssemblers;
   bool hasErrors;
   int currentLoopDepth;
+  List<int> savedMaxSourcePositions;
+  int maxSourcePosition;
 
   BytecodeGenerator(
       ast.Component component,
@@ -137,7 +150,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.typeEnvironment,
       this.constantsBackend,
       this.environmentDefines,
+      this.enableAsserts,
       this.emitSourcePositions,
+      this.emitLocalVarInfo,
       this.emitAnnotations,
       this.omitAssertSourcePositions,
       this.useFutureBytecodeFormat,
@@ -658,10 +673,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _asyncAwaitCompleterGetFuture ??= libraryIndex.getMember(
           'dart:async', '_AsyncAwaitCompleter', 'get:future');
 
-  void _recordSourcePosition(TreeNode node) {
+  void _recordSourcePosition(int fileOffset) {
     if (emitSourcePositions) {
-      asm.currentSourcePosition = node.fileOffset;
+      asm.currentSourcePosition = fileOffset;
     }
+    maxSourcePosition = math.max(maxSourcePosition, fileOffset);
   }
 
   void _generateNode(TreeNode node) {
@@ -669,7 +685,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     final savedSourcePosition = asm.currentSourcePosition;
-    _recordSourcePosition(node);
+    _recordSourcePosition(node.fileOffset);
     node.accept(this);
     asm.currentSourcePosition = savedSourcePosition;
   }
@@ -738,6 +754,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genPushInt(int value) {
+    // TODO(alexmarkov): relax this constraint as PushInt instruction can
+    // hold up to 32-bit signed operand (note that interpreter assumes
+    // it is Smi).
     if (value.bitLength + 1 <= 16) {
       asm.emitPushInt(value);
     } else {
@@ -785,7 +804,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         : (isSet ? InvocationKind.setter : InvocationKind.method);
     final cpIndex = cp.addDirectCall(kind, target, argDesc);
 
-    asm.emitDirectCall(totalArgCount, cpIndex);
+    asm.emitDirectCall(cpIndex, totalArgCount);
   }
 
   void _genDirectCallWithArgs(Member target, Arguments args,
@@ -1064,7 +1083,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       final argDesc = objectTable.getArgDescHandle(2);
       final cpIndex = cp.addInterfaceCall(
           InvocationKind.method, objectSimpleInstanceOf, argDesc);
-      asm.emitInterfaceCall(2, cpIndex);
+      asm.emitInterfaceCall(cpIndex, 2);
       return;
     }
 
@@ -1078,7 +1097,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final argDesc = objectTable.getArgDescHandle(4);
     final cpIndex =
         cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
-    asm.emitInterfaceCall(4, cpIndex);
+    asm.emitInterfaceCall(cpIndex, 4);
   }
 
   void start(Member node) {
@@ -1119,12 +1138,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(
-        constantsBackend,
-        environmentDefines,
-        typeEnvironment,
-        /* enableAsserts = */ true,
-        errorReporter)
+    constantEvaluator = new ConstantEvaluator(constantsBackend,
+        environmentDefines, typeEnvironment, enableAsserts, errorReporter)
       ..env = new EvaluationEnvironment();
 
     if (node.isAbstract || node is Field && !hasInitializerCode(node)) {
@@ -1144,12 +1159,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm = new BytecodeAssembler();
     savedAssemblers = <BytecodeAssembler>[];
     currentLoopDepth = 0;
+    savedMaxSourcePositions = <int>[];
+    maxSourcePosition = node.fileOffset;
 
-    locals = new LocalVariables(node);
+    locals = new LocalVariables(node, enableAsserts);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
-    _recordSourcePosition(node);
+    _recordSourcePosition(node.fileOffset);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
     if (node is Procedure && node.isInstanceMember) {
@@ -1181,6 +1198,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (!hasErrors) {
       Code code;
       if (hasCode) {
+        if (emitLocalVarInfo && node.function != null) {
+          // Leave the scope which was entered in _setupInitialContext.
+          asm.localVariableTable
+              .leaveScope(asm.offset, node.function.fileEndOffset);
+        }
+
         List<int> parameterFlags = null;
         int forwardingStubTargetCpIndex = null;
         int defaultFunctionTypeArgsCpIndex = null;
@@ -1203,6 +1226,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
             asm.bytecode,
             asm.exceptionsTable,
             finalizeSourcePositions(),
+            finalizeLocalVariables(),
             nullableFields,
             closures,
             parameterFlags,
@@ -1250,6 +1274,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     bytecodeComponent.sourcePositions.add(asm.sourcePositions);
     return asm.sourcePositions;
+  }
+
+  LocalVariableTable finalizeLocalVariables() {
+    final localVariables = asm.localVariableTable;
+    assert(!localVariables.hasActiveScopes);
+    if (localVariables.isEmpty) {
+      return null;
+    }
+    bytecodeComponent.localVariables.add(localVariables);
+    return localVariables;
   }
 
   void _genPrologue(Node node, FunctionNode function) {
@@ -1376,6 +1410,25 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _setupInitialContext(FunctionNode function) {
     _allocateContextIfNeeded();
 
+    if (emitLocalVarInfo && function != null) {
+      // Open scope after allocating context.
+      asm.localVariableTable.enterScope(
+          asm.offset, locals.currentContextLevel, function.fileOffset);
+      if (locals.hasContextVar) {
+        asm.localVariableTable
+            .recordContextVariable(asm.offset, locals.contextVarIndexInFrame);
+      }
+      if (locals.hasReceiver) {
+        _declareLocalVariable(locals.receiverVar, function.fileOffset);
+      }
+      for (var v in function.positionalParameters) {
+        _declareLocalVariable(v, function.fileOffset);
+      }
+      for (var v in locals.sortedNamedParameters) {
+        _declareLocalVariable(v, function.fileOffset);
+      }
+    }
+
     if (locals.hasCapturedParameters) {
       // Copy captured parameters to their respective locations in the context.
       if (!isClosure) {
@@ -1401,6 +1454,22 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       // TODO(alexmarkov): Do we need to store null at the original parameter
       // location?
     }
+  }
+
+  void _declareLocalVariable(
+      VariableDeclaration variable, int initializedPosition) {
+    assert(variable.name != null);
+    bool isCaptured = locals.isCaptured(variable);
+    asm.localVariableTable.declareVariable(
+        asm.offset,
+        isCaptured,
+        isCaptured
+            ? locals.getVarIndexInContext(variable)
+            : locals.getVarIndexInFrame(variable),
+        cp.addString(variable.name),
+        cp.addType(variable.type),
+        variable.fileOffset,
+        initializedPosition);
   }
 
   // TODO(alexmarkov): Revise if we need to AOT-compile from bytecode.
@@ -1613,6 +1682,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final savedLoopDepth = currentLoopDepth;
     currentLoopDepth = 0;
 
+    int position = TreeNode.noOffset;
+    int endPosition = TreeNode.noOffset;
+    if (emitSourcePositions) {
+      position = (node is ast.FunctionDeclaration)
+          ? node.fileOffset
+          : function.fileOffset;
+      endPosition = function.fileEndOffset;
+    }
+
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new List<TypeParameter>();
       functionTypeParameters.addAll(function.typeParameters);
@@ -1639,6 +1717,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         objectTable
             .getHandle(savedIsClosure ? parentFunction : enclosingMember),
         objectTable.getNameHandle(null, name),
+        position,
+        endPosition,
         function.typeParameters
             .map((tp) => new NameAndType(
                 objectTable.getNameHandle(null, tp.name),
@@ -1652,6 +1732,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
 
+    _recordSourcePosition(function.fileOffset);
     _genPrologue(node, function);
 
     Label continuationSwitchLabel;
@@ -1673,10 +1754,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // BytecodeAssembler eliminates this bytecode if it is unreachable.
     asm.emitPushNull();
     _genReturnTOS();
+    _recordSourcePosition(function.fileEndOffset);
 
     if (locals.isSyncYieldingFrame) {
       _genSyncYieldingEpilogue(
           function, continuationSwitchLabel, continuationSwitchVar);
+    }
+
+    if (emitLocalVarInfo) {
+      // Leave the scope which was entered in _setupInitialContext.
+      asm.localVariableTable.leaveScope(asm.offset, function.fileEndOffset);
     }
 
     cp.addEndClosureFunctionScope();
@@ -1693,8 +1780,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     locals.leaveScope();
 
-    closure.code = new ClosureCode(
-        asm.bytecode, asm.exceptionsTable, finalizeSourcePositions());
+    closure.code = new ClosureCode(asm.bytecode, asm.exceptionsTable,
+        finalizeSourcePositions(), finalizeLocalVariables());
 
     _popAssemblerState();
     yieldPoints = savedYieldPoints;
@@ -1798,13 +1885,33 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _enterScope(TreeNode node) {
     locals.enterScope(node);
     _allocateContextIfNeeded();
+    if (emitLocalVarInfo) {
+      asm.localVariableTable
+          .enterScope(asm.offset, locals.currentContextLevel, node.fileOffset);
+      _startRecordingMaxPosition(node.fileOffset);
+    }
   }
 
   void _leaveScope() {
+    if (emitLocalVarInfo) {
+      asm.localVariableTable.leaveScope(asm.offset, _endRecordingMaxPosition());
+    }
     if (locals.currentContextSize > 0) {
       _genUnwindContext(locals.currentContextLevel - 1);
     }
     locals.leaveScope();
+  }
+
+  void _startRecordingMaxPosition(int fileOffset) {
+    savedMaxSourcePositions.add(maxSourcePosition);
+    maxSourcePosition = fileOffset;
+  }
+
+  int _endRecordingMaxPosition() {
+    int localMax = maxSourcePosition;
+    maxSourcePosition =
+        math.max(localMax, savedMaxSourcePositions.removeLast());
+    return localMax;
   }
 
   void _genUnwindContext(int targetContextLevel) {
@@ -2289,18 +2396,18 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         throw 'Unexpected specialized bytecode $opcode';
     }
 
-    asm.emitBytecode0(opcode);
+    asm.emitSpecializedBytecode(opcode);
   }
 
   void _genInstanceCall(
       int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked) {
     if (isDynamic) {
       assert(!isUnchecked);
-      asm.emitDynamicCall(totalArgCount, callCpIndex);
+      asm.emitDynamicCall(callCpIndex, totalArgCount);
     } else if (isUnchecked) {
-      asm.emitUncheckedInterfaceCall(totalArgCount, callCpIndex);
+      asm.emitUncheckedInterfaceCall(callCpIndex, totalArgCount);
     } else {
-      asm.emitInterfaceCall(totalArgCount, callCpIndex);
+      asm.emitInterfaceCall(callCpIndex, totalArgCount);
     }
   }
 
@@ -2681,6 +2788,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertStatement(AssertStatement node) {
+    if (!enableAsserts) {
+      return;
+    }
+
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 
@@ -2710,6 +2821,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   @override
   visitAssertBlock(AssertBlock node) {
+    if (!enableAsserts) {
+      return;
+    }
+
     final Label done = new Label();
     asm.emitJumpIfNoAsserts(done);
 
@@ -2793,9 +2908,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // Front-end inserts implicit cast (type check) which ensures that
     // result of iterable expression is Iterable<dynamic>.
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.getter, iterableIterator,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
 
     final iteratorTemp = locals.tempIndexInFrame(node);
     asm.emitPopLocal(iteratorTemp);
@@ -2827,9 +2942,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
 
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.method, iteratorMoveNext,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
     _genJumpIfFalse(/* negated = */ false, done);
 
     _enterScope(node);
@@ -2838,9 +2953,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     asm.emitPush(iteratorTemp);
     asm.emitInterfaceCall(
-        1,
         cp.addInterfaceCall(InvocationKind.getter, iteratorCurrent,
-            objectTable.getArgDescHandle(1)));
+            objectTable.getArgDescHandle(1)),
+        1);
 
     _genStoreVar(node.variable);
 
@@ -2997,9 +3112,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           asm.emitPush(temp);
           _genPushConstExpr(expr);
           asm.emitInterfaceCall(
-              2,
-              cp.addInterfaceCall(InvocationKind.method, coreTypes.objectEquals,
-                  equalsArgDesc));
+              cp.addInterfaceCall(
+                  InvocationKind.method, coreTypes.objectEquals, equalsArgDesc),
+              2);
           _genJumpIfTrue(/* negated = */ false, caseLabel);
         }
       }
@@ -3087,13 +3202,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _saveContextForTryBlock(node);
 
-    return asm.exceptionsTable.enterTryBlock(asm.offsetInWords);
+    return asm.exceptionsTable.enterTryBlock(asm.offset);
   }
 
   /// End try block and start its handler.
   void _endTryBlock(TreeNode node, TryBlock tryBlock) {
-    tryBlock.endPC = asm.offsetInWords;
-    tryBlock.handlerPC = asm.offsetInWords;
+    tryBlock.endPC = asm.offset;
+    tryBlock.handlerPC = asm.offset;
 
     // Exception handlers are reachable although there are no labels or jumps.
     asm.isUnreachable = false;
@@ -3258,10 +3373,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       if (isCaptured) {
         _genPushContextForVariable(node);
       }
+      int maxInitializerPosition = node.fileOffset;
       if (node.initializer != null) {
+        _startRecordingMaxPosition(node.fileOffset);
         _generateNode(node.initializer);
+        maxInitializerPosition = _endRecordingMaxPosition();
       } else {
         asm.emitPushNull();
+      }
+      if (emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
+        _declareLocalVariable(node, maxInitializerPosition + 1);
       }
       _genStoreVar(node);
     }

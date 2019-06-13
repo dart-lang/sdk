@@ -29,10 +29,12 @@ class B with A {}
   }
 
   test_class_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 class B with A? {}
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 24, 2),
+    ]);
   }
 
   test_classAlias_withClass_nonNullable() async {
@@ -44,11 +46,13 @@ class C = A with B;
   }
 
   test_classAlias_withClass_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 class B {}
 class C = A with B?;
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
+    ]);
   }
 
   test_classAlias_withMixin_nonNullable() async {
@@ -60,10 +64,12 @@ class C = A with B;
   }
 
   test_classAlias_withMixin_nullable() async {
-    assertErrorCodesInCode('''
+    assertErrorsInCode('''
 class A {}
 mixin B {}
 class C = A with B?;
-''', [CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE]);
+''', [
+      error(CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE, 39, 2),
+    ]);
   }
 }

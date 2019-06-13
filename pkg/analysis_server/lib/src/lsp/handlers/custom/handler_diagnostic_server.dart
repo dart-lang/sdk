@@ -20,7 +20,8 @@ class DiagnosticServerHandler
   LspJsonHandler<void> get jsonHandler => NullJsonHandler;
 
   @override
-  Future<ErrorOr<DartDiagnosticServer>> handle(void _) async {
+  Future<ErrorOr<DartDiagnosticServer>> handle(
+      void _, CancellationToken token) async {
     final port = await server.diagnosticServer.getServerPort();
     return success(new DartDiagnosticServer(port));
   }

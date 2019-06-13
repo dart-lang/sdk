@@ -12,7 +12,10 @@
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
+#include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/compiler_pass.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 
@@ -97,14 +100,14 @@ bool GraphIntrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   // Prepare for register allocation (cf. FinalizeGraph).
   graph->RemoveRedefinitions();
 
-  // Ensure loop hierarchy has been computed.
+  // Ensure dominators are re-computed. Normally this is done during SSA
+  // construction (which we don't do for graph intrinsics).
   GrowableArray<BitVector*> dominance_frontier;
   graph->ComputeDominators(&dominance_frontier);
-  graph->GetLoopHierarchy();
 
-  // Perform register allocation on the SSA graph.
-  FlowGraphAllocator allocator(*graph, true);  // Intrinsic mode.
-  allocator.AllocateRegisters();
+  CompilerPassState state(parsed_function.thread(), graph,
+                          /*speculative_inlining_policy*/ nullptr);
+  CompilerPass::RunGraphIntrinsicPipeline(&state);
 
   if (FLAG_support_il_printer && FLAG_print_flow_graph &&
       FlowGraphPrinter::ShouldPrint(function)) {
@@ -166,13 +169,38 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), ExternalTypedData::data_offset()));
+        new Value(array), target::TypedDataBase::data_field_offset()));
   }
 
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(array), new Value(index),
-      Instance::ElementSizeFor(array_cid),  // index scale
+      target::Instance::ElementSizeFor(array_cid),  // index scale
       array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+
+  // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
+  // following boxing instruction about a more precise range we attach it here
+  // manually.
+  // http://dartbug.com/36632
+  const bool known_range =
+      array_cid == kTypedDataInt8ArrayCid ||
+      array_cid == kTypedDataUint8ArrayCid ||
+      array_cid == kTypedDataUint8ClampedArrayCid ||
+      array_cid == kExternalTypedDataUint8ArrayCid ||
+      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kTypedDataInt32ArrayCid ||
+      array_cid == kTypedDataUint32ArrayCid || array_cid == kOneByteStringCid ||
+      array_cid == kTwoByteStringCid;
+
+  bool clear_environment = false;
+  if (known_range) {
+    Range range;
+    result->InferRange(/*range_analysis=*/nullptr, &range);
+    result->set_range(range);
+    clear_environment = range.Fits(RangeBoundary::kRangeBoundarySmi);
+  }
+
   // Box and/or convert result if necessary.
   switch (array_cid) {
     case kTypedDataInt32ArrayCid:
@@ -207,14 +235,17 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
       break;
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
       // Nothing to do.
+      break;
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedIntPtr, new Value(result)));
       break;
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
@@ -224,6 +255,9 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     default:
       UNREACHABLE();
       break;
+  }
+  if (clear_environment) {
+    result->AsBoxInteger()->ClearEnv();
   }
   builder.AddReturn(new Value(result));
   return true;
@@ -245,14 +279,15 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
   // Value check/conversion.
   switch (array_cid) {
     case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
     case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
     case kTypedDataUint16ArrayCid:
-      builder.AddInstruction(new CheckSmiInstr(new Value(value), DeoptId::kNone,
-                                               builder.TokenPos()));
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      value = builder.AddUnboxInstr(kUnboxedIntPtr, new Value(value),
+                                    /* is_checked = */ false);
+      value->AsUnboxInteger()->mark_truncating();
       break;
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
@@ -312,14 +347,14 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
 
   if (RawObject::IsExternalTypedDataClassId(array_cid)) {
     array = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(array), ExternalTypedData::data_offset()));
+        new Value(array), target::TypedDataBase::data_field_offset()));
   }
   // No store barrier.
   ASSERT(RawObject::IsExternalTypedDataClassId(array_cid) ||
          RawObject::IsTypedDataClassId(array_cid));
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kNoStoreBarrier,
-      Instance::ElementSizeFor(array_cid),  // index scale
+      target::Instance::ElementSizeFor(array_cid),  // index scale
       array_cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -447,15 +482,28 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   // For external strings: Load external data.
   if (cid == kExternalOneByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), ExternalOneByteString::external_data_offset()));
+        new Value(str), target::ExternalOneByteString::external_data_offset()));
   } else if (cid == kExternalTwoByteStringCid) {
     str = builder.AddDefinition(new LoadUntaggedInstr(
-        new Value(str), ExternalTwoByteString::external_data_offset()));
+        new Value(str), target::ExternalTwoByteString::external_data_offset()));
   }
 
-  Definition* result = builder.AddDefinition(new LoadIndexedInstr(
-      new Value(str), new Value(index), Instance::ElementSizeFor(cid), cid,
-      kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+  Definition* load = builder.AddDefinition(new LoadIndexedInstr(
+      new Value(str), new Value(index), target::Instance::ElementSizeFor(cid),
+      cid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
+
+  // We don't perform [RangeAnalysis] for graph intrinsics. To inform the
+  // following boxing instruction about a more precise range we attach it here
+  // manually.
+  // http://dartbug.com/36632
+  Range range;
+  load->InferRange(/*range_analysis=*/nullptr, &range);
+  load->set_range(range);
+
+  Definition* result =
+      builder.AddDefinition(BoxInstr::Create(kUnboxedIntPtr, new Value(load)));
+  result->AsBoxInteger()->ClearEnv();
+
   builder.AddReturn(new Value(result));
   return true;
 }
@@ -639,7 +687,7 @@ bool GraphIntrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
                          Slot::GrowableObjectArray_data(), builder.TokenPos()));
   Definition* result = builder.AddDefinition(new LoadIndexedInstr(
       new Value(backing_store), new Value(index),
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   builder.AddReturn(new Value(result));
   return true;
@@ -668,7 +716,7 @@ bool GraphIntrinsifier::Build_ObjectArraySetIndexedUnchecked(
 
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(array), new Value(index), new Value(value), kEmitStoreBarrier,
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();
@@ -703,7 +751,7 @@ bool GraphIntrinsifier::Build_GrowableArraySetIndexedUnchecked(
   builder.AddInstruction(new StoreIndexedInstr(
       new Value(backing_store), new Value(index), new Value(value),
       kEmitStoreBarrier,
-      Instance::ElementSizeFor(kArrayCid),  // index scale
+      target::Instance::ElementSizeFor(kArrayCid),  // index scale
       kArrayCid, kAlignedAccess, DeoptId::kNone, builder.TokenPos()));
   // Return null.
   Definition* null_def = builder.AddNullDefinition();

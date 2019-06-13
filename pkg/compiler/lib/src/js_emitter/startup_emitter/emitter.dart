@@ -4,69 +4,191 @@
 
 library dart2js.js_emitter.startup_emitter;
 
-import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, METADATA, TYPES;
-
+import '../../../compiler_new.dart';
 import '../../common.dart';
-import '../../compiler.dart' show Compiler;
-import '../../constants/values.dart' show ConstantValue;
+import '../../common/codegen.dart';
+import '../../common/tasks.dart';
+import '../../constants/values.dart';
 import '../../deferred_load.dart' show OutputUnit;
+import '../../dump_info.dart';
 import '../../elements/entities.dart';
+import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show JavaScriptBackend, Namer;
+import '../../js_backend/constant_emitter.dart';
+import '../../js_backend/namer.dart';
+import '../../js_backend/runtime_types.dart';
+import '../../options.dart';
+import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart' show JClosedWorld;
-import '../js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../js_emitter.dart' as emitterTask show EmitterBase, EmitterFactory;
+import '../js_emitter.dart' show Emitter, ModularEmitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart' show ProgramBuilder;
-import '../sorter.dart' show Sorter;
 import 'model_emitter.dart';
 
-class EmitterFactory implements emitterTask.EmitterFactory {
-  final bool generateSourceMap;
+abstract class ModularEmitterBase implements ModularEmitter {
+  final ModularNamer _namer;
 
-  EmitterFactory({this.generateSourceMap});
+  ModularEmitterBase(this._namer);
+
+  js.PropertyAccess globalPropertyAccessForClass(ClassEntity element) {
+    js.Name name = _namer.globalPropertyNameForClass(element);
+    js.PropertyAccess pa =
+        new js.PropertyAccess(_namer.readGlobalObjectForClass(element), name);
+    return pa;
+  }
+
+  js.PropertyAccess globalPropertyAccessForType(Entity element) {
+    js.Name name = _namer.globalPropertyNameForType(element);
+    js.PropertyAccess pa =
+        new js.PropertyAccess(_namer.readGlobalObjectForType(element), name);
+    return pa;
+  }
+
+  js.PropertyAccess globalPropertyAccessForMember(MemberEntity element) {
+    js.Name name = _namer.globalPropertyNameForMember(element);
+    js.PropertyAccess pa =
+        new js.PropertyAccess(_namer.readGlobalObjectForMember(element), name);
+    return pa;
+  }
 
   @override
-  bool get supportsReflection => false;
+  js.PropertyAccess constructorAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
+  }
 
   @override
-  Emitter createEmitter(CodeEmitterTask task, Namer namer,
-      JClosedWorld closedWorld, Sorter sorter) {
-    return new Emitter(task.compiler, namer, task.nativeEmitter, closedWorld,
-        sorter, task, generateSourceMap);
+  js.Expression isolateLazyInitializerAccess(FieldEntity element) {
+    return new js.PropertyAccess(_namer.readGlobalObjectForMember(element),
+        _namer.lazyInitializerName(element));
+  }
+
+  @override
+  js.PropertyAccess staticFunctionAccess(FunctionEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  js.PropertyAccess staticFieldAccess(FieldEntity element) {
+    return globalPropertyAccessForMember(element);
+  }
+
+  @override
+  js.PropertyAccess prototypeAccess(ClassEntity element,
+      {bool hasBeenInstantiated}) {
+    js.Expression constructor =
+        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
+    return js.js('#.prototype', constructor);
+  }
+
+  @override
+  js.Expression typeAccess(Entity element) {
+    return globalPropertyAccessForType(element);
+  }
+
+  @override
+  js.Expression staticClosureAccess(FunctionEntity element) {
+    return new js.Call(
+        new js.PropertyAccess(_namer.readGlobalObjectForMember(element),
+            _namer.staticClosureName(element)),
+        const []);
+  }
+
+  @override
+  String generateEmbeddedGlobalAccessString(String global) {
+    // TODO(floitsch): don't use 'init' as global embedder storage.
+    return 'init.$global';
   }
 }
 
-class Emitter extends emitterTask.EmitterBase {
-  final Compiler _compiler;
+class ModularEmitterImpl extends ModularEmitterBase {
+  final CodegenRegistry _registry;
+  final ModularConstantEmitter _constantEmitter;
+
+  ModularEmitterImpl(
+      ModularNamer namer, this._registry, CompilerOptions options)
+      : _constantEmitter = new ModularConstantEmitter(options),
+        super(namer);
+
+  @override
+  js.Expression constantReference(ConstantValue constant) {
+    if (constant.isFunction) {
+      FunctionConstantValue function = constant;
+      return staticClosureAccess(function.element);
+    }
+    js.Expression expression = _constantEmitter.generate(constant);
+    if (expression != null) {
+      return expression;
+    }
+    expression =
+        new ModularExpression(ModularExpressionKind.constant, constant);
+    _registry.registerModularExpression(expression);
+    return expression;
+  }
+
+  @override
+  js.Expression generateEmbeddedGlobalAccess(String global) {
+    js.Expression expression = new ModularExpression(
+        ModularExpressionKind.embeddedGlobalAccess, global);
+    _registry.registerModularExpression(expression);
+    return expression;
+  }
+}
+
+class EmitterImpl extends ModularEmitterBase implements Emitter {
+  final DiagnosticReporter _reporter;
   final JClosedWorld _closedWorld;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final CompilerTask _task;
+  ModelEmitter _emitter;
+
   @override
-  final Namer namer;
-  final ModelEmitter _emitter;
+  Program programForTesting;
 
-  JavaScriptBackend get _backend => _compiler.backend;
-
-  Emitter(
-      this._compiler,
-      this.namer,
-      NativeEmitter nativeEmitter,
+  EmitterImpl(
+      CompilerOptions options,
+      this._reporter,
+      CompilerOutput outputProvider,
+      DumpInfoTask dumpInfoTask,
+      Namer namer,
       this._closedWorld,
-      Sorter sorter,
-      CodeEmitterTask task,
+      this._rtiEncoder,
+      SourceInformationStrategy sourceInformationStrategy,
+      this._task,
       bool shouldGenerateSourceMap)
-      : _emitter = new ModelEmitter(_compiler, namer, nativeEmitter,
-            _closedWorld, sorter, task, shouldGenerateSourceMap);
-
-  DiagnosticReporter get reporter => _compiler.reporter;
+      : super(namer) {
+    _emitter = new ModelEmitter(
+        options,
+        _reporter,
+        outputProvider,
+        dumpInfoTask,
+        namer,
+        _closedWorld,
+        _task,
+        this,
+        sourceInformationStrategy,
+        _rtiEncoder,
+        shouldGenerateSourceMap);
+  }
 
   @override
-  int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programBuilder.buildProgram();
+  Namer get _namer => super._namer;
+
+  @override
+  int emitProgram(ProgramBuilder programBuilder, CodegenWorld codegenWorld) {
+    Program program = _task.measureSubtask('build program', () {
+      return programBuilder.buildProgram();
+    });
     if (retainDataForTesting) {
       programForTesting = program;
     }
-    return _emitter.emitProgram(program);
+    return _task.measureSubtask('emit program', () {
+      return _emitter.emitProgram(program, codegenWorld);
+    });
+  }
+
+  @override
+  js.Expression interceptorClassAccess(ClassEntity element) {
+    return globalPropertyAccessForClass(element);
   }
 
   @override
@@ -86,7 +208,7 @@ class Emitter extends emitterTask.EmitterBase {
 
   @override
   js.Expression generateEmbeddedGlobalAccess(String global) {
-    return _emitter.generateEmbeddedGlobalAccess(global);
+    return js.js(generateEmbeddedGlobalAccessString(global));
   }
 
   @override
@@ -96,81 +218,8 @@ class Emitter extends emitterTask.EmitterBase {
   }
 
   @override
-  js.Expression isolateLazyInitializerAccess(FieldEntity element) {
-    return js.js('#.#', [
-      namer.globalObjectForMember(element),
-      namer.lazyInitializerName(element)
-    ]);
-  }
-
-  @override
-  js.Expression isolateStaticClosureAccess(FunctionEntity element) {
-    return _emitter.generateStaticClosureAccess(element);
-  }
-
-  @override
-  js.PropertyAccess prototypeAccess(
-      ClassEntity element, bool hasBeenInstantiated) {
-    js.Expression constructor =
-        hasBeenInstantiated ? constructorAccess(element) : typeAccess(element);
-    return js.js('#.prototype', constructor);
-  }
-
-  @override
-  js.Template templateForBuiltin(JsBuiltin builtin) {
-    switch (builtin) {
-      case JsBuiltin.dartObjectConstructor:
-        ClassEntity objectClass = _closedWorld.commonElements.objectClass;
-        return js.js.expressionTemplateYielding(typeAccess(objectClass));
-
-      case JsBuiltin.isCheckPropertyToJsConstructorName:
-        int isPrefixLength = namer.operatorIsPrefix.length;
-        return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
-
-      case JsBuiltin.isFunctionType:
-        return _backend.rtiEncoder.templateForIsFunctionType;
-
-      case JsBuiltin.isFutureOrType:
-        return _backend.rtiEncoder.templateForIsFutureOrType;
-
-      case JsBuiltin.isVoidType:
-        return _backend.rtiEncoder.templateForIsVoidType;
-
-      case JsBuiltin.isDynamicType:
-        return _backend.rtiEncoder.templateForIsDynamicType;
-
-      case JsBuiltin.isJsInteropTypeArgument:
-        return _backend.rtiEncoder.templateForIsJsInteropTypeArgument;
-
-      case JsBuiltin.rawRtiToJsConstructorName:
-        return js.js.expressionTemplateFor("#.name");
-
-      case JsBuiltin.rawRuntimeType:
-        return js.js.expressionTemplateFor("#.constructor");
-
-      case JsBuiltin.isSubtype:
-        // TODO(floitsch): move this closer to where is-check properties are
-        // built.
-        String isPrefix = namer.operatorIsPrefix;
-        return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
-
-      case JsBuiltin.isGivenTypeRti:
-        return js.js.expressionTemplateFor('#.name === #');
-
-      case JsBuiltin.getMetadata:
-        String metadataAccess =
-            _emitter.generateEmbeddedGlobalAccessString(METADATA);
-        return js.js.expressionTemplateFor("$metadataAccess[#]");
-
-      case JsBuiltin.getType:
-        String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
-        return js.js.expressionTemplateFor("$typesAccess[#]");
-
-      default:
-        reporter.internalError(
-            NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
-        return null;
-    }
+  js.Expression interceptorPrototypeAccess(ClassEntity e) {
+    return js.js('#.prototype', interceptorClassAccess(e));
   }
 
   @override

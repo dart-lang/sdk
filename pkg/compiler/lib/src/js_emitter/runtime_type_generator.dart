@@ -16,6 +16,7 @@ import '../js_backend/runtime_types.dart'
     show
         ClassChecks,
         ClassFunctionType,
+        OnVariableCallback,
         RuntimeTypesChecks,
         RuntimeTypesEncoder,
         Substitution,
@@ -23,7 +24,7 @@ import '../js_backend/runtime_types.dart'
 import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 
-import 'code_emitter_task.dart' show CodeEmitterTask;
+import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
 
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(ClassFunctionType classFunctionType);
@@ -172,7 +173,7 @@ class RuntimeTypeGenerator {
         }
         if (encoding != null) {
           jsAst.Name operatorSignature =
-              _namer.asName(_namer.operatorSignature);
+              _namer.asName(_namer.fixedNames.operatorSignature);
           result.addSignature(classElement, operatorSignature, encoding);
         }
       }
@@ -187,7 +188,7 @@ class RuntimeTypeGenerator {
       Substitution substitution = check.substitution;
       if (substitution != null) {
         jsAst.Expression body =
-            _rtiEncoder.getSubstitutionCode(emitterTask.emitter, substitution);
+            _getSubstitutionCode(emitterTask.emitter, substitution);
         result.addSubstitution(
             checkedClass, _namer.substitutionName(checkedClass), body);
       }
@@ -201,12 +202,78 @@ class RuntimeTypeGenerator {
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
-            emitterTask.emitter, type, thisAccess);
-        jsAst.Name operatorSignature = _namer.asName(_namer.operatorSignature);
+            _namer, emitterTask.emitter, type, thisAccess);
+        jsAst.Name operatorSignature =
+            _namer.asName(_namer.fixedNames.operatorSignature);
         result.addSignature(classElement, operatorSignature, encoding);
       }
     }
     return result;
+  }
+
+  /// Compute a JavaScript expression that describes the necessary substitution
+  /// for type arguments in a subtype test.
+  ///
+  /// The result can be:
+  ///  1) `null`, if no substituted check is necessary, because the type
+  ///     variables are the same or there are no type variables in the class
+  ///     that is checked for.
+  ///  2) A list expression describing the type arguments to be used in the
+  ///     subtype check, if the type arguments to be used in the check do not
+  ///     depend on the type arguments of the object.
+  ///  3) A function mapping the type variables of the object to be checked to
+  ///     a list expression.
+  jsAst.Expression _getSubstitutionCode(
+      Emitter emitter, Substitution substitution) {
+    if (substitution.isTrivial) {
+      return new jsAst.LiteralNull();
+    }
+
+    if (substitution.isJsInterop) {
+      return js('function() { return # }',
+          _rtiEncoder.getJsInteropTypeArguments(substitution.length));
+    }
+
+    jsAst.Expression declaration(TypeVariableType variable) {
+      return new jsAst.Parameter(_getVariableName(variable.element.name));
+    }
+
+    jsAst.Expression use(TypeVariableType variable) {
+      return new jsAst.VariableUse(_getVariableName(variable.element.name));
+    }
+
+    if (substitution.arguments.every((DartType type) => type.isDynamic)) {
+      return emitter.generateFunctionThatReturnsNull();
+    } else {
+      jsAst.Expression value =
+          _getSubstitutionRepresentation(emitter, substitution.arguments, use);
+      if (substitution.isFunction) {
+        Iterable<jsAst.Expression> formals =
+            // TODO(johnniwinther): Pass [declaration] directly to `map` when
+            // `substitution.parameters` can no longer be a
+            // `List<ResolutionDartType>`.
+            substitution.parameters.map((type) => declaration(type));
+        return js('function(#) { return # }', [formals, value]);
+      } else {
+        return js('function() { return # }', value);
+      }
+    }
+  }
+
+  jsAst.Expression _getSubstitutionRepresentation(
+      Emitter emitter, List<DartType> types, OnVariableCallback onVariable) {
+    List<jsAst.Expression> elements = types
+        .map((DartType type) =>
+            _rtiEncoder.getTypeRepresentation(emitter, type, onVariable))
+        .toList(growable: false);
+    return new jsAst.ArrayInitializer(elements);
+  }
+
+  String _getVariableName(String name) {
+    // Kernel type variable names for anonymous mixin applications have names
+    // canonicalized to a non-identified, e.g. '#U0'.
+    name = name.replaceAll('#', '_');
+    return _namer.safeVariableName(name);
   }
 
   void _generateIsTestsOn(

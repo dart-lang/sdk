@@ -982,14 +982,24 @@ class _Cookie implements Cookie {
           codeUnit >= 127 ||
           separators.indexOf(name[i]) >= 0) {
         throw new FormatException(
-            "Invalid character in cookie name, code unit: '$codeUnit'");
+            "Invalid character in cookie name, code unit: '$codeUnit'",
+            name,
+            i);
       }
     }
 
-    if (value[0] == '"' && value[value.length - 1] == '"') {
-      value = value.substring(1, value.length - 1);
+    // Per RFC 6265, consider surrounding "" as part of the value, but otherwise
+    // double quotes are not allowed.
+    int start = 0;
+    int end = value.length;
+    if (2 <= value.length &&
+        value.codeUnits[start] == 0x22 &&
+        value.codeUnits[end - 1] == 0x22) {
+      start++;
+      end--;
     }
-    for (int i = 0; i < value.length; i++) {
+
+    for (int i = start; i < end; i++) {
       int codeUnit = value.codeUnits[i];
       if (!(codeUnit == 0x21 ||
           (codeUnit >= 0x23 && codeUnit <= 0x2B) ||
@@ -997,7 +1007,9 @@ class _Cookie implements Cookie {
           (codeUnit >= 0x3C && codeUnit <= 0x5B) ||
           (codeUnit >= 0x5D && codeUnit <= 0x7E))) {
         throw new FormatException(
-            "Invalid character in cookie value, code unit: '$codeUnit'");
+            "Invalid character in cookie value, code unit: '$codeUnit'",
+            value,
+            i);
       }
     }
   }

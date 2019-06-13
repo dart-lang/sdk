@@ -19,9 +19,9 @@
 
 #include "bin/builtin.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -61,7 +61,7 @@ void File::Close() {
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      Log::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
+      Syslog::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
     }
   }
   handle_->set_fd(kClosedFd);
@@ -255,9 +255,8 @@ bool File::Exists(Namespace* namespc, const char* name) {
   if (NO_RETRY_EXPECTED(fstatat(ns.fd(), ns.path(), &st, 0)) == 0) {
     // Everything but a directory and a link is a file to Dart.
     return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
-  } else {
-    return false;
   }
+  return false;
 }
 
 bool File::Create(Namespace* namespc, const char* name) {
@@ -265,14 +264,17 @@ bool File::Create(Namespace* namespc, const char* name) {
   const int fd = NO_RETRY_EXPECTED(
       openat(ns.fd(), ns.path(), O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
+    Syslog::PrintErr("File::Create() openat(%ld, %s) failed: %s\n", ns.fd(),
+                     ns.path(), strerror(errno));
     return false;
   }
   // File.create returns a File, so we shouldn't be giving the illusion that the
   // call has created a file or that a file already exists if there is already
   // an entity at the same path that is a directory or a link.
-  bool is_file = true;
+  bool is_file = false;
   struct stat st;
   if (NO_RETRY_EXPECTED(fstat(fd, &st)) == 0) {
+    is_file = true;
     if (S_ISDIR(st.st_mode)) {
       errno = EISDIR;
       is_file = false;

@@ -205,10 +205,6 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             StrongModeCode.INVALID_SUPER_INVOCATION, offset, length);
         return;
-      case "MISSING_CLASS_BODY":
-        errorReporter?.reportErrorForOffset(
-            ParserErrorCode.MISSING_CLASS_BODY, offset, length);
-        return;
       case "MISSING_DIGIT":
         errorReporter?.reportErrorForOffset(
             ScannerErrorCode.MISSING_DIGIT, offset, length);

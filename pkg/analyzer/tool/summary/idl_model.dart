@@ -115,9 +115,9 @@ class FieldDeclaration extends Declaration {
   final bool isInformative;
 
   /**
-   * Maps logical property names to variants in which this field is available.
+   * Maps logical property names to logical property.
    */
-  final Map<String, List<String>> variantMap;
+  final Map<String, LogicalProperty> logicalProperties;
 
   FieldDeclaration({
     @required String documentation,
@@ -126,7 +126,7 @@ class FieldDeclaration extends Declaration {
     @required this.id,
     @required this.isDeprecated,
     @required this.isInformative,
-    @required this.variantMap,
+    @required this.logicalProperties,
   }) : super(documentation, name);
 }
 
@@ -178,4 +178,30 @@ class Idl {
    * Enums defined in the IDL.
    */
   final Map<String, EnumDeclaration> enums = <String, EnumDeclaration>{};
+}
+
+/**
+ * Information about a logical property mapped to a single data fields.
+ */
+class LogicalProperty {
+  /**
+   * Indicates whether the property is deprecated.
+   */
+  final bool isDeprecated;
+
+  /**
+   * Indicates whether the property is informative.
+   */
+  final bool isInformative;
+
+  /**
+   * Names of variants in which this property is available.
+   */
+  final List<String> variants;
+
+  LogicalProperty({
+    @required this.isDeprecated,
+    @required this.isInformative,
+    @required this.variants,
+  });
 }

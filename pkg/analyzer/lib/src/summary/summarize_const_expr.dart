@@ -194,7 +194,8 @@ abstract class AbstractConstExprSerializer {
   /// Return [EntityRefBuilder] that corresponds to the given [type].
   EntityRefBuilder serializeType(TypeAnnotation type) {
     if (type is TypeName) {
-      return serializeTypeName(type?.name, type?.typeArguments);
+      return serializeTypeName(type?.name, type?.typeArguments,
+          computeNullabilitySuffix(type.question));
     }
     if (type is GenericFunctionType) {
       return serializeGenericFunctionType(type);
@@ -205,8 +206,8 @@ abstract class AbstractConstExprSerializer {
 
   /// Return [EntityRefBuilder] that corresponds to the type with the given
   /// [name] and [arguments].
-  EntityRefBuilder serializeTypeName(
-      Identifier name, TypeArgumentList arguments);
+  EntityRefBuilder serializeTypeName(Identifier name,
+      TypeArgumentList arguments, EntityRefNullabilitySuffix nullabilitySuffix);
 
   /// Return the [UnlinkedExprBuilder] that corresponds to the state of this
   /// serializer.
@@ -802,4 +803,6 @@ abstract class AbstractConstExprSerializer {
       }
     }
   }
+
+  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question);
 }

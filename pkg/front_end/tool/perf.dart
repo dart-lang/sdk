@@ -18,6 +18,7 @@ library front_end.tool.perf;
 import 'dart:async';
 import 'dart:io' show Directory, File, Platform, exit;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -100,9 +101,9 @@ void collectSources(Source start, Set<Source> files) {
 /// Uses the diet-parser to parse only directives in [source].
 CompilationUnit parseDirectives(Source source) {
   var token = tokenize(source);
-  // TODO(jcollins-g): Make parser work with Fasta
-  var parser =
-      new Parser(source, AnalysisErrorListener.NULL_LISTENER, useFasta: false);
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   return parser.parseDirectives(token);
 }
 
@@ -122,7 +123,9 @@ void parseFiles(Set<Source> files) {
 CompilationUnit parseFull(Source source) {
   var token = tokenize(source);
   parseTimer.start();
-  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+  var featureSet = FeatureSet.fromEnableFlags([]);
+  var parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   var unit = parser.parseCompilationUnit(token);
   parseTimer.stop();
   return unit;

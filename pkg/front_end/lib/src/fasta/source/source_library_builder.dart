@@ -34,6 +34,8 @@ import '../builder/builder.dart'
 
 import '../combinator.dart' show Combinator;
 
+import '../configuration.dart' show Configuration;
+
 import '../export.dart' show Export;
 
 import '../fasta_codes.dart'
@@ -69,7 +71,7 @@ import '../fasta_codes.dart'
 
 import '../import.dart' show Import;
 
-import '../configuration.dart' show Configuration;
+import '../modifier.dart' show constMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -390,32 +392,29 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       int charOffset,
       int charEndOffset,
-      Token initializerTokenForInference,
-      bool hasInitializer);
+      Token initializerToken,
+      bool hasInitializer,
+      {Token constInitializerToken});
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
       int modifiers, T type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
-      String name = info.name;
-      int charOffset = info.charOffset;
-      int charEndOffset = info.charEndOffset;
-      bool hasInitializer = info.initializerTokenForInference != null;
-      Token initializerTokenForInference =
-          type != null || legacyMode ? null : info.initializerTokenForInference;
-      if (initializerTokenForInference != null) {
-        Token beforeLast = info.beforeLast;
-        beforeLast.setNext(new Token.eof(beforeLast.next.offset));
+      bool isConst = modifiers & constMask != 0;
+      Token startToken;
+      if (isConst || (type == null && !legacyMode)) {
+        startToken = info.initializerToken;
       }
-      addField(
-          documentationComment,
-          metadata,
-          modifiers,
-          type,
-          name,
-          charOffset,
-          charEndOffset,
-          initializerTokenForInference,
-          hasInitializer);
+      if (startToken != null) {
+        // Extract only the tokens for the initializer expression from the
+        // token stream.
+        Token endToken = info.beforeLast;
+        endToken.setNext(new Token.eof(endToken.next.offset));
+        new Token.eof(startToken.previous.offset).setNext(startToken);
+      }
+      bool hasInitializer = info.initializerToken != null;
+      addField(documentationComment, metadata, modifiers, type, info.name,
+          info.charOffset, info.charEndOffset, startToken, hasInitializer,
+          constInitializerToken: isConst ? startToken : null);
     }
   }
 
@@ -618,7 +617,12 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
-      if (member == null || !member.isField || member.isFinal) return;
+      if (member == null ||
+          !member.isField ||
+          member.isFinal ||
+          member.isConst) {
+        return;
+      }
       addProblem(templateConflictsWithMember.withArguments(name),
           setter.charOffset, noLength, fileUri);
       // TODO(ahe): Context to previous message?
@@ -644,7 +648,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       // If [library] is null, we have already reported a problem that this
       // part is orphaned.
       List<LocatedMessage> context = <LocatedMessage>[
-        messagePartInPartLibraryContext.withLocation(library.fileUri, 0, 1),
+        messagePartInPartLibraryContext.withLocation(library.fileUri, -1, 1),
       ];
       for (int offset in partOffsets) {
         addProblem(messagePartInPart, offset, noLength, fileUri,
@@ -658,7 +662,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     parts.clear();
     if (exporters.isNotEmpty) {
       List<LocatedMessage> context = <LocatedMessage>[
-        messagePartExportContext.withLocation(fileUri, 0, 1),
+        messagePartExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
         export.exporter.addProblem(
@@ -849,7 +853,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     for (UnresolvedType<T> t in types) {
       t.resolveIn(scope, this);
       if (!loader.target.legacyMode) {
-        t.checkType();
+        t.checkType(this);
       } else {
         t.normalizeType();
       }
@@ -990,14 +994,16 @@ class DeclarationBuilder<T extends TypeBuilder> {
         parent.addType(type);
       } else if (nameOrQualified is QualifiedName) {
         // Attempt to use a member or type variable as a prefix.
-        type.builder.bind(type.builder.buildInvalidType(
-            templateNotAPrefixInTypeAnnotation
-                .withArguments(
-                    flattenName(nameOrQualified.qualifier, type.charOffset,
-                        type.fileUri),
-                    nameOrQualified.name)
-                .withLocation(type.fileUri, type.charOffset,
-                    nameOrQualified.endCharOffset - type.charOffset)));
+        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+            flattenName(
+                nameOrQualified.qualifier, type.charOffset, type.fileUri),
+            nameOrQualified.name);
+        library.addProblem(message, type.charOffset,
+            nameOrQualified.endCharOffset - type.charOffset, type.fileUri);
+        type.builder.bind(type.builder.buildInvalidType(message.withLocation(
+            type.fileUri,
+            type.charOffset,
+            nameOrQualified.endCharOffset - type.charOffset)));
       } else {
         scope ??= toScope(null).withTypeVariables(typeVariables);
         type.resolveIn(scope, library);
@@ -1014,10 +1020,10 @@ class DeclarationBuilder<T extends TypeBuilder> {
 class FieldInfo {
   final String name;
   final int charOffset;
-  final Token initializerTokenForInference;
+  final Token initializerToken;
   final Token beforeLast;
   final int charEndOffset;
 
-  const FieldInfo(this.name, this.charOffset, this.initializerTokenForInference,
+  const FieldInfo(this.name, this.charOffset, this.initializerToken,
       this.beforeLast, this.charEndOffset);
 }

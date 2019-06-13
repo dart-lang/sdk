@@ -13,77 +13,78 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantMapKeyFromDeferredLibraryTest);
     defineReflectiveTests(
-        NonConstantMapKeyFromDeferredLibraryWithUiAsCodeAndConstantsTest);
-    defineReflectiveTests(NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest);
+        NonConstantMapKeyFromDeferredLibraryWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class NonConstantMapKeyFromDeferredLibraryTest extends DriverResolutionTest {
-  test_const_topLevel_deferred() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
-const int c = 1;''');
-    await assertErrorCodesInCode(r'''
-import 'lib1.dart' deferred as a;
-var v = const {a.c : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
-  }
-
-  test_const_topLevel_deferred_nested() async {
-    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
-const int c = 1;''');
-    await assertErrorCodesInCode(r'''
-import 'lib1.dart' deferred as a;
-var v = const {a.c + 1 : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
-  }
-}
-
-@reflectiveTest
-class NonConstantMapKeyFromDeferredLibraryWithUiAsCodeAndConstantsTest
-    extends NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class NonConstantMapKeyFromDeferredLibraryWithUiAsCodeTest
-    extends NonConstantMapKeyFromDeferredLibraryTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   @failingTest
   test_const_ifElement_thenTrue_deferredElse() async {
 // reports wrong error code
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) 0: 1 else a.c : 0};
-''', [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]);
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY, 0,
+          0),
+    ]);
   }
 
   test_const_ifElement_thenTrue_deferredThen() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const int c = 1;''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const { if (cond) a.c : 0};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            ? [
+                error(
+                    CompileTimeErrorCode
+                        .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
+                    79,
+                    3),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 69, 17),
+              ]);
   }
+
+  test_const_topLevel_deferred() async {
+    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+const int c = 1;''');
+    await assertErrorsInCode(r'''
+import 'lib1.dart' deferred as a;
+var v = const {a.c : 0};
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY, 49,
+          3),
+    ]);
+  }
+
+  test_const_topLevel_deferred_nested() async {
+    newFile(convertPath('/test/lib/lib1.dart'), content: r'''
+const int c = 1;''');
+    await assertErrorsInCode(r'''
+import 'lib1.dart' deferred as a;
+var v = const {a.c + 1 : 0};
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY, 49,
+          7),
+    ]);
+  }
+}
+
+@reflectiveTest
+class NonConstantMapKeyFromDeferredLibraryWithConstantsTest
+    extends NonConstantMapKeyFromDeferredLibraryTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

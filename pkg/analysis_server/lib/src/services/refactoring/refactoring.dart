@@ -27,7 +27,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringMethodParameter, SourceChange;
 
@@ -341,10 +340,13 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * Returns a new [MoveFileRefactoring] instance.
    */
-  factory MoveFileRefactoring(ResourceProvider resourceProvider,
-      RefactoringWorkspace workspace, Source source, String oldFile) {
+  factory MoveFileRefactoring(
+      ResourceProvider resourceProvider,
+      RefactoringWorkspace workspace,
+      ResolvedUnitResult resolveResult,
+      String oldFilePath) {
     return new MoveFileRefactoringImpl(
-        resourceProvider, workspace, source, oldFile);
+        resourceProvider, workspace, resolveResult, oldFilePath);
   }
 
   /**
@@ -452,7 +454,8 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(RefactoringWorkspace workspace,
-      AnalysisSession session, Element element) {
+      ResolvedUnitResult resolvedUnit, Element element) {
+    var session = resolvedUnit.session;
     if (element == null) {
       return null;
     }
@@ -460,7 +463,8 @@ abstract class RenameRefactoring implements Refactoring {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element.enclosingElement is CompilationUnitElement) {
-      return new RenameUnitMemberRefactoringImpl(workspace, element);
+      return new RenameUnitMemberRefactoringImpl(
+          workspace, resolvedUnit, element);
     }
     if (element is ConstructorElement) {
       return new RenameConstructorRefactoringImpl(workspace, session, element);

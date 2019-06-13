@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -21,30 +22,29 @@ class AstResolver {
     AstNode node, {
     ClassElement enclosingClassElement,
     ExecutableElement enclosingExecutableElement,
-    bool doAstRewrite = false,
+    FunctionBody enclosingFunctionBody,
   }) {
+    var featureSet = node.thisOrAncestorOfType<CompilationUnit>().featureSet;
     var source = _FakeSource();
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
 
     var typeResolverVisitor = new TypeResolverVisitor(
         _library, source, _linker.typeProvider, errorListener,
-        nameScope: _nameScope);
+        featureSet: featureSet, nameScope: _nameScope);
     node.accept(typeResolverVisitor);
 
-    if (doAstRewrite) {
-      var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem,
-          _library, source, _linker.typeProvider, errorListener,
-          nameScope: _nameScope);
-      node.accept(astRewriteVisitor);
-    }
+    var variableResolverVisitor = new VariableResolverVisitor(
+        _library, source, _linker.typeProvider, errorListener,
+        nameScope: _nameScope, localVariableInfo: LocalVariableInfo());
+    node.accept(variableResolverVisitor);
 
-//    expression.accept(_variableResolverVisitor);
 //    if (_linker.getAst != null) {
 //      expression.accept(_partialResolverVisitor);
 //    }
 
     var resolverVisitor = new ResolverVisitor(_linker.inheritance, _library,
         source, _linker.typeProvider, errorListener,
+        featureSet: featureSet,
         nameScope: _nameScope,
         propagateTypes: false,
         reportConstEvaluationErrors: false);
@@ -52,11 +52,28 @@ class AstResolver {
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
+    if (enclosingFunctionBody != null) {
+      resolverVisitor.prepareCurrentFunctionBody(enclosingFunctionBody);
+    }
 
     node.accept(resolverVisitor);
+  }
+
+  void rewriteAst(AstNode node) {
+    var source = _FakeSource();
+    var errorListener = AnalysisErrorListener.NULL_LISTENER;
+
+    var astRewriteVisitor = new AstRewriteVisitor(_linker.typeSystem, _library,
+        source, _linker.typeProvider, errorListener,
+        nameScope: _nameScope);
+    node.accept(astRewriteVisitor);
   }
 }
 
 class _FakeSource implements Source {
+  @override
+  String get fullName => '/package/lib/test.dart';
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

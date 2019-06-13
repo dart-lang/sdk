@@ -430,7 +430,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   const Register result = R0;
 
   TestBothArgumentsSmis(assembler, normal_ir_body);
-  __ CompareImmediate(right, target::ToRawSmi(target::Smi::kBits));
+  __ CompareImmediate(right, target::ToRawSmi(target::kSmiBits));
   __ b(normal_ir_body, CS);
 
   // Left is not a constant.
@@ -1520,7 +1520,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ Bind(&double_hash);
   __ fmovrd(R0, V0);
   __ eor(R0, R0, Operand(R0, LSR, 32));
-  __ AndImmediate(R0, R0, kSmiMax);
+  __ AndImmediate(R0, R0, target::kSmiMax);
   __ SmiTag(R0);
   __ ret();
 
@@ -1669,8 +1669,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
 
   __ Bind(&use_declaration_type);
   __ LoadClassById(R2, R1);  // Overwrites R1.
-  __ ldr(R3,
-         FieldAddress(R2, target::Class::num_type_arguments_offset_in_bytes()),
+  __ ldr(R3, FieldAddress(R2, target::Class::num_type_arguments_offset()),
          kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);
@@ -1706,8 +1705,7 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(R3, R1);  // Overwrites R1.
-  __ ldr(R3,
-         FieldAddress(R3, target::Class::num_type_arguments_offset_in_bytes()),
+  __ ldr(R3, FieldAddress(R3, target::Class::num_type_arguments_offset()),
          kHalfword);
   __ CompareImmediate(R3, 0);
   __ b(normal_ir_body, NE);

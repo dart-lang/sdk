@@ -395,6 +395,9 @@ abstract class ElementHandle implements Element {
   bool get hasLiteral => actualElement.hasLiteral;
 
   @override
+  bool get hasMustCallSuper => actualElement.hasMustCallSuper;
+
+  @override
   bool get hasOptionalTypeArgs => actualElement.hasOptionalTypeArgs;
 
   @override
@@ -664,9 +667,6 @@ class FieldElementHandle extends PropertyInducingElementHandle
   @override
   bool get isEnumConstant => actualElement.isEnumConstant;
 
-  @override
-  bool get isLazy => actualElement.isLazy;
-
   @deprecated
   @override
   bool get isVirtual => actualElement.isVirtual;
@@ -894,6 +894,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   LibraryElement get actualElement => super.actualElement as LibraryElement;
 
   @override
+  bool get isNonNullableByDefault => actualElement.isNonNullableByDefault;
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       actualElement.definingCompilationUnit;
 
@@ -987,7 +990,7 @@ class LocalVariableElementHandle extends VariableElementHandle
       super.actualElement as LocalVariableElement;
 
   @override
-  bool get isLazy => actualElement.isLazy;
+  bool get isLate => actualElement.isLate;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -1179,6 +1182,9 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
 
   @override
   bool get isConstantEvaluated => actualElement.isConstantEvaluated;
+
+  @override
+  bool get isLate => actualElement.isLate;
 
   @deprecated
   @override

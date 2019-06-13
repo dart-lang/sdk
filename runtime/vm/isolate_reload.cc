@@ -172,7 +172,7 @@ void InstanceMorpher::RunNewFieldInitializers() const {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
     if (field->kernel_offset() > 0) {
-      eval_func ^= kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
     } else {
       UNREACHABLE();
     }
@@ -453,6 +453,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       error_(Error::null()),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
+      removed_class_set_storage_(Array::null()),
       old_libraries_set_storage_(Array::null()),
       library_map_storage_(Array::null()),
       become_map_storage_(Array::null()),
@@ -615,7 +616,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
-      Dart_KernelCompilationResult retval;
+      Dart_KernelCompilationResult retval = {};
       if (kernel_buffer != NULL && kernel_buffer_size != 0) {
         retval.kernel = const_cast<uint8_t*>(kernel_buffer);
         retval.kernel_size = kernel_buffer_size;
@@ -699,6 +700,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   old_classes_set_storage_ =
       HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   class_map_storage_ = HashTables::New<UnorderedHashMap<ClassMapTraits> >(4);
+  removed_class_set_storage_ =
+      HashTables::New<UnorderedHashSet<ClassMapTraits> >(4);
   old_libraries_set_storage_ =
       HashTables::New<UnorderedHashSet<LibraryMapTraits> >(4);
   library_map_storage_ =
@@ -841,6 +844,8 @@ void IsolateReloadContext::FinalizeLoading() {
     return;
   }
   BuildLibraryMapping();
+  BuildRemovedClassesSet();
+
   TIR_Print("---- LOAD SUCCEEDED\n");
   if (ValidateReload()) {
     Commit();
@@ -987,25 +992,40 @@ void IsolateReloadContext::CheckpointClasses() {
   ClassAndSize* local_saved_class_table = reinterpret_cast<ClassAndSize*>(
       malloc(sizeof(ClassAndSize) * saved_num_cids_));
 
+  // Copy classes into saved_class_table_ first. Make sure there are no
+  // safepoints until saved_class_table_ is filled up and saved so class raw
+  // pointers in saved_class_table_ are properly visited by GC.
+  {
+    NoSafepointScope no_safepoint_scope(Thread::Current());
+
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
+        // Copy the class into the saved class table.
+        local_saved_class_table[i] = class_table->PairAt(i);
+      } else {
+        // No class at this index, mark it as NULL.
+        local_saved_class_table[i] = ClassAndSize(NULL);
+      }
+    }
+
+    // Elements of saved_class_table_ are now visible to GC.
+    saved_class_table_ = local_saved_class_table;
+  }
+
+  // Add classes to the set. Set is stored in the Array, so adding an element
+  // may allocate Dart object on the heap and trigger GC.
   Class& cls = Class::Handle();
   UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
   for (intptr_t i = 0; i < saved_num_cids_; i++) {
     if (class_table->IsValidIndex(i) && class_table->HasValidClassAt(i)) {
-      // Copy the class into the saved class table and add it to the set.
-      local_saved_class_table[i] = class_table->PairAt(i);
       if (i != kFreeListElement && i != kForwardingCorpse) {
         cls = class_table->At(i);
         bool already_present = old_classes_set.Insert(cls);
         ASSERT(!already_present);
       }
-    } else {
-      // No class at this index, mark it as NULL.
-      local_saved_class_table[i] = ClassAndSize(NULL);
     }
   }
   old_classes_set_storage_ = old_classes_set.Release().raw();
-  // Assigning the field must be done after saving the class table.
-  saved_class_table_ = local_saved_class_table;
   TIR_Print("---- System had %" Pd " classes\n", saved_num_cids_);
 }
 
@@ -1075,7 +1095,7 @@ void IsolateReloadContext::FindModifiedSources(
     scripts = lib.LoadedScripts();
     for (intptr_t script_idx = 0; script_idx < scripts.Length(); script_idx++) {
       script ^= scripts.At(script_idx);
-      uri ^= script.url();
+      uri = script.url();
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {
         // We've already accounted for this script in a prior library.
         continue;
@@ -1185,7 +1205,7 @@ BitVector* IsolateReloadContext::FindModifiedLibraries(bool force_reload,
   if (root_lib_modified) {
     // The root library was either moved or replaced. Mark it as modified to
     // force a reload of the potential root library replacement.
-    lib ^= object_store()->root_library();
+    lib = object_store()->root_library();
     modified_libs->Add(lib.index());
   }
 
@@ -1460,6 +1480,18 @@ void IsolateReloadContext::Commit() {
     }
 
     class_map.Release();
+
+    {
+      UnorderedHashSet<ClassMapTraits> removed_class_set(
+          removed_class_set_storage_);
+      UnorderedHashSet<ClassMapTraits>::Iterator it(&removed_class_set);
+      while (it.MoveNext()) {
+        const intptr_t entry = it.Current();
+        old_cls ^= removed_class_set.GetKey(entry);
+        old_cls.PatchFieldsAndFunctions();
+      }
+      removed_class_set.Release();
+    }
   }
 
   if (FLAG_identity_reload) {
@@ -1840,8 +1872,10 @@ void IsolateReloadContext::set_saved_libraries(
 void IsolateReloadContext::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(from(), to());
   if (saved_class_table_ != NULL) {
-    visitor->VisitPointers(
-        reinterpret_cast<RawObject**>(&saved_class_table_[0]), saved_num_cids_);
+    for (intptr_t i = 0; i < saved_num_cids_; i++) {
+      visitor->VisitPointer(
+          reinterpret_cast<RawObject**>(&(saved_class_table_[i].class_)));
+    }
   }
 }
 
@@ -1941,7 +1975,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     const KernelProgramInfo& info = *kernel_infos[i];
     // Clear the libraries cache.
     {
-      data ^= info.libraries_cache();
+      data = info.libraries_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -1949,7 +1983,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
     }
     // Clear the classes cache.
     {
-      data ^= info.classes_cache();
+      data = info.classes_cache();
       ASSERT(!data.IsNull());
       IntHashMap table(&key, &value, &data);
       table.Clear();
@@ -2101,7 +2135,7 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
     if (!old_url.StartsWith(old_url_prefix)) {
       continue;
     }
-    old_suffix ^= String::SubString(old_url, old_prefix_length);
+    old_suffix = String::SubString(old_url, old_prefix_length);
     if (old_suffix.IsNull()) {
       continue;
     }
@@ -2122,7 +2156,7 @@ void IsolateReloadContext::BuildLibraryMapping() {
   Library& old = Library::Handle();
   for (intptr_t i = num_saved_libs_; i < libs.Length(); i++) {
     replacement_or_new = Library::RawCast(libs.At(i));
-    old ^= OldLibraryOrNull(replacement_or_new);
+    old = OldLibraryOrNull(replacement_or_new);
     if (old.IsNull()) {
       if (FLAG_identity_reload) {
         TIR_Print("Could not find original library for %s\n",
@@ -2139,6 +2173,86 @@ void IsolateReloadContext::BuildLibraryMapping() {
       AddBecomeMapping(old, replacement_or_new);
     }
   }
+}
+
+// Find classes that have been removed from the program.
+// Instances of these classes may still be referenced from variables, so the
+// functions of these class may still execute in the future, and they need to
+// be given patch class owners still they correctly reference their (old) kernel
+// data even after the library's kernel data is updated.
+//
+// Note that all such classes must belong to a library that has either been
+// changed or removed.
+void IsolateReloadContext::BuildRemovedClassesSet() {
+  // Find all old classes [mapped_old_classes_set].
+  UnorderedHashMap<ClassMapTraits> class_map(class_map_storage_);
+  UnorderedHashSet<ClassMapTraits> mapped_old_classes_set(
+      HashTables::New<UnorderedHashSet<ClassMapTraits> >(
+          class_map.NumOccupied()));
+  {
+    UnorderedHashMap<ClassMapTraits>::Iterator it(&class_map);
+    Class& cls = Class::Handle();
+    Class& new_cls = Class::Handle();
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      new_cls = Class::RawCast(class_map.GetKey(entry));
+      cls = Class::RawCast(class_map.GetPayload(entry, 0));
+      mapped_old_classes_set.InsertOrGet(cls);
+    }
+  }
+  class_map.Release();
+
+  // Find all reloaded libraries [mapped_old_library_set].
+  UnorderedHashMap<LibraryMapTraits> library_map(library_map_storage_);
+  UnorderedHashMap<LibraryMapTraits>::Iterator it_library(&library_map);
+  UnorderedHashSet<LibraryMapTraits> mapped_old_library_set(
+      HashTables::New<UnorderedHashSet<LibraryMapTraits> >(
+          library_map.NumOccupied()));
+  {
+    Library& old_library = Library::Handle();
+    Library& new_library = Library::Handle();
+    while (it_library.MoveNext()) {
+      const intptr_t entry = it_library.Current();
+      new_library ^= library_map.GetKey(entry);
+      old_library ^= library_map.GetPayload(entry, 0);
+      if (new_library.raw() != old_library.raw()) {
+        mapped_old_library_set.InsertOrGet(old_library);
+      }
+    }
+  }
+
+  // For every old class, check if it's library was reloaded and if
+  // the class was mapped. If the class wasn't mapped - add it to
+  // [removed_class_set].
+  UnorderedHashSet<ClassMapTraits> old_classes_set(old_classes_set_storage_);
+  UnorderedHashSet<ClassMapTraits>::Iterator it(&old_classes_set);
+  UnorderedHashSet<ClassMapTraits> removed_class_set(
+      removed_class_set_storage_);
+  Class& old_cls = Class::Handle();
+  Class& new_cls = Class::Handle();
+  Library& old_library = Library::Handle();
+  Library& mapped_old_library = Library::Handle();
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    old_cls ^= Class::RawCast(old_classes_set.GetKey(entry));
+    old_library = old_cls.library();
+    if (old_library.IsNull()) {
+      continue;
+    }
+    mapped_old_library ^= mapped_old_library_set.GetOrNull(old_library);
+    if (!mapped_old_library.IsNull()) {
+      new_cls ^= mapped_old_classes_set.GetOrNull(old_cls);
+      if (new_cls.IsNull()) {
+        removed_class_set.InsertOrGet(old_cls);
+      }
+    }
+  }
+  removed_class_set_storage_ = removed_class_set.Release().raw();
+
+  old_classes_set.Release();
+  mapped_old_classes_set.Release();
+  mapped_old_library_set.Release();
+  library_map.Release();
 }
 
 void IsolateReloadContext::AddClassMapping(const Class& replacement_or_new,

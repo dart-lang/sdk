@@ -16,15 +16,15 @@ main() {
   whileNext(null);
   whileNextGeneric(null);
   new Class1<int>()
-    .. /*invoke: dynamic*/ whileNext1()
-    .. /*invoke: dynamic*/ whileNext2()
-    .. /*invoke: dynamic*/ whileNext3();
+    .. /*invoke: [Class1<int>]->dynamic*/ whileNext1()
+    .. /*invoke: [Class1<int>]->dynamic*/ whileNext2()
+    .. /*invoke: [Class1<int>]->dynamic*/ whileNext3();
 }
 
 while1(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
-    while (/*dynamic*/ c /*invoke: bool*/ != null) {
+    while (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null) {
       /*dynamic*/ c.next;
       if (/*dynamic*/ c is Class) {
         /*Class*/ c.next;
@@ -38,7 +38,7 @@ while1(dynamic c) {
 while2(dynamic c) {
   if (/*dynamic*/ c is Class) {
     /*Class*/ c.next;
-    while (/*Class*/ c /*invoke: bool*/ != null) {
+    while (/*Class*/ c /*invoke: [Class]->bool*/ != null) {
       /*Class*/ c.next;
     }
     /*Class*/ c.next;
@@ -46,14 +46,15 @@ while2(dynamic c) {
 }
 
 whileNext(Class c) {
-  while (/*Class*/ c /*invoke: bool*/ != null) {
+  while (/*Class*/ c /*invoke: [Class]->bool*/ != null) {
     c = /*Class*/ c.next;
   }
   return /*Class*/ c;
 }
 
 whileNextGeneric(GenericClass<int> c) {
-  while (/*GenericClass<int>*/ c /*invoke: bool*/ != null) {
+  while (
+      /*GenericClass<int>*/ c /*invoke: [GenericClass<int>]->bool*/ != null) {
     c = /*GenericClass<int>*/ c.next;
   }
   return /*GenericClass<int>*/ c;
@@ -77,7 +78,7 @@ class Class1<T> {
   whileNext2() {
     bool b;
     GenericClass<T> c;
-    while (/*GenericClass<T>*/ c /*invoke: bool*/ != null) {
+    while (/*GenericClass<T>*/ c /*invoke: [GenericClass<T>]->bool*/ != null) {
       if (/*bool*/ b) {
         GenericClass<T> next = /*GenericClass<T>*/ c.next;
         c = /*GenericClass<T>*/ next;
@@ -91,7 +92,7 @@ class Class1<T> {
   whileNext3() {
     bool b;
     GenericClass<T> c;
-    while (/*GenericClass<T>*/ c /*invoke: bool*/ == null) {
+    while (/*GenericClass<T>*/ c /*invoke: [GenericClass<T>]->bool*/ == null) {
       if (/*bool*/ b) {
         GenericClass<T> next = /*Null*/ c.next;
         c = /*GenericClass<T>*/ next;

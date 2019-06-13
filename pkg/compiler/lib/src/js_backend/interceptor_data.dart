@@ -12,9 +12,10 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js/js.dart' as jsAst;
 import '../serialization/serialization.dart';
+import '../universe/class_set.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
-import 'namer.dart';
+import 'namer.dart' show ModularNamer, suffixForGetInterceptor;
 import 'native_data.dart';
 
 abstract class InterceptorData {
@@ -252,6 +253,7 @@ class InterceptorDataImpl implements InterceptorData {
           if (result == null) result = new Set<ClassEntity>();
           result.add(subclass);
         }
+        return IterationStep.CONTINUE;
       });
     }
     return result;
@@ -354,55 +356,79 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
 class OneShotInterceptorData {
   final InterceptorData _interceptorData;
   final CommonElements _commonElements;
+  final NativeData _nativeData;
 
-  OneShotInterceptorData(this._interceptorData, this._commonElements);
+  OneShotInterceptorData(
+      this._interceptorData, this._commonElements, this._nativeData);
 
-  /// A collection of selectors that must have a one shot interceptor generated.
-  final Map<jsAst.Name, Selector> _oneShotInterceptors =
-      <jsAst.Name, Selector>{};
+  Iterable<OneShotInterceptor> get oneShotInterceptors {
+    List<OneShotInterceptor> interceptors = [];
+    for (var map in _oneShotInterceptors.values) {
+      interceptors.addAll(map.values);
+    }
+    return interceptors;
+  }
 
-  Selector getOneShotInterceptorSelector(jsAst.Name name) =>
-      _oneShotInterceptors[name];
+  Map<Selector, Map<String, OneShotInterceptor>> _oneShotInterceptors = {};
 
-  Iterable<jsAst.Name> get oneShotInterceptorNames =>
-      _oneShotInterceptors.keys.toList()..sort();
-
-  /// A map of specialized versions of the [getInterceptorMethod].
+  /// A set of specialized versions of the [getInterceptorMethod].
   ///
   /// Since [getInterceptorMethod] is a hot method at runtime, we're always
   /// specializing it based on the incoming type. The keys in the map are the
   /// names of these specialized versions. Note that the generic version that
   /// contains all possible type checks is also stored in this map.
-  final Map<jsAst.Name, Set<ClassEntity>> _specializedGetInterceptors =
-      <jsAst.Name, Set<ClassEntity>>{};
+  Iterable<SpecializedGetInterceptor> get specializedGetInterceptors =>
+      _specializedGetInterceptors.values;
 
-  Iterable<jsAst.Name> get specializedGetInterceptorNames =>
-      _specializedGetInterceptors.keys.toList()..sort();
-
-  Set<ClassEntity> getSpecializedGetInterceptorsFor(jsAst.Name name) =>
-      _specializedGetInterceptors[name];
+  Map<String, SpecializedGetInterceptor> _specializedGetInterceptors = {};
 
   jsAst.Name registerOneShotInterceptor(
-      Selector selector, Namer namer, JClosedWorld closedWorld) {
+      Selector selector, ModularNamer namer, JClosedWorld closedWorld) {
+    selector = selector.toNormalized();
     Set<ClassEntity> classes =
         _interceptorData.getInterceptedClassesOn(selector.name, closedWorld);
-    jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
-    if (!_oneShotInterceptors.containsKey(name)) {
-      registerSpecializedGetInterceptor(classes, namer);
-      _oneShotInterceptors[name] = selector;
-    }
-    return name;
+    String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
+    Map<String, OneShotInterceptor> interceptors =
+        _oneShotInterceptors[selector] ??= {};
+    OneShotInterceptor interceptor =
+        interceptors[key] ??= new OneShotInterceptor(key, selector);
+    interceptor.classes.addAll(classes);
+    registerSpecializedGetInterceptor(classes, namer);
+    return namer.nameForOneShotInterceptor(selector, classes);
   }
 
   void registerSpecializedGetInterceptor(
-      Set<ClassEntity> classes, Namer namer) {
-    jsAst.Name name = namer.nameForGetInterceptor(classes);
+      Set<ClassEntity> classes, ModularNamer namer) {
     if (classes.contains(_commonElements.jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
-      _specializedGetInterceptors[name] = _interceptorData.interceptedClasses;
-    } else {
-      _specializedGetInterceptors[name] = classes;
+      classes = _interceptorData.interceptedClasses;
     }
+    String key = suffixForGetInterceptor(_commonElements, _nativeData, classes);
+    SpecializedGetInterceptor interceptor =
+        _specializedGetInterceptors[key] ??= new SpecializedGetInterceptor(key);
+    interceptor.classes.addAll(classes);
   }
+}
+
+class OneShotInterceptor {
+  final Selector selector;
+  final String key;
+  final Set<ClassEntity> classes = {};
+
+  OneShotInterceptor(this.key, this.selector);
+
+  @override
+  String toString() =>
+      'OneShotInterceptor(selector=$selector,key=$key,classes=$classes)';
+}
+
+class SpecializedGetInterceptor {
+  final String key;
+  final Set<ClassEntity> classes = {};
+
+  SpecializedGetInterceptor(this.key);
+
+  @override
+  String toString() => 'SpecializedGetInterceptor(key=$key,classes=$classes)';
 }

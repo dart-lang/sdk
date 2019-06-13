@@ -21,7 +21,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ContextViewElement extends HtmlElement implements Renderable {
+class ContextViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ContextViewElement>('context-view', dependencies: const [
     ContextRefElement.tag,
@@ -81,7 +81,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ContextViewElement e = document.createElement(tag.name);
+    ContextViewElement e = new ContextViewElement.created();
     e._r = new RenderingScheduler<ContextViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -97,7 +97,7 @@ class ContextViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ContextViewElement.created() : super.created();
+  ContextViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -115,18 +115,20 @@ class ContextViewElement extends HtmlElement implements Renderable {
   void render() {
     var content = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavClassMenuElement(_isolate, _context.clazz, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
+        new NavClassMenuElement(_isolate, _context.clazz, queue: _r.queue)
+            .element,
         navMenu('instance'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _context = await _contexts.get(_isolate, _context.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _context = await _contexts.get(_isolate, _context.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -134,8 +136,9 @@ class ContextViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Context',
           new HRElement(),
           new ObjectCommonElement(_isolate, _context, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue)
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element
         ]
     ];
     if (_context.parentContext != null) {
@@ -157,8 +160,9 @@ class ContextViewElement extends HtmlElement implements Renderable {
                       ..classes = ['memberName']
                       ..children = <Element>[
                         new ContextRefElement(
-                            _isolate, _context.parentContext, _objects,
-                            queue: _r.queue)
+                                _isolate, _context.parentContext, _objects,
+                                queue: _r.queue)
+                            .element
                       ]
                   ]
               ]
@@ -173,32 +177,33 @@ class ContextViewElement extends HtmlElement implements Renderable {
           ..classes = ['content-centered-big']
           ..children = <Element>[
             new SpanElement()..text = 'Variables ',
-            new CurlyBlockElement(expanded: true, queue: _r.queue)
-              ..content = <Element>[
-                new DivElement()
-                  ..classes = ['memberList']
-                  ..children = _context.variables
-                      .map<Element>((variable) => new DivElement()
-                        ..classes = ['memberItem']
-                        ..children = <Element>[
-                          new DivElement()
-                            ..classes = ['memberName']
-                            ..text = '[ ${++index} ]',
-                          new DivElement()
-                            ..classes = ['memberName']
+            (new CurlyBlockElement(expanded: true, queue: _r.queue)
+                  ..content = <Element>[
+                    new DivElement()
+                      ..classes = ['memberList']
+                      ..children = _context.variables
+                          .map<Element>((variable) => new DivElement()
+                            ..classes = ['memberItem']
                             ..children = <Element>[
-                              anyRef(_isolate, variable.value, _objects,
-                                  queue: _r.queue)
-                            ]
-                        ])
-                      .toList()
-              ]
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..text = '[ ${++index} ]',
+                              new DivElement()
+                                ..classes = ['memberName']
+                                ..children = <Element>[
+                                  anyRef(_isolate, variable.value, _objects,
+                                      queue: _r.queue)
+                                ]
+                            ])
+                          .toList()
+                  ])
+                .element
           ]
       ]);
     }
     content.add(new DivElement()
       ..classes = ['content-centered-big']
-      ..children = <Element>[new ViewFooterElement(queue: _r.queue)]);
+      ..children = <Element>[new ViewFooterElement(queue: _r.queue).element]);
     children = content;
   }
 }

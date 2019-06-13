@@ -8,7 +8,7 @@ import "dart:ffi";
 import "arena.dart";
 
 /// Represents a String in C memory, managed by an [Arena].
-class CString extends Pointer<Int8> {
+class CString extends Pointer<Uint8> {
   /// Allocates a [CString] in the current [Arena] and populates it with
   /// [dartStr].
   factory CString(String dartStr) => CString.inArena(Arena.current(), dartStr);
@@ -23,7 +23,7 @@ class CString extends Pointer<Int8> {
   /// memory manually!
   factory CString.allocate(String dartStr) {
     List<int> units = Utf8Encoder().convert(dartStr);
-    Pointer<Int8> str = allocate(count: units.length + 1);
+    Pointer<Uint8> str = allocate(count: units.length + 1);
     for (int i = 0; i < units.length; ++i) {
       str.elementAt(i).store(units[i]);
     }

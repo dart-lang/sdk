@@ -834,13 +834,6 @@ class A {}
 @reflectiveTest
 class ConstantVisitorWithFlowControlAndSpreadCollectionsTest
     extends ConstantVisitorTestSupport {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_listLiteral_ifElement_false_withElse() async {
     await _resolveTestCode('''
 const c = [1, if (1 < 0) 2 else 3, 4];

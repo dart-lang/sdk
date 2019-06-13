@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class OverrideOnNonOverridingFieldTest extends DriverResolutionTest {
   test_inInterface() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -29,11 +29,13 @@ class B implements A {
   int b;
   @override
   int c;
-}''', [CompileTimeErrorCode.INVALID_OVERRIDE]);
+}''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 126, 5),
+    ]);
   }
 
   test_inSuperclass() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int get a => 0;
   void set b(_) {}
@@ -46,16 +48,20 @@ class B extends A {
   int b;
   @override
   int c;
-}''', [CompileTimeErrorCode.INVALID_OVERRIDE]);
+}''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 123, 5),
+    ]);
   }
 
   test_invalid() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
 }
 class B extends A {
   @override
   final int m = 1;
-}''', [HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD]);
+}''', [
+      error(HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD, 56, 1),
+    ]);
   }
 }

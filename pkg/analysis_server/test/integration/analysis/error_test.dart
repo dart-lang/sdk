@@ -18,6 +18,24 @@ main() {
 @reflectiveTest
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
+  test_analysisRootDoesNotExist() async {
+    String packagePath = sourcePath('package');
+    String filePath = sourcePath('package/lib/test.dart');
+    String content = '''
+main() {
+  print(null) // parse error: missing ';'
+}''';
+    await sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendAnalysisUpdateContent({filePath: AddContentOverlay(content)});
+    await sendAnalysisSetAnalysisRoots([packagePath], []);
+    await analysisFinished;
+
+    expect(currentAnalysisErrors[filePath], isList);
+    List<AnalysisError> errors = currentAnalysisErrors[filePath];
+    expect(errors, hasLength(1));
+    expect(errors[0].location.file, equals(filePath));
+  }
+
   test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''

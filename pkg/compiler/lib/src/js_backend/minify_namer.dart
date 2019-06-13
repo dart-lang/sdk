@@ -10,8 +10,9 @@ class MinifyNamer extends Namer
         _MinifiedFieldNamer,
         _MinifyConstructorBodyNamer,
         _MinifiedOneShotInterceptorNamer {
-  MinifyNamer(JClosedWorld closedWorld, CodegenWorldBuilder codegenWorldBuilder)
-      : super(closedWorld, codegenWorldBuilder) {
+  MinifyNamer(
+      JClosedWorld closedWorld, RuntimeTypeTags rtiTags, FixedNames fixedNames)
+      : super(closedWorld, rtiTags, fixedNames) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
   }
@@ -25,25 +26,6 @@ class MinifyNamer extends Namer
   String get isolatePropertiesName => 'p';
   @override
   bool get shouldMinify => true;
-
-  @override
-  final String getterPrefix = 'g';
-  @override
-  final String setterPrefix = 's';
-  @override
-  final String callPrefix = ''; // this will create function names $<n>
-  @override
-  String get operatorIsPrefix => r'$i';
-  @override
-  String get operatorAsPrefix => r'$a';
-  @override
-  String get callCatchAllName => r'$C';
-  @override
-  String get requiredParameterField => r'$R';
-  @override
-  String get defaultValuesField => r'$D';
-  @override
-  String get operatorSignature => r'$S';
   @override
   String get genericInstantiationPrefix => r'$I';
 
@@ -392,7 +374,7 @@ abstract class _MinifyConstructorBodyNamer implements Namer {
   @override
   jsAst.Name constructorBodyName(ConstructorBodyEntity method) {
     _ConstructorBodyNamingScope scope = new _ConstructorBodyNamingScope(
-        method.enclosingClass, _constructorBodyScopes, elementEnvironment);
+        method.enclosingClass, _constructorBodyScopes, _elementEnvironment);
     String key = scope.constructorBodyKeyFor(method);
     return _disambiguateMemberByKey(
         key, () => _proposeNameForConstructorBody(method));
@@ -403,7 +385,7 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   @override
-  jsAst.Name nameForGetOneShotInterceptor(
+  jsAst.Name nameForOneShotInterceptor(
       Selector selector, Iterable<ClassEntity> classes) {
     String root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)
@@ -413,7 +395,8 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String callSuffix = selector.isCall
         ? Namer.callSuffixForStructure(selector.callStructure).join()
         : "";
-    String suffix = suffixForGetInterceptor(classes);
+    String suffix =
+        suffixForGetInterceptor(_commonElements, _nativeData, classes);
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }

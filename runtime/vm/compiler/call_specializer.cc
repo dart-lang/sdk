@@ -366,7 +366,8 @@ void CallSpecializer::AddCheckClass(Definition* to_check,
 void CallSpecializer::AddChecksForArgNr(InstanceCallInstr* call,
                                         Definition* instr,
                                         int argument_number) {
-  const Cids* cids = Cids::Create(Z, *call->ic_data(), argument_number);
+  const Cids* cids =
+      Cids::CreateAndExpand(Z, *call->ic_data(), argument_number);
   AddCheckClass(instr, *cids, call->deopt_id(), call->env(), call);
 }
 
@@ -509,7 +510,7 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
 }
 
 static bool SmiFitsInDouble() {
-  return kSmiBits < 53;
+  return compiler::target::kSmiBits < 53;
 }
 
 bool CallSpecializer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
@@ -1502,7 +1503,7 @@ void CallSpecializer::VisitStaticCall(StaticCallInstr* call) {
                 new (Z) Value(call->ArgumentAt(1)), call->deopt_id(),
                 result_cid);
             const Cids* cids =
-                Cids::Create(Z, ic_data, /* argument_number =*/0);
+                Cids::CreateAndExpand(Z, ic_data, /* argument_number =*/0);
             AddCheckClass(min_max->left()->definition(), *cids,
                           call->deopt_id(), call->env(), call);
             AddCheckClass(min_max->right()->definition(), *cids,
@@ -1835,8 +1836,9 @@ Definition* TypedDataSpecializer::AppendLoadIndexed(TemplateDartCall<0>* call,
   const intptr_t element_size = TypedDataBase::ElementSizeFor(cid);
   const intptr_t index_scale = element_size;
 
-  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
-                                        TypedDataBase::data_field_offset());
+  auto data = new (Z)
+      LoadUntaggedInstr(new (Z) Value(array),
+                        compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   Definition* load = new (Z)
@@ -1862,24 +1864,59 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
 
   const auto deopt_id = call->deopt_id();
 
-  if (cid == kTypedDataFloat32ArrayCid) {
-    value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
-                                       Instruction::kNotSpeculative);
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
-  } else if (cid == kTypedDataInt32ArrayCid) {
-    value = new (Z)
-        UnboxInt32Instr(UnboxInt32Instr::kTruncate, new (Z) Value(value),
-                        deopt_id, Instruction::kNotSpeculative);
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
-  } else if (cid == kTypedDataUint32ArrayCid) {
-    value = new (Z) UnboxUint32Instr(new (Z) Value(value), deopt_id,
-                                     Instruction::kNotSpeculative);
-    ASSERT(value->AsUnboxInteger()->is_truncating());
-    flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt32ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedInt32, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedUint32, new (Z) Value(value), deopt_id,
+                                 Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value = UnboxInstr::Create(kUnboxedInt64, new (Z) Value(value),
+                                 DeoptId::kNone, Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataFloat32ArrayCid: {
+      value = new (Z) DoubleToFloatInstr(new (Z) Value(value), deopt_id,
+                                         Instruction::kNotSpeculative);
+      flow_graph_->InsertBefore(call, value, call->env(), FlowGraph::kValue);
+      break;
+    }
+    default:
+      break;
   }
 
-  auto data = new (Z) LoadUntaggedInstr(new (Z) Value(array),
-                                        TypedDataBase::data_field_offset());
+  auto data = new (Z)
+      LoadUntaggedInstr(new (Z) Value(array),
+                        compiler::target::TypedDataBase::data_field_offset());
   flow_graph_->InsertBefore(call, data, call->env(), FlowGraph::kValue);
 
   auto store = new (Z) StoreIndexedInstr(

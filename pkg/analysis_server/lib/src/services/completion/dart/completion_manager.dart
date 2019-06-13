@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/completion/dart/static_member_contr
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -332,6 +333,10 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   @override
   List<String> get enabledExperiments =>
       result.session.analysisContext.analysisOptions.enabledExperiments;
+
+  @override
+  FeatureSet get featureSet =>
+      result.session.analysisContext.analysisOptions.contextFeatures;
 
   @override
   bool get includeIdentifiers {

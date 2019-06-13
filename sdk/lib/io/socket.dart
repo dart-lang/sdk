@@ -413,6 +413,7 @@ enum _RawSocketOptions {
 /// It allows for fine grained control of the socket options, and its values will
 /// be passed to the underlying platform's implementation of setsockopt and
 /// getsockopt.
+@Since("2.2")
 class RawSocketOption {
   /// Creates a RawSocketOption for getRawOption andSetRawOption.
   ///
@@ -556,8 +557,13 @@ class ConnectionTask<S> {
 }
 
 /**
- * The [RawSocket] is a low-level interface to a socket, exposing the raw
- * events signaled by the system. It's a [Stream] of [RawSocketEvent]s.
+ * A [RawSocket] is an unbuffered interface to a TCP socket.
+ *
+ * The raw socket delivers the data stream in the same chunks as the underlying
+ * operating system.
+ *
+ * It is not the same as a
+ * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
  */
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
@@ -685,6 +691,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * Throws an [OSError] on failure.
    */
+  @Since("2.2")
   Uint8List getRawOption(RawSocketOption option);
 
   /**
@@ -693,6 +700,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * Throws an [OSError] on failure.
    */
+  @Since("2.2")
   void setRawOption(RawSocketOption option);
 }
 
@@ -830,12 +838,16 @@ class Datagram {
 }
 
 /**
- * The [RawDatagramSocket] is a low-level interface to an UDP socket,
- * exposing the raw events signaled by the system. It's a [Stream] of
- * [RawSocketEvent]s.
+ * A [RawDatagramSocket] is an unbuffered interface to a UDP socket.
+ *
+ * The raw datagram socket delivers the datagrams in the same chunks as the
+ * underlying operating system. It's a [Stream] of [RawSocketEvent]s.
  *
  * Note that the event [RawSocketEvent.readClosed] will never be
  * received as an UDP socket cannot be closed by a remote peer.
+ *
+ * It is not the same as a
+ * [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
  */
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**

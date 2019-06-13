@@ -24,7 +24,7 @@ ArgParser createArgParser() {
 }
 
 show<T>(ArgResults argResults, DataComputer<T> dataComputer,
-    {bool testFrontend: false, List<String> options: const <String>[]}) async {
+    {List<String> options: const <String>[]}) async {
   dataComputer.setup();
 
   if (argResults.wasParsed('colors')) {
@@ -51,7 +51,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
   CompiledData<T> data = await computeData<T>(
       entryPoint, const {}, dataComputer,
       options: options,
-      testFrontend: testFrontend,
+      testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,

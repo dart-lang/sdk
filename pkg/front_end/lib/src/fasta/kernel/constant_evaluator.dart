@@ -39,9 +39,6 @@ import '../fasta_codes.dart'
         messageConstEvalCircularity,
         messageConstEvalContext,
         messageConstEvalFailedAssertion,
-        messageConstEvalIterationInConstList,
-        messageConstEvalIterationInConstSet,
-        messageConstEvalIterationInConstMap,
         messageConstEvalNotListOrSetInSpread,
         messageConstEvalNotMapInSpread,
         messageConstEvalNullValue,
@@ -67,16 +64,7 @@ import '../fasta_codes.dart'
         templateConstEvalNonConstantVariableGet,
         templateConstEvalZeroDivisor;
 
-import 'collections.dart'
-    show
-        ForElement,
-        ForInElement,
-        IfElement,
-        SpreadElement,
-        ForMapEntry,
-        ForInMapEntry,
-        IfMapEntry,
-        SpreadMapEntry;
+part 'constant_collection_builders.dart';
 
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
@@ -147,6 +135,7 @@ class JavaScriptIntConstant extends DoubleConstant {
 }
 
 class ConstantsTransformer extends Transformer {
+  final ConstantsBackend backend;
   final ConstantEvaluator constantEvaluator;
   final TypeEnvironment typeEnvironment;
 
@@ -158,7 +147,7 @@ class ConstantsTransformer extends Transformer {
   final bool errorOnUnevaluatedConstant;
 
   ConstantsTransformer(
-      ConstantsBackend backend,
+      this.backend,
       Map<String, String> environmentDefines,
       this.keepFields,
       this.keepVariables,
@@ -312,18 +301,11 @@ class ConstantsTransformer extends Transformer {
       if (node.isConst) {
         final Constant constant = evaluateWithContext(node, node.initializer);
         constantEvaluator.env.addVariableValue(node, constant);
+        node.initializer = makeConstantExpression(constant, node.initializer)
+          ..parent = node;
 
-        if (keepVariables) {
-          // So the value of the variable is still available for debugging
-          // purposes we convert the constant variable to be a final variable
-          // initialized to the evaluated constant expression.
-          node.initializer = makeConstantExpression(constant, node.initializer)
-            ..parent = node;
-          node.isFinal = true;
-          node.isConst = false;
-        } else {
-          // Since we convert all use-sites of constants, the constant
-          // [VariableDeclaration] is unused and we'll therefore remove it.
+        // If this constant is inlined, remove it.
+        if (!keepVariables && shouldInline(node.initializer)) {
           return null;
         }
       } else {
@@ -336,19 +318,16 @@ class ConstantsTransformer extends Transformer {
   visitField(Field node) {
     return constantEvaluator.withNewEnvironment(() {
       if (node.isConst) {
-        // Since we convert all use-sites of constants, the constant [Field]
-        // cannot be referenced anymore.  We therefore get rid of it if
-        // [keepFields] was not specified.
-        if (!keepFields) {
-          return null;
-        }
-
-        // Otherwise we keep the constant [Field] and convert it's initializer.
         transformAnnotations(node.annotations, node);
         if (node.initializer != null) {
           node.initializer =
               evaluateAndTransformWithContext(node, node.initializer)
                 ..parent = node;
+        }
+
+        // If this constant is inlined, remove it.
+        if (!keepFields && shouldInline(node.initializer)) {
+          return null;
         }
       } else {
         transformAnnotations(node.annotations, node);
@@ -369,7 +348,15 @@ class ConstantsTransformer extends Transformer {
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      return evaluateAndTransformWithContext(node, node);
+      if (target.initializer != null) {
+        // Make sure the initializer is evaluated first.
+        target.initializer =
+            evaluateAndTransformWithContext(target, target.initializer)
+              ..parent = target;
+        if (shouldInline(target.initializer)) {
+          return evaluateAndTransformWithContext(node, node);
+        }
+      }
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
     }
@@ -382,8 +369,14 @@ class ConstantsTransformer extends Transformer {
   }
 
   visitVariableGet(VariableGet node) {
-    if (node.variable.isConst) {
-      return evaluateAndTransformWithContext(node, node);
+    final VariableDeclaration variable = node.variable;
+    if (variable.isConst) {
+      variable.initializer =
+          evaluateAndTransformWithContext(variable, variable.initializer)
+            ..parent = variable;
+      if (shouldInline(variable.initializer)) {
+        return evaluateAndTransformWithContext(node, node);
+      }
     }
     return super.visitVariableGet(node);
   }
@@ -395,6 +388,10 @@ class ConstantsTransformer extends Transformer {
     return super.visitListLiteral(node);
   }
 
+  visitListConcatenation(ListConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitSetLiteral(SetLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
@@ -402,11 +399,19 @@ class ConstantsTransformer extends Transformer {
     return super.visitSetLiteral(node);
   }
 
+  visitSetConcatenation(SetConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
+  }
+
   visitMapLiteral(MapLiteral node) {
     if (node.isConst) {
       return evaluateAndTransformWithContext(node, node);
     }
     return super.visitMapLiteral(node);
+  }
+
+  visitMapConcatenation(MapConcatenation node) {
+    return evaluateAndTransformWithContext(node, node);
   }
 
   visitConstructorInvocation(ConstructorInvocation node) {
@@ -455,6 +460,13 @@ class ConstantsTransformer extends Transformer {
     }
     return new ConstantExpression(constant, node.getStaticType(typeEnvironment))
       ..fileOffset = node.fileOffset;
+  }
+
+  bool shouldInline(Expression initializer) {
+    if (initializer is ConstantExpression) {
+      return backend.shouldInlineConstant(initializer);
+    }
+    return true;
   }
 }
 
@@ -765,220 +777,26 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     return canonicalize(result);
   }
 
-  /// Add an element (which is possibly a spread or an if element) to a
-  /// constant list or set represented as a list of (possibly unevaluated)
-  /// lists or sets to be concatenated.
-  /// Each element of [parts] is either a `List<Constant>` (containing fully
-  /// evaluated constants) or a `Constant` (potentially unevaluated).
-  /// Pass an identity set as [seen] for sets and omit it for lists.
-  void addToListOrSetConstant(
-      List<Object> parts, Expression element, DartType elementType,
-      [Set<Constant> seen]) {
-    bool isSet = seen != null;
-    if (element is SpreadElement) {
-      Constant spread = unlower(_evaluateSubexpression(element.expression));
-      if (shouldBeUnevaluated) {
-        // Unevaluated spread
-        if (element.isNullAware) {
-          VariableDeclaration temp =
-              new VariableDeclaration(null, initializer: extract(spread));
-          parts.add(unevaluated(
-              element.expression,
-              new Let(
-                  temp,
-                  new ConditionalExpression(
-                      new MethodInvocation(new VariableGet(temp),
-                          new Name('=='), new Arguments([new NullLiteral()])),
-                      new ListLiteral([], isConst: true),
-                      new VariableGet(temp),
-                      const DynamicType()))));
-        } else {
-          parts.add(spread);
-        }
-      } else if (spread == nullConstant) {
-        // Null spread
-        if (!element.isNullAware) {
-          report(element.expression, messageConstEvalNullValue);
-        }
-      } else {
-        // Fully evaluated spread
-        List<Constant> entries;
-        if (spread is ListConstant) {
-          entries = spread.entries;
-        } else if (spread is SetConstant) {
-          entries = spread.entries;
-        } else {
-          // Not list or set in spread
-          return report(
-              element.expression, messageConstEvalNotListOrSetInSpread);
-        }
-        for (Constant entry in entries) {
-          addToListOrSetConstant(
-              parts, new ConstantExpression(entry), elementType, seen);
-        }
-      }
-    } else if (element is IfElement) {
-      Constant condition = _evaluateSubexpression(element.condition);
-      if (shouldBeUnevaluated) {
-        // Unevaluated if
-        enterLazy();
-        Constant then = _evaluateSubexpression(isSet
-            ? new SetLiteral([cloner.clone(element.then)], isConst: true)
-            : new ListLiteral([cloner.clone(element.then)], isConst: true));
-        Constant otherwise;
-        if (element.otherwise != null) {
-          otherwise = _evaluateSubexpression(isSet
-              ? new SetLiteral([cloner.clone(element.otherwise)], isConst: true)
-              : new ListLiteral([cloner.clone(element.otherwise)],
-                  isConst: true));
-        } else {
-          otherwise = isSet
-              ? new SetConstant(const DynamicType(), [])
-              : new ListConstant(const DynamicType(), []);
-        }
-        leaveLazy();
-        parts.add(unevaluated(
-            element.condition,
-            new ConditionalExpression(extract(condition), extract(then),
-                extract(otherwise), const DynamicType())));
-      } else {
-        // Fully evaluated if
-        if (condition == trueConstant) {
-          addToListOrSetConstant(parts, element.then, elementType, seen);
-        } else if (condition == falseConstant) {
-          if (element.otherwise != null) {
-            addToListOrSetConstant(parts, element.otherwise, elementType, seen);
-          }
-        } else if (condition == nullConstant) {
-          report(element.condition, messageConstEvalNullValue);
-        } else {
-          report(
-              element.condition,
-              templateConstEvalInvalidType.withArguments(
-                  condition,
-                  typeEnvironment.boolType,
-                  condition.getType(typeEnvironment)));
-        }
-      }
-    } else if (element is ForElement || element is ForInElement) {
-      // For or for-in
-      report(
-          element,
-          isSet
-              ? messageConstEvalIterationInConstSet
-              : messageConstEvalIterationInConstList);
-    } else {
-      // Ordinary expresion element
-      Constant constant = _evaluateSubexpression(element);
-      if (shouldBeUnevaluated) {
-        parts.add(unevaluated(
-            element,
-            isSet
-                ? new SetLiteral([extract(constant)],
-                    typeArgument: elementType, isConst: true)
-                : new ListLiteral([extract(constant)],
-                    typeArgument: elementType, isConst: true)));
-      } else {
-        List<Constant> listOrSet;
-        if (parts.last is List<Constant>) {
-          listOrSet = parts.last;
-        } else {
-          parts.add(listOrSet = <Constant>[]);
-        }
-        if (isSet) {
-          if (!hasPrimitiveEqual(constant)) {
-            report(
-                element,
-                templateConstEvalElementImplementsEqual
-                    .withArguments(constant));
-          }
-          if (!seen.add(constant)) {
-            report(element,
-                templateConstEvalDuplicateElement.withArguments(constant));
-          }
-        }
-        listOrSet.add(ensureIsSubtype(constant, elementType, element));
-      }
-    }
-  }
-
-  Constant makeListConstantFromParts(
-      List<Object> parts, Expression node, DartType elementType) {
-    if (parts.length == 1) {
-      // Fully evaluated
-      return lowerListConstant(new ListConstant(elementType, parts.single));
-    }
-    List<Expression> lists = <Expression>[];
-    for (Object part in parts) {
-      if (part is List<Constant>) {
-        lists.add(new ConstantExpression(new ListConstant(elementType, part)));
-      } else if (part is Constant) {
-        lists.add(extract(part));
-      } else {
-        throw 'Non-constant in constant list';
-      }
-    }
-    return unevaluated(
-        node, new ListConcatenation(lists, typeArgument: elementType));
-  }
-
   visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('List'));
     }
-    final List<Object> parts = <Object>[<Constant>[]];
+    final ListConstantBuilder builder =
+        new ListConstantBuilder(node, node.typeArgument, this);
     for (Expression element in node.expressions) {
-      addToListOrSetConstant(parts, element, node.typeArgument);
+      builder.add(element);
     }
-    return makeListConstantFromParts(parts, node, node.typeArgument);
+    return builder.build();
   }
 
   visitListConcatenation(ListConcatenation node) {
-    final List<Object> parts = <Object>[<Constant>[]];
+    final ListConstantBuilder builder =
+        new ListConstantBuilder(node, node.typeArgument, this);
     for (Expression list in node.lists) {
-      addToListOrSetConstant(parts,
-          new SpreadElement(cloner.clone(list), false), node.typeArgument);
+      builder.addSpread(list);
     }
-    return makeListConstantFromParts(parts, node, node.typeArgument);
-  }
-
-  Constant makeSetConstantFromParts(
-      List<Object> parts, Expression node, DartType elementType) {
-    if (parts.length == 1) {
-      // Fully evaluated
-      List<Constant> entries = parts.single;
-      SetConstant result = new SetConstant(elementType, entries);
-      if (desugarSets) {
-        final List<ConstantMapEntry> mapEntries =
-            new List<ConstantMapEntry>(entries.length);
-        for (int i = 0; i < entries.length; ++i) {
-          mapEntries[i] = new ConstantMapEntry(entries[i], nullConstant);
-        }
-        Constant map = lowerMapConstant(
-            new MapConstant(elementType, typeEnvironment.nullType, mapEntries));
-        return lower(
-            result,
-            new InstanceConstant(
-                unmodifiableSetMap.enclosingClass.reference,
-                [elementType],
-                <Reference, Constant>{unmodifiableSetMap.reference: map}));
-      } else {
-        return lowerSetConstant(result);
-      }
-    }
-    List<Expression> sets = <Expression>[];
-    for (Object part in parts) {
-      if (part is List<Constant>) {
-        sets.add(new ConstantExpression(new SetConstant(elementType, part)));
-      } else if (part is Constant) {
-        sets.add(extract(part));
-      } else {
-        throw 'Non-constant in constant set';
-      }
-    }
-    return unevaluated(
-        node, new SetConcatenation(sets, typeArgument: elementType));
+    return builder.build();
   }
 
   visitSetLiteral(SetLiteral node) {
@@ -986,169 +804,21 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Set'));
     }
-    final Set<Constant> seen = new Set<Constant>.identity();
-    final List<Object> parts = <Object>[<Constant>[]];
+    final SetConstantBuilder builder =
+        new SetConstantBuilder(node, node.typeArgument, this);
     for (Expression element in node.expressions) {
-      addToListOrSetConstant(parts, element, node.typeArgument, seen);
+      builder.add(element);
     }
-    return makeSetConstantFromParts(parts, node, node.typeArgument);
+    return builder.build();
   }
 
   visitSetConcatenation(SetConcatenation node) {
-    final Set<Constant> seen = new Set<Constant>.identity();
-    final List<Object> parts = <Object>[<Constant>[]];
+    final SetConstantBuilder builder =
+        new SetConstantBuilder(node, node.typeArgument, this);
     for (Expression set_ in node.sets) {
-      addToListOrSetConstant(
-          parts,
-          new SpreadElement(cloner.clone(set_), false),
-          node.typeArgument,
-          seen);
+      builder.addSpread(set_);
     }
-    return makeSetConstantFromParts(parts, node, node.typeArgument);
-  }
-
-  /// Add a map entry (which is possibly a spread or an if map entry) to a
-  /// constant map represented as a list of (possibly unevaluated)
-  /// maps to be concatenated.
-  /// Each element of [parts] is either a `List<ConstantMapEntry>` (containing
-  /// fully evaluated map entries) or a `Constant` (potentially unevaluated).
-  void addToMapConstant(List<Object> parts, MapEntry element, DartType keyType,
-      DartType valueType, Set<Constant> seenKeys) {
-    if (element is SpreadMapEntry) {
-      Constant spread = unlower(_evaluateSubexpression(element.expression));
-      if (shouldBeUnevaluated) {
-        // Unevaluated spread
-        if (element.isNullAware) {
-          VariableDeclaration temp =
-              new VariableDeclaration(null, initializer: extract(spread));
-          parts.add(unevaluated(
-              element.expression,
-              new Let(
-                  temp,
-                  new ConditionalExpression(
-                      new MethodInvocation(new VariableGet(temp),
-                          new Name('=='), new Arguments([new NullLiteral()])),
-                      new MapLiteral([], isConst: true),
-                      new VariableGet(temp),
-                      const DynamicType()))));
-        } else {
-          parts.add(spread);
-        }
-      } else if (spread == nullConstant) {
-        // Null spread
-        if (!element.isNullAware) {
-          report(element.expression, messageConstEvalNullValue);
-        }
-      } else {
-        // Fully evaluated spread
-        if (spread is MapConstant) {
-          for (ConstantMapEntry entry in spread.entries) {
-            addToMapConstant(
-                parts,
-                new MapEntry(new ConstantExpression(entry.key),
-                    new ConstantExpression(entry.value)),
-                keyType,
-                valueType,
-                seenKeys);
-          }
-        } else {
-          // Not map in spread
-          return report(element.expression, messageConstEvalNotMapInSpread);
-        }
-      }
-    } else if (element is IfMapEntry) {
-      Constant condition = _evaluateSubexpression(element.condition);
-      if (shouldBeUnevaluated) {
-        // Unevaluated if
-        enterLazy();
-        Constant then = _evaluateSubexpression(
-            new MapLiteral([cloner.clone(element.then)], isConst: true));
-        Constant otherwise;
-        if (element.otherwise != null) {
-          otherwise = _evaluateSubexpression(
-              new MapLiteral([cloner.clone(element.otherwise)], isConst: true));
-        } else {
-          otherwise =
-              new MapConstant(const DynamicType(), const DynamicType(), []);
-        }
-        leaveLazy();
-        parts.add(unevaluated(
-            element.condition,
-            new ConditionalExpression(extract(condition), extract(then),
-                extract(otherwise), const DynamicType())));
-      } else {
-        // Fully evaluated if
-        if (condition == trueConstant) {
-          addToMapConstant(parts, element.then, keyType, valueType, seenKeys);
-        } else if (condition == falseConstant) {
-          if (element.otherwise != null) {
-            addToMapConstant(
-                parts, element.otherwise, keyType, valueType, seenKeys);
-          }
-        } else if (condition == nullConstant) {
-          report(element.condition, messageConstEvalNullValue);
-        } else {
-          report(
-              element.condition,
-              templateConstEvalInvalidType.withArguments(
-                  condition,
-                  typeEnvironment.boolType,
-                  condition.getType(typeEnvironment)));
-        }
-      }
-    } else if (element is ForMapEntry || element is ForInMapEntry) {
-      // For or for-in
-      report(element, messageConstEvalIterationInConstMap);
-    } else {
-      // Ordinary map entry
-      Constant key = _evaluateSubexpression(element.key);
-      Constant value = _evaluateSubexpression(element.value);
-      if (shouldBeUnevaluated) {
-        parts.add(unevaluated(
-            element.key,
-            new MapLiteral([new MapEntry(extract(key), extract(value))],
-                isConst: true)));
-      } else {
-        List<ConstantMapEntry> entries;
-        if (parts.last is List<ConstantMapEntry>) {
-          entries = parts.last;
-        } else {
-          parts.add(entries = <ConstantMapEntry>[]);
-        }
-        if (!hasPrimitiveEqual(key)) {
-          report(
-              element, templateConstEvalKeyImplementsEqual.withArguments(key));
-        }
-        if (!seenKeys.add(key)) {
-          report(element.key, templateConstEvalDuplicateKey.withArguments(key));
-        }
-        entries.add(new ConstantMapEntry(
-            ensureIsSubtype(key, keyType, element.key),
-            ensureIsSubtype(value, valueType, element.value)));
-      }
-    }
-  }
-
-  Constant makeMapConstantFromParts(List<Object> parts, Expression node,
-      DartType keyType, DartType valueType) {
-    if (parts.length == 1) {
-      // Fully evaluated
-      return lowerMapConstant(
-          new MapConstant(keyType, valueType, parts.single));
-    }
-    List<Expression> maps = <Expression>[];
-    for (Object part in parts) {
-      if (part is List<ConstantMapEntry>) {
-        maps.add(
-            new ConstantExpression(new MapConstant(keyType, valueType, part)));
-      } else if (part is Constant) {
-        maps.add(extract(part));
-      } else {
-        throw 'Non-constant in constant map';
-      }
-    }
-    return unevaluated(node,
-        new MapConcatenation(maps, keyType: keyType, valueType: valueType));
+    return builder.build();
   }
 
   visitMapLiteral(MapLiteral node) {
@@ -1156,22 +826,21 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return report(
           node, templateConstEvalNonConstantLiteral.withArguments('Map'));
     }
-    final Set<Constant> seen = new Set<Constant>.identity();
-    final List<Object> parts = <Object>[<ConstantMapEntry>[]];
+    final MapConstantBuilder builder =
+        new MapConstantBuilder(node, node.keyType, node.valueType, this);
     for (MapEntry element in node.entries) {
-      addToMapConstant(parts, element, node.keyType, node.valueType, seen);
+      builder.add(element);
     }
-    return makeMapConstantFromParts(parts, node, node.keyType, node.valueType);
+    return builder.build();
   }
 
   visitMapConcatenation(MapConcatenation node) {
-    final Set<Constant> seen = new Set<Constant>.identity();
-    final List<Object> parts = <Object>[<ConstantMapEntry>[]];
+    final MapConstantBuilder builder =
+        new MapConstantBuilder(node, node.keyType, node.valueType, this);
     for (Expression map in node.maps) {
-      addToMapConstant(parts, new SpreadMapEntry(cloner.clone(map), false),
-          node.keyType, node.valueType, seen);
+      builder.addSpread(map);
     }
-    return makeMapConstantFromParts(parts, node, node.keyType, node.valueType);
+    return builder.build();
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -1840,7 +1509,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               extract(otherwise), node.staticType));
     } else {
       return report(
-          node,
+          node.condition,
           templateConstEvalInvalidType.withArguments(condition,
               typeEnvironment.boolType, condition.getType(typeEnvironment)));
     }
@@ -1934,6 +1603,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       } else {
         reportInvalid(
             node, 'No support for ${target.runtimeType} in a static-get.');
+        return null;
       }
     });
   }
@@ -2092,7 +1762,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (shouldBeUnevaluated) {
-      return unevaluated(node, new AsExpression(extract(constant), node.type));
+      return unevaluated(node,
+          new AsExpression(extract(constant), env.subsituteType(node.type)));
     }
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
   }
@@ -2135,7 +1806,9 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constant constant = _evaluateSubexpression(node.expression);
     if (shouldBeUnevaluated) {
       return unevaluated(
-          node, new Instantiation(extract(constant), node.typeArguments));
+          node,
+          new Instantiation(extract(constant),
+              node.typeArguments.map((t) => env.subsituteType(t)).toList()));
     }
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==

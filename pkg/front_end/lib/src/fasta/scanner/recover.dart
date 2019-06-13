@@ -30,8 +30,7 @@ import 'error_token.dart' show NonAsciiIdentifierToken, ErrorToken;
 /// [bytes]. [lineStarts] are the beginning character offsets of lines, and
 /// must be updated if recovery is performed rewriting the original source
 /// code.
-Token defaultRecoveryStrategy(
-    List<int> bytes, Token tokens, List<int> lineStarts) {
+Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   // See [Parser.reportErrorToken](../parser/src/parser.dart) for how
   // it currently handles lexical errors. In addition, notice how the parser
   // calls [handleInvalidExpression], [handleInvalidFunctionBody], and

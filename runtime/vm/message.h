@@ -5,6 +5,9 @@
 #ifndef RUNTIME_VM_MESSAGE_H_
 #define RUNTIME_VM_MESSAGE_H_
 
+#include <memory>
+#include <utility>
+
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/finalizable_data.h"
@@ -40,7 +43,7 @@ class Message {
   } OOBMsgTag;
 
   // A port number which is never used.
-  static const Dart_Port kIllegalPort = 0;
+  static const Dart_Port kIllegalPort;
 
   // A new message to be sent between two isolates. The data handed to this
   // message will be disposed by calling free() once the message object is
@@ -60,6 +63,11 @@ class Message {
           Dart_Port delivery_failure_port = kIllegalPort);
 
   ~Message();
+
+  template <typename... Args>
+  static std::unique_ptr<Message> New(Args&&... args) {
+    return std::unique_ptr<Message>(new Message(std::forward<Args>(args)...));
+  }
 
   Dart_Port dest_port() const { return dest_port_; }
 
@@ -114,11 +122,11 @@ class MessageQueue {
   MessageQueue();
   ~MessageQueue();
 
-  void Enqueue(Message* msg, bool before_events);
+  void Enqueue(std::unique_ptr<Message> msg, bool before_events);
 
   // Gets the next message from the message queue or NULL if no
   // message is available.  This function will not block.
-  Message* Dequeue();
+  std::unique_ptr<Message> Dequeue();
 
   bool IsEmpty() { return head_ == NULL; }
 

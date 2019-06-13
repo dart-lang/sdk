@@ -31,11 +31,13 @@ import 'package:meta/meta.dart';
   }
 
   test_mixin() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 @sealed mixin M {}
-''', [HintCode.INVALID_SEALED_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_SEALED_ANNOTATION, 34, 7),
+    ]);
   }
 
   test_mixinApplication() async {
@@ -51,10 +53,12 @@ abstract class B {}
   }
 
   test_nonClass() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
 @sealed m({a = 1}) => null;
-''', [HintCode.INVALID_SEALED_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_SEALED_ANNOTATION, 34, 7),
+    ]);
   }
 }

@@ -72,14 +72,24 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_2_2 =>
       new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
 
+  /// Return a range covering every version up to, but not including, 2.3.2.
+  VersionRange get before_2_3_2 =>
+      new VersionRange(max: Version.parse('2.3.2'), includeMax: false);
+
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
-      !before_2_2_2.intersect(_versionConstraint).isEmpty;
+      !before_2_3_2.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
       !before_2_1_0.intersect(_versionConstraint).isEmpty;
+
+  /// Return `true` if references to the non-nullable features need to be
+  /// checked.
+  // TODO(brianwilkerson) Implement this as a version check when a version has
+  //  been selected.
+  bool get checkNnbd => true;
 
   /// Return `true` if references to set literals need to be checked.
   bool get checkSetLiterals =>
@@ -214,6 +224,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, node, [element.name]);
+    } else if (checkNnbd && element == _typeProvider.neverType.element) {
+      _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_NEVER, node);
     }
   }
 

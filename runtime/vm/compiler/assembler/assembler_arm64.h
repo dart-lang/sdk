@@ -438,6 +438,12 @@ class Assembler : public AssemblerBase {
   void PushRegisters(const RegisterSet& registers);
   void PopRegisters(const RegisterSet& registers);
 
+  // Push all registers which are callee-saved according to the ARM64 ABI.
+  void PushNativeCalleeSavedRegisters();
+
+  // Pop all registers which are callee-saved according to the ARM64 ABI.
+  void PopNativeCalleeSavedRegisters();
+
   void MoveRegister(Register rd, Register rn) {
     if (rd != rn) {
       mov(rd, rn);
@@ -480,6 +486,11 @@ class Assembler : public AssemblerBase {
   }
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
+
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  void EmitEntryFrameVerification();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -1485,9 +1496,6 @@ class Assembler : public AssemblerBase {
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        ObjectPoolBuilderEntry::Patchability patchable);
-  void LoadFunctionFromCalleePool(Register dst,
-                                  const Function& function,
-                                  Register new_pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
@@ -1527,9 +1535,13 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void Ret() { ret(LR); }
 
-  // These require that CSP and SP are equal and aligned.
-  // These require a scratch register (in addition to TMP/TMP2).
+  // Emit code to transition between generated mode and native mode.
+  //
+  // These require that CSP and SP are equal and aligned and require a scratch
+  // register (in addition to TMP/TMP2).
+
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register new_exit_frame,
                                    Register scratch);
   void TransitionNativeToGenerated(Register scratch);
 
@@ -1537,7 +1549,7 @@ class Assembler : public AssemblerBase {
   void RestoreCodePointer();
 
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
-  void EnterOsrFrame(intptr_t extra_size, Register new_pp);
+  void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   void EnterCallRuntimeFrame(intptr_t frame_size);

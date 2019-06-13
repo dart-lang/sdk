@@ -242,9 +242,9 @@ class AbstractStrongTest with ResourceProviderMixin {
   AnalysisContext _context = null;
   AnalysisDriver _driver = null;
 
-  List<String> get enabledExperiments => [];
-
   Map<String, List<Folder>> packageMap;
+
+  List<String> get enabledExperiments => [];
 
   /// Adds a file to check. The file should contain:
   ///
@@ -338,6 +338,8 @@ class AbstractStrongTest with ResourceProviderMixin {
         return code.errorSeverity.ordinal > ErrorSeverity.INFO.ordinal ||
             code == HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL ||
             code == HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION ||
+            code == HintCode.STRICT_RAW_TYPE_IN_AS ||
+            code == HintCode.STRICT_RAW_TYPE_IN_IS ||
             code == HintCode.STRICT_RAW_TYPE;
       }
       return true;

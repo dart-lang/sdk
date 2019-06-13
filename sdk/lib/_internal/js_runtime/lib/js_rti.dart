@@ -391,6 +391,7 @@ getRti(o) {
 }
 
 Type getRuntimeType(var object) {
+  if (JS_GET_FLAG('USE_NEW_RTI')) return newRti.getRuntimeType(object);
   return new TypeImpl(getRti(object));
 }
 

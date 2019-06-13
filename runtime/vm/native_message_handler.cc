@@ -26,7 +26,7 @@ void NativeMessageHandler::CheckAccess() {
 #endif
 
 MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
-    Message* message) {
+    std::unique_ptr<Message> message) {
   if (message->IsOOB()) {
     // We currently do not use OOB messages for native ports.
     UNREACHABLE();
@@ -36,10 +36,9 @@ MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
   // zone associated with this scope.
   ApiNativeScope scope;
   Dart_CObject* object;
-  ApiMessageReader reader(message);
+  ApiMessageReader reader(message.get());
   object = reader.ReadMessage();
   (*func())(message->dest_port(), object);
-  delete message;
   return kOK;
 }
 

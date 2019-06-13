@@ -442,6 +442,7 @@ class SnapshotReader : public BaseReader {
   friend class Script;
   friend class SignatureData;
   friend class SubtypeTestCache;
+  friend class TransferableTypedData;
   friend class Type;
   friend class TypedDataView;
   friend class TypeArguments;
@@ -715,6 +716,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawScript;
   friend class RawStackTrace;
   friend class RawSubtypeTestCache;
+  friend class RawTransferableTypedData;
   friend class RawType;
   friend class RawTypedDataView;
   friend class RawTypeRef;
@@ -728,22 +730,17 @@ class SnapshotWriter : public BaseWriter {
 
 class SerializedObjectBuffer : public StackResource {
  public:
-  SerializedObjectBuffer() : StackResource(Thread::Current()), message_(NULL) {}
+  SerializedObjectBuffer()
+      : StackResource(Thread::Current()), message_(nullptr) {}
 
-  virtual ~SerializedObjectBuffer() { delete message_; }
-
-  void set_message(Message* message) {
-    ASSERT(message_ == NULL);
-    message_ = message;
+  void set_message(std::unique_ptr<Message> message) {
+    ASSERT(message_ == nullptr);
+    message_ = std::move(message);
   }
-  Message* StealMessage() {
-    Message* result = message_;
-    message_ = NULL;
-    return result;
-  }
+  std::unique_ptr<Message> StealMessage() { return std::move(message_); }
 
  private:
-  Message* message_;
+  std::unique_ptr<Message> message_;
 };
 
 class MessageWriter : public SnapshotWriter {
@@ -752,9 +749,9 @@ class MessageWriter : public SnapshotWriter {
   explicit MessageWriter(bool can_send_any_object);
   ~MessageWriter();
 
-  Message* WriteMessage(const Object& obj,
-                        Dart_Port dest_port,
-                        Message::Priority priority);
+  std::unique_ptr<Message> WriteMessage(const Object& obj,
+                                        Dart_Port dest_port,
+                                        Message::Priority priority);
 
   MessageFinalizableData* finalizable_data() const { return finalizable_data_; }
 

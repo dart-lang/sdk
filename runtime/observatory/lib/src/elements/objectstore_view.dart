@@ -19,7 +19,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ObjectStoreViewElement extends HtmlElement implements Renderable {
+class ObjectStoreViewElement extends CustomElement implements Renderable {
   static const tag = const Tag<ObjectStoreViewElement>('objectstore-view',
       dependencies: const [
         InstanceRefElement.tag,
@@ -61,7 +61,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     assert(notifications != null);
     assert(stores != null);
     assert(objects != null);
-    ObjectStoreViewElement e = document.createElement(tag.name);
+    ObjectStoreViewElement e = new ObjectStoreViewElement.created();
     e._r = new RenderingScheduler<ObjectStoreViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -72,7 +72,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ObjectStoreViewElement.created() : super.created();
+  ObjectStoreViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -92,12 +92,13 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
     final fields = _store?.fields?.toList(growable: false);
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavRefreshElement(disabled: _store == null, queue: _r.queue)
-          ..onRefresh.listen((e) => _refresh()),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
+        (new NavRefreshElement(disabled: _store == null, queue: _r.queue)
+              ..onRefresh.listen((e) => _refresh()))
+            .element,
+        (new NavNotifyElement(_notifications, queue: _r.queue).element)
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -126,7 +127,7 @@ class ObjectStoreViewElement extends HtmlElement implements Renderable {
                           ]
                       ])
                     .toList()),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

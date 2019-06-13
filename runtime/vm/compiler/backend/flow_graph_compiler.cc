@@ -42,6 +42,8 @@ DEFINE_FLAG(bool,
             false,
             "Inlining interval diagnostics");
 
+DEFINE_FLAG(bool, enable_peephole, true, "Enable peephole optimization");
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_FLAG(bool,
@@ -321,16 +323,6 @@ void FlowGraphCompiler::CompactBlocks() {
 }
 
 intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
-// On ARM64 we cannot use the position of the label bound in the
-// FunctionEntryInstr, because `FunctionEntryInstr::EmitNativeCode` does not
-// emit the monomorphic entry and frame entry (instead on ARM64 this is done
-// in FlowGraphCompiler::CompileGraph()).
-//
-// See http://dartbug.com/34162
-#if defined(TARGET_ARCH_ARM64)
-  return 0;
-#endif
-
   BlockEntryInstr* entry = flow_graph().graph_entry()->unchecked_entry();
   if (entry == nullptr) {
     entry = flow_graph().graph_entry()->normal_entry();
@@ -345,12 +337,11 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
     return target->Position();
   }
 
-// Intrinsification happened.
-#ifdef DART_PRECOMPILER
+  // Intrinsification happened.
   if (parsed_function().function().IsDynamicFunction()) {
     return Instructions::kMonomorphicEntryOffset;
   }
-#endif
+
   return 0;
 }
 
@@ -522,11 +513,47 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
                        line.ToCString());
 }
 
+#if !defined(TARGET_ARCH_DBC)
+
+static bool IsPusher(Instruction* instr) {
+  if (auto def = instr->AsDefinition()) {
+    return def->HasTemp();
+  }
+  return false;
+}
+
+static bool IsPopper(Instruction* instr) {
+  // TODO(ajcbik): even allow deopt targets by making environment aware?
+  if (!instr->CanBecomeDeoptimizationTarget()) {
+    return !instr->IsPushArgument() && instr->ArgumentCount() == 0 &&
+           instr->InputCount() > 0;
+  }
+  return false;
+}
+
+#endif
+
+bool FlowGraphCompiler::IsPeephole(Instruction* instr) const {
+#if !defined(TARGET_ARCH_DBC)
+  if (FLAG_enable_peephole && !is_optimizing()) {
+    return IsPusher(instr) && IsPopper(instr->next());
+  }
+#endif
+  return false;
+}
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
   if (Assembler::EmittingComments()) {
     // The loop_info fields were cleared, recompute.
     flow_graph().ComputeLoops();
+  }
+
+  // In precompiled mode, we require the function entry to come first (after the
+  // graph entry), since the polymorphic check is performed in the function
+  // entry (see Instructions::EntryPoint).
+  if (FLAG_precompiled_mode) {
+    ASSERT(block_order()[1] == flow_graph().graph_entry()->normal_entry());
   }
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
@@ -561,9 +588,7 @@ void FlowGraphCompiler::VisitBlocks() {
     pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
 
-    // The function was fully intrinsified, so there's no need to generate any
-    // more code.
-    if (fully_intrinsified_) {
+    if (skip_body_compilation()) {
       ASSERT(entry == flow_graph().graph_entry()->normal_entry());
       break;
     }
@@ -591,7 +616,12 @@ void FlowGraphCompiler::VisitBlocks() {
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
         pending_deoptimization_env_ = NULL;
-        EmitInstructionEpilogue(instr);
+        if (IsPeephole(instr)) {
+          ASSERT(top_of_stack_ == nullptr);
+          top_of_stack_ = instr->AsDefinition();
+        } else {
+          EmitInstructionEpilogue(instr);
+        }
         EndCodeSourceRange(instr->token_pos());
       }
 
@@ -794,7 +824,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
 
     RegisterSet* registers = locs->live_registers();
     ASSERT(registers != NULL);
-    const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+    const intptr_t kFpuRegisterSpillFactor =
+        kFpuRegisterSize / compiler::target::kWordSize;
     intptr_t saved_registers_size = 0;
     const bool using_shared_stub = locs->call_on_shared_slow_path();
     if (using_shared_stub) {
@@ -935,7 +966,8 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   RegisterSet* regs = instruction->locs()->live_registers();
   intptr_t fpu_reg_slots[kNumberOfFpuRegisters];
   intptr_t cpu_reg_slots[kNumberOfCpuRegisters];
-  const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+  const intptr_t kFpuRegisterSpillFactor =
+      kFpuRegisterSize / compiler::target::kWordSize;
   // FPU registers are spilled first from highest to lowest register number.
   for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
     FpuRegister reg = static_cast<FpuRegister>(i);
@@ -1081,22 +1113,19 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
 #if defined(PRODUCT)
 // No debugger: no var descriptors.
 #else
-  // TODO(alexmarkov): revise local vars descriptors when compiling bytecode
-  if (code.is_optimized() ||
-      flow_graph().function().is_declared_in_bytecode() ||
-      flow_graph().function().HasBytecode()) {
+  if (code.is_optimized()) {
     // Optimized code does not need variable descriptors. They are
     // only stored in the unoptimized version.
     code.set_var_descriptors(Object::empty_var_descriptors());
     return;
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  if (parsed_function().node_sequence() == NULL) {
+  if (flow_graph().IsIrregexpFunction()) {
     // Eager local var descriptors computation for Irregexp function as it is
     // complicated to factor out.
     // TODO(srdjan): Consider canonicalizing and reusing the local var
     // descriptor for IrregexpFunction.
-    ASSERT(flow_graph().IsIrregexpFunction());
+    ASSERT(parsed_function().node_sequence() == nullptr);
     var_descs = LocalVarDescriptors::New(1);
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
@@ -1191,15 +1220,23 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
     // them even in checked mode and strong mode.
     switch (parsed_function().function().kind()) {
       case RawFunction::kImplicitGetter: {
-        const Field& field = Field::Handle(function().accessor_field());
+        Field& field = Field::Handle(function().accessor_field());
         ASSERT(!field.IsNull());
+#if defined(DEBUG)
+        // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+        // The assertion is intended to ensure that the background compiler sees
+        // consistent cids, but that's not important in this case because
+        // IsPotentialUnboxedField can go from true to false, but not false to
+        // true, and we only do this optimisation if it is false.
+        field = field.CloneFromOriginal();
+#endif
 
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
         if (field.is_instance() &&
             (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-          GenerateGetterIntrinsic(field.Offset());
+          GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
           return !isolate()->use_field_guards();
         }
@@ -1207,13 +1244,18 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
       }
       case RawFunction::kImplicitSetter: {
         if (!isolate()->argument_type_checks()) {
-          const Field& field = Field::Handle(function().accessor_field());
+          Field& field = Field::Handle(function().accessor_field());
           ASSERT(!field.IsNull());
+#if defined(DEBUG)
+          // HACK: Clone the field to ignore assertion in Field::guarded_cid().
+          // The same reasons as above apply, but we only check if it's dynamic.
+          field = field.CloneFromOriginal();
+#endif
 
           if (field.is_instance() &&
               (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
             SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
-            GenerateSetterIntrinsic(field.Offset());
+            GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
             SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
             return !isolate()->use_field_guards();
           }
@@ -1227,8 +1269,9 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
             parsed_function().function().extracted_method_closure());
         auto& klass = Class::Handle(extracted_method.Owner());
         const intptr_t type_arguments_field_offset =
-            klass.NumTypeArguments() > 0
-                ? (klass.type_arguments_field_offset() - kHeapObjectTag)
+            compiler::target::Class::HasTypeArgumentsField(klass)
+                ? (compiler::target::Class::TypeArgumentsFieldOffset(klass) -
+                   kHeapObjectTag)
                 : 0;
 
         SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
@@ -1357,7 +1400,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                : ic_data.arguments_descriptor());
   ASSERT(ArgumentsDescriptor(arguments_descriptor).TypeArgsLen() ==
          args_info.type_args_len);
-  if (is_optimizing()) {
+  if (is_optimizing() && !ForcedOptimization()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             args_info.count_with_type_args, deopt_id, token_pos,
                             locs, entry_kind);
@@ -1463,6 +1506,21 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
   bool blocked_registers[kNumberOfCpuRegisters];
 
+  // Connect input with peephole output for some special cases. All other
+  // cases are handled by simply allocating registers and generating code.
+  if (top_of_stack_ != nullptr) {
+    const intptr_t p = locs->input_count() - 1;
+    Location peephole = top_of_stack_->locs()->out(0);
+    if (locs->in(p).IsUnallocated() || locs->in(p).IsConstant()) {
+      // If input is unallocated, match with an output register, if set. Also,
+      // if input is a direct constant, but the peephole output is a register,
+      // use that register to avoid wasting the already generated code.
+      if (peephole.IsRegister()) {
+        locs->set_in(p, Location::RegisterLocation(peephole.reg()));
+      }
+    }
+  }
+
   // Block all registers globally reserved by the assembler, etc and mark
   // the rest as free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
@@ -1511,10 +1569,17 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
     ASSERT(reg != kNoRegister || loc.IsConstant());
 
-    // Inputs are consumed from the simulated frame. In case of a call argument
-    // we leave it until the call instruction.
+    // Inputs are consumed from the simulated frame (or a peephole push/pop).
+    // In case of a call argument we leave it until the call instruction.
     if (should_pop) {
-      if (loc.IsConstant()) {
+      if (top_of_stack_ != nullptr) {
+        if (!loc.IsConstant()) {
+          // Moves top of stack location of the peephole into the required
+          // input. None of the required moves needs a temp register allocator.
+          EmitMove(locs->in(i), top_of_stack_->locs()->out(0), nullptr);
+        }
+        top_of_stack_ = nullptr;  // consumed!
+      } else if (loc.IsConstant()) {
         assembler()->Drop(1);
       } else {
         assembler()->PopRegister(reg);
@@ -1668,6 +1733,30 @@ void ParallelMoveResolver::PerformMove(int index) {
   compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
+#if !defined(TARGET_ARCH_DBC)
+void ParallelMoveResolver::EmitMove(int index) {
+  MoveOperands* const move = moves_[index];
+  const Location dst = move->dest();
+  if (dst.IsStackSlot() || dst.IsDoubleStackSlot()) {
+    ASSERT((dst.base_reg() != FPREG) ||
+           ((-compiler::target::frame_layout.VariableIndexForFrameSlot(
+                dst.stack_index())) < compiler_->StackSize()));
+  }
+  const Location src = move->src();
+  ParallelMoveResolver::TemporaryAllocator temp(this, /*blocked=*/kNoRegister);
+  compiler_->EmitMove(dst, src, &temp);
+#if defined(DEBUG)
+  // Allocating a scratch register here may cause stack spilling. Neither the
+  // source nor destination register should be SP-relative in that case.
+  for (const Location loc : {dst, src}) {
+    ASSERT(!temp.DidAllocateTemporary() || !loc.HasStackIndex() ||
+           loc.base_reg() != SPREG);
+  }
+#endif
+  move->Eliminate();
+}
+#endif
+
 bool ParallelMoveResolver::IsScratchLocation(Location loc) {
   for (int i = 0; i < moves_.length(); ++i) {
     if (moves_[i]->Blocks(loc)) {
@@ -1740,12 +1829,19 @@ ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
   }
 }
 
-ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+ParallelMoveResolver::TemporaryAllocator::TemporaryAllocator(
     ParallelMoveResolver* resolver,
     Register blocked)
-    : resolver_(resolver), reg_(kNoRegister), spilled_(false) {
-  uword blocked_mask = RegMaskBit(blocked) | kReservedCpuRegisters;
-  if (resolver->compiler_->intrinsic_mode()) {
+    : resolver_(resolver),
+      blocked_(blocked),
+      reg_(kNoRegister),
+      spilled_(false) {}
+
+Register ParallelMoveResolver::TemporaryAllocator::AllocateTemporary() {
+  ASSERT(reg_ == kNoRegister);
+
+  uword blocked_mask = RegMaskBit(blocked_) | kReservedCpuRegisters;
+  if (resolver_->compiler_->intrinsic_mode()) {
     // Block additional registers that must be preserved for intrinsics.
     blocked_mask |= RegMaskBit(ARGS_DESC_REG);
 #if !defined(TARGET_ARCH_IA32)
@@ -1759,14 +1855,29 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
                                          kNumberOfCpuRegisters - 1, &spilled_));
 
   if (spilled_) {
-    resolver->SpillScratch(reg_);
+    resolver_->SpillScratch(reg_);
   }
+
+  DEBUG_ONLY(allocated_ = true;)
+  return reg_;
 }
 
-ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+void ParallelMoveResolver::TemporaryAllocator::ReleaseTemporary() {
   if (spilled_) {
     resolver_->RestoreScratch(reg_);
   }
+  reg_ = kNoRegister;
+}
+
+ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+    ParallelMoveResolver* resolver,
+    Register blocked)
+    : allocator_(resolver, blocked) {
+  reg_ = allocator_.AllocateTemporary();
+}
+
+ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+  allocator_.ReleaseTemporary();
 }
 
 const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
@@ -1936,7 +2047,7 @@ bool FlowGraphCompiler::LookupMethodFor(int class_id,
       Function::Handle(zone, Resolver::ResolveDynamicForReceiverClass(
                                  cls, name, args_desc, allow_add));
   if (target_function.IsNull()) return false;
-  *fn_return ^= target_function.raw();
+  *fn_return = target_function.raw();
   return true;
 }
 
@@ -1994,6 +2105,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         intptr_t total_ic_calls,
                                         Code::EntryKind entry_kind) {
   ASSERT(is_optimizing());
+  ASSERT(complete || (failed != nullptr));  // Complete calls can't fail.
 
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), args_info.ToArgumentsDescriptor());
@@ -2028,8 +2140,13 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
   if (smi_case != kNoCase) {
     Label after_smi_test;
-    EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
-                             /* jump_if_smi= */ false);
+    // If the call is complete and there are no other possible receiver
+    // classes - then receiver can only be a smi value and we don't need
+    // to check if it is a smi.
+    if (!(complete && non_smi_length == 0)) {
+      EmitTestAndCallSmiBranch(non_smi_length == 0 ? failed : &after_smi_test,
+                               /* jump_if_smi= */ false);
+    }
 
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
@@ -2194,8 +2311,9 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, done);
     __ LoadField(dst_type_reg,
-                 FieldAddress(kTypeArgumentsReg, TypeArguments::type_at_offset(
-                                                     type_param.index())));
+                 FieldAddress(kTypeArgumentsReg,
+                              compiler::target::TypeArguments::type_at_offset(
+                                  type_param.index())));
     if (type_usage_info != NULL) {
       type_usage_info->UseTypeInAssertAssignable(dst_type);
     }

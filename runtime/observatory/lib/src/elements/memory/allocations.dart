@@ -30,7 +30,7 @@ enum _SortingField {
 
 enum _SortingDirection { ascending, descending }
 
-class MemoryAllocationsElement extends HtmlElement implements Renderable {
+class MemoryAllocationsElement extends CustomElement implements Renderable {
   static const tag = const Tag<MemoryAllocationsElement>('memory-allocations',
       dependencies: const [ClassRefElement.tag, VirtualCollectionElement.tag]);
 
@@ -54,7 +54,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(editor != null);
     assert(repository != null);
-    MemoryAllocationsElement e = document.createElement(tag.name);
+    MemoryAllocationsElement e = new MemoryAllocationsElement.created();
     e._r = new RenderingScheduler<MemoryAllocationsElement>(e, queue: queue);
     e._isolate = isolate;
     e._editor = editor;
@@ -62,7 +62,7 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MemoryAllocationsElement.created() : super.created();
+  MemoryAllocationsElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -92,18 +92,19 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
     } else {
       children = <Element>[
         new VirtualCollectionElement(
-            _createCollectionLine, _updateCollectionLine,
-            createHeader: _createCollectionHeader,
-            search: _search,
-            items: _profile.members
-                .where((member) =>
-                    member.newSpace.accumulated.instances != 0 ||
-                    member.newSpace.current.instances != 0 ||
-                    member.oldSpace.accumulated.instances != 0 ||
-                    member.oldSpace.current.instances != 0)
-                .toList()
-                  ..sort(_createSorter()),
-            queue: _r.queue)
+                _createCollectionLine, _updateCollectionLine,
+                createHeader: _createCollectionHeader,
+                search: _search,
+                items: _profile.members
+                    .where((member) =>
+                        member.newSpace.accumulated.instances != 0 ||
+                        member.newSpace.current.instances != 0 ||
+                        member.oldSpace.accumulated.instances != 0 ||
+                        member.oldSpace.current.instances != 0)
+                    .toList()
+                      ..sort(_createSorter()),
+                queue: _r.queue)
+            .element
       ];
     }
   }
@@ -239,8 +240,9 @@ class MemoryAllocationsElement extends HtmlElement implements Renderable {
         ..classes = ['name'];
       return;
     }
-    e.children[4] = new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
-      ..classes = ['name'];
+    e.children[4] = (new ClassRefElement(_isolate, item.clazz, queue: _r.queue)
+          ..classes = ['name'])
+        .element;
     Element.clickEvent.forTarget(e.children[4], useCapture: true).listen((e) {
       if (_editor.isAvailable) {
         e.preventDefault();

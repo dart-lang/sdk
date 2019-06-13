@@ -78,7 +78,7 @@ class SafepointHandler {
 
   // Monitor used by thread initiating a safepoint operation to track threads
   // not at a safepoint and wait for these threads to reach a safepoint.
-  Monitor* safepoint_lock_;
+  Monitor safepoint_lock_;
   int32_t number_threads_not_at_safepoint_;
 
   // Count that indicates if a safepoint operation is currently in progress

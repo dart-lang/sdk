@@ -4,16 +4,17 @@
 
 import 'dart:mirrors';
 
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart'
+    hide DiagnosticMessage;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -182,6 +183,7 @@ class EnumTest {
       engine.ElementKind.GENERIC_FUNCTION_TYPE: ElementKind.FUNCTION_TYPE_ALIAS,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
+      engine.ElementKind.NEVER: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
     });
   }
@@ -263,6 +265,18 @@ class MockAnalysisError implements engine.AnalysisError {
 
   MockAnalysisError(
       this.source, this.errorCode, this.offset, this.length, this.message);
+
+  @override
+  List<DiagnosticMessage> get contextMessages => null;
+
+  @override
+  String get correctionMessage => null;
+
+  @override
+  DiagnosticMessage get problemMessage => null;
+
+  @override
+  Severity get severity => null;
 }
 
 class MockErrorCode implements engine.ErrorCode {
@@ -288,6 +302,9 @@ class MockErrorCode implements engine.ErrorCode {
   String get correction {
     throw new StateError('Unexpected invocation of correction');
   }
+
+  @override
+  bool get hasPublishedDocs => false;
 
   @override
   bool get isUnresolvedIdentifier => false;

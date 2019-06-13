@@ -273,7 +273,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Class& cls = Class::Handle(Owner());
   if (!cls.IsNull()) {
     Error& err = Error::Handle();
-    err ^= cls.EnsureIsFinalized(Thread::Current());
+    err = cls.EnsureIsFinalized(Thread::Current());
     ASSERT(err.IsNull());
   } else {
     ASSERT(IsSignatureFunction());
@@ -332,7 +332,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
                     static_cast<intptr_t>(deoptimization_counter()));
   if ((kind() == RawFunction::kImplicitGetter) ||
       (kind() == RawFunction::kImplicitSetter) ||
-      (kind() == RawFunction::kImplicitStaticFinalGetter) ||
+      (kind() == RawFunction::kImplicitStaticGetter) ||
       (kind() == RawFunction::kStaticFieldInitializer)) {
     const Field& field = Field::Handle(accessor_field());
     if (!field.IsNull()) {
@@ -394,7 +394,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else {
     ClassTable* table = Isolate::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
-    cls ^= table->At(guarded_cid());
+    cls = table->At(guarded_cid());
     jsobj.AddProperty("_guardClass", cls);
   }
   if (guarded_list_length() == kUnknownFixedLength) {
@@ -785,7 +785,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     intptr_t count = GetCountAt(i);
     if (!is_static_call()) {
       intptr_t cid = GetReceiverClassIdAt(i);
-      cls ^= isolate->class_table()->At(cid);
+      cls = isolate->class_table()->At(cid);
       cache_entry.AddProperty("receiver", cls);
     }
     cache_entry.AddProperty("target", func);
@@ -1455,6 +1455,10 @@ void SendPort::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void TransferableTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+}
+
 void ClosureData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
@@ -1487,8 +1491,8 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  jsobj.AddProperty("isCaseSensitive", !is_ignore_case());
-  jsobj.AddProperty("isMultiLine", is_multi_line());
+  jsobj.AddProperty("isCaseSensitive", !flags().IgnoreCase());
+  jsobj.AddProperty("isMultiLine", flags().IsMultiLine());
 
   if (!FLAG_interpret_irregexp) {
     Function& func = Function::Handle();

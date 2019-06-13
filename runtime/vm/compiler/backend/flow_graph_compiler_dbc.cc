@@ -340,15 +340,12 @@ void FlowGraphCompiler::EmitFrameEntry() {
   }
 }
 
+void FlowGraphCompiler::EmitPrologue() {
+  EmitFrameEntry();
+}
+
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
-
-  if (TryIntrinsify()) {
-    // Skip regular code generation.
-    return;
-  }
-
-  EmitFrameEntry();
   VisitBlocks();
 }
 

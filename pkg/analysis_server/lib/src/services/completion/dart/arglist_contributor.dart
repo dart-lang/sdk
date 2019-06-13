@@ -182,7 +182,7 @@ class ArgListContributor extends DartCompletionContributor {
       // Optionally add Flutter child widget details.
       Element element = parameter.enclosingElement;
       if (element is ConstructorElement) {
-        var flutter = Flutter.of(request.result.session);
+        var flutter = Flutter.of(request.result);
         if (flutter.isWidget(element.enclosingElement)) {
           String value = getDefaultStringParameterValue(parameter);
           if (value == '<Widget>[]') {
@@ -224,7 +224,7 @@ class ArgListContributor extends DartCompletionContributor {
       return;
     }
     Iterable<ParameterElement> requiredParam =
-        parameters.where((ParameterElement p) => p.isNotOptional);
+        parameters.where((ParameterElement p) => p.isRequiredPositional);
     int requiredCount = requiredParam.length;
     // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
     // without preceded), then _isAppendingToArgList,
@@ -260,7 +260,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isInFlutterCreation(DartCompletionRequest request) {
-    var flutter = Flutter.of(request.result.session);
+    var flutter = Flutter.of(request.result);
     AstNode containingNode = request?.target?.containingNode;
     InstanceCreationExpression newExpr = containingNode != null
         ? flutter.identifyNewExpression(containingNode.parent)

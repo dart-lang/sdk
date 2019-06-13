@@ -42,6 +42,27 @@ class KernelBodyBuilder extends BodyBuilder {
       : forest = const Fangorn(),
         super.forField(member, typeInferrer);
 
+  KernelBodyBuilder.forOutlineExpression(
+      KernelLibraryBuilder library,
+      KernelClassBuilder classBuilder,
+      ModifierBuilder member,
+      Scope scope,
+      Scope parameterScope,
+      Uri fileUri)
+      : forest = const Fangorn(),
+        super(
+            library,
+            member,
+            scope,
+            parameterScope,
+            library.loader.hierarchy,
+            library.loader.coreTypes,
+            classBuilder,
+            member?.isInstanceMember ?? false,
+            fileUri,
+            library.loader.typeInferenceEngine
+                ?.createLocalTypeInferrer(fileUri, null, library));
+
   @override
   void enterThenForTypePromotion(Expression condition) {
     typePromoter?.enterThen(condition);

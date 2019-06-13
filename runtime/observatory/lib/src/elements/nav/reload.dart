@@ -15,7 +15,7 @@ class ReloadEvent {
   ReloadEvent(this.element);
 }
 
-class NavReloadElement extends HtmlElement implements Renderable {
+class NavReloadElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavReloadElement>('nav-reload');
 
   RenderingScheduler _r;
@@ -38,7 +38,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
     assert(isolate == null);
     assert(isolates == null);
     assert(events == null);
-    NavReloadElement e = document.createElement(tag.name);
+    NavReloadElement e = new NavReloadElement.created();
     e._r = new RenderingScheduler<NavReloadElement>(e, queue: queue);
     e._isolate = isolate;
     e._isolates = isolates;
@@ -46,7 +46,7 @@ class NavReloadElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  NavReloadElement.created() : super.created();
+  NavReloadElement.created() : super.created(tag);
 
   @override
   void attached() {

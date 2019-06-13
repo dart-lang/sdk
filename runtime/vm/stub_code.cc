@@ -112,7 +112,8 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
   if (FLAG_enable_interpreter) {
     if (is_interpreted_frame) {
       // Recognize special marker set up by interpreter in entry frame.
-      return Interpreter::IsEntryFrameMarker(reinterpret_cast<uint32_t*>(pc));
+      return Interpreter::IsEntryFrameMarker(
+          reinterpret_cast<const KBCInstr*>(pc));
     }
     {
       uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
@@ -181,9 +182,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
     if (thread->IsMutatorThread()) {
-      stub ^= Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
-                                          pool_attachment,
-                                          /*optimized1*/ false);
+      stub = Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
+                                         pool_attachment,
+                                         /*optimized1*/ false);
       // Check if background compilation thread has not already added the stub.
       if (cls.allocation_stub() == Code::null()) {
         stub.set_owner(cls);
@@ -207,8 +208,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
         // Do not Garbage collect during this stage and instead allow the
         // heap to grow.
         NoHeapGrowthControlScope no_growth_control;
-        stub ^= Code::FinalizeCode(nullptr, &assembler, pool_attachment,
-                                   /*optimized=*/false, /*stats=*/nullptr);
+        stub = Code::FinalizeCode(nullptr, &assembler, pool_attachment,
+                                  /*optimized=*/false, /*stats=*/nullptr);
         stub.set_owner(cls);
         cls.set_allocation_stub(stub);
       }

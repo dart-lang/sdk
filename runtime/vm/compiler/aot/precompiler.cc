@@ -4,6 +4,7 @@
 
 #include "vm/compiler/aot/precompiler.h"
 
+#include "platform/unicode.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/aot/aot_call_specializer.h"
@@ -49,7 +50,6 @@
 #include "vm/timer.h"
 #include "vm/type_table.h"
 #include "vm/type_testing_stubs.h"
-#include "vm/unicode.h"
 #include "vm/version.h"
 
 namespace dart {
@@ -72,7 +72,6 @@ DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, trace_bailout);
-DECLARE_FLAG(bool, verify_compiler);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
@@ -495,7 +494,7 @@ void Precompiler::CollectCallbackFields() {
         cids.Clear();
         if (CHA::ConcreteSubclasses(cls, &cids)) {
           for (intptr_t j = 0; j < cids.length(); ++j) {
-            subcls ^= I->class_table()->At(cids[j]);
+            subcls = I->class_table()->At(cids[j]);
             if (subcls.is_allocated()) {
               // Add dispatcher to cls.
               dispatcher = subcls.GetInvocationDispatcher(
@@ -1080,7 +1079,7 @@ void Precompiler::AddAnnotatedRoots() {
             }
           }
         }
-        if (function.kind() == RawFunction::kImplicitStaticFinalGetter &&
+        if (function.kind() == RawFunction::kImplicitStaticGetter &&
             !implicit_static_getters.IsNull()) {
           for (intptr_t i = 0; i < implicit_static_getters.Length(); ++i) {
             field ^= implicit_static_getters.At(i);
@@ -1947,7 +1946,7 @@ void Precompiler::BindStaticCalls() {
             // stub.
             auto& fun = Function::Cast(target_);
             ASSERT(fun.HasCode());
-            target_code_ ^= fun.CurrentCode();
+            target_code_ = fun.CurrentCode();
             uword pc = pc_offset + code_.PayloadStart();
             CodePatcher::PatchStaticCallAt(pc, code_, target_code_);
           }
@@ -2173,32 +2172,9 @@ void Precompiler::Obfuscate() {
 }
 
 void Precompiler::FinalizeAllClasses() {
-  Library& lib = Library::Handle(Z);
-  Class& cls = Class::Handle(Z);
-
-  for (intptr_t i = 0; i < libraries_.Length(); i++) {
-    lib ^= libraries_.At(i);
-    if (!lib.Loaded()) {
-      String& uri = String::Handle(Z, lib.url());
-      String& msg = String::Handle(
-          Z,
-          String::NewFormatted("Library '%s' is not loaded. "
-                               "Did you forget to call Dart_FinalizeLoading?",
-                               uri.ToCString()));
-      Jump(Error::Handle(Z, ApiError::New(msg)));
-    }
-
-    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
-    while (it.HasNext()) {
-      cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-      error_ = cls.EnsureIsFinalized(T);
-      if (!error_.IsNull()) {
-        Jump(error_);
-      }
-    }
+  error_ = Library::FinalizeAllClasses();
+  if (!error_.IsNull()) {
+    Jump(error_);
   }
   I->set_all_classes_finalized(true);
 }

@@ -22,7 +22,7 @@ class SdkVersionEqEqOperatorTest extends SdkConstraintVerifierTest {
     ..enabledExperiments = [EnableString.constant_update_2018];
 
   test_left_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 class A {
   const A();
 }
@@ -38,11 +38,13 @@ class A {
 }
 const A a = A();
 const c = a == null;
-''', errorCodes: [HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 54, 2),
+    ]);
   }
 
   test_right_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 class A {
   const A();
 }
@@ -58,6 +60,8 @@ class A {
 }
 const A a = A();
 const c = null == a;
-''', errorCodes: [HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT, 57, 2),
+    ]);
   }
 }

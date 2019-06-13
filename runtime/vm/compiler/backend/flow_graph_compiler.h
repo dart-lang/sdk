@@ -28,6 +28,32 @@ class GrowableArray;
 class ParsedFunction;
 class SpeculativeInliningPolicy;
 
+// Used in methods which need conditional access to a temporary register.
+// May only be used to allocate a single temporary register.
+class TemporaryRegisterAllocator : public ValueObject {
+ public:
+  virtual ~TemporaryRegisterAllocator() {}
+  virtual Register AllocateTemporary() = 0;
+  virtual void ReleaseTemporary() = 0;
+};
+
+class ConstantTemporaryAllocator : public TemporaryRegisterAllocator {
+ public:
+  explicit ConstantTemporaryAllocator(Register tmp) : tmp_(tmp) {}
+
+  Register AllocateTemporary() override { return tmp_; }
+  void ReleaseTemporary() override {}
+
+ private:
+  Register const tmp_;
+};
+
+class NoTemporaryAllocator : public TemporaryRegisterAllocator {
+ public:
+  Register AllocateTemporary() override { UNREACHABLE(); }
+  void ReleaseTemporary() override { UNREACHABLE(); }
+};
+
 class ParallelMoveResolver : public ValueObject {
  public:
   explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
@@ -50,6 +76,24 @@ class ParallelMoveResolver : public ValueObject {
     bool spilled_;
   };
 
+  class TemporaryAllocator : public TemporaryRegisterAllocator {
+   public:
+    TemporaryAllocator(ParallelMoveResolver* resolver, Register blocked);
+
+    Register AllocateTemporary() override;
+    void ReleaseTemporary() override;
+    DEBUG_ONLY(bool DidAllocateTemporary() { return allocated_; })
+
+    virtual ~TemporaryAllocator() { ASSERT(reg_ == kNoRegister); }
+
+   private:
+    ParallelMoveResolver* const resolver_;
+    const Register blocked_;
+    Register reg_;
+    bool spilled_;
+    DEBUG_ONLY(bool allocated_ = false);
+  };
+
   class ScratchRegisterScope : public ValueObject {
    public:
     ScratchRegisterScope(ParallelMoveResolver* resolver, Register blocked);
@@ -58,9 +102,8 @@ class ParallelMoveResolver : public ValueObject {
     Register reg() const { return reg_; }
 
    private:
-    ParallelMoveResolver* resolver_;
+    TemporaryAllocator allocator_;
     Register reg_;
-    bool spilled_;
   };
 
   bool IsScratchLocation(Location loc);
@@ -366,6 +409,11 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_;
   }
 
+  // If 'ForcedOptimization()' returns 'true', we are compiling in optimized
+  // mode for a function which cannot deoptimize. Certain optimizations, e.g.
+  // speculative optimizations and call patching are disabled.
+  bool ForcedOptimization() const { return function().ForceOptimize(); }
+
   const FlowGraph& flow_graph() const { return flow_graph_; }
 
   BlockEntryInstr* current_block() const { return current_block_; }
@@ -374,6 +422,15 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOptimizeFunction() const;
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
+
+  // The function was fully intrinsified, so the body is unreachable.
+  //
+  // We still need to compile the body in unoptimized mode because the
+  // 'ICData's are added to the function's 'ic_data_array_' when instance
+  // calls are compiled.
+  bool skip_body_compilation() const {
+    return fully_intrinsified_ && is_optimizing();
+  }
 
   void EnterIntrinsicMode();
   void ExitIntrinsicMode();
@@ -426,6 +483,9 @@ class FlowGraphCompiler : public ValueObject {
 
   // Returns 'true' if regular code generation should be skipped.
   bool TryIntrinsify();
+
+  // Emits code for a generic move from a location 'src' to a location 'dst'.
+  void EmitMove(Location dst, Location src, TemporaryRegisterAllocator* temp);
 
   void GenerateAssertAssignable(TokenPosition token_pos,
                                 intptr_t deopt_id,
@@ -970,6 +1030,10 @@ class FlowGraphCompiler : public ValueObject {
   void FrameStateClear();
 #endif
 
+  // Returns true if instruction lookahead (window size one)
+  // is amenable to a peephole optimization.
+  bool IsPeephole(Instruction* instr) const;
+
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
@@ -1033,6 +1097,11 @@ class FlowGraphCompiler : public ValueObject {
   Label* intrinsic_slow_path_label_ = nullptr;
   bool fully_intrinsified_ = false;
   CodeStatistics* stats_;
+
+  // The definition whose value is supposed to be at the top of the
+  // expression stack. Used by peephole optimization (window size one)
+  // to eliminate redundant push/pop pairs.
+  Definition* top_of_stack_ = nullptr;
 
   const Class& double_class_;
   const Class& mint_class_;

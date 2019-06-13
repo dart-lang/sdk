@@ -128,7 +128,6 @@ class SummaryTypeProvider extends TypeProviderBase {
   InterfaceType _listType;
   InterfaceType _mapType;
   InterfaceType _mapObjectObjectType;
-  InterfaceType _neverType;
   DartObjectImpl _nullObject;
   InterfaceType _nullType;
   InterfaceType _numType;
@@ -149,7 +148,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
-  DartType get bottomType => BottomTypeImpl.instance;
+  DartType get bottomType => BottomTypeImpl.instanceLegacy;
 
   @override
   InterfaceType get deprecatedType {
@@ -267,10 +266,7 @@ class SummaryTypeProvider extends TypeProviderBase {
   }
 
   @override
-  InterfaceType get neverType {
-    assert(_coreLibrary != null);
-    return _neverType ??= _getType(_coreLibrary, 'Never');
-  }
+  DartType get neverType => BottomTypeImpl.instance;
 
   @override
   DartObjectImpl get nullObject {
@@ -348,9 +344,6 @@ class SummaryTypeProvider extends TypeProviderBase {
     _typeType ??= _getType(_coreLibrary, "Type");
     return _typeType;
   }
-
-  @override
-  DartType get undefinedType => UndefinedTypeImpl.instance;
 
   /**
    * Initialize the `dart:async` types provided by this type provider.

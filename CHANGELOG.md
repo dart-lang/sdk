@@ -1,6 +1,121 @@
-## 2.3.2
+## 2.4.0 - 2019-06-24
 
-* Cherry-pick 3972f738ca4e91104e2d6dad9bb1f36147879e98 to stable
+### Core libraries
+
+#### `dart:isolate`
+
+* `TransferableTypedData` class was added to facilitate faster cross-isolate
+communication of `Uint8List` data.
+
+* **Breaking change**: `Isolate.resolvePackageUri` will always throw an
+  `UnsupportedError` when compiled with dart2js or DDC. This was the only
+  remaining API in `dart:isolate` that didn't automatically throw since we
+  dropped support for this library in [Dart 2.0.0][1]. Note that the API already
+  throws in dart2js if the API is used directly without manually setting up a
+  `defaultPackagesBase` hook.
+
+[1]: https://github.com/dart-lang/sdk/blob/master/CHANGELOG.md#200---2018-08-07
+
+
+#### `dart:developer`
+* Exposed `result`, `errorCode` and `errorDetail` getters in
+  `ServiceExtensionResponse` to allow for better debugging of VM service
+  extension RPC results.
+
+#### `dart:io`
+
+* Fixed `Cookie` class interoperability with certain websites by allowing the
+  cookie values to be the empty string (Issue [35804][]) and not stripping
+  double quotes from the value (Issue [33327][]) in accordance with RFC 6265.
+
+  [33327]: https://github.com/dart-lang/sdk/issues/33327
+  [35804]: https://github.com/dart-lang/sdk/issues/35804
+
+* The `HttpClientResponse` interface has been extended with the addition of a
+  new `compressionState` getter, which specifies whether the body of a
+  response was compressed when it was received and whether it has been
+  automatically uncompressed via `HttpClient.autoUncompress` (Issue [36971][]).
+
+  As part of this change, a corresponding new enum was added to `dart:io`:
+  `HttpClientResponseCompressionState`.
+
+  [36971]: https://github.com/dart-lang/sdk/issues/36971
+
+  * **Breaking change**: For those implementing the `HttpClientResponse`
+    interface, this is a breaking change, as implementing classes will need to
+    implement the new getter.
+
+#### `dart:async`
+
+* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
+  in `StreamIterator` class. This bug has now been fixed.
+
+#### `dart:core`
+
+* **Breaking change:** The `RegExp` interface has been extended with two new
+  constructor named parameters:
+
+  * `unicode:` (`bool`, default: `false`), for Unicode patterns
+  * `dotAll:` (`bool`, default: `false`), to change the matching behavior of
+    '.' to also match line terminating characters.
+
+  Appropriate properties for these named parameters have also been added so
+  their use can be detected after construction.
+
+  In addition, `RegExp` methods that originally returned `Match` objects
+  now return a more specific subtype, `RegExpMatch`, which adds two features:
+
+  * `Iterable<String> groupNames`, a property that contains the names of all
+    named capture groups
+  * `String namedGroup(String name)`, a method that retrieves the match for
+    the given named capture group
+
+  This change only affects implementers of the `RegExp` interface; current
+  code using Dart regular expressions will not be affected.
+
+### Language
+
+*   **Breaking change:** Covariance of type variables used in super-interfaces
+    is now enforced (issue [35097][]).  For example, the following code was
+    previously accepted and will now be rejected:
+
+```dart
+class A<X> {};
+class B<X> extends A<void Function(X)> {};
+```
+
+* The identifier `async` can now be used in asynchronous and generator
+  functions.
+
+[35097]: https://github.com/dart-lang/sdk/issues/35097
+
+### Tools
+
+#### Linter
+
+The Linter was updated to `0.1.91`, which includes the following changes:
+
+* Fixed missed cases in `prefer_const_constructors`
+* Fixed `prefer_initializing_formals` to no longer suggest API breaking changes
+* Updated `omit_local_variable_types` to allow explicit `dynamic`s
+* Fixed null-reference in `unrelated_type_equality_checks`
+* New lint: `unsafe_html`
+* Broadened `prefer_null_aware_operators` to work beyond local variables.
+* Added `prefer_if_null_operators`.
+* Fixed `prefer_contains` false positives.
+* Fixed `unnecessary_parenthesis` false positives.
+* New lint: `prefer_double_quotes`
+* Fixed `prefer_asserts_in_initializer_lists` false positives
+* Fixed `curly_braces_in_flow_control_structures` to handle more cases
+* New lint: `prefer_double_quotes`
+* New lint: `sort_child_properties_last`
+* Fixed `type_annotate_public_apis` false positive for `static const` initializers
+
+#### Pub
+
+* `pub publish` will no longer warn about missing dependencies for import
+   statements in `example/`.
+* OAuth2 authentication will explicitely ask for the `openid` scope.
 
 ## 2.3.2 - 2019-06-11
 
@@ -270,7 +385,7 @@ The Linter was updated to `0.1.86`, which includes the following changes:
   `.g.dart`, etc.).
 *   Fixed false positives in `unnecessary_parenthesis`.
 
-#### Pub client
+#### Pub
 
 *   Added a CHANGELOG validator that complains if you `pub publish` without
     mentioning the current version.

@@ -6,6 +6,7 @@ library dart2js.enqueue;
 
 import 'dart:collection' show Queue;
 
+import 'common/codegen.dart';
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -16,6 +17,7 @@ import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/types.dart';
+import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'universe/member_usage.dart';
 import 'universe/resolution_world_builder.dart';
@@ -64,10 +66,13 @@ class EnqueueTask extends CompilerTask {
           ..onEmptyForTesting = compiler.onResolutionQueueEmptyForTesting;
   }
 
-  Enqueuer createCodegenEnqueuer(JClosedWorld closedWorld,
-      GlobalTypeInferenceResults globalInferenceResults) {
-    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(
-        this, compiler, closedWorld, globalInferenceResults)
+  Enqueuer createCodegenEnqueuer(
+      JClosedWorld closedWorld,
+      GlobalTypeInferenceResults globalInferenceResults,
+      CodegenInputs codegenInputs,
+      CodegenResults codegenResults) {
+    Enqueuer enqueuer = compiler.backend.createCodegenEnqueuer(this, compiler,
+        closedWorld, globalInferenceResults, codegenInputs, codegenResults)
       ..onEmptyForTesting = compiler.onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = enqueuer;
@@ -207,7 +212,7 @@ abstract class EnqueuerImpl extends Enqueuer {
 
   /// Check enqueuer consistency after the queue has been closed.
   bool checkEnqueuerConsistency(ElementEnvironment elementEnvironment) {
-    task.measure(() {
+    task.measureSubtask('resolution.check', () {
       // Run through the classes and see if we need to enqueue more methods.
       for (ClassEntity classElement
           in worldBuilder.directlyInstantiatedClasses) {
@@ -283,11 +288,10 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   void _registerInstantiatedType(InterfaceType type,
       {ConstructorEntity constructor,
       bool nativeUsage: false,
-      bool globalDependency: false,
-      bool isRedirection: false}) {
-    task.measure(() {
+      bool globalDependency: false}) {
+    task.measureSubtask('resolution.typeUse', () {
       _worldBuilder.registerTypeInstantiation(type, _applyClassUse,
-          constructor: constructor, isRedirection: isRedirection);
+          constructor: constructor);
       listener.registerInstantiatedType(type,
           isGlobal: globalDependency, nativeUsage: nativeUsage);
     });
@@ -308,7 +312,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _reporter.internalError(member,
             'Unenqueued use of $member: ${useSet.iterable(MemberUse.values)}');
       }
-    }, dryRun: true);
+    }, checkEnqueuerConsistency: true);
   }
 
   /// Callback for applying the use of a [member].
@@ -344,14 +348,14 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   void processDynamicUse(DynamicUse dynamicUse) {
-    task.measure(() {
+    task.measureSubtask('resolution.dynamicUse', () {
       _worldBuilder.registerDynamicUse(dynamicUse, _applyMemberUse);
     });
   }
 
   @override
   void processConstantUse(ConstantUse constantUse) {
-    task.measure(() {
+    task.measureSubtask('resolution.constantUse', () {
       if (_worldBuilder.registerConstantUse(constantUse)) {
         applyImpact(listener.registerUsedConstant(constantUse.value),
             impactSource: 'constant use');
@@ -362,24 +366,20 @@ class ResolutionEnqueuer extends EnqueuerImpl {
 
   @override
   void processStaticUse(StaticUse staticUse) {
-    _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
-    // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
-    // for these:
-    switch (staticUse.kind) {
-      case StaticUseKind.CONSTRUCTOR_INVOKE:
-      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        _registerInstantiatedType(staticUse.type,
-            constructor: staticUse.element, globalDependency: false);
-        break;
-      case StaticUseKind.REDIRECTION:
-        _registerInstantiatedType(staticUse.type,
-            constructor: staticUse.element,
-            globalDependency: false,
-            isRedirection: true);
-        break;
-      default:
-        break;
-    }
+    task.measureSubtask('resolution.staticUse', () {
+      _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
+      // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
+      // for these:
+      switch (staticUse.kind) {
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+          _registerInstantiatedType(staticUse.type,
+              constructor: staticUse.element, globalDependency: false);
+          break;
+        default:
+          break;
+      }
+    });
   }
 
   @override

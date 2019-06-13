@@ -11,12 +11,16 @@ import '../common.dart';
 import '../js/js.dart' as js;
 import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
+import '../serialization/serialization.dart';
+import '../util/util.dart';
 import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
 /// [SourceInformation] that consists of an offset position into the source
 /// code.
 class PositionSourceInformation extends SourceInformation {
+  static const String tag = 'source-information';
+
   @override
   final SourceLocation startPosition;
 
@@ -28,6 +32,36 @@ class PositionSourceInformation extends SourceInformation {
 
   PositionSourceInformation(
       this.startPosition, this.innerPosition, this.inliningContext);
+
+  factory PositionSourceInformation.readFromDataSource(DataSource source) {
+    source.begin(tag);
+    SourceLocation startPosition = source.readCached<SourceLocation>(
+        () => SourceLocation.readFromDataSource(source));
+    SourceLocation innerPosition = source.readCached<SourceLocation>(
+        () => SourceLocation.readFromDataSource(source));
+    List<FrameContext> inliningContext = source.readList(
+        () => FrameContext.readFromDataSource(source),
+        emptyAsNull: true);
+    source.end(tag);
+    return new PositionSourceInformation(
+        startPosition, innerPosition, inliningContext);
+  }
+
+  void writeToDataSinkInternal(DataSink sink) {
+    sink.begin(tag);
+    sink.writeCached(
+        startPosition,
+        (SourceLocation sourceLocation) =>
+            SourceLocation.writeToDataSink(sink, sourceLocation));
+    sink.writeCached(
+        innerPosition,
+        (SourceLocation sourceLocation) =>
+            SourceLocation.writeToDataSink(sink, sourceLocation));
+    sink.writeList(inliningContext,
+        (FrameContext context) => context.writeToDataSink(sink),
+        allowNull: true);
+    sink.end(tag);
+  }
 
   @override
   List<SourceLocation> get sourceLocations {
@@ -52,16 +86,17 @@ class PositionSourceInformation extends SourceInformation {
 
   @override
   int get hashCode {
-    return 0x7FFFFFFF &
-        (startPosition.hashCode * 17 + innerPosition.hashCode * 19);
+    return Hashing.listHash(
+        inliningContext, Hashing.objectsHash(startPosition, innerPosition));
   }
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! PositionSourceInformation) return false;
-    return startPosition == other.startPosition &&
-        innerPosition == other.innerPosition;
+    return other is PositionSourceInformation &&
+        startPosition == other.startPosition &&
+        innerPosition == other.innerPosition &&
+        equalElements(inliningContext, other.inliningContext);
   }
 
   /// Create a textual representation of the source information using [uriText]
@@ -647,18 +682,18 @@ class CallPosition {
   /// (@ marks the current JavaScript position and ^ point to the mapped Dart
   /// code position.)
   static CallPosition getSemanticPositionForCall(js.Call node) {
-    if (node.target is js.PropertyAccess) {
-      js.PropertyAccess access = node.target;
+    js.Expression access = js.undefer(node.target);
+    if (access is js.PropertyAccess) {
       js.Node target = access;
       bool pureAccess = false;
       while (target is js.PropertyAccess) {
         js.PropertyAccess targetAccess = target;
-        if (targetAccess.receiver is js.VariableUse ||
-            targetAccess.receiver is js.This) {
+        js.Node receiver = js.undefer(targetAccess.receiver);
+        if (receiver is js.VariableUse || receiver is js.This) {
           pureAccess = true;
           break;
         } else {
-          target = targetAccess.receiver;
+          target = receiver;
         }
       }
       if (pureAccess) {
@@ -672,19 +707,19 @@ class CallPosition {
         return new CallPosition(
             access.selector, CodePositionKind.START, SourcePositionKind.INNER);
       }
-    } else if (node.target is js.VariableUse || node.target is js.This) {
+    } else if (access is js.VariableUse || access is js.This) {
       // m()   this()
       // ^     ^
       return new CallPosition(
           node, CodePositionKind.START, SourcePositionKind.START);
-    } else if (node.target is js.Fun ||
-        node.target is js.New ||
-        node.target is js.NamedFunction) {
+    } else if (access is js.Fun ||
+        access is js.New ||
+        access is js.NamedFunction) {
       // function(){}()  new Function("...")()   function foo(){}()
       //             ^                      ^                    ^
       return new CallPosition(
           node.target, CodePositionKind.END, SourcePositionKind.INNER);
-    } else if (node.target is js.Binary || node.target is js.Call) {
+    } else if (access is js.Binary || access is js.Call) {
       // (0,a)()   m()()
       //      ^       ^
       return new CallPosition(
@@ -1269,6 +1304,11 @@ class JavaScriptTracer extends js.BaseVisitor {
     statementOffset = getSyntaxOffset(node);
     visit(node.body);
     statementOffset = null;
+  }
+
+  @override
+  visitDeferredExpression(js.DeferredExpression node) {
+    visit(node.value);
   }
 
   Offset getOffsetForNode(js.Node node, int codeOffset) {

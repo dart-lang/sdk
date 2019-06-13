@@ -25,6 +25,7 @@ async_nested: TextSerializationFailure # Was: Pass
 await: TextSerializationFailure # Was: Pass
 bad_setter_abstract: TextSerializationFailure # Was: Pass
 bad_store: TextSerializationFailure # Was: Pass
+bad_type_variable_uses_in_supertypes: TextSerializationFailure
 bounds_check_depends_on_inference: TextSerializationFailure # Was: Pass
 bug21938: TypeCheckError
 bug30695: TypeCheckError
@@ -660,6 +661,7 @@ instantiate_to_bound/non_simple_suppress_consequence: TextSerializationFailure #
 instantiate_to_bound/non_simple_variables_from_same: TextSerializationFailure # Was: Pass
 instantiate_to_bound/omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/raw_in_bound: TextSerializationFailure # Was: Pass
+instantiate_to_bound/super_bounded_in_bound: TextSerializationFailure
 instantiate_to_bound/super_bounded_type: TextSerializationFailure # Was: Pass
 instantiate_to_bound/supertypes: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_instantiated_in_outline: TextSerializationFailure # Was: Pass
@@ -669,6 +671,9 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+interface_contravariant_from_class: TextSerializationFailure
+interface_covariantImpl_from_class: TextSerializationFailure
+interface_covariantInterface_from_class: TextSerializationFailure
 invalid_assignment: TextSerializationFailure # Was: Pass
 invalid_cast: TextSerializationFailure # Was: Pass
 invalid_type: TypeCheckError
@@ -676,6 +681,7 @@ invocations: TextSerializationFailure # Was: RuntimeError
 issue34515: TextSerializationFailure
 issue34899: TypeCheckError
 issue35875: TextSerializationFailure
+issue37027: TextSerializationFailure
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass
@@ -752,7 +758,7 @@ qualified_part: TextSerializationFailure # Was: Pass
 rasta/abstract_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_constructor_redirection: TextSerializationFailure # Was: RuntimeError
 rasta/bad_continue: TextSerializationFailure # Was: RuntimeError
-rasta/bad_default_constructor: VerificationError
+rasta/bad_default_constructor: TextSerializationFailure
 rasta/bad_explicit_super_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_implicit_super_constructor: TextSerializationFailure # Was: RuntimeError
 rasta/bad_interpolation: TextSerializationFailure # Was: RuntimeError
@@ -792,7 +798,7 @@ rasta/issue_000034: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000035: TextSerializationFailure # Was: Pass
 rasta/issue_000035a: TextSerializationFailure # Was: Pass
 rasta/issue_000036: TextSerializationFailure # Was: RuntimeError
-rasta/issue_000039: VerificationError
+rasta/issue_000039: TextSerializationFailure
 rasta/issue_000041: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000042: TextSerializationFailure # Was: RuntimeError
 rasta/issue_000043: TextSerializationFailure # Was: RuntimeError
@@ -920,6 +926,10 @@ regress/issue_35260: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35266: TextSerializationFailure # Was: RuntimeError # Expected
 regress/issue_35900: TextSerializationFailure
 regress/issue_36400: TextSerializationFailure
+regress/issue_36647: TextSerializationFailure
+regress/issue_36647_2: TextSerializationFailure
+regress/issue_36669: TextSerializationFailure
+regress/issue_36793: TextSerializationFailure
 reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
 return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
@@ -1004,6 +1014,7 @@ top_level_accessors: TextSerializationFailure # Was: Pass
 top_level_accessors_part: TextSerializationFailure # Was: Pass
 top_level_library_method: TextSerializationFailure # Was: Pass
 type_of_null: TextSerializationFailure
+type_parameter_type_named_int: TextSerializationFailure
 type_variable_as_super: TextSerializationFailure # Was: RuntimeError
 type_variable_prefix: TextSerializationFailure # Was: RuntimeError
 type_variable_uses: TextSerializationFailure # Was: Pass

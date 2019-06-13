@@ -10,7 +10,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
+class MegamorphicCacheRefElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<MegamorphicCacheRefElement>('megamorphic-cache-ref');
 
@@ -30,14 +30,14 @@ class MegamorphicCacheRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(cache != null);
-    MegamorphicCacheRefElement e = document.createElement(tag.name);
+    MegamorphicCacheRefElement e = new MegamorphicCacheRefElement.created();
     e._r = new RenderingScheduler<MegamorphicCacheRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._cache = cache;
     return e;
   }
 
-  MegamorphicCacheRefElement.created() : super.created();
+  MegamorphicCacheRefElement.created() : super.created(tag);
 
   @override
   void attached() {

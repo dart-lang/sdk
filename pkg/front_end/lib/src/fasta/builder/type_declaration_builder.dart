@@ -14,7 +14,7 @@ import 'builder.dart'
 
 abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
     extends ModifierBuilder {
-  final List<MetadataBuilder<T>> metadata;
+  final List<MetadataBuilder> metadata;
 
   final int modifiers;
 

@@ -46,6 +46,30 @@ enum EntityRefKind : byte {
   syntheticFunction
 }
 
+/// Enum representing nullability suffixes in summaries.
+///
+/// This enum is similar to [NullabilitySuffix], but the order is different so
+/// that [EntityRefNullabilitySuffix.starOrIrrelevant] can be the default.
+enum EntityRefNullabilitySuffix : byte {
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `*`.  Types having this nullability suffix are
+  /// called "legacy types"; it has not yet been determined whether they should
+  /// be unioned with the Null type.
+  ///
+  /// Also used in circumstances where no nullability suffix information is
+  /// needed.
+  starOrIrrelevant,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration ends with `?`.  Types having this nullability suffix should
+  /// be interpreted as being unioned with the Null type.
+  question,
+
+  /// An indication that the canonical representation of the type under
+  /// consideration does not end with either `?` or `*`.
+  none
+}
+
 /// Enum used to indicate the kind of a name in index.
 enum IndexNameKind : byte {
   /// A top-level element.
@@ -152,11 +176,13 @@ enum LinkedNodeCommentType : byte {
 
 /// Kinds of formal parameters.
 enum LinkedNodeFormalParameterKind : byte {
-  required,
+  requiredPositional,
 
   optionalPositional,
 
-  optionalNamed
+  optionalNamed,
+
+  requiredNamed
 }
 
 /// Kinds of [LinkedNode].
@@ -196,6 +222,8 @@ enum LinkedNodeKind : byte {
   classTypeAlias,
 
   comment,
+
+  commentReference,
 
   compilationUnit,
 
@@ -340,8 +368,6 @@ enum LinkedNodeKind : byte {
   rethrowExpression,
 
   returnStatement,
-
-  scriptTag,
 
   setOrMapLiteral,
 
@@ -1071,14 +1097,17 @@ enum UnlinkedExprOperation : byte {
 
 /// Enum used to indicate the kind of a parameter.
 enum UnlinkedParamKind : byte {
-  /// Parameter is required.
-  required,
+  /// Parameter is required and positional.
+  requiredPositional,
 
-  /// Parameter is positional optional (enclosed in `[]`)
-  positional,
+  /// Parameter is optional and positional (enclosed in `[]`)
+  optionalPositional,
 
-  /// Parameter is named optional (enclosed in `{}`)
-  named
+  /// Parameter is optional and named (enclosed in `{}`)
+  optionalNamed,
+
+  /// Parameter is required and named (enclosed in `{}`).
+  requiredNamed
 }
 
 /// TODO(scheglov) document
@@ -1123,6 +1152,8 @@ enum UnlinkedTokenType : byte {
   BANG,
 
   BANG_EQ,
+
+  BANG_EQ_EQ,
 
   BAR,
 
@@ -1178,6 +1209,8 @@ enum UnlinkedTokenType : byte {
 
   EQ_EQ,
 
+  EQ_EQ_EQ,
+
   EXPORT,
 
   EXTENDS,
@@ -1208,6 +1241,10 @@ enum UnlinkedTokenType : byte {
 
   GT_GT_EQ,
 
+  GT_GT_GT,
+
+  GT_GT_GT_EQ,
+
   HASH,
 
   HEXADECIMAL,
@@ -1233,6 +1270,8 @@ enum UnlinkedTokenType : byte {
   INTERFACE,
 
   IS,
+
+  LATE,
 
   LIBRARY,
 
@@ -1301,6 +1340,8 @@ enum UnlinkedTokenType : byte {
   QUESTION_QUESTION,
 
   QUESTION_QUESTION_EQ,
+
+  REQUIRED,
 
   RETHROW,
 
@@ -1541,6 +1582,9 @@ table AnalysisDriverUnlinkedUnit {
 
   /// Unlinked information for the unit.
   unit:UnlinkedUnit (id: 1);
+
+  /// Unlinked information for the unit.
+  unit2:UnlinkedUnit2 (id: 5);
 }
 
 /// Information about a single declaration.
@@ -1687,6 +1731,9 @@ table EntityRef {
   /// generic class, then the type arguments in [typeArguments] are applied
   /// first to the class and then to the method.
   implicitFunctionTypeIndices:[uint] (id: 4);
+
+  /// If the reference represents a type, the nullability of the type.
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 10);
 
   /// If this is a reference to a type parameter, one-based index into the list
   /// of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
@@ -1839,27 +1886,21 @@ table LinkedNode {
 
   variantField_2:[LinkedNode] (id: 2);
 
-  variantField_11:LinkedNode (id: 11);
-
   variantField_4:[LinkedNode] (id: 4);
 
   variantField_6:LinkedNode (id: 6);
 
-  variantField_15:uint (id: 15);
-
   variantField_7:LinkedNode (id: 7);
-
-  variantField_8:LinkedNode (id: 8);
-
-  variantField_16:uint (id: 16);
 
   variantField_17:uint (id: 17);
 
-  variantField_18:uint (id: 18);
-
-  variantField_19:uint (id: 19);
-
   variantField_23:LinkedNodeType (id: 23);
+
+  variantField_8:LinkedNode (id: 8);
+
+  variantField_15:uint (id: 15);
+
+  variantField_28:UnlinkedTokenType (id: 28);
 
   variantField_27:bool (id: 27);
 
@@ -1871,11 +1912,7 @@ table LinkedNode {
 
   variantField_13:LinkedNode (id: 13);
 
-  variantField_34:uint (id: 34);
-
-  variantField_33:uint (id: 33);
-
-  variantField_28:[uint] (id: 28);
+  variantField_33:[string] (id: 33);
 
   variantField_29:LinkedNodeCommentType (id: 29);
 
@@ -1883,27 +1920,43 @@ table LinkedNode {
 
   variantField_10:LinkedNode (id: 10);
 
+  variantField_26:LinkedNodeFormalParameterKind (id: 26);
+
   variantField_21:double (id: 21);
 
   variantField_25:LinkedNodeType (id: 25);
 
-  variantField_26:LinkedNodeFormalParameterKind (id: 26);
+  flags:uint (id: 18);
+
+  variantField_1:string (id: 1);
+
+  variantField_36:uint (id: 36);
+
+  variantField_16:uint (id: 16);
 
   variantField_30:string (id: 30);
 
   variantField_14:LinkedNode (id: 14);
 
-  isSynthetic:bool (id: 1);
-
   kind:LinkedNodeKind (id: 0);
+
+  variantField_34:[string] (id: 34);
+
+  name:string (id: 37);
 
   variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 
+  variantField_35:UnlinkedTokenType (id: 35);
+
+  variantField_32:TopLevelInferenceError (id: 32);
+
+  variantField_11:LinkedNode (id: 11);
+
   variantField_22:string (id: 22);
 
-  variantField_32:LinkedNodeVariablesDeclaration (id: 32);
+  variantField_19:uint (id: 19);
 }
 
 /// Information about a group of libraries linked together, for example because
@@ -1945,9 +1998,9 @@ table LinkedNodeType {
 
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
 
-  genericTypeAliasReference:uint (id: 7);
+  genericTypeAliasReference:uint (id: 8);
 
-  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 8);
+  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 9);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -1956,7 +2009,11 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  typeParameterId:uint (id: 6);
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 10);
+
+  typeParameterElement:uint (id: 6);
+
+  typeParameterId:uint (id: 7);
 }
 
 /// Information about a formal parameter in a function type.
@@ -1977,25 +2034,15 @@ table LinkedNodeTypeTypeParameter {
 
 /// Information about a single library in a [LinkedNodeLibrary].
 table LinkedNodeUnit {
+  isNNBD:bool (id: 4);
+
+  isSynthetic:bool (id: 3);
+
   node:LinkedNode (id: 2);
 
   tokens:UnlinkedTokens (id: 1);
 
   uriStr:string (id: 0);
-}
-
-/// Information about a top-level declaration, or a field declaration that
-/// contributes information to [LinkedNodeKind.variableDeclaration].
-table LinkedNodeVariablesDeclaration {
-  comment:LinkedNode (id: 0);
-
-  isConst:bool (id: 1);
-
-  isCovariant:bool (id: 2);
-
-  isFinal:bool (id: 3);
-
-  isStatic:bool (id: 4);
 }
 
 /// Information about the resolution of an [UnlinkedReference].
@@ -2085,6 +2132,9 @@ table PackageBundle {
   /// including this one).  This can be used to identify when the API of a
   /// package may have changed.
   apiSignature:string (id: 7, deprecated);
+
+  /// The version 2 of the summary.
+  bundle2:LinkedNodeBundle (id: 9);
 
   /// Information about the packages this package depends on, if known.
   dependencies:[PackageDependencyInfo] (id: 8, deprecated);
@@ -2690,6 +2740,26 @@ table UnlinkedImport {
   uriOffset:uint (id: 3);
 }
 
+table UnlinkedInformativeData {
+  variantField_2:uint (id: 2);
+
+  variantField_3:uint (id: 3);
+
+  variantField_1:uint (id: 1);
+
+  variantField_4:[string] (id: 4);
+
+  /// The kind of the node.
+  kind:LinkedNodeKind (id: 0);
+
+  variantField_5:uint (id: 5);
+
+  variantField_6:uint (id: 6);
+
+  /// Offsets of the first character of each line in the source code.
+  variantField_7:[uint] (id: 7);
+}
+
 /// Unlinked summary information about a function parameter.
 table UnlinkedParam {
   /// Annotations for this parameter.
@@ -2969,6 +3039,9 @@ table UnlinkedUnit {
   /// Import declarations in the compilation unit.
   imports:[UnlinkedImport] (id: 5);
 
+  /// Indicates whether this compilation unit is opted into NNBD.
+  isNNBD:bool (id: 21);
+
   /// Indicates whether the unit contains a "part of" declaration.
   isPartOf:bool (id: 18);
 
@@ -3017,6 +3090,33 @@ table UnlinkedUnit {
   variables:[UnlinkedVariable] (id: 3);
 }
 
+/// Unlinked summary information about a compilation unit.
+table UnlinkedUnit2 {
+  /// The MD5 hash signature of the API portion of this unit. It depends on all
+  /// tokens that might affect APIs of declarations in the unit.
+  apiSignature:[uint] (id: 0);
+
+  /// URIs of `export` directives.
+  exports:[string] (id: 1);
+
+  /// Is `true` if the unit contains a `library` directive.
+  hasLibraryDirective:bool (id: 6);
+
+  /// Is `true` if the unit contains a `part of` directive.
+  hasPartOfDirective:bool (id: 3);
+
+  /// URIs of `import` directives.
+  imports:[string] (id: 2);
+
+  informativeData:[UnlinkedInformativeData] (id: 7);
+
+  /// Offsets of the first character of each line in the source code.
+  lineStarts:[uint] (id: 5);
+
+  /// URIs of `part` directives.
+  parts:[string] (id: 4);
+}
+
 /// Unlinked summary information about a top level variable, local variable, or
 /// a field.
 table UnlinkedVariable {
@@ -3057,6 +3157,9 @@ table UnlinkedVariable {
 
   /// Indicates whether the variable is declared using the `final` keyword.
   isFinal:bool (id: 7);
+
+  /// Indicates whether the variable is declared using the `late` keyword.
+  isLate:bool (id: 16);
 
   /// Indicates whether the variable is declared using the `static` keyword.
   ///

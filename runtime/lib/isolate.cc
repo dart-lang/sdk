@@ -4,6 +4,7 @@
 
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
+#include "platform/unicode.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
@@ -21,7 +22,6 @@
 #include "vm/service.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -95,7 +95,7 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
 
   if (ApiObjectConverter::CanConvert(obj.raw())) {
     PortMap::PostMessage(
-        new Message(destination_port_id, obj.raw(), Message::kNormalPriority));
+        Message::New(destination_port_id, obj.raw(), Message::kNormalPriority));
   } else {
     MessageWriter writer(can_send_any_object);
     // TODO(turnidge): Throw an exception when the return value is false?
@@ -113,14 +113,22 @@ static void ThrowIsolateSpawnException(const String& message) {
 
 class SpawnIsolateTask : public ThreadPool::Task {
  public:
-  explicit SpawnIsolateTask(IsolateSpawnState* state) : state_(state) {}
+  SpawnIsolateTask(Isolate* parent_isolate, IsolateSpawnState* state)
+      : parent_isolate_(parent_isolate), state_(state) {
+    parent_isolate->IncrementSpawnCount();
+  }
 
-  virtual void Run() {
+  ~SpawnIsolateTask() override {
+    if (parent_isolate_) {
+      parent_isolate_->DecrementSpawnCount();
+    }
+  }
+
+  void Run() override {
     // Create a new isolate.
     char* error = NULL;
     Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
     if (callback == NULL) {
-      state_->DecrementSpawnCount();
       ReportError(
           "Isolate spawn is not supported by this Dart implementation\n");
       delete state_;
@@ -135,9 +143,10 @@ class SpawnIsolateTask : public ThreadPool::Task {
     ASSERT(name != NULL);
 
     Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
-        state_->script_url(), name, state_->package_root(),
-        state_->package_config(), &api_flags, state_->init_data(), &error));
-    state_->DecrementSpawnCount();
+        state_->script_url(), name, nullptr, state_->package_config(),
+        &api_flags, parent_isolate_->init_callback_data(), &error));
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
     if (isolate == NULL) {
       ReportError(error);
       delete state_;
@@ -152,7 +161,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
       isolate->set_origin_id(state_->origin_id());
     }
     MutexLocker ml(isolate->mutex());
-    state_->set_isolate(reinterpret_cast<Isolate*>(isolate));
+    state_->set_isolate(isolate);
     isolate->set_spawn_state(state_);
     state_ = NULL;
     if (isolate->is_runnable()) {
@@ -171,6 +180,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     }
   }
 
+  Isolate* parent_isolate_;
   IsolateSpawnState* state_;
 
   DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
@@ -223,29 +233,23 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
             message, ILLEGAL_PORT, Message::kNormalPriority));
       }
 
-      // TODO(mfairhurst) remove package_root, as it no longer does anything.
-      const char* utf8_package_root = NULL;
       const char* utf8_package_config =
           packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
       const char* utf8_debug_name =
           debugName.IsNull() ? NULL : String2UTF8(debugName);
 
       IsolateSpawnState* state = new IsolateSpawnState(
-          port.Id(), isolate->origin_id(), isolate->init_callback_data(),
-          String2UTF8(script_uri), func, &message_buffer,
-          isolate->spawn_count_monitor(), isolate->spawn_count(),
-          utf8_package_root, utf8_package_config, paused.value(), fatal_errors,
+          port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
+          &message_buffer, utf8_package_config, paused.value(), fatal_errors,
           on_exit_port, on_error_port, utf8_debug_name);
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+      ThreadPool::Task* spawn_task = new SpawnIsolateTask(isolate, state);
 
-      isolate->IncrementSpawnCount();
       if (!Dart::thread_pool()->Run(spawn_task)) {
         // Running on the thread pool failed. Clean up everything.
-        state->DecrementSpawnCount();
         delete state;
         state = NULL;
         delete spawn_task;
@@ -351,19 +355,15 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
     ThrowIsolateSpawnException(msg);
   }
 
-  // TODO(mfairhurst) remove package_root, as it no longer does anything.
-  const char* utf8_package_root = NULL;
   const char* utf8_package_config =
       packageConfig.IsNull() ? NULL : String2UTF8(packageConfig);
   const char* utf8_debug_name =
       debugName.IsNull() ? NULL : String2UTF8(debugName);
 
   IsolateSpawnState* state = new IsolateSpawnState(
-      port.Id(), isolate->init_callback_data(), canonical_uri,
-      utf8_package_root, utf8_package_config, &arguments_buffer,
-      &message_buffer, isolate->spawn_count_monitor(), isolate->spawn_count(),
-      paused.value(), fatal_errors, on_exit_port, on_error_port,
-      utf8_debug_name);
+      port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
+      &message_buffer, paused.value(), fatal_errors, on_exit_port,
+      on_error_port, utf8_debug_name);
 
   // If we were passed a value then override the default flags state for
   // checked mode.
@@ -375,12 +375,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+  ThreadPool::Task* spawn_task = new SpawnIsolateTask(isolate, state);
 
-  isolate->IncrementSpawnCount();
   if (!Dart::thread_pool()->Run(spawn_task)) {
     // Running on the thread pool failed. Clean up everything.
-    state->DecrementSpawnCount();
     delete state;
     state = NULL;
     delete spawn_task;
@@ -434,6 +432,122 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   }
 
   return Object::null();
+}
+
+static void ExternalTypedDataFinalizer(void* isolate_callback_data,
+                                       Dart_WeakPersistentHandle handle,
+                                       void* peer) {
+  free(peer);
+}
+
+static intptr_t GetUint8SizeOrThrow(const Instance& instance) {
+  // From the Dart side we are guaranteed that the type of [instance] is a
+  // subtype of TypedData.
+  if (instance.IsTypedDataBase()) {
+    return TypedDataBase::Cast(instance).LengthInBytes();
+  }
+
+  // This can happen if [instance] is `null` or an instance of a 3rd party class
+  // which implements [TypedData].
+  Exceptions::ThrowArgumentError(instance);
+}
+
+DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
+  ASSERT(
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
+
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, array_instance,
+                               arguments->NativeArgAt(1));
+
+  Array& array = Array::Handle();
+  intptr_t array_length;
+  if (array_instance.IsGrowableObjectArray()) {
+    const auto& growable_array = GrowableObjectArray::Cast(array_instance);
+    array ^= growable_array.data();
+    array_length = growable_array.Length();
+  } else if (array_instance.IsArray()) {
+    array ^= Array::Cast(array_instance).raw();
+    array_length = array.Length();
+  } else {
+    Exceptions::ThrowArgumentError(array_instance);
+    UNREACHABLE();
+  }
+  Instance& instance = Instance::Handle();
+  unsigned long long total_bytes = 0;
+  const unsigned long kMaxBytes =
+      TypedData::MaxElements(kTypedDataUint8ArrayCid);
+  for (intptr_t i = 0; i < array_length; i++) {
+    instance ^= array.At(i);
+    total_bytes += GetUint8SizeOrThrow(instance);
+    if (total_bytes > kMaxBytes) {
+      const Array& error_args = Array::Handle(Array::New(3));
+      error_args.SetAt(0, array);
+      error_args.SetAt(1, String::Handle(String::New("data")));
+      error_args.SetAt(2,
+                       String::Handle(String::NewFormatted(
+                           "Aggregated list exceeds max size %ld", kMaxBytes)));
+      Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
+      UNREACHABLE();
+    }
+  }
+
+  uint8_t* data = reinterpret_cast<uint8_t*>(malloc(total_bytes));
+  if (data == nullptr) {
+    const Instance& exception =
+        Instance::Handle(thread->isolate()->object_store()->out_of_memory());
+    Exceptions::Throw(thread, exception);
+    UNREACHABLE();
+  }
+  intptr_t offset = 0;
+  for (intptr_t i = 0; i < array_length; i++) {
+    instance ^= array.At(i);
+
+    {
+      NoSafepointScope no_safepoint;
+      const auto& typed_data = TypedDataBase::Cast(instance);
+      const intptr_t length_in_bytes = typed_data.LengthInBytes();
+
+      void* source = typed_data.DataAddr(0);
+      // The memory does not overlap.
+      memcpy(data + offset, source, length_in_bytes);
+      offset += length_in_bytes;
+    }
+  }
+  ASSERT(static_cast<unsigned long>(offset) == total_bytes);
+  return TransferableTypedData::New(data, total_bytes);
+}
+
+DEFINE_NATIVE_ENTRY(TransferableTypedData_materialize, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(TransferableTypedData, t,
+                               arguments->NativeArgAt(0));
+
+  void* peer;
+  {
+    NoSafepointScope no_safepoint;
+    peer = thread->heap()->GetPeer(t.raw());
+    // Assume that object's Peer is only used to track transferrability state.
+    ASSERT(peer != nullptr);
+  }
+
+  TransferableTypedDataPeer* tpeer =
+      reinterpret_cast<TransferableTypedDataPeer*>(peer);
+  const intptr_t length = tpeer->length();
+  uint8_t* data = tpeer->data();
+  if (data == nullptr) {
+    const auto& error = String::Handle(String::New(
+        "Attempt to materialize object that was transferred already."));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+  tpeer->ClearData();
+
+  const ExternalTypedData& typed_data = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid, data, length,
+                             thread->heap()->SpaceForExternal(length)));
+  FinalizablePersistentHandle::New(thread->isolate(), typed_data,
+                                   /* peer= */ data,
+                                   &ExternalTypedDataFinalizer, length);
+  return typed_data.raw();
 }
 
 }  // namespace dart

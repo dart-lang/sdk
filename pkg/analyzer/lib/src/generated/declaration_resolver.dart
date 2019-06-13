@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -27,9 +28,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// The compilation unit containing the AST nodes being visited.
   CompilationUnitElementImpl _enclosingUnit;
 
-  /// The type provider used to access the known types.
-  TypeProvider _typeProvider;
-
   /// The [ElementWalker] we are using to keep track of progress through the
   /// element model.
   ElementWalker _walker;
@@ -42,7 +40,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// not match each other.
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
     _enclosingUnit = element;
-    _typeProvider = _enclosingUnit.context?.typeProvider;
     _walker = new ElementWalker.forCompilationUnit(element);
     unit.element = element;
     try {
@@ -137,10 +134,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       });
     }
 
-    bool isFunctionTyped = normalParameter is FunctionTypedFormalParameter ||
-        normalParameter is FieldFormalParameter &&
-            normalParameter.parameters != null;
-    _walk(new ElementWalker.forParameter(element, isFunctionTyped), () {
+    _walk(new ElementWalker.forParameter(element), () {
       normalParameter.accept(this);
     });
 
@@ -150,7 +144,6 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     ClassElement element = _match(node.name, _walker.getEnum());
-    node.name.staticType = _typeProvider.typeType;
     resolveMetadata(node, node.metadata, element);
     _walk(new ElementWalker.forClass(element), () {
       for (EnumConstantDeclaration constant in node.constants) {
@@ -202,8 +195,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      bool isFunctionTyped = node.parameters != null;
-      _walk(new ElementWalker.forParameter(element, isFunctionTyped), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFieldFormalParameter(node);
       });
       resolveMetadata(node, node.metadata, element);
@@ -234,6 +226,9 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     _setGenericFunctionType(node.returnType, element.returnType);
     (node.functionExpression as FunctionExpressionImpl).declaredElement =
         element;
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      node.returnType?.accept(this);
+    }
     _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
@@ -264,7 +259,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
     if (node.parent is! DefaultFormalParameter) {
       ParameterElement element =
           _match(node.identifier, _walker.getParameter());
-      _walk(new ElementWalker.forParameter(element, true), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFunctionTypedFormalParameter(node);
       });
       resolveMetadata(node, node.metadata, element);
@@ -275,18 +270,25 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      var builder = new LocalElementBuilder(ElementHolder(), _enclosingUnit);
+      node.accept(builder);
+
+      var nodeImpl = node as GenericFunctionTypeImpl;
+      _enclosingUnit.encloseElement(
+        nodeImpl.declaredElement as GenericFunctionTypeElementImpl,
+      );
+      return;
+    }
     if (_walker.elementBuilder != null) {
       _walker.elementBuilder.visitGenericFunctionType(node);
     } else {
-      DartType type = node.type;
-      if (type != null) {
-        Element element = type.element;
-        if (element is GenericFunctionTypeElement) {
-          _setGenericFunctionType(node.returnType, element.returnType);
-          _walk(new ElementWalker.forGenericFunctionType(element), () {
-            super.visitGenericFunctionType(node);
-          });
-        }
+      var element = node.type?.element;
+      if (element is GenericFunctionTypeElement) {
+        _setGenericFunctionType(node.returnType, element.returnType);
+        _walk(new ElementWalker.forGenericFunctionType(element), () {
+          super.visitGenericFunctionType(node);
+        });
       }
     }
   }
@@ -361,6 +363,9 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
       }
     }
     _setGenericFunctionType(node.returnType, element.returnType);
+    if (AnalysisDriver.useSummary2 && _enclosingUnit.linkedContext != null) {
+      node.returnType?.accept(this);
+    }
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
@@ -405,7 +410,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
           _match(node.identifier, _walker.getParameter());
       (node as SimpleFormalParameterImpl).declaredElement = element;
       _setGenericFunctionType(node.type, element.type);
-      _walk(new ElementWalker.forParameter(element, false), () {
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
       });
       resolveMetadata(node, node.metadata, element);
@@ -435,7 +440,8 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    if (node.parent.parent is FunctionTypedFormalParameter) {
+    if (node.parent.parent is FunctionTypedFormalParameter &&
+        !AnalysisDriver.useSummary2) {
       // Work around dartbug.com/28515.
       // TODO(paulberry): remove this once dartbug.com/28515 is fixed.
       var element = new TypeParameterElementImpl.forNode(node.name);
@@ -514,6 +520,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   void _setGenericFunctionType(TypeAnnotation typeNode, DartType type) {
     if (typeNode is GenericFunctionTypeImpl) {
       typeNode.type = type;
+      typeNode.declaredElement = type.element;
     } else if (typeNode is NamedType) {
       typeNode.type = type;
       if (type is ParameterizedType) {
@@ -739,7 +746,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   /// corresponding type arguments of the [typeArguments].
   static void _applyTypeArgumentsToList(LibraryElement enclosingLibraryElement,
       DartType type, List<TypeAnnotation> typeArguments) {
-    if (type != null && type.isUndefined) {
+    if (type != null && type.isDynamic) {
       for (TypeAnnotation argument in typeArguments) {
         applyToTypeAnnotation(enclosingLibraryElement, type, argument);
       }
@@ -851,18 +858,10 @@ class ElementWalker {
 
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
-  ElementWalker.forParameter(ParameterElement element, bool functionTyped)
+  ElementWalker.forParameter(ParameterElement element)
       : element = element,
         _parameters = element.parameters,
-        _typeParameters = element.typeParameters {
-    // If the parameter node is function typed, extract type parameters and
-    // formal parameters from its generic function type element.
-    if (functionTyped) {
-      GenericFunctionTypeElement typeElement = element.type.element;
-      _typeParameters = typeElement.typeParameters;
-      _parameters = typeElement.parameters;
-    }
-  }
+        _typeParameters = element.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.

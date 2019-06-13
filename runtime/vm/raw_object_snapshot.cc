@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/dart_api_state.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
@@ -42,7 +43,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   ASSERT(reader != NULL);
 
   Class& cls = Class::ZoneHandle(reader->zone(), Class::null());
-  cls ^= reader->ReadClassId(object_id);
+  cls = reader->ReadClassId(object_id);
   return cls.raw();
 }
 
@@ -316,7 +317,7 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Set the canonical bit.
   if (is_canonical) {
-    type_arguments ^= type_arguments.Canonicalize();
+    type_arguments = type_arguments.Canonicalize();
   }
 
   return type_arguments.raw();
@@ -738,7 +739,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   Context& context = Context::ZoneHandle(reader->zone());
   reader->AddBackRef(object_id, &context, kIsDeserialized);
   if (num_vars != 0) {
-    context ^= Context::New(num_vars);
+    context = Context::New(num_vars);
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1226,7 +1227,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    *str_obj ^= (*new_symbol)(reader->thread(), ptr, len);
+    *str_obj = (*new_symbol)(reader->thread(), ptr, len);
   } else {
     // Set up the string object.
     *str_obj = StringType::New(len, Heap::kNew);
@@ -2133,6 +2134,68 @@ void RawSendPort::WriteTo(SnapshotWriter* writer,
   writer->Write<uint64_t>(ptr()->origin_id_);
 }
 
+RawTransferableTypedData* TransferableTypedData::ReadFrom(
+    SnapshotReader* reader,
+    intptr_t object_id,
+    intptr_t tags,
+    Snapshot::Kind kind,
+    bool as_reference) {
+  ASSERT(reader != nullptr);
+
+  ASSERT(!Snapshot::IsFull(kind));
+  const intptr_t length = reader->Read<int32_t>();
+
+  const FinalizableData finalizable_data =
+      static_cast<MessageSnapshotReader*>(reader)->finalizable_data()->Take();
+  uint8_t* data = reinterpret_cast<uint8_t*>(finalizable_data.data);
+  auto& transferableTypedData = TransferableTypedData::ZoneHandle(
+      reader->zone(), TransferableTypedData::New(data, length));
+  reader->AddBackRef(object_id, &transferableTypedData, kIsDeserialized);
+  return transferableTypedData.raw();
+}
+
+void RawTransferableTypedData::WriteTo(SnapshotWriter* writer,
+                                       intptr_t object_id,
+                                       Snapshot::Kind kind,
+                                       bool as_reference) {
+  ASSERT(writer != nullptr);
+  ASSERT(GetClassId() == kTransferableTypedDataCid);
+  void* peer = writer->thread()->heap()->GetPeer(this);
+  // Assume that object's Peer is only used to track transferrability state.
+  ASSERT(peer != nullptr);
+  TransferableTypedDataPeer* tpeer =
+      reinterpret_cast<TransferableTypedDataPeer*>(peer);
+  intptr_t length = tpeer->length();  // In bytes.
+  void* data = tpeer->data();
+  if (data == nullptr) {
+    writer->SetWriteException(
+        Exceptions::kArgument,
+        "Illegal argument in isolate message"
+        " : (TransferableTypedData has been transferred already)");
+    return;
+  }
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  writer->WriteIndexedObject(GetClassId());
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(length);
+
+  static_cast<MessageWriter*>(writer)->finalizable_data()->Put(
+      length, data, tpeer,
+      // Finalizer does nothing - in case of failure to serialize,
+      // [data] remains wrapped in sender's [TransferableTypedData].
+      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {},
+      // This is invoked on successful serialization of the message
+      [](void* data, Dart_WeakPersistentHandle handle, void* peer) {
+        TransferableTypedDataPeer* tpeer =
+            reinterpret_cast<TransferableTypedDataPeer*>(peer);
+        tpeer->handle()->EnsureFreeExternal(Isolate::Current());
+        tpeer->ClearData();
+      });
+}
+
 RawStackTrace* StackTrace::ReadFrom(SnapshotReader* reader,
                                     intptr_t object_id,
                                     intptr_t tags,
@@ -2172,7 +2235,9 @@ RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
   *reader->StringHandle() ^= reader->ReadObjectImpl(kAsInlinedObject);
   regex.set_pattern(*reader->StringHandle());
 
-  regex.StoreNonPointer(&regex.raw_ptr()->num_registers_,
+  regex.StoreNonPointer(&regex.raw_ptr()->num_one_byte_registers_,
+                        reader->Read<int32_t>());
+  regex.StoreNonPointer(&regex.raw_ptr()->num_two_byte_registers_,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.raw_ptr()->type_flags_, reader->Read<int8_t>());
 
@@ -2202,7 +2267,8 @@ void RawRegExp::WriteTo(SnapshotWriter* writer,
   // Write out all the other fields.
   writer->Write<RawObject*>(ptr()->num_bracket_expressions_);
   writer->WriteObjectImpl(ptr()->pattern_, kAsInlinedObject);
-  writer->Write<int32_t>(ptr()->num_registers_);
+  writer->Write<int32_t>(ptr()->num_one_byte_registers_);
+  writer->Write<int32_t>(ptr()->num_two_byte_registers_);
   writer->Write<int8_t>(ptr()->type_flags_);
 }
 

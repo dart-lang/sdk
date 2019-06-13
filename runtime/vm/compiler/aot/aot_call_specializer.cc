@@ -431,7 +431,7 @@ Definition* AotCallSpecializer::TryOptimizeMod(TemplateDartCall<0>* instr,
     return nullptr;  // non-smi mask
   }
   const int64_t modulus = Utils::Abs(value);
-  if (!Utils::IsPowerOfTwo(modulus) || !Smi::IsValid(modulus - 1)) {
+  if (!Utils::IsPowerOfTwo(modulus) || !compiler::target::IsSmi(modulus - 1)) {
     return nullptr;
   }
 
@@ -1145,8 +1145,10 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
     InsertBefore(call, invoke_call->PushArgumentAt(i), NULL,
                  FlowGraph::kEffect);
   }
-  // Remove original PushArguments from the graph.
+  // Replace original PushArguments in the graph (mainly env uses).
+  ASSERT(call->ArgumentCount() == invoke_call->ArgumentCount());
   for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    call->PushArgumentAt(i)->ReplaceUsesWith(invoke_call->PushArgumentAt(i));
     call->PushArgumentAt(i)->RemoveFromGraph();
   }
 

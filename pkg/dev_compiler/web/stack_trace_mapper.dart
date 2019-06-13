@@ -66,6 +66,7 @@ class LazyMapping extends Mapping {
 
   List toJson() => _bundle.toJson();
 
+  @override
   SourceMapSpan spanFor(int line, int column,
       {Map<String, SourceFile> files, String uri}) {
     if (uri == null) {
@@ -111,7 +112,7 @@ void setSourceMapProvider(SourceMapProvider provider) {
   _mapping = LazyMapping(provider);
 }
 
-main() {
+void main() {
   // Register with DDC.
   dartStackTraceUtility = DartStackTraceUtility(
       mapper: allowInterop(mapper),

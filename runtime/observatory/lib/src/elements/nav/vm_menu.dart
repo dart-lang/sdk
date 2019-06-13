@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
-class NavVMMenuElement extends HtmlElement implements Renderable {
+class NavVMMenuElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavVMMenuElement>('nav-vm-menu',
       dependencies: const [NavMenuItemElement.tag]);
 
@@ -36,14 +36,14 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
-    NavVMMenuElement e = document.createElement(tag.name);
+    NavVMMenuElement e = new NavVMMenuElement.created();
     e._r = new RenderingScheduler<NavVMMenuElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
     return e;
   }
 
-  NavVMMenuElement.created() : super.created();
+  NavVMMenuElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -66,7 +66,8 @@ class NavVMMenuElement extends HtmlElement implements Renderable {
   void render() {
     final content = (_vm.isolates.map<Element>((isolate) {
       return new NavMenuItemElement(isolate.name,
-          queue: _r.queue, link: Uris.inspect(isolate));
+              queue: _r.queue, link: Uris.inspect(isolate))
+          .element;
     }).toList()
       ..addAll(_content));
     children = <Element>[

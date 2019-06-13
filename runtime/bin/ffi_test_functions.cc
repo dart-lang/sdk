@@ -7,8 +7,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <csignal>
 
-#include "platform/assert.h"
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 #include <psapi.h>
@@ -16,12 +16,18 @@
 #include <unistd.h>
 #endif
 
+#include <setjmp.h>
+#include <signal.h>
 #include <iostream>
 #include <limits>
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 
 namespace dart {
+
+////////////////////////////////////////////////////////////////////////////////
+// Tests for Dart -> native calls.
 
 // Sums two ints and adds 42.
 // Simple function to test trampolines.
@@ -85,7 +91,7 @@ DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
 }
 
 DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
-  const int64_t expected = -(int32_t)0x80000000;
+  const int64_t expected = kMinInt32;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
@@ -449,45 +455,43 @@ DART_EXPORT float InventFloatValue() {
   return retval;
 }
 
-// Functions for stress-testing GC by returning values that require boxing.
+////////////////////////////////////////////////////////////////////////////////
+// Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
+  Dart_ExecuteInternalCommand("gc-on-next-allocation");
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
+  Dart_ExecuteInternalCommand("gc-on-next-allocation");
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
+  Dart_ExecuteInternalCommand("gc-on-next-allocation");
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
+  Dart_ExecuteInternalCommand("gc-on-next-allocation");
   uint64_t origin = 0x8100000082000000;
-  return *reinterpret_cast<void**>(&origin);
+  return reinterpret_cast<void*>(origin);
 }
 
-// Allocates 'count'-many Mint boxes, to stress-test GC during an FFI call.
-DART_EXPORT void AllocateMints(uint64_t count) {
-  Dart_EnterScope();
-  for (uint64_t i = 0; i < count; ++i) {
-    Dart_NewInteger(0x8000000000000001);
-  }
-  Dart_ExitScope();
+DART_EXPORT void TriggerGC(uint64_t count) {
+  Dart_ExecuteInternalCommand("gc-now");
 }
 
 // Calls a Dart function to allocate 'count' objects.
 // Used for stress-testing GC when re-entering the API.
-DART_EXPORT void AllocateThroughDart(uint64_t count) {
+DART_EXPORT void AllocateThroughDart() {
   Dart_EnterScope();
   Dart_Handle root = Dart_RootLibrary();
-  Dart_Handle arguments[1] = {Dart_NewIntegerFromUint64(count)};
   Dart_Handle result = Dart_Invoke(
-      root, Dart_NewStringFromCString("testAllocationsInDartHelper"), 1,
-      arguments);
+      root, Dart_NewStringFromCString("testAllocationsInDartHelper"), 0, NULL);
   const char* error;
   if (Dart_IsError(result)) {
     Dart_StringToCString(Dart_ToString(result), &error);
@@ -500,14 +504,212 @@ DART_EXPORT void AllocateThroughDart(uint64_t count) {
   Dart_ExitScope();
 }
 
-#if !defined(_WIN32)
-DART_EXPORT int RedirectStderr() {
-  char filename[256];
-  snprintf(filename, sizeof(filename), "/tmp/captured_stderr_%d", getpid());
-  freopen(filename, "w", stderr);
-  printf("Got file %s\n", filename);
-  return getpid();
+////////////////////////////////////////////////////////////////////////////////
+// Tests for callbacks.
+
+#define CHECK(X)                                                               \
+  if (!(X)) {                                                                  \
+    fprintf(stderr, "%s\n", "Check failed: " #X);                              \
+    return 1;                                                                  \
+  }
+
+#define CHECK_EQ(X, Y) CHECK((X) == (Y))
+
+// Sanity test.
+DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {
+  CHECK_EQ(add(10, 20), 30);
+  return 0;
 }
-#endif
+
+//// Following tests are copied from above, with the role of Dart and C++ code
+//// reversed.
+
+DART_EXPORT int TestIntComputation(
+    int64_t (*fn)(int8_t, int16_t, int32_t, int64_t)) {
+  CHECK_EQ(fn(125, 250, 500, 1000), 625);
+  CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
+  CHECK_EQ(((int64_t)-0x8000000000000000LL),
+           fn(0, 0, 0, -0x8000000000000000LL));
+  return 0;
+}
+
+DART_EXPORT int TestUintComputation(
+    uint64_t (*fn)(uint8_t, uint16_t, uint32_t, uint64_t)) {
+  CHECK_EQ(0x7FFFFFFFFFFFFFFFLL, fn(0, 0, 0, 0x7FFFFFFFFFFFFFFFLL));
+  CHECK_EQ(-0x8000000000000000LL, fn(0, 0, 0, -0x8000000000000000LL));
+  CHECK_EQ(-1, (int64_t)fn(0, 0, 0, -1));
+  return 0;
+}
+
+DART_EXPORT int TestSimpleMultiply(double (*fn)(double)) {
+  CHECK_EQ(fn(2.0), 2.0 * 1.337);
+  return 0;
+}
+
+DART_EXPORT int TestSimpleMultiplyFloat(float (*fn)(float)) {
+  CHECK(std::abs(fn(2.0) - 2.0 * 1.337) < 0.001);
+  return 0;
+}
+
+DART_EXPORT int TestManyInts(intptr_t (*fn)(intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t,
+                                            intptr_t)) {
+  CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+  return 0;
+}
+
+DART_EXPORT int TestManyDoubles(double (*fn)(double,
+                                             double,
+                                             double,
+                                             double,
+                                             double,
+                                             double,
+                                             double,
+                                             double,
+                                             double,
+                                             double)) {
+  CHECK_EQ(55, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+  return 0;
+}
+
+DART_EXPORT int TestManyArgs(double (*fn)(intptr_t a,
+                                          float b,
+                                          intptr_t c,
+                                          double d,
+                                          intptr_t e,
+                                          float f,
+                                          intptr_t g,
+                                          double h,
+                                          intptr_t i,
+                                          float j,
+                                          intptr_t k,
+                                          double l,
+                                          intptr_t m,
+                                          float n,
+                                          intptr_t o,
+                                          double p,
+                                          intptr_t q,
+                                          float r,
+                                          intptr_t s,
+                                          double t)) {
+  CHECK(210.0 == fn(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
+                    15, 16.0, 17, 18.0, 19, 20.0));
+  return 0;
+}
+
+DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
+  int64_t p[2] = {42, 1000};
+  int64_t* result = fn(p);
+  CHECK_EQ(*result, 1337);
+  CHECK_EQ(p[1], 1337);
+  CHECK_EQ(result, p + 1);
+  return 0;
+}
+
+DART_EXPORT int TestReturnNull(int32_t fn()) {
+  CHECK_EQ(fn(), 0);
+  return 0;
+}
+
+DART_EXPORT int TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
+  CHECK_EQ(fn(nullptr), nullptr);
+  int64_t p[2] = {0};
+  CHECK_EQ(fn(p), p + 1);
+  return 0;
+}
+
+struct CallbackTestData {
+  int success;
+  void (*callback)();
+};
+
+#if defined(TARGET_OS_LINUX)
+
+thread_local sigjmp_buf buf;
+void CallbackTestSignalHandler(int) {
+  siglongjmp(buf, 1);
+}
+
+int ExpectAbort(void (*fn)()) {
+  fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
+
+  struct sigaction old_action;
+  int result = __sigsetjmp(buf, /*savesigs=*/1);
+  if (result == 0) {
+    // Install signal handler.
+    struct sigaction handler;
+    handler.sa_handler = CallbackTestSignalHandler;
+    sigemptyset(&handler.sa_mask);
+    handler.sa_flags = 0;
+
+    sigaction(SIGABRT, &handler, &old_action);
+
+    fn();
+  } else {
+    // Caught the setjmp.
+    sigaction(SIGABRT, &old_action, NULL);
+    exit(0);
+  }
+  fprintf(stderr, "Expected abort!!!\n");
+  exit(1);
+}
+
+void* TestCallbackOnThreadOutsideIsolate(void* parameter) {
+  CallbackTestData* data = reinterpret_cast<CallbackTestData*>(parameter);
+  data->success = ExpectAbort(data->callback);
+  return NULL;
+}
+
+int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
+  CallbackTestData data = {1, fn};
+  pthread_attr_t attr;
+  int result = pthread_attr_init(&attr);
+  CHECK_EQ(result, 0);
+
+  pthread_t tid;
+  result = pthread_create(&tid, &attr, tester, &data);
+  CHECK_EQ(result, 0);
+
+  result = pthread_attr_destroy(&attr);
+  CHECK_EQ(result, 0);
+
+  void* retval;
+  result = pthread_join(tid, &retval);
+
+  // Doesn't actually return because the other thread will exit when the test is
+  // finished.
+  return 1;
+}
+
+// Run a callback on another thread and verify that it triggers SIGABRT.
+DART_EXPORT int TestCallbackWrongThread(void (*fn)()) {
+  return TestCallbackOtherThreadHelper(&TestCallbackOnThreadOutsideIsolate, fn);
+}
+
+// Verify that we get SIGABRT when invoking a native callback outside an
+// isolate.
+DART_EXPORT int TestCallbackOutsideIsolate(void (*fn)()) {
+  Dart_Isolate current = Dart_CurrentIsolate();
+
+  Dart_ExitIsolate();
+  CallbackTestData data = {1, fn};
+  TestCallbackOnThreadOutsideIsolate(&data);
+  Dart_EnterIsolate(current);
+
+  return data.success;
+}
+
+DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
+  return ExpectAbort(fn);
+}
+
+#endif  // defined(TARGET_OS_LINUX)
 
 }  // namespace dart

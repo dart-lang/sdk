@@ -7,7 +7,6 @@ To regenerate the generated code, run the script in
 download the latest version of the specification before regenerating the
 code, run the same script with an argument of "--download".
 
-
 ---
 
 Copyright (c) Microsoft Corporation.
@@ -129,10 +128,10 @@ interface ResponseMessage extends Message {
 	id: number | string | null;
 
 	/**
-	 * The result of a request. This can be omitted in
-	 * the case of an error.
+	 * The result of a request. This member is REQUIRED on success.
+	 * This member MUST NOT exist if there was an error invoking the method.
 	 */
-	result?: any;
+	result?: string | number | boolean | object | null;
 
 	/**
 	 * The error object in case a request fails.
@@ -260,7 +259,7 @@ export const EOL: string[] = ['\n', '\r\n', '\r'];
 
 #### Position
 
-Position in a text document expressed as zero-based line and zero-based character offset. A position is between two characters like an 'insert' cursor in a editor.
+Position in a text document expressed as zero-based line and zero-based character offset. A position is between two characters like an 'insert' cursor in a editor. Special values like for example `-1` to denote the end of a line are not supported.
 
 ```typescript
 interface Position {
@@ -608,7 +607,7 @@ export interface DeleteFile {
 
 #### WorkspaceEdit
 
-A workspace edit represents changes to many resources managed in the workspace. The edit should either provide `changes` or `documentChanges`. If the client can handle versioned document edits and if `documentChange`s are present, the latter are preferred over `changes`.
+A workspace edit represents changes to many resources managed in the workspace. The edit should either provide `changes` or `documentChanges`. If the client can handle versioned document edits and if `documentChanges` are present, the latter are preferred over `changes`.
 
 ```typescript
 export interface WorkspaceEdit {
@@ -678,6 +677,7 @@ Text documents have a language identifier to identify a document on the server s
 
 Language | Identifier
 -------- | ----------
+ABAP | `abap`
 Windows Bat | `bat`
 BibTeX | `bibtex`
 Clojure | `clojure`
@@ -698,6 +698,7 @@ HTML | `html`
 Ini | `ini`
 Java | `java`
 JavaScript | `javascript`
+JavaScript React | `javascriptreact`
 JSON | `json`
 LaTeX | `latex`
 Less | `less`
@@ -706,7 +707,8 @@ Makefile | `makefile`
 Markdown | `markdown`
 Objective-C | `objective-c`
 Objective-C++ | `objective-cpp`
-Perl | `perl` and `perl6`
+Perl | `perl`
+Perl 6 | `perl6`
 PHP | `php`
 Powershell | `powershell`
 Pug | `jade`
@@ -715,13 +717,14 @@ R | `r`
 Razor (cshtml) | `razor`
 Ruby | `ruby`
 Rust | `rust`
-Sass | `scss` (syntax using curly brackets), `sass` (indented syntax)
+SCSS | `scss` (syntax using curly brackets), `sass` (indented syntax)
 Scala | `scala`
 ShaderLab | `shaderlab`
 Shell Script (Bash) | `shellscript`
 SQL | `sql`
 Swift | `swift`
 TypeScript | `typescript`
+TypeScript React| `typescriptreact`
 TeX | `tex`
 Visual Basic | `vb`
 XML | `xml`
@@ -1760,7 +1763,8 @@ export interface FoldingRangeProviderOptions {
 
 export interface TextDocumentSyncOptions {
 	/**
-	 * Open and close notifications are sent to the server.
+	 * Open and close notifications are sent to the server. If omitted open close notification should not
+	 * be sent.
 	 */
 	openClose?: boolean;
 	/**
@@ -1769,15 +1773,18 @@ export interface TextDocumentSyncOptions {
 	 */
 	change?: number;
 	/**
-	 * Will save notifications are sent to the server.
+	 * If present will save notifications are sent to the server. If omitted the notification should not be
+	 * sent.
 	 */
 	willSave?: boolean;
 	/**
-	 * Will save wait until requests are sent to the server.
+	 * If present will save wait until requests are sent to the server. If omitted the request should not be
+	 * sent.
 	 */
 	willSaveWaitUntil?: boolean;
 	/**
-	 * Save notifications are sent to the server.
+	 * If present save notifications are sent to the server. If omitted the notification should not be
+	 * sent.
 	 */
 	save?: SaveOptions;
 }
@@ -1888,6 +1895,12 @@ interface ServerCapabilities {
 	 */
 	foldingRangeProvider?: boolean | FoldingRangeProviderOptions | (FoldingRangeProviderOptions & TextDocumentRegistrationOptions & StaticRegistrationOptions);
 	/**
+	 * The server provides go to declaration support.
+	 *
+	 * Since 3.14.0
+	 */
+	declarationProvider?: boolean | (TextDocumentRegistrationOptions & StaticRegistrationOptions);
+	/**
 	 * The server provides execute command support.
 	 */
 	executeCommandProvider?: ExecuteCommandOptions;
@@ -1939,7 +1952,7 @@ interface InitializedParams {
 
 #### <a href="#shutdown" name="shutdown" class="anchor">Shutdown Request (:leftwards_arrow_with_hook:)</a>
 
-The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit.
+The shutdown request is sent from the client to the server. It asks the server to shut down, but to not exit (otherwise the response might not be delivered correctly to the client). There is a separate exit notification that asks the server to exit. Clients must not sent any notifications other than `exit` or requests to a server to which they have sent a shutdown requests. If a server receives requests after a shutdown request those requests should be errored with `InvalidRequest`.
 
 _Request_:
 * method: 'shutdown'
@@ -2229,8 +2242,8 @@ export interface WorkspaceFolder {
 	uri: string;
 
 	/**
-	 * The name of the workspace folder. Defaults to the
-	 * uri's basename.
+	 * The name of the workspace folder. Used to refer to this
+	 * workspace folder in the user interface.
 	 */
 	name: string;
 }
@@ -2395,7 +2408,7 @@ _Registration Options_: `DidChangeWatchedFilesRegistrationOptions` defined as fo
 
 ```typescript
 /**
- * Describe options to be used when registering for text document change events.
+ * Describe options to be used when registering for file system change events.
  */
 export interface DidChangeWatchedFilesRegistrationOptions {
 	/**
@@ -2549,6 +2562,14 @@ export interface ApplyWorkspaceEditResponse {
 	 * Indicates whether the edit was applied or not.
 	 */
 	applied: boolean;
+
+	/**
+	 * An optional textual description for why the edit was not applied.
+	 * This may be used may be used by the server for diagnostic
+	 * logging or to provide a suitable error for a request that
+	 * triggered the edit.
+	 */
+	failureReason?: string;
 }
 ```
 * error: code and message set in case an exception happens during the request.
@@ -2898,7 +2919,8 @@ interface CompletionItem {
 
 	/**
 	 * The kind of this completion item. Based of the kind
-	 * an icon is chosen by the editor.
+	 * an icon is chosen by the editor. The standardized set
+	 * of available values is defined in `CompletionItemKind`.
 	 */
 	kind?: number;
 
@@ -2995,7 +3017,7 @@ interface CompletionItem {
 	command?: Command;
 
 	/**
-	 * An data entry field that is preserved on a completion item between
+	 * A data entry field that is preserved on a completion item between
 	 * a completion and a completion resolve request.
 	 */
 	data?: any
@@ -3049,6 +3071,15 @@ export interface CompletionRegistrationOptions extends TextDocumentRegistrationO
 	 * an identifier (for example `.` in JavaScript) list them in `triggerCharacters`.
 	 */
 	triggerCharacters?: string[];
+
+	/**
+	 * The list of all possible characters that commit a completion. This field can be used
+	 * if clients don't support individual commmit characters per completion item. See
+	 * `ClientCapabilities.textDocument.completion.completionItem.commitCharactersSupport`
+	 *
+   * Since 3.2.0
+	 */
+	allCommitCharacters?: string[];
 
 	/**
 	 * The server provides support to resolve additional

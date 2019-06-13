@@ -13,16 +13,19 @@ import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
 import '../common_elements.dart' show ElementEnvironment;
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
+import '../js_emitter/native_emitter.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/feature.dart';
-import '../universe/use.dart'
-    show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
+import '../universe/selector.dart';
+import '../universe/use.dart';
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
+import '../world.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
@@ -87,12 +90,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           break;
         case Feature.CATCH_STATEMENT:
           registerImpact(_impacts.catchStatement);
-          break;
-        case Feature.COMPILE_TIME_ERROR:
-          if (_options.generateCodeWithCompileTimeErrors) {
-            // TODO(johnniwinther): This should have its own uncatchable error.
-            registerImpact(_impacts.throwRuntimeError);
-          }
           break;
         case Feature.FALL_THROUGH_ERROR:
           registerImpact(_impacts.fallThroughError);
@@ -347,6 +344,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
 class CodegenImpactTransformer {
   final CompilerOptions _options;
+  final JClosedWorld _closedWorld;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
@@ -357,9 +355,11 @@ class CodegenImpactTransformer {
   final Namer _namer;
   final OneShotInterceptorData _oneShotInterceptorData;
   final RuntimeTypesChecksBuilder _rtiChecksBuilder;
+  final NativeEmitter _nativeEmitter;
 
   CodegenImpactTransformer(
       this._options,
+      this._closedWorld,
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
@@ -369,7 +369,8 @@ class CodegenImpactTransformer {
       this._nativeCodegenEnqueuer,
       this._namer,
       this._oneShotInterceptorData,
-      this._rtiChecksBuilder);
+      this._rtiChecksBuilder,
+      this._nativeEmitter);
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     if (type.isDynamic) return;
@@ -398,6 +399,17 @@ class CodegenImpactTransformer {
       }
     }
 
+    for (ConstantUse constantUse in impact.constantUses) {
+      switch (constantUse.value.kind) {
+        case ConstantValueKind.DEFERRED_GLOBAL:
+          _closedWorld.outputUnitData
+              .registerConstantDeferredUse(constantUse.value);
+          break;
+        default:
+          break;
+      }
+    }
+
     for (Pair<DartType, DartType> check
         in impact.typeVariableBoundsSubtypeChecks) {
       _rtiChecksBuilder.registerTypeVariableBoundsSubtypeCheck(
@@ -405,12 +417,34 @@ class CodegenImpactTransformer {
     }
 
     for (StaticUse staticUse in impact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CALL_METHOD) {
-        FunctionEntity callMethod = staticUse.element;
-        if (_rtiNeed.methodNeedsSignature(callMethod)) {
-          _impacts.computeSignature
-              .registerImpact(transformed, _elementEnvironment);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CALL_METHOD:
+          FunctionEntity callMethod = staticUse.element;
+          if (_rtiNeed.methodNeedsSignature(callMethod)) {
+            _impacts.computeSignature
+                .registerImpact(transformed, _elementEnvironment);
+          }
+          break;
+        case StaticUseKind.STATIC_TEAR_OFF:
+        case StaticUseKind.INSTANCE_FIELD_GET:
+        case StaticUseKind.INSTANCE_FIELD_SET:
+        case StaticUseKind.SUPER_INVOKE:
+        case StaticUseKind.STATIC_INVOKE:
+        case StaticUseKind.SUPER_FIELD_SET:
+        case StaticUseKind.SUPER_SETTER_SET:
+        case StaticUseKind.STATIC_SET:
+        case StaticUseKind.SUPER_TEAR_OFF:
+        case StaticUseKind.SUPER_GET:
+        case StaticUseKind.STATIC_GET:
+        case StaticUseKind.FIELD_INIT:
+        case StaticUseKind.FIELD_CONSTANT_INIT:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.DIRECT_INVOKE:
+        case StaticUseKind.INLINING:
+        case StaticUseKind.CLOSURE:
+        case StaticUseKind.CLOSURE_CALL:
+          break;
       }
     }
 
@@ -447,6 +481,20 @@ class CodegenImpactTransformer {
 
     for (GenericInstantiation instantiation in impact.genericInstantiations) {
       _rtiChecksBuilder.registerGenericInstantiation(instantiation);
+    }
+
+    for (NativeBehavior behavior in impact.nativeBehaviors) {
+      _nativeCodegenEnqueuer.registerNativeBehavior(
+          transformed, behavior, impact);
+    }
+
+    for (FunctionEntity function in impact.nativeMethods) {
+      _nativeEmitter.nativeMethods.add(function);
+    }
+
+    for (Selector selector in impact.oneShotInterceptors) {
+      _oneShotInterceptorData.registerOneShotInterceptor(
+          selector, _namer, _closedWorld);
     }
 
     // TODO(johnniwinther): Remove eager registration.

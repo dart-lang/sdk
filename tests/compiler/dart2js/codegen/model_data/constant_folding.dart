@@ -31,7 +31,7 @@ void jsEquals(expected, actual, [String reason = null]) {
         actual.isNegative,
         (reason == null ? "" : "$reason ") +
             "${expected.toString()} and "
-            "${actual.toString()} have different signs.");
+                "${actual.toString()} have different signs.");
   }
 }
 

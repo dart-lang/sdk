@@ -10,6 +10,7 @@ Future<ChainContext> createContext(
 }
 
 class StackTraceContext extends ChainContextWithCleanupHelper {
+  @override
   final List<Step> steps = <Step>[
     const Setup(),
     const SetCwdToSdkRoot(),
@@ -18,4 +19,5 @@ class StackTraceContext extends ChainContextWithCleanupHelper {
   ];
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+void main(List<String> arguments) =>
+    runMe(arguments, createContext, "testing.json");

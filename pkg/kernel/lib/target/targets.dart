@@ -11,8 +11,9 @@ final List<String> targetNames = targets.keys.toList();
 
 class TargetFlags {
   final bool legacyMode;
+  final bool trackWidgetCreation;
 
-  TargetFlags({this.legacyMode: false});
+  TargetFlags({this.legacyMode = false, this.trackWidgetCreation = false});
 }
 
 typedef Target _TargetBuilder(TargetFlags flags);
@@ -56,6 +57,15 @@ class ConstantsBackend {
 
   /// Number semantics to use for this backend.
   NumberSemantics get numberSemantics => NumberSemantics.vm;
+
+  /// Inline control of constant variables. The given constant expression
+  /// is the initializer of a [Field] or [VariableDeclaration] node.
+  /// If this method returns `true`, the variable will be inlined at all
+  /// points of reference and the variable itself removed (unless overridden
+  /// by the `keepFields` or `keepVariables` flag to the constant transformer).
+  /// This method must be deterministic, i.e. it must always return the same
+  /// value for the same constant value and place in the AST.
+  bool shouldInlineConstant(ConstantExpression initializer) => true;
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -114,6 +124,15 @@ abstract class Target {
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
   void performOutlineTransformations(Component component) {}
+
+  /// Perform target-specific transformations on the given libraries that must
+  /// run before constant evaluation.
+  void performPreConstantEvaluationTransformations(
+      Component component,
+      CoreTypes coreTypes,
+      List<Library> libraries,
+      DiagnosticReporter diagnosticReporter,
+      {void logger(String msg)}) {}
 
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(

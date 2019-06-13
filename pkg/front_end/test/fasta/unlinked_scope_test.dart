@@ -108,5 +108,6 @@ main() {
     testExpression("unresolved");
     testExpression("a + b", "a.+(b)");
     testExpression("a = b");
+    return Future<void>.value();
   });
 }

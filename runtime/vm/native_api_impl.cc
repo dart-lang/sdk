@@ -41,15 +41,15 @@ class IsolateLeaveScope {
 
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   ApiMessageWriter writer;
-  Message* msg =
+  std::unique_ptr<Message> msg =
       writer.WriteCMessage(message, port_id, Message::kNormalPriority);
 
-  if (msg == NULL) {
+  if (msg == nullptr) {
     return false;
   }
 
   // Post the message at the given port.
-  return PortMap::PostMessage(msg);
+  return PortMap::PostMessage(std::move(msg));
 }
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
@@ -59,7 +59,7 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
 DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
   if (Smi::IsValid(message)) {
     return PortMap::PostMessage(
-        new Message(port_id, Smi::New(message), Message::kNormalPriority));
+        Message::New(port_id, Smi::New(message), Message::kNormalPriority));
   }
   Dart_CObject cobj;
   cobj.type = Dart_CObject_kInt64;
@@ -215,6 +215,39 @@ DART_EXPORT Dart_Handle Dart_ReadAllBytecode() {
   }
   return Api::Success();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT Dart_Handle Dart_FinalizeAllClasses() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: All classes are already finalized in AOT runtime.",
+                       CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
+  if (Api::IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(T);
+  const Error& error = Error::Handle(T->zone(), Library::FinalizeAllClasses());
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.raw());
+  }
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT void Dart_ExecuteInternalCommand(const char* command) {
+  if (!FLAG_enable_testing_pragmas) return;
+
+  TransitionNativeToVM _(Thread::Current());
+  if (!strcmp(command, "gc-on-next-allocation")) {
+    Isolate::Current()->heap()->CollectOnNextAllocation();
+  } else if (!strcmp(command, "gc-now")) {
+    Isolate::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
+  } else {
+    UNREACHABLE();
+  }
 }
 
 }  // namespace dart

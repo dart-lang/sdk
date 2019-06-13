@@ -12,7 +12,7 @@ class RefreshEvent {
   RefreshEvent(this.element);
 }
 
-class NavRefreshElement extends HtmlElement implements Renderable {
+class NavRefreshElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavRefreshElement>('nav-refresh');
 
   RenderingScheduler _r;
@@ -36,14 +36,14 @@ class NavRefreshElement extends HtmlElement implements Renderable {
       {String label: 'Refresh', bool disabled: false, RenderingQueue queue}) {
     assert(label != null);
     assert(disabled != null);
-    NavRefreshElement e = document.createElement(tag.name);
+    NavRefreshElement e = new NavRefreshElement.created();
     e._r = new RenderingScheduler<NavRefreshElement>(e, queue: queue);
     e._label = label;
     e._disabled = disabled;
     return e;
   }
 
-  NavRefreshElement.created() : super.created();
+  NavRefreshElement.created() : super.created(tag);
 
   @override
   void attached() {

@@ -115,7 +115,7 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
 
 #if defined(HOST_OS_LINUX) || defined(HOST_OS_ANDROID)
       return new TimelineEventSystraceRecorder();
-#elif defined(HOST_OS_FUCHSIA)
+#elif defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
       return new TimelineEventFuchsiaRecorder();
 #else
       OS::PrintErr(
@@ -1108,7 +1108,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
 int64_t TimelineEventRecorder::GetNextAsyncId() {
   // TODO(johnmccutchan): Gracefully handle wrap around.
-#if defined(HOST_OS_FUCHSIA)
+#if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
   return trace_generate_nonce();
 #else
   uint32_t next =

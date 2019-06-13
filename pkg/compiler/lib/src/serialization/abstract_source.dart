@@ -9,9 +9,11 @@ part of 'serialization.dart';
 abstract class AbstractDataSource extends DataSourceMixin
     implements DataSource {
   final bool useDataKinds;
+  EntityReader _entityReader = const EntityReader();
   ComponentLookup _componentLookup;
   EntityLookup _entityLookup;
   LocalLookup _localLookup;
+  CodegenReader _codegenReader;
 
   IndexedSource<String> _stringIndex;
   IndexedSource<Uri> _uriIndex;
@@ -65,9 +67,28 @@ abstract class AbstractDataSource extends DataSourceMixin
     _localLookup = localLookup;
   }
 
+  @override
+  void registerEntityReader(EntityReader reader) {
+    assert(reader != null);
+    _entityReader = reader;
+  }
+
   LocalLookup get localLookup {
     assert(_localLookup != null);
     return _localLookup;
+  }
+
+  @override
+  void registerCodegenReader(CodegenReader reader) {
+    assert(reader != null);
+    assert(_codegenReader == null);
+    _codegenReader = reader;
+  }
+
+  @override
+  void deregisterCodegenReader(CodegenReader reader) {
+    assert(_codegenReader == reader);
+    _codegenReader = null;
   }
 
   @override
@@ -78,38 +99,27 @@ abstract class AbstractDataSource extends DataSourceMixin
 
   @override
   IndexedLibrary readLibrary() {
-    return getIndexedLibrary(readInt());
+    return _entityReader.readLibraryFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedClass readClass() {
-    return getIndexedClass(readInt());
+    return _entityReader.readClassFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedTypedef readTypedef() {
-    return getIndexedTypedef(readInt());
+    return _entityReader.readTypedefFromDataSource(this, entityLookup);
   }
 
   @override
   IndexedMember readMember() {
-    return getIndexedMember(readInt());
+    return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
-  IndexedLibrary getIndexedLibrary(int libraryIndex) =>
-      entityLookup.getLibraryByIndex(libraryIndex);
-
-  IndexedClass getIndexedClass(int classIndex) =>
-      entityLookup.getClassByIndex(classIndex);
-
-  IndexedTypedef getIndexedTypedef(int typedefIndex) =>
-      entityLookup.getTypedefByIndex(typedefIndex);
-
-  IndexedMember getIndexedMember(int memberIndex) =>
-      entityLookup.getMemberByIndex(memberIndex);
-
-  IndexedTypeVariable getIndexedTypeVariable(int typeVariableIndex) =>
-      entityLookup.getTypeVariableByIndex(typeVariableIndex);
+  IndexedTypeVariable readTypeVariable() {
+    return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
+  }
 
   List<DartType> _readDartTypes(
       List<FunctionTypeVariable> functionTypeVariables) {
@@ -156,7 +166,7 @@ abstract class AbstractDataSource extends DataSourceMixin
       case DartTypeKind.voidType:
         return const VoidType();
       case DartTypeKind.typeVariable:
-        return new TypeVariableType(getIndexedTypeVariable(readInt()));
+        return new TypeVariableType(readTypeVariable());
       case DartTypeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
@@ -192,11 +202,11 @@ abstract class AbstractDataSource extends DataSourceMixin
             typeVariables);
 
       case DartTypeKind.interfaceType:
-        IndexedClass cls = getIndexedClass(readInt());
+        IndexedClass cls = readClass();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
         return new InterfaceType(cls, typeArguments);
       case DartTypeKind.typedef:
-        IndexedTypedef typedef = getIndexedTypedef(readInt());
+        IndexedTypedef typedef = readTypedef();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
         DartType unaliased = _readDartType(functionTypeVariables);
         return new TypedefType(typedef, typeArguments, unaliased);
@@ -495,11 +505,21 @@ abstract class AbstractDataSource extends DataSourceMixin
         return new InstantiationConstantValue(typeArguments, function);
       case ConstantValueKind.NON_CONSTANT:
         return new NonConstantValue();
-      case ConstantValueKind.DEFERRED_GLOBAL:
       case ConstantValueKind.INTERCEPTOR:
-      case ConstantValueKind.SYNTHETIC:
-        // These are only created in the SSA graph builder.
-        throw new UnsupportedError("Unsupported constant value kind ${kind}.");
+        ClassEntity cls = readClass();
+        return new InterceptorConstantValue(cls);
+      case ConstantValueKind.DEFERRED_GLOBAL:
+        ConstantValue constant = readConstant();
+        OutputUnit unit = readOutputUnitReference();
+        return new DeferredGlobalConstantValue(constant, unit);
+      case ConstantValueKind.DUMMY_INTERCEPTOR:
+        AbstractValue abstractValue = readAbstractValue();
+        return new DummyInterceptorConstantValue(abstractValue);
+      case ConstantValueKind.UNREACHABLE:
+        return const UnreachableConstantValue();
+      case ConstantValueKind.JS_NAME:
+        js.LiteralString name = readJsNode();
+        return new JsNameConstantValue(name);
     }
     throw new UnsupportedError("Unexpexted constant value kind ${kind}.");
   }
@@ -624,6 +644,31 @@ abstract class AbstractDataSource extends DataSourceMixin
     Uri enclosingLibraryUri = _readUri();
     bool isDeferred = _readBool();
     return new ImportEntity(isDeferred, name, uri, enclosingLibraryUri);
+  }
+
+  @override
+  OutputUnit readOutputUnitReference() {
+    assert(
+        _codegenReader != null,
+        "Can not deserialize an OutputUnit reference "
+        "without a registered codegen reader.");
+    return _codegenReader.readOutputUnitReference(this);
+  }
+
+  @override
+  AbstractValue readAbstractValue() {
+    assert(
+        _codegenReader != null,
+        "Can not deserialize an AbstractValue "
+        "without a registered codegen reader.");
+    return _codegenReader.readAbstractValue(this);
+  }
+
+  @override
+  js.Node readJsNode() {
+    assert(_codegenReader != null,
+        "Can not deserialize a JS node without a registered codegen reader.");
+    return _codegenReader.readJsNode(this);
   }
 
   /// Actual deserialization of a section begin tag, implemented by subclasses.

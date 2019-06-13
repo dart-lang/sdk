@@ -28,10 +28,10 @@
     "Dynamic invocation of '_js_helper::_execGlobal'.": 1,
     "Dynamic access of 'start'.": 1,
     "Dynamic access of 'end'.": 1,
-    "Dynamic access of 'length'.": 3,
-    "Dynamic invocation of '[]'.": 1,
     "Dynamic invocation of 'call'.": 13,
+    "Dynamic access of 'length'.": 3,
     "Dynamic invocation of 'codeUnitAt'.": 2,
+    "Dynamic invocation of '[]'.": 1,
     "Dynamic access of 'iterator'.": 2,
     "Dynamic invocation of 'replaceRange'.": 2
   },
@@ -184,7 +184,7 @@
   "org-dartlang-sdk:///sdk/lib/_internal/js_runtime/lib/core_patch.dart": {
     "Dynamic access of 'dart.core::_digits'.": 2,
     "Dynamic invocation of '<'.": 2,
-    "Dynamic invocation of '[]'.": 19,
+    "Dynamic invocation of '[]'.": 17,
     "Dynamic invocation of '+'.": 2,
     "Dynamic invocation of 'dart.core::_absSubSetSign'.": 3,
     "Dynamic invocation of 'dart.core::_absAndNotSetSign'.": 2,

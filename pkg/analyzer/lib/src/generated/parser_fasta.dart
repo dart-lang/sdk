@@ -24,12 +24,15 @@ abstract class ParserAdapter implements Parser {
   final AstBuilder astBuilder;
 
   ParserAdapter(this.currentToken, ErrorReporter errorReporter, Uri fileUri,
-      {bool allowNativeClause: false})
+      {bool allowNativeClause: false, FeatureSet featureSet})
       : fastaParser = new fasta.Parser(null),
         astBuilder = new AstBuilder(errorReporter, fileUri, true) {
     fastaParser.listener = astBuilder;
     astBuilder.parser = fastaParser;
     astBuilder.allowNativeClause = allowNativeClause;
+    if (featureSet != null) {
+      astBuilder.configureFeatures(featureSet);
+    }
   }
 
   @override
@@ -105,6 +108,11 @@ abstract class ParserAdapter implements Parser {
       ..offset = token.end
       ..setNext(token.next);
     token.setNext(newToken);
+  }
+
+  @override
+  void configureFeatures(FeatureSet featureSet) {
+    astBuilder.configureFeatures(featureSet);
   }
 
   @override

@@ -20,6 +20,8 @@ import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:kernel/ast.dart' show Component, Library;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/target/vm.dart';
+import 'package:vm/target/flutter.dart';
+import 'package:vm/target/flutter_runner.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 
 main(List<String> args) async {
@@ -53,24 +55,11 @@ class KernelWorker extends AsyncWorkerLoop {
       } else {
         previousState = null;
       }
-      ComputeKernelResult result;
-      // TODO(vsm): See https://github.com/dart-lang/sdk/issues/36644.
-      // If the CFE is crashing with previous state, then clear compilation
-      // state and try again.
-      try {
-        result = await computeKernel(request.arguments,
-            isWorker: true,
-            outputBuffer: outputBuffer,
-            inputs: request.inputs,
-            previousState: previousStateToPass);
-      } catch (_) {
-        outputBuffer.clear();
-        result = await computeKernel(request.arguments,
-            isWorker: true,
-            outputBuffer: outputBuffer,
-            inputs: request.inputs,
-            previousState: null);
-      }
+      var result = await computeKernel(request.arguments,
+          isWorker: true,
+          outputBuffer: outputBuffer,
+          inputs: request.inputs,
+          previousState: previousStateToPass);
       previousState = result.previousState;
       if (!result.succeeded) {
         response.exitCode = 15;
@@ -120,8 +109,14 @@ final summaryArgsParser = new ArgParser()
       negatable: true,
       help: 'Whether to only build summary files.')
   ..addOption('target',
-      allowed: const ['vm', 'dart2js', 'ddc'],
-      help: 'Build kernel for the vm, dart2js, or ddc')
+      allowed: const [
+        'vm',
+        'flutter',
+        'flutter_runner',
+        'dart2js',
+        'ddc',
+      ],
+      help: 'Build kernel for the vm, flutter, flutter_runner, dart2js or ddc')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('input-summary')
   ..addMultiOption('input-linked')
@@ -132,7 +127,10 @@ final summaryArgsParser = new ArgParser()
   ..addMultiOption('source')
   ..addOption('output')
   ..addFlag('reuse-compiler-result', defaultsTo: false)
-  ..addFlag('use-incremental-compiler', defaultsTo: false);
+  ..addFlag('use-incremental-compiler', defaultsTo: false)
+  ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addMultiOption('enable-experiment',
+      help: 'Enable a language experiment when invoking the CFE.');
 
 class ComputeKernelResult {
   final bool succeeded;
@@ -171,22 +169,37 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   var fileSystem = new MultiRootFileSystem(parsedArgs['multi-root-scheme'],
       multiRoots, fe.StandardFileSystem.instance);
-  var sources =
-      (parsedArgs['source'] as List<String>).map(Uri.base.resolve).toList();
+  var sources = (parsedArgs['source'] as List<String>).map(_toUri).toList();
   var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   var summaryOnly = parsedArgs['summary-only'] as bool;
+  var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
+
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
   var targetName =
       (parsedArgs['target'] as String) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = new TargetFlags();
+  var targetFlags = new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   Target target;
   switch (targetName) {
     case 'vm':
       target = new VmTarget(targetFlags);
       if (summaryOnly) {
         out.writeln('error: --summary-only not supported for the vm target');
+      }
+      break;
+    case 'flutter':
+      target = new FlutterTarget(targetFlags);
+      if (summaryOnly) {
+        throw new ArgumentError(
+            'error: --summary-only not supported for the flutter target');
+      }
+      break;
+    case 'flutter_runner':
+      target = new FlutterRunnerTarget(targetFlags);
+      if (summaryOnly) {
+        throw new ArgumentError('error: --summary-only not supported for the '
+            'flutter_runner target');
       }
       break;
     case 'dart2js':
@@ -199,7 +212,8 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
-      target = new DevCompilerSummaryTarget(sources, excludeNonSources);
+      target =
+          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
@@ -209,23 +223,17 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       out.writeln('error: unsupported target: $targetName');
   }
 
-  // TODO(sigmund,jakemac): make it mandatory. We allow null while we migrate
-  // existing clients of this tool.
-  var librariesSpec = parsedArgs['libraries-file'] == null
-      ? null
-      : Uri.base.resolve(parsedArgs['libraries-file']);
+  List<Uri> linkedInputs =
+      (parsedArgs['input-linked'] as List<String>).map(_toUri).toList();
 
-  List<Uri> linkedInputs = (parsedArgs['input-linked'] as List<String>)
-      .map(Uri.base.resolve)
-      .toList();
-
-  List<Uri> summaryInputs = (parsedArgs['input-summary'] as List<String>)
-      .map(Uri.base.resolve)
-      .toList();
+  List<Uri> summaryInputs =
+      (parsedArgs['input-summary'] as List<String>).map(_toUri).toList();
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = false;
-  if (parsedArgs['use-incremental-compiler'] && linkedInputs.isEmpty) {
+  if (parsedArgs['use-incremental-compiler'] &&
+      linkedInputs.isEmpty &&
+      isWorker) {
     usingIncrementalCompiler = true;
 
     /// Build a map of uris to digests.
@@ -238,27 +246,30 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       inputDigests[uri] = input.digest;
     }
 
+    // TODO(sigmund): add support for experiments with the incremental compiler.
     state = await fe.initializeIncrementalCompiler(
         previousState,
-        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-        Uri.base.resolve(parsedArgs['packages-file']),
-        librariesSpec,
+        _toUri(parsedArgs['dart-sdk-summary']),
+        _toUri(parsedArgs['packages-file']),
+        _toUri(parsedArgs['libraries-file']),
         summaryInputs,
         inputDigests,
         target,
         fileSystem,
+        (parsedArgs['enable-experiment'] as List<String>),
         summaryOnly);
   } else {
     state = await fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
         null,
-        Uri.base.resolve(parsedArgs['dart-sdk-summary']),
-        librariesSpec,
-        Uri.base.resolve(parsedArgs['packages-file']),
+        _toUri(parsedArgs['dart-sdk-summary']),
+        _toUri(parsedArgs['libraries-file']),
+        _toUri(parsedArgs['packages-file']),
         summaryInputs,
         linkedInputs,
         target,
-        fileSystem);
+        fileSystem,
+        (parsedArgs['enable-experiment'] as List<String>));
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -278,14 +289,25 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.mainMethod = null;
         target.performOutlineTransformations(incrementalComponent);
+        return Future.value(fe.serializeComponent(incrementalComponent,
+            includeSources: false, includeOffsets: false));
       }
 
       return Future.value(fe.serializeComponent(incrementalComponent));
     });
+  } else if (summaryOnly) {
+    kernel = await fe.compileSummary(state, sources, onDiagnostic,
+        includeOffsets: false);
   } else {
-    kernel = await fe.compile(state, sources, onDiagnostic,
-        summaryOnly: summaryOnly);
+    Component component =
+        await fe.compileComponent(state, sources, onDiagnostic);
+    kernel = fe.serializeComponent(component,
+        filter: excludeNonSources
+            ? (library) => sources.contains(library.importUri)
+            : null,
+        includeOffsets: true);
   }
+  state.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
   if (kernel != null) {
     var outputFile = new File(parsedArgs['output']);
@@ -314,7 +336,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
   final List<Uri> sources;
   final bool excludeNonSources;
 
-  DevCompilerSummaryTarget(this.sources, this.excludeNonSources);
+  DevCompilerSummaryTarget(
+      this.sources, this.excludeNonSources, TargetFlags targetFlags)
+      : super(targetFlags);
 
   @override
   void performOutlineTransformations(Component component) {
@@ -337,4 +361,9 @@ class DevCompilerSummaryTarget extends DevCompilerTarget {
       }
     }
   }
+}
+
+Uri _toUri(String uriString) {
+  if (uriString == null) return null;
+  return Uri.base.resolve(uriString);
 }

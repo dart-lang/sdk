@@ -58,7 +58,7 @@ List<ModuleFormat> parseModuleFormatOption(ArgResults args) {
         default:
           throw UsageException(
               'Format $format cannot be combined with '
-              'single-out-file. Only amd and legacy modes are supported.',
+                  'single-out-file. Only amd and legacy modes are supported.',
               '');
       }
     }
@@ -345,10 +345,10 @@ String pathToJSIdentifier(String name) {
 
 /// Escape [name] to make it into a valid identifier.
 String toJSIdentifier(String name) {
-  if (name.length == 0) return r'$';
+  if (name.isEmpty) return r'$';
 
   // Escape any invalid characters
-  StringBuffer buffer = null;
+  StringBuffer buffer;
   for (int i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);

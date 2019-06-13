@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -30,7 +31,19 @@ class MockAnalysisError implements AnalysisError {
   MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
 
   @override
+  List<DiagnosticMessage> get contextMessages => null;
+
+  @override
   String get correction => null;
+
+  @override
+  String get correctionMessage => null;
+
+  @override
+  DiagnosticMessage get problemMessage => null;
+
+  @override
+  Severity get severity => null;
 }
 
 class MockAnalysisErrorInfo implements AnalysisErrorInfo {
@@ -72,6 +85,9 @@ class MockErrorCode implements ErrorCode {
   String get correction {
     throw new StateError('Unexpected invocation of correction');
   }
+
+  @override
+  bool get hasPublishedDocs => false;
 
   @override
   bool get isUnresolvedIdentifier => false;

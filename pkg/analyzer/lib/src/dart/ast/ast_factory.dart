@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -178,14 +179,27 @@ class AstFactoryImpl extends AstFactory {
       new CommentReferenceImpl(newKeyword, identifier);
 
   @override
+  @deprecated
   CompilationUnit compilationUnit(
           Token beginToken,
           ScriptTag scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
-          Token endToken) =>
-      new CompilationUnitImpl(
-          beginToken, scriptTag, directives, declarations, endToken);
+          Token endToken,
+          [FeatureSet featureSet]) =>
+      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
+          endToken, featureSet);
+
+  @override
+  CompilationUnit compilationUnit2(
+          {Token beginToken,
+          ScriptTag scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          Token endToken,
+          FeatureSet featureSet}) =>
+      new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
+          endToken, featureSet);
 
   @override
   ConditionalExpression conditionalExpression(
@@ -354,6 +368,30 @@ class AstFactoryImpl extends AstFactory {
   @override
   ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass) =>
       new ExtendsClauseImpl(extendsKeyword, superclass);
+
+  @override
+  ExtensionDeclaration extensionDeclaration(
+          {Comment comment,
+          List<Annotation> metadata,
+          Token extensionKeyword,
+          @required SimpleIdentifier name,
+          TypeParameterList typeParameters,
+          Token onKeyword,
+          @required TypeAnnotation extendedType,
+          Token leftBracket,
+          List<ClassMember> members,
+          Token rightBracket}) =>
+      new ExtensionDeclarationImpl(
+          comment,
+          metadata,
+          extensionKeyword,
+          name,
+          typeParameters,
+          onKeyword,
+          extendedType,
+          leftBracket,
+          members,
+          rightBracket);
 
   @override
   FieldDeclaration fieldDeclaration(
@@ -550,7 +588,7 @@ class AstFactoryImpl extends AstFactory {
           TypeParameterList typeParameters,
           FormalParameterList parameters) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, null, null,
-          returnType, identifier, typeParameters, parameters);
+          returnType, identifier, typeParameters, parameters, null);
 
   @override
   FunctionTypedFormalParameter functionTypedFormalParameter2(
@@ -561,9 +599,18 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation returnType,
           @required SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          @required FormalParameterList parameters}) =>
-      new FunctionTypedFormalParameterImpl(comment, metadata, covariantKeyword,
-          requiredKeyword, returnType, identifier, typeParameters, parameters);
+          @required FormalParameterList parameters,
+          Token question}) =>
+      new FunctionTypedFormalParameterImpl(
+          comment,
+          metadata,
+          covariantKeyword,
+          requiredKeyword,
+          returnType,
+          identifier,
+          typeParameters,
+          parameters,
+          question);
 
   @override
   GenericFunctionType genericFunctionType(
@@ -1021,7 +1068,19 @@ class AstFactoryImpl extends AstFactory {
           TypeAnnotation type,
           List<VariableDeclaration> variables) =>
       new VariableDeclarationListImpl(
-          comment, metadata, keyword, type, variables);
+          comment, metadata, null, keyword, type, variables);
+
+  @override
+  VariableDeclarationList variableDeclarationList2(
+      {Comment comment,
+      List<Annotation> metadata,
+      Token lateKeyword,
+      Token keyword,
+      TypeAnnotation type,
+      List<VariableDeclaration> variables}) {
+    return new VariableDeclarationListImpl(
+        comment, metadata, lateKeyword, keyword, type, variables);
+  }
 
   @override
   VariableDeclarationStatement variableDeclarationStatement(

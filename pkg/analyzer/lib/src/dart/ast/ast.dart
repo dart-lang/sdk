@@ -5,6 +5,7 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -27,7 +28,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:pub_semver/src/version.dart';
 
 /// Two or more string literals that are implicitly concatenated because of
 /// being adjacent (separated only by whitespace).
@@ -2044,8 +2044,6 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   CompilationUnitElement declaredElement;
 
-  Version languageVersion;
-
   /// The line information for this compilation unit.
   @override
   LineInfo lineInfo;
@@ -2059,8 +2057,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// has not yet been performed.
   LocalVariableInfo localVariableInfo = new LocalVariableInfo();
 
-  /// Is `true` if this unit has been parsed as non-nullable.
-  bool isNonNullable = false;
+  @override
+  final FeatureSet featureSet;
 
   /// Initialize a newly created compilation unit to have the given directives
   /// and declarations. The [scriptTag] can be `null` if there is no script tag
@@ -2072,7 +2070,8 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
       ScriptTagImpl scriptTag,
       List<Directive> directives,
       List<CompilationUnitMember> declarations,
-      this.endToken) {
+      this.endToken,
+      this.featureSet) {
     _scriptTag = _becomeParentOf(scriptTag);
     _directives = new NodeListImpl<Directive>(this, directives);
     _declarations = new NodeListImpl<CompilationUnitMember>(this, declarations);
@@ -3822,6 +3821,109 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 }
 
+/// The declaration of an extension of a type.
+///
+///    extension ::=
+///        'extension' [SimpleIdentifier] [TypeParameterList]?
+///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
+///
+/// Clients may not extend, implement or mix-in this class.
+class ExtensionDeclarationImpl extends NamedCompilationUnitMemberImpl
+    implements ExtensionDeclaration {
+  @override
+  Token extensionKeyword;
+
+  /// The type parameters for the extension, or `null` if the extension
+  /// does not have any type parameters.
+  TypeParameterListImpl _typeParameters;
+
+  @override
+  Token onKeyword;
+
+  /// The type that is being extended.
+  TypeAnnotationImpl _extendedType;
+
+  @override
+  Token leftBracket;
+
+  /// The members being added to the extended class.
+  NodeList<ClassMember> _members;
+
+  @override
+  Token rightBracket;
+
+  ExtensionDeclarationImpl(
+      CommentImpl comment,
+      List<Annotation> metadata,
+      this.extensionKeyword,
+      SimpleIdentifierImpl name,
+      TypeParameterListImpl typeParameters,
+      this.onKeyword,
+      TypeAnnotationImpl extendedType,
+      this.leftBracket,
+      List<ClassMember> members,
+      this.rightBracket)
+      : super(comment, metadata, name) {
+    _typeParameters = _becomeParentOf(typeParameters);
+    _extendedType = _becomeParentOf(extendedType);
+    _members = new NodeListImpl<ClassMember>(this, members);
+  }
+
+  @override
+  Token get beginToken => extensionKeyword;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(extensionKeyword)
+    ..add(name)
+    ..add(typeParameters)
+    ..add(onKeyword)
+    ..add(extendedType)
+    ..add(leftBracket)
+    ..addAll(members)
+    ..add(rightBracket);
+
+  @override
+  Element get declaredElement => name.staticElement;
+
+  @override
+  Element get element => name.staticElement;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  TypeAnnotation get extendedType => _extendedType;
+
+  void set extendedType(TypeAnnotation extendedClass) {
+    _extendedType = _becomeParentOf(extendedClass as TypeAnnotationImpl);
+  }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => name.beginToken;
+
+  @override
+  NodeList<ClassMember> get members => _members;
+
+  @override
+  TypeParameterList get typeParameters => _typeParameters;
+
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters as TypeParameterListImpl);
+  }
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionDeclaration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _extendedType?.accept(visitor);
+    _members.accept(visitor);
+  }
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
@@ -4223,11 +4325,15 @@ abstract class FormalParameterImpl extends AstNodeImpl
   ParameterElement get element => declaredElement;
 
   @override
-  bool get isNamed => kind == ParameterKind.NAMED;
+  bool get isNamed =>
+      kind == ParameterKind.NAMED || kind == ParameterKind.NAMED_REQUIRED;
 
   @override
   bool get isOptional =>
       kind == ParameterKind.NAMED || kind == ParameterKind.POSITIONAL;
+
+  @override
+  bool get isOptionalNamed => kind == ParameterKind.NAMED;
 
   @override
   bool get isOptionalPositional => kind == ParameterKind.POSITIONAL;
@@ -4237,7 +4343,14 @@ abstract class FormalParameterImpl extends AstNodeImpl
       kind == ParameterKind.POSITIONAL || kind == ParameterKind.REQUIRED;
 
   @override
-  bool get isRequired => kind == ParameterKind.REQUIRED;
+  bool get isRequired =>
+      kind == ParameterKind.REQUIRED || kind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredNamed => kind == ParameterKind.NAMED_REQUIRED;
+
+  @override
+  bool get isRequiredPositional => kind == ParameterKind.REQUIRED;
 
   @override
   // Overridden to remove the 'deprecated' annotation.
@@ -4797,7 +4910,8 @@ class FunctionExpressionImpl extends ExpressionImpl
   /// not a generic method.
   TypeParameterListImpl _typeParameters;
 
-  /// The parameters associated with the function.
+  /// The parameters associated with the function, or `null` if the function is
+  /// part of a top-level getter.
   FormalParameterListImpl _parameters;
 
   /// The body of the function, or `null` if this is an external function.
@@ -5059,7 +5173,7 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
 ///
 ///    functionSignature ::=
 ///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
-///        [FormalParameterList]
+///        [FormalParameterList] '?'?
 class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
   /// The return type of the function, or `null` if the function does not have a
@@ -5073,6 +5187,9 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   /// The parameters of the function-typed parameter.
   FormalParameterListImpl _parameters;
 
+  @override
+  Token question;
+
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the parameter does not have the
   /// corresponding attribute. The [returnType] can be `null` if no return type
@@ -5085,7 +5202,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
       TypeAnnotationImpl returnType,
       SimpleIdentifierImpl identifier,
       TypeParameterListImpl typeParameters,
-      FormalParameterListImpl parameters)
+      FormalParameterListImpl parameters,
+      this.question)
       : super(
             comment, metadata, covariantKeyword, requiredKeyword, identifier) {
     _returnType = _becomeParentOf(returnType);
@@ -5200,6 +5318,10 @@ class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   @override
   DartType type;
+
+  /// Return the element associated with the function type, or `null` if the
+  /// AST structure has not been resolved.
+  GenericFunctionTypeElement declaredElement;
 
   /// Initialize a newly created generic function type.
   GenericFunctionTypeImpl(TypeAnnotationImpl returnType, this.functionKeyword,
@@ -6051,7 +6173,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
       AnalysisContext context = library.context;
       ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
       accept(new ConstantVerifier(errorReporter, library, context.typeProvider,
-          context.declaredVariables));
+          context.declaredVariables,
+          featureSet: FeatureSet.fromEnableFlags([])));
     } finally {
       keyword = oldKeyword;
     }
@@ -6302,6 +6425,9 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   /// The type arguments to be applied to the method being invoked, or `null` if
   /// no type arguments were provided.
   TypeArgumentListImpl _typeArguments;
+
+  @override
+  List<DartType> typeArgumentTypes;
 
   @override
   DartType staticInvokeType;
@@ -10381,6 +10507,12 @@ class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @override
+  bool get isLate {
+    AstNode parent = this.parent;
+    return parent is VariableDeclarationList && parent.isLate;
+  }
+
+  @override
   SimpleIdentifier get name => _name;
 
   @override
@@ -10406,15 +10538,19 @@ class VariableDeclarationImpl extends DeclarationImpl
 ///        (',' [VariableDeclaration])*
 ///
 ///    finalConstVarOrType ::=
-///      | 'final' [TypeName]?
-///      | 'const' [TypeName]?
+///      'final' 'late'? [TypeAnnotation]?
+///      | 'const' [TypeAnnotation]?
 ///      | 'var'
-///      | [TypeName]
+///      | 'late'? [TypeAnnotation]
 class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
   /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
   /// no keyword was included.
   Token keyword;
+
+  /// The token representing the 'late' keyword, or `null` if the late modifier
+  /// was not included.
+  Token lateKeyword;
 
   /// The type of the variables being declared, or `null` if no type was
   /// provided.
@@ -10430,6 +10566,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   VariableDeclarationListImpl(
       CommentImpl comment,
       List<Annotation> metadata,
+      this.lateKeyword,
       this.keyword,
       TypeAnnotationImpl type,
       List<VariableDeclaration> variables)
@@ -10463,6 +10600,9 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @override
   bool get isFinal => keyword?.keyword == Keyword.FINAL;
+
+  @override
+  bool get isLate => lateKeyword != null;
 
   @override
   TypeAnnotation get type => _type;

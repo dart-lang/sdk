@@ -6,6 +6,7 @@
 
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
+#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
@@ -44,8 +45,6 @@ Thread::~Thread() {
     delete api_reusable_scope_;
     api_reusable_scope_ = NULL;
   }
-  delete thread_lock_;
-  thread_lock_ = NULL;
 }
 
 #if defined(DEBUG)
@@ -78,9 +77,10 @@ Thread::Thread(Isolate* isolate)
       resume_pc_(0),
       execution_state_(kThreadInNative),
       safepoint_state_(0),
+      ffi_callback_code_(GrowableObjectArray::null()),
       task_kind_(kUnknownTask),
       dart_stream_(NULL),
-      thread_lock_(new Monitor()),
+      thread_lock_(),
       api_reusable_scope_(NULL),
       api_top_scope_(NULL),
       no_callback_scope_depth_(0),
@@ -406,7 +406,7 @@ void Thread::ReleaseStoreBuffer() {
 void Thread::SetStackLimit(uword limit) {
   // The thread setting the stack limit is not necessarily the thread which
   // the stack limit is being set on.
-  MonitorLocker ml(thread_lock_);
+  MonitorLocker ml(&thread_lock_);
   if (!HasScheduledInterrupts()) {
     // No interrupt pending, set stack_limit_ too.
     stack_limit_ = limit;
@@ -419,12 +419,12 @@ void Thread::ClearStackLimit() {
 }
 
 void Thread::ScheduleInterrupts(uword interrupt_bits) {
-  MonitorLocker ml(thread_lock_);
+  MonitorLocker ml(&thread_lock_);
   ScheduleInterruptsLocked(interrupt_bits);
 }
 
 void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
-  ASSERT(thread_lock_->IsOwnedByCurrentThread());
+  ASSERT(thread_lock_.IsOwnedByCurrentThread());
   ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
 
   // Check to see if any of the requested interrupts should be deferred.
@@ -444,7 +444,7 @@ void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
 }
 
 uword Thread::GetAndClearInterrupts() {
-  MonitorLocker ml(thread_lock_);
+  MonitorLocker ml(&thread_lock_);
   if (stack_limit_ == saved_stack_limit_) {
     return 0;  // No interrupt was requested.
   }
@@ -454,7 +454,7 @@ uword Thread::GetAndClearInterrupts() {
 }
 
 void Thread::DeferOOBMessageInterrupts() {
-  MonitorLocker ml(thread_lock_);
+  MonitorLocker ml(&thread_lock_);
   defer_oob_messages_count_++;
   if (defer_oob_messages_count_ > 1) {
     // OOB message interrupts are already deferred.
@@ -482,7 +482,7 @@ void Thread::DeferOOBMessageInterrupts() {
 }
 
 void Thread::RestoreOOBMessageInterrupts() {
-  MonitorLocker ml(thread_lock_);
+  MonitorLocker ml(&thread_lock_);
   defer_oob_messages_count_--;
   if (defer_oob_messages_count_ > 0) {
     return;
@@ -670,6 +670,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&async_stack_trace_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ffi_callback_code_));
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (interpreter() != NULL) {
@@ -935,6 +936,47 @@ DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
     OSThread* os_thread = thread()->os_thread();
     ASSERT(os_thread != NULL);
     os_thread->EnableThreadInterrupts();
+  }
+}
+
+const intptr_t kInitialCallbackIdsReserved = 1024;
+int32_t Thread::AllocateFfiCallbackId() {
+  Zone* Z = isolate()->current_zone();
+  if (ffi_callback_code_ == GrowableObjectArray::null()) {
+    ffi_callback_code_ = GrowableObjectArray::New(kInitialCallbackIdsReserved);
+  }
+  const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
+  array.Add(Code::Handle(Z, Code::null()));
+  return array.Length() - 1;
+}
+
+void Thread::SetFfiCallbackCode(int32_t callback_id, const Code& code) {
+  Zone* Z = isolate()->current_zone();
+  const auto& array = GrowableObjectArray::Handle(Z, ffi_callback_code_);
+  array.SetAt(callback_id, code);
+}
+
+void Thread::VerifyCallbackIsolate(int32_t callback_id, uword entry) {
+  NoSafepointScope _;
+
+  const RawGrowableObjectArray* const array = ffi_callback_code_;
+  if (array == GrowableObjectArray::null()) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
+  }
+
+  const RawSmi* const length_smi =
+      GrowableObjectArray::NoSafepointLength(array);
+  const intptr_t length = Smi::Value(length_smi);
+
+  if (callback_id < 0 || callback_id >= length) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
+  }
+
+  RawObject** const code_array =
+      Array::DataOf(GrowableObjectArray::NoSafepointData(array));
+  const RawCode* const code = Code::RawCast(code_array[callback_id]);
+  if (!Code::ContainsInstructionAt(code, entry)) {
+    FATAL("Cannot invoke callback on incorrect isolate.");
   }
 }
 

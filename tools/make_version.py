@@ -41,7 +41,8 @@ VM_SNAPSHOT_FILES=[
 ]
 
 def MakeVersionString(quiet, no_git_hash, custom_for_pub=None):
-  if custom_for_pub:
+  channel = utils.GetChannel()
+  if custom_for_pub and channel == 'be':
     latest = utils.GetLatestDevTag()
     if not latest:
       # If grabbing the dev tag fails, then fall back on the VERSION file.
@@ -67,9 +68,13 @@ def MakeSnapshotHashString():
   return vmhash.hexdigest()
 
 
-def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub):
+def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub, version_file=None):
+  if version_file:
+    version_string = utils.GetVersion(no_git_hash, version_file)
+  else:
+    version_string = MakeVersionString(quiet, no_git_hash, custom_for_pub)
+
   version_cc_text = open(input_file).read()
-  version_string = MakeVersionString(quiet, no_git_hash, custom_for_pub)
   version_cc_text = version_cc_text.replace("{{VERSION_STR}}",
                                             version_string)
   version_time = utils.GetGitTimestamp()
@@ -77,9 +82,9 @@ def MakeFile(quiet, output_file, input_file, no_git_hash, custom_for_pub):
     version_time = "Unknown timestamp"
   version_cc_text = version_cc_text.replace("{{COMMIT_TIME}}",
                                             version_time)
-  abi_version = utils.GetAbiVersion()
+  abi_version = utils.GetAbiVersion(version_file)
   version_cc_text = version_cc_text.replace("{{ABI_VERSION}}", abi_version)
-  oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion()
+  oldest_supported_abi_version = utils.GetOldestSupportedAbiVersion(version_file)
   version_cc_text = version_cc_text.replace("{{OLDEST_SUPPORTED_ABI_VERSION}}",
                                             oldest_supported_abi_version)
   snapshot_hash = MakeSnapshotHashString()
@@ -97,7 +102,8 @@ def main(args):
         action="store",
         type="string",
         help=("Generates a version string that works with pub that includes"
-              "the given string"))
+              "the given string. This is silently ignored on channels other"
+              "than be"))
     parser.add_option("--input",
         action="store",
         type="string",
@@ -114,6 +120,11 @@ def main(args):
         action="store_true",
         default=False,
         help="disable console output")
+    parser.add_option("--version-file",
+        action="store",
+        type="string",
+        default=None,
+        help="Version file")
 
     (options, args) = parser.parse_args()
 
@@ -126,7 +137,7 @@ def main(args):
       if options.output:
         open(options.output, 'w').write(version_string)
       else:
-        print version_string
+        print (version_string)
       return 0
 
     if not options.output:
@@ -141,11 +152,11 @@ def main(args):
       files.append(arg)
 
     if not MakeFile(options.quiet, options.output, options.input,
-                    options.no_git_hash, options.custom_for_pub):
+                    options.no_git_hash, options.custom_for_pub, options.version_file):
       return -1
 
     return 0
-  except Exception, inst:
+  except Exception as inst:
     sys.stderr.write('make_version.py exception\n')
     sys.stderr.write(str(inst))
     sys.stderr.write('\n')

@@ -34,7 +34,12 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   Map<Type, IndexedSink> _generalCaches = {};
 
-  AbstractDataSink({this.useDataKinds: false}) {
+  EntityWriter _entityWriter = const EntityWriter();
+  CodegenWriter _codegenWriter;
+
+  final Map<String, int> tagFrequencyMap;
+
+  AbstractDataSink({this.useDataKinds: false, this.tagFrequencyMap}) {
     _dartTypeWriter = new DartTypeWriter(this);
     _dartTypeNodeWriter = new DartTypeNodeWriter(this);
     _stringIndex = new IndexedSink<String>(this);
@@ -45,6 +50,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void begin(String tag) {
+    if (tagFrequencyMap != null) {
+      tagFrequencyMap[tag] ??= 0;
+      tagFrequencyMap[tag]++;
+    }
     if (useDataKinds) {
       _tags ??= <String>[];
       _tags.add(tag);
@@ -305,22 +314,26 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
 
   @override
   void writeLibrary(IndexedLibrary value) {
-    writeInt(value.libraryIndex);
+    _entityWriter.writeLibraryToDataSink(this, value);
   }
 
   @override
   void writeClass(IndexedClass value) {
-    writeInt(value.classIndex);
+    _entityWriter.writeClassToDataSink(this, value);
   }
 
   @override
   void writeTypedef(IndexedTypedef value) {
-    writeInt(value.typedefIndex);
+    _entityWriter.writeTypedefToDataSink(this, value);
   }
 
   @override
   void writeMember(IndexedMember value) {
-    writeInt(value.memberIndex);
+    _entityWriter.writeMemberToDataSink(this, value);
+  }
+
+  void writeTypeVariable(IndexedTypeVariable value) {
+    _entityWriter.writeTypeVariableToDataSink(this, value);
   }
 
   @override
@@ -439,12 +452,25 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
         break;
       case ConstantValueKind.NON_CONSTANT:
         break;
-      case ConstantValueKind.DEFERRED_GLOBAL:
       case ConstantValueKind.INTERCEPTOR:
-      case ConstantValueKind.SYNTHETIC:
-        // These are only created in the SSA graph builder.
-        throw new UnsupportedError(
-            "Unsupported constant value kind ${value.kind}.");
+        InterceptorConstantValue constant = value;
+        writeClass(constant.cls);
+        break;
+      case ConstantValueKind.DEFERRED_GLOBAL:
+        DeferredGlobalConstantValue constant = value;
+        writeConstant(constant.referenced);
+        writeOutputUnitReference(constant.unit);
+        break;
+      case ConstantValueKind.DUMMY_INTERCEPTOR:
+        DummyInterceptorConstantValue constant = value;
+        writeAbstractValue(constant.abstractValue);
+        break;
+      case ConstantValueKind.UNREACHABLE:
+        break;
+      case ConstantValueKind.JS_NAME:
+        JsNameConstantValue constant = value;
+        writeJsNode(constant.name);
+        break;
     }
   }
 
@@ -472,6 +498,42 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _writeUri(value.uri);
     _writeUri(value.enclosingLibraryUri);
     _writeBool(value.isDeferred);
+  }
+
+  @override
+  void registerEntityWriter(EntityWriter writer) {
+    assert(writer != null);
+    _entityWriter = writer;
+  }
+
+  @override
+  void registerCodegenWriter(CodegenWriter writer) {
+    assert(writer != null);
+    assert(_codegenWriter == null);
+    _codegenWriter = writer;
+  }
+
+  @override
+  void writeOutputUnitReference(OutputUnit value) {
+    assert(
+        _codegenWriter != null,
+        "Can not serialize an OutputUnit reference "
+        "without a registered codegen writer.");
+    _codegenWriter.writeOutputUnitReference(this, value);
+  }
+
+  @override
+  void writeAbstractValue(AbstractValue value) {
+    assert(_codegenWriter != null,
+        "Can not serialize an AbstractValue without a registered codegen writer.");
+    _codegenWriter.writeAbstractValue(this, value);
+  }
+
+  @override
+  void writeJsNode(js.Node value) {
+    assert(_codegenWriter != null,
+        "Can not serialize a JS ndoe without a registered codegen writer.");
+    _codegenWriter.writeJsNode(this, value);
   }
 
   /// Actual serialization of a section begin tag, implemented by subclasses.

@@ -179,6 +179,15 @@ class FileTest extends OverlayTestSupport {
     expect(file.readAsBytesSync(), <int>[98, 98, 98]);
   }
 
+  test_readAsBytesSync_existing_withOverlay_utf8() {
+    // Strings should be encoded as UTF8 when they're written, so when we read
+    // them back as bytes we should see the UTF8-encoded version of the string.
+    String overlayContent = '\u00e5'; // latin small letter a with ring above
+    File file =
+        _file(exists: true, withOverlay: true, overlayContent: overlayContent);
+    expect(file.readAsBytesSync(), <int>[0xc3, 0xa5]);
+  }
+
   test_readAsBytesSync_notExisting_withoutOverlay() {
     File file = _file(exists: false);
     expect(() => file.readAsBytesSync(), throwsA(_isFileSystemException));
@@ -506,7 +515,7 @@ class FolderTest extends OverlayTestSupport {
     expect(child, isNotNull);
   }
 
-  test_getChildren() {
+  test_getChildren_existing() {
     Folder folder = _folder(exists: true);
     Folder child1 = _folder(
         exists: true, path: provider.pathContext.join(folder.path, 'lib'));
@@ -521,6 +530,13 @@ class FolderTest extends OverlayTestSupport {
     expect(children, hasLength(3));
     expect(children.map((resource) => resource.path),
         unorderedEquals([child1.path, child2.path, child3.path]));
+  }
+
+  test_getChildren_nonExisting_withOverlay() {
+    File file = _file(exists: false, withOverlay: true);
+    List<Resource> children = file.parent.parent.getChildren();
+    expect(children, hasLength(1));
+    expect(children[0], _isFolder);
   }
 
   test_isOrContains_false() {
@@ -662,18 +678,26 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(file.exists, isTrue);
   }
 
-  test_getFolder_existing() {
+  test_getFolder_existing_withoutOverlay() {
     Folder folder = _folder(exists: true);
     expect(folder, isNotNull);
     expect(folder.path, defaultFolderPath);
     expect(folder.exists, isTrue);
   }
 
-  test_getFolder_notExisting() {
+  test_getFolder_notExisting_withoutOverlay() {
     Folder folder = _folder(exists: false);
     expect(folder, isNotNull);
     expect(folder.path, defaultFolderPath);
     expect(folder.exists, isFalse);
+  }
+
+  test_getFolder_notExisting_withOverlay() {
+    File file = _file(exists: false, withOverlay: true);
+    Folder folder = file.parent;
+    expect(folder, isNotNull);
+    expect(folder.path, defaultFolderPath);
+    expect(folder.exists, isTrue);
   }
 
   test_getModificationTimes_withoutOverlay() async {
@@ -688,34 +712,41 @@ class OverlayResourceProviderTest extends OverlayTestSupport {
     expect(times, [42]);
   }
 
-  test_getResource_existingFile_withoutOverlay() {
+  test_getResource_file_existing_withoutOverlay() {
     String path = _file(exists: true).path;
     Resource resource = provider.getResource(path);
     expect(resource, _isFile);
   }
 
-  test_getResource_existingFile_withOverlay() {
+  test_getResource_file_existing_withOverlay() {
     String path = _file(exists: true, withOverlay: true).path;
     Resource resource = provider.getResource(path);
     expect(resource, _isFile);
   }
 
-  test_getResource_existingFolder() {
-    String path = _folder(exists: true).path;
-    Resource resource = provider.getResource(path);
-    expect(resource, _isFolder);
-  }
-
-  test_getResource_notExisting_withoutOverlay() {
+  test_getResource_file_notExisting_withoutOverlay() {
     String path = _file(exists: false).path;
     Resource resource = provider.getResource(path);
     expect(resource, _isFile);
   }
 
-  test_getResource_notExisting_withOverlay() {
+  test_getResource_file_notExisting_withOverlay() {
     String path = _file(exists: false, withOverlay: true).path;
     Resource resource = provider.getResource(path);
     expect(resource, _isFile);
+  }
+
+  test_getResource_folder_existing() {
+    String path = _folder(exists: true).path;
+    Resource resource = provider.getResource(path);
+    expect(resource, _isFolder);
+  }
+
+  test_getResource_folder_nonExisting_withOverlay() {
+    String filePath = _file(exists: false, withOverlay: true).path;
+    String folderPath = provider.pathContext.dirname(filePath);
+    Resource resource = provider.getResource(folderPath);
+    expect(resource, _isFolder);
   }
 
   test_getStateLocation_uniqueness() {
@@ -763,7 +794,8 @@ class OverlayTestSupport {
       {@required bool exists,
       String content,
       String path,
-      bool withOverlay = false}) {
+      bool withOverlay = false,
+      String overlayContent = 'bbb'}) {
     if (path == null) {
       path = defaultFilePath;
     } else {
@@ -773,7 +805,7 @@ class OverlayTestSupport {
       baseProvider.newFile(path, content ?? 'a');
     }
     if (withOverlay) {
-      provider.setOverlay(path, content: 'bbb', modificationStamp: 42);
+      provider.setOverlay(path, content: overlayContent, modificationStamp: 42);
     }
     return provider.getFile(path);
   }

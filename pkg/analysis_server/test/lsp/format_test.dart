@@ -63,6 +63,15 @@ class FormatTest extends AbstractLspAnalysisServerTest {
     expect(formatEdits, isNull);
   }
 
+  test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+
+    final formatEdits =
+        await formatOnType(pubspecFileUri.toString(), startOfDocPos, '}');
+    expect(formatEdits, isNull);
+  }
+
   test_path_doesNotExist() async {
     await initialize();
 

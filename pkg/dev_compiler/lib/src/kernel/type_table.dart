@@ -116,6 +116,7 @@ class _GeneratorTable extends _CacheTable {
 
   _GeneratorTable(this._runtimeModule);
 
+  @override
   JS.Statement _dischargeType(DartType t) {
     var name = _names.remove(t);
     if (name != null) {

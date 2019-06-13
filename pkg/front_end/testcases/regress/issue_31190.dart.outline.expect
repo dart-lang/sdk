@@ -7,6 +7,10 @@ library;
 //   T<U> v;
 //   ^
 //
+// pkg/front_end/testcases/regress/issue_31190.dart:6:5: Warning: Type 'U' not found.
+//   T<U> v;
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 

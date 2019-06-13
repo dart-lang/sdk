@@ -7,7 +7,7 @@ library ssa.tracer;
 import '../../compiler_new.dart' show OutputSink;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../inferrer/abstract_value_domain.dart';
-import '../js_backend/namer.dart' show Namer;
+import '../js_backend/namer.dart' show suffixForGetInterceptor;
 import '../tracer.dart';
 import '../world.dart' show JClosedWorld;
 import 'nodes.dart';
@@ -17,11 +17,10 @@ import 'nodes.dart';
 /// to enable it.
 class HTracer extends HGraphVisitor with TracerUtil {
   final JClosedWorld closedWorld;
-  final Namer namer;
   @override
   final OutputSink output;
 
-  HTracer(this.output, this.closedWorld, this.namer);
+  HTracer(this.output, this.closedWorld);
 
   void traceGraph(String name, HGraph graph) {
     DEBUG_MODE = true;
@@ -76,7 +75,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
   @override
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(block, closedWorld, namer);
+        new HInstructionStringifier(block, closedWorld);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -114,10 +113,9 @@ class HTracer extends HGraphVisitor with TracerUtil {
 
 class HInstructionStringifier implements HVisitor<String> {
   final JClosedWorld closedWorld;
-  final Namer namer;
   final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.currentBlock, this.closedWorld, this.namer);
+  HInstructionStringifier(this.currentBlock, this.closedWorld);
 
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -173,11 +171,6 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitLateValue(HLateValue node) {
     return "LateValue: ${temporaryId(node.inputs[0])}";
-  }
-
-  @override
-  String visitBoolify(HBoolify node) {
-    return "Boolify: ${temporaryId(node.inputs[0])}";
   }
 
   String handleInvokeBinary(HInvokeBinary node, String opcode) {
@@ -356,8 +349,9 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     if (node.interceptedClasses != null) {
-      String cls = namer.suffixForGetInterceptor(node.interceptedClasses);
-      return "Interceptor ($cls): $value";
+      String cls = suffixForGetInterceptor(closedWorld.commonElements,
+          closedWorld.nativeData, node.interceptedClasses);
+      return "Interceptor (${cls}): $value";
     }
     return "Interceptor: $value";
   }
@@ -372,7 +366,8 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = "$receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
-    return handleGenericInvoke(kind, target, arguments) + "(${invoke.mask})";
+    return handleGenericInvoke(kind, target, arguments) +
+        "(${invoke.receiverType})";
   }
 
   @override
@@ -609,19 +604,29 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String _typeConversionKind(HTypeConversion node) {
-    switch (node.kind) {
-      case HTypeConversion.CHECKED_MODE_CHECK:
-        return 'CHECKED_MODE';
-      case HTypeConversion.ARGUMENT_TYPE_CHECK:
-        return 'ARGUMENT';
-      case HTypeConversion.CAST_TYPE_CHECK:
-        return 'CAST';
-      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
-        return 'BOOLEAN_CONVERSION';
-      case HTypeConversion.RECEIVER_TYPE_CHECK:
-        return 'RECEIVER';
-    }
+    if (node.isTypeCheck) return 'TYPE_CHECK';
+    if (node.isCastCheck) return 'CAST_CHECK';
     return '?';
+  }
+
+  @override
+  String visitPrimitiveCheck(HPrimitiveCheck node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    assert(node.inputs.length == 1);
+    String kind = _primitiveCheckKind(node);
+    return "PrimitiveCheck: $kind $checkedInput to ${node.instructionType}";
+  }
+
+  String _primitiveCheckKind(HPrimitiveCheck node) {
+    if (node.isReceiverTypeCheck) return 'RECEIVER';
+    if (node.isArgumentTypeCheck) return 'ARGUMENT';
+    return '?';
+  }
+
+  @override
+  String visitBoolConversion(HBoolConversion node) {
+    String checkedInput = temporaryId(node.checkedInput);
+    return "BoolConversion: $checkedInput";
   }
 
   @override
@@ -667,5 +672,42 @@ class HInstructionStringifier implements HVisitor<String> {
   @override
   String visitYield(HYield node) {
     return "Yield${node.hasStar ? "*" : ""}: ${temporaryId(node.inputs[0])}";
+  }
+
+  @override
+  visitIsTest(HIsTest node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "IsTest: $inputs";
+  }
+
+  @override
+  visitAsCheck(HAsCheck node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    String error = node.isTypeError ? 'TypeError' : 'CastError';
+    return "AsCheck: $error $inputs";
+  }
+
+  @override
+  visitSubtypeCheck(HSubtypeCheck node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "SubtypeCheck: $inputs";
+  }
+
+  @override
+  visitLoadType(HLoadType node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "LoadType: $inputs";
+  }
+
+  @override
+  visitTypeEval(HTypeEval node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeEval: $inputs";
+  }
+
+  @override
+  visitTypeBind(HTypeBind node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeBind: $inputs";
   }
 }

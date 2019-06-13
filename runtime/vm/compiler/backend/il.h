@@ -18,6 +18,7 @@
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/runtime_entry.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/token_position.h"
 
@@ -335,18 +336,21 @@ struct InstrAttrs {
   M(JoinEntry, kNoGC)                                                          \
   M(TargetEntry, kNoGC)                                                        \
   M(FunctionEntry, kNoGC)                                                      \
+  M(NativeEntry, kNoGC)                                                        \
   M(OsrEntry, kNoGC)                                                           \
   M(IndirectEntry, kNoGC)                                                      \
   M(CatchBlockEntry, kNoGC)                                                    \
   M(Phi, kNoGC)                                                                \
   M(Redefinition, kNoGC)                                                       \
   M(Parameter, kNoGC)                                                          \
+  M(NativeParameter, kNoGC)                                                    \
   M(LoadIndexedUnsafe, kNoGC)                                                  \
   M(StoreIndexedUnsafe, kNoGC)                                                 \
   M(TailCall, kNoGC)                                                           \
   M(ParallelMove, kNoGC)                                                       \
   M(PushArgument, kNoGC)                                                       \
   M(Return, kNoGC)                                                             \
+  M(NativeReturn, kNoGC)                                                       \
   M(Throw, kNoGC)                                                              \
   M(ReThrow, kNoGC)                                                            \
   M(Stop, _)                                                                   \
@@ -422,7 +426,7 @@ struct InstrAttrs {
   M(Unbox, kNoGC)                                                              \
   M(BoxInt64, _)                                                               \
   M(UnboxInt64, kNoGC)                                                         \
-  M(CaseInsensitiveCompareUC16, _)                                             \
+  M(CaseInsensitiveCompare, _)                                                 \
   M(BinaryInt64Op, kNoGC)                                                      \
   M(ShiftInt64Op, kNoGC)                                                       \
   M(SpeculativeShiftInt64Op, kNoGC)                                            \
@@ -554,7 +558,11 @@ class Cids : public ZoneAllocated {
   explicit Cids(Zone* zone) : zone_(zone) {}
   // Creates the off-heap Cids object that reflects the contents
   // of the on-VM-heap IC data.
-  static Cids* Create(Zone* zone, const ICData& ic_data, int argument_number);
+  // Ranges of Cids are merged if there is only one target function and
+  // it is used for all cids in the gaps between ranges.
+  static Cids* CreateAndExpand(Zone* zone,
+                               const ICData& ic_data,
+                               int argument_number);
   static Cids* CreateMonomorphic(Zone* zone, intptr_t cid);
 
   bool Equals(const Cids& other) const;
@@ -915,6 +923,28 @@ class Instruction : public ZoneAllocated {
 
   virtual bool UseSharedSlowPathStub(bool is_optimizing) const { return false; }
 
+  // 'RegisterKindForResult()' returns the register kind necessary to hold the
+  // result.
+  //
+  // This is not virtual because instructions should override representation()
+  // instead.
+  Location::Kind RegisterKindForResult() const {
+    const Representation rep = representation();
+#if !defined(TARGET_ARCH_DBC)
+    if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
+        (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
+        (rep == kUnboxedFloat64x2)) {
+      return Location::kFpuRegister;
+    }
+#else
+    // DBC supports only unboxed doubles and does not have distinguished FPU
+    // registers.
+    ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
+           (rep != kUnboxedFloat64x2));
+#endif
+    return Location::kRegister;
+  }
+
  protected:
   // GetDeoptId and/or CopyDeoptIdFrom.
   friend class CallSiteInliner;
@@ -934,8 +964,8 @@ class Instruction : public ZoneAllocated {
   }
 
  private:
-  friend class BranchInstr;      // For RawSetInputAt.
-  friend class IfThenElseInstr;  // For RawSetInputAt.
+  friend class BranchInstr;          // For RawSetInputAt.
+  friend class IfThenElseInstr;      // For RawSetInputAt.
   friend class CheckConditionInstr;  // For RawSetInputAt.
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
@@ -1377,8 +1407,7 @@ class BlockEntryWithInitialDefs : public BlockEntryInstr {
 
 class GraphEntryInstr : public BlockEntryWithInitialDefs {
  public:
-  GraphEntryInstr(const ParsedFunction& parsed_function,
-                  intptr_t osr_id);
+  GraphEntryInstr(const ParsedFunction& parsed_function, intptr_t osr_id);
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1614,6 +1643,33 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
   DISALLOW_COPY_AND_ASSIGN(FunctionEntryInstr);
 };
 
+// Represents entry into a function from native code.
+//
+// Native entries are not allowed to have regular parameters. They should use
+// NativeParameter instead (which doesn't count as an initial definition).
+class NativeEntryInstr : public FunctionEntryInstr {
+ public:
+  NativeEntryInstr(const ZoneGrowableArray<Location>* argument_locations,
+                   GraphEntryInstr* graph_entry,
+                   intptr_t block_id,
+                   intptr_t try_index,
+                   intptr_t deopt_id,
+                   intptr_t callback_id)
+      : FunctionEntryInstr(graph_entry, block_id, try_index, deopt_id),
+        callback_id_(callback_id),
+        argument_locations_(argument_locations) {}
+
+  DECLARE_INSTRUCTION(NativeEntry)
+
+  PRINT_TO_SUPPORT
+
+ private:
+  void SaveArgument(FlowGraphCompiler* compiler, Location loc) const;
+
+  const intptr_t callback_id_;
+  const ZoneGrowableArray<Location>* const argument_locations_;
+};
+
 // Represents an OSR entrypoint to a function.
 //
 // The OSR entry has it's own initial definitions.
@@ -1835,12 +1891,12 @@ class Definition : public Instruction {
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
   void ClearSSATempIndex() { ssa_temp_index_ = -1; }
   bool HasPairRepresentation() const {
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-    return representation() == kPairOfTagged;
-#else
-    return (representation() == kPairOfTagged) ||
-           (representation() == kUnboxedInt64);
-#endif
+    if (compiler::target::kWordSize == 8) {
+      return representation() == kPairOfTagged;
+    } else {
+      return (representation() == kPairOfTagged) ||
+             (representation() == kUnboxedInt64);
+    }
   }
 
   // Compile time type of the definition, which may be requested before type
@@ -2160,6 +2216,7 @@ class ParameterInstr : public Definition {
 
   // Get the block entry for that instruction.
   virtual BlockEntryInstr* GetBlock() { return block_; }
+  void set_block(BlockEntryInstr* block) { block_ = block; }
 
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {
@@ -2190,6 +2247,57 @@ class ParameterInstr : public Definition {
   BlockEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
+};
+
+// Native parameters are not treated as initial definitions because they cannot
+// be inlined and are only usable in optimized code. The location must be a
+// stack location relative to the position of the stack (SPREG) after
+// register-based arguments have been saved on entry to a native call. See
+// NativeEntryInstr::EmitNativeCode for more details.
+//
+// TOOD(33549): Unify with ParameterInstr.
+class NativeParameterInstr : public Definition {
+ public:
+  NativeParameterInstr(Location loc, Representation representation)
+      : loc_(loc), representation_(representation) {
+    if (loc.IsPairLocation()) {
+      for (intptr_t i : {0, 1}) {
+        ASSERT(loc_.Component(i).HasStackIndex() &&
+               loc_.Component(i).base_reg() == SPREG);
+      }
+    } else {
+      ASSERT(loc_.HasStackIndex() && loc_.base_reg() == SPREG);
+    }
+  }
+
+  DECLARE_INSTRUCTION(NativeParameter)
+
+  virtual Representation representation() const { return representation_; }
+
+  intptr_t InputCount() const { return 0; }
+  Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual bool HasUnknownSideEffects() const { return false; }
+
+  // TODO(sjindel): We can make this more precise.
+  virtual CompileType ComputeType() const { return CompileType::Dynamic(); }
+
+  virtual bool MayThrow() const { return false; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
+  const Location loc_;
+  const Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeParameterInstr);
 };
 
 // Stores a tagged pointer to a slot accessible from a fixed register.  It has
@@ -2255,8 +2363,11 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  LoadIndexedUnsafeInstr(Value* index, intptr_t offset, CompileType result_type)
-      : offset_(offset) {
+  LoadIndexedUnsafeInstr(Value* index,
+                         intptr_t offset,
+                         CompileType result_type,
+                         Representation representation = kTagged)
+      : offset_(offset), representation_(representation) {
     UpdateType(result_type);
     SetInputAt(0, index);
   }
@@ -2267,7 +2378,6 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
     ASSERT(index == 0);
     return kTagged;
   }
-  virtual Representation representation() const { return kTagged; }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool HasUnknownSideEffects() const { return false; }
 
@@ -2283,6 +2393,7 @@ class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const intptr_t offset_;
+  const Representation representation_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedUnsafeInstr);
 };
@@ -2390,6 +2501,40 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
+};
+
+// Represents a return from a Dart function into native code.
+class NativeReturnInstr : public ReturnInstr {
+ public:
+  NativeReturnInstr(TokenPosition token_pos,
+                    Value* value,
+                    Representation rep,
+                    Location result_location,
+                    intptr_t deopt_id)
+      : ReturnInstr(token_pos, value, deopt_id),
+        result_representation_(rep),
+        result_location_(result_location) {}
+
+  DECLARE_INSTRUCTION(NativeReturn)
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return result_representation_;
+  }
+
+  virtual bool CanBecomeDeoptimizationTarget() const {
+    // Unlike ReturnInstr, NativeReturnInstr cannot be inlined (because it's
+    // returning into native code).
+    return false;
+  }
+
+ private:
+  const Representation result_representation_;
+  const Location result_location_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };
 
 class ThrowInstr : public TemplateInstruction<0, Throws> {
@@ -2872,6 +3017,8 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   const Object& value() const { return value_; }
+
+  bool IsSmi() const { return compiler::target::IsSmi(value()); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -4162,13 +4309,15 @@ class FfiCallInstr : public Definition {
                intptr_t deopt_id,
                const Function& signature,
                const ZoneGrowableArray<Representation>& arg_reps,
-               const ZoneGrowableArray<Location>& arg_locs)
+               const ZoneGrowableArray<Location>& arg_locs,
+               const ZoneGrowableArray<HostLocation>* arg_host_locs = nullptr)
       : Definition(deopt_id),
         zone_(zone),
         signature_(signature),
         inputs_(arg_reps.length() + 1),
         arg_representations_(arg_reps),
-        arg_locations_(arg_locs) {
+        arg_locations_(arg_locs),
+        arg_host_locations_(arg_host_locs) {
     inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
     ASSERT(signature.IsZoneHandle());
   }
@@ -4208,6 +4357,7 @@ class FfiCallInstr : public Definition {
   GrowableArray<Value*> inputs_;
   const ZoneGrowableArray<Representation>& arg_representations_;
   const ZoneGrowableArray<Location>& arg_locations_;
+  const ZoneGrowableArray<HostLocation>* arg_host_locations_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
@@ -4627,7 +4777,11 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
-  intptr_t index_scale() const { return Instance::ElementSizeFor(class_id_); }
+
+  intptr_t index_scale() const {
+    return compiler::target::Instance::ElementSizeFor(class_id_);
+  }
+
   intptr_t class_id() const { return class_id_; }
   intptr_t element_count() const { return element_count_; }
 
@@ -4922,7 +5076,7 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
-    closure_function_ ^= function.raw();
+    closure_function_ = function.raw();
   }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -4979,6 +5133,7 @@ class AllocateUninitializedContextInstr
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }
@@ -5133,12 +5288,11 @@ class CreateArrayInstr : public TemplateAllocation<2, Throws> {
     if (!num_elements()->BindsToConstant()) return false;
     const Object& length = num_elements()->BoundConstant();
     if (!length.IsSmi()) return false;
-    const intptr_t value = Smi::Cast(length).Value();
-    if (value < 0) return false;
-    return WillAllocateNewOrRemembered(value);
+    return WillAllocateNewOrRemembered(Smi::Cast(length).Value());
   }
 
   static bool WillAllocateNewOrRemembered(const intptr_t length) {
+    if (!Array::IsValidLength(length)) return false;
     return !Array::UseCardMarkingForAllocation(length);
   }
 
@@ -5243,6 +5397,8 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
   DECLARE_INSTRUCTION(LoadClassId)
   virtual CompileType ComputeType() const;
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
   Value* object() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -5303,6 +5459,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
+  static bool IsTypedDataViewFactory(const Function& function);
 
   virtual bool AllowsCSE() const { return slot_.is_immutable(); }
   virtual bool HasUnknownSideEffects() const { return false; }
@@ -5429,6 +5586,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
+    if (!Context::IsValidLength(num_context_variables)) return false;
     return Heap::IsAllocatableInNewSpace(
         Context::InstanceSize(num_context_variables));
   }
@@ -5620,6 +5778,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     SetInputAt(0, value);
   }
 
+#if defined(TARGET_ARCH_DBC)
+  void EmitAllocateBox(FlowGraphCompiler* compiler);
+#endif
+
  private:
   intptr_t ValueOffset() const {
     return Boxing::ValueOffset(from_representation());
@@ -5786,6 +5948,8 @@ class UnboxIntegerInstr : public UnboxInstr {
 
   bool is_truncating() const { return is_truncating_; }
 
+  void mark_truncating() { is_truncating_ = true; }
+
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
@@ -5951,18 +6115,18 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 // Calls into the runtime and performs a case-insensitive comparison of the
 // UTF16 strings (i.e. TwoByteString or ExternalTwoByteString) located at
 // str[lhs_index:lhs_index + length] and str[rhs_index:rhs_index + length].
-//
-// TODO(zerny): Remove this once (if) functions inherited from unibrow
-// are moved to dart code.
-class CaseInsensitiveCompareUC16Instr
+// Depending on the runtime entry passed, we will treat the strings as either
+// UCS2 (no surrogate handling) or UTF16 (surrogates handled appropriately).
+class CaseInsensitiveCompareInstr
     : public TemplateDefinition<4, NoThrow, Pure> {
  public:
-  CaseInsensitiveCompareUC16Instr(Value* str,
-                                  Value* lhs_index,
-                                  Value* rhs_index,
-                                  Value* length,
-                                  intptr_t cid)
-      : cid_(cid) {
+  CaseInsensitiveCompareInstr(Value* str,
+                              Value* lhs_index,
+                              Value* rhs_index,
+                              Value* length,
+                              const RuntimeEntry& entry,
+                              intptr_t cid)
+      : entry_(entry), cid_(cid) {
     ASSERT(cid == kTwoByteStringCid || cid == kExternalTwoByteStringCid);
     ASSERT(index_scale() == 2);
     SetInputAt(0, str);
@@ -5976,26 +6140,30 @@ class CaseInsensitiveCompareUC16Instr
   Value* rhs_index() const { return inputs_[2]; }
   Value* length() const { return inputs_[3]; }
 
-  const RuntimeEntry& TargetFunction() const;
+  const RuntimeEntry& TargetFunction() const { return entry_; }
   bool IsExternal() const { return cid_ == kExternalTwoByteStringCid; }
   intptr_t class_id() const { return cid_; }
-  intptr_t index_scale() const { return Instance::ElementSizeFor(cid_); }
+
+  intptr_t index_scale() const {
+    return compiler::target::Instance::ElementSizeFor(cid_);
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kTagged; }
 
-  DECLARE_INSTRUCTION(CaseInsensitiveCompareUC16)
+  DECLARE_INSTRUCTION(CaseInsensitiveCompare)
   virtual CompileType ComputeType() const;
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsCaseInsensitiveCompareUC16()->cid_ == cid_;
+    return other->AsCaseInsensitiveCompare()->cid_ == cid_;
   }
 
  private:
+  const RuntimeEntry& entry_;
   const intptr_t cid_;
 
-  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareUC16Instr);
+  DISALLOW_COPY_AND_ASSIGN(CaseInsensitiveCompareInstr);
 };
 
 // Represents Math's static min and max functions.
@@ -7535,6 +7703,8 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   bool IsRedundant(const RangeBoundary& length);
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(GenericCheckBoundInstr);
 };
@@ -7631,6 +7801,8 @@ class IntConverterInstr : public TemplateDefinition<1, NoThrow, Pure> {
            (converter->is_truncating() == is_truncating());
   }
 
+  virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
+
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual CompileType ComputeType() const {
@@ -7660,10 +7832,10 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
         from_representation_(from),
         to_representation_(to) {
     ASSERT(from != to);
-    ASSERT(to == kUnboxedInt32 && from == kUnboxedFloat ||
-           to == kUnboxedFloat && from == kUnboxedInt32 ||
-           to == kUnboxedInt64 && from == kUnboxedDouble ||
-           to == kUnboxedDouble && from == kUnboxedInt64);
+    ASSERT((to == kUnboxedInt32 && from == kUnboxedFloat) ||
+           (to == kUnboxedFloat && from == kUnboxedInt32) ||
+           (to == kUnboxedInt64 && from == kUnboxedDouble) ||
+           (to == kUnboxedDouble && from == kUnboxedInt64));
     SetInputAt(0, value);
   }
 
@@ -7712,18 +7884,24 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   UnboxedWidthExtenderInstr(Value* value,
                             Representation rep,
-                            intptr_t from_width_bytes)
+                            SmallRepresentation from_rep)
       : TemplateDefinition(DeoptId::kNone),
         representation_(rep),
-        from_width_bytes_(from_width_bytes) {
-    ASSERT(from_width_bytes == 1 || from_width_bytes == 2);
-    ASSERT(rep == kUnboxedInt32 || rep == kUnboxedUint32);
+        from_representation_(from_rep) {
+    ASSERT(rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
+                                    from_rep == kSmallUnboxedInt16) ||
+           rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
+                                     from_rep == kSmallUnboxedUint16));
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
 
   Representation representation() const { return representation_; }
+
+  SmallRepresentation from_representation() const {
+    return from_representation_;
+  }
 
   bool ComputeCanDeoptimize() const { return false; }
 
@@ -7736,7 +7914,7 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
     ASSERT(other->IsUnboxedWidthExtender());
     const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
     return ext->representation() == representation() &&
-           ext->from_width_bytes_ == from_width_bytes_;
+           ext->from_representation_ == from_representation_;
   }
 
   virtual CompileType ComputeType() const { return CompileType::Int(); }
@@ -7746,8 +7924,18 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
+  intptr_t from_width_bytes() const {
+    if (from_representation_ == kSmallUnboxedInt8 ||
+        from_representation_ == kSmallUnboxedUint8) {
+      return 1;
+    }
+    ASSERT(from_representation_ == kSmallUnboxedInt16 ||
+           from_representation_ == kSmallUnboxedUint16);
+    return 2;
+  }
+
   const Representation representation_;
-  const intptr_t from_width_bytes_;
+  const SmallRepresentation from_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
 };

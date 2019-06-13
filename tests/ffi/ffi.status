@@ -9,9 +9,8 @@
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
 # dartbug.com/35768: Structs not supported on 32-bit.
-[ $arch == ia32 || $arch == arm ]
+[ $arch == ia32 || $arch == arm || $arch == simdbc ]
 function_structs_test: Skip
-function_callbacks_test: Skip
 structs_test: Skip
 
 # dartbug.com/35934
@@ -22,17 +21,26 @@ function_structs_test: Skip
 function_test: Skip
 negative_function_test: Skip
 
-[ $arch == x64 || $arch == arm64 ]
+[ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
 enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
 [ $runtime == dart_precompiled ]
 *: Skip # AOT is not yet supported: dartbug.com/35765
 
-[ $arch == simdbc64 || $arch == simarm || $arch == simarm64 ]
-*: Skip # FFI not yet supported on DBC or other simulated architectures.
+[ $arch == simarm || $arch == simarm64 ]
+*: Skip # FFI not yet supported on the arm simulator.
+
+[ $arch == simdbc ]
+*: Skip # FFI not yet supported on SimDBC32: dartbug.com/36809
+
+[ $arch == simdbc64 && $system != linux && $system != macos ]
+*: Skip # FFI not yet supported outside x64 Linux: dartbug.com/36809
 
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
 
 [ $system != android && $arch == arm ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
+
+[ $arch == simdbc64 ]
+function_callbacks_test: Skip  # Issue 37140

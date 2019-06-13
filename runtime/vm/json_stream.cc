@@ -5,6 +5,7 @@
 #include "platform/assert.h"
 
 #include "include/dart_native_api.h"
+#include "platform/unicode.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/heap/safepoint.h"
@@ -16,7 +17,6 @@
 #include "vm/service_event.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
-#include "vm/unicode.h"
 
 namespace dart {
 
@@ -179,7 +179,7 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
 
 void JSONStream::PostNullReply(Dart_Port port) {
   PortMap::PostMessage(
-      new Message(port, Object::null(), Message::kNormalPriority));
+      Message::New(port, Object::null(), Message::kNormalPriority));
 }
 
 static void Finalizer(void* isolate_callback_data,
@@ -500,6 +500,14 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
   va_end(args);
 }
 
+void JSONObject::AddServiceId(const char* format, ...) const {
+  // Add the id property.
+  va_list args;
+  va_start(args, format);
+  stream_->VPrintfProperty("id", format, args);
+  va_end(args);
+}
+
 void JSONObject::AddLocation(const Script& script,
                              TokenPosition token_pos,
                              TokenPosition end_token_pos) const {
@@ -516,10 +524,9 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   ASSERT(bpt_loc->IsResolved());
 
   Zone* zone = Thread::Current()->zone();
-  Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
-  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  bpt_loc->GetCodeLocation(&script, &token_pos);
   AddLocation(script, token_pos);
 }
 
@@ -528,10 +535,9 @@ void JSONObject::AddUnresolvedLocation(
   ASSERT(!bpt_loc->IsResolved());
 
   Zone* zone = Thread::Current()->zone();
-  Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
   TokenPosition token_pos = TokenPosition::kNoSource;
-  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  bpt_loc->GetCodeLocation(&script, &token_pos);
 
   JSONObject location(this, "location");
   location.AddProperty("type", "UnresolvedSourceLocation");

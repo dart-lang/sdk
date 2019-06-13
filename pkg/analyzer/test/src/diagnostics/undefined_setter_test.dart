@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class UndefinedSetterTest extends DriverResolutionTest {
   test_inSubtype() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {
   set b(x) {}
@@ -26,17 +26,21 @@ f(var a) {
     a.b = 0;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 80, 1),
+    ]);
   }
 
   test_inType() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 f(var a) {
   if(a is A) {
     a.m = 0;
   }
 }
-''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 43, 1),
+    ]);
   }
 }

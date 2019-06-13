@@ -24,7 +24,9 @@ main() {
   test18();
   test19();
   test20();
+  test20b();
   test21();
+  test21b();
   test22();
   test23();
   test24();
@@ -460,32 +462,59 @@ test19() {
 }
 
 class A20 {
-  /*element: A20.f20:[null|exact=JSUInt31]*/
+  /*element: A20.f20:[null]*/
   var f20;
 
   /*element: A20.:[exact=A20]*/
   A20() {
     dynamic a = this;
-    // TODO(johnniwinther): Fix ast equivalence on instance fields in for.
     /*iterator: [exact=A20]*/
-    /*current: [exact=A20]*/
-    /*moveNext: [exact=A20]*/
+    /*current: [empty]*/
+    /*moveNext: [empty]*/
     for (/*update: [exact=A20]*/ f20 in a) {}
   }
 
-  /*element: A20.iterator:[exact=A20]*/
   get iterator => this;
 
-  /*element: A20.current:[exact=JSUInt31]*/
   get current => 42;
 
-  /*element: A20.moveNext:Value([exact=JSBool], value: false)*/
   bool moveNext() => false;
 }
 
 /*element: test20:[null]*/
 test20() {
   new A20();
+}
+
+class A20b extends Iterable implements Iterator {
+  /*element: A20b.f20b:[null|exact=JSUInt31]*/
+  var f20b;
+
+  /*element: A20b.:[exact=A20b]*/
+  A20b() {
+    dynamic a = this;
+    /*iterator: [exact=A20b]*/
+    /*current: [exact=A20b]*/
+    /*moveNext: [exact=A20b]*/
+    for (/*update: [exact=A20b]*/ f20b in a) {}
+  }
+
+  /*element: A20b.iterator:[exact=A20b]*/
+  @override
+  get iterator => this;
+
+  /*element: A20b.current:[exact=JSUInt31]*/
+  @override
+  get current => 42;
+
+  /*element: A20b.moveNext:Value([exact=JSBool], value: false)*/
+  @override
+  bool moveNext() => false;
+}
+
+/*element: test20b:[null]*/
+test20b() {
+  new A20b();
 }
 
 class A21 {
@@ -496,20 +525,46 @@ class A21 {
   A21() {
     dynamic a = this;
     /*iterator: [exact=A21]*/
-    /*current: [null]*/
-    /*moveNext: [null]*/
+    /*current: [empty]*/
+    /*moveNext: [empty]*/
     for (
         // ignore: unused_local_variable
         var i in a) {}
     /*update: [exact=A21]*/ f21 = 42;
   }
-  /*element: A21.iterator:[null]*/
+
   get iterator => null;
 }
 
 /*element: test21:[null]*/
 test21() {
   new A21();
+}
+
+class A21b extends Iterable {
+  /*element: A21b.f21:[null|exact=JSUInt31]*/
+  var f21;
+
+  /*element: A21b.:[exact=A21b]*/
+  A21b() {
+    dynamic a = this;
+    /*iterator: [exact=A21b]*/
+    /*current: [null]*/
+    /*moveNext: [null]*/
+    for (
+        // ignore: unused_local_variable
+        var i in a) {}
+    /*update: [exact=A21b]*/ f21 = 42;
+  }
+
+  /*element: A21b.iterator:[null]*/
+  @override
+  get iterator => null;
+}
+
+/*element: test21b:[null]*/
+test21b() {
+  new A21b();
 }
 
 class A22 {
@@ -617,6 +672,7 @@ class A24 {
 /*element: B24.:[exact=B24]*/
 class B24 extends A24 {
   /*element: B24.bar24:[exact=JSUInt31]*/
+  @override
   bar24() => 42;
 }
 
@@ -683,6 +739,7 @@ class A27 {
 
 /*element: B27.:[exact=B27]*/
 class B27 extends A27 {
+  @override
   set f27b(/*[exact=JSUInt31]*/ value) {}
 }
 

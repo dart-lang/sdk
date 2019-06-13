@@ -64,7 +64,8 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary FromDefinition(Definition* defn, int64_t offs = 0);
 
   static bool IsValidOffsetForSymbolicRangeBoundary(int64_t offset) {
-    if ((offset > (kMaxInt64 - kSmiMax)) || (offset < (kMinInt64 - kSmiMin))) {
+    if ((offset > (kMaxInt64 - compiler::target::kSmiMax)) ||
+        (offset < (kMinInt64 - compiler::target::kSmiMin))) {
       // Avoid creating symbolic range boundaries which can wrap around.
       return false;
     }
@@ -72,16 +73,20 @@ class RangeBoundary : public ValueObject {
   }
 
   // Construct a RangeBoundary for the constant MinSmi value.
-  static RangeBoundary MinSmi() { return FromConstant(Smi::kMinValue); }
+  static RangeBoundary MinSmi() {
+    return FromConstant(compiler::target::kSmiMin);
+  }
 
   // Construct a RangeBoundary for the constant MaxSmi value.
-  static RangeBoundary MaxSmi() { return FromConstant(Smi::kMaxValue); }
+  static RangeBoundary MaxSmi() {
+    return FromConstant(compiler::target::kSmiMax);
+  }
 
   // Construct a RangeBoundary for the constant kMin value.
   static RangeBoundary MinConstant(RangeSize size) {
     switch (size) {
       case kRangeBoundarySmi:
-        return FromConstant(Smi::kMinValue);
+        return FromConstant(compiler::target::kSmiMin);
       case kRangeBoundaryInt32:
         return FromConstant(kMinInt32);
       case kRangeBoundaryInt64:
@@ -94,7 +99,7 @@ class RangeBoundary : public ValueObject {
   static RangeBoundary MaxConstant(RangeSize size) {
     switch (size) {
       case kRangeBoundarySmi:
-        return FromConstant(Smi::kMaxValue);
+        return FromConstant(compiler::target::kSmiMax);
       case kRangeBoundaryInt32:
         return FromConstant(kMaxInt32);
       case kRangeBoundaryInt64:
@@ -138,7 +143,8 @@ class RangeBoundary : public ValueObject {
 
   // Returns true when this is a constant that is outside of Smi range.
   bool OverflowedSmi() const {
-    return (IsConstant() && !Smi::IsValid(ConstantValue())) || IsInfinity();
+    return (IsConstant() && !compiler::target::IsSmi(ConstantValue())) ||
+           IsInfinity();
   }
 
   bool Overflowed(RangeBoundary::RangeSize size) const {

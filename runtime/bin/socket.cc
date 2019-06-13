@@ -94,7 +94,7 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
                                                       intptr_t backlog,
                                                       bool v6_only,
                                                       bool shared) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
 
   OSSocket* first_os_socket = NULL;
   intptr_t port = SocketAddress::GetAddrPort(addr);
@@ -195,7 +195,7 @@ Dart_Handle ListeningSocketRegistry::CreateBindListen(Dart_Handle socket_object,
 
 bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
                                            bool update_hash_maps) {
-  ASSERT(!mutex_->TryLock());
+  ASSERT(!mutex_.TryLock());
   ASSERT(os_socket != NULL);
   ASSERT(os_socket->ref_count > 0);
   os_socket->ref_count--;
@@ -232,7 +232,7 @@ bool ListeningSocketRegistry::CloseOneSafe(OSSocket* os_socket,
 }
 
 void ListeningSocketRegistry::CloseAllSafe() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
 
   for (SimpleHashMap::Entry* cursor = sockets_by_fd_.Start(); cursor != NULL;
        cursor = sockets_by_fd_.Next(cursor)) {
@@ -241,7 +241,7 @@ void ListeningSocketRegistry::CloseAllSafe() {
 }
 
 bool ListeningSocketRegistry::CloseSafe(Socket* socketfd) {
-  ASSERT(!mutex_->TryLock());
+  ASSERT(!mutex_.TryLock());
   OSSocket* os_socket = LookupByFd(socketfd);
   if (os_socket != NULL) {
     return CloseOneSafe(os_socket, true);

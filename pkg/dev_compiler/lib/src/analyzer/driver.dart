@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -80,10 +81,10 @@ class CompilerAnalysisDriver {
     var resourceProvider = options.resourceProvider;
     var contextBuilder = options.createContextBuilder();
 
-    var analysisOptions =
-        contextBuilder.getAnalysisOptions(options.analysisRoot);
+    var analysisOptions = contextBuilder
+        .getAnalysisOptions(options.analysisRoot) as AnalysisOptionsImpl;
 
-    (analysisOptions as AnalysisOptionsImpl).enabledExperiments =
+    analysisOptions.enabledExperiments =
         experiments.entries.where((e) => e.value).map((e) => e.key).toList();
 
     var dartSdk = contextBuilder.findSdk(null, analysisOptions);
@@ -241,8 +242,9 @@ class CompilerAnalysisDriver {
     var bundle = PackageBundle.fromBuffer(summaryBytes);
 
     /// Create an analysis context to contain the state for this build unit.
-    var context = RestrictedAnalysisContext(
-        analysisOptions, declaredVariables, sourceFactory);
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
+    var context = RestrictedAnalysisContext(synchronousSession, sourceFactory);
     var resynthesizer = StoreBasedSummaryResynthesizer(
       context,
       null,
@@ -334,12 +336,13 @@ class LinkedAnalysisDriver {
 
     var libraryFile = _fsState.getFileForUri(Uri.parse(libraryUri));
     var analyzer = LibraryAnalyzer(
-        analysisOptions,
+        analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
         resynthesizer.sourceFactory,
         (uri) => _isLibraryUri('$uri'),
         resynthesizer.context,
         resynthesizer,
+        null,
         InheritanceManager2(resynthesizer.typeSystem),
         libraryFile,
         _resourceProvider);

@@ -12,7 +12,8 @@ import 'typescript.dart';
 
 final _validIdentifierCharacters = RegExp('[a-zA-Z0-9_]');
 
-bool isAnyType(TypeBase t) => t is Type && t.name == 'any';
+bool isAnyType(TypeBase t) =>
+    t is Type && (t.name == 'any' || t.name == 'object');
 
 bool isNullType(TypeBase t) => t is Type && t.name == 'null';
 
@@ -596,6 +597,15 @@ class Parser {
     final uniqueTypes = new Map.fromEntries(
       types.map((t) => new MapEntry(t.dartTypeWithTypeArgs, t)),
     ).values.toList();
+
+    // If our list includes something that maps to dynamic as well as other
+    // types, we should just treat the whole thing as dynamic as we get no value
+    // typing Either4<bool, String, num, dynamic> but it becomes much more
+    // difficult to use.
+    if (uniqueTypes.any(isAnyType)) {
+      return [uniqueTypes.firstWhere(isAnyType)];
+    }
+
     return uniqueTypes;
   }
 

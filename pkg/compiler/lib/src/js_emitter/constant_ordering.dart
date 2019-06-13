@@ -8,7 +8,6 @@ import '../constants/values.dart';
 import '../elements/entities.dart'
     show ClassEntity, FieldEntity, MemberEntity, TypedefEntity;
 import '../elements/types.dart';
-import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'sorter.dart' show Sorter;
 
 /// A canonical but arbitrary ordering of constants. The ordering is 'stable'
@@ -32,7 +31,7 @@ class _ConstantOrdering
 
   int compareValues(ConstantValue a, ConstantValue b) {
     if (identical(a, b)) return 0;
-    int r = _KindVisitor.kind(a).compareTo(_KindVisitor.kind(b));
+    int r = a.kind.index.compareTo(b.kind.index);
     if (r != 0) return r;
     return a.accept(this, b);
   }
@@ -169,32 +168,22 @@ class _ConstantOrdering
   }
 
   @override
-  int visitSynthetic(SyntheticConstantValue a, SyntheticConstantValue b) {
-    // [SyntheticConstantValue]s have abstract fields that are set only by
-    // convention.  Lucky for us, they do not occur as top level constant, only
-    // as elements of a few constants.  If this becomes a source of instability,
-    // we will need to add a total ordering on JavaScript ASTs including
-    // deferred elements.
-    SyntheticConstantKind aKind = a.valueKind;
-    SyntheticConstantKind bKind = b.valueKind;
-    int r = aKind.index - bKind.index;
-    if (r != 0) return r;
-    switch (aKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-      case SyntheticConstantKind.EMPTY_VALUE:
-        // Never emitted.
-        return 0;
+  int visitDummyInterceptor(
+      DummyInterceptorConstantValue a, DummyInterceptorConstantValue b) {
+    // Never emitted.
+    return 0;
+  }
 
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-        // An opaque deferred JS AST reference to a type in reflection data.
-        return 0;
-      case SyntheticConstantKind.NAME:
-        // An opaque deferred JS AST reference to a name.
-        return 0;
-      default:
-        // Should not happen.
-        throw 'unexpected SyntheticConstantKind $aKind';
-    }
+  @override
+  int visitUnreachable(UnreachableConstantValue a, UnreachableConstantValue b) {
+    // Never emitted.
+    return 0;
+  }
+
+  @override
+  int visitJsName(JsNameConstantValue a, JsNameConstantValue b) {
+    // An opaque deferred JS AST reference to a name.
+    return 0;
   }
 
   @override
@@ -212,63 +201,6 @@ class _ConstantOrdering
     if (r != 0) return r;
     return compareLists(compareDartTypes, a.typeArguments, b.typeArguments);
   }
-}
-
-class _KindVisitor implements ConstantValueVisitor<int, Null> {
-  const _KindVisitor();
-
-  static const int FUNCTION = 1;
-  static const int NULL = 2;
-  static const int INT = 3;
-  static const int DOUBLE = 4;
-  static const int BOOL = 5;
-  static const int STRING = 6;
-  static const int LIST = 7;
-  static const int SET = 8;
-  static const int MAP = 9;
-  static const int CONSTRUCTED = 10;
-  static const int TYPE = 11;
-  static const int INTERCEPTOR = 12;
-  static const int SYNTHETIC = 13;
-  static const int DEFERRED_GLOBAL = 14;
-  static const int NONCONSTANT = 15;
-  static const int INSTANTIATION = 16;
-
-  static int kind(ConstantValue constant) =>
-      constant.accept(const _KindVisitor(), null);
-
-  @override
-  int visitFunction(FunctionConstantValue a, _) => FUNCTION;
-  @override
-  int visitNull(NullConstantValue a, _) => NULL;
-  @override
-  int visitNonConstant(NonConstantValue a, _) => NONCONSTANT;
-  @override
-  int visitInt(IntConstantValue a, _) => INT;
-  @override
-  int visitDouble(DoubleConstantValue a, _) => DOUBLE;
-  @override
-  int visitBool(BoolConstantValue a, _) => BOOL;
-  @override
-  int visitString(StringConstantValue a, _) => STRING;
-  @override
-  int visitList(ListConstantValue a, _) => LIST;
-  @override
-  int visitSet(SetConstantValue a, _) => SET;
-  @override
-  int visitMap(MapConstantValue a, _) => MAP;
-  @override
-  int visitConstructed(ConstructedConstantValue a, _) => CONSTRUCTED;
-  @override
-  int visitType(TypeConstantValue a, _) => TYPE;
-  @override
-  int visitInterceptor(InterceptorConstantValue a, _) => INTERCEPTOR;
-  @override
-  int visitSynthetic(SyntheticConstantValue a, _) => SYNTHETIC;
-  @override
-  int visitDeferredGlobal(DeferredGlobalConstantValue a, _) => DEFERRED_GLOBAL;
-  @override
-  int visitInstantiation(InstantiationConstantValue a, _) => INSTANTIATION;
 }
 
 /// Visitor for distinguishing types by kind.

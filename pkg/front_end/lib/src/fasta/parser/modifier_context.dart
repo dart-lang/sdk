@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../scanner/token.dart' show Token;
+import '../../scanner/token.dart' show Keyword, Token;
 import '../messages.dart' as fasta;
+import 'formal_parameter_kind.dart';
 import 'member_kind.dart' show MemberKind;
 import 'parser.dart' show Parser;
 import 'util.dart' show optional;
@@ -11,17 +12,20 @@ import 'util.dart' show optional;
 bool isModifier(Token token) {
   if (!token.isModifier) {
     return false;
-  }
-  if (token.type.isBuiltIn) {
-    // A built-in identifier can only be a modifier as long as it is
-    // followed by another modifier or an identifier. Otherwise, it is the
+  } else if (token.type.isBuiltIn) {
+    // A built-in keyword can only be a modifier as long as it is
+    // followed by another keyword or an identifier. Otherwise, it is the
     // identifier.
     //
     // For example, `external` is a modifier in this declaration:
     //   external Foo foo();
     // but is the identifier in this declaration
     //   external() => true;
-    if (!token.next.type.isKeyword && !token.next.isIdentifier) {
+    // and in
+    //   for (final external in list) { }
+    Token next = token.next;
+    Keyword keyword = next.keyword;
+    if (keyword == null && !next.isIdentifier || keyword == Keyword.IN) {
       return false;
     }
   }
@@ -37,8 +41,9 @@ class ModifierRecoveryContext {
   Token covariantToken;
   Token externalToken;
   Token finalToken;
+  Token lateToken;
+  Token requiredToken;
   Token staticToken;
-  Token varFinalOrConst;
   Token varToken;
 
   // Set `true` when parsing modifiers after the `factory` token.
@@ -49,31 +54,65 @@ class ModifierRecoveryContext {
 
   ModifierRecoveryContext(this.parser);
 
-  /// Parse modifiers for class methods and fields.
-  Token parseClassMemberModifiers(Token token,
-      {Token externalToken,
-      Token staticToken,
-      Token covariantToken,
-      Token varFinalOrConst}) {
-    token = parseModifiers(token,
-        externalToken: externalToken,
-        staticToken: staticToken,
-        covariantToken: covariantToken,
-        varFinalOrConst: varFinalOrConst);
+  set staticOrCovariant(Token staticOrCovariant) {
+    if (staticOrCovariant == null) {
+      covariantToken = null;
+      staticToken = null;
+    } else if (optional('covariant', staticOrCovariant)) {
+      covariantToken = staticOrCovariant;
+      staticToken = null;
+    } else if (optional('static', staticOrCovariant)) {
+      covariantToken = null;
+      staticToken = staticOrCovariant;
+    } else {
+      throw "Internal error: "
+          "Unexpected staticOrCovariant '$staticOrCovariant'.";
+    }
+  }
 
+  Token get varFinalOrConst => varToken ?? finalToken ?? constToken;
+
+  set varFinalOrConst(Token varFinalOrConst) {
+    if (varFinalOrConst == null) {
+      varToken = null;
+      finalToken = null;
+      constToken = null;
+    } else if (optional('var', varFinalOrConst)) {
+      varToken = varFinalOrConst;
+      finalToken = null;
+      constToken = null;
+    } else if (optional('final', varFinalOrConst)) {
+      varToken = null;
+      finalToken = varFinalOrConst;
+      constToken = null;
+    } else if (optional('const', varFinalOrConst)) {
+      varToken = null;
+      finalToken = null;
+      constToken = varFinalOrConst;
+    } else {
+      throw "Internal error: Unexpected varFinalOrConst '$varFinalOrConst'.";
+    }
+  }
+
+  /// Parse modifiers for class methods and fields.
+  Token parseClassMemberModifiers(Token token) {
+    token = parseModifiers(token);
     if (abstractToken != null) {
       parser.reportRecoverableError(
           abstractToken, fasta.messageAbstractClassMember);
     }
+    reportExtraneousModifier(requiredToken);
     return token;
   }
 
   /// Parse modifiers for formal parameters.
-  Token parseFormalParameterModifiers(Token token, MemberKind memberKind,
-      {Token covariantToken, Token varFinalOrConst}) {
-    token = parseModifiers(token,
-        covariantToken: covariantToken, varFinalOrConst: varFinalOrConst);
+  Token parseFormalParameterModifiers(
+      Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
+    token = parseModifiers(token);
 
+    if (parameterKind != FormalParameterKind.optionalNamed) {
+      reportExtraneousModifier(requiredToken);
+    }
     if (memberKind == MemberKind.StaticMethod ||
         memberKind == MemberKind.TopLevelMethod) {
       reportExtraneousModifier(this.covariantToken);
@@ -81,58 +120,49 @@ class ModifierRecoveryContext {
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
-      varFinalOrConst = null;
     } else if (memberKind == MemberKind.GeneralizedFunctionType) {
       if (varFinalOrConst != null) {
         parser.reportRecoverableError(
             varFinalOrConst, fasta.messageFunctionTypedParameterVar);
-        varFinalOrConst = null;
-        finalToken = null;
-        varToken = null;
       }
     }
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(externalToken);
+    reportExtraneousModifier(lateToken);
     reportExtraneousModifier(staticToken);
     return token;
   }
 
   /// Parse modifiers after the `factory` token.
-  Token parseModifiersAfterFactory(Token token,
-      {Token externalToken, Token staticOrCovariant, Token varFinalOrConst}) {
+  Token parseModifiersAfterFactory(Token token) {
     afterFactory = true;
-    token = parseModifiers(token,
-        externalToken: externalToken,
-        staticOrCovariant: staticOrCovariant,
-        varFinalOrConst: varFinalOrConst);
-
+    token = parseModifiers(token);
     if (abstractToken != null) {
       parser.reportRecoverableError(
           abstractToken, fasta.messageAbstractClassMember);
     }
+    reportExtraneousModifier(lateToken);
+    reportExtraneousModifier(requiredToken);
     return token;
   }
 
   /// Parse modifiers for top level functions and fields.
-  Token parseTopLevelModifiers(Token token,
-      {Token externalToken, Token varFinalOrConst}) {
-    token = parseModifiers(token,
-        externalToken: externalToken, varFinalOrConst: varFinalOrConst);
-
+  Token parseTopLevelModifiers(Token token) {
+    token = parseModifiers(token);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
     return token;
   }
 
   /// Parse modifiers for variable declarations.
-  Token parseVariableDeclarationModifiers(Token token,
-      {Token varFinalOrConst}) {
-    token = parseModifiers(token, varFinalOrConst: varFinalOrConst);
-
+  Token parseVariableDeclarationModifiers(Token token) {
+    token = parseModifiers(token);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(externalToken);
+    reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
     return token;
   }
@@ -148,42 +178,7 @@ class ModifierRecoveryContext {
   /// `static` or `covariant`. The first non-null parameter of
   /// [staticOrCovariant], [staticToken], or [covariantToken] will be used,
   /// in that order, and the others ignored.
-  Token parseModifiers(Token token,
-      {Token externalToken,
-      Token staticToken,
-      Token staticOrCovariant,
-      Token covariantToken,
-      Token varFinalOrConst}) {
-    if (externalToken != null) {
-      this.externalToken = externalToken;
-    }
-    if (staticOrCovariant != null) {
-      if (optional('static', staticOrCovariant)) {
-        this.staticToken = staticOrCovariant;
-      } else if (optional('covariant', staticOrCovariant)) {
-        this.covariantToken = staticOrCovariant;
-      } else {
-        throw "Internal error: "
-            "Unexpected staticOrCovariant '$staticOrCovariant'.";
-      }
-    } else if (staticToken != null) {
-      this.staticToken = staticToken;
-    } else if (covariantToken != null) {
-      this.covariantToken = covariantToken;
-    }
-    if (varFinalOrConst != null) {
-      this.varFinalOrConst = varFinalOrConst;
-      if (optional('var', varFinalOrConst)) {
-        varToken = varFinalOrConst;
-      } else if (optional('final', varFinalOrConst)) {
-        finalToken = varFinalOrConst;
-      } else if (optional('const', varFinalOrConst)) {
-        constToken = varFinalOrConst;
-      } else {
-        throw "Internal error: Unexpected varFinalOrConst '$varFinalOrConst'.";
-      }
-    }
-
+  Token parseModifiers(Token token) {
     // Process invalid and out-of-order modifiers
     Token next = token.next;
     while (true) {
@@ -199,6 +194,10 @@ class ModifierRecoveryContext {
           token = parseExternal(token);
         } else if (identical('final', value)) {
           token = parseFinal(token);
+        } else if (identical('late', value)) {
+          token = parseLate(token);
+        } else if (identical('required', value)) {
+          token = parseRequired(token);
         } else if (identical('static', value)) {
           token = parseStatic(token);
         } else if (identical('var', value)) {
@@ -215,7 +214,6 @@ class ModifierRecoveryContext {
       }
       next = token.next;
     }
-
     return token;
   }
 
@@ -237,11 +235,12 @@ class ModifierRecoveryContext {
     Token next = token.next;
     assert(optional('const', next));
     if (varFinalOrConst == null && covariantToken == null) {
-      varFinalOrConst = constToken = next;
+      constToken = next;
 
       if (afterFactory) {
-        parser.reportRecoverableError(next,
-            fasta.templateModifierOutOfOrder.withArguments('const', 'factory'));
+        reportModifierOutOfOrder(next, 'factory');
+      } else if (lateToken != null) {
+        reportConflictingModifiers(next, lateToken);
       }
       return next;
     }
@@ -251,11 +250,11 @@ class ModifierRecoveryContext {
       parser.reportRecoverableErrorWithToken(
           next, fasta.templateDuplicatedModifier);
     } else if (covariantToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndCovariant);
+      reportConflictingModifiers(next, covariantToken);
     } else if (finalToken != null) {
       parser.reportRecoverableError(next, fasta.messageConstAndFinal);
     } else if (varToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndVar);
+      reportConflictingModifiers(next, varToken);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
@@ -272,9 +271,11 @@ class ModifierRecoveryContext {
       covariantToken = next;
 
       if (varToken != null) {
-        parser.reportRecoverableError(next, fasta.messageCovariantAfterVar);
+        reportModifierOutOfOrder(next, varToken.lexeme);
       } else if (finalToken != null) {
-        parser.reportRecoverableError(next, fasta.messageCovariantAfterFinal);
+        reportModifierOutOfOrder(next, finalToken.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -286,7 +287,7 @@ class ModifierRecoveryContext {
     } else if (afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndCovariant);
+      reportConflictingModifiers(next, constToken);
     } else if (staticToken != null) {
       parser.reportRecoverableError(next, fasta.messageCovariantAndStatic);
     } else {
@@ -302,11 +303,13 @@ class ModifierRecoveryContext {
       externalToken = next;
 
       if (afterFactory) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterFactory);
+        reportModifierOutOfOrder(next, 'factory');
       } else if (constToken != null) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterConst);
+        reportModifierOutOfOrder(next, constToken.lexeme);
       } else if (staticToken != null) {
-        parser.reportRecoverableError(next, fasta.messageExternalAfterStatic);
+        reportModifierOutOfOrder(next, staticToken.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -321,7 +324,7 @@ class ModifierRecoveryContext {
     Token next = token.next;
     assert(optional('final', next));
     if (varFinalOrConst == null && !afterFactory) {
-      varFinalOrConst = finalToken = next;
+      finalToken = next;
       return next;
     }
 
@@ -335,9 +338,57 @@ class ModifierRecoveryContext {
       parser.reportRecoverableError(next, fasta.messageConstAndFinal);
     } else if (varToken != null) {
       parser.reportRecoverableError(next, fasta.messageFinalAndVar);
+    } else if (lateToken != null) {
+      reportModifierOutOfOrder(next, lateToken.lexeme);
     } else {
       throw 'Internal Error: Unexpected varFinalOrConst: $varFinalOrConst';
     }
+    return next;
+  }
+
+  Token parseLate(Token token) {
+    Token next = token.next;
+    assert(optional('late', next));
+    if (lateToken == null) {
+      lateToken = next;
+
+      if (constToken != null) {
+        reportConflictingModifiers(next, constToken);
+      } else if (varToken != null) {
+        reportConflictingModifiers(next, varToken);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(next, finalToken.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(
+        next, fasta.templateDuplicatedModifier);
+    return next;
+  }
+
+  Token parseRequired(Token token) {
+    Token next = token.next;
+    assert(optional('required', next));
+    if (requiredToken == null) {
+      requiredToken = next;
+
+      if (constToken != null) {
+        reportModifierOutOfOrder(requiredToken, constToken.lexeme);
+      } else if (covariantToken != null) {
+        reportModifierOutOfOrder(requiredToken, covariantToken.lexeme);
+      } else if (finalToken != null) {
+        reportModifierOutOfOrder(requiredToken, finalToken.lexeme);
+      } else if (varToken != null) {
+        reportModifierOutOfOrder(requiredToken, varToken.lexeme);
+      }
+      return next;
+    }
+
+    // Recovery
+    parser.reportRecoverableErrorWithToken(
+        next, fasta.templateDuplicatedModifier);
     return next;
   }
 
@@ -348,11 +399,13 @@ class ModifierRecoveryContext {
       staticToken = next;
 
       if (constToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterConst);
+        reportModifierOutOfOrder(next, constToken.lexeme);
       } else if (finalToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterFinal);
+        reportModifierOutOfOrder(next, finalToken.lexeme);
       } else if (varToken != null) {
-        parser.reportRecoverableError(next, fasta.messageStaticAfterVar);
+        reportModifierOutOfOrder(next, varToken.lexeme);
+      } else if (lateToken != null) {
+        reportModifierOutOfOrder(next, lateToken.lexeme);
       }
       return next;
     }
@@ -375,7 +428,11 @@ class ModifierRecoveryContext {
     Token next = token.next;
     assert(optional('var', next));
     if (varFinalOrConst == null && !afterFactory) {
-      varFinalOrConst = varToken = next;
+      varToken = next;
+
+      if (lateToken != null) {
+        reportConflictingModifiers(next, lateToken);
+      }
       return next;
     }
 
@@ -386,7 +443,7 @@ class ModifierRecoveryContext {
     } else if (afterFactory) {
       reportExtraneousModifier(next);
     } else if (constToken != null) {
-      parser.reportRecoverableError(next, fasta.messageConstAndVar);
+      reportConflictingModifiers(next, constToken);
     } else if (finalToken != null) {
       parser.reportRecoverableError(next, fasta.messageFinalAndVar);
     } else {
@@ -395,10 +452,24 @@ class ModifierRecoveryContext {
     return next;
   }
 
-  void reportExtraneousModifier(Token token) {
-    if (token != null) {
+  void reportConflictingModifiers(Token modifier, Token earlierModifier) {
+    parser.reportRecoverableError(
+        modifier,
+        fasta.templateConflictingModifiers
+            .withArguments(modifier.lexeme, earlierModifier.lexeme));
+  }
+
+  void reportExtraneousModifier(Token modifier) {
+    if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
-          token, fasta.templateExtraneousModifier);
+          modifier, fasta.templateExtraneousModifier);
     }
+  }
+
+  void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
+    parser.reportRecoverableError(
+        modifier,
+        fasta.templateModifierOutOfOrder
+            .withArguments(modifier.lexeme, beforeModifier));
   }
 }

@@ -53,6 +53,14 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(referencedFileUri.toString()));
   }
 
+  test_nonDartFile() async {
+    newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize();
+
+    final res = await getDefinition(pubspecFileUri, startOfDocPos);
+    expect(res, isEmpty);
+  }
+
   test_singleFile() async {
     final contents = '''
     [[foo]]() {

@@ -34,7 +34,7 @@ class HintCode extends ErrorCode {
   static const HintCode DEAD_CODE_CATCH_FOLLOWING_CATCH = const HintCode(
       'DEAD_CODE_CATCH_FOLLOWING_CATCH',
       "Dead code: catch clauses after a 'catch (e)' or "
-      "an 'on Object catch (e)' are never reached.",
+          "an 'on Object catch (e)' are never reached.",
       correction:
           "Try reordering the catch clauses so that they can be reached, or "
           "removing the unreachable catch clauses.");
@@ -51,17 +51,36 @@ class HintCode extends ErrorCode {
   static const HintCode DEAD_CODE_ON_CATCH_SUBTYPE = const HintCode(
       'DEAD_CODE_ON_CATCH_SUBTYPE',
       "Dead code: this on-catch block will never be executed because '{0}' is "
-      "a subtype of '{1}' and hence will have been caught above.",
+          "a subtype of '{1}' and hence will have been caught above.",
       correction:
           "Try reordering the catch clauses so that this block can be reached, or "
           "removing the unreachable catch clause.");
 
   /**
-   * Deprecated members should not be invoked or used.
-   *
    * Parameters:
    * 0: the name of the member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a deprecated library or class
+  // member is used in a different package.
+  //
+  // #### Example
+  //
+  // If the method `m` in the class `C` is annotated with `@deprecated`, then
+  // the following code produces this diagnostic:
+  //
+  // ```dart
+  // void f(C c) {
+  //   c.!m!();
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The documentation for declarations that are annotated with `@deprecated`
+  // should have documentation to indicate what code to use in place of the
+  // deprecated code.
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
       correction:
@@ -148,7 +167,7 @@ class HintCode extends ErrorCode {
       const HintCode(
           'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
           "A file in the 'lib' directory shouldn't import a file outside the "
-          "'lib' directory.",
+              "'lib' directory.",
           correction: "Try removing the import, or "
               "moving the imported file inside the 'lib' directory.");
 
@@ -163,7 +182,7 @@ class HintCode extends ErrorCode {
       const HintCode(
           'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
           "A file outside the 'lib' directory shouldn't reference a file "
-          "inside the 'lib' directory using a relative path.",
+              "inside the 'lib' directory using a relative path.",
           correction: "Try using a package: URI instead.");
 
   /**
@@ -173,7 +192,7 @@ class HintCode extends ErrorCode {
       const HintCode(
           'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
           "The library '{0}' defines a top-level function named 'loadLibrary' "
-          "which is hidden by deferring this library.",
+              "which is hidden by deferring this library.",
           correction: "Try changing the import to not be deferred, or "
               "rename the function in the imported library.");
 
@@ -204,7 +223,7 @@ class HintCode extends ErrorCode {
       const HintCode(
           'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
           "The type of {0} cannot be inferred without either a type or "
-          "initializer.",
+              "initializer.",
           correction: "Try specifying the type of the variable.");
 
   /**
@@ -244,12 +263,32 @@ class HintCode extends ErrorCode {
       "Only classes can be annotated as being immutable.");
 
   /**
-   * This hint is generated anywhere a @literal annotation is associated with
-   * anything other than a const constructor.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The meaning of the `@literal` annotation is only defined when it's applied
+  // to a const constructor.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // !@literal!
+  // var x;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Remove the annotation:
+  //
+  // ```dart
+  // var x;
+  // ```
   static const HintCode INVALID_LITERAL_ANNOTATION = const HintCode(
       'INVALID_LITERAL_ANNOTATION',
-      "Only const constructors can be annotated as being literal.");
+      "Only const constructors can have the `@literal` annotation.");
 
   /**
    * This hint is generated anywhere where `@required` annotates a non named
@@ -261,7 +300,7 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_REQUIRED_PARAM = const HintCode(
       'INVALID_REQUIRED_PARAM',
       "The type parameter '{0}' is annotated with @required but only named "
-      "parameters without default value can be annotated with it.",
+          "parameters without default value can be annotated with it.",
       correction: "Remove @required.");
 
   /**
@@ -274,7 +313,7 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_SEALED_ANNOTATION = const HintCode(
       'INVALID_SEALED_ANNOTATION',
       "The member '{0}' is annotated with '@sealed' but only classes can be "
-      "annotated with it.",
+          "annotated with it.",
       correction: "Remove @sealed.");
 
   /**
@@ -288,7 +327,7 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses "
-      "of '{1}'.");
+          "of '{1}'.");
 
   /// This hint is generated anywhere where a member annotated with
   /// `@visibleForTemplate` is used outside of a "template" Dart file.
@@ -319,7 +358,7 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_VISIBILITY_ANNOTATION = const HintCode(
       'INVALID_VISIBILITY_ANNOTATION',
       "The member '{0}' is annotated with '{1}', but this annotation is only "
-      "meaningful on declarations of public members.");
+          "meaningful on declarations of public members.");
 
   /**
    * Hint for the `x is double` type checks.
@@ -327,7 +366,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_DOUBLE = const HintCode(
       'IS_DOUBLE',
       "When compiled to JS, this test might return true when the left hand "
-      "side is an int.",
+          "side is an int.",
       correction: "Try testing for 'num' instead.");
 
   /**
@@ -338,7 +377,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_INT = const HintCode(
       'IS_INT',
       "When compiled to JS, this test might return true when the left hand "
-      "side is a double.",
+          "side is a double.",
       correction: "Try testing for 'num' instead.");
 
   /**
@@ -347,7 +386,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_NOT_DOUBLE = const HintCode(
       'IS_NOT_DOUBLE',
       "When compiled to JS, this test might return false when the left hand "
-      "side is an int.",
+          "side is an int.",
       correction: "Try testing for 'num' instead.");
 
   /**
@@ -358,7 +397,7 @@ class HintCode extends ErrorCode {
   static const HintCode IS_NOT_INT = const HintCode(
       'IS_NOT_INT',
       "When compiled to JS, this test might return false when the left hand "
-      "side is a double.",
+          "side is a double.",
       correction: "Try testing for 'num' instead.");
 
   /**
@@ -368,7 +407,7 @@ class HintCode extends ErrorCode {
   static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
       'MISSING_JS_LIB_ANNOTATION',
       "The @JS() annotation can only be used if it is also declared on the "
-      "library directive.",
+          "library directive.",
       correction: "Try adding the annotation to the library directive.");
 
   /**
@@ -405,7 +444,7 @@ class HintCode extends ErrorCode {
   static const HintCode MISSING_RETURN = const HintCode(
       'MISSING_RETURN',
       "This function has a return type of '{0}', but doesn't end with a "
-      "return statement.",
+          "return statement.",
       correction: "Try adding a return statement, "
           "or changing the return type to 'void'.");
 
@@ -416,7 +455,7 @@ class HintCode extends ErrorCode {
   static const HintCode MIXIN_ON_SEALED_CLASS = const HintCode(
       'MIXIN_ON_SEALED_CLASS',
       "The class '{0}' should not be used as a mixin constraint because it is "
-      "sealed, and any class mixing in this mixin has '{0}' as a superclass.",
+          "sealed, and any class mixing in this mixin has '{0}' as a superclass.",
       correction:
           "Try composing with this class, or refer to its documentation for "
           "more information.");
@@ -428,8 +467,8 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_BE_IMMUTABLE = const HintCode(
       'MUST_BE_IMMUTABLE',
       "This class (or a class which this class inherits from) is marked as "
-      "'@immutable', but one or more of its instance fields are not final: "
-      "{0}");
+          "'@immutable', but one or more of its instance fields are not final: "
+          "{0}");
 
   /**
    * Generate a hint for methods that override methods annotated `@mustCallSuper`
@@ -441,7 +480,7 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCallSuper in '{0}', "
-      "but does not invoke the overridden method.");
+          "but does not invoke the overridden method.");
 
   /**
    * Generate a hint for non-const instance creation using a constructor
@@ -450,7 +489,7 @@ class HintCode extends ErrorCode {
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR = const HintCode(
       'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
       "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+          "marked as '@literal'.",
       correction: "Try adding a 'const' keyword.");
 
   /**
@@ -461,7 +500,7 @@ class HintCode extends ErrorCode {
       const HintCode(
           'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
           "This instance creation must be 'const', because the {0} constructor is "
-          "marked as '@literal'.",
+              "marked as '@literal'.",
           correction: "Try replacing the 'new' keyword with 'const'.");
 
   /**
@@ -479,7 +518,7 @@ class HintCode extends ErrorCode {
   static const HintCode NULL_AWARE_IN_CONDITION = const HintCode(
       'NULL_AWARE_IN_CONDITION',
       "The value of the '?.' operator can be 'null', which isn't appropriate "
-      "in a condition.",
+          "in a condition.",
       correction:
           "Try replacing the '?.' with a '.', testing the left-hand side for null if "
           "necessary.");
@@ -491,7 +530,7 @@ class HintCode extends ErrorCode {
   static const HintCode NULL_AWARE_IN_LOGICAL_OPERATOR = const HintCode(
       'NULL_AWARE_IN_LOGICAL_OPERATOR',
       "The value of the '?.' operator can be 'null', which isn't appropriate "
-      "as an operand of a logical operator.");
+          "as an operand of a logical operator.");
 
   /**
    * Hint for classes that override equals, but not hashCode.
@@ -560,7 +599,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = const HintCode(
       'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
       "The class '{0}' was not exported from 'dart:core' until version 2.1, "
-      "but this code is required to be able to run on earlier versions.",
+          "but this code is required to be able to run on earlier versions.",
       correction:
           "Try either importing 'dart:async' or updating the SDK constraints.");
 
@@ -568,13 +607,12 @@ class HintCode extends ErrorCode {
    * An as expression being used in a const context is expected to run on
    * versions of the SDK that did not support them.
    */
-  static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
-      const HintCode(
-          'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-          "The use of an as expression in a constant expression wasn't "
-          "supported until version 2.2.2, but this code is required to be able "
+  static const HintCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
+      'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
+      "The use of an as expression in a constant expression wasn't "
+          "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
-          correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.");
 
   /**
    * The operator '&', '|' or '^' is being used on boolean values in code that
@@ -583,7 +621,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_BOOL_OPERATOR = const HintCode(
       'SDK_VERSION_BOOL_OPERATOR',
       "Using the operator '{0}' for 'bool's was not supported until version "
-      "2.2.2, but this code is required to be able to run on earlier versions.",
+          "2.3.2, but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -593,8 +631,8 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
       "Using the operator '==' for non-primitive types was not supported until "
-      "version 2.2.2, but this code is required to be able to run on earlier "
-      "versions.",
+          "version 2.3.2, but this code is required to be able to run on earlier "
+          "versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -603,31 +641,75 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = const HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
-      "The operator '>>>' was not supported until version 2.2.2, but this code "
-      "is required to be able to run on earlier versions.",
+      "The operator '>>>' was not supported until version 2.3.2, but this code "
+          "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
    * An is expression being used in a const context is expected to run on
    * versions of the SDK that did not support them.
    */
-  static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
-      const HintCode(
-          'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-          "The use of an is expression in a constant expression wasn't "
-          "supported until version 2.2.2, but this code is required to be able "
+  static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
+      'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
+      "The use of an is expression in a constant expression wasn't "
+          "supported until version 2.3.2, but this code is required to be able "
           "to run on earlier versions.",
-          correction: "Try updating the SDK constraints.");
+      correction: "Try updating the SDK constraints.");
 
   /**
-   * A set literal is being used in code that is expected to run on versions of
-   * the SDK that did not support them.
+   * No parameters.
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a set literal is found in code
+  // that has an SDK constraint whose lower bound is less than 2.2. Set literals
+  // were not supported in earlier versions, so this code won't be able to run
+  // against earlier versions of the SDK.
+  //
+  // #### Example
+  //
+  // In a package that defines SDK constraints in the `pubspec.yaml` file that
+  // have a lower bound that's less than 2.2:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.1.0 <2.4.0'
+  // ```
+  //
+  // The following code generates this diagnostic:
+  //
+  // ```dart
+  // var s = !<int>{}!;
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If you don't need to support older versions of the SDK, then you can
+  // increase the SDK constraint to allow the syntax to be used:
+  //
+  // ```yaml
+  // environment:
+  //   sdk: '>=2.2.0 <2.4.0'
+  // ```
+  //
+  // If you do need to support older versions of the SDK, then replace the set
+  // literal with code that creates the set without the use of a literal:
+  //
+  // ```dart
+  // var s = new Set<int>();
+  // ```
   static const HintCode SDK_VERSION_SET_LITERAL = const HintCode(
       'SDK_VERSION_SET_LITERAL',
-      "Set literals were not supported until version 2.2, "
-      "but this code is required to be able to run on earlier versions.",
+      "Set literals weren't supported until version 2.2, "
+          "but this code must be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
+
+  /**
+   * The type Never is being used in code that is expected to run on versions of
+   * the SDK that did not support it.
+   */
+  static const HintCode SDK_VERSION_NEVER = const HintCode(
+      'SDK_VERSION_NEVER', "The type Never is not yet supported.");
 
   /**
    * The for, if or spread element is being used in code that is expected to run
@@ -636,7 +718,7 @@ class HintCode extends ErrorCode {
   static const HintCode SDK_VERSION_UI_AS_CODE = const HintCode(
       'SDK_VERSION_UI_AS_CODE',
       "The for, if and spread elements were not supported until version 2.2.2, "
-      "but this code is required to be able to run on earlier versions.",
+          "but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -648,13 +730,31 @@ class HintCode extends ErrorCode {
       correction: "Use explicit type arguments for '{0}'.");
 
   /**
+   * When "strict-raw-types" is enabled, raw types must be inferred via the
+   * context type, or have type arguments.
+   */
+  static const HintCode STRICT_RAW_TYPE_IN_AS = HintCode(
+      'STRICT_RAW_TYPE_IN_AS',
+      "The generic type '{0}' should have explicit type arguments but doesn't.",
+      correction: "Use explicit type arguments for '{0}'.");
+
+  /**
+   * When "strict-raw-types" is enabled, raw types must be inferred via the
+   * context type, or have type arguments.
+   */
+  static const HintCode STRICT_RAW_TYPE_IN_IS = HintCode(
+      'STRICT_RAW_TYPE_IN_IS',
+      "The generic type '{0}' should have explicit type arguments but doesn't.",
+      correction: "Use explicit type arguments for '{0}'.");
+
+  /**
    * This hint is generated anywhere where a `@sealed` class or mixin is used as
    * a super-type of a class.
    */
   static const HintCode SUBTYPE_OF_SEALED_CLASS = const HintCode(
       'SUBTYPE_OF_SEALED_CLASS',
       "The class '{0}' should not be extended, mixed in, or implemented "
-      "because it is sealed.",
+          "because it is sealed.",
       correction:
           "Try composing instead of inheriting, or refer to its documentation "
           "for more information.");
@@ -801,8 +901,10 @@ class HintCode extends ErrorCode {
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const HintCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const HintCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => ErrorType.HINT.severity;

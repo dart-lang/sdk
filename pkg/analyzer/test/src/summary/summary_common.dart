@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -20,11 +20,9 @@ import 'package:test/test.dart';
 
 import 'test_strategies.dart';
 
-/**
- * Convert a summary object (or a portion of one) into a canonical form that
- * can be easily compared using [expect].  If [orderByName] is true, and the
- * object is a [List], it is sorted by the `name` field of its elements.
- */
+/// Convert a summary object (or a portion of one) into a canonical form that
+/// can be easily compared using [expect].  If [orderByName] is true, and the
+/// object is a [List], it is sorted by the `name` field of its elements.
 Object canonicalize(Object obj, {bool orderByName: false}) {
   if (obj is SummaryClass) {
     Map<String, Object> result = <String, Object>{};
@@ -60,20 +58,20 @@ Object canonicalize(Object obj, {bool orderByName: false}) {
 }
 
 UnlinkedPublicNamespace computePublicNamespaceFromText(
-    String text, Source source) {
+    String text, Source source, FeatureSet featureSet) {
   CharacterReader reader = new CharSequenceReader(text);
   Scanner scanner =
-      new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
-  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+      new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER)
+        ..configureFeatures(featureSet);
+  Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER,
+      featureSet: featureSet);
   CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
   UnlinkedPublicNamespace namespace = new UnlinkedPublicNamespace.fromBuffer(
       public_namespace.computePublicNamespace(unit).toBuffer());
   return namespace;
 }
 
-/**
- * Type of a function that validates an [EntityRef].
- */
+/// Type of a function that validates an [EntityRef].
 typedef void _EntityRefValidator(EntityRef entityRef);
 
 /// Test cases that exercise summary generation in a black-box fashion.
@@ -82,14 +80,15 @@ typedef void _EntityRefValidator(EntityRef entityRef);
 /// [SummaryBlackBoxTestStrategy], allowing summary generation to be unit-tested
 /// in a variety of ways.
 mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
-  /**
-   * Get access to the linked defining compilation unit.
-   */
+  /// Get access to the linked defining compilation unit.
   LinkedUnit get definingUnit => linked.units[0];
 
-  /**
-   * TODO(scheglov) rename "Const" to "Expr" everywhere
-   */
+  FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
+
+  FeatureSet get enableNnbd =>
+      FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+
+  /// TODO(scheglov) rename "Const" to "Expr" everywhere
   void assertUnlinkedConst(UnlinkedExpr constExpr, String sourceRepresentation,
       {bool isValidConst: true,
       List<UnlinkedExprOperation> operators: const <UnlinkedExprOperation>[],
@@ -120,10 +119,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Check that [annotations] contains a single entry which is a reference to
-   * a top level variable called `a` in the current library.
-   */
+  /// Check that [annotations] contains a single entry which is a reference to
+  /// a top level variable called `a` in the current library.
   void checkAnnotationA(List<UnlinkedExpr> annotations) {
     expect(annotations, hasLength(1));
     assertUnlinkedConst(annotations[0], 'a', operators: [
@@ -149,32 +146,26 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the [dependency]th element of the dependency table represents
-   * a file reachable via the given [absoluteUri].
-   */
+  /// Verify that the [dependency]th element of the dependency table represents
+  /// a file reachable via the given [absoluteUri].
   void checkDependency(int dependency, String absoluteUri) {
     expect(dependency, new TypeMatcher<int>());
     expect(linked.dependencies[dependency].uri, absoluteUri);
   }
 
-  /**
-   * Verify that the given [dependency] lists the given
-   * [relativeUris] as its parts.
-   */
+  /// Verify that the given [dependency] lists the given
+  /// [relativeUris] as its parts.
   void checkDependencyParts(
       LinkedDependency dependency, List<String> relativeUris) {
     expect(dependency.parts, relativeUris);
   }
 
-  /**
-   * Check that the given [documentationComment] matches the first
-   * Javadoc-style comment found in [text].
-   *
-   * Note that the algorithm for finding the Javadoc-style comment in [text] is
-   * a simple-minded text search; it is easily confused by corner cases such as
-   * strings containing comments, nested comments, etc.
-   */
+  /// Check that the given [documentationComment] matches the first
+  /// Javadoc-style comment found in [text].
+  ///
+  /// Note that the algorithm for finding the Javadoc-style comment in [text] is
+  /// a simple-minded text search; it is easily confused by corner cases such as
+  /// strings containing comments, nested comments, etc.
   void checkDocumentationComment(
       UnlinkedDocumentationComment documentationComment, String text) {
     expect(documentationComment, isNotNull);
@@ -188,21 +179,17 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(documentationComment.text, expectedCommentText);
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `dynamic`.
-   */
+  /// Verify that the given [typeRef] represents the type `dynamic`.
   void checkDynamicTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, 'dynamic');
   }
 
-  /**
-   * Verify that the given [exportName] represents a reference to an entity
-   * declared in a file reachable via [absoluteUri], having name [expectedName].
-   * [expectedKind] is the kind of object referenced. [expectedTargetUnit] is
-   * the index of the compilation unit in which the target of the [exportName]
-   * is expected to appear; if not specified it is assumed to be the defining
-   * compilation unit.
-   */
+  /// Verify that the given [exportName] represents a reference to an entity
+  /// declared in a file reachable via [absoluteUri], having name [expectedName].
+  /// [expectedKind] is the kind of object referenced. [expectedTargetUnit] is
+  /// the index of the compilation unit in which the target of the [exportName]
+  /// is expected to appear; if not specified it is assumed to be the defining
+  /// compilation unit.
   void checkExportName(LinkedExportName exportName, String absoluteUri,
       String expectedName, ReferenceKind expectedKind,
       {int expectedTargetUnit: 0}) {
@@ -215,14 +202,12 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(exportName.unit, expectedTargetUnit);
   }
 
-  /**
-   * Verify that the dependency table contains an entry for a file reachable
-   * via the given [relativeUri].  If [fullyLinked] is
-   * `true`, then the dependency should be a fully-linked dependency; otherwise
-   * it should be a prelinked dependency.
-   *
-   * The index of the [LinkedDependency] is returned.
-   */
+  /// Verify that the dependency table contains an entry for a file reachable
+  /// via the given [relativeUri].  If [fullyLinked] is
+  /// `true`, then the dependency should be a fully-linked dependency; otherwise
+  /// it should be a prelinked dependency.
+  ///
+  /// The index of the [LinkedDependency] is returned.
   int checkHasDependency(String relativeUri, {bool fullyLinked: false}) {
     List<String> found = <String>[];
     for (int i = 0; i < linked.dependencies.length; i++) {
@@ -240,11 +225,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     fail('Did not find dependency $relativeUri.  Found: $found');
   }
 
-  /**
-   * Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
-   * strong mode is disabled, verify that the given [slotId] exists and has no
-   * associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
-   */
+  /// Test an inferred type.  If [onlyInStrongMode] is `true` (the default) and
+  /// strong mode is disabled, verify that the given [slotId] exists and has no
+  /// associated type.  Otherwise, behave as in [checkLinkedTypeSlot].
   void checkInferredTypeSlot(
       int slotId, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
@@ -263,10 +246,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the dependency table *does not* contain any entries for a file
-   * reachable via the given [relativeUri].
-   */
+  /// Verify that the dependency table *does not* contain any entries for a file
+  /// reachable via the given [relativeUri].
   void checkLacksDependency(String relativeUri) {
     for (LinkedDependency dep in linked.dependencies) {
       if (dep.uri == relativeUri) {
@@ -275,26 +256,22 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `dynamic`.
-   */
+  /// Verify that the given [typeRef] represents the type `dynamic`.
   void checkLinkedDynamicTypeRef(EntityRef typeRef) {
     checkLinkedTypeRef(typeRef, null, 'dynamic');
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].  Verify
-   * that the number of type arguments is equal to [numTypeArguments].
-   * [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
-   * [unlinkedSourceUnit] refer to the compilation unit within which the
-   * [typeRef] appears; if not specified they are assumed to refer to the
-   * defining compilation unit. [expectedTargetUnit] is the index of the
-   * compilation unit in which the target of the [typeRef] is expected to
-   * appear; if not specified it is assumed to be the defining compilation unit.
-   * [numTypeParameters] is the number of type parameters of the thing being
-   * referred to.
-   */
+  /// Verify that the given [typeRef] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].  Verify
+  /// that the number of type arguments is equal to [numTypeArguments].
+  /// [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
+  /// [unlinkedSourceUnit] refer to the compilation unit within which the
+  /// [typeRef] appears; if not specified they are assumed to refer to the
+  /// defining compilation unit. [expectedTargetUnit] is the index of the
+  /// compilation unit in which the target of the [typeRef] is expected to
+  /// appear; if not specified it is assumed to be the defining compilation unit.
+  /// [numTypeParameters] is the number of type parameters of the thing being
+  /// referred to.
   void checkLinkedTypeRef(
       EntityRef typeRef, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
@@ -317,19 +294,17 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the given [slotId] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].  Verify
-   * that the number of type arguments is equal to [numTypeArguments].
-   * [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
-   * [unlinkedSourceUnit] refer to the compilation unit within which the
-   * [typeRef] appears; if not specified they are assumed to refer to the
-   * defining compilation unit. [expectedTargetUnit] is the index of the
-   * compilation unit in which the target of the [typeRef] is expected to
-   * appear; if not specified it is assumed to be the defining compilation unit.
-   * [numTypeParameters] is the number of type parameters of the thing being
-   * referred to.
-   */
+  /// Verify that the given [slotId] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].  Verify
+  /// that the number of type arguments is equal to [numTypeArguments].
+  /// [expectedKind] is the kind of object referenced.  [linkedSourceUnit] and
+  /// [unlinkedSourceUnit] refer to the compilation unit within which the
+  /// [typeRef] appears; if not specified they are assumed to refer to the
+  /// defining compilation unit. [expectedTargetUnit] is the index of the
+  /// compilation unit in which the target of the [typeRef] is expected to
+  /// appear; if not specified it is assumed to be the defining compilation unit.
+  /// [numTypeParameters] is the number of type parameters of the thing being
+  /// referred to.
   void checkLinkedTypeSlot(int slotId, String absoluteUri, String expectedName,
       {int numTypeArguments: 0,
       ReferenceKind expectedKind: ReferenceKind.classOrEnum,
@@ -355,10 +330,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         numTypeParameters: numTypeParameters);
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type parameter
-   * having the given [deBruijnIndex].
-   */
+  /// Verify that the given [typeRef] represents a reference to a type parameter
+  /// having the given [deBruijnIndex].
   void checkParamTypeRef(EntityRef typeRef, int deBruijnIndex) {
     expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.reference, 0);
@@ -366,10 +339,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(typeRef.paramReference, deBruijnIndex);
   }
 
-  /**
-   * Verify that [prefixReference] is a valid reference to a prefix having the
-   * given [name].
-   */
+  /// Verify that [prefixReference] is a valid reference to a prefix having the
+  /// given [name].
   void checkPrefix(int prefixReference, String name) {
     expect(prefixReference, isNot(0));
     expect(unlinkedUnits[0].references[prefixReference].prefixReference, 0);
@@ -379,13 +350,11 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     expect(definingUnit.references[prefixReference].unit, 0);
   }
 
-  /**
-   * Check the data structures that are reachable from an index in the
-   * references table.  If the reference in question is an explicit
-   * reference, return the [UnlinkedReference] that is used to make the
-   * explicit reference.  If the type reference in question is an implicit
-   * reference, return `null`.
-   */
+  /// Check the data structures that are reachable from an index in the
+  /// references table.  If the reference in question is an explicit
+  /// reference, return the [UnlinkedReference] that is used to make the
+  /// explicit reference.  If the type reference in question is an implicit
+  /// reference, return `null`.
   UnlinkedReference checkReferenceIndex(
       int referenceIndex, String absoluteUri, String expectedName,
       {ReferenceKind expectedKind: ReferenceKind.classOrEnum,
@@ -434,20 +403,18 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return reference;
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to a type declared
-   * in a file reachable via [absoluteUri], having name [expectedName].
-   * If [expectedPrefix] is supplied, verify that the type is reached via the
-   * given prefix.  Verify that the number of type arguments is equal to
-   * [numTypeArguments].  [expectedKind] is the kind of object referenced.
-   * [linkedSourceUnit] and [unlinkedSourceUnit] refer to the compilation unit
-   * within which the [typeRef] appears; if not specified they are assumed to
-   * refer to the defining compilation unit. [expectedTargetUnit] is the index
-   * of the compilation unit in which the target of the [typeRef] is expected
-   * to appear; if not specified it is assumed to be the defining compilation
-   * unit.  [numTypeParameters] is the number of type parameters of the thing
-   * being referred to.
-   */
+  /// Verify that the given [typeRef] represents a reference to a type declared
+  /// in a file reachable via [absoluteUri], having name [expectedName].
+  /// If [expectedPrefix] is supplied, verify that the type is reached via the
+  /// given prefix.  Verify that the number of type arguments is equal to
+  /// [numTypeArguments].  [expectedKind] is the kind of object referenced.
+  /// [linkedSourceUnit] and [unlinkedSourceUnit] refer to the compilation unit
+  /// within which the [typeRef] appears; if not specified they are assumed to
+  /// refer to the defining compilation unit. [expectedTargetUnit] is the index
+  /// of the compilation unit in which the target of the [typeRef] is expected
+  /// to appear; if not specified it is assumed to be the defining compilation
+  /// unit.  [numTypeParameters] is the number of type parameters of the thing
+  /// being referred to.
   void checkTypeRef(EntityRef typeRef, String absoluteUri, String expectedName,
       {String expectedPrefix,
       List<_PrefixExpectation> prefixExpectations,
@@ -458,12 +425,15 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      bool unresolvedHasName: false}) {
+      bool unresolvedHasName: false,
+      EntityRefNullabilitySuffix nullabilitySuffix:
+          EntityRefNullabilitySuffix.starOrIrrelevant}) {
     linkedSourceUnit ??= definingUnit;
     expect(typeRef, new TypeMatcher<EntityRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
     expect(typeRef.typeArguments, hasLength(numTypeArguments));
+    expect(typeRef.nullabilitySuffix, nullabilitySuffix);
 
     if (entityKind == EntityRefKind.genericFunctionType) {
       // [GenericFunctionType]s don't have references to check.
@@ -499,10 +469,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     }
   }
 
-  /**
-   * Verify that the given [typeRef] represents a reference to an unresolved
-   * type.
-   */
+  /// Verify that the given [typeRef] represents a reference to an unresolved
+  /// type.
   void checkUnresolvedTypeRef(
       EntityRef typeRef, String expectedPrefix, String expectedName,
       {LinkedUnit linkedSourceUnit, UnlinkedUnit unlinkedSourceUnit}) {
@@ -515,9 +483,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         unlinkedSourceUnit: unlinkedSourceUnit);
   }
 
-  /**
-   * Verify that the given [typeRef] represents the type `void`.
-   */
+  /// Verify that the given [typeRef] represents the type `void`.
   void checkVoidTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, 'void');
   }
@@ -553,11 +519,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         serializeTypeText('void.T', allowErrors: true), 'void', 'T');
   }
 
-  /**
-   * Find the class with the given [className] in the summary, and return its
-   * [UnlinkedClass] data structure.  If [unit] is not given, the class is
-   * looked for in the defining compilation unit.
-   */
+  /// Find the class with the given [className] in the summary, and return its
+  /// [UnlinkedClass] data structure.  If [unit] is not given, the class is
+  /// looked for in the defining compilation unit.
   UnlinkedClass findClass(String className,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -576,11 +540,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the enum with the given [enumName] in the summary, and return its
-   * [UnlinkedEnum] data structure.  If [unit] is not given, the enum is looked
-   * for in the defining compilation unit.
-   */
+  /// Find the enum with the given [enumName] in the summary, and return its
+  /// [UnlinkedEnum] data structure.  If [unit] is not given, the enum is looked
+  /// for in the defining compilation unit.
   UnlinkedEnum findEnum(String enumName,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -599,12 +561,10 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the executable with the given [executableName] in the summary, and
-   * return its [UnlinkedExecutable] data structure.  If [executables] is not
-   * given, then the executable is searched for in the defining compilation
-   * unit.
-   */
+  /// Find the executable with the given [executableName] in the summary, and
+  /// return its [UnlinkedExecutable] data structure.  If [executables] is not
+  /// given, then the executable is searched for in the defining compilation
+  /// unit.
   UnlinkedExecutable findExecutable(String executableName,
       {List<UnlinkedExecutable> executables, bool failIfAbsent: false}) {
     executables ??= unlinkedUnits[0].executables;
@@ -623,10 +583,8 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the mixin with the given [name] in the summary, and return its
-   * [UnlinkedClass] data structure.
-   */
+  /// Find the mixin with the given [name] in the summary, and return its
+  /// [UnlinkedClass] data structure.
   UnlinkedClass findMixin(String name) {
     UnlinkedClass result;
     for (UnlinkedClass mixin in unlinkedUnits[0].mixins) {
@@ -643,9 +601,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the parameter with the given [name] in [parameters].
-   */
+  /// Find the parameter with the given [name] in [parameters].
   UnlinkedParam findParameter(List<UnlinkedParam> parameters, String name) {
     UnlinkedParam result;
     for (UnlinkedParam parameter in parameters) {
@@ -662,11 +618,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the typedef with the given [typedefName] in the summary, and return
-   * its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
-   * is looked for in the defining compilation unit.
-   */
+  /// Find the typedef with the given [typedefName] in the summary, and return
+  /// its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
+  /// is looked for in the defining compilation unit.
   UnlinkedTypedef findTypedef(String typedefName,
       {bool failIfAbsent: false, UnlinkedUnit unit}) {
     unit ??= unlinkedUnits[0];
@@ -685,11 +639,9 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the top level variable with the given [variableName] in the summary,
-   * and return its [UnlinkedVariable] data structure.  If [variables] is not
-   * specified, the variable is looked for in the defining compilation unit.
-   */
+  /// Find the top level variable with the given [variableName] in the summary,
+  /// and return its [UnlinkedVariable] data structure.  If [variables] is not
+  /// specified, the variable is looked for in the defining compilation unit.
   UnlinkedVariable findVariable(String variableName,
       {List<UnlinkedVariable> variables, bool failIfAbsent: false}) {
     variables ??= unlinkedUnits[0].variables;
@@ -708,9 +660,7 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return result;
   }
 
-  /**
-   * Find the entry in [linkedSourceUnit.types] matching [slotId].
-   */
+  /// Find the entry in [linkedSourceUnit.types] matching [slotId].
   EntityRef getTypeRefForSlot(int slotId, {LinkedUnit linkedSourceUnit}) {
     linkedSourceUnit ??= definingUnit;
     for (EntityRef typeRef in linkedSourceUnit.types) {
@@ -721,39 +671,31 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
     return null;
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the class
-   * with the given [className].
-   */
+  /// Serialize the given library [text] and return the summary of the class
+  /// with the given [className].
   UnlinkedClass serializeClassText(String text,
       {String className: 'C', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findClass(className, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the enum with
-   * the given [enumName].
-   */
+  /// Serialize the given library [text] and return the summary of the enum with
+  /// the given [enumName].
   UnlinkedEnum serializeEnumText(String text, [String enumName = 'E']) {
     serializeLibraryText(text);
     return findEnum(enumName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the
-   * executable with the given [executableName].
-   */
+  /// Serialize the given library [text] and return the summary of the
+  /// executable with the given [executableName].
   UnlinkedExecutable serializeExecutableText(String text,
       {String executableName: 'f', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findExecutable(executableName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given method [text] and return the summary of the executable
-   * with the given [executableName].
-   */
+  /// Serialize the given method [text] and return the summary of the executable
+  /// with the given [executableName].
   UnlinkedExecutable serializeMethodText(String text,
       [String executableName = 'f']) {
     serializeLibraryText('class C { $text }');
@@ -762,32 +704,26 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         failIfAbsent: true);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the mixin
-   * with the given [name].
-   */
+  /// Serialize the given library [text] and return the summary of the mixin
+  /// with the given [name].
   UnlinkedClass serializeMixinText(String text,
       {String name: 'M', bool allowErrors: false}) {
     serializeLibraryText(text, allowErrors: allowErrors);
     return findMixin(name);
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the typedef
-   * with the given [typedefName].
-   */
+  /// Serialize the given library [text] and return the summary of the typedef
+  /// with the given [typedefName].
   UnlinkedTypedef serializeTypedefText(String text,
       [String typedefName = 'F']) {
     serializeLibraryText(text);
     return findTypedef(typedefName, failIfAbsent: true);
   }
 
-  /**
-   * Serialize a type declaration using the given [text] as a type name, and
-   * return a summary of the corresponding [EntityRef].  If the type
-   * declaration needs to refer to types that are not available in core, those
-   * types may be declared in [otherDeclarations].
-   */
+  /// Serialize a type declaration using the given [text] as a type name, and
+  /// return a summary of the corresponding [EntityRef].  If the type
+  /// declaration needs to refer to types that are not available in core, those
+  /// types may be declared in [otherDeclarations].
   EntityRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
@@ -795,27 +731,15 @@ mixin SummaryTestCases implements SummaryBlackBoxTestStrategy {
         .type;
   }
 
-  /**
-   * Serialize the given library [text] and return the summary of the variable
-   * with the given [variableName].
-   */
+  /// Serialize the given library [text] and return the summary of the variable
+  /// with the given [variableName].
   UnlinkedVariable serializeVariableText(String text,
-      {String variableName: 'v', bool allowErrors: false}) {
-    serializeLibraryText(text, allowErrors: allowErrors);
+      {String variableName: 'v', bool allowErrors: false, imports: ''}) {
+    if (imports.isNotEmpty && !imports.endsWith('\n')) {
+      imports += '\n';
+    }
+    serializeLibraryText('$imports$text', allowErrors: allowErrors);
     return findVariable(variableName, failIfAbsent: true);
-  }
-
-  test_constExpr_binary_bitShiftRightLogical() {
-    experimentStatus = ExperimentStatus(constant_update_2018: true);
-    UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
-    assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.pushInt,
-      UnlinkedExprOperation.bitShiftRightLogical
-    ], ints: [
-      1,
-      2
-    ]);
   }
 
   test_apiSignature() {
@@ -1680,6 +1604,26 @@ var v = (() {
     }
   }
 
+  test_compilationUnit_nnbd_disabled_via_dart_directive() {
+    featureSet = enableNnbd;
+    serializeLibraryText('''
+// @dart=2.2
+''');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_disabled_via_feature_set() {
+    featureSet = disableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, false);
+  }
+
+  test_compilationUnit_nnbd_enabled() {
+    featureSet = enableNnbd;
+    serializeLibraryText('');
+    expect(unlinkedUnits[0].isNNBD, true);
+  }
+
   test_constExpr_binary_add() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
     assertUnlinkedConst(variable.initializer.bodyExpr, '1 + 2', operators: [
@@ -1745,6 +1689,24 @@ var v = (() {
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.pushInt,
       UnlinkedExprOperation.bitShiftRight
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_constExpr_binary_bitShiftRightLogical() {
+    featureSet = FeatureSet.forTesting(
+        sdkVersion: '2.2.2',
+        additionalFeatures: [
+          Feature.constant_update_2018,
+          Feature.triple_shift
+        ]);
+    UnlinkedVariable variable = serializeVariableText('const v = 1 >>> 2;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, '1 >>> 2', operators: [
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitShiftRightLogical
     ], ints: [
       1,
       2
@@ -1985,6 +1947,57 @@ class C<T> {
     assertUnlinkedConst(
         cls.executables[0].constantInitializers[0].expression, 'T',
         operators: [UnlinkedExprOperation.pushParameter], strings: ['T']);
+  }
+
+  test_constExpr_function_type_arg_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()>[];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, 'const <void Function()>[]', operators: [
+      UnlinkedExprOperation.makeTypedList
+    ], ints: [
+      0
+    ], referenceValidators: [
+      (EntityRef r) =>
+          expect(r.nullabilitySuffix, EntityRefNullabilitySuffix.none)
+    ]);
+  }
+
+  test_constExpr_function_type_arg_nullability_suffix_question() {
+    featureSet = enableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()?>[];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, 'const <void Function()?>[]',
+        operators: [
+          UnlinkedExprOperation.makeTypedList
+        ],
+        ints: [
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) =>
+              expect(r.nullabilitySuffix, EntityRefNullabilitySuffix.question)
+        ]);
+  }
+
+  test_constExpr_function_type_arg_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    var variable =
+        serializeVariableText('const v = const <void Function()>[];');
+    assertUnlinkedConst(
+        variable.initializer.bodyExpr, 'const <void Function()>[]',
+        operators: [
+          UnlinkedExprOperation.makeTypedList
+        ],
+        ints: [
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => expect(
+              r.nullabilitySuffix, EntityRefNullabilitySuffix.starOrIrrelevant)
+        ]);
   }
 
   test_constExpr_functionExpression() {
@@ -2768,8 +2781,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = [if (true) 1];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1]',
@@ -2786,8 +2797,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = [if (true) 1 else 2];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[if (true) 1 else 2]',
@@ -2806,8 +2815,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText('const v = [...[]];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[...[]]', operators: [
       UnlinkedExprOperation.makeUntypedList,
@@ -2820,8 +2827,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_list_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText('const v = [...?[]];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[...?[]]', operators: [
       UnlinkedExprOperation.makeUntypedList,
@@ -3026,7 +3031,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const <int>{11, 22, 33};');
     assertUnlinkedConst(
@@ -3047,7 +3051,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_dynamic() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const <dynamic>{11, 22, 33};');
     assertUnlinkedConst(
@@ -3065,7 +3068,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_functionType() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('final v = <void Function(int)>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<void Function(int)>{}',
@@ -3094,7 +3096,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeTypedSet_functionType_withTypeParameters() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable = serializeVariableText(
         'final v = <void Function<T>(Function<Q>(T, Q))>{};');
     assertUnlinkedConst(variable.initializer.bodyExpr,
@@ -3186,7 +3187,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_makeUntypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = const {11, 22, 33};');
     assertUnlinkedConst(
@@ -3203,8 +3203,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, int>{if (true) 1 : 2};');
     assertUnlinkedConst(
@@ -3231,8 +3229,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'const v = <int, int>{if (true) 1 : 2 else 3 : 4};');
     assertUnlinkedConst(
@@ -3264,8 +3260,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, String>{...<int, String>{}};');
     assertUnlinkedConst(
@@ -3292,8 +3286,6 @@ const int v = p.a.length;
   }
 
   test_constExpr_map_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int, String>{...?<int, String>{}};');
     assertUnlinkedConst(
@@ -4038,8 +4030,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_if() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{if (true) 1};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{if (true) 1}',
@@ -4060,8 +4050,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_if_else() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{if (true) 1 else 2};');
     assertUnlinkedConst(
@@ -4085,8 +4073,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_spread() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{...<int>{}};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...<int>{}}',
@@ -4108,8 +4094,6 @@ const v = p.C.foo;
   }
 
   test_constExpr_set_spread_null_aware() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('const v = <int>{...?<int>{}};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{...?<int>{}}',
@@ -4128,6 +4112,133 @@ const v = p.C.foo;
           (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
               expectedKind: ReferenceKind.classOrEnum)
         ]);
+  }
+
+  test_constExpr_type_arg_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = const <int>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int>[]',
+        operators: [
+          UnlinkedExprOperation.makeTypedList
+        ],
+        ints: [
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum,
+              nullabilitySuffix: EntityRefNullabilitySuffix.none)
+        ]);
+  }
+
+  test_constExpr_type_arg_nullability_suffix_question() {
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = const <int?>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int?>[]',
+        operators: [
+          UnlinkedExprOperation.makeTypedList
+        ],
+        ints: [
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum,
+              nullabilitySuffix: EntityRefNullabilitySuffix.question)
+        ]);
+  }
+
+  test_constExpr_type_arg_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    var variable = serializeVariableText('const v = const <int>[];');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'const <int>[]',
+        operators: [
+          UnlinkedExprOperation.makeTypedList
+        ],
+        ints: [
+          0
+        ],
+        referenceValidators: [
+          (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+              expectedKind: ReferenceKind.classOrEnum,
+              nullabilitySuffix: EntityRefNullabilitySuffix.starOrIrrelevant)
+        ]);
+  }
+
+  test_constExpr_type_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = int;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'int', operators: [
+      UnlinkedExprOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum,
+          nullabilitySuffix: EntityRefNullabilitySuffix.none)
+    ]);
+  }
+
+  test_constExpr_type_nullability_suffix_question() {
+    // This is a placeholder for testing that `const v = int?;` is serialized
+    // correctly, if we decide that this syntax is allowed.
+    // TODO(paulberry): fill out this test if necessary.
+    // See https://github.com/dart-lang/language/issues/278
+
+    // var variable = serializeVariableText('const v = int?;', nnbd: true);
+    // assertUnlinkedConst(variable.initializer.bodyExpr, ...);
+  }
+
+  test_constExpr_type_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    var variable = serializeVariableText('const v = int;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'int', operators: [
+      UnlinkedExprOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum,
+          nullabilitySuffix: EntityRefNullabilitySuffix.starOrIrrelevant)
+    ]);
+  }
+
+  test_constExpr_type_prefixed_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    var variable = serializeVariableText('const v = core.int;',
+        imports: 'import "dart:core" as core;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'core.int', operators: [
+      UnlinkedExprOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum,
+          prefixExpectations: [
+            _PrefixExpectation(ReferenceKind.prefix, 'core')
+          ],
+          nullabilitySuffix: EntityRefNullabilitySuffix.none)
+    ]);
+  }
+
+  test_constExpr_type_prefixed_nullability_suffix_question() {
+    // This is a placeholder for testing that `const v = core.int?;` is
+    // serialized correctly, if we decide that this syntax is allowed.
+    // TODO(paulberry): fill out this test if necessary.
+    // See https://github.com/dart-lang/language/issues/278
+
+    // var variable = serializeVariableText('const v = core.int?;', imports: 'import "dart:core: as core;', nnbd: true);
+    // assertUnlinkedConst(variable.initializer.bodyExpr, ...);
+  }
+
+  test_constExpr_type_prefixed_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    var variable = serializeVariableText('const v = core.int;',
+        imports: 'import "dart:core" as core;');
+    assertUnlinkedConst(variable.initializer.bodyExpr, 'core.int', operators: [
+      UnlinkedExprOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'int',
+          expectedKind: ReferenceKind.classOrEnum,
+          prefixExpectations: [
+            _PrefixExpectation(ReferenceKind.prefix, 'core')
+          ],
+          nullabilitySuffix: EntityRefNullabilitySuffix.starOrIrrelevant)
+    ]);
   }
 
   test_constructor() {
@@ -4525,7 +4636,7 @@ int foo() => 0;
 ''').executables);
     UnlinkedParam param = executable.parameters[0];
     expect(param.isFunctionTyped, isTrue);
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.defaultValueCode, 'foo');
     assertUnlinkedConst(param.initializer.bodyExpr, 'foo', operators: [
       UnlinkedExprOperation.pushReference
@@ -4558,7 +4669,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C({this.x}); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.kind, UnlinkedParamKind.optionalNamed);
     expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
@@ -4568,7 +4679,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C({this.x: 42}); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.named);
+    expect(parameter.kind, UnlinkedParamKind.optionalNamed);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 10);
@@ -4589,7 +4700,7 @@ int foo() => 0;
         executables: serializeClassText('class C { C([this.x]); final x; }')
             .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.kind, UnlinkedParamKind.optionalPositional);
     expect(parameter.initializer, isNull);
     expect(parameter.defaultValueCode, isEmpty);
   }
@@ -4600,7 +4711,7 @@ int foo() => 0;
             serializeClassText('class C { C([this.x = 42]); final x; }')
                 .executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.positional);
+    expect(parameter.kind, UnlinkedParamKind.optionalPositional);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 11);
@@ -4613,7 +4724,7 @@ int foo() => 0;
         executables:
             serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
-    expect(parameter.kind, UnlinkedParamKind.required);
+    expect(parameter.kind, UnlinkedParamKind.requiredPositional);
   }
 
   test_constructor_initializing_formal_typedef() {
@@ -4634,7 +4745,7 @@ class C {
   final int x;
 }''').executables);
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.defaultValueCode, '42');
     assertUnlinkedConst(param.initializer.bodyExpr, '42',
         operators: [UnlinkedExprOperation.pushInt], ints: [42]);
@@ -6174,7 +6285,7 @@ f([int p(int a2, String b2) = foo]) {}
 int foo(int a, String b) => 0;
 ''');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, 'foo');
     assertUnlinkedConst(param.initializer.bodyExpr, 'foo', operators: [
@@ -6198,7 +6309,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_named() {
     UnlinkedExecutable executable = serializeExecutableText('f({x}) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.named);
+    expect(param.kind, UnlinkedParamKind.optionalNamed);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
@@ -6206,7 +6317,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_named_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f({x: 42}) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.named);
+    expect(param.kind, UnlinkedParamKind.optionalNamed);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 5);
@@ -6217,7 +6328,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_positional() {
     UnlinkedExecutable executable = serializeExecutableText('f([x]) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
@@ -6225,7 +6336,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_positional_withDefault() {
     UnlinkedExecutable executable = serializeExecutableText('f([x = 42]) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.positional);
+    expect(param.kind, UnlinkedParamKind.optionalPositional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 6);
@@ -6236,7 +6347,7 @@ int foo(int a, String b) => 0;
   test_executable_param_kind_required() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     UnlinkedParam param = executable.parameters[0];
-    expect(param.kind, UnlinkedParamKind.required);
+    expect(param.kind, UnlinkedParamKind.requiredPositional);
     expect(param.initializer, isNull);
     expect(param.defaultValueCode, isEmpty);
   }
@@ -7664,8 +7775,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -7706,8 +7815,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_declaration_typed() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (int i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (int i in []) i]',
@@ -7733,8 +7840,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (var i in []) i]',
@@ -7757,8 +7862,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_identifier() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i in []) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i in []) i]',
@@ -7784,8 +7887,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_each_with_identifier_await() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [await for (i in []) i];');
     assertUnlinkedConst(
@@ -7812,8 +7913,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_empty_condition() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0;; i++) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr, '[for (i = 0;; i++) i]',
@@ -7848,8 +7947,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_empty_initializer() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -7885,8 +7982,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_two_updaters() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; int j; var v = [for (i = 0; i < 10; i++, j++) i];');
     assertUnlinkedConst(
@@ -7931,8 +8026,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_one_declaration_typed() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (int i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -7975,8 +8068,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_one_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i = 0; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8016,8 +8107,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_two_declarations_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'var v = [for (var i = 0, j = 0; i < 10; i++) i];');
     assertUnlinkedConst(variable.initializer.bodyExpr,
@@ -8063,8 +8152,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_with_uninitialized_declaration_untyped() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = [for (var i; i < 10; i++) i];');
     assertUnlinkedConst(
@@ -8103,8 +8190,6 @@ final v = f<int, String>();
   }
 
   test_expr_list_for_zero_updaters() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable =
         serializeVariableText('int i; var v = [for (i = 0; i < 10;) i];');
     assertUnlinkedConst(
@@ -8170,7 +8255,6 @@ final v = f<int, String>();
   }
 
   test_expr_makeTypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable =
         serializeVariableText('var v = <int>{11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '<int>{11, 22, 33}',
@@ -8219,7 +8303,6 @@ final v = f<int, String>();
   }
 
   test_expr_makeUntypedSet() {
-    experimentStatus = ExperimentStatus(set_literals: true);
     UnlinkedVariable variable = serializeVariableText('var v = {11, 22, 33};');
     assertUnlinkedConst(variable.initializer.bodyExpr, '{11, 22, 33}',
         operators: [
@@ -8233,8 +8316,6 @@ final v = f<int, String>();
   }
 
   test_expr_map_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; var v = {1: 2, for (i = 0; i < 10; i++) i: i};');
     assertUnlinkedConst(
@@ -8284,8 +8365,6 @@ final v = f<int, String>();
   }
 
   test_expr_set_for() {
-    experimentStatus = ExperimentStatus(
-        control_flow_collections: true, spread_collections: true);
     UnlinkedVariable variable = serializeVariableText(
         'int i; var v = {1, for (i = 0; i < 10; i++) i};');
     assertUnlinkedConst(
@@ -8406,6 +8485,7 @@ final v = 42 is num;
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
     expect(variable, isNotNull);
     expect(variable.isConst, isFalse);
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
     expect(variable.isFinal, isFalse);
     expect(variable.initializer, isNull);
@@ -8675,9 +8755,28 @@ class C {
     expect(variable.inheritsCovariantSlot, isNot(0));
   }
 
+  test_field_late() {
+    featureSet = enableNnbd;
+    UnlinkedClass cls = serializeClassText('class C { late int i; }');
+    UnlinkedVariable variable = findVariable('i', variables: cls.fields);
+    expect(variable, isNotNull);
+    expect(variable.isConst, isFalse);
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isFalse);
+    expect(variable.isFinal, isFalse);
+    expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, isNot(0));
+    expect(findExecutable('i', executables: cls.executables), isNull);
+    expect(findExecutable('i=', executables: cls.executables), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, isEmpty);
+  }
+
   test_field_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isTrue);
     expect(variable.initializer, isNull);
     expect(variable.inheritsCovariantSlot, 0);
@@ -8697,6 +8796,19 @@ class C {
   test_field_static_final() {
     UnlinkedVariable variable =
         serializeClassText('class C { static final int i = 0; }').fields[0];
+    expect(variable.isLate, isFalse);
+    expect(variable.isStatic, isTrue);
+    expect(variable.isFinal, isTrue);
+    expect(variable.initializer.bodyExpr, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_static_final_late() {
+    featureSet = enableNnbd;
+    UnlinkedVariable variable =
+        serializeClassText('class C { static late final int i = 0; }')
+            .fields[0];
+    expect(variable.isLate, isTrue);
     expect(variable.isStatic, isTrue);
     expect(variable.isFinal, isTrue);
     expect(variable.initializer.bodyExpr, isNull);
@@ -8712,6 +8824,27 @@ class C {
       expect(variable.initializer.bodyExpr, isNull);
     }
     expect(variable.inheritsCovariantSlot, 0);
+  }
+
+  test_field_static_late() {
+    featureSet = enableNnbd;
+    UnlinkedVariable variable =
+        serializeClassText('class C { static late int i; }').fields[0];
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isTrue);
+    expect(variable.initializer, isNull);
+    expect(variable.inheritsCovariantSlot, 0);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].members, isEmpty);
   }
 
   test_fully_linked_references_follow_other_references() {
@@ -8751,6 +8884,28 @@ f() {}''';
   test_function_inferred_type_implicit_return() {
     UnlinkedExecutable f = serializeExecutableText('f() => null;');
     expect(f.inferredReturnTypeSlot, 0);
+  }
+
+  test_function_type_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()');
+    expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
+    expect(typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.none);
+  }
+
+  test_function_type_nullability_suffix_question() {
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()?');
+    expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
+    expect(typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.question);
+  }
+
+  test_function_type_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    EntityRef typeRef = serializeTypeText('void Function()');
+    expect(typeRef.entityKind, EntityRefKind.genericFunctionType);
+    expect(
+        typeRef.nullabilitySuffix, EntityRefNullabilitySuffix.starOrIrrelevant);
   }
 
   test_generic_method_in_generic_class() {
@@ -9369,7 +9524,7 @@ var v = extract(f);
     UnlinkedVariable variable = serializeVariableText('int v = null;');
     expect(variable.initializer.returnType, isNull);
     checkInferredTypeSlot(
-        variable.initializer.inferredReturnTypeSlot, null, '*bottom*',
+        variable.initializer.inferredReturnTypeSlot, null, 'Never',
         onlyInStrongMode: false);
   }
 
@@ -10692,7 +10847,7 @@ bool f() => true;
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(inferredType.syntheticReturnType, 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(1));
-    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, '*bottom*');
+    checkLinkedTypeRef(inferredType.syntheticParams[0].type, null, 'Never');
   }
 
   test_syntheticFunctionType_inGenericClass() {
@@ -10828,6 +10983,27 @@ class C<T> {
     UnlinkedExecutable m = c.executables[0];
     expect(m.name, 'm');
     checkTypeRef(m.parameters[0].type, null, 'dynamic');
+  }
+
+  test_type_nullability_suffix_none() {
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('int');
+    checkTypeRef(typeRef, 'dart:core', 'int',
+        nullabilitySuffix: EntityRefNullabilitySuffix.none);
+  }
+
+  test_type_nullability_suffix_question() {
+    featureSet = enableNnbd;
+    EntityRef typeRef = serializeTypeText('int?');
+    checkTypeRef(typeRef, 'dart:core', 'int',
+        nullabilitySuffix: EntityRefNullabilitySuffix.question);
+  }
+
+  test_type_nullability_suffix_star() {
+    featureSet = disableNnbd;
+    EntityRef typeRef = serializeTypeText('int');
+    checkTypeRef(typeRef, 'dart:core', 'int',
+        nullabilitySuffix: EntityRefNullabilitySuffix.starOrIrrelevant);
   }
 
   test_type_param_codeRange() {
@@ -11500,6 +11676,16 @@ var v;''';
     }
   }
 
+  test_variable_late() {
+    featureSet = enableNnbd;
+    UnlinkedVariable variable =
+        serializeVariableText('late int i;', variableName: 'i');
+    expect(variable.isLate, isTrue);
+    expect(variable.isStatic, isFalse);
+    expect(variable.isConst, isFalse);
+    expect(variable.isFinal, isFalse);
+  }
+
   test_variable_name() {
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
@@ -11509,6 +11695,7 @@ var v;''';
   test_variable_no_flags() {
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
     expect(variable.isConst, isFalse);
     expect(variable.isFinal, isFalse);
@@ -11529,6 +11716,7 @@ var v;''';
   test_variable_non_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
   }
 
@@ -11536,6 +11724,7 @@ var v;''';
     // Top level variables are considered non-static.
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isFalse);
   }
 
@@ -11547,6 +11736,7 @@ var v;''';
   test_variable_static() {
     UnlinkedVariable variable =
         serializeClassText('class C { static int i; }').fields[0];
+    expect(variable.isLate, isFalse);
     expect(variable.isStatic, isTrue);
   }
 
@@ -11556,10 +11746,8 @@ var v;''';
     checkTypeRef(variable.type, 'dart:core', 'int');
   }
 
-  /**
-   * Assert that serializing the given [expr] of form `(a op= 1 + 2) + 3`
-   * uses the given [expectedAssignOperator].
-   */
+  /// Assert that serializing the given [expr] of form `(a op= 1 + 2) + 3`
+  /// uses the given [expectedAssignOperator].
   void _assertAssignmentOperator(
       String expr, UnlinkedExprAssignOperator expectedAssignOperator) {
     UnlinkedVariable variable = serializeVariableText('''
@@ -11606,10 +11794,8 @@ final v = $expr;
     expect(p.visibleLength, isZero);
   }
 
-  /**
-   * Assert that the [expr] of the form `++a + 2` is serialized with the
-   * [expectedAssignmentOperator].
-   */
+  /// Assert that the [expr] of the form `++a + 2` is serialized with the
+  /// [expectedAssignmentOperator].
   void _assertRefPrefixPostfixIncrementDecrement(
       String expr, UnlinkedExprAssignOperator expectedAssignmentOperator) {
     UnlinkedVariable variable = serializeVariableText('''
@@ -11646,10 +11832,10 @@ final v = $expr;
     var reader = new CharSequenceReader(sourceText);
     var stringSource = new StringSource(sourceText, null);
     var scanner = new Scanner(stringSource, reader, errorListener)
-      ..enableGtGtGt = true;
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
-    var parser = new Parser(stringSource, errorListener)
-      ..enableNonNullable = experimentStatus.non_nullable;
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var compilationUnit = parser.parseCompilationUnit(startToken);
     var f = compilationUnit.declarations[0] as FunctionDeclaration;
     var body = f.functionExpression.body as ExpressionFunctionBody;
@@ -11658,9 +11844,7 @@ final v = $expr;
   }
 }
 
-/**
- * Description of expectations for a prelinked prefix reference.
- */
+/// Description of expectations for a prelinked prefix reference.
 class _PrefixExpectation {
   final ReferenceKind kind;
   final String name;

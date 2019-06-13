@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/listener.dart';
@@ -22,6 +23,9 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/src/summary2/link.dart' as summary2;
+import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
+import 'package:analyzer/src/summary2/reference.dart' as summary2;
 
 class SummaryBuilder {
   final Iterable<Source> librarySources;
@@ -72,6 +76,7 @@ class _Builder {
 
   final Set<String> libraryUris = new Set<String>();
   final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
+  final List<summary2.LinkInputLibrary> inputLibraries = [];
 
   final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
 
@@ -94,6 +99,8 @@ class _Builder {
     }, DeclaredVariables(), context.analysisOptions);
     map.forEach(bundleAssembler.addLinkedLibrary);
 
+    _link2();
+
     return bundleAssembler.assemble().toBuffer();
   }
 
@@ -102,8 +109,16 @@ class _Builder {
     if (!libraryUris.add(uriStr)) {
       return;
     }
-    CompilationUnit unit = _addUnlinked(source);
-    for (Directive directive in unit.directives) {
+
+    var inputUnits = <summary2.LinkInputUnit>[];
+
+    CompilationUnit definingUnit = _parse(source);
+    _addUnlinked(source, definingUnit);
+    inputUnits.add(
+      summary2.LinkInputUnit(source, false, definingUnit),
+    );
+
+    for (Directive directive in definingUnit.directives) {
       if (directive is NamespaceDirective) {
         String libUri = directive.uri.stringValue;
         Source libSource = context.sourceFactory.resolveUri(source, libUri);
@@ -111,28 +126,49 @@ class _Builder {
       } else if (directive is PartDirective) {
         String partUri = directive.uri.stringValue;
         Source partSource = context.sourceFactory.resolveUri(source, partUri);
-        _addUnlinked(partSource);
+        CompilationUnit partUnit = _parse(partSource);
+        _addUnlinked(partSource, partUnit);
+        inputUnits.add(
+          summary2.LinkInputUnit(partSource, false, partUnit),
+        );
       }
     }
+
+    inputLibraries.add(
+      summary2.LinkInputLibrary(source, inputUnits),
+    );
   }
 
-  CompilationUnit _addUnlinked(Source source) {
+  void _addUnlinked(Source source, CompilationUnit unit) {
     String uriStr = source.uri.toString();
-    CompilationUnit unit = _parse(source);
     UnlinkedUnitBuilder unlinked = serializeAstUnlinked(unit);
     unlinkedMap[uriStr] = unlinked;
     bundleAssembler.addUnlinkedUnit(source, unlinked);
-    return unit;
+  }
+
+  void _link2() {
+    var elementFactory = summary2.LinkedElementFactory(
+      context,
+      null,
+      summary2.Reference.root(),
+    );
+
+    var linkResult = summary2.link(elementFactory, inputLibraries);
+    bundleAssembler.setBundle2(linkResult.bundle);
   }
 
   CompilationUnit _parse(Source source) {
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
     String code = source.contents.data;
     CharSequenceReader reader = new CharSequenceReader(code);
-    Scanner scanner = new Scanner(source, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate featureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    Scanner scanner = new Scanner(source, reader, errorListener)
+      ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     LineInfo lineInfo = new LineInfo(scanner.lineStarts);
     Parser parser = new Parser(source, errorListener,
+        featureSet: featureSet,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);

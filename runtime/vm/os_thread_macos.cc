@@ -14,6 +14,7 @@
 #include <mach/task_info.h>    // NOLINT
 #include <mach/thread_act.h>   // NOLINT
 #include <mach/thread_info.h>  // NOLINT
+#include <signal.h>            // NOLINT
 #include <sys/errno.h>         // NOLINT
 #include <sys/sysctl.h>        // NOLINT
 #include <sys/types.h>         // NOLINT
@@ -21,6 +22,7 @@
 #include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/safe_stack.h"
+#include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
 namespace dart {
@@ -105,7 +107,6 @@ static void* ThreadStart(void* data_ptr) {
   if (thread != NULL) {
     OSThread::SetCurrent(thread);
     thread->set_name(name);
-
     // Call the supplied thread start function handing it its parameters.
     function(parameter);
   }

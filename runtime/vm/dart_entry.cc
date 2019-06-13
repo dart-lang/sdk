@@ -236,7 +236,7 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     const String& getter_name = Symbols::GetCall();
     Class& cls = Class::Handle(zone, instance.clazz());
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(getter_name);
+      function = cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = thread->isolate();
         if (!OSThread::Current()->HasStackHeadroom()) {
@@ -312,7 +312,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
     Thread* thread = Thread::Current();
-    function ^= Resolver::ResolveDynamicForReceiverClass(
+    function = Resolver::ResolveDynamicForReceiverClass(
         Class::Handle(thread->zone(),
                       thread->isolate()->object_store()->object_class()),
         Symbols::NoSuchMethod(), nsm_args_desc);
@@ -375,22 +375,6 @@ RawArray* ArgumentsDescriptor::GetArgumentNames() const {
     names.SetAt(index, name);
   }
   return names.raw();
-}
-
-intptr_t ArgumentsDescriptor::type_args_len_offset() {
-  return Array::element_offset(kTypeArgsLenIndex);
-}
-
-intptr_t ArgumentsDescriptor::count_offset() {
-  return Array::element_offset(kCountIndex);
-}
-
-intptr_t ArgumentsDescriptor::positional_count_offset() {
-  return Array::element_offset(kPositionalCountIndex);
-}
-
-intptr_t ArgumentsDescriptor::first_named_entry_offset() {
-  return Array::element_offset(kFirstNamedEntryIndex);
 }
 
 RawArray* ArgumentsDescriptor::New(intptr_t type_args_len,

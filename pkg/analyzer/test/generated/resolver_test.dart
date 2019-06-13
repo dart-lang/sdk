@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -43,6 +45,7 @@ main() {
     defineReflectiveTests(ErrorResolverTest);
     defineReflectiveTests(LibraryImportScopeTest);
     defineReflectiveTests(LibraryScopeTest);
+    defineReflectiveTests(NonNullableTypeProviderTest);
     defineReflectiveTests(PrefixedNamespaceTest);
     defineReflectiveTests(ScopeTest);
     defineReflectiveTests(StrictModeTest);
@@ -152,7 +155,7 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class EnclosedScopeTest extends ResolverTestCase {
+class EnclosedScopeTest extends DriverResolutionTest {
   test_define_duplicate() async {
     Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
@@ -168,7 +171,7 @@ class EnclosedScopeTest extends ResolverTestCase {
 @reflectiveTest
 class ErrorResolverTest extends DriverResolutionTest {
   test_breakLabelOnSwitchMember() async {
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -178,11 +181,13 @@ class A {
         break l;
     }
   }
-}''', [ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER]);
+}''', [
+      error(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, 105, 1),
+    ]);
   }
 
   test_continueLabelOnSwitch() async {
-    assertErrorCodesInCode(r'''
+    assertErrorsInCode(r'''
 class A {
   void m(int i) {
     l: switch (i) {
@@ -190,7 +195,9 @@ class A {
         continue l;
     }
   }
-}''', [ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH]);
+}''', [
+      error(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+    ]);
   }
 
   test_enclosingElement_invalidLocalFunction() async {
@@ -332,7 +339,130 @@ class LibraryScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class PrefixedNamespaceTest extends ResolverTestCase {
+class NonNullableTypeProviderTest extends EngineTestCase {
+  void assertNonNullable(InterfaceType type) {
+    expect((type as TypeImpl).nullabilitySuffix, NullabilitySuffix.none);
+  }
+
+  void test_creation() {
+    //
+    // Create a mock library element with the types expected to be in dart:core.
+    // We cannot use either ElementFactory or TestTypeProvider (which uses
+    // ElementFactory) because we side-effect the elements in ways that would
+    // break other tests.
+    //
+    InterfaceType objectType = _classElement("Object", null).type;
+    InterfaceType boolType = _classElement("bool", objectType).type;
+    InterfaceType numType = _classElement("num", objectType).type;
+    InterfaceType deprecatedType = _classElement('Deprecated', objectType).type;
+    InterfaceType doubleType = _classElement("double", numType).type;
+    InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType futureType = _classElement("Future", objectType, ["T"]).type;
+    InterfaceType futureOrType =
+        _classElement("FutureOr", objectType, ["T"]).type;
+    InterfaceType intType = _classElement("int", numType).type;
+    InterfaceType iterableType =
+        _classElement("Iterable", objectType, ["T"]).type;
+    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
+    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType nullType = _classElement('Null', objectType).type;
+    InterfaceType setType = _classElement("Set", objectType, ["E"]).type;
+    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType streamType = _classElement("Stream", objectType, ["T"]).type;
+    InterfaceType stringType = _classElement("String", objectType).type;
+    InterfaceType symbolType = _classElement("Symbol", objectType).type;
+    InterfaceType typeType = _classElement("Type", objectType).type;
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl();
+    coreUnit.types = <ClassElement>[
+      boolType.element,
+      deprecatedType.element,
+      doubleType.element,
+      functionType.element,
+      intType.element,
+      iterableType.element,
+      listType.element,
+      mapType.element,
+      nullType.element,
+      numType.element,
+      setType.element,
+      objectType.element,
+      stackTraceType.element,
+      stringType.element,
+      symbolType.element,
+      typeType.element
+    ];
+    coreUnit.source = new TestSource('dart:core');
+    coreUnit.librarySource = coreUnit.source;
+    CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
+    asyncUnit.types = <ClassElement>[
+      futureType.element,
+      futureOrType.element,
+      streamType.element
+    ];
+    asyncUnit.source = new TestSource('dart:async');
+    asyncUnit.librarySource = asyncUnit.source;
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
+    coreLibrary.definingCompilationUnit = coreUnit;
+    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
+    asyncLibrary.definingCompilationUnit = asyncUnit;
+    //
+    // Create a type provider and ensure that it can return the expected types.
+    //
+    TypeProvider provider =
+        new NonNullableTypeProvider(coreLibrary, asyncLibrary);
+    assertNonNullable(provider.boolType);
+    expect(provider.bottomType, isNotNull);
+    assertNonNullable(provider.deprecatedType);
+    assertNonNullable(provider.doubleType);
+    expect(provider.dynamicType, isNotNull);
+    assertNonNullable(provider.functionType);
+    assertNonNullable(provider.futureType);
+    assertNonNullable(provider.futureOrType);
+    assertNonNullable(provider.intType);
+    assertNonNullable(provider.listType);
+    assertNonNullable(provider.mapType);
+    expect(provider.neverType, isNotNull);
+    assertNonNullable(provider.nullType);
+    assertNonNullable(provider.numType);
+    assertNonNullable(provider.objectType);
+    assertNonNullable(provider.stackTraceType);
+    assertNonNullable(provider.streamType);
+    assertNonNullable(provider.stringType);
+    assertNonNullable(provider.symbolType);
+    assertNonNullable(provider.typeType);
+  }
+
+  ClassElement _classElement(String typeName, InterfaceType superclassType,
+      [List<String> parameterNames]) {
+    ClassElementImpl element =
+        new ClassElementImpl.forNode(AstTestFactory.identifier3(typeName));
+    element.supertype = superclassType;
+    if (parameterNames != null) {
+      int count = parameterNames.length;
+      if (count > 0) {
+        List<TypeParameterElementImpl> typeParameters =
+            new List<TypeParameterElementImpl>(count);
+        List<TypeParameterTypeImpl> typeArguments =
+            new List<TypeParameterTypeImpl>(count);
+        for (int i = 0; i < count; i++) {
+          TypeParameterElementImpl typeParameter =
+              new TypeParameterElementImpl.forNode(
+                  AstTestFactory.identifier3(parameterNames[i]));
+          typeParameters[i] = typeParameter;
+          typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
+          typeParameter.type = typeArguments[i];
+        }
+        element.typeParameters = typeParameters;
+      }
+    }
+    return element;
+  }
+}
+
+@reflectiveTest
+class PrefixedNamespaceTest extends DriverResolutionTest {
   void test_lookup_missing() {
     ClassElement element = ElementFactory.classElement2('A');
     PrefixedNamespace namespace = new PrefixedNamespace('p', _toMap([element]));
@@ -361,7 +491,7 @@ class PrefixedNamespaceTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class ScopeTest extends ResolverTestCase {
+class ScopeTest extends DriverResolutionTest {
   void test_define_duplicate() {
     Scope scope = new _RootScope();
     SimpleIdentifier identifier = AstTestFactory.identifier3('v');
@@ -574,155 +704,143 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
  * and warnings are reported when the analysis engine is run in strict mode.
  */
 @reflectiveTest
-class StrictModeTest extends ResolverTestCase {
-  @override
-  void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.hint = false;
-    resetWith(options: options);
-  }
-
+class StrictModeTest extends DriverResolutionTest {
   test_assert_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   assert (n is int);
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 47, 1),
+    ]);
   }
 
   test_conditional_and_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   return (n is int && n > 0) ? n & 0x0F : 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_conditional_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_conditional_isNot() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   return (n is! int) ? 0 : n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 44, 1),
+    ]);
   }
 
   test_conditional_or_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   return (n is! int || n < 0) ? 0 : n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 53, 1),
+    ]);
   }
 
-  @failingTest
+//  @failingTest
   test_for() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(List<int> list) {
   num sum = 0;
   for (num i = 0; i < list.length; i++) {
     sum += list[i];
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
+    ]);
   }
 
   test_forEach() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(List<int> list) {
   num sum = 0;
   for (num n in list) {
     sum += n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(HintCode.MISSING_RETURN, 0, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 30, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 76, 1),
+    ]);
   }
 
   test_if_and_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is int && n > 0) {
     return n & 0x0F;
   }
   return 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_if_is() async {
-    Source source = addSource(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is int) {
     return n & 0x0F;
   }
   return 0;
 }''');
-    await computeAnalysisResult(source);
-    assertNoErrors(source);
   }
 
   test_if_isNot() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
   } else {
     return n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 72, 1),
+    ]);
   }
 
   test_if_isNot_abrupt() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
   }
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 63, 1),
+    ]);
   }
 
   test_if_or_is() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f(num n) {
   if (n is! int || n < 0) {
     return 0;
   } else {
     return n & 0x0F;
   }
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 81, 1),
+    ]);
   }
 
   test_localVar() async {
-    Source source = addSource(r'''
+    await assertErrorsInCode(r'''
 int f() {
   num n = 1234;
   return n & 0x0F;
-}''');
-    await computeAnalysisResult(source);
-    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+}''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 37, 1),
+    ]);
   }
 }
 
@@ -1066,7 +1184,7 @@ class TypeProviderImplTest extends EngineTestCase {
       symbolType.element,
       typeType.element
     ];
-    coreUnit.source = new TestSource('dart:core');
+    coreUnit.source = new StringSource('', null, uri: Uri.parse('dart:core'));
     coreUnit.librarySource = coreUnit.source;
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     asyncUnit.types = <ClassElement>[
@@ -1074,13 +1192,14 @@ class TypeProviderImplTest extends EngineTestCase {
       futureOrType.element,
       streamType.element
     ];
-    asyncUnit.source = new TestSource('dart:async');
+
+    asyncUnit.source = new StringSource('', null, uri: Uri.parse('dart:async'));
     asyncUnit.librarySource = asyncUnit.source;
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.core"]), true);
     coreLibrary.definingCompilationUnit = coreUnit;
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        null, null, AstTestFactory.libraryIdentifier2(["dart.async"]), true);
     asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // Create a type provider and ensure that it can return the expected types.
@@ -1180,13 +1299,20 @@ class TypeResolverVisitorTest extends ParserTestCase
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
     Source librarySource = new FileSource(getFile("/lib.dart"));
+    // TODO(paulberry): make it possible to override the feature set so we can
+    // test NNBD features.
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
     LibraryElementImpl element = new LibraryElementImpl.forNode(
-        context, null, AstTestFactory.libraryIdentifier2(["lib"]));
+        context,
+        null,
+        AstTestFactory.libraryIdentifier2(["lib"]),
+        featureSet.isEnabled(Feature.non_nullable));
     element.definingCompilationUnit = new CompilationUnitElementImpl();
     _typeProvider = new TestTypeProvider();
     libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
+        featureSet: featureSet,
         nameScope: libraryScope,
         shouldSetElementSupertypes: shouldSetElementSupertypes);
   }
@@ -1218,12 +1344,18 @@ A V = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
+      // TODO(paulberry): make it possible to override the feature set so we can
+      // test NNBD features.
+      var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+      var libraryElement = new LibraryElementImpl.forNode(
+          context, null, null, featureSet.isEnabled(Feature.non_nullable))
         ..definingCompilationUnit = unitElement;
       var libraryScope = new LibraryScope(libraryElement);
       var visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
-          nameScope: libraryScope, mode: TypeResolverMode.api);
+          featureSet: featureSet,
+          nameScope: libraryScope,
+          mode: TypeResolverMode.api);
       libraryScope.define(A);
       unit.accept(visitor);
     }
@@ -1834,6 +1966,7 @@ A v = new A();
         AstTestFactory.functionTypedFormalParameter(
             AstTestFactory.typeName4('R'), 'g', [eNode]);
     ParameterElementImpl gElement = ElementFactory.requiredParameter('g');
+    gElement.typeParameters = [elementE];
     gNode.identifier.staticElement = gElement;
 
     FunctionTypeImpl gType =
@@ -1952,7 +2085,7 @@ A v = new A();
       ..staticElement = new _StaleElement();
     TypeName typeName = astFactory.typeName(id, null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(typeName.name.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
@@ -1993,7 +2126,7 @@ A v = new A();
     TypeName typeName =
         astFactory.typeName(AstTestFactory.identifier(prefix, suffix), null);
     _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.type, DynamicTypeImpl.instance);
     expect(prefix.staticElement, null);
     expect(suffix.staticElement, null);
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
@@ -2088,12 +2221,18 @@ A v = new A();
       InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
           resourceProvider: resourceProvider);
       var source = getFile('/test.dart').createSource();
-      var libraryElement = new LibraryElementImpl.forNode(context, null, null)
+      // TODO(paulberry): make it possible to override the feature set so we can
+      // test NNBD features.
+      var featureSet = FeatureSet.forTesting(sdkVersion: '2.2.2');
+      var libraryElement = new LibraryElementImpl.forNode(
+          context, null, null, featureSet.isEnabled(Feature.non_nullable))
         ..definingCompilationUnit = unitElement;
       libraryScope = new LibraryScope(libraryElement);
       visitor = new TypeResolverVisitor(
           libraryElement, source, _typeProvider, _listener,
-          nameScope: libraryScope, mode: TypeResolverMode.local);
+          featureSet: featureSet,
+          nameScope: libraryScope,
+          mode: TypeResolverMode.local);
     }
 
     // Define top-level types.

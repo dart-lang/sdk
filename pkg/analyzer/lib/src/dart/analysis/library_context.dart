@@ -9,8 +9,10 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -22,7 +24,19 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/link.dart' as link2;
+import 'package:analyzer/src/summary2/linked_bundle_context.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:analyzer/src/summary2/reference.dart';
 import 'package:meta/meta.dart';
+
+var counterLinkedLibraries = 0;
+var counterLoadedLibraries = 0;
+var timerBundleToBytes = Stopwatch();
+var timerInputLibraries = Stopwatch();
+var timerLinking = Stopwatch();
+var timerLoad2 = Stopwatch();
 
 /**
  * Context information necessary to analyze one or more libraries within an
@@ -35,6 +49,8 @@ class LibraryContext {
 
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final AnalysisSession analysisSession;
+  final SummaryDataStore externalSummaries;
   final SummaryDataStore store = new SummaryDataStore([]);
 
   /// The size of the linked data that is loaded by this context.
@@ -44,7 +60,10 @@ class LibraryContext {
 
   RestrictedAnalysisContext analysisContext;
   SummaryResynthesizer resynthesizer;
+  LinkedElementFactory elementFactory;
   InheritanceManager2 inheritanceManager;
+
+  var loadedBundles = Set<LibraryCycle>.identity();
 
   LibraryContext({
     @required AnalysisSession session,
@@ -54,27 +73,35 @@ class LibraryContext {
     @required AnalysisOptions analysisOptions,
     @required DeclaredVariables declaredVariables,
     @required SourceFactory sourceFactory,
-    @required SummaryDataStore externalSummaries,
+    @required this.externalSummaries,
     @required FileState targetLibrary,
+    @required bool useSummary2,
   })  : this.logger = logger,
-        this.byteStore = byteStore {
+        this.byteStore = byteStore,
+        this.analysisSession = session {
     if (externalSummaries != null) {
       store.addStore(externalSummaries);
     }
 
+    var synchronousSession =
+        SynchronousSession(analysisOptions, declaredVariables);
     analysisContext = new RestrictedAnalysisContext(
-      analysisOptions,
-      declaredVariables,
+      synchronousSession,
       sourceFactory,
     );
 
-    // Fill the store with summaries required for the initial library.
-    load(targetLibrary);
+    if (useSummary2) {
+      _createElementFactory();
+      load2(targetLibrary);
+    } else {
+      // Fill the store with summaries required for the initial library.
+      load(targetLibrary);
 
-    resynthesizer = new StoreBasedSummaryResynthesizer(
-        analysisContext, session, sourceFactory, true, store);
-    analysisContext.typeProvider = resynthesizer.typeProvider;
-    resynthesizer.finishCoreAsyncLibraries();
+      resynthesizer = new StoreBasedSummaryResynthesizer(
+          analysisContext, session, sourceFactory, true, store);
+      analysisContext.typeProvider = resynthesizer.typeProvider;
+      resynthesizer.finishCoreAsyncLibraries();
+    }
 
     inheritanceManager = new InheritanceManager2(analysisContext.typeSystem);
   }
@@ -88,10 +115,18 @@ class LibraryContext {
    * Computes a [CompilationUnitElement] for the given library/unit pair.
    */
   CompilationUnitElement computeUnitElement(FileState library, FileState unit) {
-    return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
-      library.uriStr,
-      unit.uriStr,
-    ]));
+    if (elementFactory != null) {
+      var reference = elementFactory.rootReference
+          .getChild(library.uriStr)
+          .getChild('@unit')
+          .getChild(unit.uriStr);
+      return elementFactory.elementOfReference(reference);
+    } else {
+      return resynthesizer.getElement(new ElementLocationImpl.con3(<String>[
+        library.uriStr,
+        unit.uriStr,
+      ]));
+    }
   }
 
   /**
@@ -106,15 +141,25 @@ class LibraryContext {
    */
   bool isLibraryUri(Uri uri) {
     String uriStr = uri.toString();
-    return store.unlinkedMap[uriStr]?.isPartOf == false;
+    if (elementFactory != null) {
+      return elementFactory.isLibraryUri(uriStr);
+    } else {
+      return store.unlinkedMap[uriStr]?.isPartOf == false;
+    }
   }
 
   /// Load data required to access elements of the given [targetLibrary].
   void load(FileState targetLibrary) {
+    if (AnalysisDriver.useSummary2) {
+      throw StateError('Unexpected with summary2.');
+    }
+
     // The library is already a part of the context, nothing to do.
     if (store.linkedMap.containsKey(targetLibrary.uriStr)) {
       return;
     }
+
+    timerLoad2.start();
 
     var libraries = <String, FileState>{};
     void appendLibraryFiles(FileState library) {
@@ -163,8 +208,10 @@ class LibraryContext {
       }
       int numOfLoaded = libraries.length - libraryUrisToLink.length;
       logger.writeln('Loaded $numOfLoaded linked bundles.');
+      counterLoadedLibraries += numOfLoaded;
     });
 
+    timerLinking.start();
     var linkedLibraries = <String, LinkedLibraryBuilder>{};
     logger.run('Link libraries', () {
       linkedLibraries = link(libraryUrisToLink, (String uri) {
@@ -176,21 +223,149 @@ class LibraryContext {
       }, DeclaredVariables(), analysisContext.analysisOptions);
       logger.writeln('Linked ${linkedLibraries.length} libraries.');
     });
+    timerLinking.stop();
+    counterLinkedLibraries += linkedLibraries.length;
 
     // Store freshly linked libraries into the byte store.
     // Append them to the context.
+    timerBundleToBytes.start();
     for (String uri in linkedLibraries.keys) {
+      counterLoadedLibraries++;
       FileState library = libraries[uri];
       String key = library.transitiveSignatureLinked;
 
+      timerBundleToBytes.start();
       LinkedLibraryBuilder linkedBuilder = linkedLibraries[uri];
       List<int> bytes = linkedBuilder.toBuffer();
+      timerBundleToBytes.stop();
       byteStore.put(key, bytes);
+      counterUnlinkedLinkedBytes += bytes.length;
 
       LinkedLibrary linked = new LinkedLibrary.fromBuffer(bytes);
       store.addLinkedLibrary(uri, linked);
       _linkedDataInBytes += bytes.length;
     }
+    timerBundleToBytes.stop();
+    timerLoad2.stop();
+  }
+
+  /// Load data required to access elements of the given [targetLibrary].
+  void load2(FileState targetLibrary) {
+    timerLoad2.start();
+    var inputBundles = <LinkedNodeBundle>[];
+
+    var librariesTotal = 0;
+    var librariesLoaded = 0;
+    var librariesLinked = 0;
+    var librariesLinkedTimer = Stopwatch();
+    var inputsTimer = Stopwatch();
+    var bytesGet = 0;
+    var bytesPut = 0;
+
+    void loadBundle(LibraryCycle cycle) {
+      if (!loadedBundles.add(cycle)) return;
+
+      librariesTotal += cycle.libraries.length;
+
+      cycle.directDependencies.forEach(loadBundle);
+
+      var key = cycle.transitiveSignature + '.linked_bundle';
+      var bytes = byteStore.get(key);
+
+      if (bytes == null) {
+        librariesLinkedTimer.start();
+
+        timerInputLibraries.start();
+        inputsTimer.start();
+        var inputLibraries = <link2.LinkInputLibrary>[];
+        for (var libraryFile in cycle.libraries) {
+          var librarySource = libraryFile.source;
+          if (librarySource == null) continue;
+
+          var inputUnits = <link2.LinkInputUnit>[];
+          for (var file in libraryFile.libraryFiles) {
+            var isSynthetic = !file.exists;
+            var unit = file.parse();
+            inputUnits.add(
+              link2.LinkInputUnit(file.source, isSynthetic, unit),
+            );
+          }
+
+          inputLibraries.add(
+            link2.LinkInputLibrary(librarySource, inputUnits),
+          );
+        }
+        inputsTimer.stop();
+        timerInputLibraries.stop();
+
+        timerLinking.start();
+        var linkResult = link2.link(elementFactory, inputLibraries);
+        librariesLinked += cycle.libraries.length;
+        counterLinkedLibraries += linkResult.bundle.libraries.length;
+        timerLinking.stop();
+
+        timerBundleToBytes.start();
+        bytes = linkResult.bundle.toBuffer();
+        timerBundleToBytes.stop();
+
+        byteStore.put(key, bytes);
+        bytesPut += bytes.length;
+        counterUnlinkedLinkedBytes += bytes.length;
+
+        librariesLinkedTimer.stop();
+      } else {
+        // TODO(scheglov) Take / clear parsed units in files.
+        bytesGet += bytes.length;
+        librariesLoaded += cycle.libraries.length;
+      }
+
+      // We are about to load dart:core, but if we have just linked it, the
+      // linker might have set the type provider. So, clear it, and recreate
+      // the element factory - it is empty anyway.
+      var hasDartCoreBeforeBundle = elementFactory.hasDartCore;
+      if (!hasDartCoreBeforeBundle) {
+        analysisContext.clearTypeProvider();
+        _createElementFactory();
+      }
+
+      var bundle = LinkedNodeBundle.fromBuffer(bytes);
+      inputBundles.add(bundle);
+      elementFactory.addBundle(
+        LinkedBundleContext(elementFactory, bundle),
+      );
+      counterLoadedLibraries += bundle.libraries.length;
+
+      // Set informative data.
+      for (var libraryFile in cycle.libraries) {
+        for (var unitFile in libraryFile.libraryFiles) {
+          elementFactory.setInformativeData(
+            libraryFile.uriStr,
+            unitFile.uriStr,
+            unitFile.unlinked2.informativeData,
+          );
+        }
+      }
+
+      // If the first bundle, with dart:core, create the type provider.
+      if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
+        _createElementFactoryTypeProvider();
+      }
+    }
+
+    logger.run('Prepare linked bundles', () {
+      var libraryCycle = targetLibrary.libraryCycle;
+      loadBundle(libraryCycle);
+      logger.writeln(
+        '[librariesTotal: $librariesTotal]'
+        '[librariesLoaded: $librariesLoaded]'
+        '[inputsTimer: ${inputsTimer.elapsedMilliseconds} ms]'
+        '[librariesLinked: $librariesLinked]'
+        '[librariesLinkedTimer: ${librariesLinkedTimer.elapsedMilliseconds} ms]'
+        '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
+      );
+    });
+
+    timerLoad2.stop();
   }
 
   /// Return `true` if this context grew too large, and should be recreated.
@@ -200,5 +375,32 @@ class LibraryContext {
   /// simplest way to get rid of the garbage is to throw away everything.
   bool pack() {
     return _linkedDataInBytes > _maxLinkedDataInBytes;
+  }
+
+  void _createElementFactory() {
+    elementFactory = LinkedElementFactory(
+      analysisContext,
+      analysisSession,
+      Reference.root(),
+    );
+    if (externalSummaries != null) {
+      for (var bundle in externalSummaries.bundles) {
+        elementFactory.addBundle(
+          LinkedBundleContext(elementFactory, bundle.bundle2),
+        );
+      }
+    }
+  }
+
+  void _createElementFactoryTypeProvider() {
+    var dartCore = elementFactory.libraryOfUri('dart:core');
+    var dartAsync = elementFactory.libraryOfUri('dart:async');
+    var typeProvider = SummaryTypeProvider()
+      ..initializeCore(dartCore)
+      ..initializeAsync(dartAsync);
+    analysisContext.typeProvider = typeProvider;
+
+    dartCore.createLoadLibraryFunction(typeProvider);
+    dartAsync.createLoadLibraryFunction(typeProvider);
   }
 }

@@ -123,6 +123,10 @@ class CanonicalName {
         .getChildFromQualifiedName(member.name);
   }
 
+  CanonicalName getChildFromFieldWithName(Name name) {
+    return getChild('@fields').getChildFromQualifiedName(name);
+  }
+
   CanonicalName getChildFromTypedef(Typedef typedef_) {
     return getChild('@typedefs').getChild(typedef_.name);
   }

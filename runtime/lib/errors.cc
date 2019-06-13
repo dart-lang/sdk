@@ -34,11 +34,11 @@ static RawScript* FindScript(DartFrameIterator* iterator) {
     if (stack_frame->is_interpreted()) {
       func = stack_frame->LookupDartFunction();
     } else {
-      code ^= stack_frame->LookupDartCode();
+      code = stack_frame->LookupDartCode();
       if (code.is_optimized()) {
         InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
         while (!inlined_iterator.Done()) {
-          func ^= inlined_iterator.function();
+          func = inlined_iterator.function();
           if (hit_assertion_error) {
             return func.script();
           }

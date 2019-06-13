@@ -19,46 +19,46 @@ main() {
 
 null1(dynamic c) {
   /*dynamic*/ c.next;
-  /*dynamic*/ c /*invoke: bool*/ != null;
+  /*dynamic*/ c /*invoke: [dynamic]->bool*/ != null;
   /*dynamic*/ c.next;
 }
 
 null2(dynamic c) {
   /*dynamic*/ c.next;
-  /*dynamic*/ c /*invoke: bool*/ == null;
+  /*dynamic*/ c /*invoke: [dynamic]->bool*/ == null;
   /*dynamic*/ c.next;
 }
 
 null3(dynamic c) {
-  if (/*dynamic*/ c /*invoke: bool*/ == null) return;
+  if (/*dynamic*/ c /*invoke: [dynamic]->bool*/ == null) return;
   /*dynamic*/ c.next;
 }
 
 null4(dynamic c) {
-  if (/*dynamic*/ c /*invoke: bool*/ != null) return;
+  if (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null) return;
   /*Null*/ c.next;
 }
 
 null5(dynamic c) {
-  if (/*dynamic*/ c /*invoke: bool*/ != null) {
+  if (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null) {
     /*dynamic*/ c.next;
   }
 }
 
 null6(dynamic c) {
-  if (/*dynamic*/ c /*invoke: bool*/ == null) {
+  if (/*dynamic*/ c /*invoke: [dynamic]->bool*/ == null) {
     /*Null*/ c.next;
   }
 }
 
 null7(dynamic c) {
-  while (/*dynamic*/ c /*invoke: bool*/ != null) {
+  while (/*dynamic*/ c /*invoke: [dynamic]->bool*/ != null) {
     /*dynamic*/ c.next;
   }
 }
 
 null8(dynamic c) {
-  while (/*dynamic*/ c /*invoke: bool*/ == null) {
+  while (/*dynamic*/ c /*invoke: [dynamic]->bool*/ == null) {
     /*Null*/ c.next;
   }
 }

@@ -265,17 +265,8 @@ const FpuRegister FpuTMP = QTMP;
 const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "r0", "r1",  "r2", "r3", "r4", "r5", "r6", "r7",
-    "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
-};
-
-static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-    "q0", "q1", "q2",  "q3",  "q4",  "q5",  "q6",  "q7",
-#if defined(VFPv3_D32)
-    "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15",
-#endif
-};
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfFpuRegisters];
 
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
@@ -380,6 +371,7 @@ class CallingConventions {
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
   static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
+  static constexpr Register kStackPointerRegister = SPREG;
 };
 
 #undef R

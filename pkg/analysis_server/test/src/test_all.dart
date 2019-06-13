@@ -9,7 +9,6 @@ import 'domain_abstract_test.dart' as domain_abstract;
 import 'domains/test_all.dart' as domains;
 import 'flutter/test_all.dart' as flutter;
 import 'lsp/test_all.dart' as lsp;
-import 'nullability/test_all.dart' as nullability;
 import 'plugin/test_all.dart' as plugin;
 import 'services/test_all.dart' as services;
 import 'utilities/test_all.dart' as utilities;
@@ -25,7 +24,6 @@ main() {
     domains.main();
     flutter.main();
     lsp.main();
-    nullability.main();
     plugin.main();
     services.main();
     utilities.main();

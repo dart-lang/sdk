@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/isolate/counter_chart.dart';
 
-class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
+class IsolateSharedSummaryElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateSharedSummaryElement>(
       'isolate-shared-summary',
       dependencies: const [IsolateCounterChartElement.tag]);
@@ -30,14 +30,14 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
-    IsolateSharedSummaryElement e = document.createElement(tag.name);
+    IsolateSharedSummaryElement e = new IsolateSharedSummaryElement.created();
     e._r = new RenderingScheduler<IsolateSharedSummaryElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
   }
 
-  IsolateSharedSummaryElement.created() : super.created();
+  IsolateSharedSummaryElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -150,7 +150,7 @@ class IsolateSharedSummaryElement extends HtmlElement implements Renderable {
               new AnchorElement(href: Uris.logging(_isolate))..text = 'logging'
             ]
         ],
-      new IsolateCounterChartElement(_isolate.counters, queue: _r.queue)
+      new IsolateCounterChartElement(_isolate.counters, queue: _r.queue).element
     ];
     if (_isolate.error != null) {
       children = <Element>[

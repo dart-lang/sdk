@@ -11,9 +11,9 @@
 #include <openssl/x509.h>
 
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/secure_socket_utils.h"
 #include "bin/security_context.h"
+#include "platform/syslog.h"
 #include "platform/text_buffer.h"
 
 // Return the error from the containing function if handle is an error handle.
@@ -492,25 +492,25 @@ void SSLFilter::Connect(const char* hostname,
   if (is_server_) {
     status = SSL_accept(ssl_);
     if (SSL_LOG_STATUS) {
-      Log::Print("SSL_accept status: %d\n", status);
+      Syslog::Print("SSL_accept status: %d\n", status);
     }
     if (status != 1) {
       // TODO(whesse): expect a needs-data error here.  Handle other errors.
       error = SSL_get_error(ssl_, status);
       if (SSL_LOG_STATUS) {
-        Log::Print("SSL_accept error: %d\n", error);
+        Syslog::Print("SSL_accept error: %d\n", error);
       }
     }
   } else {
     status = SSL_connect(ssl_);
     if (SSL_LOG_STATUS) {
-      Log::Print("SSL_connect status: %d\n", status);
+      Syslog::Print("SSL_connect status: %d\n", status);
     }
     if (status != 1) {
       // TODO(whesse): expect a needs-data error here.  Handle other errors.
       error = SSL_get_error(ssl_, status);
       if (SSL_LOG_STATUS) {
-        Log::Print("SSL_connect error: %d\n", error);
+        Syslog::Print("SSL_connect error: %d\n", error);
       }
     }
   }
@@ -542,10 +542,10 @@ void SSLFilter::Handshake() {
     //    should give us the hostname check.
     int result = SSL_get_verify_result(ssl_);
     if (SSL_LOG_STATUS) {
-      Log::Print("Handshake verification status: %d\n", result);
+      Syslog::Print("Handshake verification status: %d\n", result);
       X509* peer_certificate = SSL_get_peer_certificate(ssl_);
       if (peer_certificate == NULL) {
-        Log::Print("No peer certificate received\n");
+        Syslog::Print("No peer certificate received\n");
       } else {
         X509_NAME* s_name = X509_get_subject_name(peer_certificate);
         printf("Peer certificate SN: ");
@@ -655,7 +655,7 @@ int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
       SSL_write(ssl_, buffers_[kWritePlaintext] + start, length);
   if (bytes_processed < 0) {
     if (SSL_LOG_DATA) {
-      Log::Print("SSL_write returned error %d\n", bytes_processed);
+      Syslog::Print("SSL_write returned error %d\n", bytes_processed);
     }
     return 0;
   }
@@ -666,7 +666,8 @@ int SSLFilter::ProcessWritePlaintextBuffer(int start, int end) {
 int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
   int length = end - start;
   if (SSL_LOG_DATA)
-    Log::Print("Entering ProcessReadEncryptedBuffer with %d bytes\n", length);
+    Syslog::Print("Entering ProcessReadEncryptedBuffer with %d bytes\n",
+                  length);
   int bytes_processed = 0;
   if (length > 0) {
     bytes_processed =
@@ -675,14 +676,14 @@ int SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
       bool retry = BIO_should_retry(socket_side_);
       if (!retry) {
         if (SSL_LOG_DATA)
-          Log::Print("BIO_write failed in ReadEncryptedBuffer\n");
+          Syslog::Print("BIO_write failed in ReadEncryptedBuffer\n");
       }
       bytes_processed = 0;
     }
   }
   if (SSL_LOG_DATA)
-    Log::Print("Leaving ProcessReadEncryptedBuffer wrote %d bytes\n",
-               bytes_processed);
+    Syslog::Print("Leaving ProcessReadEncryptedBuffer wrote %d bytes\n",
+                  bytes_processed);
   return bytes_processed;
 }
 
@@ -694,13 +695,13 @@ int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
         BIO_read(socket_side_, buffers_[kWriteEncrypted] + start, length);
     if (bytes_processed < 0) {
       if (SSL_LOG_DATA)
-        Log::Print("WriteEncrypted BIO_read returned error %d\n",
-                   bytes_processed);
+        Syslog::Print("WriteEncrypted BIO_read returned error %d\n",
+                      bytes_processed);
       return 0;
     } else {
       if (SSL_LOG_DATA)
-        Log::Print("WriteEncrypted  BIO_read wrote %d bytes\n",
-                   bytes_processed);
+        Syslog::Print("WriteEncrypted  BIO_read wrote %d bytes\n",
+                      bytes_processed);
     }
   }
   return bytes_processed;

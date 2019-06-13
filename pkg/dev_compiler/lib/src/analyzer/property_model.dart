@@ -77,8 +77,9 @@ class _LibraryVirtualFieldModel {
       // add it to our work set if this is the first time we've visited it.
       for (var superclass in getImmediateSuperclasses(extensibleClass)) {
         if (!superclass.isPublic && superclass.library == library) {
-          if (_extensiblePrivateClasses.add(superclass))
+          if (_extensiblePrivateClasses.add(superclass)) {
             classesToVisit.add(superclass);
+          }
         }
       }
     }
@@ -282,8 +283,12 @@ class ClassPropertyModel {
     void visit(InterfaceType type, bool isAbstract) {
       if (type == null) return;
       visit(type.superclass, isAbstract);
-      for (var m in type.mixins) visit(m, isAbstract);
-      for (var i in type.interfaces) visit(i, true);
+      for (var m in type.mixins) {
+        visit(m, isAbstract);
+      }
+      for (var i in type.interfaces) {
+        visit(i, true);
+      }
 
       for (var m in [type.methods, type.accessors].expand((m) => m)) {
         if (m.isStatic) continue;

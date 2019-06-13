@@ -108,16 +108,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginClassOrMixinBody(Token token) {
-    super.beginClassOrMixinBody(token);
-    begin('ClassOrMixinBody');
-  }
-
-  @override
   void beginClassDeclaration(
       Token beginToken, Token abstractToken, Token name) {
     super.beginClassDeclaration(beginToken, abstractToken, name);
     begin('ClassDeclaration');
+  }
+
+  @override
+  void beginClassOrMixinBody(Token token) {
+    super.beginClassOrMixinBody(token);
+    begin('ClassOrMixinBody');
   }
 
   @override
@@ -201,6 +201,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token name) {
+    super.beginExtensionDeclaration(extensionKeyword, name);
+    begin('ExtensionDeclaration');
+  }
+
+  @override
   void beginFactoryMethod(
       Token lastConsumed, Token externalToken, Token constToken) {
     super.beginFactoryMethod(lastConsumed, externalToken, constToken);
@@ -232,21 +238,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginForStatement(Token token) {
-    super.beginForStatement(token);
-    begin('ForStatement');
-  }
-
-  @override
-  void beginForStatementBody(Token token) {
-    super.beginForStatementBody(token);
-    begin('ForStatementBody');
-  }
-
-  @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
-    super.beginFormalParameter(token, kind, covariantToken, varFinalOrConst);
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    super.beginFormalParameter(
+        token, kind, requiredToken, covariantToken, varFinalOrConst);
     begin('FormalParameter');
   }
 
@@ -257,15 +252,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginIfControlFlow(Token ifToken) {
-    super.beginIfControlFlow(ifToken);
-    begin('IfControlFlow');
+  void beginForStatement(Token token) {
+    super.beginForStatement(token);
+    begin('ForStatement');
   }
 
   @override
-  void beginLocalFunctionDeclaration(Token token) {
-    super.beginLocalFunctionDeclaration(token);
-    begin('LocalFunctionDeclaration');
+  void beginForStatementBody(Token token) {
+    super.beginForStatementBody(token);
+    begin('ForStatementBody');
   }
 
   @override
@@ -302,6 +297,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginHide(Token hideKeyword) {
     super.beginHide(hideKeyword);
     begin('Hide');
+  }
+
+  @override
+  void beginIfControlFlow(Token ifToken) {
+    super.beginIfControlFlow(ifToken);
+    begin('IfControlFlow');
   }
 
   @override
@@ -356,6 +357,12 @@ class ForwardingTestListener extends ForwardingListener {
   void beginLiteralSymbol(Token token) {
     super.beginLiteralSymbol(token);
     begin('LiteralSymbol');
+  }
+
+  @override
+  void beginLocalFunctionDeclaration(Token token) {
+    super.beginLocalFunctionDeclaration(token);
+    begin('LocalFunctionDeclaration');
   }
 
   @override
@@ -526,8 +533,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
-    super.beginVariablesDeclaration(token, varFinalOrConst);
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
+    super.beginVariablesDeclaration(token, lateToken, varFinalOrConst);
     begin('VariablesDeclaration');
   }
 
@@ -600,16 +608,16 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
-    end('ClassOrMixinBody');
-    super.endClassOrMixinBody(memberCount, beginToken, endToken);
-  }
-
-  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     end('ClassDeclaration');
     end('ClassOrNamedMixinApplication');
     super.endClassDeclaration(beginToken, endToken);
+  }
+
+  @override
+  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+    end('ClassOrMixinBody');
+    super.endClassOrMixinBody(memberCount, beginToken, endToken);
   }
 
   @override
@@ -688,6 +696,12 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endExtensionDeclaration(Token onKeyword, Token token) {
+    super.endExtensionDeclaration(onKeyword, token);
+    end('ExtensionDeclaration');
+  }
+
+  @override
   void endFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     end('FactoryMethod');
@@ -701,24 +715,18 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     // beginMember --> endFields, endMember
     expectIn('Member');
-    super.endFields(staticToken, covariantToken, varFinalOrConst, count,
-        beginToken, endToken);
+    super.endFields(staticToken, covariantToken, lateToken, varFinalOrConst,
+        count, beginToken, endToken);
   }
 
   @override
   void endForControlFlow(Token token) {
     end('ForControlFlow');
     super.endForControlFlow(token);
-  }
-
-  @override
-  void endForInControlFlow(Token token) {
-    end('ForControlFlow');
-    super.endForInControlFlow(token);
   }
 
   @override
@@ -734,21 +742,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void endForInControlFlow(Token token) {
+    end('ForControlFlow');
+    super.endForInControlFlow(token);
+  }
+
+  @override
   void endForInExpression(Token token) {
     end('ForInExpression');
     super.endForInExpression(token);
-  }
-
-  @override
-  void endForStatement(Token endToken) {
-    end('ForStatement');
-    super.endForStatement(endToken);
-  }
-
-  @override
-  void endForStatementBody(Token token) {
-    end('ForStatementBody');
-    super.endForStatementBody(token);
   }
 
   @override
@@ -767,9 +769,15 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endLocalFunctionDeclaration(Token endToken) {
-    end('LocalFunctionDeclaration');
-    super.endLocalFunctionDeclaration(endToken);
+  void endForStatement(Token endToken) {
+    end('ForStatement');
+    super.endForStatement(endToken);
+  }
+
+  @override
+  void endForStatementBody(Token token) {
+    end('ForStatementBody');
+    super.endForStatementBody(token);
   }
 
   @override
@@ -798,9 +806,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     end('FunctionTypedFormalParameter');
-    super.endFunctionTypedFormalParameter(nameToken);
+    super.endFunctionTypedFormalParameter(nameToken, question);
   }
 
   @override
@@ -873,6 +881,12 @@ class ForwardingTestListener extends ForwardingListener {
   void endLiteralSymbol(Token hashToken, int identifierCount) {
     end('LiteralSymbol');
     super.endLiteralSymbol(hashToken, identifierCount);
+  }
+
+  @override
+  void endLocalFunctionDeclaration(Token endToken) {
+    end('LocalFunctionDeclaration');
+    super.endLocalFunctionDeclaration(endToken);
   }
 
   @override
@@ -1014,11 +1028,17 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     end('TopLevelMember');
-    super.endTopLevelFields(staticToken, covariantToken, varFinalOrConst, count,
-        beginToken, endToken);
+    super.endTopLevelFields(staticToken, covariantToken, lateToken,
+        varFinalOrConst, count, beginToken, endToken);
   }
 
   @override
@@ -1108,33 +1128,23 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleIdentifierList(int count) {
-    expectInOneOf(['Hide', 'Show']);
-    super.handleIdentifierList(count);
-  }
-
-  @override
   void handleDottedName(int count, Token firstIdentifier) {
     expectIn('ConditionalUri');
     super.handleDottedName(count, firstIdentifier);
   }
 
   @override
-  void handleRecoverClassHeader() {
-    expectIn('ClassDeclaration');
-    listener.handleRecoverClassHeader();
+  void handleIdentifierList(int count) {
+    expectInOneOf(['Hide', 'Show']);
+    super.handleIdentifierList(count);
   }
 
   @override
-  void handleRecoverImport(Token semicolon) {
-    expectIn('CompilationUnit');
-    listener.handleRecoverImport(semicolon);
-  }
-
-  @override
-  void handleRecoverMixinHeader() {
-    expectIn('MixinDeclaration');
-    listener.handleRecoverMixinHeader();
+  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
+    // This event normally happens within "Import",
+    // but happens within "CompilationUnit" during recovery.
+    expectInOneOf(const ['Import', 'CompilationUnit']);
+    listener.handleImportPrefix(deferredKeyword, asKeyword);
   }
 
   @override
@@ -1174,11 +1184,21 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleImportPrefix(Token deferredKeyword, Token asKeyword) {
-    // This event normally happens within "Import",
-    // but happens within "CompilationUnit" during recovery.
-    expectInOneOf(const ['Import', 'CompilationUnit']);
-    listener.handleImportPrefix(deferredKeyword, asKeyword);
+  void handleRecoverClassHeader() {
+    expectIn('ClassDeclaration');
+    listener.handleRecoverClassHeader();
+  }
+
+  @override
+  void handleRecoverImport(Token semicolon) {
+    expectIn('CompilationUnit');
+    listener.handleRecoverImport(semicolon);
+  }
+
+  @override
+  void handleRecoverMixinHeader() {
+    expectIn('MixinDeclaration');
+    listener.handleRecoverMixinHeader();
   }
 
   @override

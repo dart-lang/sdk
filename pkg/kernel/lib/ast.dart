@@ -192,6 +192,11 @@ abstract class FileUriNode extends TreeNode {
   Uri get fileUri;
 }
 
+abstract class Annotatable {
+  List<Expression> get annotations;
+  void addAnnotation(Expression node);
+}
+
 /// Indirection between a reference and its definition.
 ///
 /// There is only one reference object per [NamedNode].
@@ -267,7 +272,8 @@ class Reference {
 // ------------------------------------------------------------------------
 
 @coq
-class Library extends NamedNode implements Comparable<Library>, FileUriNode {
+class Library extends NamedNode
+    implements Annotatable, Comparable<Library>, FileUriNode {
   /// An import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, `app`, or `file` scheme.
@@ -721,7 +727,7 @@ enum ClassLevel {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 @coq
-class Class extends NamedNode implements FileUriNode {
+class Class extends NamedNode implements Annotatable, FileUriNode {
   /// Start offset of the class in the source file it comes from.
   ///
   /// Note that this includes annotations if any.
@@ -1086,7 +1092,7 @@ class Class extends NamedNode implements FileUriNode {
 // ------------------------------------------------------------------------
 
 @coq
-abstract class Member extends NamedNode implements FileUriNode {
+abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   /// End offset in the source file it comes from.
   ///
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset]) if the file
@@ -3215,9 +3221,9 @@ class StringConcatenation extends Expression {
 ///
 /// If [lists] is empty then an empty list is returned.
 ///
-/// These arise from spread and control-flow elements in const list literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const list literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 class ListConcatenation extends Expression {
   DartType typeArgument;
   final List<Expression> lists;
@@ -3248,9 +3254,9 @@ class ListConcatenation extends Expression {
 ///
 /// If [sets] is empty then an empty set is returned.
 ///
-/// These arise from spread and control-flow elements in const set literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const set literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 ///
 /// Duplicated values in or across the sets will result in a compile-time error
 /// during constant evaluation.
@@ -3284,9 +3290,9 @@ class SetConcatenation extends Expression {
 ///
 /// If [maps] is empty then an empty map is returned.
 ///
-/// These arise from spread and control-flow elements in const map literals
-/// containing unevaluated subexpressions. They only ever occur within
-/// unevaluated constants in constant expressions.
+/// These arise from spread and control-flow elements in const map literals.
+/// They are only present before constant evaluation, or within unevaluated
+/// constants in constant expressions.
 ///
 /// Duplicated keys in or across the maps will result in a compile-time error
 /// during constant evaluation.
@@ -6022,8 +6028,11 @@ class Source {
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.
   String getTextLine(int line) {
+    if (source == null ||
+        source.isEmpty ||
+        lineStarts == null ||
+        lineStarts.isEmpty) return null;
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
-    if (source == null || source.isEmpty) return null;
 
     cachedText ??= utf8.decode(source, allowMalformed: true);
     // -1 as line numbers start at 1.
@@ -6047,6 +6056,9 @@ class Source {
 
   /// Translates an offset to line and column numbers in the given file.
   Location getLocation(Uri file, int offset) {
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return new Location(file, TreeNode.noOffset, TreeNode.noOffset);
+    }
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
     int low = 0, high = lineStarts.length - 1;
     while (low < high) {

@@ -50,21 +50,12 @@ If you have followed the steps in [Performing Analysis][analysis], and you want
 to get the compilation unit for a file at a known `path`, then you can ask the
 analysis session for an AST.
 
-If you need an unresolved AST, then you can use either a synchronous or
-asynchronous method to access the AST:
+If you need an unresolved AST, then you can use the following method to access
+the AST:
 
 ```dart
-main() async {
-  ParseResult result = await session.getParsedAst(path);
-  CompilationUnit unit = result.unit;
-}
-```
-
-or
-
-```dart
-main() {
-  ParseResult result = session.getParsedAstSync(path);
+processFile(AnalysisSession session, String path) {
+  ParsedUnitResult result = session.getParsedUnit(path);
   CompilationUnit unit = result.unit;
 }
 ```
@@ -73,8 +64,8 @@ If you need a resolved AST, then you need to use the following asynchronous
 method to access it:
 
 ```dart
-main() async {
-  ResolveResult result = await session.getResolvedAst(path);
+processFile(AnalysisSession session, String path) async {
+  ResolvedUnitResult result = await session.getResolvedUnit(path);
   CompilationUnit unit = result.unit;
 }
 ```

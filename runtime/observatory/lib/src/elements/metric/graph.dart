@@ -9,7 +9,7 @@ import 'package:charted/charted.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class MetricGraphElement extends HtmlElement implements Renderable {
+class MetricGraphElement extends CustomElement implements Renderable {
   static const tag = const Tag<MetricGraphElement>('metric-graph');
 
   RenderingScheduler<MetricGraphElement> _r;
@@ -30,7 +30,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
     assert(isolate != null);
     assert(metric != null);
     assert(metrics != null);
-    MetricGraphElement e = document.createElement(tag.name);
+    MetricGraphElement e = new MetricGraphElement.created();
     e._r = new RenderingScheduler<MetricGraphElement>(e, queue: queue);
     e._isolate = isolate;
     e._metric = metric;
@@ -38,7 +38,7 @@ class MetricGraphElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MetricGraphElement.created() : super.created();
+  MetricGraphElement.created() : super.created(tag);
 
   @override
   void attached() {

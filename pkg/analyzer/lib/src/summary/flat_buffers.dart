@@ -89,6 +89,16 @@ class Builder {
   final int initialSize;
 
   /**
+   * The list of field tails, reused by [_VTable] instances.
+   */
+  final Int32List _reusedFieldTails = Int32List(1024);
+
+  /**
+   * The list of field offsets, reused by [_VTable] instances.
+   */
+  final Int32List _reusedFieldOffsets = Int32List(1024);
+
+  /**
    * The list of existing VTable(s).
    */
   final List<_VTable> _vTables = <_VTable>[];
@@ -248,6 +258,7 @@ class Builder {
       }
       // Write a new VTable.
       if (vTableTail == null) {
+        _currentVTable.takeFieldOffsets();
         _prepare(2, _currentVTable.numOfUint16);
         vTableTail = _tail;
         _currentVTable.tail = vTableTail;
@@ -332,7 +343,7 @@ class Builder {
     if (_currentVTable != null) {
       throw new StateError('Inline tables are not supported.');
     }
-    _currentVTable = new _VTable();
+    _currentVTable = new _VTable(_reusedFieldTails, _reusedFieldOffsets);
     _currentTableEndTail = _tail;
   }
 
@@ -570,6 +581,19 @@ class Float64ListReader extends Reader<List<double>> {
 }
 
 /**
+ * The reader of 64-bit floats.
+ */
+class Float64Reader extends Reader<double> {
+  const Float64Reader() : super();
+
+  @override
+  int get size => 8;
+
+  @override
+  double read(BufferContext bc, int offset) => bc._getFloat64(offset);
+}
+
+/**
  * The reader of signed 32-bit integers.
  */
 class Int32Reader extends Reader<int> {
@@ -768,19 +792,6 @@ class Uint8Reader extends Reader<int> {
 }
 
 /**
- * The reader of 64-bit floats.
- */
-class Float64Reader extends Reader<double> {
-  const Float64Reader() : super();
-
-  @override
-  int get size => 8;
-
-  @override
-  double read(BufferContext bc, int offset) => bc._getFloat64(offset);
-}
-
-/**
  * List of booleans backed by 8-bit unsigned integers.
  */
 class _FbBoolList with ListMixin<bool> implements List<bool> {
@@ -905,8 +916,19 @@ class _FbUint8List extends _FbList<int> {
  * Class that describes the structure of a table.
  */
 class _VTable {
-  final List<int> fieldTails = <int>[];
-  List<int> fieldOffsets;
+  final Int32List _reusedFieldTails;
+  final Int32List _reusedFieldOffsets;
+
+  /**
+   * The number of fields in [_reusedFieldTails].
+   */
+  int _fieldCount = 0;
+
+  /**
+   * The private copy of [_reusedFieldOffsets], which is made only when we
+   * find that this table is unique.
+   */
+  Int32List _fieldOffsets;
 
   /**
    * The size of the table that uses this VTable.
@@ -919,13 +941,15 @@ class _VTable {
    */
   int tail;
 
-  int get numOfUint16 => 1 + 1 + fieldTails.length;
+  _VTable(this._reusedFieldTails, this._reusedFieldOffsets);
+
+  int get numOfUint16 => 1 + 1 + _fieldCount;
 
   void addField(int field, int offset) {
-    while (fieldTails.length <= field) {
-      fieldTails.add(null);
+    while (_fieldCount <= field) {
+      _reusedFieldTails[_fieldCount++] = -1;
     }
-    fieldTails[field] = offset;
+    _reusedFieldTails[field] = offset;
   }
 
   /**
@@ -935,9 +959,9 @@ class _VTable {
     assert(tail == null);
     assert(existing.tail != null);
     if (tableSize == existing.tableSize &&
-        fieldOffsets.length == existing.fieldOffsets.length) {
-      for (int i = 0; i < fieldOffsets.length; i++) {
-        if (fieldOffsets[i] != existing.fieldOffsets[i]) {
+        _fieldCount == existing._fieldCount) {
+      for (int i = 0; i < _fieldCount; i++) {
+        if (_reusedFieldOffsets[i] != existing._fieldOffsets[i]) {
           return false;
         }
       }
@@ -947,14 +971,12 @@ class _VTable {
   }
 
   /**
-   * Fill the [fieldOffsets] field.
+   * Fill the [_reusedFieldOffsets] field.
    */
   void computeFieldOffsets(int tableTail) {
-    assert(fieldOffsets == null);
-    fieldOffsets = List<int>(fieldTails.length);
-    for (int i = 0; i < fieldTails.length; ++i) {
-      int fieldTail = fieldTails[i];
-      fieldOffsets[i] = fieldTail == null ? 0 : tableTail - fieldTail;
+    for (int i = 0; i < _fieldCount; ++i) {
+      int fieldTail = _reusedFieldTails[i];
+      _reusedFieldOffsets[i] = fieldTail == -1 ? 0 : tableTail - fieldTail;
     }
   }
 
@@ -970,9 +992,20 @@ class _VTable {
     buf.setUint16(bufOffset, tableSize, Endian.little);
     bufOffset += 2;
     // Field offsets.
-    for (int fieldOffset in fieldOffsets) {
+    for (int fieldOffset in _fieldOffsets) {
       buf.setUint16(bufOffset, fieldOffset, Endian.little);
       bufOffset += 2;
+    }
+  }
+
+  /**
+   * Fill the [_fieldOffsets] field.
+   */
+  void takeFieldOffsets() {
+    assert(_fieldOffsets == null);
+    _fieldOffsets = Int32List(_fieldCount);
+    for (int i = 0; i < _fieldCount; ++i) {
+      _fieldOffsets[i] = _reusedFieldOffsets[i];
     }
   }
 }

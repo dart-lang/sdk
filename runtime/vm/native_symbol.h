@@ -19,6 +19,7 @@ class NativeSymbolResolver : public AllStatic {
   static char* LookupSymbolName(uintptr_t pc, uintptr_t* start);
   static bool LookupSharedObject(uword pc, uword* dso_base, char** dso_name);
   static void FreeSymbolName(char* name);
+  static void AddSymbols(const char* dso_name, void* buffer, size_t size);
 };
 
 }  // namespace dart

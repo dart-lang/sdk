@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Example of spawning an isolate from a URI
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 main() {
   test('isolate fromUri - send and reply', () {

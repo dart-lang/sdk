@@ -12,5 +12,3 @@ async_runtime_dart_files = [
   "schedule_microtask_patch.dart",
   "timer_patch.dart",
 ]
-
-async_runtime_sources = async_runtime_cc_files + async_runtime_dart_files

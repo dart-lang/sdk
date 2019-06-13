@@ -44,7 +44,7 @@ class KernelTypeAliasBuilder
   DartType thisType;
 
   KernelTypeAliasBuilder(
-      List<MetadataBuilder<KernelTypeBuilder>> metadata,
+      List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables,
       KernelFunctionTypeBuilder type,

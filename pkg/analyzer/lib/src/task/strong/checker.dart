@@ -6,6 +6,7 @@
 // refactored to fit into analyzer.
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
@@ -122,6 +123,8 @@ class CodeChecker extends RecursiveAstVisitor {
   final AnalysisErrorListener reporter;
   final AnalysisOptionsImpl _options;
   _OverrideChecker _overrideChecker;
+
+  FeatureSet _featureSet;
 
   bool _failure = false;
   bool _hasImplicitCasts;
@@ -334,6 +337,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
+    _featureSet = node.featureSet;
     _hasImplicitCasts = false;
     _covariantPrivateMembers = new HashSet();
     node.visitChildren(this);
@@ -733,7 +737,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var rhsType = _getExpressionType(expr.rightHandSide);
       var lhsType = _getExpressionType(expr.leftHandSide);
       var returnType = rules.refineBinaryExpressionType(
-          lhsType, op, rhsType, functionType.returnType);
+          lhsType, op, rhsType, functionType.returnType, _featureSet);
 
       // Check the argument for an implicit cast.
       _checkImplicitCast(expr.rightHandSide, paramTypes[0], from: rhsType);
@@ -958,8 +962,8 @@ class CodeChecker extends RecursiveAstVisitor {
         var functionType = element.type;
         var rhsType = typeProvider.intType;
         var lhsType = _getExpressionType(operand);
-        var returnType = rules.refineBinaryExpressionType(
-            lhsType, TokenType.PLUS, rhsType, functionType.returnType);
+        var returnType = rules.refineBinaryExpressionType(lhsType,
+            TokenType.PLUS, rhsType, functionType.returnType, _featureSet);
 
         // Skip the argument check - `int` cannot be downcast.
         //
@@ -1114,7 +1118,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to)) {
+    if (rules.isAssignableTo(from, to, featureSet: _featureSet)) {
       return true;
     }
 
@@ -1180,11 +1184,12 @@ class CodeChecker extends RecursiveAstVisitor {
           if (expr.isMap) {
             _recordMessage(
                 expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
-          } else {
-            // Ambiguity should be resolved by now
-            assert(expr.isSet);
+          } else if (expr.isSet) {
             _recordMessage(
                 expr, StrongModeCode.INVALID_CAST_LITERAL_SET, [from, to]);
+          } else {
+            // This should only happen when the code is invalid, in which case
+            // the error should have been reported elsewhere.
           }
         } else {
           _recordMessage(

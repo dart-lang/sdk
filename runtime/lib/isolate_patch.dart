@@ -7,12 +7,13 @@
 /// used by patches of that library. We plan to change this when we have a
 /// shared front end and simply use parts.
 
-import "dart:_internal" show VMLibraryHooks, patch;
+import "dart:_internal" show ClassID, VMLibraryHooks, patch;
 
 import "dart:async"
     show Completer, Future, Stream, StreamController, StreamSubscription, Timer;
 
 import "dart:collection" show HashMap;
+import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 /// These are the additional parts of this patch library:
 // part "timer_impl.dart";
@@ -670,4 +671,34 @@ class Isolate {
   }
 
   static String _getCurrentRootUriStr() native "Isolate_getCurrentRootUriStr";
+}
+
+@patch
+abstract class TransferableTypedData {
+  @patch
+  factory TransferableTypedData.fromList(List<TypedData> chunks) {
+    if (chunks == null) {
+      throw ArgumentError(chunks);
+    }
+    final int cid = ClassID.getID(chunks);
+    if (cid != ClassID.cidArray &&
+        cid != ClassID.cidGrowableObjectArray &&
+        cid != ClassID.cidImmutableArray) {
+      chunks = List.unmodifiable(chunks);
+    }
+    return _TransferableTypedDataImpl(chunks);
+  }
+}
+
+@pragma("vm:entry-point")
+class _TransferableTypedDataImpl implements TransferableTypedData {
+  factory _TransferableTypedDataImpl(List<TypedData> list)
+      native "TransferableTypedData_factory";
+
+  ByteBuffer materialize() {
+    return _materializeIntoUint8List().buffer;
+  }
+
+  Uint8List _materializeIntoUint8List()
+      native "TransferableTypedData_materialize";
 }

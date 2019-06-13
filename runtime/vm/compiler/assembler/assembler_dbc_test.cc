@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_DBC)
 
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/locations.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
@@ -32,6 +33,8 @@ static RawObject* ExecuteTest(const Code& code) {
 #define EXECUTE_TEST_CODE_OBJECT(code) Object::Handle(ExecuteTest(code))
 #define EXECUTE_TEST_CODE_DOUBLE(code)                                         \
   bit_cast<double, RawObject*>(ExecuteTest(code))
+#define EXECUTE_TEST_CODE_INTPTR_UNBOXED(code)                                 \
+  reinterpret_cast<intptr_t>(ExecuteTest(code))
 
 #define __ assembler->
 
@@ -2313,6 +2316,261 @@ ASSEMBLER_TEST_RUN(Max, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
 
+//  - UnboxInt32 rA, rB, C
+//
+//    Unboxes the integer in FP[rB] into FP[rA]. If C == 1, the value may be
+//    truncated. If FP[rA] is successfully unboxed the following instruction is
+//    skipped.
+ASSEMBLER_TEST_GENERATE(UnboxInt32NoTrunctateSuccess, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(1234)));
+  __ UnboxInt32(1, 0, /*may_truncate=*/0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt32NoTrunctateSuccess, test) {
+  EXPECT_EQ(1234, EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxInt32NoTrunctateFail, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Integer::Handle(Integer::New(Smi::kMaxValue + 1)));
+  __ UnboxInt32(1, 0, /*may_truncate=*/0);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt32NoTrunctateFail, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxInt32TrunctateSuccess, assembler) {
+  __ Frame(2);
+  __ LoadConstant(
+      0, Integer::Handle(Integer::New(static_cast<int64_t>(kMaxInt32) + 1)));
+  __ UnboxInt32(1, 0, /*may_truncate=*/1);
+  __ LoadConstant(1, Smi::Handle(Smi::New(42)));
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt32TrunctateSuccess, test) {
+  EXPECT_EQ(static_cast<int64_t>(kMaxInt32) + 1,
+            EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+//  - BoxInt32 rA, rD
+//
+//    Boxes the unboxed signed 32-bit integer in FP[rD] into FP[rA].
+ASSEMBLER_TEST_GENERATE(BoxInt32, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ UnboxInt32(1, 0, /*may_truncate=*/0);
+  __ Nop(0);  // Unboxing succeeds.
+  __ BoxInt32(2, 1);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(BoxInt32, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+//  - BoxUint32 rA, rD
+//
+//    Boxes the unboxed unsigned 32-bit integer in FP[rD] into FP[rA].
+ASSEMBLER_TEST_GENERATE(BoxUint32, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ UnboxInt32(1, 0, /*may_truncate=*/0);
+  __ Nop(0);  // Unboxing succeeds.
+  __ BoxUint32(2, 1);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(BoxUint32, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+//  - UnboxInt64 rA, rD
+//
+//    Unboxes the integer in FP[rD] into FP[rA].
+ASSEMBLER_TEST_GENERATE(UnboxInt64MaxMint, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt64)));
+  __ UnboxInt64(1, 0);
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt64MaxMint, test) {
+  EXPECT_EQ(kMaxInt64, EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxInt64MinMint, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMinInt64)));
+  __ UnboxInt64(1, 0);
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt64MinMint, test) {
+  EXPECT_EQ(kMinInt64, EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxInt64Smi, assembler) {
+  __ Frame(2);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ UnboxInt64(1, 0);
+  __ Return(1);
+}
+
+ASSEMBLER_TEST_RUN(UnboxInt64Smi, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+//  - BoxInt64 rA, rD
+//
+//    Boxes the unboxed signed 64-bit integer in FP[rD] into FP[rA]. If the
+//    value does not fit into a Smi the following instruction is skipped. (The
+//    following instruction should be a jump to a label after the slow path
+//    allocating a Mint box and writing into the Mint box.)
+ASSEMBLER_TEST_GENERATE(BoxInt64Smi, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Smi::Handle(Smi::New(42)));
+  __ UnboxInt64(1, 0);
+  __ BoxInt64(2, 1);
+  __ Nop(0);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(BoxInt64Smi, test) {
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INTPTR(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(BoxInt64MintFails, assembler) {
+  Label done;
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt64)));
+  __ UnboxInt64(1, 0);
+  __ BoxInt64(2, 1);  // Boxing into Smi fails.
+  __ Jump(&done);
+  // Faking a slow path, with a different Mint value.
+  __ LoadConstant(2, Integer::Handle(Integer::New(kMaxInt64 - 42)));
+  __ Bind(&done);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(BoxInt64MintFails, test) {
+  const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
+  EXPECT(obj.IsMint());
+  EXPECT_EQ(kMaxInt64 - 42, Mint::Cast(obj).value());
+}
+
+ASSEMBLER_TEST_GENERATE(WriteIntoMint, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt64)));
+  __ UnboxInt64(1, 0);
+  __ LoadConstant(2, Integer::Handle(Integer::New(kMaxInt64 - 42)));
+  __ WriteIntoMint(2, 1);  // Transplant unboxed value into an existing box.
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(WriteIntoMint, test) {
+  const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
+  EXPECT(obj.IsMint());
+  EXPECT_EQ(kMaxInt64, Mint::Cast(obj).value());
+}
+
+//  - UnboxedWidthExtender rA rB C
+//
+//    Sign- or zero-extends an unboxed integer in FP[rB] into an unboxed
+//    integer in FP[rA]. C contains SmallRepresentation which determines how
+//    the integer is extended.
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt8Positive, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt8 + 0xFFFFFF00)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0x7F, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt8Positive, test) {
+  EXPECT_EQ(static_cast<uint32_t>(kMaxInt8),
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt8Negative, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFF, overwrite the upper bits with 1.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt8Negative, test) {
+  // least significant 32 bits set to 1.
+  EXPECT_EQ(kMaxUint32,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderUint8, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxUint32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedUint8);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderUint8, test) {
+  EXPECT_EQ(kMaxUint8,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt16Positive, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt16 + 0xFFFF0000)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0x7FFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt16Positive, test) {
+  EXPECT_EQ(static_cast<uint32_t>(kMaxInt16),
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderInt16Negative, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxInt32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFFFF, overwrite the upper bits with 1.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedInt16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderInt16Negative, test) {
+  // least significant 32 bits set to 1.
+  EXPECT_EQ(kMaxUint32,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(UnboxedWidthExtenderUint16, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Integer::Handle(Integer::New(kMaxUint32)));
+  __ UnboxInt64(1, 0);
+  // The lower bits contain 0xFFFF, overwrite the upper bits with 0.
+  __ UnboxedWidthExtender(2, 1, kSmallUnboxedUint16);
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(UnboxedWidthExtenderUint16, test) {
+  EXPECT_EQ(kMaxUint16,
+            kMaxUint32 & EXECUTE_TEST_CODE_INTPTR_UNBOXED(test->code()));
+}
+
 #if defined(ARCH_IS_64_BIT)
 //  - UnboxDouble rA, rD
 //
@@ -2323,14 +2581,14 @@ ASSEMBLER_TEST_RUN(Max, test) {
 //    Unboxes FP[rD] into FP[rA] and skips the following instruction unless
 //    FP[rD] is not a double or a Smi. When FP[rD] is a Smi, converts it to a
 //    double.
-ASSEMBLER_TEST_GENERATE(Unbox, assembler) {
+ASSEMBLER_TEST_GENERATE(UnboxDouble, assembler) {
   __ Frame(2);
   __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
   __ UnboxDouble(1, 0);
   __ Return(1);
 }
 
-ASSEMBLER_TEST_RUN(Unbox, test) {
+ASSEMBLER_TEST_RUN(UnboxDouble, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
 }
 
@@ -2344,6 +2602,21 @@ ASSEMBLER_TEST_GENERATE(CheckedUnboxDouble, assembler) {
 
 ASSEMBLER_TEST_RUN(CheckedUnboxDouble, test) {
   EXPECT_EQ(42.0, EXECUTE_TEST_CODE_DOUBLE(test->code()));
+}
+
+ASSEMBLER_TEST_GENERATE(WriteIntoDouble, assembler) {
+  __ Frame(3);
+  __ LoadConstant(0, Double::Handle(Double::New(42.0, Heap::kOld)));
+  __ UnboxDouble(1, 0);
+  __ LoadConstant(2, Double::Handle(Double::New(0.0, Heap::kOld)));
+  __ WriteIntoDouble(2, 1);  // Transplant unboxed value into an existing box.
+  __ Return(2);
+}
+
+ASSEMBLER_TEST_RUN(WriteIntoDouble, test) {
+  const Object& obj = EXECUTE_TEST_CODE_OBJECT(test->code());
+  EXPECT(obj.IsDouble());
+  EXPECT_EQ(42.0, Double::Cast(obj).value());
 }
 
 ASSEMBLER_TEST_GENERATE(CheckedUnboxSmi, assembler) {

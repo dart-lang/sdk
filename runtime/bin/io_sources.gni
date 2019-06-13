@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file contains all sources for the dart:io library.
-io_runtime_sources = [
+io_runtime_dart_files = [
   "common_patch.dart",
   "directory_patch.dart",
   "eventhandler_patch.dart",

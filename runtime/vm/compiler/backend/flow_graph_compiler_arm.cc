@@ -196,7 +196,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-  __ ldr(LR, Address(THR, Thread::deoptimize_entry_offset()));
+  __ ldr(LR, Address(THR, compiler::target::Thread::deoptimize_entry_offset()));
   __ blx(LR);
   ASSERT(kReservedCpuRegisters & (1 << LR));
   set_pc_offset(assembler->CodeSize());
@@ -431,8 +431,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
   __ LoadClassById(R1, R2);
   // R1: instance class.
   // Check immediate superclass equality.
-  __ ldr(R2, FieldAddress(R1, Class::super_type_offset()));
-  __ ldr(R2, FieldAddress(R2, Type::type_class_id_offset()));
+  __ ldr(R2, FieldAddress(R1, compiler::target::Class::super_type_offset()));
+  __ ldr(R2, FieldAddress(R2, compiler::target::Type::type_class_id_offset()));
   __ CompareImmediate(R2, Smi::RawValue(type_class.id()));
   __ b(is_instance_lbl, EQ);
 
@@ -475,7 +475,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ b(is_instance_lbl, EQ);
     __ ldr(R3, FieldAddress(kTypeArgumentsReg,
-                            TypeArguments::type_at_offset(type_param.index())));
+                            compiler::target::TypeArguments::type_at_offset(
+                                type_param.index())));
     // R3: concrete type of type.
     // Check if type argument is dynamic, Object, or void.
     __ CompareObject(R3, Object::dynamic_type());
@@ -772,15 +773,18 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
   const intptr_t sub_type_cache_index = __ object_pool_builder().AddObject(
       Object::null_object(), ObjectPool::Patchability::kPatchable);
   const intptr_t sub_type_cache_offset =
-      ObjectPool::element_offset(sub_type_cache_index) - kHeapObjectTag;
+      compiler::target::ObjectPool::element_offset(sub_type_cache_index) -
+      kHeapObjectTag;
   const intptr_t dst_name_index = __ object_pool_builder().AddObject(
       dst_name, ObjectPool::Patchability::kPatchable);
   ASSERT((sub_type_cache_index + 1) == dst_name_index);
   ASSERT(__ constant_pool_allowed());
 
-  __ LoadField(R9,
-               FieldAddress(kDstTypeReg,
-                            AbstractType::type_test_stub_entry_point_offset()));
+  __ LoadField(
+      R9,
+      FieldAddress(
+          kDstTypeReg,
+          compiler::target::AbstractType::type_test_stub_entry_point_offset()));
   __ LoadWordFromPoolOffset(kSubtypeTestCacheReg, sub_type_cache_offset, PP,
                             AL);
   __ blx(R9);
@@ -822,15 +826,17 @@ void FlowGraphCompiler::GenerateMethodExtractorIntrinsic(
     kPoolReg = PP;
   } else {
     __ LoadFieldFromOffset(kWord, kPoolReg, CODE_REG,
-                           Code::object_pool_offset());
+                           compiler::target::Code::object_pool_offset());
   }
   __ LoadImmediate(R4, type_arguments_field_offset);
-  __ LoadFieldFromOffset(kWord, R1, kPoolReg,
-                         ObjectPool::element_offset(function_index));
-  __ LoadFieldFromOffset(kWord, CODE_REG, kPoolReg,
-                         ObjectPool::element_offset(stub_index));
-  __ Branch(FieldAddress(
-      CODE_REG, Code::entry_point_offset(Code::EntryKind::kUnchecked)));
+  __ LoadFieldFromOffset(
+      kWord, R1, kPoolReg,
+      compiler::target::ObjectPool::element_offset(function_index));
+  __ LoadFieldFromOffset(
+      kWord, CODE_REG, kPoolReg,
+      compiler::target::ObjectPool::element_offset(stub_index));
+  __ Branch(FieldAddress(CODE_REG, compiler::target::Code::entry_point_offset(
+                                       Code::EntryKind::kUnchecked)));
 }
 
 void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
@@ -838,7 +844,7 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
-  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ ldr(R0, Address(SP, 0 * compiler::target::kWordSize));
   __ LoadFieldFromOffset(kWord, R0, R0, offset);
   __ Ret();
 }
@@ -849,14 +855,12 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
   __ Comment("Inlined Setter");
-  __ ldr(R0, Address(SP, 1 * kWordSize));  // Receiver.
-  __ ldr(R1, Address(SP, 0 * kWordSize));  // Value.
+  __ ldr(R0, Address(SP, 1 * compiler::target::kWordSize));  // Receiver.
+  __ ldr(R1, Address(SP, 0 * compiler::target::kWordSize));  // Value.
   __ StoreIntoObjectOffset(R0, offset, R1);
   __ LoadObject(R0, Object::null_object());
   __ Ret();
 }
-
-static const Register new_pp = NOTFP;
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
@@ -864,34 +868,31 @@ void FlowGraphCompiler::EmitFrameEntry() {
       (!is_optimizing() || may_reoptimize())) {
     __ Comment("Invocation Count Check");
     const Register function_reg = R8;
-    if (!FLAG_precompiled_mode || !FLAG_use_bare_instructions) {
-      // The pool pointer is not setup before entering the Dart frame.
-      // Temporarily setup pool pointer for this dart function.
-      __ LoadPoolPointer(new_pp);
-    }
-    // Load function object from object pool.
-    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
-
-    __ ldr(R3, FieldAddress(function_reg, Function::usage_counter_offset()));
+    __ ldr(function_reg,
+           FieldAddress(CODE_REG, compiler::target::Code::owner_offset()));
+    __ ldr(R3,
+           FieldAddress(function_reg,
+                        compiler::target::Function::usage_counter_offset()));
     // Reoptimization of an optimized function is triggered by counting in
     // IC stubs, but not at the entry of the function.
     if (!is_optimizing()) {
       __ add(R3, R3, Operand(1));
-      __ str(R3, FieldAddress(function_reg, Function::usage_counter_offset()));
+      __ str(R3,
+             FieldAddress(function_reg,
+                          compiler::target::Function::usage_counter_offset()));
     }
     __ CompareImmediate(R3, GetOptimizationThreshold());
     ASSERT(function_reg == R8);
-    __ Branch(StubCode::OptimizeFunction(),
-              compiler::ObjectPoolBuilderEntry::kNotPatchable, new_pp, GE);
+    __ Branch(Address(THR, Thread::optimize_entry_offset()), GE);
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
     const intptr_t extra_slots = ExtraStackSlotsOnOsrEntry();
     ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize);
+    __ EnterOsrFrame(extra_slots * compiler::target::kWordSize);
   } else {
     ASSERT(StackSize() >= 0);
-    __ EnterDartFrame(StackSize() * kWordSize);
+    __ EnterDartFrame(StackSize() * compiler::target::kWordSize);
   }
 }
 
@@ -917,7 +918,8 @@ void FlowGraphCompiler::EmitPrologue() {
       const intptr_t slot_index =
           compiler::target::frame_layout.FrameSlotForVariableIndex(-i);
       Register value_reg = slot_index == args_desc_slot ? ARGS_DESC_REG : R0;
-      __ StoreToOffset(kWord, value_reg, FP, slot_index * kWordSize);
+      __ StoreToOffset(kWord, value_reg, FP,
+                       slot_index * compiler::target::kWordSize);
     }
   }
 
@@ -944,7 +946,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ bkpt(0);
 
-  if (!fully_intrinsified_) {
+  if (!skip_body_compilation()) {
     ASSERT(assembler()->constant_pool_allowed());
     GenerateDeferredCode();
   }
@@ -1031,9 +1033,11 @@ void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   bool old_use_far_branches = assembler_->use_far_branches();
   assembler_->set_use_far_branches(true);
 #endif  // DEBUG
-  __ LoadFieldFromOffset(kWord, R1, R0, Array::element_offset(edge_id));
+  __ LoadFieldFromOffset(kWord, R1, R0,
+                         compiler::target::Array::element_offset(edge_id));
   __ add(R1, R1, Operand(Smi::RawValue(1)));
-  __ StoreIntoObjectNoBarrierOffset(R0, Array::element_offset(edge_id), R1);
+  __ StoreIntoObjectNoBarrierOffset(
+      R0, compiler::target::Array::element_offset(edge_id), R1);
 #if defined(DEBUG)
   assembler_->set_use_far_branches(old_use_far_branches);
 #endif  // DEBUG
@@ -1054,6 +1058,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   // Pass the function explicitly, it is used in IC stub.
 
   __ LoadObject(R8, parsed_function().function());
+  __ LoadFromOffset(kWord, R0, SP,
+                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
                    entry_kind);
@@ -1066,8 +1072,11 @@ void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
                                          TokenPosition token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
+  __ LoadFromOffset(kWord, R0, SP,
+                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
   __ LoadUniqueObject(R9, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs);
+  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
+                   Code::EntryKind::kMonomorphic);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -1087,9 +1096,14 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   __ Comment("MegamorphicCall");
   // Load receiver into R0.
-  __ LoadFromOffset(kWord, R0, SP, (args_desc.Count() - 1) * kWordSize);
+  __ LoadFromOffset(kWord, R0, SP,
+                    (args_desc.Count() - 1) * compiler::target::kWordSize);
   __ LoadObject(R9, cache);
-  __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
+  __ ldr(
+      LR,
+      Address(
+          THR,
+          compiler::target::Thread::megamorphic_call_checked_entry_offset()));
   __ blx(LR);
 
   RecordSafepoint(locs, slow_path_argument_count);
@@ -1126,8 +1140,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
   const Code& initial_stub = StubCode::ICCallThroughFunction();
 
   __ Comment("SwitchableCall");
-  __ LoadFromOffset(kWord, R0, SP,
-                    (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
+  __ LoadFromOffset(
+      kWord, R0, SP,
+      (ic_data.CountWithoutTypeArgs() - 1) * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
@@ -1136,8 +1151,10 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
     __ LoadUniqueObject(CODE_REG, initial_stub);
     const intptr_t entry_point_offset =
         entry_kind == Code::EntryKind::kNormal
-            ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
-            : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+            ? compiler::target::Code::entry_point_offset(
+                  Code::EntryKind::kMonomorphic)
+            : compiler::target::Code::entry_point_offset(
+                  Code::EntryKind::kMonomorphicUnchecked);
     __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
   }
   __ LoadUniqueObject(R9, ic_data);
@@ -1270,7 +1287,9 @@ void FlowGraphCompiler::EmitTestAndCallLoadReceiver(
     const Array& arguments_descriptor) {
   __ Comment("EmitTestAndCall");
   // Load receiver into R0.
-  __ LoadFromOffset(kWord, R0, SP, (count_without_type_args - 1) * kWordSize);
+  __ LoadFromOffset(
+      kWord, R0, SP,
+      (count_without_type_args - 1) * compiler::target::kWordSize);
   __ LoadObject(R4, arguments_descriptor);
 }
 
@@ -1309,12 +1328,12 @@ int FlowGraphCompiler::EmitTestAndCallCheckCid(Assembler* assembler,
 }
 
 #undef __
-#define __ compiler_->assembler()->
+#define __ assembler()->
 
-void ParallelMoveResolver::EmitMove(int index) {
-  MoveOperands* move = moves_[index];
-  const Location source = move->src();
-  const Location destination = move->dest();
+void FlowGraphCompiler::EmitMove(Location destination,
+                                 Location source,
+                                 TemporaryRegisterAllocator* allocator) {
+  if (destination.Equals(source)) return;
 
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
@@ -1347,24 +1366,32 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ vmovd(EvenDRegisterOf(destination.fpu_reg()),
                  EvenDRegisterOf(source.fpu_reg()));
       }
+    } else if (destination.IsStackSlot()) {
+      // 32-bit float
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      const SRegister src = EvenSRegisterOf(EvenDRegisterOf(source.fpu_reg()));
+      __ StoreSToOffset(src, destination.base_reg(), dest_offset);
+    } else if (destination.IsDoubleStackSlot()) {
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      DRegister src = EvenDRegisterOf(source.fpu_reg());
+      __ StoreDToOffset(src, destination.base_reg(), dest_offset);
     } else {
-      if (destination.IsDoubleStackSlot()) {
-        const intptr_t dest_offset = destination.ToStackSlotOffset();
-        DRegister src = EvenDRegisterOf(source.fpu_reg());
-        __ StoreDToOffset(src, destination.base_reg(), dest_offset);
-      } else {
-        ASSERT(destination.IsQuadStackSlot());
-        const intptr_t dest_offset = destination.ToStackSlotOffset();
-        const DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
-        __ StoreMultipleDToOffset(dsrc0, 2, destination.base_reg(),
-                                  dest_offset);
-      }
+      ASSERT(destination.IsQuadStackSlot());
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      const DRegister dsrc0 = EvenDRegisterOf(source.fpu_reg());
+      __ StoreMultipleDToOffset(dsrc0, 2, destination.base_reg(), dest_offset);
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
       const intptr_t source_offset = source.ToStackSlotOffset();
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       __ LoadDFromOffset(dst, source.base_reg(), source_offset);
+    } else if (destination.IsStackSlot()) {
+      // 32-bit float
+      const intptr_t source_offset = source.ToStackSlotOffset();
+      const intptr_t dest_offset = destination.ToStackSlotOffset();
+      __ LoadSFromOffset(STMP, source.base_reg(), source_offset);
+      __ StoreSToOffset(STMP, destination.base_reg(), dest_offset);
     } else {
       ASSERT(destination.IsDoubleStackSlot());
       const intptr_t source_offset = source.ToStackSlotOffset();
@@ -1385,21 +1412,26 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ LoadMultipleDFromOffset(dtmp0, 2, source.base_reg(), source_offset);
       __ StoreMultipleDToOffset(dtmp0, 2, destination.base_reg(), dest_offset);
     }
+  } else if (source.IsPairLocation()) {
+    ASSERT(destination.IsPairLocation());
+    for (intptr_t i : {0, 1}) {
+      EmitMove(destination.Component(i), source.Component(i), allocator);
+    }
   } else {
     ASSERT(source.IsConstant());
-
     if (destination.IsFpuRegister() || destination.IsDoubleStackSlot() ||
         destination.IsStackSlot()) {
-      ScratchRegisterScope scratch(this, kNoRegister);
-      source.constant_instruction()->EmitMoveToLocation(compiler_, destination,
-                                                        scratch.reg());
+      Register tmp = allocator->AllocateTemporary();
+      source.constant_instruction()->EmitMoveToLocation(this, destination, tmp);
+      allocator->ReleaseTemporary();
     } else {
-      source.constant_instruction()->EmitMoveToLocation(compiler_, destination);
+      source.constant_instruction()->EmitMoveToLocation(this, destination);
     }
   }
-
-  move->Eliminate();
 }
+
+#undef __
+#define __ compiler_->assembler()->
 
 void ParallelMoveResolver::EmitSwap(int index) {
   MoveOperands* move = moves_[index];
@@ -1424,12 +1456,14 @@ void ParallelMoveResolver::EmitSwap(int index) {
     if (TargetCPUFeatures::neon_supported()) {
       const QRegister dst = destination.fpu_reg();
       const QRegister src = source.fpu_reg();
+      ASSERT(dst != QTMP && src != QTMP);
       __ vmovq(QTMP, src);
       __ vmovq(src, dst);
       __ vmovq(dst, QTMP);
     } else {
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       const DRegister src = EvenDRegisterOf(source.fpu_reg());
+      ASSERT(dst != DTMP && src != DTMP);
       __ vmovd(DTMP, src);
       __ vmovd(src, dst);
       __ vmovd(dst, DTMP);

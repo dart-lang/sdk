@@ -11,6 +11,8 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:kernel/kernel.dart' hide MapEntry;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
@@ -20,7 +22,6 @@ import '../compiler/js_names.dart' as JS;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../flutter/track_widget_constructor_locations.dart';
 import '../js_ast/js_ast.dart' as JS;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
@@ -36,7 +37,7 @@ const _binaryName = 'dartdevc -k';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   try {
     return await _compile(args,
         compilerState: compilerState,
@@ -67,7 +68,7 @@ String _usageMessage(ArgParser ddcArgParser) =>
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler: false}) async {
+    bool useIncrementalCompiler = false}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -92,7 +93,11 @@ Future<CompilerResult> _compile(List<String> args,
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
     ..addOption('dart-sdk',
-        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true);
+        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
+    ..addFlag('compile-sdk',
+        help: 'Build an SDK module.', defaultsTo: false, hide: true)
+    ..addOption('libraries-file',
+        help: 'The path to the libraries.json file for the sdk.');
   SharedCompilerOptions.addArguments(argParser);
 
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
@@ -154,15 +159,17 @@ Future<CompilerResult> _compile(List<String> args,
       summaryPaths.map(sourcePathToUri), options.summaryModules.values);
   var useAnalyzer = summaryPaths.any((s) => !s.endsWith('.dill'));
   var sdkSummaryPath = argResults['dart-sdk-summary'] as String;
-  String librarySpecPath;
+  var librarySpecPath = argResults['libraries-file'] as String;
   if (sdkSummaryPath == null) {
     sdkSummaryPath =
         useAnalyzer ? defaultAnalyzerSdkSummaryPath : defaultSdkSummaryPath;
-    librarySpecPath = defaultLibrarySpecPath;
-  } else {
+    librarySpecPath ??= defaultLibrarySpecPath;
+  }
+
+  if (librarySpecPath == null) {
     // TODO(jmesserly): the `isSupported` bit should be included in the SDK
     // summary, but front_end requires a separate file, so we have to work
-    // around that, while avoiding yet another command line option.
+    // around that, while not requiring yet another command line option.
     //
     // Right now we search two locations: one level above the SDK summary
     // (this works for the build and SDK layouts) or next to the SDK summary
@@ -213,6 +220,10 @@ Future<CompilerResult> _compile(List<String> args,
     }
   }
 
+  bool trackWidgetCreation =
+      argResults['track-widget-creation'] as bool ?? false;
+
+  var compileSdk = argResults['compile-sdk'] == true;
   var oldCompilerState = compilerState;
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
@@ -220,11 +231,14 @@ Future<CompilerResult> _compile(List<String> args,
   if (useAnalyzer || !useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
@@ -232,11 +246,14 @@ Future<CompilerResult> _compile(List<String> args,
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         doneInputSummaries,
-        sourcePathToUri(sdkSummaryPath),
+        compileSdk,
+        sourcePathToUri(getSdkPath()),
+        compileSdk ? null : sourcePathToUri(sdkSummaryPath),
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
-        DevCompilerTarget(),
+        DevCompilerTarget(
+            TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
         experiments: experiments);
     incrementalCompiler = compilerState.incrementalCompiler;
@@ -260,7 +277,7 @@ Future<CompilerResult> _compile(List<String> args,
     converter.dispose();
   }
 
-  var hierarchy;
+  ClassHierarchy hierarchy;
   fe.DdcResult result;
   if (useAnalyzer || !useIncrementalCompiler) {
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
@@ -318,12 +335,6 @@ Future<CompilerResult> _compile(List<String> args,
   if (hierarchy == null) {
     var target = compilerState.options.target as DevCompilerTarget;
     hierarchy = target.hierarchy;
-  }
-
-  // TODO(jmesserly): remove this hack once Flutter SDK has a `dartdevc` with
-  // support for the widget inspector.
-  if (argResults['track-widget-creation'] as bool) {
-    WidgetCreatorTracker(hierarchy).transform(component);
   }
 
   var compiler =
@@ -456,7 +467,7 @@ final defaultAnalyzerSdkSummaryPath =
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
-    if (library.isExternal) continue;
+    if (library.isExternal || library.importUri.scheme == 'dart') continue;
     for (var dep in library.dependencies) {
       var uri = dep.targetLibrary.importUri;
       if (uri.scheme == 'dart' && uri.path == 'mirrors') {

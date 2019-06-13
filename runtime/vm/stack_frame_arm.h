@@ -55,6 +55,12 @@ COMPILE_ASSERT(kAbiPreservedCpuRegCount == 7);
 COMPILE_ASSERT(kAbiPreservedFpuRegCount == 4);
 #endif
 
+// For FFI native -> Dart callbacks, the number of stack slots between arguments
+// passed on stack and arguments saved in callback prologue.
+//
+// 2 = return adddress (1) + saved frame pointer (1).
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments = 2;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_STACK_FRAME_ARM_H_

@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -26,6 +27,7 @@ import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -90,15 +92,6 @@ class AstRewriteVisitor extends ScopedVisitor {
         InstanceCreationExpression instanceCreationExpression =
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
-        InterfaceType type = getType(typeSystem, element, node.typeArguments);
-        ConstructorElement constructorElement =
-            type.lookUpConstructor(null, definingLibrary);
-        methodName.staticElement = element;
-        methodName.staticType = type;
-        typeName.type = type;
-        constructorName.staticElement = constructorElement;
-        instanceCreationExpression.staticType = type;
-        instanceCreationExpression.staticElement = constructorElement;
         NodeReplacer.replace(node, instanceCreationExpression);
       }
     } else if (target is SimpleIdentifier) {
@@ -128,17 +121,6 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList,
                   typeArguments: typeArguments);
-          InterfaceType type = getType(typeSystem, element, null);
-          constructorElement =
-              type.lookUpConstructor(methodName.name, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          target.staticElement = element;
-          target.staticType = type; // TODO(scheglov) remove this
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       } else if (element is PrefixElement) {
@@ -158,16 +140,6 @@ class AstRewriteVisitor extends ScopedVisitor {
           InstanceCreationExpression instanceCreationExpression =
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
-          InterfaceType type =
-              getType(typeSystem, prefixedElement, node.typeArguments);
-          ConstructorElement constructorElement =
-              type.lookUpConstructor(null, definingLibrary);
-          methodName.staticElement = element;
-          methodName.staticType = type;
-          typeName.type = type;
-          constructorName.staticElement = constructorElement;
-          instanceCreationExpression.staticType = type;
-          instanceCreationExpression.staticElement = constructorElement;
           NodeReplacer.replace(node, instanceCreationExpression);
         }
       }
@@ -195,16 +167,6 @@ class AstRewriteVisitor extends ScopedVisitor {
             InstanceCreationExpression instanceCreationExpression =
                 astFactory.instanceCreationExpression(
                     _getKeyword(node), constructorName, node.argumentList);
-            InterfaceType type = getType(typeSystem, element, typeArguments);
-            constructorElement =
-                type.lookUpConstructor(methodName.name, definingLibrary);
-            methodName.staticElement = element;
-            methodName.staticType = type;
-            target.identifier.staticElement = element;
-            typeName.type = type;
-            constructorName.staticElement = constructorElement;
-            instanceCreationExpression.staticType = type;
-            instanceCreationExpression.staticElement = constructorElement;
             NodeReplacer.replace(node, instanceCreationExpression);
           }
         }
@@ -298,7 +260,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   BestPracticesVerifier(
     this._errorReporter,
     TypeProvider typeProvider,
-    this._currentLibrary, {
+    this._currentLibrary,
+    CompilationUnit unit,
+    String content, {
     TypeSystem typeSystem,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
@@ -317,7 +281,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _workspacePackage = workspace.findPackageFor(libraryPath);
     _linterContext = LinterContextImpl(
         null /* allUnits */,
-        null /* currentUnit */,
+        new LinterContextUnit(content, unit),
         declaredVariables,
         typeProvider,
         _typeSystem,
@@ -506,6 +470,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _inDeprecatedMember = wasInDeprecatedMember;
     }
+  }
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is! FunctionDeclaration) {
+      _checkForMissingReturn(null, node.body, node.declaredElement, node);
+    }
+    super.visitFunctionExpression(node);
   }
 
   @override
@@ -743,15 +715,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    bool isLibraryInWorkspacePackage(LibraryElement library) {
-      if (_workspacePackage == null || library == null) {
-        // Better to not make a big claim that they _are_ in the same package,
-        // if we were unable to determine what package [_currentLibrary] is in.
-        return false;
-      }
-      return _workspacePackage.contains(library.source.fullName);
-    }
-
     if (!_inDeprecatedMember &&
         element != null &&
         isDeprecated(element) &&
@@ -776,7 +739,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       }
       LibraryElement library =
           element is LibraryElement ? element : element.library;
-      HintCode hintCode = isLibraryInWorkspacePackage(library)
+      HintCode hintCode = _isLibraryInWorkspacePackage(library)
           ? HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE
           : HintCode.DEPRECATED_MEMBER_USE;
       _errorReporter.reportErrorForNode(hintCode, node, [displayName]);
@@ -972,8 +935,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
     bool currentPackageContains(Element element) {
-      String elementLibraryPath = element.library.source.fullName;
-      return _workspacePackage.contains(elementLibraryPath);
+      return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
@@ -1080,7 +1042,27 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       var flattenedType =
           body.isAsynchronous ? _typeSystem.flatten(returnType) : returnType;
 
-      // dynamic/Null/void are allowed to omit a return.
+      // Function expressions without a return will have their return type set
+      // to `Null` regardless of their context type. So we need to figure out
+      // if a return type was expected from the original downwards context.
+      //
+      // This helps detect hint cases like `int Function() f = () {}`.
+      // See https://github.com/dart-lang/sdk/issues/28233 for context.
+      if (flattenedType.isDartCoreNull && functionNode is FunctionExpression) {
+        var contextType = InferenceContext.getContext(functionNode);
+        if (contextType is FunctionType) {
+          returnType = contextType.returnType;
+          flattenedType = body.isAsynchronous
+              ? returnType.flattenFutures(_typeSystem)
+              : returnType;
+        }
+      }
+
+      // dynamic, Null, void, and FutureOr<T> where T is (dynamic, Null, void)
+      // are allowed to omit a return.
+      if (flattenedType.isDartAsyncFutureOr) {
+        flattenedType = (flattenedType as InterfaceType).typeArguments[0];
+      }
       if (flattenedType.isDynamic ||
           flattenedType.isDartCoreNull ||
           flattenedType.isVoid) {
@@ -1276,6 +1258,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_REQUIRED_PARAM, param, [param.identifier.name]);
     }
+  }
+
+  bool _isLibraryInWorkspacePackage(LibraryElement library) {
+    if (_workspacePackage == null || library == null) {
+      // Better to not make a big claim that they _are_ in the same package,
+      // if we were unable to determine what package [_currentLibrary] is in.
+      return false;
+    }
+    return _workspacePackage.contains(library.source);
   }
 
   /// Check for the passed class declaration for the
@@ -1482,9 +1473,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created dead code verifier that will report dead code
   /// to the given [errorReporter] and will use the given [typeSystem] if one is
   /// provided.
-  DeadCodeVerifier(this._errorReporter, this._isNonNullableUnit,
+  DeadCodeVerifier(this._errorReporter, FeatureSet featureSet,
       {TypeSystem typeSystem})
-      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null);
+      : this._typeSystem = typeSystem ?? new Dart2TypeSystem(null),
+        _isNonNullableUnit = featureSet.isEnabled(Feature.non_nullable);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -3331,9 +3323,10 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   /// Resolve the instance fields in the given compilation unit [node].
   void resolveCompilationUnit(CompilationUnit node) {
@@ -3394,6 +3387,33 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
         }
       }
     }
+  }
+}
+
+/// A type provider that returns non-nullable versions of the SDK types.
+class NonNullableTypeProvider extends TypeProviderImpl {
+  NonNullableTypeProvider(
+      LibraryElement coreLibrary, LibraryElement asyncLibrary)
+      : super(coreLibrary, asyncLibrary);
+
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory NonNullableTypeProvider.from(TypeProvider baseProvider) {
+    return NonNullableTypeProvider(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
+  }
+
+  @override
+  DartType get bottomType => BottomTypeImpl.instance;
+
+  @override
+  InterfaceType _getType(Namespace namespace, String typeName) {
+    InterfaceType type = super._getType(namespace, typeName);
+    if (type == null) {
+      return null;
+    }
+    return (type as TypeImpl).withNullability(NullabilitySuffix.none)
+        as InterfaceType;
   }
 }
 
@@ -3509,9 +3529,10 @@ class PartialResolverVisitor extends ResolverVisitor {
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
+      FeatureSet featureSet,
       {Scope nameScope})
       : super(inheritance, definingLibrary, source, typeProvider, errorListener,
-            nameScope: nameScope);
+            featureSet: featureSet, nameScope: nameScope);
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
@@ -3641,8 +3662,10 @@ class ResolverErrorCode extends ErrorCode {
   /// message associated with the error will be created from the given [message]
   /// template. The correction associated with the error will be created from
   /// the given [correction] template.
-  const ResolverErrorCode(String name, String message, {String correction})
-      : super.temporary(name, message, correction: correction);
+  const ResolverErrorCode(String name, String message,
+      {String correction, bool hasPublishedDocs})
+      : super.temporary(name, message,
+            correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override
   ErrorSeverity get errorSeverity => type.severity;
@@ -3660,6 +3683,8 @@ class ResolverVisitor extends ScopedVisitor {
   final InheritanceManager2 inheritance;
 
   final AnalysisOptionsImpl _analysisOptions;
+
+  final bool _uiAsCodeEnabled;
 
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
@@ -3718,16 +3743,45 @@ class ResolverVisitor extends ScopedVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
+  ///
+  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
+  /// breaking change).
   ResolverVisitor(
+      InheritanceManager2 inheritance,
+      LibraryElement definingLibrary,
+      Source source,
+      TypeProvider typeProvider,
+      AnalysisErrorListener errorListener,
+      {FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes: true,
+      reportConstEvaluationErrors: true})
+      : this._(
+            inheritance,
+            definingLibrary,
+            source,
+            typeProvider,
+            errorListener,
+            featureSet ??
+                definingLibrary.context.analysisOptions.contextFeatures,
+            nameScope,
+            propagateTypes,
+            reportConstEvaluationErrors);
+
+  ResolverVisitor._(
       this.inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      FeatureSet featureSet,
+      Scope nameScope,
+      bool propagateTypes,
+      reportConstEvaluationErrors)
       : _analysisOptions = definingLibrary.context.analysisOptions,
+        _uiAsCodeEnabled =
+            featureSet.isEnabled(Feature.control_flow_collections) ||
+                featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     this.elementResolver = new ElementResolver(this,
@@ -3740,7 +3794,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         typeProvider, typeSystem, strongModeHints, errorReporter);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this, featureSet);
   }
 
   /// Return the element representing the function containing the current node,
@@ -3849,6 +3903,11 @@ class ResolverVisitor extends ScopedVisitor {
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
     // TODO(brianwilkerson) Remove this method.
+  }
+
+  /// Set the enclosing function body when partial AST is resolved.
+  void prepareCurrentFunctionBody(FunctionBody body) {
+    _currentFunctionBody = body;
   }
 
   /// Set information about enclosing declarations.
@@ -4806,8 +4865,7 @@ class ResolverVisitor extends ScopedVisitor {
             typeProvider.iterableType.instantiate([elementType]);
         _pushCollectionTypesDownToAll(node.elements,
             elementType: elementType, iterableType: iterableType);
-        if (!_analysisOptions.experimentStatus.spread_collections &&
-            !_analysisOptions.experimentStatus.control_flow_collections &&
+        if (!_uiAsCodeEnabled &&
             node.elements.isEmpty &&
             node.typeArguments == null &&
             node.isMap) {
@@ -5429,7 +5487,7 @@ class ResolverVisitor extends ScopedVisitor {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       ParameterElement parameter = parameters[i];
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
         requiredParameterCount++;
@@ -5948,8 +6006,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             new CaughtException(new AnalysisException(), null));
       } else {
         nameScope = new EnclosedScope(nameScope);
-        GenericFunctionTypeElement typeElement = parameterElement.type.element;
-        List<TypeParameterElement> typeParameters = typeElement.typeParameters;
+        var typeParameters = parameterElement.typeParameters;
         int length = typeParameters.length;
         for (int i = 0; i < length; i++) {
           nameScope.define(typeParameters[i]);
@@ -5970,7 +6027,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
       super.visitGenericFunctionType(node);
       return;
     }
-    GenericFunctionTypeElement element = type.element;
+    GenericFunctionTypeElement element =
+        (node as GenericFunctionTypeImpl).declaredElement;
     Scope outerScope = nameScope;
     try {
       if (element == null) {
@@ -6256,7 +6314,6 @@ class ToDoFinder {
 class TypeNameResolver {
   final TypeSystem typeSystem;
   final DartType dynamicType;
-  final DartType undefinedType;
   final bool isNonNullableUnit;
   final AnalysisOptionsImpl analysisOptions;
   final LibraryElement definingLibrary;
@@ -6281,7 +6338,6 @@ class TypeNameResolver {
       this.errorListener,
       {this.shouldUseWithClauseInferredTypes: true})
       : dynamicType = typeProvider.dynamicType,
-        undefinedType = typeProvider.undefinedType,
         analysisOptions = definingLibrary.context.analysisOptions;
 
   /// Report an error with the given error code and arguments.
@@ -6323,8 +6379,8 @@ class TypeNameResolver {
         return;
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
       //
@@ -6344,8 +6400,8 @@ class TypeNameResolver {
           element = nameScope.lookup(prefix, definingLibrary);
           if (element is PrefixElement) {
             if (nameScope.shouldIgnoreUndefined(typeName)) {
-              typeName.staticType = undefinedType;
-              node.type = undefinedType;
+              typeName.staticType = dynamicType;
+              node.type = dynamicType;
               return;
             }
             AstNode grandParent = parent.parent;
@@ -6383,8 +6439,8 @@ class TypeNameResolver {
         }
       }
       if (nameScope.shouldIgnoreUndefined(typeName)) {
-        typeName.staticType = undefinedType;
-        node.type = undefinedType;
+        typeName.staticType = dynamicType;
+        node.type = dynamicType;
         return;
       }
     }
@@ -6501,8 +6557,8 @@ class TypeNameResolver {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
       }
-      typeName.staticType = undefinedType;
-      node.type = undefinedType;
+      typeName.staticType = dynamicType;
+      node.type = dynamicType;
       return;
     }
 
@@ -6515,6 +6571,9 @@ class TypeNameResolver {
     if (element == DynamicElementImpl.instance) {
       _setElement(typeName, element);
       type = DynamicTypeImpl.instance;
+    } else if (element is NeverElementImpl) {
+      _setElement(typeName, element);
+      type = element.type;
     } else if (element is FunctionTypeAliasElement) {
       _setElement(typeName, element);
       type = element.type as TypeImpl;
@@ -6560,8 +6619,8 @@ class TypeNameResolver {
         } else if (element is LocalVariableElement ||
             (element is FunctionElement &&
                 element.enclosingElement is ExecutableElement)) {
-          reportErrorForNode(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-              typeName, [typeName.name]);
+          errorListener.onError(new DiagnosticFactory()
+              .referencedBeforeDeclaration(source, typeName, element: element));
         } else {
           reportErrorForNode(
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
@@ -6675,7 +6734,7 @@ class TypeNameResolver {
   DartType _getType(TypeAnnotation annotation) {
     DartType type = annotation.type;
     if (type == null) {
-      return undefinedType;
+      return dynamicType;
     }
     return type;
   }
@@ -6860,7 +6919,11 @@ class TypeNameResolver {
       if (node.question != null) {
         _reportInvalidNullableType(node);
       }
-      nullabilitySuffix = NullabilitySuffix.none;
+      if (isNonNullableUnit) {
+        nullabilitySuffix = NullabilitySuffix.none;
+      } else {
+        nullabilitySuffix = NullabilitySuffix.star;
+      }
     } else {
       nullabilitySuffix = _getNullability(node.question != null);
     }
@@ -6933,14 +6996,13 @@ class TypeParameterBoundsResolver {
   Scope libraryScope = null;
   TypeNameResolver typeNameResolver = null;
 
-  TypeParameterBoundsResolver(
-      this.typeSystem, this.library, this.source, this.errorListener,
-      {bool isNonNullableUnit = false})
+  TypeParameterBoundsResolver(this.typeSystem, this.library, this.source,
+      this.errorListener, FeatureSet featureSet)
       : libraryScope = new LibraryScope(library),
         typeNameResolver = new TypeNameResolver(
             typeSystem,
             typeSystem.typeProvider,
-            isNonNullableUnit,
+            featureSet.isEnabled(Feature.non_nullable),
             library,
             source,
             errorListener);
@@ -7193,7 +7255,7 @@ abstract class TypeProvider {
   InterfaceType get mapType;
 
   /// Return the type representing the built-in type 'Never'.
-  InterfaceType get neverType;
+  DartType get neverType;
 
   /// Return a list containing all of the types that cannot be either extended
   /// or implemented.
@@ -7232,9 +7294,6 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Type'.
   InterfaceType get typeType;
 
-  /// Return the type representing typenames that can't be resolved.
-  DartType get undefinedType;
-
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
   bool isObjectGetter(String id);
@@ -7253,11 +7312,11 @@ abstract class TypeProvider {
 abstract class TypeProviderBase implements TypeProvider {
   @override
   List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
+        boolType,
+        doubleType,
+        intType,
         nullType,
         numType,
-        intType,
-        doubleType,
-        boolType,
         stringType
       ];
 
@@ -7286,17 +7345,11 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'bool'.
   InterfaceType _boolType;
 
-  /// The type representing the type 'bottom'.
-  DartType _bottomType;
-
   /// The type representing the built-in type 'double'.
   InterfaceType _doubleType;
 
   /// The type representing the built-in type 'Deprecated'.
   InterfaceType _deprecatedType;
-
-  /// The type representing the built-in type 'dynamic'.
-  DartType _dynamicType;
 
   /// The type representing the built-in type 'Function'.
   InterfaceType _functionType;
@@ -7340,9 +7393,6 @@ class TypeProviderImpl extends TypeProviderBase {
   /// An shared object representing the value 'null'.
   DartObjectImpl _nullObject;
 
-  /// The type representing the type 'Never'.
-  InterfaceType _neverType;
-
   /// The type representing the type 'Null'.
   InterfaceType _nullType;
 
@@ -7373,20 +7423,24 @@ class TypeProviderImpl extends TypeProviderBase {
   /// The type representing the built-in type 'Type'.
   InterfaceType _typeType;
 
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
-
   /// Initialize a newly created type provider to provide the types defined in
   /// the given [coreLibrary] and [asyncLibrary].
   TypeProviderImpl(LibraryElement coreLibrary, LibraryElement asyncLibrary) {
     _initializeFrom(coreLibrary, asyncLibrary);
   }
 
+  /// Return a type provider initialized from the same library elements as the
+  /// [baseProvider].
+  factory TypeProviderImpl.from(TypeProvider baseProvider) {
+    return TypeProviderImpl(baseProvider.boolType.element.library,
+        baseProvider.streamType.element.library);
+  }
+
   @override
   InterfaceType get boolType => _boolType;
 
   @override
-  DartType get bottomType => _bottomType;
+  DartType get bottomType => BottomTypeImpl.instanceLegacy;
 
   @override
   InterfaceType get deprecatedType => _deprecatedType;
@@ -7395,7 +7449,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get doubleType => _doubleType;
 
   @override
-  DartType get dynamicType => _dynamicType;
+  DartType get dynamicType => DynamicTypeImpl.instance;
 
   @override
   InterfaceType get functionType => _functionType;
@@ -7437,7 +7491,7 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceType get mapType => _mapType;
 
   @override
-  InterfaceType get neverType => _neverType;
+  DartType get neverType => BottomTypeImpl.instance;
 
   @override
   DartObjectImpl get nullObject {
@@ -7477,19 +7531,6 @@ class TypeProviderImpl extends TypeProviderBase {
   @override
   InterfaceType get typeType => _typeType;
 
-  @override
-  DartType get undefinedType => _undefinedType;
-
-  InterfaceType _createNever(Namespace namespace) {
-    // TODO(brianwilkerson) Remove this method when the class is defined in the
-    //  SDK.
-    CompilationUnitElement compilationUnit =
-        boolType.element.getAncestor((e) => e is CompilationUnitElement);
-    ClassElementImpl element = ElementFactory.classElement('Never', objectType);
-    element.enclosingElement = compilationUnit;
-    return element.type;
-  }
-
   /// Return the type with the given [typeName] from the given [namespace], or
   /// `null` if there is no class with the given name.
   InterfaceType _getType(Namespace namespace, String typeName) {
@@ -7512,10 +7553,8 @@ class TypeProviderImpl extends TypeProviderBase {
         new NamespaceBuilder().createPublicNamespaceForLibrary(asyncLibrary);
 
     _boolType = _getType(coreNamespace, 'bool');
-    _bottomType = BottomTypeImpl.instance;
     _deprecatedType = _getType(coreNamespace, 'Deprecated');
     _doubleType = _getType(coreNamespace, 'double');
-    _dynamicType = DynamicTypeImpl.instance;
     _functionType = _getType(coreNamespace, 'Function');
     _futureOrType = _getType(asyncNamespace, 'FutureOr');
     _futureType = _getType(asyncNamespace, 'Future');
@@ -7523,8 +7562,6 @@ class TypeProviderImpl extends TypeProviderBase {
     _iterableType = _getType(coreNamespace, 'Iterable');
     _listType = _getType(coreNamespace, 'List');
     _mapType = _getType(coreNamespace, 'Map');
-    _neverType =
-        _getType(coreNamespace, 'Never') ?? _createNever(coreNamespace);
     _nullType = _getType(coreNamespace, 'Null');
     _numType = _getType(coreNamespace, 'num');
     _objectType = _getType(coreNamespace, 'Object');
@@ -7534,14 +7571,13 @@ class TypeProviderImpl extends TypeProviderBase {
     _stringType = _getType(coreNamespace, 'String');
     _symbolType = _getType(coreNamespace, 'Symbol');
     _typeType = _getType(coreNamespace, 'Type');
-    _undefinedType = UndefinedTypeImpl.instance;
-    _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
+    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
     _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
-    _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
+    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
     _iterableObjectType = _iterableType.instantiate(<DartType>[_objectType]);
     _mapObjectObjectType =
         _mapType.instantiate(<DartType>[_objectType, _objectType]);
-    _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
+    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
     // FutureOr<T> is still fairly new, so if we're analyzing an SDK that
     // doesn't have it yet, create an element for it.
     _futureOrType ??= createPlaceholderFutureOr(_futureType, _objectType);
@@ -7588,9 +7624,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// The type representing the type 'dynamic'.
   DartType _dynamicType;
 
-  /// The type representing typenames that can't be resolved.
-  DartType _undefinedType;
-
   /// The flag specifying if currently visited class references 'super'
   /// expression.
   bool _hasReferenceToSuper = false;
@@ -7636,20 +7669,26 @@ class TypeResolverVisitor extends ScopedVisitor {
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.  If `null` or unspecified, a new [LibraryScope] will be
   /// created based on [definingLibrary] and [typeProvider].
+  ///
+  /// Note: in a future release of the analyzer, the [featureSet] parameter will
+  /// be required.
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
       {Scope nameScope,
-      this.isNonNullableUnit: false,
+      @Deprecated('Use featureSet instead') bool isNonNullableUnit: false,
+      FeatureSet featureSet,
       this.mode: TypeResolverMode.everything,
       bool shouldUseWithClauseInferredTypes: true,
       this.shouldSetElementSupertypes: false})
-      : super(definingLibrary, source, typeProvider, errorListener,
+      : isNonNullableUnit = featureSet?.isEnabled(Feature.non_nullable) ??
+            // ignore: deprecated_member_use_from_same_package
+            isNonNullableUnit,
+        super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
     _typeSystem = TypeSystem.create(definingLibrary.context);
     _typeNameResolver = new TypeNameResolver(_typeSystem, typeProvider,
-        isNonNullableUnit, definingLibrary, source, errorListener,
+        this.isNonNullableUnit, definingLibrary, source, errorListener,
         shouldUseWithClauseInferredTypes: shouldUseWithClauseInferredTypes);
   }
 
@@ -7904,7 +7943,14 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    GenericFunctionTypeElementImpl element = node.type?.element;
+    GenericFunctionTypeElementImpl element =
+        (node as GenericFunctionTypeImpl).declaredElement;
+    if (node.type != null) {
+      var nullability =
+          _typeNameResolver._getNullability(node.question != null);
+      (node as GenericFunctionTypeImpl).type =
+          (node.type as TypeImpl).withNullability(nullability);
+    }
     if (element != null) {
       super.visitGenericFunctionType(node);
       element.returnType =
@@ -8316,7 +8362,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeAnnotation returnType, FormalParameterList parameterList) {
     DartType type = parameter.type;
     GenericFunctionTypeElementImpl typeElement = type.element;
-    typeElement.returnType = _computeReturnType(returnType);
+    // With summary2 we use synthetic FunctionType(s).
+    if (typeElement != null) {
+      typeElement.returnType = _computeReturnType(returnType);
+    }
   }
 }
 

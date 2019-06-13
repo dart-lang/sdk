@@ -61,6 +61,7 @@ class A {
     assertJsonText(_getSuggestion(set, 'A'), '''
 {
   "label": "A",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "CLASS",
     "name": "A",
@@ -82,6 +83,7 @@ class A {
     assertJsonText(_getSuggestion(set, 'A.a'), '''
 {
   "label": "A.a",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "CONSTRUCTOR",
     "name": "a",
@@ -118,6 +120,7 @@ enum MyEnum {
     assertJsonText(_getSuggestion(set, 'MyEnum'), '''
 {
   "label": "MyEnum",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "ENUM",
     "name": "MyEnum",
@@ -139,6 +142,7 @@ enum MyEnum {
     assertJsonText(_getSuggestion(set, 'MyEnum.aaa'), '''
 {
   "label": "MyEnum.aaa",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "ENUM_CONSTANT",
     "name": "aaa",
@@ -160,6 +164,7 @@ enum MyEnum {
     assertJsonText(_getSuggestion(set, 'MyEnum.bbb'), '''
 {
   "label": "MyEnum.bbb",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "ENUM_CONSTANT",
     "name": "bbb",
@@ -195,6 +200,7 @@ var stringV = 'hi';
     assertJsonText(_getSuggestion(set, 'boolV'), '''
 {
   "label": "boolV",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "boolV",
@@ -217,6 +223,7 @@ var stringV = 'hi';
     assertJsonText(_getSuggestion(set, 'intV'), '''
 {
   "label": "intV",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "intV",
@@ -239,6 +246,7 @@ var stringV = 'hi';
     assertJsonText(_getSuggestion(set, 'doubleV'), '''
 {
   "label": "doubleV",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "doubleV",
@@ -261,6 +269,7 @@ var stringV = 'hi';
     assertJsonText(_getSuggestion(set, 'stringV'), '''
 {
   "label": "stringV",
+  "declaringLibraryUri": "package:test/a.dart",
   "element": {
     "kind": "TOP_LEVEL_VARIABLE",
     "name": "stringV",

@@ -4,8 +4,10 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -115,9 +117,11 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
   CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+  CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
   CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+  CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
   CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
   CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -172,6 +176,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
   CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
+  CompileTimeErrorCode.INVALID_OPTIONAL_PARAMETER_TYPE,
   CompileTimeErrorCode.INVALID_OVERRIDE,
   CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
   CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
@@ -187,6 +192,8 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
   CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL,
   CompileTimeErrorCode.MISSING_DART_LIBRARY,
+  CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER,
+  CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
   CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
   CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
   CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -283,6 +290,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
   CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+  CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE,
   CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
   CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
   HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
@@ -343,9 +351,12 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
   HintCode.SDK_VERSION_GT_GT_GT_OPERATOR,
   HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT,
+  HintCode.SDK_VERSION_NEVER,
   HintCode.SDK_VERSION_SET_LITERAL,
   HintCode.SDK_VERSION_UI_AS_CODE,
   HintCode.STRICT_RAW_TYPE,
+  HintCode.STRICT_RAW_TYPE_IN_AS,
+  HintCode.STRICT_RAW_TYPE_IN_IS,
   HintCode.SUBTYPE_OF_SEALED_CLASS,
   HintCode.TYPE_CHECK_IS_NOT_NULL,
   HintCode.TYPE_CHECK_IS_NULL,
@@ -383,6 +394,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
   ParserErrorCode.CLASS_IN_CLASS,
   ParserErrorCode.COLON_IN_PLACE_OF_IN,
+  ParserErrorCode.CONFLICTING_MODIFIERS,
   ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
   ParserErrorCode.CONST_AFTER_FACTORY,
   ParserErrorCode.CONST_AND_COVARIANT,
@@ -412,6 +424,7 @@ const List<ErrorCode> errorCodeValues = const [
   ParserErrorCode.EMPTY_ENUM_BODY,
   ParserErrorCode.ENUM_IN_CLASS,
   ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+  ParserErrorCode.EXPECTED_BODY,
   ParserErrorCode.EXPECTED_CASE_OR_DEFAULT,
   ParserErrorCode.EXPECTED_CLASS_MEMBER,
   ParserErrorCode.EXPECTED_ELSE_OR_COMMA,
@@ -743,7 +756,7 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
  *
  * See [AnalysisErrorListener].
  */
-class AnalysisError {
+class AnalysisError implements Diagnostic {
   /**
    * An empty array of errors used when no errors are expected.
    */
@@ -781,10 +794,9 @@ class AnalysisError {
    */
   final ErrorCode errorCode;
 
-  /**
-   * The localized error message.
-   */
-  String _message;
+  DiagnosticMessage _problemMessage;
+
+  List<DiagnosticMessage> _contextMessages;
 
   /**
    * The correction to be displayed for this error, or `null` if there is no
@@ -798,43 +810,40 @@ class AnalysisError {
   final Source source;
 
   /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
-  int offset = 0;
-
-  /**
-   * The number of characters from the offset to the end of the source which
-   * encompasses the compilation error.
-   */
-  int length = 0;
-
-  /**
-   * A flag indicating whether this error can be shown to be a non-issue because
-   * of the result of type propagation.
-   */
-  bool isStaticOnly = false;
-
-  /**
    * Initialize a newly created analysis error. The error is associated with the
    * given [source] and is located at the given [offset] with the given
    * [length]. The error will have the given [errorCode] and the list of
-   * [arguments] will be used to complete the message.
+   * [arguments] will be used to complete the message and correction. If any
+   * [contextMessages] are provided, they will be recorded with the error.
    */
-  AnalysisError(this.source, this.offset, this.length, this.errorCode,
-      [List<Object> arguments]) {
-    this._message = formatList(errorCode.message, arguments);
+  AnalysisError(this.source, int offset, int length, this.errorCode,
+      [List<Object> arguments, List<DiagnosticMessage> contextMessages]) {
+    String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
       this._correction = formatList(correctionTemplate, arguments);
     }
+    _problemMessage = new DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: message,
+        offset: offset);
+    _contextMessages = contextMessages;
   }
 
   /**
    * Initialize a newly created analysis error with given values.
    */
-  AnalysisError.forValues(this.source, this.offset, this.length, this.errorCode,
-      this._message, this._correction);
+  AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
+      String message, this._correction) {
+    _problemMessage = new DiagnosticMessageImpl(
+        filePath: source?.fullName,
+        length: length,
+        message: message,
+        offset: offset);
+  }
+
+  List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -844,18 +853,70 @@ class AnalysisError {
   String get correction => _correction;
 
   @override
+  String get correctionMessage => _correction;
+
+  @override
   int get hashCode {
     int hashCode = offset;
-    hashCode ^= (_message != null) ? _message.hashCode : 0;
+    hashCode ^= (message != null) ? message.hashCode : 0;
     hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
   }
 
   /**
+   * Return `true` if this error can be shown to be a non-issue because of the
+   * result of type propagation.
+   */
+  @Deprecated(
+      'Type propagation is no longer performed, so this will never be true')
+  bool get isStaticOnly => false;
+
+  @Deprecated(
+      'Type propagation is no longer performed, so this can never be true')
+  void set isStaticOnly(bool value) {}
+
+  /**
+   * The number of characters from the offset to the end of the source which
+   * encompasses the compilation error.
+   */
+  int get length => _problemMessage.length;
+
+  /**
    * Return the message to be displayed for this error. The message should
    * indicate what is wrong and why it is wrong.
    */
-  String get message => _message;
+  String get message => _problemMessage.message;
+
+  /**
+   * The character offset from the beginning of the source (zero based) where
+   * the error occurred.
+   */
+  int get offset => _problemMessage.offset;
+
+  /**
+   * The character offset from the beginning of the source (zero based) where
+   * the error occurred.
+   */
+  @Deprecated('Set the offset when the error is created')
+  set offset(int offset) {}
+
+  @override
+  DiagnosticMessage get problemMessage => _problemMessage;
+
+  @override
+  Severity get severity {
+    switch (errorCode.errorSeverity) {
+      case ErrorSeverity.ERROR:
+        return Severity.error;
+      case ErrorSeverity.WARNING:
+        return Severity.warning;
+      case ErrorSeverity.INFO:
+        return Severity.info;
+      default:
+        throw new StateError(
+            'Invalid error severity: ${errorCode.errorSeverity}');
+    }
+  }
 
   @override
   bool operator ==(Object other) {
@@ -871,11 +932,8 @@ class AnalysisError {
       if (offset != other.offset || length != other.length) {
         return false;
       }
-      if (isStaticOnly != other.isStaticOnly) {
-        return false;
-      }
       // Deep checks.
-      if (_message != other._message) {
+      if (message != other.message) {
         return false;
       }
       if (source != other.source) {
@@ -897,7 +955,7 @@ class AnalysisError {
     buffer.write(offset + length - 1);
     buffer.write("): ");
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
-    buffer.write(_message);
+    buffer.write(message);
     return buffer.toString();
   }
 

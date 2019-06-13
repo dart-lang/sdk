@@ -24,6 +24,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
@@ -548,17 +549,19 @@ void Assembler::strex(Register rd, Register rt, Register rn, Condition cond) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination_address,
+                                            Register exit_frame_fp,
                                             Register addr,
                                             Register state) {
   // Save exit frame information to enable stack walking.
-  StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
+  StoreToOffset(kWord, exit_frame_fp, THR,
+                Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
   StoreToOffset(kWord, destination_address, THR, Thread::vm_tag_offset());
   LoadImmediate(state, compiler::target::Thread::native_execution_state());
   StoreToOffset(kWord, state, THR, Thread::execution_state_offset());
 
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     EnterSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -590,7 +593,7 @@ void Assembler::EnterSafepointSlowly() {
 }
 
 void Assembler::TransitionNativeToGenerated(Register addr, Register state) {
-  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+  if (FLAG_use_slow_path || TargetCPUFeatures::arm_version() == ARMv5TE) {
     ExitSafepointSlowly();
   } else {
     Label slow_path, done, retry;
@@ -1387,7 +1390,9 @@ void Assembler::vdup(OperandSize sz, QRegister qd, DRegister dm, int idx) {
       code = 4 | (idx << 3);
       break;
     }
-    default: { break; }
+    default: {
+      break;
+    }
   }
 
   EmitSIMDddd(B24 | B23 | B11 | B10 | B6, kWordPair,
@@ -1597,9 +1602,9 @@ void Assembler::LoadObjectHelper(Register rd,
   } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset = ObjectPool::element_offset(
-        is_unique ? object_pool_builder().AddObject(object)
-                  : object_pool_builder().FindObject(object));
+    const auto index = is_unique ? object_pool_builder().AddObject(object)
+                                 : object_pool_builder().FindObject(object);
+    const int32_t offset = ObjectPool::element_offset(index);
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, pp, cond);
   } else {
     UNREACHABLE();
@@ -1614,14 +1619,6 @@ void Assembler::LoadUniqueObject(Register rd,
                                  const Object& object,
                                  Condition cond) {
   LoadObjectHelper(rd, object, cond, /* is_unique = */ true, PP);
-}
-
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(function)));
-  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp, AL);
 }
 
 void Assembler::LoadNativeEntry(Register rd,
@@ -2504,6 +2501,33 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   }
 }
 
+void Assembler::PushNativeCalleeSavedRegisters() {
+  // Save new context and C++ ABI callee-saved registers.
+  PushList(kAbiPreservedCpuRegs);
+
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  if (TargetCPUFeatures::vfp_supported()) {
+    ASSERT(2 * kAbiPreservedFpuRegCount < 16);
+    // Save FPU registers. 2 D registers per Q register.
+    vstmd(DB_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    sub(SP, SP, Operand(kAbiPreservedFpuRegCount * kFpuRegisterSize));
+  }
+}
+
+void Assembler::PopNativeCalleeSavedRegisters() {
+  const DRegister firstd = EvenDRegisterOf(kAbiFirstPreservedFpuReg);
+  // Restore C++ ABI callee-saved registers.
+  if (TargetCPUFeatures::vfp_supported()) {
+    // Restore FPU registers. 2 D registers per Q register.
+    vldmd(IA_W, SP, firstd, 2 * kAbiPreservedFpuRegCount);
+  } else {
+    AddImmediate(SP, kAbiPreservedFpuRegCount * kFpuRegisterSize);
+  }
+  // Restore CPU registers.
+  PopList(kAbiPreservedCpuRegs);
+}
+
 void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, Operand(rm), cond);
@@ -3165,8 +3189,8 @@ void Assembler::IntegerDivide(Register result,
     sdiv(result, left, right);
   } else {
     ASSERT(TargetCPUFeatures::vfp_supported());
-    SRegister stmpl = static_cast<SRegister>(2 * tmpl);
-    SRegister stmpr = static_cast<SRegister>(2 * tmpr);
+    SRegister stmpl = EvenSRegisterOf(tmpl);
+    SRegister stmpr = EvenSRegisterOf(tmpr);
     vmovsr(stmpl, left);
     vcvtdi(tmpl, stmpl);  // left is in tmpl.
     vmovsr(stmpr, right);
@@ -3221,6 +3245,23 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   if (OS::ActivationFrameAlignment() > 1) {
     bic(SP, SP, Operand(OS::ActivationFrameAlignment() - 1));
   }
+}
+
+void Assembler::EmitEntryFrameVerification(Register scratch) {
+#if defined(DEBUG)
+  Label done;
+  ASSERT(!constant_pool_allowed());
+  LoadImmediate(scratch,
+                compiler::target::frame_layout.exit_link_slot_from_entry_fp *
+                    compiler::target::kWordSize);
+  add(scratch, scratch, Operand(FPREG));
+  cmp(scratch, Operand(SPREG));
+  b(&done, EQ);
+
+  Breakpoint();
+
+  Bind(&done);
+#endif
 }
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
@@ -3392,8 +3433,8 @@ void Assembler::LoadAllocationStatsAddress(Register dest, intptr_t cid) {
   ASSERT(cid > 0);
   const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
   LoadIsolate(dest);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(dest, Address(dest, table_offset));
   AddImmediate(dest, class_offset);
 }

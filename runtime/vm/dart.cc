@@ -6,6 +6,8 @@
 
 #include "vm/clustered_snapshot.h"
 #include "vm/code_observers.h"
+#include "vm/compiler/runtime_offsets_extracted.h"
+#include "vm/compiler/runtime_offsets_list.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -22,6 +24,7 @@
 #include "vm/malloc_hooks.h"
 #include "vm/message_handler.h"
 #include "vm/metrics.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
 #include "vm/object_store.h"
@@ -84,36 +87,40 @@ class ReadOnlyHandles {
 };
 
 static void CheckOffsets() {
+  // These offsets are embedded in precompiled instructions. We need the
+  // compiler and the runtime to agree.
   bool ok = true;
 #define CHECK_OFFSET(expr, offset)                                             \
   if ((expr) != (offset)) {                                                    \
-    OS::PrintErr("%s got %" Pd " expected %" Pd "\n", #expr, (expr),           \
+    OS::PrintErr("%s got %" Pd ", %s expected %" Pd "\n", #expr,               \
+                 static_cast<intptr_t>(expr), #offset,                         \
                  static_cast<intptr_t>(offset));                               \
     ok = false;                                                                \
   }
 
-#if defined(TARGET_ARCH_ARM)
-  // These offsets are embedded in precompiled instructions. We need simarm
-  // (compiler) and arm (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 36);
-  CHECK_OFFSET(Thread::object_null_offset(), 96);
-  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
-  CHECK_OFFSET(Isolate::object_store_offset(), 20);
-  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 168));
-#endif
-#if defined(TARGET_ARCH_ARM64)
-  // These offsets are embedded in precompiled instructions. We need simarm64
-  // (compiler) and arm64 (runtime) to agree.
-  CHECK_OFFSET(Thread::stack_limit_offset(), 72);
-  CHECK_OFFSET(Thread::object_null_offset(), 184);
-  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 26);
-  CHECK_OFFSET(Isolate::object_store_offset(), 40);
-  NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 288));
-#endif
+#define CHECK_FIELD(Class, Name) CHECK_OFFSET(Class::Name(), Class##_##Name)
+#define CHECK_ARRAY(Class, Name)                                               \
+  CHECK_OFFSET(Class::ArrayLayout::elements_start_offset(),                    \
+               Class##_elements_start_offset)                                  \
+  CHECK_OFFSET(Class::ArrayLayout::kElementSize, Class##_element_size)
+#define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
+#define CHECK_SIZEOF(Class, Name, What)                                        \
+  CHECK_OFFSET(sizeof(What), Class##_##Name)
+#define CHECK_RANGE(Class, Name, Type, First, Last, Filter)
+#define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name)
+
+  OFFSETS_LIST(CHECK_FIELD, CHECK_ARRAY, CHECK_ARRAY_STRUCTFIELD, CHECK_SIZEOF,
+               CHECK_RANGE, CHECK_CONSTANT, NOT_IN_PRECOMPILED_RUNTIME)
 
   if (!ok) {
     FATAL("CheckOffsets failed.");
   }
+#undef CHECK_FIELD
+#undef CHECK_ARRAY
+#undef CHECK_ARRAY_STRUCTFIELD
+#undef CHECK_SIZEOF
+#undef CHECK_RANGE
+#undef CHECK_CONSTANT
 #undef CHECK_OFFSET
 }
 
@@ -379,8 +386,21 @@ bool Dart::HasApplicationIsolateLocked() {
 void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolates_list_monitor_);
+  intptr_t num_attempts = 0;
   while (HasApplicationIsolateLocked()) {
-    ml.Wait();
+    Monitor::WaitResult retval = ml.Wait(1000);
+    if (retval == Monitor::kTimedOut) {
+      num_attempts += 1;
+      if (num_attempts > 10) {
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_) {
+          if (!Isolate::IsVMInternalIsolate(isolate)) {
+            OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                         num_attempts, isolate->name_);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -388,9 +408,19 @@ void Dart::WaitForApplicationIsolateShutdown() {
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
   MonitorLocker ml(Isolate::isolates_list_monitor_);
+  intptr_t num_attempts = 0;
   while ((Isolate::isolates_list_head_ != NULL) &&
          (Isolate::isolates_list_head_->next_ != NULL)) {
-    ml.Wait();
+    Monitor::WaitResult retval = ml.Wait(1000);
+    if (retval == Monitor::kTimedOut) {
+      num_attempts += 1;
+      if (num_attempts > 10) {
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_)
+          OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                       num_attempts, isolate->name_);
+      }
+    }
   }
   ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }

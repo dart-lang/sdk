@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=spread-collections,control-flow-collections,constant-update-2018
+// SharedOptions=--enable-experiment=constant-update-2018
 
 // Test with OSR on non-empty stack (block expression).
 
@@ -98,7 +98,7 @@ List<int> test5(int m, int n) {
 }
 
 main() {
-  int n = 100000;
+  int n = 20000;
   int g = 457;
 
   var a = test1(n);

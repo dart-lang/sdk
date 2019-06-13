@@ -84,10 +84,6 @@ DEFINE_FLAG(bool,
             false,
             "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DEFINE_FLAG(bool,
-            verify_compiler,
-            false,
-            "Enable compiler verification assertions");
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
@@ -101,7 +97,6 @@ static void PrecompilationModeHandler(bool value) {
 #endif
 
     FLAG_background_compilation = false;
-    FLAG_collect_code = false;
     FLAG_enable_mirrors = false;
     // TODO(dacoharkes): Ffi support in AOT
     // https://github.com/dart-lang/sdk/issues/35765
@@ -167,11 +162,10 @@ void IrregexpCompilationPipeline::ParseFunction(
   RegExp& regexp = RegExp::Handle(parsed_function->function().regexp());
 
   const String& pattern = String::Handle(regexp.pattern());
-  const bool multiline = regexp.is_multi_line();
 
   RegExpCompileData* compile_data = new (zone) RegExpCompileData();
   // Parsing failures are handled in the RegExp factory constructor.
-  RegExpParser::ParseRegExp(pattern, multiline, compile_data);
+  RegExpParser::ParseRegExp(pattern, regexp.flags(), compile_data);
 
   regexp.set_num_bracket_expressions(compile_data->capture_count);
   regexp.set_capture_name_map(compile_data->capture_name_map);
@@ -264,9 +258,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 #if !defined(PRODUCT)
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+  if (Debugger::IsDebugging(thread, function)) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function. Bump usage counter down to avoid
     // repeatedly entering the runtime for an optimization attempt.
@@ -427,12 +419,6 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   }
 #endif  // !defined(PRODUCT)
 
-  if (function.is_intrinsic() &&
-      (function.usage_counter() < Function::kGraceUsageCounter)) {
-    // Intrinsic functions may execute without incrementing their usage counter.
-    // Give them a non-zero initial usage to prevent premature code collection.
-    function.set_usage_counter(Function::kGraceUsageCounter);
-  }
   if (!function.IsOptimizable()) {
     // A function with huge unoptimized code can become non-optimizable
     // after generating unoptimized code.
@@ -786,7 +772,6 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         }
         done = true;
       }
-
     }
   }
   return result->raw();
@@ -794,7 +779,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
 static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
                                         const Function& function,
-                                        bool optimized,
+                                        volatile bool optimized,
                                         intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
@@ -894,6 +879,8 @@ static RawObject* CompileFunctionHelper(CompilationPipeline* pipeline,
       if (optimized) {
         if (error.IsLanguageError() &&
             LanguageError::Cast(error).kind() == Report::kBailout) {
+          // Functions which cannot deoptimize should never bail out.
+          ASSERT(!function.ForceOptimize());
           // Optimizer bailed out. Disable optimizations and never try again.
           if (trace_compiler) {
             THR_Print("--> disabling optimizations for '%s'\n",
@@ -1121,16 +1108,27 @@ RawError* Compiler::CompileParsedFunction(ParsedFunction* parsed_function) {
 void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   const Function& function = Function::Handle(code.function());
-  ParsedFunction* parsed_function = new ParsedFunction(
-      Thread::Current(), Function::ZoneHandle(function.raw()));
   ASSERT(code.var_descriptors() == Object::null());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
+  if (function.is_declared_in_bytecode()) {
+    auto& var_descs = LocalVarDescriptors::Handle();
+    if (function.HasBytecode()) {
+      const auto& bytecode = Bytecode::Handle(function.bytecode());
+      var_descs = bytecode.GetLocalVarDescriptors();
+    } else {
+      var_descs = Object::empty_var_descriptors().raw();
+    }
+    code.set_var_descriptors(var_descs);
+    return;
+  }
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
   CompilerState state(Thread::Current());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    ParsedFunction* parsed_function = new ParsedFunction(
+        Thread::Current(), Function::ZoneHandle(function.raw()));
     ZoneGrowableArray<const ICData*>* ic_data_array =
         new ZoneGrowableArray<const ICData*>();
     ZoneGrowableArray<intptr_t>* context_level_array =
@@ -1169,8 +1167,8 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() &&
-        !func.is_abstract() && !func.IsRedirectingFactory()) {
+    if (!func.HasCode() && !func.is_abstract() &&
+        !func.IsRedirectingFactory()) {
       result = CompileFunction(thread, func);
       if (result.IsError()) {
         return Error::Cast(result).raw();
@@ -1404,18 +1402,16 @@ class BackgroundCompilationQueue {
 
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate),
-      queue_monitor_(new Monitor()),
+      queue_monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
-      done_monitor_(new Monitor()),
+      done_monitor_(),
       running_(false),
       done_(true),
       disabled_depth_(0) {}
 
 // Fields all deleted in ::Stop; here clear them.
 BackgroundCompiler::~BackgroundCompiler() {
-  delete queue_monitor_;
   delete function_queue_;
-  delete done_monitor_;
 }
 
 void BackgroundCompiler::Run() {
@@ -1431,7 +1427,7 @@ void BackgroundCompiler::Run() {
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
       {
-        MonitorLocker ml(queue_monitor_);
+        MonitorLocker ml(&queue_monitor_);
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull()) {
@@ -1448,7 +1444,7 @@ void BackgroundCompiler::Run() {
 
         QueueElement* qelem = NULL;
         {
-          MonitorLocker ml(queue_monitor_);
+          MonitorLocker ml(&queue_monitor_);
           if (function_queue()->IsEmpty()) {
             // We are shutting down, queue was cleared.
             function = Function::null();
@@ -1477,7 +1473,7 @@ void BackgroundCompiler::Run() {
     Thread::ExitIsolateAsHelper();
     {
       // Wait to be notified when the work queue is not empty.
-      MonitorLocker ml(queue_monitor_);
+      MonitorLocker ml(&queue_monitor_);
       while (function_queue()->IsEmpty() && running_) {
         ml.Wait();
       }
@@ -1486,7 +1482,7 @@ void BackgroundCompiler::Run() {
 
   {
     // Notify that the thread is done.
-    MonitorLocker ml_done(done_monitor_);
+    MonitorLocker ml_done(&done_monitor_);
     done_ = true;
     ml_done.Notify();
   }
@@ -1500,7 +1496,7 @@ void BackgroundCompiler::Compile(const Function& function) {
     isolate_->heap()->CollectMostGarbage();
   }
   {
-    MonitorLocker ml(queue_monitor_);
+    MonitorLocker ml(&queue_monitor_);
     ASSERT(running_);
     if (function_queue()->ContainsObj(function)) {
       return;
@@ -1534,7 +1530,7 @@ void BackgroundCompiler::Start() {
   ASSERT(thread->IsMutatorThread());
   ASSERT(!thread->IsAtSafepoint());
 
-  MonitorLocker ml(done_monitor_);
+  MonitorLocker ml(&done_monitor_);
   if (running_ || !done_) return;
   running_ = true;
   done_ = false;
@@ -1552,14 +1548,14 @@ void BackgroundCompiler::Stop() {
   ASSERT(!thread->IsAtSafepoint());
 
   {
-    MonitorLocker ml(queue_monitor_);
+    MonitorLocker ml(&queue_monitor_);
     running_ = false;
     function_queue_->Clear();
     ml.Notify();  // Stop waiting for the queue.
   }
 
   {
-    MonitorLocker ml_done(done_monitor_);
+    MonitorLocker ml_done(&done_monitor_);
     while (!done_) {
       ml_done.WaitWithSafepointCheck(thread);
     }

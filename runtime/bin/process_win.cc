@@ -14,11 +14,11 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
@@ -229,7 +229,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          NULL);
 
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -237,7 +237,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         CreateFileW(pipe_name, GENERIC_READ, 0, &inherit_handle, OPEN_EXISTING,
                     FILE_READ_ATTRIBUTES | FILE_FLAG_OVERLAPPED, NULL);
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateFile failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   } else {
@@ -252,7 +252,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
                          NULL);
 
     if (handles[kReadHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateNamedPipe failed %d\n", GetLastError());
       return false;
     }
 
@@ -261,7 +261,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
         (type == kInheritWrite) ? &inherit_handle : NULL, OPEN_EXISTING,
         FILE_WRITE_ATTRIBUTES | FILE_FLAG_OVERLAPPED, NULL);
     if (handles[kWriteHandle] == INVALID_HANDLE_VALUE) {
-      Log::PrintErr("CreateFile failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateFile failed %d\n", GetLastError());
       return false;
     }
   }
@@ -272,7 +272,7 @@ static void CloseProcessPipe(HANDLE handles[2]) {
   for (int i = kReadHandle; i < kWriteHandle; i++) {
     if (handles[i] != INVALID_HANDLE_VALUE) {
       if (!CloseHandle(handles[i])) {
-        Log::PrintErr("CloseHandle failed %d\n", GetLastError());
+        Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
       }
       handles[i] = INVALID_HANDLE_VALUE;
     }
@@ -307,7 +307,7 @@ static HANDLE OpenNul() {
   HANDLE nul = CreateFile(L"NUL", GENERIC_READ | GENERIC_WRITE, 0,
                           &inherit_handle, OPEN_EXISTING, 0, NULL);
   if (nul == INVALID_HANDLE_VALUE) {
-    Log::PrintErr("CloseHandle failed %d\n", GetLastError());
+    Syslog::PrintErr("CloseHandle failed %d\n", GetLastError());
   }
   return nul;
 }
@@ -560,7 +560,7 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
-      Log::PrintErr("CreateProcessW failed %d\n", GetLastError());
+      Syslog::PrintErr("CreateProcessW failed %d\n", GetLastError());
       return CleanupAndReturnError();
     }
 
@@ -605,7 +605,7 @@ class ProcessStarter {
     int status = GenerateNames<4>(pipe_names);
     if (status != 0) {
       SetOsErrorMessage(os_error_message_);
-      Log::PrintErr("UuidCreateSequential failed %d\n", status);
+      Syslog::PrintErr("UuidCreateSequential failed %d\n", status);
       return status;
     }
 

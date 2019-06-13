@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -24,11 +25,13 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
 import 'package:args/args.dart';
+import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:telemetry/crash_reporting.dart';
 import 'package:telemetry/telemetry.dart' as telemetry;
@@ -195,6 +198,18 @@ class Driver implements ServerStarter {
   static const String DARTPAD_OPTION = "dartpad";
 
   /**
+   * The name of the option to disable the completion feature.
+   */
+  static const String DISABLE_SERVER_FEATURE_COMPLETION =
+      "disable-server-feature-completion";
+
+  /**
+   * The name of the option to disable the search feature.
+   */
+  static const String DISABLE_SERVER_FEATURE_SEARCH =
+      "disable-server-feature-search";
+
+  /**
    * The name of the option used to enable instrumentation.
    */
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
@@ -270,6 +285,11 @@ class Driver implements ServerStarter {
   static const String USE_LSP = "lsp";
 
   /**
+   * The name of the flag to use summary2.
+   */
+  static const String USE_SUMMARY2 = "use-summary2";
+
+  /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
   static const String TRAIN_USING = "train-using";
@@ -319,6 +339,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
     if (results.wasParsed(TRAIN_USING)) {
@@ -352,6 +373,17 @@ class Driver implements ServerStarter {
 
     if (results[DARTPAD_OPTION]) {
       UriContributor.suggestFilePaths = false;
+    }
+
+    {
+      bool disableCompletion = results[DISABLE_SERVER_FEATURE_COMPLETION];
+      bool disableSearch = results[DISABLE_SERVER_FEATURE_SEARCH];
+      if (disableCompletion || disableSearch) {
+        analysisServerOptions.featureSet = FeatureSet(
+          completion: !disableCompletion,
+          search: !disableSearch,
+        );
+      }
     }
 
     if (results[HELP_OPTION]) {
@@ -404,19 +436,21 @@ class Driver implements ServerStarter {
       }
     }
 
-    if (analysisServerOptions.useLanguageServerProtocol) {
-      startLspServer(results, analysisServerOptions, dartSdkManager,
-          instrumentationService, diagnosticServerPort);
-    } else {
-      startAnalysisServer(
-          results,
-          analysisServerOptions,
-          parser,
-          dartSdkManager,
-          instrumentationService,
-          analytics,
-          diagnosticServerPort);
-    }
+    CompilerContext.runWithDefaultOptions((_) async {
+      if (analysisServerOptions.useLanguageServerProtocol) {
+        startLspServer(results, analysisServerOptions, dartSdkManager,
+            instrumentationService, diagnosticServerPort);
+      } else {
+        startAnalysisServer(
+            results,
+            analysisServerOptions,
+            parser,
+            dartSdkManager,
+            instrumentationService,
+            analytics,
+            diagnosticServerPort);
+      }
+    });
   }
 
   void startAnalysisServer(
@@ -532,6 +566,8 @@ class Driver implements ServerStarter {
   ) {
     final serve_http = diagnosticServerPort != null;
 
+    linter.registerLintRules();
+
     _DiagnosticServerImpl diagnosticServer = new _DiagnosticServerImpl();
 
     final socketServer = new LspSocketServer(
@@ -630,6 +666,10 @@ class Driver implements ServerStarter {
         help: 'enable DartPad specific functionality',
         defaultsTo: false,
         hide: true);
+    parser.addFlag(DISABLE_SERVER_FEATURE_COMPLETION,
+        help: 'disable all completion features', defaultsTo: false, hide: true);
+    parser.addFlag(DISABLE_SERVER_FEATURE_SEARCH,
+        help: 'disable all search features', defaultsTo: false, hide: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
@@ -682,6 +722,8 @@ class Driver implements ServerStarter {
         help: "Whether to enable parsing via the Fasta parser");
     parser.addFlag(USE_LSP,
         defaultsTo: false, help: "Whether to use the Language Server Protocol");
+    parser.addFlag(USE_SUMMARY2,
+        defaultsTo: false, help: "Whether to use summary2");
     parser.addOption(TRAIN_USING,
         help: "Pass in a directory to analyze for purposes of training an "
             "analysis server snapshot.");

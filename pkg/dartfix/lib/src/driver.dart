@@ -31,9 +31,12 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  Future start(List<String> args,
-      {Context testContext, Logger testLogger}) async {
-    final Options options = Options.parse(args);
+  Future start(
+    List<String> args, {
+    Context testContext,
+    Logger testLogger,
+  }) async {
+    final Options options = Options.parse(args, testContext, testLogger);
 
     force = options.force;
     overwrite = options.overwrite;
@@ -43,23 +46,44 @@ class Driver {
     server = new Server(listener: new _Listener(logger));
     handler = new _Handler(this);
 
+    // Start showing progress before we start the analysis server.
+    Progress progress;
+    if (options.showHelp) {
+      progress = logger.progress('${ansi.emphasized('Listing fixes')}');
+    } else {
+      progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
+    }
+
     if (!await startServer(options)) {
       context.exit(15);
     }
-    try {
-      if (checkSupported(options)) {
-        if (options.listFixes) {
-          await showListOfFixes();
-        } else {
-          final progress = await setupAnalysis(options);
-          result = await requestFixes(options, progress);
-        }
-      }
-    } finally {
+
+    if (!checkSupported(options)) {
       await server.stop();
+      context.exit(1);
     }
-    if (result != null) {
-      applyFixes();
+
+    if (options.showHelp) {
+      try {
+        await showListOfFixes(progress: progress);
+      } finally {
+        await server.stop();
+      }
+      context.exit(0);
+    }
+
+    Future serverStopped;
+    try {
+      await setupFixesAnalysis(options);
+      result = await requestFixes(options, progress: progress);
+      serverStopped = server.stop();
+      await applyFixes();
+      await serverStopped;
+    } finally {
+      // If we didn't already try to stop the server, then stop it now.
+      if (serverStopped == null) {
+        await server.stop();
+      }
     }
   }
 
@@ -80,7 +104,7 @@ class Driver {
       serverPath: serverPath,
     );
     server.listenToOutput(notificationProcessor: handler.handleEvent);
-    return handler.serverConnected(timeLimit: const Duration(seconds: 15));
+    return handler.serverConnected(timeLimit: const Duration(seconds: 30));
   }
 
   /// Check if the specified options is supported by the version of analysis
@@ -98,12 +122,11 @@ class Driver {
       unsupportedOption(includeOption);
       return false;
     }
-    if (options.listFixes) {
-      unsupportedOption(listOption);
-      return false;
-    }
     if (options.requiredFixes) {
       unsupportedOption(requiredOption);
+      return false;
+    }
+    if (options.showHelp) {
       return false;
     }
     return true;
@@ -116,8 +139,10 @@ The --$option option is not supported by analysis server version $version.
 Please upgrade to a newer version of the Dart SDK to use this option.''');
   }
 
-  Future<Progress> setupAnalysis(Options options) async {
-    final progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
+  Future<Progress> setupFixesAnalysis(
+    Options options, {
+    Progress progress,
+  }) async {
     logger.trace('');
     logger.trace('Setup analysis');
     await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
@@ -132,7 +157,9 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
   }
 
   Future<EditDartfixResult> requestFixes(
-      Options options, Progress progress) async {
+    Options options, {
+    Progress progress,
+  }) async {
     logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
 
@@ -232,34 +259,42 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
     return filePath;
   }
 
-  showListOfFixes() async {
-    final progress =
-        logger.progress('${ansi.emphasized('Getting list of fixes')}');
-    logger.trace('');
+  Future<EditGetDartfixInfoResult> showListOfFixes({Progress progress}) async {
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_GET_DARTFIX_INFO, new EditGetDartfixInfoParams().toJson());
-
-    progress.finish(showTiming: true);
+    progress?.finish(showTiming: true);
     ResponseDecoder decoder = new ResponseDecoder(null);
     final result = EditGetDartfixInfoResult.fromJson(decoder, 'result', json);
 
     final fixes = new List<DartFix>.from(result.fixes)
       ..sort((f1, f2) => f1.name.compareTo(f2.name));
 
-    for (DartFix fix in fixes) {
-      String line = fix.name;
-      if (fix.isRequired == true) {
-        line = '$line (required)';
-      }
-      logger.stdout('');
-      logger.stdout(line);
-      if (fix.description != null) {
-        for (String line in indentAndWrapDescription(fix.description)) {
-          logger.stdout(line);
-        }
+    logger.stdout('''
+
+These fixes are automatically applied unless at least one
+--$includeOption option is specified and --$requiredOption is not specified.
+They may be individually disabled using --$excludeOption.''');
+
+    fixes.where((fix) => fix.isRequired).forEach(showFix);
+
+    logger.stdout('''
+
+These fixes are NOT automatically applied, but may be enabled using --$includeOption.''');
+
+    fixes.where((fix) => !fix.isRequired).forEach(showFix);
+
+    return result;
+  }
+
+  void showFix(DartFix fix) {
+    logger.stdout('''
+
+* ${fix.name}''');
+    if (fix.description != null) {
+      for (String line in indentAndWrapDescription(fix.description)) {
+        logger.stdout(line);
       }
     }
-    return result;
   }
 
   List<String> indentAndWrapDescription(String description) =>

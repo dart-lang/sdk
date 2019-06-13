@@ -17,12 +17,28 @@ async/timer_not_available_test: RuntimeError
 isolate/ping_pause_test: Skip # Timeout
 
 [ $compiler == dartkb ]
+convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
+isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
+isolate/mandel_isolate_test: Pass, Timeout # Please triage.
+isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
 mirrors/*: Skip # Mirrors are not yet supported in bytecode modes.
+mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
+mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
+mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
+mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.
-isolate/browser/*: Skip # TODO(ahe): Make dart:html available.
+isolate/isolate_stress_test: CompileTimeError
 js/*: Skip # TODO(ahe): Make dart:js available.
+mirrors/deferred_type_test: CompileTimeError
+mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
+mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
+mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
+mirrors/mirrors_nsm_mismatch_test: CompileTimeError
+mirrors/mirrors_nsm_test/dart2js: CompileTimeError
+mirrors/mirrors_nsm_test/none: CompileTimeError
+mirrors/native_class_test: CompileTimeError
 
 [ $fasta ]
 async/future_or_type_test: CompileTimeError # Issue 34626
@@ -32,19 +48,19 @@ mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: CompileTimeError # Issue 34714
 mirrors/redirecting_factory_test/none: CompileTimeError # Issue 34714
 
-[ $arch == simdbc64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch == simdbc64 && $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
 
 [ $arch == simdbc64 && $hot_reload_rollback ]
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
 
-[ $arch == simdbc64 && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
 isolate/issue_24243_parent_isolate_test: RuntimeError # dartbug.com/35373
 
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
 
-[ $arch == x64 && $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $arch == x64 && $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/invocation_fuzz_test: Skip # Because it times out, issue 29439.
 
 [ $arch == x64 && ($hot_reload || $hot_reload_rollback) ]
@@ -65,28 +81,11 @@ mirrors/invocation_fuzz_test/string: Pass, Crash, RuntimeError # Flaky on vm-ker
 [ $compiler == app_jitk && ($mode == product || $mode == release) ]
 isolate/spawn_uri_nested_vm_test: Skip # Timeout, Issue 33385
 
-[ $compiler != dart2js && $fasta && !$strong ]
-isolate/browser/compute_this_script_browser_test: CompileTimeError
-isolate/browser/package_resolve_browser_hook2_test: CompileTimeError
-isolate/browser/package_resolve_browser_hook_test: CompileTimeError
-isolate/browser/package_resolve_browser_test: CompileTimeError
-
-# The failures below still need to be investigated and possibly fixed, or marked as skipped.
-[ $compiler == dartkb && $strong ]
-convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage.
-isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
-isolate/mandel_isolate_test: Pass, Timeout # Please triage.
-isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
-mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
-mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
-mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
-mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
-
-[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled && $strong ]
+[ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
 isolate/static_function_test: Skip # Flaky (https://github.com/dart-lang/sdk/issues/30063).
 
 # ===== dartkp + dart_precompiled status lines =====
-[ $compiler == dartkp && $runtime == dart_precompiled && $strong ]
+[ $compiler == dartkp && $runtime == dart_precompiled ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_distinct_test: RuntimeError
 async/timer_not_available_test: RuntimeError
@@ -98,32 +97,18 @@ isolate/ping_pause_test: Pass, Timeout
 isolate/spawn_uri_nested_vm_test: Pass, Timeout
 mirrors/*: SkipByDesign # Mirrors are not supported in AOT mode.
 
-[ $compiler == dartkp && !$strong ]
-*: SkipByDesign
-
-[ $compiler == fasta && $strong ]
-isolate/isolate_stress_test: CompileTimeError
-mirrors/deferred_type_test: CompileTimeError
-mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
-mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
-mirrors/mirrors_nsm_mismatch_test: CompileTimeError
-mirrors/mirrors_nsm_test/dart2js: CompileTimeError
-mirrors/mirrors_nsm_test/none: CompileTimeError
-mirrors/native_class_test: CompileTimeError
-
-[ $mode == debug && $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/other_declarations_location_test: Crash # Issue 33325 (assertion error, TypeParameter not having position).
 
 [ $mode == debug && $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/message3_test/constList_identical: Skip # Timeout
 
-[ $runtime == vm && $checked && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $runtime == vm && $checked && ($compiler == dartk || $compiler == dartkb) ]
 mirrors/redirecting_factory_different_type_test/none: RuntimeError # Issue 28424
 mirrors/reflected_type_generics_test/02: Pass
 
 # ===== dartk + vm status lines =====
-[ $runtime == vm && $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
 async/slow_consumer2_test: CompileTimeError # Issue 31402 (Invocation arguments)
 async/timer_not_available_test: RuntimeError
 html/*: SkipByDesign # dart:html not supported on VM.
@@ -172,7 +157,6 @@ mirrors/method_mirror_source_test: RuntimeError # Issue 33041
 mirrors/mirrors_nsm_mismatch_test: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/dart2js: CompileTimeError # Issue 31533
 mirrors/mirrors_nsm_test/none: CompileTimeError # Issue 31533
-mirrors/mirrors_reader_test: Crash
 mirrors/mirrors_test: RuntimeError
 mirrors/mirrors_used*: SkipByDesign # Invalid tests. MirrorsUsed does not have a specification, and dart:mirrors is not required to hide declarations that are not covered by any MirrorsUsed annotation.
 mirrors/mirrors_used_inheritance_test: RuntimeError
@@ -215,25 +199,6 @@ mirrors/typedef_reflected_type_test/none: RuntimeError
 mirrors/typedef_test: RuntimeError
 mirrors/typevariable_mirror_metadata_test: RuntimeError
 
-[ $fasta && !$strong ]
-isolate/isolate_import_test/01: MissingCompileTimeError
-isolate/isolate_stress_test: CompileTimeError
-mirrors/generics_test/01: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/02: MissingCompileTimeError
-mirrors/metadata_allowed_values_test/27: MissingCompileTimeError
-mirrors/metadata_constructor_arguments_test/04: MissingCompileTimeError
-mirrors/native_class_test: CompileTimeError
-mirrors/redirecting_factory_different_type_test/01: MissingCompileTimeError
-mirrors/reflect_class_test/01: MissingCompileTimeError
-mirrors/reflect_class_test/02: MissingCompileTimeError
-mirrors/reflected_type_classes_test/01: MissingCompileTimeError
-mirrors/reflected_type_test/01: MissingCompileTimeError
-mirrors/regress_16321_test/01: MissingCompileTimeError
-mirrors/top_level_accessors_test/01: MissingCompileTimeError
-typed_data/float32x4_static_test: MissingCompileTimeError
-typed_data/int32x4_static_test/01: MissingCompileTimeError
-typed_data/int32x4_static_test/02: MissingCompileTimeError
-
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 isolate/illegal_msg_function_test: Skip # Timeout
 isolate/pause_test: Skip # Timeout
@@ -241,15 +206,27 @@ isolate/pause_test: Skip # Timeout
 # Enabling of dartk for sim{arm,arm64,dbc64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
-[ $strong && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
+[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 isolate/mandel_isolate_test: Pass, Timeout
 isolate/nested_spawn2_test: Pass, RuntimeError # RuntimeError caused by timeout
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
-[ $strong && ($compiler == dartk || $compiler == dartkb) ]
+[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
+isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
+isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
+mirrors/dynamic_load_test: Crash
+mirrors/library_uri_io_test: Skip # Timeout
+mirrors/library_uri_package_test: Skip # Timeout
+
+[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
+html/*: SkipByDesign
+js/*: SkipByDesign
+
+[ $compiler == dartk || $compiler == dartkb ]
 async/slow_consumer2_test: RuntimeError # Issue 31402 (Invocation arguments)
 async/stream_distinct_test: RuntimeError
 isolate/ping_pause_test: RuntimeError
+isolate/ping_pause_test: Skip # Issues 32137 and 32138
 isolate/request_reply_test: Pass, Timeout
 isolate/stacktrace_message_test: RuntimeError
 mirrors/constructor_optional_args_test: RuntimeError
@@ -264,25 +241,6 @@ mirrors/mixin_members_test: RuntimeError
 mirrors/operator_test: RuntimeError
 mirrors/redirecting_factory_different_type_test/none: RuntimeError
 mirrors/redirecting_factory_reflection_test: RuntimeError
-
-# ===== Skip dartk and darkp in !$strong mode ====
-[ !$strong && ($compiler == dartk || $compiler == dartkb) ]
-*: SkipByDesign
-
-[ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
-isolate/mandel_isolate_test: Pass, Timeout, RuntimeError # Test can time out which results in runtime error
-isolate/message4_test: Pass, Timeout, Crash # Timeout and sporadic crash (issue 33824)
-mirrors/dynamic_load_test: Crash
-mirrors/library_uri_io_test: Skip # Timeout
-mirrors/library_uri_package_test: Skip # Timeout
-
-[ $compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp ]
-html/*: SkipByDesign
-isolate/browser/*: SkipByDesign
-js/*: SkipByDesign
-
-[ $compiler == dartk || $compiler == dartkb ]
-isolate/ping_pause_test: Skip # Issues 32137 and 32138
 
 [ $hot_reload || $hot_reload_rollback ]
 isolate/issue_6610_test: Skip # Sources are looked up on every reload request.

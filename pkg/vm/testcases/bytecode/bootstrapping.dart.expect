@@ -51,8 +51,8 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  InterfaceCall        1, CP#0
-  DirectCall           1, CP#2
+  InterfaceCall        CP#0, 1
+  DirectCall           CP#2, 1
   Drop1
   PushNull
   ReturnTOS
@@ -134,13 +134,13 @@ Bytecode {
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#1
-  InterfaceCall        2, CP#2
+  InterfaceCall        CP#2, 2
   AssertBoolean        0
   JumpIfTrue           L1
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#4
-  InterfaceCall        2, CP#2
+  InterfaceCall        CP#2, 2
   AssertBoolean        0
   PopLocal             r1
   Jump                 L2
@@ -153,7 +153,7 @@ L2:
   PushConstant         CP#0
   PushStatic           CP#0
   PushConstant         CP#5
-  InterfaceCall        2, CP#2
+  InterfaceCall        CP#2, 2
   AssertBoolean        0
   PopLocal             r0
   Jump                 L4
@@ -165,15 +165,15 @@ L4:
   JumpIfFalse          L5
   PushConstant         CP#0
   PushStatic           CP#0
-  DirectCall           1, CP#6
+  DirectCall           CP#6, 1
   ReturnTOS
 L5:
-  DirectCall           0, CP#8
+  DirectCall           CP#8, 0
   PushNull
   PushConstant         CP#0
   PushStatic           CP#0
-  DirectCall           2, CP#10
-  InterfaceCall        2, CP#12
+  DirectCall           CP#10, 2
+  InterfaceCall        CP#12, 2
   ReturnTOS
 }
 ConstantPool {
@@ -203,7 +203,7 @@ Bytecode {
   Entry                1
   CheckStack           0
   PushConstant         CP#0
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   Drop1
   PushNull
   ReturnTOS
@@ -229,7 +229,7 @@ Bytecode {
   JumpIfFalse          L1
   PushConstant         CP#1
   PushStatic           CP#1
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   StoreLocal           r1
   Push                 r1
   StoreStaticTOS       CP#0
@@ -289,7 +289,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -324,7 +324,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -397,10 +397,10 @@ Bytecode {
   Allocate             CP#0
   StoreLocal           r1
   Push                 r1
-  DirectCall           1, CP#1
+  DirectCall           CP#1, 1
   Drop1
   Push                 FP[-5]
-  DirectCall           2, CP#3
+  DirectCall           CP#3, 2
   StoreStaticTOS       CP#5
   PushNull
   ReturnTOS
@@ -430,10 +430,10 @@ Bytecode {
   Allocate             CP#1
   StoreLocal           r1
   Push                 r1
-  DirectCall           1, CP#2
+  DirectCall           CP#2, 1
   Drop1
-  DirectCall           0, CP#4
-  DirectCall           2, CP#6
+  DirectCall           CP#4, 0
+  DirectCall           CP#6, 2
   StoreStaticTOS       CP#0
 L1:
   PushConstant         CP#0
@@ -460,8 +460,8 @@ Function 'get:_namespacePointer', getter, static, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  DirectCall           0, CP#0
-  DirectCall           1, CP#2
+  DirectCall           CP#0, 0
+  DirectCall           CP#2, 1
   ReturnTOS
 }
 ConstantPool {
@@ -479,11 +479,11 @@ ConstantPool {
     constructor _() → #lib::_NamespaceImpl
       : super dart.core::Object::•()
       ;
-    @#C2
+    @dart._internal::ExternalName::•("Namespace_Create")
     external static method _create(#lib::_NamespaceImpl namespace, dynamic n) → #lib::_NamespaceImpl;
-    @#C4
+    @dart._internal::ExternalName::•("Namespace_GetPointer")
     external static method _getPointer(#lib::_NamespaceImpl namespace) → dart.core::int;
-    @#C6
+    @dart._internal::ExternalName::•("Namespace_GetDefault")
     external static method _getDefault() → dart.core::int;
     static method _setupNamespace(dynamic namespace) → void {
       #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), namespace);
@@ -511,7 +511,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -531,7 +531,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -550,7 +550,7 @@ Function 'get:_namespace', getter, static, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  DirectCall           0, CP#0
+  DirectCall           CP#0, 0
   ReturnTOS
 }
 ConstantPool {
@@ -567,7 +567,7 @@ Function 'get:_namespacePointer', getter, static, reflectable, debuggable
 Bytecode {
   Entry                0
   CheckStack           0
-  DirectCall           0, CP#0
+  DirectCall           CP#0, 0
   ReturnTOS
 }
 ConstantPool {
@@ -636,7 +636,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -694,7 +694,7 @@ L2:
   JumpIfFalse          L3
   PushConstant         CP#1
   PushStatic           CP#1
-  DynamicCall          1, CP#3
+  DynamicCall          CP#3, 1
   StoreStaticTOS       CP#0
 L3:
   PushConstant         CP#0
@@ -751,7 +751,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -783,7 +783,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -823,13 +823,13 @@ ConstantPool {
   static field dart.core::int _stderrFD = 2;
   static field dart.core::String _rawScript;
   static field #lib::Stdin _stdin;
-  @#C8
+  @dart._internal::ExternalName::•("Builtin_PrintString")
   external static method _printString(dart.core::String s) → void;
   static method _print(dynamic arg) → void {
     #lib::_printString(arg.{dart.core::Object::toString}());
   }
   static method _getPrintClosure() → dynamic
-    return #C9;
+    return #lib::_print;
   static method _setScheduleImmediateClosure((() → void) → void closure) → void {
     #lib::_ScheduleImmediate::_closure = closure;
   }
@@ -847,23 +847,11 @@ ConstantPool {
     }
   }
   static method _setupHooks() → dynamic {
-    #lib::VMLibraryHooks::platformScript = #C10;
+    #lib::VMLibraryHooks::platformScript = #lib::_scriptUri;
   }
   static get stdin() → #lib::Stdin {
     #lib::_stdin.{dart.core::Object::==}(null) ?{#lib::Stdin} #lib::_stdin = #lib::_StdIOUtils::_getStdioInputStream(#lib::_stdinFD) : null;
     return #lib::_stdin;
   }
   static method main() → dynamic {}
-}
-constants  {
-  #C1 = "Namespace_Create"
-  #C2 = dart._internal::ExternalName {name: #C1}
-  #C3 = "Namespace_GetPointer"
-  #C4 = dart._internal::ExternalName {name: #C3}
-  #C5 = "Namespace_GetDefault"
-  #C6 = dart._internal::ExternalName {name: #C5}
-  #C7 = "Builtin_PrintString"
-  #C8 = dart._internal::ExternalName {name: #C7}
-  #C9 = TearOffConstant(#lib::_print)
-  #C10 = TearOffConstant(#lib::_scriptUri)
 }

@@ -37,13 +37,14 @@
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,        \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,     \
+                     ##__VA_ARGS__);                                           \
     errno = err;                                                               \
   }
 #if defined(SOCKET_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  Syslog::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__,           \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(SOCKET_LOG_INFO)
@@ -180,7 +181,13 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
 }
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
-  errno = ENOSYS;
+  IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
+  ASSERT(handle->fd() >= 0);
+  int len = sizeof(errno);
+  int err = 0;
+  VOID_NO_RETRY_EXPECTED(getsockopt(handle->fd(), SOL_SOCKET, SO_ERROR, &err,
+                                    reinterpret_cast<socklen_t*>(&len)));
+  errno = err;
   os_error->SetCodeAndMessage(OSError::kSystem, errno);
 }
 

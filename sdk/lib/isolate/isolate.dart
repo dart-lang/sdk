@@ -17,6 +17,8 @@
 library dart.isolate;
 
 import "dart:async";
+import "dart:_internal" show Since;
+import "dart:typed_data" show ByteBuffer, TypedData, Uint8List;
 
 part "capability.dart";
 
@@ -123,6 +125,7 @@ class Isolate {
    * `Dart_DebugName` in the C embedding API and the `debugName` property in
    * [IsolateMirror].
    */
+  @Since("2.3")
   external String get debugName;
 
   /**
@@ -249,7 +252,7 @@ class Isolate {
       bool errorsAreFatal,
       SendPort onExit,
       SendPort onError,
-      String debugName});
+      @Since("2.3") String debugName});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -337,7 +340,8 @@ class Isolate {
           Uri packageRoot,
       Uri packageConfig,
       bool automaticPackageResolution: false,
-      String debugName});
+      @Since("2.3")
+          String debugName});
 
   /**
    * Requests the isolate to pause.
@@ -749,4 +753,37 @@ class RemoteError implements Error {
       : _description = description,
         stackTrace = new StackTrace.fromString(stackDescription);
   String toString() => _description;
+}
+
+/*
+ * An efficiently transferable sequence of byte values.
+ *
+ * A [TransferableTypedData] is created from a number of bytes.
+ * This will take time proportional to the number of bytes.
+ *
+ * The [TransferableTypedData] can be moved between isolates, so
+ * sending it through a send port will only take constant time.
+ *
+ * When sent this way, the local transferable can no longer be materialized,
+ * and the received object is now the only way to materialize the data.
+ */
+@Since("2.3.2")
+abstract class TransferableTypedData {
+  /**
+   * Creates a new [TransferableTypedData] containing the bytes of [list].
+   *
+   * It must be possible to create a single [Uint8List] containing the
+   * bytes, so if there are more bytes than what the platform allows in
+   * a single [Uint8List], then creation fails.
+   */
+  external factory TransferableTypedData.fromList(List<TypedData> list);
+
+  /**
+   * Creates a new [ByteBuffer] containing the bytes stored in this [TransferableTypedData].
+   *
+   * The [TransferableTypedData] is a cross-isolate single-use resource.
+   * This method must not be called more than once on the same underlying
+   * transferable bytes, even if the calls occur in different isolates.
+   */
+  ByteBuffer materialize();
 }

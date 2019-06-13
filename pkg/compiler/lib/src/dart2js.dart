@@ -110,6 +110,10 @@ Future<api.CompilationResult> compile(List<String> argv,
   Uri sourceMapOut;
   Uri readDataUri;
   Uri writeDataUri;
+  Uri readCodegenUri;
+  Uri writeCodegenUri;
+  int codegenShard;
+  int codegenShards;
   List<String> bazelPaths;
   Uri packageConfig = null;
   Uri packageRoot = null;
@@ -129,7 +133,8 @@ Future<api.CompilationResult> compile(List<String> argv,
   int optimizationLevel = null;
   Uri platformBinaries;
   Map<String, String> environment = new Map<String, String>();
-  CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+  ReadStrategy readStrategy = ReadStrategy.fromDart;
+  WriteStrategy writeStrategy = WriteStrategy.toJs;
 
   void passThrough(String argument) => options.add(argument);
   void ignoreOption(String argument) {}
@@ -246,13 +251,12 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setReadData(String argument) {
-    if (compilationStrategy == CompilationStrategy.toData) {
-      fail("Cannot read and write serialized simultaneously.");
-    }
     if (argument != Flags.readData) {
       readDataUri = nativeToUri(extractPath(argument, isDirectory: false));
     }
-    compilationStrategy = CompilationStrategy.fromData;
+    if (readStrategy != ReadStrategy.fromCodegen) {
+      readStrategy = ReadStrategy.fromData;
+    }
   }
 
   void setDillDependencies(String argument) {
@@ -263,17 +267,58 @@ Future<api.CompilationResult> compile(List<String> argv,
   }
 
   void setCfeOnly(String argument) {
-    compilationStrategy = CompilationStrategy.toKernel;
+    if (writeStrategy == WriteStrategy.toData) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized data simultaneously.");
+    }
+    if (writeStrategy == WriteStrategy.toCodegen) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized codegen simultaneously.");
+    }
+    writeStrategy = WriteStrategy.toKernel;
+  }
+
+  void setReadCodegen(String argument) {
+    if (argument != Flags.readCodegen) {
+      readCodegenUri = nativeToUri(extractPath(argument, isDirectory: false));
+    }
+    readStrategy = ReadStrategy.fromCodegen;
   }
 
   void setWriteData(String argument) {
-    if (compilationStrategy == CompilationStrategy.fromData) {
-      fail("Cannot read and write serialized simultaneously.");
+    if (writeStrategy == WriteStrategy.toKernel) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized data simultaneously.");
+    }
+    if (writeStrategy == WriteStrategy.toCodegen) {
+      fail("Cannot write serialized data and codegen simultaneously.");
     }
     if (argument != Flags.writeData) {
       writeDataUri = nativeToUri(extractPath(argument, isDirectory: false));
     }
-    compilationStrategy = CompilationStrategy.toData;
+    writeStrategy = WriteStrategy.toData;
+  }
+
+  void setWriteCodegen(String argument) {
+    if (writeStrategy == WriteStrategy.toKernel) {
+      fail("Cannot use ${Flags.cfeOnly} "
+          "and write serialized codegen simultaneously.");
+    }
+    if (writeStrategy == WriteStrategy.toData) {
+      fail("Cannot write serialized data and codegen data simultaneously.");
+    }
+    if (argument != Flags.writeCodegen) {
+      writeCodegenUri = nativeToUri(extractPath(argument, isDirectory: false));
+    }
+    writeStrategy = WriteStrategy.toCodegen;
+  }
+
+  void setCodegenShard(String argument) {
+    codegenShard = int.parse(extractParameter(argument));
+  }
+
+  void setCodegenShards(String argument) {
+    codegenShards = int.parse(extractParameter(argument));
   }
 
   void setDumpInfo(String argument) {
@@ -349,6 +394,12 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('${Flags.dillDependencies}=.+', setDillDependencies),
     new OptionHandler('${Flags.readData}|${Flags.readData}=.+', setReadData),
     new OptionHandler('${Flags.writeData}|${Flags.writeData}=.+', setWriteData),
+    new OptionHandler(
+        '${Flags.readCodegen}|${Flags.readCodegen}=.+', setReadCodegen),
+    new OptionHandler(
+        '${Flags.writeCodegen}|${Flags.writeCodegen}=.+', setWriteCodegen),
+    new OptionHandler('${Flags.codegenShard}=.+', setCodegenShard),
+    new OptionHandler('${Flags.codegenShards}=.+', setCodegenShards),
     new OptionHandler(Flags.cfeOnly, setCfeOnly),
     new OptionHandler(Flags.debugGlobalInference, passThrough),
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
@@ -414,7 +465,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler('--enable-null-aware-operators', ignoreOption),
     new OptionHandler('--enable-enum', ignoreOption),
     new OptionHandler(Flags.allowNativeExtensions, setAllowNativeExtensions),
-    new OptionHandler(Flags.generateCodeWithCompileTimeErrors, passThrough),
+    new OptionHandler(Flags.generateCodeWithCompileTimeErrors, ignoreOption),
     new OptionHandler(Flags.useMultiSourceInfo, passThrough),
     new OptionHandler(Flags.useNewSourceInfo, passThrough),
     new OptionHandler(Flags.testMode, passThrough),
@@ -511,28 +562,86 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   String scriptName = arguments[0];
 
-  switch (compilationStrategy) {
-    case CompilationStrategy.direct:
+  switch (writeStrategy) {
+    case WriteStrategy.toJs:
       out ??= currentDirectory.resolve('out.js');
       break;
-    case CompilationStrategy.toKernel:
+    case WriteStrategy.toKernel:
       out ??= currentDirectory.resolve('out.dill');
       options.add(Flags.cfeOnly);
+      if (readStrategy == ReadStrategy.fromData) {
+        fail("Cannot use ${Flags.cfeOnly} "
+            "and read serialized data simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromCodegen) {
+        fail("Cannot use ${Flags.cfeOnly} "
+            "and read serialized codegen simultaneously.");
+      }
       break;
-    case CompilationStrategy.toData:
+    case WriteStrategy.toData:
       out ??= currentDirectory.resolve('out.dill');
       writeDataUri ??= currentDirectory.resolve('$out.data');
       options.add('${Flags.writeData}=${writeDataUri}');
+      if (readStrategy == ReadStrategy.fromData) {
+        fail("Cannot read and write serialized data simultaneously.");
+      } else if (readStrategy == ReadStrategy.fromCodegen) {
+        fail("Cannot read serialized codegen and "
+            "write serialized data simultaneously.");
+      }
       break;
-    case CompilationStrategy.fromData:
-      out ??= currentDirectory.resolve('out.js');
+    case WriteStrategy.toCodegen:
+      // TODO(johnniwinther): Avoid the need for an [out] value in this case or
+      // use [out] to pass [writeCodegenUri].
+      out ??= currentDirectory.resolve('out');
+      writeCodegenUri ??= currentDirectory.resolve('$out.code');
+      options.add('${Flags.writeCodegen}=${writeCodegenUri}');
+      if (readStrategy == ReadStrategy.fromCodegen) {
+        fail("Cannot read and write serialized codegen simultaneously.");
+      }
+      if (readStrategy != ReadStrategy.fromData) {
+        fail("Can only write serialized codegen from serialized data.");
+      }
+      if (codegenShards == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShards}.");
+      } else if (codegenShards <= 0) {
+        fail("${Flags.codegenShards} must be a positive integer.");
+      }
+      if (codegenShard == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShard}.");
+      } else if (codegenShard < 0 || codegenShard >= codegenShards) {
+        fail("${Flags.codegenShard} must be between 0 and "
+            "${Flags.codegenShards}.");
+      }
+      options.add('${Flags.codegenShard}=$codegenShard');
+      options.add('${Flags.codegenShards}=$codegenShards');
+      break;
+  }
+  switch (readStrategy) {
+    case ReadStrategy.fromDart:
+      break;
+    case ReadStrategy.fromData:
       readDataUri ??= currentDirectory.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
+    case ReadStrategy.fromCodegen:
+      readDataUri ??= currentDirectory.resolve('$scriptName.data');
+      options.add('${Flags.readData}=${readDataUri}');
+      readCodegenUri ??= currentDirectory.resolve('$scriptName.code');
+      options.add('${Flags.readCodegen}=${readCodegenUri}');
+      if (codegenShards == null) {
+        fail("Cannot write serialized codegen without setting "
+            "${Flags.codegenShards}.");
+      } else if (codegenShards <= 0) {
+        fail("${Flags.codegenShards} must be a positive integer.");
+      }
+      options.add('${Flags.codegenShards}=$codegenShards');
   }
   options.add('--out=$out');
-  sourceMapOut = Uri.parse('$out.map');
-  options.add('--source-map=${sourceMapOut}');
+  if (writeStrategy == WriteStrategy.toJs) {
+    sourceMapOut = Uri.parse('$out.map');
+    options.add('--source-map=${sourceMapOut}');
+  }
 
   RandomAccessFileOutputProvider outputProvider =
       new RandomAccessFileOutputProvider(out, sourceMapOut,
@@ -544,86 +653,98 @@ Future<api.CompilationResult> compile(List<String> argv,
     }
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
-    switch (compilationStrategy) {
-      case CompilationStrategy.direct:
-        int dartCharactersRead = inputProvider.dartCharactersRead;
-        int jsCharactersWritten =
-            outputProvider.totalCharactersWrittenJavaScript;
-        int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
-        print('Compiled '
-            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
-            '${_formatCharacterCount(jsCharactersWritten)} characters '
-            'JavaScript in '
-            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
 
-        diagnosticHandler
-            .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
-                'JavaScript in '
-                '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (outputSpecified || diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          String output = relativize(currentDirectory, out, Platform.isWindows);
-          print('Dart file ($input) compiled to JavaScript: $output');
-          if (diagnosticHandler.verbose) {
-            var files = outputProvider.allOutputFiles;
-            int jsCount = files.where((f) => f.endsWith('.js')).length;
-            print('Emitted file $jsCount JavaScript files.');
-          }
-        }
+    String input = uriPathToNative(scriptName);
+    int inputSize;
+    String processName;
+    String inputName;
+
+    int outputSize;
+    int primaryOutputSize;
+    String outputName;
+
+    String summary;
+    switch (readStrategy) {
+      case ReadStrategy.fromDart:
+        inputName = 'characters Dart';
+        inputSize = inputProvider.dartCharactersRead;
+        summary = 'Dart file $input ';
         break;
-      case CompilationStrategy.toKernel:
-        int dartCharactersRead = inputProvider.dartCharactersRead;
-        int dataBytesWritten = outputProvider.totalDataWritten;
-        print('Compiled '
-            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
-            '${_formatCharacterCount(dataBytesWritten)} kernel bytes in '
-            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
-        String input = uriPathToNative(scriptName);
-        String dillOutput =
-            relativize(currentDirectory, out, Platform.isWindows);
-        print('Dart file ($input) compiled to ${dillOutput}.');
+      case ReadStrategy.fromData:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String dataInput =
+            relativize(currentDirectory, readDataUri, Platform.isWindows);
+        summary = 'Data files $input and $dataInput ';
         break;
-      case CompilationStrategy.toData:
-        int dartCharactersRead = inputProvider.dartCharactersRead;
-        int dataBytesWritten = outputProvider.totalDataWritten;
-        print('Serialized '
-            '${_formatCharacterCount(dartCharactersRead)} characters Dart to '
-            '${_formatCharacterCount(dataBytesWritten)} bytes data in '
-            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
-        String input = uriPathToNative(scriptName);
-        String dillOutput =
-            relativize(currentDirectory, out, Platform.isWindows);
+      case ReadStrategy.fromCodegen:
+        inputName = 'bytes data';
+        inputSize = inputProvider.dartCharactersRead;
+        String dataInput =
+            relativize(currentDirectory, readDataUri, Platform.isWindows);
+        String codeInput =
+            relativize(currentDirectory, readCodegenUri, Platform.isWindows);
+        summary = 'Data files $input, $dataInput and '
+            '${codeInput}[0-${codegenShards - 1}] ';
+        break;
+    }
+
+    switch (writeStrategy) {
+      case WriteStrategy.toJs:
+        processName = 'Compiled';
+        outputName = 'characters JavaScript';
+        outputSize = outputProvider.totalCharactersWrittenJavaScript;
+        primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
+        String output = relativize(currentDirectory, out, Platform.isWindows);
+        summary += 'compiled to JavaScript: ${output}';
+        break;
+      case WriteStrategy.toKernel:
+        processName = 'Compiled';
+        outputName = 'kernel bytes';
+        outputSize = outputProvider.totalDataWritten;
+        String output = relativize(currentDirectory, out, Platform.isWindows);
+        summary += 'compiled to dill: ${output}.';
+        break;
+      case WriteStrategy.toData:
+        processName = 'Serialized';
+        outputName = 'bytes data';
+        outputSize = outputProvider.totalDataWritten;
+        String output = relativize(currentDirectory, out, Platform.isWindows);
         String dataOutput =
             relativize(currentDirectory, writeDataUri, Platform.isWindows);
-        print('Dart file ($input) serialized to '
-            '${dillOutput} and ${dataOutput}.');
+        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
-      case CompilationStrategy.fromData:
-        int dataCharactersRead = inputProvider.dartCharactersRead;
-        int jsCharactersWritten =
-            outputProvider.totalCharactersWrittenJavaScript;
-        int jsCharactersPrimary = outputProvider.totalCharactersWrittenPrimary;
-        print('Compiled '
-            '${_formatCharacterCount(dataCharactersRead)} bytes data to '
-            '${_formatCharacterCount(jsCharactersWritten)} characters '
-            'JavaScript in '
-            '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+      case WriteStrategy.toCodegen:
+        processName = 'Serialized';
+        outputName = 'bytes data';
+        outputSize = outputProvider.totalDataWritten;
+        String codeOutput =
+            relativize(currentDirectory, writeCodegenUri, Platform.isWindows);
+        summary += 'serialized to codegen data: '
+            '${codeOutput}${codegenShard}.';
+        break;
+    }
 
-        diagnosticHandler
-            .info('${_formatCharacterCount(jsCharactersPrimary)} characters '
-                'JavaScript in '
-                '${relativize(currentDirectory, out, Platform.isWindows)}');
-        if (outputSpecified || diagnosticHandler.verbose) {
-          String input = uriPathToNative(scriptName);
-          String output = relativize(currentDirectory, out, Platform.isWindows);
-          print('Dart file ($input) compiled to JavaScript: $output');
-          if (diagnosticHandler.verbose) {
-            var files = outputProvider.allOutputFiles;
-            int jsCount = files.where((f) => f.endsWith('.js')).length;
-            print('Emitted file $jsCount JavaScript files.');
-          }
+    print('$processName '
+        '${_formatCharacterCount(inputSize)} $inputName to '
+        '${_formatCharacterCount(outputSize)} $outputName in '
+        '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
+    if (primaryOutputSize != null) {
+      diagnosticHandler
+          .info('${_formatCharacterCount(primaryOutputSize)} $outputName '
+              'in ${relativize(currentDirectory, out, Platform.isWindows)}');
+    }
+    if (writeStrategy == WriteStrategy.toJs) {
+      if (outputSpecified || diagnosticHandler.verbose) {
+        print(summary);
+        if (diagnosticHandler.verbose) {
+          var files = outputProvider.allOutputFiles;
+          int jsCount = files.where((f) => f.endsWith('.js')).length;
+          print('Emitted file $jsCount JavaScript files.');
         }
-        break;
+      }
+    } else {
+      print(summary);
     }
 
     return result;
@@ -1043,4 +1164,5 @@ void batchMain(List<String> batchArguments) {
   });
 }
 
-enum CompilationStrategy { direct, toKernel, toData, fromData }
+enum ReadStrategy { fromDart, fromData, fromCodegen }
+enum WriteStrategy { toKernel, toData, toCodegen, toJs }

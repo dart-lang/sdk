@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -48,8 +49,8 @@ Element _getLocalElement(SimpleIdentifier node) {
  * Returns the "normalized" version of the given source, which is reconstructed
  * from tokens, so ignores all the comments and spaces.
  */
-String _getNormalizedSource(String src) {
-  List<Token> selectionTokens = TokenUtils.getTokens(src);
+String _getNormalizedSource(String src, FeatureSet featureSet) {
+  List<Token> selectionTokens = TokenUtils.getTokens(src, featureSet);
   return selectionTokens.join(_TOKEN_SEPARATOR);
 }
 
@@ -674,7 +675,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         .accept(new _GetSourcePatternVisitor(range, pattern, replaceEdits));
     replaceEdits = replaceEdits.reversed.toList();
     String source = SourceEdit.applySequence(originalSource, replaceEdits);
-    pattern.normalizedSource = _getNormalizedSource(source);
+    pattern.normalizedSource =
+        _getNormalizedSource(source, resolveResult.unit.featureSet);
     return pattern;
   }
 

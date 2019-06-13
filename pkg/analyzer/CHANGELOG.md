@@ -1,3 +1,43 @@
+## 0.36.4-dev (not yet published)
+* Deprecated the `isNonNullableUnit` parameter of the `TypeResolverVisitor`
+  constructor.  TypeResolverVisitor should now be configured using the
+  `featureSet` parameter.
+* Refined the return type of the getter `TypeParameter.declaredElement`.  It is
+  always guaranteed to return a `TypeParameterElement`.
+* Deprecated the `abstract` setter in `ClassElementImpl`, `EnumElementImpl`,
+  `MethodElementImpl`, and `PropertyAccessorElementImpl`.  `isAbstract` should
+  be used instead.
+* Changed the way function types are displayed from e.g. `(int) -> void` to
+  `void Function(int)`. This is more consistent with the syntax of Dart, and it
+  will avoid ambiguities when nullability is added to the type system. This
+  impacts to value returned by `FunctionType.displayName` and
+  `FunctionType.toString` and `ExecutableElement.toString`. Client code might be
+  broken if it depends on the content of the returned value.
+
+## 0.36.3
+* Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this
+  method will be changed so that all its parameters are named parameters.
+  Clients wishing to prepare for this should switch to using
+  `AstFactory.compilationUnit2`.
+* Deprecated Parser setters `enableControlFlowCollections`, `enableNonNullable`,
+  `enableSpreadCollections`, and `enableTripleShift`, as well as the
+  recently-introduced method `configureFeatures`.  Parsers should now be
+  configured by passing a FeatureSet object to the Parser constructor.
+* Deprecated `AnalysisError.isStaticOnly`.
+* Deprecated `AnalysisError.offset` setter.
+* Added method `LinterContext.canBeConstConstructor`.
+* Bug fixes: #36732, #36775.
+
+## 0.36.2
+* Bug fixes: #36724.
+
+## 0.36.1
+* Deprecated `DartType.isUndefined`, and now it always returns `false`.
+* The "UI as code" features (control_flow_collections and spread_collections)
+  are now enabled.
+* Bug fixes: #32918, #36262, #36380, #36439, #36492, #36529, #36576, #36667,
+  #36678, #36691.
+
 ## 0.36.0
 * Changed the return type of `Expression.precendence` to `Precedence`.  Clients
   that prepared for this change by switching to `Expression.precedence2` should

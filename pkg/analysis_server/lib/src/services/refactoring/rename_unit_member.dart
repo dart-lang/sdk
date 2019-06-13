@@ -14,6 +14,7 @@ import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -43,6 +44,8 @@ Future<RefactoringStatus> validateRenameTopLevel(
  * A [Refactoring] for renaming compilation unit member [Element]s.
  */
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
   /// If the [element] is a Flutter `StatefulWidget` declaration, this is the
   /// corresponding `State` declaration.
   ClassElement _flutterWidgetState;
@@ -51,7 +54,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   String _flutterWidgetStateNewName;
 
   RenameUnitMemberRefactoringImpl(
-      RefactoringWorkspace workspace, Element element)
+      RefactoringWorkspace workspace, this.resolvedUnit, Element element)
       : super(workspace, element);
 
   @override
@@ -144,7 +147,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _findFlutterStateClass() {
-    var flutter = Flutter.of(element.session);
+    var flutter = Flutter.of(resolvedUnit);
     if (flutter.isStatefulWidgetDeclaration(element)) {
       var oldStateName = oldName + 'State';
       _flutterWidgetState = element.library.getType(oldStateName) ??

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,7 +19,8 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
 /// bodies should be serialized to facilitate type inference.
 UnlinkedUnitBuilder serializeAstUnlinked(CompilationUnit compilationUnit,
     {bool serializeInferrableFields: true}) {
-  return new _SummarizeAstVisitor(serializeInferrableFields)
+  return new _SummarizeAstVisitor(serializeInferrableFields,
+          compilationUnit.featureSet.isEnabled(Feature.non_nullable))
       .serializeCompilationUnit(compilationUnit);
 }
 
@@ -42,6 +44,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       List<String> variableNames)
       : variableNames = variableNames ?? [],
         super(forConst);
+
+  @override
+  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) =>
+      visitor.computeNullabilitySuffix(question);
 
   @override
   bool isParameterName(String name) {
@@ -86,7 +92,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializeConstructorRef(Identifier typeName,
       TypeArgumentList typeArguments, SimpleIdentifier name) {
-    EntityRefBuilder typeBuilder = serializeTypeName(typeName, typeArguments);
+    EntityRefBuilder typeBuilder = serializeTypeName(
+        typeName, typeArguments, EntityRefNullabilitySuffix.starOrIrrelevant);
     if (name == null) {
       return typeBuilder;
     } else {
@@ -114,7 +121,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       visitor.serializeGenericFunctionType(node);
 
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
-    EntityRefBuilder b = new EntityRefBuilder();
+    EntityRefBuilder b =
+        new EntityRefBuilder(nullabilitySuffix: computeNullabilitySuffix(null));
     if (identifier is SimpleIdentifier) {
       int index = visitor.serializeSimpleReference(identifier.name);
       if (index < 0) {
@@ -160,8 +168,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   EntityRefBuilder serializeTypeName(
-      Identifier name, TypeArgumentList arguments) {
-    return visitor.serializeTypeName(name, arguments);
+      Identifier name,
+      TypeArgumentList arguments,
+      EntityRefNullabilitySuffix nullabilitySuffix) {
+    return visitor.serializeTypeName(name, arguments, nullabilitySuffix);
   }
 }
 
@@ -215,6 +225,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// be serialized are those involved in constants, since type inference is
   /// performed using the AST representation.
   final bool _serializeInferrableFields;
+
+  final bool _nnbd;
 
   /// List of objects which should be written to [UnlinkedUnit.classes].
   final List<UnlinkedClassBuilder> classes = <UnlinkedClassBuilder>[];
@@ -324,7 +336,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// covariance.
   bool _parametersMayInheritCovariance = false;
 
-  _SummarizeAstVisitor(this._serializeInferrableFields);
+  _SummarizeAstVisitor(this._serializeInferrableFields, this._nnbd);
 
   /// Create a slot id for storing a propagated or inferred type or const cycle
   /// info.
@@ -353,6 +365,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     return scope;
+  }
+
+  EntityRefNullabilitySuffix computeNullabilitySuffix(Token question) {
+    if (!_nnbd) return EntityRefNullabilitySuffix.starOrIrrelevant;
+    if (question != null) return EntityRefNullabilitySuffix.question;
+    return EntityRefNullabilitySuffix.none;
   }
 
   /// Serialize the given list of [annotations].  If there are no annotations,
@@ -473,7 +491,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       unlinkedImports.add(new UnlinkedImportBuilder(isImplicit: true));
     }
     compilationUnit.declarations.accept(this);
-    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
+    UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(
+        isNNBD: compilationUnit.featureSet.isEnabled(Feature.non_nullable));
     b.lineStarts = compilationUnit.lineInfo?.lineStarts;
     b.isPartOf = isPartOf;
     b.libraryName = libraryName;
@@ -711,7 +730,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   EntityRefBuilder serializeGenericFunctionType(GenericFunctionType node) {
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
-    EntityRefBuilder b = new EntityRefBuilder();
+    EntityRefBuilder b = new EntityRefBuilder(
+        nullabilitySuffix: computeNullabilitySuffix(node?.question));
     b.entityKind = EntityRefKind.genericFunctionType;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
@@ -826,12 +846,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     if (_parametersMayInheritCovariance) {
       b.inheritsCovariantSlot = assignSlot();
     }
-    if (node.isRequired) {
-      b.kind = UnlinkedParamKind.required;
+    if (node.isRequiredPositional) {
+      b.kind = UnlinkedParamKind.requiredPositional;
+    } else if (node.isRequiredNamed) {
+      b.kind = UnlinkedParamKind.requiredNamed;
     } else if (node.isOptionalPositional) {
-      b.kind = UnlinkedParamKind.positional;
-    } else if (node.isNamed) {
-      b.kind = UnlinkedParamKind.named;
+      b.kind = UnlinkedParamKind.optionalPositional;
+    } else if (node.isOptionalNamed) {
+      b.kind = UnlinkedParamKind.optionalNamed;
     } else {
       // ignore: deprecated_member_use_from_same_package
       throw new StateError('Unexpected parameter kind: ${node.kind}');
@@ -882,8 +904,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// a [EntityRef].  Note that this method does the right thing if the
   /// name doesn't refer to an entity other than a type (e.g. a class member).
   EntityRefBuilder serializeType(TypeAnnotation node) {
+    var nullabilitySuffix = computeNullabilitySuffix(node?.question);
     if (node is TypeName) {
-      return serializeTypeName(node?.name, node?.typeArguments);
+      return serializeTypeName(
+          node?.name, node?.typeArguments, nullabilitySuffix);
     } else if (node is GenericFunctionType) {
       return serializeGenericFunctionType(node);
     } else if (node != null) {
@@ -897,11 +921,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// a [EntityRef].  Note that this method does the right thing if the
   /// name doesn't refer to an entity other than a type (e.g. a class member).
   EntityRefBuilder serializeTypeName(
-      Identifier identifier, TypeArgumentList typeArguments) {
+      Identifier identifier,
+      TypeArgumentList typeArguments,
+      EntityRefNullabilitySuffix nullabilitySuffix) {
     if (identifier == null) {
       return null;
     } else {
-      EntityRefBuilder b = new EntityRefBuilder();
+      EntityRefBuilder b =
+          new EntityRefBuilder(nullabilitySuffix: nullabilitySuffix);
       if (identifier is SimpleIdentifier) {
         String name = identifier.name;
         int indexOffset = 0;
@@ -980,6 +1007,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isConst = variables.isConst;
       b.isCovariant = isCovariant;
       b.isFinal = variables.isFinal;
+      b.isLate = variable.isLate;
       b.isStatic = isDeclaredStatic;
       b.name = variable.name.name;
       b.nameOffset = variable.name.offset;

@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/compiler/backend/code_statistics.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/heap/heap.h"
@@ -181,11 +182,10 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
     s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
-    s->Write<uint16_t>(cls->ptr()->num_type_arguments_);
-    s->Write<uint16_t>(cls->ptr()->has_pragma_and_num_own_type_arguments_);
+    s->Write<int16_t>(cls->ptr()->num_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
-    s->Write<uint16_t>(cls->ptr()->state_bits_);
+    s->Write<uint32_t>(cls->ptr()->state_bits_);
   }
 
  private:
@@ -243,11 +243,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
         d->Read<int32_t>();  // Skip.
       }
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
-      cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
-      cls->ptr()->state_bits_ = d->Read<uint16_t>();
+      cls->ptr()->state_bits_ = d->Read<uint32_t>();
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -270,11 +269,10 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
       cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
       cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
-      cls->ptr()->num_type_arguments_ = d->Read<uint16_t>();
-      cls->ptr()->has_pragma_and_num_own_type_arguments_ = d->Read<uint16_t>();
+      cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
-      cls->ptr()->state_bits_ = d->Read<uint16_t>();
+      cls->ptr()->state_bits_ = d->Read<uint32_t>();
 
       table->AllocateIndex(class_id);
       table->SetAt(class_id, cls);
@@ -601,7 +599,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Code& code = Code::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        code ^= func.CurrentCode();
+        code = func.CurrentCode();
         if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);  // Set entrypoint.
           func.SetWasCompiled(true);
@@ -1291,6 +1289,14 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       info.set_libraries_cache(array);
       array = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
       info.set_classes_cache(array);
+
+      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                    "Cleanup support for old bytecode format versions");
+      array = info.bytecode_component();
+      if (!array.IsNull()) {
+        kernel::BytecodeReader::UseBytecodeVersion(
+            kernel::BytecodeComponentData(array).GetVersion());
+      }
     }
   }
 };
@@ -1543,6 +1549,8 @@ class BytecodeSerializationCluster : public SerializationCluster {
       WriteFromTo(bytecode);
       s->Write<int32_t>(bytecode->ptr()->instructions_binary_offset_);
       s->Write<int32_t>(bytecode->ptr()->source_positions_binary_offset_);
+      NOT_IN_PRODUCT(
+          s->Write<int32_t>(bytecode->ptr()->local_variables_binary_offset_));
     }
   }
 
@@ -1577,6 +1585,8 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
       ReadFromTo(bytecode);
       bytecode->ptr()->instructions_binary_offset_ = d->Read<int32_t>();
       bytecode->ptr()->source_positions_binary_offset_ = d->Read<int32_t>();
+      NOT_IN_PRODUCT(bytecode->ptr()->local_variables_binary_offset_ =
+                         d->Read<int32_t>());
     }
   }
 
@@ -1805,7 +1815,8 @@ class RODataSerializationCluster : public SerializationCluster {
       s->TraceDataOffset(offset);
       ASSERT(Utils::IsAligned(offset, kObjectAlignment));
       ASSERT(offset > running_offset);
-      s->WriteUnsigned((offset - running_offset) >> kObjectAlignmentLog2);
+      s->WriteUnsigned((offset - running_offset) >>
+                       compiler::target::ObjectAlignment::kObjectAlignmentLog2);
       running_offset = offset;
       s->TraceEndWritingObject();
     }
@@ -3630,7 +3641,8 @@ class RegExpSerializationCluster : public SerializationCluster {
       RawRegExp* regexp = objects_[i];
       AutoTraceObject(regexp);
       WriteFromTo(regexp);
-      s->Write<int32_t>(regexp->ptr()->num_registers_);
+      s->Write<int32_t>(regexp->ptr()->num_one_byte_registers_);
+      s->Write<int32_t>(regexp->ptr()->num_two_byte_registers_);
       s->Write<int8_t>(regexp->ptr()->type_flags_);
     }
   }
@@ -3661,7 +3673,8 @@ class RegExpDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(regexp, kRegExpCid,
                                      RegExp::InstanceSize());
       ReadFromTo(regexp);
-      regexp->ptr()->num_registers_ = d->Read<int32_t>();
+      regexp->ptr()->num_one_byte_registers_ = d->Read<int32_t>();
+      regexp->ptr()->num_two_byte_registers_ = d->Read<int32_t>();
       regexp->ptr()->type_flags_ = d->Read<int8_t>();
     }
   }
@@ -4689,8 +4702,16 @@ void Serializer::AddVMIsolateBaseObjects() {
                 "<implicit getter>");
   AddBaseObject(Object::implicit_setter_bytecode().raw(), "Bytecode",
                 "<implicit setter>");
+  AddBaseObject(Object::implicit_static_getter_bytecode().raw(), "Bytecode",
+                "<implicit static getter>");
   AddBaseObject(Object::method_extractor_bytecode().raw(), "Bytecode",
                 "<method extractor>");
+  AddBaseObject(Object::invoke_closure_bytecode().raw(), "Bytecode",
+                "<invoke closure>");
+  AddBaseObject(Object::invoke_field_bytecode().raw(), "Bytecode",
+                "<invoke field>");
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw(), "Bytecode",
+                "<nsm dispatcher>");
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
@@ -5148,7 +5169,11 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::empty_exception_handlers().raw());
   AddBaseObject(Object::implicit_getter_bytecode().raw());
   AddBaseObject(Object::implicit_setter_bytecode().raw());
+  AddBaseObject(Object::implicit_static_getter_bytecode().raw());
   AddBaseObject(Object::method_extractor_bytecode().raw());
+  AddBaseObject(Object::invoke_closure_bytecode().raw());
+  AddBaseObject(Object::invoke_field_bytecode().raw());
+  AddBaseObject(Object::nsm_dispatcher_bytecode().raw());
 
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);

@@ -86,7 +86,7 @@ static void CollectFinalizedSuperClasses(
   super_type = cls.super_type();
   if (!super_type.IsNull()) {
     if (super_type.HasTypeClass()) {
-      cls ^= super_type.type_class();
+      cls = super_type.type_class();
       if (cls.is_finalized()) {
         AddSuperType(super_type, finalized_super_classes);
       }
@@ -128,7 +128,7 @@ class InterfaceFinder {
       if (!array->IsNull()) {
         for (intptr_t i = 0; i < array->Length(); ++i) {
           *type ^= array->At(i);
-          *interface_class ^= class_table_->At(type->type_class_id());
+          *interface_class = class_table_->At(type->type_class_id());
           FindAllInterfaces(*interface_class);
         }
       }
@@ -156,7 +156,7 @@ static void CollectImmediateSuperInterfaces(const Class& cls,
   for (intptr_t i = 0; i < interfaces.Length(); ++i) {
     type ^= interfaces.At(i);
     if (!type.HasTypeClass()) continue;
-    ifc ^= type.type_class();
+    ifc = type.type_class();
     for (intptr_t j = 0; j < cids->length(); ++j) {
       if ((*cids)[j] == ifc.id()) {
         // Already added.
@@ -191,15 +191,15 @@ bool ClassFinalizer::ProcessPendingClasses() {
     class_array = object_store->pending_classes();
     ASSERT(!class_array.IsNull());
     Class& cls = Class::Handle();
-    // Mark all classes as cycle-free (should be checked by front-end).
-    // TODO(alexmarkov): Cleanup is_cycle_free bit on classes.
+
+#if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      if (!cls.is_cycle_free()) {
-        cls.set_is_cycle_free();
-      }
+      ASSERT(cls.is_declaration_loaded());
     }
-    // Finalize all classes.
+#endif
+
+    // Finalize types in all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
@@ -557,10 +557,8 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
     const Class& super_class = Class::Handle(super_type.type_class());
     const intptr_t num_super_type_params = super_class.NumTypeParameters();
     const intptr_t num_super_type_args = super_class.NumTypeArguments();
-    ASSERT(num_super_type_args ==
-           (cls.NumTypeArguments() - cls.NumOwnTypeArguments()));
     if (!super_type.IsFinalized() && !super_type.IsBeingFinalized()) {
-      super_type ^= FinalizeType(cls, super_type, kFinalize, pending_types);
+      super_type = FinalizeType(cls, super_type, kFinalize, pending_types);
       cls.set_super_type(super_type);
     }
     TypeArguments& super_type_args =
@@ -585,7 +583,7 @@ void ClassFinalizer::FinalizeTypeArguments(const Class& cls,
             super_type_args.SetTypeAt(i, super_type_arg);
           } else {
             if (!super_type_arg.IsFinalized()) {
-              super_type_arg ^=
+              super_type_arg =
                   FinalizeType(cls, super_type_arg, kFinalize, pending_types);
               super_type_args.SetTypeAt(i, super_type_arg);
               // Note that super_type_arg may still not be finalized here, in
@@ -1005,6 +1003,7 @@ static void MarkImplemented(Zone* zone, const Class& iface) {
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
+  ASSERT(cls.is_declaration_loaded());
   if (cls.is_type_finalized()) {
     return;
   }
@@ -1242,75 +1241,31 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
                                       ->object_store()
                                       ->pending_unevaluated_const_fields());
 
-  if (enum_cls.kernel_offset() > 0) {
-    Error& error = Error::Handle(zone);
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field = Field::RawCast(fields.At(i));
-      if (!field.is_static() || !field.is_const() ||
-          (sentinel.raw() == field.raw())) {
-        continue;
-      }
-      // The eager evaluation of the enum values is required for hot-reload (see
-      // commit e3ecc87). However, while busy loading the constant table, we
-      // need to postpone this evaluation until table is done.
-      if (!FLAG_precompiled_mode) {
-        if (field.IsUninitialized()) {
-          if (pending_unevaluated_const_fields.IsNull()) {
-            // Evaluate right away.
-            error = field.Initialize();
-            if (!error.IsNull()) {
-              ReportError(error);
-            }
-          } else {
-            // Postpone evaluation until we have a constant table.
-            pending_unevaluated_const_fields.Add(field);
+  ASSERT(enum_cls.kernel_offset() > 0);
+  Error& error = Error::Handle(zone);
+  for (intptr_t i = 0; i < fields.Length(); i++) {
+    field = Field::RawCast(fields.At(i));
+    if (!field.is_static() || !field.is_const() ||
+        (sentinel.raw() == field.raw())) {
+      continue;
+    }
+    // The eager evaluation of the enum values is required for hot-reload (see
+    // commit e3ecc87). However, while busy loading the constant table, we
+    // need to postpone this evaluation until table is done.
+    if (!FLAG_precompiled_mode) {
+      if (field.IsUninitialized()) {
+        if (pending_unevaluated_const_fields.IsNull()) {
+          // Evaluate right away.
+          error = field.Initialize();
+          if (!error.IsNull()) {
+            ReportError(error);
           }
+        } else {
+          // Postpone evaluation until we have a constant table.
+          pending_unevaluated_const_fields.Add(field);
         }
       }
     }
-  } else {
-    const String& name_prefix =
-        String::Handle(String::Concat(enum_name, Symbols::Dot()));
-    Instance& ordinal_value = Instance::Handle(zone);
-    Array& values_list = Array::Handle(zone);
-    const Field& values_field =
-        Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
-    ASSERT(!values_field.IsNull());
-    ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
-    values_list = Array::RawCast(values_field.StaticValue());
-    const Array& fields = Array::Handle(zone, enum_cls.fields());
-    for (intptr_t i = 0; i < fields.Length(); i++) {
-      field = Field::RawCast(fields.At(i));
-      if (!field.is_static()) continue;
-      ordinal_value = field.StaticValue();
-      // The static fields that need to be initialized with enum instances
-      // contain the smi value of the ordinal number, which was stored in
-      // the field by the parser. Other fields contain non-smi values.
-      if (!ordinal_value.IsSmi()) continue;
-      enum_ident = field.name();
-      // Construct the string returned by toString.
-      ASSERT(!enum_ident.IsNull());
-      // For the user-visible name of the enumeration value, we need to
-      // unmangle private names.
-      if (enum_ident.CharAt(0) == '_') {
-        enum_ident = String::ScrubName(enum_ident);
-      }
-      enum_ident = Symbols::FromConcat(thread, name_prefix, enum_ident);
-      enum_value = Instance::New(enum_cls, Heap::kOld);
-      enum_value.SetField(index_field, ordinal_value);
-      enum_value.SetField(name_field, enum_ident);
-      enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
-      ASSERT(!enum_value.IsNull());
-      ASSERT(enum_value.IsCanonical());
-      field.SetStaticValue(enum_value, true);
-      field.RecordStore(enum_value);
-      intptr_t ord = Smi::Cast(ordinal_value).Value();
-      ASSERT(ord < values_list.Length());
-      values_list.SetAt(ord, enum_value);
-    }
-    values_list.MakeImmutable();
-    values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
-    ASSERT(!values_list.IsNull());
   }
 }
 
@@ -1427,7 +1382,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   cls = class_table.At(kFfiPointerCid);
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
-  ASSERT(cls.NumOwnTypeArguments() == 1);
+  ASSERT(cls.NumTypeParameters() == 1);
   type_param ^= TypeParameter::RawCast(
       TypeArguments::Handle(cls.type_parameters()).TypeAt(0));
   ASSERT(Pointer::kNativeTypeArgPos == type_param.index());

@@ -66,6 +66,14 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     expect(regions, unorderedEquals(expectedRegions));
   }
 
+  test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+
+    final regions = await getFoldingRegions(pubspecFileUri);
+    expect(regions, isEmpty);
+  }
+
   test_headersImportsComments() async {
     // TODO(dantup): Review why the file header and the method comment ranges
     // are different... one spans only the range to collapse, but the other

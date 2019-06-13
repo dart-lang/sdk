@@ -37,12 +37,14 @@ namespace dart {
 DEFINE_FLAG(bool,
             generate_perf_events_symbols,
             false,
-            "Generate events symbols for profiling with perf");
+            "Generate events symbols for profiling with perf (disables dual "
+            "code mapping)");
 
 DEFINE_FLAG(bool,
             generate_perf_jitdump,
             false,
-            "Generate jitdump file to use with perf-inject");
+            "Generate jitdump file to use with perf-inject (disables dual code "
+            "mapping)");
 
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, write_protect_vm_isolate);

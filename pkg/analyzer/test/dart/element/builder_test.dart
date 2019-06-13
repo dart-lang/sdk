@@ -274,12 +274,11 @@ class C {
             null,
             AstTestFactory.typeName4('int'),
             [AstTestFactory.variableDeclaration('V')]);
-    CompilationUnit unit = astFactory.compilationUnit(
-        topLevelVariableDeclaration.beginToken,
-        null,
-        [],
-        [topLevelVariableDeclaration],
-        topLevelVariableDeclaration.endToken);
+    CompilationUnit unit = astFactory.compilationUnit2(
+        beginToken: topLevelVariableDeclaration.beginToken,
+        declarations: [topLevelVariableDeclaration],
+        endToken: topLevelVariableDeclaration.endToken,
+        featureSet: null);
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
     unit.beginToken.offset = 10;
@@ -466,7 +465,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -490,7 +489,7 @@ class C {
     expect(parameter.isExplicitlyCovariant, isTrue);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -514,7 +513,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     expect(typeElement.typeParameters, hasLength(1));
     _assertVisibleRange(parameter, 100, 110);
   }
@@ -641,7 +640,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -667,7 +666,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -691,7 +690,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -718,7 +717,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     _assertVisibleRange(parameter, 100, 110);
   }
 
@@ -1855,7 +1854,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     expect(parameter.parameters, hasLength(0));
   }
 
@@ -1879,7 +1878,7 @@ class C {
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
-    expect(parameter.isNotOptional, isTrue);
+    expect(parameter.isRequiredPositional, isTrue);
     expect(typeElement.parameters, hasLength(1));
   }
 

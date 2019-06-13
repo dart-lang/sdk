@@ -6,8 +6,14 @@
 
 import "package:async_helper/async_helper.dart";
 import "package:compiler/src/commandline_options.dart";
+import "package:compiler/src/common_elements.dart";
+import "package:compiler/src/compiler.dart";
 import "package:compiler/src/constants/values.dart";
+import "package:compiler/src/elements/entities.dart";
+import "package:compiler/src/inferrer/abstract_value_domain.dart";
+import "package:compiler/src/inferrer/types.dart";
 import 'package:compiler/src/inferrer/typemasks/masks.dart';
+import "package:compiler/src/world.dart";
 import "package:expect/expect.dart";
 import '../helpers/memory_compiler.dart';
 
@@ -33,29 +39,31 @@ main() {
 """;
 
 Future runTest1() async {
-  var result = await runCompiler(
+  CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': TEST1},
       options: [Flags.disableInlining]);
-  var compiler = result.compiler;
-  var results = compiler.globalInference.resultsForTesting;
-  var closedWorld = results.closedWorld;
-  var elementEnvironment = closedWorld.elementEnvironment;
-  var commonMasks = closedWorld.abstractValueDomain;
-  var element = elementEnvironment.lookupLibraryMember(
+  Compiler compiler = result.compiler;
+  GlobalTypeInferenceResults results =
+      compiler.globalInference.resultsForTesting;
+  JClosedWorld closedWorld = results.closedWorld;
+  JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+  MemberEntity element = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, 'foo');
-  var mask = results.resultOfMember(element).returnType;
-  var falseType =
+  AbstractValue mask = results.resultOfMember(element).returnType;
+  AbstractValue falseType =
       new ValueTypeMask(commonMasks.boolType, new FalseConstantValue());
   // 'foo' should always return false
   Expect.equals(falseType, mask);
   // the argument to 'bar' is always false
-  dynamic bar = elementEnvironment.lookupLibraryMember(
+  MemberEntity bar = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, 'bar');
-  compiler.codegenWorldBuilder.forEachParameterAsLocal(bar, (barArg) {
-    var barArgMask = results.resultOfParameter(barArg);
+  elementEnvironment.forEachParameterAsLocal(closedWorld.globalLocalsMap, bar,
+      (barArg) {
+    AbstractValue barArgMask = results.resultOfParameter(barArg);
     Expect.equals(falseType, barArgMask);
   });
-  var barCode = compiler.backend.getGeneratedCode(bar);
+  String barCode = compiler.backend.getGeneratedCode(bar);
   Expect.isTrue(barCode.contains('"bbb"'));
   Expect.isFalse(barCode.contains('"aaa"'));
 }
@@ -81,35 +89,38 @@ main() {
 """;
 
 Future runTest2() async {
-  var result = await runCompiler(
+  CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': TEST2},
       options: [Flags.disableInlining]);
-  var compiler = result.compiler;
-  var results = compiler.globalInference.resultsForTesting;
-  var closedWorld = results.closedWorld;
-  var commonMasks = closedWorld.abstractValueDomain;
-  var elementEnvironment = closedWorld.elementEnvironment;
-  var element = elementEnvironment.lookupLibraryMember(
+  Compiler compiler = result.compiler;
+  GlobalTypeInferenceResults results =
+      compiler.globalInference.resultsForTesting;
+  JClosedWorld closedWorld = results.closedWorld;
+  AbstractValueDomain commonMasks = closedWorld.abstractValueDomain;
+  JElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
+  MemberEntity element = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, 'foo');
-  var mask = results.resultOfMember(element).returnType;
+  AbstractValue mask = results.resultOfMember(element).returnType;
   // Can't infer value for foo's return type, it could be either true or false
   Expect.identical(commonMasks.boolType, mask);
-  dynamic bar = elementEnvironment.lookupLibraryMember(
+  MemberEntity bar = elementEnvironment.lookupLibraryMember(
       elementEnvironment.mainLibrary, 'bar');
-  compiler.codegenWorldBuilder.forEachParameterAsLocal(bar, (barArg) {
-    var barArgMask = results.resultOfParameter(barArg);
+  elementEnvironment.forEachParameterAsLocal(closedWorld.globalLocalsMap, bar,
+      (barArg) {
+    AbstractValue barArgMask = results.resultOfParameter(barArg);
     // The argument to bar should have the same type as the return type of foo
     Expect.identical(commonMasks.boolType, barArgMask);
   });
-  var barCode = compiler.backend.getGeneratedCode(bar);
+  String barCode = compiler.backend.getGeneratedCode(bar);
   Expect.isTrue(barCode.contains('"bbb"'));
   // Still must output the print for "aaa"
   Expect.isTrue(barCode.contains('"aaa"'));
 }
 
 main() {
-  asyncStart();
-  runTest1().then((_) {
-    return runTest2();
-  }).whenComplete(asyncEnd);
+  asyncTest(() async {
+    ;
+    await runTest1();
+    await runTest2();
+  });
 }

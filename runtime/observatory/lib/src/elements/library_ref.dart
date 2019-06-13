@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class LibraryRefElement extends HtmlElement implements Renderable {
+class LibraryRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<LibraryRefElement>('library-ref');
 
   RenderingScheduler<LibraryRefElement> _r;
@@ -28,14 +28,14 @@ class LibraryRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(library != null);
-    LibraryRefElement e = document.createElement(tag.name);
+    LibraryRefElement e = new LibraryRefElement.created();
     e._r = new RenderingScheduler<LibraryRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._library = library;
     return e;
   }
 
-  LibraryRefElement.created() : super.created();
+  LibraryRefElement.created() : super.created(tag);
 
   @override
   void attached() {

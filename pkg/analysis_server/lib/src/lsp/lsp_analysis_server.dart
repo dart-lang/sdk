@@ -6,15 +6,18 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:io' as io;
 
+import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analysis_server_abstract.dart';
 import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_server/src/computer/computer_closingLabels.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_completion.dart'
     show CompletionDomainHandler;
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
@@ -35,7 +38,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -43,6 +45,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/plugin/resolver_provider.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:watcher/watcher.dart';
 
 /**
@@ -52,6 +55,10 @@ import 'package:watcher/watcher.dart';
 class LspAnalysisServer extends AbstractAnalysisServer {
   /// The capabilities of the LSP client. Will be null prior to initialization.
   ClientCapabilities _clientCapabilities;
+
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions _initializationOptions;
 
   /**
    * The channel from which messages are received and to which responses should
@@ -86,9 +93,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    */
   RefactoringWorkspace _refactoringWorkspace;
 
-  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
-      new RefactoringWorkspace(driverMap.values, searchEngine);
-
   /**
    * The versions of each document known to the server (keyed by path), used to
    * send back to the client for server-initiated edits so that the client can
@@ -113,10 +117,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   ResolverProvider packageResolverProvider;
 
   PerformanceLog _analysisPerformanceLogger;
-
-  ByteStore byteStore;
-
-  nd.AnalysisDriverScheduler analysisDriverScheduler;
 
   ServerStateMessageHandler messageHandler;
 
@@ -150,6 +150,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ResolverProvider packageResolverProvider: null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
+    // TODO(dantup): This code is almost identical to AnalysisServer, consider
+    // moving it the base class that already holds many of these fields.
     defaultContextOptions.generateImplicitErrors = false;
     defaultContextOptions.useFastaParser = options.useFastaParser;
 
@@ -169,7 +171,15 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     byteStore = createByteStore(resourceProvider);
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.status.listen(sendStatusNotification);
     analysisDriverScheduler.start();
+
+    if (options.featureSet.completion) {
+      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      analysisDriverScheduler.outOfBandWorker =
+          CompletionLibrariesWorker(declarationsTracker);
+    }
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -190,6 +200,13 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   ClientCapabilities get clientCapabilities => _clientCapabilities;
 
   Future<void> get exited => channel.closed;
+
+  /// Initialization options provided by the LSP client. Allows opting in/out of
+  /// specific server functionality. Will be null prior to initialization.
+  LspInitializationOptions get initializationOptions => _initializationOptions;
+
+  RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
+      new RefactoringWorkspace(driverMap.values, searchEngine);
 
   addPriorityFile(String path) {
     final didAdd = priorityFiles.add(path);
@@ -232,8 +249,10 @@ class LspAnalysisServer extends AbstractAnalysisServer {
             null, new Uri.file(path).toString());
   }
 
-  void handleClientConnection(ClientCapabilities capabilities) {
+  void handleClientConnection(
+      ClientCapabilities capabilities, dynamic initializationOptions) {
     _clientCapabilities = capabilities;
+    _initializationOptions = LspInitializationOptions(initializationOptions);
 
     performanceAfterStartup = new ServerPerformance();
     performance = performanceAfterStartup;
@@ -320,6 +339,42 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     ));
   }
 
+  /// Logs an exception by sending it to the client (window/logMessage) and
+  /// recording it in a buffer on the server for diagnostics.
+  void logException(String message, exception, stackTrace) {
+    if (exception is CaughtException) {
+      stackTrace ??= exception.stackTrace;
+      message = '$message: ${exception.exception}';
+    } else if (exception != null) {
+      message = '$message: $exception';
+    }
+
+    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
+
+    // Log the full message since showMessage above may be truncated or formatted
+    // badly (eg. VS Code takes the newlines out).
+    logErrorToClient(fullError);
+
+    // remember the last few exceptions
+    exceptions.add(new ServerException(
+      message,
+      exception,
+      stackTrace is StackTrace ? stackTrace : null,
+      false,
+    ));
+  }
+
+  void publishClosingLabels(String path, List<ClosingLabel> labels) {
+    final params =
+        new PublishClosingLabelsParams(Uri.file(path).toString(), labels);
+    final message = new NotificationMessage(
+      CustomMethods.PublishClosingLabels,
+      params,
+      jsonRpcVersion,
+    );
+    sendNotification(message);
+  }
+
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     final params =
         new PublishDiagnosticsParams(Uri.file(path).toString(), errors);
@@ -343,9 +398,6 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     if (message is RequestMessage) {
       channel.sendResponse(
           new ResponseMessage(message.id, null, error, jsonRpcVersion));
-      // Since the LSP client might not show the failed requests to the user,
-      // also ensure the error is logged to the client.
-      logErrorToClient(error.message);
     } else if (message is ResponseMessage) {
       // For bad response messages where we can't respond with an error, send it as
       // show instead of log.
@@ -411,31 +463,30 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     logException(message, exception, stackTrace);
   }
 
-  /// Logs an exception by sending it to the client (window/logMessage) and
-  /// recording it in a buffer on the server for diagnostics.
-  void logException(String message, exception, stackTrace) {
-    if (exception is CaughtException) {
-      stackTrace ??= exception.stackTrace;
-    }
-
-    final fullError = stackTrace == null ? message : '$message\n$stackTrace';
-
-    // Log the full message since showMessage above may be truncated or formatted
-    // badly (eg. VS Code takes the newlines out).
-    logErrorToClient(fullError);
-
-    // remember the last few exceptions
-    exceptions.add(new ServerException(
-      message,
-      exception,
-      stackTrace is StackTrace ? stackTrace : null,
-      false,
+  /// Send status notification to the client. The state of analysis is given by
+  /// the [status] information.
+  void sendStatusNotification(nd.AnalysisStatus status) {
+    channel.sendNotification(new NotificationMessage(
+      CustomMethods.AnalyzerStatus,
+      new AnalyzerStatusParams(status.isAnalyzing),
+      jsonRpcVersion,
     ));
   }
 
   void setAnalysisRoots(List<String> includedPaths) {
+    declarationsTracker?.discardContexts();
     final uniquePaths = HashSet<String>.of(includedPaths ?? const []);
     contextManager.setRoots(uniquePaths.toList(), [], {});
+    addContextsToDeclarationsTracker();
+  }
+
+  /// Returns `true` if closing labels should be sent for [file] with the given
+  /// absolute path.
+  bool shouldSendClosingLabelsFor(String file) {
+    // Closing labels should only be sent for open (priority) files in the workspace.
+    return initializationOptions.closingLabels &&
+        priorityFiles.contains(file) &&
+        contextManager.isInAnalysisRoot(file);
   }
 
   /**
@@ -443,7 +494,11 @@ class LspAnalysisServer extends AbstractAnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return contextManager.isInAnalysisRoot(file);
+    // Errors should not be reported for things that are explicitly skipped
+    // during normal analysis (for example dot folders are skipped over in
+    // _handleWatchEventImpl).
+    return contextManager.isInAnalysisRoot(file) &&
+        !contextManager.isContainedInDotFolder(file);
   }
 
   void showErrorMessageToUser(String message) {
@@ -475,7 +530,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
           ..addAll(addedPaths ?? const [])
           ..removeAll(removedPaths ?? const []);
 
-    contextManager.setRoots(newPaths.toList(), [], {});
+    setAnalysisRoots(newPaths.toList());
   }
 
   void updateOverlay(String path, String contents) {
@@ -486,6 +541,8 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       resourceProvider.removeOverlay(path);
     }
     driverMap.values.forEach((driver) => driver.changeFile(path));
+
+    notifyDeclarationsTracker(path);
   }
 
   _updateDriversPriorityFiles() {
@@ -493,6 +550,20 @@ class LspAnalysisServer extends AbstractAnalysisServer {
       driver.priorityFiles = priorityFiles.toList();
     });
   }
+}
+
+class LspInitializationOptions {
+  final bool onlyAnalyzeProjectsWithOpenFiles;
+  final bool suggestFromUnimportedLibraries;
+  final bool closingLabels;
+  LspInitializationOptions(dynamic options)
+      : onlyAnalyzeProjectsWithOpenFiles = options != null &&
+            options['onlyAnalyzeProjectsWithOpenFiles'] == true,
+        // suggestFromUnimportedLibraries defaults to true, so must be
+        // explicitly passed as false to disable.
+        suggestFromUnimportedLibraries = options == null ||
+            options['suggestFromUnimportedLibraries'] != false,
+        closingLabels = options != null && options['closingLabels'] == true;
 }
 
 class LspPerformance {
@@ -535,6 +606,17 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
         analysisServer.publishDiagnostics(result.path, serverErrors);
       }
+      if (result.unit != null) {
+        if (analysisServer.shouldSendClosingLabelsFor(path)) {
+          final labels =
+              new DartUnitClosingLabelsComputer(result.lineInfo, result.unit)
+                  .compute()
+                  .map((l) => toClosingLabel(result.lineInfo, l))
+                  .toList();
+
+          analysisServer.publishClosingLabels(result.path, labels);
+        }
+      }
     });
     analysisDriver.exceptions.listen((nd.ExceptionResult result) {
       String message = 'Analysis failed: ${result.path}';
@@ -550,6 +632,11 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void afterWatchEvent(WatchEvent event) {
     // TODO: implement afterWatchEvent
+  }
+
+  @override
+  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
+    // TODO: implement analysisOptionsUpdated
   }
 
   @override
@@ -576,7 +663,8 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void broadcastWatchEvent(WatchEvent event) {
-    // TODO: implement broadcastWatchEvent
+    analysisServer.notifyDeclarationsTracker(event.path);
+    // TODO: implement plugin broadcastWatchEvent
   }
 
   @override

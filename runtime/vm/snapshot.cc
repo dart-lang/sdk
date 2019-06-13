@@ -45,7 +45,8 @@ static bool IsBootstrapedClassId(intptr_t class_id) {
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id) ||
-          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid);
+          RawObject::IsTypedDataViewClassId(class_id) || class_id == kNullCid ||
+          class_id == kTransferableTypedDataCid);
 }
 
 static bool IsObjectStoreTypeId(intptr_t index) {
@@ -1461,15 +1462,16 @@ MessageWriter::~MessageWriter() {
   delete finalizable_data_;
 }
 
-Message* MessageWriter::WriteMessage(const Object& obj,
-                                     Dart_Port dest_port,
-                                     Message::Priority priority) {
+std::unique_ptr<Message> MessageWriter::WriteMessage(
+    const Object& obj,
+    Dart_Port dest_port,
+    Message::Priority priority) {
   ASSERT(kind() == Snapshot::kMessage);
   ASSERT(isolate() != NULL);
 
   // Setup for long jump in case there is an exception while writing
   // the message.
-  bool has_exception = false;
+  volatile bool has_exception = false;
   {
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -1482,12 +1484,14 @@ Message* MessageWriter::WriteMessage(const Object& obj,
   }
   if (has_exception) {
     ThrowException(exception_type(), exception_msg());
+  } else {
+    finalizable_data_->SerializationSucceeded();
   }
 
   MessageFinalizableData* finalizable_data = finalizable_data_;
   finalizable_data_ = NULL;
-  return new Message(dest_port, buffer(), BytesWritten(), finalizable_data,
-                     priority);
+  return Message::New(dest_port, buffer(), BytesWritten(), finalizable_data,
+                      priority);
 }
 
 }  // namespace dart

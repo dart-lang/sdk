@@ -22,7 +22,11 @@ class DocumentHighlightsHandler extends MessageHandler<
       TextDocumentPositionParams.jsonHandler;
 
   Future<ErrorOr<List<DocumentHighlight>>> handle(
-      TextDocumentPositionParams params) async {
+      TextDocumentPositionParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);

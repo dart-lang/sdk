@@ -38,7 +38,7 @@ class C extends A {
   }
 
   test_fromExtendingClass() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -49,7 +49,37 @@ class B extends A {
   void a()
   {}
 }
-''', [HintCode.MUST_CALL_SUPER]);
+''', [
+      error(HintCode.MUST_CALL_SUPER, 115, 1),
+    ]);
+  }
+
+  test_fromExtendingClass_abstractInSuperclass() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a();
+}
+class B extends A {
+  @override
+  void a() {}
+}
+''');
+  }
+
+  test_fromExtendingClass_abstractInSubclass() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+abstract class A {
+  @mustCallSuper
+  void a() {}
+}
+class B extends A {
+  @override
+  void a();
+}
+''');
   }
 
   test_fromInterface() async {
@@ -66,8 +96,24 @@ class C implements A {
 ''');
   }
 
+  test_fromMixin() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void a() {}
+}
+class C with Mixin {
+  @override
+  void a() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 120, 1),
+    ]);
+  }
+
   test_indirectlyInherited() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @mustCallSuper
@@ -83,7 +129,42 @@ class D extends C {
   @override
   void a() {}
 }
-''', [HintCode.MUST_CALL_SUPER]);
+''', [
+      error(HintCode.MUST_CALL_SUPER, 181, 1),
+    ]);
+  }
+
+  test_indirectlyInheritedFromMixin() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class Mixin {
+  @mustCallSuper
+  void b() {}
+}
+class C extends Object with Mixin {}
+class D extends C {
+  @override
+  void b() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 156, 1),
+    ]);
+  }
+
+  test_indirectlyInheritedFromMixinConstraint() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+mixin C on A {
+  @override
+  void a() {}
+}
+''', [
+      error(HintCode.MUST_CALL_SUPER, 110, 1),
+    ]);
   }
 
   test_overriddenWithFuture() async {

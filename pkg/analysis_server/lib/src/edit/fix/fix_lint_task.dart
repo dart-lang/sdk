@@ -18,71 +18,6 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:front_end/src/scanner/token.dart';
 import 'package:source_span/src/span.dart';
 
-/// A task for fixing a particular lint.
-/// Subclasses should implement [applyLocalFixes] and [applyRemainingFixes]
-/// and may override any of the reportSomething() methods as needed.
-abstract class FixLintTask implements ErrorReporter {
-  final DartFixListener listener;
-
-  @override
-  Source source;
-
-  FixLintTask(this.listener);
-
-  /// Apply fixes for the current compilation unit.
-  Future<void> applyLocalFixes(ResolvedUnitResult result);
-
-  /// Apply any fixes remaining after all local changes have been applied.
-  Future<void> applyRemainingFixes();
-
-  @override
-  void reportError(AnalysisError error) {
-    // ignored
-  }
-
-  @override
-  void reportErrorForElement(ErrorCode errorCode, Element element,
-      [List<Object> arguments]) {
-    // ignored
-  }
-
-  @override
-  void reportErrorForNode(ErrorCode errorCode, AstNode node,
-      [List<Object> arguments]) {
-    // ignored
-  }
-
-  @override
-  void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
-      [List<Object> arguments]) {
-    // ignored
-  }
-
-  @override
-  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
-      [List<Object> arguments]) {
-    // ignored
-  }
-
-  @override
-  void reportErrorForToken(ErrorCode errorCode, Token token,
-      [List<Object> arguments]) {
-    // ignored
-  }
-
-  @override
-  void reportErrorMessage(
-      ErrorCode errorCode, int offset, int length, Message message) {
-    // ignored
-  }
-
-  @override
-  void reportTypeErrorForNode(
-      ErrorCode errorCode, AstNode node, List<Object> arguments) {
-    // ignored
-  }
-}
-
 /// A processor used by [EditDartFix] to manage [FixLintTask]s.
 mixin FixLintProcessor {
   final linters = <Linter>[];
@@ -166,5 +101,70 @@ mixin FixLintProcessor {
     linters.add(lint);
     lintTasks.add(task);
     lint.reporter = task;
+  }
+}
+
+/// A task for fixing a particular lint.
+/// Subclasses should implement [applyLocalFixes] and [applyRemainingFixes]
+/// and may override any of the reportSomething() methods as needed.
+abstract class FixLintTask implements ErrorReporter {
+  final DartFixListener listener;
+
+  @override
+  Source source;
+
+  FixLintTask(this.listener);
+
+  /// Apply fixes for the current compilation unit.
+  Future<void> applyLocalFixes(ResolvedUnitResult result);
+
+  /// Apply any fixes remaining after all local changes have been applied.
+  Future<void> applyRemainingFixes();
+
+  @override
+  void reportError(AnalysisError error) {
+    // ignored
+  }
+
+  @override
+  void reportErrorForElement(ErrorCode errorCode, Element element,
+      [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorForNode(ErrorCode errorCode, AstNode node,
+      [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorForOffset(ErrorCode errorCode, int offset, int length,
+      [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorForSpan(ErrorCode errorCode, SourceSpan span,
+      [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorForToken(ErrorCode errorCode, Token token,
+      [List<Object> arguments]) {
+    // ignored
+  }
+
+  @override
+  void reportErrorMessage(
+      ErrorCode errorCode, int offset, int length, Message message) {
+    // ignored
+  }
+
+  @override
+  void reportTypeErrorForNode(
+      ErrorCode errorCode, AstNode node, List<Object> arguments) {
+    // ignored
   }
 }

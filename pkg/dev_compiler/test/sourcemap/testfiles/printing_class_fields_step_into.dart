@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*nb*/
-main() {
+void main() {
   /*bl*/
   Foo foo = /*sl:1*/ Foo(1, 2);
   /*s:5*/ print(foo.x);

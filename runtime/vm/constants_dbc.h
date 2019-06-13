@@ -170,6 +170,11 @@ namespace dart {
 //    Invoke native function at pool[ArgB] with argc_tag at pool[ArgC] using
 //    wrapper at pool[ArgA].
 //
+//  - FfiCall ArgD
+//
+//    Invoke foreign function with unboxed arguments using the signature
+//    descriptor PP[D].
+//
 //  - PushPolymorphicInstanceCall ArgC, D
 //
 //    Skips 2*D + 1 instructions and pushes a function object onto the stack
@@ -299,6 +304,27 @@ namespace dart {
 //  - BoxUint32 rA, rD
 //
 //    Boxes the unboxed unsigned 32-bit integer in FP[rD] into FP[rA].
+//
+//  - UnboxInt64 rA, rD
+//
+//    Unboxes the integer in FP[rD] into FP[rA].
+//
+//  - BoxInt64 rA, rD
+//
+//    Boxes the unboxed signed 64-bit integer in FP[rD] into FP[rA]. If the
+//    value does not fit into a Smi the following instruction is skipped. (The
+//    following instruction should be a jump to a label after the slow path
+//    allocating a Mint box and writing into the Mint box.)
+//
+//  - UnboxedWidthExtender rA rB C
+//
+//    Sign- or zero-extends an unboxed integer in FP[rB] into an unboxed
+//    integer in FP[rA]. C contains SmallRepresentation which determines how
+//    the integer is extended.
+//
+//  - WriteIntoMint rA, rD
+//
+//    Box the integer in FP[rD] using the Mint box in FP[rA].
 //
 //  - SmiToDouble rA, rD
 //
@@ -780,6 +806,7 @@ namespace dart {
   V(PushPolymorphicInstanceCall,         A_D, num, num, ___) \
   V(PushPolymorphicInstanceCallByRange,  A_D, num, num, ___) \
   V(NativeCall,                        A_B_C, num, num, num) \
+  V(FfiCall,                               D, lit, ___, ___) \
   V(OneByteStringFromCharCode,           A_X, reg, xeg, ___) \
   V(StringToCharCode,                    A_X, reg, xeg, ___) \
   V(AddTOS,                                0, ___, ___, ___) \
@@ -810,11 +837,15 @@ namespace dart {
   V(Min,                               A_B_C, reg, reg, reg) \
   V(Max,                               A_B_C, reg, reg, reg) \
   V(WriteIntoDouble,                     A_D, reg, reg, ___) \
+  V(WriteIntoMint,                       A_D, reg, reg, ___) \
   V(UnboxDouble,                         A_D, reg, reg, ___) \
   V(CheckedUnboxDouble,                  A_D, reg, reg, ___) \
   V(UnboxInt32,                        A_B_C, reg, reg, num) \
   V(BoxInt32,                            A_D, reg, reg, ___) \
   V(BoxUint32,                           A_D, reg, reg, ___) \
+  V(UnboxInt64,                          A_D, reg, reg, ___) \
+  V(BoxInt64,                            A_D, reg, reg, ___) \
+  V(UnboxedWidthExtender,              A_B_C, reg, reg, num) \
   V(SmiToDouble,                         A_D, reg, reg, ___) \
   V(DoubleToSmi,                         A_D, reg, reg, ___) \
   V(DAdd,                              A_B_C, reg, reg, reg) \
@@ -895,8 +926,8 @@ namespace dart {
   V(LoadArgDescriptorOpt,                  A, reg, ___, ___) \
   V(LoadFpRelativeSlot,                    X, reg, ___, ___) \
   V(LoadFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
-  V(StoreFpRelativeSlot,                    X, reg, ___, ___) \
-  V(StoreFpRelativeSlotOpt,             A_B_Y, reg, reg, reg) \
+  V(StoreFpRelativeSlot,                   X, reg, ___, ___) \
+  V(StoreFpRelativeSlotOpt,            A_B_Y, reg, reg, reg) \
   V(LoadIndexedTOS,                        0, ___, ___, ___) \
   V(LoadIndexed,                       A_B_C, reg, reg, reg) \
   V(LoadIndexedOneByteString,          A_B_C, reg, reg, reg) \
@@ -1111,20 +1142,8 @@ enum FpuRegister {
 const FpuRegister FpuTMP = kFakeFpuRegister;
 const intptr_t kNumberOfFpuRegisters = 1;
 
-static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-    "R0",  "R1",  "R2",  "R3",  "R4",  "R5",  "R6",  "R7",  "R8",  "R9",  "R10",
-    "R11", "R12", "R13", "R14", "R15", "R16", "R17", "R18", "R19", "R20", "R21",
-    "R22", "R23", "R24", "R25", "R26", "R27", "R28", "R29", "R30", "R31",
-#if defined(ARCH_IS_64_BIT)
-    "R32", "R33", "R34", "R35", "R36", "R37", "R38", "R39", "R40", "R41", "R42",
-    "R43", "R44", "R45", "R46", "R47", "R48", "R49", "R50", "R51", "R52", "R53",
-    "R54", "R55", "R56", "R57", "R58", "R59", "R60", "R61", "R62", "R63",
-#endif
-};
-
-static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-    "F0",
-};
+extern const char* cpu_reg_names[kNumberOfCpuRegisters];
+extern const char* fpu_reg_names[kNumberOfFpuRegisters];
 
 // After a comparison, the condition NEXT_IS_TRUE means the following
 // instruction is executed if the comparison is true and skipped over overwise.

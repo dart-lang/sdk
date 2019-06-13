@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_STACK_FRAME_X64_H_
 #define RUNTIME_VM_STACK_FRAME_X64_H_
 
+#include "vm/constants_x64.h"
+
 namespace dart {
 
 /* X64 Dart Frame Layout
@@ -51,6 +53,13 @@ static const int kExitLinkSlotFromEntryFp = -32;
 #else
 static const int kExitLinkSlotFromEntryFp = -10;
 #endif  // defined(_WIN64)
+
+// For FFI native -> Dart callbacks, the number of stack slots between arguments
+// passed on stack and arguments saved in callback prologue. 2 = return adddress
+// (1) + saved frame pointer (1). Also add slots for the shadow space, if
+// present.
+constexpr intptr_t kCallbackSlotsBeforeSavedArguments =
+    2 + CallingConventions::kShadowSpaceBytes / kWordSize;
 
 }  // namespace dart
 

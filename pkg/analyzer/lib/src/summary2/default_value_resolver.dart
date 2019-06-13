@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -27,25 +28,33 @@ class DefaultValueResolver {
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
+      for (var classElement in unit.mixins) {
+        _class(classElement);
+      }
+
       for (var classElement in unit.types) {
-        _classElement = classElement;
-
-        for (var element in classElement.constructors) {
-          _constructor(element);
-        }
-
-        for (var element in classElement.methods) {
-          _setScopeFromElement(element);
-          _method(element);
-        }
-
-        _classElement = null;
+        _class(classElement);
       }
 
       for (var element in unit.functions) {
         _function(element);
       }
     }
+  }
+
+  void _class(ClassElement classElement) {
+    _classElement = classElement;
+
+    for (var element in classElement.constructors) {
+      _constructor(element);
+    }
+
+    for (var element in classElement.methods) {
+      _setScopeFromElement(element);
+      _method(element);
+    }
+
+    _classElement = null;
   }
 
   void _constructor(ConstructorElementImpl element) {
@@ -81,6 +90,8 @@ class DefaultValueResolver {
       defaultValue = node.defaultValue;
     }
     if (defaultValue == null) return;
+
+    defaultValue.accept(LocalElementBuilder(ElementHolder(), null));
 
     var contextType = TypeVariableEliminator(_linker.typeProvider)
         .substituteType(parameter.type);

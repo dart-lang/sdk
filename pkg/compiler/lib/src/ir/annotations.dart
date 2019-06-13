@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 import '../common/names.dart';
+import 'modular.dart';
 
 class IrAnnotationData {
   Map<ir.Class, String> _nativeClassNames = {};
@@ -119,7 +120,8 @@ class IrAnnotationData {
   }
 }
 
-IrAnnotationData processAnnotations(ir.Component component) {
+IrAnnotationData processAnnotations(ModularCore modularCore) {
+  ir.Component component = modularCore.component;
   IrAnnotationData data = new IrAnnotationData();
 
   void processMember(ir.Member member) {
@@ -128,7 +130,8 @@ IrAnnotationData processAnnotations(ir.Component component) {
     List<String> returnsAnnotations;
     for (ir.Expression annotation in member.annotations) {
       if (annotation is ir.ConstantExpression) {
-        ir.Constant constant = annotation.constant;
+        ir.Constant constant =
+            modularCore.constantEvaluator.evaluate(annotation);
 
         String jsName = _getJsInteropName(constant);
         if (jsName != null) {
@@ -175,7 +178,8 @@ IrAnnotationData processAnnotations(ir.Component component) {
   for (ir.Library library in component.libraries) {
     for (ir.Expression annotation in library.annotations) {
       if (annotation is ir.ConstantExpression) {
-        ir.Constant constant = annotation.constant;
+        ir.Constant constant =
+            modularCore.constantEvaluator.evaluate(annotation);
 
         String jsName = _getJsInteropName(constant);
         if (jsName != null) {
@@ -186,7 +190,8 @@ IrAnnotationData processAnnotations(ir.Component component) {
     for (ir.Class cls in library.classes) {
       for (ir.Expression annotation in cls.annotations) {
         if (annotation is ir.ConstantExpression) {
-          ir.Constant constant = annotation.constant;
+          ir.Constant constant =
+              modularCore.constantEvaluator.evaluate(annotation);
 
           String nativeClassName = _getNativeClassName(constant);
           if (nativeClassName != null) {
@@ -357,6 +362,8 @@ List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(ir.Member member) {
     if (metadata is! ir.ConstantExpression) continue;
     ir.ConstantExpression constantExpression = metadata;
     ir.Constant constant = constantExpression.constant;
+    assert(constant is! ir.UnevaluatedConstant,
+        "Unexpected unevaluated constant on $member: $metadata");
     PragmaAnnotationData data = _getPragmaAnnotation(constant);
     if (data != null) {
       annotations.add(data);

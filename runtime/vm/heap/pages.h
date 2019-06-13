@@ -15,8 +15,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, log_code_drop);
-DECLARE_FLAG(bool, always_drop_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 // Forward declarations.
@@ -227,11 +225,6 @@ class PageSpaceController {
                                  int64_t end);
   void EvaluateAfterLoading(SpaceUsage after);
 
-  int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
-  void set_last_code_collection_in_us(int64_t t) {
-    last_code_collection_in_us_ = t;
-  }
-
   void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
   void Enable() { is_enabled_ = true; }
@@ -260,10 +253,6 @@ class PageSpaceController {
   // If the relative GC time goes above garbage_collection_time_ratio_ %,
   // we grow the heap more aggressively.
   const int garbage_collection_time_ratio_;
-
-  // The time in microseconds of the last time we tried to collect unused
-  // code.
-  int64_t last_code_collection_in_us_;
 
   // Perform a synchronous GC when capacity exceeds this amount.
   intptr_t gc_threshold_in_words_;
@@ -309,15 +298,15 @@ class PageSpace {
 
   int64_t UsedInWords() const { return usage_.used_in_words; }
   int64_t CapacityInWords() const {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     return usage_.capacity_in_words;
   }
   void IncreaseCapacityInWords(intptr_t increase_in_words) {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     IncreaseCapacityInWordsLocked(increase_in_words);
   }
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
-    DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
+    DEBUG_ASSERT(pages_lock_.IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
     UpdateMaxCapacityLocked();
   }
@@ -327,7 +316,7 @@ class PageSpace {
 
   int64_t ExternalInWords() const { return usage_.external_in_words; }
   SpaceUsage GetCurrentUsage() const {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     return usage_;
   }
 
@@ -345,10 +334,6 @@ class PageSpace {
 
   RawObject* FindObject(FindObjectVisitor* visitor,
                         HeapPage::PageType type) const;
-
-  // Checks if enough time has elapsed since the last attempt to collect
-  // code.
-  bool ShouldCollectCode();
 
   // Collect the garbage in the page space using mark-sweep or mark-compact.
   void CollectGarbage(bool compact, bool finalize);
@@ -414,7 +399,7 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
-  Monitor* tasks_lock() const { return tasks_lock_; }
+  Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
   void set_tasks(intptr_t val) {
     ASSERT(val >= 0);
@@ -510,7 +495,7 @@ class PageSpace {
   Heap* heap_;
 
   // Use ExclusivePageIterator for safe access to these.
-  Mutex* pages_lock_;
+  mutable Mutex pages_lock_;
   HeapPage* pages_;
   HeapPage* pages_tail_;
   HeapPage* exec_pages_;
@@ -532,7 +517,7 @@ class PageSpace {
   intptr_t allocated_black_in_words_;
 
   // Keep track of running MarkSweep tasks.
-  Monitor* tasks_lock_;
+  mutable Monitor tasks_lock_;
   intptr_t tasks_;
   intptr_t concurrent_marker_tasks_;
   Phase phase_;

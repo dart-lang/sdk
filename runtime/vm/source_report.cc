@@ -92,7 +92,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kImplicitClosureFunction:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kStaticFieldInitializer:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -191,6 +191,10 @@ bool SourceReport::ScriptIsLoadedByLibrary(const Script& script,
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const Function& function,
                                       const Code& code) {
+  if (code.IsNull()) {
+    // TODO(regis): implement for bytecode.
+    return;
+  }
   const TokenPosition begin_pos = function.token_pos();
   const TokenPosition end_pos = function.end_token_pos();
 
@@ -230,6 +234,10 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const Function& function,
                                      const Code& code) {
+  if (code.IsNull()) {
+    // TODO(regis): implement for bytecode.
+    return;
+  }
   const TokenPosition begin_pos = function.token_pos();
   const TokenPosition end_pos = function.end_token_pos();
 
@@ -312,15 +320,8 @@ void SourceReport::PrintCoverageData(JSONObject* jsobj,
 void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
                                                 const Function& func,
                                                 const Code& code) {
-  const uint8_t kSafepointKind =
-      (RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
-       RawPcDescriptors::kRuntimeCall);
   const TokenPosition begin_pos = func.token_pos();
   const TokenPosition end_pos = func.end_token_pos();
-
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone(), code.pc_descriptors());
-
   intptr_t func_length = (end_pos.Pos() - begin_pos.Pos()) + 1;
   GrowableArray<char> possible(func_length);
   possible.SetLength(func_length);
@@ -328,15 +329,37 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     possible[i] = false;
   }
 
-  PcDescriptors::Iterator iter(descriptors, kSafepointKind);
-  while (iter.MoveNext()) {
-    const TokenPosition token_pos = iter.TokenPos();
-    if ((token_pos < begin_pos) || (token_pos > end_pos)) {
-      // Does not correspond to a valid source position.
-      continue;
+  if (code.IsNull()) {
+    const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
+    ASSERT(!bytecode.IsNull());
+    kernel::BytecodeSourcePositionsIterator iter(zone(), bytecode);
+    while (iter.MoveNext()) {
+      const TokenPosition token_pos = iter.TokenPos();
+      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+        // Does not correspond to a valid source position.
+        continue;
+      }
+      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      possible[token_offset] = true;
     }
-    intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-    possible[token_offset] = true;
+  } else {
+    const uint8_t kSafepointKind =
+        (RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall |
+         RawPcDescriptors::kRuntimeCall);
+
+    const PcDescriptors& descriptors =
+        PcDescriptors::Handle(zone(), code.pc_descriptors());
+
+    PcDescriptors::Iterator iter(descriptors, kSafepointKind);
+    while (iter.MoveNext()) {
+      const TokenPosition token_pos = iter.TokenPos();
+      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+        // Does not correspond to a valid source position.
+        continue;
+      }
+      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      possible[token_offset] = true;
+    }
   }
 
   JSONArray bpts(jsobj, "possibleBreakpoints");
@@ -465,14 +488,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   range.AddProperty("scriptIndex", GetScriptIndex(script));
   range.AddProperty("startPos", begin_pos);
   range.AddProperty("endPos", end_pos);
-  // TODO(regis): What is the meaning of 'compiled' in the presence of bytecode?
-  // If it means 'called', it should say 'true' if bytecode is present.
-  range.AddProperty("compiled", !code.IsNull());
+  range.AddProperty("compiled", true);  // bytecode or code.
 
-  // TODO(regis): Do we want a report covering interpreted functions too?
-  if (code.IsNull()) {
-    return;
-  }
   if (IsReportRequested(kCallSites)) {
     PrintCallSitesData(&range, func, code);
   }

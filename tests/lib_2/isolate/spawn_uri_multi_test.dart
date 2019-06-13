@@ -3,13 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Negative test to make sure that we are reaching all assertions.
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=spawn_uri_child_isolate.dart
 library spawn_tests;
 
 import 'dart:isolate';
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 /* Dummy import so multi-test copies the file.
 import 'spawn_uri_child_isolate.dart';

@@ -18,6 +18,27 @@ main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
+  test_dartDoc_macros() async {
+    final content = '''
+    /// {@template template_name}
+    /// This is shared content.
+    /// {@endtemplate}
+    const String foo = null;
+
+    /// {@macro template_name}
+    const String [[f^oo2]] = null;
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    var hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+    expect(_getStringContents(hover), endsWith('This is shared content.'));
+  }
+
   test_hover_bad_position() async {
     await initialize();
     await openFile(mainFileUri, '');
@@ -46,6 +67,8 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 ```dart
 String abc
 ```
+*lib/main.dart*
+
 ---
 This is a string.
 
@@ -107,6 +130,13 @@ print();
     expect(hover, isNull);
   }
 
+  test_nonDartFile() async {
+    await initialize();
+    await openFile(pubspecFileUri, simplePubspecContent);
+    final hover = await getHover(pubspecFileUri, startOfDocPos);
+    expect(hover, isNull);
+  }
+
   test_plainText_simple() async {
     final content = '''
     /// This is a string.
@@ -137,6 +167,7 @@ print();
 ```dart
 String abc
 ```
+*lib/main.dart*
     '''
         .trim();
 

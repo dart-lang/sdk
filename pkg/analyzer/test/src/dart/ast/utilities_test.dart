@@ -640,7 +640,7 @@ class ResolutionCopierTest extends EngineTestCase {
   void test_visitPartDirective() {
     PartDirective fromNode = AstTestFactory.partDirective2("part.dart");
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]), true);
     fromNode.element = element;
     PartDirective toNode = AstTestFactory.partDirective2("part.dart");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
@@ -651,7 +651,7 @@ class ResolutionCopierTest extends EngineTestCase {
     PartOfDirective fromNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
     LibraryElement element = new LibraryElementImpl.forNode(
-        null, null, AstTestFactory.libraryIdentifier2(["lib"]));
+        null, null, AstTestFactory.libraryIdentifier2(["lib"]), true);
     fromNode.element = element;
     PartOfDirective toNode = AstTestFactory.partOfDirective(
         AstTestFactory.libraryIdentifier2(["lib"]));
@@ -1713,6 +1713,48 @@ class ToSourceVisitor2Test extends EngineTestCase {
         AstTestFactory.extendsClause(AstTestFactory.typeName4("C")));
   }
 
+  void test_visitExtensionDeclaration_empty() {
+    _assertSource(
+        'extension E on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E', extendedType: AstTestFactory.typeName4('C')));
+  }
+
+  void test_visitExtensionDeclaration_multipleMember() {
+    _assertSource(
+        'extension E on C {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ]));
+  }
+
+  void test_visitExtensionDeclaration_parameters() {
+    _assertSource(
+        'extension E<T> on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C')));
+  }
+
+  void test_visitExtensionDeclaration_singleMember() {
+    _assertSource(
+        'extension E on C {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ]));
+  }
+
   void test_visitFieldDeclaration_instance() {
     _assertSource(
         "var a;",
@@ -2349,6 +2391,16 @@ class ToSourceVisitor2Test extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_noType() {
     _assertSource(
         "f()", AstTestFactory.functionTypedFormalParameter(null, "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_nullable() {
+    _assertSource(
+        "T f()?",
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            parameters: AstTestFactory.formalParameterList([]),
+            question: TokenFactory.tokenFromType(TokenType.QUESTION)));
   }
 
   void test_visitFunctionTypedFormalParameter_type() {
@@ -4427,6 +4479,48 @@ class ToSourceVisitorTest extends EngineTestCase {
         AstTestFactory.extendsClause(AstTestFactory.typeName4("C")));
   }
 
+  void test_visitExtensionDeclaration_empty() {
+    _assertSource(
+        'extension E on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E', extendedType: AstTestFactory.typeName4('C')));
+  }
+
+  void test_visitExtensionDeclaration_multipleMember() {
+    _assertSource(
+        'extension E on C {var a; var b;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(false, Keyword.VAR,
+                  [AstTestFactory.variableDeclaration('a')]),
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('b')])
+            ]));
+  }
+
+  void test_visitExtensionDeclaration_parameters() {
+    _assertSource(
+        'extension E<T> on C {}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            typeParameters: AstTestFactory.typeParameterList(['T']),
+            extendedType: AstTestFactory.typeName4('C')));
+  }
+
+  void test_visitExtensionDeclaration_singleMember() {
+    _assertSource(
+        'extension E on C {var a;}',
+        AstTestFactory.extensionDeclaration(
+            name: 'E',
+            extendedType: AstTestFactory.typeName4('C'),
+            members: [
+              AstTestFactory.fieldDeclaration2(
+                  false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
+            ]));
+  }
+
   void test_visitFieldDeclaration_instance() {
     _assertSource(
         "var a;",
@@ -5063,6 +5157,16 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitFunctionTypedFormalParameter_noType() {
     _assertSource(
         "f()", AstTestFactory.functionTypedFormalParameter(null, "f"));
+  }
+
+  void test_visitFunctionTypedFormalParameter_nullable() {
+    _assertSource(
+        "T f()?",
+        astFactory.functionTypedFormalParameter2(
+            returnType: AstTestFactory.typeName4("T"),
+            identifier: AstTestFactory.identifier3('f'),
+            parameters: AstTestFactory.formalParameterList([]),
+            question: TokenFactory.tokenFromType(TokenType.QUESTION)));
   }
 
   void test_visitFunctionTypedFormalParameter_type() {

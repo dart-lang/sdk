@@ -142,6 +142,22 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    var variableList = node.fields;
+
+    // `Foo^ Foo bar() {}` is recovered as `Foo Foo; bar() {}`, i.e. the
+    // return type of `bar()` gets associated with a new variable declaration.
+    if (node.semicolon.isSynthetic) {
+      if (variableList.variables.length == 1) {
+        var name = variableList.variables[0].name.name;
+        names.remove(name);
+      }
+    }
+
+    super.visitFieldDeclaration(node);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     if (!_isCoveredBy(node)) return;
 
@@ -234,6 +250,15 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
         names.remove(variable.name.name);
       }
       return;
+    }
+
+    // `Foo^ Foo bar() {}` is recovered as `Foo Foo; bar() {}`, i.e. the
+    // return type of `bar()` gets associated with a new variable declaration.
+    if (node.semicolon.isSynthetic) {
+      if (variableList.variables.length == 1) {
+        var name = variableList.variables[0].name.name;
+        names.remove(name);
+      }
     }
 
     super.visitTopLevelVariableDeclaration(node);

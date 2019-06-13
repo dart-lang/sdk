@@ -26,6 +26,7 @@
 #include "vm/service_isolate.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/thread.h"
 #include "vm/thread_registry.h"
 #include "vm/type_testing_stubs.h"
 
@@ -237,7 +238,7 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   }
   if (length.IsSmi()) {
     const intptr_t len = Smi::Cast(length).Value();
-    if (len >= 0 && len <= Array::kMaxElements) {
+    if (Array::IsValidLength(len)) {
       const Array& array = Array::Handle(zone, Array::New(len, Heap::kNew));
       arguments.SetReturn(array);
       TypeArguments& element_type =
@@ -975,8 +976,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
                              StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  const Code& orig_stub = Code::Handle(
-      zone, isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
+  Code& orig_stub = Code::Handle(zone);
+  if (!caller_frame->is_interpreted()) {
+    orig_stub = isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
+  }
   const Error& error =
       Error::Handle(zone, isolate->debugger()->PauseBreakpoint());
   ThrowIfError(error);
@@ -1067,7 +1070,7 @@ RawFunction* InlineCacheMissHelper(const Instance& receiver,
     result = target_function.raw();
   }
   // May be null if --no-lazy-dispatchers, in which case dispatch will be
-  // handled by InvokeNoSuchMethodDispatcher.
+  // handled by NoSuchMethodFromCallStub.
   ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
   return result.raw();
 }
@@ -1670,7 +1673,7 @@ DEFINE_RUNTIME_ENTRY(InterpretedInterfaceCallMissHandler, 3) {
 // Arg1: ICData or MegamorphicCache
 // Arg2: arguments descriptor array
 // Arg3: arguments array
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
+DEFINE_RUNTIME_ENTRY(NoSuchMethodFromCallStub, 4) {
   ASSERT(!FLAG_lazy_dispatchers);
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
@@ -1717,7 +1720,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     String& field_name =
         String::Handle(zone, Field::NameFromGetter(target_name));
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(field_name);
+      function = cls.LookupDynamicFunction(field_name);
       if (!function.IsNull()) {
         CLOSURIZE(function);
         return;
@@ -1745,12 +1748,12 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
         String::Handle(zone, Field::GetterName(target_name));
     ArgumentsDescriptor args_desc(orig_arguments_desc);
     while (!cls.IsNull()) {
-      function ^= cls.LookupDynamicFunction(target_name);
+      function = cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
         ASSERT(!function.AreValidArguments(args_desc, NULL));
         break;  // mismatch, invoke noSuchMethod
       }
-      function ^= cls.LookupDynamicFunction(getter_name);
+      function = cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         const Array& getter_arguments = Array::Handle(Array::New(1));
         getter_arguments.SetAt(0, receiver);
@@ -1778,24 +1781,31 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 }
 
 // Invoke appropriate noSuchMethod function.
-// Arg0: receiver (closure object)
+// Arg0: receiver
+// Arg1: function
 // Arg1: arguments descriptor array.
-// Arg2: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
-  const Closure& receiver = Closure::CheckedHandle(zone, arguments.ArgAt(0));
+// Arg3: arguments array.
+DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(1));
   const Array& orig_arguments_desc =
-      Array::CheckedHandle(zone, arguments.ArgAt(1));
-  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(2));
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
 
-  // For closure the function name is always 'call'. Replace it with the
-  // name of the closurized function so that exception contains more
-  // relevant information.
-  const Function& function = Function::Handle(receiver.function());
-  ASSERT(!function.IsNull());
-  const String& original_function_name =
-      String::Handle(function.QualifiedUserVisibleName());
-  const Object& result = Object::Handle(DartEntry::InvokeNoSuchMethod(
-      receiver, original_function_name, orig_arguments, orig_arguments_desc));
+  String& orig_function_name = String::Handle(zone);
+  if ((function.kind() == RawFunction::kClosureFunction) ||
+      (function.kind() == RawFunction::kImplicitClosureFunction)) {
+    // For closure the function name is always 'call'. Replace it with the
+    // name of the closurized function so that exception contains more
+    // relevant information.
+    orig_function_name = function.QualifiedUserVisibleName();
+  } else {
+    orig_function_name = function.name();
+  }
+
+  const Object& result = Object::Handle(
+      zone, DartEntry::InvokeNoSuchMethod(receiver, orig_function_name,
+                                          orig_arguments, orig_arguments_desc));
   ThrowIfError(result);
   arguments.SetReturn(result);
 }
@@ -1956,13 +1966,13 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->is_interpreted()) {
+      if (!frame->IsInterpreted()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
       // TODO(regis): Provide var descriptors in kernel bytecode.
       const int num_vars =
-          frame->is_interpreted() ? 0 : frame->NumLocalVariables();
+          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2122,8 +2132,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(FLAG_enable_interpreter || optimizing_compilation);
   ASSERT((!optimizing_compilation) || function.HasCode());
 
-  if ((!optimizing_compilation) ||
+#if defined(PRODUCT)
+  if (!optimizing_compilation ||
       Compiler::CanOptimizeFunction(thread, function)) {
+#else
+  if ((!optimizing_compilation && !Debugger::IsDebugging(thread, function)) ||
+      (optimizing_compilation &&
+       Compiler::CanOptimizeFunction(thread, function))) {
+#endif  // defined(PRODUCT)
     if (FLAG_background_compilation) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
@@ -2743,6 +2759,7 @@ RawObject* RuntimeEntry::InterpretCall(RawFunction* function,
 }
 
 extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
+  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
@@ -2751,11 +2768,37 @@ extern "C" void DFLRT_EnterSafepoint(NativeArguments __unusable_) {
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(EnterSafepoint, 0, false, &DFLRT_EnterSafepoint);
 
 extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
+  CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
   ASSERT(thread->execution_state() == Thread::kThreadInNative);
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);
+
+// Not registered as a runtime entry because we can't use Thread to look it up.
+extern "C" Thread* DLRT_GetThreadForNativeCallback() {
+  Thread* const thread = Thread::Current();
+  if (thread == nullptr) {
+    FATAL("Cannot invoke native callback outside an isolate.");
+  }
+  if (thread->no_callback_scope_depth() != 0) {
+    FATAL("Cannot invoke native callback when API callbacks are prohibited.");
+  }
+  if (!thread->IsMutatorThread()) {
+    FATAL("Native callbacks must be invoked on the mutator thread.");
+  }
+  return thread;
+}
+
+extern "C" void DLRT_VerifyCallbackIsolate(int32_t callback_id,
+                                           uword return_address) {
+  Thread::Current()->VerifyCallbackIsolate(callback_id, return_address);
+}
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(
+    VerifyCallbackIsolate,
+    1,
+    false /* is_float */,
+    reinterpret_cast<RuntimeFunction>(&DLRT_VerifyCallbackIsolate));
 
 }  // namespace dart

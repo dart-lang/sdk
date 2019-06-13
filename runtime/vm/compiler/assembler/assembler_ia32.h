@@ -549,6 +549,7 @@ class Assembler : public AssemblerBase {
   void j(Condition condition, const ExternalLabel* label);
 
   void jmp(Register reg);
+  void jmp(const Address& address);
   void jmp(Label* label, bool near = kFarJump);
   void jmp(const ExternalLabel* label);
 
@@ -645,9 +646,25 @@ class Assembler : public AssemblerBase {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  void MonomorphicCheckedEntry() {}
+
+  // In debug mode, this generates code to check that:
+  //   FP + kExitLinkSlotFromEntryFp == SP
+  // or triggers breakpoint otherwise.
+  //
+  // Clobbers EAX.
+  void EmitEntryFrameVerification();
+
+  // Transitions safepoint and Thread state between generated and native code.
+  // Updates top-exit-frame info, VM tag and execution-state. Leaves/enters a
+  // safepoint.
+  //
   // Require a temporary register 'tmp'.
   // Clobber all non-CPU registers (e.g. XMM registers and the "FPU stack").
+  // However XMM0 is saved for convenience.
+
   void TransitionGeneratedToNative(Register destination_address,
+                                   Register new_exit_frame,
                                    Register scratch);
   void TransitionNativeToGenerated(Register scratch);
 
@@ -722,6 +739,10 @@ class Assembler : public AssemblerBase {
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
+
+  // Moves one word from the memory at [from] to the memory at [to].
+  // Needs a temporary register.
+  void MoveMemoryToMemory(Address to, Address from, Register tmp);
 
   bool has_single_entry_point() const { return true; }
 
@@ -822,6 +843,9 @@ class Assembler : public AssemblerBase {
   // We consider 16-bit integers, powers of two and corresponding masks
   // as safe values that can be emdedded into the code object.
   static bool IsSafeSmi(const Object& object) {
+    if (!target::IsSmi(object)) {
+      return false;
+    }
     int64_t value;
     if (HasIntegerValue(object, &value)) {
       return Utils::IsInt(16, value) || Utils::IsPowerOfTwo(value) ||

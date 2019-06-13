@@ -922,14 +922,11 @@ void VariableDeclarationHelper::ReadUntilExcluding(Field field) {
 }
 
 FieldHelper::FieldHelper(KernelReaderHelper* helper, intptr_t offset)
-    : helper_(helper),
-      next_read_(kStart),
-      has_function_literal_initializer_(false) {
+    : helper_(helper), next_read_(kStart) {
   helper_->SetOffset(offset);
 }
 
-void FieldHelper::ReadUntilExcluding(Field field,
-                                     bool detect_function_literal_initializer) {
+void FieldHelper::ReadUntilExcluding(Field field) {
   if (field <= next_read_) return;
 
   // Ordered with fall-through.
@@ -982,20 +979,6 @@ void FieldHelper::ReadUntilExcluding(Field field,
       FALL_THROUGH;
     case kInitializer:
       if (helper_->ReadTag() == kSomething) {
-        if (detect_function_literal_initializer &&
-            helper_->PeekTag() == kFunctionExpression) {
-          AlternativeReadingScope alt(&helper_->reader_);
-          Tag tag = helper_->ReadTag();
-          ASSERT(tag == kFunctionExpression);
-          helper_->ReadPosition();  // read position.
-
-          FunctionNodeHelper helper(helper_);
-          helper.ReadUntilIncluding(FunctionNodeHelper::kEndPosition);
-
-          has_function_literal_initializer_ = true;
-          function_literal_start_ = helper.position_;
-          function_literal_end_ = helper.end_position_;
-        }
         helper_->SkipExpression();  // read initializer.
       }
       if (++next_read_ == field) return;
@@ -1367,6 +1350,55 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
   }
 }
 
+#if defined(DEBUG)
+
+void MetadataHelper::VerifyMetadataMappings(
+    const ExternalTypedData& metadata_mappings) {
+  const intptr_t kUInt32Size = 4;
+  Reader reader(metadata_mappings);
+  if (reader.size() == 0) {
+    return;
+  }
+
+  // Scan through metadata mappings in reverse direction.
+
+  // Read metadataMappings length.
+  intptr_t offset = reader.size() - kUInt32Size;
+  const intptr_t metadata_num = reader.ReadUInt32At(offset);
+
+  if (metadata_num == 0) {
+    ASSERT(metadata_mappings.LengthInBytes() == kUInt32Size);
+    return;
+  }
+
+  // Read metadataMappings elements.
+  for (intptr_t i = 0; i < metadata_num; ++i) {
+    // Read nodeOffsetToMetadataOffset length.
+    offset -= kUInt32Size;
+    const intptr_t mappings_num = reader.ReadUInt32At(offset);
+
+    // Skip nodeOffsetToMetadataOffset.
+    offset -= mappings_num * 2 * kUInt32Size;
+
+    // Verify that node offsets are sorted.
+    intptr_t prev_node_offset = -1;
+    reader.set_offset(offset);
+    for (intptr_t j = 0; j < mappings_num; ++j) {
+      const intptr_t node_offset = reader.ReadUInt32();
+      const intptr_t md_offset = reader.ReadUInt32();
+
+      ASSERT(node_offset >= 0 && md_offset >= 0);
+      ASSERT(node_offset > prev_node_offset);
+      prev_node_offset = node_offset;
+    }
+
+    // Skip tag.
+    offset -= kUInt32Size;
+  }
+}
+
+#endif  // defined(DEBUG)
+
 MetadataHelper::MetadataHelper(KernelReaderHelper* helper,
                                const char* tag,
                                bool precompiler_only)
@@ -1386,25 +1418,6 @@ void MetadataHelper::SetMetadataMappings(intptr_t mappings_offset,
   ASSERT((mappings_offset != 0) && (mappings_num != 0));
   mappings_offset_ = mappings_offset;
   mappings_num_ = mappings_num;
-
-#ifdef DEBUG
-  // Verify that node offsets are sorted.
-  {
-    Reader reader(H.metadata_mappings());
-    reader.set_offset(mappings_offset);
-
-    intptr_t prev_node_offset = -1;
-    for (intptr_t i = 0; i < mappings_num; ++i) {
-      intptr_t node_offset = reader.ReadUInt32();
-      intptr_t md_offset = reader.ReadUInt32();
-
-      ASSERT((node_offset >= 0) && (md_offset >= 0));
-      ASSERT(node_offset > prev_node_offset);
-      prev_node_offset = node_offset;
-    }
-  }
-#endif  // DEBUG
-
   last_node_offset_ = kIntptrMax;
   last_mapping_index_ = 0;
 }
@@ -2899,7 +2912,7 @@ void TypeTranslator::BuildTypeParameterType() {
   if (parameter_index < class_types.Length()) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
-    result_ ^= class_types.TypeAt(parameter_index);
+    result_ = class_types.TypeAt(parameter_index);
     return;
   }
   parameter_index -= class_types.Length();
@@ -2924,7 +2937,7 @@ void TypeTranslator::BuildTypeParameterType() {
       //   }
       //
       if (class_types.Length() > parameter_index) {
-        result_ ^= class_types.TypeAt(parameter_index);
+        result_ = class_types.TypeAt(parameter_index);
         return;
       }
       parameter_index -= class_types.Length();
@@ -2936,7 +2949,7 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        result_ ^=
+        result_ =
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
                 .TypeAt(parameter_index);
         if (finalize_) {
@@ -2951,7 +2964,7 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      result_ ^= active_class_->local_type_parameters->TypeAt(parameter_index);
+      result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -2963,7 +2976,7 @@ void TypeTranslator::BuildTypeParameterType() {
   if (type_parameter_scope_ != NULL &&
       parameter_index < type_parameter_scope_->outer_parameter_count() +
                             type_parameter_scope_->parameter_count()) {
-    result_ ^= Type::DynamicType();
+    result_ = Type::DynamicType();
     return;
   }
 

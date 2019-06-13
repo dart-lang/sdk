@@ -24,11 +24,11 @@
 
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
+#include "platform/syslog.h"
 #include "platform/utils.h"
 
 // The EventHandler for Fuchsia uses its "ports v2" API:
@@ -56,14 +56,14 @@
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart EventHandler ERROR: %s:%d: " msg, __FILE__, __LINE__,  \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart EventHandler ERROR: %s:%d: " msg, __FILE__,         \
+                     __LINE__, ##__VA_ARGS__);                                 \
     errno = err;                                                               \
   }
 #if defined(EVENTHANDLER_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,        \
-             ##__VA_ARGS__)
+  Syslog::Print("Dart EventHandler INFO: %s:%d: " msg, __FILE__, __LINE__,     \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(EVENTHANDLER_LOG_INFO)
@@ -76,7 +76,7 @@ namespace dart {
 namespace bin {
 
 intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   const ssize_t read_bytes = NO_RETRY_EXPECTED(read(fd_, buffer, num_bytes));
   const int err = errno;
   LOG_INFO("IOHandle::Read: fd = %ld. read %ld bytes\n", fd_, read_bytes);
@@ -105,7 +105,7 @@ intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
 }
 
 intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   const ssize_t written_bytes =
       NO_RETRY_EXPECTED(write(fd_, buffer, num_bytes));
   const int err = errno;
@@ -122,7 +122,7 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
 }
 
 intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   const intptr_t socket = NO_RETRY_EXPECTED(accept(fd_, addr, addrlen));
   const int err = errno;
   LOG_INFO("IOHandle::Accept: fd = %ld. socket = %ld\n", fd_, socket);
@@ -138,7 +138,7 @@ intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
 }
 
 intptr_t IOHandle::AvailableBytes() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   ASSERT(fd_ >= 0);
   intptr_t available = FDUtils::AvailableBytes(fd_);
   LOG_INFO("IOHandle::AvailableBytes(): fd = %ld, bytes = %ld\n", fd_,
@@ -153,12 +153,12 @@ intptr_t IOHandle::AvailableBytes() {
 }
 
 void IOHandle::Close() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   VOID_NO_RETRY_EXPECTED(close(fd_));
 }
 
 uint32_t IOHandle::MaskToEpollEvents(intptr_t mask) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   // Do not ask for POLLERR and POLLHUP explicitly as they are
   // triggered anyway.
   uint32_t events = POLLRDHUP;
@@ -230,12 +230,12 @@ bool IOHandle::AsyncWaitLocked(zx_handle_t port,
 }
 
 bool IOHandle::AsyncWait(zx_handle_t port, uint32_t events, uint64_t key) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   return AsyncWaitLocked(port, events, key);
 }
 
 void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   LOG_INFO("IOHandle::CancelWait: fd = %ld\n", fd_);
   ASSERT(port != ZX_HANDLE_INVALID);
   ASSERT(handle_ != ZX_HANDLE_INVALID);
@@ -246,14 +246,15 @@ void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
 }
 
 uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   uint32_t events = 0;
   fdio_unsafe_wait_end(fdio_, observed, &events);
+  LOG_INFO("IOHandle::WaitEnd: fd = %ld, events = %x\n", fd_, events);
   return events;
 }
 
 intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   if (!write_events_enabled_) {
     LOG_INFO("IOHandle::ToggleEvents: fd = %ld de-asserting write\n", fd_);
     event_mask = event_mask & ~(1 << kOutEvent);

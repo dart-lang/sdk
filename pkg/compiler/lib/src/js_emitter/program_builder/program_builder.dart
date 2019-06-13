@@ -20,10 +20,7 @@ import '../../io/source_information.dart';
 import '../../js/js.dart' as js;
 import '../../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
-import '../../js_backend/backend.dart' show SuperMemberData;
 import '../../js_backend/backend_usage.dart';
-import '../../js_backend/constant_handler_javascript.dart'
-    show JavaScriptConstantCompiler;
 import '../../js_backend/custom_elements_analysis.dart';
 import '../../js_backend/inferred_data.dart';
 import '../../js_backend/interceptor_data.dart';
@@ -64,14 +61,12 @@ class ProgramBuilder {
   final JElementEnvironment _elementEnvironment;
   final JCommonElements _commonElements;
   final OutputUnitData _outputUnitData;
-  final CodegenWorldBuilder _worldBuilder;
+  final CodegenWorld _codegenWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
   final BackendUsage _backendUsage;
-  final JavaScriptConstantCompiler _constantHandler;
   final NativeData _nativeData;
   final RuntimeTypesNeed _rtiNeed;
   final InterceptorData _interceptorData;
-  final SuperMemberData _superMemberData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
@@ -108,14 +103,12 @@ class ProgramBuilder {
       this._elementEnvironment,
       this._commonElements,
       this._outputUnitData,
-      this._worldBuilder,
+      this._codegenWorld,
       this._nativeCodegenEnqueuer,
       this._backendUsage,
-      this._constantHandler,
       this._nativeData,
       this._rtiNeed,
       this._interceptorData,
-      this._superMemberData,
       this._rtiChecks,
       this._rtiEncoder,
       this._oneShotInterceptorData,
@@ -135,10 +128,9 @@ class ProgramBuilder {
             _commonElements,
             _elementEnvironment,
             _outputUnitData,
-            _worldBuilder,
+            _codegenWorld,
             _namer,
             _task.emitter,
-            _constantHandler,
             _nativeData,
             _interceptorData,
             _oneShotInterceptorData,
@@ -347,12 +339,11 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
     return stubGenerator.generateTypeToInterceptorMap();
   }
@@ -435,11 +426,14 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    Iterable<FieldEntity> lazyFields = _constantHandler
-        .getLazilyInitializedFieldsForEmission()
-        .where((FieldEntity element) =>
-            _outputUnitData.outputUnitForMember(element) ==
-            librariesMap.outputUnit);
+    List<FieldEntity> lazyFields = [];
+    _codegenWorld.forEachStaticField((FieldEntity field) {
+      if (_closedWorld.fieldAnalysis.getFieldData(field).isLazy &&
+          _outputUnitData.outputUnitForMember(field) ==
+              librariesMap.outputUnit) {
+        lazyFields.add(field);
+      }
+    });
     return _sorter
         .sortMembers(lazyFields)
         .map(_buildLazyField)
@@ -477,7 +471,7 @@ class ProgramBuilder {
 
   void _addJsInteropStubs(LibrariesMap librariesMap) {
     if (_classes.containsKey(_commonElements.objectClass)) {
-      var toStringInvocation = _namer.invocationName(Selectors.toString_);
+      js.Name toStringInvocation = _namer.invocationName(Selectors.toString_);
       // TODO(jacobr): register toString as used so that it is always accessible
       // from JavaScript.
       _classes[_commonElements.objectClass].callStubs.add(_buildStubMethod(
@@ -492,22 +486,23 @@ class ProgramBuilder {
     // a regular getter that returns a JavaScript function and tearing off
     // a method in the case where there exist multiple JavaScript classes
     // that conflict on whether the member is a getter or a method.
-    var interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
-    var stubNames = new Set<String>();
+    Class interceptorClass = _classes[_commonElements.jsJavaScriptObjectClass];
+    Set<String> stubNames = {};
     librariesMap
         .forEach((LibraryEntity library, List<ClassEntity> classElements, _) {
       for (ClassEntity cls in classElements) {
         if (_nativeData.isJsInteropClass(cls)) {
           _elementEnvironment.forEachLocalClassMember(cls,
               (MemberEntity member) {
-            var jsName = _nativeData.computeUnescapedJSInteropName(member.name);
+            String jsName =
+                _nativeData.computeUnescapedJSInteropName(member.name);
             if (!member.isInstanceMember) return;
             if (member.isGetter || member.isField || member.isFunction) {
-              var selectors =
-                  _worldBuilder.getterInvocationsByName(member.name);
+              Iterable<Selector> selectors =
+                  _codegenWorld.getterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
-                for (var selector in selectors.keys) {
-                  var stubName = _namer.invocationName(selector);
+                for (Selector selector in selectors) {
+                  js.Name stubName = _namer.invocationName(selector);
                   if (stubNames.add(stubName.key)) {
                     interceptorClass.callStubs.add(_buildStubMethod(stubName,
                         js.js('function(obj) { return obj.# }', [jsName]),
@@ -518,8 +513,8 @@ class ProgramBuilder {
             }
 
             if (member.isSetter || (member.isField && !member.isConst)) {
-              var selectors =
-                  _worldBuilder.setterInvocationsByName(member.name);
+              Iterable<Selector> selectors =
+                  _codegenWorld.setterInvocationsByName(member.name);
               if (selectors != null && !selectors.isEmpty) {
                 var stubName = _namer.setterForMember(member);
                 if (stubNames.add(stubName.key)) {
@@ -552,7 +547,7 @@ class ProgramBuilder {
                 minArgs = 0;
                 maxArgs = 32767;
               }
-              var selectors = _worldBuilder.invocationsByName(member.name);
+              var selectors = _codegenWorld.invocationsByName(member.name);
               // Named arguments are not yet supported. In the future we
               // may want to map named arguments to an object literal containing
               // all named arguments.
@@ -640,7 +635,7 @@ class ProgramBuilder {
     List<StubMethod> callStubs = <StubMethod>[];
 
     ClassStubGenerator classStubGenerator = new ClassStubGenerator(
-        _task.emitter, _commonElements, _namer, _worldBuilder, _closedWorld,
+        _task.emitter, _commonElements, _namer, _codegenWorld, _closedWorld,
         enableMinification: _options.enableMinification);
     RuntimeTypeGenerator runtimeTypeGenerator = new RuntimeTypeGenerator(
         _commonElements,
@@ -659,7 +654,7 @@ class ProgramBuilder {
       }
       if (member.isGetter || member.isField) {
         Map<Selector, SelectorConstraints> selectors =
-            _worldBuilder.invocationsByName(member.name);
+            _codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
           Map<js.Name, js.Expression> callStubsForMember =
               classStubGenerator.generateCallStubsForGetter(member, selectors);
@@ -765,11 +760,11 @@ class ProgramBuilder {
           assert(!field.needsUncheckedSetter);
           FieldEntity element = field.element;
           js.Expression code = _generatedCode[element];
+          assert(code != null, "No setter code for field: $field");
           if (code == null) {
-            // TODO(johnniwinther): Static types are not honoured in the dynamic
-            // uses created in codegen, leading to dead code, as known by the
-            // closed world computation, being triggered by the codegen
-            // enqueuer. We cautiously generate an empty function for this case.
+            // This should never occur because codegen member usage is now
+            // limited by closed world member usage. In the case we've missed a
+            // spot we cautiously generate an empty function.
             code = js.js("function() {}");
           }
           js.Name name = _namer.deriveSetterName(field.accessorName);
@@ -788,7 +783,7 @@ class ProgramBuilder {
     // building a class.
     Holder holder = _registry.registerHolder(holderName);
     bool isInstantiated = !_nativeData.isJsInteropClass(cls) &&
-        _worldBuilder.directlyInstantiatedClasses.contains(cls);
+        _codegenWorld.directlyInstantiatedClasses.contains(cls);
 
     Class result;
     if (_elementEnvironment.isMixinApplication(cls) &&
@@ -853,7 +848,7 @@ class ProgramBuilder {
     ParameterStructure parameterStructure = method.parameterStructure;
     if (parameterStructure.namedParameters.isNotEmpty) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
-      _worldBuilder.forEachParameter(method,
+      _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (parameterStructure.namedParameters.contains(name)) {
           assert(defaultValue != null);
@@ -863,7 +858,7 @@ class ProgramBuilder {
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
       int index = 0;
-      _worldBuilder.forEachParameter(method,
+      _elementEnvironment.forEachParameter(method,
           (DartType type, String name, ConstantValue defaultValue) {
         if (index >= parameterStructure.requiredParameters) {
           optionalParameterDefaultValues.add(defaultValue);
@@ -889,7 +884,7 @@ class ProgramBuilder {
 
     bool canBeApplied = _methodCanBeApplied(element);
 
-    js.Name aliasName = _superMemberData.isAliasedSuperMember(element)
+    js.Name aliasName = _codegenWorld.isAliasedSuperMember(element)
         ? _namer.aliasedSuperMemberPropertyName(element)
         : null;
 
@@ -901,9 +896,8 @@ class ProgramBuilder {
         isClosureCallMethod = true;
       } else {
         // Careful with operators.
-        canTearOff = _worldBuilder.hasInvokedGetter(element);
-        assert(canTearOff ||
-            !_worldBuilder.methodsNeedingSuperGetter.contains(element));
+        canTearOff = _codegenWorld.hasInvokedGetter(element) ||
+            _codegenWorld.methodsNeedsSuperGetter(element);
         tearOffName = _namer.getterForElement(element);
       }
     }
@@ -960,7 +954,8 @@ class ProgramBuilder {
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
       js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(_task.emitter, type, thisAccess);
+      return _rtiEncoder.getSignatureEncoding(
+          _namer, _task.emitter, type, thisAccess);
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -971,12 +966,13 @@ class ProgramBuilder {
     if (!_methodNeedsStubs(element)) return const <ParameterStubMethod>[];
 
     ParameterStubGenerator generator = new ParameterStubGenerator(
-        _task,
+        _task.emitter,
+        _task.nativeEmitter,
         _namer,
         _rtiEncoder,
         _nativeData,
         _interceptorData,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld,
         _sourceInformationStrategy);
     return generator.generateParameterStubs(element,
@@ -985,12 +981,7 @@ class ProgramBuilder {
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
     InstantiationStubGenerator generator = new InstantiationStubGenerator(
-        _task,
-        _commonElements,
-        _namer,
-        _worldBuilder,
-        _closedWorld,
-        _sourceInformationStrategy);
+        _task, _namer, _closedWorld, _codegenWorld, _sourceInformationStrategy);
     return generator.generateStubs(instantiationClass, null);
   }
 
@@ -1007,11 +998,10 @@ class ProgramBuilder {
   // We must evaluate these classes eagerly so that the prototype is
   // accessible.
   void _markEagerInterceptorClasses() {
-    Iterable<js.Name> names =
-        _oneShotInterceptorData.specializedGetInterceptorNames;
-    for (js.Name name in names) {
-      for (ClassEntity element
-          in _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name)) {
+    Iterable<SpecializedGetInterceptor> interceptors =
+        _oneShotInterceptorData.specializedGetInterceptors;
+    for (SpecializedGetInterceptor interceptor in interceptors) {
+      for (ClassEntity element in interceptor.classes) {
         Class cls = _classes[element];
         if (cls != null) cls.isEager = true;
       }
@@ -1022,12 +1012,11 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
 
     String holderName =
@@ -1035,13 +1024,23 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
-
-    Iterable<js.Name> names =
-        _oneShotInterceptorData.specializedGetInterceptorNames;
+    List<js.Name> names = [];
+    Map<js.Name, SpecializedGetInterceptor> interceptorMap = {};
+    for (SpecializedGetInterceptor interceptor
+        in _oneShotInterceptorData.specializedGetInterceptors) {
+      js.Name name = _namer.nameForGetInterceptor(interceptor.classes);
+      names.add(name);
+      assert(
+          !interceptorMap.containsKey(name),
+          "Duplicate specialized get interceptor for $name: Existing: "
+          "${interceptorMap[name]}, new ${interceptor}.");
+      interceptorMap[name] = interceptor;
+    }
+    names.sort();
     return names.map((js.Name name) {
-      Set<ClassEntity> classes =
-          _oneShotInterceptorData.getSpecializedGetInterceptorsFor(name);
-      js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
+      SpecializedGetInterceptor interceptor = interceptorMap[name];
+      js.Expression code =
+          stubGenerator.generateGetInterceptorMethod(interceptor);
       return new StaticStubMethod(name, holder, code);
     });
   }
@@ -1107,7 +1106,7 @@ class ProgramBuilder {
     }
 
     FieldVisitor visitor = new FieldVisitor(_options, _elementEnvironment,
-        _commonElements, _worldBuilder, _nativeData, _namer, _closedWorld);
+        _commonElements, _codegenWorld, _nativeData, _namer, _closedWorld);
     visitor.visitFields(visitField,
         visitStatics: visitStatics, library: library, cls: cls);
 
@@ -1118,12 +1117,11 @@ class ProgramBuilder {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
         _options,
         _commonElements,
-        _task,
+        _task.emitter,
         _nativeCodegenEnqueuer,
         _namer,
-        _oneShotInterceptorData,
         _customElementsCodegenAnalysis,
-        _worldBuilder,
+        _codegenWorld,
         _closedWorld);
 
     String holderName =
@@ -1131,10 +1129,24 @@ class ProgramBuilder {
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
-
-    List<js.Name> names = _oneShotInterceptorData.oneShotInterceptorNames;
+    List<js.Name> names = [];
+    Map<js.Name, OneShotInterceptor> interceptorMap = {};
+    for (OneShotInterceptor interceptor
+        in _oneShotInterceptorData.oneShotInterceptors) {
+      js.Name name = _namer.nameForOneShotInterceptor(
+          interceptor.selector, interceptor.classes);
+      names.add(name);
+      assert(
+          !interceptorMap.containsKey(name),
+          "Duplicate specialized get interceptor for $name: Existing: "
+          "${interceptorMap[name]}, new ${interceptor}.");
+      interceptorMap[name] = interceptor;
+    }
+    names.sort();
     return names.map((js.Name name) {
-      js.Expression code = stubGenerator.generateOneShotInterceptor(name);
+      OneShotInterceptor interceptor = interceptorMap[name];
+      js.Expression code =
+          stubGenerator.generateOneShotInterceptor(interceptor);
       return new StaticStubMethod(name, holder, code);
     });
   }
@@ -1148,8 +1160,8 @@ class ProgramBuilder {
         !element.isConstructor && !element.isGetter && !element.isSetter;
     bool canBeApplied = _methodCanBeApplied(element);
 
-    bool needsTearOff = isApplyTarget &&
-        _worldBuilder.staticFunctionsNeedingGetter.contains(element);
+    bool needsTearOff =
+        isApplyTarget && _codegenWorld.closurizedStatics.contains(element);
 
     js.Name tearOffName =
         needsTearOff ? _namer.staticClosureName(element) : null;

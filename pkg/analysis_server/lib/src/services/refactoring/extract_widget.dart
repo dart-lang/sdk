@@ -76,7 +76,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
       this.searchEngine, this.resolveResult, this.offset, this.length)
       : sessionHelper = new AnalysisSessionHelper(resolveResult.session) {
     utils = new CorrectionUtils(resolveResult);
-    flutter = Flutter.of(resolveResult.session);
+    flutter = Flutter.of(resolveResult);
   }
 
   @override

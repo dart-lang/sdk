@@ -104,7 +104,7 @@ void PreallocatedStackTraceBuilder::AddFrame(const Object& code,
       dropped_frames_++;
     }
     // Encode the number of dropped frames into the pc offset.
-    frame_offset ^= Smi::New(dropped_frames_);
+    frame_offset = Smi::New(dropped_frames_);
     stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accommodate the new frame.
     for (intptr_t i = start; i < StackTrace::kPreallocatedStackdepth; i++) {
@@ -130,21 +130,24 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
   Code& code = Code::Handle();
   Bytecode& bytecode = Bytecode::Handle();
   Smi& offset = Smi::Handle();
-  while (frame != NULL) {
-    if (frame->IsDartFrame()) {
-      if (frame->is_interpreted()) {
-        bytecode = frame->LookupDartBytecode();
-        ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-        builder->AddFrame(bytecode, offset);
-      } else {
-        code = frame->LookupDartCode();
-        ASSERT(code.ContainsInstructionAt(frame->pc()));
-        offset = Smi::New(frame->pc() - code.PayloadStart());
-        builder->AddFrame(code, offset);
-      }
+  for (; frame != NULL; frame = frames.NextFrame()) {
+    if (!frame->IsDartFrame()) {
+      continue;
     }
-    frame = frames.NextFrame();
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
+      if (bytecode.function() == Function::null()) {
+        continue;
+      }
+      offset = Smi::New(frame->pc() - bytecode.PayloadStart());
+      builder->AddFrame(bytecode, offset);
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(code.ContainsInstructionAt(frame->pc()));
+      offset = Smi::New(frame->pc() - code.PayloadStart());
+      builder->AddFrame(code, offset);
+    }
   }
 }
 
@@ -156,7 +159,7 @@ class ExceptionHandlerFinder : public StackResource {
   // Iterate through the stack frames and try to find a frame with an
   // exception handler. Once found, set the pc, sp and fp so that execution
   // can continue in that frame. Sets 'needs_stacktrace' if there is no
-  // cath-all handler or if a stack-trace is specified in the catch.
+  // catch-all handler or if a stack-trace is specified in the catch.
   bool Find() {
     StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
@@ -368,15 +371,15 @@ class ExceptionHandlerFinder : public StackResource {
 };
 
 CatchEntryMove CatchEntryMove::ReadFrom(ReadStream* stream) {
-  using Reader = ReadStream::Raw<sizeof(intptr_t), intptr_t>;
-  const intptr_t src = Reader::Read(stream);
-  const intptr_t dest_and_kind = Reader::Read(stream);
+  using Reader = ReadStream::Raw<sizeof(int32_t), int32_t>;
+  const int32_t src = Reader::Read(stream);
+  const int32_t dest_and_kind = Reader::Read(stream);
   return CatchEntryMove(src, dest_and_kind);
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 void CatchEntryMove::WriteTo(WriteStream* stream) {
-  using Writer = WriteStream::Raw<sizeof(intptr_t), intptr_t>;
+  using Writer = WriteStream::Raw<sizeof(int32_t), int32_t>;
   Writer::Write(stream, src_);
   Writer::Write(stream, dest_and_kind_);
 }
@@ -667,6 +670,15 @@ static void ThrowExceptionHelper(Thread* thread,
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+#if !defined(PRODUCT)
+  // Do not notify debugger on stack overflow and out of memory exceptions.
+  // The VM would crash when the debugger calls back into the VM to
+  // get values of variables.
+  if (incoming_exception.raw() != isolate->object_store()->out_of_memory() &&
+      incoming_exception.raw() != isolate->object_store()->stack_overflow()) {
+    isolate->debugger()->PauseException(incoming_exception);
+  }
+#endif
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(zone, incoming_exception.raw());
   if (exception.IsNull()) {
@@ -695,7 +707,7 @@ static void ThrowExceptionHelper(Thread* thread,
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
-    stacktrace ^= isolate->object_store()->preallocated_stack_trace();
+    stacktrace = isolate->object_store()->preallocated_stack_trace();
     PreallocatedStackTraceBuilder frame_builder(stacktrace);
     ASSERT(existing_stacktrace.IsNull() ||
            (existing_stacktrace.raw() == stacktrace.raw()));
@@ -877,16 +889,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 }
 
 void Exceptions::Throw(Thread* thread, const Instance& exception) {
-  // Do not notify debugger on stack overflow and out of memory exceptions.
-  // The VM would crash when the debugger calls back into the VM to
-  // get values of variables.
-#if !defined(PRODUCT)
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->PauseException(exception);
-  }
-#endif
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception, StackTrace::Handle(thread->zone()),
                        false);
@@ -991,6 +993,12 @@ void Exceptions::ThrowRangeError(const char* argument_name,
   args.SetAt(2, Integer::Handle(Integer::New(expected_to)));
   args.SetAt(3, String::Handle(String::New(argument_name)));
   Exceptions::ThrowByType(Exceptions::kRange, args);
+}
+
+void Exceptions::ThrowUnsupportedError(const char* msg) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(String::New(msg)));
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
 }
 
 void Exceptions::ThrowRangeErrorMsg(const char* msg) {

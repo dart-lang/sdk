@@ -23,7 +23,8 @@ class TextDocumentChangeHandler
   LspJsonHandler<DidChangeTextDocumentParams> get jsonHandler =>
       DidChangeTextDocumentParams.jsonHandler;
 
-  ErrorOr<void> handle(DidChangeTextDocumentParams params) {
+  ErrorOr<void> handle(
+      DidChangeTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) => _changeFile(path, params));
   }
@@ -66,7 +67,8 @@ class TextDocumentCloseHandler
   LspJsonHandler<DidCloseTextDocumentParams> get jsonHandler =>
       DidCloseTextDocumentParams.jsonHandler;
 
-  ErrorOr<void> handle(DidCloseTextDocumentParams params) {
+  ErrorOr<void> handle(
+      DidCloseTextDocumentParams params, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
       server.removePriorityFile(path);
@@ -111,7 +113,8 @@ class TextDocumentOpenHandler
   LspJsonHandler<DidOpenTextDocumentParams> get jsonHandler =>
       DidOpenTextDocumentParams.jsonHandler;
 
-  ErrorOr<void> handle(DidOpenTextDocumentParams params) {
+  ErrorOr<void> handle(
+      DidOpenTextDocumentParams params, CancellationToken token) {
     final doc = params.textDocument;
     final path = pathOfDocItem(doc);
     return path.mapResult((path) {

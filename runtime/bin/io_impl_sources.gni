@@ -29,6 +29,8 @@ io_impl_sources = [
   "file_system_watcher_win.cc",
   "filter.cc",
   "filter.h",
+  "ifaddrs-android.cc",
+  "ifaddrs-android.h",
   "io_service.cc",
   "io_service.h",
   "io_service_no_ssl.cc",

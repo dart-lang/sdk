@@ -18,6 +18,6 @@ class C extends core::Object {
   method fun() → dynamic
     ;
 }
-static const field core::int foo;
+static const field core::int foo = const core::int::fromEnvironment("fisk");
 static method main() → dynamic
   ;

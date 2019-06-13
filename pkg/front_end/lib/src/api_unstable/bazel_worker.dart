@@ -11,9 +11,12 @@ import 'package:kernel/kernel.dart' show Component, CanonicalName;
 
 import 'package:kernel/target/targets.dart' show Target;
 
-import '../api_prototype/compiler_options.dart' show CompilerOptions;
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, parseExperimentalFlags;
 
 import '../api_prototype/diagnostic_message.dart' show DiagnosticMessageHandler;
+
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
 
 import '../api_prototype/file_system.dart' show FileSystem;
 
@@ -23,9 +26,7 @@ import '../fasta/compiler_context.dart' show CompilerContext;
 
 import '../fasta/incremental_compiler.dart' show IncrementalCompiler;
 
-import '../fasta/kernel/utils.dart' show serializeComponent;
-
-import '../kernel_generator_impl.dart' show generateKernel;
+import '../kernel_generator_impl.dart' show CompilerResult, generateKernel;
 
 import 'compiler_state.dart'
     show InitializedCompilerState, WorkerInputComponent, digestsEqual;
@@ -43,6 +44,8 @@ export '../fasta/severity.dart' show Severity;
 
 export 'compiler_state.dart' show InitializedCompilerState;
 
+import 'util.dart' show equalMaps;
+
 /// Initializes the compiler for a modular build.
 ///
 /// Re-uses cached components from [_workerInputCache], and reloads them
@@ -56,8 +59,12 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     FileSystem fileSystem,
+    Iterable<String> experiments,
     bool outlineOnly) async {
-  List<int> sdkDigest = workerInputDigests[sdkSummary];
+  final List<int> sdkDigest = workerInputDigests[sdkSummary];
+  if (sdkDigest == null) {
+    throw new StateError("Expected to get digest for $sdkSummary");
+  }
   IncrementalCompiler incrementalCompiler;
   CompilerOptions options;
   ProcessedOptions processedOpts;
@@ -65,19 +72,27 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   bool startOver = false;
+  Map<ExperimentalFlag, bool> experimentalFlags =
+      parseExperimentalFlags(experiments, (e) => throw e);
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
-      oldState.incrementalCompiler.outlineOnly != outlineOnly) {
-    // No previous state.
+      oldState.incrementalCompiler.outlineOnly != outlineOnly ||
+      !equalMaps(oldState.options.experimentalFlags, experimentalFlags)) {
+    // No - or immediately not correct - previous state.
     startOver = true;
+
+    // We'll load a new sdk, anything loaded already will have a wrong root.
+    workerInputCache.clear();
   } else {
     // We do have a previous state.
     cachedSdkInput = workerInputCache[sdkSummary];
     if (cachedSdkInput == null ||
-        !digestsEqual(cachedSdkInput.digest, workerInputDigests[sdkSummary])) {
+        !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
       // The sdk is out of date.
       startOver = true;
+      // We'll load a new sdk, anything loaded already will have a wrong root.
+      workerInputCache.clear();
     }
   }
 
@@ -104,36 +119,44 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   } else {
     options = oldState.options;
     processedOpts = oldState.processedOpts;
-
     var sdkComponent = cachedSdkInput.component;
     // Reset the state of the component.
     for (var lib in sdkComponent.libraries) {
       lib.isExternal = cachedSdkInput.externalLibs.contains(lib.importUri);
     }
+
+    // Make sure the canonical name root knows about the sdk - otherwise we
+    // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
+
+    // TODO(jensj): This is - at least currently - neccessary,
+    // although it's not entirely obvious why.
+    // It likely has to do with several outlines containing the same libraries.
+    // Once that stops (and we check for it) we can probably remove this,
+    // and instead only do it when about to reuse an outline in the
+    // 'inputSummaries.add(component);' line further down.
     for (WorkerInputComponent cachedInput in workerInputCache.values) {
       cachedInput.component.adoptChildren();
     }
-    sdkComponent.unbindCanonicalNames();
-    sdkComponent.computeCanonicalNames();
 
     // Reuse the incremental compiler, but reset as needed.
     incrementalCompiler = oldState.incrementalCompiler;
     incrementalCompiler.invalidateAllSources();
     options.packagesFileUri = packagesFile;
     options.fileSystem = fileSystem;
+    processedOpts.clearFileSystemCache();
   }
 
   // Then read all the input summary components.
-  // The nameRoot from the sdk was either just created or just unbound.
-  // If just unbound, only the sdk stuff is bound. Either way, don't clear it
-  // again and bind as much as possible before loading new stuff!
   CanonicalName nameRoot = cachedSdkInput.component.root;
   final inputSummaries = <Component>[];
   List<Uri> loadFromDill = new List<Uri>();
   for (Uri summary in summaryInputs) {
     var cachedInput = workerInputCache[summary];
     var summaryDigest = workerInputDigests[summary];
+    if (summaryDigest == null) {
+      throw new StateError("Expected to get digest for $summary");
+    }
     if (cachedInput == null ||
         cachedInput.component.root != nameRoot ||
         !digestsEqual(cachedInput.digest, summaryDigest)) {
@@ -144,21 +167,21 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       for (var lib in component.libraries) {
         lib.isExternal = cachedInput.externalLibs.contains(lib.importUri);
       }
-      // We don't unbind as the root was unbound already. We do have to compute
-      // the canonical names though, to rebind everything in the component.
-      component.adoptChildren();
-      component.computeCanonicalNames();
       inputSummaries.add(component);
     }
   }
 
   for (int i = 0; i < loadFromDill.length; i++) {
     Uri summary = loadFromDill[i];
-    var summaryDigest = workerInputDigests[summary];
+    List<int> summaryDigest = workerInputDigests[summary];
+    if (summaryDigest == null) {
+      throw new StateError("Expected to get digest for $summary");
+    }
     WorkerInputComponent cachedInput = WorkerInputComponent(
         summaryDigest,
         await processedOpts.loadComponent(
-            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot));
+            await fileSystem.entityForUri(summary).readAsBytes(), nameRoot,
+            alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     inputSummaries.add(cachedInput.component);
   }
@@ -178,7 +201,8 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> summaryInputs,
     List<Uri> linkedInputs,
     Target target,
-    FileSystem fileSystem) async {
+    FileSystem fileSystem,
+    Iterable<String> experiments) async {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
   // same input summary URIs, but with different contents, so we'd need to be
@@ -192,16 +216,17 @@ Future<InitializedCompilerState> initializeCompiler(
     ..linkedDependencies = linkedInputs
     ..target = target
     ..fileSystem = fileSystem
-    ..environmentDefines = const {};
+    ..environmentDefines = const {}
+    ..experimentalFlags = parseExperimentalFlags(experiments, (e) => throw e);
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 
   return new InitializedCompilerState(options, processedOpts);
 }
 
-Future<List<int>> compile(InitializedCompilerState compilerState,
+Future<CompilerResult> _compile(InitializedCompilerState compilerState,
     List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
-    {bool summaryOnly}) async {
+    {bool summaryOnly, bool includeOffsets: true}) {
   summaryOnly ??= true;
   CompilerOptions options = compilerState.options;
   options..onDiagnostic = diagnosticMessageHandler;
@@ -210,11 +235,27 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
   processedOpts.inputs.clear();
   processedOpts.inputs.addAll(inputs);
 
-  var result = await generateKernel(processedOpts,
-      buildSummary: summaryOnly, buildComponent: !summaryOnly);
+  return generateKernel(processedOpts,
+      buildSummary: summaryOnly,
+      buildComponent: !summaryOnly,
+      includeOffsets: includeOffsets);
+}
+
+Future<List<int>> compileSummary(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler,
+    {bool includeOffsets: false}) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: true, includeOffsets: includeOffsets);
+  return result?.summary;
+}
+
+Future<Component> compileComponent(InitializedCompilerState compilerState,
+    List<Uri> inputs, DiagnosticMessageHandler diagnosticMessageHandler) async {
+  var result = await _compile(compilerState, inputs, diagnosticMessageHandler,
+      summaryOnly: false);
 
   var component = result?.component;
-  if (component != null && !summaryOnly) {
+  if (component != null) {
     for (var lib in component.libraries) {
       if (!inputs.contains(lib.importUri)) {
         // Excluding the library also means that their canonical names will not
@@ -226,9 +267,5 @@ Future<List<int>> compile(InitializedCompilerState compilerState,
       }
     }
   }
-
-  return summaryOnly
-      ? result?.summary
-      : serializeComponent(result?.component,
-          filter: (library) => inputs.contains(library.importUri));
+  return component;
 }

@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class InvalidAssignmentTest extends DriverResolutionTest {
   test_instanceVariable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   int x;
 }
@@ -26,17 +26,22 @@ f(var y) {
     a.x = y;
   }
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 70, 1),
+    ]);
   }
 
   test_localVariable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 f(var y) {
   if (y is String) {
     int x = y;
+    print(x);
   }
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 44, 1),
+    ]);
   }
 
   test_promotedTypeParameter_regress35306() async {
@@ -58,7 +63,7 @@ void f<X extends A, Y extends B>(X x) {
   }
 
   test_staticVariable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   static int x;
 }
@@ -67,11 +72,13 @@ f(var y) {
     A.x = y;
   }
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 70, 1),
+    ]);
   }
 
   test_typeParameterRecursion_regress35306() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class A {}
 class B extends A {}
 class C extends D {}
@@ -80,14 +87,17 @@ class D {}
 void f<X extends A, Y extends B>(X x) {
   if (x is Y) {
     D d = x;
+    print(d);
   }
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 131, 1),
+    ]);
   }
 
   test_variableDeclaration() async {
     // 17971
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class Point {
   final num x, y;
   Point(this.x, this.y);
@@ -99,7 +109,10 @@ main() {
   var p1 = new Point(0, 0);
   var p2 = new Point(10, 10);
   int n = p1 + p2;
+  print(n);
 }
-''', [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+''', [
+      error(StaticTypeWarningCode.INVALID_ASSIGNMENT, 218, 7),
+    ]);
   }
 }

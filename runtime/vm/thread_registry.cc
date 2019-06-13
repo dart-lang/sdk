@@ -30,9 +30,6 @@ ThreadRegistry::~ThreadRegistry() {
       delete thread;
     }
   }
-
-  // Delete monitor.
-  delete threads_lock_;
 }
 
 // Gets a free Thread structure, we special case the mutator thread

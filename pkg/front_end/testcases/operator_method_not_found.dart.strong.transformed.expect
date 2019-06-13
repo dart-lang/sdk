@@ -2,6 +2,10 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/operator_method_not_found.dart:36:10: Error: 'foo' isn't a type.
+//   print(<foo);
+//          ^^^
+//
 // pkg/front_end/testcases/operator_method_not_found.dart:36:10: Error: Expected '>' after this.
 //   print(<foo);
 //          ^^^
@@ -9,10 +13,6 @@ library;
 // pkg/front_end/testcases/operator_method_not_found.dart:36:13: Error: Expected '[' before this.
 //   print(<foo);
 //             ^
-//
-// pkg/front_end/testcases/operator_method_not_found.dart:36:10: Error: 'foo' isn't a type.
-//   print(<foo);
-//          ^^^
 //
 // pkg/front_end/testcases/operator_method_not_found.dart:37:9: Error: Expected an identifier, but got '>'.
 //   print(>foo);

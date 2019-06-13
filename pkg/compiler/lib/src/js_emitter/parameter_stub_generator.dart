@@ -4,6 +4,7 @@
 
 library dart2js.js_emitter.parameter_stub_generator;
 
+import '../common_elements.dart' show JElementEnvironment;
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -22,34 +23,38 @@ import '../world.dart' show JClosedWorld;
 
 import 'model.dart';
 
-import 'code_emitter_task.dart' show CodeEmitterTask, Emitter;
+import 'code_emitter_task.dart' show Emitter;
+import 'native_emitter.dart';
 
 class ParameterStubGenerator {
   static final Set<Selector> emptySelectorSet = new Set<Selector>();
 
-  final CodeEmitterTask _emitterTask;
+  final Emitter _emitter;
+  final NativeEmitter _nativeEmitter;
   final Namer _namer;
   final RuntimeTypesEncoder _rtiEncoder;
   final NativeData _nativeData;
   final InterceptorData _interceptorData;
-  final CodegenWorldBuilder _codegenWorldBuilder;
+  final CodegenWorld _codegenWorld;
   final JClosedWorld _closedWorld;
   final SourceInformationStrategy _sourceInformationStrategy;
 
   ParameterStubGenerator(
-      this._emitterTask,
+      this._emitter,
+      this._nativeEmitter,
       this._namer,
       this._rtiEncoder,
       this._nativeData,
       this._interceptorData,
-      this._codegenWorldBuilder,
+      this._codegenWorld,
       this._closedWorld,
       this._sourceInformationStrategy);
 
-  Emitter get _emitter => _emitterTask.emitter;
+  JElementEnvironment get _elementEnvironment =>
+      _closedWorld.elementEnvironment;
 
   bool needsSuperGetter(FunctionEntity element) =>
-      _codegenWorldBuilder.methodsNeedingSuperGetter.contains(element);
+      _codegenWorld.methodsNeedsSuperGetter(element);
 
   /// Generates stubs to fill in missing optional named or positional arguments
   /// and missing type arguments.  Returns `null` if no stub is needed.
@@ -128,7 +133,7 @@ class ParameterStubGenerator {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    _codegenWorldBuilder.forEachParameter(member,
+    _elementEnvironment.forEachParameter(member,
         (_, String name, ConstantValue value) {
       String jsName = _namer.safeVariableName(name);
       assert(jsName != receiverArgumentName);
@@ -186,7 +191,7 @@ class ParameterStubGenerator {
 
     var body; // List or jsAst.Statement.
     if (_nativeData.hasFixedBackendName(member)) {
-      body = _emitterTask.nativeEmitter.generateParameterStubStatements(
+      body = _nativeEmitter.generateParameterStubStatements(
           member,
           isInterceptedMethod,
           _namer.invocationName(selector),
@@ -202,7 +207,7 @@ class ParameterStubGenerator {
         // Instead we need to call the statically resolved target.
         //   `<class>.prototype.bar$1.call(this, argument0, ...)`.
         body = js.statement('return #.#.call(this, #);', [
-          _emitterTask.prototypeAccess(superClass, hasBeenInstantiated: true),
+          _emitter.prototypeAccess(superClass, hasBeenInstantiated: true),
           methodName,
           targetArguments
         ]);
@@ -280,12 +285,12 @@ class ParameterStubGenerator {
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-      liveSelectors = _codegenWorldBuilder.invocationsByName(member.name);
+      liveSelectors = _codegenWorld.invocationsByName(member.name);
     }
 
     if (canTearOff) {
       String call = _namer.closureInvocationSelectorName;
-      callSelectors = _codegenWorldBuilder.invocationsByName(call);
+      callSelectors = _codegenWorld.invocationsByName(call);
     }
 
     assert(emptySelectorSet.isEmpty);

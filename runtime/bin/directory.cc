@@ -9,12 +9,12 @@
 
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/typed_data_utils.h"
 #include "bin/utils.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {

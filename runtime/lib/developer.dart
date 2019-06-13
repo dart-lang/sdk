@@ -131,7 +131,7 @@ _postResponse(SendPort replyPort, Object id, ServiceExtensionResponse response,
   assert(id != null);
   StringBuffer sb = new StringBuffer();
   sb.write('{"jsonrpc":"2.0",');
-  if (response._isError()) {
+  if (response.isError()) {
     if (trace_service) {
       print("vm-service: posting error response for request $id");
     }

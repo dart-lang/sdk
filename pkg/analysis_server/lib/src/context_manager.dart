@@ -287,6 +287,12 @@ abstract class ContextManager {
   List<AnalysisDriver> getDriversInAnalysisRoot(Folder analysisRoot);
 
   /**
+   * Determine whether the given [path], when interpreted relative to innermost
+   * context root, contains a folder whose name starts with '.'.
+   */
+  bool isContainedInDotFolder(String path);
+
+  /**
    * Return `true` if the given [path] is ignored by a [ContextInfo] whose
    * folder contains it.
    */
@@ -347,6 +353,11 @@ abstract class ContextManagerCallbacks {
    * An [event] was processed, so analysis state might be different now.
    */
   void afterWatchEvent(WatchEvent event);
+
+  /**
+   * Called when analysis options or URI resolution in the [driver] are changed.
+   */
+  void analysisOptionsUpdated(AnalysisDriver driver);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -554,6 +565,15 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return drivers;
+  }
+
+  /**
+   * Determine whether the given [path], when interpreted relative to innermost
+   * context root, contains a folder whose name starts with '.'.
+   */
+  bool isContainedInDotFolder(String path) {
+    ContextInfo info = _getInnermostContextInfoFor(path);
+    return info != null && _isContainedInDotFolder(info.folder.path, path);
   }
 
   @override
@@ -870,7 +890,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Use the given analysis [driver] to analyze the content of the 
+   * Use the given analysis [driver] to analyze the content of the
    * AndroidManifest file at the given [path].
    */
   void _analyzeManifestFile(AnalysisDriver driver, String path) {
@@ -1615,6 +1635,7 @@ class ContextManagerImpl implements ContextManager {
         contextRoot: driver.contextRoot);
     SourceFactory factory = builder.createSourceFactory(contextRoot, options);
     driver.configure(analysisOptions: options, sourceFactory: factory);
+    callbacks.analysisOptionsUpdated(driver);
   }
 
   void _updateContextPackageUriResolver(Folder contextFolder) {

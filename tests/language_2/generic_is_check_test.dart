@@ -9,7 +9,7 @@ class A<T> {
 }
 
 main() {
-  Expect.isTrue(new A().foo());
+  Expect.isFalse(new A().foo());
   Expect.isTrue(new A<int>().foo());
   Expect.isFalse(new A<String>().foo());
 }

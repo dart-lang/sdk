@@ -8,8 +8,10 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_completion_resolve.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
@@ -19,6 +21,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_format_on_type.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_formatting.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_hover.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_implementation.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialize.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
@@ -39,7 +42,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 
   @override
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
-    return failure(
+    return error(
         ErrorCodes.InternalError,
         'An unrecoverable error occurred and the server cannot process messages',
         null);
@@ -49,7 +52,6 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
   InitializedStateMessageHandler(
     LspAnalysisServer server,
-    bool onlyAnalyzeProjectsWithOpenFiles,
   ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
@@ -58,17 +60,29 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new ShutdownMessageHandler(server));
     registerHandler(new ExitMessageHandler(server));
     registerHandler(
-      new TextDocumentOpenHandler(server, onlyAnalyzeProjectsWithOpenFiles),
+      new TextDocumentOpenHandler(
+        server,
+        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
+      ),
     );
     registerHandler(new TextDocumentChangeHandler(server));
     registerHandler(
-      new TextDocumentCloseHandler(server, onlyAnalyzeProjectsWithOpenFiles),
+      new TextDocumentCloseHandler(
+        server,
+        server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
+      ),
     );
     registerHandler(new HoverHandler(server));
-    registerHandler(new CompletionHandler(server));
+    registerHandler(new CompletionHandler(
+      server,
+      server.initializationOptions.suggestFromUnimportedLibraries,
+    ));
+    registerHandler(new CompletionResolveHandler(server));
     registerHandler(new SignatureHelpHandler(server));
     registerHandler(new DefinitionHandler(server));
+    registerHandler(new SuperHandler(server));
     registerHandler(new ReferencesHandler(server));
+    registerHandler(new ImplementationHandler(server));
     registerHandler(new FormattingHandler(server));
     registerHandler(new FormatOnTypeHandler(server));
     registerHandler(new DocumentHighlightsHandler(server));
@@ -76,7 +90,10 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     registerHandler(new CodeActionHandler(server));
     registerHandler(new ExecuteCommandHandler(server));
     registerHandler(
-      new WorkspaceFoldersHandler(server, !onlyAnalyzeProjectsWithOpenFiles),
+      new WorkspaceFoldersHandler(
+        server,
+        !server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles,
+      ),
     );
     registerHandler(new PrepareRenameHandler(server));
     registerHandler(new RenameHandler(server));
@@ -87,15 +104,18 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializingStateMessageHandler extends ServerStateMessageHandler {
-  InitializingStateMessageHandler(LspAnalysisServer server,
-      List<String> openWorkspacePaths, bool onlyAnalyzeProjectsWithOpenFiles)
-      : super(server) {
+  InitializingStateMessageHandler(
+    LspAnalysisServer server,
+    List<String> openWorkspacePaths,
+  ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     registerHandler(new ShutdownMessageHandler(server));
     registerHandler(new ExitMessageHandler(server));
     registerHandler(new IntializedMessageHandler(
-        server, openWorkspacePaths, onlyAnalyzeProjectsWithOpenFiles));
+      server,
+      openWorkspacePaths,
+    ));
   }
 
   @override
@@ -104,7 +124,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(
+    return error(
         ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before the server is initialized '
         'and the client has sent the initialized notification');
@@ -124,7 +144,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(ErrorCodes.ServerNotInitialized,
+    return error(ErrorCodes.ServerNotInitialized,
         'Unable to handle ${message.method} before client has sent initialize request');
   }
 }
@@ -141,7 +161,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
     if (message is! RequestMessage) {
       return success();
     }
-    return failure(ServerErrorCodes.ServerShuttingDown,
+    return error(ErrorCodes.InvalidRequest,
         'Unable to handle ${message.method} after shutdown request');
   }
 }

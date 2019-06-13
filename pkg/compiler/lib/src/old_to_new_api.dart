@@ -23,6 +23,8 @@ class LegacyCompilerInput implements CompilerInput {
 
   @override
   Future<Input> readFromUri(Uri uri, {InputKind inputKind: InputKind.UTF8}) {
+    // The switch handles all enum values, but not null.
+    // ignore: missing_return
     return _inputProvider(uri).then((/*String|List<int>*/ data) {
       switch (inputKind) {
         case InputKind.UTF8:

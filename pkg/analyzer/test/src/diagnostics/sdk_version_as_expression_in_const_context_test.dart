@@ -23,7 +23,7 @@ class SdkVersionAsExpressionInConstContextTest
     ..enabledExperiments = [EnableString.constant_update_2018];
 
   test_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const dynamic a = 2;
 const c = (a as int) + 2;
 ''');
@@ -33,6 +33,8 @@ const c = (a as int) + 2;
     verifyVersion('2.2.0', '''
 const dynamic a = 2;
 const c = (a as int) + 2;
-''', errorCodes: [HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, 32, 8),
+    ]);
   }
 }

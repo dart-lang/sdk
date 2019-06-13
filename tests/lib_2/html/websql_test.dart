@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:web_sql';
 
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 Future<SqlResultSet> createTable(
     SqlTransaction transaction, String tableName, String columnName) async {

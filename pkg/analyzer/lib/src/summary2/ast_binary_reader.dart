@@ -9,10 +9,22 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
+import 'package:analyzer/src/summary2/tokens_context.dart';
+
+var timerAstBinaryReader = Stopwatch();
+var timerAstBinaryReaderClass = Stopwatch();
+var timerAstBinaryReaderDirective = Stopwatch();
+var timerAstBinaryReaderFunctionBody = Stopwatch();
+var timerAstBinaryReaderFunctionDeclaration = Stopwatch();
+var timerAstBinaryReaderMixin = Stopwatch();
+var timerAstBinaryReaderTopLevelVar = Stopwatch();
 
 /// Deserializer of fully resolved ASTs from flat buffers.
 class AstBinaryReader {
@@ -21,21 +33,54 @@ class AstBinaryReader {
   /// Set to `true` when this reader is used to lazily read its unit.
   bool isLazy = false;
 
+  /// Whether we are reading a directive.
+  ///
+  /// [StringLiteral]s in directives are not actual expressions, and don't need
+  /// a type. Moreover, when we are reading `dart:core` imports, the type
+  /// provider is not ready yet, so we cannot access type `String`.
+  bool _isReadingDirective = false;
+
   AstBinaryReader(this._unitContext);
 
+  InterfaceType get _boolType => _unitContext.typeProvider.boolType;
+
+  InterfaceType get _doubleType => _unitContext.typeProvider.doubleType;
+
+  InterfaceType get _intType => _unitContext.typeProvider.intType;
+
+  DartType get _nullType => _unitContext.typeProvider.nullType;
+
+  InterfaceType get _stringType => _unitContext.typeProvider.stringType;
+
   AstNode readNode(LinkedNode data) {
-    var node = _readNode(data);
-    if (node == null) return null;
-
-    if (!isLazy) {
-      _unitContext.tokensContext.linkTokens(node.beginToken, node.endToken);
+    timerAstBinaryReader.start();
+    try {
+      return _readNode(data);
+    } finally {
+      timerAstBinaryReader.stop();
     }
-
-    return node;
   }
 
   DartType readType(LinkedNodeType data) {
     return _readType(data);
+  }
+
+  SimpleIdentifier _declaredIdentifier(LinkedNode data) {
+    var informativeData = _unitContext.getInformativeData(data);
+    var offset = informativeData?.nameOffset ?? 0;
+    return astFactory.simpleIdentifier(
+      TokenFactory.tokenFromString(data.name)..offset = offset,
+      isDeclaration: true,
+    );
+  }
+
+  Token _directiveKeyword(LinkedNode data, Keyword keyword, Token def) {
+    var informativeData = _unitContext.getInformativeData(data);
+    if (informativeData != null) {
+      return TokenFactory.tokenFromKeyword(keyword)
+        ..offset = informativeData.directiveKeywordOffset;
+    }
+    return def;
   }
 
   Element _elementOfComponents(
@@ -48,6 +93,10 @@ class AstBinaryReader {
     var definingType = _readType(definingTypeNode);
     if (element is ConstructorElement) {
       return ConstructorMember.from(element, definingType);
+    } else if (element is MethodElement) {
+      return MethodMember.from(element, definingType);
+    } else if (element is PropertyAccessorElement) {
+      return PropertyAccessorMember.from(element, definingType);
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -58,78 +107,72 @@ class AstBinaryReader {
     return bundleContext.elementOfIndex(index);
   }
 
-  Token _getToken(int index) {
-    return _unitContext.tokensContext.tokenOfIndex(index);
-  }
-
-  List<Token> _getTokens(List<int> indexList) {
-    var result = List<Token>(indexList.length);
-    for (var i = 0; i < indexList.length; ++i) {
-      var index = indexList[i];
-      result[i] = _getToken(index);
-    }
-    return result;
-  }
-
   AdjacentStrings _read_adjacentStrings(LinkedNode data) {
-    return astFactory.adjacentStrings(
+    var node = astFactory.adjacentStrings(
       _readNodeList(data.adjacentStrings_strings),
-    )..staticType = _readType(data.expression_type);
+    );
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   Annotation _read_annotation(LinkedNode data) {
     return astFactory.annotation(
-      _getToken(data.annotation_atSign),
+      _Tokens.AT,
       _readNode(data.annotation_name),
-      _getToken(data.annotation_period),
+      _Tokens.PERIOD,
       _readNode(data.annotation_constructorName),
       _readNode(data.annotation_arguments),
-    );
+    )..element = _elementOfComponents(
+        data.annotation_element,
+        data.annotation_elementType,
+      );
   }
 
   ArgumentList _read_argumentList(LinkedNode data) {
     return astFactory.argumentList(
-      _getToken(data.argumentList_leftParenthesis),
+      _Tokens.OPEN_PAREN,
       _readNodeList(data.argumentList_arguments),
-      _getToken(data.argumentList_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
     );
   }
 
   AsExpression _read_asExpression(LinkedNode data) {
     return astFactory.asExpression(
       _readNode(data.asExpression_expression),
-      _getToken(data.asExpression_asOperator),
+      _Tokens.AS,
       _readNode(data.asExpression_type),
     )..staticType = _readType(data.expression_type);
   }
 
   AssertInitializer _read_assertInitializer(LinkedNode data) {
     return astFactory.assertInitializer(
-      _getToken(data.assertInitializer_assertKeyword),
-      _getToken(data.assertInitializer_leftParenthesis),
+      _Tokens.ASSERT,
+      _Tokens.OPEN_PAREN,
       _readNode(data.assertInitializer_condition),
-      _getToken(data.assertInitializer_comma),
+      _Tokens.COMMA,
       _readNode(data.assertInitializer_message),
-      _getToken(data.assertInitializer_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
     );
   }
 
   AssertStatement _read_assertStatement(LinkedNode data) {
     return astFactory.assertStatement(
-      _getToken(data.assertStatement_assertKeyword),
-      _getToken(data.assertStatement_leftParenthesis),
+      _Tokens.AS,
+      _Tokens.OPEN_PAREN,
       _readNode(data.assertStatement_condition),
-      _getToken(data.assertStatement_comma),
+      _Tokens.COMMA,
       _readNode(data.assertStatement_message),
-      _getToken(data.assertStatement_rightParenthesis),
-      _getToken(data.assertStatement_semicolon),
+      _Tokens.CLOSE_PAREN,
+      _Tokens.SEMICOLON,
     );
   }
 
   AssignmentExpression _read_assignmentExpression(LinkedNode data) {
     return astFactory.assignmentExpression(
       _readNode(data.assignmentExpression_leftHandSide),
-      _getToken(data.assignmentExpression_operator),
+      _Tokens.fromType(data.assignmentExpression_operator),
       _readNode(data.assignmentExpression_rightHandSide),
     )
       ..staticElement = _elementOfComponents(
@@ -141,7 +184,7 @@ class AstBinaryReader {
 
   AwaitExpression _read_awaitExpression(LinkedNode data) {
     return astFactory.awaitExpression(
-      _getToken(data.awaitExpression_awaitKeyword),
+      _Tokens.AWAIT,
       _readNode(data.awaitExpression_expression),
     )..staticType = _readType(data.expression_type);
   }
@@ -149,7 +192,7 @@ class AstBinaryReader {
   BinaryExpression _read_binaryExpression(LinkedNode data) {
     return astFactory.binaryExpression(
       _readNode(data.binaryExpression_leftOperand),
-      _getToken(data.binaryExpression_operator),
+      _Tokens.fromType(data.binaryExpression_operator),
       _readNode(data.binaryExpression_rightOperand),
     )
       ..staticElement = _elementOfComponents(
@@ -161,32 +204,40 @@ class AstBinaryReader {
 
   Block _read_block(LinkedNode data) {
     return astFactory.block(
-      _getToken(data.block_leftBracket),
+      _Tokens.OPEN_CURLY_BRACKET,
       _readNodeList(data.block_statements),
-      _getToken(data.block_rightBracket),
+      _Tokens.CLOSE_CURLY_BRACKET,
     );
   }
 
   BlockFunctionBody _read_blockFunctionBody(LinkedNode data) {
-    return astFactory.blockFunctionBody(
-      _getToken(data.blockFunctionBody_keyword),
-      _getToken(data.blockFunctionBody_star),
-      _readNode(data.blockFunctionBody_block),
-    );
+    timerAstBinaryReaderFunctionBody.start();
+    try {
+      return astFactory.blockFunctionBody(
+        _Tokens.choose(
+          AstBinaryFlags.isAsync(data.flags),
+          _Tokens.ASYNC,
+          AstBinaryFlags.isSync(data.flags),
+          _Tokens.SYNC,
+        ),
+        AstBinaryFlags.isStar(data.flags) ? _Tokens.STAR : null,
+        _readNode(data.blockFunctionBody_block),
+      );
+    } finally {
+      timerAstBinaryReaderFunctionBody.stop();
+    }
   }
 
   BooleanLiteral _read_booleanLiteral(LinkedNode data) {
-    return astFactory.booleanLiteral(
-      _getToken(data.booleanLiteral_literal),
-      data.booleanLiteral_value,
-    )..staticType = _readType(data.expression_type);
+    return AstTestFactory.booleanLiteral(data.booleanLiteral_value)
+      ..staticType = _boolType;
   }
 
   BreakStatement _read_breakStatement(LinkedNode data) {
     return astFactory.breakStatement(
-      _getToken(data.breakStatement_breakKeyword),
+      _Tokens.BREAK,
       _readNode(data.breakStatement_label),
-      _getToken(data.breakStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
@@ -198,59 +249,74 @@ class AstBinaryReader {
   }
 
   CatchClause _read_catchClause(LinkedNode data) {
+    var exceptionType = _readNode(data.catchClause_exceptionType);
+    var exceptionParameter = _readNode(data.catchClause_exceptionParameter);
+    var stackTraceParameter = _readNode(data.catchClause_stackTraceParameter);
     return astFactory.catchClause(
-      _getToken(data.catchClause_onKeyword),
-      _readNode(data.catchClause_exceptionType),
-      _getToken(data.catchClause_catchKeyword),
-      _getToken(data.catchClause_leftParenthesis),
-      _readNode(data.catchClause_exceptionParameter),
-      _getToken(data.catchClause_comma),
-      _readNode(data.catchClause_stackTraceParameter),
-      _getToken(data.catchClause_rightParenthesis),
+      exceptionType != null ? _Tokens.ON : null,
+      exceptionType,
+      exceptionParameter != null ? _Tokens.CATCH : null,
+      exceptionParameter != null ? _Tokens.OPEN_PAREN : null,
+      exceptionParameter,
+      stackTraceParameter != null ? _Tokens.COMMA : null,
+      stackTraceParameter,
+      exceptionParameter != null ? _Tokens.CLOSE_PAREN : null,
       _readNode(data.catchClause_body),
     );
   }
 
   ClassDeclaration _read_classDeclaration(LinkedNode data) {
-    var node = astFactory.classDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.classDeclaration_abstractKeyword),
-      _getToken(data.classDeclaration_classKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classOrMixinDeclaration_typeParameters),
-      _readNodeLazy(data.classDeclaration_extendsClause),
-      _readNodeLazy(data.classDeclaration_withClause),
-      _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
-      _getToken(data.classOrMixinDeclaration_leftBracket),
-      _readNodeListLazy(data.classOrMixinDeclaration_members),
-      _getToken(data.classOrMixinDeclaration_rightBracket),
-    );
-    node.nativeClause = _readNodeLazy(data.classDeclaration_nativeClause);
-    LazyClassDeclaration.setData(node, data);
-    return node;
+    timerAstBinaryReaderClass.start();
+    try {
+      var node = astFactory.classDeclaration(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
+        _Tokens.CLASS,
+        _declaredIdentifier(data),
+        _readNode(data.classOrMixinDeclaration_typeParameters),
+        _readNodeLazy(data.classDeclaration_extendsClause),
+        _readNodeLazy(data.classDeclaration_withClause),
+        _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
+        _Tokens.OPEN_CURLY_BRACKET,
+        _readNodeListLazy(data.classOrMixinDeclaration_members),
+        _Tokens.CLOSE_CURLY_BRACKET,
+      );
+      node.nativeClause = _readNodeLazy(data.classDeclaration_nativeClause);
+      LazyClassDeclaration.setData(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderClass.stop();
+    }
   }
 
   ClassTypeAlias _read_classTypeAlias(LinkedNode data) {
-    var node = astFactory.classTypeAlias(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.typeAlias_typedefKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classTypeAlias_typeParameters),
-      _getToken(data.classTypeAlias_equals),
-      _getToken(data.classTypeAlias_abstractKeyword),
-      _readNodeLazy(data.classTypeAlias_superclass),
-      _readNodeLazy(data.classTypeAlias_withClause),
-      _readNodeLazy(data.classTypeAlias_implementsClause),
-      _getToken(data.typeAlias_semicolon),
-    );
-    LazyClassTypeAlias.setData(node, data);
-    return node;
+    timerAstBinaryReaderClass.start();
+    try {
+      var node = astFactory.classTypeAlias(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _Tokens.CLASS,
+        _declaredIdentifier(data),
+        _readNode(data.classTypeAlias_typeParameters),
+        _Tokens.EQ,
+        AstBinaryFlags.isAbstract(data.flags) ? _Tokens.ABSTRACT : null,
+        _readNodeLazy(data.classTypeAlias_superclass),
+        _readNodeLazy(data.classTypeAlias_withClause),
+        _readNodeLazy(data.classTypeAlias_implementsClause),
+        _Tokens.SEMICOLON,
+      );
+      LazyClassTypeAlias.setData(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderClass.stop();
+    }
   }
 
   Comment _read_comment(LinkedNode data) {
-    var tokens = _getTokens(data.comment_tokens);
+    var tokens = data.comment_tokens
+        .map((lexeme) => TokenFactory.tokenFromString(lexeme))
+        .toList();
     switch (data.comment_type) {
       case LinkedNodeCommentType.block:
         return astFactory.endOfLineComment(
@@ -259,7 +325,7 @@ class AstBinaryReader {
       case LinkedNodeCommentType.documentation:
         return astFactory.documentationComment(
           tokens,
-          // TODO(scheglov) references
+          _readNodeList(data.comment_references),
         );
       case LinkedNodeCommentType.endOfLine:
         return astFactory.endOfLineComment(
@@ -270,50 +336,75 @@ class AstBinaryReader {
     }
   }
 
-  CompilationUnit _read_compilationUnit(LinkedNode data) {
-    return astFactory.compilationUnit(
-      _getToken(data.compilationUnit_beginToken),
-      _readNode(data.compilationUnit_scriptTag),
-      _readNodeList(data.compilationUnit_directives),
-      _readNodeList(data.compilationUnit_declarations),
-      _getToken(data.compilationUnit_endToken),
+  CommentReference _read_commentReference(LinkedNode data) {
+    return astFactory.commentReference(
+      AstBinaryFlags.isNew(data.flags) ? _Tokens.NEW : null,
+      _readNode(data.commentReference_identifier),
     );
+  }
+
+  CompilationUnit _read_compilationUnit(LinkedNode data) {
+    return astFactory.compilationUnit2(
+        beginToken: null,
+        scriptTag: _readNode(data.compilationUnit_scriptTag),
+        directives: _readNodeList(data.compilationUnit_directives),
+        declarations: _readNodeList(data.compilationUnit_declarations),
+        endToken: null,
+        featureSet: null);
   }
 
   ConditionalExpression _read_conditionalExpression(LinkedNode data) {
     return astFactory.conditionalExpression(
       _readNode(data.conditionalExpression_condition),
-      _getToken(data.conditionalExpression_question),
+      _Tokens.QUESTION,
       _readNode(data.conditionalExpression_thenExpression),
-      _getToken(data.conditionalExpression_colon),
+      _Tokens.COLON,
       _readNode(data.conditionalExpression_elseExpression),
     )..staticType = _readType(data.expression_type);
   }
 
   Configuration _read_configuration(LinkedNode data) {
     return astFactory.configuration(
-      _getToken(data.configuration_ifKeyword),
-      _getToken(data.configuration_leftParenthesis),
+      _Tokens.IF,
+      _Tokens.OPEN_PAREN,
       _readNode(data.configuration_name),
-      _getToken(data.configuration_equalToken),
+      AstBinaryFlags.hasEqual(data.flags) ? _Tokens.EQ : null,
       _readNode(data.configuration_value),
-      _getToken(data.configuration_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
       _readNode(data.configuration_uri),
     );
   }
 
   ConstructorDeclaration _read_constructorDeclaration(LinkedNode data) {
+    SimpleIdentifier returnType = _readNode(
+      data.constructorDeclaration_returnType,
+    );
+
+    var informativeData = _unitContext.getInformativeData(data);
+    returnType.token.offset =
+        informativeData?.constructorDeclaration_returnTypeOffset ?? 0;
+
     var node = astFactory.constructorDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.constructorDeclaration_externalKeyword),
-      _getToken(data.constructorDeclaration_constKeyword),
-      _getToken(data.constructorDeclaration_factoryKeyword),
-      _readNode(data.constructorDeclaration_returnType),
-      _getToken(data.constructorDeclaration_period),
-      _readNode(data.constructorDeclaration_name),
+      AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
+      AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
+      AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
+      returnType,
+      data.name.isNotEmpty
+          ? Token(
+              TokenType.PERIOD,
+              informativeData?.constructorDeclaration_periodOffset ?? 0,
+            )
+          : null,
+      data.name.isNotEmpty ? _declaredIdentifier(data) : null,
       _readNodeLazy(data.constructorDeclaration_parameters),
-      _getToken(data.constructorDeclaration_separator),
+      _Tokens.choose(
+        AstBinaryFlags.hasSeparatorColon(data.flags),
+        _Tokens.COLON,
+        AstBinaryFlags.hasSeparatorEquals(data.flags),
+        _Tokens.EQ,
+      ),
       _readNodeListLazy(data.constructorDeclaration_initializers),
       _readNodeLazy(data.constructorDeclaration_redirectedConstructor),
       _readNodeLazy(data.constructorDeclaration_body),
@@ -324,11 +415,12 @@ class AstBinaryReader {
 
   ConstructorFieldInitializer _read_constructorFieldInitializer(
       LinkedNode data) {
+    var hasThis = AstBinaryFlags.hasThis(data.flags);
     return astFactory.constructorFieldInitializer(
-      _getToken(data.constructorFieldInitializer_thisKeyword),
-      _getToken(data.constructorFieldInitializer_period),
+      hasThis ? _Tokens.THIS : null,
+      hasThis ? _Tokens.PERIOD : null,
       _readNode(data.constructorFieldInitializer_fieldName),
-      _getToken(data.constructorFieldInitializer_equals),
+      _Tokens.EQ,
       _readNode(data.constructorFieldInitializer_expression),
     );
   }
@@ -336,7 +428,7 @@ class AstBinaryReader {
   ConstructorName _read_constructorName(LinkedNode data) {
     return astFactory.constructorName(
       _readNode(data.constructorName_type),
-      _getToken(data.constructorName_period),
+      data.constructorName_name != null ? _Tokens.PERIOD : null,
       _readNode(data.constructorName_name),
     )..staticElement = _elementOfComponents(
         data.constructorName_element,
@@ -346,17 +438,24 @@ class AstBinaryReader {
 
   ContinueStatement _read_continueStatement(LinkedNode data) {
     return astFactory.continueStatement(
-      _getToken(data.continueStatement_continueKeyword),
+      _Tokens.CONTINUE,
       _readNode(data.continueStatement_label),
-      _getToken(data.continueStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   DeclaredIdentifier _read_declaredIdentifier(LinkedNode data) {
     return astFactory.declaredIdentifier(
-      _readNode(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeList(data.annotatedNode_metadata),
-      _getToken(data.declaredIdentifier_keyword),
+      _Tokens.choose(
+        AstBinaryFlags.isConst(data.flags),
+        _Tokens.CONST,
+        AstBinaryFlags.isFinal(data.flags),
+        _Tokens.FINAL,
+        AstBinaryFlags.isVar(data.flags),
+        _Tokens.VAR,
+      ),
       _readNode(data.declaredIdentifier_type),
       _readNode(data.declaredIdentifier_identifier),
     );
@@ -365,10 +464,8 @@ class AstBinaryReader {
   DefaultFormalParameter _read_defaultFormalParameter(LinkedNode data) {
     var node = astFactory.defaultFormalParameter(
       _readNode(data.defaultFormalParameter_parameter),
-      data.defaultFormalParameter_isNamed
-          ? ParameterKind.NAMED
-          : ParameterKind.POSITIONAL,
-      _getToken(data.defaultFormalParameter_separator),
+      _toParameterKind(data.defaultFormalParameter_kind),
+      data.defaultFormalParameter_defaultValue != null ? _Tokens.COLON : null,
       _readNodeLazy(data.defaultFormalParameter_defaultValue),
     );
     LazyFormalParameter.setData(node, data);
@@ -377,13 +474,13 @@ class AstBinaryReader {
 
   DoStatement _read_doStatement(LinkedNode data) {
     return astFactory.doStatement(
-      _getToken(data.doStatement_doKeyword),
+      _Tokens.DO,
       _readNode(data.doStatement_body),
-      _getToken(data.doStatement_whileKeyword),
-      _getToken(data.doStatement_leftParenthesis),
+      _Tokens.WHILE,
+      _Tokens.OPEN_PAREN,
       _readNode(data.doStatement_condition),
-      _getToken(data.doStatement_rightParenthesis),
-      _getToken(data.doStatement_semicolon),
+      _Tokens.CLOSE_PAREN,
+      _Tokens.SEMICOLON,
     );
   }
 
@@ -394,29 +491,27 @@ class AstBinaryReader {
   }
 
   DoubleLiteral _read_doubleLiteral(LinkedNode data) {
-    return astFactory.doubleLiteral(
-      _getToken(data.doubleLiteral_literal),
-      data.doubleLiteral_value,
-    )..staticType = _readType(data.expression_type);
+    return AstTestFactory.doubleLiteral(data.doubleLiteral_value)
+      ..staticType = _doubleType;
   }
 
   EmptyFunctionBody _read_emptyFunctionBody(LinkedNode data) {
     return astFactory.emptyFunctionBody(
-      _getToken(data.emptyFunctionBody_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   EmptyStatement _read_emptyStatement(LinkedNode data) {
     return astFactory.emptyStatement(
-      _getToken(data.emptyStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   EnumConstantDeclaration _read_enumConstantDeclaration(LinkedNode data) {
     var node = astFactory.enumConstantDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _readNode(data.enumConstantDeclaration_name),
+      _declaredIdentifier(data),
     );
     LazyEnumConstantDeclaration.setData(node, data);
     return node;
@@ -424,63 +519,82 @@ class AstBinaryReader {
 
   EnumDeclaration _read_enumDeclaration(LinkedNode data) {
     var node = astFactory.enumDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.enumDeclaration_enumKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
-      _getToken(data.enumDeclaration_leftBracket),
+      _Tokens.ENUM,
+      _declaredIdentifier(data),
+      _Tokens.OPEN_CURLY_BRACKET,
       _readNodeListLazy(data.enumDeclaration_constants),
-      _getToken(data.enumDeclaration_rightBracket),
+      _Tokens.CLOSE_CURLY_BRACKET,
     );
     LazyEnumDeclaration.setData(node, data);
     return node;
   }
 
   ExportDirective _read_exportDirective(LinkedNode data) {
-    var node = astFactory.exportDirective(
-      _readNode(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.directive_keyword),
-      _readNode(data.uriBasedDirective_uri),
-      _readNodeList(data.namespaceDirective_configurations),
-      _readNodeList(data.namespaceDirective_combinators),
-      _getToken(data.directive_semicolon),
-    );
-    LazyDirective.setData(node, data);
-    return node;
+    timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
+    try {
+      var node = astFactory.exportDirective(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _directiveKeyword(data, Keyword.EXPORT, _Tokens.EXPORT),
+        _readNode(data.uriBasedDirective_uri),
+        _readNodeList(data.namespaceDirective_configurations),
+        _readNodeList(data.namespaceDirective_combinators),
+        _Tokens.SEMICOLON,
+      );
+      LazyDirective.setData(node, data);
+      return node;
+    } finally {
+      _isReadingDirective = false;
+      timerAstBinaryReaderDirective.stop();
+    }
   }
 
   ExpressionFunctionBody _read_expressionFunctionBody(LinkedNode data) {
-    return astFactory.expressionFunctionBody(
-      _getToken(data.expressionFunctionBody_keyword),
-      _getToken(data.expressionFunctionBody_arrow),
-      _readNode(data.expressionFunctionBody_expression),
-      _getToken(data.expressionFunctionBody_semicolon),
-    );
+    timerAstBinaryReaderFunctionBody.start();
+    try {
+      return astFactory.expressionFunctionBody(
+        _Tokens.choose(
+          AstBinaryFlags.isAsync(data.flags),
+          _Tokens.ASYNC,
+          AstBinaryFlags.isSync(data.flags),
+          _Tokens.SYNC,
+        ),
+        _Tokens.ARROW,
+        _readNode(data.expressionFunctionBody_expression),
+        _Tokens.SEMICOLON,
+      );
+    } finally {
+      timerAstBinaryReaderFunctionBody.stop();
+    }
   }
 
   ExpressionStatement _read_expressionStatement(LinkedNode data) {
     return astFactory.expressionStatement(
       _readNode(data.expressionStatement_expression),
-      _getToken(data.expressionStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   ExtendsClause _read_extendsClause(LinkedNode data) {
     return astFactory.extendsClause(
-      _getToken(data.extendsClause_extendsKeyword),
+      _Tokens.EXTENDS,
       _readNode(data.extendsClause_superclass),
     );
   }
 
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
-      comment: _readNodeLazy(data.annotatedNode_comment),
-      covariantKeyword: _getToken(data.fieldDeclaration_covariantKeyword),
+      comment: _readDocumentationComment(data),
+      covariantKeyword:
+          AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
       fieldList: _readNode(data.fieldDeclaration_fields),
       metadata: _readNodeListLazy(data.annotatedNode_metadata),
-      semicolon: _getToken(data.fieldDeclaration_semicolon),
-      staticKeyword: _getToken(data.fieldDeclaration_staticKeyword),
+      semicolon: _Tokens.SEMICOLON,
+      staticKeyword:
+          AstBinaryFlags.isStatic(data.flags) ? _Tokens.STATIC : null,
     );
     LazyFieldDeclaration.setData(node, data);
     return node;
@@ -488,16 +602,26 @@ class AstBinaryReader {
 
   FieldFormalParameter _read_fieldFormalParameter(LinkedNode data) {
     var node = astFactory.fieldFormalParameter2(
-      identifier: _readNode(data.normalFormalParameter_identifier),
-      period: _getToken(data.fieldFormalParameter_period),
-      thisKeyword: _getToken(data.fieldFormalParameter_thisKeyword),
-      covariantKeyword: _getToken(data.normalFormalParameter_covariantKeyword),
+      identifier: _declaredIdentifier(data),
+      period: _Tokens.PERIOD,
+      thisKeyword: _Tokens.THIS,
+      covariantKeyword:
+          AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
       typeParameters: _readNode(data.fieldFormalParameter_typeParameters),
-      keyword: _getToken(data.fieldFormalParameter_keyword),
+      keyword: _Tokens.choose(
+        AstBinaryFlags.isConst(data.flags),
+        _Tokens.CONST,
+        AstBinaryFlags.isFinal(data.flags),
+        _Tokens.FINAL,
+        AstBinaryFlags.isVar(data.flags),
+        _Tokens.VAR,
+      ),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
-      comment: _readNode(data.normalFormalParameter_comment),
+      comment: _readDocumentationComment(data),
       type: _readNode(data.fieldFormalParameter_type),
       parameters: _readNode(data.fieldFormalParameter_formalParameters),
+      requiredKeyword:
+          AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );
     LazyFormalParameter.setData(node, data);
     return node;
@@ -506,7 +630,7 @@ class AstBinaryReader {
   ForEachPartsWithDeclaration _read_forEachPartsWithDeclaration(
       LinkedNode data) {
     return astFactory.forEachPartsWithDeclaration(
-      inKeyword: _getToken(data.forEachParts_inKeyword),
+      inKeyword: _Tokens.IN,
       iterable: _readNode(data.forEachParts_iterable),
       loopVariable: _readNode(data.forEachPartsWithDeclaration_loopVariable),
     );
@@ -514,7 +638,7 @@ class AstBinaryReader {
 
   ForEachPartsWithIdentifier _read_forEachPartsWithIdentifier(LinkedNode data) {
     return astFactory.forEachPartsWithIdentifier(
-      inKeyword: _getToken(data.forEachParts_inKeyword),
+      inKeyword: _Tokens.IN,
       iterable: _readNode(data.forEachParts_iterable),
       identifier: _readNode(data.forEachPartsWithIdentifier_identifier),
     );
@@ -522,30 +646,40 @@ class AstBinaryReader {
 
   ForElement _read_forElement(LinkedNode data) {
     return astFactory.forElement(
-      awaitKeyword: _getToken(data.forMixin_awaitKeyword),
+      awaitKeyword: AstBinaryFlags.hasAwait(data.flags) ? _Tokens.AWAIT : null,
       body: _readNode(data.forElement_body),
-      forKeyword: _getToken(data.forMixin_forKeyword),
+      forKeyword: _Tokens.FOR,
       forLoopParts: _readNode(data.forMixin_forLoopParts),
-      leftParenthesis: _getToken(data.forMixin_leftParenthesis),
-      rightParenthesis: _getToken(data.forMixin_rightParenthesis),
+      leftParenthesis: _Tokens.OPEN_PAREN,
+      rightParenthesis: _Tokens.CLOSE_PAREN,
     );
   }
 
   FormalParameterList _read_formalParameterList(LinkedNode data) {
     return astFactory.formalParameterList(
-      _getToken(data.formalParameterList_leftParenthesis),
+      _Tokens.OPEN_PAREN,
       _readNodeList(data.formalParameterList_parameters),
-      _getToken(data.formalParameterList_leftDelimiter),
-      _getToken(data.formalParameterList_rightDelimiter),
-      _getToken(data.formalParameterList_rightParenthesis),
+      _Tokens.choose(
+        AstBinaryFlags.isDelimiterCurly(data.flags),
+        _Tokens.OPEN_CURLY_BRACKET,
+        AstBinaryFlags.isDelimiterSquare(data.flags),
+        _Tokens.OPEN_SQUARE_BRACKET,
+      ),
+      _Tokens.choose(
+        AstBinaryFlags.isDelimiterCurly(data.flags),
+        _Tokens.CLOSE_CURLY_BRACKET,
+        AstBinaryFlags.isDelimiterSquare(data.flags),
+        _Tokens.CLOSE_SQUARE_BRACKET,
+      ),
+      _Tokens.CLOSE_PAREN,
     );
   }
 
   ForPartsWithDeclarations _read_forPartsWithDeclarations(LinkedNode data) {
     return astFactory.forPartsWithDeclarations(
       condition: _readNode(data.forParts_condition),
-      leftSeparator: _getToken(data.forParts_leftSeparator),
-      rightSeparator: _getToken(data.forParts_rightSeparator),
+      leftSeparator: _Tokens.SEMICOLON,
+      rightSeparator: _Tokens.SEMICOLON,
       updaters: _readNodeList(data.forParts_updaters),
       variables: _readNode(data.forPartsWithDeclarations_variables),
     );
@@ -555,35 +689,45 @@ class AstBinaryReader {
     return astFactory.forPartsWithExpression(
       condition: _readNode(data.forParts_condition),
       initialization: _readNode(data.forPartsWithExpression_initialization),
-      leftSeparator: _getToken(data.forParts_leftSeparator),
-      rightSeparator: _getToken(data.forParts_rightSeparator),
+      leftSeparator: _Tokens.SEMICOLON,
+      rightSeparator: _Tokens.SEMICOLON,
       updaters: _readNodeList(data.forParts_updaters),
     );
   }
 
   ForStatement _read_forStatement(LinkedNode data) {
     return astFactory.forStatement(
-      awaitKeyword: _getToken(data.forMixin_awaitKeyword),
-      forKeyword: _getToken(data.forMixin_forKeyword),
-      leftParenthesis: _getToken(data.forMixin_leftParenthesis),
+      awaitKeyword: AstBinaryFlags.hasAwait(data.flags) ? _Tokens.AWAIT : null,
+      forKeyword: _Tokens.FOR,
+      leftParenthesis: _Tokens.OPEN_PAREN,
       forLoopParts: _readNode(data.forMixin_forLoopParts),
-      rightParenthesis: _getToken(data.forMixin_rightParenthesis),
+      rightParenthesis: _Tokens.CLOSE_PAREN,
       body: _readNode(data.forStatement_body),
     );
   }
 
   FunctionDeclaration _read_functionDeclaration(LinkedNode data) {
-    var node = astFactory.functionDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.functionDeclaration_externalKeyword),
-      _readNodeLazy(data.functionDeclaration_returnType),
-      _getToken(data.functionDeclaration_propertyKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
-      _readNodeLazy(data.functionDeclaration_functionExpression),
-    );
-    LazyFunctionDeclaration.setData(node, data);
-    return node;
+    timerAstBinaryReaderFunctionDeclaration.start();
+    try {
+      var node = astFactory.functionDeclaration(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
+        _readNodeLazy(data.functionDeclaration_returnType),
+        _Tokens.choose(
+          AstBinaryFlags.isGet(data.flags),
+          _Tokens.GET,
+          AstBinaryFlags.isSet(data.flags),
+          _Tokens.SET,
+        ),
+        _declaredIdentifier(data),
+        _readNodeLazy(data.functionDeclaration_functionExpression),
+      );
+      LazyFunctionDeclaration.setData(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderFunctionDeclaration.stop();
+    }
   }
 
   FunctionDeclarationStatement _read_functionDeclarationStatement(
@@ -614,126 +758,201 @@ class AstBinaryReader {
 
   FunctionTypeAlias _read_functionTypeAlias(LinkedNode data) {
     var node = astFactory.functionTypeAlias(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.typeAlias_typedefKeyword),
+      _Tokens.TYPEDEF,
       _readNodeLazy(data.functionTypeAlias_returnType),
-      _readNode(data.namedCompilationUnitMember_name),
+      _declaredIdentifier(data),
       _readNode(data.functionTypeAlias_typeParameters),
       _readNodeLazy(data.functionTypeAlias_formalParameters),
-      _getToken(data.typeAlias_semicolon),
+      _Tokens.SEMICOLON,
     );
     LazyFunctionTypeAlias.setData(node, data);
+    LazyFunctionTypeAlias.setHasSelfReference(
+      node,
+      data.typeAlias_hasSelfReference,
+    );
     return node;
   }
 
   FunctionTypedFormalParameter _read_functionTypedFormalParameter(
       LinkedNode data) {
     var node = astFactory.functionTypedFormalParameter2(
-      identifier: _readNode(data.normalFormalParameter_identifier),
-      parameters: _readNode(data.functionTypedFormalParameter_formalParameters),
-      returnType: _readNode(data.functionTypedFormalParameter_returnType),
-      covariantKeyword: _getToken(data.normalFormalParameter_covariantKeyword),
-      comment: _readNode(data.normalFormalParameter_comment),
-      metadata: _readNodeList(data.normalFormalParameter_metadata),
-      typeParameters:
-          _readNode(data.functionTypedFormalParameter_typeParameters),
+      comment: _readDocumentationComment(data),
+      covariantKeyword:
+          AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
+      identifier: _declaredIdentifier(data),
+      metadata: _readNodeListLazy(data.normalFormalParameter_metadata),
+      parameters: _readNodeLazy(
+        data.functionTypedFormalParameter_formalParameters,
+      ),
+      requiredKeyword:
+          AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
+      returnType: _readNodeLazy(data.functionTypedFormalParameter_returnType),
+      typeParameters: _readNode(
+        data.functionTypedFormalParameter_typeParameters,
+      ),
     );
     LazyFormalParameter.setData(node, data);
     return node;
   }
 
   GenericFunctionType _read_genericFunctionType(LinkedNode data) {
+    var id = data.genericFunctionType_id;
+
+    // Read type parameters, without bounds, to avoid forward references.
+    TypeParameterList typeParameterList;
+    var typeParameterListData = data.genericFunctionType_typeParameters;
+    if (typeParameterListData != null) {
+      var dataList = typeParameterListData.typeParameterList_typeParameters;
+      var typeParameters = List<TypeParameter>(dataList.length);
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        typeParameters[i] = astFactory.typeParameter(
+          _readDocumentationComment(data),
+          _readNodeList(data.annotatedNode_metadata),
+          _declaredIdentifier(data),
+          data.typeParameter_bound != null ? _Tokens.EXTENDS : null,
+          null,
+        );
+      }
+      typeParameterList = astFactory.typeParameterList(
+        _Tokens.LT,
+        typeParameters,
+        _Tokens.GT,
+      );
+    }
+
     GenericFunctionTypeImpl node = astFactory.genericFunctionType(
-      _readNodeLazy(data.genericFunctionType_returnType),
-      _getToken(data.genericFunctionType_functionKeyword),
-      _readNode(data.genericFunctionType_typeParameters),
-      _readNodeLazy(data.genericFunctionType_formalParameters),
-      question: _getToken(data.genericFunctionType_question),
+      null,
+      _Tokens.FUNCTION,
+      typeParameterList,
+      null,
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
     );
     node.type = _readType(data.genericFunctionType_type);
-    LazyGenericFunctionType.setData(node, data);
+
+    // Create the node element, so now type parameter elements are available.
+    LazyAst.setGenericFunctionTypeId(node, id);
+    _unitContext.createGenericFunctionTypeElement(id, node);
+
+    // Finish reading.
+    if (typeParameterListData != null) {
+      var dataList = typeParameterListData.typeParameterList_typeParameters;
+      var typeParameters = typeParameterList.typeParameters;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        var node = typeParameters[i];
+        node.bound = _readNode(data.typeParameter_bound);
+      }
+    }
+    node.returnType = readNode(data.genericFunctionType_returnType);
+    node.parameters = _readNode(data.genericFunctionType_formalParameters);
+
     return node;
   }
 
   GenericTypeAlias _read_genericTypeAlias(LinkedNode data) {
     var node = astFactory.genericTypeAlias(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
-      _getToken(data.typeAlias_typedefKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
+      _readDocumentationComment(data),
+      _readNodeListLazy(data.annotatedNode_metadata),
+      _Tokens.TYPEDEF,
+      _declaredIdentifier(data),
       _readNode(data.genericTypeAlias_typeParameters),
-      _getToken(data.genericTypeAlias_equals),
+      _Tokens.EQ,
       _readNodeLazy(data.genericTypeAlias_functionType),
-      _getToken(data.typeAlias_semicolon),
+      _Tokens.SEMICOLON,
     );
     LazyGenericTypeAlias.setData(node, data);
+    LazyGenericTypeAlias.setHasSelfReference(
+      node,
+      data.typeAlias_hasSelfReference,
+    );
     return node;
   }
 
   HideCombinator _read_hideCombinator(LinkedNode data) {
     return astFactory.hideCombinator(
-      _getToken(data.combinator_keyword),
-      _readNodeList(data.hideCombinator_hiddenNames),
+      _Tokens.HIDE,
+      data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
   }
 
   IfElement _read_ifElement(LinkedNode data) {
+    var elseElement = _readNode(data.ifElement_elseElement);
     return astFactory.ifElement(
       condition: _readNode(data.ifMixin_condition),
-      elseElement: _readNode(data.ifElement_elseElement),
-      elseKeyword: _getToken(data.ifMixin_elseKeyword),
-      ifKeyword: _getToken(data.ifMixin_ifKeyword),
-      leftParenthesis: _getToken(data.ifMixin_leftParenthesis),
-      rightParenthesis: _getToken(data.ifMixin_rightParenthesis),
+      elseElement: elseElement,
+      elseKeyword: elseElement != null ? _Tokens.ELSE : null,
+      ifKeyword: _Tokens.IF,
+      leftParenthesis: _Tokens.OPEN_PAREN,
+      rightParenthesis: _Tokens.CLOSE_PAREN,
       thenElement: _readNode(data.ifElement_thenElement),
     );
   }
 
   IfStatement _read_ifStatement(LinkedNode data) {
+    var elseStatement = _readNode(data.ifStatement_elseStatement);
     return astFactory.ifStatement(
-      _getToken(data.ifMixin_ifKeyword),
-      _getToken(data.ifMixin_leftParenthesis),
+      _Tokens.IF,
+      _Tokens.OPEN_PAREN,
       _readNode(data.ifMixin_condition),
-      _getToken(data.ifMixin_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
       _readNode(data.ifStatement_thenStatement),
-      _getToken(data.ifMixin_elseKeyword),
-      _readNode(data.ifStatement_elseStatement),
+      elseStatement != null ? _Tokens.ELSE : null,
+      elseStatement,
     );
   }
 
   ImplementsClause _read_implementsClause(LinkedNode data) {
     return astFactory.implementsClause(
-      _getToken(data.implementsClause_implementsKeyword),
+      _Tokens.IMPLEMENTS,
       _readNodeList(data.implementsClause_interfaces),
     );
   }
 
   ImportDirective _read_importDirective(LinkedNode data) {
-    var node = astFactory.importDirective(
-      _readNode(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.directive_keyword),
-      _readNode(data.uriBasedDirective_uri),
-      _readNodeList(data.namespaceDirective_configurations),
-      _getToken(data.importDirective_deferredKeyword),
-      _getToken(data.importDirective_asKeyword),
-      _readNode(data.importDirective_prefix),
-      _readNodeList(data.namespaceDirective_combinators),
-      _getToken(data.directive_semicolon),
-    );
-    LazyDirective.setData(node, data);
-    return node;
+    timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
+    try {
+      SimpleIdentifier prefix;
+      if (data.importDirective_prefix.isNotEmpty) {
+        prefix = astFactory.simpleIdentifier(
+          TokenFactory.tokenFromString(data.importDirective_prefix)
+            ..offset = data.importDirective_prefixOffset,
+        );
+      }
+
+      var node = astFactory.importDirective(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _directiveKeyword(data, Keyword.IMPORT, _Tokens.IMPORT),
+        _readNode(data.uriBasedDirective_uri),
+        _readNodeList(data.namespaceDirective_configurations),
+        AstBinaryFlags.isDeferred(data.flags) ? _Tokens.DEFERRED : null,
+        _Tokens.AS,
+        prefix,
+        _readNodeList(data.namespaceDirective_combinators),
+        _Tokens.SEMICOLON,
+      );
+      LazyDirective.setData(node, data);
+      return node;
+    } finally {
+      _isReadingDirective = false;
+      timerAstBinaryReaderDirective.stop();
+    }
   }
 
   IndexExpression _read_indexExpression(LinkedNode data) {
     return astFactory.indexExpressionForTarget(
       _readNode(data.indexExpression_target),
-      _getToken(data.indexExpression_leftBracket),
+      _Tokens.OPEN_SQUARE_BRACKET,
       _readNode(data.indexExpression_index),
-      _getToken(data.indexExpression_rightBracket),
+      _Tokens.CLOSE_SQUARE_BRACKET,
     )
-      ..period = _getToken(data.indexExpression_period)
+      ..period =
+          AstBinaryFlags.hasPeriod(data.flags) ? _Tokens.PERIOD_PERIOD : null
       ..staticElement = _elementOfComponents(
         data.indexExpression_element,
         data.indexExpression_elementType,
@@ -742,32 +961,48 @@ class AstBinaryReader {
   }
 
   InstanceCreationExpression _read_instanceCreationExpression(LinkedNode data) {
-    return astFactory.instanceCreationExpression(
-      _getToken(data.instanceCreationExpression_keyword),
+    var node = astFactory.instanceCreationExpression(
+      _Tokens.choose(
+        AstBinaryFlags.isConst(data.flags),
+        _Tokens.CONST,
+        AstBinaryFlags.isNew(data.flags),
+        _Tokens.NEW,
+      ),
       _readNode(data.instanceCreationExpression_constructorName),
-      _readNode(data.instanceCreationExpression_arguments),
+      astFactory.argumentList(
+        _Tokens.OPEN_PAREN,
+        _readNodeList(
+          data.instanceCreationExpression_arguments,
+        ),
+        _Tokens.CLOSE_PAREN,
+      ),
       typeArguments: _readNode(data.instanceCreationExpression_typeArguments),
-    )..staticType = _readType(data.expression_type);
+    );
+    node.staticElement = node.constructorName.staticElement;
+    node.staticType = _readType(data.expression_type);
+    return node;
   }
 
   IntegerLiteral _read_integerLiteral(LinkedNode data) {
-    return astFactory.integerLiteral(
-      _getToken(data.integerLiteral_literal),
-      data.integerLiteral_value,
-    )..staticType = _readType(data.expression_type);
+    return AstTestFactory.integer(data.integerLiteral_value)
+      ..staticType = _intType;
   }
 
   InterpolationExpression _read_interpolationExpression(LinkedNode data) {
+    var isIdentifier =
+        AstBinaryFlags.isStringInterpolationIdentifier(data.flags);
     return astFactory.interpolationExpression(
-      _getToken(data.interpolationExpression_leftBracket),
+      isIdentifier
+          ? _Tokens.OPEN_CURLY_BRACKET
+          : _Tokens.STRING_INTERPOLATION_EXPRESSION,
       _readNode(data.interpolationExpression_expression),
-      _getToken(data.interpolationExpression_rightBracket),
+      isIdentifier ? null : _Tokens.CLOSE_CURLY_BRACKET,
     );
   }
 
   InterpolationString _read_interpolationString(LinkedNode data) {
     return astFactory.interpolationString(
-      _getToken(data.interpolationString_token),
+      TokenFactory.tokenFromString(data.interpolationString_value),
       data.interpolationString_value,
     );
   }
@@ -775,16 +1010,16 @@ class AstBinaryReader {
   IsExpression _read_isExpression(LinkedNode data) {
     return astFactory.isExpression(
       _readNode(data.isExpression_expression),
-      _getToken(data.isExpression_isOperator),
-      _getToken(data.isExpression_notOperator),
+      _Tokens.IS,
+      AstBinaryFlags.hasNot(data.flags) ? _Tokens.BANG : null,
       _readNode(data.isExpression_type),
-    )..staticType = _readType(data.expression_type);
+    )..staticType = _boolType;
   }
 
   Label _read_label(LinkedNode data) {
     return astFactory.label(
       _readNode(data.label_label),
-      _getToken(data.label_colon),
+      _Tokens.COLON,
     );
   }
 
@@ -796,15 +1031,22 @@ class AstBinaryReader {
   }
 
   LibraryDirective _read_libraryDirective(LinkedNode data) {
-    var node = astFactory.libraryDirective(
-      _readNode(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.directive_keyword),
-      _readNode(data.libraryDirective_name),
-      _getToken(data.directive_semicolon),
-    );
-    LazyDirective.setData(node, data);
-    return node;
+    timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
+    try {
+      var node = astFactory.libraryDirective(
+        _unitContext.createComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _Tokens.LIBRARY,
+        _readNode(data.libraryDirective_name),
+        _Tokens.SEMICOLON,
+      );
+      LazyDirective.setData(node, data);
+      return node;
+    } finally {
+      _isReadingDirective = false;
+      timerAstBinaryReaderDirective.stop();
+    }
   }
 
   LibraryIdentifier _read_libraryIdentifier(LinkedNode data) {
@@ -815,35 +1057,48 @@ class AstBinaryReader {
 
   ListLiteral _read_listLiteral(LinkedNode data) {
     return astFactory.listLiteral(
-      _getToken(data.typedLiteral_constKeyword),
-      _readNode(data.typedLiteral_typeArguments),
-      _getToken(data.listLiteral_leftBracket),
+      AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
+      AstBinaryFlags.hasTypeArguments(data.flags)
+          ? astFactory.typeArgumentList(
+              _Tokens.LT,
+              _readNodeList(data.typedLiteral_typeArguments),
+              _Tokens.GT,
+            )
+          : null,
+      _Tokens.OPEN_SQUARE_BRACKET,
       _readNodeList(data.listLiteral_elements),
-      _getToken(data.listLiteral_rightBracket),
+      _Tokens.CLOSE_SQUARE_BRACKET,
     )..staticType = _readType(data.expression_type);
   }
 
   MapLiteralEntry _read_mapLiteralEntry(LinkedNode data) {
     return astFactory.mapLiteralEntry(
       _readNode(data.mapLiteralEntry_key),
-      _getToken(data.mapLiteralEntry_separator),
+      _Tokens.COLON,
       _readNode(data.mapLiteralEntry_value),
     );
   }
 
   MethodDeclaration _read_methodDeclaration(LinkedNode data) {
     var node = astFactory.methodDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.methodDeclaration_externalKeyword),
-      _getToken(data.methodDeclaration_modifierKeyword),
+      AstBinaryFlags.isExternal(data.flags) ? _Tokens.EXTERNAL : null,
+      AstBinaryFlags.isStatic(data.flags) ? _Tokens.STATIC : null,
       _readNodeLazy(data.methodDeclaration_returnType),
-      _getToken(data.methodDeclaration_propertyKeyword),
-      _getToken(data.methodDeclaration_operatorKeyword),
-      _readNode(data.methodDeclaration_name),
+      _Tokens.choose(
+        AstBinaryFlags.isGet(data.flags),
+        _Tokens.GET,
+        AstBinaryFlags.isSet(data.flags),
+        _Tokens.SET,
+      ),
+      AstBinaryFlags.isOperator(data.flags) ? _Tokens.OPERATOR : null,
+      _declaredIdentifier(data),
       _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
-      _readNodeLazy(data.methodDeclaration_body),
+      AstBinaryFlags.isAbstract(data.flags)
+          ? AstTestFactory.emptyFunctionBody()
+          : AstTestFactory.blockFunctionBody(AstTestFactory.block()),
     );
     LazyMethodDeclaration.setData(node, data);
     return node;
@@ -852,7 +1107,12 @@ class AstBinaryReader {
   MethodInvocation _read_methodInvocation(LinkedNode data) {
     return astFactory.methodInvocation(
       _readNode(data.methodInvocation_target),
-      _getToken(data.methodInvocation_operator),
+      _Tokens.choose(
+        AstBinaryFlags.hasPeriod(data.flags),
+        _Tokens.PERIOD,
+        AstBinaryFlags.hasPeriod2(data.flags),
+        _Tokens.PERIOD_PERIOD,
+      ),
       _readNode(data.methodInvocation_methodName),
       _readNode(data.invocationExpression_typeArguments),
       _readNode(data.invocationExpression_arguments),
@@ -860,95 +1120,115 @@ class AstBinaryReader {
   }
 
   MixinDeclaration _read_mixinDeclaration(LinkedNode data) {
-    var node = astFactory.mixinDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
-      _getToken(data.mixinDeclaration_mixinKeyword),
-      _readNode(data.namedCompilationUnitMember_name),
-      _readNode(data.classOrMixinDeclaration_typeParameters),
-      _readNodeLazy(data.mixinDeclaration_onClause),
-      _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
-      _getToken(data.classOrMixinDeclaration_leftBracket),
-      _readNodeListLazy(data.classOrMixinDeclaration_members),
-      _getToken(data.classOrMixinDeclaration_rightBracket),
-    );
-    LazyMixinDeclaration.setData(node, data);
-    return node;
+    timerAstBinaryReaderMixin.start();
+    try {
+      var node = astFactory.mixinDeclaration(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _Tokens.MIXIN,
+        _declaredIdentifier(data),
+        _readNode(data.classOrMixinDeclaration_typeParameters),
+        _readNodeLazy(data.mixinDeclaration_onClause),
+        _readNodeLazy(data.classOrMixinDeclaration_implementsClause),
+        _Tokens.OPEN_CURLY_BRACKET,
+        _readNodeListLazy(data.classOrMixinDeclaration_members),
+        _Tokens.CLOSE_CURLY_BRACKET,
+      );
+      LazyMixinDeclaration(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderMixin.stop();
+    }
   }
 
   NamedExpression _read_namedExpression(LinkedNode data) {
+    Expression expression = _readNode(data.namedExpression_expression);
     return astFactory.namedExpression(
       _readNode(data.namedExpression_name),
-      _readNode(data.namedExpression_expression),
-    )..staticType = _readType(data.expression_type);
+      expression,
+    )..staticType = expression.staticType;
   }
 
   NativeClause _read_nativeClause(LinkedNode data) {
     return astFactory.nativeClause(
-      _getToken(data.nativeClause_nativeKeyword),
+      _Tokens.NATIVE,
       _readNode(data.nativeClause_name),
     );
   }
 
   NativeFunctionBody _read_nativeFunctionBody(LinkedNode data) {
     return astFactory.nativeFunctionBody(
-      _getToken(data.nativeFunctionBody_nativeKeyword),
+      _Tokens.NATIVE,
       _readNode(data.nativeFunctionBody_stringLiteral),
-      _getToken(data.nativeFunctionBody_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   NullLiteral _read_nullLiteral(LinkedNode data) {
     return astFactory.nullLiteral(
-      _getToken(data.nullLiteral_literal),
-    )..staticType = _readType(data.expression_type);
+      _Tokens.NULL,
+    )..staticType = _nullType;
   }
 
   OnClause _read_onClause(LinkedNode data) {
     return astFactory.onClause(
-      _getToken(data.onClause_onKeyword),
+      _Tokens.ON,
       _readNodeList(data.onClause_superclassConstraints),
     );
   }
 
   ParenthesizedExpression _read_parenthesizedExpression(LinkedNode data) {
     return astFactory.parenthesizedExpression(
-      _getToken(data.parenthesizedExpression_leftParenthesis),
+      _Tokens.OPEN_PAREN,
       _readNode(data.parenthesizedExpression_expression),
-      _getToken(data.parenthesizedExpression_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
     )..staticType = _readType(data.expression_type);
   }
 
   PartDirective _read_partDirective(LinkedNode data) {
-    var node = astFactory.partDirective(
-      _readNode(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.directive_keyword),
-      _readNode(data.uriBasedDirective_uri),
-      _getToken(data.directive_semicolon),
-    );
-    LazyDirective.setData(node, data);
-    return node;
+    timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
+    try {
+      var node = astFactory.partDirective(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _Tokens.PART,
+        _readNode(data.uriBasedDirective_uri),
+        _Tokens.SEMICOLON,
+      );
+      LazyDirective.setData(node, data);
+      return node;
+    } finally {
+      _isReadingDirective = false;
+      timerAstBinaryReaderDirective.stop();
+    }
   }
 
   PartOfDirective _read_partOfDirective(LinkedNode data) {
-    var node = astFactory.partOfDirective(
-      _readNode(data.annotatedNode_comment),
-      _readNodeList(data.annotatedNode_metadata),
-      _getToken(data.directive_keyword),
-      _getToken(data.partOfDirective_ofKeyword),
-      _readNode(data.partOfDirective_uri),
-      _readNode(data.partOfDirective_libraryName),
-      _getToken(data.directive_semicolon),
-    );
-    LazyDirective.setData(node, data);
-    return node;
+    timerAstBinaryReaderDirective.start();
+    _isReadingDirective = true;
+    try {
+      var node = astFactory.partOfDirective(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _Tokens.PART,
+        _Tokens.OF,
+        _readNode(data.partOfDirective_uri),
+        _readNode(data.partOfDirective_libraryName),
+        _Tokens.SEMICOLON,
+      );
+      LazyDirective.setData(node, data);
+      return node;
+    } finally {
+      _isReadingDirective = false;
+      timerAstBinaryReaderDirective.stop();
+    }
   }
 
   PostfixExpression _read_postfixExpression(LinkedNode data) {
     return astFactory.postfixExpression(
       _readNode(data.postfixExpression_operand),
-      _getToken(data.postfixExpression_operator),
+      _Tokens.fromType(data.postfixExpression_operator),
     )
       ..staticElement = _elementOfComponents(
         data.postfixExpression_element,
@@ -960,14 +1240,14 @@ class AstBinaryReader {
   PrefixedIdentifier _read_prefixedIdentifier(LinkedNode data) {
     return astFactory.prefixedIdentifier(
       _readNode(data.prefixedIdentifier_prefix),
-      _getToken(data.prefixedIdentifier_period),
+      _Tokens.PERIOD,
       _readNode(data.prefixedIdentifier_identifier),
     )..staticType = _readType(data.expression_type);
   }
 
   PrefixExpression _read_prefixExpression(LinkedNode data) {
     return astFactory.prefixExpression(
-      _getToken(data.prefixExpression_operator),
+      _Tokens.fromType(data.prefixExpression_operator),
       _readNode(data.prefixExpression_operand),
     )
       ..staticElement = _elementOfComponents(
@@ -980,16 +1260,17 @@ class AstBinaryReader {
   PropertyAccess _read_propertyAccess(LinkedNode data) {
     return astFactory.propertyAccess(
       _readNode(data.propertyAccess_target),
-      _getToken(data.propertyAccess_operator),
+      _Tokens.fromType(data.propertyAccess_operator),
       _readNode(data.propertyAccess_propertyName),
     )..staticType = _readType(data.expression_type);
   }
 
   RedirectingConstructorInvocation _read_redirectingConstructorInvocation(
       LinkedNode data) {
+    var hasThis = AstBinaryFlags.hasThis(data.flags);
     return astFactory.redirectingConstructorInvocation(
-      _getToken(data.redirectingConstructorInvocation_thisKeyword),
-      _getToken(data.redirectingConstructorInvocation_period),
+      hasThis ? _Tokens.THIS : null,
+      hasThis ? _Tokens.PERIOD : null,
       _readNode(data.redirectingConstructorInvocation_constructorName),
       _readNode(data.redirectingConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
@@ -1000,35 +1281,35 @@ class AstBinaryReader {
 
   RethrowExpression _read_rethrowExpression(LinkedNode data) {
     return astFactory.rethrowExpression(
-      _getToken(data.rethrowExpression_rethrowKeyword),
+      _Tokens.RETHROW,
     )..staticType = _readType(data.expression_type);
   }
 
   ReturnStatement _read_returnStatement(LinkedNode data) {
     return astFactory.returnStatement(
-      _getToken(data.returnStatement_returnKeyword),
+      _Tokens.RETURN,
       _readNode(data.returnStatement_expression),
-      _getToken(data.returnStatement_semicolon),
-    );
-  }
-
-  ScriptTag _read_scriptTag(LinkedNode data) {
-    return astFactory.scriptTag(
-      _getToken(data.scriptTag_scriptTag),
+      _Tokens.SEMICOLON,
     );
   }
 
   SetOrMapLiteral _read_setOrMapLiteral(LinkedNode data) {
     SetOrMapLiteralImpl node = astFactory.setOrMapLiteral(
-      constKeyword: _getToken(data.typedLiteral_constKeyword),
+      constKeyword: AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       elements: _readNodeList(data.setOrMapLiteral_elements),
-      leftBracket: _getToken(data.setOrMapLiteral_leftBracket),
-      typeArguments: _readNode(data.typedLiteral_typeArguments),
-      rightBracket: _getToken(data.setOrMapLiteral_rightBracket),
+      leftBracket: _Tokens.OPEN_CURLY_BRACKET,
+      typeArguments: AstBinaryFlags.hasTypeArguments(data.flags)
+          ? astFactory.typeArgumentList(
+              _Tokens.LT,
+              _readNodeList(data.typedLiteral_typeArguments),
+              _Tokens.GT,
+            )
+          : null,
+      rightBracket: _Tokens.CLOSE_CURLY_BRACKET,
     )..staticType = _readType(data.expression_type);
-    if (data.setOrMapLiteral_isMap) {
+    if (AstBinaryFlags.isMap(data.flags)) {
       node.becomeMap();
-    } else if (data.setOrMapLiteral_isSet) {
+    } else if (AstBinaryFlags.isSet(data.flags)) {
       node.becomeSet();
     }
     return node;
@@ -1036,27 +1317,39 @@ class AstBinaryReader {
 
   ShowCombinator _read_showCombinator(LinkedNode data) {
     return astFactory.showCombinator(
-      _getToken(data.combinator_keyword),
-      _readNodeList(data.showCombinator_shownNames),
+      _Tokens.SHOW,
+      data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
   }
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {
     SimpleFormalParameterImpl node = astFactory.simpleFormalParameter2(
-      identifier: _readNode(data.normalFormalParameter_identifier),
+      identifier: _declaredIdentifier(data),
       type: _readNode(data.simpleFormalParameter_type),
-      covariantKeyword: _getToken(data.normalFormalParameter_covariantKeyword),
-      comment: _readNode(data.normalFormalParameter_comment),
+      covariantKeyword:
+          AstBinaryFlags.isCovariant(data.flags) ? _Tokens.COVARIANT : null,
+      comment: _readDocumentationComment(data),
       metadata: _readNodeList(data.normalFormalParameter_metadata),
-      keyword: _getToken(data.simpleFormalParameter_keyword),
+      keyword: _Tokens.choose(
+        AstBinaryFlags.isConst(data.flags),
+        _Tokens.CONST,
+        AstBinaryFlags.isFinal(data.flags),
+        _Tokens.FINAL,
+        AstBinaryFlags.isVar(data.flags),
+        _Tokens.VAR,
+      ),
+      requiredKeyword:
+          AstBinaryFlags.isRequired(data.flags) ? _Tokens.REQUIRED : null,
     );
     LazyFormalParameter.setData(node, data);
+    LazyAst.setInheritsCovariant(node, data.inheritsCovariant);
     return node;
   }
 
   SimpleIdentifier _read_simpleIdentifier(LinkedNode data) {
     return astFactory.simpleIdentifier(
-      _getToken(data.simpleIdentifier_token),
+      TokenFactory.tokenFromString(data.name),
+      isDeclaration: AstBinaryFlags.isDeclaration(data.flags),
     )
       ..staticElement = _elementOfComponents(
         data.simpleIdentifier_element,
@@ -1066,15 +1359,16 @@ class AstBinaryReader {
   }
 
   SimpleStringLiteral _read_simpleStringLiteral(LinkedNode data) {
-    return astFactory.simpleStringLiteral(
-      _getToken(data.simpleStringLiteral_token),
-      data.simpleStringLiteral_value,
-    )..staticType = _readType(data.expression_type);
+    var node = AstTestFactory.string2(data.simpleStringLiteral_value);
+    if (!_isReadingDirective) {
+      node.staticType = _stringType;
+    }
+    return node;
   }
 
   SpreadElement _read_spreadElement(LinkedNode data) {
     return astFactory.spreadElement(
-      spreadOperator: _getToken(data.spreadElement_spreadOperator),
+      spreadOperator: _Tokens.fromType(data.spreadElement_spreadOperator),
       expression: _readNode(data.spreadElement_expression),
     );
   }
@@ -1082,13 +1376,13 @@ class AstBinaryReader {
   StringInterpolation _read_stringInterpolation(LinkedNode data) {
     return astFactory.stringInterpolation(
       _readNodeList(data.stringInterpolation_elements),
-    )..staticType = _readType(data.expression_type);
+    )..staticType = _stringType;
   }
 
   SuperConstructorInvocation _read_superConstructorInvocation(LinkedNode data) {
     return astFactory.superConstructorInvocation(
-      _getToken(data.superConstructorInvocation_superKeyword),
-      _getToken(data.superConstructorInvocation_period),
+      _Tokens.SUPER,
+      _Tokens.PERIOD,
       _readNode(data.superConstructorInvocation_constructorName),
       _readNode(data.superConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
@@ -1099,16 +1393,16 @@ class AstBinaryReader {
 
   SuperExpression _read_superExpression(LinkedNode data) {
     return astFactory.superExpression(
-      _getToken(data.superExpression_superKeyword),
+      _Tokens.SUPER,
     )..staticType = _readType(data.expression_type);
   }
 
   SwitchCase _read_switchCase(LinkedNode data) {
     return astFactory.switchCase(
       _readNodeList(data.switchMember_labels),
-      _getToken(data.switchMember_keyword),
+      _Tokens.CASE,
       _readNode(data.switchCase_expression),
-      _getToken(data.switchMember_colon),
+      _Tokens.COLON,
       _readNodeList(data.switchMember_statements),
     );
   }
@@ -1116,155 +1410,181 @@ class AstBinaryReader {
   SwitchDefault _read_switchDefault(LinkedNode data) {
     return astFactory.switchDefault(
       _readNodeList(data.switchMember_labels),
-      _getToken(data.switchMember_keyword),
-      _getToken(data.switchMember_colon),
+      _Tokens.DEFAULT,
+      _Tokens.COLON,
       _readNodeList(data.switchMember_statements),
     );
   }
 
   SwitchStatement _read_switchStatement(LinkedNode data) {
     return astFactory.switchStatement(
-      _getToken(data.switchStatement_switchKeyword),
-      _getToken(data.switchStatement_leftParenthesis),
+      _Tokens.SWITCH,
+      _Tokens.OPEN_PAREN,
       _readNode(data.switchStatement_expression),
-      _getToken(data.switchStatement_rightParenthesis),
-      _getToken(data.switchStatement_leftBracket),
+      _Tokens.CLOSE_PAREN,
+      _Tokens.OPEN_CURLY_BRACKET,
       _readNodeList(data.switchStatement_members),
-      _getToken(data.switchStatement_rightBracket),
+      _Tokens.CLOSE_CURLY_BRACKET,
     );
   }
 
   SymbolLiteral _read_symbolLiteral(LinkedNode data) {
     return astFactory.symbolLiteral(
-      _getToken(data.symbolLiteral_poundSign),
-      _getTokens(data.symbolLiteral_components),
+      _Tokens.HASH,
+      data.names.map((lexeme) => TokenFactory.tokenFromString(lexeme)).toList(),
     )..staticType = _readType(data.expression_type);
   }
 
   ThisExpression _read_thisExpression(LinkedNode data) {
     return astFactory.thisExpression(
-      _getToken(data.thisExpression_thisKeyword),
+      _Tokens.THIS,
     )..staticType = _readType(data.expression_type);
   }
 
   ThrowExpression _read_throwExpression(LinkedNode data) {
     return astFactory.throwExpression(
-      _getToken(data.throwExpression_throwKeyword),
+      _Tokens.THROW,
       _readNode(data.throwExpression_expression),
     )..staticType = _readType(data.expression_type);
   }
 
   TopLevelVariableDeclaration _read_topLevelVariableDeclaration(
       LinkedNode data) {
-    var node = astFactory.topLevelVariableDeclaration(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _readNode(data.topLevelVariableDeclaration_variableList),
-      _getToken(data.topLevelVariableDeclaration_semicolon),
-    );
-    LazyTopLevelVariableDeclaration.setData(node, data);
-    return node;
+    timerAstBinaryReaderTopLevelVar.start();
+    try {
+      var node = astFactory.topLevelVariableDeclaration(
+        _readDocumentationComment(data),
+        _readNodeListLazy(data.annotatedNode_metadata),
+        _readNode(data.topLevelVariableDeclaration_variableList),
+        _Tokens.SEMICOLON,
+      );
+      LazyTopLevelVariableDeclaration.setData(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderTopLevelVar.stop();
+    }
   }
 
   TryStatement _read_tryStatement(LinkedNode data) {
     return astFactory.tryStatement(
-      _getToken(data.tryStatement_tryKeyword),
+      _Tokens.TRY,
       _readNode(data.tryStatement_body),
       _readNodeList(data.tryStatement_catchClauses),
-      _getToken(data.tryStatement_finallyKeyword),
+      _Tokens.FINALLY,
       _readNode(data.tryStatement_finallyBlock),
     );
   }
 
   TypeArgumentList _read_typeArgumentList(LinkedNode data) {
     return astFactory.typeArgumentList(
-      _getToken(data.typeArgumentList_leftBracket),
+      _Tokens.LT,
       _readNodeList(data.typeArgumentList_arguments),
-      _getToken(data.typeArgumentList_rightBracket),
+      _Tokens.GT,
     );
   }
 
   TypeName _read_typeName(LinkedNode data) {
     return astFactory.typeName(
       _readNode(data.typeName_name),
-      _readNode(data.typeName_typeArguments),
-      question: _getToken(data.typeName_question),
+      AstBinaryFlags.hasTypeArguments(data.flags)
+          ? astFactory.typeArgumentList(
+              _Tokens.LT,
+              _readNodeList(data.typeName_typeArguments),
+              _Tokens.GT,
+            )
+          : null,
+      question:
+          AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
     )..type = _readType(data.typeName_type);
   }
 
   TypeParameter _read_typeParameter(LinkedNode data) {
     var node = astFactory.typeParameter(
-      _readNodeLazy(data.annotatedNode_comment),
+      _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
-      _readNode(data.typeParameter_name),
-      _getToken(data.typeParameter_extendsKeyword),
+      _declaredIdentifier(data),
+      _Tokens.EXTENDS,
       _readNodeLazy(data.typeParameter_bound),
     );
     LazyTypeParameter.setData(node, data);
-    _unitContext.addTypeParameter(data.typeParameter_id, node);
     return node;
   }
 
   TypeParameterList _read_typeParameterList(LinkedNode data) {
     return astFactory.typeParameterList(
-      _getToken(data.typeParameterList_leftBracket),
+      _Tokens.LT,
       _readNodeList(data.typeParameterList_typeParameters),
-      _getToken(data.typeParameterList_rightBracket),
+      _Tokens.GT,
     );
   }
 
   VariableDeclaration _read_variableDeclaration(LinkedNode data) {
     var node = astFactory.variableDeclaration(
-      _readNode(data.variableDeclaration_name),
-      _getToken(data.variableDeclaration_equals),
+      _declaredIdentifier(data),
+      _Tokens.EQ,
       _readNodeLazy(data.variableDeclaration_initializer),
     );
     LazyVariableDeclaration.setData(node, data);
+    LazyAst.setInheritsCovariant(node, data.inheritsCovariant);
     return node;
   }
 
   VariableDeclarationList _read_variableDeclarationList(LinkedNode data) {
-    return astFactory.variableDeclarationList(
-      _readNodeLazy(data.annotatedNode_comment),
-      _readNodeListLazy(data.annotatedNode_metadata),
-      _getToken(data.variableDeclarationList_keyword),
-      _readNodeLazy(data.variableDeclarationList_type),
-      _readNodeList(data.variableDeclarationList_variables),
+    var node = astFactory.variableDeclarationList2(
+      comment: _readDocumentationComment(data),
+      keyword: _Tokens.choose(
+        AstBinaryFlags.isConst(data.flags),
+        _Tokens.CONST,
+        AstBinaryFlags.isFinal(data.flags),
+        _Tokens.FINAL,
+        AstBinaryFlags.isVar(data.flags),
+        _Tokens.VAR,
+      ),
+      lateKeyword: AstBinaryFlags.isLate(data.flags) ? _Tokens.LATE : null,
+      metadata: _readNodeListLazy(data.annotatedNode_metadata),
+      type: _readNodeLazy(data.variableDeclarationList_type),
+      variables: _readNodeList(data.variableDeclarationList_variables),
     );
+    LazyVariableDeclarationList.setData(node, data);
+    return node;
   }
 
   VariableDeclarationStatement _read_variableDeclarationStatement(
       LinkedNode data) {
     return astFactory.variableDeclarationStatement(
       _readNode(data.variableDeclarationStatement_variables),
-      _getToken(data.variableDeclarationStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
   }
 
   WhileStatement _read_whileStatement(LinkedNode data) {
     return astFactory.whileStatement(
-      _getToken(data.whileStatement_whileKeyword),
-      _getToken(data.whileStatement_leftParenthesis),
+      _Tokens.WHILE,
+      _Tokens.OPEN_PAREN,
       _readNode(data.whileStatement_condition),
-      _getToken(data.whileStatement_rightParenthesis),
+      _Tokens.CLOSE_PAREN,
       _readNode(data.whileStatement_body),
     );
   }
 
   WithClause _read_withClause(LinkedNode data) {
     return astFactory.withClause(
-      _getToken(data.withClause_withKeyword),
+      _Tokens.WITH,
       _readNodeList(data.withClause_mixinTypes),
     );
   }
 
   YieldStatement _read_yieldStatement(LinkedNode data) {
     return astFactory.yieldStatement(
-      _getToken(data.yieldStatement_yieldKeyword),
-      _getToken(data.yieldStatement_star),
+      _Tokens.YIELD,
+      AstBinaryFlags.isStar(data.flags) ? _Tokens.STAR : null,
       _readNode(data.yieldStatement_expression),
-      _getToken(data.yieldStatement_semicolon),
+      _Tokens.SEMICOLON,
     );
+  }
+
+  Comment _readDocumentationComment(LinkedNode data) {
+    return null;
   }
 
   AstNode _readNode(LinkedNode data) {
@@ -1307,6 +1627,8 @@ class AstBinaryReader {
         return _read_classTypeAlias(data);
       case LinkedNodeKind.comment:
         return _read_comment(data);
+      case LinkedNodeKind.commentReference:
+        return _read_commentReference(data);
       case LinkedNodeKind.compilationUnit:
         return _read_compilationUnit(data);
       case LinkedNodeKind.conditionalExpression:
@@ -1451,8 +1773,6 @@ class AstBinaryReader {
         return _read_rethrowExpression(data);
       case LinkedNodeKind.returnStatement:
         return _read_returnStatement(data);
-      case LinkedNodeKind.scriptTag:
-        return _read_scriptTag(data);
       case LinkedNodeKind.setOrMapLiteral:
         return _read_setOrMapLiteral(data);
       case LinkedNodeKind.showCombinator:
@@ -1535,5 +1855,125 @@ class AstBinaryReader {
 
   DartType _readType(LinkedNodeType data) {
     return _unitContext.readType(data);
+  }
+
+  static ParameterKind _toParameterKind(LinkedNodeFormalParameterKind kind) {
+    switch (kind) {
+      case LinkedNodeFormalParameterKind.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case LinkedNodeFormalParameterKind.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+        break;
+      case LinkedNodeFormalParameterKind.optionalPositional:
+        return ParameterKind.POSITIONAL;
+        break;
+      case LinkedNodeFormalParameterKind.optionalNamed:
+        return ParameterKind.NAMED;
+      default:
+        throw StateError('Unexpected: $kind');
+    }
+  }
+}
+
+class _Tokens {
+  static final ABSTRACT = TokenFactory.tokenFromKeyword(Keyword.ABSTRACT);
+  static final ARROW = TokenFactory.tokenFromType(TokenType.FUNCTION);
+  static final AS = TokenFactory.tokenFromKeyword(Keyword.AS);
+  static final ASSERT = TokenFactory.tokenFromKeyword(Keyword.ASSERT);
+  static final AT = TokenFactory.tokenFromType(TokenType.AT);
+  static final ASYNC = TokenFactory.tokenFromKeyword(Keyword.ASYNC);
+  static final AWAIT = TokenFactory.tokenFromKeyword(Keyword.AWAIT);
+  static final BANG = TokenFactory.tokenFromType(TokenType.BANG);
+  static final BREAK = TokenFactory.tokenFromKeyword(Keyword.BREAK);
+  static final CASE = TokenFactory.tokenFromKeyword(Keyword.CASE);
+  static final CATCH = TokenFactory.tokenFromKeyword(Keyword.CATCH);
+  static final CLASS = TokenFactory.tokenFromKeyword(Keyword.CLASS);
+  static final CLOSE_CURLY_BRACKET =
+      TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET);
+  static final CLOSE_PAREN = TokenFactory.tokenFromType(TokenType.CLOSE_PAREN);
+  static final CLOSE_SQUARE_BRACKET =
+      TokenFactory.tokenFromType(TokenType.CLOSE_SQUARE_BRACKET);
+  static final COLON = TokenFactory.tokenFromType(TokenType.COLON);
+  static final COMMA = TokenFactory.tokenFromType(TokenType.COMMA);
+  static final CONST = TokenFactory.tokenFromKeyword(Keyword.CONST);
+  static final CONTINUE = TokenFactory.tokenFromKeyword(Keyword.CONTINUE);
+  static final COVARIANT = TokenFactory.tokenFromKeyword(Keyword.COVARIANT);
+  static final DEFERRED = TokenFactory.tokenFromKeyword(Keyword.DEFERRED);
+  static final ELSE = TokenFactory.tokenFromKeyword(Keyword.ELSE);
+  static final EXTERNAL = TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+  static final FACTORY = TokenFactory.tokenFromKeyword(Keyword.FACTORY);
+  static final DEFAULT = TokenFactory.tokenFromKeyword(Keyword.DEFAULT);
+  static final DO = TokenFactory.tokenFromKeyword(Keyword.DO);
+  static final ENUM = TokenFactory.tokenFromKeyword(Keyword.ENUM);
+  static final EQ = TokenFactory.tokenFromType(TokenType.EQ);
+  static final EXPORT = TokenFactory.tokenFromKeyword(Keyword.EXPORT);
+  static final EXTENDS = TokenFactory.tokenFromKeyword(Keyword.EXTENDS);
+  static final FINAL = TokenFactory.tokenFromKeyword(Keyword.FINAL);
+  static final FINALLY = TokenFactory.tokenFromKeyword(Keyword.FINALLY);
+  static final FOR = TokenFactory.tokenFromKeyword(Keyword.FOR);
+  static final FUNCTION = TokenFactory.tokenFromKeyword(Keyword.FUNCTION);
+  static final GET = TokenFactory.tokenFromKeyword(Keyword.GET);
+  static final GT = TokenFactory.tokenFromType(TokenType.GT);
+  static final HASH = TokenFactory.tokenFromType(TokenType.HASH);
+  static final HIDE = TokenFactory.tokenFromKeyword(Keyword.HIDE);
+  static final IF = TokenFactory.tokenFromKeyword(Keyword.IF);
+  static final IMPLEMENTS = TokenFactory.tokenFromKeyword(Keyword.IMPORT);
+  static final IMPORT = TokenFactory.tokenFromKeyword(Keyword.IMPLEMENTS);
+  static final IN = TokenFactory.tokenFromKeyword(Keyword.IN);
+  static final IS = TokenFactory.tokenFromKeyword(Keyword.IS);
+  static final LATE = TokenFactory.tokenFromKeyword(Keyword.LATE);
+  static final LIBRARY = TokenFactory.tokenFromKeyword(Keyword.LIBRARY);
+  static final LT = TokenFactory.tokenFromType(TokenType.LT);
+  static final MIXIN = TokenFactory.tokenFromKeyword(Keyword.MIXIN);
+  static final NATIVE = TokenFactory.tokenFromKeyword(Keyword.NATIVE);
+  static final NEW = TokenFactory.tokenFromKeyword(Keyword.NEW);
+  static final NULL = TokenFactory.tokenFromKeyword(Keyword.NULL);
+  static final OF = TokenFactory.tokenFromKeyword(Keyword.OF);
+  static final ON = TokenFactory.tokenFromKeyword(Keyword.ON);
+  static final OPEN_CURLY_BRACKET =
+      TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET);
+  static final OPEN_PAREN = TokenFactory.tokenFromType(TokenType.OPEN_PAREN);
+  static final OPEN_SQUARE_BRACKET =
+      TokenFactory.tokenFromType(TokenType.OPEN_SQUARE_BRACKET);
+  static final OPERATOR = TokenFactory.tokenFromKeyword(Keyword.OPERATOR);
+  static final PART = TokenFactory.tokenFromKeyword(Keyword.PART);
+  static final PERIOD = TokenFactory.tokenFromType(TokenType.PERIOD);
+  static final PERIOD_PERIOD =
+      TokenFactory.tokenFromType(TokenType.PERIOD_PERIOD);
+  static final QUESTION = TokenFactory.tokenFromType(TokenType.QUESTION);
+  static final REQUIRED = TokenFactory.tokenFromKeyword(Keyword.REQUIRED);
+  static final RETHROW = TokenFactory.tokenFromKeyword(Keyword.RETHROW);
+  static final RETURN = TokenFactory.tokenFromKeyword(Keyword.RETURN);
+  static final SEMICOLON = TokenFactory.tokenFromType(TokenType.SEMICOLON);
+  static final SET = TokenFactory.tokenFromKeyword(Keyword.SET);
+  static final SHOW = TokenFactory.tokenFromKeyword(Keyword.SHOW);
+  static final STAR = TokenFactory.tokenFromType(TokenType.STAR);
+  static final STATIC = TokenFactory.tokenFromKeyword(Keyword.STATIC);
+  static final STRING_INTERPOLATION_EXPRESSION =
+      TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION);
+  static final SUPER = TokenFactory.tokenFromKeyword(Keyword.SUPER);
+  static final SWITCH = TokenFactory.tokenFromKeyword(Keyword.SWITCH);
+  static final SYNC = TokenFactory.tokenFromKeyword(Keyword.SYNC);
+  static final THIS = TokenFactory.tokenFromKeyword(Keyword.THIS);
+  static final THROW = TokenFactory.tokenFromKeyword(Keyword.THROW);
+  static final TRY = TokenFactory.tokenFromKeyword(Keyword.TRY);
+  static final TYPEDEF = TokenFactory.tokenFromKeyword(Keyword.TYPEDEF);
+  static final VAR = TokenFactory.tokenFromKeyword(Keyword.VAR);
+  static final WITH = TokenFactory.tokenFromKeyword(Keyword.WITH);
+  static final WHILE = TokenFactory.tokenFromKeyword(Keyword.WHILE);
+  static final YIELD = TokenFactory.tokenFromKeyword(Keyword.YIELD);
+
+  static Token choose(bool if1, Token then1, bool if2, Token then2,
+      [bool if3, Token then3]) {
+    if (if1) return then1;
+    if (if2) return then2;
+    if (if2 == true) return then3;
+    return null;
+  }
+
+  static Token fromType(UnlinkedTokenType type) {
+    return TokenFactory.tokenFromType(
+      TokensContext.binaryToAstTokenType(type),
+    );
   }
 }

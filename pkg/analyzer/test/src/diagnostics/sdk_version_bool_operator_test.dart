@@ -22,7 +22,7 @@ class SdkVersionBoolOperatorTest extends SdkConstraintVerifierTest {
     ..enabledExperiments = [EnableString.constant_update_2018];
 
   test_and_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true & false;
 ''');
   }
@@ -30,7 +30,9 @@ const c = true & false;
   test_and_const_lessThan() {
     verifyVersion('2.2.0', '''
 const c = true & false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+    ]);
   }
 
   test_and_nonConst_equals() {
@@ -46,7 +48,7 @@ var c = true & false;
   }
 
   test_or_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true | false;
 ''');
   }
@@ -54,7 +56,9 @@ const c = true | false;
   test_or_const_lessThan() {
     verifyVersion('2.2.0', '''
 const c = true | false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+    ]);
   }
 
   test_or_nonConst_equals() {
@@ -70,7 +74,7 @@ var c = true | false;
   }
 
   test_xor_const_equals() {
-    verifyVersion('2.2.2', '''
+    verifyVersion('2.3.2', '''
 const c = true ^ false;
 ''');
   }
@@ -78,7 +82,9 @@ const c = true ^ false;
   test_xor_const_lessThan() {
     verifyVersion('2.2.0', '''
 const c = true ^ false;
-''', errorCodes: [HintCode.SDK_VERSION_BOOL_OPERATOR]);
+''', expectedErrors: [
+      error(HintCode.SDK_VERSION_BOOL_OPERATOR, 15, 1),
+    ]);
   }
 
   test_xor_nonConst_equals() {

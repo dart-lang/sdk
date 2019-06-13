@@ -52,6 +52,19 @@ var b = a.g();
     expect(b.variables.variables[0].declaredElement.type.toString(), 'int');
   }
 
+  test_field_imported() async {
+    newFile('/test/lib/a.dart', content: '''
+class A {
+  int f;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'a.dart';
+var b = new A().f;
+''');
+    assertElementTypeString(findElement.topVar('b').type, 'int');
+  }
+
   test_field_prefixedIdentifier() async {
     await assertNoErrorsInCode('''
 class A {
@@ -76,64 +89,76 @@ var b = new A().g;
   }
 
   test_implicitlyTyped() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   get g => 0;
 }
 var b = new A().g;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 42, 1),
+    ]);
   }
 
   test_implicitlyTyped_call() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   get g => () => 0;
 }
 var a = new A();
 var b = a.g();
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 57, 5),
+    ]);
   }
 
   test_implicitlyTyped_field() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var g = 0;
 }
 var b = new A().g;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 41, 1),
+    ]);
   }
 
   test_implicitlyTyped_field_call() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var g = () => 0;
 }
 var a = new A();
 var b = a.g();
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 56, 5),
+    ]);
   }
 
   test_implicitlyTyped_field_prefixedIdentifier() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var g = 0;
 }
 var a = new A();
 var b = a.g;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 52, 1),
+    ]);
   }
 
   test_implicitlyTyped_fn() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = 0;
 }
 int f<T>(x) => 0;
 var a = new A();
 var b = f(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 72, 1),
+    ]);
   }
 
   test_implicitlyTyped_fn_explicit_type_params() async {
@@ -178,13 +203,15 @@ var b = a[a.x];
   test_implicitlyTyped_invoke() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the
     // closure is generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = 0;
 }
 var a = new A();
 var b = (<T>(y) => 0)(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 66, 1),
+    ]);
   }
 
   test_implicitlyTyped_invoke_explicit_type_params() async {
@@ -214,14 +241,16 @@ var b = ((y) => 0)(a.x);
   test_implicitlyTyped_method() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because f is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = 0;
   int f<T>(int x) => 0;
 }
 var a = new A();
 var b = a.f(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 80, 1),
+    ]);
   }
 
   test_implicitlyTyped_method_explicit_type_params() async {
@@ -253,7 +282,7 @@ var b = a.f(a.x);
   test_implicitlyTyped_new() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = 0;
 }
@@ -262,7 +291,9 @@ class B<T> {
 }
 var a = new A();
 var b = new B(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 81, 1),
+    ]);
   }
 
   test_implicitlyTyped_new_explicit_type_params() async {
@@ -316,7 +347,7 @@ var b = new foo.B<int>(a.x);
   test_implicitlyTyped_new_named() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = 0;
 }
@@ -325,7 +356,9 @@ class B<T> {
 }
 var a = new A();
 var b = new B.named(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 93, 1),
+    ]);
   }
 
   test_implicitlyTyped_new_not_generic() async {
@@ -384,30 +417,34 @@ class B<T> {
 ''');
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because B is
     // generic, so the type of a.x might affect the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 import 'lib1.dart' as foo;
 class A {
   var x = 0;
 }
 var a = new A();
 var b = new foo.B(a.x);
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 89, 1),
+    ]);
   }
 
   test_implicitlyTyped_prefixedIdentifier() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   get g => 0;
 }
 var a = new A();
 var b = a.g;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 53, 1),
+    ]);
   }
 
   test_implicitlyTyped_propertyAccessLhs() async {
     // The reference to a.x triggers TOP_LEVEL_INSTANCE_GETTER because the type
     // of a.x affects the lookup of y, which in turn affects the type of b.
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 class A {
   var x = new B();
   int operator[](int value) => 0;
@@ -417,7 +454,9 @@ class B {
 }
 var a = new A();
 var b = (a.x).y;
-''', [StrongModeCode.TOP_LEVEL_INSTANCE_GETTER]);
+''', [
+      error(StrongModeCode.TOP_LEVEL_INSTANCE_GETTER, 114, 1),
+    ]);
   }
 
   test_prefixedIdentifier() async {

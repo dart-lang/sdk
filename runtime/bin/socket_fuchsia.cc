@@ -11,8 +11,8 @@
 
 #include "bin/eventhandler.h"
 #include "bin/fdutils.h"
-#include "bin/log.h"
 #include "platform/signal_blocker.h"
+#include "platform/syslog.h"
 
 // #define SOCKET_LOG_INFO 1
 // #define SOCKET_LOG_ERROR 1
@@ -24,13 +24,14 @@
 #define LOG_ERR(msg, ...)                                                      \
   {                                                                            \
     int err = errno;                                                           \
-    Log::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,        \
-                  ##__VA_ARGS__);                                              \
+    Syslog::PrintErr("Dart Socket ERROR: %s:%d: " msg, __FILE__, __LINE__,     \
+                     ##__VA_ARGS__);                                           \
     errno = err;                                                               \
   }
 #if defined(SOCKET_LOG_INFO)
 #define LOG_INFO(msg, ...)                                                     \
-  Log::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
+  Syslog::Print("Dart Socket INFO: %s:%d: " msg, __FILE__, __LINE__,           \
+                ##__VA_ARGS__)
 #else
 #define LOG_INFO(msg, ...)
 #endif  // defined(SOCKET_LOG_INFO)

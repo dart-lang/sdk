@@ -87,6 +87,10 @@ class FindNode {
     return _node(search, (n) => n is ExpressionStatement);
   }
 
+  FieldDeclaration fieldDeclaration(String search) {
+    return _node(search, (n) => n is FieldDeclaration);
+  }
+
   FieldFormalParameter fieldFormalParameter(String search) {
     return _node(search, (n) => n is FieldFormalParameter);
   }
@@ -105,6 +109,10 @@ class FindNode {
 
   FunctionExpression functionExpression(String search) {
     return _node(search, (n) => n is FunctionExpression);
+  }
+
+  FunctionExpressionInvocation functionExpressionInvocation(String search) {
+    return _node(search, (n) => n is FunctionExpressionInvocation);
   }
 
   FunctionTypeAlias functionTypeAlias(String search) {

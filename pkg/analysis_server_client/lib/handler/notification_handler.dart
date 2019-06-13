@@ -72,6 +72,11 @@ mixin NotificationHandler {
             new CompletionAvailableSuggestionsParams.fromJson(
                 decoder, 'params', params));
         break;
+      case COMPLETION_NOTIFICATION_EXISTING_IMPORTS:
+        onCompletionExistingImports(
+            new CompletionExistingImportsParams.fromJson(
+                decoder, 'params', params));
+        break;
       case COMPLETION_NOTIFICATION_RESULTS:
         onCompletionResults(
             new CompletionResultsParams.fromJson(decoder, 'params', params));
@@ -220,6 +225,11 @@ mixin NotificationHandler {
   /// not included in either list.
   void onCompletionAvailableSuggestions(
       CompletionAvailableSuggestionsParams params) {}
+
+  /// Reports existing imports in a library. This notification may be sent
+  /// multiple times for a library. When a notification is processed, clients
+  /// should replace any previous information for the library.
+  void onCompletionExistingImports(CompletionExistingImportsParams params) {}
 
   /// Reports the completion suggestions that should be presented
   /// to the user. The set of suggestions included in the

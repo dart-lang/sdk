@@ -3,173 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
-import 'package:meta/meta.dart';
-
-/// The result of writing a sequence of tokens.
-class TokensResult {
-  final UnlinkedTokensBuilder tokens;
-  final List<Token> _indexToToken;
-  final Map<Token, int> _tokenToIndex;
-
-  TokensResult(this.tokens, this._indexToToken, this._tokenToIndex);
-
-  TokensContext toContext() {
-    return TokensContext.fromResult(tokens, _indexToToken, _tokenToIndex);
-  }
-}
 
 class TokensWriter {
-  final UnlinkedTokensBuilder _tokens = UnlinkedTokensBuilder();
-  final List<Token> _indexToToken = [];
-  final Map<Token, int> _tokenToIndex = Map.identity();
-
-  TokensWriter() {
-    _addToken(
-      null,
-      isSynthetic: true,
-      kind: UnlinkedTokenKind.nothing,
-      length: 0,
-      lexeme: '',
-      offset: 0,
-      precedingComment: 0,
-      type: UnlinkedTokenType.NOTHING,
-    );
-  }
-
-  /// Write all the tokens from the [first] to the [last] inclusively.
-  TokensResult writeTokens(Token first, Token last) {
-    if (first is CommentToken) {
-      first = (first as CommentToken).parent;
-    }
-
-    var endGroupToBeginIndexMap = <Token, int>{};
-    var previousIndex = 0;
-    for (var token = first;; token = token.next) {
-      var index = _writeToken(token);
-
-      if (previousIndex != 0) {
-        _tokens.next[previousIndex] = index;
-      }
-      previousIndex = index;
-
-      if (token.endGroup != null) {
-        endGroupToBeginIndexMap[token.endGroup] = index;
-      }
-
-      var beginIndex = endGroupToBeginIndexMap[token];
-      if (beginIndex != null) {
-        _tokens.endGroup[beginIndex] = index;
-      }
-
-      if (token == last) break;
-    }
-
-    return TokensResult(_tokens, _indexToToken, _tokenToIndex);
-  }
-
-  int _addToken(
-    Token token, {
-    @required bool isSynthetic,
-    @required UnlinkedTokenKind kind,
-    @required int length,
-    @required String lexeme,
-    @required int offset,
-    @required int precedingComment,
-    @required UnlinkedTokenType type,
-  }) {
-    _tokens.endGroup.add(0);
-    _tokens.isSynthetic.add(isSynthetic);
-    _tokens.kind.add(kind);
-    _tokens.length.add(length);
-    _tokens.lexeme.add(lexeme);
-    _tokens.next.add(0);
-    _tokens.offset.add(offset);
-    _tokens.precedingComment.add(precedingComment);
-    _tokens.type.add(type);
-
-    var index = _indexToToken.length;
-    _indexToToken.add(token);
-    _tokenToIndex[token] = index;
-    return index;
-  }
-
-  int _writeCommentToken(CommentToken token) {
-    if (token == null) return 0;
-
-    int firstIndex = null;
-    var previousIndex = 0;
-    while (token != null) {
-      var index = _addToken(
-        token,
-        isSynthetic: false,
-        kind: UnlinkedTokenKind.comment,
-        length: token.length,
-        lexeme: token.lexeme,
-        offset: token.offset,
-        precedingComment: 0,
-        type: _astToBinaryTokenType(token.type),
-      );
-      firstIndex ??= index;
-
-      if (previousIndex != 0) {
-        _tokens.next[previousIndex] = index;
-      }
-      previousIndex = index;
-
-      token = token.next;
-    }
-
-    return firstIndex;
-  }
-
-  int _writeToken(Token token) {
-    assert(_tokenToIndex[token] == null);
-
-    var commentIndex = _writeCommentToken(token.precedingComments);
-
-    if (token is KeywordToken) {
-      return _addToken(
-        token,
-        isSynthetic: token.isSynthetic,
-        kind: UnlinkedTokenKind.keyword,
-        lexeme: token.lexeme,
-        offset: token.offset,
-        length: token.length,
-        precedingComment: commentIndex,
-        type: _astToBinaryTokenType(token.type),
-      );
-    } else if (token is StringToken) {
-      return _addToken(
-        token,
-        isSynthetic: token.isSynthetic,
-        kind: UnlinkedTokenKind.string,
-        lexeme: token.lexeme,
-        offset: token.offset,
-        length: token.length,
-        precedingComment: commentIndex,
-        type: _astToBinaryTokenType(token.type),
-      );
-    } else if (token is SimpleToken) {
-      return _addToken(
-        token,
-        isSynthetic: token.isSynthetic,
-        kind: UnlinkedTokenKind.simple,
-        lexeme: token.lexeme,
-        offset: token.offset,
-        length: token.length,
-        precedingComment: commentIndex,
-        type: _astToBinaryTokenType(token.type),
-      );
-    } else {
-      throw UnimplementedError('(${token.runtimeType}) $token');
-    }
-  }
-
-  static UnlinkedTokenType _astToBinaryTokenType(TokenType type) {
+  static UnlinkedTokenType astToBinaryTokenType(TokenType type) {
     if (type == Keyword.ABSTRACT) {
       return UnlinkedTokenType.ABSTRACT;
     } else if (type == TokenType.AMPERSAND) {
@@ -196,6 +33,8 @@ class TokensWriter {
       return UnlinkedTokenType.BANG;
     } else if (type == TokenType.BANG_EQ) {
       return UnlinkedTokenType.BANG_EQ;
+    } else if (type == TokenType.BANG_EQ_EQ) {
+      return UnlinkedTokenType.BANG_EQ_EQ;
     } else if (type == TokenType.BAR) {
       return UnlinkedTokenType.BAR;
     } else if (type == TokenType.BAR_BAR) {
@@ -250,6 +89,8 @@ class TokensWriter {
       return UnlinkedTokenType.EQ;
     } else if (type == TokenType.EQ_EQ) {
       return UnlinkedTokenType.EQ_EQ;
+    } else if (type == TokenType.EQ_EQ_EQ) {
+      return UnlinkedTokenType.EQ_EQ_EQ;
     } else if (type == Keyword.EXPORT) {
       return UnlinkedTokenType.EXPORT;
     } else if (type == Keyword.EXTENDS) {
@@ -280,6 +121,10 @@ class TokensWriter {
       return UnlinkedTokenType.GT_GT;
     } else if (type == TokenType.GT_GT_EQ) {
       return UnlinkedTokenType.GT_GT_EQ;
+    } else if (type == TokenType.GT_GT_GT) {
+      return UnlinkedTokenType.GT_GT_GT;
+    } else if (type == TokenType.GT_GT_GT_EQ) {
+      return UnlinkedTokenType.GT_GT_GT_EQ;
     } else if (type == TokenType.HASH) {
       return UnlinkedTokenType.HASH;
     } else if (type == TokenType.HEXADECIMAL) {
@@ -306,6 +151,8 @@ class TokensWriter {
       return UnlinkedTokenType.INTERFACE;
     } else if (type == TokenType.IS) {
       return UnlinkedTokenType.IS;
+    } else if (type == Keyword.LATE) {
+      return UnlinkedTokenType.LATE;
     } else if (type == Keyword.LIBRARY) {
       return UnlinkedTokenType.LIBRARY;
     } else if (type == TokenType.LT) {
@@ -374,6 +221,8 @@ class TokensWriter {
       return UnlinkedTokenType.QUESTION_QUESTION;
     } else if (type == TokenType.QUESTION_QUESTION_EQ) {
       return UnlinkedTokenType.QUESTION_QUESTION_EQ;
+    } else if (type == Keyword.REQUIRED) {
+      return UnlinkedTokenType.REQUIRED;
     } else if (type == Keyword.RETHROW) {
       return UnlinkedTokenType.RETHROW;
     } else if (type == Keyword.RETURN) {

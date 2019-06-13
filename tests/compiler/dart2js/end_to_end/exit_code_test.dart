@@ -12,6 +12,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart' as api;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/codegen.dart';
+import 'package:compiler/src/common/work.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -20,9 +21,9 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/apiimpl.dart' as apiimpl;
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/inferrer/types.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/null_compiler_output.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
@@ -110,10 +111,15 @@ class TestBackend extends JavaScriptBackend {
             useNewSourceInfo: compiler.options.useNewSourceInfo);
 
   @override
-  WorldImpact codegen(CodegenWorkItem work, JClosedWorld closedWorld,
-      GlobalTypeInferenceResults results) {
+  WorldImpact generateCode(
+      WorkItem work,
+      JClosedWorld closedWorld,
+      CodegenResults codegenResults,
+      EntityLookup entityLookup,
+      ComponentLookup componentLookup) {
     compiler.test('Compiler.codegen');
-    return super.codegen(work, closedWorld, results);
+    return super.generateCode(
+        work, closedWorld, codegenResults, entityLookup, componentLookup);
   }
 }
 

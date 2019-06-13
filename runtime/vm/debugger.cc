@@ -10,11 +10,13 @@
 
 #include "vm/code_patcher.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
+#include "vm/interpreter.h"
 #include "vm/json_stream.h"
 #include "vm/kernel.h"
 #include "vm/longjump.h"
@@ -66,14 +68,13 @@ BreakpointLocation::BreakpointLocation(const Script& script,
       url_(script.url()),
       token_pos_(token_pos),
       end_token_pos_(end_token_pos),
-      is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
       requested_line_number_(requested_line_number),
       requested_column_number_(requested_column_number),
       function_(Function::null()),
-      line_number_(-1),
-      column_number_(-1) {
+      bytecode_token_pos_(TokenPosition::kNoSource),
+      code_token_pos_(TokenPosition::kNoSource) {
   ASSERT(!script.IsNull());
   ASSERT(token_pos_.IsReal());
 }
@@ -86,14 +87,13 @@ BreakpointLocation::BreakpointLocation(const String& url,
       url_(url.raw()),
       token_pos_(TokenPosition::kNoSource),
       end_token_pos_(TokenPosition::kNoSource),
-      is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
       requested_line_number_(requested_line_number),
       requested_column_number_(requested_column_number),
       function_(Function::null()),
-      line_number_(-1),
-      column_number_(-1) {
+      bytecode_token_pos_(TokenPosition::kNoSource),
+      code_token_pos_(TokenPosition::kNoSource) {
   ASSERT(requested_line_number_ >= 0);
 }
 
@@ -110,7 +110,8 @@ bool BreakpointLocation::AnyEnabled() const {
   return breakpoints() != NULL;
 }
 
-void BreakpointLocation::SetResolved(const Function& func,
+void BreakpointLocation::SetResolved(bool in_bytecode,
+                                     const Function& func,
                                      TokenPosition token_pos) {
   ASSERT(!IsLatent());
   ASSERT(func.script() == script_);
@@ -120,51 +121,23 @@ void BreakpointLocation::SetResolved(const Function& func,
   function_ = func.raw();
   token_pos_ = token_pos;
   end_token_pos_ = token_pos;
-  is_resolved_ = true;
+  if (in_bytecode) {
+    bytecode_token_pos_ = token_pos;
+  } else {
+    code_token_pos_ = token_pos;
+  }
 }
 
-// TODO(hausner): Get rid of library parameter. A source breakpoint location
-// does not imply a library, since the same source code can be included
-// in more than one library, e.g. the text location of mixin functions.
-void BreakpointLocation::GetCodeLocation(Library* lib,
-                                         Script* script,
+// Returned resolved pos is either in code or in bytecode.
+void BreakpointLocation::GetCodeLocation(Script* script,
                                          TokenPosition* pos) const {
   if (IsLatent()) {
-    *lib = Library::null();
     *script = Script::null();
     *pos = TokenPosition::kNoSource;
   } else {
     *script = this->script();
     *pos = token_pos_;
-    if (IsResolved()) {
-      const Function& func = Function::Handle(function_);
-      ASSERT(!func.IsNull());
-      const Class& cls = Class::Handle(func.origin());
-      *lib = cls.library();
-    } else {
-      *lib = Library::null();
-    }
   }
-}
-
-intptr_t BreakpointLocation::LineNumber() {
-  ASSERT(IsResolved());
-  // Compute line number lazily since it causes scanning of the script.
-  if (line_number_ < 0) {
-    const Script& script = Script::Handle(this->script());
-    script.GetTokenLocation(token_pos_, &line_number_, NULL);
-  }
-  return line_number_;
-}
-
-intptr_t BreakpointLocation::ColumnNumber() {
-  ASSERT(IsResolved());
-  // Compute column number lazily since it causes scanning of the script.
-  if (column_number_ < 0) {
-    const Script& script = Script::Handle(this->script());
-    script.GetTokenLocation(token_pos_, &line_number_, &column_number_);
-  }
-  return column_number_;
 }
 
 void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
@@ -208,6 +181,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&bytecode_));
 #if !defined(TARGET_ARCH_DBC)
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
 #endif
@@ -225,6 +199,7 @@ ActivationFrame::ActivationFrame(uword pc,
       sp_(sp),
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.raw())),
+      bytecode_(Bytecode::ZoneHandle()),
       function_(Function::ZoneHandle(code.function())),
       live_frame_((kind == kRegular) || (kind == kAsyncActivation)),
       token_pos_initialized_(false),
@@ -237,11 +212,44 @@ ActivationFrame::ActivationFrame(uword pc,
       deopt_frame_(Array::ZoneHandle(deopt_frame.raw())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kind),
-      is_interpreted_(false),  // TODO(regis): No bytecode debugging support.
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {}
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+  ASSERT(!function_.IsNull());
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+ActivationFrame::ActivationFrame(uword pc,
+                                 uword fp,
+                                 uword sp,
+                                 const Bytecode& bytecode,
+                                 ActivationFrame::Kind kind)
+    : pc_(pc),
+      fp_(fp),
+      sp_(sp),
+      ctx_(Context::ZoneHandle()),
+      code_(Code::ZoneHandle()),
+      bytecode_(Bytecode::ZoneHandle(bytecode.raw())),
+      function_(Function::ZoneHandle(bytecode.function())),
+      live_frame_((kind == kRegular) || (kind == kAsyncActivation)),
+      token_pos_initialized_(false),
+      token_pos_(TokenPosition::kNoSource),
+      try_index_(-1),
+      deopt_id_(DeoptId::kNone),
+      line_number_(-1),
+      column_number_(-1),
+      context_level_(-1),
+      deopt_frame_(Array::ZoneHandle()),
+      deopt_frame_offset_(0),
+      kind_(kind),
+      vars_initialized_(false),
+      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
+      desc_indices_(8),
+      pc_desc_(PcDescriptors::ZoneHandle()) {
+  ASSERT(!function_.IsNull());  // Frames with bytecode stubs should be skipped.
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 ActivationFrame::ActivationFrame(Kind kind)
     : pc_(0),
@@ -249,6 +257,7 @@ ActivationFrame::ActivationFrame(Kind kind)
       sp_(0),
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle()),
+      bytecode_(Bytecode::ZoneHandle()),
       function_(Function::ZoneHandle()),
       live_frame_(kind == kRegular),
       token_pos_initialized_(false),
@@ -260,7 +269,6 @@ ActivationFrame::ActivationFrame(Kind kind)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kind),
-      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
@@ -272,6 +280,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       sp_(0),
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle()),
+      bytecode_(Bytecode::ZoneHandle()),
       function_(Function::ZoneHandle()),
       live_frame_(false),
       token_pos_initialized_(false),
@@ -283,15 +292,21 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       deopt_frame_(Array::ZoneHandle()),
       deopt_frame_offset_(0),
       kind_(kAsyncActivation),
-      is_interpreted_(false),
       vars_initialized_(false),
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
   // Extract the function and the code from the asynchronous activation.
   function_ = async_activation.function();
-  function_.EnsureHasCompiledUnoptimizedCode();
-  code_ = function_.unoptimized_code();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!function_.HasCode() && function_.HasBytecode()) {
+    bytecode_ = function_.bytecode();
+  }
+#endif
+  if (bytecode_.IsNull()) {
+    function_.EnsureHasCompiledUnoptimizedCode();
+    code_ = function_.unoptimized_code();
+  }
   ctx_ = async_activation.context();
   ASSERT(fp_ == 0);
   ASSERT(!ctx_.IsNull());
@@ -445,7 +460,7 @@ static bool IsImplicitFunction(const Function& func) {
   switch (func.kind()) {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kImplicitStaticFinalGetter:
+    case RawFunction::kImplicitStaticGetter:
     case RawFunction::kStaticFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
@@ -462,7 +477,7 @@ static bool IsImplicitFunction(const Function& func) {
 }
 
 bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
-  if (!func.HasCode()) {
+  if (!func.HasCode() && !func.HasBytecode()) {
     // If the function is not compiled yet, just check whether there
     // is a user-defined breakpoint that falls into the token
     // range of the function. This may be a false positive: the breakpoint
@@ -553,20 +568,26 @@ RawLibrary* ActivationFrame::Library() {
 }
 
 void ActivationFrame::GetPcDescriptors() {
+  ASSERT(!IsInterpreted());  // We need to set try_index_ simultaneously.
   if (pc_desc_.IsNull()) {
     pc_desc_ = code().pc_descriptors();
     ASSERT(!pc_desc_.IsNull());
   }
 }
 
-// Compute token_pos_ and try_index_ and token_pos_initialized_.
+// Compute token_pos_ and token_pos_initialized_.
+// If not IsInterpreted(), then also compute try_index_ and deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
     token_pos_initialized_ = true;
+    if (IsInterpreted()) {
+      token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
+      return token_pos_;
+    }
     token_pos_ = TokenPosition::kNoSource;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
-    uword pc_offset = pc_ - code().PayloadStart();
+    const uword pc_offset = pc_ - code().PayloadStart();
     while (iter.MoveNext()) {
       if (iter.PcOffset() == pc_offset) {
         try_index_ = iter.TryIndex();
@@ -580,6 +601,16 @@ TokenPosition ActivationFrame::TokenPos() {
 }
 
 intptr_t ActivationFrame::TryIndex() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (IsInterpreted()) {
+    if (pc_desc_.IsNull()) {
+      ASSERT(try_index_ == -1);
+      pc_desc_ = bytecode().pc_descriptors();
+      try_index_ = bytecode().GetTryIndexAtPc(pc_);
+    }
+    return try_index_;
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   if (!token_pos_initialized_) {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
@@ -587,6 +618,7 @@ intptr_t ActivationFrame::TryIndex() {
 }
 
 intptr_t ActivationFrame::DeoptId() {
+  ASSERT(!IsInterpreted());
   if (!token_pos_initialized_) {
     TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
@@ -619,7 +651,7 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
-    if (is_interpreted()) {
+    if (IsInterpreted()) {
       // TODO(regis): Kernel bytecode does not yet provide var descriptors.
       var_descriptors_ = Object::empty_var_descriptors().raw();
       return;
@@ -633,7 +665,7 @@ void ActivationFrame::GetVarDescriptors() {
       if (!error.IsNull()) {
         Exceptions::PropagateError(error);
       }
-      unoptimized_code ^= function().unoptimized_code();
+      unoptimized_code = function().unoptimized_code();
     }
     ASSERT(!unoptimized_code.IsNull());
     var_descriptors_ = unoptimized_code.GetLocalVarDescriptors();
@@ -652,8 +684,13 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   DisassembleToStdout formatter;
-  code().Disassemble(&formatter);
-  PcDescriptors::Handle(code().pc_descriptors()).Print();
+  if (IsInterpreted()) {
+    bytecode().Disassemble(&formatter);
+    PcDescriptors::Handle(bytecode().pc_descriptors()).Print();
+  } else {
+    code().Disassemble(&formatter);
+    PcDescriptors::Handle(code().pc_descriptors()).Print();
+  }
   StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
@@ -667,6 +704,9 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
 
 // Calculate the context level at the current token index of the frame.
 intptr_t ActivationFrame::ContextLevel() {
+  // TODO(regis): get context level information using
+  //  BytecodeLocalVariablesIterator for interpreted frames and compiled frames
+  //  with a function coming from bytecode (function.is_declared_in_bytecode())
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
@@ -808,7 +848,11 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   AbstractType& type = Type::Handle();
   const bool is_async =
       function().IsAsyncClosure() || function().IsAsyncGenClosure();
-  handlers = code().exception_handlers();
+  if (IsInterpreted()) {
+    handlers = bytecode().exception_handlers();
+  } else {
+    handlers = code().exception_handlers();
+  }
   ASSERT(!handlers.IsNull());
   intptr_t num_handlers_checked = 0;
   while (try_index != kInvalidTryIndex) {
@@ -840,6 +884,10 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 
 void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // Attempt to determine the token position from the async closure.
+  if (IsInterpreted()) {
+    // TODO(regis): Implement.
+    return;
+  }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& script = Script::Handle(zone, function().script());
@@ -960,9 +1008,9 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         ASSERT(function().name() == Symbols::Call().raw());
         ASSERT(function().IsInvokeFieldDispatcher());
         // Closure.call frames.
-        ctx_ ^= Closure::Cast(obj).context();
+        ctx_ = Closure::Cast(obj).context();
       } else if (obj.IsContext()) {
-        ctx_ ^= Context::Cast(obj).raw();
+        ctx_ = Context::Cast(obj).raw();
       } else {
         ASSERT(obj.IsNull());
       }
@@ -1367,15 +1415,22 @@ RawTypeArguments* ActivationFrame::BuildParameters(
     TypeArguments& type_params = TypeArguments::Handle();
     TypeParameter& type_param = TypeParameter::Handle();
     Function& current = Function::Handle(function().raw());
+    intptr_t mapping_offset = num_vars;
     for (intptr_t i = 0; !current.IsNull(); i += current.NumTypeParameters(),
                   current = current.parent_function()) {
       type_params = current.type_parameters();
-      for (intptr_t j = 0; j < current.NumTypeParameters(); ++j) {
+      intptr_t size = current.NumTypeParameters();
+      ASSERT(mapping_offset >= size);
+      mapping_offset -= size;
+      for (intptr_t j = 0; j < size; ++j) {
         type_param = TypeParameter::RawCast(type_params.TypeAt(j));
         name = type_param.Name();
-        // Write the names in backwards so they match up with the order of the
-        // types in 'type_arguments'.
-        type_params_names.SetAt(num_vars - (i + j) - 1, name);
+        // Write the names in backwards in terms of chain of functions.
+        // But keep the order of names within the same function. so they
+        // match up with the order of the types in 'type_arguments'.
+        // Index:0 1 2 3 ...
+        //       |Names in Grandparent| |Names in Parent| ..|Names in Child|
+        type_params_names.SetAt(mapping_offset + j, name);
       }
     }
     if (!type_arguments.IsNull()) {
@@ -1429,7 +1484,11 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
-  jsobj->AddProperty("code", code());
+  if (IsInterpreted()) {
+    jsobj->AddProperty("code", bytecode());
+  } else {
+    jsobj->AddProperty("code", code());
+  }
   {
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
@@ -1469,7 +1528,11 @@ void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj) {
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
-  jsobj->AddProperty("code", code());
+  if (IsInterpreted()) {
+    jsobj->AddProperty("code", bytecode());
+  } else {
+    jsobj->AddProperty("code", code());
+  }
 }
 
 void ActivationFrame::PrintToJSONObjectAsyncSuspensionMarker(
@@ -1486,7 +1549,11 @@ void ActivationFrame::PrintToJSONObjectAsyncActivation(JSONObject* jsobj) {
   const TokenPosition pos = TokenPos().SourcePosition();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
-  jsobj->AddProperty("code", code());
+  if (IsInterpreted()) {
+    jsobj->AddProperty("code", bytecode());
+  } else {
+    jsobj->AddProperty("code", code());
+  }
 }
 
 static bool IsFunctionVisible(const Function& function) {
@@ -1509,6 +1576,14 @@ void DebuggerStackTrace::AddAsyncCausalFrame(uword pc, const Code& code) {
                                  ActivationFrame::kAsyncCausal));
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void DebuggerStackTrace::AddAsyncCausalFrame(uword pc,
+                                             const Bytecode& bytecode) {
+  trace_.Add(
+      new ActivationFrame(pc, 0, 0, bytecode, ActivationFrame::kAsyncCausal));
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 const uint8_t kSafepointKind = RawPcDescriptors::kIcCall |
                                RawPcDescriptors::kUnoptStaticCall |
                                RawPcDescriptors::kRuntimeCall;
@@ -1518,6 +1593,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
                                uword pc,
                                RawPcDescriptors::Kind kind)
     : code_(code.raw()),
+      bytecode_(Bytecode::null()),
       token_pos_(token_pos),
       pc_(pc),
       line_number_(-1),
@@ -1538,12 +1614,37 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
   ASSERT((breakpoint_kind_ & kSafepointKind) != 0);
 }
 
+CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
+                               TokenPosition token_pos,
+                               uword pc)
+    : code_(Code::null()),
+      bytecode_(bytecode.raw()),
+      token_pos_(token_pos),
+      pc_(pc),
+      line_number_(-1),
+      is_enabled_(false),
+      bpt_location_(NULL),
+      next_(NULL),
+      breakpoint_kind_(RawPcDescriptors::kAnyKind),
+#if !defined(TARGET_ARCH_DBC)
+      saved_value_(Code::null())
+#else
+      saved_value_(SimulatorBytecode::kTrap),
+      saved_value_fastsmi_(SimulatorBytecode::kTrap)
+#endif
+{
+  ASSERT(!bytecode.IsNull());
+  ASSERT(token_pos_.IsReal());
+  ASSERT(pc_ != 0);
+}
+
 CodeBreakpoint::~CodeBreakpoint() {
   // Make sure we don't leave patched code behind.
   ASSERT(!IsEnabled());
 // Poison the data so we catch use after free errors.
 #ifdef DEBUG
   code_ = Code::null();
+  bytecode_ = Bytecode::null();
   pc_ = 0ul;
   bpt_location_ = NULL;
   next_ = NULL;
@@ -1552,7 +1653,12 @@ CodeBreakpoint::~CodeBreakpoint() {
 }
 
 RawFunction* CodeBreakpoint::function() const {
-  return Code::Handle(code_).function();
+  if (IsInterpreted()) {
+    ASSERT(Bytecode::Handle(bytecode_).function() != Function::null());
+    return Bytecode::Handle(bytecode_).function();
+  } else {
+    return Code::Handle(code_).function();
+  }
 }
 
 RawScript* CodeBreakpoint::SourceCode() {
@@ -1576,14 +1682,30 @@ intptr_t CodeBreakpoint::LineNumber() {
 
 void CodeBreakpoint::Enable() {
   if (!is_enabled_) {
-    PatchCode();
+    if (IsInterpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      SetBytecodeBreakpoint();
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      PatchCode();
+    }
   }
   ASSERT(is_enabled_);
 }
 
 void CodeBreakpoint::Disable() {
   if (is_enabled_) {
-    RestoreCode();
+    if (IsInterpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      UnsetBytecodeBreakpoint();
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      RestoreCode();
+    }
   }
   ASSERT(!is_enabled_);
 }
@@ -1627,20 +1749,20 @@ void Debugger::Shutdown() {
     return;
   }
   while (breakpoint_locations_ != NULL) {
-    BreakpointLocation* bpt = breakpoint_locations_;
+    BreakpointLocation* loc = breakpoint_locations_;
     breakpoint_locations_ = breakpoint_locations_->next();
-    delete bpt;
+    delete loc;
   }
   while (latent_locations_ != NULL) {
-    BreakpointLocation* bpt = latent_locations_;
+    BreakpointLocation* loc = latent_locations_;
     latent_locations_ = latent_locations_->next();
-    delete bpt;
+    delete loc;
   }
   while (code_breakpoints_ != NULL) {
-    CodeBreakpoint* bpt = code_breakpoints_;
+    CodeBreakpoint* cbpt = code_breakpoints_;
     code_breakpoints_ = code_breakpoints_->next();
-    bpt->Disable();
-    delete bpt;
+    cbpt->Disable();
+    delete cbpt;
   }
   if (NeedsIsolateEvents()) {
     ServiceEvent event(isolate_, ServiceEvent::kIsolateExit);
@@ -1789,6 +1911,18 @@ void Debugger::DeoptimizeWorld() {
   }
 }
 
+void Debugger::NotifySingleStepping(bool value) const {
+  isolate_->set_single_step(value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Do not call Interpreter::Current(), which may allocate an interpreter.
+  Interpreter* interpreter = Thread::Current()->interpreter();
+  if (interpreter != nullptr) {
+    // Do not reset is_debugging to false if bytecode debug breaks are enabled.
+    interpreter->set_is_debugging(value || HasEnabledBytecodeBreakpoints());
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
                                             uword pc,
                                             StackFrame* frame,
@@ -1811,6 +1945,24 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
+                                            uword pc,
+                                            StackFrame* frame,
+                                            const Bytecode& bytecode,
+                                            ActivationFrame::Kind kind) {
+  ASSERT(bytecode.ContainsInstructionAt(pc));
+  ActivationFrame* activation =
+      new ActivationFrame(pc, frame->fp(), frame->sp(), bytecode, kind);
+  if (FLAG_trace_debugger_stacktrace) {
+    const Context& ctx = activation->GetSavedCurrentContext();
+    OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
+  }
+  if (FLAG_trace_debugger_stacktrace) {
+    OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());
+  }
+  return activation;
+}
+
 RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                                       StackFrame* frame,
                                       const Code& code) {
@@ -1843,6 +1995,9 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
   Code& code = Code::Handle(zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   Code& inlined_code = Code::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
 
@@ -1855,14 +2010,21 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       if (frame->is_interpreted()) {
-        // TODO(regis): Support debugging of interpreted frames.
-        // For now, do not abort, but skip the frame, as this code is run
-        // while handling a stack overflow. See HandleStackOverflowTestCases.
-        continue;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        bytecode = frame->LookupDartBytecode();
+        if (bytecode.function() == Function::null()) {
+          continue;  // Skip bytecode stub frame.
+        }
+        stack_trace->AddActivation(
+            CollectDartFrame(isolate, frame->pc(), frame, bytecode));
+#else
+        UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        code = frame->LookupDartCode();
+        AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
+                         &inlined_code, &deopt_frame);
       }
-      code = frame->LookupDartCode();
-      AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                       &inlined_code, &deopt_frame);
     }
   }
   return stack_trace;
@@ -1910,7 +2072,11 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
 
+  Object& code_obj = Object::Handle(zone);
   Code& code = Code::Handle(zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   Smi& offset = Smi::Handle();
   Code& inlined_code = Code::Handle(zone);
   Array& deopt_frame = Array::Handle(zone);
@@ -1942,12 +2108,21 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
     ASSERT(frame != NULL);
     if (frame->IsDartFrame()) {
       if (frame->is_interpreted()) {
-        // TODO(regis): Support debugging of interpreted frames.
-        UNIMPLEMENTED();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        bytecode = frame->LookupDartBytecode();
+        if (bytecode.function() == Function::null()) {
+          continue;  // Skip bytecode stub frame.
+        }
+        stack_trace->AddActivation(
+            CollectDartFrame(isolate, frame->pc(), frame, bytecode));
+#else
+        UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        code = frame->LookupDartCode();
+        AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
+                         &inlined_code, &deopt_frame);
       }
-      code = frame->LookupDartCode();
-      AppendCodeFrames(thread, isolate, zone, stack_trace, frame, &code,
-                       &inlined_code, &deopt_frame);
       synchronous_stack_trace_length--;
     }
     frame = iterator.NextFrame();
@@ -1958,19 +2133,27 @@ DebuggerStackTrace* Debugger::CollectAsyncCausalStackTrace() {
   // activated.
   while (!async_stack_trace.IsNull()) {
     for (intptr_t i = 0; i < async_stack_trace.Length(); i++) {
-      if (async_stack_trace.CodeAtFrame(i) == Code::null()) {
+      code_obj = async_stack_trace.CodeAtFrame(i);
+      if (code_obj.IsNull()) {
         break;
       }
-      if (async_stack_trace.CodeAtFrame(i) ==
-          StubCode::AsynchronousGapMarker().raw()) {
+      if (code_obj.raw() == StubCode::AsynchronousGapMarker().raw()) {
         stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
         // The frame immediately below the asynchronous gap marker is the
         // identical to the frame above the marker. Skip the frame to enhance
         // the readability of the trace.
         i++;
       } else {
-        code = Code::RawCast(async_stack_trace.CodeAtFrame(i));
         offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        if (code_obj.IsBytecode()) {
+          bytecode ^= code_obj.raw();
+          uword pc = bytecode.PayloadStart() + offset.Value();
+          stack_trace->AddAsyncCausalFrame(pc, bytecode);
+          continue;
+        }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+        code ^= code_obj.raw();
         uword pc = code.PayloadStart() + offset.Value();
         if (code.is_optimized()) {
           for (InlinedFunctionsIterator it(code, pc); !it.Done();
@@ -2020,6 +2203,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                               StackFrameIterator::kNoCrossThreadIteration);
 
   Code& code = Code::Handle(zone);
+  Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
   Function& function = Function::Handle(zone);
   Code& inlined_code = Code::Handle(zone);
@@ -2041,76 +2225,14 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     }
     if (frame->IsDartFrame()) {
       if (frame->is_interpreted()) {
-        // TODO(regis): Support debugging of interpreted frames.
-        UNIMPLEMENTED();
-      }
-      code = frame->LookupDartCode();
-      if (code.is_optimized()) {
-        deopt_frame = DeoptimizeToArray(thread, frame, code);
-        bool found_async_awaiter = false;
-        bool abort_attempt_to_navigate_through_sync_async = false;
-        for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
-             it.Advance()) {
-          inlined_code = it.code();
-          function = it.function();
-
-          if (skip_sync_async_frames_count > 0) {
-            function_name ^= function.QualifiedScrubbedName();
-            if (CheckAndSkipAsync(skip_sync_async_frames_count,
-                                  function_name)) {
-              skip_sync_async_frames_count--;
-            } else {
-              // Unexpected function in sync async call
-              skip_sync_async_frames_count = -1;
-              abort_attempt_to_navigate_through_sync_async = true;
-              break;
-            }
-          }
-
-          if (FLAG_trace_debugger_stacktrace) {
-            ASSERT(!function.IsNull());
-            OS::PrintErr(
-                "CollectAwaiterReturnStackTrace: visiting inlined function: "
-                "%s\n",
-                function.ToFullyQualifiedCString());
-          }
-          intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-            ActivationFrame* activation = CollectDartFrame(
-                isolate, it.pc(), frame, inlined_code, deopt_frame,
-                deopt_frame_offset, ActivationFrame::kAsyncActivation);
-            ASSERT(activation != NULL);
-            stack_trace->AddActivation(activation);
-            stack_has_async_function = true;
-            // Grab the awaiter.
-            async_activation ^= activation->GetAsyncAwaiter();
-            found_async_awaiter = true;
-            // async function might have been called synchronously, in which
-            // case we need to keep going down the stack.
-            // To determine how we are called we peek few more frames further
-            // expecting to see Closure_call followed by
-            // AsyncAwaitCompleter_start.
-            // If we are able to see those functions we continue going down
-            // thestack, if we are not, we break out of the loop as we are
-            // not interested in exploring rest of the stack - there is only
-            // dart-internal code left.
-            skip_sync_async_frames_count = 2;
-          } else {
-            stack_trace->AddActivation(
-                CollectDartFrame(isolate, it.pc(), frame, inlined_code,
-                                 deopt_frame, deopt_frame_offset));
-          }
+        bytecode = frame->LookupDartBytecode();
+        function = bytecode.function();
+        if (function.IsNull()) {
+          continue;  // Skip bytecode stub frame.
         }
-        // Break out of outer loop.
-        if (found_async_awaiter ||
-            abort_attempt_to_navigate_through_sync_async) {
-          break;
-        }
-      } else {
-        function = code.function();
 
         if (skip_sync_async_frames_count > 0) {
-          function_name ^= function.QualifiedScrubbedName();
+          function_name = function.QualifiedScrubbedName();
           if (CheckAndSkipAsync(skip_sync_async_frames_count, function_name)) {
             skip_sync_async_frames_count--;
           } else {
@@ -2120,9 +2242,9 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         }
 
         if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-          ActivationFrame* activation = CollectDartFrame(
-              isolate, frame->pc(), frame, code, Object::null_array(), 0,
-              ActivationFrame::kAsyncActivation);
+          ActivationFrame* activation =
+              CollectDartFrame(isolate, frame->pc(), frame, bytecode,
+                               ActivationFrame::kAsyncActivation);
           ASSERT(activation != NULL);
           stack_trace->AddActivation(activation);
           stack_has_async_function = true;
@@ -2133,8 +2255,103 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
           // synchronously above.
           skip_sync_async_frames_count = 2;
         } else {
-          stack_trace->AddActivation(CollectDartFrame(
-              isolate, frame->pc(), frame, code, Object::null_array(), 0));
+          stack_trace->AddActivation(
+              CollectDartFrame(isolate, frame->pc(), frame, bytecode));
+        }
+      } else {
+        code = frame->LookupDartCode();
+        if (code.is_optimized()) {
+          deopt_frame = DeoptimizeToArray(thread, frame, code);
+          bool found_async_awaiter = false;
+          bool abort_attempt_to_navigate_through_sync_async = false;
+          for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
+               it.Advance()) {
+            inlined_code = it.code();
+            function = it.function();
+
+            if (skip_sync_async_frames_count > 0) {
+              function_name ^= function.QualifiedScrubbedName();
+              if (CheckAndSkipAsync(skip_sync_async_frames_count,
+                                    function_name)) {
+                skip_sync_async_frames_count--;
+              } else {
+                // Unexpected function in sync async call
+                skip_sync_async_frames_count = -1;
+                abort_attempt_to_navigate_through_sync_async = true;
+                break;
+              }
+            }
+
+            if (FLAG_trace_debugger_stacktrace) {
+              ASSERT(!function.IsNull());
+              OS::PrintErr(
+                  "CollectAwaiterReturnStackTrace: visiting inlined function: "
+                  "%s\n",
+                  function.ToFullyQualifiedCString());
+            }
+            intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
+            if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+              ActivationFrame* activation = CollectDartFrame(
+                  isolate, it.pc(), frame, inlined_code, deopt_frame,
+                  deopt_frame_offset, ActivationFrame::kAsyncActivation);
+              ASSERT(activation != NULL);
+              stack_trace->AddActivation(activation);
+              stack_has_async_function = true;
+              // Grab the awaiter.
+              async_activation ^= activation->GetAsyncAwaiter();
+              found_async_awaiter = true;
+              // async function might have been called synchronously, in which
+              // case we need to keep going down the stack.
+              // To determine how we are called we peek few more frames further
+              // expecting to see Closure_call followed by
+              // AsyncAwaitCompleter_start.
+              // If we are able to see those functions we continue going down
+              // thestack, if we are not, we break out of the loop as we are
+              // not interested in exploring rest of the stack - there is only
+              // dart-internal code left.
+              skip_sync_async_frames_count = 2;
+            } else {
+              stack_trace->AddActivation(
+                  CollectDartFrame(isolate, it.pc(), frame, inlined_code,
+                                   deopt_frame, deopt_frame_offset));
+            }
+          }
+          // Break out of outer loop.
+          if (found_async_awaiter ||
+              abort_attempt_to_navigate_through_sync_async) {
+            break;
+          }
+        } else {
+          function = code.function();
+
+          if (skip_sync_async_frames_count > 0) {
+            function_name ^= function.QualifiedScrubbedName();
+            if (CheckAndSkipAsync(skip_sync_async_frames_count,
+                                  function_name)) {
+              skip_sync_async_frames_count--;
+            } else {
+              // Unexpected function in synchronous call of async function.
+              break;
+            }
+          }
+
+          if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+            ActivationFrame* activation = CollectDartFrame(
+                isolate, frame->pc(), frame, code, Object::null_array(), 0,
+                ActivationFrame::kAsyncActivation);
+            ASSERT(activation != NULL);
+            stack_trace->AddActivation(activation);
+            stack_has_async_function = true;
+            // Grab the awaiter.
+            async_activation ^= activation->GetAsyncAwaiter();
+            async_stack_trace ^= activation->GetCausalStack();
+            // see comment regarding skipping frames of async functions called
+            // synchronously above.
+            skip_sync_async_frames_count = 2;
+          } else {
+            stack_trace->AddActivation(CollectDartFrame(
+                isolate, frame->pc(), frame, code, Object::null_array(), 0));
+          }
         }
       }
     }
@@ -2202,20 +2419,29 @@ ActivationFrame* Debugger::TopDartFrame() const {
   StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  while ((frame != NULL) && !frame->IsDartFrame()) {
+  StackFrame* frame;
+  while (true) {
     frame = iterator.NextFrame();
+    RELEASE_ASSERT(frame != nullptr);
+    if (!frame->IsDartFrame()) {
+      continue;
+    }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (frame->is_interpreted()) {
+      Bytecode& bytecode = Bytecode::Handle(frame->LookupDartBytecode());
+      if (bytecode.function() == Function::null()) {
+        continue;  // Skip bytecode stub frame.
+      }
+      ActivationFrame* activation =
+          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), bytecode);
+      return activation;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    Code& code = Code::Handle(frame->LookupDartCode());
+    ActivationFrame* activation = new ActivationFrame(
+        frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
+    return activation;
   }
-  ASSERT(frame != NULL);
-  if (frame->is_interpreted()) {
-    // TODO(regis): Support debugging of interpreted frames.
-    UNIMPLEMENTED();
-    return NULL;
-  }
-  Code& code = Code::Handle(frame->LookupDartCode());
-  ActivationFrame* activation = new ActivationFrame(
-      frame->pc(), frame->fp(), frame->sp(), code, Object::null_array(), 0);
-  return activation;
 }
 
 DebuggerStackTrace* Debugger::StackTrace() {
@@ -2249,6 +2475,9 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
   Function& function = Function::Handle();
   Object& code_object = Object::Handle();
   Code& code = Code::Handle();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   const uword fp = 0;
   const uword sp = 0;
@@ -2264,36 +2493,50 @@ DebuggerStackTrace* Debugger::StackTraceFrom(const class StackTrace& ex_trace) {
     // a shallow stack).
     if (!code_object.IsNull()) {
       if (code_object.IsBytecode()) {
-        // TODO(regis): Support debugging of interpreted frames.
-        UNIMPLEMENTED();
-      }
-      code ^= code_object.raw();
-      ASSERT(code.IsFunctionCode());
-      function = code.function();
-      if (function.is_visible()) {
-        ASSERT(function.raw() == code.function());
-        uword pc =
-            code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
-        if (code.is_optimized() && ex_trace.expand_inlined()) {
-          // Traverse inlined frames.
-          for (InlinedFunctionsIterator it(code, pc); !it.Done();
-               it.Advance()) {
-            function = it.function();
-            code = it.code();
-            ASSERT(function.raw() == code.function());
-            uword pc = it.pc();
-            ASSERT(pc != 0);
-            ASSERT(code.PayloadStart() <= pc);
-            ASSERT(pc < (code.PayloadStart() + code.Size()));
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        bytecode ^= code_object.raw();
+        function = bytecode.function();
+        // Skip bytecode stub frames and frames with invisible function.
+        if (!function.IsNull() && function.is_visible()) {
+          ASSERT(function.raw() == bytecode.function());
+          uword pc =
+              bytecode.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+          ActivationFrame* activation =
+              new ActivationFrame(pc, fp, sp, bytecode);
+          stack_trace->AddActivation(activation);
+        }
+#else
+        UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        code ^= code_object.raw();
+        ASSERT(code.IsFunctionCode());
+        function = code.function();
+        if (function.is_visible()) {
+          ASSERT(function.raw() == code.function());
+          uword pc =
+              code.PayloadStart() + Smi::Value(ex_trace.PcOffsetAtFrame(i));
+          if (code.is_optimized() && ex_trace.expand_inlined()) {
+            // Traverse inlined frames.
+            for (InlinedFunctionsIterator it(code, pc); !it.Done();
+                 it.Advance()) {
+              function = it.function();
+              code = it.code();
+              ASSERT(function.raw() == code.function());
+              uword pc = it.pc();
+              ASSERT(pc != 0);
+              ASSERT(code.PayloadStart() <= pc);
+              ASSERT(pc < (code.PayloadStart() + code.Size()));
 
+              ActivationFrame* activation = new ActivationFrame(
+                  pc, fp, sp, code, deopt_frame, deopt_frame_offset);
+              stack_trace->AddActivation(activation);
+            }
+          } else {
             ActivationFrame* activation = new ActivationFrame(
                 pc, fp, sp, code, deopt_frame, deopt_frame_offset);
             stack_trace->AddActivation(activation);
           }
-        } else {
-          ActivationFrame* activation = new ActivationFrame(
-              pc, fp, sp, code, deopt_frame, deopt_frame_offset);
-          stack_trace->AddActivation(activation);
         }
       }
     }
@@ -2424,11 +2667,12 @@ void Debugger::PauseException(const Instance& exc) {
 // algorithm, which would be simpler.  I believe that it only needs
 // two passes to support the recursive try-the-whole-function case.
 // Rewrite this later, once there are more tests in place.
-TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
+TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
+                                             const Function& func,
                                              TokenPosition requested_token_pos,
                                              TokenPosition last_token_pos,
-                                             intptr_t requested_column) {
-  ASSERT(func.HasCode());
+                                             intptr_t requested_column,
+                                             TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
 
   if (requested_token_pos < func.token_pos()) {
@@ -2440,50 +2684,137 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
 
   Zone* zone = Thread::Current()->zone();
   Script& script = Script::Handle(zone, func.script());
-  Code& code = Code::Handle(zone, func.unoptimized_code());
-  ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
+  Code& code = Code::Handle(zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  PcDescriptors& desc = PcDescriptors::Handle(zone);
+  if (in_bytecode) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(func.HasBytecode());
+    bytecode = func.bytecode();
+    ASSERT(!bytecode.IsNull());
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    ASSERT(func.HasCode());
+    code = func.unoptimized_code();
+    ASSERT(!code.IsNull());
+    desc = code.pc_descriptors();
+  }
 
   // First pass: find the safe point which is closest to the beginning
   // of the given token range.
   TokenPosition best_fit_pos = TokenPosition::kMaxSource;
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
-  PcDescriptors::Iterator iter(desc, kSafepointKind);
-  while (iter.MoveNext()) {
-    const TokenPosition pos = iter.TokenPos();
-    if ((!pos.IsReal()) || (pos < requested_token_pos) ||
-        (pos > last_token_pos)) {
-      // Token is not in the target range.
-      continue;
-    }
+  // best_token_pos and exact_token_pos are only used
+  // if column number is provided.
+  TokenPosition best_token_pos = TokenPosition::kNoSource;
 
-    intptr_t token_start_column = -1;
-    intptr_t token_line = -1;
-    if (requested_column >= 0) {
-      intptr_t token_len = -1;
-      // TODO(turnidge): GetTokenLocation is a very expensive
-      // operation, and this code will blow up when we are setting
-      // column breakpoints on, for example, a large, single-line
-      // program.  Consider rewriting this code so that it only scans
-      // the program code once and caches the token positions and
-      // lengths.
-      script.GetTokenLocation(pos, &token_line, &token_start_column,
-                              &token_len);
-      intptr_t token_end_column = token_start_column + token_len - 1;
-      if ((token_end_column < requested_column) ||
-          (token_start_column > best_column)) {
-        // Prefer the token with the lowest column number compatible
-        // with the requested column.
+  if (in_bytecode) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      const TokenPosition pos = iter.TokenPos();
+      if ((!pos.IsReal()) || (pos < requested_token_pos) ||
+          (pos > last_token_pos)) {
+        // Token is not in the target range.
         continue;
       }
-    }
 
-    // Prefer the lowest (first) token pos.
-    if (pos < best_fit_pos) {
-      best_fit_pos = pos;
-      best_line = token_line;
-      best_column = token_start_column;
+      intptr_t token_start_column = -1;
+      intptr_t token_line = -1;
+      if (requested_column >= 0) {
+        kernel::BytecodeSourcePositionsIterator iter2(zone, bytecode);
+        TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
+        while (iter2.MoveNext()) {
+          const TokenPosition next = iter2.TokenPos();
+          if (next < next_closest_token_position && next > pos) {
+            next_closest_token_position = next;
+          }
+        }
+
+        TokenPosition ignored;
+        TokenPosition end_of_line_pos;
+        script.GetTokenLocation(pos, &token_line, &token_start_column);
+        script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
+        TokenPosition token_end_pos =
+            (end_of_line_pos < next_closest_token_position)
+                ? end_of_line_pos
+                : next_closest_token_position;
+
+        if ((token_end_pos < exact_token_pos) ||
+            (token_start_column > best_column)) {
+          // Prefer the token with the lowest column number compatible
+          // with the requested column.
+          continue;
+        }
+      }
+
+      // Prefer the lowest (first) token pos.
+      if (pos < best_fit_pos) {
+        best_fit_pos = pos;
+        best_line = token_line;
+        best_column = token_start_column;
+        // best_token_pos is only used when column number is specified.
+        best_token_pos = TokenPosition(exact_token_pos.value() -
+                                       (requested_column - best_column));
+      }
+    }
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    PcDescriptors::Iterator iter(desc, kSafepointKind);
+    while (iter.MoveNext()) {
+      const TokenPosition pos = iter.TokenPos();
+      if ((!pos.IsReal()) || (pos < requested_token_pos) ||
+          (pos > last_token_pos)) {
+        // Token is not in the target range.
+        continue;
+      }
+
+      intptr_t token_start_column = -1;
+      intptr_t token_line = -1;
+      if (requested_column >= 0) {
+        // Find next closest safepoint
+        PcDescriptors::Iterator iter2(desc, kSafepointKind);
+        TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
+        while (iter2.MoveNext()) {
+          const TokenPosition next = iter2.TokenPos();
+          if (next < next_closest_token_position && next > pos) {
+            next_closest_token_position = next;
+          }
+        }
+
+        TokenPosition ignored;
+        TokenPosition end_of_line_pos;
+        script.GetTokenLocation(pos, &token_line, &token_start_column);
+        script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
+        TokenPosition token_end_pos =
+            (end_of_line_pos < next_closest_token_position)
+                ? end_of_line_pos
+                : next_closest_token_position;
+
+        if ((token_end_pos < exact_token_pos) ||
+            (token_start_column > best_column)) {
+          // Prefer the token with the lowest column number compatible
+          // with the requested column.
+          continue;
+        }
+      }
+
+      // Prefer the lowest (first) token pos.
+      if (pos < best_fit_pos) {
+        best_fit_pos = pos;
+        best_line = token_line;
+        best_column = token_start_column;
+        // best_token_pos is only used when column number is specified.
+        best_token_pos = TokenPosition(exact_token_pos.value() -
+                                       (requested_column - best_column));
+      }
     }
   }
 
@@ -2511,29 +2842,51 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
     }
 
     uword lowest_pc_offset = kUwordMax;
-    PcDescriptors::Iterator iter(desc, kSafepointKind);
-    while (iter.MoveNext()) {
-      const TokenPosition pos = iter.TokenPos();
-      if (!pos.IsReal() || (pos < begin_pos) || (pos > end_of_line_pos)) {
-        // Token is not on same line as best fit.
-        continue;
-      }
-
-      if (requested_column >= 0) {
-        intptr_t ignored = -1;
-        intptr_t token_start_column = -1;
-        // We look for other tokens at the best column in case there
-        // is more than one token at the same column offset.
-        script.GetTokenLocation(pos, &ignored, &token_start_column);
-        if (token_start_column != best_column) {
+    if (in_bytecode) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+      while (iter.MoveNext()) {
+        const TokenPosition pos = iter.TokenPos();
+        if (!pos.IsReal() || (pos < begin_pos) || (pos > end_of_line_pos)) {
+          // Token is not on same line as best fit.
           continue;
         }
-      }
 
-      // Prefer the lowest pc offset.
-      if (iter.PcOffset() < lowest_pc_offset) {
-        lowest_pc_offset = iter.PcOffset();
-        best_fit_pos = pos;
+        if (requested_column >= 0) {
+          if (pos != best_token_pos) {
+            continue;
+          }
+        }
+
+        // Prefer the lowest pc offset.
+        if (iter.PcOffset() < lowest_pc_offset) {
+          lowest_pc_offset = iter.PcOffset();
+          best_fit_pos = pos;
+        }
+      }
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      PcDescriptors::Iterator iter(desc, kSafepointKind);
+      while (iter.MoveNext()) {
+        const TokenPosition pos = iter.TokenPos();
+        if (!pos.IsReal() || (pos < begin_pos) || (pos > end_of_line_pos)) {
+          // Token is not on same line as best fit.
+          continue;
+        }
+
+        if (requested_column >= 0) {
+          if (pos != best_token_pos) {
+            continue;
+          }
+        }
+
+        // Prefer the lowest pc offset.
+        if (iter.PcOffset() < lowest_pc_offset) {
+          lowest_pc_offset = iter.PcOffset();
+          best_fit_pos = pos;
+        }
       }
     }
     return best_fit_pos;
@@ -2544,54 +2897,129 @@ TokenPosition Debugger::ResolveBreakpointPos(const Function& func,
   // Since we have moved to the next line of the function, we no
   // longer are requesting a specific column number.
   if (last_token_pos < func.end_token_pos()) {
-    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
-                                -1 /* no column */);
+    return ResolveBreakpointPos(in_bytecode, func, last_token_pos,
+                                func.end_token_pos(), -1 /* no column */,
+                                TokenPosition::kNoSource);
   }
   return TokenPosition::kNoSource;
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// Find a 'debug break checked' bytecode in the range [pc..end_pc[ and return
+// the pc after it or nullptr.
+static const KBCInstr* FindBreakpointCheckedInstr(const KBCInstr* pc,
+                                                  const KBCInstr* end_pc) {
+  while ((pc < end_pc) && !KernelBytecode::IsDebugBreakCheckedOpcode(pc)) {
+    pc = KernelBytecode::Next(pc);
+  }
+  if (pc < end_pc) {
+    ASSERT(KernelBytecode::IsDebugBreakCheckedOpcode(pc));
+    // The checked debug break pc must point to the next bytecode.
+    return KernelBytecode::Next(pc);
+  }
+  // No 'debug break checked' bytecode in the range.
+  return nullptr;
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Debugger::MakeCodeBreakpointAt(const Function& func,
                                     BreakpointLocation* loc) {
   ASSERT(loc->token_pos_.IsReal());
   ASSERT((loc != NULL) && loc->IsResolved());
   ASSERT(!func.HasOptimizedCode());
-  Code& code = Code::Handle(func.unoptimized_code());
-  ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  uword lowest_pc_offset = kUwordMax;
-  RawPcDescriptors::Kind lowest_kind = RawPcDescriptors::kAnyKind;
-  // Find the safe point with the lowest compiled code address
-  // that maps to the token position of the source breakpoint.
-  PcDescriptors::Iterator iter(desc, kSafepointKind);
-  while (iter.MoveNext()) {
-    if (iter.TokenPos() == loc->token_pos_) {
-      if (iter.PcOffset() < lowest_pc_offset) {
-        lowest_pc_offset = iter.PcOffset();
-        lowest_kind = iter.Kind();
+  ASSERT(func.HasCode() || func.HasBytecode());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (func.HasBytecode()) {
+    Bytecode& bytecode = Bytecode::Handle(func.bytecode());
+    ASSERT(!bytecode.IsNull());
+    const KBCInstr* pc = nullptr;
+    if (bytecode.HasSourcePositions()) {
+      kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
+                                                   bytecode);
+      bool check_range = false;
+      while (iter.MoveNext()) {
+        if (check_range) {
+          const KBCInstr* end_pc =
+              reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+              iter.PcOffset();
+          check_range = false;
+          // Find a 'debug break checked' bytecode in the range [pc..end_pc[.
+          pc = FindBreakpointCheckedInstr(pc, end_pc);
+          if (pc != nullptr) {
+            // TODO(regis): We may want to find all PCs for a token position,
+            // e.g. in the case of duplicated bytecode in finally clauses.
+            break;
+          }
+        }
+        if (iter.TokenPos() == loc->token_pos_) {
+          pc = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+               iter.PcOffset();
+          check_range = true;
+        }
+      }
+      if (check_range) {
+        ASSERT(pc != nullptr);
+        // Use the end of the bytecode as the end of the range to check.
+        pc = FindBreakpointCheckedInstr(
+            pc, reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
+                    bytecode.Size());
+      }
+    }
+    if (pc != nullptr) {
+      CodeBreakpoint* code_bpt = GetCodeBreakpoint(reinterpret_cast<uword>(pc));
+      if (code_bpt == NULL) {
+        // No code breakpoint for this code exists; create one.
+        code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_,
+                                      reinterpret_cast<uword>(pc));
+        RegisterCodeBreakpoint(code_bpt);
+      }
+      code_bpt->set_bpt_location(loc);
+      if (loc->AnyEnabled()) {
+        code_bpt->Enable();
       }
     }
   }
-  if (lowest_pc_offset == kUwordMax) {
-    return;
-  }
-  uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
-  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
-  if (code_bpt == NULL) {
-    // No code breakpoint for this code exists; create one.
-    code_bpt =
-        new CodeBreakpoint(code, loc->token_pos_, lowest_pc, lowest_kind);
-    RegisterCodeBreakpoint(code_bpt);
-  }
-  code_bpt->set_bpt_location(loc);
-  if (loc->AnyEnabled()) {
-    code_bpt->Enable();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  if (func.HasCode()) {
+    Code& code = Code::Handle(func.unoptimized_code());
+    ASSERT(!code.IsNull());
+    PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+    uword lowest_pc_offset = kUwordMax;
+    RawPcDescriptors::Kind lowest_kind = RawPcDescriptors::kAnyKind;
+    // Find the safe point with the lowest compiled code address
+    // that maps to the token position of the source breakpoint.
+    PcDescriptors::Iterator iter(desc, kSafepointKind);
+    while (iter.MoveNext()) {
+      if (iter.TokenPos() == loc->token_pos_) {
+        if (iter.PcOffset() < lowest_pc_offset) {
+          lowest_pc_offset = iter.PcOffset();
+          lowest_kind = iter.Kind();
+        }
+      }
+    }
+    if (lowest_pc_offset != kUwordMax) {
+      uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
+      CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
+      if (code_bpt == NULL) {
+        // No code breakpoint for this code exists; create one.
+        code_bpt =
+            new CodeBreakpoint(code, loc->token_pos_, lowest_pc, lowest_kind);
+        RegisterCodeBreakpoint(code_bpt);
+      }
+      code_bpt->set_bpt_location(loc);
+      if (loc->AnyEnabled()) {
+        code_bpt->Enable();
+      }
+    }
   }
 }
 
-void Debugger::FindCompiledFunctions(const Script& script,
-                                     TokenPosition start_pos,
-                                     TokenPosition end_pos,
-                                     GrowableObjectArray* function_list) {
+void Debugger::FindCompiledFunctions(
+    const Script& script,
+    TokenPosition start_pos,
+    TokenPosition end_pos,
+    GrowableObjectArray* bytecode_function_list,
+    GrowableObjectArray* code_function_list) {
   Zone* zone = Thread::Current()->zone();
   Class& cls = Class::Handle(zone);
   Array& functions = Array::Handle(zone);
@@ -2606,13 +3034,23 @@ void Debugger::FindCompiledFunctions(const Script& script,
     if ((function.token_pos() == start_pos) &&
         (function.end_token_pos() == end_pos) &&
         (function.script() == script.raw())) {
-      if (function.HasCode() && function.is_debuggable()) {
-        function_list->Add(function);
+      if (function.is_debuggable()) {
+        if (function.HasBytecode()) {
+          bytecode_function_list->Add(function);
+        }
+        if (function.HasCode()) {
+          code_function_list->Add(function);
+        }
       }
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
-        if (function.HasCode() && function.is_debuggable()) {
-          function_list->Add(function);
+        if (function.is_debuggable()) {
+          if (function.HasBytecode()) {
+            bytecode_function_list->Add(function);
+          }
+          if (function.HasCode()) {
+            code_function_list->Add(function);
+          }
         }
       }
     }
@@ -2644,13 +3082,23 @@ void Debugger::FindCompiledFunctions(const Script& script,
           if ((function.token_pos() == start_pos) &&
               (function.end_token_pos() == end_pos) &&
               (function.script() == script.raw())) {
-            if (function.HasCode() && function.is_debuggable()) {
-              function_list->Add(function);
+            if (function.is_debuggable()) {
+              if (function.HasBytecode()) {
+                bytecode_function_list->Add(function);
+              }
+              if (function.HasCode()) {
+                code_function_list->Add(function);
+              }
             }
             if (function.HasImplicitClosureFunction()) {
               function = function.ImplicitClosureFunction();
-              if (function.HasCode() && function.is_debuggable()) {
-                function_list->Add(function);
+              if (function.is_debuggable()) {
+                if (function.HasBytecode()) {
+                  bytecode_function_list->Add(function);
+                }
+                if (function.HasCode()) {
+                  code_function_list->Add(function);
+                }
               }
             }
           }
@@ -2782,6 +3230,71 @@ bool Debugger::FindBestFit(const Script& script,
   return false;
 }
 
+BreakpointLocation* Debugger::SetCodeBreakpoints(
+    bool in_bytecode,
+    BreakpointLocation* loc,
+    const Script& script,
+    TokenPosition token_pos,
+    TokenPosition last_token_pos,
+    intptr_t requested_line,
+    intptr_t requested_column,
+    TokenPosition exact_token_pos,
+    const GrowableObjectArray& functions) {
+  Function& function = Function::Handle();
+  function ^= functions.At(0);
+  TokenPosition breakpoint_pos =
+      ResolveBreakpointPos(in_bytecode, function, token_pos, last_token_pos,
+                           requested_column, exact_token_pos);
+  if (!breakpoint_pos.IsReal()) {
+    return NULL;
+  }
+  if (loc == NULL) {
+    // Find an existing resolved breakpoint location.
+    loc = GetBreakpointLocation(
+        script, TokenPosition::kNoSource,
+        /* requested_line = */ -1,
+        /* requested_column = */ -1,
+        in_bytecode ? breakpoint_pos : TokenPosition::kNoSource,
+        !in_bytecode ? breakpoint_pos : TokenPosition::kNoSource);
+  }
+  if (loc == NULL) {
+    // Find an existing unresolved breakpoint location.
+    loc = GetBreakpointLocation(script, token_pos, requested_line,
+                                requested_column);
+  }
+  if (loc == NULL) {
+    loc = new BreakpointLocation(script, breakpoint_pos, breakpoint_pos,
+                                 requested_line, requested_column);
+    RegisterBreakpointLocation(loc);
+  }
+  // A source breakpoint for this location may already exists, but it may
+  // not yet be resolved in both bytecode and code.
+  if (loc->IsResolved(in_bytecode)) {
+    return loc;
+  }
+  loc->SetResolved(in_bytecode, function, breakpoint_pos);
+
+  // Create code breakpoints for all compiled functions we found.
+  Function& func = Function::Handle();
+  const intptr_t num_functions = functions.Length();
+  for (intptr_t i = 0; i < num_functions; i++) {
+    func ^= functions.At(i);
+    ASSERT((in_bytecode && func.HasBytecode()) ||
+           (!in_bytecode && func.HasCode()));
+    MakeCodeBreakpointAt(func, loc);
+  }
+  if (FLAG_verbose_debug) {
+    intptr_t line_number;
+    intptr_t column_number;
+    script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
+    OS::PrintErr(
+        "Resolved BP for "
+        "function '%s' at line %" Pd " col %" Pd "\n",
+        func.ToFullyQualifiedCString(), line_number, column_number);
+  }
+  return loc;
+}
+
 BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             TokenPosition token_pos,
                                             TokenPosition last_token_pos,
@@ -2793,57 +3306,54 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
     if (!FindBestFit(script, token_pos, last_token_pos, &func)) {
       return NULL;
     }
+    // If func was not set (still Null), the best fit is a field.
   } else {
     func = function.raw();
+    if (!func.token_pos().IsReal()) {
+      return NULL;  // Missing source positions in bytecode?
+    }
   }
-
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
     // there may be copies of mixin functions. Collect all compiled
     // functions whose source code range matches exactly the best fit
     // function we found.
-    GrowableObjectArray& functions =
+    GrowableObjectArray& bytecode_functions =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    GrowableObjectArray& code_functions =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     FindCompiledFunctions(script, func.token_pos(), func.end_token_pos(),
-                          &functions);
+                          &bytecode_functions, &code_functions);
 
-    if (functions.Length() > 0) {
+    if (bytecode_functions.Length() > 0 || code_functions.Length() > 0) {
       // One or more function object containing this breakpoint location
       // have already been compiled. We can resolve the breakpoint now.
-      DeoptimizeWorld();
-      func ^= functions.At(0);
-      TokenPosition breakpoint_pos = ResolveBreakpointPos(
-          func, token_pos, last_token_pos, requested_column);
-      if (breakpoint_pos.IsReal()) {
-        BreakpointLocation* bpt =
-            GetBreakpointLocation(script, breakpoint_pos, requested_column);
-        if (bpt != NULL) {
-          // A source breakpoint for this location already exists.
-          return bpt;
-        }
-        bpt = new BreakpointLocation(script, token_pos, last_token_pos,
-                                     requested_line, requested_column);
-        bpt->SetResolved(func, breakpoint_pos);
-        RegisterBreakpointLocation(bpt);
-
-        // Create code breakpoints for all compiled functions we found.
-        const intptr_t num_functions = functions.Length();
-        for (intptr_t i = 0; i < num_functions; i++) {
-          func ^= functions.At(i);
-          ASSERT(func.HasCode());
-          MakeCodeBreakpointAt(func, bpt);
-        }
-        if (FLAG_verbose_debug) {
-          intptr_t line_number;
-          intptr_t column_number;
-          script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
-          OS::PrintErr(
-              "Resolved BP for "
-              "function '%s' at line %" Pd " col %" Pd "\n",
-              func.ToFullyQualifiedCString(), line_number, column_number);
-        }
-        return bpt;
+      // If requested_column is larger than zero, [token_pos, last_token_pos]
+      // governs one single line of code.
+      TokenPosition exact_token_pos = TokenPosition(-1);
+      if (token_pos != last_token_pos && requested_column >= 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        exact_token_pos =
+            FindExactTokenPosition(script, token_pos, requested_column);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      }
+      // Since source positions may differ in code and bytecode, process
+      // breakpoints in bytecode and code separately.
+      BreakpointLocation* loc = NULL;
+      if (bytecode_functions.Length() > 0) {
+        loc = SetCodeBreakpoints(true, loc, script, token_pos, last_token_pos,
+                                 requested_line, requested_column,
+                                 exact_token_pos, bytecode_functions);
+      }
+      if (code_functions.Length() > 0) {
+        DeoptimizeWorld();
+        loc = SetCodeBreakpoints(false, loc, script, token_pos, last_token_pos,
+                                 requested_line, requested_column,
+                                 exact_token_pos, code_functions);
+      }
+      if (loc != NULL) {
+        return loc;
       }
     }
   }
@@ -2866,14 +3376,14 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
           func.ToFullyQualifiedCString(), line_number, column_number);
     }
   }
-  BreakpointLocation* bpt =
-      GetBreakpointLocation(script, token_pos, requested_column);
-  if (bpt == NULL) {
-    bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+  BreakpointLocation* loc =
+      GetBreakpointLocation(script, token_pos, -1, requested_column);
+  if (loc == NULL) {
+    loc = new BreakpointLocation(script, token_pos, last_token_pos,
                                  requested_line, requested_column);
-    RegisterBreakpointLocation(bpt);
+    RegisterBreakpointLocation(loc);
   }
-  return bpt;
+  return loc;
 }
 
 // Synchronize the enabled/disabled state of all code breakpoints
@@ -3042,32 +3552,32 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     return NULL;
   }
 
-  BreakpointLocation* bpt = NULL;
+  BreakpointLocation* loc = NULL;
   ASSERT(first_token_idx <= last_token_idx);
-  while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
-    bpt = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
+  while ((loc == NULL) && (first_token_idx <= last_token_idx)) {
+    loc = SetBreakpoint(script, first_token_idx, last_token_idx, line_number,
                         column_number, Function::Handle());
     first_token_idx.Next();
   }
-  if ((bpt == NULL) && FLAG_verbose_debug) {
+  if ((loc == NULL) && FLAG_verbose_debug) {
     OS::PrintErr("No executable code at line %" Pd " in '%s'\n", line_number,
                  script_url.ToCString());
   }
-  return bpt;
+  return loc;
 }
 
 // static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  BreakpointLocation* bpt = breakpoint_locations_;
-  while (bpt != NULL) {
-    bpt->VisitObjectPointers(visitor);
-    bpt = bpt->next();
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    loc->VisitObjectPointers(visitor);
+    loc = loc->next();
   }
-  bpt = latent_locations_;
-  while (bpt != NULL) {
-    bpt->VisitObjectPointers(visitor);
-    bpt = bpt->next();
+  loc = latent_locations_;
+  while (loc != NULL) {
+    loc->VisitObjectPointers(visitor);
+    loc = loc->next();
   }
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
@@ -3123,7 +3633,7 @@ void Debugger::Pause(ServiceEvent* event) {
 void Debugger::EnterSingleStepMode() {
   ResetSteppingFramePointers();
   DeoptimizeWorld();
-  isolate_->set_single_step(true);
+  NotifySingleStepping(true);
 }
 
 void Debugger::ResetSteppingFramePointers() {
@@ -3185,7 +3695,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     // as well.  We need to deoptimize the world in case we are about
     // to call an optimized function.
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetAsyncSteppingFramePointer(stack_trace);
     if (FLAG_verbose_debug) {
@@ -3193,7 +3703,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     SetSyncSteppingFramePointer(stack_trace);
     SetAsyncSteppingFramePointer(stack_trace);
@@ -3217,7 +3727,7 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     }
     // Fall through to synchronous stepping.
     DeoptimizeWorld();
-    isolate_->set_single_step(true);
+    NotifySingleStepping(true);
     // Find topmost caller that is debuggable.
     for (intptr_t i = 1; i < stack_trace->Length(); i++) {
       ActivationFrame* frame = stack_trace->FrameAt(i);
@@ -3498,10 +4008,16 @@ bool Debugger::IsDebuggable(const Function& func) {
   return lib.IsDebuggable();
 }
 
+bool Debugger::IsDebugging(Thread* thread, const Function& func) {
+  Debugger* debugger = thread->isolate()->debugger();
+  return debugger->IsStepping() ||
+         debugger->HasBreakpoint(func, thread->zone());
+}
+
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   resume_action_ = kContinue;
   ResetSteppingFramePointers();
-  isolate_->set_single_step(false);
+  NotifySingleStepping(false);
   ASSERT(!IsPaused());
   if ((bpt != NULL) && bpt->IsSingleShot()) {
     RemoveBreakpoint(bpt->id());
@@ -3793,7 +4309,23 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   return best_fit.raw();
 }
 
-void Debugger::NotifyCompilation(const Function& func) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+// On single line of code with given column number,
+// Calculate exact tokenPosition
+TokenPosition Debugger::FindExactTokenPosition(const Script& script,
+                                               TokenPosition start_of_line,
+                                               intptr_t column_number) {
+  intptr_t line = -1;
+  intptr_t col = -1;
+  Zone* zone = Thread::Current()->zone();
+  kernel::KernelLineStartsReader line_starts_reader(
+      TypedData::Handle(zone, script.line_starts()), zone);
+  line_starts_reader.LocationForPosition(start_of_line.value(), &line, &col);
+  return TokenPosition(start_of_line.value() + (column_number - col));
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
   if (breakpoint_locations_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
     return;
@@ -3814,7 +4346,20 @@ void Debugger::NotifyCompilation(const Function& func) {
     if (FunctionOverlaps(func, script, loc->token_pos(),
                          loc->end_token_pos())) {
       Function& inner_function = Function::Handle(zone);
-      inner_function = FindInnermostClosure(func, loc->token_pos());
+      TokenPosition token_pos = loc->token_pos();
+      TokenPosition end_token_pos = loc->end_token_pos();
+      if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        // Narrow down the token position range to a single value
+        // if requested column number is provided so that inner
+        // Closure won't be missed.
+        token_pos = FindExactTokenPosition(script, token_pos,
+                                           loc->requested_column_number());
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      }
+      // TODO(regis): Bytecode closures are not currently added to
+      // object_store()->closure_functions(). Should they? Revisit.
+      inner_function = FindInnermostClosure(func, token_pos);
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
         // be compiled already.
@@ -3833,11 +4378,11 @@ void Debugger::NotifyCompilation(const Function& func) {
       // There is no local function within func that contains the
       // breakpoint token position. Resolve the breakpoint if necessary
       // and set the code breakpoints.
-      if (!loc->IsResolved()) {
+      if (!loc->IsResolved(bytecode_loaded)) {
         // Resolve source breakpoint in the newly compiled function.
-        TokenPosition bp_pos =
-            ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos(),
-                                 loc->requested_column_number());
+        TokenPosition bp_pos = ResolveBreakpointPos(
+            bytecode_loaded, func, loc->token_pos(), loc->end_token_pos(),
+            loc->requested_column_number(), token_pos);
         if (!bp_pos.IsDebugPause()) {
           if (FLAG_verbose_debug) {
             OS::PrintErr("Failed resolving breakpoint for function '%s'\n",
@@ -3847,34 +4392,28 @@ void Debugger::NotifyCompilation(const Function& func) {
         }
         TokenPosition requested_pos = loc->token_pos();
         TokenPosition requested_end_pos = loc->end_token_pos();
-        loc->SetResolved(func, bp_pos);
+        loc->SetResolved(bytecode_loaded, func, bp_pos);
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
           if (FLAG_verbose_debug) {
             OS::PrintErr(
                 "Resolved BP %" Pd
                 " to pos %s, "
-                "line %" Pd " col %" Pd
-                ", "
                 "function '%s' (requested range %s-%s, "
                 "requested col %" Pd ")\n",
-                bpt->id(), loc->token_pos().ToCString(), loc->LineNumber(),
-                loc->ColumnNumber(), func.ToFullyQualifiedCString(),
-                requested_pos.ToCString(), requested_end_pos.ToCString(),
-                loc->requested_column_number());
+                bpt->id(), loc->token_pos().ToCString(),
+                func.ToFullyQualifiedCString(), requested_pos.ToCString(),
+                requested_end_pos.ToCString(), loc->requested_column_number());
           }
           SendBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
           bpt = bpt->next();
         }
       }
-      ASSERT(loc->IsResolved());
+      ASSERT(loc->IsResolved(bytecode_loaded));
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::PrintErr("Setting breakpoint %" Pd " at line %" Pd " col %" Pd
-                       ""
-                       " for %s '%s'\n",
-                       bpt->id(), loc->LineNumber(), loc->ColumnNumber(),
+          OS::PrintErr("Setting breakpoint %" Pd " for %s '%s'\n", bpt->id(),
                        func.IsClosureFunction() ? "closure" : "function",
                        String::Handle(func.name()).ToCString());
           bpt = bpt->next();
@@ -3944,7 +4483,7 @@ void Debugger::NotifyDoneLoading() {
           // If there is one, assert in debug build but silently drop
           // the latent breakpoint in release build.
           BreakpointLocation* existing_loc =
-              GetBreakpointLocation(script, first_token_pos, column_number);
+              GetBreakpointLocation(script, first_token_pos, -1, column_number);
           ASSERT(existing_loc == NULL);
           if (existing_loc == NULL) {
             // Create and register a new source breakpoint for the
@@ -4004,25 +4543,25 @@ void Debugger::NotifyDoneLoading() {
 // TODO(hausner): Could potentially make this faster by checking
 // whether the call target at pc is a debugger stub.
 bool Debugger::HasActiveBreakpoint(uword pc) {
-  CodeBreakpoint* bpt = GetCodeBreakpoint(pc);
-  return (bpt != NULL) && (bpt->IsEnabled());
+  CodeBreakpoint* cbpt = GetCodeBreakpoint(pc);
+  return (cbpt != NULL) && (cbpt->IsEnabled());
 }
 
 CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
-  CodeBreakpoint* bpt = code_breakpoints_;
-  while (bpt != NULL) {
-    if (bpt->pc() == breakpoint_address) {
-      return bpt;
+  CodeBreakpoint* cbpt = code_breakpoints_;
+  while (cbpt != NULL) {
+    if (cbpt->pc() == breakpoint_address) {
+      return cbpt;
     }
-    bpt = bpt->next();
+    cbpt = cbpt->next();
   }
   return NULL;
 }
 
 RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
-  CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
-  if (bpt != NULL) {
-    return bpt->OrigStubAddress();
+  CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
+  if (cbpt != NULL) {
+    return cbpt->OrigStubAddress();
   }
   UNREACHABLE();
   return Code::null();
@@ -4147,16 +4686,28 @@ void Debugger::RemoveUnlinkedCodeBreakpoints() {
   needs_breakpoint_cleanup_ = false;
 }
 
-BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
-                                                    TokenPosition token_pos,
-                                                    intptr_t requested_column) {
-  BreakpointLocation* bpt = breakpoint_locations_;
-  while (bpt != NULL) {
-    if ((bpt->script_ == script.raw()) && (bpt->token_pos_ == token_pos) &&
-        (bpt->requested_column_number_ == requested_column)) {
-      return bpt;
+BreakpointLocation* Debugger::GetBreakpointLocation(
+    const Script& script,
+    TokenPosition token_pos,
+    intptr_t requested_line,
+    intptr_t requested_column,
+    TokenPosition bytecode_token_pos,
+    TokenPosition code_token_pos) {
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    if (loc->script_ == script.raw() &&
+        (!token_pos.IsReal() || (loc->token_pos_ == token_pos)) &&
+        ((requested_line == -1) ||
+         (loc->requested_line_number_ == requested_line)) &&
+        ((requested_column == -1) ||
+         (loc->requested_column_number_ == requested_column)) &&
+        (!bytecode_token_pos.IsReal() ||
+         (loc->bytecode_token_pos_ == bytecode_token_pos)) &&
+        (!code_token_pos.IsReal() ||
+         (loc->code_token_pos_ == code_token_pos))) {
+      return loc;
     }
-    bpt = bpt->next();
+    loc = loc->next();
   }
   return NULL;
 }
@@ -4202,39 +4753,39 @@ void Debugger::Continue() {
   SetResumeAction(kContinue);
   stepping_fp_ = 0;
   async_stepping_fp_ = 0;
-  isolate_->set_single_step(false);
+  NotifySingleStepping(false);
 }
 
 BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
                                                   intptr_t line,
                                                   intptr_t column) {
-  BreakpointLocation* bpt = latent_locations_;
+  BreakpointLocation* loc = latent_locations_;
   String& bpt_url = String::Handle();
-  while (bpt != NULL) {
-    bpt_url = bpt->url();
-    if (bpt_url.Equals(url) && (bpt->requested_line_number() == line) &&
-        (bpt->requested_column_number() == column)) {
-      return bpt;
+  while (loc != NULL) {
+    bpt_url = loc->url();
+    if (bpt_url.Equals(url) && (loc->requested_line_number() == line) &&
+        (loc->requested_column_number() == column)) {
+      return loc;
     }
-    bpt = bpt->next();
+    loc = loc->next();
   }
   // No breakpoint for this location requested. Allocate new one.
-  bpt = new BreakpointLocation(url, line, column);
-  bpt->set_next(latent_locations_);
-  latent_locations_ = bpt;
-  return bpt;
+  loc = new BreakpointLocation(url, line, column);
+  loc->set_next(latent_locations_);
+  latent_locations_ = loc;
+  return loc;
 }
 
-void Debugger::RegisterBreakpointLocation(BreakpointLocation* bpt) {
-  ASSERT(bpt->next() == NULL);
-  bpt->set_next(breakpoint_locations_);
-  breakpoint_locations_ = bpt;
+void Debugger::RegisterBreakpointLocation(BreakpointLocation* loc) {
+  ASSERT(loc->next() == NULL);
+  loc->set_next(breakpoint_locations_);
+  breakpoint_locations_ = loc;
 }
 
-void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
-  ASSERT(bpt->next() == NULL);
-  bpt->set_next(code_breakpoints_);
-  code_breakpoints_ = bpt;
+void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* cbpt) {
+  ASSERT(cbpt->next() == NULL);
+  cbpt->set_next(code_breakpoints_);
+  code_breakpoints_ = cbpt;
 }
 
 #endif  // !PRODUCT

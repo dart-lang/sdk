@@ -171,7 +171,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   final Uri uri;
 
-  final TypeInferrer _typeInferrer;
+  final TypeInferrer typeInferrer;
 
   @override
   final TypePromoter typePromoter;
@@ -262,7 +262,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       this.classBuilder,
       this.isInstanceMember,
       this.uri,
-      this._typeInferrer)
+      this.typeInferrer)
       : enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
@@ -271,7 +271,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             (library.uri.path == "_builtin" || library.uri.path == "ui"),
         needsImplicitSuperInitializer =
             coreTypes?.objectClass != classBuilder?.cls,
-        typePromoter = _typeInferrer?.typePromoter,
+        typePromoter = typeInferrer?.typePromoter,
         legacyMode = library.legacyMode,
         super(enclosingScope);
 
@@ -306,7 +306,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return isInstanceMember || member is KernelConstructorBuilder;
   }
 
-  TypeEnvironment get typeEnvironment => _typeInferrer?.typeSchemaEnvironment;
+  TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
 
   DartType get implicitTypeArgument =>
       legacyMode ? const DynamicType() : const ImplicitTypeArgument();
@@ -463,7 +463,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   void inferAnnotations(List<Expression> annotations) {
     if (annotations != null) {
-      _typeInferrer?.inferMetadata(this, annotations);
+      typeInferrer?.inferMetadata(this, annotations);
       library.loader.transformListPostInference(
           annotations, transformSetLiterals, transformCollections);
     }
@@ -509,7 +509,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
 
       ConstantContext savedConstantContext = pop();
-      if (expression is! StaticAccessGenerator) {
+      if (expression is! StaticAccessGenerator &&
+          expression is! VariableUseGenerator) {
         push(wrapInProblem(
             toValue(expression), fasta.messageExpressionNotMetadata, noLength));
       } else {
@@ -531,16 +532,26 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endTopLevelFields(Token staticToken, Token covariantToken,
-      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
+  void endTopLevelFields(
+      Token staticToken,
+      Token covariantToken,
+      Token lateToken,
+      Token varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
     debugEvent("TopLevelFields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     push(count);
   }
 
   @override
-  void endFields(Token staticToken, Token covariantToken, Token varFinalOrConst,
-      int count, Token beginToken, Token endToken) {
+  void endFields(Token staticToken, Token covariantToken, Token lateToken,
+      Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     push(count);
   }
 
@@ -571,9 +582,13 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           // Duplicate definition. The field might not be the correct one,
           // so we skip inference of the initializer.
           // Error reporting and recovery is handled elsewhere.
+        } else if (field.target.initializer != null) {
+          // The initializer was already compiled (e.g., if it appear in the
+          // outline, like constant field initializers) so we do not need to
+          // perform type inference or transformations.
         } else {
           field.initializer = initializer;
-          _typeInferrer?.inferFieldInitializer(
+          typeInferrer?.inferFieldInitializer(
               this, field.builtType, initializer);
           library.loader.transformPostInference(
               field.target, transformSetLiterals, transformCollections);
@@ -590,23 +605,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // `invalid-type`.
       buildDartType(pop()); // Type.
     }
-    List<Expression> annotations = pop();
-    if (annotations != null) {
-      inferAnnotations(annotations);
-      Field field = fields.first.target;
-      // The first (and often only field) will not get a clone.
-      for (int i = 0; i < annotations.length; i++) {
-        field.addAnnotation(annotations[i]);
-      }
-      for (int i = 1; i < fields.length; i++) {
-        // We have to clone the annotations on the remaining fields.
-        field = fields[i].target;
-        cloner ??= new CloneVisitor();
-        for (Expression annotation in annotations) {
-          field.addAnnotation(cloner.clone(annotation));
-        }
-      }
-    }
+    pop(); // Annotations.
 
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
@@ -716,7 +715,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
-    _typeInferrer?.inferInitializer(this, initializer);
+    typeInferrer?.inferInitializer(this, initializer);
     if (member is KernelConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
@@ -738,8 +737,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void finishFunction(List<Expression> annotations, FormalParameters formals,
-      AsyncMarker asyncModifier, Statement body) {
+  void finishFunction(
+      FormalParameters formals, AsyncMarker asyncModifier, Statement body) {
     debugEvent("finishFunction");
     typePromoter?.finished();
 
@@ -757,7 +756,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 null);
           }
           realParameter.initializer = initializer..parent = realParameter;
-          _typeInferrer?.inferParameterInitializer(
+          typeInferrer?.inferParameterInitializer(
               this, initializer, realParameter.type);
           library.loader.transformPostInference(
               realParameter, transformSetLiterals, transformCollections);
@@ -765,7 +764,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    _typeInferrer?.inferFunctionBody(
+    typeInferrer?.inferFunctionBody(
         this, _computeReturnTypeContext(member), asyncModifier, body);
     if (body != null) {
       library.loader.transformPostInference(
@@ -890,11 +889,6 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = body.fileOffset;
       }
     }
-    Member target = builder.target;
-    inferAnnotations(annotations);
-    for (Expression annotation in annotations ?? const []) {
-      target.addAnnotation(annotation);
-    }
     if (builder is KernelConstructorBuilder) {
       finishConstructor(builder, asyncModifier);
     } else if (builder is KernelProcedureBuilder) {
@@ -917,7 +911,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       // set its inferredType field.  If type inference is disabled, reach to
       // the outtermost parent to check if the node is a dead code.
       if (invocation.parent == null) continue;
-      if (_typeInferrer != null) {
+      if (typeInferrer != null) {
         if (invocation is FactoryConstructorInvocationJudgment &&
             invocation.inferredType == null) {
           continue;
@@ -1128,7 +1122,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
     ReturnJudgment fakeReturn = new ReturnJudgment(null, expression);
 
-    _typeInferrer?.inferFunctionBody(
+    typeInferrer?.inferFunctionBody(
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
@@ -1140,6 +1134,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Expression expression = popForValue();
     checkEmpty(token.charOffset);
     return expression;
+  }
+
+  Expression parseAnnotation(Token token) {
+    Parser parser = new Parser(this);
+    token = parser.parseMetadata(parser.syntheticPreviousToken(token));
+    Expression annotation = pop();
+    checkEmpty(token.charOffset);
+    return annotation;
   }
 
   void finishConstructor(
@@ -1489,7 +1491,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int offset = candidate.fileOffset;
       Message contextMessage;
       int length = noLength;
-      if (offset == -1 && candidate is Constructor) {
+      if (candidate is Constructor && candidate.isSynthetic) {
         offset = candidate.enclosingClass.fileOffset;
         contextMessage = fasta.templateCandidateFoundIsDefaultConstructor
             .withArguments(candidate.enclosingClass.name);
@@ -1831,8 +1833,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         setter = declaration;
       } else if (declaration.isGetter) {
         setter = scope.lookupSetter(name, charOffset, uri);
-      } else if (declaration.isField && !declaration.isFinal) {
-        setter = declaration;
+      } else if (declaration.isField) {
+        if (declaration.isFinal || declaration.isConst) {
+          setter = scope.lookupSetter(name, charOffset, uri);
+        } else {
+          setter = declaration;
+        }
       }
       StaticAccessGenerator generator = new StaticAccessGenerator.fromBuilder(
           this, declaration, token, setter);
@@ -2130,8 +2136,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginVariablesDeclaration(Token token, Token varFinalOrConst) {
+  void beginVariablesDeclaration(
+      Token token, Token lateToken, Token varFinalOrConst) {
     debugEvent("beginVariablesDeclaration");
+    // TODO(danrubel): handle NNBD 'late' modifier
+    reportNonNullableModifierError(lateToken);
     UnresolvedType<KernelTypeBuilder> type = pop();
     int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
@@ -2317,8 +2326,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -2691,14 +2699,15 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         String name = getNodeName(prefix);
         String displayName = debugName(name, suffix.lexeme);
         int offset = offsetForToken(beginToken);
+        Message message = fasta.templateNotAType.withArguments(displayName);
+        library.addProblem(
+            message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType<KernelTypeBuilder>(
             new KernelNamedTypeBuilder(name, null)
               ..bind(new KernelInvalidTypeBuilder(
                   name,
-                  fasta.templateNotAType
-                      .withArguments(displayName)
-                      .withLocation(
-                          uri, offset, lengthOfSpan(beginToken, suffix)))),
+                  message.withLocation(
+                      uri, offset, lengthOfSpan(beginToken, suffix)))),
             offset,
             uri));
         return;
@@ -2717,6 +2726,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else if (name is ProblemBuilder) {
       // TODO(ahe): Arguments could be passed here.
+      library.addProblem(
+          name.message, name.charOffset, name.name.length, name.fileUri);
       result = new KernelNamedTypeBuilder(name.name, null)
         ..bind(new KernelInvalidTypeBuilder(
             name.name,
@@ -2862,8 +2873,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void beginFormalParameter(Token token, MemberKind kind, Token covariantToken,
-      Token varFinalOrConst) {
+  void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
+      Token covariantToken, Token varFinalOrConst) {
+    // TODO(danrubel): handle required token
+    reportNonNullableModifierError(requiredToken);
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
@@ -2974,7 +2987,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFunctionTypedFormalParameter(Token nameToken) {
+  void endFunctionTypedFormalParameter(Token nameToken, Token question) {
     debugEvent("FunctionTypedFormalParameter");
     if (inCatchClause || functionNestingLevel != 0) {
       exitLocalScope();
@@ -2982,6 +2995,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters formals = pop();
     UnresolvedType<KernelTypeBuilder> returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
+    reportErrorIfNullableType(question);
     UnresolvedType<KernelTypeBuilder> type =
         formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();
@@ -4164,8 +4178,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
 
-    if (constantContext != ConstantContext.none &&
-        !library.loader.target.enableConstantUpdate2018) {
+    if (constantContext != ConstantContext.none) {
       handleRecoverableError(
           fasta.templateCantUseControlFlowOrSpreadAsConstant
               .withArguments(forToken),
@@ -5106,19 +5119,12 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (builder is KernelNamedTypeBuilder &&
         builder.declaration.isTypeVariable) {
       TypeParameter typeParameter = builder.declaration.target;
-      bool isConstant = constantContext != ConstantContext.none;
       LocatedMessage message;
-      bool suppressMessage = false;
       if (!isInstanceContext && typeParameter.parent is Class) {
         message = fasta.messageTypeVariableInStaticContext.withLocation(
             unresolved.fileUri,
             unresolved.charOffset,
             typeParameter.name.length);
-        if (!nonInstanceAccessIsError && !isConstant && legacyMode) {
-          // This is a warning in legacy mode.
-          addProblem(message.messageObject, message.charOffset, message.length);
-          suppressMessage = true;
-        }
       } else if (constantContext == ConstantContext.inferred) {
         message = fasta.messageTypeVariableInConstantContext.withLocation(
             unresolved.fileUri,
@@ -5127,10 +5133,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         return unresolved;
       }
+      addProblem(message.messageObject, message.charOffset, message.length);
       return new UnresolvedType<KernelTypeBuilder>(
           new KernelNamedTypeBuilder(typeParameter.name, null)
-            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message,
-                suppressMessage: suppressMessage)),
+            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);
     }

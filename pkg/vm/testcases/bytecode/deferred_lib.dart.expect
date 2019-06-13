@@ -20,9 +20,9 @@ Bytecode {
   Entry                1
   CheckStack           0
   PushNull
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   PopLocal             r0
-  DirectCall           0, CP#2
+  DirectCall           CP#2, 0
   ReturnTOS
 }
 ConstantPool {
@@ -42,7 +42,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   PushNull
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   ReturnTOS
 }
 ConstantPool {

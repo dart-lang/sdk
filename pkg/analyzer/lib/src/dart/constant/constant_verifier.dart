@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -31,43 +32,49 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The type provider used to access the known types.
   final TypeProvider _typeProvider;
 
-  /// The type system in use.
-  final TypeSystem _typeSystem;
-
   /// The set of variables declared using '-D' on the command line.
   final DeclaredVariables declaredVariables;
 
   /// The type representing the type 'int'.
-  InterfaceType _intType;
+  final InterfaceType _intType;
 
   /// The current library that is being analyzed.
   final LibraryElement _currentLibrary;
 
   final bool _constantUpdate2018Enabled;
 
-  ConstantEvaluationEngine _evaluationEngine;
+  final ConstantEvaluationEngine _evaluationEngine;
 
   /// Initialize a newly created constant verifier.
-  ///
-  /// @param errorReporter the error reporter by which errors will be reported
-  ConstantVerifier(this._errorReporter, LibraryElement currentLibrary,
-      this._typeProvider, this.declaredVariables,
-      {bool forAnalysisDriver: false})
-      : _currentLibrary = currentLibrary,
-        _typeSystem = currentLibrary.context.typeSystem,
-        _constantUpdate2018Enabled =
-            (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
-                .experimentStatus
-                .constant_update_2018 {
-    this._intType = _typeProvider.intType;
-    this._evaluationEngine = new ConstantEvaluationEngine(
-        _typeProvider, declaredVariables,
-        forAnalysisDriver: forAnalysisDriver,
-        typeSystem: _typeSystem,
-        experimentStatus:
-            (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
-                .experimentStatus);
-  }
+  ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
+      TypeProvider typeProvider, DeclaredVariables declaredVariables,
+      // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
+      {bool forAnalysisDriver,
+      // TODO(paulberry): make [featureSet] a required parameter.
+      FeatureSet featureSet})
+      : this._(
+            errorReporter,
+            currentLibrary,
+            typeProvider,
+            declaredVariables,
+            currentLibrary.context.typeSystem,
+            featureSet ??
+                (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
+                    .contextFeatures);
+
+  ConstantVerifier._(
+      this._errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this.declaredVariables,
+      TypeSystem typeSystem,
+      FeatureSet featureSet)
+      : _constantUpdate2018Enabled =
+            featureSet.isEnabled(Feature.constant_update_2018),
+        _intType = _typeProvider.intType,
+        _evaluationEngine = new ConstantEvaluationEngine(
+            _typeProvider, declaredVariables,
+            typeSystem: typeSystem, experimentStatus: featureSet);
 
   @override
   void visitAnnotation(Annotation node) {

@@ -69,9 +69,9 @@ class Reference {
 
   bool get isPrefix => parent != null && parent.name == '@prefix';
 
-  bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
+  bool get isSetter => parent != null && parent.name == '@setter';
 
-  int get numOfChildren => _children != null ? _children.length : 0;
+  bool get isTypeAlias => parent != null && parent.name == '@typeAlias';
 
   /// Return the child with the given name, or `null` if does not exist.
   Reference operator [](String name) {
@@ -82,6 +82,25 @@ class Reference {
   Reference getChild(String name) {
     var map = _children ??= <String, Reference>{};
     return map[name] ??= new Reference._(this, name);
+  }
+
+  /// If the reference has element, and it is for the [node], return `true`.
+  ///
+  /// The element might be not `null`, but the node is different in case of
+  /// duplicate declarations.
+  bool hasElementFor(AstNode node) {
+    if (element != null && node2 == node) {
+      return true;
+    } else {
+      if (node2 == null) {
+        node2 = node;
+      }
+      return false;
+    }
+  }
+
+  void removeChild(String name) {
+    _children.remove(name);
   }
 
   String toString() => parent == null ? 'root' : '$parent::$name';

@@ -63,6 +63,7 @@ class Class4a {
 class Class4b implements Class4a {
   /*element: Class4b.field4:emitted,get=simple*/
   @pragma('dart2js:noElision')
+  @override
   int field4;
 }
 

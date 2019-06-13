@@ -4,54 +4,6 @@
 
 library fasta.metadata_builder;
 
-import 'builder.dart' show Declaration, TypeBuilder;
-
-import 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
-
-abstract class MetadataBuilder<T extends TypeBuilder> {
-  final int charOffset;
-
-  MetadataBuilder(Declaration parent, this.charOffset);
-
-  factory MetadataBuilder.fromConstructor(
-      ConstructorReferenceBuilder constructorReference,
-      List<Object> arguments,
-      Declaration parent,
-      int charOffset) {
-    return new ConstructorMetadataBuilder<T>(
-        constructorReference, arguments, parent, charOffset);
-  }
-
-  factory MetadataBuilder.fromExpression(
-      Object expression, String postfix, Declaration parent, int charOffset) {
-    return new ExpressionMetadataBuilder<T>(
-        expression, postfix, parent, charOffset);
-  }
-}
-
-class ConstructorMetadataBuilder<T extends TypeBuilder>
-    extends MetadataBuilder<T> {
-  final ConstructorReferenceBuilder constructorReference;
-
-  final List<Object> arguments;
-
-  ConstructorMetadataBuilder(this.constructorReference, this.arguments,
-      Declaration parent, int charOffset)
-      : super(parent, charOffset);
-}
-
-/// Expression metadata (without arguments).
-///
-/// Matches this grammar rule:
-///
-///    '@' qualified (‘.’ identifier)?
-class ExpressionMetadataBuilder<T extends TypeBuilder>
-    extends MetadataBuilder<T> {
-  final Object qualified;
-
-  final String identifier;
-
-  ExpressionMetadataBuilder(
-      this.qualified, this.identifier, Declaration parent, int charOffset)
-      : super(parent, charOffset);
+abstract class MetadataBuilder {
+  int get charOffset;
 }

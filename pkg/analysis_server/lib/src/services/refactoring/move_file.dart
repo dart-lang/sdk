@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -25,8 +26,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     implements MoveFileRefactoring {
   final ResourceProvider resourceProvider;
   final pathos.Context pathContext;
-  final RefactoringWorkspace workspace;
-  final Source source;
+  final RefactoringWorkspace refactoringWorkspace;
+  final ResolvedUnitResult resolvedUnit;
   AnalysisDriver driver;
 
   String oldFile;
@@ -34,23 +35,18 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   final packagePrefixedStringPattern = new RegExp(r'''^r?['"]+package:''');
 
-  MoveFileRefactoringImpl(ResourceProvider resourceProvider, this.workspace,
-      this.source, this.oldFile)
-      : resourceProvider = resourceProvider,
-        pathContext = resourceProvider.pathContext {
-    if (source != null) {
-      oldFile = source.fullName;
-    }
-  }
+  MoveFileRefactoringImpl(this.resourceProvider, this.refactoringWorkspace,
+      this.resolvedUnit, this.oldFile)
+      : this.pathContext = resourceProvider.pathContext;
 
   @override
   String get refactoringName => 'Move File';
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
-    final drivers = workspace.driversContaining(oldFile);
+    final drivers = refactoringWorkspace.driversContaining(oldFile);
     if (drivers.length != 1) {
-      if (workspace.drivers
+      if (refactoringWorkspace.drivers
           .any((d) => pathContext.equals(d.contextRoot.root, oldFile))) {
         return new RefactoringStatus.fatal(
             'Renaming an analysis root is not supported ($oldFile)');
@@ -74,8 +70,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
   @override
   Future<SourceChange> createChange() async {
     var changeBuilder = new DartChangeBuilder(driver.currentSession);
-    final result = await driver.getUnitElement(oldFile);
-    final element = result?.element;
+    final element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
@@ -92,8 +87,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
       });
     } else {
       // Otherwise, we need to update any relative part-of references.
-      final result = await driver.currentSession.getResolvedUnit(oldFile);
-      Iterable<PartOfDirective> partOfs = result.unit.directives
+      Iterable<PartOfDirective> partOfs = resolvedUnit.unit.directives
           .whereType<PartOfDirective>()
           .where((po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
 
@@ -113,7 +107,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
     // Update incoming references to this file
     List<SearchMatch> matches =
-        await workspace.searchEngine.searchReferences(element);
+        await refactoringWorkspace.searchEngine.searchReferences(element);
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
       await changeBuilder.addFileEdit(reference.file, (builder) {

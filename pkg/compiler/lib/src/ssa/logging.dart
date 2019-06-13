@@ -214,30 +214,18 @@ class OptimizationTestLog {
     _registerSpecializer(original, null, null, 'Round');
   }
 
-  void registerTypeConversion(
-      HInstruction original, HTypeConversion converted) {
+  void registerPrimitiveCheck(HInstruction original, HPrimitiveCheck check) {
     Features features = new Features();
-    switch (converted.kind) {
-      case HTypeConversion.CHECKED_MODE_CHECK:
-        features['kind'] = 'checked';
-        break;
-      case HTypeConversion.ARGUMENT_TYPE_CHECK:
-        features['kind'] = 'argument';
-        break;
-      case HTypeConversion.CAST_TYPE_CHECK:
-        features['kind'] = 'cast';
-        break;
-      case HTypeConversion.BOOLEAN_CONVERSION_CHECK:
-        features['kind'] = 'boolean';
-        break;
-      case HTypeConversion.RECEIVER_TYPE_CHECK:
-        features['kind'] = 'receiver';
-        break;
+
+    if (check.isReceiverTypeCheck) {
+      features['kind'] = 'receiver';
+    } else if (check.isArgumentTypeCheck) {
+      features['kind'] = 'argument';
     }
-    if (converted.typeExpression != null) {
-      features['type'] = '${converted.typeExpression}';
+    if (check.typeExpression != null) {
+      features['type'] = '${check.typeExpression}';
     }
-    entries.add(new OptimizationLogEntry('TypeConversion', features));
+    entries.add(new OptimizationLogEntry('PrimitiveCheck', features));
   }
 
   String getText() {

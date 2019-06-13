@@ -5075,6 +5075,7 @@ class AnalyticsSendTimingResult implements ResponseResult {
  *
  * {
  *   "label": String
+ *   "declaringLibraryUri": String
  *   "element": Element
  *   "defaultArgumentListString": optional String
  *   "defaultArgumentListTextRanges": optional List<int>
@@ -5090,6 +5091,8 @@ class AnalyticsSendTimingResult implements ResponseResult {
  */
 class AvailableSuggestion implements HasToJson {
   String _label;
+
+  String _declaringLibraryUri;
 
   Element _element;
 
@@ -5120,6 +5123,21 @@ class AvailableSuggestion implements HasToJson {
   void set label(String value) {
     assert(value != null);
     this._label = value;
+  }
+
+  /**
+   * The URI of the library that declares the element being suggested, not the
+   * URI of the library associated with the enclosing AvailableSuggestionSet.
+   */
+  String get declaringLibraryUri => _declaringLibraryUri;
+
+  /**
+   * The URI of the library that declares the element being suggested, not the
+   * URI of the library associated with the enclosing AvailableSuggestionSet.
+   */
+  void set declaringLibraryUri(String value) {
+    assert(value != null);
+    this._declaringLibraryUri = value;
   }
 
   /**
@@ -5255,7 +5273,7 @@ class AvailableSuggestion implements HasToJson {
     this._requiredParameterCount = value;
   }
 
-  AvailableSuggestion(String label, Element element,
+  AvailableSuggestion(String label, String declaringLibraryUri, Element element,
       {String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       String docComplete,
@@ -5265,6 +5283,7 @@ class AvailableSuggestion implements HasToJson {
       List<String> relevanceTags,
       int requiredParameterCount}) {
     this.label = label;
+    this.declaringLibraryUri = declaringLibraryUri;
     this.element = element;
     this.defaultArgumentListString = defaultArgumentListString;
     this.defaultArgumentListTextRanges = defaultArgumentListTextRanges;
@@ -5287,6 +5306,13 @@ class AvailableSuggestion implements HasToJson {
         label = jsonDecoder.decodeString(jsonPath + ".label", json["label"]);
       } else {
         throw jsonDecoder.mismatch(jsonPath, "label");
+      }
+      String declaringLibraryUri;
+      if (json.containsKey("declaringLibraryUri")) {
+        declaringLibraryUri = jsonDecoder.decodeString(
+            jsonPath + ".declaringLibraryUri", json["declaringLibraryUri"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "declaringLibraryUri");
       }
       Element element;
       if (json.containsKey("element")) {
@@ -5339,7 +5365,7 @@ class AvailableSuggestion implements HasToJson {
             jsonPath + ".requiredParameterCount",
             json["requiredParameterCount"]);
       }
-      return new AvailableSuggestion(label, element,
+      return new AvailableSuggestion(label, declaringLibraryUri, element,
           defaultArgumentListString: defaultArgumentListString,
           defaultArgumentListTextRanges: defaultArgumentListTextRanges,
           docComplete: docComplete,
@@ -5357,6 +5383,7 @@ class AvailableSuggestion implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["label"] = label;
+    result["declaringLibraryUri"] = declaringLibraryUri;
     result["element"] = element.toJson();
     if (defaultArgumentListString != null) {
       result["defaultArgumentListString"] = defaultArgumentListString;
@@ -5392,6 +5419,7 @@ class AvailableSuggestion implements HasToJson {
   bool operator ==(other) {
     if (other is AvailableSuggestion) {
       return label == other.label &&
+          declaringLibraryUri == other.declaringLibraryUri &&
           element == other.element &&
           defaultArgumentListString == other.defaultArgumentListString &&
           listEqual(defaultArgumentListTextRanges,
@@ -5413,6 +5441,7 @@ class AvailableSuggestion implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, label.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declaringLibraryUri.hashCode);
     hash = JenkinsSmiHash.combine(hash, element.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListString.hashCode);
     hash = JenkinsSmiHash.combine(hash, defaultArgumentListTextRanges.hashCode);
@@ -5798,6 +5827,116 @@ class CompletionAvailableSuggestionsParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, changedLibraries.hashCode);
     hash = JenkinsSmiHash.combine(hash, removedLibraries.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * completion.existingImports params
+ *
+ * {
+ *   "file": FilePath
+ *   "imports": ExistingImports
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class CompletionExistingImportsParams implements HasToJson {
+  String _file;
+
+  ExistingImports _imports;
+
+  /**
+   * The defining file of the library.
+   */
+  String get file => _file;
+
+  /**
+   * The defining file of the library.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The existing imports in the library.
+   */
+  ExistingImports get imports => _imports;
+
+  /**
+   * The existing imports in the library.
+   */
+  void set imports(ExistingImports value) {
+    assert(value != null);
+    this._imports = value;
+  }
+
+  CompletionExistingImportsParams(String file, ExistingImports imports) {
+    this.file = file;
+    this.imports = imports;
+  }
+
+  factory CompletionExistingImportsParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "file");
+      }
+      ExistingImports imports;
+      if (json.containsKey("imports")) {
+        imports = new ExistingImports.fromJson(
+            jsonDecoder, jsonPath + ".imports", json["imports"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "imports");
+      }
+      return new CompletionExistingImportsParams(file, imports);
+    } else {
+      throw jsonDecoder.mismatch(
+          jsonPath, "completion.existingImports params", json);
+    }
+  }
+
+  factory CompletionExistingImportsParams.fromNotification(
+      Notification notification) {
+    return new CompletionExistingImportsParams.fromJson(
+        new ResponseDecoder(null), "params", notification.params);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["imports"] = imports.toJson();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("completion.existingImports", toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is CompletionExistingImportsParams) {
+      return file == other.file && imports == other.imports;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, imports.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -6593,6 +6732,7 @@ class CompletionRegisterLibraryPathsResult implements ResponseResult {
  *   "replacementLength": int
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
+ *   "libraryFile": optional FilePath
  *   "includedSuggestionSets": optional List<IncludedSuggestionSet>
  *   "includedElementKinds": optional List<ElementKind>
  *   "includedSuggestionRelevanceTags": optional List<IncludedSuggestionRelevanceTag>
@@ -6610,6 +6750,8 @@ class CompletionResultsParams implements HasToJson {
   List<CompletionSuggestion> _results;
 
   bool _isLast;
+
+  String _libraryFile;
 
   List<IncludedSuggestionSet> _includedSuggestionSets;
 
@@ -6703,6 +6845,26 @@ class CompletionResultsParams implements HasToJson {
   }
 
   /**
+   * The library file that contains the file where completion was requested.
+   * The client might use it for example together with the existingImports
+   * notification to filter out available suggestions. If there were changes to
+   * existing imports in the library, the corresponding existingImports
+   * notification will be sent before the completion notification.
+   */
+  String get libraryFile => _libraryFile;
+
+  /**
+   * The library file that contains the file where completion was requested.
+   * The client might use it for example together with the existingImports
+   * notification to filter out available suggestions. If there were changes to
+   * existing imports in the library, the corresponding existingImports
+   * notification will be sent before the completion notification.
+   */
+  void set libraryFile(String value) {
+    this._libraryFile = value;
+  }
+
+  /**
    * References to AvailableSuggestionSet objects previously sent to the
    * client. The client can include applicable names from the referenced
    * library in code completion suggestions.
@@ -6765,7 +6927,8 @@ class CompletionResultsParams implements HasToJson {
 
   CompletionResultsParams(String id, int replacementOffset,
       int replacementLength, List<CompletionSuggestion> results, bool isLast,
-      {List<IncludedSuggestionSet> includedSuggestionSets,
+      {String libraryFile,
+      List<IncludedSuggestionSet> includedSuggestionSets,
       List<ElementKind> includedElementKinds,
       List<IncludedSuggestionRelevanceTag> includedSuggestionRelevanceTags}) {
     this.id = id;
@@ -6773,6 +6936,7 @@ class CompletionResultsParams implements HasToJson {
     this.replacementLength = replacementLength;
     this.results = results;
     this.isLast = isLast;
+    this.libraryFile = libraryFile;
     this.includedSuggestionSets = includedSuggestionSets;
     this.includedElementKinds = includedElementKinds;
     this.includedSuggestionRelevanceTags = includedSuggestionRelevanceTags;
@@ -6820,6 +6984,11 @@ class CompletionResultsParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isLast");
       }
+      String libraryFile;
+      if (json.containsKey("libraryFile")) {
+        libraryFile = jsonDecoder.decodeString(
+            jsonPath + ".libraryFile", json["libraryFile"]);
+      }
       List<IncludedSuggestionSet> includedSuggestionSets;
       if (json.containsKey("includedSuggestionSets")) {
         includedSuggestionSets = jsonDecoder.decodeList(
@@ -6848,6 +7017,7 @@ class CompletionResultsParams implements HasToJson {
       }
       return new CompletionResultsParams(
           id, replacementOffset, replacementLength, results, isLast,
+          libraryFile: libraryFile,
           includedSuggestionSets: includedSuggestionSets,
           includedElementKinds: includedElementKinds,
           includedSuggestionRelevanceTags: includedSuggestionRelevanceTags);
@@ -6870,6 +7040,9 @@ class CompletionResultsParams implements HasToJson {
     result["results"] =
         results.map((CompletionSuggestion value) => value.toJson()).toList();
     result["isLast"] = isLast;
+    if (libraryFile != null) {
+      result["libraryFile"] = libraryFile;
+    }
     if (includedSuggestionSets != null) {
       result["includedSuggestionSets"] = includedSuggestionSets
           .map((IncludedSuggestionSet value) => value.toJson())
@@ -6905,6 +7078,7 @@ class CompletionResultsParams implements HasToJson {
           listEqual(results, other.results,
               (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
           isLast == other.isLast &&
+          libraryFile == other.libraryFile &&
           listEqual(includedSuggestionSets, other.includedSuggestionSets,
               (IncludedSuggestionSet a, IncludedSuggestionSet b) => a == b) &&
           listEqual(includedElementKinds, other.includedElementKinds,
@@ -6927,6 +7101,7 @@ class CompletionResultsParams implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, results.hashCode);
     hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
+    hash = JenkinsSmiHash.combine(hash, libraryFile.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedSuggestionSets.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedElementKinds.hashCode);
     hash =
@@ -6946,11 +7121,13 @@ class CompletionResultsParams implements HasToJson {
  */
 class CompletionService implements Enum {
   /**
-   * The client will receive notifications once subscribed with completion
-   * suggestion sets from the libraries of interest. The client should keep an
-   * up-to-date record of these in memory so that it will be able to union
-   * these candidates with other completion suggestions when applicable at
-   * completion time.
+   * The client will receive availableSuggestions notifications once subscribed
+   * with completion suggestion sets from the libraries of interest. The client
+   * should keep an up-to-date record of these in memory so that it will be
+   * able to union these candidates with other completion suggestions when
+   * applicable at completion time.
+   *
+   * The client will also receive existingImports notifications.
    */
   static const CompletionService AVAILABLE_SUGGESTION_SETS =
       const CompletionService._("AVAILABLE_SUGGESTION_SETS");
@@ -8045,6 +8222,7 @@ class EditDartfixParams implements RequestParams {
  *   "otherSuggestions": List<DartFixSuggestion>
  *   "hasErrors": bool
  *   "edits": List<SourceFileEdit>
+ *   "details": optional List<String>
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -8057,6 +8235,8 @@ class EditDartfixResult implements ResponseResult {
   bool _hasErrors;
 
   List<SourceFileEdit> _edits;
+
+  List<String> _details;
 
   /**
    * A list of recommended changes that can be automatically made by applying
@@ -8114,15 +8294,37 @@ class EditDartfixResult implements ResponseResult {
     this._edits = value;
   }
 
+  /**
+   * Messages that should be displayed to the user that describe details of the
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
+   */
+  List<String> get details => _details;
+
+  /**
+   * Messages that should be displayed to the user that describe details of the
+   * fix generation. For example, the messages might (a) point out details that
+   * users might want to explore before committing the changes or (b) describe
+   * exceptions that were thrown but that did not stop the fixes from being
+   * produced. The list will be omitted if it is empty.
+   */
+  void set details(List<String> value) {
+    this._details = value;
+  }
+
   EditDartfixResult(
       List<DartFixSuggestion> suggestions,
       List<DartFixSuggestion> otherSuggestions,
       bool hasErrors,
-      List<SourceFileEdit> edits) {
+      List<SourceFileEdit> edits,
+      {List<String> details}) {
     this.suggestions = suggestions;
     this.otherSuggestions = otherSuggestions;
     this.hasErrors = hasErrors;
     this.edits = edits;
+    this.details = details;
   }
 
   factory EditDartfixResult.fromJson(
@@ -8168,8 +8370,14 @@ class EditDartfixResult implements ResponseResult {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "edits");
       }
+      List<String> details;
+      if (json.containsKey("details")) {
+        details = jsonDecoder.decodeList(
+            jsonPath + ".details", json["details"], jsonDecoder.decodeString);
+      }
       return new EditDartfixResult(
-          suggestions, otherSuggestions, hasErrors, edits);
+          suggestions, otherSuggestions, hasErrors, edits,
+          details: details);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.dartfix result", json);
     }
@@ -8193,6 +8401,9 @@ class EditDartfixResult implements ResponseResult {
     result["hasErrors"] = hasErrors;
     result["edits"] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
+    if (details != null) {
+      result["details"] = details;
+    }
     return result;
   }
 
@@ -8213,7 +8424,8 @@ class EditDartfixResult implements ResponseResult {
               (DartFixSuggestion a, DartFixSuggestion b) => a == b) &&
           hasErrors == other.hasErrors &&
           listEqual(edits, other.edits,
-              (SourceFileEdit a, SourceFileEdit b) => a == b);
+              (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(details, other.details, (String a, String b) => a == b);
     }
     return false;
   }
@@ -8225,6 +8437,7 @@ class EditDartfixResult implements ResponseResult {
     hash = JenkinsSmiHash.combine(hash, otherSuggestions.hashCode);
     hash = JenkinsSmiHash.combine(hash, hasErrors.hashCode);
     hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, details.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -13011,6 +13224,214 @@ class ExecutionSetSubscriptionsResult implements ResponseResult {
 }
 
 /**
+ * ExistingImport
+ *
+ * {
+ *   "uri": int
+ *   "elements": List<int>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExistingImport implements HasToJson {
+  int _uri;
+
+  List<int> _elements;
+
+  /**
+   * The URI of the imported library. It is an index in the strings field, in
+   * the enclosing ExistingImports and its ImportedElementSet object.
+   */
+  int get uri => _uri;
+
+  /**
+   * The URI of the imported library. It is an index in the strings field, in
+   * the enclosing ExistingImports and its ImportedElementSet object.
+   */
+  void set uri(int value) {
+    assert(value != null);
+    this._uri = value;
+  }
+
+  /**
+   * The list of indexes of elements, in the enclosing ExistingImports object.
+   */
+  List<int> get elements => _elements;
+
+  /**
+   * The list of indexes of elements, in the enclosing ExistingImports object.
+   */
+  void set elements(List<int> value) {
+    assert(value != null);
+    this._elements = value;
+  }
+
+  ExistingImport(int uri, List<int> elements) {
+    this.uri = uri;
+    this.elements = elements;
+  }
+
+  factory ExistingImport.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int uri;
+      if (json.containsKey("uri")) {
+        uri = jsonDecoder.decodeInt(jsonPath + ".uri", json["uri"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "uri");
+      }
+      List<int> elements;
+      if (json.containsKey("elements")) {
+        elements = jsonDecoder.decodeList(
+            jsonPath + ".elements", json["elements"], jsonDecoder.decodeInt);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "elements");
+      }
+      return new ExistingImport(uri, elements);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ExistingImport", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["uri"] = uri;
+    result["elements"] = elements;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExistingImport) {
+      return uri == other.uri &&
+          listEqual(elements, other.elements, (int a, int b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ExistingImports
+ *
+ * {
+ *   "elements": ImportedElementSet
+ *   "imports": List<ExistingImport>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExistingImports implements HasToJson {
+  ImportedElementSet _elements;
+
+  List<ExistingImport> _imports;
+
+  /**
+   * The set of all unique imported elements for all imports.
+   */
+  ImportedElementSet get elements => _elements;
+
+  /**
+   * The set of all unique imported elements for all imports.
+   */
+  void set elements(ImportedElementSet value) {
+    assert(value != null);
+    this._elements = value;
+  }
+
+  /**
+   * The list of imports in the library.
+   */
+  List<ExistingImport> get imports => _imports;
+
+  /**
+   * The list of imports in the library.
+   */
+  void set imports(List<ExistingImport> value) {
+    assert(value != null);
+    this._imports = value;
+  }
+
+  ExistingImports(ImportedElementSet elements, List<ExistingImport> imports) {
+    this.elements = elements;
+    this.imports = imports;
+  }
+
+  factory ExistingImports.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      ImportedElementSet elements;
+      if (json.containsKey("elements")) {
+        elements = new ImportedElementSet.fromJson(
+            jsonDecoder, jsonPath + ".elements", json["elements"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "elements");
+      }
+      List<ExistingImport> imports;
+      if (json.containsKey("imports")) {
+        imports = jsonDecoder.decodeList(
+            jsonPath + ".imports",
+            json["imports"],
+            (String jsonPath, Object json) =>
+                new ExistingImport.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "imports");
+      }
+      return new ExistingImports(elements, imports);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ExistingImports", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["elements"] = elements.toJson();
+    result["imports"] =
+        imports.map((ExistingImport value) => value.toJson()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ExistingImports) {
+      return elements == other.elements &&
+          listEqual(imports, other.imports,
+              (ExistingImport a, ExistingImport b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, elements.hashCode);
+    hash = JenkinsSmiHash.combine(hash, imports.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * extractLocalVariable feedback
  *
  * {
@@ -15586,16 +16007,16 @@ class HoverInformation implements HasToJson {
   }
 
   /**
-   * The name of the library in which the referenced element is declared. This
-   * data is omitted if there is no referenced element, or if the element is
-   * declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core",
+   * "package:.." and file uris represented by the path on disk, "/..". The
+   * data is omitted if the element is declared inside an HTML file.
    */
   String get containingLibraryName => _containingLibraryName;
 
   /**
-   * The name of the library in which the referenced element is declared. This
-   * data is omitted if there is no referenced element, or if the element is
-   * declared inside an HTML file.
+   * The URI of the containing library, examples here include "dart:core",
+   * "package:.." and file uris represented by the path on disk, "/..". The
+   * data is omitted if the element is declared inside an HTML file.
    */
   void set containingLibraryName(String value) {
     this._containingLibraryName = value;
@@ -16104,6 +16525,135 @@ class ImplementedMember implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ImportedElementSet
+ *
+ * {
+ *   "strings": List<String>
+ *   "uris": List<int>
+ *   "names": List<int>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ImportedElementSet implements HasToJson {
+  List<String> _strings;
+
+  List<int> _uris;
+
+  List<int> _names;
+
+  /**
+   * The list of unique strings in this object.
+   */
+  List<String> get strings => _strings;
+
+  /**
+   * The list of unique strings in this object.
+   */
+  void set strings(List<String> value) {
+    assert(value != null);
+    this._strings = value;
+  }
+
+  /**
+   * The library URI part of the element. It is an index in the strings field.
+   */
+  List<int> get uris => _uris;
+
+  /**
+   * The library URI part of the element. It is an index in the strings field.
+   */
+  void set uris(List<int> value) {
+    assert(value != null);
+    this._uris = value;
+  }
+
+  /**
+   * The name part of a the element. It is an index in the strings field.
+   */
+  List<int> get names => _names;
+
+  /**
+   * The name part of a the element. It is an index in the strings field.
+   */
+  void set names(List<int> value) {
+    assert(value != null);
+    this._names = value;
+  }
+
+  ImportedElementSet(List<String> strings, List<int> uris, List<int> names) {
+    this.strings = strings;
+    this.uris = uris;
+    this.names = names;
+  }
+
+  factory ImportedElementSet.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> strings;
+      if (json.containsKey("strings")) {
+        strings = jsonDecoder.decodeList(
+            jsonPath + ".strings", json["strings"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "strings");
+      }
+      List<int> uris;
+      if (json.containsKey("uris")) {
+        uris = jsonDecoder.decodeList(
+            jsonPath + ".uris", json["uris"], jsonDecoder.decodeInt);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "uris");
+      }
+      List<int> names;
+      if (json.containsKey("names")) {
+        names = jsonDecoder.decodeList(
+            jsonPath + ".names", json["names"], jsonDecoder.decodeInt);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "names");
+      }
+      return new ImportedElementSet(strings, uris, names);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImportedElementSet", json);
+    }
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["strings"] = strings;
+    result["uris"] = uris;
+    result["names"] = names;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is ImportedElementSet) {
+      return listEqual(
+              strings, other.strings, (String a, String b) => a == b) &&
+          listEqual(uris, other.uris, (int a, int b) => a == b) &&
+          listEqual(names, other.names, (int a, int b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, strings.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uris.hashCode);
+    hash = JenkinsSmiHash.combine(hash, names.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

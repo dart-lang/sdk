@@ -440,7 +440,7 @@ void AsmIntrinsifier::Integer_shl(Assembler* assembler, Label* normal_ir_body) {
   Label overflow;
   TestBothArgumentsSmis(assembler, normal_ir_body);
   // Shift value is in EAX. Compare with tagged Smi.
-  __ cmpl(EAX, Immediate(target::ToRawSmi(target::Smi::kBits)));
+  __ cmpl(EAX, Immediate(target::ToRawSmi(target::kSmiBits)));
   __ j(ABOVE_EQUAL, normal_ir_body, Assembler::kNearJump);
 
   __ SmiUntag(EAX);
@@ -1553,7 +1553,7 @@ void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
   __ movl(EAX, FieldAddress(ECX, target::Double::value_offset()));
   __ movl(ECX, FieldAddress(ECX, target::Double::value_offset() + 4));
   __ xorl(EAX, ECX);
-  __ andl(EAX, Immediate(kSmiMax));
+  __ andl(EAX, Immediate(target::kSmiMax));
   __ SmiTag(EAX);
   __ ret();
 
@@ -1711,8 +1711,7 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   // Object is neither double, nor integer, nor string.
   __ Bind(&use_declaration_type);
   __ LoadClassById(EBX, EDI);
-  __ movzxw(EDI, FieldAddress(
-                     EBX, target::Class::num_type_arguments_offset_in_bytes()));
+  __ movzxw(EDI, FieldAddress(EBX, target::Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
   __ movl(EAX, FieldAddress(EBX, target::Class::declaration_type_offset()));
@@ -1747,8 +1746,7 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
   // Check if there are no type arguments. In this case we can return true.
   // Otherwise fall through into the runtime to handle comparison.
   __ LoadClassById(EBX, EDI);
-  __ movzxw(EBX, FieldAddress(
-                     EBX, target::Class::num_type_arguments_offset_in_bytes()));
+  __ movzxw(EBX, FieldAddress(EBX, target::Class::num_type_arguments_offset()));
   __ cmpl(EBX, Immediate(0));
   __ j(NOT_EQUAL, normal_ir_body, Assembler::kNearJump);
 
@@ -2206,8 +2204,7 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, target::Function::entry_point_offset()));
-  __ jmp(EDI);
+  __ jmp(FieldAddress(EAX, target::Function::entry_point_offset()));
 }
 
 // On stack: user tag (+1), return-address (+0).

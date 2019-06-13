@@ -66,7 +66,8 @@ class BackendImpact {
     }
     for (Selector selector in dynamicUses) {
       assert(selector != null);
-      worldImpactBuilder.registerDynamicUse(new DynamicUse(selector));
+      worldImpactBuilder
+          .registerDynamicUse(new DynamicUse(selector, null, const []));
     }
     for (InterfaceType instantiatedType in instantiatedTypes) {
       worldImpactBuilder
@@ -698,7 +699,7 @@ class BackendImpacts {
   BackendImpact _noSuchMethodSupport;
 
   BackendImpact get noSuchMethodSupport {
-    return _noSuchMethodSupport ??= new BackendImpact(staticUses: [
+    return _noSuchMethodSupport ??= new BackendImpact(globalUses: [
       _commonElements.createInvocationMirror,
       _commonElements.createUnmangledInvocationMirror
     ], dynamicUses: [

@@ -37,7 +37,7 @@ main() {}
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: ({a: int, b: String}) → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function({a: int, b: String})',
       expectedParameter: 'b: String',
     );
   }
@@ -55,7 +55,7 @@ main() {}
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: (int) → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function(int)',
       expectedParameter: 'a: int',
     );
   }
@@ -83,7 +83,7 @@ main() {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: (int, int) → Foo<int>',
+      expectedExecutable: 'Foo.<init>: Foo<int> Function(int, int)',
       expectedParameter: 'a: int',
     );
   }
@@ -102,7 +102,7 @@ main() {
       ')',
       '(false)',
       argIndex: 1,
-      expectedExecutable: 'Foo.<init>: (bool, bool) → Foo<bool>',
+      expectedExecutable: 'Foo.<init>: Foo<bool> Function(bool, bool)',
       expectedParameter: 'b: bool',
     );
   }
@@ -121,7 +121,8 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: ({a: int, b: String, c: double}) → Foo',
+      expectedExecutable:
+          'Foo.<init>: Foo Function({a: int, b: String, c: double})',
       expectedParameter: 'b: String',
     );
   }
@@ -140,7 +141,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: ({a: int}) → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function({a: int})',
     );
   }
 
@@ -158,7 +159,7 @@ main() {
       ')',
       '(0)',
       argIndex: 1,
-      expectedExecutable: 'Foo.named: (int, String, double) → Foo',
+      expectedExecutable: 'Foo.named: Foo Function(int, String, double)',
       expectedParameter: 'b: String',
     );
   }
@@ -177,7 +178,7 @@ main() {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: (int) → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function(int)',
       expectedParameter: 'a: int',
     );
   }
@@ -196,8 +197,8 @@ main() {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: ((String) → int) → Foo',
-      expectedParameter: 'f: (String) → int',
+      expectedExecutable: 'Foo.<init>: Foo Function(int Function(String))',
+      expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
   }
@@ -214,7 +215,7 @@ main() {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'Foo.<init>: () → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function()',
     );
   }
 
@@ -230,7 +231,7 @@ main() {
       ')',
       '(a)',
       argIndex: 1,
-      expectedExecutable: 'Foo.<init>: () → Foo',
+      expectedExecutable: 'Foo.<init>: Foo Function()',
     );
   }
 
@@ -246,7 +247,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: ({a: int, b: String, c: double}) → int',
+      expectedExecutable: 'foo: int Function({a: int, b: String, c: double})',
       expectedParameter: 'b: String',
     );
   }
@@ -263,8 +264,8 @@ main() {
       '',
       'f: ',
       argIndex: 0,
-      expectedExecutable: 'foo: ({f: (String) → int}) → int',
-      expectedParameter: 'f: (String) → int',
+      expectedExecutable: 'foo: int Function({f: int Function(String)})',
+      expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
   }
@@ -281,7 +282,7 @@ main() {
       '',
       'b: ',
       argIndex: 0,
-      expectedExecutable: 'foo: ({a: int}) → int',
+      expectedExecutable: 'foo: int Function({a: int})',
     );
   }
 
@@ -297,7 +298,7 @@ main() {
       ')',
       '(0)',
       argIndex: 1,
-      expectedExecutable: 'foo: (int, String) → int',
+      expectedExecutable: 'foo: int Function(int, String)',
       expectedParameter: 'b: String',
     );
   }
@@ -314,8 +315,8 @@ main() {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'foo: ((String) → int) → int',
-      expectedParameter: 'f: (String) → int',
+      expectedExecutable: 'foo: int Function(int Function(String))',
+      expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
   }
@@ -334,8 +335,8 @@ main(C c) {
       ')',
       '()',
       argIndex: 0,
-      expectedExecutable: 'C.foo: ((String) → int) → int',
-      expectedParameter: 'f: (String) → int',
+      expectedExecutable: 'C.foo: int Function(int Function(String))',
+      expectedParameter: 'f: int Function(String)',
       isFunctionalArgument: true,
     );
   }
@@ -352,7 +353,7 @@ main() {
       'n',
       '(n)',
       argIndex: 0,
-      expectedExecutable: 'foo: (int, String) → int',
+      expectedExecutable: 'foo: int Function(int, String)',
       expectedParameter: 'a: int',
     );
   }
@@ -369,7 +370,7 @@ main() {
       ')',
       '((n))',
       argIndex: 0,
-      expectedExecutable: 'foo: (int, String) → int',
+      expectedExecutable: 'foo: int Function(int, String)',
       expectedParameter: 'a: int',
     );
   }
@@ -386,7 +387,7 @@ main() {
       'n',
       '(n)',
       argIndex: 0,
-      expectedExecutable: 'foo: (int, String) → int',
+      expectedExecutable: 'foo: int Function(int, String)',
       expectedParameter: 'a: int',
     );
   }
@@ -664,6 +665,13 @@ class CompletionTargetTest extends _Base {
     assertTarget('new C();', '{var f; {var x;} new C();}');
   }
 
+  test_MapLiteral_empty() async {
+    // MapLiteral  VariableDeclaration
+    await createTarget('foo = {^');
+    // fasta scanner inserts synthetic closing '}'
+    assertTarget('}', '{}');
+  }
+
   test_MapLiteral_expression() async {
     super.setUp();
     final experimentStatus =
@@ -681,13 +689,6 @@ class CompletionTargetTest extends _Base {
       await createTarget('foo = {1: 2, T^');
       assertTarget('T : ', '{1 : 2, T : }');
     }
-  }
-
-  test_MapLiteral_empty() async {
-    // MapLiteral  VariableDeclaration
-    await createTarget('foo = {^');
-    // fasta scanner inserts synthetic closing '}'
-    assertTarget('}', '{}');
   }
 
   test_MapLiteralEntry() async {

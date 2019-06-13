@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -1146,6 +1147,7 @@ class ElementResolverTest extends EngineTestCase with ResourceProviderMixin {
     _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
         inheritance, _definingLibrary, source, _typeProvider, _listener,
+        featureSet: FeatureSet.forTesting(),
         nameScope: new LibraryScope(_definingLibrary));
     _resolver = _visitor.elementResolver;
   }

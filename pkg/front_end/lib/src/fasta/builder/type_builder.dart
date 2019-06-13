@@ -18,7 +18,7 @@ abstract class TypeBuilder {
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {}
 
   /// See `UnresolvedType.checkType`.
-  void check(int charOffset, Uri fileUri) {}
+  void check(LibraryBuilder library, int charOffset, Uri fileUri) {}
 
   /// See `UnresolvedType.normalizeType`.
   void normalize(int charOffset, Uri fileUri) {}

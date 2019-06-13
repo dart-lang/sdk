@@ -98,10 +98,12 @@ namespace dart {
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
   V(Double_flipSignBit, 1)                                                     \
-  V(RegExp_factory, 4)                                                         \
+  V(RegExp_factory, 6)                                                         \
   V(RegExp_getPattern, 1)                                                      \
   V(RegExp_getIsMultiLine, 1)                                                  \
   V(RegExp_getIsCaseSensitive, 1)                                              \
+  V(RegExp_getIsUnicode, 1)                                                    \
+  V(RegExp_getIsDotAll, 1)                                                     \
   V(RegExp_getGroupCount, 1)                                                   \
   V(RegExp_getGroupNameMap, 1)                                                 \
   V(RegExp_ExecuteMatch, 3)                                                    \
@@ -385,7 +387,9 @@ namespace dart {
   V(Ffi_fromFunction, 1)                                                       \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
-  V(Ffi_dl_getHandle, 1)
+  V(Ffi_dl_getHandle, 1)                                                       \
+  V(TransferableTypedData_factory, 2)                                          \
+  V(TransferableTypedData_materialize, 1)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \

@@ -18,7 +18,7 @@ import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-class TimelinePageElement extends HtmlElement implements Renderable {
+class TimelinePageElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<TimelinePageElement>('timeline-page', dependencies: const [
     NavTopMenuElement.tag,
@@ -50,7 +50,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     assert(repository != null);
     assert(events != null);
     assert(notifications != null);
-    TimelinePageElement e = document.createElement(tag.name);
+    TimelinePageElement e = new TimelinePageElement.created();
     e._r = new RenderingScheduler<TimelinePageElement>(e, queue: queue);
     e._vm = vm;
     e._repository = repository;
@@ -59,7 +59,7 @@ class TimelinePageElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  TimelinePageElement.created() : super.created();
+  TimelinePageElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -132,34 +132,38 @@ class TimelinePageElement extends HtmlElement implements Renderable {
 
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(vm, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(vm, _events, queue: _r.queue).element,
         navMenu('timeline', link: Uris.timeline()),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            await _refresh();
-            e.element.disabled = !usingVMRecorder;
-          }),
-        new NavRefreshElement(label: 'clear', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            await _clear();
-            e.element.disabled = !usingVMRecorder;
-          }),
-        new NavRefreshElement(label: 'save', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            await _save();
-            e.element.disabled = !usingVMRecorder;
-          }),
-        new NavRefreshElement(label: 'load', queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            await _load();
-            e.element.disabled = !usingVMRecorder;
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _refresh();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'clear', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _clear();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'save', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _save();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        (new NavRefreshElement(label: 'load', queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                await _load();
+                e.element.disabled = !usingVMRecorder;
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       _content,
       _createIFrameOrMessage(),

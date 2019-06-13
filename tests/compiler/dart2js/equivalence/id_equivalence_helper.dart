@@ -109,6 +109,9 @@ abstract class DataComputer<T> {
   /// Returns `true` if [computeClassData] is supported.
   bool get computesClassData => false;
 
+  /// Returns `true` if frontend member should be tested.
+  bool get testFrontend => false;
+
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
@@ -525,7 +528,6 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
     List<String> options: const <String>[],
     List<String> args: const <String>[],
     Directory libDirectory: null,
-    bool testFrontend: false,
     bool forUserLibrariesOnly: true,
     Callback setUpFunction,
     int shards: 1,
@@ -632,7 +634,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
             options: options,
             verbose: verbose,
             printCode: printCode,
-            testFrontend: testFrontend,
+            testFrontend: dataComputer.testFrontend,
             forUserLibrariesOnly: forUserLibrariesOnly,
             globalIds: annotations.globalData.keys);
         if (await checkCode(strongName, entity.uri, code, annotations,
@@ -667,7 +669,7 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
               entryPoint, memorySourceFiles, dataComputer,
               options: options,
               verbose: verbose,
-              testFrontend: testFrontend,
+              testFrontend: dataComputer.testFrontend,
               forUserLibrariesOnly: forUserLibrariesOnly,
               globalIds: annotations.globalData.keys);
           if (await checkCode(omitName, entity.uri, code, annotations,

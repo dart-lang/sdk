@@ -433,8 +433,10 @@ config("runtime_library") {
     ]
   }
 
-  # Android standard library setup.
-  if (is_android) {
+  if (is_linux) {
+    libs += [ "dl" ]
+  } else if (is_android) {
+    # Android standard library setup.
     if (is_clang) {
       # Work around incompatibilities between bionic and clang headers.
       defines += [ "__compiler_offsetof=__builtin_offsetof" ]
@@ -594,7 +596,7 @@ config("chromium_code") {
     ]
 
     defines = []
-    if (!using_sanitizer && (!is_linux || !is_clang)) {
+    if (!using_sanitizer && !is_clang) {
       # _FORTIFY_SOURCE isn't really supported by Clang now, see
       # http://llvm.org/bugs/show_bug.cgi?id=16821.
       # It seems to work fine with Ubuntu 12 headers though, so use it in

@@ -7,6 +7,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
+/// Some [ConstructorElement]s can be temporary marked as "const" to check
+/// if doing this is valid.
+final temporaryConstConstructorElements = new Expando<bool>();
+
 /// Check if the [node] and all its sub-nodes are potentially constant.
 ///
 /// Return the list of nodes that are not potentially constant.
@@ -234,7 +238,8 @@ class _Collector {
 
     if (element is ParameterElement) {
       var enclosing = element.enclosingElement;
-      if (enclosing is ConstructorElement && enclosing.isConst) {
+      if (enclosing is ConstructorElement &&
+          isConstConstructorElement(enclosing)) {
         if (node.thisOrAncestorOfType<ConstructorInitializer>() != null) {
           return;
         }
@@ -352,5 +357,10 @@ class _Collector {
         collect(element);
       }
     }
+  }
+
+  static bool isConstConstructorElement(ConstructorElement element) {
+    if (element.isConst) return true;
+    return temporaryConstConstructorElements[element] ?? false;
   }
 }

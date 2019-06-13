@@ -19,7 +19,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
 
   // When precompiling, we only use pc descriptors for exceptions.
   if (!FLAG_precompiled_mode || try_index != -1) {
-    intptr_t merged_kind_try =
+    int32_t merged_kind_try =
         RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 
     PcDescriptors::EncodeInteger(&encoded_data_, merged_kind_try);

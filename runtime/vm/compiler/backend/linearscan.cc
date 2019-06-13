@@ -824,25 +824,6 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
   }
 }
 
-static Location::Kind RegisterKindForResult(Instruction* instr) {
-  const Representation rep = instr->representation();
-#if !defined(TARGET_ARCH_DBC)
-  if ((rep == kUnboxedFloat) || (rep == kUnboxedDouble) ||
-      (rep == kUnboxedFloat32x4) || (rep == kUnboxedInt32x4) ||
-      (rep == kUnboxedFloat64x2)) {
-    return Location::kFpuRegister;
-  } else {
-    return Location::kRegister;
-  }
-#else
-  // DBC supports only unboxed doubles and does not have distinguished FPU
-  // registers.
-  ASSERT((rep != kUnboxedFloat32x4) && (rep != kUnboxedInt32x4) &&
-         (rep != kUnboxedFloat64x2));
-  return Location::kRegister;
-#endif
-}
-
 //
 // When describing shape of live ranges in comments below we are going to use
 // the following notation:
@@ -991,11 +972,11 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
     // All phi resolution moves are connected. Phi's live range is
     // complete.
     AssignSafepoints(phi, range);
-    CompleteRange(range, RegisterKindForResult(phi));
+    CompleteRange(range, phi->RegisterKindForResult());
     if (is_pair_phi) {
       LiveRange* second_range = GetLiveRange(ToSecondPairVreg(vreg));
       AssignSafepoints(phi, second_range);
-      CompleteRange(second_range, RegisterKindForResult(phi));
+      CompleteRange(second_range, phi->RegisterKindForResult());
     }
 
     move_idx += is_pair_phi ? 2 : 1;
@@ -1303,7 +1284,7 @@ void FlowGraphAllocator::ProcessOneOutput(BlockEntryInstr* block,
   }
 
   AssignSafepoints(def, range);
-  CompleteRange(range, RegisterKindForResult(def));
+  CompleteRange(range, def->RegisterKindForResult());
 }
 
 // Create and update live ranges corresponding to instruction's inputs,

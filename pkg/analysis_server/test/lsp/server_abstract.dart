@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
@@ -30,8 +31,7 @@ const debugPrintCommunication = false;
 
 final beginningOfDocument = new Range(new Position(0, 0), new Position(0, 0));
 
-mixin LspAnalysisServerTestMixin
-    implements ResourceProviderMixin, ClientCapabilitiesHelperMixin {
+mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -40,8 +40,11 @@ mixin LspAnalysisServerTestMixin
       new RegExp(allMarkers.map(RegExp.escape).join('|'));
 
   int _id = 0;
-  String projectFolderPath, mainFilePath;
-  Uri projectFolderUri, mainFileUri;
+  String projectFolderPath, mainFilePath, pubspecFilePath, analysisOptionsPath;
+  Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
+  final String simplePubspecContent = 'name: my_project';
+  final startOfDocPos = new Position(0, 0);
+  final startOfDocRange = new Range(new Position(0, 0), new Position(0, 0));
 
   Stream<Message> get serverToClient;
 
@@ -191,7 +194,7 @@ mixin LspAnalysisServerTestMixin
         changes,
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future changeWorkspaceFolders({List<Uri> add, List<Uri> remove}) async {
@@ -204,7 +207,7 @@ mixin LspAnalysisServerTestMixin
         ),
       ),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future closeFile(Uri uri) async {
@@ -213,7 +216,7 @@ mixin LspAnalysisServerTestMixin
       new DidCloseTextDocumentParams(
           new TextDocumentIdentifier(uri.toString())),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
   }
 
   Future<Object> executeCommand(Command command) async {
@@ -367,6 +370,14 @@ mixin LspAnalysisServerTestMixin
     return expectSuccessfulResponseTo<List<CompletionItem>>(request);
   }
 
+  Future<CompletionItem> resolveCompletion(CompletionItem item) {
+    final request = makeRequest(
+      Method.completionItem_resolve,
+      item,
+    );
+    return expectSuccessfulResponseTo<CompletionItem>(request);
+  }
+
   Future<List<Location>> getDefinition(Uri uri, Position pos) {
     final request = makeRequest(
       Method.textDocument_definition,
@@ -433,6 +444,21 @@ mixin LspAnalysisServerTestMixin
     return expectSuccessfulResponseTo<Hover>(request);
   }
 
+  Future<List<Location>> getImplementations(
+    Uri uri,
+    Position pos, {
+    includeDeclarations = false,
+  }) {
+    final request = makeRequest(
+      Method.textDocument_implementation,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<List<Location>>(request);
+  }
+
   Future<List<Location>> getReferences(
     Uri uri,
     Position pos, {
@@ -458,6 +484,20 @@ mixin LspAnalysisServerTestMixin
       ),
     );
     return expectSuccessfulResponseTo<SignatureHelp>(request);
+  }
+
+  Future<Location> getSuper(
+    Uri uri,
+    Position pos,
+  ) {
+    final request = makeRequest(
+      CustomMethods.Super,
+      new TextDocumentPositionParams(
+        new TextDocumentIdentifier(uri.toString()),
+        pos,
+      ),
+    );
+    return expectSuccessfulResponseTo<Location>(request);
   }
 
   /// Executes [f] then waits for a request of type [method] from the server which
@@ -542,7 +582,7 @@ mixin LspAnalysisServerTestMixin
     if (response.error == null) {
       final notification =
           makeNotification(Method.initialized, new InitializedParams());
-      sendNotificationToServer(notification);
+      await sendNotificationToServer(notification);
       await pumpEventQueue();
     } else if (throwOnFailure) {
       throw 'Error during initialize request: '
@@ -579,7 +619,7 @@ mixin LspAnalysisServerTestMixin
       new DidOpenTextDocumentParams(new TextDocumentItem(
           uri.toString(), dartLanguageId, version, content)),
     );
-    sendNotificationToServer(notification);
+    await sendNotificationToServer(notification);
     await pumpEventQueue();
   }
 
@@ -713,13 +753,57 @@ mixin LspAnalysisServerTestMixin
     await serverToClient.firstWhere((message) {
       if (message is NotificationMessage &&
           message.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = message.params;
-
+        diagnosticParams =
+            _convertParams(message, PublishDiagnosticsParams.fromJson);
         return diagnosticParams.uri == uri.toString();
       }
       return false;
     });
     return diagnosticParams.diagnostics;
+  }
+
+  /// A helper to simplify processing of results for both in-process tests (where
+  /// we'll get the real type back), and out-of-process integration tests (where
+  /// params is `Map<String, dynamic>` and needs to be fromJson'd).
+  T _convertParams<T>(
+    IncomingMessage message,
+    T Function(Map<String, dynamic>) fromJson,
+  ) {
+    return message.params is T ? message.params : fromJson(message.params);
+  }
+
+  Future<List<ClosingLabel>> waitForClosingLabels(Uri uri) async {
+    PublishClosingLabelsParams closingLabelsParams;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.PublishClosingLabels) {
+        closingLabelsParams =
+            _convertParams(message, PublishClosingLabelsParams.fromJson);
+
+        return closingLabelsParams.uri == uri.toString();
+      }
+      return false;
+    });
+    return closingLabelsParams.labels;
+  }
+
+  Future<AnalyzerStatusParams> waitForAnalysisStart() =>
+      waitForAnalysisStatus(true);
+
+  Future<AnalyzerStatusParams> waitForAnalysisComplete() =>
+      waitForAnalysisStatus(false);
+
+  Future<AnalyzerStatusParams> waitForAnalysisStatus(bool analyzing) async {
+    AnalyzerStatusParams params;
+    await serverToClient.firstWhere((message) {
+      if (message is NotificationMessage &&
+          message.method == CustomMethods.AnalyzerStatus) {
+        params = _convertParams(message, AnalyzerStatusParams.fromJson);
+        return params.isAnalyzing == analyzing;
+      }
+      return false;
+    });
+    return params;
   }
 
   /// Removes markers like `[[` and `]]` and `^` that are used for marking
@@ -786,6 +870,10 @@ abstract class AbstractLspAnalysisServerTest
     newFile(join(projectFolderPath, 'lib', 'file.dart'));
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
     mainFileUri = Uri.file(mainFilePath);
+    pubspecFilePath = join(projectFolderPath, 'pubspec.yaml');
+    pubspecFileUri = Uri.file(pubspecFilePath);
+    analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
+    analysisOptionsUri = Uri.file(analysisOptionsPath);
   }
 
   Future tearDown() async {
@@ -826,7 +914,12 @@ mixin ClientCapabilitiesHelperMixin {
     TextDocumentClientCapabilities source,
     Map<String, dynamic> textDocumentCapabilities,
   ) {
-    final json = source.toJson();
+    // TODO(dantup): Figure out why we need to do this to get a map...
+    // source.toJson() doesn't recursively called toJson() so we end up with
+    // objects (instead of maps) in child properties, which means multiple
+    // calls to this function do not work correctly. For now, calling jsonEncode
+    // then jsonDecode will force recursive serialisation.
+    final json = jsonDecode(jsonEncode(source));
     if (textDocumentCapabilities != null) {
       textDocumentCapabilities.keys.forEach((key) {
         json[key] = textDocumentCapabilities[key];
@@ -839,7 +932,9 @@ mixin ClientCapabilitiesHelperMixin {
     WorkspaceClientCapabilities source,
     Map<String, dynamic> workspaceCapabilities,
   ) {
-    final json = source.toJson();
+    // TODO(dantup): As above - it seems like this round trip should be
+    // unnecessary.
+    final json = jsonDecode(jsonEncode(source));
     if (workspaceCapabilities != null) {
       workspaceCapabilities.keys.forEach((key) {
         json[key] = workspaceCapabilities[key];
@@ -903,6 +998,14 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  TextDocumentClientCapabilities withHoverDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'hover': {'dynamicRegistration': true}
+    });
+  }
+
   TextDocumentClientCapabilities withSignatureHelpContentFormat(
     TextDocumentClientCapabilities source,
     List<MarkupKind> formats,
@@ -913,6 +1016,14 @@ mixin ClientCapabilitiesHelperMixin {
           'documentationFormat': formats.map((k) => k.toJson()).toList()
         }
       }
+    });
+  }
+
+  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
+    TextDocumentClientCapabilities source,
+  ) {
+    return extendTextDocumentCapabilities(source, {
+      'synchronization': {'dynamicRegistration': true}
     });
   }
 
@@ -930,5 +1041,11 @@ mixin ClientCapabilitiesHelperMixin {
     return extendWorkspaceCapabilities(source, {
       'workspaceEdit': {'documentChanges': true}
     });
+  }
+
+  WorkspaceClientCapabilities withApplyEditSupport(
+    WorkspaceClientCapabilities source,
+  ) {
+    return extendWorkspaceCapabilities(source, {'applyEdit': true});
   }
 }

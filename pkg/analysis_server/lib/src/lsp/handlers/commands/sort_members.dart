@@ -55,6 +55,6 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
 
     final sorter = new MemberSorter(code, unit);
     final edits = sorter.sort();
-    return await sendEditsToClient(docIdentifier, unit, edits);
+    return await sendSourceEditsToClient(docIdentifier, unit, edits);
   }
 }

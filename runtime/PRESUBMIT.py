@@ -21,7 +21,7 @@ def CheckMemcpy(filename):
   match = re.search('\\bmemcpy\\b', content)
   if match:
     line_number = content[0:match.start()].count('\n') + 1
-    print "%s:%d: use of memcpy is forbidden" % (filename, line_number)
+    print("%s:%d: use of memcpy is forbidden" % (filename, line_number))
     return 1
   return 0
 

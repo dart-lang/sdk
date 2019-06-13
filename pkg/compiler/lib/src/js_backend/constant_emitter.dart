@@ -11,53 +11,23 @@ import '../elements/types.dart';
 import '../io/code_output.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js_backend/field_analysis.dart';
 import '../js_emitter/code_emitter_task.dart';
 import '../options.dart';
-import '../universe/codegen_world_builder.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
-import 'js_backend.dart';
 import 'runtime_types.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
 typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 
-/// Generates the JavaScript expressions for constants.
-///
-/// It uses a given [constantReferenceGenerator] to reference nested constants
-/// (if there are some). It is hence up to that function to decide which
-/// constants should be inlined or not.
-class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
-  // Matches blank lines, comment lines and trailing comments that can't be part
-  // of a string.
-  static final RegExp COMMENT_RE =
-      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
-
+/// Visitor that creates [jsAst.Expression]s for constants that are inlined
+/// and therefore can be created during modular code generation.
+class ModularConstantEmitter
+    implements ConstantValueVisitor<jsAst.Expression, Null> {
   final CompilerOptions _options;
-  final JCommonElements _commonElements;
-  final CodegenWorldBuilder _worldBuilder;
-  final RuntimeTypesNeed _rtiNeed;
-  final RuntimeTypesEncoder _rtiEncoder;
-  final JFieldAnalysis _fieldAnalysis;
-  final CodeEmitterTask _task;
-  final _ConstantReferenceGenerator constantReferenceGenerator;
-  final _ConstantListGenerator makeConstantList;
 
-  /// The given [constantReferenceGenerator] function must, when invoked with a
-  /// constant, either return a reference or return its literal expression if it
-  /// can be inlined.
-  ConstantEmitter(
-      this._options,
-      this._commonElements,
-      this._worldBuilder,
-      this._rtiNeed,
-      this._rtiEncoder,
-      this._fieldAnalysis,
-      this._task,
-      this.constantReferenceGenerator,
-      this.makeConstantList);
-
-  Emitter get _emitter => _task.emitter;
+  ModularConstantEmitter(this._options);
 
   /// Constructs a literal expression that evaluates to the constant. Uses a
   /// canonical name unless the constant can be emitted multiple times (as for
@@ -174,12 +144,94 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   }
 
   @override
+  jsAst.Expression visitDummyInterceptor(DummyInterceptorConstantValue constant,
+      [_]) {
+    return new jsAst.LiteralNumber('0');
+  }
+
+  @override
+  jsAst.Expression visitUnreachable(UnreachableConstantValue constant, [_]) {
+    return new jsAst.LiteralNumber('0');
+  }
+
+  @override
+  jsAst.Expression visitJsName(JsNameConstantValue constant, [_]) {
+    return constant.name;
+  }
+
+  @override
+  jsAst.Expression visitInstantiation(InstantiationConstantValue constant,
+          [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
+          [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitType(TypeConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) =>
+      null;
+
+  @override
+  jsAst.Expression visitMap(MapConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitSet(SetConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression visitList(ListConstantValue constant, [_]) => null;
+}
+
+/// Generates the JavaScript expressions for constants.
+///
+/// It uses a given [_constantReferenceGenerator] to reference nested constants
+/// (if there are some). It is hence up to that function to decide which
+/// constants should be inlined or not.
+class ConstantEmitter extends ModularConstantEmitter {
+  // Matches blank lines, comment lines and trailing comments that can't be part
+  // of a string.
+  static final RegExp COMMENT_RE =
+      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''', multiLine: true);
+
+  final JCommonElements _commonElements;
+  final JElementEnvironment _elementEnvironment;
+  final RuntimeTypesNeed _rtiNeed;
+  final RuntimeTypesEncoder _rtiEncoder;
+  final JFieldAnalysis _fieldAnalysis;
+  final Emitter _emitter;
+  final _ConstantReferenceGenerator _constantReferenceGenerator;
+  final _ConstantListGenerator _makeConstantList;
+
+  /// The given [_constantReferenceGenerator] function must, when invoked with a
+  /// constant, either return a reference or return its literal expression if it
+  /// can be inlined.
+  ConstantEmitter(
+      CompilerOptions options,
+      this._commonElements,
+      this._elementEnvironment,
+      this._rtiNeed,
+      this._rtiEncoder,
+      this._fieldAnalysis,
+      this._emitter,
+      this._constantReferenceGenerator,
+      this._makeConstantList)
+      : super(options);
+
+  @override
   jsAst.Expression visitList(ListConstantValue constant, [_]) {
     List<jsAst.Expression> elements = constant.entries
-        .map(constantReferenceGenerator)
+        .map(_constantReferenceGenerator)
         .toList(growable: false);
     jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(elements);
-    jsAst.Expression value = makeConstantList(array);
+    jsAst.Expression value = _makeConstantList(array);
     return maybeAddTypeArguments(constant, constant.type, value);
   }
 
@@ -195,7 +247,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[
-      constantReferenceGenerator(constant.entries),
+      _constantReferenceGenerator(constant.entries),
     ];
 
     if (_rtiNeed.classNeedsTypeArguments(classElement)) {
@@ -221,7 +273,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         // Keys in literal maps must be emitted in place.
         jsAst.Literal keyExpression = _visit(key);
         jsAst.Expression valueExpression =
-            constantReferenceGenerator(constant.values[i]);
+            _constantReferenceGenerator(constant.values[i]);
         properties.add(new jsAst.Property(keyExpression, valueExpression));
       }
       return new jsAst.ObjectInitializer(properties);
@@ -231,9 +283,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
       List<jsAst.Expression> data = <jsAst.Expression>[];
       for (int i = 0; i < constant.keys.length; i++) {
         jsAst.Expression keyExpression =
-            constantReferenceGenerator(constant.keys[i]);
+            _constantReferenceGenerator(constant.keys[i]);
         jsAst.Expression valueExpression =
-            constantReferenceGenerator(constant.values[i]);
+            _constantReferenceGenerator(constant.values[i]);
         data.add(keyExpression);
         data.add(valueExpression);
       }
@@ -248,9 +300,9 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     // The arguments of the JavaScript constructor for any given Dart class
     // are in the same order as the members of the class element.
     int emittedArgumentCount = 0;
-    _worldBuilder.forEachInstanceField(classElement,
-        (ClassEntity enclosing, FieldEntity field, {bool isElided}) {
-      if (isElided) return;
+    _elementEnvironment.forEachInstanceField(classElement,
+        (ClassEntity enclosing, FieldEntity field) {
+      if (_fieldAnalysis.getFieldData(field).isElided) return;
       if (field.name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(new jsAst.LiteralNumber('${constant.keyList.entries.length}'));
@@ -259,11 +311,11 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
         arguments.add(jsMap());
       } else if (field.name ==
           constant_system.JavaScriptMapConstant.KEYS_NAME) {
-        arguments.add(constantReferenceGenerator(constant.keyList));
+        arguments.add(_constantReferenceGenerator(constant.keyList));
       } else if (field.name ==
           constant_system.JavaScriptMapConstant.PROTO_VALUE) {
         assert(constant.protoValue != null);
-        arguments.add(constantReferenceGenerator(constant.protoValue));
+        arguments.add(_constantReferenceGenerator(constant.protoValue));
       } else if (field.name ==
           constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
@@ -320,22 +372,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   @override
   jsAst.Expression visitInterceptor(InterceptorConstantValue constant, [_]) {
     ClassEntity interceptorClass = constant.cls;
-    return _task.interceptorPrototypeAccess(interceptorClass);
-  }
-
-  @override
-  jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
-    switch (constant.valueKind) {
-      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
-      case SyntheticConstantKind.EMPTY_VALUE:
-        return new jsAst.LiteralNumber('0');
-      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
-      case SyntheticConstantKind.NAME:
-        return constant.payload;
-      default:
-        throw failedAt(NO_LOCATION_SPANNABLE,
-            "Unexpected DummyConstantKind ${constant.kind}");
-    }
+    return _emitter.interceptorPrototypeAccess(interceptorClass);
   }
 
   @override
@@ -349,11 +386,11 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     jsAst.Expression constructor =
         _emitter.constructorAccess(constant.type.element);
     List<jsAst.Expression> fields = <jsAst.Expression>[];
-    _worldBuilder.forEachInstanceField(element, (_, FieldEntity field,
-        {bool isElided}) {
-      if (isElided) return;
-      if (!_fieldAnalysis.getFieldData(field).isInitializedInAllocator) {
-        fields.add(constantReferenceGenerator(constant.fields[field]));
+    _elementEnvironment.forEachInstanceField(element, (_, FieldEntity field) {
+      FieldAnalysisData fieldData = _fieldAnalysis.getFieldData(field);
+      if (fieldData.isElided) return;
+      if (!fieldData.isInitializedInAllocator) {
+        fields.add(_constantReferenceGenerator(constant.fields[field]));
       }
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
@@ -368,7 +405,7 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
     ClassEntity cls =
         _commonElements.getInstantiationClass(constant.typeArguments.length);
     List<jsAst.Expression> fields = <jsAst.Expression>[
-      constantReferenceGenerator(constant.function),
+      _constantReferenceGenerator(constant.function),
       _reifiedTypeArguments(constant, constant.typeArguments)
     ];
     jsAst.Expression constructor = _emitter.constructorAccess(cls);
@@ -412,6 +449,6 @@ class ConstantEmitter implements ConstantValueVisitor<jsAst.Expression, Null> {
   @override
   jsAst.Expression visitDeferredGlobal(DeferredGlobalConstantValue constant,
       [_]) {
-    return constantReferenceGenerator(constant.referenced);
+    return _constantReferenceGenerator(constant.referenced);
   }
 }

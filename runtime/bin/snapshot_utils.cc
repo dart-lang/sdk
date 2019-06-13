@@ -293,7 +293,7 @@ void Snapshot::WriteAppSnapshot(const char* filename,
 
   file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
   if (LOG_SECTION_BOUNDARIES) {
-    Log::PrintErr("%" Px64 ": VM Data\n", file->Position());
+    Syslog::PrintErr("%" Px64 ": VM Data\n", file->Position());
   }
   if (!file->WriteFully(vm_data_buffer, vm_data_size)) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
@@ -302,7 +302,7 @@ void Snapshot::WriteAppSnapshot(const char* filename,
   if (vm_instructions_size != 0) {
     file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
     if (LOG_SECTION_BOUNDARIES) {
-      Log::PrintErr("%" Px64 ": VM Instructions\n", file->Position());
+      Syslog::PrintErr("%" Px64 ": VM Instructions\n", file->Position());
     }
     if (!file->WriteFully(vm_instructions_buffer, vm_instructions_size)) {
       ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n",
@@ -312,7 +312,7 @@ void Snapshot::WriteAppSnapshot(const char* filename,
 
   file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
   if (LOG_SECTION_BOUNDARIES) {
-    Log::PrintErr("%" Px64 ": Isolate Data\n", file->Position());
+    Syslog::PrintErr("%" Px64 ": Isolate Data\n", file->Position());
   }
   if (!file->WriteFully(isolate_data_buffer, isolate_data_size)) {
     ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
@@ -321,7 +321,7 @@ void Snapshot::WriteAppSnapshot(const char* filename,
   if (isolate_instructions_size != 0) {
     file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
     if (LOG_SECTION_BOUNDARIES) {
-      Log::PrintErr("%" Px64 ": Isolate Instructions\n", file->Position());
+      Syslog::PrintErr("%" Px64 ": Isolate Instructions\n", file->Position());
     }
     if (!file->WriteFully(isolate_instructions_buffer,
                           isolate_instructions_size)) {

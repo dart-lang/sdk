@@ -101,7 +101,6 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
-DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
 #define Z (zone())
@@ -415,11 +414,11 @@ class CallSites : public ValueObject {
         if (current->IsPolymorphicInstanceCall()) {
           PolymorphicInstanceCallInstr* instance_call =
               current->AsPolymorphicInstanceCall();
-          target ^= instance_call->targets().FirstTarget().raw();
+          target = instance_call->targets().FirstTarget().raw();
           call = instance_call;
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
-          target ^= static_call->function().raw();
+          target = static_call->function().raw();
           call = static_call;
         } else if (current->IsClosureCall()) {
           // TODO(srdjan): Add data for closure calls.
@@ -738,9 +737,6 @@ static void ReplaceParameterStubs(Zone* zone,
       }
     }
   }
-
-  // Check that inlining maintains use lists.
-  DEBUG_ASSERT(!FLAG_verify_compiler || caller_graph->VerifyUseLists());
 }
 
 class CallSiteInliner : public ValueObject {
@@ -1062,11 +1058,9 @@ class CallSiteInliner : public ValueObject {
             entry_kind == Code::EntryKind::kUnchecked);
         {
           callee_graph = builder.BuildGraph();
-
 #if defined(DEBUG)
-          FlowGraphChecker(callee_graph).Check();
+          FlowGraphChecker(callee_graph).Check("Builder (callee)");
 #endif
-
           CalleeGraphValidator::Validate(callee_graph);
         }
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&                  \
@@ -1149,7 +1143,9 @@ class CallSiteInliner : public ValueObject {
           // Compute SSA on the callee graph, catching bailouts.
           callee_graph->ComputeSSA(caller_graph_->max_virtual_register_number(),
                                    param_stubs);
-          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+#if defined(DEBUG)
+          FlowGraphChecker(callee_graph).Check("SSA (callee)");
+#endif
         }
 
         if (FLAG_support_il_printer && trace_inlining() &&
@@ -1170,21 +1166,10 @@ class CallSiteInliner : public ValueObject {
                                                 callee_graph,
                                                 inliner_->speculative_policy_);
 
-            call_specializer.ApplyClassIds();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            FlowGraphTypePropagator::Propagate(callee_graph);
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            call_specializer.ApplyICData();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            // Optimize (a << b) & c patterns, merge instructions. Must occur
-            // before 'SelectRepresentations' which inserts conversion nodes.
-            callee_graph->TryOptimizePatterns();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            callee_graph->Canonicalize();
+            CompilerPassState state(Thread::Current(), callee_graph,
+                                    inliner_->speculative_policy_);
+            state.call_specializer = &call_specializer;
+            CompilerPass::RunInliningPipeline(CompilerPass::kAOT, &state);
 #else
             UNREACHABLE();
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
@@ -1193,21 +1178,10 @@ class CallSiteInliner : public ValueObject {
             JitCallSpecializer call_specializer(callee_graph,
                                                 inliner_->speculative_policy_);
 
-            call_specializer.ApplyClassIds();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            FlowGraphTypePropagator::Propagate(callee_graph);
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            call_specializer.ApplyICData();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            // Optimize (a << b) & c patterns, merge instructions. Must occur
-            // before 'SelectRepresentations' which inserts conversion nodes.
-            callee_graph->TryOptimizePatterns();
-            DEBUG_ASSERT(callee_graph->VerifyUseLists());
-
-            callee_graph->Canonicalize();
+            CompilerPassState state(Thread::Current(), callee_graph,
+                                    inliner_->speculative_policy_);
+            state.call_specializer = &call_specializer;
+            CompilerPass::RunInliningPipeline(CompilerPass::kJIT, &state);
           }
         }
 
@@ -1521,12 +1495,12 @@ class CallSiteInliner : public ValueObject {
           call->Receiver()->definition()->OriginalDefinition();
       if (AllocateObjectInstr* alloc = receiver->AsAllocateObject()) {
         if (!alloc->closure_function().IsNull()) {
-          target ^= alloc->closure_function().raw();
+          target = alloc->closure_function().raw();
           ASSERT(alloc->cls().IsClosureClass());
         }
       } else if (ConstantInstr* constant = receiver->AsConstant()) {
         if (constant->value().IsClosure()) {
-          target ^= Closure::Cast(constant->value()).function();
+          target = Closure::Cast(constant->value()).function();
         }
       }
 
@@ -1757,6 +1731,11 @@ bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
           BlockEntryInstr* block = old_target->dominated_blocks()[j];
           new_join->AddDominatedBlock(block);
         }
+        // Since we are reusing the same inlined body across multiple cids,
+        // reset the type information on the redefinition of the receiver
+        // in case it was originally given a concrete type.
+        ASSERT(new_join->next()->IsRedefinition());
+        new_join->next()->AsRedefinition()->UpdateType(CompileType::Dynamic());
         // Create a new target with the join as unconditional successor.
         TargetEntryInstr* new_target = new TargetEntryInstr(
             AllocateBlockId(), old_target->try_index(), DeoptId::kNone);
@@ -2412,7 +2391,8 @@ static bool ShouldInlineInt64ArrayOps() {
 static bool CanUnboxInt32() {
   // Int32/Uint32 can be unboxed if it fits into a smi or the platform
   // supports unboxed mints.
-  return (kSmiBits >= 32) || FlowGraphCompiler::SupportsUnboxedInt64();
+  return (compiler::target::kSmiBits >= 32) ||
+         FlowGraphCompiler::SupportsUnboxedInt64();
 }
 
 // Quick access to the current one.
@@ -2444,8 +2424,9 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
     *array = elements;
     array_cid = kArrayCid;
   } else if (RawObject::IsExternalTypedDataClassId(array_cid)) {
-    LoadUntaggedInstr* elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), ExternalTypedData::data_offset());
+    LoadUntaggedInstr* elements = new (Z)
+        LoadUntaggedInstr(new (Z) Value(*array),
+                          compiler::target::TypedDataBase::data_field_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   }
@@ -2477,24 +2458,38 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? DeoptId::kNone : call->deopt_id();
+    deopt_id =
+        (compiler::target::kSmiBits >= 32) ? DeoptId::kNone : call->deopt_id();
   }
 
   // Array load and return.
-  intptr_t index_scale = Instance::ElementSizeFor(array_cid);
+  intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
   LoadIndexedInstr* load = new (Z)
       LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
                        array_cid, kAlignedAccess, deopt_id, call->token_pos());
+
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
                                 deopt_id != DeoptId::kNone ? call->env() : NULL,
                                 FlowGraph::kValue);
+
+  const bool value_needs_boxing =
+      array_cid == kTypedDataInt8ArrayCid ||
+      array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataUint8ArrayCid ||
+      array_cid == kTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kExternalTypedDataUint8ArrayCid ||
+      array_cid == kExternalTypedDataUint8ClampedArrayCid;
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value(load), deopt_id);
     flow_graph->AppendTo(cursor, *last,
                          deopt_id != DeoptId::kNone ? call->env() : NULL,
                          FlowGraph::kValue);
+  } else if (value_needs_boxing) {
+    *last = BoxInstr::Create(kUnboxedIntPtr, new Value(load));
+    flow_graph->AppendTo(cursor, *last, nullptr, FlowGraph::kValue);
   }
   *result = (*last)->AsDefinition();
   return true;
@@ -2634,10 +2629,17 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
           ? kNoStoreBarrier
           : kEmitStoreBarrier;
 
-  // No need to class check stores to Int32 and Uint32 arrays because
-  // we insert unboxing instructions below which include a class check.
-  if ((array_cid != kTypedDataUint32ArrayCid) &&
-      (array_cid != kTypedDataInt32ArrayCid) && value_check != NULL) {
+  const bool value_needs_unboxing =
+      array_cid == kTypedDataInt8ArrayCid ||
+      array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataUint8ArrayCid ||
+      array_cid == kTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kExternalTypedDataUint8ArrayCid ||
+      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
+      array_cid == kTypedDataUint32ArrayCid;
+
+  if (value_check != NULL) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
     // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
     needs_store_barrier = kNoStoreBarrier;
@@ -2652,21 +2654,36 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
         DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
     cursor =
         flow_graph->AppendTo(cursor, stored_value, NULL, FlowGraph::kValue);
-  } else if (array_cid == kTypedDataInt32ArrayCid) {
-    stored_value =
-        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                                new (Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
-  } else if (array_cid == kTypedDataUint32ArrayCid) {
-    stored_value =
-        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
-    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
+  } else if (value_needs_unboxing) {
+    Representation representation = kNoRepresentation;
+    switch (array_cid) {
+      case kUnboxedInt32:
+        representation = kUnboxedInt32;
+        break;
+      case kTypedDataUint32ArrayCid:
+        representation = kUnboxedUint32;
+        break;
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kTypedDataUint16ArrayCid:
+      case kExternalTypedDataUint8ArrayCid:
+      case kExternalTypedDataUint8ClampedArrayCid:
+        representation = kUnboxedIntPtr;
+        break;
+      default:
+        UNREACHABLE();
+    }
+    stored_value = UnboxInstr::Create(
+        representation, new (Z) Value(stored_value), call->deopt_id());
+    stored_value->AsUnboxInteger()->mark_truncating();
     cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                   FlowGraph::kValue);
   }
 
-  const intptr_t index_scale = Instance::ElementSizeFor(array_cid);
+  const intptr_t index_scale =
+      compiler::target::Instance::ElementSizeFor(array_cid);
   *last = new (Z) StoreIndexedInstr(
       new (Z) Value(array), new (Z) Value(index), new (Z) Value(stored_value),
       needs_store_barrier, index_scale, array_cid, kAlignedAccess,
@@ -2822,7 +2839,7 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
       call->token_pos());
   *cursor = flow_graph->AppendTo(*cursor, length, NULL, FlowGraph::kValue);
 
-  intptr_t element_size = Instance::ElementSizeFor(array_cid);
+  intptr_t element_size = compiler::target::Instance::ElementSizeFor(array_cid);
   ConstantInstr* bytes_per_element =
       flow_graph->GetConstant(Smi::Handle(Z, Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes = new (Z)
@@ -2833,7 +2850,8 @@ static void PrepareInlineTypedArrayBoundsCheck(FlowGraph* flow_graph,
 
   // adjusted_length = len_in_bytes - (element_size - 1).
   Definition* adjusted_length = len_in_bytes;
-  intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
+  intptr_t adjustment =
+      compiler::target::Instance::ElementSizeFor(view_cid) - 1;
   if (adjustment > 0) {
     ConstantInstr* length_adjustment =
         flow_graph->GetConstant(Smi::Handle(Z, Smi::New(adjustment)));
@@ -2874,8 +2892,9 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   if (array_cid == kDynamicCid ||
       RawObject::IsExternalTypedDataClassId(array_cid)) {
     // Internal or External typed data: load untagged.
-    auto elements = new (Z) LoadUntaggedInstr(
-        new (Z) Value(*array), TypedDataBase::data_field_offset());
+    auto elements = new (Z)
+        LoadUntaggedInstr(new (Z) Value(*array),
+                          compiler::target::TypedDataBase::data_field_offset());
     *cursor = flow_graph->AppendTo(*cursor, elements, NULL, FlowGraph::kValue);
     *array = elements;
   } else {
@@ -3032,7 +3051,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       // On 64-bit platforms assume that stored value is always a smi.
-      if (kSmiBits >= 32) {
+      if (compiler::target::kSmiBits >= 32) {
         value_check = Cids::CreateMonomorphic(Z, kSmiCid);
       }
       break;
@@ -3109,24 +3128,50 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
     }
   }
 
-  // Handle conversions and special unboxing.
-  if (view_cid == kTypedDataFloat32ArrayCid) {
-    stored_value = new (Z)
-        DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
-    cursor =
-        flow_graph->AppendTo(cursor, stored_value, nullptr, FlowGraph::kValue);
-  } else if (view_cid == kTypedDataInt32ArrayCid) {
-    stored_value =
-        new (Z) UnboxInt32Instr(UnboxInt32Instr::kTruncate,
-                                new (Z) Value(stored_value), call->deopt_id());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
-  } else if (view_cid == kTypedDataUint32ArrayCid) {
-    stored_value =
-        new (Z) UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
-    ASSERT(stored_value->AsUnboxInteger()->is_truncating());
-    cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                  FlowGraph::kValue);
+  // Handle conversions and special unboxing (to ensure unboxing instructions
+  // are marked as truncating, since [SelectRepresentations] does not take care
+  // of that).
+  switch (view_cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
+      stored_value =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(stored_value),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      stored_value->AsUnboxInteger()->mark_truncating();
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataFloat32ArrayCid: {
+      stored_value = new (Z)
+          DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+      cursor = flow_graph->AppendTo(cursor, stored_value, nullptr,
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataInt32ArrayCid: {
+      stored_value = new (Z)
+          UnboxInt32Instr(UnboxInt32Instr::kTruncate,
+                          new (Z) Value(stored_value), call->deopt_id());
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    case kTypedDataUint32ArrayCid: {
+      stored_value = new (Z)
+          UnboxUint32Instr(new (Z) Value(stored_value), call->deopt_id());
+      ASSERT(stored_value->AsUnboxInteger()->is_truncating());
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      break;
+    }
+    default:
+      break;
   }
 
   // Generates a template for the store, either a dynamic conditional
@@ -3170,22 +3215,28 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
 
   // For external strings: Load backing store.
   if (cid == kExternalOneByteStringCid) {
-    str = new LoadUntaggedInstr(new Value(str),
-                                ExternalOneByteString::external_data_offset());
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        compiler::target::ExternalOneByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   } else if (cid == kExternalTwoByteStringCid) {
-    str = new LoadUntaggedInstr(new Value(str),
-                                ExternalTwoByteString::external_data_offset());
+    str = new LoadUntaggedInstr(
+        new Value(str),
+        compiler::target::ExternalTwoByteString::external_data_offset());
     cursor = flow_graph->AppendTo(cursor, str, NULL, FlowGraph::kValue);
   }
 
-  LoadIndexedInstr* load_indexed = new (Z) LoadIndexedInstr(
-      new (Z) Value(str), new (Z) Value(index), Instance::ElementSizeFor(cid),
-      cid, kAlignedAccess, DeoptId::kNone, call->token_pos());
-
+  LoadIndexedInstr* load_indexed = new (Z)
+      LoadIndexedInstr(new (Z) Value(str), new (Z) Value(index),
+                       compiler::target::Instance::ElementSizeFor(cid), cid,
+                       kAlignedAccess, DeoptId::kNone, call->token_pos());
   cursor = flow_graph->AppendTo(cursor, load_indexed, NULL, FlowGraph::kValue);
-  ASSERT(cursor == load_indexed);
-  return load_indexed;
+
+  auto box = BoxInstr::Create(kUnboxedIntPtr, new Value(load_indexed));
+  cursor = flow_graph->AppendTo(cursor, box, nullptr, FlowGraph::kValue);
+
+  ASSERT(box == cursor);
+  return box;
 }
 
 static bool InlineStringBaseCharAt(FlowGraph* flow_graph,
@@ -3285,10 +3336,10 @@ bool FlowGraphInliner::TryReplaceInstanceCallWithInline(
     // Insert receiver class or null check if needed.
     switch (check) {
       case FlowGraph::ToCheck::kCheckCid: {
-        Instruction* check_class =
-            flow_graph->CreateCheckClass(call->Receiver()->definition(),
-                                         *Cids::Create(Z, *call->ic_data(), 0),
-                                         call->deopt_id(), call->token_pos());
+        Instruction* check_class = flow_graph->CreateCheckClass(
+            call->Receiver()->definition(),
+            *Cids::CreateAndExpand(Z, *call->ic_data(), 0), call->deopt_id(),
+            call->token_pos());
         flow_graph->InsertBefore(call, check_class, call->env(),
                                  FlowGraph::kEffect);
         break;
@@ -4065,7 +4116,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Value* num_elements = new (Z) Value(call->ArgumentAt(1));
       intptr_t length = 0;
       if (IsSmiValue(num_elements, &length)) {
-        if (length >= 0 && length <= Array::kMaxElements) {
+        if (Array::IsValidLength(length)) {
           Value* type = new (Z) Value(call->ArgumentAt(0));
           *entry = new (Z)
               FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
@@ -4107,12 +4158,16 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
             FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                call->GetBlock()->try_index(), DeoptId::kNone);
         (*entry)->InheritDeoptTarget(Z, call);
-        *last = new (Z) ConstantInstr(type);
+        ConstantInstr* ctype = flow_graph->GetConstant(type);
+        // Create a synthetic (re)definition for return to flag insertion.
+        // TODO(ajcbik): avoid this mechanism altogether
+        RedefinitionInstr* redef =
+            new (Z) RedefinitionInstr(new (Z) Value(ctype));
         flow_graph->AppendTo(
-            *entry, *last,
+            *entry, redef,
             call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
             FlowGraph::kValue);
-        *result = (*last)->AsDefinition();
+        *last = *result = redef;
         return true;
       }
       return false;
@@ -4128,16 +4183,25 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       Definition* str = call->ArgumentAt(0);
       Definition* index = call->ArgumentAt(1);
       Definition* value = call->ArgumentAt(2);
+
+      auto env = call->deopt_id() != DeoptId::kNone ? call->env() : nullptr;
+
+      // Insert explicit unboxing instructions with truncation to avoid relying
+      // on [SelectRepresentations] which doesn't mark them as truncating.
+      value =
+          UnboxInstr::Create(kUnboxedIntPtr, new (Z) Value(value),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      value->AsUnboxInteger()->mark_truncating();
+      flow_graph->AppendTo(*entry, value, env, FlowGraph::kValue);
+
       *last =
           new (Z) StoreIndexedInstr(new (Z) Value(str), new (Z) Value(index),
                                     new (Z) Value(value), kNoStoreBarrier,
                                     1,  // Index scale
                                     kOneByteStringCid, kAlignedAccess,
                                     call->deopt_id(), call->token_pos());
-      flow_graph->AppendTo(
-          *entry, *last,
-          call->deopt_id() != DeoptId::kNone ? call->env() : NULL,
-          FlowGraph::kEffect);
+      flow_graph->AppendTo(value, *last, env, FlowGraph::kEffect);
+
       // We need a return value to replace uses of the original definition.
       // The final instruction is a use of 'void operator[]=()', so we use null.
       *result = flow_graph->constant_null();

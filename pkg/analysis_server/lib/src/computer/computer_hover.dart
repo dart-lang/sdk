@@ -5,12 +5,14 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -72,7 +74,25 @@ class DartUnitHoverComputer {
           // containing library
           LibraryElement library = element.library;
           if (library != null) {
-            hover.containingLibraryName = library.name;
+            Uri uri = library.source.uri;
+            if (uri.scheme != '' && uri.scheme == 'file') {
+              // for 'file:' URIs, use the path after the project root
+              AnalysisSession analysisSession = _unit.declaredElement.session;
+              path.Context context =
+                  analysisSession.resourceProvider.pathContext;
+              String projectRootDir =
+                  analysisSession.analysisContext.contextRoot.root.path;
+              String relativePath =
+                  context.relative(context.fromUri(uri), from: projectRootDir);
+              if (context.style == path.Style.windows) {
+                List<String> pathList = context.split(relativePath);
+                hover.containingLibraryName = pathList.join('/');
+              } else {
+                hover.containingLibraryName = relativePath;
+              }
+            } else {
+              hover.containingLibraryName = uri.toString();
+            }
             hover.containingLibraryPath = library.source.fullName;
           }
         }
@@ -107,7 +127,8 @@ class DartUnitHoverComputer {
 
   static String computeDocumentation(
       DartdocDirectiveInfo dartdocInfo, Element element) {
-    // TODO(dantup) We're reusing this in parameter information - move it somewhere shared?
+    // TODO(dantup) We're reusing this in parameter information - move it
+    // somewhere shared?
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }

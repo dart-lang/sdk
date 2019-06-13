@@ -18,7 +18,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-class ClassTreeElement extends HtmlElement implements Renderable {
+class ClassTreeElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ClassTreeElement>('class-tree', dependencies: const [
     ClassRefElement.tag,
@@ -54,7 +54,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     assert(classes != null);
-    ClassTreeElement e = document.createElement(tag.name);
+    ClassTreeElement e = new ClassTreeElement.created();
     e._r = new RenderingScheduler<ClassTreeElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -64,7 +64,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ClassTreeElement.created() : super.created();
+  ClassTreeElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -85,11 +85,11 @@ class ClassTreeElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('class hierarchy'),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered']
@@ -109,7 +109,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
     _tree = new VirtualTreeElement(_create, _update, _children,
         items: [_object], search: _search, queue: _r.queue);
     _tree.expand(_object, autoExpandSingleChildNodes: true);
-    return _tree;
+    return _tree.element;
   }
 
   Future _refresh() async {
@@ -164,7 +164,7 @@ class ClassTreeElement extends HtmlElement implements Renderable {
       el.children[1].text = _tree.isExpanded(cls) ? '▼' : '►';
     }
     el.children[2].children = <Element>[
-      new ClassRefElement(_isolate, cls, queue: _r.queue)
+      new ClassRefElement(_isolate, cls, queue: _r.queue).element
     ];
     if (_mixins[cls.id] != null) {
       el.children[2].children.addAll(_createMixins(_mixins[cls.id]));
@@ -183,7 +183,8 @@ class ClassTreeElement extends HtmlElement implements Renderable {
               type.typeClass == null
                   ? (new SpanElement()..text = type.name.split('<').first)
                   : new ClassRefElement(_isolate, type.typeClass,
-                      queue: _r.queue)
+                          queue: _r.queue)
+                      .element
             ])
         .toList();
     children.first.text = ' with ';

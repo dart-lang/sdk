@@ -129,9 +129,9 @@ abstract class GlobalTypeInferenceResults {
 
   AbstractValue resultOfParameter(Local parameter);
 
-  /// Returns the type of a [selector] when applied to a receiver with the given
-  /// type [mask].
-  AbstractValue typeOfSelector(Selector selector, AbstractValue mask);
+  /// Returns the type of the result of applying [selector] to a receiver with
+  /// the given [receiver] type.
+  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue receiver);
 
   /// Returns whether a fixed-length constructor call goes through a growable
   /// check.
@@ -290,10 +290,9 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
     return parameterResults[parameter] ?? _trivialParameterResult;
   }
 
-  /// Returns the type of a [selector] when applied to a receiver with the given
-  /// [receiver] type.
   @override
-  AbstractValue typeOfSelector(Selector selector, AbstractValue receiver) {
+  AbstractValue resultTypeOfSelector(
+      Selector selector, AbstractValue receiver) {
     // Bailout for closure calls. We're not tracking types of
     // closures.
     if (selector.isClosureCall)
@@ -462,7 +461,7 @@ class TrivialGlobalTypeInferenceResults implements GlobalTypeInferenceResults {
   bool isFixedArrayCheckedForGrowable(ir.Node node) => false;
 
   @override
-  AbstractValue typeOfSelector(Selector selector, AbstractValue mask) {
+  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {
     return closedWorld.abstractValueDomain.dynamicType;
   }
 

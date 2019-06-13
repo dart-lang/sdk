@@ -12,6 +12,7 @@ import 'postfix_completion_test.dart' as postfix_completion;
 import 'refactoring_test.dart' as refactoring;
 import 'sort_members_test.dart' as sort_members;
 import 'statement_completion_test.dart' as statement_completion;
+import 'token_details_test.dart' as token_details;
 
 main() {
   defineReflectiveSuite(() {
@@ -23,5 +24,6 @@ main() {
     refactoring.main();
     sort_members.main();
     statement_completion.main();
+    token_details.main();
   }, name: 'edit');
 }

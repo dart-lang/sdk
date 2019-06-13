@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -37,6 +38,7 @@ class InheritanceOverrideVerifier {
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
+          featureSet: unit.featureSet,
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
@@ -50,6 +52,7 @@ class InheritanceOverrideVerifier {
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
+          featureSet: unit.featureSet,
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
@@ -62,6 +65,7 @@ class InheritanceOverrideVerifier {
           typeProvider: _typeProvider,
           inheritance: _inheritance,
           reporter: _reporter,
+          featureSet: unit.featureSet,
           library: library,
           classNameNode: declaration.name,
           implementsClause: declaration.implementsClause,
@@ -85,6 +89,7 @@ class _ClassVerifier {
   final InheritanceManager2 inheritance;
   final ErrorReporter reporter;
 
+  final FeatureSet featureSet;
   final LibraryElement library;
   final Uri libraryUri;
   final ClassElementImpl classElement;
@@ -108,6 +113,7 @@ class _ClassVerifier {
     this.typeProvider,
     this.inheritance,
     this.reporter,
+    this.featureSet,
     this.library,
     this.classNameNode,
     this.implementsClause,
@@ -382,7 +388,8 @@ class _ClassVerifier {
         if (setter != null && setter.parameters.length == 1) {
           var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
-          if (!typeSystem.isAssignableTo(getterType, setterType)) {
+          if (!typeSystem.isAssignableTo(getterType, setterType,
+              featureSet: featureSet)) {
             var getterElement = getter.element;
             var setterElement = setter.element;
 

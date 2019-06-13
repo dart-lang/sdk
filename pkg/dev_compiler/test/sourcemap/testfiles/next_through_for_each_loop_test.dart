@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*Debugger:stepOver*/
-main() {
+void main() {
   /*bl*/ /*sl:1*/ List<int> data = [1, 2, 3];
   for (
       // comment forcing formatting

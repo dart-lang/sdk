@@ -23,6 +23,8 @@ import 'package:analyzer/src/string_source.dart';
  * for the core library.
  */
 class TestTypeProvider extends TypeProviderBase {
+  final bool _isNonNullableByDefault;
+
   /**
    * The type representing the built-in type 'bool'.
    */
@@ -179,11 +181,6 @@ class TestTypeProvider extends TypeProviderBase {
   InterfaceType _typeType;
 
   /**
-   * The type representing type names that can't be resolved.
-   */
-  DartType _undefinedType;
-
-  /**
    * The analysis context, if any. Used to create an appropriate 'dart:async'
    * library to back `Future<T>`.
    */
@@ -195,7 +192,9 @@ class TestTypeProvider extends TypeProviderBase {
    */
   AnalysisDriver _driver;
 
-  TestTypeProvider([this._context, this._driver]);
+  /// TODO(paulberry): rework API and make _isNonNullableByDefault required.
+  TestTypeProvider(
+      [this._context, this._driver, this._isNonNullableByDefault = false]);
 
   @override
   InterfaceType get boolType {
@@ -476,10 +475,14 @@ class TestTypeProvider extends TypeProviderBase {
       // Create a library element for "dart:core"
       // This enables the "isDartCoreNull" getter.
       var library = new LibraryElementImpl.forNode(
-          _context, null, AstTestFactory.libraryIdentifier2(["dart.core"]));
+          _context,
+          null,
+          AstTestFactory.libraryIdentifier2(["dart.core"]),
+          _isNonNullableByDefault);
       var unit = new CompilationUnitElementImpl();
       library.definingCompilationUnit = unit;
-      unit.librarySource = unit.source = new StringSource('', null);
+      unit.librarySource =
+          unit.source = new StringSource('', null, uri: Uri.parse('dart:core'));
 
       nullElement.enclosingElement = library;
       _nullType = nullElement.type;
@@ -612,14 +615,6 @@ class TestTypeProvider extends TypeProviderBase {
     return _typeType;
   }
 
-  @override
-  DartType get undefinedType {
-    if (_undefinedType == null) {
-      _undefinedType = UndefinedTypeImpl.instance;
-    }
-    return _undefinedType;
-  }
-
   void _initDartAsync() {
     Source asyncSource;
     if (_driver != null) {
@@ -632,7 +627,10 @@ class TestTypeProvider extends TypeProviderBase {
     }
     CompilationUnitElementImpl asyncUnit = new CompilationUnitElementImpl();
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        _context, null, AstTestFactory.libraryIdentifier2(["dart.async"]));
+        _context,
+        null,
+        AstTestFactory.libraryIdentifier2(["dart.async"]),
+        _isNonNullableByDefault);
     asyncLibrary.definingCompilationUnit = asyncUnit;
     asyncUnit.librarySource = asyncUnit.source = asyncSource;
 

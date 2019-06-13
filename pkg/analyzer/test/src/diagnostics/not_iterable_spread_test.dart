@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -17,13 +15,6 @@ main() {
 
 @reflectiveTest
 class NotIterableSpreadTest extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
-
   test_iterable_list() async {
     await assertNoErrorsInCode('''
 var a = [0];
@@ -38,30 +29,39 @@ var v = [...?null];
   }
 
   test_notIterable_direct() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 23, 1),
+    ]);
   }
 
   test_notIterable_forElement() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [for (var i in []) ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 41, 1),
+    ]);
   }
 
   test_notIterable_ifElement_else() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 45, 1),
+    ]);
   }
 
   test_notIterable_ifElement_then() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var a = 0;
 var v = [if (1 > 0) ...a];
-''', [CompileTimeErrorCode.NOT_ITERABLE_SPREAD]);
+''', [
+      error(CompileTimeErrorCode.NOT_ITERABLE_SPREAD, 34, 1),
+    ]);
   }
 }

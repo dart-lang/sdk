@@ -12,9 +12,9 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/log.h"
 #include "bin/namespace.h"
 #include "bin/reference_counting.h"
+#include "platform/syslog.h"
 
 namespace dart {
 namespace bin {

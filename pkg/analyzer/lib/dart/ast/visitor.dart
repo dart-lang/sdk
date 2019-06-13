@@ -277,6 +277,10 @@ class GeneralizingAstVisitor<R>
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
@@ -834,6 +838,12 @@ class RecursiveAstVisitor<R>
 
   @override
   R visitExtendsClause(ExtendsClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) {
     node.visitChildren(this);
     return null;
   }
@@ -1447,6 +1457,9 @@ class SimpleAstVisitor<R>
   R visitExtendsClause(ExtendsClause node) => null;
 
   @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => null;
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
@@ -1820,6 +1833,9 @@ class ThrowingAstVisitor<R>
 
   @override
   R visitExtendsClause(ExtendsClause node) => _throw(node);
+
+  @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
 
   @override
   R visitFieldDeclaration(FieldDeclaration node) => _throw(node);
@@ -2401,6 +2417,14 @@ class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
   T visitExtendsClause(ExtendsClause node) {
     stopwatch.start();
     T result = _baseVisitor.visitExtendsClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExtensionDeclaration(ExtensionDeclaration node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExtensionDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -3179,6 +3203,9 @@ class UnifyingAstVisitor<R>
 
   @override
   R visitExtendsClause(ExtendsClause node) => visitNode(node);
+
+  @override
+  R visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
 
   @override
   R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);

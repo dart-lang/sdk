@@ -12,13 +12,113 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapKeyTypeNotAssignableTest);
-    defineReflectiveTests(MapKeyTypeNotAssignableWithUIAsCodeAndConstantsTest);
-    defineReflectiveTests(MapKeyTypeNotAssignableWithUIAsCodeTest);
+    defineReflectiveTests(MapKeyTypeNotAssignableWithConstantsTest);
   });
 }
 
 @reflectiveTest
 class MapKeyTypeNotAssignableTest extends DriverResolutionTest {
+  test_const_ifElement_thenElseFalse_intInt_dynamic() async {
+    await assertErrorsInCode(
+        '''
+const dynamic a = 0;
+const dynamic b = 0;
+var v = const <int, bool>{if (1 < 0) a: true else b: false};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 68, 32),
+              ]);
+  }
+
+  test_const_ifElement_thenElseFalse_intString_dynamic() async {
+    await assertErrorsInCode(
+        '''
+const dynamic a = 0;
+const dynamic b = 'b';
+var v = const <int, bool>{if (1 < 0) a: true else b: false};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 94, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 70, 32),
+              ]);
+  }
+
+  test_const_ifElement_thenFalse_intString_dynamic() async {
+    await assertErrorsInCode(
+        '''
+const dynamic a = 'a';
+var v = const <int, bool>{if (1 < 0) a: true};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 18),
+              ]);
+  }
+
+  test_const_ifElement_thenFalse_intString_value() async {
+    await assertErrorsInCode(
+        '''
+var v = const <int, bool>{if (1 < 0) 'a': true};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 26, 20),
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 37, 3),
+              ]);
+  }
+
+  test_const_ifElement_thenTrue_intInt_dynamic() async {
+    await assertErrorsInCode(
+        '''
+const dynamic a = 0;
+var v = const <int, bool>{if (true) a: true};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? []
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 47, 17),
+              ]);
+  }
+
+  test_const_ifElement_thenTrue_intString_dynamic() async {
+    await assertErrorsInCode(
+        '''
+const dynamic a = 'a';
+var v = const <int, bool>{if (true) a: true};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 59, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 49, 17),
+              ]);
+  }
+
+  test_const_ifElement_thenTrue_notConst() async {
+    await assertErrorsInCode(
+        '''
+final a = 0;
+var v = const <int, bool>{if (1 < 2) a: true};
+''',
+        analysisOptions.experimentStatus.constant_update_2018
+            ? [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 50, 1),
+              ]
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 39, 18),
+              ]);
+  }
+
   test_const_intInt_dynamic() async {
     await assertNoErrorsInCode('''
 const dynamic a = 0;
@@ -27,163 +127,47 @@ var v = const <int, bool>{a : true};
   }
 
   test_const_intString_dynamic() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 const dynamic a = 'a';
 var v = const <int, bool>{a : true};
-''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 49, 1),
+    ]);
   }
 
   test_const_intString_value() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = const <int, bool>{'a' : true};
-''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-  }
-
-  test_nonConst_intInt_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = 0;
-var v = <int, bool>{a : true};
-''');
-  }
-
-  test_nonConst_intString_dynamic() async {
-    await assertNoErrorsInCode('''
-const dynamic a = 'a';
-var v = <int, bool>{a : true};
-''');
-  }
-
-  test_nonConst_intString_value() async {
-    await assertErrorCodesInCode('''
-var v = <int, bool>{'a' : true};
-''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
-  }
-}
-
-@reflectiveTest
-class MapKeyTypeNotAssignableWithUIAsCodeAndConstantsTest
-    extends MapKeyTypeNotAssignableWithUIAsCodeTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
-}
-
-@reflectiveTest
-class MapKeyTypeNotAssignableWithUIAsCodeTest
-    extends MapKeyTypeNotAssignableTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
-  test_const_ifElement_thenElseFalse_intInt_dynamic() async {
-    await assertErrorCodesInCode(
-        '''
-const dynamic a = 0;
-const dynamic b = 0;
-var v = const <int, bool>{if (1 < 0) a: true else b: false};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
-  }
-
-  test_const_ifElement_thenElseFalse_intString_dynamic() async {
-    await assertErrorCodesInCode(
-        '''
-const dynamic a = 0;
-const dynamic b = 'b';
-var v = const <int, bool>{if (1 < 0) a: true else b: false};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
-  }
-
-  test_const_ifElement_thenFalse_intString_dynamic() async {
-    await assertErrorCodesInCode(
-        '''
-const dynamic a = 'a';
-var v = const <int, bool>{if (1 < 0) a: true};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
-  }
-
-  test_const_ifElement_thenFalse_intString_value() async {
-    await assertErrorCodesInCode(
-        '''
-var v = const <int, bool>{if (1 < 0) 'a': true};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]
-            : [
-                StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
-              ]);
-  }
-
-  test_const_ifElement_thenTrue_intInt_dynamic() async {
-    await assertErrorCodesInCode(
-        '''
-const dynamic a = 0;
-var v = const <int, bool>{if (true) a: true};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
-  }
-
-  test_const_ifElement_thenTrue_intString_dynamic() async {
-    await assertErrorCodesInCode(
-        '''
-const dynamic a = 'a';
-var v = const <int, bool>{if (true) a: true};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
-  }
-
-  test_const_ifElement_thenTrue_notConst() async {
-    await assertErrorCodesInCode(
-        '''
-final a = 0;
-var v = const <int, bool>{if (1 < 2) a: true};
-''',
-        analysisOptions.experimentStatus.constant_update_2018
-            ? [CompileTimeErrorCode.NON_CONSTANT_MAP_KEY]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+''', [
+      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
+    ]);
   }
 
   test_const_spread_intInt() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 var v = const <int, String>{...{1: 'a'}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 28, 11),
+              ]);
   }
 
   test_const_spread_intString_dynamic() async {
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         '''
 const dynamic a = 'a';
 var v = const <int, String>{...{a: 'a'}};
 ''',
         analysisOptions.experimentStatus.constant_update_2018
-            ? [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]
+            ? [
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
+              ]
             : [
-                StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
-                CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 51, 11),
+                error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 55, 1),
               ]);
   }
 
@@ -204,9 +188,11 @@ var v = <int, bool>{if (1 < 0) a: true else b: false};
   }
 
   test_nonConst_ifElement_thenFalse_intString_value() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = <int, bool>{if (1 < 0) 'a': true};
-''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 31, 3),
+    ]);
   }
 
   test_nonConst_ifElement_thenTrue_intInt_dynamic() async {
@@ -223,6 +209,28 @@ var v = <int, bool>{if (true) a: true};
 ''');
   }
 
+  test_nonConst_intInt_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 0;
+var v = <int, bool>{a : true};
+''');
+  }
+
+  test_nonConst_intString_dynamic() async {
+    await assertNoErrorsInCode('''
+const dynamic a = 'a';
+var v = <int, bool>{a : true};
+''');
+  }
+
+  test_nonConst_intString_value() async {
+    await assertErrorsInCode('''
+var v = <int, bool>{'a' : true};
+''', [
+      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 20, 3),
+    ]);
+  }
+
   test_nonConst_spread_intInt() async {
     await assertNoErrorsInCode('''
 var v = <int, String>{...{1: 'a'}};
@@ -236,9 +244,11 @@ var v = <int, int>{...<num, num>{1: 1}};
   }
 
   test_nonConst_spread_intString() async {
-    await assertErrorCodesInCode('''
+    await assertErrorsInCode('''
 var v = <int, String>{...{'a': 'a'}};
-''', [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE]);
+''', [
+      error(StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE, 26, 3),
+    ]);
   }
 
   test_nonConst_spread_intString_dynamic() async {
@@ -247,4 +257,12 @@ dynamic a = 'a';
 var v = <int, String>{...{a: 'a'}};
 ''');
   }
+}
+
+@reflectiveTest
+class MapKeyTypeNotAssignableWithConstantsTest
+    extends MapKeyTypeNotAssignableTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

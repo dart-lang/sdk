@@ -181,18 +181,6 @@ ConstEvalNotMapInSpread:
   template: "Only maps can be used in spreads in constant maps."
   analyzerCode: CONST_SPREAD_EXPECTED_MAP
 
-ConstEvalIterationInConstList:
-  template: "Iteration can't be used in a constant list."
-  analyzerCode: NON_CONSTANT_LIST_ELEMENT
-
-ConstEvalIterationInConstSet:
-  template: "Iteration can't be used in a constant set."
-  analyzerCode: NON_CONSTANT_SET_ELEMENT
-
-ConstEvalIterationInConstMap:
-  template: "Iteration can't be used in a constant map."
-  analyzerCode: NON_CONSTANT_MAP_ELEMENT
-
 ConstEvalUnevaluated:
   template: "Could not evaluate constant expression."
 
@@ -220,7 +208,7 @@ Encoding:
   bytes: [255]
 
 ExperimentNotEnabled:
-  index: 93
+  index: 48
   template: "This requires the '#string' experiment to be enabled."
   tip: "Try enabling this experiment by adding it to the command line when compiling and running."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
@@ -248,7 +236,7 @@ EmptyOptionalParameterList:
     }
 
 ExpectedElseOrComma:
-  index: 94
+  index: 46
   template: "Expected 'else' or comma."
   analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
 
@@ -335,7 +323,7 @@ ExpectedInstead:
   #
   analyzerCode: ParserErrorCode.EXPECTED_INSTEAD
   script:
-    - "mixin A extends B { }"
+    - "class B {} mixin A extends B { }"
 
 MultipleLibraryDirectives:
   index: 27
@@ -362,7 +350,7 @@ WithBeforeExtends:
   template: "The extends clause must be before the with clause."
   tip: "Try moving the extends clause before the with clause."
   analyzerCode: ParserErrorCode.WITH_BEFORE_EXTENDS
-  script: "class B {} class A with B extends C {}"
+  script: "class B {} class C {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
   index: 44
@@ -425,10 +413,10 @@ ImplementsFutureOr:
       class A implements FutureOr<int> {}
 
 ExpectedClassOrMixinBody:
-  template: "Expected a class or mixin body, but got '#lexeme'."
-  analyzerCode: MISSING_CLASS_BODY
-
-ExpectedClassBodyToSkip: ExpectedClassOrMixinBody
+  index: 8
+  template: "A #string must have a body, even if it is empty."
+  tip: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_BODY
 
 ExpectedDeclaration:
   template: "Expected a declaration, but got '#lexeme'."
@@ -574,15 +562,6 @@ ConstClass:
   analyzerCode: ParserErrorCode.CONST_CLASS
   script: "const class C {}"
 
-ConstAndCovariant:
-  index: 57
-  template: "Members can't be declared to be both 'const' and 'covariant'."
-  tip: "Try removing either the 'const' or 'covariant' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_COVARIANT
-  script:
-    - "class C { covariant const C f; }"
-    - "class C { const covariant C f; }"
-
 ConstAndFinal:
   index: 58
   template: "Members can't be declared to be both 'const' and 'final'."
@@ -594,11 +573,11 @@ ConstAndFinal:
     - "const final int x = 5;"
     - "final const int x = 5;"
 
-ConstAndVar:
+ConflictingModifiers:
   index: 59
-  template: "Members can't be declared to be both 'const' and 'var'."
-  tip: "Try removing either the 'const' or 'var' keyword."
-  analyzerCode: ParserErrorCode.CONST_AND_VAR
+  template: "Members can't be declared to be both '#string' and '#string2'."
+  tip: "Try removing one of the keywords."
+  analyzerCode: ParserErrorCode.CONFLICTING_MODIFIERS
   script:
     - "class C { const var x; }"
     - "class C { var const x; }"
@@ -639,9 +618,14 @@ ModifierOutOfOrder:
   analyzerCode: ParserErrorCode.MODIFIER_OUT_OF_ORDER
   script:
     - "class C { factory const C() = prefix.B.foo; }"
+    - "class C { factory external C(); }"
+    - "class C { const external C(); }"
+    - "class C { static external f(); }"
+    - "class C { final static int f = 5; }"
+    - "class C { var static f; }"
 
 TypeBeforeFactory:
-  index: 97
+  index: 57
   template: "Factory constructors cannot have a return type."
   tip: "Try removing the type appearing before 'factory'."
   analyzerCode: ParserErrorCode.TYPE_BEFORE_FACTORY
@@ -663,22 +647,6 @@ ConstMethod:
   script:
     - "class C { const m() {} }"
 
-CovariantAfterFinal:
-  index: 65
-  template: "The modifier 'covariant' should be before the modifier 'final'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.COVARIANT_AFTER_FINAL
-  script:
-    - "final covariant f;"
-
-CovariantAfterVar:
-  index: 8
-  template: "The modifier 'covariant' should be before the modifier 'var'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.COVARIANT_AFTER_VAR
-  script:
-    - "var covariant f;"
-
 CovariantAndStatic:
   index: 66
   template: "Members can't be declared to be both 'covariant' and 'static'."
@@ -699,30 +667,6 @@ DuplicatedModifier:
     - "class C { final final m = 5; }"
     - "class C { static static var m; }"
     - "class C { var var m; }"
-
-ExternalAfterConst:
-  index: 46
-  template: "The modifier 'external' should be before the modifier 'const'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_CONST
-  script:
-    - "class C { const external C(); }"
-
-ExternalAfterFactory:
-  index: 47
-  template: "The modifier 'external' should be before the modifier 'factory'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_FACTORY
-  script:
-    - "class C { factory external C(); }"
-
-ExternalAfterStatic:
-  index: 48
-  template: "The modifier 'external' should be before the modifier 'static'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.EXTERNAL_AFTER_STATIC
-  script:
-    - "class C { static external f(); }"
 
 ExternalConstructorWithBody:
   index: 87
@@ -837,30 +781,6 @@ FinalAndVar:
   script:
     - "class C { final var x = 5; }"
     - "class C { var final x = 5; }"
-
-StaticAfterConst:
-  index: 20
-  template: "The modifier 'static' should be before the modifier 'const'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_CONST
-  script:
-    - "class C { const static int f; }"
-
-StaticAfterFinal:
-  index: 19
-  template: "The modifier 'static' should be before the modifier 'final'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_FINAL
-  script:
-    - "class C { final static int f = 5; }"
-
-StaticAfterVar:
-  index: 18
-  template: "The modifier 'static' should be before the modifier 'var'."
-  tip: "Try re-ordering the modifiers."
-  analyzerCode: ParserErrorCode.STATIC_AFTER_VAR
-  script:
-    - "class C { var static f; }"
 
 StaticConstructor:
   index: 4
@@ -1072,7 +992,7 @@ RequiredParameterWithDefault:
       }
 
 StackOverflow:
-  index: 91
+  index: 19
   template: "The file has too many nested expressions or statements."
   tip: "Try simplifying the code."
   analyzerCode: ParserErrorCode.STACK_OVERFLOW
@@ -1194,10 +1114,6 @@ AbstractNotSync:
   template: "Abstract methods can't use 'async', 'async*', or 'sync*'."
   analyzerCode: NON_SYNC_ABSTRACT_METHOD
 
-AsyncAsIdentifier:
-  analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
-  template: "'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
-
 AwaitAsIdentifier:
   template: "'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods."
   analyzerCode: ASYNC_KEYWORD_USED_AS_IDENTIFIER
@@ -1255,7 +1171,7 @@ YieldNotGenerator:
   analyzerCode: YIELD_IN_NON_GENERATOR
 
 OnlyTry:
-  index: 92
+  index: 20
   template: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
   tip: "Try adding either a catch or finally clause, or remove the try statement."
   analyzerCode: ParserErrorCode.MISSING_CATCH_OR_FINALLY
@@ -1323,7 +1239,7 @@ CatchSyntaxExtraParameters:
     - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
-  index: 90
+  index: 18
   template: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   tip: "Try replacing '?.' with '.'"
   analyzerCode: ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER
@@ -2571,12 +2487,12 @@ SdkSpecificationNotFound:
   tip: "Normally, the specification is a file named 'libraries.json' in the Dart SDK install location."
 
 InvalidSuperInInitializer:
-  index: 95
+  index: 47
   template: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
   analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
 
 InvalidThisInInitializer:
-  index: 96
+  index: 65
   template: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
   analyzerCode: ParserErrorCode.INVALID_THIS_IN_INITIALIZER
 
@@ -3641,3 +3557,9 @@ NonNullAwareSpreadIsNull:
     main() {
       <int>[...null];
     }
+
+BadTypeVariableInSupertype:
+  template: "Found unsupported uses of '#name' in supertype '#name2'."
+  script: >
+    class A<X> {}
+    class B<Y> extends A<Function(Y)> {}

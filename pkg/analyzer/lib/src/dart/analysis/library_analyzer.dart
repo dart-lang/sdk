@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -32,8 +33,16 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:pub_semver/pub_semver.dart';
+
+var timerLibraryAnalyzer = Stopwatch();
+var timerLibraryAnalyzerConst = Stopwatch();
+var timerLibraryAnalyzerFreshUnit = Stopwatch();
+var timerLibraryAnalyzerResolve = Stopwatch();
+var timerLibraryAnalyzerSplicer = Stopwatch();
+var timerLibraryAnalyzerVerify = Stopwatch();
 
 /**
  * Analyzer of a single library.
@@ -53,10 +62,10 @@ class LibraryAnalyzer {
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
-  final TypeProvider _typeProvider;
+  final LinkedElementFactory _elementFactory;
+  TypeProvider _typeProvider;
 
   final TypeSystem _typeSystem;
-  bool isNonNullableLibrary = false;
   LibraryElement _libraryElement;
 
   LibraryScope _libraryScope;
@@ -85,11 +94,11 @@ class LibraryAnalyzer {
       this._isLibraryUri,
       this._context,
       this._resynthesizer,
+      this._elementFactory,
       this._inheritance,
       this._library,
       this._resourceProvider)
-      : _typeProvider = _context.typeProvider,
-        _typeSystem = _context.typeSystem;
+      : _typeSystem = _context.typeSystem;
 
   /**
    * Compute analysis results for all units of the library.
@@ -104,36 +113,57 @@ class LibraryAnalyzer {
    * Compute analysis results for all units of the library.
    */
   Map<FileState, UnitAnalysisResult> analyzeSync() {
+    timerLibraryAnalyzer.start();
     Map<FileState, CompilationUnit> units = {};
 
     // Parse all files.
+    timerLibraryAnalyzerFreshUnit.start();
     for (FileState file in _library.libraryFiles) {
       units[file] = _parse(file);
     }
-    // TODO(danrubel): Verify that all units are either nullable or non-nullable
-    isNonNullableLibrary =
-        (units.values.first as CompilationUnitImpl).isNonNullable;
+    timerLibraryAnalyzerFreshUnit.stop();
 
     // Resolve URIs in directives to corresponding sources.
+    FeatureSet featureSet = units[_library].featureSet;
+    _typeProvider = _context.typeProvider;
+    if (featureSet.isEnabled(Feature.non_nullable)) {
+      if (_typeProvider is! NonNullableTypeProvider) {
+        _typeProvider = NonNullableTypeProvider.from(_typeProvider);
+      }
+    } else {
+      if (_typeProvider is NonNullableTypeProvider) {
+        _typeProvider = TypeProviderImpl.from(_typeProvider);
+      }
+    }
     units.forEach((file, unit) {
+      _validateFeatureSet(unit, featureSet);
       _resolveUriBasedDirectives(file, unit);
     });
 
-    _libraryElement = _resynthesizer
-        .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    if (_elementFactory != null) {
+      _libraryElement = _elementFactory.libraryOfUri(_library.uriStr);
+    } else {
+      _libraryElement = _resynthesizer
+          .getElement(new ElementLocationImpl.con3([_library.uriStr]));
+    }
     _libraryScope = new LibraryScope(_libraryElement);
 
+    timerLibraryAnalyzerResolve.start();
     _resolveDirectives(units);
 
     units.forEach((file, unit) {
       _resolveFile(file, unit);
       _computePendingMissingRequiredParameters(file, unit);
     });
+    timerLibraryAnalyzerResolve.stop();
 
+    timerLibraryAnalyzerConst.start();
     units.values.forEach(_findConstants);
     _clearConstantEvaluationResults();
     _computeConstants();
+    timerLibraryAnalyzerConst.stop();
 
+    timerLibraryAnalyzerVerify.start();
     PerformanceStatistics.errors.makeCurrentWhile(() {
       units.forEach((file, unit) {
         _computeVerifyErrors(file, unit);
@@ -171,6 +201,7 @@ class LibraryAnalyzer {
         }
       });
     }
+    timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
     Map<FileState, UnitAnalysisResult> results = {};
@@ -179,6 +210,7 @@ class LibraryAnalyzer {
       errors = _filterIgnoredErrors(file, errors);
       results[file] = new UnitAnalysisResult(file, unit, errors);
     });
+    timerLibraryAnalyzer.stop();
     return results;
   }
 
@@ -204,7 +236,7 @@ class LibraryAnalyzer {
       ErrorReporter errorReporter, CompilationUnit unit) {
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, _libraryElement, _typeProvider, _declaredVariables,
-        forAnalysisDriver: true);
+        featureSet: unit.featureSet, forAnalysisDriver: true);
     unit.accept(constantVerifier);
   }
 
@@ -231,7 +263,7 @@ class LibraryAnalyzer {
       errorListener.onError(pendingError.toAnalysisError());
     }
 
-    unit.accept(new DeadCodeVerifier(errorReporter, isNonNullableLibrary,
+    unit.accept(new DeadCodeVerifier(errorReporter, unit.featureSet,
         typeSystem: _context.typeSystem));
 
     // Dart2js analysis.
@@ -240,7 +272,7 @@ class LibraryAnalyzer {
     }
 
     unit.accept(new BestPracticesVerifier(
-        errorReporter, _typeProvider, _libraryElement,
+        errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _context.typeSystem,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
@@ -623,7 +655,9 @@ class LibraryAnalyzer {
       }
     }
 
+    timerLibraryAnalyzerSplicer.start();
     new DeclarationResolver().resolve(unit, unitElement);
+    timerLibraryAnalyzerSplicer.stop();
 
     unit.accept(new AstRewriteVisitor(_context.typeSystem, _libraryElement,
         source, _typeProvider, errorListener,
@@ -631,28 +665,33 @@ class LibraryAnalyzer {
 
     // TODO(scheglov) remove EnumMemberBuilder class
 
-    new TypeParameterBoundsResolver(
-            _context.typeSystem, _libraryElement, source, errorListener,
-            isNonNullableUnit: isNonNullableLibrary)
+    new TypeParameterBoundsResolver(_context.typeSystem, _libraryElement,
+            source, errorListener, unit.featureSet)
         .resolveTypeBounds(unit);
 
     unit.accept(new TypeResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
-        isNonNullableUnit: isNonNullableLibrary));
+        featureSet: unit.featureSet));
 
     unit.accept(new VariableResolverVisitor(
         _libraryElement, source, _typeProvider, errorListener,
         nameScope: _libraryScope));
 
-    unit.accept(new PartialResolverVisitor(_inheritance, _libraryElement,
-        source, _typeProvider, AnalysisErrorListener.NULL_LISTENER));
+    unit.accept(new PartialResolverVisitor(
+        _inheritance,
+        _libraryElement,
+        source,
+        _typeProvider,
+        AnalysisErrorListener.NULL_LISTENER,
+        unit.featureSet));
 
     // Nothing for RESOLVED_UNIT8?
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
     unit.accept(new ResolverVisitor(
-        _inheritance, _libraryElement, source, _typeProvider, errorListener));
+        _inheritance, _libraryElement, source, _typeProvider, errorListener,
+        featureSet: unit.featureSet));
   }
 
   /**
@@ -694,6 +733,15 @@ class LibraryAnalyzer {
             file, directive is ImportDirective, uriLiteral, uriContent);
         directive.uriSource = defaultSource;
       }
+    }
+  }
+
+  /// Validate that the feature set associated with the compilation [unit] is
+  /// the same as the [expectedSet] of features supported by the library.
+  void _validateFeatureSet(CompilationUnit unit, FeatureSet expectedSet) {
+    FeatureSet actualSet = unit.featureSet;
+    if (actualSet != expectedSet) {
+      // TODO(brianwilkerson) Generate a diagnostic.
     }
   }
 

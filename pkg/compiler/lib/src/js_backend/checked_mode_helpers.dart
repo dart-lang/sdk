@@ -12,7 +12,7 @@ import '../ssa/codegen.dart' show SsaCodeGenerator;
 import '../ssa/nodes.dart' show HTypeConversion;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
-import 'namer.dart' show Namer;
+import 'namer.dart' show ModularNamer;
 
 class CheckedModeHelper {
   final String name;
@@ -28,7 +28,7 @@ class CheckedModeHelper {
 
   CallStructure get callStructure => CallStructure.ONE_ARG;
 
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // No additional arguments needed.
   }
@@ -41,7 +41,7 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
   @override
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
     jsAst.Name additionalArgument = namer.operatorIsType(type);
@@ -56,7 +56,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
   @override
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isTypeVariable);
     codegen.use(node.typeRepresentation);
@@ -71,7 +71,7 @@ class FunctionTypeRepresentationCheckedModeHelper extends CheckedModeHelper {
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
   @override
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isFunctionType);
     codegen.use(node.typeRepresentation);
@@ -86,7 +86,7 @@ class FutureOrRepresentationCheckedModeHelper extends CheckedModeHelper {
   CallStructure get callStructure => CallStructure.TWO_ARGS;
 
   @override
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     assert(node.typeExpression.isFutureOr);
     codegen.use(node.typeRepresentation);
@@ -101,7 +101,7 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
   CallStructure get callStructure => const CallStructure.unnamed(4);
 
   @override
-  void generateAdditionalArguments(SsaCodeGenerator codegen, Namer namer,
+  void generateAdditionalArguments(SsaCodeGenerator codegen, ModularNamer namer,
       HTypeConversion node, List<jsAst.Expression> arguments) {
     // TODO(sra): Move these calls into the SSA graph so that the arguments can
     // be optimized, e,g, GVNed.

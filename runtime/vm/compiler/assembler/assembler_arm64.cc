@@ -18,6 +18,7 @@ namespace dart {
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, precompiled_mode);
+DECLARE_FLAG(bool, use_slow_path);
 
 DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
@@ -493,17 +494,6 @@ void Assembler::LoadObjectHelper(Register dst,
     ASSERT(target::IsSmi(object));
     LoadImmediate(dst, target::ToRawSmi(object));
   }
-}
-
-void Assembler::LoadFunctionFromCalleePool(Register dst,
-                                           const Function& function,
-                                           Register new_pp) {
-  ASSERT(!constant_pool_allowed());
-  ASSERT(new_pp != PP);
-  const int32_t offset = ObjectPool::element_offset(
-      object_pool_builder().FindObject(ToObject(function)));
-  ASSERT(Address::CanHoldOffset(offset));
-  ldr(dst, Address(new_pp, offset));
 }
 
 void Assembler::LoadObject(Register dst, const Object& object) {
@@ -1175,6 +1165,23 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   }
 }
 
+void Assembler::EmitEntryFrameVerification() {
+#if defined(DEBUG)
+  Label done;
+  ASSERT(!constant_pool_allowed());
+  LoadImmediate(TMP,
+                compiler::target::frame_layout.exit_link_slot_from_entry_fp *
+                    compiler::target::kWordSize);
+  add(TMP, TMP, Operand(FPREG));
+  cmp(TMP, Operand(SPREG));
+  b(&done, EQ);
+
+  Breakpoint();
+
+  Bind(&done);
+#endif
+}
+
 void Assembler::RestoreCodePointer() {
   ldr(CODE_REG, Address(FP, compiler::target::frame_layout.code_from_fp *
                                 target::kWordSize));
@@ -1306,11 +1313,13 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 }
 
 void Assembler::TransitionGeneratedToNative(Register destination,
+                                            Register new_exit_frame,
                                             Register state) {
   Register addr = TMP2;
+  ASSERT(addr != state);
 
   // Save exit frame information to enable stack walking.
-  StoreToOffset(FPREG, THR,
+  StoreToOffset(new_exit_frame, THR,
                 compiler::target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
@@ -1319,17 +1328,20 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_unacquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
@@ -1342,24 +1354,28 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 
 void Assembler::TransitionNativeToGenerated(Register state) {
   Register addr = TMP2;
+  ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()), 0);
-  add(addr, THR, Operand(addr));
-  Bind(&retry);
-  ldxr(state, addr);
-  cmp(state, Operand(Thread::safepoint_state_acquired()));
-  b(&slow_path, NE);
+  if (!FLAG_use_slow_path) {
+    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
+         0);
+    add(addr, THR, Operand(addr));
+    Bind(&retry);
+    ldxr(state, addr);
+    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    b(&slow_path, NE);
 
-  movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
-  stxr(TMP, state, addr);
-  cbz(&done, TMP);  // 0 means stxr was successful.
-  b(&retry);
+    movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
+    stxr(TMP, state, addr);
+    cbz(&done, TMP);  // 0 means stxr was successful.
+    b(&retry);
+  }
 
   Bind(&slow_path);
   ldr(addr,
       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
-  ldr(addr, FieldAddress(TMP, compiler::target::Code::entry_point_offset()));
+  ldr(addr, FieldAddress(addr, compiler::target::Code::entry_point_offset()));
   blr(addr);
 
   Bind(&done);
@@ -1453,19 +1469,21 @@ void Assembler::MonomorphicCheckedEntry() {
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
+  const intptr_t start = CodeSize();
+
   Label immediate, miss;
   Bind(&miss);
   ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1477,8 +1495,8 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(cid > 0);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   LoadIsolate(temp_reg);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, state_offset);
   ldr(temp_reg, Address(temp_reg, 0));
@@ -1488,10 +1506,10 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid) {
   ASSERT(cid > 0);
-  intptr_t counter_offset = ClassTable::CounterOffsetFor(cid, /*is_new=*/true);
+  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
   LoadIsolate(TMP2);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, counter_offset);
   ldr(TMP, Address(TMP2, 0));
@@ -1507,8 +1525,8 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
   const uword size_field_offset =
       ClassHeapStats::allocated_size_since_gc_new_space_offset();
   LoadIsolate(TMP2);
-  intptr_t table_offset =
-      Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+  intptr_t table_offset = Isolate::class_table_offset() +
+                          ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, class_offset);
   ldr(TMP, Address(TMP2, count_field_offset));
@@ -1832,6 +1850,41 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
         PopQuad(fpu_reg);
       }
     }
+  }
+}
+
+void Assembler::PushNativeCalleeSavedRegisters() {
+  // Save the callee-saved registers.
+  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+    const Register r = static_cast<Register>(i);
+    // We use str instead of the Push macro because we will be pushing the PP
+    // register when it is not holding a pool-pointer since we are coming from
+    // C++ code.
+    str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+  }
+
+  // Save the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+    const VRegister r = static_cast<VRegister>(i);
+    PushDouble(r);
+  }
+}
+
+void Assembler::PopNativeCalleeSavedRegisters() {
+  // Restore the bottom 64-bits of callee-saved V registers.
+  for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
+    const VRegister r = static_cast<VRegister>(i);
+    PopDouble(r);
+  }
+
+  // Restore C++ ABI callee-saved registers.
+  for (int i = kAbiLastPreservedCpuReg; i >= kAbiFirstPreservedCpuReg; i--) {
+    Register r = static_cast<Register>(i);
+    // We use ldr instead of the Pop macro because we will be popping the PP
+    // register when it is not holding a pool-pointer since we are returning to
+    // C++ code. We also skip the dart stack pointer SP, since we are still
+    // using it as the stack pointer.
+    ldr(r, Address(SP, 1 * target::kWordSize, Address::PostIndex));
   }
 }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/summary2/ast_text_printer.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,7 +11,6 @@ import '../dart/ast/parse_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AstTextPrinterTest);
-    defineReflectiveTests(AstTextPrinterWithUiAsCodeTest);
   });
 }
 
@@ -63,6 +60,24 @@ class AstTextPrinterTest extends ParseBase {
 ''');
   }
 
+  test_forElement() async {
+    assertParseCodeAndPrintAst(this, r'''
+var _ = [1, for (var v in [2, 3, 4]) v, 5];
+''');
+  }
+
+  test_ifElement_then() async {
+    assertParseCodeAndPrintAst(this, r'''
+var _ = [1, if (true) 2, 3];
+''');
+  }
+
+  test_ifElement_thenElse() async {
+    assertParseCodeAndPrintAst(this, r'''
+var _ = [1, if (true) 2 else 3, 4];
+''');
+  }
+
   test_simple() async {
     assertParseCodeAndPrintAst(this, r'''
 class C {
@@ -79,34 +94,6 @@ class C {
 class A {}
 ${' ' * 2}
 class B {}
-''');
-  }
-}
-
-@reflectiveTest
-class AstTextPrinterWithUiAsCodeTest extends ParseBase {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-    ];
-
-  test_forElement() async {
-    assertParseCodeAndPrintAst(this, r'''
-var _ = [1, for (var v in [2, 3, 4]) v, 5];
-''');
-  }
-
-  test_ifElement_then() async {
-    assertParseCodeAndPrintAst(this, r'''
-var _ = [1, if (true) 2, 3];
-''');
-  }
-
-  test_ifElement_thenElse() async {
-    assertParseCodeAndPrintAst(this, r'''
-var _ = [1, if (true) 2 else 3, 4];
 ''');
   }
 

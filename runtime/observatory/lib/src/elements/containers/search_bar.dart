@@ -16,7 +16,7 @@ class SearchResultSelected {
 
 typedef Iterable<dynamic> SearchBarSearchCallback(Pattern pattern);
 
-class SearchBarElement extends HtmlElement implements Renderable {
+class SearchBarElement extends CustomElement implements Renderable {
   static const tag = const Tag<SearchBarElement>('search-bar');
 
   RenderingScheduler<SearchBarElement> _r;
@@ -58,7 +58,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
       {bool isOpen: false, Element workspace, RenderingQueue queue}) {
     assert(search != null);
     assert(isOpen != null);
-    SearchBarElement e = document.createElement(tag.name);
+    SearchBarElement e = new SearchBarElement.created();
     e._r = new RenderingScheduler<SearchBarElement>(e, queue: queue);
     e._search = search;
     e._isOpen = isOpen;
@@ -66,7 +66,7 @@ class SearchBarElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SearchBarElement.created() : super.created();
+  SearchBarElement.created() : super.created(tag);
 
   @override
   attached() {

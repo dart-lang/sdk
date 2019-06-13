@@ -159,14 +159,14 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
   args.SetAt(2, owner_mirror);
 
   if (!has_extra_parameter_info) {
-    is_final ^= Bool::True().raw();
+    is_final = Bool::True().raw();
     default_value = Object::null();
     metadata = Object::null();
   }
 
   for (intptr_t i = 0; i < non_implicit_param_count; i++) {
-    pos ^= Smi::New(i);
-    name ^= func.ParameterNameAt(implicit_param_count + i);
+    pos = Smi::New(i);
+    name = func.ParameterNameAt(implicit_param_count + i);
     if (has_extra_parameter_info) {
       is_final ^= param_descriptor.At(i * Parser::kParameterEntrySize +
                                       Parser::kParameterIsFinalOffset);
@@ -186,7 +186,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     args.SetAt(6, is_final);
     args.SetAt(7, default_value);
     args.SetAt(8, metadata);
-    param ^= CreateMirror(Symbols::_LocalParameterMirror(), args);
+    param = CreateMirror(Symbols::_LocalParameterMirror(), args);
     results.SetAt(i, param);
   }
   results.MakeImmutable();
@@ -216,7 +216,7 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
     ASSERT(type.IsFinalized());
-    name ^= type.name();
+    name = type.name();
     result.SetAt(2 * i, name);
     result.SetAt(2 * i + 1, type);
   }
@@ -331,6 +331,23 @@ static RawInstance* CreateClassMirror(const Class& cls,
   return CreateMirror(Symbols::_LocalClassMirror(), args);
 }
 
+static bool IsCensoredLibrary(const String& url) {
+  static const char* const censored_libraries[] = {
+      "dart:_builtin",
+      "dart:_vmservice",
+      "dart:vmservice_io",
+  };
+  for (const char* censored_library : censored_libraries) {
+    if (url.Equals(censored_library)) {
+      return true;
+    }
+  }
+  if (!Api::IsFfiEnabled() && url.Equals(Symbols::DartFfi())) {
+    return true;
+  }
+  return false;
+}
+
 static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   Zone* zone = thread->zone();
   ASSERT(!lib.IsNull());
@@ -340,17 +357,9 @@ static RawInstance* CreateLibraryMirror(Thread* thread, const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
-  const char* censored_libraries[] = {
-      "dart:_builtin",
-      "dart:_vmservice",
-      "dart:vmservice_io",
-      NULL,
-  };
-  for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
-    if (str.Equals(censored_libraries[i])) {
-      // Censored library (grumble).
-      return Instance::null();
-    }
+  if (IsCensoredLibrary(str)) {
+    // Censored library (grumble).
+    return Instance::null();
   }
   args.SetAt(2, str);
   return CreateMirror(Symbols::_LocalLibraryMirror(), args);
@@ -756,7 +765,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_instantiateGenericType, 0, 2) {
 
   intptr_t num_expected_type_arguments = args.Length();
   TypeArguments& type_args_obj = TypeArguments::Handle();
-  type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+  type_args_obj = TypeArguments::New(num_expected_type_arguments);
   AbstractType& type_arg = AbstractType::Handle();
   Instance& instance = Instance::Handle();
   for (intptr_t i = 0; i < args.Length(); i++) {
@@ -824,7 +833,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 0, 1) {
       // TODO(regis): Fully support generic functions.
       return Object::empty_array().raw();
     }
-    klass ^= TypeParameter::Cast(decl).parameterized_class();
+    klass = TypeParameter::Cast(decl).parameterized_class();
     library = klass.library();
   } else {
     return Object::empty_array().raw();
@@ -1117,8 +1126,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 0, 1) {
   // arguments have been provided, or all arguments are dynamic. Return a list
   // of typemirrors on dynamic in this case.
   if (args.IsNull()) {
-    arg_type ^= Object::dynamic_type().raw();
-    type_mirror ^= CreateTypeMirror(arg_type);
+    arg_type = Object::dynamic_type().raw();
+    type_mirror = CreateTypeMirror(arg_type);
     for (intptr_t i = 0; i < num_params; i++) {
       result.SetAt(i, type_mirror);
     }
@@ -1128,7 +1137,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 0, 1) {
   ASSERT(args.Length() >= num_params);
   const intptr_t num_inherited_args = args.Length() - num_params;
   for (intptr_t i = 0; i < num_params; i++) {
-    arg_type ^= args.TypeAt(i + num_inherited_args);
+    arg_type = args.TypeAt(i + num_inherited_args);
     type_mirror = CreateTypeMirror(arg_type);
     result.SetAt(i, type_mirror);
   }
@@ -1500,7 +1509,7 @@ DEFINE_NATIVE_ENTRY(MethodMirror_return_type, 0, 2) {
   // We handle constructors in Dart code.
   ASSERT(!func.IsGenerativeConstructor());
   AbstractType& type = AbstractType::Handle(func.result_type());
-  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
+  type = type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 
@@ -1580,7 +1589,9 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
   }
 
   ASSERT(!script.IsNull());
-  ASSERT(token_pos != TokenPosition::kNoSource);
+  if (token_pos == TokenPosition::kNoSource) {
+    return Instance::null();
+  }
 
   const String& uri = String::Handle(zone, script.url());
   intptr_t from_line = 0;
@@ -1616,7 +1627,7 @@ DEFINE_NATIVE_ENTRY(ParameterMirror_type, 0, 3) {
   const Function& func = Function::Handle(ref.GetFunctionReferent());
   AbstractType& type = AbstractType::Handle(
       func.ParameterTypeAt(func.NumImplicitParameters() + pos.Value()));
-  type ^= type.Canonicalize();  // Instantiated signatures are not canonical.
+  type = type.Canonicalize();  // Instantiated signatures are not canonical.
   return InstantiateType(type, instantiator);
 }
 

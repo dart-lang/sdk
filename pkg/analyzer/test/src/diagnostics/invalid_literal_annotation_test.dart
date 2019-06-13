@@ -30,23 +30,27 @@ class A {
 
   test_nonConstConstructor() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
   A() {}
 }
-''', [HintCode.INVALID_LITERAL_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_LITERAL_ANNOTATION, 45, 8),
+    ]);
   }
 
   test_nonConstructor() async {
     addMetaPackage();
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
 class A {
   @literal
   void m() {}
 }
-''', [HintCode.INVALID_LITERAL_ANNOTATION]);
+''', [
+      error(HintCode.INVALID_LITERAL_ANNOTATION, 45, 8),
+    ]);
   }
 }

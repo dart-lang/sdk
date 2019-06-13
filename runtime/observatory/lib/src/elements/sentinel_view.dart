@@ -15,7 +15,7 @@ import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class SentinelViewElement extends HtmlElement implements Renderable {
+class SentinelViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<SentinelViewElement>('sentinel-view', dependencies: const [
     NavTopMenuElement.tag,
@@ -49,7 +49,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
     assert(sentinel != null);
     assert(events != null);
     assert(notifications != null);
-    SentinelViewElement e = document.createElement(tag.name);
+    SentinelViewElement e = new SentinelViewElement.created();
     e._r = new RenderingScheduler<SentinelViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -59,7 +59,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  SentinelViewElement.created() : super.created();
+  SentinelViewElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -78,11 +78,11 @@ class SentinelViewElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
         navMenu('sentinel'),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -92,7 +92,7 @@ class SentinelViewElement extends HtmlElement implements Renderable {
           new HRElement(),
           new DivElement()..text = _sentinelKindToDescription(_sentinel.kind),
           new HRElement(),
-          new ViewFooterElement(queue: _r.queue)
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

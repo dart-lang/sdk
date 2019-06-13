@@ -29,8 +29,10 @@ class Compile extends Step<Data, Data, ChainContext> {
 
   const Compile(this.runner);
 
+  @override
   String get name => "compile";
 
+  @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     var dartScriptAbsolute = File.fromUri(data.uri).absolute;
     var inputFile = dartScriptAbsolute.path;
@@ -58,8 +60,10 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 
   const TestStackTrace(this.runner, this.marker, this.knownMarkers);
 
+  @override
   String get name => "TestStackTrace";
 
+  @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     data.outDir = await Directory.systemTemp.createTemp("stacktrace-test");
     String code = await File.fromUri(data.uri).readAsString();
@@ -99,8 +103,9 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     if (result.startsWith("Object.")) result = result.substring(7);
     String inputName =
         INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf(".") + 1);
-    if (result.startsWith(inputName))
+    if (result.startsWith(inputName)) {
       result = result.substring(inputName.length);
+    }
     return result;
   }
 }
@@ -162,7 +167,7 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
   var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
   String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
-      jsContent.replaceFirst("from 'dart_sdk'", "from '$jsRootDart'"));
+      jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
   File.fromUri(outputFile.resolve("$outputFilename.html.html"))
       .writeAsStringSync(getWrapperHtmlContent(
           jsRootDart, "/root_build/$outputFilename.html.js"));
@@ -200,6 +205,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
 Uri selfUri = currentMirrorSystem()
     .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
     .uri;
-String d8Preambles = File.fromUri(
-        selfUri.resolve('../../tool/input_sdk/private/preambles/d8.js'))
+String d8Preambles = File.fromUri(selfUri.resolve(
+        '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js'))
     .readAsStringSync();

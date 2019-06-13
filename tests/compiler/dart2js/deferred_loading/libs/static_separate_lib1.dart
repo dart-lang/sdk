@@ -38,7 +38,7 @@ class C {
   }
 }
 
-/*class: C1:OutputUnit(main, {})*/
+/*class: C1:null*/
 class C1 {
   /*strong.element: C1.foo:OutputUnit(3, {lib2})*/
   /*strongConst.element: C1.foo:

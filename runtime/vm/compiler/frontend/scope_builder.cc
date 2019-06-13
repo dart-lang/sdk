@@ -306,7 +306,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case RawFunction::kImplicitStaticFinalGetter: {
+    case RawFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
       // In addition to static field initializers, scopes/local variables
@@ -389,6 +389,18 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().raw()));
         scope_->InsertParameterAt(i, variable);
+      }
+      // Callbacks need try/catch variables.
+      if (function.IsFfiTrampoline() &&
+          function.FfiCallbackTarget() != Function::null()) {
+        current_function_async_marker_ = FunctionNodeHelper::kSync;
+        ++depth_.try_;
+        AddTryVariables();
+        --depth_.try_;
+        ++depth_.catch_;
+        AddCatchVariables();
+        FinalizeCatchVariables();
+        --depth_.catch_;
       }
       break;
     case RawFunction::kSignatureFunction:

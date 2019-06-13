@@ -13,18 +13,30 @@ main() {
   // { a as bool ? - 3 : 3 } is parsed as a set literal { (a as bool) ? - 3 : 3 }.
   dynamic a = true;
   var x1 = {a as bool ? -3 : 3};
-  Expect.isTrue(x1 is Set<dynamic>);
+  Expect.type<Set<dynamic>>(x1);
   Set<dynamic> y1 = x1;
 
   // { a is int ? -3 : 3 } is parsed as a set literal { (a is int) ? -3 : 3 }.
   a = 0;
   var x2 = {a is int ? -3 : 3};
-  Expect.isTrue(x2 is Set<dynamic>);
+  Expect.type<Set<dynamic>>(x2);
   Set<dynamic> y2 = x2;
 
   // { a * int ? -3 : 3 } is parsed as a set literal { (a * int) ? -3 : 3 }.
   a = C();
   var x3 = {a * int ? -3 : 3};
-  Expect.isTrue(x3 is Set<dynamic>);
+  Expect.type<Set<dynamic>>(x3);
   Set<dynamic> y3 = x3;
+
+  // { a is bool ? ? - 3 : 3 } is parsed as a set literal { (a is bool?) ? - 3 : 3 }.
+  a = true;
+  var x4 = {a is bool ? ? -3 : 3};
+  Expect.type<Set<dynamic>>(x4);
+  Set<dynamic> y4 = x4;
+
+  // { a is bool ?? true : 3 } is parsed as a map literal { ((a is bool) ?? true) : 3 }.
+  a = true;
+  var x5 = {a is bool ?? true : 3};
+  Expect.type<Map<dynamic, dynamic>>(x5);
+  Map<dynamic, dynamic> y5 = x5;
 }

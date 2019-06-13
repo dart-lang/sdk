@@ -23,7 +23,7 @@ abstract class SimpleEditCommandHandler
 
   String get commandName;
 
-  Future<ErrorOr<void>> sendEditsToClient(
+  Future<ErrorOr<void>> sendSourceEditsToClient(
       VersionedTextDocumentIdentifier docIdentifier,
       CompilationUnit unit,
       List<SourceEdit> edits) async {
@@ -38,6 +38,11 @@ abstract class SimpleEditCommandHandler
       [new FileEditInformation(docIdentifier, unit.lineInfo, edits)],
     );
 
+    return sendWorkspaceEditToClient(workspaceEdit);
+  }
+
+  Future<ErrorOr<void>> sendWorkspaceEditToClient(
+      WorkspaceEdit workspaceEdit) async {
     // Send the edit to the client via a applyEdit request (this is a request
     // from server -> client and the client will provide a response).
     final editResponse = await server.sendRequest(Method.workspace_applyEdit,
@@ -63,7 +68,8 @@ abstract class SimpleEditCommandHandler
     } else {
       return error(
         ServerErrorCodes.ClientFailedToApplyEdit,
-        'Client failed to apply workspace edit for $commandName',
+        'Client failed to apply workspace edit for $commandName '
+        '(reason: ${editResponseResult.failureReason ?? 'Client did not provide a reason'})',
         workspaceEdit.toString(),
       );
     }

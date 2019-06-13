@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -137,7 +138,7 @@ main(p) {
 }
 """;
     await resolveTestUnit(code);
-    expectIdentifierType("p()", '() → dynamic');
+    expectIdentifierType("p()", 'dynamic Function()');
   }
 
   test_staticMethods_classTypeParameters() async {
@@ -150,7 +151,7 @@ main() {
 }
 ''';
     await resolveTestUnit(code);
-    expectFunctionType('m);', '() → void');
+    expectFunctionType('m);', 'void Function()');
   }
 
   test_staticMethods_classTypeParameters_genericMethod() async {
@@ -169,29 +170,30 @@ main() {
     // C - m
     TypeParameterType typeS;
     {
-      FunctionTypeImpl type = expectFunctionType('m);', '<S>(S) → void',
+      FunctionTypeImpl type = expectFunctionType('m);', 'void Function<S>(S)',
           elementTypeParams: '[S]',
           typeFormals: '[S]',
-          identifierType: '<S>(S) → void');
+          identifierType: 'void Function<S>(S)');
 
       typeS = type.typeFormals[0].type;
       type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(dynamic) → void');
+      expect(type.toString(), 'void Function(dynamic)');
       expect(type.typeParameters.toString(), '[S]');
       expect(type.typeArguments, [DynamicTypeImpl.instance]);
       expect(type.typeFormals, isEmpty);
     }
     // C - m - f
     {
-      FunctionTypeImpl type = expectFunctionType('f);', '<U>(S, U) → void',
+      FunctionTypeImpl type = expectFunctionType(
+          'f);', 'void Function<U>(S, U)',
           elementTypeParams: '[U]',
           typeParams: '[S]',
           typeArgs: '[S]',
           typeFormals: '[U]',
-          identifierType: '<U>(S, U) → void');
+          identifierType: 'void Function<U>(S, U)');
 
       type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.toString(), 'void Function(S, dynamic)');
       expect(type.typeParameters.toString(), '[S, U]');
       expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
       expect(type.typeFormals, isEmpty);
@@ -1527,13 +1529,14 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         new CompilationUnitElementImpl();
     definingCompilationUnit.librarySource =
         definingCompilationUnit.source = source;
-    LibraryElementImpl definingLibrary =
-        new LibraryElementImpl.forNode(context, null, null);
+    var featureSet = FeatureSet.forTesting();
+    LibraryElementImpl definingLibrary = new LibraryElementImpl.forNode(
+        context, null, null, featureSet.isEnabled(Feature.non_nullable));
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     _typeProvider = context.typeProvider;
     _visitor = new ResolverVisitor(
         inheritance, definingLibrary, source, _typeProvider, _listener,
-        nameScope: new LibraryScope(definingLibrary));
+        featureSet: featureSet, nameScope: new LibraryScope(definingLibrary));
     return _visitor.typeAnalyzer;
   }
 

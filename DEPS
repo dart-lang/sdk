@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "a0a24a4bd5e4d913264fccfd600139af5b20c8e9",
+  "co19_2_rev": "c4a8862775188ecb25991b815e2f1f700b19d0cc",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -79,7 +79,7 @@ vars = {
   #     and land the review.
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164
-  "dart_style_tag": "1.2.7",  # Please see the note above before updating.
+  "dart_style_tag": "1.2.8",  # Please see the note above before updating.
 
   "dartdoc_tag" : "v0.28.2",
   "fixnum_tag": "0.10.9",
@@ -91,11 +91,12 @@ vars = {
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
   "http_throttle_tag" : "1.0.2",
+  "icu_rev" : "c56c671998902fcc4fc9ace88c83daa99f980793",
   "idl_parser_rev": "5fb1ebf49d235b5a70c9f49047e83b0654031eb7",
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.86",
+  "linter_tag": "0.1.91",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.0.3",
@@ -111,10 +112,10 @@ vars = {
   "pedantic_tag": "v1.5.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
-  "protobuf_rev": "0c77167b16d00b561a6055bfe26690af7f26ae88",
-  "pub_rev": "8c363fe26f059c3063f1129adbb3c4e22a8ce954",
+  "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
+  "pub_rev": "ecd5b413271f2699f8cd9e23aa4eebb5030c964f",
   "pub_semver_tag": "1.4.2",
-  "quiver_tag": "2.0.0+1",
+  "quiver-dart_tag": "2.0.0+1",
   "resource_rev": "2.1.5",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
@@ -132,7 +133,7 @@ vars = {
   "test_process_tag": "1.0.3",
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
-  "test_tag": "test-v1.6.1",
+  "test_tag": "test-v1.6.4",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -156,7 +157,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.2.1-dev.3.1",
+          "version": "version:2.3.0",
       }],
       "dep_type": "cipd",
   },
@@ -167,7 +168,6 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/tests/co19_2/src": {
       "packages": [{
           "package": "dart/third_party/co19",
@@ -175,11 +175,16 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
   Var("dart_root") + "/third_party/markupsafe":
       Var("chromium_git") + "/chromium/src/third_party/markupsafe.git" +
       "@" + Var("markupsafe_rev"),
-
+  Var("dart_root") + "/third_party/babel": {
+      "packages": [{
+          "package": "dart/third_party/babel",
+          "version": "version:7.4.5",
+      }],
+      "dep_type": "cipd",
+  },
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       "@" + Var("zlib_rev"),
@@ -209,6 +214,10 @@ deps = {
   Var("dart_root") + "/third_party/ply":
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       "@" + Var("ply_rev"),
+
+  Var("dart_root") + "/third_party/icu":
+      Var("chromium_git") + "/chromium/deps/icu.git" +
+      "@" + Var("icu_rev"),
 
   Var("dart_root") + "/tools/idl_parser":
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
@@ -315,7 +324,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/quiver":
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
-      + "@" + Var("quiver_tag"),
+      + "@" + Var("quiver-dart_tag"),
   Var("dart_root") + "/third_party/pkg/resource":
       Var("dart_git") + "resource.git" + "@" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/shelf":

@@ -13,6 +13,7 @@
 #include "platform/atomic.h"
 #include "vm/class_id.h"
 #include "vm/compiler/method_recognizer.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/exceptions.h"
 #include "vm/globals.h"
 #include "vm/object_graph.h"
@@ -150,8 +151,10 @@ class RawObject {
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
    public:
-    static const intptr_t kMaxSizeTag = ((1 << RawObject::kSizeTagSize) - 1)
-                                        << kObjectAlignmentLog2;
+    static constexpr intptr_t kMaxSizeTagInUnitsOfAlignment =
+        ((1 << RawObject::kSizeTagSize) - 1);
+    static constexpr intptr_t kMaxSizeTag =
+        kMaxSizeTagInUnitsOfAlignment * kObjectAlignment;
 
     static uword encode(intptr_t size) {
       return SizeBits::encode(SizeToTagValue(size));
@@ -171,11 +174,15 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(size, kObjectAlignment));
-      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(
+          size, compiler::target::ObjectAlignment::kObjectAlignment));
+      return (size > kMaxSizeTag)
+                 ? 0
+                 : (size >>
+                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << kObjectAlignmentLog2;
+      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
     }
   };
 
@@ -693,7 +700,6 @@ class RawObject {
   friend class SizeExcludingClassVisitor;  // GetClassId
   friend class InstanceAccumulator;        // GetClassId
   friend class RetainingPathVisitor;       // GetClassId
-  friend class SkippedCodeFunctions;       // StorePointer
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -724,6 +730,7 @@ class RawObject {
   friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
+  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -735,6 +742,19 @@ class RawClass : public RawObject {
     kAllocated = 0,         // Initial state.
     kPreFinalized,          // VM classes: size precomputed, but no checks done.
     kFinalized,             // Class parsed, finalized and ready for use.
+  };
+  enum ClassLoadingState {
+    // Class object is created, but it is not filled up.
+    // At this state class can only be used as a forward reference during
+    // class loading.
+    kNameOnly = 0,
+    // Class declaration information such as type parameters, supertype and
+    // implemented interfaces are loaded. However, types in the class are
+    // not finalized yet.
+    kDeclarationLoaded,
+    // Types in the class are finalized. At this point, members can be loaded
+    // and class can be finalized.
+    kTypeFinalized,
   };
 
  private:
@@ -785,13 +805,8 @@ class RawClass : public RawObject {
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
-
-  // Bitfields with number of non-overlapping type arguments and 'has_pragma'
-  // bit.
-  uint16_t has_pragma_and_num_own_type_arguments_;
-
   uint16_t num_native_fields_;
-  uint16_t state_bits_;
+  uint32_t state_bits_;
   NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
 
   friend class Instance;
@@ -847,10 +862,10 @@ class RawFunction : public RawObject {
     kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
     kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
     kConstructor,
-    kImplicitGetter,             // represents an implicit getter for fields.
-    kImplicitSetter,             // represents an implicit setter for fields.
-    kImplicitStaticFinalGetter,  // represents an implicit getter for static
-                                 // final fields (incl. static const fields).
+    kImplicitGetter,        // represents an implicit getter for fields.
+    kImplicitSetter,        // represents an implicit setter for fields.
+    kImplicitStaticGetter,  // represents an implicit getter for static
+                            // fields with initializers
     kStaticFieldInitializer,
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
@@ -875,14 +890,9 @@ class RawFunction : public RawObject {
   static constexpr intptr_t kMaxOptionalParametersBits = 14;
 
  private:
-  // So that the SkippedCodeFunctions::DetachCode can null out the code fields.
-  friend class SkippedCodeFunctions;
   friend class Class;
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
-
-  static bool ShouldVisitCode(RawCode* raw_code);
-  static bool CheckUsageCounter(RawFunction* raw_fun);
 
   uword entry_point_;  // Accessed from generated code.
   uword unchecked_entry_point_;  // Accessed from generated code.
@@ -1019,7 +1029,19 @@ class RawFfiTrampolineData : public RawObject {
   VISIT_FROM(RawObject*, signature_type_);
   RawType* signature_type_;
   RawFunction* c_signature_;
-  VISIT_TO(RawObject*, c_signature_);
+
+  // Target Dart method for callbacks, otherwise null.
+  RawFunction* callback_target_;
+
+  VISIT_TO(RawObject*, callback_target_);
+
+  // Callback id for callbacks, otherwise 0.
+  //
+  // The callbacks ids are used so that native callbacks can lookup their own
+  // code objects, since native code doesn't pass code objects into function
+  // calls. The callback id is also used to for verifying that callbacks are
+  // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  uint32_t callback_id_;
 };
 
 class RawField : public RawObject {
@@ -1329,7 +1351,6 @@ class RawCode : public RawObject {
   friend class Function;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class StackFrame;
   friend class Profiler;
   friend class FunctionDeserializationCluster;
@@ -1344,13 +1365,21 @@ class RawBytecode : public RawObject {
   VISIT_FROM(RawObject*, object_pool_);
   RawObjectPool* object_pool_;
   RawFunction* function_;
+  RawArray* closures_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  NOT_IN_PRODUCT(RawLocalVarDescriptors* var_descriptors_);
+#if defined(PRODUCT)
   VISIT_TO(RawObject*, pc_descriptors_);
+#else
+  VISIT_TO(RawObject*, var_descriptors_);
+#endif
+
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   int32_t instructions_binary_offset_;
   int32_t source_positions_binary_offset_;
+  NOT_IN_PRODUCT(int32_t local_variables_binary_offset_);
 
   static bool ContainsPC(RawObject* raw_obj, uword pc);
 
@@ -1391,15 +1420,14 @@ class RawInstructions : public RawObject {
   uint32_t size_and_flags_;
   uint32_t unchecked_entrypoint_pc_offset_;
 
-#if defined(DART_PRECOMPILER)
   // There is a gap between size_and_flags_ and the entry point
   // because we align entry point by 4 words on all platforms.
   // This allows us to have a free field here without affecting
   // the aligned size of the Instructions object header.
   // This also means that entry point offset is the same
   // whether this field is included or excluded.
+  // TODO(37103): This field should be removed.
   CodeStatistics* stats_;
-#endif
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
@@ -1415,7 +1443,6 @@ class RawInstructions : public RawObject {
   friend class StackFrame;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class SkippedCodeFunctions;
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
@@ -1439,19 +1466,19 @@ class RawPcDescriptors : public RawObject {
    public:
     // Most of the time try_index will be small and merged field will fit into
     // one byte.
-    static intptr_t Encode(intptr_t kind, intptr_t try_index) {
+    static int32_t Encode(intptr_t kind, intptr_t try_index) {
       intptr_t kind_shift = Utils::ShiftForPowerOfTwo(kind);
       ASSERT(Utils::IsUint(kKindShiftSize, kind_shift));
       ASSERT(Utils::IsInt(kTryIndexSize, try_index));
       return (try_index << kTryIndexPos) | (kind_shift << kKindShiftPos);
     }
 
-    static intptr_t DecodeKind(intptr_t merged_kind_try) {
+    static intptr_t DecodeKind(int32_t merged_kind_try) {
       const intptr_t kKindShiftMask = (1 << kKindShiftSize) - 1;
       return 1 << (merged_kind_try & kKindShiftMask);
     }
 
-    static intptr_t DecodeTryIndex(intptr_t merged_kind_try) {
+    static intptr_t DecodeTryIndex(int32_t merged_kind_try) {
       // Arithmetic shift.
       return merged_kind_try >> kTryIndexPos;
     }
@@ -1463,7 +1490,7 @@ class RawPcDescriptors : public RawObject {
     COMPILE_ASSERT(kLastKind <= 1 << ((1 << kKindShiftSize) - 1));
 
     static const intptr_t kTryIndexPos = kKindShiftSize;
-    static const intptr_t kTryIndexSize = kBitsPerWord - kKindShiftSize;
+    static const intptr_t kTryIndexSize = 32 - kKindShiftSize;
   };
 
  private:
@@ -2387,6 +2414,11 @@ class RawReceivePort : public RawInstance {
   VISIT_TO(RawObject*, handler_)
 };
 
+class RawTransferableTypedData : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(TransferableTypedData);
+  VISIT_NOTHING();
+};
+
 // VM type for capturing stacktraces when exceptions are thrown,
 // Currently we don't have any interface that this object is supposed
 // to implement so we just support the 'toString' method which
@@ -2436,11 +2468,17 @@ class RawRegExp : public RawInstance {
   VISIT_TO(RawObject*, external_two_byte_sticky_function_)
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t num_registers_;
+  // The same pattern may use different amount of registers if compiled
+  // for a one-byte target than a two-byte target. For example, we do not
+  // need to allocate registers to check whether the current position is within
+  // a surrogate pair when matching a Unicode pattern against a one-byte string.
+  intptr_t num_one_byte_registers_;
+  intptr_t num_two_byte_registers_;
 
   // A bitfield with two fields:
   // type: Uninitialized, simple or complex.
-  // flags: Represents global/local, case insensitive, multiline.
+  // flags: Represents global/local, case insensitive, multiline, unicode,
+  //        dotAll.
   int8_t type_flags_;
 };
 

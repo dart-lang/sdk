@@ -20,6 +20,7 @@ incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 inference/bug31436: RuntimeError # Test exercises Dart 2.0 semantics
 inference/constructors_too_many_positional_arguments: Fail
 inference/downwards_inference_annotations_locals: Fail # Issue #30031
+inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/future_then_explicit_future: RuntimeError
 inference/generic_methods_infer_js_builtin: RuntimeError # Test attempts to access platform-private library leading to NSM.
 inference/infer_assign_to_index: Fail
@@ -114,6 +115,9 @@ regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_36400: RuntimeError
+regress/issue_36647: RuntimeError # Expected
+regress/issue_36647_2: RuntimeError # Expected
+regress/issue_36669: RuntimeError
 reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks/implicit_downcast_constructor_initializer: RuntimeError # Test exercises strong mode semantics
 runtime_checks/implicit_downcast_do: RuntimeError # Test exercises strong mode semantics
@@ -129,6 +133,7 @@ runtime_checks_new/mixin_forwarding_stub_setter: RuntimeError # Test exercises s
 runtime_checks_new/stub_checked_via_target: RuntimeError # Test exercises strong mode semantics
 set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
+type_parameter_type_named_int: RuntimeError # Expected
 type_variable_as_super: Fail
 uninitialized_fields: Fail # Fasta and dartk disagree on static initializers
 void_methods: Fail # Bad return from setters.

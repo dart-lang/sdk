@@ -14,13 +14,20 @@
 
 #include "vm/simulator.h"
 
+#include "lib/ffi.h"
+#include "platform/assert.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/backend/il.h"
+#include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi_dbc_trampoline.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/constants_dbc.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/heap/safepoint.h"
 #include "vm/lockers.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -615,6 +622,7 @@ typedef intptr_t (*SimulatorLeafRuntimeCall)(intptr_t r0,
 // Calls to leaf float Dart runtime functions are based on this interface.
 typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
 
+// Set up an exit frame for the garbage collector.
 void Simulator::Exit(Thread* thread,
                      RawObject** base,
                      RawObject** frame,
@@ -866,7 +874,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall1(Thread* thread,
   intptr_t i;
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if (cache->data()[i + 0] == receiver_cid) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -912,7 +920,7 @@ DART_FORCE_INLINE void Simulator::InstanceCall2(Thread* thread,
   for (i = 0; i < (length - (kCheckedArgs + 2)); i += (kCheckedArgs + 2)) {
     if ((cache->data()[i + 0] == receiver_cid) &&
         (cache->data()[i + 1] == arg0_cid)) {
-      top[0] = cache->data()[i + kCheckedArgs];
+      top[0] = cache->data()[i + ICData::TargetIndexFor(kCheckedArgs)];
       found = true;
       break;
     }
@@ -1860,6 +1868,39 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(FfiCall, __D);
+    {
+      const auto& sig_desc = compiler::ffi::FfiSignatureDescriptor(
+          TypedData::Cast(Object::Handle(LOAD_CONSTANT(rD))));
+
+      // The arguments to this ffi call are on the stack at FP.
+      // kFirstLocalSlotFromFp is 0 in DBC, but the const is -1.
+      uint64_t* arg_values = reinterpret_cast<uint64_t*>(FP);
+
+      uint64_t* marshalled_args_data =
+          FfiMarshalledArguments::New(sig_desc, arg_values);
+      const auto& marshalled_args =
+          FfiMarshalledArguments(marshalled_args_data);
+
+      Exit(thread, FP, SP, pc);
+      {
+        TransitionGeneratedToNative transition(thread);
+        FfiTrampolineCall(marshalled_args_data);
+      }
+
+      const Representation result_rep = sig_desc.ResultRepresentation();
+      intptr_t result;
+      if (result_rep == kUnboxedDouble || result_rep == kUnboxedFloat) {
+        result = marshalled_args.DoubleResult();
+      } else {
+        result = marshalled_args.IntResult();
+      }
+      FP[0] = reinterpret_cast<RawObject*>(result);
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(OneByteStringFromCharCode, A_X);
     const intptr_t char_code = Smi::Value(RAW_CAST(Smi, FP[rD]));
     ASSERT(char_code >= 0);
@@ -2104,6 +2145,35 @@ SwitchDispatch:
         pc++;
       }
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(UnboxedWidthExtender, A_B_C);
+    auto rep = static_cast<SmallRepresentation>(rC);
+    const intptr_t value_32_or_64_bit = reinterpret_cast<intptr_t>(FP[rB]);
+    int32_t value = value_32_or_64_bit & kMaxUint32;  // Prevent overflow.
+    switch (rep) {
+      case kSmallUnboxedInt8:
+        // Sign extend the top 24 bits from the sign bit.
+        value <<= 24;
+        value >>= 24;
+        break;
+      case kSmallUnboxedUint8:
+        value &= 0x000000FF;  // Throw away upper bits.
+        break;
+      case kSmallUnboxedInt16:
+        // Sign extend the top 16 bits from the sign bit.
+        value <<= 16;
+        value >>= 16;
+        break;
+      case kSmallUnboxedUint16:
+        value &= 0x0000FFFF;  // Throw away upper bits.
+        break;
+      default:
+        UNREACHABLE();
+    }
+    FP[rA] = reinterpret_cast<RawObject*>(value);
     DISPATCH();
   }
 
@@ -2405,6 +2475,43 @@ SwitchDispatch:
     FP[rA] = Smi::New(static_cast<intptr_t>(value32));
     DISPATCH();
   }
+
+  {
+    BYTECODE(UnboxInt64, A_D);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rD]);
+    if (box_cid == kSmiCid) {
+      const int64_t value = Smi::Value(RAW_CAST(Smi, FP[rD]));
+      FP[rA] = reinterpret_cast<RawObject*>(value);
+    } else if (box_cid == kMintCid) {
+      RawMint* mint = RAW_CAST(Mint, FP[rD]);
+      const int64_t value = mint->ptr()->value_;
+      FP[rA] = reinterpret_cast<RawObject*>(value);
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt64, A_D);
+    const int64_t value = reinterpret_cast<int64_t>(FP[rD]);
+    if (Smi::IsValid(value)) {
+      FP[rA] = Smi::New(static_cast<intptr_t>(value));
+    } else {
+      // If the value does not fit into a Smi the following instruction is
+      // skipped. (The following instruction should be a jump to a label after
+      // the slow path allocating a Mint box and writing into the Mint box.)
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(WriteIntoMint, A_D);
+    const int64_t value = bit_cast<int64_t, RawObject*>(FP[rD]);
+    RawMint* box = RAW_CAST(Mint, FP[rA]);
+    box->ptr()->value_ = value;
+    DISPATCH();
+  }
+
 #else   // defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);
@@ -2609,6 +2716,24 @@ SwitchDispatch:
     UNREACHABLE();
     DISPATCH();
   }
+
+  {
+    BYTECODE(UnboxInt64, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt64, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(WriteIntoMint, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
 #endif  // defined(ARCH_IS_64_BIT)
 
   // Return and return like instructions (Instrinsic).
@@ -2630,7 +2755,7 @@ SwitchDispatch:
 
     BYTECODE(ReturnTOS, 0);
     result = *SP;
-  // Fall through to the ReturnImpl.
+    // Fall through to the ReturnImpl.
 
   ReturnImpl:
     // Restore caller PC.
@@ -3018,7 +3143,7 @@ SwitchDispatch:
       NativeArguments native_args(thread, 5, SP + 1, SP - 4);
       INVOKE_RUNTIME(DRT_Instanceof, native_args);
     }
-  // clang-format on
+      // clang-format on
 
   InstanceOfOk:
     SP -= 4;
@@ -3727,7 +3852,7 @@ SwitchDispatch:
   {
     BYTECODE(StoreIndexedUint8, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
-    *data = Smi::Value(RAW_CAST(Smi, FP[rC]));
+    *data = static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -3735,8 +3860,8 @@ SwitchDispatch:
     BYTECODE(StoreIndexedUntaggedUint8, A_B_C);
     uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
-    array[Smi::Value(index)] = Smi::Value(value);
+    array[Smi::Value(index)] =
+        static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -3771,9 +3896,9 @@ SwitchDispatch:
     BYTECODE(StoreIndexedOneByteString, A_B_C);
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
-    RawSmi* value = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    array->ptr()->data()[Smi::Value(index)] = Smi::Value(value);
+    array->ptr()->data()[Smi::Value(index)] =
+        static_cast<uint8_t>(reinterpret_cast<word>(FP[rC]));
     DISPATCH();
   }
 
@@ -3882,14 +4007,15 @@ SwitchDispatch:
   {
     BYTECODE(LoadIndexedUint8, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*data);
+    FP[rA] = reinterpret_cast<RawObject*>(static_cast<word>(*data));
     DISPATCH();
   }
 
   {
     BYTECODE(LoadIndexedInt8, A_B_C);
-    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data));
+    int8_t* data = reinterpret_cast<int8_t*>(
+        SimulatorHelpers::GetTypedData(FP[rB], FP[rC]));
+    FP[rA] = reinterpret_cast<RawObject*>(static_cast<word>(*data));
     DISPATCH();
   }
 
@@ -3911,9 +4037,10 @@ SwitchDispatch:
 
   {
     BYTECODE(LoadIndexedUntaggedInt8, A_B_C);
-    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data + Smi::Value(index)));
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(data[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -3921,7 +4048,8 @@ SwitchDispatch:
     BYTECODE(LoadIndexedUntaggedUint8, A_B_C);
     uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    FP[rA] = Smi::New(*reinterpret_cast<uint8_t*>(data + Smi::Value(index)));
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(data[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -3967,7 +4095,8 @@ SwitchDispatch:
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(array->ptr()->data()[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -3976,7 +4105,8 @@ SwitchDispatch:
     RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    FP[rA] = Smi::New(array->ptr()->data()[Smi::Value(index)]);
+    FP[rA] = reinterpret_cast<RawObject*>(
+        static_cast<word>(array->ptr()->data()[Smi::Value(index)]));
     DISPATCH();
   }
 
@@ -4040,8 +4170,11 @@ SwitchDispatch:
       pp_ = SimulatorHelpers::FrameCode(FP)->ptr()->object_pool_;
     }
 
+    RawClosure* closure =
+        Closure::RawCast(args[has_function_type_args ? 1 : 0]);
     *++SP = null_value;
-    *++SP = args[has_function_type_args ? 1 : 0];  // Closure object.
+    *++SP = closure;
+    *++SP = closure->ptr()->function_;
     *++SP = argdesc_;
     *++SP = null_value;  // Array of arguments (will be filled).
 
@@ -4069,8 +4202,8 @@ SwitchDispatch:
     // array of arguments.
     {
       Exit(thread, FP, SP + 1, pc);
-      NativeArguments native_args(thread, 3, SP - 2, SP - 3);
-      INVOKE_RUNTIME(DRT_InvokeClosureNoSuchMethod, native_args);
+      NativeArguments native_args(thread, 4, SP - 3, SP - 4);
+      INVOKE_RUNTIME(DRT_NoSuchMethodFromPrologue, native_args);
       UNREACHABLE();
     }
 

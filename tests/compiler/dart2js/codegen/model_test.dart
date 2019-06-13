@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/closure.dart';
 import 'package:compiler/src/common.dart';
+import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -89,9 +90,9 @@ class ModelIrComputer extends IrDataExtractor<Features> {
   void registerCalls(Features features, String tag, js.Node node,
       {String prefix = '', Set<js.PropertyAccess> handledAccesses}) {
     forEachNode(node, onCall: (js.Call node) {
-      js.Node target = node.target;
+      js.Node target = undefer(node.target);
       if (target is js.PropertyAccess) {
-        js.Node selector = target.selector;
+        js.Node selector = undefer(target.selector);
         bool fixedNameCall = false;
         String name;
         if (selector is js.Name) {
@@ -125,7 +126,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         return;
       }
 
-      js.Node receiver = node.receiver;
+      js.Node receiver = undefer(node.receiver);
       String receiverName;
       if (receiver is js.VariableUse) {
         receiverName = receiver.name;
@@ -138,7 +139,7 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         receiverName = 'this';
       }
 
-      js.Node selector = node.selector;
+      js.Node selector = undefer(node.selector);
       String name;
       if (selector is js.Name) {
         name = selector.key;
@@ -229,9 +230,9 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         }
 
         forEachNode(code, onAssignment: (js.Assignment node) {
-          js.Expression leftHandSide = node.leftHandSide;
+          js.Expression leftHandSide = undefer(node.leftHandSide);
           if (leftHandSide is js.PropertyAccess) {
-            js.Node selector = leftHandSide.selector;
+            js.Node selector = undefer(leftHandSide.selector);
             String name;
             if (selector is js.Name) {
               name = selector.key;
@@ -271,4 +272,10 @@ class ModelIrComputer extends IrDataExtractor<Features> {
     }
     return null;
   }
+}
+
+js.Node undefer(js.Node node) {
+  if (node is js.DeferredExpression) return undefer(node.value);
+  if (node is ModularName) return undefer(node.value);
+  return node;
 }

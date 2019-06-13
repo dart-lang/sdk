@@ -29,7 +29,7 @@ class IsolateSelectedEvent {
   const IsolateSelectedEvent([this.isolate]);
 }
 
-class MemoryGraphElement extends HtmlElement implements Renderable {
+class MemoryGraphElement extends CustomElement implements Renderable {
   static const tag = const Tag<MemoryGraphElement>('memory-graph');
 
   RenderingScheduler<MemoryGraphElement> _r;
@@ -59,7 +59,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     assert(vms != null);
     assert(isolates != null);
     assert(events != null);
-    MemoryGraphElement e = document.createElement(tag.name);
+    MemoryGraphElement e = new MemoryGraphElement.created();
     e._r = new RenderingScheduler<MemoryGraphElement>(e, queue: queue);
     e._vm = vm;
     e._vms = vms;
@@ -68,7 +68,7 @@ class MemoryGraphElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  MemoryGraphElement.created() : super.created() {
+  MemoryGraphElement.created() : super.created(tag) {
     final now = new DateTime.now();
     var sample = now.subtract(_window);
     while (sample.isBefore(now)) {
@@ -455,7 +455,7 @@ class MemoryChartTheme extends QuantumChartTheme {
 
   StyleElement get style => new StyleElement()
     ..text = '''
-memory-graph svg .stacked-line-rdr-line:nth-child(2n+${_offset+1})
+memory-graph svg .stacked-line-rdr-line:nth-child(2n+${_offset + 1})
   path:nth-child(1) {
   filter: url(#stroke-grid);
 }''';

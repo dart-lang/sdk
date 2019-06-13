@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart'
     show
         Message,
+        noLength,
         templateDuplicatedDeclaration,
         templateTypeNotFound,
         templateUnspecified;
@@ -60,6 +61,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   /// The elements of this map are documented in
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
+
+  bool exportsAlreadyFinalized = false;
 
   DillLibraryBuilder(this.library, this.loader)
       : super(library.fileUri, new Scope.top(), new Scope.top());
@@ -160,11 +163,10 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
     // mapping `k` to `d` is added to the exported namespace of `L` unless a
     // top-level declaration with the name `k` exists in `L`.
     if (builder.parent == this) return builder;
+    Message message = templateDuplicatedDeclaration.withArguments(name);
+    addProblem(message, charOffset, name.length, fileUri);
     return new KernelInvalidTypeBuilder(
-        name,
-        templateDuplicatedDeclaration
-            .withArguments(name)
-            .withLocation(fileUri, charOffset, name.length));
+        name, message.withLocation(fileUri, charOffset, name.length));
   }
 
   @override
@@ -173,6 +175,8 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   }
 
   void finalizeExports() {
+    if (exportsAlreadyFinalized) return;
+    exportsAlreadyFinalized = true;
     unserializableExports?.forEach((String name, String messageText) {
       Declaration declaration;
       switch (name) {
@@ -187,6 +191,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
           Message message = messageText == null
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
+          addProblem(message, -1, noLength, null);
           declaration =
               new KernelInvalidTypeBuilder(name, message.withoutLocation());
       }

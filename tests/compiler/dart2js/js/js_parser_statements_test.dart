@@ -351,8 +351,8 @@ switch (true) {
         'fieldName'
       ],
       'className.prototype.getterName = function(r, y) {\n'
-      '  return r.fieldName;\n'
-      '};');
+          '  return r.fieldName;\n'
+          '};');
   testStatement(
       '#a.prototype.#b = function(#c) { return #d.#e };',
       {
@@ -363,8 +363,8 @@ switch (true) {
         'e': 'fieldName'
       },
       'className.prototype.getterName = function(r, y) {\n'
-      '  return r.fieldName;\n'
-      '};');
+          '  return r.fieldName;\n'
+          '};');
 
   testStatement(
       'function foo(r, #) { return #[r](#) }',
@@ -406,8 +406,8 @@ switch (true) {
         'c': 'name4_5'
       },
       'name1_2.prototype.name1_2 = function(r, y) {\n'
-      '  return name4_5.name4_5;\n'
-      '};');
+          '  return name4_5.name4_5;\n'
+          '};');
 
   testStatement('label: while (a) { label2: break label;}', [],
       'label:\n  while (a)\n    label2:\n      break label;\n  ');

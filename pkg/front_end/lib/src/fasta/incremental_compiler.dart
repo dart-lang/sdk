@@ -9,7 +9,11 @@ import 'dart:async' show Future;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_from_binary.dart'
-    show BinaryBuilder, CanonicalNameError, InvalidKernelVersionError;
+    show
+        BinaryBuilder,
+        CanonicalNameError,
+        CanonicalNameSdkError,
+        InvalidKernelVersionError;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -96,6 +100,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   final Component componentToInitializeFrom;
   bool initializedFromDill = false;
   Uri previousPackagesUri;
+  Map<String, Uri> previousPackagesMap;
+  Map<String, Uri> currentPackagesMap;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -137,6 +143,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
       UriTranslator uriTranslator =
           await c.options.getUriTranslator(bypassCache: bypassCache);
+      previousPackagesMap = currentPackagesMap;
+      currentPackagesMap = uriTranslator.packages.asMap();
       ticker.logMs("Read packages file");
 
       if (dillLoadedData == null) {
@@ -157,7 +165,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               bytesLength =
                   prepareSummary(summaryBytes, uriTranslator, c, data);
 
-              if (e is InvalidKernelVersionError || e is PackageChangedError) {
+              if (e is InvalidKernelVersionError ||
+                  e is PackageChangedError ||
+                  e is CanonicalNameSdkError) {
                 // Don't report any warning.
               } else {
                 Uri gzInitializedFrom;
@@ -218,13 +228,30 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
           invalidatedUris, uriTranslator,
           notReused: notReusedLibraries);
-      Set<Uri> reusedLibraryUris =
-          new Set<Uri>.from(reusedLibraries.map((b) => b.uri));
-      for (Uri uri in new Set<Uri>.from(dillLoadedData.loader.builders.keys)
-        ..removeAll(reusedLibraryUris)) {
-        LibraryBuilder builder = dillLoadedData.loader.builders.remove(uri);
-        userBuilders?.remove(uri);
+
+      bool removedDillBuilders = false;
+      for (LibraryBuilder builder in notReusedLibraries) {
         CompilerContext.current.uriToSource.remove(builder.fileUri);
+
+        LibraryBuilder dillBuilder =
+            dillLoadedData.loader.builders.remove(builder.uri);
+        if (dillBuilder != null) {
+          removedDillBuilders = true;
+          userBuilders?.remove(builder.uri);
+        }
+
+        // Remove component problems for libraries we don't reuse.
+        if (remainingComponentProblems.isNotEmpty) {
+          Library lib = builder.target;
+          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+        }
+      }
+
+      if (removedDillBuilders) {
+        dillLoadedData.loader.libraries.clear();
+        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+          dillLoadedData.loader.libraries.add(builder.target);
+        }
       }
 
       if (hasToCheckPackageUris) {
@@ -246,16 +273,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             .addAll(oldDillLoadedData.loader.libraries);
       }
 
-      for (LibraryBuilder builder in notReusedLibraries) {
-        Library lib = builder.target;
-        CompilerContext.current.uriToSource.remove(builder.fileUri);
-
-        // Remove component problems for libraries we don't reuse.
-        if (remainingComponentProblems.isNotEmpty) {
-          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
-        }
-      }
-
       if (hierarchy != null) {
         List<Library> removedLibraries = new List<Library>();
         for (LibraryBuilder builder in notReusedLibraries) {
@@ -271,7 +288,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             " of ${userCode.loader.builders.length} libraries");
       }
 
-      await loadEnsureLoadedComponents(reusedLibraryUris, reusedLibraries);
+      await loadEnsureLoadedComponents(reusedLibraries);
 
       KernelTarget userCodeOld = userCode;
       userCode = new KernelTarget(
@@ -389,13 +406,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   Future loadEnsureLoadedComponents(
-      Set<Uri> reusedLibraryUris, List<LibraryBuilder> reusedLibraries) async {
+      List<LibraryBuilder> reusedLibraries) async {
     if (modulesToLoad != null) {
       bool loadedAnything = false;
       for (Component module in modulesToLoad) {
         bool usedComponent = false;
         for (Library lib in module.libraries) {
-          if (!reusedLibraryUris.contains(lib.importUri)) {
+          if (!dillLoadedData.loader.builders.containsKey(lib.importUri)) {
             dillLoadedData.loader.libraries.add(lib);
             dillLoadedData.addLibrary(lib);
             reusedLibraries.add(dillLoadedData.loader.read(lib.importUri, -1));
@@ -608,7 +625,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         c.options.fileSystem.entityForUri(initializeFromDillUri);
     if (await entity.exists()) {
       List<int> initializationBytes = await entity.readAsBytes();
-      if (initializationBytes != null) {
+      if (initializationBytes != null && initializationBytes.isNotEmpty) {
         ticker.logMs("Read $initializeFromDillUri");
         data.initializationBytes = initializationBytes;
 
@@ -730,8 +747,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           debugExprUri,
           userCode.loader,
           null,
-          library.scope.createNestedScope("expression"),
-          library.target);
+          library.scope.createNestedScope("expression"));
 
       if (library is DillLibraryBuilder) {
         for (LibraryDependency dependency in library.target.dependencies) {
@@ -792,6 +808,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       userCode.uriToSource.remove(debugExprUri);
       userCode.loader.sourceBytes.remove(debugExprUri);
 
+      // Make sure the library has a canonical name.
+      Component c = new Component(libraries: [debugLibrary.target]);
+      c.computeCanonicalNames();
+
       userCode.runProcedureTransformations(procedure);
 
       return procedure;
@@ -820,10 +840,21 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
         return true;
       }
-      if (hasToCheckPackageUris &&
-          importUri.scheme == "package" &&
-          uriTranslator.translate(importUri, false) != fileUri) {
-        return true;
+      if (hasToCheckPackageUris && importUri.scheme == "package") {
+        // Get package name, check if the base URI has changed for the package,
+        // if it has, translate the URI again,
+        // otherwise the URI cannot have changed.
+        String path = importUri.path;
+        int firstSlash = path.indexOf('/');
+        String packageName = path.substring(0, firstSlash);
+        if (previousPackagesMap == null ||
+            (previousPackagesMap[packageName] !=
+                currentPackagesMap[packageName])) {
+          Uri newFileUri = uriTranslator.translate(importUri, false);
+          if (newFileUri != fileUri) {
+            return true;
+          }
+        }
       }
       if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
@@ -859,9 +890,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
 
-    userBuilders?.forEach(addBuilderAndInvalidateUris);
     if (userCode != null) {
+      // userCode already contains the builders from userBuilders.
       userCode.loader.builders.forEach(addBuilderAndInvalidateUris);
+    } else {
+      // userCode was null so we explicitly have to add the builders from
+      // userBuilders (which cannot be null as we checked initially that one of
+      // them was non-null).
+      userBuilders.forEach(addBuilderAndInvalidateUris);
     }
 
     recordInvalidatedImportUrisForTesting(invalidatedImportUris);

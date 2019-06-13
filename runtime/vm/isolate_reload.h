@@ -327,6 +327,7 @@ class IsolateReloadContext {
   RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
 
   void BuildLibraryMapping();
+  void BuildRemovedClassesSet();
 
   void AddClassMapping(const Class& replacement_or_new, const Class& original);
 
@@ -348,6 +349,7 @@ class IsolateReloadContext {
   RawError* error_;
   RawArray* old_classes_set_storage_;
   RawArray* class_map_storage_;
+  RawArray* removed_class_set_storage_;
   RawArray* old_libraries_set_storage_;
   RawArray* library_map_storage_;
   RawArray* become_map_storage_;

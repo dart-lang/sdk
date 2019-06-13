@@ -33,7 +33,7 @@ import 'package:observatory/src/elements/nav/notify.dart';
 ///   overlapping the related events.
 enum _TimelineView { strict, frame }
 
-class TimelineDashboardElement extends HtmlElement implements Renderable {
+class TimelineDashboardElement extends CustomElement implements Renderable {
   static const tag = const Tag<TimelineDashboardElement>('timeline-dashboard',
       dependencies: const [NavNotifyElement.tag]);
 
@@ -57,7 +57,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     assert(vm != null);
     assert(repository != null);
     assert(notifications != null);
-    TimelineDashboardElement e = document.createElement(tag.name);
+    TimelineDashboardElement e = new TimelineDashboardElement.created();
     e._r = new RenderingScheduler<TimelineDashboardElement>(e, queue: queue);
     e._vm = vm;
     e._repository = repository;
@@ -68,7 +68,7 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  TimelineDashboardElement.created() : super.created();
+  TimelineDashboardElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -105,12 +105,13 @@ class TimelineDashboardElement extends HtmlElement implements Renderable {
             ? 'Logical view of the computation involved in each frame '
                 '(timestamps may not be preserved)'
             : 'Sequence of events generated during the execution '
-            '(timestamps are preserved)')
+                '(timestamps are preserved)')
     ];
     if (children.isEmpty) {
       children = <Element>[
-        navBar(
-            <Element>[new NavNotifyElement(_notifications, queue: _r.queue)]),
+        navBar(<Element>[
+          new NavNotifyElement(_notifications, queue: _r.queue).element
+        ]),
         _content,
         new DivElement()
           ..classes = ['iframe']

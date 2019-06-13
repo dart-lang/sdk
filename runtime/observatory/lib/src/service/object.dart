@@ -1225,7 +1225,7 @@ class RawHeapSnapshot {
 
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner implements M.Isolate {
-  static const kLoggingStream = '_Logging';
+  static const kLoggingStream = 'Logging';
   static const kExtensionStream = 'Extension';
 
   VM get vm => owner;
@@ -2104,7 +2104,7 @@ class ServiceEvent extends ServiceObject {
   static const kInspect = 'Inspect';
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed = 'ConnectionClosed';
-  static const kLogging = '_Logging';
+  static const kLogging = 'Logging';
   static const kExtension = 'Extension';
   static const kServiceRegistered = 'ServiceRegistered';
   static const kServiceUnregistered = 'ServiceUnregistered';
@@ -3020,8 +3020,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.implicitGetter;
     case 'ImplicitSetter':
       return M.FunctionKind.implicitSetter;
-    case 'ImplicitStaticFinalGetter':
-      return M.FunctionKind.implicitStaticFinalGetter;
+    case 'ImplicitStaticGetter':
+      return M.FunctionKind.implicitStaticGetter;
     case 'StaticFieldInitializer':
       return M.FunctionKind.staticFieldInitializer;
     case 'IrregexpFunction':
@@ -3036,6 +3036,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.collected;
     case 'Native':
       return M.FunctionKind.native;
+    case 'FfiTrampoline':
+      return M.FunctionKind.ffiTrampoline;
     case 'Stub':
       return M.FunctionKind.stub;
     case 'Tag':

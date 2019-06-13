@@ -20,17 +20,10 @@ main() {
 @reflectiveTest
 class NonConstantSpreadExpressionFromDeferredLibraryTest
     extends DriverResolutionTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
   test_inList_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const List c = [];''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' deferred as a;
 f() {
@@ -38,10 +31,15 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                CompileTimeErrorCode
-                    .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY
+                error(
+                    CompileTimeErrorCode
+                        .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+                    59,
+                    3),
               ]
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 56, 6),
+              ]);
   }
 
   test_inList_deferred_notConst() async {
@@ -57,7 +55,7 @@ f() {
   test_inList_notDeferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const List c = [];''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' as a;
 f() {
@@ -65,13 +63,15 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 6),
+              ]);
   }
 
   test_inMap_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const Map c = <int, int>{};''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' deferred as a;
 f() {
@@ -79,10 +79,15 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                CompileTimeErrorCode
-                    .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY
+                error(
+                    CompileTimeErrorCode
+                        .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+                    59,
+                    3),
               ]
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 56, 6),
+              ]);
   }
 
   test_inMap_notConst() async {
@@ -98,7 +103,7 @@ f() {
   test_inMap_notDeferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const Map c = <int, int>{};''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' as a;
 f() {
@@ -106,13 +111,15 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT, 47, 6),
+              ]);
   }
 
   test_inSet_deferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const Set c = <int>{};''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' deferred as a;
 f() {
@@ -120,10 +127,15 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? [
-                CompileTimeErrorCode
-                    .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY
+                error(
+                    CompileTimeErrorCode
+                        .NON_CONSTANT_SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY,
+                    59,
+                    3),
               ]
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 56, 6),
+              ]);
   }
 
   test_inSet_notConst() async {
@@ -139,7 +151,7 @@ f() {
   test_inSet_notDeferred() async {
     newFile(convertPath('/test/lib/lib1.dart'), content: r'''
 const Set c = <int>{};''');
-    await assertErrorCodesInCode(
+    await assertErrorsInCode(
         r'''
 import 'lib1.dart' as a;
 f() {
@@ -147,7 +159,9 @@ f() {
 }''',
         analysisOptions.experimentStatus.constant_update_2018
             ? []
-            : [CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT]);
+            : [
+                error(CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT, 47, 6),
+              ]);
   }
 }
 
@@ -156,9 +170,5 @@ class NonConstantSpreadExpressionFromDeferredLibraryWithConstantsTest
     extends NonConstantSpreadExpressionFromDeferredLibraryTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections,
-      EnableString.constant_update_2018
-    ];
+    ..enabledExperiments = [EnableString.constant_update_2018];
 }

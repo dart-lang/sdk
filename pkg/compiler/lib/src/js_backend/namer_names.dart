@@ -4,7 +4,6 @@
 
 part of js_backend.namer;
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 abstract class _NamerName extends jsAst.Name {
   int get _kind;
   _NamerName get _target => this;
@@ -20,7 +19,6 @@ abstract class _NamerName extends jsAst.Name {
 
 enum _NamerNameKinds { StringBacked, Getter, Setter, Async, Compound, Token }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class StringBackedName extends _NamerName {
   @override
   final String name;
@@ -43,14 +41,19 @@ class StringBackedName extends _NamerName {
   int get hashCode => name.hashCode;
 
   @override
-  int compareTo(covariant _NamerName other) {
-    other = other._target;
-    if (other._kind != _kind) return other._kind - _kind;
-    return name.compareTo(other.name);
+  int compareTo(jsAst.Name other) {
+    _NamerName otherNamerName;
+    if (other is ModularName) {
+      otherNamerName = other.value;
+    } else {
+      otherNamerName = other;
+    }
+    otherNamerName = otherNamerName._target;
+    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
+    return name.compareTo(otherNamerName.name);
   }
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   final jsAst.Name prefix;
   final jsAst.Name base;
@@ -80,10 +83,16 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   int get hashCode => base.hashCode * 13 + prefix.hashCode;
 
   @override
-  int compareTo(covariant _NamerName other) {
-    other = other._target;
-    if (other._kind != _kind) return other._kind - _kind;
-    _PrefixedName otherSameKind = other;
+  int compareTo(jsAst.Name other) {
+    _NamerName otherNamerName;
+    if (other is ModularName) {
+      otherNamerName = other.value;
+    } else {
+      otherNamerName = other;
+    }
+    otherNamerName = otherNamerName._target;
+    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
+    _PrefixedName otherSameKind = otherNamerName;
     int result = prefix.compareTo(otherSameKind.prefix);
     if (result == 0) {
       result = prefix.compareTo(otherSameKind.prefix);
@@ -95,7 +104,6 @@ abstract class _PrefixedName extends _NamerName implements jsAst.AstContainer {
   }
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class GetterName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Getter.index;
@@ -103,7 +111,6 @@ class GetterName extends _PrefixedName {
   GetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class SetterName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Setter.index;
@@ -111,18 +118,16 @@ class SetterName extends _PrefixedName {
   SetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
-class _AsyncName extends _PrefixedName {
+class AsyncName extends _PrefixedName {
   @override
   int get _kind => _NamerNameKinds.Async.index;
 
-  _AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
+  AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
 
   @override
   bool get allowRename => true;
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class CompoundName extends _NamerName implements jsAst.AstContainer {
   final List<_NamerName> _parts;
   @override
@@ -170,10 +175,16 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 
   @override
-  int compareTo(covariant _NamerName other) {
-    other = other._target;
-    if (other._kind != _kind) return other._kind - _kind;
-    CompoundName otherSameKind = other;
+  int compareTo(jsAst.Name other) {
+    _NamerName otherNamerName;
+    if (other is ModularName) {
+      otherNamerName = other.value;
+    } else {
+      otherNamerName = other;
+    }
+    otherNamerName = otherNamerName._target;
+    if (otherNamerName._kind != _kind) return otherNamerName._kind - _kind;
+    CompoundName otherSameKind = otherNamerName;
     if (otherSameKind._parts.length != _parts.length) {
       return otherSameKind._parts.length - _parts.length;
     }
@@ -185,7 +196,6 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
   }
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   @override
   int get _kind => _NamerNameKinds.Token.index;
@@ -201,7 +211,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
 
   @override
   String get name {
-    assert(isFinalized);
+    assert(isFinalized, "TokenName($key) has not been finalized.");
     return _name;
   }
 
@@ -214,7 +224,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 
   @override
-  markSeen(jsAst.TokenCounter counter) => _rc++;
+  void markSeen(jsAst.TokenCounter counter) => _rc++;
 
   @override
   bool operator ==(other) {
@@ -226,7 +236,7 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   @override
   int get hashCode => super.hashCode;
 
-  finalize() {
+  void finalize() {
     assert(
         !isFinalized,
         failedAt(NO_LOCATION_SPANNABLE,
@@ -235,7 +245,6 @@ class TokenName extends _NamerName implements jsAst.ReferenceCountedAstNode {
   }
 }
 
-// ignore: STRONG_MODE_INVALID_METHOD_OVERRIDE_FROM_BASE
 class _NameReference extends _NamerName implements jsAst.AstContainer {
   @override
   _NamerName _target;
@@ -254,7 +263,15 @@ class _NameReference extends _NamerName implements jsAst.AstContainer {
   String get name => _target.name;
 
   @override
-  int compareTo(covariant _NamerName other) => _target.compareTo(other);
+  int compareTo(jsAst.Name other) {
+    _NamerName otherNamerName;
+    if (other is ModularName) {
+      otherNamerName = other.value;
+    } else {
+      otherNamerName = other;
+    }
+    return _target.compareTo(otherNamerName);
+  }
 
   @override
   bool operator ==(other) => _target == other;

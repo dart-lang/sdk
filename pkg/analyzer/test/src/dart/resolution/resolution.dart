@@ -26,8 +26,6 @@ final isBottomType = new TypeMatcher<BottomTypeImpl>();
 
 final isDynamicType = new TypeMatcher<DynamicTypeImpl>();
 
-final isUndefinedType = new TypeMatcher<UndefinedTypeImpl>();
-
 final isVoidType = new TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
@@ -200,7 +198,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var getter = findElement.topGet(name);
     assertElement(ref, getter);
 
-    var type = getter.returnType.toString();
+    var type = typeString(getter.returnType);
     assertType(ref, type);
   }
 
@@ -208,7 +206,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var setter = findElement.topSet(name);
     assertElement(ref, setter);
 
-    var type = setter.parameters[0].type.toString();
+    var type = typeString(setter.parameters[0].type);
     assertType(ref, type);
   }
 
@@ -265,8 +263,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertInvokeType(InvocationExpression node, String expected) {
-    DartType actual = node.staticInvokeType;
-    expect(actual?.toString(), expected);
+    TypeImpl actual = node.staticInvokeType;
+    expect(typeString(actual), expected);
   }
 
   void assertInvokeTypeDynamic(InvocationExpression node) {
@@ -277,15 +275,19 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);
-    expect(actual.definingType.toString(), expectedDefiningType);
+    expect(typeString(actual.definingType), expectedDefiningType);
     expect(actual.baseElement, same(expectedBase));
   }
 
-  void assertMethodInvocation(MethodInvocation invocation,
-      Element expectedElement, String expectedInvokeType,
-      {String expectedMethodNameType,
-      String expectedNameType,
-      String expectedType}) {
+  void assertMethodInvocation(
+    MethodInvocation invocation,
+    Element expectedElement,
+    String expectedInvokeType, {
+    String expectedMethodNameType,
+    String expectedNameType,
+    String expectedType,
+    List<String> expectedTypeArguments: const <String>[],
+  }) {
     MethodInvocationImpl invocationImpl = invocation;
 
     // TODO(scheglov) Check for Member.
@@ -306,6 +308,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 //      }
 //    }
 //    assertType(invocation.methodName, expectedNameType);
+
+    assertTypeArgumentTypes(invocation, expectedTypeArguments);
 
     assertInvokeType(invocation, expectedInvokeType);
 
@@ -369,8 +373,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
-    expect(actual?.toString(withNullability: typeToStringWithNullability),
-        expected);
+    expect(typeString(actual), expected);
+  }
+
+  void assertTypeArgumentTypes(
+    InvocationExpression node,
+    List<String> expected,
+  ) {
+    var actual = node.typeArgumentTypes.map((t) => typeString(t)).toList();
+    expect(actual, expected);
   }
 
   void assertTypeDynamic(Expression expression) {
@@ -395,7 +406,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
       expect(name.prefix.staticType, isNull);
 
       assertElement(name.identifier, expectedElement);
-      expect(name.identifier.staticType, isNull);
+
+      // TODO(scheglov) This should be null, but it is not.
+      // ResolverVisitor sets the tpe for `Bar` in `new foo.Bar()`. This is
+      // probably wrong. It is fine for the TypeName `foo.Bar` to have a type,
+      // and for `foo.Bar()` to have a type. But not a name of a type? No.
+//      expect(name.identifier.staticType, isNull);
     }
   }
 
@@ -443,6 +459,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     findElement = new FindElement(result.unit);
   }
 
+  /// Return a textual representation of the [type] that is appropriate for
+  /// tests.
+  String typeString(DartType type) => (type as TypeImpl)
+      ?.toString(withNullability: typeToStringWithNullability);
+
   Element _unwrapHandle(Element element) {
     if (element is ElementHandle && element is! Member) {
       return element.actualElement;
@@ -451,8 +472,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   static String _extractReturnType(String invokeType) {
-    int arrowIndex = invokeType.indexOf('→');
-    expect(arrowIndex, isNonNegative);
-    return invokeType.substring(arrowIndex + 1).trim();
+    int functionIndex = invokeType.indexOf(' Function');
+    expect(functionIndex, isNonNegative);
+    return invokeType.substring(0, functionIndex);
   }
 }

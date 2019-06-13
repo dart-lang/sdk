@@ -20,7 +20,7 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/sample_buffer_control.dart';
 import 'package:observatory/src/elements/stack_trace_tree_config.dart';
 
-class NativeMemoryProfileElement extends HtmlElement implements Renderable {
+class NativeMemoryProfileElement extends CustomElement implements Renderable {
   static const tag = const Tag<NativeMemoryProfileElement>(
       'native-memory-profile',
       dependencies: const [
@@ -62,7 +62,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
     assert(events != null);
     assert(notifications != null);
     assert(profiles != null);
-    NativeMemoryProfileElement e = document.createElement(tag.name);
+    NativeMemoryProfileElement e = new NativeMemoryProfileElement.created();
     e._r = new RenderingScheduler<NativeMemoryProfileElement>(e, queue: queue);
     e._vm = vm;
     e._events = events;
@@ -71,7 +71,7 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  NativeMemoryProfileElement.created() : super.created();
+  NativeMemoryProfileElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -90,51 +90,55 @@ class NativeMemoryProfileElement extends HtmlElement implements Renderable {
   void render() {
     var content = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
         navMenu('native memory profile', link: Uris.nativeMemory()),
-        new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)..onRefresh.listen(_refresh))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
     ];
     if (_progress == null) {
       children = content;
       return;
     }
-    content.add(new SampleBufferControlElement(_vm, _progress, _progressStream,
-        selectedTag: _tag, queue: _r.queue)
-      ..onTagChange.listen((e) {
-        _tag = e.element.selectedTag;
-        _request(forceFetch: true);
-      }));
+    content.add((new SampleBufferControlElement(_vm, _progress, _progressStream,
+            selectedTag: _tag, queue: _r.queue)
+          ..onTagChange.listen((e) {
+            _tag = e.element.selectedTag;
+            _request(forceFetch: true);
+          }))
+        .element);
     if (_progress.status == M.SampleProfileLoadingStatus.loaded) {
       CpuProfileVirtualTreeElement tree;
       content.addAll([
         new BRElement(),
-        new StackTraceTreeConfigElement(
-            mode: _mode,
-            direction: _direction,
-            filter: _filter,
-            queue: _r.queue)
-          ..onModeChange.listen((e) {
-            _mode = tree.mode = e.element.mode;
-          })
-          ..onFilterChange.listen((e) {
-            _filter = e.element.filter.trim();
-            tree.filters = _filter.isNotEmpty
-                ? [
-                    (node) {
-                      return node.name.contains(_filter);
-                    }
-                  ]
-                : const [];
-          })
-          ..onDirectionChange.listen((e) {
-            _direction = tree.direction = e.element.direction;
-          }),
+        (new StackTraceTreeConfigElement(
+                mode: _mode,
+                direction: _direction,
+                filter: _filter,
+                queue: _r.queue)
+              ..onModeChange.listen((e) {
+                _mode = tree.mode = e.element.mode;
+              })
+              ..onFilterChange.listen((e) {
+                _filter = e.element.filter.trim();
+                tree.filters = _filter.isNotEmpty
+                    ? [
+                        (node) {
+                          return node.name.contains(_filter);
+                        }
+                      ]
+                    : const [];
+              })
+              ..onDirectionChange.listen((e) {
+                _direction = tree.direction = e.element.direction;
+              }))
+            .element,
         new BRElement(),
-        tree = new CpuProfileVirtualTreeElement(null, _progress.profile,
-            queue: _r.queue, type: M.SampleProfileType.memory)
+        (tree = new CpuProfileVirtualTreeElement(null, _progress.profile,
+                queue: _r.queue, type: M.SampleProfileType.memory))
+            .element,
       ]);
     }
     children = content;

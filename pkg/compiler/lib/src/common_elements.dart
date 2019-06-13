@@ -14,6 +14,7 @@ import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
+import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
 import 'universe/selector.dart' show Selector;
 
@@ -2152,4 +2153,30 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// marker. The return type of the method is inspected to determine the type
   /// parameter of the Future, Stream or Iterable.
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function);
+
+  /// Calls [f] with every instance field, together with its declarer, in an
+  /// instance of [cls]. All fields inherited from superclasses and mixins are
+  /// included.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
+  void forEachInstanceField(
+      ClassEntity cls, void f(ClassEntity declarer, FieldEntity field));
+
+  /// Calls [f] with every instance field declared directly in class [cls]
+  /// (i.e. no inherited fields). Fields are presented in initialization
+  /// (i.e. textual) order.
+  ///
+  /// If [isElided] is `true`, the field is not read and should therefore not
+  /// be emitted.
+  void forEachDirectInstanceField(ClassEntity cls, void f(FieldEntity field));
+
+  /// Calls [f] for each parameter of [function] providing the type and name of
+  /// the parameter and the [defaultValue] if the parameter is optional.
+  void forEachParameter(covariant FunctionEntity function,
+      void f(DartType type, String name, ConstantValue defaultValue));
+
+  /// Calls [f] for each parameter - given as a [Local] - of [function].
+  void forEachParameterAsLocal(GlobalLocalsMap globalLocalsMap,
+      FunctionEntity function, void f(Local parameter));
 }

@@ -40,18 +40,6 @@ DEFINE_FLAG(bool,
             print_free_list_after_gc,
             false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(int,
-            code_collection_interval_in_us,
-            30000000,
-            "Time between attempts to collect unused code.");
-DEFINE_FLAG(bool,
-            log_code_drop,
-            false,
-            "Emit a log message when pointers to unused code are dropped.");
-DEFINE_FLAG(bool,
-            always_drop_code,
-            false,
-            "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Allocate(intptr_t size_in_words,
@@ -237,7 +225,7 @@ static const intptr_t kConservativeInitialMarkSpeed = 20;
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : freelist_(),
       heap_(heap),
-      pages_lock_(new Mutex()),
+      pages_lock_(),
       pages_(NULL),
       pages_tail_(NULL),
       exec_pages_(NULL),
@@ -249,7 +237,7 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       max_capacity_in_words_(max_capacity_in_words),
       usage_(),
       allocated_black_in_words_(0),
-      tasks_lock_(new Monitor()),
+      tasks_lock_(),
       tasks_(0),
       concurrent_marker_tasks_(0),
       phase_(kDone),
@@ -281,8 +269,6 @@ PageSpace::~PageSpace() {
   FreePages(exec_pages_);
   FreePages(large_pages_);
   FreePages(image_pages_);
-  delete pages_lock_;
-  delete tasks_lock_;
   ASSERT(marker_ == NULL);
 }
 
@@ -294,7 +280,7 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(kPageSizeInWords)) {
       return NULL;
     }
@@ -312,7 +298,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
     return NULL;
   }
 
-  MutexLocker ml(pages_lock_);
+  MutexLocker ml(&pages_lock_);
   if (link) {
     if (!is_exec) {
       if (pages_ == NULL) {
@@ -348,7 +334,7 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type, bool link) {
 HeapPage* PageSpace::AllocateLargePage(intptr_t size, HeapPage::PageType type) {
   const intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     if (!CanIncreaseCapacityInWordsLocked(page_size_in_words)) {
       return NULL;
     }
@@ -391,7 +377,7 @@ void PageSpace::TruncateLargePage(HeapPage* page,
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
   bool is_exec = (page->type() == HeapPage::kExecutable);
   {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     IncreaseCapacityInWordsLocked(-(page->memory_->size() >> kWordSizeLog2));
     if (!is_exec) {
       // Remove the page from the list of data pages.
@@ -565,7 +551,7 @@ void PageSpace::FreeExternal(intptr_t size) {
 class ExclusivePageIterator : ValueObject {
  public:
   explicit ExclusivePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     list_ = kRegular;
     page_ = space_->pages_;
@@ -617,7 +603,7 @@ class ExclusivePageIterator : ValueObject {
 class ExclusiveCodePageIterator : ValueObject {
  public:
   explicit ExclusiveCodePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     page_ = space_->exec_pages_;
   }
@@ -639,7 +625,7 @@ class ExclusiveCodePageIterator : ValueObject {
 class ExclusiveLargePageIterator : ValueObject {
  public:
   explicit ExclusiveLargePageIterator(const PageSpace* space)
-      : space_(space), ml_(space->pages_lock_) {
+      : space_(space), ml_(&space->pages_lock_) {
     space_->MakeIterable();
     page_ = space_->large_pages_;
   }
@@ -896,7 +882,7 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
     // TODO(19445): Use ExclusivePageIterator once HeapMap supports large pages.
     HeapIterationScope iteration(Thread::Current());
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     MakeIterable();
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
@@ -919,26 +905,9 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
 }
 #endif  // PRODUCT
 
-bool PageSpace::ShouldCollectCode() {
-  // Try to collect code if enough time has passed since the last attempt.
-  const int64_t start = OS::GetCurrentMonotonicMicros();
-  const int64_t last_code_collection_in_us =
-      page_space_controller_.last_code_collection_in_us();
-
-  if ((start - last_code_collection_in_us) >
-      FLAG_code_collection_interval_in_us) {
-    if (FLAG_log_code_drop) {
-      OS::PrintErr("Trying to detach code.\n");
-    }
-    page_space_controller_.set_last_code_collection_in_us(start);
-    return true;
-  }
-  return false;
-}
-
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
-    MutexLocker ml(pages_lock_);
+    MutexLocker ml(&pages_lock_);
     NoSafepointScope no_safepoint;
     // No need to go through all of the data pages first.
     HeapPage* page = exec_pages_;
@@ -1107,13 +1076,6 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
   SpaceUsage usage_before = GetCurrentUsage();
 
   // Mark all reachable old-gen objects.
-#if defined(PRODUCT)
-  bool collect_code = FLAG_collect_code && ShouldCollectCode();
-#else
-  bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
-                      !isolate->HasAttemptedReload();
-#endif  // !defined(PRODUCT)
-
   if (marker_ == NULL) {
     ASSERT(phase() == kDone);
     marker_ = new GCMarker(isolate, heap_);
@@ -1123,12 +1085,12 @@ void PageSpace::CollectGarbageAtSafepoint(bool compact,
 
   if (!finalize) {
     ASSERT(phase() == kDone);
-    marker_->StartConcurrentMark(this, collect_code);
+    marker_->StartConcurrentMark(this);
     return;
   }
 
   NOT_IN_PRODUCT(isolate->class_table()->ResetCountersOld());
-  marker_->MarkObjects(this, collect_code);
+  marker_->MarkObjects(this);
   usage_.used_in_words = marker_->marked_words() + allocated_black_in_words_;
   allocated_black_in_words_ = 0;
   mark_words_per_micro_ = marker_->MarkedWordsPerMicro();
@@ -1272,7 +1234,7 @@ void PageSpace::ConcurrentSweep(Isolate* isolate) {
 void PageSpace::Compact(Thread* thread) {
   thread->isolate()->set_compaction_in_progress(true);
   GCCompactor compactor(thread, heap_);
-  compactor.Compact(pages_, &freelist_[HeapPage::kData], pages_lock_);
+  compactor.Compact(pages_, &freelist_[HeapPage::kData], &pages_lock_);
   thread->isolate()->set_compaction_in_progress(false);
 
   if (FLAG_verify_after_gc) {
@@ -1366,7 +1328,7 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
     page->type_ = HeapPage::kData;
   }
 
-  MutexLocker ml(pages_lock_);
+  MutexLocker ml(&pages_lock_);
   page->next_ = image_pages_;
   image_pages_ = page;
 }
@@ -1393,7 +1355,6 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentMonotonicMicros()),
       idle_gc_threshold_in_words_(0) {
   intptr_t grow_heap = heap_growth_max / 2;
   gc_threshold_in_words_ =

@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class IsolateRefElement extends HtmlElement implements Renderable {
+class IsolateRefElement extends CustomElement implements Renderable {
   static const tag = const Tag<IsolateRefElement>('isolate-ref');
 
   RenderingScheduler<IsolateRefElement> _r;
@@ -28,14 +28,14 @@ class IsolateRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
-    IsolateRefElement e = document.createElement(tag.name);
+    IsolateRefElement e = new IsolateRefElement.created();
     e._r = new RenderingScheduler<IsolateRefElement>(e, queue: queue);
     e._isolate = isolate;
     e._events = events;
     return e;
   }
 
-  IsolateRefElement.created() : super.created();
+  IsolateRefElement.created() : super.created(tag);
 
   @override
   void attached() {

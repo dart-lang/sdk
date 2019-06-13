@@ -264,8 +264,7 @@ class FlowGraph : public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number,
                   ZoneGrowableArray<Definition*>* inlining_parameters);
 
-  // Verification methods for debugging.
-  bool VerifyUseLists();
+  // Verification method for debugging.
   bool VerifyRedefinitions();
 
   void DiscoverBlocks();

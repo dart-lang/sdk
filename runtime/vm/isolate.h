@@ -9,11 +9,14 @@
 #error "Should not include runtime"
 #endif
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
+#include "vm/constants_kbc.h"
 #include "vm/exceptions.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -170,6 +173,7 @@ class Isolate : public BaseIsolate {
     kInterruptMsg = 10,     // Break in the debugger.
     kInternalKillMsg = 11,  // Like kill, but does not run exit listeners, etc.
     kLowMemoryMsg = 12,     // Run compactor, etc.
+    kDrainServiceExtensionsMsg = 13,  // Invoke pending service extensions
   };
   // The different Isolate API message priorities for ping and kill messages.
   enum LibMsgPriority {
@@ -182,7 +186,7 @@ class Isolate : public BaseIsolate {
 
   static inline Isolate* Current() {
     Thread* thread = Thread::Current();
-    return thread == NULL ? NULL : thread->isolate();
+    return thread == nullptr ? nullptr : thread->isolate();
   }
 
   // Register a newly introduced class.
@@ -305,14 +309,14 @@ class Isolate : public BaseIsolate {
   // the caller to delete is separately if it is still needed.
   bool ReloadSources(JSONStream* js,
                      bool force_reload,
-                     const char* root_script_url = NULL,
-                     const char* packages_url = NULL,
+                     const char* root_script_url = nullptr,
+                     const char* packages_url = nullptr,
                      bool dont_delete_reload_context = false);
 
   // If provided, the VM takes ownership of kernel_buffer.
   bool ReloadKernel(JSONStream* js,
                     bool force_reload,
-                    const uint8_t* kernel_buffer = NULL,
+                    const uint8_t* kernel_buffer = nullptr,
                     intptr_t kernel_buffer_size = 0,
                     bool dont_delete_reload_context = false);
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -345,30 +349,26 @@ class Isolate : public BaseIsolate {
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
-  Mutex* mutex() const { return mutex_; }
-  Mutex* symbols_mutex() const { return symbols_mutex_; }
-  Mutex* type_canonicalization_mutex() const {
-    return type_canonicalization_mutex_;
+  Mutex* mutex() { return &mutex_; }
+  Mutex* symbols_mutex() { return &symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() { return &type_canonicalization_mutex_; }
+  Mutex* constant_canonicalization_mutex() {
+    return &constant_canonicalization_mutex_;
   }
-  Mutex* constant_canonicalization_mutex() const {
-    return constant_canonicalization_mutex_;
-  }
-  Mutex* megamorphic_lookup_mutex() const { return megamorphic_lookup_mutex_; }
+  Mutex* megamorphic_lookup_mutex() { return &megamorphic_lookup_mutex_; }
 
-  Mutex* kernel_data_lib_cache_mutex() const {
-    return kernel_data_lib_cache_mutex_;
-  }
-  Mutex* kernel_data_class_cache_mutex() const {
-    return kernel_data_class_cache_mutex_;
+  Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
+  Mutex* kernel_data_class_cache_mutex() {
+    return &kernel_data_class_cache_mutex_;
   }
 
   // Any access to constants arrays must be locked since mutator and
   // background compiler can access the arrays at the same time.
-  Mutex* kernel_constants_mutex() const { return kernel_constants_mutex_; }
+  Mutex* kernel_constants_mutex() { return &kernel_constants_mutex_; }
 
 #if !defined(PRODUCT)
   Debugger* debugger() const {
-    ASSERT(debugger_ != NULL);
+    ASSERT(debugger_ != nullptr);
     return debugger_;
   }
 
@@ -430,10 +430,8 @@ class Isolate : public BaseIsolate {
   Simulator* simulator() const { return simulator_; }
   void set_simulator(Simulator* value) { simulator_ = value; }
 
-  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
-  intptr_t* spawn_count() { return &spawn_count_; }
-
   void IncrementSpawnCount();
+  void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
@@ -468,10 +466,10 @@ class Isolate : public BaseIsolate {
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts() const {
     return pending_deopts_;
   }
-  bool IsDeoptimizing() const { return deopt_context_ != NULL; }
+  bool IsDeoptimizing() const { return deopt_context_ != nullptr; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
-    ASSERT(value == NULL || deopt_context_ == NULL);
+    ASSERT(value == nullptr || deopt_context_ == nullptr);
     deopt_context_ = value;
   }
 
@@ -529,7 +527,7 @@ class Isolate : public BaseIsolate {
   VMTagCounters* vm_tag_counters() { return &vm_tag_counters_; }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  bool IsReloading() const { return reload_context_ != NULL; }
+  bool IsReloading() const { return reload_context_ != nullptr; }
 
   IsolateReloadContext* reload_context() { return reload_context_; }
 
@@ -658,7 +656,7 @@ class Isolate : public BaseIsolate {
   RawField* GetDeoptimizingBoxedField();
 
 #ifndef PRODUCT
-  RawObject* InvokePendingServiceExtensionCalls();
+  RawError* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                                   const String& method_name,
                                   const Array& parameter_keys,
@@ -780,11 +778,28 @@ class Isolate : public BaseIsolate {
     return !unsafe_trust_strong_mode_types();
   }
 
+  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+                "Cleanup support for old bytecode format versions");
+  bool is_using_old_bytecode_instructions() const {
+    return UsingOldBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_old_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingOldBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+  bool is_using_new_bytecode_instructions() const {
+    return UsingNewBytecodeInstructionsBit::decode(isolate_flags_);
+  }
+  void set_is_using_new_bytecode_instructions(bool value) {
+    isolate_flags_ =
+        UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
+  }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
-  // Lookup an isolate by its main port. Returns NULL if no matching isolate is
-  // found.
+  // Lookup an isolate by its main port. Returns nullptr if no matching isolate
+  // is found.
   static Isolate* LookupIsolateByPort(Dart_Port port);
 
   static void DisableIsolateCreation();
@@ -870,19 +885,19 @@ class Isolate : public BaseIsolate {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword user_tag_;
+  uword user_tag_ = 0;
   RawUserTag* current_tag_;
   RawUserTag* default_tag_;
   RawCode* ic_miss_code_;
-  ObjectStore* object_store_;
+  ObjectStore* object_store_ = nullptr;
   ClassTable class_table_;
-  bool single_step_;
+  bool single_step_ = false;
   // End accessed from generated code.
 
-  StoreBuffer* store_buffer_;
-  MarkingStack* marking_stack_;
-  MarkingStack* deferred_marking_stack_;
-  Heap* heap_;
+  StoreBuffer* store_buffer_ = nullptr;
+  MarkingStack* marking_stack_ = nullptr;
+  MarkingStack* deferred_marking_stack_ = nullptr;
+  Heap* heap_ = nullptr;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
@@ -904,7 +919,13 @@ class Isolate : public BaseIsolate {
   V(Obfuscate)                                                                 \
   V(CompactionInProgress)                                                      \
   V(ShouldLoadVmService)                                                       \
-  V(UnsafeTrustStrongModeTypes)
+  V(UnsafeTrustStrongModeTypes)                                                \
+  V(UsingOldBytecodeInstructions)                                              \
+  V(UsingNewBytecodeInstructions)
+
+  static_assert(
+      KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
+      "Cleanup UsingOldBytecodeInstructions and UsingNewBytecodeInstructions");
 
   // Isolate specific flags.
   enum FlagBits {
@@ -918,23 +939,23 @@ class Isolate : public BaseIsolate {
   ISOLATE_FLAG_BITS(DECLARE_BITFIELD)
 #undef DECLARE_BITFIELD
 
-  uint32_t isolate_flags_;
+  uint32_t isolate_flags_ = 0;
 
   // Unoptimized background compilation.
-  BackgroundCompiler* background_compiler_;
+  BackgroundCompiler* background_compiler_ = nullptr;
 
   // Optimized background compilation.
-  BackgroundCompiler* optimizing_background_compiler_;
+  BackgroundCompiler* optimizing_background_compiler_ = nullptr;
 
 // Fields that aren't needed in a product build go here with boolean flags at
 // the top.
 #if !defined(PRODUCT)
-  Debugger* debugger_;
+  Debugger* debugger_ = nullptr;
   int64_t last_resume_timestamp_;
 
   // Timestamps of last operation via service.
-  int64_t last_allocationprofile_accumulator_reset_timestamp_;
-  int64_t last_allocationprofile_gc_timestamp_;
+  int64_t last_allocationprofile_accumulator_reset_timestamp_ = 0;
+  int64_t last_allocationprofile_gc_timestamp_ = 0;
 
   VMTagCounters vm_tag_counters_;
 
@@ -958,54 +979,55 @@ class Isolate : public BaseIsolate {
   };
   RawGrowableObjectArray* registered_service_extension_handlers_;
 
-  Metric* metrics_list_head_;
+  Metric* metrics_list_head_ = nullptr;
 
   // Used to wake the isolate when it is in the pause event loop.
-  Monitor* pause_loop_monitor_;
+  Monitor* pause_loop_monitor_ = nullptr;
 
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
-  intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
+  intptr_t no_reload_scope_depth_ = 0;  // we can only reload when this is 0.
   // Per-isolate copy of FLAG_reload_every.
   intptr_t reload_every_n_stack_overflow_checks_;
-  IsolateReloadContext* reload_context_;
+  IsolateReloadContext* reload_context_ = nullptr;
   int64_t last_reload_timestamp_;
   // Ring buffer of objects assigned an id.
-  ObjectIdRing* object_id_ring_;
+  ObjectIdRing* object_id_ring_ = nullptr;
 #endif  // !defined(PRODUCT)
 
   // All other fields go here.
   int64_t start_time_micros_;
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
-  Dart_MessageNotifyCallback message_notify_callback_;
-  char* name_;
-  Dart_Port main_port_;
-  Dart_Port origin_id_;  // Isolates created by spawnFunc have some origin id.
-  uint64_t pause_capability_;
-  uint64_t terminate_capability_;
-  void* init_callback_data_;
-  Dart_EnvironmentCallback environment_callback_;
-  Dart_LibraryTagHandler library_tag_handler_;
-  ApiState* api_state_;
+  Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
+  char* name_ = nullptr;
+  Dart_Port main_port_ = 0;
+  // Isolates created by Isolate.spawn have the same origin id.
+  Dart_Port origin_id_ = 0;
+  uint64_t pause_capability_ = 0;
+  uint64_t terminate_capability_ = 0;
+  void* init_callback_data_ = nullptr;
+  Dart_EnvironmentCallback environment_callback_ = nullptr;
+  Dart_LibraryTagHandler library_tag_handler_ = nullptr;
+  ApiState* api_state_ = nullptr;
   Random random_;
-  Simulator* simulator_;
-  Mutex* mutex_;          // Protects compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
-  Mutex* type_canonicalization_mutex_;      // Protects type canonicalization.
-  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex* megamorphic_lookup_mutex_;  // Protects megamorphic table lookup.
-  Mutex* kernel_data_lib_cache_mutex_;
-  Mutex* kernel_data_class_cache_mutex_;
-  Mutex* kernel_constants_mutex_;
-  MessageHandler* message_handler_;
-  IsolateSpawnState* spawn_state_;
-  intptr_t defer_finalization_count_;
+  Simulator* simulator_ = nullptr;
+  Mutex mutex_;          // Protects compiler stats.
+  Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
+  Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
+  Mutex megamorphic_lookup_mutex_;         // Protects megamorphic table lookup.
+  Mutex kernel_data_lib_cache_mutex_;
+  Mutex kernel_data_class_cache_mutex_;
+  Mutex kernel_constants_mutex_;
+  MessageHandler* message_handler_ = nullptr;
+  IsolateSpawnState* spawn_state_ = nullptr;
+  intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
-  DeoptContext* deopt_context_;
+  DeoptContext* deopt_context_ = nullptr;
 
   RawGrowableObjectArray* tag_table_;
 
@@ -1020,30 +1042,30 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* reloaded_kernel_blobs_;
 
   // Isolate list next pointer.
-  Isolate* next_;
+  Isolate* next_ = nullptr;
 
   // Invalidation generations; used to track events occurring in parallel
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
-  intptr_t loading_invalidation_gen_;
+  intptr_t loading_invalidation_gen_ = kInvalidGen;
 
   // Protect access to boxed_field_list_.
-  Mutex* field_list_mutex_;
+  Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
-  Monitor* spawn_count_monitor_;
-  intptr_t spawn_count_;
+  Monitor spawn_count_monitor_;
+  intptr_t spawn_count_ = 0;
 
   HandlerInfoCache handler_info_cache_;
   CatchEntryMovesCache catch_entry_moves_cache_;
 
-  Dart_QualifiedFunctionName* embedder_entry_points_;
-  const char** obfuscation_map_;
+  Dart_QualifiedFunctionName* embedder_entry_points_ = nullptr;
+  const char** obfuscation_map_ = nullptr;
 
-  ReversePcLookupCache* reverse_pc_lookup_cache_;
+  ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
@@ -1088,14 +1110,13 @@ class StartIsolateScope {
  public:
   explicit StartIsolateScope(Isolate* new_isolate)
       : new_isolate_(new_isolate), saved_isolate_(Isolate::Current()) {
-    // TODO(koda): Audit users; passing NULL goes against naming of this class.
-    if (new_isolate_ == NULL) {
-      ASSERT(Isolate::Current() == NULL);
+    if (new_isolate_ == nullptr) {
+      ASSERT(Isolate::Current() == nullptr);
       // Do nothing.
       return;
     }
     if (saved_isolate_ != new_isolate_) {
-      ASSERT(Isolate::Current() == NULL);
+      ASSERT(Isolate::Current() == nullptr);
       Thread::EnterIsolate(new_isolate_);
       // Ensure this is not a nested 'isolate enter' with prior state.
       ASSERT(Thread::Current()->saved_stack_limit() == 0);
@@ -1103,13 +1124,13 @@ class StartIsolateScope {
   }
 
   ~StartIsolateScope() {
-    if (new_isolate_ == NULL) {
-      ASSERT(Isolate::Current() == NULL);
+    if (new_isolate_ == nullptr) {
+      ASSERT(Isolate::Current() == nullptr);
       // Do nothing.
       return;
     }
     if (saved_isolate_ != new_isolate_) {
-      ASSERT(saved_isolate_ == NULL);
+      ASSERT(saved_isolate_ == nullptr);
       // ASSERT that we have bottomed out of all Dart invocations.
       ASSERT(Thread::Current()->saved_stack_limit() == 0);
       Thread::ExitIsolate();
@@ -1127,13 +1148,9 @@ class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
                     Dart_Port origin_id,
-                    void* init_data,
                     const char* script_url,
                     const Function& func,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
-                    const char* package_root,
                     const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
@@ -1141,14 +1158,10 @@ class IsolateSpawnState {
                     Dart_Port onError,
                     const char* debug_name);
   IsolateSpawnState(Dart_Port parent_port,
-                    void* init_data,
                     const char* script_url,
-                    const char* package_root,
                     const char* package_config,
                     SerializedObjectBuffer* args_buffer,
                     SerializedObjectBuffer* message_buffer,
-                    Monitor* spawn_count_monitor,
-                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -1161,17 +1174,15 @@ class IsolateSpawnState {
 
   Dart_Port parent_port() const { return parent_port_; }
   Dart_Port origin_id() const { return origin_id_; }
-  void* init_data() const { return init_data_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
-  const char* package_root() const { return package_root_; }
   const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
   const char* debug_name() const { return debug_name_; }
-  bool is_spawn_uri() const { return library_url_ == NULL; }
+  bool is_spawn_uri() const { return library_url_ == nullptr; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
   Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
@@ -1180,29 +1191,20 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
-  void DecrementSpawnCount();
-
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
   Dart_Port origin_id_;
-  void* init_data_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
-  const char* package_root_;
   const char* package_config_;
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
   const char* debug_name_;
-  Message* serialized_args_;
-  Message* serialized_message_;
-
-  // This counter tracks the number of outstanding calls to spawn by the parent
-  // isolate.
-  Monitor* spawn_count_monitor_;
-  intptr_t* spawn_count_;
+  std::unique_ptr<Message> serialized_args_;
+  std::unique_ptr<Message> serialized_message_;
 
   Dart_IsolateFlags isolate_flags_;
   bool paused_;

@@ -21,12 +21,14 @@ Future<ChainContext> createContext(
 class SourceMapContext extends ChainContextWithCleanupHelper
     implements WithCompilerState {
   final Map<String, String> environment;
+  @override
   fe.InitializedCompilerState compilerState;
 
   SourceMapContext(this.environment);
 
   List<Step> _steps;
 
+  @override
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
@@ -36,6 +38,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper
     ];
   }
 
+  @override
   bool debugging() => environment.containsKey("debug");
 }
 
@@ -45,6 +48,7 @@ class DevCompilerRunner implements CompilerRunner {
 
   const DevCompilerRunner(this.context, [this.debugging = false]);
 
+  @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;
@@ -66,7 +70,8 @@ class DevCompilerRunner implements CompilerRunner {
     bool succeeded = false;
     try {
       var result = await compile(args, compilerState: context.compilerState);
-      context.compilerState = result.compilerState;
+      context.compilerState =
+          result.compilerState as fe.InitializedCompilerState;
       succeeded = result.success;
     } catch (e, s) {
       print('Unhandled exception:');
@@ -84,7 +89,7 @@ class DevCompilerRunner implements CompilerRunner {
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
     File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
+        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
       createHtmlWrapper(
@@ -99,4 +104,5 @@ class DevCompilerRunner implements CompilerRunner {
   }
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+void main(List<String> arguments) =>
+    runMe(arguments, createContext, "testing.json");

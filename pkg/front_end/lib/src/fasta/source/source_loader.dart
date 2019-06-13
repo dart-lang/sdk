@@ -82,6 +82,7 @@ import '../kernel/kernel_builder.dart'
         KernelProcedureBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
+        MemberBuilder,
         NamedTypeBuilder,
         TypeBuilder;
 
@@ -103,7 +104,8 @@ import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 
 import '../problems.dart' show internalProblem;
 
-import '../scanner.dart' show ErrorToken, ScannerResult, Token, scan;
+import '../scanner.dart'
+    show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
 
 import '../type_inference/interface_resolver.dart' show InterfaceResolver;
 
@@ -199,7 +201,10 @@ class SourceLoader extends Loader<Library> {
       byteCount += rawBytes.length;
     }
 
-    ScannerResult result = scan(bytes, includeComments: includeComments);
+    ScannerResult result = scan(bytes,
+        includeComments: includeComments,
+        configuration: new ScannerConfiguration(
+            enableTripleShift: target.enableTripleShift));
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
@@ -947,6 +952,23 @@ class SourceLoader extends Loader<Library> {
     ticker.logMs("Checked mixin declaration applications");
   }
 
+  void buildOutlineExpressions() {
+    builders.forEach((Uri uri, LibraryBuilder library) {
+      if (library.loader == this) {
+        library.buildOutlineExpressions();
+        Iterator<Declaration> iterator = library.iterator;
+        while (iterator.moveNext()) {
+          Declaration declaration = iterator.current;
+          if (declaration is ClassBuilder) {
+            declaration.buildOutlineExpressions(library);
+          } else if (declaration is MemberBuilder) {
+            declaration.buildOutlineExpressions(library);
+          }
+        }
+      }
+    });
+  }
+
   ClassHierarchyBuilder buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchy = ClassHierarchyBuilder.build(
@@ -1036,17 +1058,17 @@ class SourceLoader extends Loader<Library> {
 
   void transformListPostInference(List<TreeNode> list,
       bool transformSetLiterals, bool transformCollections) {
-    if (transformSetLiterals) {
-      SetLiteralTransformer transformer = setLiteralTransformer ??=
-          new SetLiteralTransformer(this,
-              transformConst: !target.enableConstantUpdate2018);
+    if (transformCollections) {
+      CollectionTransformer transformer =
+          collectionTransformer ??= new CollectionTransformer(this);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }
     }
-    if (transformCollections) {
-      CollectionTransformer transformer =
-          collectionTransformer ??= new CollectionTransformer(this);
+    if (transformSetLiterals) {
+      SetLiteralTransformer transformer = setLiteralTransformer ??=
+          new SetLiteralTransformer(this,
+              transformConst: !target.enableConstantUpdate2018);
       for (int i = 0; i < list.length; ++i) {
         list[i] = list[i].accept(transformer);
       }

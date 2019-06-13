@@ -31,9 +31,10 @@ server calls. This file is validated by `coverage_test.dart`.
 
 ## completion domain
 - [ ] completion.availableSuggestions
+- [ ] completion.existingImports
 - [ ] completion.getSuggestionDetails
 - [x] completion.getSuggestions
-- [ ] completion.listTokenDetails
+- [x] completion.listTokenDetails
 - [ ] completion.registerLibraryPaths
 - [ ] completion.results
 - [ ] completion.setSubscriptions

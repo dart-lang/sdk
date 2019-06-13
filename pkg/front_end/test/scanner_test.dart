@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
-    show AbstractScanner;
+    show AbstractScanner, ScannerConfiguration;
 import 'package:front_end/src/scanner/errors.dart';
 import 'package:front_end/src/scanner/reader.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -80,7 +80,7 @@ class ErrorListener {
 
 abstract class ScannerTestBase {
   Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false});
+      {ScannerConfiguration configuration});
 
   void test_ampersand() {
     _assertToken(TokenType.AMPERSAND, "&");
@@ -92,8 +92,7 @@ abstract class ScannerTestBase {
 
   void test_ampersand_ampersand_eq() {
     if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=",
-          lazyAssignmentOperators: true);
+      _assertToken(TokenType.AMPERSAND_AMPERSAND_EQ, "&&=");
     }
   }
 
@@ -152,7 +151,7 @@ abstract class ScannerTestBase {
 
   void test_bar_bar_eq() {
     if (AbstractScanner.LAZY_ASSIGNMENT_ENABLED) {
-      _assertToken(TokenType.BAR_BAR_EQ, "||=", lazyAssignmentOperators: true);
+      _assertToken(TokenType.BAR_BAR_EQ, "||=");
     }
   }
 
@@ -444,6 +443,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("extends");
   }
 
+  void test_keyword_extension() {
+    _assertKeywordToken("extension",
+        configuration: ScannerConfiguration(enableExtensionMethods: true));
+  }
+
+  void test_keyword_extension_old() {
+    _assertNotKeywordToken("extension",
+        configuration: ScannerConfiguration(enableExtensionMethods: false));
+  }
+
   void test_keyword_factory() {
     _assertKeywordToken("factory");
   }
@@ -496,6 +505,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("is");
   }
 
+  void test_keyword_late() {
+    _assertKeywordToken("late",
+        configuration: ScannerConfiguration(enableNonNullable: true));
+  }
+
+  void test_keyword_late_old() {
+    _assertNotKeywordToken("late",
+        configuration: ScannerConfiguration(enableNonNullable: false));
+  }
+
   void test_keyword_library() {
     _assertKeywordToken("library");
   }
@@ -534,6 +553,16 @@ abstract class ScannerTestBase {
 
   void test_keyword_patch() {
     _assertKeywordToken("patch");
+  }
+
+  void test_keyword_required() {
+    _assertKeywordToken("required",
+        configuration: ScannerConfiguration(enableNonNullable: true));
+  }
+
+  void test_keyword_required_disabled() {
+    _assertNotKeywordToken("required",
+        configuration: ScannerConfiguration(enableNonNullable: false));
   }
 
   void test_keyword_rethrow() {
@@ -1300,8 +1329,9 @@ abstract class ScannerTestBase {
    * Assert that when scanned the given [source] contains a single keyword token
    * with the same lexeme as the original source.
    */
-  void _assertKeywordToken(String source) {
-    Token token = _scan(source);
+  void _assertKeywordToken(String source,
+      {ScannerConfiguration configuration}) {
+    Token token = _scan(source, configuration: configuration);
     expect(token, isNotNull);
     expect(token.type.isKeyword, true);
     expect(token.offset, 0);
@@ -1310,7 +1340,7 @@ abstract class ScannerTestBase {
     Object value = token.value();
     expect(value is Keyword, isTrue);
     expect((value as Keyword).lexeme, source);
-    token = _scan(" $source ");
+    token = _scan(" $source ", configuration: configuration);
     expect(token, isNotNull);
     expect(token.type.isKeyword, true);
     expect(token.offset, 1);
@@ -1323,14 +1353,33 @@ abstract class ScannerTestBase {
   }
 
   /**
+   * Assert that when scanned the given [source] contains a single identifier token
+   * with the same lexeme as the original source.
+   */
+  void _assertNotKeywordToken(String source,
+      {ScannerConfiguration configuration}) {
+    Token token = _scan(source, configuration: configuration);
+    expect(token, isNotNull);
+    expect(token.type.isKeyword, false);
+    expect(token.offset, 0);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
+    token = _scan(" $source ", configuration: configuration);
+    expect(token, isNotNull);
+    expect(token.type.isKeyword, false);
+    expect(token.offset, 1);
+    expect(token.length, source.length);
+    expect(token.lexeme, source);
+    expect(token.next.type, TokenType.EOF);
+  }
+
+  /**
    * Assert that the token scanned from the given [source] has the
    * [expectedType].
    */
-  Token _assertToken(TokenType expectedType, String source,
-      {bool lazyAssignmentOperators: false}) {
+  Token _assertToken(TokenType expectedType, String source) {
     // Fasta generates errors for unmatched '{', '[', etc
-    Token originalToken = _scan(source,
-        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+    Token originalToken = _scan(source, ignoreErrors: true);
     expect(originalToken, isNotNull);
     expect(originalToken.type, expectedType);
     expect(originalToken.offset, 0);
@@ -1342,8 +1391,7 @@ abstract class ScannerTestBase {
       return originalToken;
     } else if (expectedType == TokenType.SINGLE_LINE_COMMENT) {
       // Adding space to an end-of-line comment changes the comment.
-      Token tokenWithSpaces = _scan(" $source",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithSpaces = _scan(" $source", ignoreErrors: true);
       expect(tokenWithSpaces, isNotNull);
       expect(tokenWithSpaces.type, expectedType);
       expect(tokenWithSpaces.offset, 1);
@@ -1352,23 +1400,20 @@ abstract class ScannerTestBase {
       return originalToken;
     } else if (expectedType == TokenType.INT ||
         expectedType == TokenType.DOUBLE) {
-      Token tokenWithLowerD = _scan("${source}d",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithLowerD = _scan("${source}d", ignoreErrors: true);
       expect(tokenWithLowerD, isNotNull);
       expect(tokenWithLowerD.type, expectedType);
       expect(tokenWithLowerD.offset, 0);
       expect(tokenWithLowerD.length, source.length);
       expect(tokenWithLowerD.lexeme, source);
-      Token tokenWithUpperD = _scan("${source}D",
-          lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+      Token tokenWithUpperD = _scan("${source}D", ignoreErrors: true);
       expect(tokenWithUpperD, isNotNull);
       expect(tokenWithUpperD.type, expectedType);
       expect(tokenWithUpperD.offset, 0);
       expect(tokenWithUpperD.length, source.length);
       expect(tokenWithUpperD.lexeme, source);
     }
-    Token tokenWithSpaces = _scan(" $source ",
-        lazyAssignmentOperators: lazyAssignmentOperators, ignoreErrors: true);
+    Token tokenWithSpaces = _scan(" $source ", ignoreErrors: true);
     expect(tokenWithSpaces, isNotNull);
     expect(tokenWithSpaces.type, expectedType);
     expect(tokenWithSpaces.offset, 1);
@@ -1408,10 +1453,10 @@ abstract class ScannerTestBase {
   }
 
   Token _scan(String source,
-      {bool lazyAssignmentOperators: false, bool ignoreErrors: false}) {
+      {ScannerConfiguration configuration, bool ignoreErrors: false}) {
     ErrorListener listener = new ErrorListener();
-    Token token = scanWithListener(source, listener,
-        lazyAssignmentOperators: lazyAssignmentOperators);
+    Token token =
+        scanWithListener(source, listener, configuration: configuration);
     if (!ignoreErrors) {
       listener.assertNoErrors();
     }

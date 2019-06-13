@@ -135,6 +135,7 @@ import 'kernel_builder.dart'
         KernelTypeAliasBuilder,
         KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
+        KernelMetadataBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
@@ -635,18 +636,18 @@ class KernelLibraryBuilder
       String name,
       int charOffset,
       int charEndOffset,
-      Token initializerTokenForInference,
-      bool hasInitializer) {
+      Token initializerToken,
+      bool hasInitializer,
+      {Token constInitializerToken}) {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
     KernelFieldBuilder field = new KernelFieldBuilder(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
+    field.constInitializerToken = constInitializerToken;
     addBuilder(name, field, charOffset);
-    if (initializerTokenForInference != null) {
-      assert(type == null);
-      field.target.type =
-          new ImplicitFieldType(field, initializerTokenForInference);
+    if (!legacyMode && type == null && initializerToken != null) {
+      field.target.type = new ImplicitFieldType(field, initializerToken);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -902,6 +903,12 @@ class KernelLibraryBuilder
   }
 
   @override
+  void buildOutlineExpressions() {
+    KernelMetadataBuilder.buildAnnotations(
+        library, metadata, this, null, null, null);
+  }
+
+  @override
   void buildBuilder(Declaration declaration, LibraryBuilder coreLibrary) {
     Class cls;
     Member member;
@@ -1139,16 +1146,18 @@ class KernelLibraryBuilder
     var builderTemplate = isExport
         ? templateDuplicatedExportInType
         : templateDuplicatedImportInType;
-    return new KernelInvalidTypeBuilder(
+    message = builderTemplate.withArguments(
         name,
-        builderTemplate
-            .withArguments(
-                name,
-                // TODO(ahe): We should probably use a context object here
-                // instead of including URIs in this message.
-                uri,
-                otherUri)
-            .withLocation(fileUri, charOffset, name.length));
+        // TODO(ahe): We should probably use a context object here
+        // instead of including URIs in this message.
+        uri,
+        otherUri);
+    // We report the error lazily (setting suppressMessage to false) because the
+    // spec 18.1 states that 'It is not an error if N is introduced by two or
+    // more imports but never referred to.'
+    return new KernelInvalidTypeBuilder(
+        name, message.withLocation(fileUri, charOffset, name.length),
+        suppressMessage: false);
   }
 
   int finishDeferredLoadTearoffs() {
@@ -1382,7 +1391,13 @@ class KernelLibraryBuilder
               unserializableExports ??= <String, String>{};
               unserializableExports[name] = member.message.message;
             } else {
-              library.additionalExports.add(member.target.reference);
+              // Eventually (in #buildBuilder) members aren't added to the
+              // library if the have 'next' pointers, so don't add them as
+              // additionalExports either. Add the last one only (the one that
+              // will eventually be added to the library).
+              Declaration memberLast = member;
+              while (memberLast.next != null) memberLast = memberLast.next;
+              library.additionalExports.add(memberLast.target.reference);
             }
         }
       }
@@ -1562,7 +1577,7 @@ class KernelLibraryBuilder
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
             parameter.bound, typeEnvironment, parameter.fileOffset,
-            allowSuperBounded: false);
+            allowSuperBounded: true);
       }
     }
     if (positionalParameters != null) {

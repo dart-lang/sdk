@@ -29,7 +29,9 @@ class TemporaryId extends Identifier {
   //
   // However we may need to fix this if we want hover to work well for things
   // like library prefixes and field-initializing formals.
+  @override
   get sourceInformation => null;
+  @override
   set sourceInformation(Object obj) {}
 
   TemporaryId(String name) : super(name);
@@ -60,10 +62,13 @@ class MaybeQualifiedId extends Expression {
     }
   }
 
+  @override
   int get precedenceLevel => _expr.precedenceLevel;
 
+  @override
   T accept<T>(NodeVisitor<T> visitor) => _expr.accept(visitor);
 
+  @override
   void visitChildren(NodeVisitor visitor) => _expr.visitChildren(visitor);
 }
 
@@ -83,16 +88,19 @@ class TemporaryNamer extends LocalNamer {
 
   TemporaryNamer(Node node) : scope = _RenameVisitor.build(node).rootScope;
 
+  @override
   String getName(Identifier node) {
     var rename = scope.renames[identifierKey(node)];
     if (rename != null) return rename;
     return node.name;
   }
 
+  @override
   void enterScope(Node node) {
     scope = scope.childScopes[node];
   }
 
+  @override
   void leaveScope() {
     scope = scope.parent;
   }
@@ -138,6 +146,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _finishNames();
   }
 
+  @override
   declare(Identifier node) {
     var id = identifierKey(node);
     var notAlreadyDeclared = scope.declared.add(id);
@@ -147,6 +156,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     _markUsed(node, id, scope);
   }
 
+  @override
   visitIdentifier(Identifier node) {
     var id = identifierKey(node);
 
@@ -166,7 +176,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
   _markUsed(Identifier node, Object id, _FunctionScope declScope) {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
-    Set<_FunctionScope> usedIn = null;
+    Set<_FunctionScope> usedIn;
     var rename = declScope != globalScope && needsRename(node);
     if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => HashSet());
@@ -180,11 +190,13 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     }
   }
 
+  @override
   visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
     scope.childScopes[node] = _FunctionScope(scope);
   }
 
+  @override
   visitClassExpression(ClassExpression node) {
     scope.childScopes[node] = _FunctionScope(scope);
   }
@@ -195,7 +207,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       if (node is FunctionExpression) {
         super.visitFunctionExpression(node);
       } else {
-        super.visitClassExpression(node);
+        super.visitClassExpression(node as ClassExpression);
       }
       _finishScopes();
       scope = scope.parent;
@@ -277,7 +289,6 @@ bool invalidVariableName(String keyword, {bool strictMode = true}) {
     case "import":
     case "in":
     case "instanceof":
-    case "let":
     case "new":
     case "return":
     case "super":

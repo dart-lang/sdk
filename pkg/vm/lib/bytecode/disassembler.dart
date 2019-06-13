@@ -13,8 +13,15 @@ import 'exceptions.dart';
 
 class Instruction {
   final Opcode opcode;
+  final bool isWide;
   final List<int> operands;
-  Instruction(this.opcode, this.operands);
+  final int pc;
+
+  Instruction(this.opcode, this.isWide, this.operands, this.pc);
+
+  Format get format => BytecodeFormats[opcode];
+
+  int get length => instructionSize(format.encoding, isWide);
 
   @override
   int get hashCode => opcode.index.hashCode ^ listHashCode(operands);
@@ -28,9 +35,7 @@ class Instruction {
 }
 
 class BytecodeDisassembler {
-  static const int kOpcodeMask = 0xFF;
-  static const int kBitsPerInt = 64;
-
+  Uint8List _bytecode;
   List<Instruction> _instructions;
   int _labelCount;
   Map<int, String> _labels;
@@ -47,14 +52,19 @@ class BytecodeDisassembler {
     return _disasm();
   }
 
-  void _init(List<int> bytecode) {
-    final uint8list = new Uint8List.fromList(bytecode);
-    // TODO(alexmarkov): endianness?
-    Uint32List words = uint8list.buffer.asUint32List();
+  List<Instruction> decode(Uint8List bytecode) {
+    _init(bytecode);
+    return _instructions;
+  }
 
-    _instructions = new List<Instruction>(words.length);
-    for (int i = 0; i < words.length; i++) {
-      _instructions[i] = decodeInstruction(words[i]);
+  void _init(List<int> bytecode) {
+    _bytecode = new Uint8List.fromList(bytecode);
+
+    _instructions = new List<Instruction>();
+    for (int pos = 0; pos < _bytecode.length;) {
+      final instr = decodeInstructionAt(pos);
+      _instructions.add(instr);
+      pos += instr.length;
     }
 
     _labelCount = 0;
@@ -62,58 +72,73 @@ class BytecodeDisassembler {
     _markers = <int, List<String>>{};
   }
 
-  Instruction decodeInstruction(int word) {
-    final opcode = Opcode.values[word & kOpcodeMask];
+  Instruction decodeInstructionAt(int pos) {
+    Opcode opcode = Opcode.values[_bytecode[pos]];
+    bool isWide = isWideOpcode(opcode);
+    if (isWide) {
+      opcode = fromWideOpcode(opcode);
+    }
+
     final format = BytecodeFormats[opcode];
-    return new Instruction(opcode, _decodeOperands(format, word));
+    final operands = _decodeOperands(format, pos, isWide);
+    return new Instruction(opcode, isWide, operands, pos);
   }
 
-  List<int> _decodeOperands(Format format, int word) {
+  List<int> _decodeOperands(Format format, int pos, bool isWide) {
     switch (format.encoding) {
       case Encoding.k0:
         return const [];
       case Encoding.kA:
-        return [_unsigned(word, 8, 8)];
-      case Encoding.kAD:
-        return [_unsigned(word, 8, 8), _unsigned(word, 16, 16)];
-      case Encoding.kAX:
-        return [_unsigned(word, 8, 8), _signed(word, 16, 16)];
+        return [_bytecode[pos + 1]];
       case Encoding.kD:
-        return [_unsigned(word, 16, 16)];
+        return isWide ? [_decodeUint32At(pos + 1)] : [_bytecode[pos + 1]];
       case Encoding.kX:
-        return [_signed(word, 16, 16)];
-      case Encoding.kABC:
-        return [
-          _unsigned(word, 8, 8),
-          _unsigned(word, 16, 8),
-          _unsigned(word, 24, 8)
-        ];
-      case Encoding.kABY:
-        return [
-          _unsigned(word, 8, 8),
-          _unsigned(word, 16, 8),
-          _signed(word, 24, 8)
-        ];
+        return isWide
+            ? [_decodeUint32At(pos + 1).toSigned(32)]
+            : [_bytecode[pos + 1].toSigned(8)];
       case Encoding.kT:
-        return [_signed(word, 8, 24)];
+        return isWide
+            ? [
+                (_bytecode[pos + 1] +
+                        (_bytecode[pos + 2] << 8) +
+                        (_bytecode[pos + 3] << 16))
+                    .toSigned(24)
+              ]
+            : [_bytecode[pos + 1].toSigned(8)];
+      case Encoding.kAE:
+        return [
+          _bytecode[pos + 1],
+          isWide ? _decodeUint32At(pos + 2) : _bytecode[pos + 2],
+        ];
+      case Encoding.kAY:
+        return [
+          _bytecode[pos + 1],
+          isWide
+              ? _decodeUint32At(pos + 2).toSigned(32)
+              : _bytecode[pos + 2].toSigned(8)
+        ];
+      case Encoding.kDF:
+        return isWide
+            ? [_decodeUint32At(pos + 1), _bytecode[pos + 5]]
+            : [_bytecode[pos + 1], _bytecode[pos + 2]];
+      case Encoding.kABC:
+        return [_bytecode[pos + 1], _bytecode[pos + 2], _bytecode[pos + 3]];
     }
     throw 'Unexpected format $format';
   }
 
-  int _unsigned(int word, int pos, int bits) =>
-      (word >> pos) & ((1 << bits) - 1);
-
-  int _signed(int word, int pos, int bits) =>
-      _unsigned(word, pos, bits) <<
-      (kBitsPerInt - bits) >>
-      (kBitsPerInt - bits);
+  _decodeUint32At(int pos) =>
+      _bytecode[pos] +
+      (_bytecode[pos + 1] << 8) +
+      (_bytecode[pos + 2] << 16) +
+      (_bytecode[pos + 3] << 24);
 
   void _scanForJumpTargets() {
     for (int i = 0; i < _instructions.length; i++) {
       final instr = _instructions[i];
       if (isJump(instr.opcode)) {
-        final target = i + instr.operands[0];
-        assert(0 <= target && target < _instructions.length);
+        final target = instr.pc + instr.operands[0];
+        assert(0 <= target && target < _bytecode.length);
         if (!_labels.containsKey(target)) {
           final label = 'L${++_labelCount}';
           _labels[target] = label;
@@ -147,17 +172,17 @@ class BytecodeDisassembler {
 
   String _disasm() {
     StringBuffer out = new StringBuffer();
-    for (int i = 0; i < _instructions.length; i++) {
-      List<String> markers = _markers[i];
+    for (Instruction instr in _instructions) {
+      List<String> markers = _markers[instr.pc];
       if (markers != null) {
         markers.forEach(out.writeln);
       }
-      writeInstruction(out, i, _instructions[i]);
+      writeInstruction(out, instr);
     }
     return out.toString();
   }
 
-  void writeInstruction(StringBuffer out, int bci, Instruction instr) {
+  void writeInstruction(StringBuffer out, Instruction instr) {
     final format = BytecodeFormats[instr.opcode];
     assert(format != null);
 
@@ -184,14 +209,14 @@ class BytecodeDisassembler {
         out.write(', ');
       }
       final operand =
-          _formatOperand(bci, format.operands[i], instr.operands[i]);
+          _formatOperand(instr.pc, format.operands[i], instr.operands[i]);
       out.write(operand);
     }
 
     out.writeln();
   }
 
-  String _formatOperand(int bci, Operand fmt, int value) {
+  String _formatOperand(int pc, Operand fmt, int value) {
     switch (fmt) {
       case Operand.none:
         break;
@@ -206,7 +231,7 @@ class BytecodeDisassembler {
       case Operand.tgt:
         return (_labels == null)
             ? value.toString()
-            : _labels[bci + value] ?? (throw 'Label not found');
+            : _labels[pc + value] ?? (throw 'Label not found');
       case Operand.spe:
         return SpecialIndex.values[value]
             .toString()

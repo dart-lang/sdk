@@ -7,13 +7,13 @@ import "package:expect/expect.dart";
 
 class LocalFunction3Test {
   static testExceptions() {
-    var f = (int n) {
+    dynamic f = (int n) {
       return n + 1;
     };
     Expect.equals(true, f is Object);
     bool exception_caught = false;
     try {
-      f.xyz(0); //# 01: compile-time error
+      f.xyz(0);
     } on NoSuchMethodError {
       exception_caught = true;
     }

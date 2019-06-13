@@ -12,6 +12,6 @@ void main() {
     throw ex;
   } on Exception catch (e, st) {
     Expect.equals(ex, e);
-    Expect.isTrue(st.toString().endsWith("\n"));
+    Expect.isTrue(st.toString().length > 0);
   }
 }

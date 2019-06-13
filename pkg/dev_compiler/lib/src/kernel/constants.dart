@@ -118,14 +118,21 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
   final CoreTypes coreTypes;
   _ConstantVisitor(this.coreTypes);
 
-  bool isConstant(Expression e) => e.accept(this);
+  bool isConstant(Expression e) => e.accept(this) as bool;
 
+  @override
   defaultExpression(node) => false;
+  @override
   defaultBasicLiteral(node) => true;
+  @override
   visitTypeLiteral(node) => true; // TODO(jmesserly): deferred libraries?
+  @override
   visitSymbolLiteral(node) => true;
+  @override
   visitListLiteral(node) => node.isConst;
+  @override
   visitMapLiteral(node) => node.isConst;
+  @override
   visitStaticInvocation(node) {
     return node.isConst ||
         node.target == coreTypes.identicalProcedure &&
@@ -135,27 +142,34 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
             node.arguments.named.every((n) => isConstant(n.value));
   }
 
+  @override
   visitDirectMethodInvocation(node) {
     return node.receiver is BasicLiteral &&
         isOperatorMethodName(node.name.name) &&
         node.arguments.positional.every((p) => p is BasicLiteral);
   }
 
+  @override
   visitMethodInvocation(node) {
     return node.receiver is BasicLiteral &&
         isOperatorMethodName(node.name.name) &&
         node.arguments.positional.every((p) => p is BasicLiteral);
   }
 
+  @override
   visitConstructorInvocation(node) => node.isConst;
+  @override
   visitStringConcatenation(node) =>
       node.expressions.every((e) => e is BasicLiteral);
+  @override
   visitStaticGet(node) {
     var target = node.target;
     return target is Procedure || target is Field && target.isConst;
   }
 
+  @override
   visitVariableGet(node) => node.variable.isConst;
+  @override
   visitNot(node) {
     var operand = node.operand;
     return operand is BoolLiteral ||
@@ -164,13 +178,16 @@ class _ConstantVisitor extends ExpressionVisitor<bool> {
         operand is MethodInvocation && visitMethodInvocation(operand);
   }
 
+  @override
   visitLogicalExpression(node) =>
       node.left is BoolLiteral && node.right is BoolLiteral;
+  @override
   visitConditionalExpression(node) =>
       node.condition is BoolLiteral &&
       node.then is BoolLiteral &&
       node.otherwise is BoolLiteral;
 
+  @override
   visitLet(Let node) {
     var init = node.variable.initializer;
     return (init == null || isConstant(init)) && isConstant(node.body);
@@ -183,6 +200,23 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 
   @override
   NumberSemantics get numberSemantics => NumberSemantics.js;
+
+  @override
+  bool shouldInlineConstant(ConstantExpression initializer) {
+    Constant constant = initializer.constant;
+    if (constant is StringConstant) {
+      // Only inline small string constants, not large ones.
+      // (The upper bound value is arbitrary.)
+      return constant.value.length < 32;
+    } else if (constant is PrimitiveConstant) {
+      // Inline all other primitives.
+      return true;
+    } else {
+      // Don't inline other constants, because it would take too much code size.
+      // Better to refer to them by their field/variable name.
+      return false;
+    }
+  }
 }
 
 class _ErrorReporter extends SimpleErrorReporter {

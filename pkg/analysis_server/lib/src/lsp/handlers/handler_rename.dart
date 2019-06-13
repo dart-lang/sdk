@@ -21,7 +21,7 @@ class PrepareRenameHandler
 
   @override
   Future<ErrorOr<RangeAndPlaceholder>> handle(
-      TextDocumentPositionParams params) async {
+      TextDocumentPositionParams params, CancellationToken token) async {
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireResolvedUnit);
@@ -36,8 +36,8 @@ class PrepareRenameHandler
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = new RenameRefactoring(server.refactoringWorkspace,
-          unit.result.session, refactorDetails.element);
+      final refactoring = new RenameRefactoring(
+          server.refactoringWorkspace, unit.result, refactorDetails.element);
 
       // Check the rename is valid here.
       final initStatus = await refactoring.checkInitialConditions();
@@ -71,7 +71,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
   LspJsonHandler<RenameParams> get jsonHandler => RenameParams.jsonHandler;
 
   @override
-  Future<ErrorOr<WorkspaceEdit>> handle(RenameParams params) async {
+  Future<ErrorOr<WorkspaceEdit>> handle(
+      RenameParams params, CancellationToken token) async {
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     // If the client provided us a version doc identifier, we'll use it to ensure
@@ -95,8 +96,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       final refactorDetails =
           RenameRefactoring.getElementToRename(node, element);
-      final refactoring = new RenameRefactoring(server.refactoringWorkspace,
-          unit.result.session, refactorDetails.element);
+      final refactoring = new RenameRefactoring(
+          server.refactoringWorkspace, unit.result, refactorDetails.element);
 
       // TODO(dantup): Consider using window/showMessageRequest to prompt
       // the user to see if they'd like to proceed with a rename if there
@@ -106,6 +107,9 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       // Check the rename is valid here.
       final initStatus = await refactoring.checkInitialConditions();
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
       if (initStatus.hasError) {
         return error(
             ServerErrorCodes.RenameNotValid, initStatus.problem.message, null);
@@ -121,6 +125,9 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       // Final validation.
       final finalStatus = await refactoring.checkFinalConditions();
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
       if (finalStatus.hasError) {
         return error(
             ServerErrorCodes.RenameNotValid, finalStatus.problem.message, null);
@@ -128,6 +135,9 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
 
       // Compute the actual change.
       final change = await refactoring.createChange();
+      if (token.isCancellationRequested) {
+        return cancelled();
+      }
 
       // Before we send anything back, ensure the original file didn't change
       // while we were computing changes.
@@ -137,7 +147,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit> {
             'Document was modified while rename was being computed', null);
       }
 
-      final workspaceEdit = createWorkspaceEdit(server, change);
+      final workspaceEdit = createWorkspaceEdit(server, change.edits);
       return success(workspaceEdit);
     });
   }

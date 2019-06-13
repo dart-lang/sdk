@@ -10,7 +10,8 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
-class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
+class LocalVarDescriptorsRefElement extends CustomElement
+    implements Renderable {
   static const tag = const Tag<LocalVarDescriptorsRefElement>('var-ref');
 
   RenderingScheduler<LocalVarDescriptorsRefElement> _r;
@@ -29,7 +30,8 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
       {RenderingQueue queue}) {
     assert(isolate != null);
     assert(localVar != null);
-    LocalVarDescriptorsRefElement e = document.createElement(tag.name);
+    LocalVarDescriptorsRefElement e =
+        new LocalVarDescriptorsRefElement.created();
     e._r =
         new RenderingScheduler<LocalVarDescriptorsRefElement>(e, queue: queue);
     e._isolate = isolate;
@@ -37,7 +39,7 @@ class LocalVarDescriptorsRefElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  LocalVarDescriptorsRefElement.created() : super.created();
+  LocalVarDescriptorsRefElement.created() : super.created(tag);
 
   @override
   void attached() {

@@ -113,6 +113,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('gen-bytecode', help: 'Generate bytecode', defaultsTo: false);
   args.addFlag('emit-bytecode-source-positions',
       help: 'Emit source positions in bytecode', defaultsTo: false);
+  args.addFlag('emit-bytecode-local-var-info',
+      help: 'Emit information about local variables in bytecode',
+      defaultsTo: false);
   args.addFlag('emit-bytecode-annotations',
       help: 'Emit Dart annotations in bytecode', defaultsTo: false);
   args.addFlag('drop-ast',
@@ -166,6 +169,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool genBytecode = options['gen-bytecode'];
   final bool emitBytecodeSourcePositions =
       options['emit-bytecode-source-positions'];
+  final bool emitBytecodeLocalVarInfo = options['emit-bytecode-local-var-info'];
   final bool emitBytecodeAnnotations = options['emit-bytecode-annotations'];
   final bool dropAST = options['drop-ast'];
   final bool useFutureBytecodeFormat = options['use-future-bytecode-format'];
@@ -226,6 +230,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST && !splitOutputByPackages,
       useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -264,7 +269,9 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       outputFileName,
       environmentDefines: environmentDefines,
       genBytecode: genBytecode,
+      enableAsserts: enableAsserts,
       emitBytecodeSourcePositions: emitBytecodeSourcePositions,
+      emitBytecodeLocalVarInfo: emitBytecodeLocalVarInfo,
       emitBytecodeAnnotations: emitBytecodeAnnotations,
       dropAST: dropAST,
       showBytecodeSizeStat: showBytecodeSizeStat,
@@ -286,6 +293,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     Map<String, String> environmentDefines,
     bool genBytecode: false,
     bool emitBytecodeSourcePositions: false,
+    bool emitBytecodeLocalVarInfo: false,
     bool emitBytecodeAnnotations: false,
     bool dropAST: false,
     bool useFutureBytecodeFormat: false,
@@ -317,7 +325,9 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   if (genBytecode && !errorDetector.hasCompilationErrors && component != null) {
     await runWithFrontEndCompilerContext(source, options, component, () {
       generateBytecode(component,
+          enableAsserts: enableAsserts,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitLocalVarInfo: emitBytecodeLocalVarInfo,
           emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
           environmentDefines: environmentDefines);
@@ -532,11 +542,13 @@ bool parseCommandLineDefines(
 }
 
 /// Create front-end target with given name.
-Target createFrontEndTarget(String targetName) {
+Target createFrontEndTarget(String targetName,
+    {bool trackWidgetCreation = false}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
 
-  final TargetFlags targetFlags = new TargetFlags();
+  final TargetFlags targetFlags =
+      new TargetFlags(trackWidgetCreation: trackWidgetCreation);
   return getTarget(targetName, targetFlags);
 }
 
@@ -612,6 +624,10 @@ Future<Uri> convertToPackageUri(
   }
   // file:///a/b/x/y/main.dart -> package:x.y/main.dart
   for (var line in packages) {
+    if (line.isEmpty || line.startsWith("#")) {
+      continue;
+    }
+
     final colon = line.indexOf(':');
     if (colon == -1) {
       continue;
@@ -646,7 +662,9 @@ Future writeOutputSplitByPackages(
   String outputFileName, {
   Map<String, String> environmentDefines,
   bool genBytecode: false,
+  bool enableAsserts: true,
   bool emitBytecodeSourcePositions: false,
+  bool emitBytecodeLocalVarInfo: false,
   bool emitBytecodeAnnotations: false,
   bool dropAST: false,
   bool showBytecodeSizeStat: false,
@@ -678,6 +696,14 @@ Future writeOutputSplitByPackages(
     BytecodeSizeStatistics.reset();
   }
 
+  ClassHierarchy hierarchy;
+  if (genBytecode) {
+    // Calculating class hierarchy is an expensive operation.
+    // Calculate it once and reuse while generating bytecode for each package.
+    hierarchy =
+        new ClassHierarchy(component, onAmbiguousSupertypes: (cls, a, b) {});
+  }
+
   await runWithFrontEndCompilerContext(source, compilerOptions, component,
       () async {
     for (String package in packages) {
@@ -698,7 +724,10 @@ Future writeOutputSplitByPackages(
             .toList();
         generateBytecode(component,
             libraries: libraries,
+            hierarchy: hierarchy,
+            enableAsserts: enableAsserts,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitLocalVarInfo: emitBytecodeLocalVarInfo,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);

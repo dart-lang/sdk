@@ -215,9 +215,11 @@ abstract class Generator implements ExpressionGenerator {
       List<UnresolvedType<KernelTypeBuilder>> arguments) {
     KernelNamedTypeBuilder result =
         new KernelNamedTypeBuilder(token.lexeme, null);
-    result.bind(result.buildInvalidType(templateNotAType
-        .withArguments(token.lexeme)
-        .withLocation(uri, offsetForToken(token), lengthForToken(token))));
+    Message message = templateNotAType.withArguments(token.lexeme);
+    helper.library
+        .addProblem(message, offsetForToken(token), lengthForToken(token), uri);
+    result.bind(result.buildInvalidType(message.withLocation(
+        uri, offsetForToken(token), lengthForToken(token))));
     return result;
   }
 
@@ -541,6 +543,8 @@ abstract class DeferredAccessGenerator implements Generator {
               uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
     KernelNamedTypeBuilder result = new KernelNamedTypeBuilder(name, null);
+    helper.library.addProblem(
+        message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidType(message));
     return result;
   }
@@ -1161,10 +1165,14 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
         : templateNotAPrefixInTypeAnnotation;
     KernelNamedTypeBuilder result =
         new KernelNamedTypeBuilder(plainNameForRead, null);
-    result.bind(result.buildInvalidType(template
-        .withArguments(prefixGenerator.token.lexeme, token.lexeme)
-        .withLocation(uri, offsetForToken(prefixGenerator.token),
-            lengthOfSpan(prefixGenerator.token, token))));
+    Message message =
+        template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
+    helper.library.addProblem(message, offsetForToken(prefixGenerator.token),
+        lengthOfSpan(prefixGenerator.token, token), uri);
+    result.bind(result.buildInvalidType(message.withLocation(
+        uri,
+        offsetForToken(prefixGenerator.token),
+        lengthOfSpan(prefixGenerator.token, token))));
     return result;
   }
 
@@ -1250,6 +1258,7 @@ abstract class ParserErrorGenerator implements Generator {
       List<UnresolvedType<KernelTypeBuilder>> arguments) {
     KernelNamedTypeBuilder result =
         new KernelNamedTypeBuilder(token.lexeme, null);
+    helper.library.addProblem(message, offsetForToken(token), noLength, uri);
     result.bind(result.buildInvalidType(
         message.withLocation(uri, offsetForToken(token), noLength)));
     return result;

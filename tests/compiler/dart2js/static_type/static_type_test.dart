@@ -9,6 +9,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/ir/cached_static_type.dart';
 import 'package:compiler/src/ir/static_type_base.dart';
+import 'package:compiler/src/ir/static_type_cache.dart';
 import 'package:compiler/src/kernel/element_map_impl.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -24,7 +25,7 @@ main(List<String> args) {
   asyncTest(() async {
     Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
     await checkTests(dataDir, new StaticTypeDataComputer(),
-        args: args, testOmit: false, testFrontend: true);
+        args: args, testOmit: false);
   });
 }
 
@@ -49,8 +50,7 @@ class StaticTypeDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
-    Map<ir.TreeNode, ir.DartType> staticTypeCache =
-        elementMap.getCachedStaticTypes(member);
+    StaticTypeCache staticTypeCache = elementMap.getCachedStaticTypes(member);
     ir.Member node = elementMap.getMemberNode(member);
     new StaticTypeIrComputer(
             compiler.reporter,
@@ -61,6 +61,9 @@ class StaticTypeDataComputer extends DataComputer<String> {
                 new ThisInterfaceType.from(node.enclosingClass?.thisType)))
         .run(node);
   }
+
+  @override
+  bool get testFrontend => true;
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -81,8 +84,11 @@ class StaticTypeIrComputer extends IrDataExtractor<String> {
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {
-    if (node is ir.VariableGet || node is ir.MethodInvocation) {
+    if (node is ir.VariableGet) {
       return typeToText(node.accept(staticTypeCache));
+    } else if (node is ir.MethodInvocation) {
+      return '[${typeToText(node.receiver.accept(staticTypeCache))}]->'
+          '${typeToText(node.accept(staticTypeCache))}';
     }
     return null;
   }

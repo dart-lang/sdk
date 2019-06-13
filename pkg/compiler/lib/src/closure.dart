@@ -261,6 +261,9 @@ class ClosureRepresentationInfo extends ScopeInfo {
   /// the closure class.
   FunctionEntity get callMethod => null;
 
+  /// The signature method for [callMethod] if needed.
+  FunctionEntity get signatureMethod => null;
+
   /// List of locals that this closure class has created corresponding field
   /// entities for.
   @deprecated

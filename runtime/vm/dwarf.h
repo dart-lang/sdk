@@ -14,6 +14,7 @@ namespace dart {
 
 #ifdef DART_PRECOMPILER
 
+class Elf;
 class InliningNode;
 
 struct ScriptIndexPair {
@@ -117,8 +118,9 @@ typedef DirectChainedHashMap<CodeIndexPair> CodeIndexMap;
 
 class Dwarf : public ZoneAllocated {
  public:
-  Dwarf(Zone* zone, StreamingWriteStream* stream);
+  Dwarf(Zone* zone, StreamingWriteStream* stream, Elf* elf);
 
+  void AddCode(const Code& code, intptr_t offset);
   intptr_t AddCode(const Code& code);
   intptr_t AddFunction(const Function& function);
   intptr_t AddScript(const Script& script);
@@ -181,11 +183,100 @@ class Dwarf : public ZoneAllocated {
   };
 
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
-  void sleb128(intptr_t value) { Print(".sleb128 %" Pd "\n", value); }
-  void uleb128(uintptr_t value) { Print(".uleb128 %" Pd "\n", value); }
-  void u1(uint8_t value) { Print(".byte %d\n", value); }
-  void u2(uint16_t value) { Print(".2byte %d\n", value); }
-  void u4(uint32_t value) { Print(".4byte %d\n", value); }
+  void sleb128(intptr_t value) {
+    if (asm_stream_) {
+      Print(".sleb128 %" Pd "\n", value);
+    } else {
+      bool is_last_part = false;
+      while (!is_last_part) {
+        uint8_t part = value & 0x7F;
+        value >>= 7;
+        if ((value == 0 && (part & 0x40) == 0) ||
+            (value == static_cast<intptr_t>(-1) && (part & 0x40) != 0)) {
+          is_last_part = true;
+        } else {
+          part |= 0x80;
+        }
+        bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&part),
+                                sizeof(part));
+      }
+    }
+  }
+  void uleb128(uintptr_t value) {
+    if (asm_stream_) {
+      Print(".uleb128 %" Pd "\n", value);
+    } else {
+      bool is_last_part = false;
+      while (!is_last_part) {
+        uint8_t part = value & 0x7F;
+        value >>= 7;
+        if (value == 0) {
+          is_last_part = true;
+        } else {
+          part |= 0x80;
+        }
+        bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&part),
+                                sizeof(part));
+      }
+    }
+  }
+  void u1(uint8_t value) {
+    if (asm_stream_) {
+      Print(".byte %d\n", value);
+    } else {
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
+                              sizeof(value));
+    }
+  }
+  void u2(uint16_t value) {
+    if (asm_stream_) {
+      Print(".2byte %d\n", value);
+    } else {
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
+                              sizeof(value));
+    }
+  }
+  intptr_t u4(uint32_t value) {
+    if (asm_stream_) {
+      Print(".4byte %d\n", value);
+      return -1;
+    } else {
+      intptr_t fixup = position();
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
+                              sizeof(value));
+      return fixup;
+    }
+  }
+  void fixup_u4(intptr_t position, uint32_t value) {
+    if (asm_stream_) {
+      UNREACHABLE();
+    } else {
+      memmove(bin_stream_->buffer() + position, &value, sizeof(value));
+    }
+  }
+  void addr(uword value) {
+    if (asm_stream_) {
+      UNREACHABLE();
+    } else {
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(&value),
+                              sizeof(value));
+    }
+  }
+  void string(const char* cstr) {  // NOLINT
+    if (asm_stream_) {
+      Print(".string \"%s\"\n", cstr);  // NOLINT
+    } else {
+      bin_stream_->WriteBytes(reinterpret_cast<const uint8_t*>(cstr),
+                              strlen(cstr) + 1);
+    }
+  }
+  intptr_t position() {
+    if (asm_stream_) {
+      UNREACHABLE();
+    } else {
+      return bin_stream_->Position();
+    }
+  }
 
   void WriteAbbreviations();
   void WriteCompilationUnit();
@@ -198,13 +289,16 @@ class Dwarf : public ZoneAllocated {
   void WriteLines();
 
   Zone* const zone_;
-  StreamingWriteStream* stream_;
+  Elf* const elf_;
+  StreamingWriteStream* asm_stream_;
+  WriteStream* bin_stream_;
   ZoneGrowableArray<const Code*> codes_;
   CodeIndexMap code_to_index_;
   ZoneGrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
   ZoneGrowableArray<const Script*> scripts_;
   ScriptIndexMap script_to_index_;
+  uint32_t* abstract_origins_;
   intptr_t temp_;
 };
 

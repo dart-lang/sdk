@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:http/http.dart' as http;
-
 import 'package:args/args.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
 import 'codegen_dart.dart';
@@ -40,11 +39,27 @@ main(List<String> arguments) async {
   final String outFolder = path.join(packageFolder, 'lib', 'lsp_protocol');
   new Directory(outFolder).createSync();
 
-  await writeSpecClasses(args, outFolder);
-  await writeCustomClasses(args, outFolder);
+  // Collect definitions for types in the spec and our custom extensions.
+  final specTypes = await getSpecClasses(args);
+  final customTypes = getCustomClasses();
+
+  // Record both sets of types in dictionaries for faster lookups, but also so
+  // they can reference each other and we can find the definitions during
+  // codegen.
+  recordTypes(specTypes);
+  recordTypes(customTypes);
+
+  // Generate formatted Dart code (as a string) for each set of types.
+  final String specTypesOutput = generateDartForTypes(specTypes);
+  final String customTypesOutput = generateDartForTypes(customTypes);
+
+  new File(path.join(outFolder, 'protocol_generated.dart')).writeAsStringSync(
+      generatedFileHeader(2018, importCustom: true) + specTypesOutput);
+  new File(path.join(outFolder, 'protocol_custom_generated.dart'))
+      .writeAsStringSync(generatedFileHeader(2019) + customTypesOutput);
 }
 
-Future writeSpecClasses(ArgResults args, String outFolder) async {
+Future<List<AstNode>> getSpecClasses(ArgResults args) async {
   if (args[argDownload]) {
     await downloadSpec();
   }
@@ -63,32 +78,45 @@ Future writeSpecClasses(ArgResults args, String outFolder) async {
   // Extract additional inline types that are specificed online in the `results`
   // section of the doc.
   types.addAll(extractResultsInlineTypes(spec));
-
-  final String output = generateDartForTypes(types);
-
-  new File(path.join(outFolder, 'protocol_generated.dart'))
-      .writeAsStringSync(generatedFileHeader(2018) + output);
+  return types;
 }
 
-/// Writes classes used by Dart's custom LSP methods.
-Future writeCustomClasses(ArgResults args, String outFolder) async {
+List<AstNode> getCustomClasses() {
   interface(String name, List<Member> fields) {
     return new Interface(null, Token.identifier(name), [], [], fields);
   }
 
-  field(String name, {String type, canBeNull: false, canBeUndefined: false}) {
-    return new Field(null, Token.identifier(name), Type.identifier(type),
-        canBeNull, canBeUndefined);
+  field(String name,
+      {String type, array: false, canBeNull: false, canBeUndefined: false}) {
+    var fieldType =
+        array ? ArrayType(Type.identifier(type)) : Type.identifier(type);
+
+    return new Field(
+        null, Token.identifier(name), fieldType, canBeNull, canBeUndefined);
   }
 
   final List<AstNode> customTypes = [
     interface('DartDiagnosticServer', [field('port', type: 'number')]),
+    interface('AnalyzerStatusParams', [field('isAnalyzing', type: 'boolean')]),
+    interface('PublishClosingLabelsParams', [
+      field('uri', type: 'string'),
+      field('labels', type: 'ClosingLabel', array: true)
+    ]),
+    interface('ClosingLabel',
+        [field('range', type: 'Range'), field('label', type: 'string')]),
+    interface(
+      'CompletionItemResolutionInfo',
+      [
+        field('file', type: 'string'),
+        field('offset', type: 'number'),
+        field('libId', type: 'number'),
+        field('displayUri', type: 'string'),
+        field('rOffset', type: 'number'),
+        field('rLength', type: 'number')
+      ],
+    ),
   ];
-
-  final String output = generateDartForTypes(customTypes);
-
-  new File(path.join(outFolder, 'protocol_custom_generated.dart'))
-      .writeAsStringSync(generatedFileHeader(2019) + output);
+  return customTypes;
 }
 
 Namespace extractMethodsEnum(String spec) {
@@ -117,7 +145,7 @@ Namespace extractMethodsEnum(String spec) {
       comment, new Token.identifier('Method'), methodConstants);
 }
 
-String generatedFileHeader(int year) => '''
+String generatedFileHeader(int year, {bool importCustom = false}) => '''
 // Copyright (c) $year, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -130,10 +158,12 @@ String generatedFileHeader(int year) => '''
 // ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: unnecessary_brace_in_string_interps
 // ignore_for_file: unused_import
+// ignore_for_file: unused_shown_name
 
 import 'dart:core' hide deprecated;
 import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
+import 'package:analysis_server/lsp_protocol/protocol${importCustom ? '_custom' : ''}_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;

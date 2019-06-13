@@ -404,6 +404,10 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
       Z, reader.ExternalDataFromTo(program_->metadata_mappings_offset(),
                                    program_->string_table_offset()));
 
+#if defined(DEBUG)
+  MetadataHelper::VerifyMetadataMappings(metadata_mappings);
+#endif
+
   const Array& libraries_cache =
       Array::Handle(Z, HashTables::New<UnorderedHashMap<SmiTraits>>(
                            program_->library_count(), Heap::kOld));
@@ -961,13 +965,6 @@ void KernelLoader::CheckForInitializer(const Field& field) {
       return;
     }
   }
-  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-    if (bytecode_metadata_helper_.HasBytecode(field.kernel_offset() +
-                                              library_kernel_offset_)) {
-      field.set_has_initializer(true);
-      return;
-    }
-  }
   field.set_has_initializer(false);
 }
 
@@ -1062,8 +1059,8 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   Class& toplevel_class =
       Class::Handle(Z, Class::New(library, Symbols::TopLevel(), script,
                                   TokenPosition::kNoSource, register_class));
+  toplevel_class.set_is_declaration_loaded();
   toplevel_class.set_is_type_finalized();
-  toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
 
   library_helper.ReadUntilExcluding(LibraryHelper::kDependencies);
@@ -1382,6 +1379,8 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
+
+  klass->set_is_declaration_loaded();
 }
 
 void KernelLoader::LoadClass(const Library& library,
@@ -1434,10 +1433,9 @@ void KernelLoader::LoadClass(const Library& library,
       helper_.ReadListLength();  // read type_parameters list length.
 
   ActiveClassScope active_class_scope(&active_class_, out_class);
-  if (!out_class->is_cycle_free()) {
+  if (!out_class->is_declaration_loaded()) {
     LoadPreliminaryClass(&class_helper, type_parameter_counts);
   } else {
-    // do not use type parameters with cycle_free
     ASSERT(type_parameter_counts == 0);
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
@@ -1996,14 +1994,14 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
     wrapper.uri = &uri_string;
     UriToSourceTableEntry* pair = uri_to_source_table->LookupValue(&wrapper);
     if (pair != nullptr) {
-      sources ^= pair->sources->raw();
-      line_starts ^= pair->line_starts->raw();
+      sources = pair->sources->raw();
+      line_starts = pair->line_starts->raw();
     }
   }
 
   if (sources.IsNull() || line_starts.IsNull()) {
     const String& script_source = helper_.GetSourceFor(index);
-    line_starts ^= helper_.GetLineStartsFor(index);
+    line_starts = helper_.GetLineStartsFor(index);
 
     if (script_source.raw() == Symbols::Empty().raw() &&
         line_starts.Length() == 0 && uri_string.Length() > 0) {
@@ -2017,8 +2015,8 @@ RawScript* KernelLoader::LoadScriptAt(intptr_t index,
         lib ^= libs.At(i);
         script = lib.LookupScript(uri_string, /* useResolvedUri = */ true);
         if (!script.IsNull() && script.kind() == RawScript::kKernelTag) {
-          sources ^= script.Source();
-          line_starts ^= script.line_starts();
+          sources = script.Source();
+          line_starts = script.line_starts();
           break;
         }
       }
@@ -2067,12 +2065,6 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   if (field_helper->IsStatic()) {
     bool has_initializer = (tag == kSomething);
 
-    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
-      has_initializer = has_initializer ||
-                        bytecode_metadata_helper_.HasBytecode(
-                            field.kernel_offset() + library_kernel_offset_);
-    }
-
     if (!has_initializer) {
       // Static fields without an initializer are implicitly initialized to
       // null. We do not need a getter.
@@ -2091,7 +2083,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
       Z,
       Function::New(
           getter_name,
-          field_helper->IsStatic() ? RawFunction::kImplicitStaticFinalGetter
+          field_helper->IsStatic() ? RawFunction::kImplicitStaticGetter
                                    : RawFunction::kImplicitGetter,
           field_helper->IsStatic(),
           // The functions created by the parser have is_const for static fields

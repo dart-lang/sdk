@@ -1219,6 +1219,14 @@ abstract class IntegrationTestMixin {
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
    *
+   * libraryFile: FilePath (optional)
+   *
+   *   The library file that contains the file where completion was requested.
+   *   The client might use it for example together with the existingImports
+   *   notification to filter out available suggestions. If there were changes
+   *   to existing imports in the library, the corresponding existingImports
+   *   notification will be sent before the completion notification.
+   *
    * includedSuggestionSets: List<IncludedSuggestionSet> (optional)
    *
    *   References to AvailableSuggestionSet objects previously sent to the
@@ -1277,6 +1285,29 @@ abstract class IntegrationTestMixin {
    */
   StreamController<CompletionAvailableSuggestionsParams>
       _onCompletionAvailableSuggestions;
+
+  /**
+   * Reports existing imports in a library. This notification may be sent
+   * multiple times for a library. When a notification is processed, clients
+   * should replace any previous information for the library.
+   *
+   * Parameters
+   *
+   * file: FilePath
+   *
+   *   The defining file of the library.
+   *
+   * imports: ExistingImports
+   *
+   *   The existing imports in the library.
+   */
+  Stream<CompletionExistingImportsParams> onCompletionExistingImports;
+
+  /**
+   * Stream controller for [onCompletionExistingImports].
+   */
+  StreamController<CompletionExistingImportsParams>
+      _onCompletionExistingImports;
 
   /**
    * Perform a search for references to the element defined or referenced at
@@ -1744,6 +1775,14 @@ abstract class IntegrationTestMixin {
    * edits: List<SourceFileEdit>
    *
    *   A list of source edits to apply the recommended changes.
+   *
+   * details: List<String> (optional)
+   *
+   *   Messages that should be displayed to the user that describe details of
+   *   the fix generation. For example, the messages might (a) point out
+   *   details that users might want to explore before committing the changes
+   *   or (b) describe exceptions that were thrown but that did not stop the
+   *   fixes from being produced. The list will be omitted if it is empty.
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,
@@ -2702,6 +2741,10 @@ abstract class IntegrationTestMixin {
         new StreamController<CompletionAvailableSuggestionsParams>(sync: true);
     onCompletionAvailableSuggestions =
         _onCompletionAvailableSuggestions.stream.asBroadcastStream();
+    _onCompletionExistingImports =
+        new StreamController<CompletionExistingImportsParams>(sync: true);
+    onCompletionExistingImports =
+        _onCompletionExistingImports.stream.asBroadcastStream();
     _onSearchResults = new StreamController<SearchResultsParams>(sync: true);
     onSearchResults = _onSearchResults.stream.asBroadcastStream();
     _onExecutionLaunchData =
@@ -2802,6 +2845,12 @@ abstract class IntegrationTestMixin {
         outOfTestExpect(params, isCompletionAvailableSuggestionsParams);
         _onCompletionAvailableSuggestions.add(
             new CompletionAvailableSuggestionsParams.fromJson(
+                decoder, 'params', params));
+        break;
+      case "completion.existingImports":
+        outOfTestExpect(params, isCompletionExistingImportsParams);
+        _onCompletionExistingImports.add(
+            new CompletionExistingImportsParams.fromJson(
                 decoder, 'params', params));
         break;
       case "search.results":

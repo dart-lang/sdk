@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /*Debugger:stepOver*/
-main() {
+void main() {
   /*bl*/
   /*sl:1*/ Foo foo = Foo(1, 2);
   /*sl:2*/ print(foo.x);

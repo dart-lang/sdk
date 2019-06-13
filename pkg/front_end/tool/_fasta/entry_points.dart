@@ -192,6 +192,7 @@ incrementalEntryPoint(List<String> arguments) async {
     // TODO(ahe): Extend this entry point so it can replace
     // batchEntryPoint.
     new IncrementalCompiler(c);
+    return Future<void>.value();
   });
 }
 

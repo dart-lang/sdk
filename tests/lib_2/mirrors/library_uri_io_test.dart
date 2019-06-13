@@ -9,7 +9,7 @@ library MirrorsTest;
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:expect/async_minitest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class Class {}
 

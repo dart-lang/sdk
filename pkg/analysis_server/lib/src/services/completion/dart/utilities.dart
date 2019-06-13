@@ -213,7 +213,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   }
 
   // If the type is unresolved, use the declared type.
-  if (type != null && type.isUndefined) {
+  if (type != null && type.isDynamic) {
     if (declaredType is TypeName) {
       Identifier id = declaredType.name;
       if (id != null) {

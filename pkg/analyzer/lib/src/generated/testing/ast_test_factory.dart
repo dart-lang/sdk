@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 
 /**
  * The class `AstTestFactory` defines utility methods that can be used to create AST nodes. The
@@ -275,14 +276,16 @@ class AstTestFactory {
           String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations) =>
-      astFactory.compilationUnit(
-          TokenFactory.tokenFromType(TokenType.EOF),
-          scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
-          directives == null ? new List<Directive>() : directives,
-          declarations == null
+      astFactory.compilationUnit2(
+          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
+          scriptTag:
+              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
+          directives: directives == null ? new List<Directive>() : directives,
+          declarations: declarations == null
               ? new List<CompilationUnitMember>()
               : declarations,
-          TokenFactory.tokenFromType(TokenType.EOF));
+          endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          featureSet: null);
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>
@@ -466,6 +469,24 @@ class AstTestFactory {
 
   static ExtendsClause extendsClause(TypeName type) => astFactory.extendsClause(
       TokenFactory.tokenFromKeyword(Keyword.EXTENDS), type);
+
+  static ExtensionDeclaration extensionDeclaration(
+          {@required String name,
+          TypeParameterList typeParameters,
+          @required TypeAnnotation extendedType,
+          List<ClassMember> members}) =>
+      astFactory.extensionDeclaration(
+          comment: null,
+          metadata: null,
+          extensionKeyword: TokenFactory.tokenFromKeyword(Keyword.EXTENSION),
+          name: identifier3(name),
+          typeParameters: typeParameters,
+          onKeyword: TokenFactory.tokenFromKeyword(Keyword.ON),
+          extendedType: extendedType,
+          leftBracket: TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET),
+          members: members,
+          rightBracket:
+              TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeAnnotation type, List<VariableDeclaration> variables) =>

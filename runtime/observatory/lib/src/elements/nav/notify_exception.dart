@@ -16,7 +16,7 @@ class ExceptionDeleteEvent {
   ExceptionDeleteEvent(this.exception, {this.stacktrace});
 }
 
-class NavNotifyExceptionElement extends HtmlElement implements Renderable {
+class NavNotifyExceptionElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyExceptionElement>('nav-exception');
 
   RenderingScheduler _r;
@@ -37,14 +37,14 @@ class NavNotifyExceptionElement extends HtmlElement implements Renderable {
   factory NavNotifyExceptionElement(dynamic exception,
       {StackTrace stacktrace: null, RenderingQueue queue}) {
     assert(exception != null);
-    NavNotifyExceptionElement e = document.createElement(tag.name);
+    NavNotifyExceptionElement e = new NavNotifyExceptionElement.created();
     e._r = new RenderingScheduler<NavNotifyExceptionElement>(e, queue: queue);
     e._exception = exception;
     e._stacktrace = stacktrace;
     return e;
   }
 
-  NavNotifyExceptionElement.created() : super.created();
+  NavNotifyExceptionElement.created() : super.created(tag);
 
   @override
   void attached() {

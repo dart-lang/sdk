@@ -33,6 +33,7 @@ inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckEr
 inference/constructors_too_many_positional_arguments: InstrumentationMismatch # Issue #30040
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_annotations_type_variable: InstrumentationMismatch # Issue 28981
+inference/downwards_inference_for_each: RuntimeError # Issue #36382
 inference/downwards_inference_on_function_of_t_using_the_t: InstrumentationMismatch # Issue #29798
 inference/downwards_inference_on_list_literals_infer_downwards: RuntimeError
 inference/future_then_explicit_future: InstrumentationMismatch # Issue #30040
@@ -86,7 +87,7 @@ override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError
-rasta/bad_default_constructor: VerificationError
+rasta/bad_default_constructor: RuntimeError
 rasta/bad_explicit_super_constructor: RuntimeError
 rasta/bad_implicit_super_constructor: RuntimeError
 rasta/bad_interpolation: RuntimeError
@@ -105,7 +106,7 @@ rasta/issue_000031: RuntimeError
 rasta/issue_000032: RuntimeError
 rasta/issue_000034: RuntimeError
 rasta/issue_000036: RuntimeError
-rasta/issue_000039: VerificationError
+rasta/issue_000039: RuntimeError
 rasta/issue_000041: RuntimeError
 rasta/issue_000042: RuntimeError
 rasta/issue_000043: RuntimeError
@@ -142,6 +143,9 @@ regress/issue_35259: RuntimeError # Expected
 regress/issue_35260: RuntimeError # Expected
 regress/issue_35266: RuntimeError # Expected
 regress/issue_36400: RuntimeError
+regress/issue_36647: RuntimeError # Expected
+regress/issue_36647_2: RuntimeError # Expected
+regress/issue_36669: RuntimeError
 reject_generic_function_types_in_bounds: RuntimeError # Expected
 runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast: RuntimeError
 runtime_checks_new/mixin_forwarding_stub_field: TypeCheckError
@@ -150,6 +154,7 @@ runtime_checks_new/mixin_forwarding_stub_setter: TypeCheckError
 set_literals/disambiguation_rule: RuntimeError
 spread_collection: RuntimeError
 statements: Crash
+type_parameter_type_named_int: RuntimeError # Expected
 type_variable_as_super: RuntimeError
 unsound_promotion: RuntimeError
 void_methods: ExpectationFileMismatch

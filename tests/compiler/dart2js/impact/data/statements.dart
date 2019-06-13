@@ -67,9 +67,9 @@ testIfThenElse() {
 
 /*element: testForIn:
  dynamic=[
-  current,
-  iterator,
-  moveNext(0)],
+  Iterator.current,
+  Iterator.iterator,
+  Iterator.moveNext(0)],
  static=[checkConcurrentModificationError(2)],
  type=[
   impl:Iterable<dynamic>,
@@ -84,9 +84,9 @@ testForIn(o) {
 
 /*element: testForInTyped:
  dynamic=[
-  current,
-  iterator,
-  moveNext(0)],
+  Iterator.current,
+  Iterator.iterator,
+  Iterator.moveNext(0)],
  static=[checkConcurrentModificationError(2)],
  type=[
   impl:Iterable<dynamic>,

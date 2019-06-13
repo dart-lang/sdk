@@ -192,7 +192,7 @@ static void PrintTargetsHelper(BufferFormatter* f,
     const CidRange& range = targets[i];
     const auto target_info = targets.TargetAt(i);
     const intptr_t count = target_info->count;
-    target ^= target_info->target->raw();
+    target = target_info->target->raw();
     if (i > 0) {
       f->Print(" | ");
     }
@@ -524,12 +524,10 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
 void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-  f->Print(" signature=%s",
-           Type::Handle(signature_.SignatureType()).ToCString());
   for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
     f->Print(", ");
     InputAt(i)->PrintTo(f);
-    f->Print(" (at %s) ", arg_locations_[i].ToCString());
+    f->Print(" (@%s)", arg_locations_[i].ToCString());
   }
 }
 
@@ -1001,7 +999,7 @@ void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes_,
+  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes(),
            RepresentationToCString(representation()));
   Definition::PrintOperandsTo(f);
 }
@@ -1061,6 +1059,24 @@ void FunctionEntryInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
   }
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void NativeEntryInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("B%" Pd "[native function entry]:%" Pd, block_id(), GetDeoptId());
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
+  BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
+}
+
+void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+}
+
+void NativeParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s as %s", loc_.ToCString(),
+           RepresentationToCString(representation_));
 }
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {

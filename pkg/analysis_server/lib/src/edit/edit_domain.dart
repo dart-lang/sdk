@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -634,7 +635,16 @@ class EditDomainHandler extends AbstractRequestHandler {
         int errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = new DartFixContextImpl(workspace, result, error);
+          var context =
+              new DartFixContextImpl(workspace, result, error, (name) {
+            var tracker = server.declarationsTracker;
+            var provider = TopLevelDeclarationsProvider(tracker);
+            return provider.get(
+              result.session.analysisContext,
+              result.path,
+              name,
+            );
+          });
           List<Fix> fixes =
               await new DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {
@@ -810,7 +820,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           // try RENAME
           {
             RenameRefactoring renameRefactoring = new RenameRefactoring(
-                refactoringWorkspace, resolvedUnit.session, element);
+                refactoringWorkspace, resolvedUnit, element);
             if (renameRefactoring != null) {
               kinds.add(RefactoringKind.RENAME);
             }
@@ -1148,13 +1158,11 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
-      // TODO(brianwilkerson) Re-implement this refactoring under the new analysis driver
-//      _resetOnAnalysisStarted();
-//      ContextSourcePair contextSource = server.getContextSourcePair(file);
-//      engine.AnalysisContext context = contextSource.context;
-//      Source source = contextSource.source;
-//      refactoring = new MoveFileRefactoring(
-//          server.resourceProvider, searchEngine, context, source, file);
+      var resolvedUnit = await server.getResolvedUnit(file);
+      if (resolvedUnit != null) {
+        refactoring = new MoveFileRefactoring(
+            server.resourceProvider, refactoringWorkspace, resolvedUnit, file);
+      }
     }
     if (kind == RefactoringKind.RENAME) {
       var resolvedUnit = await server.getResolvedUnit(file);
@@ -1166,8 +1174,8 @@ class _RefactoringManager {
               RenameRefactoring.getElementToRename(node, element);
 
           // do create the refactoring
-          refactoring = new RenameRefactoring(refactoringWorkspace,
-              resolvedUnit.session, renameElement.element);
+          refactoring = new RenameRefactoring(
+              refactoringWorkspace, resolvedUnit, renameElement.element);
           feedback = new RenameFeedback(
               renameElement.offset, renameElement.length, 'kind', 'oldName');
         }

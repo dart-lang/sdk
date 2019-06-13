@@ -99,6 +99,14 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(mainFileUri.toString()));
   }
 
+  test_nonDartFile() async {
+    newFile(pubspecFilePath, content: simplePubspecContent);
+    await initialize();
+
+    final res = await getReferences(pubspecFileUri, startOfDocPos);
+    expect(res, isEmpty);
+  }
+
   test_singleFile_withoutDeclaration() async {
     final contents = '''
     f^oo() {

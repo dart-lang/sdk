@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -41,7 +43,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     for (var sdkLibrary in sdk.sdkLibraries) {
       var source = sourceFactory.resolveUri(null, sdkLibrary.shortName);
       var text = getFile(source.fullName).readAsStringSync();
-      var unit = parseText(text);
+      var unit = parseText(text, featureSet);
 
       var inputUnits = <LinkInputUnit>[];
       _addLibraryUnits(source, unit, inputUnits);
@@ -50,13 +52,19 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
       );
     }
 
-    var sdkLinkResult = link(
-      AnalysisOptionsImpl(),
-      sourceFactory,
-      declaredVariables,
-      [],
-      inputLibraries,
+    var elementFactory = LinkedElementFactory(
+      RestrictedAnalysisContext(
+        SynchronousSession(
+          AnalysisOptionsImpl(),
+          declaredVariables,
+        ),
+        sourceFactory,
+      ),
+      _AnalysisSessionForLinking(),
+      Reference.root(),
     );
+
+    var sdkLinkResult = link(elementFactory, inputLibraries);
 
     var bytes = sdkLinkResult.bundle.toBuffer();
     return _sdkBundle = LinkedNodeBundle.fromBuffer(bytes);
@@ -70,56 +78,62 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     var inputLibraries = <LinkInputLibrary>[];
     _addNonDartLibraries(Set(), inputLibraries, source);
 
-    var linkResult = link(
-      AnalysisOptionsImpl(),
+    var analysisContext = RestrictedAnalysisContext(
+      SynchronousSession(
+        AnalysisOptionsImpl()..contextFeatures = featureSet,
+        declaredVariables,
+      ),
       sourceFactory,
-      declaredVariables,
-      [sdkBundle],
-      inputLibraries,
     );
-
-    var analysisContext = _FakeAnalysisContext(sourceFactory);
-
-    var rootReference = Reference.root();
-    rootReference.getChild('dart:core').getChild('dynamic').element =
-        DynamicElementImpl.instance;
 
     var elementFactory = LinkedElementFactory(
       analysisContext,
-      null,
-      rootReference,
+      _AnalysisSessionForLinking(),
+      Reference.root(),
     );
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, sdkBundle),
     );
+
+    var linkResult = link(
+      elementFactory,
+      inputLibraries,
+    );
+
     elementFactory.addBundle(
       LinkedBundleContext(elementFactory, linkResult.bundle),
     );
 
-    var dartCore = elementFactory.libraryOfUri('dart:core');
-    var dartAsync = elementFactory.libraryOfUri('dart:async');
-    var typeProvider = SummaryTypeProvider()
-      ..initializeCore(dartCore)
-      ..initializeAsync(dartAsync);
-    analysisContext.typeProvider = typeProvider;
-    analysisContext.typeSystem = Dart2TypeSystem(typeProvider);
+    // Set informative data.
+    for (var inputLibrary in inputLibraries) {
+      var libraryUriStr = '${inputLibrary.source.uri}';
+      for (var inputUnit in inputLibrary.units) {
+        var unitSource = inputUnit.source;
+        if (unitSource != null) {
+          var unitUriStr = '${unitSource.uri}';
+          var informativeData = createInformativeData(inputUnit.unit);
+          elementFactory.setInformativeData(
+            libraryUriStr,
+            unitUriStr,
+            informativeData,
+          );
+        }
+      }
+    }
 
-    dartCore.createLoadLibraryFunction(typeProvider);
-    dartAsync.createLoadLibraryFunction(typeProvider);
+    if (analysisContext.typeProvider == null) {
+      var dartCore = elementFactory.libraryOfUri('dart:core');
+      var dartAsync = elementFactory.libraryOfUri('dart:async');
+      var typeProvider = SummaryTypeProvider()
+        ..initializeCore(dartCore)
+        ..initializeAsync(dartAsync);
+      analysisContext.typeProvider = typeProvider;
+
+      dartCore.createLoadLibraryFunction(typeProvider);
+      dartAsync.createLoadLibraryFunction(typeProvider);
+    }
 
     return elementFactory.libraryOfUri('${source.uri}');
-  }
-
-  @override
-  @failingTest
-  test_const_constructor_inferred_args() async {
-    await super.test_const_constructor_inferred_args();
-  }
-
-  @override
-  @failingTest
-  test_parameter_covariant_inherited() async {
-    await super.test_parameter_covariant_inherited();
   }
 
   @override
@@ -136,7 +150,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     List<LinkInputUnit> units,
   ) {
     units.add(
-      LinkInputUnit(definingSource, definingUnit),
+      LinkInputUnit(definingSource, false, definingUnit),
     );
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
@@ -149,14 +163,14 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
 
         if (partSource != null) {
           var text = _readSafely(partSource.fullName);
-          var unit = parseText(text, experimentStatus: experimentStatus);
+          var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(partSource, unit),
+            LinkInputUnit(partSource, false, unit),
           );
         } else {
-          var unit = parseText('', experimentStatus: experimentStatus);
+          var unit = parseText('', featureSet);
           units.add(
-            LinkInputUnit(partSource, unit),
+            LinkInputUnit(partSource, false, unit),
           );
         }
       }
@@ -175,7 +189,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     }
 
     var text = _readSafely(source.fullName);
-    var unit = parseText(text, experimentStatus: experimentStatus);
+    var unit = parseText(text, featureSet);
 
     var units = <LinkInputUnit>[];
     _addLibraryUnits(source, unit, units);
@@ -209,17 +223,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
   }
 }
 
-class _FakeAnalysisContext implements AnalysisContext {
-  final SourceFactory sourceFactory;
-  TypeProvider typeProvider;
-  Dart2TypeSystem typeSystem;
-
-  _FakeAnalysisContext(this.sourceFactory);
-
-  @override
-  AnalysisOptions get analysisOptions {
-    return AnalysisOptionsImpl();
-  }
-
+class _AnalysisSessionForLinking implements AnalysisSession {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

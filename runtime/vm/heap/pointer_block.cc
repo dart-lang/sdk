@@ -41,17 +41,16 @@ void BlockStack<BlockSize>::Cleanup() {
 }
 
 template <int BlockSize>
-BlockStack<BlockSize>::BlockStack() : mutex_(new Mutex()) {}
+BlockStack<BlockSize>::BlockStack() : mutex_() {}
 
 template <int BlockSize>
 BlockStack<BlockSize>::~BlockStack() {
   Reset();
-  delete mutex_;
 }
 
 template <int BlockSize>
 void BlockStack<BlockSize>::Reset() {
-  MutexLocker local_mutex_locker(mutex_);
+  MutexLocker local_mutex_locker(&mutex_);
   {
     // Empty all blocks and move them to the global cache.
     MutexLocker global_mutex_locker(global_mutex_);
@@ -71,7 +70,7 @@ void BlockStack<BlockSize>::Reset() {
 
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::Blocks() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   while (!partial_.IsEmpty()) {
     full_.Push(partial_.Pop());
   }
@@ -82,14 +81,14 @@ template <int BlockSize>
 void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
   ASSERT(block->next() == NULL);  // Should be just a single block.
   if (block->IsFull()) {
-    MutexLocker ml(mutex_);
+    MutexLocker ml(&mutex_);
     full_.Push(block);
   } else if (block->IsEmpty()) {
     MutexLocker ml(global_mutex_);
     global_empty_->Push(block);
     TrimGlobalEmpty();
   } else {
-    MutexLocker ml(mutex_);
+    MutexLocker ml(&mutex_);
     partial_.Push(block);
   }
 }
@@ -104,7 +103,7 @@ void PointerBlock<Size>::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
   BlockStack<Block::kSize>::PushBlockImpl(block);
   if ((policy == kCheckThreshold) && Overflowed()) {
-    MutexLocker ml(mutex_);
+    MutexLocker ml(&mutex_);
     Thread* thread = Thread::Current();
     // Sanity check: it makes no sense to schedule the GC in another isolate.
     // (If Isolate ever gets multiple store buffers, we should avoid this
@@ -118,7 +117,7 @@ template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
 BlockStack<BlockSize>::PopNonFullBlock() {
   {
-    MutexLocker ml(mutex_);
+    MutexLocker ml(&mutex_);
     if (!partial_.IsEmpty()) {
       return partial_.Pop();
     }
@@ -140,7 +139,7 @@ typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopEmptyBlock() {
 template <int BlockSize>
 typename BlockStack<BlockSize>::Block*
 BlockStack<BlockSize>::PopNonEmptyBlock() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   if (!full_.IsEmpty()) {
     return full_.Pop();
   } else if (!partial_.IsEmpty()) {
@@ -152,7 +151,7 @@ BlockStack<BlockSize>::PopNonEmptyBlock() {
 
 template <int BlockSize>
 bool BlockStack<BlockSize>::IsEmpty() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   return full_.IsEmpty() && partial_.IsEmpty();
 }
 
@@ -189,7 +188,7 @@ void BlockStack<BlockSize>::List::Push(Block* block) {
 }
 
 bool StoreBuffer::Overflowed() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   return (full_.length() + partial_.length()) > kMaxNonEmpty;
 }
 

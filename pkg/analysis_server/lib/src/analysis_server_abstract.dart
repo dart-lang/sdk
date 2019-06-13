@@ -8,6 +8,7 @@ import 'dart:core';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
@@ -27,7 +28,9 @@ import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/util/glob.dart';
 
 /// Implementations of [AbstractAnalysisServer] implement a server that listens
@@ -39,6 +42,13 @@ abstract class AbstractAnalysisServer {
   /// The [ContextManager] that handles the mapping from analysis roots to
   /// context directories.
   ContextManager contextManager;
+
+  ByteStore byteStore;
+
+  nd.AnalysisDriverScheduler analysisDriverScheduler;
+
+  DeclarationsTracker declarationsTracker;
+  DeclarationsTrackerData declarationsTrackerData;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -124,6 +134,13 @@ abstract class AbstractAnalysisServer {
     return new DateTime.now().difference(start);
   }
 
+  void addContextsToDeclarationsTracker() {
+    for (var driver in driverMap.values) {
+      declarationsTracker?.addContext(driver.analysisContext);
+      driver.resetUriResolution();
+    }
+  }
+
   /// If the state location can be accessed, return the file byte store,
   /// otherwise return the memory byte store.
   ByteStore createByteStore(ResourceProvider resourceProvider) {
@@ -168,6 +185,13 @@ abstract class AbstractAnalysisServer {
       return driver;
     }
     return null;
+  }
+
+  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
+    return declarationsTracker
+            ?.getContext(result.session.analysisContext)
+            ?.dartdocDirectiveInfo ??
+        new DartdocDirectiveInfo();
   }
 
   /// Return a [Future] that completes with the [Element] at the given
@@ -259,5 +283,17 @@ abstract class AbstractAnalysisServer {
     return driver
         .getResult(path, sendCachedToStream: sendCachedToStream)
         .catchError((_) => null);
+  }
+
+  /// Notify the declarations tracker that the file with the given [path] was
+  /// changed - added, updated, or removed.  Schedule processing of the file.
+  void notifyDeclarationsTracker(String path) {
+    declarationsTracker?.changeFile(path);
+    analysisDriverScheduler.notify(null);
+  }
+
+  void updateContextInDeclarationsTracker(nd.AnalysisDriver driver) {
+    declarationsTracker?.discardContext(driver.analysisContext);
+    declarationsTracker?.addContext(driver.analysisContext);
   }
 }

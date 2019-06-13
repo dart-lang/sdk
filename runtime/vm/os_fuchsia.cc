@@ -8,7 +8,9 @@
 #include "vm/os.h"
 
 #include <errno.h>
+#if !defined(FUCHSIA_SDK)
 #include <fuchsia/timezone/cpp/fidl.h>
+#endif  //  !defined(FUCHSIA_SDK)
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
@@ -37,6 +39,7 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
+#if !defined(FUCHSIA_SDK)
 // TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
 // directly get timezone.
 //
@@ -44,10 +47,12 @@ intptr_t OS::ProcessId() {
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
 static fuchsia::timezone::TimezoneSyncPtr tz;
+#endif  //  !defined(FUCHSIA_SDK)
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
+#if !defined(FUCHSIA_SDK)
   zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
                                                     local_offset, dst_offset);
   if (status != ZX_OK) {
@@ -56,9 +61,13 @@ static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
   *local_offset *= 60;
   *dst_offset *= 60;
   return ZX_OK;
+#else
+  return ZX_ERR_NOT_SUPPORTED;
+#endif  //  !defined(FUCHSIA_SDK)
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
+#if !defined(FUCHSIA_SDK)
   // TODO(abarth): Handle time zone changes.
   static const auto* tz_name = new std::string([] {
     std::string result;
@@ -66,6 +75,9 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
     return result;
   }());
   return tz_name->c_str();
+#else
+  return "";
+#endif  //  !defined(FUCHSIA_SDK)}
 }
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
@@ -77,8 +89,10 @@ int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
   int32_t local_offset, dst_offset;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_UTC, &now);
   zx_status_t status = GetLocalAndDstOffsetInSeconds(
-      zx_clock_get(ZX_CLOCK_UTC) / ZX_SEC(1), &local_offset, &dst_offset);
+      now / ZX_SEC(1), &local_offset, &dst_offset);
   return status == ZX_OK ? local_offset : 0;
 }
 
@@ -87,11 +101,13 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  return zx_clock_get(ZX_CLOCK_UTC) / kNanosecondsPerMicrosecond;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_UTC, &now);
+  return now / kNanosecondsPerMicrosecond;
 }
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return zx_clock_get(ZX_CLOCK_MONOTONIC);
+  return zx_clock_get_monotonic();
 }
 
 int64_t OS::GetCurrentMonotonicFrequency() {
@@ -105,7 +121,9 @@ int64_t OS::GetCurrentMonotonicMicros() {
 }
 
 int64_t OS::GetCurrentThreadCPUMicros() {
-  return zx_clock_get(ZX_CLOCK_THREAD) / kNanosecondsPerMicrosecond;
+  zx_time_t now = 0;
+  zx_clock_get_new(ZX_CLOCK_THREAD, &now);
+  return now / kNanosecondsPerMicrosecond;
 }
 
 // TODO(5411554):  May need to hoist these architecture dependent code
@@ -252,8 +270,10 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
+#if !defined(FUCHSIA_SDK)
   auto services = sys::ServiceDirectory::CreateFromNamespace();
   services->Connect(tz.NewRequest());
+#endif  //  !defined(FUCHSIA_SDK)
 }
 
 void OS::Cleanup() {}

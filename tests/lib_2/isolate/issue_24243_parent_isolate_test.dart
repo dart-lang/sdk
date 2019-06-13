@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Note: the following comment is used by test.dart to additionally compile the
-// other isolate's code.
-// OtherScripts=issue_24243_child1_isolate.dart
-// OtherScripts=issue_24243_child2_isolate.dart
-// OtherScripts=issue_24243_child3_isolate.dart
-
 import 'dart:collection';
 import 'dart:isolate';
 

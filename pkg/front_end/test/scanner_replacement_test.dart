@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show utf8;
-
-import 'package:front_end/src/fasta/scanner/recover.dart'
-    show defaultRecoveryStrategy;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/fasta/scanner/error_token.dart' as fasta;
@@ -33,28 +29,17 @@ main() {
 class ScannerTest_Replacement extends ScannerTestBase {
   @override
   analyzer.Token scanWithListener(String source, ErrorListener listener,
-      {bool lazyAssignmentOperators: false}) {
+      {fasta.ScannerConfiguration configuration}) {
     // Process the source similar to
     // pkg/analyzer/lib/src/dart/scanner/scanner.dart
     // to simulate replacing the analyzer scanner
 
     fasta.ScannerResult result = fasta.scanString(source,
-        includeComments: true,
-        scanLazyAssignmentOperators: lazyAssignmentOperators,
-        recover: ((List<int> bytes, fasta.Token tokens, List<int> lineStarts) {
-      // perform recovery as a separate step
-      // so that the token stream can be validated before and after recovery
-      return tokens;
-    }));
+        configuration: configuration, includeComments: true);
 
     fasta.Token tokens = result.tokens;
-    assertValidTokenStream(tokens);
+    assertValidTokenStream(tokens, errorsFirst: true);
     assertValidBeginTokens(tokens);
-    if (result.hasErrors) {
-      List<int> bytes = utf8.encode(source);
-      tokens = defaultRecoveryStrategy(bytes, tokens, result.lineStarts);
-      assertValidTokenStream(tokens, errorsFirst: true);
-    }
 
     // fasta pretends there is an additional line at EOF
     result.lineStarts.removeLast();
@@ -200,10 +185,9 @@ class ScannerTest_Replacement extends ScannerTestBase {
     ]);
   }
 
-  analyzer.Token _scan(String source, {bool lazyAssignmentOperators: false}) {
+  analyzer.Token _scan(String source) {
     ErrorListener listener = new ErrorListener();
-    analyzer.Token token = scanWithListener(source, listener,
-        lazyAssignmentOperators: lazyAssignmentOperators);
+    analyzer.Token token = scanWithListener(source, listener);
     listener.assertNoErrors();
     return token;
   }
@@ -253,7 +237,7 @@ class ScannerTest_Replacement extends ScannerTestBase {
   /// that is in the stream.
   void assertValidBeginTokens(fasta.Token firstToken) {
     var openerStack = <analyzer.BeginToken>[];
-    analyzer.BeginToken lastClosedGroup;
+    var errorStack = <fasta.ErrorToken>[];
     fasta.Token token = firstToken;
     while (!token.isEof) {
       if (token is analyzer.BeginToken) {
@@ -261,17 +245,17 @@ class ScannerTest_Replacement extends ScannerTestBase {
           expect(token.endGroup, isNotNull, reason: token.lexeme);
         if (token.endGroup != null) openerStack.add(token);
       } else if (openerStack.isNotEmpty && openerStack.last.endGroup == token) {
-        lastClosedGroup = openerStack.removeLast();
-        expect(token.isSynthetic, token.next is fasta.UnmatchedToken,
-            reason: 'Expect synthetic closer then error token, '
-                'but found "$token" followed by "${token.next}"');
+        analyzer.BeginToken beginToken = openerStack.removeLast();
+        if (token.isSynthetic) {
+          fasta.ErrorToken errorToken = errorStack.removeAt(0);
+          expect(errorToken.begin, beginToken);
+        }
       } else if (token is fasta.UnmatchedToken) {
-        expect(lastClosedGroup?.endGroup?.next, same(token),
-            reason: 'Unexpected error token for group: $lastClosedGroup');
-        expect(token.begin, lastClosedGroup);
+        errorStack.add(token);
       }
       token = token.next;
     }
     expect(openerStack, isEmpty, reason: 'Missing closers');
+    expect(errorStack, isEmpty, reason: 'Extra error tokens');
   }
 }

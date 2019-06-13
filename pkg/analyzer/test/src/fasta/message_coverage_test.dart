@@ -38,7 +38,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   }
 
   /**
-   * Given the path to the file 'message.yaml', return a list of the top-level
+   * Given the path to the file 'messages.yaml', return a list of the top-level
    * keys defined in that file that define an 'analyzerCode'.
    */
   List<String> getMappedCodes(String messagesPath) {
@@ -61,7 +61,7 @@ class AbstractRecoveryTest extends FastaParserTestCase {
   }
 
   /**
-   * Given the path to the file 'message.yaml', return a list of the analyzer
+   * Given the path to the file 'messages.yaml', return a list of the analyzer
    * codes defined in that file.
    */
   List<String> getReferencedCodes(String messagesPath) {

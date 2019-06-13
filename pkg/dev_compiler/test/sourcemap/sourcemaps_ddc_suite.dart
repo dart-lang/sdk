@@ -21,6 +21,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
 
   List<Step> _steps;
 
+  @override
   List<Step> get steps => _steps ??= <Step>[
         const Setup(),
         Compile(DevCompilerRunner(environment.containsKey("debug"))),
@@ -28,6 +29,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
         CheckSteps(environment.containsKey("debug")),
       ];
 
+  @override
   bool debugging() => environment.containsKey("debug");
 }
 
@@ -36,6 +38,7 @@ class DevCompilerRunner implements CompilerRunner {
 
   const DevCompilerRunner([this.debugging = false]);
 
+  @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
     Uri outDir = outputFile.resolve(".");
     String outputFilename = outputFile.pathSegments.last;
@@ -67,7 +70,7 @@ class DevCompilerRunner implements CompilerRunner {
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
     File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
+        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(jsSdkPath)}'"));
 
     if (debugging) {
       createHtmlWrapper(
@@ -82,4 +85,5 @@ class DevCompilerRunner implements CompilerRunner {
   }
 }
 
-main(List<String> arguments) => runMe(arguments, createContext, "testing.json");
+void main(List<String> arguments) =>
+    runMe(arguments, createContext, "testing.json");

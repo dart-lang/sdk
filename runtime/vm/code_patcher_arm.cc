@@ -49,7 +49,7 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
-  ic_data ^= static_call.IcData();
+  ic_data = static_call.IcData();
   if (ic_data_result != NULL) {
     *ic_data_result = ic_data.raw();
   }

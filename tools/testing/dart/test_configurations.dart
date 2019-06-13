@@ -35,6 +35,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/compiler/dart2js'),
   new Path('tests/compiler/dart2js_extra'),
   new Path('tests/compiler/dart2js_native'),
+  new Path('tests/compiler/dartdevc_native'),
   new Path('tests/corelib_2'),
   new Path('tests/kernel'),
   new Path('tests/language_2'),

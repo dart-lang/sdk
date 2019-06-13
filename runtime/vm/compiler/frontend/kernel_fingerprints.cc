@@ -82,7 +82,6 @@ void KernelFingerprintHelper::CalculateConstructorFingerprint() {
   }
   helper.SetJustRead(ConstructorHelper::kInitializers);
   BuildHash(helper.flags_);
-  BuildHash(helper.annotation_count_);
 }
 
 void KernelFingerprintHelper::CalculateArgumentsFingerprint() {
@@ -795,9 +794,9 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
   uint32_t hash = 0;
   hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
 
-  type ^= klass.super_type();
+  type = klass.super_type();
   if (!type.IsNull()) {
-    name ^= type.Name();
+    name = type.Name();
     hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
   }
 
@@ -820,7 +819,7 @@ uint32_t KernelSourceFingerprintHelper::CalculateClassFingerprint(
   // Calculate fingerprint for the interfaces.
   for (intptr_t i = 0; i < interfaces.Length(); ++i) {
     type ^= interfaces.At(i);
-    name ^= type.Name();
+    name = type.Name();
     hash = KernelFingerprintHelper::CalculateHash(hash, name.Hash());
   }
 

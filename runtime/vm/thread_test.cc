@@ -376,6 +376,7 @@ TEST_CASE(ThreadRegistry) {
   TestCase::CreateTestIsolate();
   {
     // Create a stack resource this time, and exercise it.
+    TransitionNativeToVM transition(Thread::Current());
     StackZone stack_zone(Thread::Current());
     Zone* zone1 = Thread::Current()->zone();
     EXPECT(zone1 != zone0);

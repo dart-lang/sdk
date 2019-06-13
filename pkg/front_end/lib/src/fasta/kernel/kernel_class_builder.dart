@@ -105,6 +105,7 @@ import 'kernel_builder.dart'
         Declaration,
         KernelFunctionBuilder,
         KernelLibraryBuilder,
+        KernelMetadataBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
@@ -224,6 +225,19 @@ abstract class KernelClassBuilder
     }
   }
 
+  @override
+  void buildOutlineExpressions(LibraryBuilder library) {
+    void build(String ignore, Declaration declaration) {
+      MemberBuilder member = declaration;
+      member.buildOutlineExpressions(library);
+    }
+
+    KernelMetadataBuilder.buildAnnotations(
+        isPatch ? origin.target : cls, metadata, library, this, null, null);
+    constructors.forEach(build);
+    scope.forEach(build);
+  }
+
   void checkSupertypes(CoreTypes coreTypes) {
     // This method determines whether the class (that's being built) its super
     // class appears both in 'extends' and 'implements' clauses and whether any
@@ -338,7 +352,7 @@ abstract class KernelClassBuilder
     for (TypeParameter parameter in cls.typeParameters) {
       List<TypeArgumentIssue> issues = findTypeArgumentIssues(
           parameter.bound, typeEnvironment,
-          allowSuperBounded: false);
+          allowSuperBounded: true);
       if (issues != null) {
         for (TypeArgumentIssue issue in issues) {
           DartType argument = issue.argument;
@@ -923,9 +937,9 @@ abstract class KernelClassBuilder
       library.addProblem(
           templateOverrideTypeVariablesMismatch.withArguments(
               "${declaredMember.enclosingClass.name}."
-              "${declaredMember.name.name}",
+                  "${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}."
-              "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
           declaredMember.fileUri,
@@ -960,9 +974,9 @@ abstract class KernelClassBuilder
             library.addProblem(
                 templateOverrideTypeVariablesMismatch.withArguments(
                     "${declaredMember.enclosingClass.name}."
-                    "${declaredMember.name.name}",
+                        "${declaredMember.name.name}",
                     "${interfaceMember.enclosingClass.name}."
-                    "${interfaceMember.name.name}"),
+                        "${interfaceMember.name.name}"),
                 declaredMember.fileOffset,
                 noLength,
                 declaredMember.fileUri,
@@ -1103,9 +1117,9 @@ abstract class KernelClassBuilder
       library.addProblem(
           templateOverrideFewerPositionalArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-              "${declaredMember.name.name}",
+                  "${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}."
-              "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
           declaredMember.fileUri,
@@ -1122,9 +1136,9 @@ abstract class KernelClassBuilder
       library.addProblem(
           templateOverrideMoreRequiredArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-              "${declaredMember.name.name}",
+                  "${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}."
-              "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
           declaredMember.fileUri,
@@ -1164,9 +1178,9 @@ abstract class KernelClassBuilder
       library.addProblem(
           templateOverrideFewerNamedArguments.withArguments(
               "${declaredMember.enclosingClass.name}."
-              "${declaredMember.name.name}",
+                  "${declaredMember.name.name}",
               "${interfaceMember.enclosingClass.name}."
-              "${interfaceMember.name.name}"),
+                  "${interfaceMember.name.name}"),
           declaredMember.fileOffset,
           noLength,
           declaredMember.fileUri,
@@ -1201,10 +1215,10 @@ abstract class KernelClassBuilder
           library.addProblem(
               templateOverrideMismatchNamedParameter.withArguments(
                   "${declaredMember.enclosingClass.name}."
-                  "${declaredMember.name.name}",
+                      "${declaredMember.name.name}",
                   interfaceNamedParameters.current.name,
                   "${interfaceMember.enclosingClass.name}."
-                  "${interfaceMember.name.name}"),
+                      "${interfaceMember.name.name}"),
               declaredMember.fileOffset,
               noLength,
               declaredMember.fileUri,

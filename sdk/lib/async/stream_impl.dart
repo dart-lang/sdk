@@ -967,7 +967,8 @@ class _StreamIterator<T> implements StreamIterator<T> {
   /// completed.
   bool _isPaused = false;
 
-  _StreamIterator(final Stream<T> stream) : _stateData = stream;
+  _StreamIterator(final Stream<T> stream)
+      : _stateData = stream ?? (throw ArgumentError.notNull("stream"));
 
   T get current {
     if (_subscription != null && _isPaused) {

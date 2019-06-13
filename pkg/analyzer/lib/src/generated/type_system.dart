@@ -5,12 +5,14 @@
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/type.dart';
@@ -49,7 +51,9 @@ int _getTopiness(DartType t) {
 
 bool _isBottom(DartType t) {
   return t.isBottom ||
-      t.isDartCoreNull ||
+      // TODO(mfairhurst): Remove the exception treating Null* as Top.
+      t.isDartCoreNull &&
+          (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.star ||
       identical(t, UnknownInferredType.instance);
 }
 
@@ -58,7 +62,8 @@ bool _isTop(DartType t) {
     return _isTop((t as InterfaceType).typeArguments[0]);
   }
   return t.isDynamic ||
-      t.isObject ||
+      (t.isObject &&
+          (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.none) ||
       t.isVoid ||
       identical(t, UnknownInferredType.instance);
 }
@@ -73,7 +78,8 @@ class Dart2TypeSystem extends TypeSystem {
       new HashSet<TypeComparison>();
 
   /**
-   * True if implicit casts should be allowed, otherwise false.
+   * False if implicit casts should always be disallowed, otherwise the
+   * [FeatureSet] will be used.
    *
    * This affects the behavior of [isAssignableTo].
    */
@@ -164,7 +170,8 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // No subtype relation, so no known GLB.
-    return typeProvider.bottomType;
+    // TODO(mfairhurst): implement fully NNBD GLB, and return Never (non-legacy)
+    return BottomTypeImpl.instanceLegacy;
   }
 
   /**
@@ -193,8 +200,12 @@ class Dart2TypeSystem extends TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    return inferrer.infer(fnType, fnType.typeFormals,
-        errorReporter: errorReporter, errorNode: errorNode);
+    var inferredTypes = inferrer.infer(
+      fnType.typeFormals,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+    );
+    return fnType.instantiate(inferredTypes);
   }
 
   /// Infers a generic type, function, method, or list/map literal
@@ -227,10 +238,53 @@ class Dart2TypeSystem extends TypeSystem {
       AstNode errorNode,
       bool downwards: false,
       bool isConst: false}) {
+    var inferredTypes = inferGenericFunctionOrType2(
+      genericType,
+      parameters,
+      argumentTypes,
+      returnContextType,
+      errorReporter: errorReporter,
+      errorNode: errorNode,
+      downwards: downwards,
+      isConst: isConst,
+    );
+    return genericType.instantiate(inferredTypes);
+  }
+
+  /// Infers type arguments for a generic type, function, method, or
+  /// list/map literal, using the downward context type as well as the
+  /// argument types if available.
+  ///
+  /// For example, given a function type with generic type parameters, this
+  /// infers the type parameters from the actual argument types, and returns the
+  /// instantiated function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// All constraints on each type parameter Tj are tracked, as well as where
+  /// they originated, so we can issue an error message tracing back to the
+  /// argument values, type parameter "extends" clause, or the return type
+  /// context.
+  List<DartType> inferGenericFunctionOrType2<T extends ParameterizedType>(
+      T genericType,
+      List<ParameterElement> parameters,
+      List<DartType> argumentTypes,
+      DartType returnContextType,
+      {ErrorReporter errorReporter,
+      AstNode errorNode,
+      bool downwards: false,
+      bool isConst: false}) {
     // TODO(jmesserly): expose typeFormals on ParameterizedType.
     List<TypeParameterElement> typeFormals = typeFormalsAsElements(genericType);
     if (typeFormals.isEmpty) {
-      return genericType;
+      return null;
     }
 
     // Create a TypeSystem that will allow certain type parameters to be
@@ -257,7 +311,7 @@ class Dart2TypeSystem extends TypeSystem {
           genericType: genericType);
     }
 
-    return inferrer.infer(genericType, typeFormals,
+    return inferrer.infer(typeFormals,
         errorReporter: errorReporter,
         errorNode: errorNode,
         downwardsInferPhase: downwards);
@@ -297,7 +351,7 @@ class Dart2TypeSystem extends TypeSystem {
       Map<TypeParameterType, DartType> knownTypes}) {
     int count = typeFormals.length;
     if (count == 0) {
-      return null;
+      return const <DartType>[];
     }
 
     Set<TypeParameterType> all = new Set<TypeParameterType>();
@@ -323,6 +377,9 @@ class Dart2TypeSystem extends TypeSystem {
       Set<DartType> visitedTypes = new HashSet<DartType>();
 
       void appendParameters(DartType type) {
+        if (type == null) {
+          return;
+        }
         if (visitedTypes.contains(type)) {
           return;
         }
@@ -330,6 +387,13 @@ class Dart2TypeSystem extends TypeSystem {
         if (type is TypeParameterType && all.contains(type)) {
           parameters ??= <TypeParameterType>[];
           parameters.add(type);
+        } else if (AnalysisDriver.useSummary2) {
+          if (type is FunctionType) {
+            appendParameters(type.returnType);
+            type.parameters.map((p) => p.type).forEach(appendParameters);
+          } else if (type is InterfaceType) {
+            type.typeArguments.forEach(appendParameters);
+          }
         } else if (type is ParameterizedType) {
           type.typeArguments.forEach(appendParameters);
         }
@@ -389,7 +453,8 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(DartType fromType, DartType toType,
+      {FeatureSet featureSet}) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -398,13 +463,21 @@ class Dart2TypeSystem extends TypeSystem {
     // A call method tearoff
     if (fromType is InterfaceType && acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+      if (callMethodType != null &&
+          isAssignableTo(callMethodType, toType, featureSet: featureSet)) {
         return true;
       }
     }
 
+    // First make sure --no-implicit-casts disables all downcasts, including
+    // dynamic casts.
     if (!implicitCasts) {
       return false;
+    }
+
+    // Now handle NNBD default behavior, where we disable non-dynamic downcasts.
+    if (featureSet != null && featureSet.isEnabled(Feature.non_nullable)) {
+      return fromType.isDynamic;
     }
 
     // Don't allow implicit downcasts between function types
@@ -425,8 +498,7 @@ class Dart2TypeSystem extends TypeSystem {
       return false;
     }
 
-    // If the subtype relation goes the other way, allow the implicit
-    // downcast.
+    // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
@@ -491,12 +563,23 @@ class Dart2TypeSystem extends TypeSystem {
         p1.isCovariant && isSubtypeOf(p1.type, p2.type);
   }
 
+  /// Check if [_t1] is a subtype of [_t2].
+  ///
+  /// Partially updated to reflect
+  /// https://github.com/dart-lang/language/blob/da5adf7eb5f2d479069d8660ed7ca7b230098510/resources/type-system/subtyping.md
+  ///
+  /// However, it does not correllate 1:1 and does not specialize Null vs Never
+  /// cases. It also is not guaranteed to be exactly accurate vs the "spec"
+  /// because it has slightly different order of operations. These should be
+  /// brought in line or proven equivalent.
   @override
-  bool isSubtypeOf(DartType t1, DartType t2) {
+  bool isSubtypeOf(DartType _t1, DartType _t2) {
+    var t1 = _t1 as TypeImpl;
+    var t2 = _t2 as TypeImpl;
+
     if (identical(t1, t2)) {
       return true;
     }
-
     // The types are void, dynamic, bottom, interface types, function types,
     // FutureOr<T> and type parameters.
     //
@@ -515,10 +598,36 @@ class Dart2TypeSystem extends TypeSystem {
       return false;
     }
 
+    // TODO(mfairhurst): Convert Null to Never?, to simplify the algorithm, and
+    // remove this check.
+    if (t1.isDartCoreNull) {
+      if (t2.nullabilitySuffix != NullabilitySuffix.none) {
+        return true;
+      }
+    }
+
+    // Handle T1? <: T2
+    if (t1.nullabilitySuffix == NullabilitySuffix.question) {
+      if (t2.nullabilitySuffix == NullabilitySuffix.none) {
+        // If T2 is not FutureOr<S2>, then subtype is false.
+        if (!t2.isDartAsyncFutureOr) {
+          return false;
+        }
+
+        // T1? <: FutureOr<T2> is true if T2 is S2?.
+        // TODO(mfairhurst): handle T1? <: FutureOr<dynamic>, etc.
+        if (t2 is InterfaceTypeImpl &&
+            (t2.typeArguments[0] as TypeImpl).nullabilitySuffix ==
+                NullabilitySuffix.none) {
+          return false;
+        }
+      }
+    }
+
     // Handle FutureOr<T> union type.
-    if (t1 is InterfaceType && t1.isDartAsyncFutureOr) {
+    if (t1 is InterfaceTypeImpl && t1.isDartAsyncFutureOr) {
       var t1TypeArg = t1.typeArguments[0];
-      if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
+      if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
         var t2TypeArg = t2.typeArguments[0];
         // FutureOr<A> <: FutureOr<B> iff A <: B
         return isSubtypeOf(t1TypeArg, t2TypeArg);
@@ -530,7 +639,7 @@ class Dart2TypeSystem extends TypeSystem {
       return isSubtypeOf(t1Future, t2) && isSubtypeOf(t1TypeArg, t2);
     }
 
-    if (t2 is InterfaceType && t2.isDartAsyncFutureOr) {
+    if (t2 is InterfaceTypeImpl && t2.isDartAsyncFutureOr) {
       // given t2 is Future<A> | A, then:
       // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
       var t2TypeArg = t2.typeArguments[0];
@@ -542,23 +651,26 @@ class Dart2TypeSystem extends TypeSystem {
     //  T is not dynamic or object (handled above)
     //  True if T == S
     //  Or true if bound of S is S' and S' <: T
-    if (t1 is TypeParameterType) {
-      if (t2 is TypeParameterType &&
+    if (t1 is TypeParameterTypeImpl) {
+      if (t2 is TypeParameterTypeImpl &&
           t1.definition == t2.definition &&
           _typeParameterBoundsSubtype(t1.bound, t2.bound, true)) {
         return true;
       }
+
       DartType bound = t1.element.bound;
       return bound == null
           ? false
           : _typeParameterBoundsSubtype(bound, t2, false);
     }
+
     if (t2 is TypeParameterType) {
       return false;
     }
 
-    // We've eliminated void, dynamic, bottom, type parameters, and FutureOr.
-    // The only cases are the combinations of interface type and function type.
+    // We've eliminated void, dynamic, bottom, type parameters, FutureOr,
+    // nullable, and legacy nullable types. The only cases are the combinations
+    // of interface type and function type.
 
     // A function type can only subtype an interface type if
     // the interface type is Function
@@ -569,11 +681,11 @@ class Dart2TypeSystem extends TypeSystem {
     if (t1 is InterfaceType && t2 is FunctionType) return false;
 
     // Two interface types
-    if (t1 is InterfaceType && t2 is InterfaceType) {
+    if (t1 is InterfaceTypeImpl && t2 is InterfaceTypeImpl) {
       return _isInterfaceSubtypeOf(t1, t2, null);
     }
 
-    return _isFunctionSubtypeOf(t1, t2);
+    return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
   /// Given a [type] T that may have an unknown type `?`, returns a type
@@ -590,7 +702,7 @@ class Dart2TypeSystem extends TypeSystem {
 
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
+      DartType rightType, DartType currentType, FeatureSet featureSet) {
     if (leftType is TypeParameterType &&
         leftType.element.bound == typeProvider.numType) {
       if (rightType == leftType || rightType == typeProvider.intType) {
@@ -600,6 +712,9 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.PLUS_EQ ||
             operator == TokenType.MINUS_EQ ||
             operator == TokenType.STAR_EQ) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(leftType as TypeImpl);
+          }
           return leftType;
         }
       }
@@ -608,13 +723,16 @@ class Dart2TypeSystem extends TypeSystem {
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
             operator == TokenType.SLASH) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(typeProvider.doubleType as TypeImpl);
+          }
           return typeProvider.doubleType;
         }
       }
       return currentType;
     }
-    return super
-        .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+    return super.refineBinaryExpressionType(
+        leftType, operator, rightType, currentType, featureSet);
   }
 
   @override
@@ -771,6 +889,8 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Union the named parameters together.
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
@@ -1145,16 +1265,16 @@ class GenericInferrer {
     tryMatchSubtypeOf(declaredType, contextType, origin, covariant: true);
   }
 
-  /// Given the constraints that were given by calling [isSubtypeOf], find the
-  /// instantiation of the generic function that satisfies these constraints.
+  /// Given the constraints that were given by calling [constrainArgument] and
+  /// [constrainReturnType], find the type arguments for the [typeFormals] that
+  /// satisfies these constraints.
   ///
   /// If [downwardsInferPhase] is set, we are in the first pass of inference,
   /// pushing context types down. At that point we are allowed to push down
   /// `?` to precisely represent an unknown type. If [downwardsInferPhase] is
   /// false, we are on our final inference pass, have all available information
   /// including argument types, and must not conclude `?` for any type formal.
-  T infer<T extends ParameterizedType>(
-      T genericType, List<TypeParameterElement> typeFormals,
+  List<DartType> infer(List<TypeParameterElement> typeFormals,
       {bool considerExtendsClause: true,
       ErrorReporter errorReporter,
       AstNode errorNode,
@@ -1188,7 +1308,7 @@ class GenericInferrer {
     // If the downwards infer phase has failed, we'll catch this in the upwards
     // phase later on.
     if (downwardsInferPhase) {
-      return genericType.instantiate(inferredTypes) as T;
+      return inferredTypes;
     }
 
     // Check the inferred types against all of the constraints.
@@ -1247,8 +1367,8 @@ class GenericInferrer {
 
     // Use instantiate to bounds to finish things off.
     var hasError = new List<bool>.filled(fnTypeParams.length, false);
-    var result = _typeSystem.instantiateToBounds(genericType,
-        hasError: hasError, knownTypes: knownTypes) as T;
+    var result = _typeSystem.instantiateTypeFormalsToBounds(typeFormals,
+        hasError: hasError, knownTypes: knownTypes);
 
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
@@ -1266,6 +1386,7 @@ class GenericInferrer {
         ]);
       }
     }
+
     return result;
   }
 
@@ -1910,9 +2031,11 @@ abstract class TypeSystem implements public.TypeSystem {
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
-   * if leftType <==> rightType).
+   * if leftType <==> rightType). Accepts a [FeatureSet] to correctly handle
+   * NNBD implicit downcasts.
    */
-  bool isAssignableTo(DartType leftType, DartType rightType);
+  bool isAssignableTo(DartType leftType, DartType rightType,
+      {FeatureSet featureSet});
 
   /**
    * Return `true` if the [leftType] is more specific than the [rightType]
@@ -1967,6 +2090,13 @@ abstract class TypeSystem implements public.TypeSystem {
     return getLeastUpperBound(leftType, rightType);
   }
 
+  /// Returns a nullable version of [type].  The result would be equivalent to
+  /// the union `type | Null` (if we supported union types).
+  DartType makeNullable(TypeImpl type) {
+    // TODO(paulberry): handle type parameter types
+    return type.withNullability(NullabilitySuffix.question);
+  }
+
   /// Attempts to find the appropriate substitution for [typeParameters] that can
   /// be applied to [src] to make it equal to [dest].  If no such substitution can
   /// be found, `null` is returned.
@@ -1978,8 +2108,13 @@ abstract class TypeSystem implements public.TypeSystem {
       inferrer.constrainReturnType(srcs[i], dests[i]);
       inferrer.constrainReturnType(dests[i], srcs[i]);
     }
-    var result = inferrer.infer(mixinElement.type, typeParameters,
-        considerExtendsClause: false);
+
+    var inferredTypes = inferrer.infer(
+      typeParameters,
+      considerExtendsClause: false,
+    );
+    var result = mixinElement.type.instantiate(inferredTypes);
+
     for (int i = 0; i < srcs.length; i++) {
       if (!srcs[i]
           .substitute2(result.typeArguments, mixinElement.type.typeArguments)
@@ -2016,17 +2151,31 @@ abstract class TypeSystem implements public.TypeSystem {
     return null;
   }
 
+  /// Returns a non-nullable version of [type].  This is equivalent to the
+  /// operation `NonNull` defined in the spec.
+  DartType promoteToNonNull(TypeImpl type) {
+    if (type.isDartCoreNull) return BottomTypeImpl.instance;
+    // TODO(mfairhurst): handle type parameter types
+    return type.withNullability(NullabilitySuffix.none);
+  }
+
   /**
-   * Attempts to make a better guess for the type of a binary with the given
-   * [operator], given that resolution has so far produced the [currentType].
+   * Determine the type of a binary expression with the given [operator] whose
+   * left operand has the type [leftType] and whose right operand has the type
+   * [rightType], given that resolution has so far produced the [currentType].
+   * The [featureSet] is used to determine whether any features that effect the
+   * computation have been enabled.
    */
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
-      DartType rightType, DartType currentType) {
+      DartType rightType, DartType currentType, FeatureSet featureSet) {
     // bool
     if (operator == TokenType.AMPERSAND_AMPERSAND ||
         operator == TokenType.BAR_BAR ||
         operator == TokenType.EQ_EQ ||
         operator == TokenType.BANG_EQ) {
+      if (featureSet.isEnabled(Feature.non_nullable)) {
+        return promoteToNonNull(typeProvider.boolType as TypeImpl);
+      }
       return typeProvider.boolType;
     }
     DartType intType = typeProvider.intType;
@@ -2042,6 +2191,9 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.STAR_EQ) {
         DartType doubleType = typeProvider.doubleType;
         if (rightType == doubleType) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(doubleType as TypeImpl);
+          }
           return doubleType;
         }
       }
@@ -2057,6 +2209,9 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
         if (rightType == intType) {
+          if (featureSet.isEnabled(Feature.non_nullable)) {
+            return promoteToNonNull(intType as TypeImpl);
+          }
           return intType;
         }
       }
@@ -2166,6 +2321,8 @@ abstract class TypeSystem implements public.TypeSystem {
           ParameterKind.POSITIONAL));
     }
 
+    // TODO(brianwilkerson) Handle the fact that named parameters can now be
+    //  required.
     Map<String, DartType> fNamed = f.namedParameterTypes;
     Map<String, DartType> gNamed = g.namedParameterTypes;
     for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {

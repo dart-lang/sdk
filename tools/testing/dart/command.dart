@@ -76,10 +76,15 @@ class Command {
         checked: checked);
   }
 
-  static Command adbPrecompiled(String precompiledRunner, String processTest,
-      String testDirectory, List<String> arguments, bool useBlobs) {
-    return new AdbPrecompilationCommand._(
-        precompiledRunner, processTest, testDirectory, arguments, useBlobs);
+  static Command adbPrecompiled(
+      String precompiledRunner,
+      String processTest,
+      String testDirectory,
+      List<String> arguments,
+      bool useBlobs,
+      bool useElf) {
+    return new AdbPrecompilationCommand._(precompiledRunner, processTest,
+        testDirectory, arguments, useBlobs, useElf);
   }
 
   static Command adbDartk(String precompiledRunner, String processTest,
@@ -252,7 +257,8 @@ class ProcessCommand extends Command {
 }
 
 class CompilationCommand extends ProcessCommand {
-  final String _outputFile;
+  /// The primary output file that will be created by this command.
+  final String outputFile;
 
   /// If true, then the compilation is run even if the input files are older
   /// than the output file.
@@ -261,7 +267,7 @@ class CompilationCommand extends ProcessCommand {
 
   CompilationCommand._(
       String displayName,
-      this._outputFile,
+      this.outputFile,
       this._alwaysCompile,
       this._bootstrapDependencies,
       String executable,
@@ -274,7 +280,7 @@ class CompilationCommand extends ProcessCommand {
 
   CompilationCommand indexedCopy(int index) => CompilationCommand._(
       displayName,
-      _outputFile,
+      outputFile,
       _alwaysCompile,
       _bootstrapDependencies,
       executable,
@@ -286,7 +292,7 @@ class CompilationCommand extends ProcessCommand {
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
 
-    var file = new io.File(new Path("$_outputFile.deps").toNativePath());
+    var file = new io.File(new Path("$outputFile.deps").toNativePath());
     if (!file.existsSync()) return false;
 
     var lines = file.readAsLinesSync();
@@ -300,7 +306,7 @@ class CompilationCommand extends ProcessCommand {
 
     dependencies.addAll(_bootstrapDependencies);
     var jsOutputLastModified = TestUtils.lastModifiedCache
-        .getLastModified(new Uri(scheme: 'file', path: _outputFile));
+        .getLastModified(new Uri(scheme: 'file', path: outputFile));
     if (jsOutputLastModified == null) return false;
 
     for (var dependency in dependencies) {
@@ -316,14 +322,14 @@ class CompilationCommand extends ProcessCommand {
 
   void _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.addJson(_outputFile);
+    builder.addJson(outputFile);
     builder.addJson(_alwaysCompile);
     builder.addJson(_bootstrapDependencies);
   }
 
   bool _equal(CompilationCommand other) =>
       super._equal(other) &&
-      _outputFile == other._outputFile &&
+      outputFile == other.outputFile &&
       _alwaysCompile == other._alwaysCompile &&
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
 }
@@ -347,7 +353,7 @@ class FastaCompilationCommand extends CompilationCommand {
   @override
   FastaCompilationCommand indexedCopy(int index) => FastaCompilationCommand._(
       _compilerLocation,
-      _outputFile,
+      outputFile,
       _bootstrapDependencies,
       executable,
       arguments,
@@ -437,7 +443,7 @@ class VMKernelCompilationCommand extends CompilationCommand {
 
   VMKernelCompilationCommand indexedCopy(int index) =>
       VMKernelCompilationCommand._(
-          _outputFile,
+          outputFile,
           _alwaysCompile,
           _bootstrapDependencies,
           executable,
@@ -589,6 +595,7 @@ class AdbPrecompilationCommand extends Command {
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useBlobs;
+  final bool useElf;
 
   AdbPrecompilationCommand._(
       this.precompiledRunnerFilename,
@@ -596,6 +603,7 @@ class AdbPrecompilationCommand extends Command {
       this.precompiledTestDirectory,
       this.arguments,
       this.useBlobs,
+      this.useElf,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
@@ -605,6 +613,7 @@ class AdbPrecompilationCommand extends Command {
       precompiledTestDirectory,
       arguments,
       useBlobs,
+      useElf,
       index: index);
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
@@ -612,12 +621,14 @@ class AdbPrecompilationCommand extends Command {
     builder.add(precompiledTestDirectory);
     builder.add(arguments);
     builder.add(useBlobs);
+    builder.add(useElf);
   }
 
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       precompiledRunnerFilename == other.precompiledRunnerFilename &&
       useBlobs == other.useBlobs &&
+      useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory;
 

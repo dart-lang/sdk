@@ -23,7 +23,7 @@ import 'package:observatory/src/elements/object_common.dart';
 import 'package:observatory/src/elements/script_inset.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
-class ScriptViewElement extends HtmlElement implements Renderable {
+class ScriptViewElement extends CustomElement implements Renderable {
   static const tag =
       const Tag<ScriptViewElement>('script-view', dependencies: const [
     ContextRefElement.tag,
@@ -86,7 +86,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
     assert(references != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    ScriptViewElement e = document.createElement(tag.name);
+    ScriptViewElement e = new ScriptViewElement.created();
     e._r = new RenderingScheduler<ScriptViewElement>(e, queue: queue);
     e._vm = vm;
     e._isolate = isolate;
@@ -103,7 +103,7 @@ class ScriptViewElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  ScriptViewElement.created() : super.created();
+  ScriptViewElement.created() : super.created(tag);
 
   @override
   attached() {
@@ -121,18 +121,20 @@ class ScriptViewElement extends HtmlElement implements Renderable {
   void render() {
     children = <Element>[
       navBar(<Element>[
-        new NavTopMenuElement(queue: _r.queue),
-        new NavVMMenuElement(_vm, _events, queue: _r.queue),
-        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
-        new NavLibraryMenuElement(_isolate, _script.library, queue: _r.queue),
+        new NavTopMenuElement(queue: _r.queue).element,
+        new NavVMMenuElement(_vm, _events, queue: _r.queue).element,
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue).element,
+        new NavLibraryMenuElement(_isolate, _script.library, queue: _r.queue)
+            .element,
         navMenu('object'),
-        new NavRefreshElement(queue: _r.queue)
-          ..onRefresh.listen((e) async {
-            e.element.disabled = true;
-            _script = await _scripts.get(_isolate, _script.id);
-            _r.dirty();
-          }),
-        new NavNotifyElement(_notifications, queue: _r.queue)
+        (new NavRefreshElement(queue: _r.queue)
+              ..onRefresh.listen((e) async {
+                e.element.disabled = true;
+                _script = await _scripts.get(_isolate, _script.id);
+                _r.dirty();
+              }))
+            .element,
+        new NavNotifyElement(_notifications, queue: _r.queue).element
       ]),
       new DivElement()
         ..classes = ['content-centered-big']
@@ -140,8 +142,9 @@ class ScriptViewElement extends HtmlElement implements Renderable {
           new HeadingElement.h2()..text = 'Script',
           new HRElement(),
           new ObjectCommonElement(_isolate, _script, _retainedSizes,
-              _reachableSizes, _references, _retainingPaths, _objects,
-              queue: _r.queue),
+                  _reachableSizes, _references, _retainingPaths, _objects,
+                  queue: _r.queue)
+              .element,
           new BRElement(),
           new DivElement()
             ..classes = ['memberList']
@@ -159,8 +162,9 @@ class ScriptViewElement extends HtmlElement implements Renderable {
             ],
           new HRElement(),
           new ScriptInsetElement(_isolate, _script, _scripts, _objects, _events,
-              currentPos: _pos, queue: _r.queue),
-          new ViewFooterElement(queue: _r.queue)
+                  currentPos: _pos, queue: _r.queue)
+              .element,
+          new ViewFooterElement(queue: _r.queue).element
         ]
     ];
   }

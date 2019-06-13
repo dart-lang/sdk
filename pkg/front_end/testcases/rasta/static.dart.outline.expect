@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  static const field dynamic staticConstant;
+  static const field dynamic staticConstant = 42;
   static field dynamic staticField;
   synthetic constructor •() → self::Foo
     ;

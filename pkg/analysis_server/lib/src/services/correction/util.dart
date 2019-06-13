@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -1065,7 +1066,7 @@ class CorrectionUtils {
       return true;
     }
     // may be comment
-    return TokenUtils.getTokens(trimmedText).isEmpty;
+    return TokenUtils.getTokens(trimmedText, unit.featureSet).isEmpty;
   }
 
   ClassMemberLocation prepareNewClassMemberLocation(
@@ -1138,7 +1139,7 @@ class CorrectionUtils {
     // prepare STRING token ranges
     List<SourceRange> lineRanges = [];
     {
-      List<Token> tokens = TokenUtils.getTokens(source);
+      List<Token> tokens = TokenUtils.getTokens(source, unit.featureSet);
       for (Token token in tokens) {
         if (token.type == TokenType.STRING) {
           lineRanges.add(range.token(token));
@@ -1361,10 +1362,11 @@ class TokenUtils {
    * @return [Token]s of the given Dart source, not <code>null</code>, may be empty if no
    *         tokens or some exception happens.
    */
-  static List<Token> getTokens(String s) {
+  static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       List<Token> tokens = [];
-      Scanner scanner = new Scanner(null, new CharSequenceReader(s), null);
+      Scanner scanner = new Scanner(null, new CharSequenceReader(s), null)
+        ..configureFeatures(featureSet);
       Token token = scanner.tokenize();
       while (token.type != TokenType.EOF) {
         tokens.add(token);

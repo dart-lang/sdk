@@ -20,6 +20,7 @@ import 'package:kernel/ast.dart'
         InstanceConstant,
         IntConstant,
         InterfaceType,
+        Library,
         ListConstant,
         MapConstant,
         NullConstant,
@@ -29,6 +30,7 @@ import 'package:kernel/ast.dart'
         StringConstant,
         SymbolConstant,
         TearOffConstant,
+        TreeNode,
         TypedefType,
         TypeLiteralConstant,
         TypeParameter,
@@ -50,9 +52,8 @@ import '../problems.dart' show unsupported;
 /// distinguish different types with the same name. This is used in diagnostic
 /// messages to indicate the origins of types occurring in the message.
 class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
-  List<LabeledClassName> names = <LabeledClassName>[];
-  Map<String, List<LabeledClassName>> nameMap =
-      <String, List<LabeledClassName>>{};
+  List<LabeledNode> names = <LabeledNode>[];
+  Map<String, List<LabeledNode>> nameMap = <String, List<LabeledNode>>{};
 
   List<Object> result;
 
@@ -84,7 +85,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   /// types and constants that have been pretty-printed using this labeler.
   String get originMessages {
     StringBuffer messages = new StringBuffer();
-    for (LabeledClassName name in names) {
+    for (LabeledNode name in names) {
       messages.write(name.originMessage);
     }
     return messages.toString();
@@ -99,25 +100,28 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     return false;
   }
 
-  LabeledClassName nameForClass(Class classNode) {
-    List<LabeledClassName> classesForName = nameMap[classNode.name];
-    if (classesForName == null) {
-      // First encountered class with this name
-      LabeledClassName name = new LabeledClassName(classNode, this);
+  LabeledNode nameForEntity(
+      TreeNode node, String nodeName, Uri importUri, Uri fileUri) {
+    List<LabeledNode> labelsForName = nameMap[nodeName];
+    if (labelsForName == null) {
+      // First encountered entity with this name
+      LabeledNode name =
+          new LabeledNode(node, nodeName, importUri, fileUri, this);
       names.add(name);
-      nameMap[classNode.name] = [name];
+      nameMap[nodeName] = [name];
       return name;
     } else {
-      for (LabeledClassName classForName in classesForName) {
-        if (classForName.classNode == classNode) {
-          // Previously encountered class
-          return classForName;
+      for (LabeledNode entityForName in labelsForName) {
+        if (entityForName.node == node) {
+          // Previously encountered entity
+          return entityForName;
         }
       }
-      // New class with name that was previously encountered
-      LabeledClassName name = new LabeledClassName(classNode, this);
+      // New entity with name that was previously encountered
+      LabeledNode name =
+          new LabeledNode(node, nodeName, importUri, fileUri, this);
       names.add(name);
-      classesForName.add(name);
+      labelsForName.add(name);
       return name;
     }
   }
@@ -144,7 +148,19 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitTypeParameterType(TypeParameterType node) {
-    result.add(node.parameter.name);
+    TreeNode parent = node.parameter;
+    while (parent is! Library && parent != null) {
+      parent = parent.parent;
+    }
+    // Note that this can be null if, for instance, the errornious code is not
+    // actually in the tree - then we don't know where it comes from!
+    Library enclosingLibrary = parent;
+
+    result.add(nameForEntity(
+        node.parameter,
+        node.parameter.name,
+        enclosingLibrary == null ? unknownUri : enclosingLibrary.importUri,
+        enclosingLibrary == null ? unknownUri : enclosingLibrary.fileUri));
   }
 
   void visitFunctionType(FunctionType node) {
@@ -201,7 +217,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   void visitInterfaceType(InterfaceType node) {
-    result.add(nameForClass(node.classNode));
+    Class classNode = node.classNode;
+    result.add(nameForEntity(
+        classNode,
+        classNode.name,
+        classNode.enclosingLibrary.importUri,
+        classNode.enclosingLibrary.fileUri));
     if (node.typeArguments.isNotEmpty) {
       result.add("<");
       bool first = true;
@@ -301,7 +322,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     Procedure procedure = node.procedure;
     Class classNode = procedure.enclosingClass;
     if (classNode != null) {
-      result.add(nameForClass(classNode));
+      result.add(nameForEntity(
+          classNode,
+          classNode.name,
+          classNode.enclosingLibrary.importUri,
+          classNode.enclosingLibrary.fileUri));
       result.add(".");
     }
     result.add(procedure.name.name);
@@ -330,34 +355,44 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 }
 
-class LabeledClassName {
-  Class classNode;
-  TypeLabeler typeLabeler;
+final Uri unknownUri = Uri.parse("unknown");
 
-  LabeledClassName(this.classNode, this.typeLabeler);
+class LabeledNode {
+  final TreeNode node;
+  final TypeLabeler typeLabeler;
+  final String name;
+  final Uri importUri;
+  final Uri fileUri;
+
+  LabeledNode(
+      this.node, this.name, this.importUri, this.fileUri, this.typeLabeler);
 
   String toString() {
-    String name = classNode.name;
-    List<LabeledClassName> classesForName = typeLabeler.nameMap[name];
-    if (classesForName.length == 1) {
+    List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+    if (entityForName.length == 1) {
       return name;
     }
-    return "$name/*${classesForName.indexOf(this) + 1}*/";
+    return "$name/*${entityForName.indexOf(this) + 1}*/";
   }
 
   String get originMessage {
-    Uri importUri = classNode.enclosingLibrary.importUri;
     if (importUri.scheme == 'dart' && importUri.path == 'core') {
-      String name = classNode.name;
-      if (blacklistedCoreClasses.contains(name)) {
+      if (node is Class && blacklistedCoreClasses.contains(name)) {
         // Blacklisted core class. Only print if ambiguous.
-        List<LabeledClassName> classesForName = typeLabeler.nameMap[name];
-        if (classesForName.length == 1) {
+        List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+        if (entityForName.length == 1) {
           return "";
         }
       }
     }
-    Uri fileUri = classNode.enclosingLibrary.fileUri;
+    if (importUri == unknownUri || node is! Class) {
+      // We don't know where it comes from and/or it's not a class.
+      // Only print if ambiguous.
+      List<LabeledNode> entityForName = typeLabeler.nameMap[name];
+      if (entityForName.length == 1) {
+        return "";
+      }
+    }
     Message message = (importUri == fileUri || importUri.scheme == 'dart')
         ? templateTypeOrigin.withArguments(toString(), importUri)
         : templateTypeOriginWithFileUri.withArguments(

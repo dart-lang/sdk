@@ -55,22 +55,20 @@ intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
 }
 
 FreeList::FreeList()
-    : mutex_(new Mutex()),
-      freelist_search_budget_(kInitialFreeListSearchBudget) {
+    : mutex_(), freelist_search_budget_(kInitialFreeListSearchBudget) {
   Reset();
 }
 
 FreeList::~FreeList() {
-  delete mutex_;
 }
 
 uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   return TryAllocateLocked(size, is_protected);
 }
 
 uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
   // Precondition: is_protected is false or else all free list elements are
   // in non-writable pages.
 
@@ -176,12 +174,12 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
 }
 
 void FreeList::Free(uword addr, intptr_t size) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   FreeLocked(addr, size);
 }
 
 void FreeList::FreeLocked(uword addr, intptr_t size) {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
   // Precondition required by AsElement and EnqueueElement: the (page
   // containing the) header of the freed block should be writable.  This is
   // the case when called for newly allocated pages because they are
@@ -194,7 +192,7 @@ void FreeList::FreeLocked(uword addr, intptr_t size) {
 }
 
 void FreeList::Reset() {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   free_map_.Reset();
   last_free_small_size_ = -1;
   for (int i = 0; i < (kNumLists + 1); i++) {
@@ -214,7 +212,7 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
 }
 
 intptr_t FreeList::LengthLocked(int index) const {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
   ASSERT(index >= 0);
   ASSERT(index < kNumLists);
   intptr_t result = 0;
@@ -306,7 +304,7 @@ void FreeList::PrintLarge() const {
 }
 
 void FreeList::Print() const {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   PrintSmall();
   PrintLarge();
 }
@@ -337,12 +335,12 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
 }
 
 FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
-  MutexLocker ml(mutex_);
+  MutexLocker ml(&mutex_);
   return TryAllocateLargeLocked(minimum_size);
 }
 
 FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
-  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   // TODO(koda): Find largest.

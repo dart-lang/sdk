@@ -34,7 +34,9 @@ class ErrorCollector {
   }
 
   void addAll(LineInfo lineInfo, Iterable<AnalysisError> errors) {
-    for (var e in errors) add(lineInfo, e);
+    for (var e in errors) {
+      add(lineInfo, e);
+    }
   }
 
   ErrorSeverity _errorSeverity(AnalysisError error) {
@@ -123,4 +125,4 @@ const invalidJSInteger = StrongModeCode(
     ErrorType.COMPILE_TIME_ERROR,
     'INVALID_JS_INTEGER',
     "The integer literal '{0}' can't be represented exactly in JavaScript. "
-    "The nearest value that can be represented exactly is '{1}'.");
+        "The nearest value that can be represented exactly is '{1}'.");

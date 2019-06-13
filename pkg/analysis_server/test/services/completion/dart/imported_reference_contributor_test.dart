@@ -2591,7 +2591,7 @@ main() {new ^ String x = "hello";}''');
     expect(suggestion.hasNamedParameters, false);
 
     suggestion = assertSuggestConstructor('C.bar');
-    expect(suggestion.element.parameters, "({dynamic boo: 'hoo', int z: 0})");
+    expect(suggestion.element.parameters, "({dynamic boo = 'hoo', int z = 0})");
     expect(suggestion.parameterNames, hasLength(2));
     expect(suggestion.parameterNames[0], 'boo');
     expect(suggestion.parameterTypes[0], 'dynamic');

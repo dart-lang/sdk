@@ -50,7 +50,7 @@ namespace dart {
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
-  V(SmiSubInlineCache)                                                         \
+  V(SmiLessInlineCache)                                                        \
   V(SmiEqualInlineCache)                                                       \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
@@ -77,7 +77,8 @@ namespace dart {
   V(OneArgCheckInlineCacheWithExactnessCheck)                                  \
   V(OneArgOptimizedCheckInlineCacheWithExactnessCheck)                         \
   V(EnterSafepoint)                                                            \
-  V(ExitSafepoint)
+  V(ExitSafepoint)                                                             \
+  V(VerifyCallback)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \

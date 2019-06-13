@@ -521,8 +521,11 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@JS(..)`.
   bool get hasJS;
 
-  /// Return `true` if this element has an annotation of the form '@literal'.
+  /// Return `true` if this element has an annotation of the form `@literal`.
   bool get hasLiteral;
+
+  /// Return  `true` if this element has an annotation of the form `@mustCallSuper`.
+  bool get hasMustCallSuper;
 
   /// Return `true` if this element has an annotation of the form
   /// `@optionalTypeArgs`.
@@ -534,10 +537,10 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@protected`.
   bool get hasProtected;
 
-  /// Return `true` if this element has an annotation of the form '@required'.
+  /// Return `true` if this element has an annotation of the form `@required`.
   bool get hasRequired;
 
-  /// Return `true` if this element has an annotation of the form '@sealed'.
+  /// Return `true` if this element has an annotation of the form `@sealed`.
   bool get hasSealed;
 
   /// Return `true` if this element has an annotation of the form
@@ -840,25 +843,27 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind NAME = const ElementKind('NAME', 15, "<name>");
 
+  static const ElementKind NEVER = const ElementKind('NEVER', 16, "<never>");
+
   static const ElementKind PARAMETER =
-      const ElementKind('PARAMETER', 16, "parameter");
+      const ElementKind('PARAMETER', 17, "parameter");
 
   static const ElementKind PREFIX =
-      const ElementKind('PREFIX', 17, "import prefix");
+      const ElementKind('PREFIX', 18, "import prefix");
 
-  static const ElementKind SETTER = const ElementKind('SETTER', 18, "setter");
+  static const ElementKind SETTER = const ElementKind('SETTER', 19, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      const ElementKind('TOP_LEVEL_VARIABLE', 19, "top level variable");
+      const ElementKind('TOP_LEVEL_VARIABLE', 20, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      const ElementKind('FUNCTION_TYPE_ALIAS', 20, "function type alias");
+      const ElementKind('FUNCTION_TYPE_ALIAS', 21, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      const ElementKind('TYPE_PARAMETER', 21, "type parameter");
+      const ElementKind('TYPE_PARAMETER', 22, "type parameter");
 
   static const ElementKind UNIVERSE =
-      const ElementKind('UNIVERSE', 22, "<universe>");
+      const ElementKind('UNIVERSE', 23, "<universe>");
 
   static const List<ElementKind> values = const [
     CLASS,
@@ -877,6 +882,7 @@ class ElementKind implements Comparable<ElementKind> {
     LOCAL_VARIABLE,
     METHOD,
     NAME,
+    NEVER,
     PARAMETER,
     PREFIX,
     SETTER,
@@ -935,7 +941,7 @@ abstract class ElementLocation {
 ///
 /// Clients may not extend, implement or mix-in this class. There are classes
 /// that implement this interface that provide useful default behaviors in
-/// `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful
+/// `package:analyzer/dart/element/visitor.dart`. A couple of the most useful
 /// include
 /// * SimpleElementVisitor which implements every visit method by doing nothing,
 /// * RecursiveElementVisitor which will cause every node in a structure to be
@@ -1050,13 +1056,6 @@ abstract class FieldElement
 
   /// Return `true` if this element is an enum constant.
   bool get isEnumConstant;
-
-  /// Return `true` if this field uses lazy evaluation semantics.
-  ///
-  /// This will always return `false` unless the experiment 'non-nullable' is
-  /// enabled.
-  @experimental
-  bool get isLazy;
 
   /// Returns `true` if this field can be overridden in strong mode.
   @deprecated
@@ -1300,6 +1299,8 @@ abstract class LibraryElement implements Element {
   /// included using the `part` directive.
   List<CompilationUnitElement> get units;
 
+  bool get isNonNullableByDefault;
+
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
   List<ImportElement> getImportsWithPrefix(PrefixElement prefix);
@@ -1333,12 +1334,12 @@ abstract class LocalElement implements Element {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement implements LocalElement, VariableElement {
-  /// Return `true` if this local variable uses lazy evaluation semantics.
+  /// Return `true` if this local variable uses late evaluation semantics.
   ///
   /// This will always return `false` unless the experiment 'non-nullable' is
   /// enabled.
   @experimental
-  bool get isLazy;
+  bool get isLate;
 }
 
 /// An element that represents a method defined within a type.
@@ -1404,9 +1405,10 @@ abstract class ParameterElement
   /// Return `true` if this parameter is an initializing formal parameter.
   bool get isInitializingFormal;
 
-  /// Return `true` if this parameter is a named parameter. Named parameters are
-  /// always optional, even when they are annotated with the `@required`
-  /// annotation.
+  /// Return `true` if this parameter is a named parameter. Named parameters
+  /// that are annotated with the `@required` annotation are considered
+  /// optional.  Named parameters that are annotated with the `required` syntax
+  /// are considered required.
   bool get isNamed;
 
   /// Return `true` if this parameter is a required parameter. Required
@@ -1420,8 +1422,17 @@ abstract class ParameterElement
   bool get isNotOptional;
 
   /// Return `true` if this parameter is an optional parameter. Optional
-  /// parameters can either be positional or named.
+  /// parameters can either be positional or named.  Named parameters that are
+  /// annotated with the `@required` annotation are considered optional.  Named
+  /// parameters that are annotated with the `required` syntax are considered
+  /// required.
   bool get isOptional;
+
+  /// Return `true` if this parameter is both an optional and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isOptionalNamed;
 
   /// Return `true` if this parameter is both an optional and positional
   /// parameter.
@@ -1430,6 +1441,16 @@ abstract class ParameterElement
   /// Return `true` if this parameter is a positional parameter. Positional
   /// parameters can either be required or optional.
   bool get isPositional;
+
+  /// Return `true` if this parameter is both a required and named parameter.
+  /// Named parameters that are annotated with the `@required` annotation are
+  /// considered optional.  Named parameters that are annotated with the
+  /// `required` syntax are considered required.
+  bool get isRequiredNamed;
+
+  /// Return `true` if this parameter is both a required and positional
+  /// parameter.
+  bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
   @deprecated
@@ -1528,6 +1549,13 @@ abstract class PropertyInducingElement implements VariableElement {
   /// explicitly defined (is not synthetic) then the getter associated with it
   /// will be synthetic.
   PropertyAccessorElement get getter;
+
+  /// Return `true` if this variable uses late evaluation semantics.
+  ///
+  /// This will always return `false` unless the experiment 'non-nullable' is
+  /// enabled.
+  @experimental
+  bool get isLate;
 
   /// Return the propagated type of this variable, or `null` if type propagation
   /// has not been performed, for example because the variable is not final.

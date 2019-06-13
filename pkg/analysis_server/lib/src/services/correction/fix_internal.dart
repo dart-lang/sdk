@@ -10,6 +10,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
@@ -26,7 +27,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -105,7 +105,11 @@ class DartFixContributor implements FixContributor {
     // For each fix, put the fix into the HashMap.
     for (int i = 0; i < allAnalysisErrors.length; i++) {
       final FixContext fixContextI = new DartFixContextImpl(
-          context.workspace, context.resolveResult, allAnalysisErrors[i]);
+        context.workspace,
+        context.resolveResult,
+        allAnalysisErrors[i],
+        (name) => [],
+      );
       final FixProcessor processorI = new FixProcessor(fixContextI);
       final List<Fix> fixesListI = await processorI.compute();
       for (Fix f in fixesListI) {
@@ -196,7 +200,7 @@ class FixProcessor {
         unitLibraryElement = context.resolveResult.libraryElement,
         unit = context.resolveResult.unit,
         utils = CorrectionUtils(context.resolveResult),
-        flutter = Flutter.of(context.resolveResult.session),
+        flutter = Flutter.of(context.resolveResult),
         error = context.error,
         errorOffset = context.error.offset,
         errorLength = context.error.length;
@@ -1747,7 +1751,7 @@ class FixProcessor {
       // prepare parameters and arguments
       Iterable<ParameterElement> requiredParameters = superConstructor
           .parameters
-          .where((parameter) => parameter.isNotOptional);
+          .where((parameter) => parameter.isRequiredPositional);
       // add proposal
       ClassMemberLocation targetLocation =
           utils.prepareNewConstructorLocation(targetClassNode);
@@ -2343,9 +2347,11 @@ class FixProcessor {
     ClassDeclaration declaration =
         node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
+      // TODO(brianwilkerson) Find a way to pass in the name of the class
+      //  without needing to parse the message.
       String message = error.message;
-      int startIndex = message.indexOf("'", message.indexOf("'") + 1) + 1;
-      int endIndex = message.indexOf("'", startIndex);
+      int endIndex = message.lastIndexOf("'");
+      int startIndex = message.lastIndexOf("'", endIndex - 1) + 1;
       String typeName = message.substring(startIndex, endIndex);
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
@@ -2410,7 +2416,7 @@ class FixProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
-    Set<Source> alreadyImportedWithPrefix = new Set<Source>();
+    var alreadyImportedWithPrefix = new Set<String>();
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;
@@ -2452,7 +2458,7 @@ class FixProcessor {
           libraryName = libraryElement.source.shortName;
         }
         // don't add this library again
-        alreadyImportedWithPrefix.add(libraryElement.source);
+        alreadyImportedWithPrefix.add(libraryElement.source.fullName);
         // update library
         String newShowCode = 'show ${showNames.join(', ')}';
         int offset = showCombinator.offset;
@@ -2471,25 +2477,21 @@ class FixProcessor {
     }
     // Find new top-level declarations.
     {
-      var declarations = await session.getTopLevelDeclarations(name);
-      for (TopLevelDeclarationInSource declaration in declarations) {
+      var declarations = await context.getTopLevelDeclarations(name);
+      for (var declaration in declarations) {
         // Check the kind.
-        if (!kinds2.contains(declaration.declaration.kind)) {
+        if (!kinds2.contains(declaration.kind)) {
           continue;
         }
         // Check the source.
-        Source librarySource = declaration.source;
-        if (alreadyImportedWithPrefix.contains(librarySource)) {
-          continue;
-        }
-        if (!_isSourceVisibleToLibrary(librarySource)) {
+        if (alreadyImportedWithPrefix.contains(declaration.path)) {
           continue;
         }
         // Compute the fix kind.
         FixKind fixKind;
-        if (librarySource.isInSystemLibrary) {
+        if (declaration.uri.isScheme('dart')) {
           fixKind = DartFixKind.IMPORT_LIBRARY_SDK;
-        } else if (_isLibSrcPath(librarySource.fullName)) {
+        } else if (_isLibSrcPath(declaration.path)) {
           // Bad: non-API.
           fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
         } else if (declaration.isExported) {
@@ -2501,8 +2503,8 @@ class FixProcessor {
         }
         // Add the fix.
         var relativeURI =
-            _getRelativeURIFromLibrary(unitLibraryElement, librarySource);
-        await _addFix_importLibrary(fixKind, librarySource.uri, relativeURI);
+            _getRelativeURIFromLibrary(unitLibraryElement, declaration.path);
+        await _addFix_importLibrary(fixKind, declaration.uri, relativeURI);
       }
     }
   }
@@ -3908,7 +3910,7 @@ class FixProcessor {
     // Prepare the last required parameter.
     FormalParameter lastRequiredParameter;
     for (FormalParameter parameter in parameters) {
-      if (parameter.isRequired) {
+      if (parameter.isRequiredPositional) {
         lastRequiredParameter = parameter;
       }
     }
@@ -4244,21 +4246,20 @@ class FixProcessor {
   }
 
   /**
-   * Return the relative uri from the passed [library] to the passed
-   * [source]. If the [source] is not in the LibraryElement, `null` is returned.
+   * Return the relative uri from the passed [library] to the given [path].
+   * If the [path] is not in the LibraryElement, `null` is returned.
    */
-  String _getRelativeURIFromLibrary(LibraryElement library, Source source) {
+  String _getRelativeURIFromLibrary(LibraryElement library, String path) {
     var librarySource = library?.librarySource;
     if (librarySource == null) {
       return null;
     }
     var pathCtx = resourceProvider.pathContext;
     var libraryDirectory = pathCtx.dirname(librarySource.fullName);
-    var sourceDirectory = pathCtx.dirname(source.fullName);
-    if (pathCtx.isWithin(libraryDirectory, source.fullName) ||
+    var sourceDirectory = pathCtx.dirname(path);
+    if (pathCtx.isWithin(libraryDirectory, path) ||
         pathCtx.isWithin(sourceDirectory, libraryDirectory)) {
-      String relativeFile =
-          pathCtx.relative(source.fullName, from: libraryDirectory);
+      String relativeFile = pathCtx.relative(path, from: libraryDirectory);
       return pathCtx.split(relativeFile).join('/');
     }
     return null;
@@ -4467,30 +4468,6 @@ class FixProcessor {
     return false;
   }
 
-  /**
-   * Return `true` if the [source] can be imported into current library.
-   */
-  bool _isSourceVisibleToLibrary(Source source) {
-    String path = source.fullName;
-
-    var contextRoot = context.resolveResult.session.analysisContext.contextRoot;
-    if (contextRoot == null) {
-      return true;
-    }
-
-    // We don't want to use private libraries of other packages.
-    if (source.uri.isScheme('package') && _isLibSrcPath(path)) {
-      return contextRoot.root.contains(path);
-    }
-
-    // We cannot use relative URIs to reference files outside of our package.
-    if (source.uri.isScheme('file')) {
-      return contextRoot.root.contains(path);
-    }
-
-    return true;
-  }
-
   bool _isToListMethodElement(MethodElement method) {
     if (method.name != 'toList') {
       return false;
@@ -4692,7 +4669,7 @@ class _ExecutableParameters {
 
   _ExecutableParameters._(this.sessionHelper, this.executable) {
     for (var parameter in executable.parameters) {
-      if (parameter.isNotOptional) {
+      if (parameter.isRequiredPositional) {
         required.add(parameter);
       } else if (parameter.isOptionalPositional) {
         optionalPositional.add(parameter);

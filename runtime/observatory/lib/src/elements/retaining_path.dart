@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/any_ref.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-class RetainingPathElement extends HtmlElement implements Renderable {
+class RetainingPathElement extends CustomElement implements Renderable {
   static const tag = const Tag<RetainingPathElement>('retaining-path',
       dependencies: const [CurlyBlockElement.tag, InstanceRefElement.tag]);
 
@@ -36,7 +36,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     assert(object != null);
     assert(retainingPaths != null);
     assert(objects != null);
-    RetainingPathElement e = document.createElement(tag.name);
+    RetainingPathElement e = new RetainingPathElement.created();
     e._r = new RenderingScheduler<RetainingPathElement>(e, queue: queue);
     e._isolate = isolate;
     e._object = object;
@@ -45,7 +45,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  RetainingPathElement.created() : super.created();
+  RetainingPathElement.created() : super.created(tag);
 
   @override
   void attached() {
@@ -72,7 +72,7 @@ class RetainingPathElement extends HtmlElement implements Renderable {
               e.control.disabled = false;
             }
           });
-    children = <Element>[curlyBlock];
+    children = <Element>[curlyBlock.element];
     _r.waitFor([curlyBlock.onRendered.first]);
   }
 

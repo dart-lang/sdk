@@ -3,10 +3,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static const field dynamic constField;
+  static const field dynamic constField = 87;
   const constructor •(dynamic x) → self::C
     ;
 }
-static const field dynamic constTopLevelField;
+static const field dynamic constTopLevelField = 42;
 static method main() → dynamic
   ;

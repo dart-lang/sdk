@@ -235,23 +235,28 @@ class ErrorReporter {
           }
         }
         for (_TypeToConvert typeToConvert in typeGroup) {
-          Element element = typeToConvert.type.element;
-          if (element == null) {
-            arguments[typeToConvert.index] = typeToConvert.displayName;
-          } else {
-            // TODO(brianwilkerson) When analyzer supports info or context
-            //  messages, expose the additional information that way (rather
-            //  than being poorly inserted into the problem message).
-            StringBuffer buffer = new StringBuffer();
-            for (Element element in typeToConvert.allElements()) {
-              String name = element.name;
-              if (nameToElementMap[name].length > 1) {
-                buffer.write(buffer.isEmpty ? 'where ' : ', ');
-                buffer.write('$name is defined in ${element.source.fullName}');
+          // TODO(brianwilkerson) When analyzer supports info or context
+          //  messages, expose the additional information that way (rather
+          //  than being poorly inserted into the problem message).
+          StringBuffer buffer;
+          for (Element element in typeToConvert.allElements()) {
+            String name = element.name;
+            if (nameToElementMap[name].length > 1) {
+              if (buffer == null) {
+                buffer = new StringBuffer();
+                buffer.write('where ');
+              } else {
+                buffer.write(', ');
               }
+              buffer.write('$name is defined in ${element.source.fullName}');
             }
+          }
+
+          if (buffer != null) {
             arguments[typeToConvert.index] =
                 '${typeToConvert.displayName} ($buffer)';
+          } else {
+            arguments[typeToConvert.index] = typeToConvert.displayName;
           }
         }
       }
@@ -321,19 +326,15 @@ class _TypeToConvert {
       Set<Element> elements = new Set<Element>();
 
       void addElementsFrom(DartType type) {
-        Element element = type?.element;
-        if (element != null) {
-          if (type is InterfaceType && elements.add(element)) {
+        if (type is FunctionType) {
+          addElementsFrom(type.returnType);
+          for (ParameterElement parameter in type.parameters) {
+            addElementsFrom(parameter.type);
+          }
+        } else if (type is InterfaceType) {
+          if (elements.add(type.element)) {
             for (DartType typeArgument in type.typeArguments) {
               addElementsFrom(typeArgument);
-            }
-          } else if (type is FunctionType && elements.add(element)) {
-            addElementsFrom(type.returnType);
-            for (DartType typeArgument in type.typeArguments) {
-              addElementsFrom(typeArgument);
-            }
-            for (ParameterElement parameter in type.parameters) {
-              addElementsFrom(parameter.type);
             }
           }
         }

@@ -16,10 +16,12 @@ main() {
 @reflectiveTest
 class TypeCheckIsNotNullTest extends DriverResolutionTest {
   test_not_Null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 bool m(i) {
   return i is! Null;
 }
-''', [HintCode.TYPE_CHECK_IS_NOT_NULL]);
+''', [
+      error(HintCode.TYPE_CHECK_IS_NOT_NULL, 21, 10),
+    ]);
   }
 }

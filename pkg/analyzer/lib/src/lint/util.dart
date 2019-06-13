@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -89,6 +90,7 @@ bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;
 class Spelunker {
   final String path;
   final IOSink sink;
+
   Spelunker(this.path, {IOSink sink}) : this.sink = sink ?? stdout;
 
   void spelunk() {
@@ -98,12 +100,16 @@ class Spelunker {
 
     var reader = new CharSequenceReader(contents);
     var stringSource = new StringSource(contents, path);
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    // TODO(paulberry): figure out the appropriate featureSet to use here
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    var scanner = new Scanner(stringSource, reader, errorListener)
+      ..configureFeatures(featureSet);
     var startToken = scanner.tokenize();
 
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener);
+    var parser =
+        new Parser(stringSource, errorListener, featureSet: featureSet);
     var node = parser.parseCompilationUnit(startToken);
 
     errorListener.throwIfErrors();
@@ -132,6 +138,7 @@ class _SourceVisitor extends GeneralizingAstVisitor {
   int indent = 0;
 
   final IOSink sink;
+
   _SourceVisitor(this.sink);
 
   String asString(AstNode node) =>

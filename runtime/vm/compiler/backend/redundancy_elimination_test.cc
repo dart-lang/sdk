@@ -551,4 +551,194 @@ ISOLATE_UNIT_TEST_CASE(
                        /* make_host_escape= */ true, MakeAssertAssignable);
 }
 
+// This test verifies behavior of load forwarding when an alias for an
+// allocation A is created after forwarded due to an eliminated load. That is,
+// allocation A is stored and later retrieved via load B, B is used in store C
+// (with a different constant index/index_scale than in B but that overlaps),
+// and then A is retrieved again (with the same index as in B) in load D.
+//
+// When B gets eliminated and replaced with in C and D with A, the store in C
+// should stop the load D from being eliminated. This is a scenario that came
+// up when forwarding typed data view factory arguments.
+//
+// Here, the entire scenario happens within a single basic block.
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_SingleBlock) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+
+    testViewAliasing1() {
+      final f64 = new Float64List(1);
+      final f32 = new Float32List.view(f64.buffer);
+      f64[0] = 1.0; // Should not be forwarded.
+      f32[1] = 2.0; // upper 32bits for 2.0f and 2.0 are the same
+      return f64[0];
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function =
+      Function::Handle(GetFunction(root_library, "testViewAliasing1"));
+
+  Invoke(root_library, "testViewAliasing1");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({});
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StaticCallInstr* list_factory = nullptr;
+  UnboxedConstantInstr* double_one = nullptr;
+  StoreIndexedInstr* first_store = nullptr;
+  StoreIndexedInstr* second_store = nullptr;
+  LoadIndexedInstr* final_load = nullptr;
+  BoxInstr* boxed_result = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          {kMatchAndMoveStaticCall, &list_factory},
+          {kMatchAndMoveUnboxedConstant, &double_one},
+          {kMatchAndMoveStoreIndexed, &first_store},
+          {kMatchAndMoveStoreIndexed, &second_store},
+          {kMatchAndMoveLoadIndexed, &final_load},
+          {kMatchAndMoveBox, &boxed_result},
+          kMatchReturn,
+      },
+      /*insert_before=*/kMoveGlob));
+
+  EXPECT(first_store->array()->definition() == list_factory);
+  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(boxed_result->value()->definition() != double_one);
+  EXPECT(boxed_result->value()->definition() == final_load);
+}
+
+// This test verifies behavior of load forwarding when an alias for an
+// allocation A is created after forwarded due to an eliminated load. That is,
+// allocation A is stored and later retrieved via load B, B is used in store C
+// (with a different constant index/index_scale than in B but that overlaps),
+// and then A is retrieved again (with the same index as in B) in load D.
+//
+// When B gets eliminated and replaced with in C and D with A, the store in C
+// should stop the load D from being eliminated. This is a scenario that came
+// up when forwarding typed data view factory arguments.
+//
+// Here, the scenario is split across basic blocks. This is a cut-down version
+// of language_2/vm/load_to_load_forwarding_vm_test.dart with just enough extra
+// to keep testViewAliasing1 from being optimized into a single basic block.
+// Thus, this test may be brittler than the other, if future work causes it to
+// end up compiled into a single basic block (or a simpler set of basic blocks).
+ISOLATE_UNIT_TEST_CASE(LoadOptimizer_AliasingViaLoadElimination_AcrossBlocks) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+
+    class Expect {
+      static void equals(var a, var b) {}
+      static void listEquals(var a, var b) {}
+    }
+
+    testViewAliasing1() {
+      final f64 = new Float64List(1);
+      final f32 = new Float32List.view(f64.buffer);
+      f64[0] = 1.0; // Should not be forwarded.
+      f32[1] = 2.0; // upper 32bits for 2.0f and 2.0 are the same
+      return f64[0];
+    }
+
+    testViewAliasing2() {
+      final f64 = new Float64List(2);
+      final f64v = new Float64List.view(f64.buffer,
+                                        Float64List.bytesPerElement);
+      f64[1] = 1.0; // Should not be forwarded.
+      f64v[0] = 2.0;
+      return f64[1];
+    }
+
+    testViewAliasing3() {
+      final u8 = new Uint8List(Float64List.bytesPerElement * 2);
+      final f64 = new Float64List.view(u8.buffer, Float64List.bytesPerElement);
+      f64[0] = 1.0; // Should not be forwarded.
+      u8[15] = 0x40;
+      u8[14] = 0x00;
+      return f64[0];
+    }
+
+    main() {
+      for (var i = 0; i < 20; i++) {
+        Expect.equals(2.0, testViewAliasing1());
+        Expect.equals(2.0, testViewAliasing2());
+        Expect.equals(2.0, testViewAliasing3());
+      }
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function =
+      Function::Handle(GetFunction(root_library, "testViewAliasing1"));
+
+  Invoke(root_library, "main");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  // Recent changes actually compile the function into a single basic
+  // block, so we need to test right after the load optimizer has been run.
+  // Have checked that this test still fails appropriately using the load
+  // optimizer prior to the fix (commit 2a237327).
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kInlining,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyICData,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kBranchSimplify,
+      CompilerPass::kIfConvert,
+      CompilerPass::kCanonicalize,
+      CompilerPass::kConstantPropagation,
+      CompilerPass::kOptimisticallySpecializeSmiPhis,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kWidenSmiToInt32,
+      CompilerPass::kSelectRepresentations,
+      CompilerPass::kCSE,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+  EXPECT(entry != nullptr);
+
+  StaticCallInstr* list_factory = nullptr;
+  UnboxedConstantInstr* double_one = nullptr;
+  StoreIndexedInstr* first_store = nullptr;
+  StoreIndexedInstr* second_store = nullptr;
+  LoadIndexedInstr* final_load = nullptr;
+  BoxInstr* boxed_result = nullptr;
+
+  ILMatcher cursor(flow_graph, entry);
+  RELEASE_ASSERT(cursor.TryMatch(
+      {
+          {kMatchAndMoveStaticCall, &list_factory},
+          kMatchAndMoveBranchTrue,
+          kMatchAndMoveBranchTrue,
+          kMatchAndMoveBranchFalse,
+          kMatchAndMoveBranchFalse,
+          {kMatchAndMoveUnboxedConstant, &double_one},
+          {kMatchAndMoveStoreIndexed, &first_store},
+          kMatchAndMoveBranchFalse,
+          {kMatchAndMoveStoreIndexed, &second_store},
+          {kMatchAndMoveLoadIndexed, &final_load},
+          {kMatchAndMoveBox, &boxed_result},
+          kMatchReturn,
+      },
+      /*insert_before=*/kMoveGlob));
+
+  EXPECT(first_store->array()->definition() == list_factory);
+  EXPECT(second_store->array()->definition() == list_factory);
+  EXPECT(boxed_result->value()->definition() != double_one);
+  EXPECT(boxed_result->value()->definition() == final_load);
+}
+
 }  // namespace dart

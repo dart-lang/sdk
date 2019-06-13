@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -23,6 +24,9 @@ class Flutter {
   static final mobile = Flutter._('flutter', 'package:flutter');
   static final web = Flutter._('flutter_web', 'package:flutter_web');
 
+  static final _uriFlutterMobileWidgets =
+      Uri.parse('package:flutter/widgets.dart');
+
   static final _uriFlutterWebWidgets =
       Uri.parse('package:flutter_web/widgets.dart');
 
@@ -36,10 +40,26 @@ class Flutter {
   final Uri _uriWidgetsIcon;
   final Uri _uriWidgetsText;
 
-  factory Flutter.of(AnalysisSession session) {
-    if (session.uriConverter.uriToPath(_uriFlutterWebWidgets) != null) {
+  factory Flutter.of(ResolvedUnitResult resolvedUnit) {
+    var uriConverter = resolvedUnit.session.uriConverter;
+    var isMobile = uriConverter.uriToPath(_uriFlutterMobileWidgets) != null;
+    var isWeb = uriConverter.uriToPath(_uriFlutterWebWidgets) != null;
+
+    if (isMobile && isWeb) {
+      var visitor = _IdentifyMobileOrWeb();
+      resolvedUnit.unit.accept(visitor);
+      isMobile = visitor.isMobile;
+      isWeb = visitor.isWeb;
+    }
+
+    if (isMobile) {
+      return mobile;
+    }
+
+    if (isWeb) {
       return web;
     }
+
     return mobile;
   }
 
@@ -263,7 +283,19 @@ class Flutter {
     for (; node != null; node = node.parent) {
       if (isWidgetExpression(node)) {
         var parent = node.parent;
+
+        if (node is AssignmentExpression) {
+          return null;
+        }
+        if (parent is AssignmentExpression) {
+          if (parent.rightHandSide == node) {
+            return node;
+          }
+          return null;
+        }
+
         if (parent is ArgumentList ||
+            parent is ExpressionFunctionBody && parent.expression == node ||
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement) {
@@ -454,5 +486,29 @@ class Flutter {
    */
   bool _isExactWidget(ClassElement element, String type, Uri uri) {
     return element != null && element.name == type && element.source.uri == uri;
+  }
+}
+
+class _IdentifyMobileOrWeb extends GeneralizingAstVisitor<void> {
+  bool isMobile = false;
+  bool isWeb = false;
+
+  @override
+  void visitExpression(Expression node) {
+    if (isMobile || isWeb) {
+      return;
+    }
+
+    if (Flutter.mobile.isWidgetExpression(node)) {
+      isMobile = true;
+      return;
+    }
+
+    if (Flutter.web.isWidgetExpression(node)) {
+      isWeb = true;
+      return;
+    }
+
+    super.visitExpression(node);
   }
 }

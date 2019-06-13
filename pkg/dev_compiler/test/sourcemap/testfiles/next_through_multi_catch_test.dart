@@ -4,7 +4,7 @@
 
 /*Debugger:stepOver*/
 
-main() {
+void main() {
   /*bl*/
   try {
     /*sl:1*/ throw "Boom!";

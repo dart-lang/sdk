@@ -7,8 +7,10 @@ import '../scanner/error_token.dart' show UnmatchedToken;
 import '../../scanner/token.dart'
     show
         BeginToken,
+        Keyword,
         SimpleToken,
         SyntheticBeginToken,
+        SyntheticKeywordToken,
         SyntheticStringToken,
         SyntheticToken,
         Token,
@@ -17,7 +19,7 @@ import '../../scanner/token.dart'
 /// Provides the capability of inserting tokens into a token stream. This
 /// implementation does this by rewriting the previous token to point to the
 /// inserted token.
-class TokenStreamRewriter {
+class TokenStreamRewriter with _TokenStreamMixin {
   // TODO(brianwilkerson):
   //
   // When we get to the point of removing `token.previous`, the plan is to
@@ -57,14 +59,6 @@ class TokenStreamRewriter {
     token.setNext(leftParen);
 
     return leftParen;
-  }
-
-  /// Insert a synthetic identifier after [token] and return the new identifier.
-  Token insertSyntheticIdentifier(Token token) {
-    return insertToken(
-        token,
-        new SyntheticStringToken(
-            TokenType.IDENTIFIER, '', token.next.charOffset, 0));
   }
 
   /// Insert [newToken] after [token] and return [newToken].
@@ -141,7 +135,9 @@ class TokenStreamRewriter {
 /// Provides the capability of adding tokens that lead into a token stream
 /// without modifying the original token stream and not setting the any token's
 /// `previous` field.
-class TokenStreamGhostWriter implements TokenStreamRewriter {
+class TokenStreamGhostWriter
+    with _TokenStreamMixin
+    implements TokenStreamRewriter {
   @override
   Token insertParens(Token token, bool includeIdentifier) {
     Token next = token.next;
@@ -159,14 +155,6 @@ class TokenStreamGhostWriter implements TokenStreamRewriter {
     rightParen.next = token.next;
 
     return leftParen;
-  }
-
-  /// Insert a synthetic identifier after [token] and return the new identifier.
-  Token insertSyntheticIdentifier(Token token) {
-    return insertToken(
-        token,
-        new SyntheticStringToken(
-            TokenType.IDENTIFIER, '', token.next.charOffset, 0));
   }
 
   @override
@@ -203,4 +191,29 @@ class TokenStreamGhostWriter implements TokenStreamRewriter {
     }
     return current;
   }
+}
+
+mixin _TokenStreamMixin {
+  /// Insert a synthetic identifier after [token] and return the new identifier.
+  Token insertSyntheticIdentifier(Token token, [String value]) {
+    return insertToken(
+        token,
+        new SyntheticStringToken(
+            TokenType.IDENTIFIER, value ?? '', token.next.charOffset, 0));
+  }
+
+  /// Insert a new synthetic [keyword] after [token] and return the new token.
+  Token insertSyntheticKeyword(Token token, Keyword keyword) => insertToken(
+      token, new SyntheticKeywordToken(keyword, token.next.charOffset));
+
+  /// Insert a new simple synthetic token of [newTokenType] after [token]
+  /// and return the new token.
+  Token insertSyntheticToken(Token token, TokenType newTokenType) {
+    assert(newTokenType is! Keyword, 'use insertSyntheticKeyword instead');
+    return insertToken(
+        token, new SyntheticToken(newTokenType, token.next.charOffset));
+  }
+
+  /// Insert [newToken] after [token] and return [newToken].
+  Token insertToken(Token token, Token newToken);
 }

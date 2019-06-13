@@ -12,8 +12,8 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/locals.dart';
-import 'package:compiler/src/universe/codegen_world_builder.dart';
 import 'package:compiler/src/util/features.dart';
+import 'package:compiler/src/world.dart';
 import 'package:expect/expect.dart';
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
@@ -43,14 +43,8 @@ class ClosureDataComputer extends DataComputer<String> {
         definition.kind == MemberKind.regular ||
             definition.kind == MemberKind.constructor,
         failedAt(member, "Unexpected member definition $definition"));
-    new ClosureIrChecker(
-            compiler.reporter,
-            actualMap,
-            elementMap,
-            member,
-            localsMap.getLocalsMap(member),
-            closureDataLookup,
-            compiler.codegenWorldBuilder,
+    new ClosureIrChecker(compiler.reporter, actualMap, elementMap, member,
+            localsMap.getLocalsMap(member), closureDataLookup, closedWorld,
             verbose: verbose)
         .run(definition.node);
   }
@@ -63,7 +57,7 @@ class ClosureDataComputer extends DataComputer<String> {
 class ClosureIrChecker extends IrDataExtractor<String> {
   final MemberEntity member;
   final ClosureData closureDataLookup;
-  final CodegenWorldBuilder codegenWorldBuilder;
+  final JClosedWorld _closedWorld;
   final KernelToLocalsMap _localsMap;
   final bool verbose;
 
@@ -81,7 +75,7 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       this.member,
       this._localsMap,
       this.closureDataLookup,
-      this.codegenWorldBuilder,
+      this._closedWorld,
       {this.verbose: false})
       : super(reporter, actualMap) {
     pushMember(member);
@@ -276,10 +270,10 @@ class ClosureIrChecker extends IrDataExtractor<String> {
       addLocals('free', closureRepresentationInfo.forEachFreeVariable);
       if (closureRepresentationInfo.closureClassEntity != null) {
         addLocals('fields', (f(Local local, _)) {
-          codegenWorldBuilder.forEachInstanceField(
+          _closedWorld.elementEnvironment.forEachInstanceField(
               closureRepresentationInfo.closureClassEntity,
-              (_, FieldEntity field, {bool isElided}) {
-            if (isElided) return;
+              (_, FieldEntity field) {
+            if (_closedWorld.fieldAnalysis.getFieldData(field).isElided) return;
             f(closureRepresentationInfo.getLocalForField(field), field);
           });
         });

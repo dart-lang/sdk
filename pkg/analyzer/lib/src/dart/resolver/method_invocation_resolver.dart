@@ -38,6 +38,9 @@ class MethodInvocationResolver {
   /// The object keeping track of which elements have had their types promoted.
   final TypePromotionManager _promoteManager;
 
+  /// The invocation being resolved.
+  MethodInvocationImpl _invocation;
+
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
 
@@ -52,6 +55,8 @@ class MethodInvocationResolver {
   Scope get nameScope => _resolver.nameScope;
 
   void resolve(MethodInvocation node) {
+    _invocation = node;
+
     SimpleIdentifier nameNode = node.methodName;
     String name = nameNode.name;
     _currentName = Name(_definingLibraryUri, name);
@@ -167,10 +172,17 @@ class MethodInvocationResolver {
 
     if (typeFormals.isNotEmpty) {
       if (arguments == null) {
-        return _resolver.typeSystem.instantiateToBounds(invokeType);
+        var typeArguments =
+            _resolver.typeSystem.instantiateTypeFormalsToBounds(typeFormals);
+        _invocation.typeArgumentTypes = typeArguments;
+        return invokeType.instantiate(typeArguments);
       } else {
-        return invokeType.instantiate(arguments.map((n) => n.type).toList());
+        var typeArguments = arguments.map((n) => n.type).toList();
+        _invocation.typeArgumentTypes = typeArguments;
+        return invokeType.instantiate(typeArguments);
       }
+    } else {
+      _invocation.typeArgumentTypes = const <DartType>[];
     }
 
     return invokeType;
@@ -442,6 +454,7 @@ class MethodInvocationResolver {
         nameNode.staticElement = loadLibraryFunction;
         node.staticInvokeType = loadLibraryFunction?.type;
         node.staticType = loadLibraryFunction?.returnType;
+        _setExplicitTypeArgumentTypes();
         return;
       }
     }
@@ -547,17 +560,31 @@ class MethodInvocationResolver {
     }
     node.staticInvokeType = _dynamicType;
     node.staticType = _dynamicType;
+    _setExplicitTypeArgumentTypes();
+  }
+
+  /// Set explicitly specified type argument types, or empty if not specified.
+  /// Inference is done in type analyzer, so inferred type arguments might be
+  /// set later.
+  void _setExplicitTypeArgumentTypes() {
+    var typeArgumentList = _invocation.typeArguments;
+    if (typeArgumentList != null) {
+      var arguments = typeArgumentList.arguments;
+      _invocation.typeArgumentTypes = arguments.map((n) => n.type).toList();
+    } else {
+      _invocation.typeArgumentTypes = [];
+    }
   }
 
   void _setResolution(MethodInvocation node, DartType type) {
-    if (type == _dynamicType || _isCoreFunction(type)) {
-      _setDynamicResolution(node);
-      return;
-    }
-
     // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
+
+    if (type == _dynamicType || _isCoreFunction(type)) {
+      _setDynamicResolution(node, setNameTypeToDynamic: false);
+      return;
+    }
 
     if (type is InterfaceType) {
       var call = _inheritance.getMember(type, _nameCall);
@@ -573,6 +600,7 @@ class MethodInvocationResolver {
         node.typeArguments,
         node.methodName,
       );
+      instantiatedType = _toSyntheticFunctionType(instantiatedType);
       node.staticInvokeType = instantiatedType;
       node.staticType = instantiatedType.returnType;
       // TODO(scheglov) too much magic
@@ -618,5 +646,31 @@ class MethodInvocationResolver {
       }
     }
     return false;
+  }
+
+  /// As an experiment for using synthetic [FunctionType]s, we replace some
+  /// function types with the equivalent synthetic function type instance.
+  /// The assumption that we try to prove is that only the set of parameters,
+  /// with their names, types and kinds is important, but the element that
+  /// encloses them is not (`null` for synthetic function types).
+  static FunctionType _toSyntheticFunctionType(FunctionType type) {
+//    if (type.element is GenericFunctionTypeElement) {
+//      var synthetic = FunctionTypeImpl.synthetic(
+//        type.returnType,
+//        type.typeFormals.map((e) {
+//          return TypeParameterElementImpl.synthetic(e.name)..bound = e.bound;
+//        }).toList(),
+//        type.parameters.map((p) {
+//          return ParameterElementImpl.synthetic(
+//            p.name,
+//            p.type,
+//            // ignore: deprecated_member_use_from_same_package
+//            p.parameterKind,
+//          );
+//        }).toList(),
+//      );
+//      return synthetic;
+//    }
+    return type;
   }
 }

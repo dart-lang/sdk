@@ -33,14 +33,13 @@ Loader::Loader(IsolateData* isolate_data)
     : port_(ILLEGAL_PORT),
       isolate_data_(isolate_data),
       error_(Dart_Null()),
-      monitor_(NULL),
+      monitor_(),
       pending_operations_(0),
       results_(NULL),
       results_length_(0),
       results_capacity_(0),
       payload_(NULL),
       payload_length_(0) {
-  monitor_ = new Monitor();
   ASSERT(isolate_data_ != NULL);
   port_ = Dart_NewNativePort("Loader", Loader::NativeMessageHandler, false);
   isolate_data_->set_loader(this);
@@ -51,15 +50,13 @@ Loader::~Loader() {
   ASSERT(port_ != ILLEGAL_PORT);
   // Enter the monitor while we close the Dart port. After the Dart port is
   // closed, no more results can be queued.
-  monitor_->Enter();
+  monitor_.Enter();
   Dart_CloseNativePort(port_);
-  monitor_->Exit();
+  monitor_.Exit();
   RemoveLoader(port_);
   port_ = ILLEGAL_PORT;
   isolate_data_->set_loader(NULL);
   isolate_data_ = NULL;
-  delete monitor_;
-  monitor_ = NULL;
   for (intptr_t i = 0; i < results_length_; i++) {
     results_[i].Cleanup();
   }
@@ -182,7 +179,7 @@ void Loader::SendImportExtensionRequest(Dart_Handle url,
   Dart_ListSetAt(request, 5, library_url);
 
   if (Dart_Post(loader_port, request)) {
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     pending_operations_++;
   }
 }
@@ -205,13 +202,13 @@ void Loader::SendRequest(intptr_t tag,
   Dart_ListSetAt(request, 5, library_url);
 
   if (Dart_Post(loader_port, request)) {
-    MonitorLocker ml(monitor_);
+    MonitorLocker ml(&monitor_);
     pending_operations_++;
   }
 }
 
 void Loader::QueueMessage(Dart_CObject* message) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
   if (results_length_ == results_capacity_) {
     // Grow to an initial capacity or double in size.
     results_capacity_ = (results_capacity_ == 0) ? 4 : results_capacity_ * 2;
@@ -227,7 +224,7 @@ void Loader::QueueMessage(Dart_CObject* message) {
 }
 
 void Loader::BlockUntilComplete(ProcessResult process_result) {
-  MonitorLocker ml(monitor_);
+  MonitorLocker ml(&monitor_);
 
   while (true) {
     // If |ProcessQueueLocked| returns false, we've hit an error and should
@@ -292,7 +289,7 @@ void Loader::ResolveDependenciesAsFilePaths() {
     Dart_Handle result =
         Loader::ResolveAsFilePath(uri, &file_path, &file_path_length);
     if (Dart_IsError(result)) {
-      Log::Print("Error resolving dependency: %s\n", Dart_GetError(result));
+      Syslog::Print("Error resolving dependency: %s\n", Dart_GetError(result));
       return;
     }
 

@@ -14,7 +14,7 @@ class EventDeleteEvent {
   EventDeleteEvent(this.event);
 }
 
-class NavNotifyEventElement extends HtmlElement implements Renderable {
+class NavNotifyEventElement extends CustomElement implements Renderable {
   static const tag = const Tag<NavNotifyEventElement>('nav-event');
 
   RenderingScheduler _r;
@@ -31,13 +31,13 @@ class NavNotifyEventElement extends HtmlElement implements Renderable {
 
   factory NavNotifyEventElement(M.Event event, {RenderingQueue queue}) {
     assert(event != null);
-    NavNotifyEventElement e = document.createElement(tag.name);
+    NavNotifyEventElement e = new NavNotifyEventElement.created();
     e._r = new RenderingScheduler<NavNotifyEventElement>(e, queue: queue);
     e._event = event;
     return e;
   }
 
-  NavNotifyEventElement.created() : super.created();
+  NavNotifyEventElement.created() : super.created(tag);
 
   @override
   void attached() {

@@ -296,7 +296,7 @@ main() {
       await compileAndSerialize(mainDill, libDill, compiler);
 
       var list = new File(p.join(dir.path, 'myMain.dilllist'))..createSync();
-      list.writeAsStringSync("#@dill\n../main.dart.dill\n../lib.dart.dill\n");
+      list.writeAsStringSync("#@dill\nmain.dart.dill\nlib.dart.dill\n");
       Directory runFrom = new Directory(dir.path + "/runFrom")..createSync();
       vm = await Process.start(Platform.resolvedExecutable, <String>[list.path],
           workingDirectory: runFrom.path);

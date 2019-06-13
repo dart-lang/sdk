@@ -23,6 +23,7 @@ namespace dart {
 // Forward declarations.
 class Code;
 class Dwarf;
+class Elf;
 class Instructions;
 class Object;
 class RawApiError;
@@ -180,6 +181,8 @@ class ImageWriter : public ValueObject {
 
   void TraceInstructions(const Instructions& instructions);
 
+  static intptr_t SizeInSnapshot(RawObject* object);
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;
@@ -333,7 +336,9 @@ class BlobImageWriter : public ImageWriter {
                   intptr_t initial_size,
                   const void* shared_objects,
                   const void* shared_instructions,
-                  const void* reused_instructions);
+                  const void* reused_instructions,
+                  Elf* elf = nullptr,
+                  Dwarf* dwarf = nullptr);
 
   virtual void WriteText(WriteStream* clustered_stream, bool vm);
 
@@ -345,6 +350,8 @@ class BlobImageWriter : public ImageWriter {
   intptr_t WriteByteSequence(uword start, uword end);
 
   WriteStream instructions_blob_stream_;
+  Elf* elf_;
+  Dwarf* dwarf_;
 
   DISALLOW_COPY_AND_ASSIGN(BlobImageWriter);
 };

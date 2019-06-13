@@ -26,6 +26,85 @@ class NonNullableTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_local_getterNullAwareAccess_interfaceType() async {
+    addTestFile(r'''
+m() {
+  int? x;
+  return x?.isEven;
+}
+''');
+
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.propertyAccess('x?.isEven'), 'bool?');
+  }
+
+  test_local_methodNullAwareCall_interfaceType() async {
+    await addTestFile(r'''
+class C {
+  bool x() => true;
+}
+m() {
+  C? c;
+  return c?.x();
+}
+''');
+
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.methodInvocation('c?.x()'), 'bool?');
+  }
+
+  test_local_nullCoalesce_nullableInt_int() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  int y;
+  x ?? y;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.binary('x ?? y'), 'int');
+  }
+
+  test_local_nullCoalesce_nullableInt_nullableInt() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  x ?? x;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.binary('x ?? x'), 'int?');
+  }
+
+  test_local_nullCoalesceAssign_nullableInt_int() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  int y;
+  x ??= y;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.assignment('x ??= y'), 'int');
+  }
+
+  test_local_nullCoalesceAssign_nullableInt_nullableInt() async {
+    await addTestFile(r'''
+m() {
+  int? x;
+  x ??= x;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.assignment('x ??= x'), 'int?');
+  }
+
   test_local_parameter_interfaceType() async {
     addTestFile('''
 main() {
@@ -116,6 +195,30 @@ class A<T> {
     assertType(findNode.typeName('T? b'), 'T?');
   }
 
+  test_member_potentiallyNullable_called() async {
+    addTestFile(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''');
+    await resolveTestFile();
+    // Do not assert no test errors. Deliberately invokes nullable type.
+    assertType(findNode.methodInvocation('first').methodName, 'Function?');
+  }
+
+  test_null_assertion_operator_changes_null_to_never() async {
+    addTestFile('''
+main() {
+  Null x = null;
+  x!;
+}
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+    assertType(findNode.postfix('x!'), 'Never');
+  }
+
   test_null_assertion_operator_removes_nullability() async {
     addTestFile('''
 main() {
@@ -139,7 +242,7 @@ main() {
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('F? a'), '(bool, String?) → int??');
+    assertType(findNode.typeName('F? a'), 'int? Function(bool, String?)?');
   }
 
   @failingTest
@@ -156,15 +259,9 @@ main() {
 
     assertType(
       findNode.typeName('F<String>'),
-      '(bool!, String!, String?) → int??',
+      'int? Function(bool!, String!, String?)?',
     );
   }
-}
-
-@reflectiveTest
-class NullableTest extends DriverResolutionTest {
-  @override
-  bool get typeToStringWithNullability => true;
 
   test_class_hierarchy() async {
     addTestFile('''
@@ -198,6 +295,58 @@ class X = A with B implements C;
     assertType(findNode.typeName('C;'), 'C');
   }
 
+  test_mixin_hierarchy() async {
+    addTestFile('''
+class A {}
+
+mixin X1 on A {} // 1
+mixin X2 implements A {} // 2
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A {} // 1'), 'A');
+    assertType(findNode.typeName('A {} // 2'), 'A');
+  }
+}
+
+@reflectiveTest
+class NullableTest extends DriverResolutionTest {
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_class_hierarchy() async {
+    addTestFile('''
+class A {}
+
+class X1 extends A {} // 1
+class X2 implements A {} // 2
+class X3 with A {} // 3
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A {} // 1'), 'A*');
+    assertType(findNode.typeName('A {} // 2'), 'A*');
+    assertType(findNode.typeName('A {} // 3'), 'A*');
+  }
+
+  test_classTypeAlias_hierarchy() async {
+    addTestFile('''
+class A {}
+class B {}
+class C {}
+
+class X = A with B implements C;
+''');
+    await resolveTestFile();
+    assertNoTestErrors();
+
+    assertType(findNode.typeName('A with'), 'A*');
+    assertType(findNode.typeName('B implements'), 'B*');
+    assertType(findNode.typeName('C;'), 'C*');
+  }
+
   test_local_variable_interfaceType_notMigrated() async {
     addTestFile('''
 main() {
@@ -222,7 +371,7 @@ mixin X2 implements A {} // 2
     await resolveTestFile();
     assertNoTestErrors();
 
-    assertType(findNode.typeName('A {} // 1'), 'A');
-    assertType(findNode.typeName('A {} // 2'), 'A');
+    assertType(findNode.typeName('A {} // 1'), 'A*');
+    assertType(findNode.typeName('A {} // 2'), 'A*');
   }
 }

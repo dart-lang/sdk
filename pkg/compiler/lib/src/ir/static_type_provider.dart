@@ -11,4 +11,5 @@ import 'package:kernel/type_environment.dart' as ir;
 /// Interface for accessing static types on expressions.
 abstract class StaticTypeProvider {
   ir.DartType getStaticType(ir.Expression node);
+  ir.DartType getForInIteratorType(ir.ForInStatement node);
 }

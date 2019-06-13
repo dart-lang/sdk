@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../driver_resolution.dart';
@@ -12,7 +10,6 @@ import '../driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetLiteralTest);
-    defineReflectiveTests(SetLiteralWithFlowControlAndSpreadCollectionsTest);
   });
 }
 
@@ -128,52 +125,6 @@ var a = {1, '2', 3};
     await resolveTestFile();
     assertType(setLiteral('{'), 'Set<Object>');
   }
-
-  test_noContext_typeArgs_expression_conflict() async {
-    addTestFile('''
-var a = <String>{1};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<String>');
-  }
-
-  test_noContext_typeArgs_expression_noConflict() async {
-    addTestFile('''
-var a = <int>{1};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<int>');
-  }
-
-  @failingTest
-  test_noContext_typeArgs_expressions_conflict() async {
-    addTestFile('''
-var a = <int, String>{1, 2};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<int>');
-  }
-
-  test_noContext_typeArgs_noElements() async {
-    addTestFile('''
-var a = <num>{};
-''');
-    await resolveTestFile();
-    assertType(setLiteral('{'), 'Set<num>');
-  }
-}
-
-@reflectiveTest
-class SetLiteralWithFlowControlAndSpreadCollectionsTest extends SetLiteralTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.control_flow_collections,
-      EnableString.spread_collections
-    ];
-
-  @override
-  AstNode setLiteral(String search) => findNode.setOrMapLiteral(search);
 
   test_noContext_noTypeArgs_forEachWithDeclaration() async {
     addTestFile('''
@@ -306,5 +257,38 @@ f() {
 ''');
     await resolveTestFile();
     assertType(setLiteral('{1'), 'Set<int>');
+  }
+
+  test_noContext_typeArgs_expression_conflict() async {
+    addTestFile('''
+var a = <String>{1};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<String>');
+  }
+
+  test_noContext_typeArgs_expression_noConflict() async {
+    addTestFile('''
+var a = <int>{1};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<int>');
+  }
+
+  @failingTest
+  test_noContext_typeArgs_expressions_conflict() async {
+    addTestFile('''
+var a = <int, String>{1, 2};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<int>');
+  }
+
+  test_noContext_typeArgs_noElements() async {
+    addTestFile('''
+var a = <num>{};
+''');
+    await resolveTestFile();
+    assertType(setLiteral('{'), 'Set<num>');
   }
 }

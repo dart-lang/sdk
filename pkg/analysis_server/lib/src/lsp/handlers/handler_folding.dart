@@ -20,7 +20,12 @@ class FoldingHandler
   LspJsonHandler<FoldingRangeParams> get jsonHandler =>
       FoldingRangeParams.jsonHandler;
 
-  Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params) async {
+  Future<ErrorOr<List<FoldingRange>>> handle(
+      FoldingRangeParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final path = pathOfDoc(params.textDocument);
     final unit = await path.mapResult(requireUnresolvedUnit);
 

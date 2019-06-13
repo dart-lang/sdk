@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,6 +57,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -66,6 +68,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('B'),
       'B<num>',
       expectedConstructorMember: true,
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -96,6 +99,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('A'),
       'A',
       constructorName: 'named',
+      expectedPrefix: _importOfA()?.prefix,
     );
   }
 
@@ -106,7 +110,48 @@ mixin OptionalConstMixin implements ResolutionTest {
       creation,
       libraryA.getType('A'),
       'A',
+      expectedPrefix: _importOfA()?.prefix,
     );
+  }
+
+  test_prefixed_unnamed_generic() async {
+    newFile('/test/lib/a.dart', content: r'''
+class C<T> {
+  const C();
+}
+''');
+    await assertNoErrorsInCode(r'''
+import 'a.dart' as p;
+
+const x = p.C<int>();
+''');
+    _fillLibraries();
+
+    var element_C = libraryA.getType('C');
+    var element_p = findElement.prefix('p');
+
+    var creation = findNode.instanceCreation('p.C<int>()');
+    assertType(creation, 'C<int>');
+
+    var constructorName = creation.constructorName;
+
+    var typeName = constructorName.type;
+    assertType(typeName, 'C<int>');
+
+    var pC = typeName.name as PrefixedIdentifier;
+    assertElement(pC, element_C);
+    // TODO(scheglov) enforce
+//    assertTypeNull(pC);
+
+    var ref_p = pC.prefix;
+    assertElement(ref_p, element_p);
+    assertTypeNull(ref_p);
+
+    var ref_C = pC.identifier;
+    assertElement(ref_C, element_C);
+    assertTypeNull(ref_C);
+
+    assertType(typeName.typeArguments.arguments[0], 'int');
   }
 
   void _fillLibraries([LibraryElement library]) {
@@ -115,6 +160,15 @@ mixin OptionalConstMixin implements ResolutionTest {
     if (!libraries.containsKey(uriStr)) {
       libraries[uriStr] = library;
       library.importedLibraries.forEach(_fillLibraries);
+    }
+  }
+
+  ImportElement _importOfA() {
+    if (AnalysisDriver.useSummary2) {
+      var importOfB = findElement.import('package:test/b.dart');
+      return importOfB.importedLibrary.imports[0];
+    } else {
+      return null;
     }
   }
 
@@ -154,7 +208,9 @@ var v = a;
     var v = vg.variable as ConstVariableElement;
 
     InstanceCreationExpression creation = v.constantInitializer;
-    expect(creation.keyword.keyword, Keyword.CONST);
+    if (!AnalysisDriver.useSummary2) {
+      expect(creation.keyword.keyword, Keyword.CONST);
+    }
 
     return creation;
   }

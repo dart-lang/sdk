@@ -28,7 +28,7 @@ def main():
   oldest_abi_version = int(utils.GetOldestSupportedAbiVersion())
   cmd = ['cipd', 'ensure', '-root', 'tools/abiversions', '-ensure-file', '-']
   ensure_file = ''
-  for i in xrange(oldest_abi_version, abi_version + 1):
+  for i in range(oldest_abi_version, abi_version + 1):
     if findAbiVersion(i):
       ensure_file += '@Subdir %d\ndart/abiversions/%d latest\n\n' % (i, i)
   if not ensure_file:

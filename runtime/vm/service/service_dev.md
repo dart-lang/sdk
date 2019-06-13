@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.17-dev
+# Dart VM Service Protocol 3.18-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.17-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.18-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -75,6 +75,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Isolate](#isolate)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
+  - [LogRecord](#logrecord)
   - [MapAssociation](#mapassociation)
   - [MemoryUsage](#memoryusage)
   - [Message](#message)
@@ -546,7 +547,7 @@ instance members, class members and top-level members.
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
 
-If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
+If the expression fails to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
@@ -579,7 +580,7 @@ members, parameters and locals.
 If _disableBreakpoints_ is provided and set to true, any breakpoints hit as a
 result of this evaluation are ignored. Defaults to false if not provided.
 
-If expression is failed to parse and compile, then [rpc error](#rpc-error) 113
+If the expression fails to parse and compile, then [rpc error](#rpc-error) 113
 "Expression compilation error" is returned.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
@@ -947,6 +948,7 @@ Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException
 GC | GC
 Extension | Extension
 Timeline | TimelineEvents
+Logging | Logging
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1424,6 +1426,11 @@ class Event extends Response {
   //   IsolateReloaded
   //   IsolateSpawn
   string status [optional];
+
+  // LogRecord data.
+  //
+  // This is provided for the Logging event.
+  LogRecord logRecord [optional];
 }
 ```
 
@@ -1506,6 +1513,9 @@ enum EventKind {
 
   // Event from dart:developer.postEvent.
   Extension
+
+  // Event from dart:developer.log.
+  Logging
 }
 ```
 
@@ -2214,6 +2224,39 @@ class LibraryDependency {
 
 A _LibraryDependency_ provides information about an import or export.
 
+### LogRecord
+
+```
+class LogRecord extends Response {
+  // The log message.
+  @Instance message;
+
+  // The timestamp.
+  int time;
+
+  // The severity level (a value between 0 and 2000).
+  //
+  // See the package:logging `Level` class for an overview of the possible
+  // values.
+  int level;
+
+  // A monotonically increasing sequence number.
+  int sequenceNumber;
+
+  // The name of the source of the log message.
+  @Instance loggerName;
+
+  // The zone where the log was emitted.
+  @Instance zone;
+
+  // An error object associated with this log event.
+  @Instance error;
+
+  // A stack trace associated with this log event.
+  @Instance stackTrace;
+}
+```
+
 ### MapAssociation
 
 ```
@@ -2452,6 +2495,10 @@ class Script extends Object {
 
   // The library which owns this script.
   @Library library;
+
+  int lineOffset [optional];
+
+  int columnOffset [optional];
 
   // The source code for this script. This can be null for certain built-in
   // scripts.
@@ -2807,5 +2854,6 @@ version | comments
 3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
 3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
 3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
+3.17 | Add 'Logging' event kind and the LogRecord class.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

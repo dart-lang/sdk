@@ -32,6 +32,8 @@ TokenType operatorFromCompoundAssignment(TokenType operator) {
     return TokenType.CARET;
   } else if (operator == TokenType.GT_GT_EQ) {
     return TokenType.GT_GT;
+  } else if (operator == TokenType.GT_GT_GT_EQ) {
+    return TokenType.GT_GT_GT;
   } else if (operator == TokenType.LT_LT_EQ) {
     return TokenType.LT_LT;
   } else if (operator == TokenType.MINUS_EQ) {

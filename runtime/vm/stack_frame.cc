@@ -180,11 +180,9 @@ const char* StackFrame::ToCString() const {
     if (is_interpreted()) {
       const Bytecode& bytecode = Bytecode::Handle(zone, LookupDartBytecode());
       ASSERT(!bytecode.IsNull());
-      const Function& function = Function::Handle(zone, bytecode.function());
-      ASSERT(!function.IsNull());
-      return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") bytecode %s ]",
-          GetName(), sp(), fp(), pc(), function.ToFullyQualifiedCString());
+      return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
+                                 ") %s ]",
+                                 GetName(), sp(), fp(), pc(), bytecode.Name());
     }
     const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());
@@ -501,7 +499,6 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     ASSERT(!bytecode.IsNull());
     start = bytecode.PayloadStart();
     handlers = bytecode.exception_handlers();
-    descriptors = bytecode.pc_descriptors();
   } else {
     code = LookupDartCode();
     if (code.IsNull()) {
@@ -520,33 +517,17 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
     *has_catch_all = info->has_catch_all;
     return true;
   }
-  uword pc_offset = pc() - start;
 
   if (handlers.num_entries() == 0) {
     return false;
   }
 
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   intptr_t try_index = -1;
   if (is_interpreted()) {
-    while (iter.MoveNext()) {
-      // PC descriptors for try blocks in bytecode are generated in pairs,
-      // marking start and end of a try block.
-      // See BytecodeMetadataHelper::ReadExceptionsTable for details.
-      const intptr_t current_try_index = iter.TryIndex();
-      const uword start_pc = iter.PcOffset();
-      if (pc_offset < start_pc) {
-        break;
-      }
-      const bool has_next = iter.MoveNext();
-      ASSERT(has_next);
-      const uword end_pc = iter.PcOffset();
-      if (start_pc <= pc_offset && pc_offset < end_pc) {
-        ASSERT(try_index < current_try_index);
-        try_index = current_try_index;
-      }
-    }
+    try_index = bytecode.GetTryIndexAtPc(pc());
   } else {
+    uword pc_offset = pc() - code.PayloadStart();
+    PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
     while (iter.MoveNext()) {
       const intptr_t current_try_index = iter.TryIndex();
       if ((iter.PcOffset() == pc_offset) && (current_try_index != -1)) {

@@ -18,7 +18,7 @@ application_snapshot("dartdevc") {
     "--dart-sdk",
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
-    rebase_path(sdk_summary),
+    rebase_path(sdk_dill),
     "-k",
     "-o",
     "dartdevc.js",
@@ -124,7 +124,7 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
   inputs += exec_script("../../tools/list_dart_files.py",
                         [
                           "absolute",
-                          rebase_path("../../pkg/dev_compiler/tool/input_sdk"),
+                          rebase_path("../../sdk/lib/_internal/js_dev_runtime"),
                         ],
                         "list lines")
 
@@ -137,7 +137,7 @@ prebuilt_dart_action("dartdevc_patch_sdk") {
 
   args = [
     rebase_path("../../"),
-    rebase_path("../../pkg/dev_compiler/tool/input_sdk"),
+    rebase_path("../../sdk/lib/_internal/js_dev_runtime"),
     rebase_path(patched_sdk_dir),
   ]
 }
@@ -233,7 +233,7 @@ create_timestamp_file("dartdevc_files_stamp") {
 }
 
 create_timestamp_file("dartdevc_sdk_patch_stamp") {
-  path = rebase_path("../../pkg/dev_compiler/tool/input_sdk")
+  path = rebase_path("../../sdk/lib/_internal/js_dev_runtime")
   output = "$target_gen_dir/dartdevc_sdk_patch_stamp.stamp"
 }
 

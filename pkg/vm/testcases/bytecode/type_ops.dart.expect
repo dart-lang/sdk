@@ -23,20 +23,20 @@ Bytecode {
   CheckStack           0
   Push                 FP[-5]
   PushConstant         CP#0
-  InterfaceCall        2, CP#1
+  InterfaceCall        CP#1, 2
   JumpIfFalse          L1
   PushConstant         CP#3
-  DirectCall           1, CP#4
+  DirectCall           CP#4, 1
   Drop1
 L1:
   Push                 FP[-5]
   PushNull
   PushNull
   PushConstant         CP#6
-  InterfaceCall        4, CP#7
+  InterfaceCall        CP#7, 4
   JumpIfFalse          L2
   PushConstant         CP#9
-  DirectCall           1, CP#4
+  DirectCall           CP#4, 1
   Drop1
 L2:
   Push                 FP[-5]
@@ -123,7 +123,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -155,7 +155,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -187,7 +187,7 @@ Bytecode {
   Entry                0
   CheckStack           0
   Push                 FP[-5]
-  DirectCall           1, CP#0
+  DirectCall           CP#0, 1
   Drop1
   PushNull
   ReturnTOS
@@ -230,7 +230,7 @@ Bytecode {
   AssertAssignable     0, CP#3
   StoreFieldTOS        CP#4
   Push                 FP[-6]
-  DirectCall           1, CP#6
+  DirectCall           CP#6, 1
   Drop1
   PushNull
   ReturnTOS
@@ -260,10 +260,10 @@ Bytecode {
   LoadTypeArgumentsField CP#0
   PushNull
   PushConstant         CP#1
-  InterfaceCall        4, CP#2
+  InterfaceCall        CP#2, 4
   JumpIfFalse          L1
   PushConstant         CP#4
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
 L1:
   Push                 FP[-5]
@@ -271,10 +271,10 @@ L1:
   LoadTypeArgumentsField CP#0
   PushNull
   PushConstant         CP#7
-  InterfaceCall        4, CP#2
+  InterfaceCall        CP#2, 4
   JumpIfFalse          L2
   PushConstant         CP#8
-  DirectCall           1, CP#5
+  DirectCall           CP#5, 1
   Drop1
 L2:
   Push                 FP[-6]
@@ -285,7 +285,7 @@ L2:
   PushNull
   PushConstant         CP#10
   AssertAssignable     0, CP#11
-  UncheckedInterfaceCall 2, CP#12
+  UncheckedInterfaceCall CP#12, 2
   Drop1
   PushNull
   ReturnTOS
@@ -322,10 +322,10 @@ Bytecode {
   PushNull
   Push                 r0
   PushConstant         CP#0
-  InterfaceCall        4, CP#1
+  InterfaceCall        CP#1, 4
   JumpIfFalse          L1
   PushConstant         CP#3
-  DirectCall           1, CP#4
+  DirectCall           CP#4, 1
   Drop1
 L1:
   Push                 FP[-5]
@@ -333,10 +333,10 @@ L1:
   LoadTypeArgumentsField CP#6
   Push                 r0
   PushConstant         CP#7
-  InterfaceCall        4, CP#1
+  InterfaceCall        CP#1, 4
   JumpIfFalse          L2
   PushConstant         CP#8
-  DirectCall           1, CP#4
+  DirectCall           CP#4, 1
   Drop1
 L2:
   Push                 FP[-5]
@@ -346,7 +346,7 @@ L2:
   Push                 r0
   PushConstant         CP#10
   AssertAssignable     0, CP#11
-  InterfaceCall        1, CP#12
+  InterfaceCall        CP#12, 1
   ReturnTOS
 }
 ConstantPool {
@@ -394,7 +394,7 @@ Bytecode {
   PushConstant         CP#3
   AssertAssignable     0, CP#4
   StoreIndexedTOS
-  DirectCall           2, CP#5
+  DirectCall           CP#5, 2
   PopLocal             r0
   Push                 FP[-5]
   PushConstant         CP#2

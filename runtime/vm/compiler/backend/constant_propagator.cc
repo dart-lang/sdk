@@ -142,6 +142,10 @@ void ConstantPropagator::VisitFunctionEntry(FunctionEntryInstr* block) {
   }
 }
 
+void ConstantPropagator::VisitNativeEntry(NativeEntryInstr* block) {
+  VisitFunctionEntry(block);
+}
+
 void ConstantPropagator::VisitOsrEntry(OsrEntryInstr* block) {
   for (auto def : *block->initial_definitions()) {
     def->Accept(this);
@@ -189,6 +193,10 @@ void ConstantPropagator::VisitParallelMove(ParallelMoveInstr* instr) {
 // reachable.  Conditional successors are reachable depending on the
 // constant value of the condition.
 void ConstantPropagator::VisitReturn(ReturnInstr* instr) {
+  // Nothing to do.
+}
+
+void ConstantPropagator::VisitNativeReturn(NativeReturnInstr* instr) {
   // Nothing to do.
 }
 
@@ -362,6 +370,10 @@ void ConstantPropagator::VisitCheckNull(CheckNullInstr* instr) {
 }
 
 void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitNativeParameter(NativeParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -844,12 +856,20 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 }
 
 void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
+  // This first part duplicates the work done in LoadClassIdInstr::Canonicalize,
+  // which replaces uses of LoadClassIdInstr where the object has a concrete
+  // type with a Constant. Canonicalize runs before the ConstantPropagation
+  // pass, so if that was all, this wouldn't be needed.
+  //
+  // However, the ConstantPropagator also runs as part of OptimizeBranches, and
+  // TypePropagation runs between it and the previous Canonicalize. Thus, the
+  // type may have become concrete and we should take that into account. Not
+  // doing so led to some benchmark regressions.
   intptr_t cid = instr->object()->Type()->ToCid();
   if (cid != kDynamicCid) {
     SetValue(instr, Smi::ZoneHandle(Z, Smi::New(cid)));
     return;
   }
-
   const Object& object = instr->object()->definition()->constant_value();
   if (IsConstant(object)) {
     cid = object.GetClassId();
@@ -1272,8 +1292,8 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
   }
 }
 
-void ConstantPropagator::VisitCaseInsensitiveCompareUC16(
-    CaseInsensitiveCompareUC16Instr* instr) {
+void ConstantPropagator::VisitCaseInsensitiveCompare(
+    CaseInsensitiveCompareInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

@@ -51,7 +51,7 @@ runTest(List<String> options) async {
 
   Selector getLengthSelector = new Selector.getter(const PublicName('length'));
   js.Name getLengthName =
-      compiler.backend.namer.invocationName(getLengthSelector);
+      compiler.backend.namerForTesting.invocationName(getLengthSelector);
 
   Method method = programLookup.getMethod(jsArrayIndexOf);
   int lengthCount = 0;

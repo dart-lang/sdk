@@ -9,9 +9,9 @@
 #include <string.h>
 
 #include "bin/abi_version.h"
-#include "bin/log.h"
 #include "bin/options.h"
 #include "bin/platform.h"
+#include "platform/syslog.h"
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
 #include "bin/security_context.h"
 #endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
@@ -114,19 +114,19 @@ DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
 void Options::PrintVersion() {
-  Log::PrintErr("Dart VM version: %s\n", Dart_VersionString());
+  Syslog::PrintErr("Dart VM version: %s\n", Dart_VersionString());
 }
 
 // clang-format off
 void Options::PrintUsage() {
-  Log::PrintErr(
+  Syslog::PrintErr(
       "Usage: dart [<vm-flags>] <dart-script-file> [<script-arguments>]\n"
       "\n"
       "Executes the Dart script <dart-script-file> with "
       "the given list of <script-arguments>.\n"
       "\n");
   if (!Options::verbose_option()) {
-    Log::PrintErr(
+    Syslog::PrintErr(
 "Common VM flags:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
@@ -157,7 +157,7 @@ void Options::PrintUsage() {
 "--version\n"
 "  Print the VM version.\n");
   } else {
-    Log::PrintErr(
+    Syslog::PrintErr(
 "Supported options:\n"
 "--enable-asserts\n"
 "  Enable assert statements.\n"
@@ -294,7 +294,7 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
   if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "unrecognized --enable-vm-service option syntax. "
         "Use --enable-vm-service[=<port number>[/<bind address>]]\n");
     return false;
@@ -315,7 +315,7 @@ bool Options::ProcessObserveOption(const char* arg,
   if (!ExtractPortAndAddress(
           value, &vm_service_server_port_, &vm_service_server_ip_,
           DEFAULT_VM_SERVICE_SERVER_PORT, DEFAULT_VM_SERVICE_SERVER_IP)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "unrecognized --observe option syntax. "
         "Use --observe[=<port number>[/<bind address>]]\n");
     return false;
@@ -344,14 +344,15 @@ bool Options::ProcessAbiVersionOption(const char* arg,
     if (value[i] >= '0' && value[i] <= '9') {
       ver = (ver * 10) + value[i] - '0';
     } else {
-      Log::PrintErr("--use_abi_version must be an int\n");
+      Syslog::PrintErr("--use_abi_version must be an int\n");
       return false;
     }
   }
   if (ver < AbiVersion::GetOldestSupported() ||
       ver > AbiVersion::GetCurrent()) {
-    Log::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
-                  AbiVersion::GetOldestSupported(), AbiVersion::GetCurrent());
+    Syslog::PrintErr("--use_abi_version must be between %d and %d inclusive\n",
+                     AbiVersion::GetOldestSupported(),
+                     AbiVersion::GetCurrent());
     return false;
   }
   target_abi_version_ = ver;
@@ -422,9 +423,6 @@ int Options::ParseArguments(int argc,
   // The arguments to the VM are at positions 1 through i-1 in argv.
   Platform::SetExecutableArguments(i, argv);
 
-#if defined(DART_LINK_APP_SNAPSHOT)
-  *script_name = argv[0];
-#else
   // Get the script name.
   if (i < argc) {
     *script_name = argv[i];
@@ -432,7 +430,6 @@ int Options::ParseArguments(int argc,
   } else {
     return -1;
   }
-#endif
 
   // Parse out options to be passed to dart main.
   while (i < argc) {
@@ -444,7 +441,7 @@ int Options::ParseArguments(int argc,
 
   // snapshot_depfile is an alias for depfile. Passing them both is an error.
   if ((snapshot_deps_filename_ != NULL) && (depfile_ != NULL)) {
-    Log::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
+    Syslog::PrintErr("Specify only one of --depfile and --snapshot_depfile\n");
     return -1;
   }
   if (snapshot_deps_filename_ != NULL) {
@@ -453,32 +450,34 @@ int Options::ParseArguments(int argc,
   }
 
   if ((Options::package_root() != NULL) && (packages_file_ != NULL)) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Specifying both a packages directory and a packages "
         "file is invalid.\n");
     return -1;
   }
   if ((Options::package_root() != NULL) &&
       (strlen(Options::package_root()) == 0)) {
-    Log::PrintErr("Empty package root specified.\n");
+    Syslog::PrintErr("Empty package root specified.\n");
     return -1;
   }
   if ((packages_file_ != NULL) && (strlen(packages_file_) == 0)) {
-    Log::PrintErr("Empty package file name specified.\n");
+    Syslog::PrintErr("Empty package file name specified.\n");
     return -1;
   }
   if ((gen_snapshot_kind_ != kNone) && (snapshot_filename_ == NULL)) {
-    Log::PrintErr("Generating a snapshot requires a filename (--snapshot).\n");
+    Syslog::PrintErr(
+        "Generating a snapshot requires a filename (--snapshot).\n");
     return -1;
   }
   if ((gen_snapshot_kind_ == kNone) && (depfile_ != NULL) &&
       (snapshot_filename_ == NULL) && (depfile_output_filename_ == NULL)) {
-    Log::PrintErr("Generating a depfile requires an output filename"
-                  " (--depfile-output-filename or --snapshot).\n");
+    Syslog::PrintErr(
+        "Generating a depfile requires an output filename"
+        " (--depfile-output-filename or --snapshot).\n");
     return -1;
   }
   if ((gen_snapshot_kind_ != kNone) && vm_run_app_snapshot) {
-    Log::PrintErr(
+    Syslog::PrintErr(
         "Specifying an option to generate a snapshot and"
         " run using a snapshot is invalid.\n");
     return -1;

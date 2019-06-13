@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
@@ -33,8 +34,15 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       CodeActionParams.jsonHandler;
 
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> handle(
-      CodeActionParams params) async {
+      CodeActionParams params, CancellationToken token) async {
+    if (!isDartDocument(params.textDocument)) {
+      return success(const []);
+    }
+
     final capabilities = server?.clientCapabilities?.textDocument?.codeAction;
+
+    final clientSupportsWorkspaceApplyEdit =
+        server?.clientCapabilities?.workspace?.applyEdit == true;
 
     final clientSupportsLiteralCodeActions =
         capabilities?.codeActionLiteralSupport != null;
@@ -55,6 +63,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           return _getCodeActions(
               clientSupportedCodeActionKinds,
               clientSupportsLiteralCodeActions,
+              clientSupportsWorkspaceApplyEdit,
               path.result,
               params.range,
               offset,
@@ -88,7 +97,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       assist.change.message,
       CodeActionKind.Refactor,
       const [],
-      createWorkspaceEdit(server, assist.change),
+      createWorkspaceEdit(server, assist.change.edits),
       null,
     ));
   }
@@ -103,7 +112,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
       fix.change.message,
       CodeActionKind.QuickFix,
       [diagnostic],
-      createWorkspaceEdit(server, fix.change),
+      createWorkspaceEdit(server, fix.change.edits),
       null,
     ));
   }
@@ -144,6 +153,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<ErrorOr<List<Either2<Command, CodeAction>>>> _getCodeActions(
     HashSet<CodeActionKind> kinds,
     bool supportsLiterals,
+    bool supportsWorkspaceApplyEdit,
     String path,
     Range range,
     int offset,
@@ -151,7 +161,8 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
     ResolvedUnitResult unit,
   ) async {
     final results = await Future.wait([
-      _getSourceActions(kinds, supportsLiterals, path),
+      _getSourceActions(
+          kinds, supportsLiterals, supportsWorkspaceApplyEdit, path),
       _getAssistActions(kinds, supportsLiterals, offset, length, unit),
       _getRefactorActions(kinds, supportsLiterals, path, range, unit),
       _getFixActions(kinds, supportsLiterals, range, unit),
@@ -182,7 +193,14 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
         int errorLine = lineInfo.getLocation(error.offset).lineNumber - 1;
         if (errorLine >= range.start.line && errorLine <= range.end.line) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context = new DartFixContextImpl(workspace, unit, error);
+          var context = new DartFixContextImpl(workspace, unit, error, (name) {
+            var tracker = server.declarationsTracker;
+            return TopLevelDeclarationsProvider(tracker).get(
+              unit.session.analysisContext,
+              unit.path,
+              name,
+            );
+          });
           final fixes = await fixContributor.computeFixes(context);
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
@@ -232,18 +250,25 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
   Future<List<Either2<Command, CodeAction>>> _getSourceActions(
     HashSet<CodeActionKind> clientSupportedCodeActionKinds,
     bool clientSupportsLiteralCodeActions,
+    bool clientSupportsWorkspaceApplyEdit,
     String path,
   ) async {
     // The source actions supported are only valid for Dart files.
     if (!AnalysisEngine.isDartFileName(path)) {
-      return [];
+      return const [];
     }
 
     // If the client told us what kinds they support but it does not include
     // Source then don't return any.
     if (clientSupportsLiteralCodeActions &&
         !clientSupportedCodeActionKinds.contains(CodeActionKind.Source)) {
-      return [];
+      return const [];
+    }
+
+    // If the client does not support workspace/applyEdit, we won't be able to
+    // run any of these.
+    if (!clientSupportsWorkspaceApplyEdit) {
+      return const [];
     }
 
     return [

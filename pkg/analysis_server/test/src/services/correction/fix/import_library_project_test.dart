@@ -18,8 +18,7 @@ main() {
 }
 
 @reflectiveTest
-class ImportLibraryProject1Test extends FixProcessorTest
-    with ImportLibraryTestMixin {
+class ImportLibraryProject1Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
 
@@ -39,6 +38,45 @@ main() {
     await assertNoFix();
   }
 
+  test_lib() async {
+    addPackageFile('my_pkg', 'a.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+
+    await resolveTestUnit('''
+main() {
+  Test test = null;
+  print(test);
+}
+''');
+
+    await assertHasFix('''
+import 'package:my_pkg/a.dart';
+
+main() {
+  Test test = null;
+  print(test);
+}
+''', expectedNumberOfFixesForKind: 1);
+  }
+
+  test_lib_src() async {
+    addPackageFile('my_pkg', 'src/a.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
+    await resolveTestUnit('''
+main() {
+  Test test = null;
+  print(test);
+}
+''');
+    await assertNoFix();
+  }
+
   test_notInLib() async {
     addSource('/home/other/test/lib.dart', 'class Test {}');
     await resolveTestUnit('''
@@ -50,66 +88,40 @@ main() {
     await assertNoFix();
   }
 
-  test_preferDirectOverExport() async {
-    _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
-    await resolveTestUnit('''
-main() {
-  Test test = null;
-  print(test);
-}
-''');
-    await assertHasFix('''
-import 'package:my_pkg/b.dart';
-
-main() {
-  Test test = null;
-  print(test);
-}
-''', expectedNumberOfFixesForKind: 1);
-  }
-
-  test_preferDirectOverExport_src() async {
-    _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
-    await resolveTestUnit('''
-main() {
-  Test test = null;
-  print(test);
-}
-''');
-    await assertHasFix('''
-import 'package:my_pkg/b.dart';
-
-main() {
-  Test test = null;
-  print(test);
-}
-''', expectedNumberOfFixesForKind: 1);
-  }
-
   test_relativeDirective() async {
     addSource('/home/test/lib/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/b.dart', '''
 class Foo {}
 ''');
     await resolveTestUnit('''
 main() { new Foo(); }
 ''');
     await assertHasFix('''
-import 'b.dart';
+import 'a.dart';
 
 main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'b.dart'");
+        matchFixMessage: "Import library 'a.dart'");
+  }
+
+  test_relativeDirective_downOneDirectory() async {
+    addSource('/home/test/lib/dir/a.dart', '''
+class Foo {}
+''');
+    await resolveTestUnit('''
+main() { new Foo(); }
+''');
+    await assertHasFix('''
+import 'dir/a.dart';
+
+main() { new Foo(); }
+''',
+        expectedNumberOfFixesForKind: 2,
+        matchFixMessage: "Import library 'dir/a.dart'");
   }
 
   test_relativeDirective_upOneDirectory() async {
     addSource('/home/test/lib/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/b.dart', '''
 class Foo {}
 ''');
     testFile = convertPath('/home/test/lib/dir/test.dart');
@@ -117,31 +129,12 @@ class Foo {}
 main() { new Foo(); }
 ''');
     await assertHasFix('''
-import '../b.dart';
+import '../a.dart';
 
 main() { new Foo(); }
 ''',
         expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library '../b.dart'");
-  }
-
-  test_relativeDirective_downOneDirectory() async {
-    addSource('/home/test/lib/dir/a.dart', '''
-import "b.dart";
-''');
-    addSource('/home/test/lib/dir/b.dart', '''
-class Foo {}
-''');
-    await resolveTestUnit('''
-main() { new Foo(); }
-''');
-    await assertHasFix('''
-import 'dir/b.dart';
-
-main() { new Foo(); }
-''',
-        expectedNumberOfFixesForKind: 2,
-        matchFixMessage: "Import library 'dir/b.dart'");
+        matchFixMessage: "Import library '../a.dart'");
   }
 
   test_withClass_annotation() async {
@@ -395,7 +388,6 @@ main() {
 
   @failingTest
   test_withFunction_nonFunctionType() async {
-    // TODO Remove preferFunctionOverTopLevelVariable test once this is passing
     addSource('/home/test/lib/lib.dart', 'int zero = 0;');
     await resolveTestUnit('''
 main() {
@@ -403,25 +395,6 @@ main() {
 }
 ''');
     await assertNoFix();
-  }
-
-  test_withFunction_preferFunctionOverTopLevelVariable() async {
-    _configureMyPkg({
-      'b.dart': 'var myFunction = () {};',
-      'a.dart': 'myFunction() {}',
-    });
-    await resolveTestUnit('''
-main() {
-  myFunction();
-}
-''');
-    await assertHasFix('''
-import 'package:my_pkg/a.dart';
-
-main() {
-  myFunction();
-}
-''');
   }
 
   test_withFunction_unresolvedMethod() async {
@@ -505,16 +478,17 @@ main() {
 }
 
 @reflectiveTest
-class ImportLibraryProject2Test extends FixProcessorTest
-    with ImportLibraryTestMixin {
+class ImportLibraryProject2Test extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PROJECT2;
 
-  test_preferDirectOverExport() async {
-    _configureMyPkg({
-      'b.dart': 'class Test {}',
-      'a.dart': "export 'b.dart';",
-    });
+  test_lib() async {
+    addPackageFile('my_pkg', 'a.dart', "export 'b.dart';");
+    addPackageFile('my_pkg', 'b.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
     await resolveTestUnit('''
 main() {
   Test test = null;
@@ -531,11 +505,13 @@ main() {
 ''');
   }
 
-  test_preferDirectOverExport_src() async {
-    _configureMyPkg({
-      'b.dart': 'class Test {}',
-      'a.dart': "export 'b.dart';",
-    });
+  test_lib_src() async {
+    addPackageFile('my_pkg', 'a.dart', "export 'src/b.dart';");
+    addPackageFile('my_pkg', 'src/b.dart', 'class Test {}');
+    newFile('/home/test/pubspec.yaml', content: r'''
+dependencies:
+  my_pkg: any
+''');
     await resolveTestUnit('''
 main() {
   Test test = null;
@@ -591,17 +567,5 @@ main() {
   print(t);
 }
 ''');
-  }
-}
-
-mixin ImportLibraryTestMixin on FixProcessorTest {
-  /// Configures the source factory to have a package named 'my_pkg' and for
-  /// the package to contain all of the files described by the [pathToCode] map.
-  /// The keys in the map are paths relative to the root of the package, and the
-  /// values are the contents of the files at those paths.
-  void _configureMyPkg(Map<String, String> pathToCode) {
-    pathToCode.forEach((path, code) {
-      addPackageFile('my_pkg', path, code);
-    });
   }
 }

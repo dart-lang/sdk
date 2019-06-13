@@ -279,6 +279,46 @@ void useWidget(Widget w) {}
     expect(flutter.identifyWidgetExpression(expression), expression);
   }
 
+  test_identifyWidgetExpression_parent_assignmentExpression() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main() {
+  Widget text;
+  text = Text('abc');
+}
+
+void useWidget(Widget w) {}
+''');
+    // Assignment itself.
+    {
+      var expression = findNode.simple('text =');
+      expect(flutter.identifyWidgetExpression(expression), isNull);
+    }
+
+    // Left hand side.
+    {
+      var expression = findNode.assignment('text =');
+      expect(flutter.identifyWidgetExpression(expression), isNull);
+    }
+
+    // Right hand side.
+    {
+      var expression = findNode.instanceCreation('Text(');
+      expect(flutter.identifyWidgetExpression(expression), expression);
+    }
+  }
+
+  test_identifyWidgetExpression_parent_expressionFunctionBody() async {
+    await resolveTestUnit('''
+import 'package:flutter/widgets.dart';
+
+main(Widget widget) => widget; // ref
+''');
+    Expression expression = findNodeAtString("widget; // ref");
+    expect(flutter.identifyWidgetExpression(expression), expression);
+  }
+
   test_identifyWidgetExpression_parent_expressionStatement() async {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

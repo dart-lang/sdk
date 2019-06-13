@@ -32,7 +32,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(BinaryInt32Op)                                                             \
   M(BinaryUint32Op)                                                            \
-  M(BoxInt64)                                                                  \
   M(CheckCondition)                                                            \
   M(DoubleToInteger)                                                           \
   M(ExtractNthOutput)                                                          \
@@ -46,8 +45,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(SpeculativeShiftUint32Op)                                                  \
   M(TruncDivMod)                                                               \
   M(UnaryUint32Op)                                                             \
-  M(IntConverter)                                                              \
-  M(UnboxedWidthExtender)
+  M(IntConverter)
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:
@@ -56,7 +54,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // - Optimized RegExps,
 // - Precompilation.
 #define FOR_EACH_UNREACHABLE_INSTRUCTION(M)                                    \
-  M(CaseInsensitiveCompareUC16)                                                \
+  M(CaseInsensitiveCompare)                                                    \
   M(GenericCheckBound)                                                         \
   M(IndirectGoto)                                                              \
   M(Int64ToDouble)                                                             \
@@ -66,7 +64,8 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(UnaryInt64Op)                                                              \
   M(CheckedSmiOp)                                                              \
   M(CheckedSmiComparison)                                                      \
-  M(SimdOp)
+  M(SimdOp)                                                                    \
+  M(NativeReturn)
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -994,7 +993,20 @@ EMIT_NATIVE_CODE(StringInterpolate,
 }
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  const Representation result_rep =
+      compiler::ffi::ResultHostRepresentation(signature_);
+  // TODO(36809): In 32 bit we'll need a result location as well.
+  const TypedData& signature_descriptor =
+      TypedData::Handle(compiler::ffi::FfiSignatureDescriptor::New(
+          *arg_host_locations_, result_rep));
+
+  const intptr_t sigdesc_kidx = __ AddConstant(signature_descriptor);
+
+  __ FfiCall(sigdesc_kidx);
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
+                                 token_pos());
+  compiler->RecordAfterCallHelper(token_pos(), deopt_id(), 0,
+                                  FlowGraphCompiler::kHasResult, locs());
 }
 
 EMIT_NATIVE_CODE(NativeCall,
@@ -1327,10 +1339,15 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   BlockEntryInstr* entry = normal_entry();
-  if (entry == nullptr) entry = osr_entry();
-
-  if (!compiler->CanFallThroughTo(entry)) {
-    __ Jump(compiler->GetJumpLabel(entry));
+  if (entry != nullptr) {
+    if (!compiler->CanFallThroughTo(entry)) {
+      FATAL("Checked function entry must have no offset");
+    }
+  } else {
+    entry = osr_entry();
+    if (!compiler->CanFallThroughTo(entry)) {
+      __ Jump(compiler->GetJumpLabel(entry));
+    }
   }
 }
 
@@ -1380,17 +1397,22 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
       return CompileType::FromCid(kSmiCid);
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
       return CompileType::Int();
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
 
     default:
       UNREACHABLE();
@@ -1402,18 +1424,16 @@ Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
     case kImmutableArrayCid:
+      return kTagged;
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
+    case kExternalOneByteStringCid:
     case kExternalTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
-      return kTagged;
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1427,6 +1447,14 @@ Representation LoadIndexedInstr::representation() const {
       return kUnboxedFloat32x4;
     case kTypedDataFloat64x2ArrayCid:
       return kUnboxedFloat64x2;
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTwoByteStringCid:
+      return kUnboxedIntPtr;
+
     default:
       UNREACHABLE();
       return kTagged;
@@ -1445,18 +1473,13 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
   ASSERT(idx == 2);
   switch (class_id_) {
     case kArrayCid:
+      return kTagged;
     case kOneByteStringCid:
-    case kTwoByteStringCid:
-    case kExternalOneByteStringCid:
-    case kExternalTwoByteStringCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
+    case kExternalOneByteStringCid:
     case kExternalTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-      return kTagged;
+      return kUnboxedIntPtr;
     case kTypedDataInt32ArrayCid:
       return kUnboxedInt32;
     case kTypedDataUint32ArrayCid:
@@ -1470,6 +1493,14 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
       return kUnboxedInt32x4;
     case kTypedDataFloat64x2ArrayCid:
       return kUnboxedFloat64x2;
+
+    // These are unsupported on DBC and will cause a bailout during
+    // EmitNativeCode.
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+      return kUnboxedIntPtr;
     default:
       UNREACHABLE();
       return kTagged;
@@ -1681,50 +1712,71 @@ EMIT_NATIVE_CODE(UnarySmiOp, 1, Location::RequiresRegister()) {
   }
 }
 
-EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
-  ASSERT(from_representation() == kUnboxedDouble);
-  const Register value = locs()->in(0).reg();
+void BoxInstr::EmitAllocateBox(FlowGraphCompiler* compiler) {
   const Register out = locs()->out(0).reg();
-  const intptr_t instance_size = compiler->double_class().instance_size();
+  const Class& box_class = compiler->BoxClassFor(from_representation());
+  const intptr_t instance_size = box_class.instance_size();
   Isolate* isolate = Isolate::Current();
   ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
-  if (!compiler->double_class().TraceAllocation(isolate)) {
+  if (!box_class.TraceAllocation(isolate)) {
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    tags = RawObject::ClassIdTag::update(compiler->double_class().id(), tags);
+    tags = RawObject::ClassIdTag::update(box_class.id(), tags);
     // tags also has the initial zero hash code on 64 bit.
     if (Smi::IsValid(tags)) {
       const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
       __ AllocateOpt(out, tags_kidx);
     }
   }
-  const intptr_t kidx = __ AddConstant(compiler->double_class());
+  const intptr_t kidx = __ AddConstant(box_class);
   __ Allocate(kidx);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, DeoptId::kNone,
                                  token_pos());
   compiler->RecordSafepoint(locs());
   __ PopLocal(out);
+}
+
+EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
+  ASSERT(from_representation() == kUnboxedDouble ||
+         from_representation() == kUnboxedFloat);
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  if (from_representation() == kUnboxedFloat) {
+    __ FloatToDouble(value, value);
+  }
+  EmitAllocateBox(compiler);
   __ WriteIntoDouble(out, value);
 }
 
 EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
-  ASSERT(representation() == kUnboxedDouble);
+  if (representation() == kUnboxedInt64) {
+    EmitLoadInt64FromBoxOrSmi(compiler);
+    return;
+  }
+  ASSERT(representation() == kUnboxedDouble ||
+         representation() == kUnboxedFloat);
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t box_cid = BoxCid();
   const Register box = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  if (value_cid == box_cid) {
+  if (value_cid == box_cid ||
+      (speculative_mode() == kNotSpeculative && value_cid != kSmiCid)) {
     __ UnboxDouble(result, box);
   } else if (CanConvertSmi() && (value_cid == kSmiCid)) {
     __ SmiToDouble(result, box);
   } else if ((value()->Type()->ToNullableCid() == box_cid) &&
              value()->Type()->is_nullable()) {
     __ IfEqNull(box);
+    ASSERT(CanDeoptimize());
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
     __ UnboxDouble(result, box);
   } else {
     __ CheckedUnboxDouble(result, box);
+    ASSERT(CanDeoptimize());
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
+  }
+  if (representation() == kUnboxedFloat) {
+    __ DoubleToFloat(result, result);
   }
 }
 
@@ -1759,6 +1811,39 @@ EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
   Unsupported(compiler);
   UNREACHABLE();
 #endif  // defined(ARCH_IS_64_BIT)
+}
+
+EMIT_NATIVE_CODE(BoxInt64, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  Label done;
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  __ BoxInt64(out, value);
+  __ Jump(&done);
+  EmitAllocateBox(compiler);
+  __ WriteIntoMint(out, value);
+  __ Bind(&done);
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+void UnboxInstr::EmitLoadInt64FromBoxOrSmi(FlowGraphCompiler* compiler) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  __ UnboxInt64(out, value);
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+EMIT_NATIVE_CODE(UnboxedWidthExtender, 1, Location::RequiresRegister()) {
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  __ UnboxedWidthExtender(out, value, from_representation());
 }
 
 EMIT_NATIVE_CODE(DoubleToSmi, 1, Location::RequiresRegister()) {
@@ -2082,6 +2167,10 @@ EMIT_NATIVE_CODE(CheckArrayBound, 2) {
   compiler->EmitDeopt(deopt_id(), ICData::kDeoptCheckArrayBound,
                       (generalized_ ? ICData::kGeneralized : 0) |
                           (licm_hoisted_ ? ICData::kHoisted : 0));
+}
+
+void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
 }
 
 }  // namespace dart

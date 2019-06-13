@@ -11,7 +11,9 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
 import '../fasta_codes.dart'
     show
+        Message,
         noLength,
+        templateBadTypeVariableInSupertype,
         templateConflictsWithConstructor,
         templateConflictsWithFactory,
         templateConflictsWithMember,
@@ -28,6 +30,7 @@ import '../kernel/kernel_builder.dart'
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelFunctionBuilder,
+        KernelInvalidTypeBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelTypeBuilder,
@@ -39,6 +42,8 @@ import '../kernel/kernel_builder.dart'
         compareProcedures;
 
 import '../kernel/kernel_shadow_ast.dart' show ShadowClass;
+
+import '../kernel/type_algorithms.dart' show Variance, computeVariance;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -144,6 +149,7 @@ class SourceClassBuilder extends KernelClassBuilder
 
     scope.forEach(buildBuilders);
     constructors.forEach(buildBuilders);
+    supertype = checkSupertype(supertype);
     actualCls.supertype =
         supertype?.buildSupertype(library, charOffset, fileUri);
     if (!isMixinDeclaration &&
@@ -160,16 +166,25 @@ class SourceClassBuilder extends KernelClassBuilder
           fileUri);
       actualCls.supertype = null;
     }
+    if (actualCls.supertype == null && supertype is! KernelNamedTypeBuilder) {
+      supertype = null;
+    }
+    mixedInType = checkSupertype(mixedInType);
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
+    if (actualCls.mixedInType == null &&
+        mixedInType is! KernelNamedTypeBuilder) {
+      mixedInType = null;
+    }
     actualCls.isMixinDeclaration = isMixinDeclaration;
     // TODO(ahe): If `cls.supertype` is null, and this isn't Object, report a
     // compile-time error.
     cls.isAbstract = isAbstract;
     if (interfaces != null) {
-      for (KernelTypeBuilder interface in interfaces) {
+      for (int i = 0; i < interfaces.length; ++i) {
+        interfaces[i] = checkSupertype(interfaces[i]);
         Supertype supertype =
-            interface.buildSupertype(library, charOffset, fileUri);
+            interfaces[i].buildSupertype(library, charOffset, fileUri);
         if (supertype != null) {
           // TODO(ahe): Report an error if supertype is null.
           actualCls.implementedTypes.add(supertype);
@@ -202,9 +217,10 @@ class SourceClassBuilder extends KernelClassBuilder
     scope.setters.forEach((String name, Declaration setter) {
       Declaration member = scopeBuilder[name];
       if (member == null ||
-          !(member.isField && !member.isFinal ||
-              member.isRegularMethod && member.isStatic && setter.isStatic))
+          !(member.isField && !member.isFinal && !member.isConst ||
+              member.isRegularMethod && member.isStatic && setter.isStatic)) {
         return;
+      }
       if (member.isInstanceMember == setter.isInstanceMember) {
         addProblem(templateConflictsWithMember.withArguments(name),
             setter.charOffset, noLength);
@@ -231,6 +247,26 @@ class SourceClassBuilder extends KernelClassBuilder
 
     cls.procedures.sort(compareProcedures);
     return cls;
+  }
+
+  KernelTypeBuilder checkSupertype(KernelTypeBuilder supertype) {
+    if (typeVariables == null || supertype == null) return supertype;
+    Message message;
+    for (int i = 0; i < typeVariables.length; ++i) {
+      int variance = computeVariance(typeVariables[i], supertype);
+      if (variance == Variance.contravariant ||
+          variance == Variance.invariant) {
+        message = templateBadTypeVariableInSupertype.withArguments(
+            typeVariables[i].name, supertype.name);
+        library.addProblem(message, charOffset, noLength, fileUri);
+      }
+    }
+    if (message != null) {
+      return new KernelNamedTypeBuilder(supertype.name, null)
+        ..bind(new KernelInvalidTypeBuilder(supertype.name,
+            message.withLocation(fileUri, charOffset, noLength)));
+    }
+    return supertype;
   }
 
   void addSyntheticConstructor(Constructor constructor) {
@@ -276,7 +312,7 @@ class SourceClassBuilder extends KernelClassBuilder
 
   List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
     final List<Declaration> result = <Declaration>[];
-    final KernelNamedTypeBuilder supertype = this.supertype;
+    final KernelTypeBuilder supertype = this.supertype;
     if (supertype != null) {
       result.add(supertype.declaration);
     } else if (objectClass != this) {
@@ -285,11 +321,11 @@ class SourceClassBuilder extends KernelClassBuilder
     final List<KernelTypeBuilder> interfaces = this.interfaces;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
-        KernelNamedTypeBuilder interface = interfaces[i];
+        KernelTypeBuilder interface = interfaces[i];
         result.add(interface.declaration);
       }
     }
-    final KernelNamedTypeBuilder mixedInType = this.mixedInType;
+    final KernelTypeBuilder mixedInType = this.mixedInType;
     if (mixedInType != null) {
       result.add(mixedInType.declaration);
     }

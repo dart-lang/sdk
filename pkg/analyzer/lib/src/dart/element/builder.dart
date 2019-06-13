@@ -83,7 +83,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     className.staticElement = element;
-    element.abstract = node.isAbstract;
+    element.isAbstract = node.isAbstract;
     _fillClassElement(node, element, holder);
 
     _currentHolder.addType(element);
@@ -97,7 +97,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
-    element.abstract = node.abstractKeyword != null;
+    element.isAbstract = node.abstractKeyword != null;
     element.mixinApplication = true;
     element.typeParameters = holder.typeParameters;
     setElementDocumentationComment(element, node);
@@ -430,7 +430,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
         setElementDocumentationComment(element, node);
-        element.abstract = node.isAbstract;
+        element.isAbstract = node.isAbstract;
         if (node.externalKeyword != null || body is NativeFunctionBody) {
           element.external = true;
         }
@@ -482,7 +482,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             getter.generator = true;
           }
           getter.variable = field;
-          getter.abstract = node.isAbstract;
+          getter.isAbstract = node.isAbstract;
           getter.getter = true;
           getter.isStatic = isStatic;
           field.getter = getter;
@@ -511,7 +511,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             setter.generator = true;
           }
           setter.variable = field;
-          setter.abstract = node.isAbstract;
+          setter.isAbstract = node.isAbstract;
           setter.setter = true;
           setter.isStatic = isStatic;
           if (node.returnType == null) {
@@ -1523,6 +1523,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<void> {
     FunctionType type = new FunctionTypeImpl(element);
     element.type = type;
     (node as GenericFunctionTypeImpl).type = type;
+    (node as GenericFunctionTypeImpl).declaredElement = element;
     holder.validate();
   }
 

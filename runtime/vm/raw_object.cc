@@ -427,6 +427,7 @@ REGULAR_VISITOR(Type)
 REGULAR_VISITOR(TypeRef)
 REGULAR_VISITOR(TypeParameter)
 REGULAR_VISITOR(PatchClass)
+REGULAR_VISITOR(Function)
 COMPRESSED_VISITOR(Closure)
 REGULAR_VISITOR(ClosureData)
 REGULAR_VISITOR(SignatureData)
@@ -477,6 +478,7 @@ NULL_VISITOR(Float64x2)
 NULL_VISITOR(Bool)
 NULL_VISITOR(Capability)
 NULL_VISITOR(SendPort)
+NULL_VISITOR(TransferableTypedData)
 REGULAR_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
@@ -494,73 +496,6 @@ UNREACHABLE_VISITOR(Integer)
 UNREACHABLE_VISITOR(String)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
-
-bool RawFunction::CheckUsageCounter(RawFunction* raw_fun) {
-  // NOTE: This code runs while GC is in progress and runs within
-  // a NoHandleScope block. Hence it is not okay to use regular Zone or
-  // Scope handles. We use direct stack handles, and so the raw pointers in
-  // these handles are not traversed. The use of handles is mainly to
-  // be able to reuse the handle based code and avoid having to add
-  // helper functions to the raw object interface.
-  Function fn;
-  fn = raw_fun;
-
-  // The function may not have code.
-  if (!fn.HasCode()) return false;
-  // These may not increment the usage counter.
-  if (fn.is_intrinsic()) return false;
-
-  if (fn.usage_counter() >= 0) {
-    fn.SetUsageCounter(fn.usage_counter() / 2);
-  }
-  return FLAG_always_drop_code || (fn.usage_counter() == 0);
-}
-
-bool RawFunction::ShouldVisitCode(RawCode* raw_code) {
-  // NOTE: This code runs while GC is in progress and runs within
-  // a NoHandleScope block. Hence it is not okay to use regular Zone or
-  // Scope handles. We use direct stack handles, and so the raw pointers in
-  // these handles are not traversed. The use of handles is mainly to
-  // be able to reuse the handle based code and avoid having to add
-  // helper functions to the raw object interface.
-  Code code;
-  code = raw_code;
-  if (code.IsNull()) return true;
-  if (code.is_optimized()) return true;
-  if (code.HasBreakpoint()) return true;
-  return false;
-}
-
-intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
-                                            ObjectPointerVisitor* visitor) {
-  if (visitor->visit_function_code() || !CheckUsageCounter(raw_obj)) {
-    visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-    return Function::InstanceSize();
-  }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  UNREACHABLE();
-#else
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to_no_code());
-
-  visitor->VisitPointer(
-      reinterpret_cast<RawObject**>(&raw_obj->ptr()->bytecode_));
-
-  if (ShouldVisitCode(raw_obj->ptr()->code_)) {
-    visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&raw_obj->ptr()->code_));
-  } else {
-    visitor->add_skipped_code_function(raw_obj);
-  }
-
-  if (ShouldVisitCode(raw_obj->ptr()->unoptimized_code_)) {
-    visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&raw_obj->ptr()->unoptimized_code_));
-  } else {
-    visitor->add_skipped_code_function(raw_obj);
-  }
-#endif
-  return Function::InstanceSize();
-}
 
 bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
   if (raw_obj->IsCode()) {
@@ -603,7 +538,7 @@ bool RawBytecode::ContainsPC(RawObject* raw_obj, uword pc) {
     RawBytecode* raw_bytecode = static_cast<RawBytecode*>(raw_obj);
     uword start = raw_bytecode->ptr()->instructions_;
     uword size = raw_bytecode->ptr()->instructions_size_;
-    return (pc - start) < size;
+    return (pc - start) <= size;  // pc may point past last instruction.
   }
   return false;
 }

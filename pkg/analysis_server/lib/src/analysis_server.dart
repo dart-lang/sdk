@@ -42,6 +42,7 @@ import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -54,7 +55,6 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context_root.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -147,10 +147,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 
   PerformanceLog _analysisPerformanceLogger;
 
-  ByteStore byteStore;
-  nd.AnalysisDriverScheduler analysisDriverScheduler;
-  DeclarationsTracker declarationsTracker;
-
   /// The controller for [onAnalysisSetChanged].
   final StreamController _onAnalysisSetChangedController =
       new StreamController.broadcast(sync: true);
@@ -202,12 +198,21 @@ class AnalysisServer extends AbstractAnalysisServer {
       }
       _analysisPerformanceLogger = new PerformanceLog(sink);
     }
+
     byteStore = createByteStore(resourceProvider);
+
     analysisDriverScheduler = new nd.AnalysisDriverScheduler(
         _analysisPerformanceLogger,
         driverWatcher: pluginWatcher);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
+
+    if (options.featureSet.completion) {
+      declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
+      declarationsTrackerData = DeclarationsTrackerData(declarationsTracker);
+      analysisDriverScheduler.outOfBandWorker =
+          CompletionLibrariesWorker(declarationsTracker);
+    }
 
     contextManager = new ContextManagerImpl(
         resourceProvider,
@@ -274,27 +279,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// The stream that is notified with `true` when analysis is started.
   Stream<bool> get onAnalysisStarted {
     return _onAnalysisStartedController.stream;
-  }
-
-  void createDeclarationsTracker(void Function(LibraryChange) listener) {
-    if (declarationsTracker != null) return;
-
-    declarationsTracker = DeclarationsTracker(byteStore, resourceProvider);
-    declarationsTracker.changes.listen(listener);
-
-    _addContextsToDeclarationsTracker();
-
-    // Configure the scheduler to run the tracker.
-    analysisDriverScheduler.outOfBandWorker =
-        CompletionLibrariesWorker(declarationsTracker);
-
-    // We might have done running drivers work, so ask the scheduler to check.
-    analysisDriverScheduler.notify(null);
-  }
-
-  void disposeDeclarationsTracker() {
-    declarationsTracker = null;
-    analysisDriverScheduler.outOfBandWorker = null;
   }
 
   /// The socket from which requests are being read has been closed.
@@ -384,15 +368,6 @@ class AnalysisServer extends AbstractAnalysisServer {
   bool isValidFilePath(String path) {
     return resourceProvider.pathContext.isAbsolute(path) &&
         resourceProvider.pathContext.normalize(path) == path;
-  }
-
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    if (declarationsTracker != null) {
-      declarationsTracker.changeFile(path);
-      analysisDriverScheduler.notify(null);
-    }
   }
 
   /// Read all files, resolve all URIs, and perform required analysis in
@@ -523,7 +498,7 @@ class AnalysisServer extends AbstractAnalysisServer {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
     }
-    _addContextsToDeclarationsTracker();
+    addContextsToDeclarationsTracker();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -590,7 +565,11 @@ class AnalysisServer extends AbstractAnalysisServer {
   /// Returns `true` if errors should be reported for [file] with the given
   /// absolute path.
   bool shouldSendErrorsNotificationFor(String file) {
-    return contextManager.isInAnalysisRoot(file);
+    // Errors should not be reported for things that are explicitly skipped
+    // during normal analysis (for example dot folders are skipped over in
+    // _handleWatchEventImpl).
+    return contextManager.isInAnalysisRoot(file) &&
+        !contextManager.isContainedInDotFolder(file);
   }
 
   Future<void> shutdown() {
@@ -701,15 +680,6 @@ class AnalysisServer extends AbstractAnalysisServer {
 //    });
   }
 
-  void _addContextsToDeclarationsTracker() {
-    if (declarationsTracker != null) {
-      for (var driver in driverMap.values) {
-        declarationsTracker.addContext(driver.analysisContext);
-        driver.resetUriResolution();
-      }
-    }
-  }
-
   /// Return the path to the location of the byte store on disk, or `null` if
   /// there is no on-disk byte store.
   String _getByteStorePath() {
@@ -772,6 +742,9 @@ class AnalysisServerOptions {
 
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
+
+  /// The set of enabled features.
+  FeatureSet featureSet = FeatureSet();
 }
 
 class ServerContextManagerCallbacks extends ContextManagerCallbacks {
@@ -916,6 +889,11 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   void afterWatchEvent(WatchEvent event) {
     analysisServer._onAnalysisSetChangedController.add(null);
+  }
+
+  @override
+  void analysisOptionsUpdated(nd.AnalysisDriver driver) {
+    analysisServer.updateContextInDeclarationsTracker(driver);
   }
 
   @override

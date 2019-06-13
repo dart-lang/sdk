@@ -27,6 +27,7 @@
 #include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
@@ -649,24 +650,75 @@ Cids* Cids::CreateMonomorphic(Zone* zone, intptr_t cid) {
   return cids;
 }
 
-Cids* Cids::Create(Zone* zone, const ICData& ic_data, int argument_number) {
+Cids* Cids::CreateAndExpand(Zone* zone,
+                            const ICData& ic_data,
+                            int argument_number) {
   Cids* cids = new (zone) Cids(zone);
   cids->CreateHelper(zone, ic_data, argument_number,
                      /* include_targets = */ false);
   cids->Sort(OrderById);
 
   // Merge adjacent class id ranges.
-  int dest = 0;
-  for (int src = 1; src < cids->length(); src++) {
-    if (cids->cid_ranges_[dest]->cid_end + 1 >=
-        cids->cid_ranges_[src]->cid_start) {
-      cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
-    } else {
-      dest++;
-      if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+  {
+    int dest = 0;
+    for (int src = 1; src < cids->length(); src++) {
+      if (cids->cid_ranges_[dest]->cid_end + 1 >=
+          cids->cid_ranges_[src]->cid_start) {
+        cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+      } else {
+        dest++;
+        if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+      }
+    }
+    cids->SetLength(dest + 1);
+  }
+
+  // Merging/extending cid ranges is also done in CallTargets::CreateAndExpand.
+  // If changing this code, consider also adjusting CallTargets code.
+
+  if (cids->length() > 1 && argument_number == 0 && ic_data.HasOneTarget()) {
+    // Try harder to merge ranges if method lookups in the gaps result in the
+    // same target method.
+    const Function& target = Function::Handle(zone, ic_data.GetTargetAt(0));
+    if (!MethodRecognizer::PolymorphicTarget(target)) {
+      const auto& args_desc_array =
+          Array::Handle(zone, ic_data.arguments_descriptor());
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const auto& name = String::Handle(zone, ic_data.target_name());
+      auto& fn = Function::Handle(zone);
+
+      intptr_t dest = 0;
+      for (intptr_t src = 1; src < cids->length(); src++) {
+        // Inspect all cids in the gap and see if they all resolve to the same
+        // target.
+        bool can_merge = true;
+        for (intptr_t cid = cids->cid_ranges_[dest]->cid_end + 1,
+                      end = cids->cid_ranges_[src]->cid_start;
+             cid < end; ++cid) {
+          bool class_is_abstract = false;
+          if (FlowGraphCompiler::LookupMethodFor(cid, name, args_desc, &fn,
+                                                 &class_is_abstract)) {
+            if (fn.raw() == target.raw()) {
+              continue;
+            }
+            if (class_is_abstract) {
+              continue;
+            }
+          }
+          can_merge = false;
+          break;
+        }
+
+        if (can_merge) {
+          cids->cid_ranges_[dest]->cid_end = cids->cid_ranges_[src]->cid_end;
+        } else {
+          dest++;
+          if (src != dest) cids->cid_ranges_[dest] = cids->cid_ranges_[src];
+        }
+      }
+      cids->SetLength(dest + 1);
     }
   }
-  cids->SetLength(dest + 1);
 
   return cids;
 }
@@ -771,7 +823,7 @@ bool CheckClassInstr::IsCompactCidRange(const Cids& cids) {
 
   intptr_t min = cids.ComputeLowestCid();
   intptr_t max = cids.ComputeHighestCid();
-  return (max - min) < kBitsPerWord;
+  return (max - min) < compiler::target::kBitsPerWord;
 }
 
 bool CheckClassInstr::IsBitTest() const {
@@ -785,7 +837,7 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
   for (intptr_t i = 0; i < cids_.length(); ++i) {
     intptr_t run;
     uintptr_t range = 1ul + cids_[i].Extent();
-    if (range >= static_cast<uintptr_t>(kBitsPerWord)) {
+    if (range >= static_cast<uintptr_t>(compiler::target::kBitsPerWord)) {
       run = -1;
     } else {
       run = (1 << range) - 1;
@@ -1173,9 +1225,6 @@ bool Value::NeedsWriteBarrier() {
   // immediate objects (Smis) or permanent objects (vm-isolate heap or
   // image pages). Here we choose to skip the barrier for any constant on
   // the assumption it will remain reachable through the object pool.
-  // TODO(concurrent-marking): Consider ensuring marking is not in progress
-  // when code is disabled or only omitting the barrier if code collection
-  // is disabled.
 
   return !BindsToConstant();
 }
@@ -1263,6 +1312,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
 
@@ -1281,6 +1331,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      current->RefineReachingType(other->Type());
       next = current->next_use();
     }
     next = other->env_use_list();
@@ -1784,7 +1835,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
   }
   const intptr_t value_cid = value()->Type()->ToCid();
   if (value_cid == kSmiCid) {
-    return (kSmiBits > 32) && !is_truncating() &&
+    return (compiler::target::kSmiBits > 32) && !is_truncating() &&
            !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
   } else if (value_cid == kMintCid) {
@@ -1793,7 +1844,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
                              RangeBoundary::kRangeBoundaryInt32);
   } else if (is_truncating() && value()->definition()->IsBoxInteger()) {
     return false;
-  } else if ((kSmiBits < 32) && value()->Type()->IsInt()) {
+  } else if ((compiler::target::kSmiBits < 32) && value()->Type()->IsInt()) {
     return !RangeUtils::Fits(value()->definition()->range(),
                              RangeBoundary::kRangeBoundaryInt32);
   } else {
@@ -1884,7 +1935,7 @@ bool BinaryIntegerOpInstr::RightIsPowerOfTwoConstant() const {
 static intptr_t RepresentationBits(Representation r) {
   switch (r) {
     case kTagged:
-      return kBitsPerWord - 1;
+      return compiler::target::kBitsPerWord - 1;
     case kUnboxedInt32:
     case kUnboxedUint32:
       return 32;
@@ -2635,6 +2686,30 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   }
 }
 
+bool LoadFieldInstr::IsTypedDataViewFactory(const Function& function) {
+  auto kind = MethodRecognizer::RecognizeKind(function);
+  switch (kind) {
+    case MethodRecognizer::kTypedData_ByteDataView_factory:
+    case MethodRecognizer::kTypedData_Int8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint8ClampedArrayView_factory:
+    case MethodRecognizer::kTypedData_Int16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint16ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Uint64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
+    case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
+      return true;
+    default:
+      return false;
+  }
+}
+
 Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
@@ -2706,6 +2781,21 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       if (call->is_known_list_constructor() &&
           IsFixedLengthArrayCid(call->Type()->ToCid())) {
         return call->ArgumentAt(1);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // Similarly, we check for the ByteData constructor and forward its
+        // explicit length argument appropriately.
+        return call->ArgumentAt(1);
+      } else if (IsTypedDataViewFactory(call->function())) {
+        // Typed data view factories all take three arguments (after
+        // the implicit type arguments parameter):
+        //
+        // 1) _TypedList buffer -- the underlying data for the view
+        // 2) int offsetInBytes -- the offset into the buffer to start viewing
+        // 3) int length        -- the number of elements in the view
+        //
+        // Here, we forward the third.
+        return call->ArgumentAt(3);
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       if (slot().kind() == Slot::Kind::kArray_length) {
@@ -2722,14 +2812,43 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
     }
+  } else if (slot().kind() == Slot::Kind::kTypedDataView_data) {
+    // This case cover the first explicit argument to typed data view
+    // factories, the data (buffer).
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      if (IsTypedDataViewFactory(call->function())) {
+        return call->ArgumentAt(1);
+      }
+    }
+  } else if (slot().kind() == Slot::Kind::kTypedDataView_offset_in_bytes) {
+    // This case cover the second explicit argument to typed data view
+    // factories, the offset into the buffer.
+    Definition* array = instance()->definition()->OriginalDefinition();
+    if (StaticCallInstr* call = array->AsStaticCall()) {
+      if (IsTypedDataViewFactory(call->function())) {
+        return call->ArgumentAt(2);
+      } else if (call->function().recognized_kind() ==
+                 MethodRecognizer::kByteDataFactory) {
+        // A _ByteDataView returned from the ByteData constructor always
+        // has an offset of 0.
+        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+      }
+    }
   } else if (slot().IsTypeArguments()) {
     Definition* array = instance()->definition()->OriginalDefinition();
     if (StaticCallInstr* call = array->AsStaticCall()) {
       if (call->is_known_list_constructor()) {
         return call->ArgumentAt(0);
-      } else if (call->function().recognized_kind() ==
-                 MethodRecognizer::kLinkedHashMap_getData) {
+      } else if (IsTypedDataViewFactory(call->function())) {
         return flow_graph->constant_null();
+      }
+      switch (call->function().recognized_kind()) {
+        case MethodRecognizer::kByteDataFactory:
+        case MethodRecognizer::kLinkedHashMap_getData:
+          return flow_graph->constant_null();
+        default:
+          break;
       }
     } else if (CreateArrayInstr* create_array = array->AsCreateArray()) {
       return create_array->element_type()->definition();
@@ -3065,7 +3184,7 @@ Definition* UnboxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 // (on simdbc64 the [UnboxedConstantInstr] handling is only implemented for
 //  doubles and causes a bailout for everthing else)
 #if !defined(TARGET_ARCH_DBC)
-  if (kBitsPerWord == 64) {
+  if (compiler::target::kBitsPerWord == 64) {
     ConstantInstr* c = value()->definition()->AsConstant();
     if (c != NULL && (c->value().IsSmi() || c->value().IsMint())) {
       UnboxedConstantInstr* uc =
@@ -3365,6 +3484,15 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   return cids().HasClassId(value_cid) ? NULL : this;
 }
 
+Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  const intptr_t cid = object()->Type()->ToCid();
+  if (cid != kDynamicCid) {
+    const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
+    return flow_graph->GetConstant(smi);
+  }
+  return this;
+}
+
 Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
   if (value()->BindsToConstant()) {
     const Object& constant_value = value()->BoundConstant();
@@ -3464,6 +3592,11 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
   if (call->is_known_list_constructor() &&
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
+  } else if (call->function().recognized_kind() ==
+             MethodRecognizer::kByteDataFactory) {
+    length = call->ArgumentAt(1)->AsConstant();
+  } else if (LoadFieldInstr::IsTypedDataViewFactory(call->function())) {
+    length = call->ArgumentAt(3)->AsConstant();
   }
   if ((length != NULL) && length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
@@ -3592,6 +3725,9 @@ CallTargets* CallTargets::CreateAndExpand(Zone* zone, const ICData& ic_data) {
   Function& fn = Function::Handle(zone);
 
   intptr_t length = targets.length();
+
+  // Merging/extending cid ranges is also done in Cids::CreateAndExpand.
+  // If changing this code, consider also adjusting Cids code.
 
   // Spread class-ids to preceding classes where a lookup yields the same
   // method.  A polymorphic target is not really the same method since its
@@ -3767,27 +3903,34 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ nop();
   }
 #endif
-  __ Bind(compiler->GetJumpLabel(this));
+  if (tag() == Instruction::kFunctionEntry) {
+    __ Bind(compiler->GetJumpLabel(this));
+  }
 
 // In the AOT compiler we want to reduce code size, so generate no
 // fall-through code in [FlowGraphCompiler::CompileGraph()].
 // (As opposed to here where we don't check for the return value of
 // [Intrinsify]).
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  if (FLAG_precompiled_mode) {
-    const Function& function = compiler->parsed_function().function();
-    if (function.IsDynamicFunction()) {
-      compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
-      __ MonomorphicCheckedEntry();
-      compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
-    }
+  const Function& function = compiler->parsed_function().function();
+  if (function.IsDynamicFunction()) {
+    compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
+    __ MonomorphicCheckedEntry();
+    compiler->SpecialStatsEnd(CombinedCodeStatistics::kTagCheckedEntry);
   }
-  // NOTE: Because in X64/ARM mode the graph can have multiple entrypoints, we
-  // generate several times the same intrinsification & frame setup. That's why
-  // we cannot rely on the constant pool being `false` when we come in here.
+
+  // NOTE: Because of the presence of multiple entry-points, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
-  if (compiler->TryIntrinsify()) return;
+#endif
+
+  if (compiler->TryIntrinsify() && compiler->skip_body_compilation()) {
+    return;
+  }
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 
@@ -3814,6 +3957,11 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* NativeEntryInstr::MakeLocationSummary(Zone* zone,
+                                                       bool optimizing) const {
+  UNREACHABLE();
+}
+
 LocationSummary* OsrEntryInstr::MakeLocationSummary(Zone* zone,
                                                     bool optimizing) const {
   UNREACHABLE();
@@ -3825,13 +3973,16 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(compiler->is_optimizing());
   __ Bind(compiler->GetJumpLabel(this));
 
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM)
-  // NOTE: Because in JIT X64/ARM mode the graph can have multiple
-  // entrypoints, so we generate several times the same intrinsification &
-  // frame setup.  That's why we cannot rely on the constant pool being
-  // `false` when we come in here.
+  // NOTE: Because the graph can have multiple entrypoints, we generate several
+  // times the same intrinsification & frame setup. That's why we cannot rely on
+  // the constant pool being `false` when we come in here.
+#if defined(TARGET_USES_OBJECT_POOL)
   __ set_constant_pool_allowed(false);
+#endif
+
   compiler->EmitPrologue();
+
+#if defined(TARGET_USES_OBJECT_POOL)
   ASSERT(__ constant_pool_allowed());
 #endif
 
@@ -3914,6 +4065,43 @@ LocationSummary* ParameterInstr::MakeLocationSummary(Zone* zone,
 
 void ParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
+}
+
+void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
+  // The native entry frame has size -kExitLinkSlotFromFp. In order to access
+  // the top of stack from above the entry frame, we add a constant to account
+  // for the the two frame pointers and two return addresses of the entry frame.
+  constexpr intptr_t kEntryFramePadding = 4;
+  FrameRebase rebase(/*old_base=*/SPREG, /*new_base=*/FPREG,
+                     -kExitLinkSlotFromEntryFp + kEntryFramePadding);
+  const Location dst = locs()->out(0);
+  const Location src = rebase.Rebase(loc_);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMove(dst, src, &no_temp);
+#else
+  UNREACHABLE();
+#endif
+}
+
+LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
+                                                           bool opt) const {
+#if !defined(TARGET_ARCH_DBC)
+  ASSERT(opt);
+  Location input = Location::Any();
+  if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
+    input = Location::Pair(Location::RequiresRegister(),
+                           Location::RequiresFpuRegister());
+  } else {
+    input = RegisterKindForResult() == Location::kRegister
+                ? Location::RequiresRegister()
+                : Location::RequiresFpuRegister();
+  }
+  return LocationSummary::Make(zone, /*num_inputs=*/0, input,
+                               LocationSummary::kNoCall);
+#else
+  UNREACHABLE();
+#endif
 }
 
 bool ParallelMoveInstr::IsRedundant() const {
@@ -4051,8 +4239,8 @@ static RawCode* TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
   switch (kind) {
     case Token::kADD:
       return StubCode::SmiAddInlineCache().raw();
-    case Token::kSUB:
-      return StubCode::SmiSubInlineCache().raw();
+    case Token::kLT:
+      return StubCode::SmiLessInlineCache().raw();
     case Token::kEQ:
       return StubCode::SmiEqualInlineCache().raw();
     default:
@@ -4211,7 +4399,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 bool InstanceCallInstr::MatchesCoreName(const String& name) {
-  return function_name().raw() == Library::PrivateCoreLibName(name).raw();
+  return Library::IsPrivateCoreLibName(function_name(), name);
 }
 
 RawFunction* InstanceCallInstr::ResolveForReceiverClass(
@@ -4265,7 +4453,7 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherOrImplicitAccessorTargets()
   const intptr_t len = targets_.length();
   Function& target = Function::Handle();
   for (intptr_t i = 0; i < len; i++) {
-    target ^= targets_.TargetAt(i)->target->raw();
+    target = targets_.TargetAt(i)->target->raw();
     if (!target.IsDispatcherOrImplicitAccessor()) {
       return false;
     }
@@ -4905,18 +5093,18 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   if (RawObject::IsTypedDataClassId(class_id) ||
       RawObject::IsTypedDataViewClassId(class_id) ||
       RawObject::IsExternalTypedDataClassId(class_id)) {
-    return TypedDataBase::length_offset();
+    return compiler::target::TypedDataBase::length_offset();
   }
 
   switch (class_id) {
     case kGrowableObjectArrayCid:
-      return GrowableObjectArray::length_offset();
+      return compiler::target::GrowableObjectArray::length_offset();
     case kOneByteStringCid:
     case kTwoByteStringCid:
-      return String::length_offset();
+      return compiler::target::String::length_offset();
     case kArrayCid:
     case kImmutableArrayCid:
-      return Array::length_offset();
+      return compiler::target::Array::length_offset();
     default:
       UNREACHABLE();
       return -1;
@@ -5164,10 +5352,6 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   return "";
 }
 
-const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {
-  return kCaseInsensitiveCompareUC16RuntimeEntry;
-}
-
 TruncDivModInstr::TruncDivModInstr(Value* lhs, Value* rhs, intptr_t deopt_id)
     : TemplateDefinition(deopt_id) {
   SetInputAt(0, lhs);
@@ -5227,10 +5411,6 @@ void BitCastInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #endif  // defined(TARGET_ARCH_ARM)
 
-#if !defined(TARGET_ARCH_DBC)
-
-#define Z zone_
-
 Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
@@ -5238,6 +5418,10 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
     return arg_representations_[idx];
   }
 }
+
+#if !defined(TARGET_ARCH_DBC)
+
+#define Z zone_
 
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
@@ -5292,10 +5476,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
-Representation FfiCallInstr::representation() const {
-  return compiler::ffi::ResultRepresentation(signature_);
-}
-
 Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
   if (in.IsPairLocation()) {
     ASSERT(!is_atomic);
@@ -5312,24 +5492,47 @@ Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
   }
 }
 
+LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, result_location_);
+  return locs;
+}
+
 #undef Z
 
 #else
 
-Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
-  UNREACHABLE();
-}
-
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  UNREACHABLE();
-}
+  LocationSummary* summary =
+      new (zone) LocationSummary(zone, /*num_inputs=*/InputCount(),
+                                 /*num_temps=*/0, LocationSummary::kCall);
 
-Representation FfiCallInstr::representation() const {
-  UNREACHABLE();
+  summary->set_in(
+      TargetAddressIndex(),
+      Location::RegisterLocation(compiler::ffi::kFunctionAddressRegister));
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    summary->set_in(i, arg_locations_[i]);
+  }
+  summary->set_out(0, compiler::ffi::ResultLocation(
+                          compiler::ffi::ResultHostRepresentation(signature_)));
+
+  return summary;
 }
 
 #endif  // !defined(TARGET_ARCH_DBC)
+
+Representation FfiCallInstr::representation() const {
+#if !defined(TARGET_ARCH_DBC)
+  return compiler::ffi::ResultRepresentation(signature_);
+#else
+  return compiler::ffi::ResultHostRepresentation(signature_);
+#endif  // !defined(TARGET_ARCH_DBC)
+}
 
 // SIMD
 

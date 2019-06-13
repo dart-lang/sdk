@@ -31,12 +31,14 @@ m() {
   }
 
   test_and_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool? x;
   if(x && true) {}
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+    ]);
   }
 
   test_as_nullable() async {
@@ -46,6 +48,26 @@ m() {
   x as int;
 }
 ''');
+  }
+
+  test_assert_nonNullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  bool x = true;
+  assert(x);
+}
+''');
+  }
+
+  test_assert_nullable() async {
+    await assertErrorsInCode(r'''
+m() {
+  bool? x;
+  assert(x);
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 26, 1),
+    ]);
   }
 
   test_await_nonNullable() async {
@@ -76,12 +98,14 @@ m() {
   }
 
   test_cascade_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x..isEven;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_eq_nullable() async {
@@ -103,12 +127,15 @@ m() {
   }
 
   test_forLoop_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   List? x;
   for (var y in x) {}
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 33, 1),
+    ]);
   }
 
   test_if_nonNullable() async {
@@ -121,12 +148,14 @@ m() {
   }
 
   test_if_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool? x;
   if (x) {}
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+    ]);
   }
 
   test_index_nonNullable() async {
@@ -139,12 +168,14 @@ m() {
   }
 
   test_index_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   List? x;
   x[0];
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
   }
 
   test_invoke_dynamicFunctionType_nonNullable() async {
@@ -156,16 +187,15 @@ m() {
 ''');
   }
 
-  @failingTest
   test_invoke_dynamicFunctionType_nullable() async {
-    // test is failing because nullable function invocations aren't being
-    // resolved correctly
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Function? x;
   x();
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+    ]);
   }
 
   test_invoke_nonNullable() async {
@@ -177,16 +207,15 @@ m() {
 ''');
   }
 
-  @failingTest
   test_invoke_nullable() async {
-    // test is failing because nullable function invocations aren't being
-    // resolved correctly
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Function()? x;
   x();
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 25, 1),
+    ]);
   }
 
   test_invoke_parenthesized_nonNullable() async {
@@ -203,6 +232,15 @@ m() {
 m() {
   int? x;
   x is int;
+}
+''');
+  }
+
+  test_member_dynamic_nullable() async {
+    await assertNoErrorsInCode(r'''
+m() {
+  dynamic x;
+  x.foo;
 }
 ''');
   }
@@ -226,12 +264,14 @@ m() {
   }
 
   test_member_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x.isEven;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_member_parenthesized_hashCode_nullable() async {
@@ -244,12 +284,14 @@ m() {
   }
 
   test_member_parenthesized_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   (x).isEven;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 3),
+    ]);
   }
 
   test_member_parenthesized_runtimeType_nullable() async {
@@ -259,6 +301,28 @@ m() {
   (x).runtimeType;
 }
 ''');
+  }
+
+  test_member_potentiallyNullable() async {
+    await assertErrorsInCode(r'''
+m<T extends int?>() {
+  T x;
+  x.isEven;
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 31, 1),
+    ]);
+  }
+
+  test_member_potentiallyNullable_called() async {
+    await assertErrorsInCode(r'''
+m<T extends Function>() {
+  List<T?> x;
+  x.first();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 44, 5),
+    ]);
   }
 
   test_member_questionDot_nullable() async {
@@ -292,18 +356,20 @@ m() {
     await assertNoErrorsInCode(r'''
 m() {
   int x;
-  x.noSuchMethod(null);
+  x.noSuchMethod(throw '');
 }
 ''');
   }
 
   test_method_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x.round();
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_method_questionDot_nullable() async {
@@ -334,12 +400,15 @@ m() {
   }
 
   test_minusEq_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x -= 1;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_not_nonNullable() async {
@@ -352,12 +421,14 @@ m() {
   }
 
   test_not_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool? x;
   if(!x) {}
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 23, 1),
+    ]);
   }
 
   test_notEq_nullable() async {
@@ -379,12 +450,14 @@ m() {
   }
 
   test_operatorMinus_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x - 3;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_operatorPlus_nonNullable() async {
@@ -397,12 +470,14 @@ m() {
   }
 
   test_operatorPlus_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x + 3;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_operatorPostfixDec_nonNullable() async {
@@ -415,12 +490,15 @@ m() {
   }
 
   test_operatorPostfixDec_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x--;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_operatorPostfixInc_nonNullable() async {
@@ -433,12 +511,15 @@ m() {
   }
 
   test_operatorPostfixInc_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x++;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_operatorPrefixDec_nonNullable() async {
@@ -451,12 +532,15 @@ m() {
   }
 
   test_operatorPrefixDec_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   --x;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
+    ]);
   }
 
   test_operatorPrefixInc_nonNullable() async {
@@ -469,12 +553,15 @@ m() {
   }
 
   test_operatorPrefixInc_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   ++x;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 20, 1),
+    ]);
   }
 
   test_operatorUnaryMinus_nonNullable() async {
@@ -487,12 +574,15 @@ m() {
   }
 
   test_operatorUnaryMinus_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   -x;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
   }
 
   test_or_nonNullable() async {
@@ -505,12 +595,14 @@ m() {
   }
 
   test_or_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool? x;
   if(x || false) {}
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 22, 1),
+    ]);
   }
 
   test_plusEq_nonNullable() async {
@@ -523,21 +615,26 @@ m() {
   }
 
   test_plusEq_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   int? x;
   x += 1;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 18, 1),
+    ]);
   }
 
   test_ternary_condition_nullable() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   bool? x;
   x ? 0 : 1;
 }
-''', [StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE]);
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 19, 1),
+    ]);
   }
 
   test_ternary_lhs_nullable() async {

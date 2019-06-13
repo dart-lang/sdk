@@ -233,16 +233,6 @@ const MessageCode messageAssertExtraneousArgument = const MessageCode(
     message: r"""`assert` can't have more than two arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeAsyncAsIdentifier = messageAsyncAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAsyncAsIdentifier = const MessageCode(
-    "AsyncAsIdentifier",
-    analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
-    message:
-        r"""'async' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -271,6 +261,34 @@ const Code<Null> codeAwaitNotAsync = messageAwaitNotAsync;
 const MessageCode messageAwaitNotAsync = const MessageCode("AwaitNotAsync",
     analyzerCodes: <String>["AWAIT_IN_WRONG_CONTEXT"],
     message: r"""'await' can only be used in 'async' or 'async*' methods.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
+    templateBadTypeVariableInSupertype =
+    const Template<Message Function(String name, String name2)>(
+        messageTemplate:
+            r"""Found unsupported uses of '#name' in supertype '#name2'.""",
+        withArguments: _withArgumentsBadTypeVariableInSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeBadTypeVariableInSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "BadTypeVariableInSupertype",
+  templateBadTypeVariableInSupertype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsBadTypeVariableInSupertype(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeBadTypeVariableInSupertype,
+      message:
+          """Found unsupported uses of '${name}' in supertype '${name2}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -757,6 +775,36 @@ const MessageCode messageColonInPlaceOfIn = const MessageCode(
     tip: r"""Try replacing the colon with the keyword 'in'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String string,
+        String
+            string2)> templateConflictingModifiers = const Template<
+        Message Function(String string, String string2)>(
+    messageTemplate:
+        r"""Members can't be declared to be both '#string' and '#string2'.""",
+    tipTemplate: r"""Try removing one of the keywords.""",
+    withArguments: _withArgumentsConflictingModifiers);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String string, String string2)>
+    codeConflictingModifiers =
+    const Code<Message Function(String string, String string2)>(
+        "ConflictingModifiers", templateConflictingModifiers,
+        index: 59);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsConflictingModifiers(String string, String string2) {
+  if (string.isEmpty) throw 'No string provided';
+  if (string2.isEmpty) throw 'No string provided';
+  return new Message(codeConflictingModifiers,
+      message:
+          """Members can't be declared to be both '${string}' and '${string2}'.""",
+      tip: """Try removing one of the keywords.""",
+      arguments: {'string': string, 'string2': string2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithConstructor =
     const Template<Message Function(String name)>(
         messageTemplate: r"""Conflicts with constructor '#name'.""",
@@ -920,17 +968,6 @@ const MessageCode messageConflictsWithTypeVariableCause = const MessageCode(
     message: r"""This is the type variable.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAndCovariant = messageConstAndCovariant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndCovariant = const MessageCode(
-    "ConstAndCovariant",
-    index: 57,
-    message:
-        r"""Members can't be declared to be both 'const' and 'covariant'.""",
-    tip: r"""Try removing either the 'const' or 'covariant' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstAndFinal = messageConstAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -938,15 +975,6 @@ const MessageCode messageConstAndFinal = const MessageCode("ConstAndFinal",
     index: 58,
     message: r"""Members can't be declared to be both 'const' and 'final'.""",
     tip: r"""Try removing either the 'const' or 'final' keyword.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstAndVar = messageConstAndVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndVar = const MessageCode("ConstAndVar",
-    index: 59,
-    message: r"""Members can't be declared to be both 'const' and 'var'.""",
-    tip: r"""Try removing either the 'const' or 'var' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstClass = messageConstClass;
@@ -1476,36 +1504,6 @@ Message _withArgumentsConstEvalInvalidType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstList =
-    messageConstEvalIterationInConstList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstList = const MessageCode(
-    "ConstEvalIterationInConstList",
-    analyzerCodes: <String>["NON_CONSTANT_LIST_ELEMENT"],
-    message: r"""Iteration can't be used in a constant list.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstMap =
-    messageConstEvalIterationInConstMap;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstMap = const MessageCode(
-    "ConstEvalIterationInConstMap",
-    analyzerCodes: <String>["NON_CONSTANT_MAP_ELEMENT"],
-    message: r"""Iteration can't be used in a constant map.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeConstEvalIterationInConstSet =
-    messageConstEvalIterationInConstSet;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalIterationInConstSet = const MessageCode(
-    "ConstEvalIterationInConstSet",
-    analyzerCodes: <String>["NON_CONSTANT_SET_ELEMENT"],
-    message: r"""Iteration can't be used in a constant set.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Constant _constant)>
     templateConstEvalKeyImplementsEqual =
     const Template<Message Function(Constant _constant)>(
@@ -1943,28 +1941,6 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
       message: """Couldn't parse URI '${string}':
   ${string2}.""", arguments: {'string': string, 'string2': string2});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCovariantAfterFinal = messageCovariantAfterFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAfterFinal = const MessageCode(
-    "CovariantAfterFinal",
-    index: 65,
-    message:
-        r"""The modifier 'covariant' should be before the modifier 'final'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeCovariantAfterVar = messageCovariantAfterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAfterVar = const MessageCode(
-    "CovariantAfterVar",
-    index: 8,
-    message:
-        r"""The modifier 'covariant' should be before the modifier 'var'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCovariantAndStatic = messageCovariantAndStatic;
@@ -2955,27 +2931,6 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedClassBodyToSkip =
-    const Template<Message Function(Token token)>(
-        messageTemplate:
-            r"""Expected a class or mixin body, but got '#lexeme'.""",
-        withArguments: _withArgumentsExpectedClassBodyToSkip);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedClassBodyToSkip =
-    const Code<Message Function(Token token)>(
-        "ExpectedClassBodyToSkip", templateExpectedClassBodyToSkip,
-        analyzerCodes: <String>["MISSING_CLASS_BODY"]);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassBodyToSkip(Token token) {
-  String lexeme = token.lexeme;
-  return new Message(codeExpectedClassBodyToSkip,
-      message: """Expected a class or mixin body, but got '${lexeme}'.""",
-      arguments: {'token': token});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedClassMember =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""Expected a class member, but got '#lexeme'.""",
@@ -2996,24 +2951,27 @@ Message _withArgumentsExpectedClassMember(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(Token token)> templateExpectedClassOrMixinBody =
-    const Template<Message Function(Token token)>(
+const Template<Message Function(String string)>
+    templateExpectedClassOrMixinBody =
+    const Template<Message Function(String string)>(
         messageTemplate:
-            r"""Expected a class or mixin body, but got '#lexeme'.""",
+            r"""A #string must have a body, even if it is empty.""",
+        tipTemplate: r"""Try adding an empty body.""",
         withArguments: _withArgumentsExpectedClassOrMixinBody);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(Token token)> codeExpectedClassOrMixinBody =
-    const Code<Message Function(Token token)>(
+const Code<Message Function(String string)> codeExpectedClassOrMixinBody =
+    const Code<Message Function(String string)>(
         "ExpectedClassOrMixinBody", templateExpectedClassOrMixinBody,
-        analyzerCodes: <String>["MISSING_CLASS_BODY"]);
+        index: 8);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassOrMixinBody(Token token) {
-  String lexeme = token.lexeme;
+Message _withArgumentsExpectedClassOrMixinBody(String string) {
+  if (string.isEmpty) throw 'No string provided';
   return new Message(codeExpectedClassOrMixinBody,
-      message: """Expected a class or mixin body, but got '${lexeme}'.""",
-      arguments: {'token': token});
+      message: """A ${string} must have a body, even if it is empty.""",
+      tip: """Try adding an empty body.""",
+      arguments: {'string': string});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3042,7 +3000,7 @@ const Code<Null> codeExpectedElseOrComma = messageExpectedElseOrComma;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedElseOrComma = const MessageCode(
     "ExpectedElseOrComma",
-    index: 94,
+    index: 46,
     message: r"""Expected 'else' or comma.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3255,7 +3213,7 @@ const Template<
 const Code<Message Function(String string)> codeExperimentNotEnabled =
     const Code<Message Function(String string)>(
         "ExperimentNotEnabled", templateExperimentNotEnabled,
-        index: 93);
+        index: 48);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsExperimentNotEnabled(String string) {
@@ -3356,39 +3314,6 @@ Message _withArgumentsExtendingRestricted(String name) {
           """'${name}' is restricted and can't be extended or implemented.""",
       arguments: {'name': name});
 }
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterConst = messageExternalAfterConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterConst = const MessageCode(
-    "ExternalAfterConst",
-    index: 46,
-    message:
-        r"""The modifier 'external' should be before the modifier 'const'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterFactory = messageExternalAfterFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterFactory = const MessageCode(
-    "ExternalAfterFactory",
-    index: 47,
-    message:
-        r"""The modifier 'external' should be before the modifier 'factory'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeExternalAfterStatic = messageExternalAfterStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalAfterStatic = const MessageCode(
-    "ExternalAfterStatic",
-    index: 48,
-    message:
-        r"""The modifier 'external' should be before the modifier 'static'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
@@ -6346,7 +6271,7 @@ const Code<Null> codeInvalidSuperInInitializer =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidSuperInInitializer = const MessageCode(
     "InvalidSuperInInitializer",
-    index: 95,
+    index: 47,
     message:
         r"""Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""");
 
@@ -6366,7 +6291,7 @@ const Code<Null> codeInvalidThisInInitializer = messageInvalidThisInInitializer;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidThisInInitializer = const MessageCode(
     "InvalidThisInInitializer",
-    index: 96,
+    index: 65,
     message:
         r"""Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""");
 
@@ -7419,7 +7344,7 @@ const Code<Null> codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode("OnlyTry",
-    index: 92,
+    index: 20,
     message:
         r"""A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
     tip:
@@ -8770,40 +8695,9 @@ const Code<Null> codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode("StackOverflow",
-    index: 91,
+    index: 19,
     message: r"""The file has too many nested expressions or statements.""",
     tip: r"""Try simplifying the code.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterConst = messageStaticAfterConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterConst = const MessageCode(
-    "StaticAfterConst",
-    index: 20,
-    message:
-        r"""The modifier 'static' should be before the modifier 'const'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterFinal = messageStaticAfterFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterFinal = const MessageCode(
-    "StaticAfterFinal",
-    index: 19,
-    message:
-        r"""The modifier 'static' should be before the modifier 'final'.""",
-    tip: r"""Try re-ordering the modifiers.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeStaticAfterVar = messageStaticAfterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticAfterVar = const MessageCode("StaticAfterVar",
-    index: 18,
-    message: r"""The modifier 'static' should be before the modifier 'var'.""",
-    tip: r"""Try re-ordering the modifiers.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeStaticAndInstanceConflict =
@@ -8878,7 +8772,7 @@ const Code<Null> codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode("SuperNullAware",
-    index: 90,
+    index: 18,
     message:
         r"""The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
     tip: r"""Try replacing '?.' with '.'""");
@@ -9360,7 +9254,7 @@ const Code<Null> codeTypeBeforeFactory = messageTypeBeforeFactory;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeBeforeFactory = const MessageCode(
     "TypeBeforeFactory",
-    index: 97,
+    index: 57,
     message: r"""Factory constructors cannot have a return type.""",
     tip: r"""Try removing the type appearing before 'factory'.""");
 

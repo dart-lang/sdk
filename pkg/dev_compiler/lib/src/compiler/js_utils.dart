@@ -10,7 +10,7 @@ Fun simplifyPassThroughArrowFunCallBody(Fun fn) {
   if (fn.body is Block && fn.body.statements.length == 1) {
     var stat = fn.body.statements.single;
     if (stat is Return && stat.value is Call) {
-      Call call = stat.value;
+      var call = stat.value as Call;
       var innerFun = call.target;
       if (innerFun is ArrowFun &&
           call.arguments.isEmpty &&

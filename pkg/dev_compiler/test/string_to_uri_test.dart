@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dev_compiler/src/compiler/shared_command.dart';
 import 'package:test/test.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   String currentDir;
   setUpAll(() {
     currentDir = Directory.current.path.replaceAll(r'\', r'/');

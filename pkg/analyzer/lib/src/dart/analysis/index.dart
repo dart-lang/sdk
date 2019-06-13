@@ -487,6 +487,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
             element.enclosingElement.isSynthetic)) {
       return;
     }
+    // Elements for generic function types are enclosed by the compilation
+    // units, but don't have names. So, we cannot index references to their
+    // named parameters. Ignore them.
+    if (elementKind == ElementKind.PARAMETER &&
+        element is ParameterElement &&
+        element.enclosingElement is GenericFunctionTypeElement) {
+      return;
+    }
     // Add the relation.
     assembler.addElementRelation(element, kind, offset, length, isQualified);
   }

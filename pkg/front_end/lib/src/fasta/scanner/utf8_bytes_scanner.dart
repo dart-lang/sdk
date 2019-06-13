@@ -12,7 +12,11 @@ import '../../scanner/token.dart' as analyzer show StringToken;
 
 import '../scanner.dart' show unicodeReplacementCharacter;
 
-import 'token.dart' show CommentToken, DartDocToken, StringToken;
+import 'abstract_scanner.dart'
+    show LanguageVersionChanged, ScannerConfiguration;
+
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, StringToken;
 
 import 'array_based_scanner.dart' show ArrayBasedScanner;
 
@@ -81,8 +85,12 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * array whose last element is '0' to signal the end of the file. If this
    * is not the case, the entire array is copied before scanning.
    */
-  Utf8BytesScanner(this.bytes, {bool includeComments: false})
-      : super(includeComments, numberOfBytesHint: bytes.length) {
+  Utf8BytesScanner(this.bytes,
+      {ScannerConfiguration configuration,
+      bool includeComments: false,
+      LanguageVersionChanged languageVersionChanged})
+      : super(configuration, includeComments, languageVersionChanged,
+            numberOfBytesHint: bytes.length) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
     if (containsBomAt(0)) byteOffset += 3;
@@ -230,6 +238,13 @@ class Utf8BytesScanner extends ArrayBasedScanner {
       [int extraOffset = 0]) {
     return new DartDocToken.fromUtf8Bytes(
         type, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
+  }
+
+  @override
+  LanguageVersionToken createLanguageVersionToken(
+      int start, int major, int minor) {
+    return new LanguageVersionToken.fromUtf8Bytes(
+        bytes, start, byteOffset, tokenStart, major, minor);
   }
 
   bool atEndOfFile() => byteOffset >= bytes.length - 1;

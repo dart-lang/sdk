@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../dart/resolution/driver_resolution.dart';
+import '../../generated/test_support.dart';
 
 /// A base class designed to be used by tests of the hints produced by the
 /// SdkConstraintVerifier.
@@ -13,10 +13,10 @@ class SdkConstraintVerifierTest extends DriverResolutionTest {
   /// Verify that the [errorCodes] are produced if the [source] is analyzed in
   /// a context that specifies the minimum SDK version to be [version].
   verifyVersion(String version, String source,
-      {List<ErrorCode> errorCodes}) async {
+      {List<ExpectedError> expectedErrors}) async {
     driver.configure(
         analysisOptions: analysisOptions
           ..sdkVersionConstraint = VersionConstraint.parse(version));
-    await assertErrorCodesInCode(source, errorCodes ?? []);
+    await assertErrorsInCode(source, expectedErrors ?? []);
   }
 }
