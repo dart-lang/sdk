@@ -50,13 +50,14 @@ class DecoratedType {
       assert((type as TypeImpl).nullabilitySuffix ==
           NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, graph.never,
-            returnType: decorate(type.returnType), positionalParameters: []);
+        var positionalParameters = <DecoratedType>[];
         for (var parameter in type.parameters) {
           assert(parameter.isPositional); // TODO(paulberry)
-          decoratedType.positionalParameters.add(decorate(parameter.type));
+          positionalParameters.add(decorate(parameter.type));
         }
-        return decoratedType;
+        return DecoratedType(type, graph.never,
+            returnType: decorate(type.returnType),
+            positionalParameters: positionalParameters);
       } else if (type is InterfaceType) {
         assert(type.typeParameters.isEmpty); // TODO(paulberry)
         return DecoratedType(type, graph.never);

@@ -30,12 +30,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   final Source _source;
 
   /// If the parameters of a function or method are being visited, the
-  /// [DecoratedType] of the corresponding function or method type.
-  ///
-  /// TODO(paulberry): should this be updated when we visit generic function
-  /// type syntax?  How about when we visit old-style function-typed formal
-  /// parameters?
-  DecoratedType _currentFunctionType;
+  /// [DecoratedType]s of the function's named parameters that have been seen so
+  /// far.  Otherwise `null`.
+  Map<String, DecoratedType> _namedParameters;
+
+  /// If the parameters of a function or method are being visited, the
+  /// [DecoratedType]s of the function's positional parameters that have been
+  /// seen so far.  Otherwise `null`.
+  List<DecoratedType> _positionalParameters;
 
   final NullabilityMigrationListener /*?*/ listener;
 
@@ -132,9 +134,9 @@ $stackTrace''');
     var declaredElement = node.declaredElement;
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
-      _currentFunctionType.namedParameters[declaredElement.name] = type;
+      _namedParameters[declaredElement.name] = type;
     } else {
-      _currentFunctionType.positionalParameters.add(type);
+      _positionalParameters.add(type);
     }
     return type;
   }
@@ -177,6 +179,18 @@ $stackTrace''');
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
     }
+    if (node is GenericFunctionType) {
+      var previousPositionalParameters = _positionalParameters;
+      var previousNamedParameters = _namedParameters;
+      try {
+        _positionalParameters = positionalParameters;
+        _namedParameters = namedParameters;
+        node.parameters.accept(this);
+      } finally {
+        _positionalParameters = previousPositionalParameters;
+        _namedParameters = previousNamedParameters;
+      }
+    }
     var decoratedType = DecoratedTypeAnnotation(
         type, NullabilityNode.forTypeAnnotation(node.end), node.end,
         typeArguments: typeArguments,
@@ -184,15 +198,6 @@ $stackTrace''');
         positionalParameters: positionalParameters,
         namedParameters: namedParameters);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
-    if (node is GenericFunctionType) {
-      var previousFunctionType = _currentFunctionType;
-      try {
-        _currentFunctionType = decoratedType;
-        node.parameters.accept(this);
-      } finally {
-        _currentFunctionType = previousFunctionType;
-      }
-    }
     switch (_classifyComment(node.endToken.next.precedingComments)) {
       case _NullabilityComment.bang:
         _graph.connect(decoratedType.node, _graph.never, hard: true);
@@ -275,19 +280,21 @@ $stackTrace''');
     } else {
       decoratedReturnType = decorateType(returnType, enclosingNode);
     }
-    var previousFunctionType = _currentFunctionType;
-    // TODO(paulberry): test that it's correct to use `null` for the nullability
-    // of the function type
-    var functionType = DecoratedType(declaredElement.type, _graph.never,
-        returnType: decoratedReturnType,
-        positionalParameters: [],
-        namedParameters: {});
-    _currentFunctionType = functionType;
+    var previousPositionalParameters = _positionalParameters;
+    var previousNamedParameters = _namedParameters;
+    _positionalParameters = [];
+    _namedParameters = {};
+    DecoratedType functionType;
     try {
       parameters?.accept(this);
       body?.accept(this);
+      functionType = DecoratedType(declaredElement.type, _graph.never,
+          returnType: decoratedReturnType,
+          positionalParameters: _positionalParameters,
+          namedParameters: _namedParameters);
     } finally {
-      _currentFunctionType = previousFunctionType;
+      _positionalParameters = previousPositionalParameters;
+      _namedParameters = previousNamedParameters;
     }
     _variables.recordDecoratedElementType(declaredElement, functionType);
   }
