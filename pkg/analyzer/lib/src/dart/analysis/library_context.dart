@@ -133,6 +133,9 @@ class LibraryContext {
    * Get the [LibraryElement] for the given library.
    */
   LibraryElement getLibraryElement(FileState library) {
+    if (elementFactory != null) {
+      return elementFactory.libraryOfUri(library.uriStr);
+    }
     return resynthesizer.getLibraryElement(library.uriStr);
   }
 
