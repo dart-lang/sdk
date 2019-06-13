@@ -2,7 +2,7 @@
 (Add new changes here, and they will be copied to the change section for the
  next dev version)
 
-## 2.3.3 - 2019-06-24
+## 2.4.0 - 2019-06-24
 
 ### Core libraries
 
@@ -111,6 +111,12 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 * Added `prefer_if_null_operators`.
 * Fixed `prefer_contains` false positives.
 * Fixed `unnecessary_parenthesis` false positives.
+* New lint: `prefer_double_quotes`
+* Fixed `prefer_asserts_in_initializer_lists` false positives
+* Fixed `curly_braces_in_flow_control_structures` to handle more cases
+* New lint: `prefer_double_quotes`
+* New lint: `sort_child_properties_last`
+* Fixed `type_annotate_public_apis` false positive for `static const` initializers
 
 #### Pub
 
