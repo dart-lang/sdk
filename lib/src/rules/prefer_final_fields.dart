@@ -87,10 +87,10 @@ class NotAssignedInAllConstructors {
 class PreferFinalFields extends LintRule implements NodeLintRule {
   PreferFinalFields()
       : super(
-      name: 'prefer_final_fields',
-      description: _desc,
-      details: _details,
-      group: Group.style);
+            name: 'prefer_final_fields',
+            description: _desc,
+            details: _details,
+            group: Group.style);
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
@@ -126,7 +126,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 
   void _addMutatedFieldElement(Expression expression) {
     final element =
-    DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
+        DartTypeUtilities.getCanonicalElementFromIdentifier(expression);
     if (element is FieldElement) {
       _mutatedFields.add(element);
     }
@@ -159,14 +159,14 @@ class _Visitor extends SimpleAstVisitor<void> {
         bool fieldInConstructor(constructor) =>
             constructor.initializers.any((initializer) =>
                 _containedInInitializer(element, initializer)) ||
-                constructor.parameters.parameters
-                    .any((formal) => _containedInFormal(element, formal));
+            constructor.parameters.parameters
+                .any((formal) => _containedInFormal(element, formal));
 
         final classDeclaration = node.parent;
         final constructors = (classDeclaration is ClassDeclaration
             ? classDeclaration.members
-            .whereType<ConstructorDeclaration>()
-            .toSet()
+                .whereType<ConstructorDeclaration>()
+                .toSet()
             : <ConstructorDeclaration>{});
         final isFieldInConstructors = constructors.any(fieldInConstructor);
         final isFieldInAllConstructors = constructors.every(fieldInConstructor);
@@ -184,12 +184,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 bool _containedInInitializer(
-    Element element, ConstructorInitializer initializer) =>
+        Element element, ConstructorInitializer initializer) =>
     initializer is ConstructorFieldInitializer &&
-        DartTypeUtilities.getCanonicalElementFromIdentifier(
+    DartTypeUtilities.getCanonicalElementFromIdentifier(
             initializer.fieldName) ==
-            element;
+        element;
 
 bool _containedInFormal(Element element, FormalParameter formal) =>
     formal is FieldFormalParameter &&
-        formal.declaredElement.toString() == element.toString();
+    formal.declaredElement.toString() == element.toString();
