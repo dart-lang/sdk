@@ -578,9 +578,19 @@ class Parser {
       // as an identifier such as "abstract<T>() => 0;"
       // or as a prefix such as "abstract.A b() => 0;".
       String nextValue = keyword.next.stringValue;
-      if (identical(nextValue, '(') ||
-          identical(nextValue, '<') ||
-          identical(nextValue, '.')) {
+      if (identical(nextValue, '(') || identical(nextValue, '.')) {
+        directiveState?.checkDeclaration();
+        return parseTopLevelMemberImpl(start);
+      } else if (identical(nextValue, '<')) {
+        if (identical(value, 'extension')) {
+          // The neame in an extension declaration is optional:
+          // `extension<T> on ...`
+          Token endGroup = keyword.next.endGroup;
+          if (endGroup != null && optional('on', endGroup.next)) {
+            directiveState?.checkDeclaration();
+            return parseExtension(keyword);
+          }
+        }
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(start);
       } else {
@@ -2058,16 +2068,21 @@ class Parser {
   }
 
   /// ```
-  /// 'extension' <identifier><typeParameters>? 'on' <type> '?'?
+  /// 'extension' <identifier>? <typeParameters>? 'on' <type> '?'?
   //   `{'
   //     <memberDeclaration>*
   //   `}'
   /// ```
   Token parseExtension(Token extensionKeyword) {
     assert(optional('extension', extensionKeyword));
-    Token name = ensureIdentifier(
-        extensionKeyword, IdentifierContext.classOrMixinOrExtensionDeclaration);
-    Token token = computeTypeParamOrArg(name, true).parseVariables(name, this);
+    Token token = extensionKeyword;
+    Token name = token.next;
+    if (name.isIdentifier && !optional('on', name)) {
+      token = name;
+    } else {
+      name = null;
+    }
+    token = computeTypeParamOrArg(token, true).parseVariables(token, this);
     listener.beginExtensionDeclaration(extensionKeyword, name);
     Token onKeyword = token.next;
     if (!optional('on', onKeyword)) {

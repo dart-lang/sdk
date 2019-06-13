@@ -198,9 +198,13 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionHeader");
 
     TypeParameterList typeParameters = pop();
-    SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, extensionKeyword);
+
+    SimpleIdentifier name;
+    if (nameToken != null) {
+      name = ast.simpleIdentifier(nameToken);
+    }
 
     extensionDeclaration = ast.extensionDeclaration(
       comment: comment,
