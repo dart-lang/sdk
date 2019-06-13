@@ -139,7 +139,6 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 * Added `prefer_if_null_operators`.
 * Fixed `prefer_contains` false positives.
 * Fixed `unnecessary_parenthesis` false positives.
-* New lint: `prefer_double_quotes`
 * Fixed `prefer_asserts_in_initializer_lists` false positives
 * Fixed `curly_braces_in_flow_control_structures` to handle more cases
 * New lint: `prefer_double_quotes`
