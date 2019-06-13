@@ -111,6 +111,19 @@ class B<X> extends A<void Function(X)> {};
 
 [35097]: https://github.com/dart-lang/sdk/issues/35097
 
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Improve `NoSuchMethod` errors for failing dynamic calls. Now they include
+  specific information about the nature of the error such as:
+  * Attempting to call a null value.
+  * Calling an object instance with a null `call()` method.
+  * Passing too few or too many arguments.
+  * Passing incorrect named arguments.
+  * Passing too few or too many type arguments.
+  * Passing type arguments to a non-generic method.
+
 ### Tools
 
 #### Linter
