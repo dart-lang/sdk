@@ -5836,8 +5836,6 @@ class MegamorphicCache : public Object {
   static RawMegamorphicCache* New(const String& target_name,
                                   const Array& arguments_descriptor);
 
-  void EnsureCapacity() const;
-
   void Insert(const Smi& class_id, const Object& target) const;
 
   void SwitchToBareInstructions();
@@ -5855,6 +5853,10 @@ class MegamorphicCache : public Object {
 
   void set_target_name(const String& value) const;
   void set_arguments_descriptor(const Array& value) const;
+
+  // The caller must hold Isolate::megamorphic_mutex().
+  void EnsureCapacityLocked() const;
+  void InsertLocked(const Smi& class_id, const Object& target) const;
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,

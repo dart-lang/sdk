@@ -355,7 +355,7 @@ class Isolate : public BaseIsolate {
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
-  Mutex* megamorphic_lookup_mutex() { return &megamorphic_lookup_mutex_; }
+  Mutex* megamorphic_mutex() { return &megamorphic_mutex_; }
 
   Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
   Mutex* kernel_data_class_cache_mutex() {
@@ -1027,7 +1027,8 @@ class Isolate : public BaseIsolate {
   Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex megamorphic_lookup_mutex_;         // Protects megamorphic table lookup.
+  Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
+                             // their entries.
   Mutex kernel_data_lib_cache_mutex_;
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;

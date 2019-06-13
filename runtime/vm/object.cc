@@ -14175,7 +14175,7 @@ bool ICData::HasOneTarget() const {
   if (is_megamorphic()) {
     const MegamorphicCache& cache =
         MegamorphicCache::Handle(AsMegamorphicCache());
-    SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
     MegamorphicCacheEntries entries(Array::Handle(cache.buckets()));
     for (intptr_t i = 0; i < entries.Length(); i++) {
       const intptr_t id =
@@ -15672,7 +15672,14 @@ RawMegamorphicCache* MegamorphicCache::New(const String& target_name,
   return result.raw();
 }
 
-void MegamorphicCache::EnsureCapacity() const {
+void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
+  SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
+  EnsureCapacityLocked();
+  InsertLocked(class_id, target);
+}
+
+void MegamorphicCache::EnsureCapacityLocked() const {
+  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
   intptr_t old_capacity = mask() + 1;
   double load_limit = kLoadFactor * static_cast<double>(old_capacity);
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
@@ -15696,16 +15703,18 @@ void MegamorphicCache::EnsureCapacity() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        Insert(class_id, target);
+        InsertLocked(class_id, target);
       }
     }
   }
 }
 
-void MegamorphicCache::Insert(const Smi& class_id, const Object& target) const {
+void MegamorphicCache::InsertLocked(const Smi& class_id,
+                                    const Object& target) const {
+  ASSERT(Isolate::Current()->megamorphic_mutex()->IsOwnedByCurrentThread());
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(static_cast<double>(filled_entry_count() + 1) <=
          (kLoadFactor * static_cast<double>(mask() + 1)));
-  SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
   intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;

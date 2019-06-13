@@ -1786,7 +1786,6 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   } else {
     const MegamorphicCache& cache = MegamorphicCache::Cast(ic_data_or_cache);
     // Insert function found into cache and return it.
-    cache.EnsureCapacity();
     const Smi& class_id = Smi::Handle(zone, Smi::New(cls.id()));
     cache.Insert(class_id, target_function);
   }

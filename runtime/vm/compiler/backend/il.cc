@@ -776,7 +776,7 @@ void Cids::CreateHelper(Zone* zone,
   if (ic_data.is_megamorphic()) {
     const MegamorphicCache& cache =
         MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
-    SafepointMutexLocker ml(Isolate::Current()->megamorphic_lookup_mutex());
+    SafepointMutexLocker ml(Isolate::Current()->megamorphic_mutex());
     MegamorphicCacheEntries entries(Array::Handle(zone, cache.buckets()));
     for (intptr_t i = 0; i < entries.Length(); i++) {
       const intptr_t id =
@@ -787,8 +787,10 @@ void Cids::CreateHelper(Zone* zone,
       if (include_targets) {
         Function& function = Function::ZoneHandle(zone);
         function ^= entries[i].Get<MegamorphicCache::kTargetFunctionIndex>();
+        const intptr_t filled_entry_count = cache.filled_entry_count();
+        ASSERT(filled_entry_count > 0);
         cid_ranges_.Add(new (zone) TargetInfo(
-            id, id, &function, Usage(function) / cache.filled_entry_count(),
+            id, id, &function, Usage(function) / filled_entry_count,
             StaticTypeExactnessState::NotTracking()));
       } else {
         cid_ranges_.Add(new (zone) CidRange(id, id));

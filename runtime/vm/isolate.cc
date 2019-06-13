@@ -892,8 +892,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_lookup_mutex_(
-          NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_")),
+      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
       kernel_data_lib_cache_mutex_(
           NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
       kernel_data_class_cache_mutex_(
