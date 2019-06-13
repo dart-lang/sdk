@@ -2133,20 +2133,9 @@ class Parser {
   Token parseStringPart(Token token) {
     Token next = token.next;
     if (next.kind != STRING_TOKEN) {
-      bool errorReported = false;
-      while (next is ErrorToken) {
-        errorReported = true;
-        reportErrorToken(next);
-        token = next;
-        next = token.next;
-      }
-      if (next.kind != STRING_TOKEN) {
-        if (!errorReported) {
-          reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
-        }
-        next = rewriter.insertToken(token,
-            new SyntheticStringToken(TokenType.STRING, '', next.charOffset));
-      }
+      reportRecoverableErrorWithToken(next, fasta.templateExpectedString);
+      next = rewriter.insertToken(token,
+          new SyntheticStringToken(TokenType.STRING, '', next.charOffset));
     }
     listener.handleStringPart(next);
     return next;

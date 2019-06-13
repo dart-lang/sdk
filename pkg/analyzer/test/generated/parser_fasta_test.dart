@@ -23,7 +23,6 @@ import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1706,9 +1705,12 @@ class FastaParserTestCase
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
-    var scanner = new StringScanner(content,
-        configuration: ScannerConfiguration.nonNullable, includeComments: true);
-    _fastaTokens = scanner.tokenize();
+    var result = scanString(content,
+        configuration: featureSet.isEnabled(Feature.non_nullable)
+            ? ScannerConfiguration.nonNullable
+            : ScannerConfiguration.classic,
+        includeComments: true);
+    _fastaTokens = result.tokens;
     _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
