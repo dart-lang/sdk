@@ -80,9 +80,24 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (node.declaredElement.hasRequired || node.defaultValue != null) {
       return null;
     }
+    if (decoratedType == null) {
+      throw StateError('No type computed for ${node.parameter.runtimeType} '
+          '(${node.parent.parent.toSource()}) offset=${node.offset}');
+    }
     decoratedType.node.trackPossiblyOptional();
     _variables.recordPossiblyOptional(_source, node, decoratedType.node);
     return null;
+  }
+
+  @override
+  DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
+  DecoratedType visitFunctionTypedFormalParameter(
+      FunctionTypedFormalParameter node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override

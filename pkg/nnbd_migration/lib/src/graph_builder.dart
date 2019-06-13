@@ -174,6 +174,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitAwaitExpression(AwaitExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitBinaryExpression(BinaryExpression node) {
     switch (node.operator.type) {
       case TokenType.EQ_EQ:
@@ -371,6 +376,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitListLiteral(ListLiteral node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     node.parameters?.accept(this);
     assert(_currentFunctionType == null);
@@ -451,6 +461,11 @@ $stackTrace''');
   }
 
   @override
+  DecoratedType visitPrefixExpression(PrefixExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
     return _handlePropertyAccess(node, node.realTarget, node.propertyName);
   }
@@ -482,6 +497,11 @@ $stackTrace''');
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
     return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitSuperExpression(SuperExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override
@@ -599,6 +619,10 @@ $stackTrace''');
       DecoratedType destinationType, Expression expression,
       {bool canInsertChecks = true}) {
     var sourceType = expression.accept(this);
+    if (sourceType == null) {
+      throw StateError('No type computed for ${expression.runtimeType} '
+          '(${expression.toSource()}) offset=${expression.offset}');
+    }
     _checkAssignment(
         destinationType, sourceType, canInsertChecks ? expression : null);
     return sourceType;
