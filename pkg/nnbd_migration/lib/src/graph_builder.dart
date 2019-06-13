@@ -288,6 +288,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    throw UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitIfStatement(IfStatement node) {
     // TODO(paulberry): should the use of a boolean in an if-statement be
     // treated like an implicit `assert(b != null)`?  Probably.
@@ -355,11 +361,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       // appropriate type arguments.
       throw UnimplementedError('TODO(brianwilkerson)');
     }
-    if (node.argumentList.arguments.isNotEmpty) {
-      // Extract the argument handling from visitMethodInvocation and invoke it
-      // here.
-      throw UnimplementedError('TODO(brianwilkerson)');
-    }
+    _handleInvocationArguments(node.argumentList, calleeType);
     return calleeType.returnType;
   }
 
@@ -398,30 +400,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var callee = node.methodName.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      throw UnimplementedError('TODO(paulberry)');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
-    var arguments = node.argumentList.arguments;
-    int i = 0;
-    var suppliedNamedParameters = Set<String>();
-    for (var expression in arguments) {
-      if (expression is NamedExpression) {
-        var name = expression.name.label.name;
-        var parameterType = calleeType.namedParameters[name];
-        assert(parameterType != null); // TODO(paulberry)
-        _handleAssignment(parameterType, expression.expression);
-        suppliedNamedParameters.add(name);
-      } else {
-        assert(calleeType.positionalParameters.length > i); // TODO(paulberry)
-        _handleAssignment(calleeType.positionalParameters[i++], expression);
-      }
-    }
-    // Any parameters not supplied must be optional.
-    for (var entry in calleeType.namedParameters.entries) {
-      if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph);
-    }
+    _handleInvocationArguments(node.argumentList, calleeType);
     var expressionType = calleeType.returnType;
     if (isConditional) {
       expressionType = expressionType.withNode(
@@ -619,6 +602,36 @@ $stackTrace''');
     _checkAssignment(
         destinationType, sourceType, canInsertChecks ? expression : null);
     return sourceType;
+  }
+
+  /// Creates the necessary constraint(s) for an [argumentList] when invoking an
+  /// executable element whose type is [calleeType].
+  void _handleInvocationArguments(
+      ArgumentList argumentList, DecoratedType calleeType) {
+    var arguments = argumentList.arguments;
+    int i = 0;
+    var suppliedNamedParameters = Set<String>();
+    for (var expression in arguments) {
+      if (expression is NamedExpression) {
+        var name = expression.name.label.name;
+        var parameterType = calleeType.namedParameters[name];
+        if (parameterType == null) {
+          throw UnimplementedError('TODO(paulberry)');
+        }
+        _handleAssignment(parameterType, expression.expression);
+        suppliedNamedParameters.add(name);
+      } else {
+        if (calleeType.positionalParameters.length <= i) {
+          throw UnimplementedError('TODO(paulberry)');
+        }
+        _handleAssignment(calleeType.positionalParameters[i++], expression);
+      }
+    }
+    // Any parameters not supplied must be optional.
+    for (var entry in calleeType.namedParameters.entries) {
+      if (suppliedNamedParameters.contains(entry.key)) continue;
+      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph);
+    }
   }
 
   DecoratedType _handlePropertyAccess(

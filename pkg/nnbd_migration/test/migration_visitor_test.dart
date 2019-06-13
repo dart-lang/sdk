@@ -788,6 +788,21 @@ C f(C c) => c..[0];
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
+  test_instanceCreation_parameter() async {
+    await analyze('''
+class C {
+  C(int x);
+}
+void f(int y) {
+  C(y);
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int y').node,
+        decoratedTypeAnnotation('int x').node,
+        hard: true);
+  }
+
   test_intLiteral() async {
     await analyze('''
 int f() {
