@@ -54,8 +54,8 @@ only be spread into a map, and the literal can't be both.
 
 There are two common ways to fix this problem. The first is to remove all
 of the spread elements of one kind or the other, so that the elements are
-consistent. In this case, that likely means removing the list (and
-deciding what to do about the now unused parameter):
+consistent. In this case, that likely means removing the list and deciding
+what to do about the now unused parameter:
 
 ```dart
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
@@ -74,20 +74,20 @@ union(Map<String, String> a, List<String> b, Map<String, String> c) =>
 ### ambiguous\_set\_or\_map\_literal\_either
 
 _This literal must be either a map or a set, but the elements don't have enough
-type information for type inference to work._
+information for type inference to work._
 
 #### Description
 
-Because map and set literals use the same delimiters (`‘{` and `}`), the
+Because map and set literals use the same delimiters (`{` and `}`), the
 analyzer looks at the type arguments and the elements to determine which
 kind of literal you meant. When there are no type arguments and all of the
 elements are spread elements (which are allowed in both kinds of literals)
-then the analyzer uses the types of the expressions that are being spread
-to decide. If all of the expressions have the type `Iterable`, then it's a
-set literal, if they all have the type `Map`, then it's a map literal.
+then the analyzer uses the types of the expressions that are being spread.
+If all of the expressions have the type `Iterable`, then it's a set
+literal; if they all have the type `Map`, then it's a map literal.
 
-This diagnostic is produced when none of the expressions being spread has a
-type that allows the analyzer to decide whether you were writing a map
+This diagnostic is produced when none of the expressions being spread have
+a type that allows the analyzer to decide whether you were writing a map
 literal or a set literal.
 
 #### Example
@@ -168,8 +168,7 @@ void f(C c) {
 #### Common fixes
 
 The documentation for declarations that are annotated with `@deprecated`
-should have documentation to indicate what code to use in place of the
-deprecated code.
+should indicate what code to use in place of the deprecated code.
 
 ### expression\_in\_map
 
@@ -188,10 +187,11 @@ The following code generates this diagnostic:
 var map = <String, int>{'a': 0, 'b': 1, !'c'!};
 ```
 
-#### Common fixes
+#### Common fix
 
 If the expression is intended to compute either a key or a value in an
-entry, fix the issue by completing the code:
+entry, fix the issue by replacing the expression with the key or the value.
+For example:
 
 ```dart
 var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
@@ -242,7 +242,7 @@ var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...m};
 ```
 
-#### Common fixes
+#### Common fix
 
 The most common fix is to replace the expression with one that produces an
 iterable object:
@@ -266,8 +266,8 @@ against earlier versions of the SDK.
 
 #### Example
 
-In a package that defines SDK constraints in the `pubspec.yaml` file that
-have a lower bound that's less than 2.2:
+In a package that defines the SDK constraint (in the pubspec.yaml file),
+with a lower bound of less than 2.2.:
 
 ```yaml
 environment:
