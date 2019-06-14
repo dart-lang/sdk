@@ -3912,7 +3912,6 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   SimpleIdentifier get name => _name;
 
-  @override
   void set name(SimpleIdentifier identifier) {
     _name = _becomeParentOf(identifier as SimpleIdentifierImpl);
   }
