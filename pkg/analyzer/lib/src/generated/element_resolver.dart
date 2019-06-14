@@ -169,7 +169,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         if (_shouldReportInvalidMember(staticType, staticMethod)) {
           _recordUndefinedToken(
               staticType.element,
-              StaticTypeWarningCode.UNDEFINED_METHOD,
+              StaticTypeWarningCode.UNDEFINED_OPERATOR,
               operator,
               [methodName, staticType.displayName]);
         }
