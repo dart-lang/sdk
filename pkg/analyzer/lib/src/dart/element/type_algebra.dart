@@ -318,11 +318,12 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     inner.invertVariance();
 
     var returnType = inner.visit(type.returnType);
+    var typeArguments = type.typeArguments.map(visit).toList();
 
     if (this.useCounter == before) return type;
 
     return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters,
-        element: type.element);
+        element: type.element, typeArguments: typeArguments);
   }
 
   @override

@@ -6460,6 +6460,17 @@ int Function(int, String) v;
 ''');
   }
 
+  test_genericFunction_typeParameter_asTypedefArgument() async {
+    var library = await checkLibrary(r'''
+typedef F1 = Function<V1>(F2<V1>);
+typedef F2<V2> = V2 Function();
+''');
+    checkElementText(library, r'''
+typedef F1 = dynamic Function<V1>(V1 Function() );
+typedef F2<V2> = V2 Function();
+''');
+  }
+
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0

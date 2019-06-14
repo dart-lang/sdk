@@ -831,7 +831,6 @@ class AstBinaryReader {
       question:
           AstBinaryFlags.hasQuestion(data.flags) ? _Tokens.QUESTION : null,
     );
-    node.type = _readType(data.genericFunctionType_type);
 
     // Create the node element, so now type parameter elements are available.
     LazyAst.setGenericFunctionTypeId(node, id);
@@ -849,6 +848,7 @@ class AstBinaryReader {
     }
     node.returnType = readNode(data.genericFunctionType_returnType);
     node.parameters = _readNode(data.genericFunctionType_formalParameters);
+    node.type = _readType(data.genericFunctionType_type);
 
     return node;
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -124,18 +125,20 @@ C<Function()> x;
     addTestFile(r'''
 G<int> g;
 
-typedef G<T> = T Function();
+typedef G<T> = T Function(double);
 ''');
     await resolveTestFile();
 
-    var type = findElement.topVar('g').type;
-    assertElementTypeString(type, 'int Function()');
+    FunctionType type = findElement.topVar('g').type;
+    assertElementTypeString(type, 'int Function(double)');
 
     var typedefG = findElement.genericTypeAlias('G');
     var functionG = typedefG.function;
 
-    expect(type.element?.enclosingElement, typedefG);
     expect(type.element, functionG);
+    expect(type.element?.enclosingElement, typedefG);
+
+    assertElementTypeStrings(type.typeArguments, ['int']);
   }
 
   test_typeParameters() async {

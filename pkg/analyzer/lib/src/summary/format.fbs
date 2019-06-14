@@ -1999,6 +1999,8 @@ table LinkedNodeType {
   /// The typedef this function type is created for.
   functionTypedef:uint (id: 11);
 
+  functionTypedefTypeArguments:[LinkedNodeType] (id: 12);
+
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
 
   genericTypeAliasReference:uint (id: 8);
