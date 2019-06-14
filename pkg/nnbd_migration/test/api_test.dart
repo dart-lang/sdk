@@ -694,6 +694,22 @@ int get g => 0;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_ifStatement_nullCheck_noElse() async {
+    var content = '''
+int f(int x) {
+  if (x == null) return 0;
+  return x;
+}
+''';
+    var expected = '''
+int f(int x) {
+  if (x == null) return 0;
+  return x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {
