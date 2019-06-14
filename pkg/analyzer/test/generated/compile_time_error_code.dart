@@ -648,25 +648,28 @@ var x = const C(2);
 
   test_constEvalThrowsException_unaryBitNot_null() async {
     await assertErrorsInCode('''
-const C = ~null;
+const dynamic D = null;
+const C = ~D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
   test_constEvalThrowsException_unaryNegated_null() async {
     await assertErrorsInCode('''
-const C = -null;
+const dynamic D = null;
+const C = -D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
   test_constEvalThrowsException_unaryNot_null() async {
     await assertErrorsInCode('''
-const C = !null;
+const dynamic D = null;
+const C = !D;
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 5),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 2),
     ]);
   }
 
@@ -5547,9 +5550,10 @@ f() {
   Future<void> _check_constEvalThrowsException_binary_null(
       String expr, bool resolved) async {
     await assertErrorsInCode('''
-const C = $expr;
+const dynamic D = null;
+const C = ${expr.replaceAll('null', 'D')};
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 8),
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 34, 5),
     ]);
   }
 

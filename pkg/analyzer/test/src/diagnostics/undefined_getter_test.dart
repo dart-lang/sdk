@@ -91,6 +91,15 @@ f(Object x) {
 ''');
   }
 
+  test_nullMember_undefined() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  Null _null;
+  _null.foo;
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   test_promotedTypeParameter_regress35305() async {
     await assertErrorsInCode(r'''
 void f<X extends num, Y extends X>(Y y) {

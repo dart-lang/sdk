@@ -1743,14 +1743,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   /**
    * Return `true` if we should report an error for a [member] lookup that found
-   * no match on the given [type], or accessing a [member] on a nullable type.
+   * no match on the given [type].
    */
-  bool _shouldReportInvalidMember(DartType type, Element member) {
-    return type != null &&
-        member == null &&
-        !type.isDynamic &&
-        !type.isDartCoreNull;
-  }
+  bool _shouldReportInvalidMember(DartType type, Element member) =>
+      type != null && member == null && !type.isDynamic;
 
   /**
    * Checks whether the given [expression] is a reference to a class. If it is
