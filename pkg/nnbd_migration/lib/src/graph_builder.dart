@@ -278,7 +278,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitDoubleLiteral(DoubleLiteral node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override

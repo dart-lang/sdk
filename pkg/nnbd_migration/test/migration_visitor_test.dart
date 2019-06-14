@@ -447,6 +447,15 @@ int f(bool b, int i) {
     assertConditional(nullable_conditional, nullable_i, always);
   }
 
+  test_doubleLiteral() async {
+    await analyze('''
+double f() {
+  return 1.0;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
+  }
+
   test_functionDeclaration_expression_body() async {
     await analyze('''
 int/*1*/ f(int/*2*/ i) => i/*3*/;
@@ -833,7 +842,7 @@ void f(int y) {
         hard: true);
   }
 
-  test_intLiteral() async {
+  test_integerLiteral() async {
     await analyze('''
 int f() {
   return 0;
