@@ -887,9 +887,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(false);
   __ EnterDartFrame(0, PP);
 
-  // Save the stack limit address.
-  __ PushRegister(CSP);
-
   // Make space for arguments and align the frame.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
                               kWordSize);
@@ -911,21 +908,20 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, FPREG, temp);
+
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack.
   __ mov(CSP, SP);
 
-  // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(branch, FPREG, temp);
-
   __ blr(branch);
+
+  // Restore the Dart stack pointer.
+  __ mov(SP, CSP);
 
   // Update information in the thread object and leave the safepoint.
   __ TransitionNativeToGenerated(temp);
-
-  // Restore the Dart stack pointer and the saved C stack pointer.
-  __ mov(SP, CSP);
-  __ LoadFromOffset(CSP, FPREG, kFirstLocalSlotFromFp * kWordSize);
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
