@@ -51,8 +51,8 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
     // upstream from it.
     if (node == never) return;
 
-    for (var upstreamNode in graph.getUpstreamNodes(node)) {
-      expect(upstreamNode, never);
+    for (var edge in graph.getUpstreamEdges(node)) {
+      expect(edge.primarySource, never);
     }
   }
 

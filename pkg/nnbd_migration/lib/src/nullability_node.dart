@@ -207,32 +207,12 @@ class NullabilityGraph {
 /// testing.
 @visibleForTesting
 class NullabilityGraphForTesting extends NullabilityGraph {
-  /// Iterates through all nodes that are "upstream" of [node] due to
-  /// unconditional control flow.
+  /// Iterates through all edges that have this node as their destination.
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.
   @visibleForTesting
   Iterable<NullabilityEdge> getUpstreamEdges(NullabilityNode node) {
     return node._upstreamEdges;
-  }
-
-  /// Iterates through all nodes that are "upstream" of [node] (i.e. if
-  /// any of the iterated nodes are nullable, then [node] will either have to be
-  /// nullable, or null checks will have to be added).
-  ///
-  /// There is no guarantee of uniqueness of the iterated nodes.
-  ///
-  /// This method is inefficent since it has to search the entire graph, so it
-  /// is for testing only.
-  @visibleForTesting
-  Iterable<NullabilityNode> getUpstreamNodes(NullabilityNode node) sync* {
-    for (var source in _allSourceNodes) {
-      for (var edge in source._downstreamEdges) {
-        if (edge.destinationNode == node) {
-          yield source;
-        }
-      }
-    }
   }
 }
 
@@ -255,10 +235,7 @@ abstract class NullabilityNode {
   /// to be nullable, or null checks will have to be added).
   final _downstreamEdges = <NullabilityEdge>[];
 
-  /// List of nodes that are "upstream" from this node via unconditional control
-  /// flow (meaning that if a node in the list is nullable, then there exists
-  /// code that is unguarded by an "if" statement that indicates that this node
-  /// will have to be nullable, or null checks will have to be added).
+  /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
