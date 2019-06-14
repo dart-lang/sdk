@@ -226,8 +226,11 @@ class Generator {
 
   String get since {
     var info = sinceInfo[name];
+    var version = info.sinceDartSdk != null
+        ? '>= ${info.sinceDartSdk}'
+        : '<strong>unreleased</strong>';
     // todo (pq): consider a footnote explaining that since info is static and "unreleased" tags may be stale.
-    return 'Dart SDK: >= ${info.sinceDartSdk ?? "<unreleased>"} • <small>(Linter v${info.sinceLinter})</small>';
+    return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
 
   generate([String filePath]) {
