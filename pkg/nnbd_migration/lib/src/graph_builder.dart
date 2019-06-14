@@ -530,6 +530,10 @@ $stackTrace''');
       if (typeArguments == null) {
         var instantiatedType =
             _variables.decoratedTypeAnnotation(_source, typeName);
+        if (instantiatedType == null) {
+          throw new StateError('No type annotation for type name '
+              '${typeName.toSource()}, offset=${typeName.offset}');
+        }
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
               instantiatedType.typeArguments[i],
