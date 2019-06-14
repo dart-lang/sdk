@@ -10,10 +10,10 @@ import 'package:smith/smith.dart';
 export 'package:smith/smith.dart';
 
 import 'compiler_configuration.dart';
-import 'http_server.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
+import 'testing_servers.dart';
 
 /// All of the contextual information to determine how a test suite should be
 /// run.

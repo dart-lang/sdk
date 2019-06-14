@@ -16,14 +16,16 @@
  * output (+deps file), dart application)
  */
 
-import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
-import '../../../tools/testing/dart/command.dart';
-import '../../../tools/testing/dart/command_output.dart';
-import '../../../tools/testing/dart/path.dart';
-import '../../../tools/testing/dart/repository.dart';
-import '../../../tools/testing/dart/test_runner.dart' as runner;
+
+import 'package:expect/expect.dart';
+
+import 'package:test_runner/src/command.dart';
+import 'package:test_runner/src/command_output.dart';
+import 'package:test_runner/src/path.dart';
+import 'package:test_runner/src/repository.dart';
+import 'package:test_runner/src/test_case.dart';
 
 /**
  * This class is reponsible for setting up the files necessary for this test
@@ -159,7 +161,7 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
 }
 
 void main() {
-  // This script is in [sdk]/tests/standalone/io.
+  // This script is in [sdk]/pkg/test_runner/test.
   Repository.uri = Platform.script.resolve('../../..');
 
   var fs_noTestJs = new FileUtils(
@@ -214,8 +216,8 @@ void main() {
 
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
       var completedHandler = new CommandCompletedHandler(fileUtils, shouldRun);
-      var command = makeCompilationCommand(name, fileUtils);
-      var process = new runner.RunningProcess(command, 60);
+      var command = makeCompilationCommand(name, fileUtils) as ProcessCommand;
+      var process = new RunningProcess(command, 60);
       return process.run().then((CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });

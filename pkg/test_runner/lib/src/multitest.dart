@@ -90,10 +90,6 @@ final _multitestOutcomes = [
   'checked mode compile-time error' // This is now a no-op
 ].toSet();
 
-// Note: This function is called directly by:
-//
-//     tests/compiler/dart2js/frontend_checker.dart
-//     tools/status_clean.dart
 void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
     Map<String, Set<String>> outcomes) {
   var contents = new File(filePath.toNativePath()).readAsStringSync();

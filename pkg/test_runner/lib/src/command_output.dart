@@ -13,7 +13,7 @@ import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
 import 'test_progress.dart';
-import 'test_runner.dart';
+import 'test_case.dart';
 import 'utils.dart';
 
 /// CommandOutput records the output of a completed command: the process's exit

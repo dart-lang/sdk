@@ -181,8 +181,8 @@ test options, specifying how tests should be run.''',
     new _Option.bool(
         'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
         hide: true),
-    new _Option.bool(
-        'use_elf', 'Directly generate an ELF shared libraries for precompilation.',
+    new _Option.bool('use_elf',
+        'Directly generate an ELF shared libraries for precompilation.',
         hide: true),
     new _Option.bool('keep_generated_files', 'Keep any generated files.',
         abbr: 'k'),

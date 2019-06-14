@@ -192,6 +192,7 @@
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
+      "pkg/test_runner/",
       "pkg/vm/",
       "runtime/",
       "sdk/",
@@ -1778,6 +1779,11 @@
           "arguments": ["--fatal-warnings", "pkg/telemetry"]
         },
         {
+          "name": "analyze pkg/test_runner",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/test_runner"]
+        },
+        {
           "name": "analyze pkg/testing",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/testing"]
@@ -1801,12 +1807,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "tools/gardening"]
         },
-        {
-          "name": "analyze tools/testing/dart",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "tools/testing/dart"]
-        },
-
         {
           "name": "dartanalyzer --batch tests",
           "arguments": [

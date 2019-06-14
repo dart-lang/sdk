@@ -8,10 +8,9 @@ import 'dart:io';
 
 import 'package:package_resolver/package_resolver.dart';
 
-import 'configuration.dart';
-import 'repository.dart';
-import 'utils.dart';
-import 'vendored_pkg/args/args.dart';
+import 'package:test_runner/src/configuration.dart';
+import 'package:test_runner/src/repository.dart';
+import 'package:test_runner/src/utils.dart';
 
 class DispatchingServer {
   HttpServer server;
@@ -60,52 +59,6 @@ class DispatchingServer {
 
 const PREFIX_BUILDDIR = 'root_build';
 const PREFIX_DARTDIR = 'root_dart';
-
-void main(List<String> arguments) {
-  /** Convenience method for local testing. */
-  var parser = new ArgParser();
-  parser.addOption('port',
-      abbr: 'p',
-      help: 'The main server port we wish to respond to requests.',
-      defaultsTo: '0');
-  parser.addOption('crossOriginPort',
-      abbr: 'c',
-      help: 'A different port that accepts request from the main server port.',
-      defaultsTo: '0');
-  parser.addFlag('help',
-      abbr: 'h', negatable: false, help: 'Print this usage information.');
-  parser.addOption('build-directory', help: 'The build directory to use.');
-  parser.addOption('package-root', help: 'The package root to use.');
-  parser.addOption('packages', help: 'The package spec file to use.');
-  parser.addOption('network',
-      help: 'The network interface to use.', defaultsTo: '0.0.0.0');
-  parser.addFlag('csp',
-      help: 'Use Content Security Policy restrictions.', defaultsTo: false);
-  parser.addOption('runtime',
-      help: 'The runtime we are using (for csp flags).', defaultsTo: 'none');
-
-  var args = parser.parse(arguments);
-  if (args['help'] as bool) {
-    print(parser.getUsage());
-  } else {
-    var servers = new TestingServers(
-        args['build-directory'] as String,
-        args['csp'] as bool,
-        Runtime.find(args['runtime'] as String),
-        null,
-        args['package-root'] as String,
-        args['packages'] as String);
-    var port = int.parse(args['port'] as String);
-    var crossOriginPort = int.parse(args['crossOriginPort'] as String);
-    servers
-        .startServers(args['network'] as String,
-            port: port, crossOriginPort: crossOriginPort)
-        .then((_) {
-      DebugLogger.info('Server listening on port ${servers.port}');
-      DebugLogger.info('Server listening on port ${servers.crossOriginPort}');
-    });
-  }
-}
 
 /**
  * Runs a set of servers that are initialized specifically for the needs of our
@@ -186,7 +139,7 @@ class TestingServers {
   /// Gets the command line string to spawn the server.
   String get commandLine {
     var dart = Platform.resolvedExecutable;
-    var script = _dartDirectory.resolve('tools/testing/dart/http_server.dart');
+    var script = _dartDirectory.resolve('pkg/test_runner/bin/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
 
     var command = [

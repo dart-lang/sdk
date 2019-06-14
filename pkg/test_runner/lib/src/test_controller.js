@@ -251,7 +251,7 @@ window.addEventListener('DOMContentLoaded', onLoad, false);
 // Note: before renaming this function, note that it is also included in an
 // inlined error handler in generated HTML files, and manually in tests that
 // include an HTML file.
-// See: tools/testing/dart/browser_test.dart
+// See: pkg/test_runner/lib/src/browser.dart
 function scriptTagOnErrorCallback(e) {
   var message = e && e.message;
   recordEvent('script_onerror', 'script.onError called: ' + message);

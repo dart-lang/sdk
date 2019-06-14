@@ -1,11 +1,11 @@
 name: status_file
 # This package is not intended to be published.
 publish_to: none
-
+environment:
+  sdk: "^2.3.0"
 dependencies:
   path: "^1.4.0"
   args: "^1.4.4"
-
 dev_dependencies:
   expect:
     path: ../expect

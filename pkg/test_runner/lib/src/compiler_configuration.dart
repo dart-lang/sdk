@@ -516,7 +516,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   Command computeBabelCommand(String input, String output, String options) {
     var uri = Repository.uri;
     var babelTransform =
-        uri.resolve('tools/testing/dart/babel_transform.js').toFilePath();
+        uri.resolve('pkg/test_runner/lib/src/babel_transform.js').toFilePath();
     var babelStandalone =
         uri.resolve('third_party/babel/babel.min.js').toFilePath();
     return Command.compilation(

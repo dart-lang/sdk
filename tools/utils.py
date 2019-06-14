@@ -817,7 +817,8 @@ def TryUnlink(file):
 class BaseCoreDumpArchiver(object):
   """This class reads coredumps file written by UnexpectedCrashDumpArchiver
   into the current working directory and uploads all cores and binaries
-  listed in it into Cloud Storage (see tools/testing/dart/test_progress.dart).
+  listed in it into Cloud Storage (see
+  pkg/test_runner/lib/src/test_progress.dart).
   """
 
   # test.dart will write a line for each unexpected crash into this file.

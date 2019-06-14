@@ -10,8 +10,8 @@
  * DARTBIN should be the checked in stable binary.
  */
 
-import 'browser_controller.dart';
-import 'configuration.dart';
+import 'package:test_runner/src/browser_controller.dart';
+import 'package:test_runner/src/configuration.dart';
 
 void printHelp() {
   print("Usage pattern:");

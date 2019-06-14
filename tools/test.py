@@ -13,9 +13,11 @@ import utils
 
 def Main():
   args = sys.argv[1:]
+
   tools_dir = os.path.dirname(os.path.realpath(__file__))
-  dart_test_script = string.join(
-      [tools_dir, 'testing', 'dart', 'main.dart'], os.sep)
+  repo_dir = os.path.dirname(tools_dir)
+  dart_test_script = os.path.join(
+      repo_dir, 'pkg', 'test_runner', 'bin', 'test_runner.dart')
   command = [utils.CheckedInSdkExecutable(), dart_test_script] + args
 
   # The testing script potentially needs the android platform tools in PATH so

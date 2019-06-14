@@ -513,10 +513,10 @@ class TestUtils {
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
           "templates_appending-to-a-template_": "co19_htmltemplates_append_",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_clearing-the-stack-back-to-a-given-context_":
+              "templates_clearing-the-stack-back-to-a-given-context_":
           "co19_htmltemplates_clearstack_",
       "tests_co19_src_WebPlatformTest_html-templates_parsing-html-"
-          "templates_creating-an-element-for-the-token_":
+              "templates_creating-an-element-for-the-token_":
           "co19_htmltemplates_create_",
       "tests_co19_src_WebPlatformTest_html-templates_template-element"
           "_template-": "co19_htmltemplates_element-",

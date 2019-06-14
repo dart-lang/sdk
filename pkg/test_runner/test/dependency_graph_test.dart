@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-import '../../../tools/testing/dart/dependency_graph.dart';
+import 'package:test_runner/src/dependency_graph.dart';
 
 main() {
   var graph = new Graph<int>();
@@ -45,7 +45,7 @@ main() {
     });
   }
 
-  var node1, node2, node3;
+  Node<int> node1, node2, node3;
 
   node1 = newNode(1, []);
   changeState(node1, NodeState.processing);

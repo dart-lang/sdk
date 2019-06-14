@@ -12,7 +12,7 @@ import 'co19_test_config.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'test_progress.dart';
-import 'test_runner.dart';
+import 'test_case.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 

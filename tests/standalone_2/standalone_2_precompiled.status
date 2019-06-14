@@ -43,7 +43,6 @@ io/regress_7191_test: Skip
 io/regress_7679_test: Skip
 io/secure_unauthorized_test: Skip
 io/signals_test: Skip
-io/skipping_dart2js_compilations_test: RuntimeError # Issue 30008
 io/stdin_sync_test: Skip
 io/stdio_implicit_close_test: Skip
 io/stdio_nonblocking_test: Skip
@@ -60,7 +59,6 @@ dwarf_stack_trace_test: Pass, RuntimeError # Results will flake due to identical
 
 [ $runtime == dart_precompiled && $checked ]
 io/namespace_test: RuntimeError
-io/test_runner_test: RuntimeError
 
 [ $compiler == app_jit || $compiler == precompiler ]
 io/compile_all_test: Skip # Incompatible flag --compile_all

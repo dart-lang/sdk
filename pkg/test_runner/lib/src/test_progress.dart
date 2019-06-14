@@ -13,7 +13,7 @@ import 'command_output.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'summary_report.dart';
-import 'test_runner.dart';
+import 'test_case.dart';
 import 'utils.dart';
 
 /// Controls how message strings are processed before being displayed.

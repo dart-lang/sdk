@@ -22,7 +22,7 @@ See comments above
 
 in
 
-  ../tools/testing/dart/test_suite.dart
+  ../pkg/test_runner/lib/src/test_suite.dart
 
 for the default test directory layout. By default test-file names must
 end in "_test.dart", but some test suites, such as ./co19, subclass
@@ -30,13 +30,13 @@ StandardTestSuite and override this default.
 
 See comments at the beginning of
 
-  ../tools/testing/dart/multitest.dart
+  ../pkg/test_runner/lib/src/multitest.dart
 
 for how to create tests that pass by failing with a known error. For
 example,
 
   ...
-  int x = "not an int"; /// 01: static type warning
+  int x = "not an int"; //# 01: static type warning
   ...
 
 as part of a test will only pass the "--compiler dart2analyzer" test if

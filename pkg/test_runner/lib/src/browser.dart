@@ -23,7 +23,7 @@ String dart2jsHtml(String title, String scriptPath) {
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript"
-          src="/root_dart/tools/testing/dart/test_controller.js">
+          src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
   </script>
   <script type="text/javascript" src="$scriptPath"
           onerror="scriptTagOnErrorCallback(null)"
@@ -152,7 +152,7 @@ String dartdevcHtml(String testName, String testJSDir, Compiler compiler) {
 <body>
 <h1>Running $testName</h1>
 <script type="text/javascript"
-        src="/root_dart/tools/testing/dart/test_controller.js">
+        src="/root_dart/pkg/test_runner/lib/src/test_controller.js">
 </script>
 <script>
 var require = {
@@ -180,9 +180,9 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
 
   testErrorToStackTrace = function(error) {
     var stackTrace = sdk.dart.stackTrace(error).toString();
-    
+
     var lines = stackTrace.split("\\n");
-    
+
     // Remove the first line, which is just "Error".
     lines = lines.slice(1);
 
@@ -193,7 +193,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
         break;
       }
     }
-    
+
     // TODO(rnystrom): It would be nice to shorten the URLs of the remaining
     // lines too.
     return lines.join("\\n");

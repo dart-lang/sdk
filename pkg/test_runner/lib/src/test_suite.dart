@@ -18,18 +18,18 @@ import 'dart:math';
 
 import "package:status_file/expectation.dart";
 
-import 'browser_test.dart';
+import 'browser.dart';
 import 'command.dart';
 import 'compiler_configuration.dart';
 import 'configuration.dart';
 import 'expectation_set.dart';
-import 'http_server.dart';
 import 'multitest.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'summary_report.dart';
+import 'test_case.dart';
 import 'test_configurations.dart';
-import 'test_runner.dart';
+import 'testing_servers.dart';
 import 'utils.dart';
 
 RegExp multiHtmlTestGroupRegExp = new RegExp(r"\s*[^/]\s*group\('[^,']*");

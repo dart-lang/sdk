@@ -2,19 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(rnystrom): This test is only run by the analyzer and front end
+// configurations, so nothing is actually *executing* it. It's likely broken.
+// We should either remove it or get it working again.
+
 import "dart:io";
 import "dart:async";
 
 import "package:status_file/expectation.dart";
 
-import "../../../tools/testing/dart/command.dart";
-import "../../../tools/testing/dart/configuration.dart";
-import "../../../tools/testing/dart/options.dart";
-import "../../../tools/testing/dart/repository.dart";
-import "../../../tools/testing/dart/test_runner.dart";
-import "../../../tools/testing/dart/test_suite.dart";
-import "../../../tools/testing/dart/test_progress.dart" as progress;
-import "process_test_util.dart";
+import "package:test_runner/src/command.dart";
+import "package:test_runner/src/configuration.dart";
+import "package:test_runner/src/options.dart";
+import "package:test_runner/src/repository.dart";
+import "package:test_runner/src/test_case.dart";
+import "package:test_runner/src/test_suite.dart";
+import "package:test_runner/src/test_progress.dart" as progress;
 
 final DEFAULT_TIMEOUT = 20;
 final LONG_TIMEOUT = 30;
@@ -74,7 +77,7 @@ class CustomTestSuite extends TestSuite {
       : super(configuration, "CustomTestSuite", []);
 
   Future forEachTest(TestCaseEvent onTest, Map testCache, [onDone]) async {
-    void enqueueTestCase(testCase) {
+    void enqueueTestCase(TestCase testCase) {
       TestController.numTests++;
       onTest(testCase);
     }
@@ -97,14 +100,15 @@ class CustomTestSuite extends TestSuite {
     }
   }
 
-  TestCase _makeNormalTestCase(name, expectations) {
+  TestCase _makeNormalTestCase(
+      String name, Iterable<Expectation> expectations) {
     var args = packageOptions();
     args.addAll([Platform.script.toFilePath(), name]);
     var command = Command.process('custom', Platform.executable, args, {});
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
-  _makeCrashTestCase(name, expectations) {
+  TestCase _makeCrashTestCase(String name, Iterable<Expectation> expectations) {
     var crashCommand = Command.process(
         'custom_crash', getProcessTestFileName(), ["0", "0", "1", "1"], {});
     // The crash test sometimes times out. Run it with a large timeout
@@ -115,7 +119,8 @@ class CustomTestSuite extends TestSuite {
     return _makeTestCase(name, LONG_TIMEOUT, crashCommand, expectations);
   }
 
-  _makeTestCase(name, timeout, command, expectations) {
+  TestCase _makeTestCase(String name, timeout, Command command,
+      Iterable<Expectation> expectations) {
     var configuration = new OptionsParser().parse(['--timeout', '$timeout'])[0];
     return new TestCase(name, [command], configuration,
         new Set<Expectation>.from(expectations));
@@ -166,4 +171,19 @@ void main(List<String> arguments) {
         throw "Unknown option ${arguments[0]} passed to test_runner_test";
     }
   }
+}
+
+String getPlatformExecutableExtension() {
+  var os = Platform.operatingSystem;
+  if (os == 'windows') return '.exe';
+  return ''; // Linux and Mac OS.
+}
+
+String getProcessTestFileName() {
+  var extension = getPlatformExecutableExtension();
+  var executable = Platform.executable;
+  var dirIndex = executable.lastIndexOf('dart');
+  var buffer = new StringBuffer(executable.substring(0, dirIndex));
+  buffer.write('process_test$extension');
+  return buffer.toString();
 }

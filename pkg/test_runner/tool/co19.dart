@@ -10,10 +10,10 @@
 /// co19.
 ///
 /// Usage:
-/// [: dart tools/testing/dart/co19_test.dart :]
-import 'configuration.dart';
-import 'options.dart';
-import 'test_configurations.dart';
+/// [: dart pkg/test_runner/tool/co19.dart :]
+import 'package:test_runner/src/configuration.dart';
+import 'package:test_runner/src/options.dart';
+import 'package:test_runner/src/test_configurations.dart';
 
 const List<String> COMMON_ARGUMENTS = const <String>[
   '--report',

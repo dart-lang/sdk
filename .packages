@@ -94,10 +94,10 @@ term_glyph:third_party/pkg/term_glyph/lib
 test:third_party/pkg/test/pkgs/test/lib
 test_api:third_party/pkg/test/pkgs/test_api/lib
 test_core:third_party/pkg/test/pkgs/test_core/lib
-test_dart:tools/testing/dart
 test_descriptor:third_party/pkg/test_descriptor/lib
 test_process:third_party/pkg/test_process/lib
 test_reflective_loader:third_party/pkg/test_reflective_loader/lib
+test_runner:pkg/test_runner/lib
 testing:pkg/testing/lib
 typed_data:third_party/pkg/typed_data/lib
 unittest:third_party/pkg/unittest/lib

@@ -163,7 +163,7 @@ String getWrapperContent(
 
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
-  // For debugging via HTML, Chrome and ./tools/testing/dart/http_server.dart.
+  // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
   var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
   String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
@@ -173,7 +173,7 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
           jsRootDart, "/root_build/$outputFilename.html.js"));
 
   print("You should now be able to run\n\n"
-      "dart ${sdkRoot.path}/tools/testing/dart/http_server.dart -p 39550 "
+      "dart ${sdkRoot.path}/pkg/test_runner/bin/http_server.dart -p 39550 "
       "--network 127.0.0.1 "
       "--build-directory=${outDir.toFilePath()}"
       "\n\nand go to\n\n"

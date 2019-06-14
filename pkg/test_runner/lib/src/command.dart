@@ -502,7 +502,7 @@ class BrowserTestCommand extends Command {
   String get reproductionCommand {
     var parts = [
       io.Platform.resolvedExecutable,
-      'tools/testing/dart/launch_browser.dart',
+      'pkg/test_runner/bin/launch_browser.dart',
       browser.name,
       url
     ];
