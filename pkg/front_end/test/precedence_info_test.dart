@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/fasta/scanner/abstract_scanner.dart'
     show AbstractScanner;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:front_end/src/fasta/scanner/token.dart' as fasta;
 import 'package:front_end/src/scanner/token.dart';
 import 'package:test/test.dart';
@@ -22,8 +22,10 @@ class PrecedenceInfoTest {
   void assertInfo(check(String source, Token token)) {
     void assertLexeme(String source) {
       if (source == null || source.isEmpty) return;
-      var scanner = new StringScanner(source, includeComments: true);
-      var token = scanner.tokenize();
+      var token = scanString(source, includeComments: true).tokens;
+      while (token is ErrorToken) {
+        token = token.next;
+      }
       check(source, token);
     }
 
@@ -288,9 +290,8 @@ class PrecedenceInfoTest {
   void test_name() {
     void assertName(String source, String name, {int offset: 0}) {
       if (source == null || source.isEmpty) return;
-      var scanner = new StringScanner(source, includeComments: true);
-      var token = scanner.tokenize();
-      while (token.offset < offset) {
+      var token = scanString(source, includeComments: true).tokens;
+      while (token is ErrorToken || token.offset < offset) {
         token = token.next;
       }
       expect(token.type.name, name,
@@ -388,8 +389,10 @@ class PrecedenceInfoTest {
     };
     precedenceTable.forEach((precedence, lexemes) {
       for (String source in lexemes) {
-        var scanner = new StringScanner(source, includeComments: true);
-        var token = scanner.tokenize();
+        var token = scanString(source, includeComments: true).tokens;
+        while (token is ErrorToken) {
+          token = token.next;
+        }
         expect(token.type.precedence, precedence, reason: source);
       }
     });
@@ -397,8 +400,7 @@ class PrecedenceInfoTest {
 
   void test_type() {
     void assertLexeme(String source, TokenType tt) {
-      var scanner = new StringScanner(source, includeComments: true);
-      var token = scanner.tokenize();
+      var token = scanString(source, includeComments: true).tokens;
       expect(token.type, same(tt), reason: source);
     }
 

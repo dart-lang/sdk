@@ -19,7 +19,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_tool/tools.dart';
-import 'package:front_end/src/fasta/scanner/string_scanner.dart';
+import 'package:front_end/src/fasta/scanner.dart';
 import 'package:front_end/src/scanner/token.dart' show Token;
 
 import 'idl_model.dart' as idlModel;
@@ -648,8 +648,7 @@ class _CodeGenerator {
     String idlText =
         idlFile.readAsStringSync().replaceAll(new RegExp('\r\n?'), '\n');
     // Extract a description of the IDL and make sure it is valid.
-    var scanner = new StringScanner(idlText, includeComments: true);
-    var startingToken = scanner.tokenize();
+    var startingToken = scanString(idlText, includeComments: true).tokens;
     var listener = new MiniAstBuilder();
     var parser = new MiniAstParser(listener);
     parser.parseUnit(startingToken);
