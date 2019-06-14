@@ -392,7 +392,16 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitIsExpression(IsExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    var type = node.type;
+    if (type is NamedType && type.typeArguments != null) {
+      // TODO(brianwilkerson) Figure out what constraints we need to add to
+      //  allow the tool to decide whether to make the type arguments nullable.
+      throw new UnimplementedError('TODO(brianwilkerson)');
+    } else if (type is GenericFunctionType) {
+      throw new UnimplementedError('TODO(brianwilkerson)');
+    }
+    node.visitChildren(this);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override

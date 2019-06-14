@@ -851,6 +851,29 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  @failingTest
+  test_isExpression_genericFunctionType() async {
+    await analyze('''
+bool f(a) => a is int Function(String);
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+  }
+
+  test_isExpression_typeName_noTypeArguments() async {
+    await analyze('''
+bool f(a) => a is String;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+  }
+
+  @failingTest
+  test_isExpression_typeName_typeArguments() async {
+    await analyze('''
+bool f(a) => a is List<int>;
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
+  }
+
   test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {
