@@ -18,11 +18,11 @@ import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
-import '../compiler/js_names.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 
@@ -386,7 +386,7 @@ class JSCode {
   JSCode(this.code, this.sourceMap);
 }
 
-JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
+JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     String jsUrl,
@@ -394,20 +394,21 @@ JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
     Map<String, String> bazelMapping,
     String customScheme,
     String multiRootOutputPath}) {
-  var opts = JS.JavaScriptPrintingOptions(
+  var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
-  JS.SimpleJavaScriptPrintingContext printer;
+  js_ast.SimpleJavaScriptPrintingContext printer;
   SourceMapBuilder sourceMap;
   if (buildSourceMap) {
     var sourceMapContext = SourceMapPrintingContext();
     sourceMap = sourceMapContext.sourceMap;
     printer = sourceMapContext;
   } else {
-    printer = JS.SimpleJavaScriptPrintingContext();
+    printer = js_ast.SimpleJavaScriptPrintingContext();
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  tree.accept(JS.Printer(opts, printer, localNamer: JS.TemporaryNamer(tree)));
+  tree.accept(
+      js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {

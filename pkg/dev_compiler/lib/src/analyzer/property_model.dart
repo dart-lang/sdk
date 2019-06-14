@@ -8,8 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart' show InterfaceType;
 import 'package:analyzer/src/dart/element/element.dart' show FieldElementImpl;
 
-import '../compiler/js_names.dart' as JS;
-import '../js_ast/js_ast.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
 import 'element_helpers.dart';
 import 'extension_types.dart';
 
@@ -176,7 +175,7 @@ class ClassPropertyModel {
   /// pair in JavaScript.
   ///
   /// The value property stores the symbol used for the field's storage slot.
-  final virtualFields = <FieldElement, JS.TemporaryId>{};
+  final virtualFields = <FieldElement, js_ast.TemporaryId>{};
 
   /// The set of inherited getters, used because JS getters/setters are paired,
   /// so if we're generating a setter we may need to emit a getter that calls
@@ -250,7 +249,7 @@ class ClassPropertyModel {
                 covariantParameters != null &&
                 covariantParameters.contains(setter.parameters[0]) &&
                 covariantPrivateMembers.contains(setter)) {
-          virtualFields[field] = JS.TemporaryId(name);
+          virtualFields[field] = js_ast.TemporaryId(name);
         }
       }
     }

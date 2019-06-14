@@ -4,9 +4,9 @@
 
 import 'package:kernel/kernel.dart';
 
-import '../js_ast/js_ast.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
-import '../compiler/js_names.dart' as JS;
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
   var result = Set<TypeParameter>();
@@ -37,10 +37,10 @@ class _CacheTable {
   // Use a LinkedHashMap to maintain key insertion order so the generated code
   // is stable under slight perturbation.  (If this is not good enough we could
   // sort by name to canonicalize order.)
-  final _names = <DartType, JS.TemporaryId>{};
+  final _names = <DartType, js_ast.TemporaryId>{};
   Iterable<DartType> get keys => _names.keys.toList();
 
-  JS.Statement _dischargeType(DartType type) {
+  js_ast.Statement _dischargeType(DartType type) {
     var name = _names.remove(type);
     if (name != null) {
       return js.statement('let #;', [name]);
@@ -51,8 +51,8 @@ class _CacheTable {
   /// Emit a list of statements declaring the cache variables for
   /// types tracked by this table.  If [typeFilter] is given,
   /// only emit the types listed in the filter.
-  List<JS.Statement> discharge([Iterable<DartType> typeFilter]) {
-    var decls = <JS.Statement>[];
+  List<js_ast.Statement> discharge([Iterable<DartType> typeFilter]) {
+    var decls = <js_ast.Statement>[];
     var types = typeFilter ?? keys;
     for (var t in types) {
       var stmt = _dischargeType(t);
@@ -102,25 +102,25 @@ class _CacheTable {
 
   /// Heuristically choose a good name for the cache and generator
   /// variables.
-  JS.TemporaryId chooseTypeName(DartType type) {
-    return JS.TemporaryId(_typeString(type));
+  js_ast.TemporaryId chooseTypeName(DartType type) {
+    return js_ast.TemporaryId(_typeString(type));
   }
 }
 
 /// _GeneratorTable tracks types which have been
 /// named and hoisted.
 class _GeneratorTable extends _CacheTable {
-  final _defs = <DartType, JS.Expression>{};
+  final _defs = <DartType, js_ast.Expression>{};
 
-  final JS.Identifier _runtimeModule;
+  final js_ast.Identifier _runtimeModule;
 
   _GeneratorTable(this._runtimeModule);
 
   @override
-  JS.Statement _dischargeType(DartType t) {
+  js_ast.Statement _dischargeType(DartType t) {
     var name = _names.remove(t);
     if (name != null) {
-      JS.Expression init = _defs.remove(t);
+      js_ast.Expression init = _defs.remove(t);
       assert(init != null);
       return js.statement('let # = () => ((# = #.constFn(#))());',
           [name, name, _runtimeModule, init]);
@@ -131,7 +131,7 @@ class _GeneratorTable extends _CacheTable {
   /// If [type] does not already have a generator name chosen for it,
   /// assign it one, using [typeRep] as the initializer for it.
   /// Emit the generator name.
-  JS.TemporaryId _nameType(DartType type, JS.Expression typeRep) {
+  js_ast.TemporaryId _nameType(DartType type, js_ast.Expression typeRep) {
     var temp = _names[type];
     if (temp == null) {
       _names[type] = temp = chooseTypeName(type);
@@ -151,12 +151,12 @@ class TypeTable {
   /// parameter.
   final _scopeDependencies = <TypeParameter, List<DartType>>{};
 
-  TypeTable(JS.Identifier runtime) : _generators = _GeneratorTable(runtime);
+  TypeTable(js_ast.Identifier runtime) : _generators = _GeneratorTable(runtime);
 
   /// Emit a list of statements declaring the cache variables and generator
   /// definitions tracked by the table.  If [formals] is present, only
   /// emit the definitions which depend on the formals.
-  List<JS.Statement> discharge([List<TypeParameter> formals]) {
+  List<js_ast.Statement> discharge([List<TypeParameter> formals]) {
     var filter = formals?.expand((p) => _scopeDependencies[p] ?? <DartType>[]);
     var stmts = _generators.discharge(filter);
     formals?.forEach(_scopeDependencies.remove);
@@ -186,7 +186,7 @@ class TypeTable {
   /// Given a type [type], and a JS expression [typeRep] which implements it,
   /// add the type and its representation to the table, returning an
   /// expression which implements the type (but which caches the value).
-  JS.Expression nameType(DartType type, JS.Expression typeRep) {
+  js_ast.Expression nameType(DartType type, js_ast.Expression typeRep) {
     if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
       return typeRep;
     }
@@ -200,10 +200,11 @@ class TypeTable {
   /// should be a function that is invoked to compute the type, rather than the
   /// type itself. This allows better integration with `lazyFn`, avoiding an
   /// extra level of indirection.
-  JS.Expression nameFunctionType(FunctionType type, JS.Expression typeRep,
+  js_ast.Expression nameFunctionType(
+      FunctionType type, js_ast.Expression typeRep,
       {bool lazy = false}) {
     if (!_generators.isNamed(type) && recordScopeDependencies(type)) {
-      return lazy ? JS.ArrowFun([], typeRep) : typeRep;
+      return lazy ? js_ast.ArrowFun([], typeRep) : typeRep;
     }
     var name = _generators._nameType(type, typeRep);
     return lazy ? name : js.call('#()', [name]);
