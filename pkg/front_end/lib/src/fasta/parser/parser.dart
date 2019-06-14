@@ -4292,20 +4292,7 @@ class Parser {
     //
     // Recovery code.
     //
-    if (token.next is ErrorToken) {
-      token = token.next;
-      Token previous;
-      do {
-        // Report the error in the error token, skip the error token, and try
-        // again.
-        previous = token;
-        reportErrorToken(token);
-        token = token.next;
-      } while (token is ErrorToken);
-      return parsePrimary(previous, context);
-    } else {
-      return parseSend(token, context);
-    }
+    return parseSend(token, context);
   }
 
   Token parseParenthesizedExpressionOrFunctionLiteral(Token token) {
@@ -6361,32 +6348,20 @@ class Parser {
   void reportRecoverableError(Token token, Message message) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      listener.handleRecoverableError(message, token, token);
-    }
+    listener.handleRecoverableError(message, token, token);
   }
 
   void reportRecoverableErrorWithToken(
       Token token, Template<_MessageWithArgument<Token>> template) {
     // Find a non-synthetic token on which to report the error.
     token = findNonZeroLengthToken(token);
-    if (token is ErrorToken) {
-      reportErrorToken(token);
-    } else {
-      listener.handleRecoverableError(
-          template.withArguments(token), token, token);
-    }
-  }
-
-  void reportErrorToken(ErrorToken token) {
-    listener.handleErrorToken(token);
+    listener.handleRecoverableError(
+        template.withArguments(token), token, token);
   }
 
   Token reportAllErrorTokens(Token token) {
     while (token is ErrorToken) {
-      reportErrorToken(token);
+      listener.handleErrorToken(token);
       token = token.next;
     }
     return token;
