@@ -1216,6 +1216,15 @@ String f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('String').node);
   }
 
+  test_symbolLiteral() async {
+    await analyze('''
+Symbol f() {
+  return #symbol;
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Symbol').node);
+  }
+
   test_thisExpression() async {
     await analyze('''
 class C {

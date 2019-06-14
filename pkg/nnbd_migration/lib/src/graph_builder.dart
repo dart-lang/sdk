@@ -454,12 +454,6 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
-  DecoratedType visitNamedExpression(NamedExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
-//    return node.expression.accept(this);
-  }
-
-  @override
   DecoratedType visitNode(AstNode node) {
     if (listener != null) {
       try {
@@ -517,11 +511,6 @@ $stackTrace''');
   }
 
   @override
-  DecoratedType visitRethrowExpression(RethrowExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
-  }
-
-  @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
       _checkAssignment(_currentFunctionType.returnType, _nullType, null);
@@ -563,7 +552,7 @@ $stackTrace''');
 
   @override
   DecoratedType visitSymbolLiteral(SymbolLiteral node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
