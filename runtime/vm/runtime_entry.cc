@@ -75,6 +75,15 @@ DEFINE_FLAG(charp,
             NULL,
             "Deoptimize in named function on stack overflow checks");
 
+DEFINE_FLAG(bool,
+            unopt_monomorphic_calls,
+            true,
+            "Enable specializing monomorphic calls from unoptimized code.");
+DEFINE_FLAG(bool,
+            unopt_megamorphic_calls,
+            false,
+            "Enable specializing megamorphic calls from unoptimized code.");
+
 DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
 DECLARE_FLAG(bool, reload_every_back_off);
@@ -1117,7 +1126,7 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   intptr_t num_checks = ic_data.NumberOfChecks();
 
   // Monomorphic call.
-  if (num_checks == 1) {
+  if (FLAG_unopt_monomorphic_calls && (num_checks == 1)) {
     // A call site in the monomorphic state does not load the arguments
     // descriptor, so do not allow transition to this state if the callee
     // needs it.
@@ -1139,7 +1148,8 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   }
 
   // Megamorphic call.
-  if (num_checks > FLAG_max_polymorphic_checks) {
+  if (FLAG_unopt_megamorphic_calls &&
+      (num_checks > FLAG_max_polymorphic_checks)) {
     const MegamorphicCache& cache =
         MegamorphicCache::Handle(zone, ic_data.AsMegamorphicCache());
     ic_data.set_is_megamorphic(true);
