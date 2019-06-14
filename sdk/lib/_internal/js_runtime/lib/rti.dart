@@ -5,7 +5,7 @@
 /// This library contains support for runtime type information.
 library rti;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
 /// An Rti object represents both a type (e.g `Map<int, String>`) and a type
@@ -220,6 +220,34 @@ Type getRuntimeType(object) {
   throw UnimplementedError('getRuntimeType');
 }
 
+/// Called from generated code.
+bool _generalIsTestImplementation(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  throw UnimplementedError(
+      '${Error.safeToString(object)} is ${_rtiToString(testRti, null)}');
+}
+
+/// Called from generated code.
+_generalAsCheckImplementation(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  throw UnimplementedError(
+      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}');
+}
+
+/// Called from generated code.
+_generalTypeCheckImplementation(object) {
+  // This static method is installed on an Rti object as a JavaScript instance
+  // method. The Rti object is 'this'.
+  Rti testRti = _castToRti(JS('', 'this'));
+  throw UnimplementedError(
+      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}'
+      ' (TypeError)');
+}
+
 String _rtiToString(Rti rti, List<String> genericContext) {
   int kind = Rti._getKind(rti);
 
@@ -382,12 +410,13 @@ class _Universe {
     _cacheSet(evalCache(universe), key, rti);
 
     // Set up methods to type tests.
-    // TODO(sra): These are for `dynamic`. Install general functions and
-    // specializations.
-    var alwaysPasses = JS('', 'function(o) { return o; }');
-    Rti._setAsCheckFunction(rti, alwaysPasses);
-    Rti._setTypeCheckFunction(rti, alwaysPasses);
-    Rti._setIsTestFunction(rti, JS('', 'function(o) { return true; }'));
+    // TODO(sra): Install specializations.
+    Rti._setAsCheckFunction(
+        rti, RAW_DART_FUNCTION_REF(_generalAsCheckImplementation));
+    Rti._setTypeCheckFunction(
+        rti, RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation));
+    Rti._setIsTestFunction(
+        rti, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
 
     return rti;
   }
