@@ -143,6 +143,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitAsExpression(AsExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitAssertStatement(AssertStatement node) {
     _handleAssignment(_notNullType, node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
@@ -272,6 +277,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitDoubleLiteral(DoubleLiteral node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _handleAssignment(_currentFunctionType.returnType, node.expression);
     return null;
@@ -290,6 +300,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _currentFunctionType = null;
     }
     return null;
+  }
+
+  @override
+  DecoratedType visitFunctionExpression(FunctionExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override
@@ -376,6 +391,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitIsExpression(IsExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitListLiteral(ListLiteral node) {
     throw new UnimplementedError('TODO(brianwilkerson)');
   }
@@ -425,6 +445,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitNamedExpression(NamedExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+//    return node.expression.accept(this);
+  }
+
+  @override
   DecoratedType visitNode(AstNode node) {
     if (listener != null) {
       try {
@@ -449,6 +475,11 @@ $stackTrace''');
   @override
   DecoratedType visitParenthesizedExpression(ParenthesizedExpression node) {
     return node.expression.accept(this);
+  }
+
+  @override
+  DecoratedType visitPostfixExpression(PostfixExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override
@@ -477,6 +508,11 @@ $stackTrace''');
   }
 
   @override
+  DecoratedType visitRethrowExpression(RethrowExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
       _checkAssignment(_currentFunctionType.returnType, _nullType, null);
@@ -484,6 +520,11 @@ $stackTrace''');
       _handleAssignment(_currentFunctionType.returnType, node.expression);
     }
     return null;
+  }
+
+  @override
+  DecoratedType visitSetOrMapLiteral(SetOrMapLiteral node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override
@@ -502,11 +543,17 @@ $stackTrace''');
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
+    node.visitChildren(this);
     return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitSuperExpression(SuperExpression node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
+  DecoratedType visitSymbolLiteral(SymbolLiteral node) {
     throw new UnimplementedError('TODO(brianwilkerson)');
   }
 

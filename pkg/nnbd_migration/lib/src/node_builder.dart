@@ -95,12 +95,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
-  DecoratedType visitFunctionTypedFormalParameter(
-      FunctionTypedFormalParameter node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
-  }
-
-  @override
   DecoratedType visitFormalParameter(FormalParameter node) {
     // Do not visit children
     // TODO(paulberry): handle all types of formal parameters
@@ -117,6 +111,17 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
         node.functionExpression.parameters, node.functionExpression.body, node);
     return null;
+  }
+
+  @override
+  DecoratedType visitFunctionTypeAlias(FunctionTypeAlias node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
+  }
+
+  @override
+  DecoratedType visitFunctionTypedFormalParameter(
+      FunctionTypedFormalParameter node) {
+    throw new UnimplementedError('TODO(brianwilkerson)');
   }
 
   @override
