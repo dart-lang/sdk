@@ -4,6 +4,7 @@
 
 // test w/ `pub run test -N prefer_final_fields`
 
+//ignore_for_file: unused_field, unused_local_variable
 class FalsePositiveWhenReturn {
   int _value = 0;
   int getValue() {
@@ -45,6 +46,41 @@ class MultipleMutable {
   void changeLabel() {
     _label = 'hello world! GoodMutable';
   }
+}
+
+class BadMultipleFormals {
+  var _label; // LINT
+  BadMultipleFormals(this._label);
+  BadMultipleFormals.withDefault(this._label);
+}
+
+class BadInitializer {
+  var _label; // LINT
+  BadInitializer() : _label = 'Hello';
+}
+
+class BadMultipleInitializer {
+  var _label; // LINT
+  BadMultipleInitializer() : _label = 'Hello';
+  BadMultipleInitializer.withDefault() : _label = 'Default';
+}
+
+class BadMultipleMixConstructors {
+  var _label; // LINT
+  BadMultipleMixConstructors(this._label);
+  BadMultipleMixConstructors.withDefault() : _label = 'Hello';
+}
+
+class GoodFormals {
+  var _label; // OK
+  GoodFormals(this._label);
+  GoodFormals.empty();
+}
+
+class GoodInitializer {
+  var _label; // OK
+  GoodInitializer() : _label = 'Hello';
+  GoodInitializer.empty();
 }
 
 class C {
