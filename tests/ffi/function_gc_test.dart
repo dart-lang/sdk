@@ -24,7 +24,7 @@ main() async {
   testBoxPointer();
   testAllocateInNative();
   testAllocateInDart();
-  testRegress37069(); //# regress: ok
+  testRegress37069();
 }
 
 ffi.DynamicLibrary ffiTestFunctions =

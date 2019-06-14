@@ -902,7 +902,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
-  __ adr(temp, Immediate(0));
+  //
+  // ADR loads relative to itself, so add kInstrSize to point to the next
+  // instruction.
+  __ adr(temp, Immediate(Instr::kInstrSize));
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
 
