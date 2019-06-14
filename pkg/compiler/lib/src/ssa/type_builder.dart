@@ -7,6 +7,7 @@ import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
+import '../js_model/type_recipe.dart';
 import '../io/source_information.dart';
 import '../universe/use.dart' show TypeUse;
 import '../world.dart';
@@ -282,9 +283,11 @@ abstract class TypeBuilder {
       // TODO(sra): Locate type environment.
       HInstruction environment =
           builder.graph.addConstantString("env", _closedWorld);
-      HInstruction rti =
-          HTypeEval(environment, argument, _abstractValueDomain.dynamicType)
-            ..sourceInformation = sourceInformation;
+      // TODO(sra): Determine environment structure from context.
+      TypeEnvironmentStructure structure = null;
+      HInstruction rti = HTypeEval(environment, structure,
+          TypeExpressionRecipe(argument), _abstractValueDomain.dynamicType)
+        ..sourceInformation = sourceInformation;
       builder.add(rti);
       return rti;
     }
