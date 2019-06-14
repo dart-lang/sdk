@@ -163,11 +163,9 @@ class _Visitor extends SimpleAstVisitor<void> {
                 .any((formal) => _containedInFormal(element, formal));
 
         final classDeclaration = node.parent;
-        final constructors = (classDeclaration is ClassDeclaration
-            ? classDeclaration.members
-                .whereType<ConstructorDeclaration>()
-                .toSet()
-            : <ConstructorDeclaration>{});
+        final Iterable constructors = (classDeclaration is ClassDeclaration
+            ? classDeclaration.members.whereType<ConstructorDeclaration>()
+            : []);
         final isFieldInConstructors = constructors.any(fieldInConstructor);
         final isFieldInAllConstructors = constructors.every(fieldInConstructor);
 
@@ -190,6 +188,8 @@ bool _containedInInitializer(
             initializer.fieldName) ==
         element;
 
-bool _containedInFormal(Element element, FormalParameter formal) =>
-    formal is FieldFormalParameter &&
-    formal.declaredElement.toString() == element.toString();
+bool _containedInFormal(Element element, FormalParameter formal) {
+  final formalField = formal.identifier.staticElement;
+  return formalField is FieldFormalParameterElement &&
+      formalField.field == element;
+}
