@@ -63,10 +63,6 @@ class Linker {
     return elementFactory.analysisContext;
   }
 
-  FeatureSet get contextFeatures {
-    return analysisContext.analysisOptions.contextFeatures;
-  }
-
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
   }

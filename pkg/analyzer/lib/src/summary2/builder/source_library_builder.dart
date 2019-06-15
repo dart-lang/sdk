@@ -247,7 +247,7 @@ class SourceLibraryBuilder {
         linker.elementFactory,
         element,
         unitReference,
-        linker.contextFeatures.isEnabled(Feature.non_nullable),
+        unitContext.unit.featureSet.isEnabled(Feature.non_nullable),
         scope,
       );
       unitContext.unit.accept(resolver);
