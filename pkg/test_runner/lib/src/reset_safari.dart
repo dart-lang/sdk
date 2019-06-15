@@ -34,7 +34,7 @@ final List<String> safariSettings = <String>[
   "Library/Preferences/$safari.plist",
 ];
 
-const Duration defaultPollDelay = const Duration(milliseconds: 1);
+const Duration defaultPollDelay = Duration(milliseconds: 1);
 
 final String cpgi = "$safari.ContentPageGroupIdentifier";
 
@@ -97,12 +97,12 @@ final String knownSafariPreference = '''
 }
 ''';
 
-Future<Null> get pollDelay => new Future.delayed(defaultPollDelay);
+Future<Null> get pollDelay => Future.delayed(defaultPollDelay);
 
 String signalArgument(String defaultSignal,
-    {bool force: false, bool testOnly: false}) {
+    {bool force = false, bool testOnly = false}) {
   if (force && testOnly) {
-    throw new ArgumentError("[force] and [testOnly] can't both be true.");
+    throw ArgumentError("[force] and [testOnly] can't both be true.");
   }
   if (force) return "-KILL";
   if (testOnly) return "-0";
@@ -110,7 +110,7 @@ String signalArgument(String defaultSignal,
 }
 
 Future<int> kill(List<String> pids,
-    {bool force: false, bool testOnly: false}) async {
+    {bool force = false, bool testOnly = false}) async {
   var arguments = [signalArgument("-TERM", force: force, testOnly: testOnly)]
     ..addAll(pids);
   var result = await Process.run(killLocation, arguments);
@@ -118,7 +118,7 @@ Future<int> kill(List<String> pids,
 }
 
 Future<int> pkill(String pattern,
-    {bool force: false, bool testOnly: false}) async {
+    {bool force = false, bool testOnly = false}) async {
   var arguments = [
     signalArgument("-HUP", force: force, testOnly: testOnly),
     pattern
@@ -130,7 +130,7 @@ Future<int> pkill(String pattern,
 Uri validatedBundleName(Uri bundle) {
   if (bundle == null) return Uri.base.resolve(defaultSafariBundleLocation);
   if (!bundle.path.endsWith("/")) {
-    throw new ArgumentError("Bundle ('$bundle') must end with a slash ('/').");
+    throw ArgumentError("Bundle ('$bundle') must end with a slash ('/').");
   }
   return bundle;
 }
@@ -144,7 +144,7 @@ Future<Null> killSafari({Uri bundle}) async {
     var stdout = result.stdout as String;
     var pids =
         stdout.split("\n").where((String line) => !line.isEmpty).toList();
-    var timer = new Timer(const Duration(seconds: 10), () {
+    var timer = Timer(const Duration(seconds: 10), () {
       print("Kill -9 Safari $pids");
       kill(pids, force: true);
     });
@@ -156,7 +156,7 @@ Future<Null> killSafari({Uri bundle}) async {
     }
     timer.cancel();
   }
-  var timer = new Timer(const Duration(seconds: 10), () {
+  var timer = Timer(const Duration(seconds: 10), () {
     print("Kill -9 $safari");
     pkill(safari, force: true);
   });
@@ -170,12 +170,12 @@ Future<Null> killSafari({Uri bundle}) async {
 }
 
 Future<Null> deleteIfExists(Uri uri) async {
-  var directory = new Directory.fromUri(uri);
+  var directory = Directory.fromUri(uri);
   if (await directory.exists()) {
     print("Deleting directory '$uri'.");
     await directory.delete(recursive: true);
   } else {
-    var file = new File.fromUri(uri);
+    var file = File.fromUri(uri);
     if (await file.exists()) {
       print("Deleting file '$uri'.");
       await file.delete();

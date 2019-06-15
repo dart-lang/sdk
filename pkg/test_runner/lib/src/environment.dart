@@ -6,38 +6,37 @@ import 'package:status_file/environment.dart';
 
 import 'configuration.dart';
 
-typedef String _LookUpFunction(TestConfiguration configuration);
-typedef bool _BoolLookUpFunction(TestConfiguration configuration);
+typedef _LookUpFunction = String Function(TestConfiguration configuration);
+typedef _BoolLookUpFunction = bool Function(TestConfiguration configuration);
 
 // TODO(29756): Instead of synthesized negated variables like "unchecked",
 // consider adding support for "!" to status expressions.
 final _variables = {
-  "analyzer": new _Variable.bool((c) => c.compiler == Compiler.dart2analyzer),
-  "analyzer_use_fasta_parser":
-      new _Variable.bool((c) => c.useAnalyzerFastaParser),
-  "arch": new _Variable((c) => c.architecture.name, Architecture.names),
-  "browser": new _Variable.bool((c) => c.runtime.isBrowser),
-  "builder_tag": new _Variable((c) => c.builderTag ?? "", const []),
-  "checked": new _Variable.bool((c) => c.isChecked),
-  "compiler": new _Variable((c) => c.compiler.name, Compiler.names),
-  "csp": new _Variable.bool((c) => c.isCsp),
-  "enable_asserts": new _Variable.bool((c) => c.useEnableAsserts),
-  "fasta": new _Variable.bool((c) => c.usesFasta),
-  "host_checked": new _Variable.bool((c) => c.isHostChecked),
-  "host_unchecked": new _Variable.bool((c) => !c.isHostChecked),
-  "hot_reload": new _Variable.bool((c) => c.hotReload),
-  "hot_reload_rollback": new _Variable.bool((c) => c.hotReloadRollback),
-  "ie": new _Variable.bool((c) => c.runtime.isIE),
-  "jscl": new _Variable.bool((c) => c.runtime.isJSCommandLine),
-  "minified": new _Variable.bool((c) => c.isMinified),
-  "mode": new _Variable((c) => c.mode.name, Mode.names),
-  "no_preview_dart_2": new _Variable.bool((c) => c.noPreviewDart2),
-  "preview_dart_2": new _Variable.bool((c) => !c.noPreviewDart2),
-  "runtime": new _Variable(_runtimeName, _runtimeNames),
-  "spec_parser": new _Variable.bool((c) => c.compiler == Compiler.specParser),
-  "strong": new _Variable.bool((c) => !c.noPreviewDart2),
-  "system": new _Variable(_systemName, _systemNames),
-  "use_sdk": new _Variable.bool((c) => c.useSdk)
+  "analyzer": _Variable.bool((c) => c.compiler == Compiler.dart2analyzer),
+  "analyzer_use_fasta_parser": _Variable.bool((c) => c.useAnalyzerFastaParser),
+  "arch": _Variable((c) => c.architecture.name, Architecture.names),
+  "browser": _Variable.bool((c) => c.runtime.isBrowser),
+  "builder_tag": _Variable((c) => c.builderTag ?? "", const []),
+  "checked": _Variable.bool((c) => c.isChecked),
+  "compiler": _Variable((c) => c.compiler.name, Compiler.names),
+  "csp": _Variable.bool((c) => c.isCsp),
+  "enable_asserts": _Variable.bool((c) => c.useEnableAsserts),
+  "fasta": _Variable.bool((c) => c.usesFasta),
+  "host_checked": _Variable.bool((c) => c.isHostChecked),
+  "host_unchecked": _Variable.bool((c) => !c.isHostChecked),
+  "hot_reload": _Variable.bool((c) => c.hotReload),
+  "hot_reload_rollback": _Variable.bool((c) => c.hotReloadRollback),
+  "ie": _Variable.bool((c) => c.runtime.isIE),
+  "jscl": _Variable.bool((c) => c.runtime.isJSCommandLine),
+  "minified": _Variable.bool((c) => c.isMinified),
+  "mode": _Variable((c) => c.mode.name, Mode.names),
+  "no_preview_dart_2": _Variable.bool((c) => c.noPreviewDart2),
+  "preview_dart_2": _Variable.bool((c) => !c.noPreviewDart2),
+  "runtime": _Variable(_runtimeName, _runtimeNames),
+  "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
+  "strong": _Variable.bool((c) => !c.noPreviewDart2),
+  "system": _Variable(_systemName, _systemNames),
+  "use_sdk": _Variable.bool((c) => c.useSdk)
 };
 
 /// Gets the name of the runtime as it appears in status files.
@@ -103,7 +102,7 @@ class ConfigurationEnvironment implements Environment {
     if (variable == null) {
       // This shouldn't happen since we validate variables before evaluating
       // expressions.
-      throw new ArgumentError('Unknown variable "$variable".');
+      throw ArgumentError('Unknown variable "$variable".');
     }
 
     return variable.lookUp(_configuration);

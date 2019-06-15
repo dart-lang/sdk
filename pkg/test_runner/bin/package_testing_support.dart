@@ -11,7 +11,7 @@ void main(List<String> arguments) {
   Repository.uri = Uri.base;
   var configurations = <TestConfiguration>[];
   for (var argument in arguments) {
-    configurations.addAll(new OptionsParser().parse(argument.split(" ")));
+    configurations.addAll(OptionsParser().parse(argument.split(" ")));
   }
   testConfigurations(configurations);
 }

@@ -14,6 +14,7 @@ import "package:status_file/expectation.dart";
 import "package:test_runner/src/command.dart";
 import "package:test_runner/src/configuration.dart";
 import "package:test_runner/src/options.dart";
+import "package:test_runner/src/process_queue.dart";
 import "package:test_runner/src/repository.dart";
 import "package:test_runner/src/test_case.dart";
 import "package:test_runner/src/test_suite.dart";
@@ -41,10 +42,8 @@ class TestController {
     numCompletedTests++;
     if (testCase.displayName == "fail-unexpected") {
       if (!testCase.unexpectedOutput) {
-        var stdout =
-            new String.fromCharCodes(testCase.lastCommandOutput.stdout);
-        var stderr =
-            new String.fromCharCodes(testCase.lastCommandOutput.stderr);
+        var stdout = String.fromCharCodes(testCase.lastCommandOutput.stdout);
+        var stderr = String.fromCharCodes(testCase.lastCommandOutput.stderr);
         print("stdout = [$stdout]");
         print("stderr = [$stderr]");
         throw "Test case ${testCase.displayName} passed unexpectedly, "
@@ -52,10 +51,8 @@ class TestController {
       }
     } else {
       if (testCase.unexpectedOutput) {
-        var stdout =
-            new String.fromCharCodes(testCase.lastCommandOutput.stdout);
-        var stderr =
-            new String.fromCharCodes(testCase.lastCommandOutput.stderr);
+        var stdout = String.fromCharCodes(testCase.lastCommandOutput.stdout);
+        var stderr = String.fromCharCodes(testCase.lastCommandOutput.stderr);
         print("stdout = [$stdout]");
         print("stderr = [$stderr]");
         throw "Test case ${testCase.displayName} failed, "
@@ -121,24 +118,18 @@ class CustomTestSuite extends TestSuite {
 
   TestCase _makeTestCase(String name, timeout, Command command,
       Iterable<Expectation> expectations) {
-    var configuration = new OptionsParser().parse(['--timeout', '$timeout'])[0];
-    return new TestCase(name, [command], configuration,
-        new Set<Expectation>.from(expectations));
+    var configuration = OptionsParser().parse(['--timeout', '$timeout'])[0];
+    return TestCase(
+        name, [command], configuration, Set<Expectation>.from(expectations));
   }
 }
 
 void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
-  var config = new OptionsParser().parse(['--noBatch'])[0];
-  new ProcessQueue(
-      config,
-      maxProcesses,
-      maxBrowserProcesses,
-      new DateTime.now(),
-      [new CustomTestSuite(config)],
-      [new EventListener()],
-      TestController.finished);
+  var config = OptionsParser().parse(['--noBatch'])[0];
+  ProcessQueue(config, maxProcesses, maxBrowserProcesses, DateTime.now(),
+      [CustomTestSuite(config)], [EventListener()], TestController.finished);
 }
 
 class EventListener extends progress.EventListener {
@@ -165,7 +156,7 @@ void main(List<String> arguments) {
         break;
       case 'timeout':
         // This process should be killed by the test after DEFAULT_TIMEOUT
-        new Timer(new Duration(hours: 42), () {});
+        Timer(Duration(hours: 42), () {});
         break;
       default:
         throw "Unknown option ${arguments[0]} passed to test_runner_test";
@@ -183,7 +174,7 @@ String getProcessTestFileName() {
   var extension = getPlatformExecutableExtension();
   var executable = Platform.executable;
   var dirIndex = executable.lastIndexOf('dart');
-  var buffer = new StringBuffer(executable.substring(0, dirIndex));
+  var buffer = StringBuffer(executable.substring(0, dirIndex));
   buffer.write('process_test$extension');
   return buffer.toString();
 }

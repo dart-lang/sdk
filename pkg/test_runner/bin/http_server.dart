@@ -8,7 +8,7 @@ import 'package:test_runner/src/utils.dart';
 import 'package:test_runner/src/vendored_pkg/args/args.dart';
 
 void main(List<String> arguments) {
-  var parser = new ArgParser();
+  var parser = ArgParser();
   parser.addOption('port',
       abbr: 'p',
       help: 'The main server port we wish to respond to requests.',
@@ -33,7 +33,7 @@ void main(List<String> arguments) {
   if (args['help'] as bool) {
     print(parser.getUsage());
   } else {
-    var servers = new TestingServers(
+    var servers = TestingServers(
         args['build-directory'] as String,
         args['csp'] as bool,
         Runtime.find(args['runtime'] as String),

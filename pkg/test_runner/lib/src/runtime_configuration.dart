@@ -28,31 +28,31 @@ abstract class RuntimeConfiguration {
       case Runtime.ie9:
       case Runtime.safari:
         // TODO(ahe): Replace this with one or more browser runtimes.
-        return new DummyRuntimeConfiguration();
+        return DummyRuntimeConfiguration();
 
       case Runtime.jsshell:
-        return new JsshellRuntimeConfiguration();
+        return JsshellRuntimeConfiguration();
 
       case Runtime.d8:
-        return new D8RuntimeConfiguration();
+        return D8RuntimeConfiguration();
 
       case Runtime.none:
-        return new NoneRuntimeConfiguration();
+        return NoneRuntimeConfiguration();
 
       case Runtime.vm:
         if (configuration.system == System.android) {
-          return new DartkAdbRuntimeConfiguration();
+          return DartkAdbRuntimeConfiguration();
         }
-        return new StandaloneDartRuntimeConfiguration();
+        return StandaloneDartRuntimeConfiguration();
 
       case Runtime.dartPrecompiled:
         if (configuration.system == System.android) {
-          return new DartPrecompiledAdbRuntimeConfiguration(
+          return DartPrecompiledAdbRuntimeConfiguration(
             useBlobs: configuration.useBlobs,
             useElf: configuration.useElf,
           );
         } else {
-          return new DartPrecompiledRuntimeConfiguration(
+          return DartPrecompiledRuntimeConfiguration(
             useBlobs: configuration.useBlobs,
             useElf: configuration.useElf,
           );
@@ -60,7 +60,7 @@ abstract class RuntimeConfiguration {
         break;
 
       case Runtime.selfCheck:
-        return new SelfCheckRuntimeConfiguration();
+        return SelfCheckRuntimeConfiguration();
     }
     throw "unreachable";
   }
@@ -73,8 +73,8 @@ abstract class RuntimeConfiguration {
 
   int timeoutMultiplier(
       {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
+      bool isChecked = false,
+      bool isReload = false,
       Architecture arch}) {
     return 1;
   }
@@ -89,9 +89,7 @@ abstract class RuntimeConfiguration {
     throw "Unimplemented runtime '$runtimeType'";
   }
 
-  /**
-   * The output directory for this suite's configuration.
-   */
+  /// The output directory for this suite's configuration.
   String get buildDir => _configuration.buildDirectory;
 
   List<String> dart2jsPreambles(Uri preambleDir) => [];
@@ -237,8 +235,8 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 
   int timeoutMultiplier(
       {Mode mode,
-      bool isChecked: false,
-      bool isReload: false,
+      bool isChecked = false,
+      bool isReload = false,
       Architecture arch}) {
     var multiplier = 1;
 
@@ -389,7 +387,7 @@ class SelfCheckRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   void searchForSelfCheckers() {
     Uri pkg = Repository.uri.resolve('pkg');
-    for (var entry in new Directory.fromUri(pkg).listSync(recursive: true)) {
+    for (var entry in Directory.fromUri(pkg).listSync(recursive: true)) {
       if (entry is File && entry.path.endsWith('_self_check.dart')) {
         selfCheckers.add(entry.path);
       }

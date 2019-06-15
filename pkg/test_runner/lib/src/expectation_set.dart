@@ -27,16 +27,16 @@ class ExpectationSet {
   final Map<String, RegExp> _globCache = {};
 
   /// The root of the expectation tree.
-  final _PathNode _tree = new _PathNode();
+  final _PathNode _tree = _PathNode();
 
   /// Reads the expectations defined by the status files at [statusFilePaths]
   /// when in [configuration].
   ExpectationSet.read(
       List<String> statusFilePaths, TestConfiguration configuration) {
     try {
-      var environment = new ConfigurationEnvironment(configuration);
+      var environment = ConfigurationEnvironment(configuration);
       for (var path in statusFilePaths) {
-        var file = new StatusFile.read(path);
+        var file = StatusFile.read(path);
         file.validate(environment);
         for (var section in file.sections) {
           if (section.isEnabled(environment)) {
@@ -60,11 +60,11 @@ class ExpectationSet {
     for (var part in entry.path.split('/')) {
       if (part.contains("*")) {
         var regExp = _globCache.putIfAbsent(part, () {
-          return new RegExp("^" + part.replaceAll("*", ".*") + r"$");
+          return RegExp("^" + part.replaceAll("*", ".*") + r"$");
         });
-        tree = tree.regExpChildren.putIfAbsent(regExp, () => new _PathNode());
+        tree = tree.regExpChildren.putIfAbsent(regExp, () => _PathNode());
       } else {
-        tree = tree.stringChildren.putIfAbsent(part, () => new _PathNode());
+        tree = tree.stringChildren.putIfAbsent(part, () => _PathNode());
       }
     }
 
@@ -80,7 +80,7 @@ class ExpectationSet {
   /// checks that the anchored regular expression "^$keyComponent\$" matches
   /// the corresponding filename component.
   Set<Expectation> expectations(String path) {
-    var result = new Set<Expectation>();
+    var result = <Expectation>{};
     _tree.walk(path.split('/'), 0, result);
 
     // If no status files modified the expectation, default to the test passing.
@@ -105,7 +105,7 @@ class _PathNode {
 
   /// The test expectatations that any test within this directory should
   /// include.
-  final Set<Expectation> expectations = new Set();
+  final Set<Expectation> expectations = {};
 
   /// Walks the list of path [parts], starting at [index] adding any
   /// expectations to [result] from this node and any of its matching children.

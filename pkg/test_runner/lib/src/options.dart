@@ -12,7 +12,7 @@ import 'path.dart';
 import 'repository.dart';
 import 'utils.dart';
 
-const _defaultTestSelectors = const [
+const _defaultTestSelectors = [
   'samples',
   'standalone',
   'standalone_2',
@@ -82,9 +82,9 @@ enum _OptionValueType { bool, int, string }
 /// Parses command line arguments and produces a test runner configuration.
 class OptionsParser {
   static final List<_Option> _options = [
-    new _Option('mode', 'Mode in which to run the tests.',
+    _Option('mode', 'Mode in which to run the tests.',
         abbr: 'm', values: ['all']..addAll(Mode.names)),
-    new _Option(
+    _Option(
         'compiler',
         '''How the Dart code should be compiled or statically processed.
 
@@ -102,7 +102,7 @@ dartkp:        Compile the Dart code into Kernel and then Kernel into AOT
 spec_parser:   Parse Dart code using the specification parser.''',
         abbr: 'c',
         values: Compiler.names),
-    new _Option(
+    _Option(
         'runtime',
         '''Where the tests should be run.
 vm:               Run Dart code on the standalone Dart VM.
@@ -126,7 +126,7 @@ self_check:       Pass each test or its compiled output to every file under
 none:             No runtime, compile only.''',
         abbr: 'r',
         values: Runtime.names),
-    new _Option(
+    _Option(
         'arch',
         '''The architecture to run tests for.
 
@@ -140,54 +140,51 @@ simdbc, simdbc64''',
         values: ['all']..addAll(Architecture.names),
         defaultsTo: Architecture.x64.name,
         hide: true),
-    new _Option('system', 'The operating system to run tests on.',
+    _Option('system', 'The operating system to run tests on.',
         abbr: 's',
         values: System.names,
         defaultsTo: Platform.operatingSystem,
         hide: true),
-    new _Option(
+    _Option(
         'named_configuration',
         '''The named test configuration that supplies the values for all
 test options, specifying how tests should be run.''',
         abbr: 'n',
         hide: true),
-    new _Option.bool('strong', 'Deprecated, no-op.', hide: true),
+    _Option.bool('strong', 'Deprecated, no-op.', hide: true),
     // TODO(sigmund): rename flag once we migrate all dart2js bots to the test
     // matrix.
-    new _Option.bool('host_checked', 'Run compiler with assertions enabled.',
+    _Option.bool('host_checked', 'Run compiler with assertions enabled.',
         hide: true),
-    new _Option.bool('minified', 'Enable minification in the compiler.',
+    _Option.bool('minified', 'Enable minification in the compiler.',
         hide: true),
-    new _Option.bool(
-        'csp', 'Run tests under Content Security Policy restrictions.',
+    _Option.bool('csp', 'Run tests under Content Security Policy restrictions.',
         hide: true),
-    new _Option.bool('fast_tests',
+    _Option.bool('fast_tests',
         'Only run tests that are not marked `Slow` or `Timeout`.'),
-    new _Option.bool('enable_asserts',
+    _Option.bool('enable_asserts',
         'Pass the --enable-asserts flag to dart2js or to the vm.'),
-    new _Option.bool('no_preview_dart_2',
+    _Option.bool('no_preview_dart_2',
         'Enable legacy Dart 1 behavior for some runtimes and compilers.',
         hide: true),
-    new _Option.bool('use_cfe', 'Pass the --use-cfe flag to analyzer',
-        hide: true),
-    new _Option.bool('analyzer_use_fasta_parser',
+    _Option.bool('use_cfe', 'Pass the --use-cfe flag to analyzer', hide: true),
+    _Option.bool('analyzer_use_fasta_parser',
         'Pass the --use-fasta-parser flag to analyzer',
         hide: true),
 
-    new _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
-    new _Option.bool(
-        'hot_reload_rollback', 'Run hot reload rollback stress tests.',
+    _Option.bool('hot_reload', 'Run hot reload stress tests.', hide: true),
+    _Option.bool('hot_reload_rollback', 'Run hot reload rollback stress tests.',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'use_blobs', 'Use mmap instead of shared libraries for precompilation.',
         hide: true),
-    new _Option.bool('use_elf',
+    _Option.bool('use_elf',
         'Directly generate an ELF shared libraries for precompilation.',
         hide: true),
-    new _Option.bool('keep_generated_files', 'Keep any generated files.',
+    _Option.bool('keep_generated_files', 'Keep any generated files.',
         abbr: 'k'),
-    new _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
-    new _Option(
+    _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
+    _Option(
         'progress',
         '''Progress indication mode.
 
@@ -196,130 +193,126 @@ compact, color, line, verbose, silent, status, buildbot, diff''',
         abbr: 'p',
         values: Progress.names,
         defaultsTo: Progress.compact.name),
-    new _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
-    new _Option.bool('report',
+    _Option('step_name', 'Step name for use by -pbuildbot.', hide: true),
+    _Option.bool('report',
         'Print a summary report of the number of tests, by expectation.',
         hide: true),
-    new _Option.int('tasks', 'The number of parallel tasks to run.',
+    _Option.int('tasks', 'The number of parallel tasks to run.',
         abbr: 'j', defaultsTo: Platform.numberOfProcessors),
-    new _Option.int('shards',
+    _Option.int('shards',
         'The number of instances that the tests will be sharded over.',
         defaultsTo: 1, hide: true),
-    new _Option.int(
+    _Option.int(
         'shard', 'The index of this instance when running in sharded mode.',
         defaultsTo: 1, hide: true),
-    new _Option.bool('help', 'Print list of options.', abbr: 'h'),
-    new _Option.int('repeat', 'How many times each test is run', defaultsTo: 1),
-    new _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
-    new _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
-    new _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
+    _Option.bool('help', 'Print list of options.', abbr: 'h'),
+    _Option.int('repeat', 'How many times each test is run', defaultsTo: 1),
+    _Option.bool('verbose', 'Verbose output.', abbr: 'v'),
+    _Option.bool('verify-ir', 'Verify kernel IR.', hide: true),
+    _Option.bool('no-tree-shake', 'Disable kernel IR tree shaking.',
         hide: true),
-    new _Option.bool('list', 'List tests only, do not run them.'),
-    new _Option.bool('list-configurations', 'Output list of configurations.'),
-    new _Option.bool('list_status_files',
+    _Option.bool('list', 'List tests only, do not run them.'),
+    _Option.bool('list-configurations', 'Output list of configurations.'),
+    _Option.bool('list_status_files',
         'List status files for test-suites. Do not run any test suites.',
         hide: true),
-    new _Option.bool(
-        'clean_exit', 'Exit 0 if tests ran and results were output.',
+    _Option.bool('clean_exit', 'Exit 0 if tests ran and results were output.',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'silent_failures',
         "Don't complain about failing tests. This is useful when in "
             "combination with --write-results.",
         hide: true),
-    new _Option.bool('report_in_json',
+    _Option.bool('report_in_json',
         'When listing with --list, output result summary in JSON.',
         hide: true),
-    new _Option.bool('time', 'Print timing information after running tests.'),
-    new _Option('dart', 'Path to dart executable.', hide: true),
-    new _Option('gen-snapshot', 'Path to gen_snapshot executable.', hide: true),
-    new _Option('firefox', 'Path to firefox browser executable.', hide: true),
-    new _Option('chrome', 'Path to chrome browser executable.', hide: true),
-    new _Option('safari', 'Path to safari browser executable.', hide: true),
-    new _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
+    _Option.bool('time', 'Print timing information after running tests.'),
+    _Option('dart', 'Path to dart executable.', hide: true),
+    _Option('gen-snapshot', 'Path to gen_snapshot executable.', hide: true),
+    _Option('firefox', 'Path to firefox browser executable.', hide: true),
+    _Option('chrome', 'Path to chrome browser executable.', hide: true),
+    _Option('safari', 'Path to safari browser executable.', hide: true),
+    _Option.bool('use_sdk', '''Use compiler or runtime from the SDK.'''),
     // TODO(rnystrom): This does not appear to be used. Remove?
-    new _Option('build_directory',
+    _Option('build_directory',
         'The name of the build directory, where products are placed.',
         hide: true),
-    new _Option('output_directory',
+    _Option('output_directory',
         'The name of the output directory for storing log files.',
         defaultsTo: "logs", hide: true),
-    new _Option.bool('noBatch', 'Do not run tests in batch mode.', hide: true),
-    new _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
+    _Option.bool('noBatch', 'Do not run tests in batch mode.', hide: true),
+    _Option.bool('dart2js_batch', 'Run dart2js tests in batch mode.',
         hide: true),
-    new _Option.bool('write_debug_log',
+    _Option.bool('write_debug_log',
         'Don\'t write debug messages to stdout but rather to a logfile.',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'write_results',
         'Write results to a "${TestUtils.resultsFileName}" json file '
             'located at the debug_output_directory.',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'write_logs',
         'Include the stdout and stderr of tests that don\'t match expectations '
             'in the "${TestUtils.logsFileName}" file',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'reset_browser_configuration',
         '''Browser specific reset of configuration.
 
 Warning: Using this option may remove your bookmarks and other
 settings.''',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'copy_coredumps',
         '''If we see a crash that we did not expect, copy the core dumps to
 "/tmp".''',
         hide: true),
-    new _Option(
+    _Option(
         'local_ip',
         '''IP address the HTTP servers should listen on. This address is also
 used for browsers to connect to.''',
         defaultsTo: '127.0.0.1',
         hide: true),
-    new _Option.int('test_server_port', 'Port for test http server.',
+    _Option.int('test_server_port', 'Port for test http server.',
         defaultsTo: 0, hide: true),
-    new _Option.int('test_server_cross_origin_port',
+    _Option.int('test_server_cross_origin_port',
         'Port for test http server cross origin.',
         defaultsTo: 0, hide: true),
-    new _Option.int('test_driver_port', 'Port for http test driver server.',
+    _Option.int('test_driver_port', 'Port for http test driver server.',
         defaultsTo: 0, hide: true),
-    new _Option.int(
+    _Option.int(
         'test_driver_error_port', 'Port for http test driver server errors.',
         defaultsTo: 0, hide: true),
-    new _Option('test_list', 'File containing a list of tests to be executed',
+    _Option('test_list', 'File containing a list of tests to be executed',
         hide: true),
-    new _Option('tests', 'A newline separated list of tests to be executed'),
-    new _Option(
+    _Option('tests', 'A newline separated list of tests to be executed'),
+    _Option(
         'builder_tag',
         '''Machine specific options that is not captured by the regular test
 options. Used to be able to make sane updates to the status files.''',
         hide: true),
-    new _Option('vm_options', 'Extra options to send to the VM when running.',
+    _Option('vm_options', 'Extra options to send to the VM when running.',
         hide: true),
-    new _Option(
-        'dart2js_options', 'Extra options for dart2js compilation step.',
+    _Option('dart2js_options', 'Extra options for dart2js compilation step.',
         hide: true),
-    new _Option('shared_options', 'Extra shared options.', hide: true),
-    new _Option(
+    _Option('shared_options', 'Extra shared options.', hide: true),
+    _Option(
         'babel',
         '''Transforms dart2js output with Babel. The value must be
 Babel options JSON.''',
         hide: true),
-    new _Option(
-        'suite_dir', 'Additional directory to add to the testing matrix.',
+    _Option('suite_dir', 'Additional directory to add to the testing matrix.',
         hide: true),
-    new _Option('package_root', 'The package root to use for testing.',
+    _Option('package_root', 'The package root to use for testing.', hide: true),
+    _Option('packages', 'The package spec file to use for testing.',
         hide: true),
-    new _Option('packages', 'The package spec file to use for testing.',
-        hide: true),
-    new _Option(
+    _Option(
         'exclude_suite',
         '''Exclude suites from default selector, only works when no selector
 has been specified on the command line.''',
         hide: true),
-    new _Option.bool(
+    _Option.bool(
         'skip_compilation',
         '''
 Skip the compilation step, using the compilation artifacts left in
@@ -328,7 +321,7 @@ false positves and negatives, but can be useful for quick and
 dirty offline testing when not making changes that affect the
 compiler.''',
         hide: true),
-    new _Option.bool('print_passing_stdout',
+    _Option.bool('print_passing_stdout',
         'Print the stdout of passing, as well as failing, tests.',
         hide: true)
   ];
@@ -583,8 +576,7 @@ compiler.''',
         // observatory_ui, and remove observatory_ui from the original
         // selectors. The only mutable value in the map is the selectors, so a
         // shallow copy is safe.
-        var observatoryConfiguration =
-            new Map<String, dynamic>.from(configuration);
+        var observatoryConfiguration = Map<String, dynamic>.from(configuration);
         var observatorySelectors = {
           'observatory_ui': selectors['observatory_ui']
         };
@@ -688,8 +680,8 @@ compiler.''',
             var namedConfiguration =
                 getNamedConfiguration(data["named_configuration"] as String);
             var innerConfiguration = namedConfiguration ??
-                new Configuration("custom configuration", architecture,
-                    compiler, mode, runtime, system,
+                Configuration("custom configuration", architecture, compiler,
+                    mode, runtime, system,
                     timeout: data["timeout"] as int,
                     enableAsserts: data["enable_asserts"] as bool,
                     useAnalyzerCfe: data["use_cfe"] as bool,
@@ -708,7 +700,7 @@ compiler.''',
                     babel: data['babel'] as String,
                     builderTag: data["builder_tag"] as String,
                     previewDart2: true);
-            var configuration = new TestConfiguration(
+            var configuration = TestConfiguration(
                 configuration: innerConfiguration,
                 progress: Progress.find(data["progress"] as String),
                 selectors: selectors,
@@ -817,7 +809,7 @@ compiler.''',
         _fail("Error: '$suite/$pattern'.  Only one test selection"
             " pattern is allowed to start with '$suite/'");
       }
-      selectorMap[suite] = new RegExp(pattern);
+      selectorMap[suite] = RegExp(pattern);
     }
 
     return selectorMap;
@@ -825,7 +817,7 @@ compiler.''',
 
   /// Print out usage information.
   void _printHelp({bool verbose}) {
-    var buffer = new StringBuffer();
+    var buffer = StringBuffer();
 
     buffer.writeln('''The Dart SDK's internal test runner.
 

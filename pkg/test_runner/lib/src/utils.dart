@@ -9,17 +9,17 @@ import 'dart:convert';
 import 'configuration.dart';
 import 'path.dart';
 
-// This is the maximum time we expect stdout/stderr of subprocesses to deliver
-// data after we've got the exitCode.
-const Duration MAX_STDIO_DELAY = const Duration(seconds: 30);
+/// This is the maximum time we expect stdout/stderr of subprocesses to deliver
+/// data after we've got the exitCode.
+const Duration maxStdioDelay = Duration(seconds: 30);
 
-String MAX_STDIO_DELAY_PASSED_MESSAGE =
+final maxStdioDelayPassedMessage =
     """Not waiting for stdout/stderr from subprocess anymore
- ($MAX_STDIO_DELAY passed). Please note that this could be an indicator
+ ($maxStdioDelay passed). Please note that this could be an indicator
  that there is a hanging process which we were unable to kill.""";
 
 /// The names of the packages that are available for use in tests.
-const testPackages = const [
+const testPackages = [
   "async_helper",
   "collection",
   "expect",
@@ -34,12 +34,10 @@ const testPackages = const [
 class DebugLogger {
   static IOSink _sink;
 
-  /**
-   * If [path] was null, the DebugLogger will write messages to stdout.
-   */
+  /// If [path] was null, the DebugLogger will write messages to stdout.
   static void init(Path path) {
     if (path != null) {
-      _sink = new File(path.toNativePath()).openWrite(mode: FileMode.append);
+      _sink = File(path.toNativePath()).openWrite(mode: FileMode.append);
     }
   }
 
@@ -82,18 +80,19 @@ class DebugLogger {
     }
   }
 
-  static String get _datetime => "${new DateTime.now()}";
+  static String get _datetime => "${DateTime.now()}";
 }
 
-String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
+String prettifyJson(Object json,
+    {int startIndentation = 0, int shiftWidth = 6}) {
   int currentIndentation = startIndentation;
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
 
   String indentationString() {
-    return new List.filled(currentIndentation, ' ').join('');
+    return List.filled(currentIndentation, ' ').join('');
   }
 
-  addString(String s, {bool indentation: true, bool newLine: true}) {
+  addString(String s, {bool indentation = true, bool newLine = true}) {
     if (indentation) {
       buffer.write(indentationString());
     }
@@ -102,7 +101,7 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
   }
 
   prettifyJsonInternal(Object obj,
-      {bool indentation: true, bool newLine: true}) {
+      {bool indentation = true, bool newLine = true}) {
     if (obj is List) {
       addString("[", indentation: indentation);
       currentIndentation += shiftWidth;
@@ -132,15 +131,13 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
   return buffer.toString();
 }
 
-/**
- * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
- * range of bytes from [buffer2].
- *
- * Returns [true] if the [count] bytes in [buffer1] (starting at
- * [offset1]) match the [count] bytes in [buffer2] (starting at
- * [offset2]).
- * Otherwise [false] is returned.
- */
+/// [areByteArraysEqual] compares a range of bytes from [buffer1] with a
+/// range of bytes from [buffer2].
+///
+/// Returns [true] if the [count] bytes in [buffer1] (starting at
+/// [offset1]) match the [count] bytes in [buffer2] (starting at
+/// [offset2]).
+/// Otherwise [false] is returned.
 bool areByteArraysEqual(
     List<int> buffer1, int offset1, List<int> buffer2, int offset2, int count) {
   if ((offset1 + count) > buffer1.length ||
@@ -156,12 +153,10 @@ bool areByteArraysEqual(
   return true;
 }
 
-/**
- * [findBytes] searches for [pattern] in [data] beginning at [startPos].
- *
- * Returns [true] if [pattern] was found in [data].
- * Otherwise [false] is returned.
- */
+/// [findBytes] searches for [pattern] in [data] beginning at [startPos].
+///
+/// Returns [true] if [pattern] was found in [data].
+/// Otherwise [false] is returned.
 int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
   for (int i = startPos; i < (data.length - pattern.length); i++) {
@@ -201,7 +196,7 @@ List<String> decodeLines(List<int> output) {
 }
 
 String indent(String string, int numSpaces) {
-  var spaces = new List.filled(numSpaces, ' ').join('');
+  var spaces = List.filled(numSpaces, ' ').join('');
   return string
       .replaceAll('\r\n', '\n')
       .split('\n')
@@ -232,8 +227,8 @@ String niceTime(Duration duration) {
   }
 }
 
-// This function is pretty stupid and only puts quotes around an argument if
-// it the argument contains a space.
+/// This function is pretty stupid and only puts quotes around an argument if
+/// it the argument contains a space.
 String escapeCommandLineArgument(String argument) {
   if (argument.contains(' ')) {
     return '"$argument"';
@@ -263,7 +258,7 @@ class HashCodeBuilder {
         addJson(object[key]);
       }
     } else {
-      throw new Exception("Can't build hashcode for non json-like object "
+      throw Exception("Can't build hashcode for non json-like object "
           "(${object.runtimeType})");
     }
   }
@@ -296,7 +291,7 @@ bool deepJsonCompare(Object a, Object b) {
     }
     return false;
   } else {
-    throw new Exception("Can't compare two non json-like objects "
+    throw Exception("Can't compare two non json-like objects "
         "(a: ${a.runtimeType}, b: ${b.runtimeType})");
   }
 }
@@ -315,57 +310,51 @@ class UniqueObject {
 class LastModifiedCache {
   Map<String, DateTime> _cache = <String, DateTime>{};
 
-  /**
-   * Returns the last modified date of the given [uri].
-   *
-   * The return value will be cached for future queries. If [uri] is a local
-   * file, it's last modified [Date] will be returned. If the file does not
-   * exist, null will be returned instead.
-   * In case [uri] is not a local file, this method will always return
-   * the current date.
-   */
+  /// Returns the last modified date of the given [uri].
+  ///
+  /// The return value will be cached for future queries. If [uri] is a local
+  /// file, it's last modified [Date] will be returned. If the file does not
+  /// exist, null will be returned instead.
+  /// In case [uri] is not a local file, this method will always return
+  /// the current date.
   DateTime getLastModified(Uri uri) {
     if (uri.scheme == "file") {
       if (_cache.containsKey(uri.path)) {
         return _cache[uri.path];
       }
-      var file = new File(new Path(uri.path).toNativePath());
+      var file = File(Path(uri.path).toNativePath());
       _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
       return _cache[uri.path];
     }
-    return new DateTime.now();
+    return DateTime.now();
   }
 }
 
 class ExistsCache {
   Map<String, bool> _cache = <String, bool>{};
 
-  /**
-   * Returns true if the file in [path] exists, false otherwise.
-   *
-   * The information will be cached.
-   */
+  /// Returns true if the file in [path] exists, false otherwise.
+  ///
+  /// The information will be cached.
   bool doesFileExist(String path) {
     if (!_cache.containsKey(path)) {
-      _cache[path] = new File(path).existsSync();
+      _cache[path] = File(path).existsSync();
     }
     return _cache[path];
   }
 }
 
 class TestUtils {
-  static LastModifiedCache lastModifiedCache = new LastModifiedCache();
-  static ExistsCache existsCache = new ExistsCache();
+  static LastModifiedCache lastModifiedCache = LastModifiedCache();
+  static ExistsCache existsCache = ExistsCache();
 
-  /**
-   * Creates a directory using a [relativePath] to an existing
-   * [base] directory if that [relativePath] does not already exist.
-   */
+  /// Creates a directory using a [relativePath] to an existing
+  /// [base] directory if that [relativePath] does not already exist.
   static Directory mkdirRecursive(Path base, Path relativePath) {
     if (relativePath.isAbsolute) {
-      base = new Path('/');
+      base = Path('/');
     }
-    Directory dir = new Directory(base.toNativePath());
+    Directory dir = Directory(base.toNativePath());
     assert(dir.existsSync());
     var segments = relativePath.segments();
     for (String segment in segments) {
@@ -376,7 +365,7 @@ class TestUtils {
         // Skip the directory creation for a path like "/E:".
         continue;
       }
-      dir = new Directory(base.toNativePath());
+      dir = Directory(base.toNativePath());
       if (!dir.existsSync()) {
         dir.createSync();
       }
@@ -385,23 +374,19 @@ class TestUtils {
     return dir;
   }
 
-  /**
-   * Keep a map of files copied to avoid race conditions.
-   */
+  /// Keep a map of files copied to avoid race conditions.
   static Map<String, Future> _copyFilesMap = {};
 
-  /**
-   * Copy a [source] file to a new place.
-   * Assumes that the directory for [dest] already exists.
-   */
+  /// Copy a [source] file to a new place.
+  /// Assumes that the directory for [dest] already exists.
   static Future copyFile(Path source, Path dest) {
     return _copyFilesMap.putIfAbsent(dest.toNativePath(),
-        () => new File(source.toNativePath()).copy(dest.toNativePath()));
+        () => File(source.toNativePath()).copy(dest.toNativePath()));
   }
 
   static Future copyDirectory(String source, String dest) {
-    source = new Path(source).toNativePath();
-    dest = new Path(dest).toNativePath();
+    source = Path(source).toNativePath();
+    dest = Path(dest).toNativePath();
 
     var executable = 'cp';
     var args = ['-Rp', source, dest];
@@ -411,7 +396,7 @@ class TestUtils {
     }
     return Process.run(executable, args).then((ProcessResult result) {
       if (result.exitCode != 0) {
-        throw new Exception("Failed to execute '$executable "
+        throw Exception("Failed to execute '$executable "
             "${args.join(' ')}'.");
       }
     });
@@ -422,18 +407,18 @@ class TestUtils {
     // deleting them. Use the system tools to delete our long paths.
     // See issue 16264.
     if (Platform.operatingSystem == 'windows') {
-      var native_path = new Path(path).toNativePath();
+      var native_path = Path(path).toNativePath();
       // Running this in a shell sucks, but rmdir is not part of the standard
       // path.
       return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
           .then((ProcessResult result) {
         if (result.exitCode != 0) {
-          throw new Exception('Can\'t delete path $native_path. '
+          throw Exception('Can\'t delete path $native_path. '
               'This path might be too long');
         }
       });
     } else {
-      var dir = new Directory(path);
+      var dir = Directory(path);
       return dir.delete(recursive: true);
     }
   }
@@ -459,7 +444,7 @@ class TestUtils {
     }
   }
 
-  static final debugLogFilePath = new Path(".debug.log");
+  static final debugLogFilePath = Path(".debug.log");
 
   /// If test.py was invoked with '--write-results' it will write
   /// test outcomes to this file in the '--output-directory'.
@@ -479,10 +464,11 @@ class TestUtils {
     }
   }
 
-  static int shortNameCounter = 0; // Make unique short file names on Windows.
+  /// Make unique short file names on Windows.
+  static int shortNameCounter = 0;
 
   static String getShortName(String path) {
-    const pathReplacements = const {
+    const pathReplacements = {
       "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
           "co19_fn_invoke_",
       "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":

@@ -15,32 +15,20 @@ import 'package:test_runner/src/configuration.dart';
 import 'package:test_runner/src/options.dart';
 import 'package:test_runner/src/test_configurations.dart';
 
-const List<String> COMMON_ARGUMENTS = const <String>[
+const List<String> _commonArguments = <String>[
   '--report',
   '--progress=diff',
   'co19'
 ];
 
-const List<List<String>> COMMAND_LINES = const <List<String>>[
-  const <String>['-mrelease,debug', '-rvm', '-cnone'],
-  const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
-  const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
-  const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
-  const <String>[
-    '-mrelease',
-    '-rd8,jsshell',
-    '-cdart2js',
-    '--use-sdk',
-    '--minified'
-  ],
-  const <String>[
-    '-mrelease',
-    '-rd8,jsshell',
-    '-cdart2js',
-    '--use-sdk',
-    '--checked'
-  ],
-  const <String>[
+const List<List<String>> _commandLines = <List<String>>[
+  <String>['-mrelease,debug', '-rvm', '-cnone'],
+  <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
+  <String>['-mrelease', '-rnone', '-cdart2analyzer'],
+  <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
+  <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk', '--minified'],
+  <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk', '--checked'],
+  <String>[
     '-mrelease',
     '-rd8,jsshell',
     '-cdart2js',
@@ -51,17 +39,17 @@ const List<List<String>> COMMAND_LINES = const <List<String>>[
 ];
 
 void main(List<String> args) {
-  var optionsParser = new OptionsParser();
+  var optionsParser = OptionsParser();
   var configurations = <TestConfiguration>[];
-  for (var commandLine in COMMAND_LINES) {
+  for (var commandLine in _commandLines) {
     var arguments = <String>[];
-    arguments.addAll(COMMON_ARGUMENTS);
+    arguments.addAll(_commonArguments);
     arguments.addAll(args);
     arguments.addAll(commandLine);
     configurations.addAll(optionsParser.parse(arguments));
   }
 
-  if (configurations != null || configurations.length > 0) {
+  if (configurations != null || configurations.isNotEmpty) {
     testConfigurations(configurations);
   }
 }

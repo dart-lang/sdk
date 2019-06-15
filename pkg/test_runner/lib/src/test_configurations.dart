@@ -12,42 +12,37 @@ import 'co19_test_config.dart';
 import 'configuration.dart';
 import 'path.dart';
 import 'test_progress.dart';
-import 'test_case.dart';
+import 'process_queue.dart';
 import 'test_suite.dart';
 import 'utils.dart';
 
-/**
- * The directories that contain test suites which follow the conventions
- * required by [StandardTestSuite]'s forDirectory constructor.
- * New test suites should follow this convention because it makes it much
- * simpler to add them to test.dart.  Existing test suites should be
- * moved to here, if possible.
-*/
+/// The directories that contain test suites which follow the conventions
+/// required by [StandardTestSuite]'s forDirectory constructor.
+/// New test suites should follow this convention because it makes it much
+/// simpler to add them to test.dart.  Existing test suites should be
+/// moved to here, if possible.
 final TEST_SUITE_DIRECTORIES = [
-  new Path('third_party/pkg/dartdoc'),
-  new Path('pkg'),
-  new Path('third_party/pkg_tested'),
-  new Path('runtime/tests/vm'),
-  new Path('runtime/observatory/tests/service'),
-  new Path('runtime/observatory/tests/observatory_ui'),
-  new Path('samples'),
-  new Path('samples-dev'),
-  new Path('tests/compiler/dart2js'),
-  new Path('tests/compiler/dart2js_extra'),
-  new Path('tests/compiler/dart2js_native'),
-  new Path('tests/compiler/dartdevc_native'),
-  new Path('tests/corelib_2'),
-  new Path('tests/kernel'),
-  new Path('tests/language_2'),
-  new Path('tests/lib_2'),
-  new Path('tests/standalone'),
-  new Path('tests/standalone_2'),
-  new Path('tests/ffi'),
-  new Path('utils/tests/peg'),
+  Path('third_party/pkg/dartdoc'),
+  Path('pkg'),
+  Path('third_party/pkg_tested'),
+  Path('runtime/tests/vm'),
+  Path('runtime/observatory/tests/service'),
+  Path('runtime/observatory/tests/observatory_ui'),
+  Path('samples'),
+  Path('samples-dev'),
+  Path('tests/compiler/dart2js'),
+  Path('tests/compiler/dart2js_extra'),
+  Path('tests/compiler/dart2js_native'),
+  Path('tests/compiler/dartdevc_native'),
+  Path('tests/corelib_2'),
+  Path('tests/kernel'),
+  Path('tests/language_2'),
+  Path('tests/lib_2'),
+  Path('tests/standalone'),
+  Path('tests/standalone_2'),
+  Path('tests/ffi'),
+  Path('utils/tests/peg'),
 ];
-
-// This file is created by gclient runhooks.
-final VS_TOOLCHAIN_FILE = new Path("build/win_toolchain.json");
 
 Future testConfigurations(List<TestConfiguration> configurations) async {
   var startTime = DateTime.now();
@@ -120,20 +115,20 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
     // If we specifically pass in a suite only run that.
     if (configuration.suiteDirectory != null) {
-      var suitePath = new Path(configuration.suiteDirectory);
-      testSuites.add(new PKGTestSuite(configuration, suitePath));
+      var suitePath = Path(configuration.suiteDirectory);
+      testSuites.add(PKGTestSuite(configuration, suitePath));
     } else {
       for (var testSuiteDir in TEST_SUITE_DIRECTORIES) {
         var name = testSuiteDir.filename;
         if (configuration.selectors.containsKey(name)) {
-          testSuites.add(
-              new StandardTestSuite.forDirectory(configuration, testSuiteDir));
+          testSuites
+              .add(StandardTestSuite.forDirectory(configuration, testSuiteDir));
         }
       }
 
       for (var key in configuration.selectors.keys) {
         if (key == 'co19_2') {
-          testSuites.add(new Co19TestSuite(configuration, key));
+          testSuites.add(Co19TestSuite(configuration, key));
         } else if ((configuration.compiler == Compiler.none ||
                 configuration.compiler == Compiler.dartk ||
                 configuration.compiler == Compiler.dartkb) &&
@@ -141,10 +136,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
             key == 'vm') {
           // vm tests contain both cc tests (added here) and dart tests (added
           // in [TEST_SUITE_DIRECTORIES]).
-          testSuites.add(new VMTestSuite(configuration));
+          testSuites.add(VMTestSuite(configuration));
         } else if (configuration.compiler == Compiler.dart2analyzer) {
           if (key == 'analyze_library') {
-            testSuites.add(new AnalyzeLibraryTestSuite(configuration));
+            testSuites.add(AnalyzeLibraryTestSuite(configuration));
           }
         }
       }
@@ -188,49 +183,49 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       progressIndicator = Progress.compact;
       formatter = Formatter.color;
       printFailures = false;
-      eventListener.add(new StatusFileUpdatePrinter());
+      eventListener.add(StatusFileUpdatePrinter());
     }
     if (firstConf.silentFailures) {
       printFailures = false;
     }
-    eventListener.add(new SummaryPrinter());
+    eventListener.add(SummaryPrinter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
       // into '@@@'-annotated sections.
       var printFailureSummary = progressIndicator != Progress.buildbot;
-      eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
+      eventListener.add(TestFailurePrinter(printFailureSummary, formatter));
     }
     if (firstConf.printPassingStdout) {
-      eventListener.add(new PassingStdoutPrinter(formatter));
+      eventListener.add(PassingStdoutPrinter(formatter));
     }
     eventListener.add(ProgressIndicator.fromProgress(
         progressIndicator, startTime, formatter));
     if (printTiming) {
-      eventListener.add(new TimingPrinter(startTime));
+      eventListener.add(TimingPrinter(startTime));
     }
-    eventListener.add(new SkippedCompilationsPrinter());
+    eventListener.add(SkippedCompilationsPrinter());
     if (progressIndicator == Progress.status) {
-      eventListener.add(new TimedProgressPrinter());
+      eventListener.add(TimedProgressPrinter());
     }
   }
 
   if (firstConf.writeResults) {
-    eventListener.add(new ResultWriter(firstConf, startTime, startStopwatch));
+    eventListener.add(ResultWriter(firstConf, startTime, startStopwatch));
   }
 
   if (firstConf.copyCoreDumps) {
-    eventListener.add(new UnexpectedCrashLogger());
+    eventListener.add(UnexpectedCrashLogger());
   }
 
   // The only progress indicator when listing tests should be the
   // the summary printer.
   if (listTests) {
-    eventListener.add(new SummaryPrinter(jsonOnly: reportInJson));
+    eventListener.add(SummaryPrinter(jsonOnly: reportInJson));
   } else {
     if (!firstConf.cleanExit) {
-      eventListener.add(new ExitCodeSetter());
+      eventListener.add(ExitCodeSetter());
     }
-    eventListener.add(new IgnoredTestMonitor());
+    eventListener.add(IgnoredTestMonitor());
   }
 
   // If any of the configurations need to access android devices we'll first
@@ -250,6 +245,6 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   // [firstConf] is needed here, since the ProcessQueue needs to know the
   // settings of 'noBatch' and 'local_ip'
-  new ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, startTime,
+  ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, startTime,
       testSuites, eventListener, allTestsFinished, verbose, adbDevicePool);
 }

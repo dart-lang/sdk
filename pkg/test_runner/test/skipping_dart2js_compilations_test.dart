@@ -27,10 +27,8 @@ import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/repository.dart';
 import 'package:test_runner/src/test_case.dart';
 
-/**
- * This class is reponsible for setting up the files necessary for this test
- * as well as touching a file.
- */
+/// This class is reponsible for setting up the files necessary for this test
+/// as well as touching a file.
 class FileUtils {
   Directory tempDir;
   File testJs;
@@ -59,7 +57,7 @@ class FileUtils {
     }
     if (createJsDeps) {
       testJsDeps = _createFile(testJsDepsFilePath);
-      var path = new Path(tempDir.path).append("test.dart").absolute;
+      var path = Path(tempDir.path).append("test.dart").absolute;
       _writeToFile(testJsDeps, "file://$path");
     }
   }
@@ -71,7 +69,7 @@ class FileUtils {
     if (testSnapshot != null) testSnapshot.deleteSync();
 
     // if the script did run, it created this file, so we need to delete it
-    File file = new File(scriptOutputPath.toNativePath());
+    File file = File(scriptOutputPath.toNativePath());
     if (file.existsSync()) {
       file.deleteSync();
     }
@@ -80,25 +78,23 @@ class FileUtils {
   }
 
   Path get scriptOutputPath {
-    return new Path(tempDir.path)
-        .append('created_if_command_did_run.txt')
-        .absolute;
+    return Path(tempDir.path).append('created_if_command_did_run.txt').absolute;
   }
 
   Path get testDartFilePath {
-    return new Path(tempDir.path).append('test.dart').absolute;
+    return Path(tempDir.path).append('test.dart').absolute;
   }
 
   Path get testJsFilePath {
-    return new Path(tempDir.path).append('test.js').absolute;
+    return Path(tempDir.path).append('test.js').absolute;
   }
 
   Path get testJsDepsFilePath {
-    return new Path(tempDir.path).append('test.js.deps').absolute;
+    return Path(tempDir.path).append('test.js.deps').absolute;
   }
 
   Path get testSnapshotFilePath {
-    return new Path(tempDir.path).append('test_dart2js.snapshot').absolute;
+    return Path(tempDir.path).append('test_dart2js.snapshot').absolute;
   }
 
   void touchFile(File file) {
@@ -107,8 +103,8 @@ class FileUtils {
 
   void _writeToFile(File file, String content) {
     if (content != null) {
-      var fd = new File(file.resolveSymbolicLinksSync())
-          .openSync(mode: FileMode.write);
+      var fd =
+          File(file.resolveSymbolicLinksSync()).openSync(mode: FileMode.write);
       fd.writeStringSync(content);
       fd.closeSync();
     }
@@ -119,7 +115,7 @@ class FileUtils {
   }
 
   File _createFile(Path path) {
-    var file = new File(path.toNativePath());
+    var file = File(path.toNativePath());
     file.createSync();
     return file;
   }
@@ -137,10 +133,10 @@ class CommandCompletedHandler {
     if (_shouldHaveRun) {
       Expect.equals(0, output.stdout.length);
       Expect.isTrue(
-          new File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
+          File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
     } else {
       Expect.isFalse(
-          new File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
+          File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
     }
   }
 }
@@ -164,37 +160,37 @@ void main() {
   // This script is in [sdk]/pkg/test_runner/test.
   Repository.uri = Platform.script.resolve('../../..');
 
-  var fs_noTestJs = new FileUtils(
+  var fs_noTestJs = FileUtils(
       createJs: false,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_noTestJsDeps = new FileUtils(
+  var fs_noTestJsDeps = FileUtils(
       createJs: true,
       createJsDeps: false,
       createDart: true,
       createSnapshot: true);
-  var fs_noTestDart = new FileUtils(
+  var fs_noTestDart = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: false,
       createSnapshot: true);
-  var fs_noTestSnapshot = new FileUtils(
+  var fs_noTestSnapshot = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: false);
-  var fs_notUpToDate_snapshot = new FileUtils(
+  var fs_notUpToDate_snapshot = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_notUpToDate_dart = new FileUtils(
+  var fs_notUpToDate_dart = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
       createSnapshot: true);
-  var fs_upToDate = new FileUtils(
+  var fs_upToDate = FileUtils(
       createJs: true,
       createJsDeps: true,
       createDart: true,
@@ -215,9 +211,9 @@ void main() {
     fs_upToDate.touchFile(fs_upToDate.testJs);
 
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
-      var completedHandler = new CommandCompletedHandler(fileUtils, shouldRun);
+      var completedHandler = CommandCompletedHandler(fileUtils, shouldRun);
       var command = makeCompilationCommand(name, fileUtils) as ProcessCommand;
-      var process = new RunningProcess(command, 60);
+      var process = RunningProcess(command, 60);
       return process.run().then((CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });
@@ -250,5 +246,5 @@ void main() {
 
   // We need to wait some time to make sure that the files we 'touch' get a
   // bigger timestamp than the old ones
-  new Timer(new Duration(seconds: 1), touchFilesAndRunTests);
+  Timer(Duration(seconds: 1), touchFilesAndRunTests);
 }

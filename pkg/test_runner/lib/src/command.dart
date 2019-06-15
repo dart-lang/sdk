@@ -18,7 +18,7 @@ import 'utils.dart';
 class Command {
   static Command browserTest(String url, TestConfiguration configuration,
       {bool retry}) {
-    return new BrowserTestCommand._(url, configuration, retry);
+    return BrowserTestCommand._(url, configuration, retry);
   }
 
   static Command compilation(
@@ -28,9 +28,9 @@ class Command {
       String executable,
       List<String> arguments,
       Map<String, String> environment,
-      {bool alwaysCompile: false,
+      {bool alwaysCompile = false,
       String workingDirectory}) {
-    return new CompilationCommand._(displayName, outputFile, alwaysCompile,
+    return CompilationCommand._(displayName, outputFile, alwaysCompile,
         bootstrapDependencies, executable, arguments, environment,
         workingDirectory: workingDirectory);
   }
@@ -43,36 +43,35 @@ class Command {
       List<String> arguments,
       Map<String, String> environment,
       List<String> batchArgs) {
-    return new VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
+    return VMKernelCompilationCommand._(outputFile, neverSkipCompilation,
         bootstrapDependencies, executable, arguments, environment, batchArgs);
   }
 
   static Command analysis(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new AnalysisCommand._(executable, arguments, environmentOverrides);
+    return AnalysisCommand._(executable, arguments, environmentOverrides);
   }
 
   static Command compareAnalyzerCfe(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new CompareAnalyzerCfeCommand._(
+    return CompareAnalyzerCfeCommand._(
         executable, arguments, environmentOverrides);
   }
 
   static Command specParse(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new SpecParseCommand._(executable, arguments, environmentOverrides);
+    return SpecParseCommand._(executable, arguments, environmentOverrides);
   }
 
   static Command vm(String executable, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new VmCommand._(executable, arguments, environmentOverrides);
+    return VmCommand._(executable, arguments, environmentOverrides);
   }
 
   static Command vmBatch(String executable, String tester,
       List<String> arguments, Map<String, String> environmentOverrides,
-      {bool checked: true}) {
-    return new VmBatchCommand._(
-        executable, tester, arguments, environmentOverrides,
+      {bool checked = true}) {
+    return VmBatchCommand._(executable, tester, arguments, environmentOverrides,
         checked: checked);
   }
 
@@ -83,37 +82,36 @@ class Command {
       List<String> arguments,
       bool useBlobs,
       bool useElf) {
-    return new AdbPrecompilationCommand._(precompiledRunner, processTest,
+    return AdbPrecompilationCommand._(precompiledRunner, processTest,
         testDirectory, arguments, useBlobs, useElf);
   }
 
   static Command adbDartk(String precompiledRunner, String processTest,
       String script, List<String> arguments, List<String> extraLibraries) {
-    return new AdbDartkCommand._(
+    return AdbDartkCommand._(
         precompiledRunner, processTest, script, arguments, extraLibraries);
   }
 
   static Command jsCommandLine(
       String displayName, String executable, List<String> arguments,
       [Map<String, String> environment]) {
-    return new JSCommandlineCommand._(
+    return JSCommandlineCommand._(
         displayName, executable, arguments, environment);
   }
 
   static Command process(
       String displayName, String executable, List<String> arguments,
       [Map<String, String> environment, String workingDirectory]) {
-    return new ProcessCommand._(
+    return ProcessCommand._(
         displayName, executable, arguments, environment, workingDirectory);
   }
 
   static Command copy(String sourceDirectory, String destinationDirectory) {
-    return new CleanDirectoryCopyCommand._(
-        sourceDirectory, destinationDirectory);
+    return CleanDirectoryCopyCommand._(sourceDirectory, destinationDirectory);
   }
 
   static Command makeSymlink(String link, String target) {
-    return new MakeSymlinkCommand._(link, target);
+    return MakeSymlinkCommand._(link, target);
   }
 
   static Command fasta(
@@ -124,7 +122,7 @@ class Command {
       List<String> arguments,
       Map<String, String> environment,
       Uri workingDirectory) {
-    return new FastaCompilationCommand._(
+    return FastaCompilationCommand._(
         compilerLocation,
         outputFile.toFilePath(),
         bootstrapDependencies,
@@ -163,7 +161,7 @@ class Command {
 
   int get hashCode {
     if (_cachedHashCode == null) {
-      var builder = new HashCodeBuilder();
+      var builder = HashCodeBuilder();
       _buildHashCode(builder);
       _cachedHashCode = builder.value;
     }
@@ -234,7 +232,7 @@ class ProcessCommand extends Command {
       deepJsonCompare(environmentOverrides, other.environmentOverrides);
 
   String get reproductionCommand {
-    var env = new StringBuffer();
+    var env = StringBuffer();
     environmentOverrides?.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
@@ -292,7 +290,7 @@ class CompilationCommand extends ProcessCommand {
   bool get outputIsUpToDate {
     if (_alwaysCompile) return false;
 
-    var file = new io.File(new Path("$outputFile.deps").toNativePath());
+    var file = io.File(Path("$outputFile.deps").toNativePath());
     if (!file.existsSync()) return false;
 
     var lines = file.readAsLinesSync();
@@ -306,7 +304,7 @@ class CompilationCommand extends ProcessCommand {
 
     dependencies.addAll(_bootstrapDependencies);
     var jsOutputLastModified = TestUtils.lastModifiedCache
-        .getLastModified(new Uri(scheme: 'file', path: outputFile));
+        .getLastModified(Uri(scheme: 'file', path: outputFile));
     if (jsOutputLastModified == null) return false;
 
     for (var dependency in dependencies) {
@@ -374,12 +372,12 @@ class FastaCompilationCommand extends CompilationCommand {
     String relativizeAndEscape(String argument) {
       if (workingDirectory != null) {
         argument = argument.replaceAll(
-            workingDirectory, new Uri.directory(".").toFilePath());
+            workingDirectory, Uri.directory(".").toFilePath());
       }
       return escapeCommandLineArgument(argument);
     }
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (workingDirectory != null && !io.Platform.isWindows) {
       buffer.write("(cd ");
       buffer.write(escapeCommandLineArgument(workingDirectory));
@@ -561,7 +559,7 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
 
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
-      {this.checked: true, int index = 0})
+      {this.checked = true, int index = 0})
       : this.dartFile = dartFile,
         super._('vm-batch', executable, arguments, environmentOverrides, null,
             index);
@@ -705,24 +703,24 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
       "Copying '$_sourceDirectory' to '$_destinationDirectory'.";
 
   Future<ScriptCommandOutput> run() {
-    var watch = new Stopwatch()..start();
+    var watch = Stopwatch()..start();
 
-    var destination = new io.Directory(_destinationDirectory);
+    var destination = io.Directory(_destinationDirectory);
 
     return destination.exists().then((bool exists) {
       Future cleanDirectoryFuture;
       if (exists) {
         cleanDirectoryFuture = TestUtils.deleteDirectory(_destinationDirectory);
       } else {
-        cleanDirectoryFuture = new Future.value(null);
+        cleanDirectoryFuture = Future.value(null);
       }
       return cleanDirectoryFuture.then((_) {
         return TestUtils.copyDirectory(_sourceDirectory, _destinationDirectory);
       });
     }).then((_) {
-      return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
+      return ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
-      return new ScriptCommandOutput(
+      return ScriptCommandOutput(
           this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }
@@ -754,21 +752,21 @@ class MakeSymlinkCommand extends ScriptCommand {
       "Make symbolic link '$_link' (target: $_target)'.";
 
   Future<ScriptCommandOutput> run() {
-    var watch = new Stopwatch()..start();
-    var targetFile = new io.Directory(_target);
+    var watch = Stopwatch()..start();
+    var targetFile = io.Directory(_target);
     return targetFile.exists().then((bool targetExists) {
       if (!targetExists) {
-        throw new Exception("Target '$_target' does not exist");
+        throw Exception("Target '$_target' does not exist");
       }
-      var link = new io.Link(_link);
+      var link = io.Link(_link);
 
       return link.exists().then((bool exists) {
         if (exists) link.deleteSync();
       }).then((_) => link.create(_target));
     }).then((_) {
-      return new ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
+      return ScriptCommandOutput(this, Expectation.pass, "", watch.elapsed);
     }).catchError((error) {
-      return new ScriptCommandOutput(
+      return ScriptCommandOutput(
           this, Expectation.fail, "An error occured: $error.", watch.elapsed);
     });
   }

@@ -27,7 +27,7 @@ import "package:test_runner/src/test_configurations.dart";
 /// Runs all of the tests specified by the given command line [arguments].
 void main(List<String> arguments) {
   // Parse the command line arguments to a configuration.
-  var parser = new OptionsParser();
+  var parser = OptionsParser();
   var configurations = parser.parse(arguments);
   if (configurations == null || configurations.isEmpty) return;
 

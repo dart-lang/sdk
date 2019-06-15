@@ -12,7 +12,7 @@ import 'utils.dart';
 /// The graph exposes a few broadcast streams that can be subscribed to in
 /// order to be notified of modifications to the graph.
 class Graph<T> {
-  final _nodes = new Set<Node<T>>();
+  final _nodes = <Node<T>>{};
   final _stateCounts = <NodeState, int>{};
   bool _isSealed = false;
 
@@ -29,11 +29,11 @@ class Graph<T> {
   final StreamController<Null> _sealedController;
 
   factory Graph() {
-    var added = new StreamController<Node<T>>();
-    var changed = new StreamController<StateChangedEvent<T>>();
-    var sealed = new StreamController<Null>();
+    var added = StreamController<Node<T>>();
+    var changed = StreamController<StateChangedEvent<T>>();
+    var sealed = StreamController<Null>();
 
-    return new Graph._(
+    return Graph._(
         added,
         added.stream.asBroadcastStream(),
         changed,
@@ -74,7 +74,7 @@ class Graph<T> {
       {bool timingDependency = false}) {
     assert(!_isSealed);
 
-    var node = new Node._(userData, timingDependency);
+    var node = Node._(userData, timingDependency);
     _nodes.add(node);
 
     for (var dependency in dependencies) {
@@ -99,8 +99,7 @@ class Graph<T> {
     _stateCounts.putIfAbsent(state, () => 0);
     _stateCounts[state] += 1;
 
-    _emitEvent(
-        _changedController, new StateChangedEvent(node, fromState, state));
+    _emitEvent(_changedController, StateChangedEvent(node, fromState, state));
   }
 
   /// We emit events asynchronously so the graph can be build up in small
@@ -117,8 +116,8 @@ class Node<T> extends UniqueObject {
   final T data;
   final bool timingDependency;
   NodeState _state = NodeState.initialized;
-  final Set<Node<T>> _dependencies = new Set();
-  final Set<Node<T>> _neededFor = new Set();
+  final Set<Node<T>> _dependencies = {};
+  final Set<Node<T>> _neededFor = {};
 
   Node._(this.data, this.timingDependency);
 
@@ -128,13 +127,13 @@ class Node<T> extends UniqueObject {
 }
 
 class NodeState {
-  static const initialized = const NodeState._("Initialized");
-  static const waiting = const NodeState._("Waiting");
-  static const enqueuing = const NodeState._("Enqueuing");
-  static const processing = const NodeState._("Running");
-  static const successful = const NodeState._("Successful");
-  static const failed = const NodeState._("Failed");
-  static const unableToRun = const NodeState._("UnableToRun");
+  static const initialized = NodeState._("Initialized");
+  static const waiting = NodeState._("Waiting");
+  static const enqueuing = NodeState._("Enqueuing");
+  static const processing = NodeState._("Running");
+  static const successful = NodeState._("Successful");
+  static const failed = NodeState._("Failed");
+  static const unableToRun = NodeState._("UnableToRun");
 
   final String name;
 

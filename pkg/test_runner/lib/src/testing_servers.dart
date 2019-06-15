@@ -14,7 +14,7 @@ import 'package:test_runner/src/utils.dart';
 
 class DispatchingServer {
   HttpServer server;
-  Map<String, Function> _handlers = new Map<String, Function>();
+  Map<String, Function> _handlers = {};
   Function _notFound;
 
   DispatchingServer(
@@ -57,16 +57,14 @@ class DispatchingServer {
 /// In case a path does not refer to a file but rather to a directory, a
 /// directory listing will be displayed.
 
-const PREFIX_BUILDDIR = 'root_build';
-const PREFIX_DARTDIR = 'root_dart';
+const prefixBuildDir = 'root_build';
+const prefixDartDir = 'root_dart';
 
-/**
- * Runs a set of servers that are initialized specifically for the needs of our
- * test framework, such as dealing with package-root.
- */
+/// Runs a set of servers that are initialized specifically for the needs of our
+/// test framework, such as dealing with package-root.
 class TestingServers {
-  static final _CACHE_EXPIRATION_IN_SECONDS = 30;
-  static final _HARMLESS_REQUEST_PATH_ENDINGS = [
+  static final _cacheExpirationSeconds = 30;
+  static final _harmlessRequestPathSuffixes = [
     "/apple-touch-icon.png",
     "/apple-touch-icon-precomposed.png",
     "/favicon.ico",
@@ -91,20 +89,20 @@ class TestingServers {
       String dartDirectory,
       String packageRoot,
       String packages]) {
-    _buildDirectory = Uri.base.resolveUri(new Uri.directory(buildDirectory));
+    _buildDirectory = Uri.base.resolveUri(Uri.directory(buildDirectory));
     if (dartDirectory == null) {
       _dartDirectory = Repository.uri;
     } else {
-      _dartDirectory = Uri.base.resolveUri(new Uri.directory(dartDirectory));
+      _dartDirectory = Uri.base.resolveUri(Uri.directory(dartDirectory));
     }
     if (packageRoot == null) {
       if (packages == null) {
         _packages = _dartDirectory.resolve('.packages');
       } else {
-        _packages = new Uri.file(packages);
+        _packages = Uri.file(packages);
       }
     } else {
-      _packageRoot = new Uri.directory(packageRoot);
+      _packageRoot = Uri.directory(packageRoot);
     }
   }
 
@@ -116,20 +114,19 @@ class TestingServers {
 
   DispatchingServer get server => _server;
 
-  /**
-   * [startServers] will start two Http servers.
-   * The first server listens on [port] and sets
-   *   "Access-Control-Allow-Origin: *"
-   * The second server listens on [crossOriginPort] and sets
-   *   "Access-Control-Allow-Origin: client:port1
-   *   "Access-Control-Allow-Credentials: true"
-   */
+  /// [startServers] will start two Http servers.
+  ///
+  /// The first server listens on [port] and sets
+  ///   "Access-Control-Allow-Origin: *"
+  /// The second server listens on [crossOriginPort] and sets
+  ///   "Access-Control-Allow-Origin: client:port1
+  ///   "Access-Control-Allow-Credentials: true"
   Future startServers(String host,
-      {int port: 0, int crossOriginPort: 0}) async {
+      {int port = 0, int crossOriginPort = 0}) async {
     if (_packages != null) {
       _resolver = await SyncPackageResolver.loadConfig(_packages);
     } else {
-      _resolver = new SyncPackageResolver.root(_packageRoot);
+      _resolver = SyncPackageResolver.root(_packageRoot);
     }
     _server = await _startHttpServer(host, port: port);
     await _startHttpServer(host,
@@ -142,7 +139,7 @@ class TestingServers {
     var script = _dartDirectory.resolve('pkg/test_runner/bin/http_server.dart');
     var buildDirectory = _buildDirectory.toFilePath();
 
-    var command = [
+    return [
       dart,
       script.toFilePath(),
       '-p',
@@ -152,20 +149,13 @@ class TestingServers {
       '--network',
       network,
       '--build-directory=$buildDirectory',
-      '--runtime=${runtime.name}'
-    ];
-
-    if (useContentSecurityPolicy) {
-      command.add('--csp');
-    }
-
-    if (_packages != null) {
-      command.add('--packages=${_packages.toFilePath()}');
-    } else if (_packageRoot != null) {
-      command.add('--package-root=${_packageRoot.toFilePath()}');
-    }
-
-    return command.join(' ');
+      '--runtime=${runtime.name}',
+      if (useContentSecurityPolicy) '--csp',
+      if (_packages != null)
+        '--packages=${_packages.toFilePath()}'
+      else if (_packageRoot != null)
+        '--package-root=${_packageRoot.toFilePath()}'
+    ].join(' ');
   }
 
   void stopServers() {
@@ -179,17 +169,17 @@ class TestingServers {
   }
 
   Future<DispatchingServer> _startHttpServer(String host,
-      {int port: 0, int allowedPort: -1}) {
+      {int port = 0, int allowedPort = -1}) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
-      var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
+      var server = DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
       server.addHandler('/ws', _handleWebSocketRequest);
       fileHandler(HttpRequest request) {
         _handleFileOrDirectoryRequest(request, allowedPort);
       }
 
-      server.addHandler('/$PREFIX_BUILDDIR', fileHandler);
-      server.addHandler('/$PREFIX_DARTDIR', fileHandler);
+      server.addHandler('/$prefixBuildDir', fileHandler);
+      server.addHandler('/$prefixDartDir', fileHandler);
       server.addHandler('/packages', fileHandler);
       _serverList.add(httpServer);
       return server;
@@ -200,13 +190,12 @@ class TestingServers {
       HttpRequest request, int allowedPort) async {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
-    response.headers
-        .set("Cache-Control", "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
+    response.headers.set("Cache-Control", "max-age=$_cacheExpirationSeconds");
     try {
       var path = _getFileUriFromRequestUri(request.uri);
       if (path != null) {
-        var file = new File.fromUri(path);
-        var directory = new Directory.fromUri(path);
+        var file = File.fromUri(path);
+        var directory = Directory.fromUri(path);
         if (await file.exists()) {
           _sendFileContent(request, response, allowedPort, file);
         } else if (await directory.exists()) {
@@ -218,9 +207,9 @@ class TestingServers {
       } else {
         if (request.uri.path == '/') {
           var entries = [
-            new _Entry('root_dart', 'root_dart/'),
-            new _Entry('root_build', 'root_build/'),
-            new _Entry('echo', 'echo')
+            _Entry('root_dart', 'root_dart/'),
+            _Entry('root_build', 'root_build/'),
+            _Entry('echo', 'echo')
           ];
           _sendDirectoryListing(entries, request, response);
         } else {
@@ -269,32 +258,32 @@ class TestingServers {
     if (pathSegments.length == 0) return null;
     int packagesIndex = pathSegments.indexOf('packages');
     if (packagesIndex != -1) {
-      var packageUri = new Uri(
+      var packageUri = Uri(
           scheme: 'package',
           pathSegments: pathSegments.skip(packagesIndex + 1));
       return _resolver.resolveUri(packageUri);
     }
-    if (pathSegments[0] == PREFIX_BUILDDIR) {
+    if (pathSegments[0] == prefixBuildDir) {
       return _buildDirectory.resolve(pathSegments.skip(1).join('/'));
     }
-    if (pathSegments[0] == PREFIX_DARTDIR) {
+    if (pathSegments[0] == prefixDartDir) {
       return _dartDirectory.resolve(pathSegments.skip(1).join('/'));
     }
     return null;
   }
 
   Future<List<_Entry>> _listDirectory(Directory directory) {
-    var completer = new Completer<List<_Entry>>();
+    var completer = Completer<List<_Entry>>();
     var entries = <_Entry>[];
 
     directory.list().listen((FileSystemEntity fse) {
       var segments = fse.uri.pathSegments;
       if (fse is File) {
         var filename = segments.last;
-        entries.add(new _Entry(filename, filename));
+        entries.add(_Entry(filename, filename));
       } else if (fse is Directory) {
         var dirname = segments[segments.length - 2];
-        entries.add(new _Entry(dirname, '$dirname/'));
+        entries.add(_Entry(dirname, '$dirname/'));
       }
     }, onDone: () {
       completer.complete(entries);
@@ -392,7 +381,7 @@ class TestingServers {
 
   void _sendNotFound(HttpRequest request) {
     bool isHarmlessPath(String path) {
-      return _HARMLESS_REQUEST_PATH_ENDINGS.any((pattern) {
+      return _harmlessRequestPathSuffixes.any((pattern) {
         return path.contains(pattern);
       });
     }
@@ -431,7 +420,7 @@ class TestingServers {
   }
 }
 
-// Helper class for displaying directory listings.
+/// Helper class for displaying directory listings.
 class _Entry implements Comparable<_Entry> {
   final String name;
   final String displayName;

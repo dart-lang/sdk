@@ -19,11 +19,11 @@ import 'utils.dart';
 /// Controls how message strings are processed before being displayed.
 class Formatter {
   /// Messages are left as-is.
-  static const normal = const Formatter._();
+  static const normal = Formatter._();
 
   /// Messages are wrapped in ANSI escape codes to color them for display on a
   /// terminal.
-  static const color = const _ColorFormatter();
+  static const color = _ColorFormatter();
 
   const Formatter._();
 
@@ -143,16 +143,16 @@ class UnexpectedCrashLogger extends EventListener {
       // folder next to core dumps and name them
       // `binary.${mode}_${arch}_${binary_name}`.
       final binName = lastCommand.executable;
-      final binFile = new File(binName);
-      final binBaseName = new Path(binName).filename;
+      final binFile = File(binName);
+      final binBaseName = Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
         final archived = "binary.${mode}_${arch}_${binBaseName}";
-        TestUtils.copyFile(new Path(binName), new Path(archived));
+        TestUtils.copyFile(Path(binName), Path(archived));
         // On Windows also copy PDB file for the binary.
         if (Platform.isWindows) {
-          final pdbPath = new Path("$binName.pdb");
-          if (new File(pdbPath.toNativePath()).existsSync()) {
-            TestUtils.copyFile(pdbPath, new Path("$archived.pdb"));
+          final pdbPath = Path("$binName.pdb");
+          if (File(pdbPath.toNativePath()).existsSync()) {
+            TestUtils.copyFile(pdbPath, Path("$archived.pdb"));
           }
         }
         archivedBinaries[binName] = archived;
@@ -160,11 +160,11 @@ class UnexpectedCrashLogger extends EventListener {
 
       final kernelServiceBaseName = 'kernel-service.dart.snapshot';
       final kernelService =
-          new File('${binFile.parent.path}/$kernelServiceBaseName');
+          File('${binFile.parent.path}/$kernelServiceBaseName');
       if (!archivedBinaries.containsKey(kernelService) &&
           kernelService.existsSync()) {
         final archived = "binary.${mode}_${arch}_${kernelServiceBaseName}";
-        TestUtils.copyFile(new Path(kernelService.path), new Path(archived));
+        TestUtils.copyFile(Path(kernelService.path), Path(archived));
         archivedBinaries[kernelServiceBaseName] = archived;
       }
 
@@ -180,7 +180,7 @@ class UnexpectedCrashLogger extends EventListener {
         RandomAccessFile unexpectedCrashesFile;
         try {
           unexpectedCrashesFile =
-              new File('unexpected-crashes').openSync(mode: FileMode.append);
+              File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
               "${test.displayName},${pid},${binaries.join(',')}\n");
         } catch (e) {
@@ -216,8 +216,8 @@ class SummaryPrinter extends EventListener {
 }
 
 class TimingPrinter extends EventListener {
-  final _command2testCases = new Map<Command, List<TestCase>>();
-  final _commandOutputs = new Set<CommandOutput>();
+  final _commandToTestCases = <Command, List<TestCase>>{};
+  final _commandOutputs = <CommandOutput>{};
   DateTime _startTime;
 
   TimingPrinter(this._startTime);
@@ -226,22 +226,22 @@ class TimingPrinter extends EventListener {
     for (var commandOutput in testCase.commandOutputs.values) {
       var command = commandOutput.command;
       _commandOutputs.add(commandOutput);
-      _command2testCases.putIfAbsent(command, () => <TestCase>[]);
-      _command2testCases[command].add(testCase);
+      _commandToTestCases.putIfAbsent(command, () => <TestCase>[]);
+      _commandToTestCases[command].add(testCase);
     }
   }
 
   void allDone() {
-    Duration d = (new DateTime.now()).difference(_startTime);
+    var d = DateTime.now().difference(_startTime);
     print('\n--- Total time: ${_timeString(d)} ---');
     var outputs = _commandOutputs.toList();
     outputs.sort((a, b) {
       return b.time.inMilliseconds - a.time.inMilliseconds;
     });
-    for (int i = 0; i < 20 && i < outputs.length; i++) {
+    for (var i = 0; i < 20 && i < outputs.length; i++) {
       var commandOutput = outputs[i];
       var command = commandOutput.command;
-      var testCases = _command2testCases[command];
+      var testCases = _commandToTestCases[command];
 
       var testCasesDescription = testCases.map((testCase) {
         return "${testCase.configurationString}/${testCase.displayName}";
@@ -255,7 +255,7 @@ class TimingPrinter extends EventListener {
 }
 
 class StatusFileUpdatePrinter extends EventListener {
-  var statusToConfigs = new Map<String, List<String>>();
+  var statusToConfigs = <String, List<String>>{};
   var _failureSummary = <String>[];
 
   void done(TestCase test) {
@@ -399,7 +399,7 @@ class PassingStdoutPrinter extends EventListener {
   void done(TestCase test) {
     if (!test.unexpectedOutput) {
       var lines = <String>[];
-      var output = new OutputWriter(_formatter, lines);
+      var output = OutputWriter(_formatter, lines);
       for (final command in test.commands) {
         var commandOutput = test.commandOutputs[command];
         if (commandOutput == null) continue;
@@ -422,15 +422,15 @@ class ProgressIndicator extends EventListener {
       Progress progress, DateTime startTime, Formatter formatter) {
     switch (progress) {
       case Progress.compact:
-        return new CompactProgressIndicator(startTime, formatter);
+        return CompactProgressIndicator(startTime, formatter);
       case Progress.line:
-        return new LineProgressIndicator();
+        return LineProgressIndicator();
       case Progress.verbose:
-        return new VerboseProgressIndicator(startTime);
+        return VerboseProgressIndicator(startTime);
       case Progress.status:
-        return new ProgressIndicator(startTime);
+        return ProgressIndicator(startTime);
       case Progress.buildbot:
-        return new BuildbotProgressIndicator(startTime);
+        return BuildbotProgressIndicator(startTime);
     }
 
     throw "unreachable";
@@ -491,7 +491,7 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
     var passedPadded = _passedTests.toString().padLeft(5);
     var failedPadded = _failedTests.toString().padLeft(5);
-    var elapsed = (new DateTime.now()).difference(_startTime);
+    var elapsed = (DateTime.now()).difference(_startTime);
     var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
@@ -604,7 +604,7 @@ class OutputWriter {
 List<String> _buildFailureOutput(TestCase test,
     [Formatter formatter = Formatter.normal]) {
   var lines = <String>[];
-  var output = new OutputWriter(formatter, lines);
+  var output = OutputWriter(formatter, lines);
   _writeFailureStatus(test, formatter, output);
   _writeFailureOutput(test, formatter, output);
   _writeFailureReproductionCommands(test, formatter, output);
@@ -614,7 +614,7 @@ List<String> _buildFailureOutput(TestCase test,
 List<String> _buildFailureLog(TestCase test) {
   final formatter = Formatter.normal;
   final lines = <String>[];
-  final output = new OutputWriter(formatter, lines);
+  final output = OutputWriter(formatter, lines);
   _writeFailureOutput(test, formatter, output);
   _writeFailureReproductionCommands(test, formatter, output);
   return lines;
@@ -717,7 +717,7 @@ class ResultWriter extends EventListener {
 
   void done(TestCase test) {
     if (_configuration != test.configuration) {
-      throw new Exception("Two configurations in the same run. "
+      throw Exception("Two configurations in the same run. "
           "Cannot output results for multiple configurations.");
     }
     final name = test.displayName;

@@ -84,13 +84,13 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
   if (result.exitCode != 0) {
     print('ERROR');
     print(result.stderr);
-    throw new Exception('Error while building.');
+    throw Exception('Error while building.');
   }
   print('Done building.');
 }
 
 void sanityCheck(String output) {
-  var splitter = new LineSplitter();
+  var splitter = LineSplitter();
   var lines = splitter.convert(output);
   // Looks like this:
   // Total: 15556 tests
@@ -104,16 +104,15 @@ void sanityCheck(String output) {
   }
   if (count != total) {
     print('Count: $count, total: $total');
-    throw new Exception(
-        'Count and total do not align. Please validate manually.');
+    throw Exception('Count and total do not align. Please validate manually.');
   }
 }
 
 void main(List<String> args) {
   var combinations = _combinations[Platform.operatingSystem];
 
-  var arches = new Set<String>();
-  var modes = new Set<String>();
+  var arches = <String>{};
+  var modes = <String>{};
 
   if (args.contains('--simple')) {
     arches = ['ia32'].toSet();
@@ -155,7 +154,7 @@ void main(List<String> args) {
           if (result.exitCode != 0) {
             print(result.stdout);
             print(result.stderr);
-            throw new Exception("Error running: ${args.join(" ")}");
+            throw Exception("Error running: ${args.join(" ")}");
           }
 
           // Find "JSON:"

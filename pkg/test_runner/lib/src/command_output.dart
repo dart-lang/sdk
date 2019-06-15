@@ -12,6 +12,7 @@ import 'package:status_file/expectation.dart';
 import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
+import 'process_queue.dart';
 import 'test_progress.dart';
 import 'test_case.dart';
 import 'utils.dart';
@@ -149,7 +150,7 @@ class CommandOutput extends UniqueObject {
 }
 
 class BrowserTestJsonResult {
-  static const _allowedTypes = const [
+  static const _allowedTypes = [
     'sync_exception',
     'window_onerror',
     'script_onerror',
@@ -211,7 +212,7 @@ class BrowserTestJsonResult {
           dom = '$dom\n';
         }
 
-        return new BrowserTestJsonResult(
+        return BrowserTestJsonResult(
             _getOutcome(messagesByType), dom, events as List<dynamic>);
       }
     } catch (error) {
@@ -311,7 +312,7 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
-    return new BrowserCommandOutput._internal(command, result, outcome,
+    return BrowserCommandOutput._internal(command, result, outcome,
         parsedResult, encodeUtf8(""), encodeUtf8(stderr));
   }
 
@@ -528,7 +529,7 @@ class AnalysisCommandOutput extends CommandOutput {
     // Parse a line delimited by the | character using \ as an escape character
     // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
     List<String> splitMachineError(String line) {
-      var field = new StringBuffer();
+      var field = StringBuffer();
       var result = <String>[];
       var escaped = false;
       for (var i = 0; i < line.length; i++) {
@@ -540,7 +541,7 @@ class AnalysisCommandOutput extends CommandOutput {
         escaped = false;
         if (c == '|') {
           result.add(field.toString());
-          field = new StringBuffer();
+          field = StringBuffer();
           continue;
         }
         field.write(c);
@@ -1022,40 +1023,40 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
     [int pid = 0]) {
   if (command is AnalysisCommand) {
-    return new AnalysisCommandOutput(
+    return AnalysisCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is CompareAnalyzerCfeCommand) {
-    return new CompareAnalyzerCfeCommandOutput(
+    return CompareAnalyzerCfeCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is SpecParseCommand) {
-    return new SpecParseCommandOutput(
+    return SpecParseCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is VmCommand) {
-    return new VMCommandOutput(
+    return VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is VMKernelCompilationCommand) {
-    return new VMKernelCompilationCommandOutput(
+    return VMKernelCompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
-    return new VMCommandOutput(
+    return VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
         command.displayName == 'app_jit') {
-      return new VMCommandOutput(
+      return VMCommandOutput(
           command, exitCode, timedOut, stdout, stderr, time, pid);
     } else if (command.displayName == 'dartdevc') {
-      return new DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
+      return DevCompilerCommandOutput(command, exitCode, timedOut, stdout,
           stderr, time, compilationSkipped, pid);
     }
-    return new CompilationCommandOutput(
+    return CompilationCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
-    return new JSCommandLineOutput(
+    return JSCommandLineOutput(
         command, exitCode, timedOut, stdout, stderr, time);
   }
 
-  return new CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
+  return CommandOutput(command, exitCode, timedOut, stdout, stderr, time,
       compilationSkipped, pid);
 }
 

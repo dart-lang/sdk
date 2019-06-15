@@ -53,29 +53,28 @@ abstract class CompilerConfiguration {
   factory CompilerConfiguration(TestConfiguration configuration) {
     switch (configuration.compiler) {
       case Compiler.dart2analyzer:
-        return new AnalyzerCompilerConfiguration(configuration);
+        return AnalyzerCompilerConfiguration(configuration);
 
       case Compiler.compareAnalyzerCfe:
-        return new CompareAnalyzerCfeCompilerConfiguration(configuration);
+        return CompareAnalyzerCfeCompilerConfiguration(configuration);
 
       case Compiler.dart2js:
-        return new Dart2jsCompilerConfiguration(configuration);
+        return Dart2jsCompilerConfiguration(configuration);
 
       case Compiler.dartdevc:
-        return new DevCompilerConfiguration(configuration);
+        return DevCompilerConfiguration(configuration);
 
       case Compiler.dartdevk:
-        return new DevCompilerConfiguration(configuration);
+        return DevCompilerConfiguration(configuration);
 
       case Compiler.appJit:
-        return new AppJitCompilerConfiguration(configuration,
-            previewDart2: false);
+        return AppJitCompilerConfiguration(configuration, previewDart2: false);
 
       case Compiler.appJitk:
-        return new AppJitCompilerConfiguration(configuration);
+        return AppJitCompilerConfiguration(configuration);
 
       case Compiler.precompiler:
-        return new PrecompilerCompilerConfiguration(configuration,
+        return PrecompilerCompilerConfiguration(configuration,
             previewDart2: false);
 
       case Compiler.dartk:
@@ -83,24 +82,24 @@ abstract class CompilerConfiguration {
             configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
             configuration.system == System.android) {
-          return new VMKernelCompilerConfiguration(configuration);
+          return VMKernelCompilerConfiguration(configuration);
         }
-        return new NoneCompilerConfiguration(configuration);
+        return NoneCompilerConfiguration(configuration);
 
       case Compiler.dartkb:
-        return new VMKernelCompilerConfiguration(configuration);
+        return VMKernelCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
-        return new PrecompilerCompilerConfiguration(configuration);
+        return PrecompilerCompilerConfiguration(configuration);
 
       case Compiler.specParser:
-        return new SpecParserCompilerConfiguration(configuration);
+        return SpecParserCompilerConfiguration(configuration);
 
       case Compiler.fasta:
-        return new FastaCompilerConfiguration(configuration);
+        return FastaCompilerConfiguration(configuration);
 
       case Compiler.none:
-        return new NoneCompilerConfiguration(configuration);
+        return NoneCompilerConfiguration(configuration);
     }
 
     throw "unreachable";
@@ -134,7 +133,7 @@ abstract class CompilerConfiguration {
       String tempDir,
       List<String> arguments,
       Map<String, String> environmentOverrides) {
-    return new CommandArtifact([], null, null);
+    return CommandArtifact([], null, null);
   }
 
   List<String> computeCompilerArguments(
@@ -224,7 +223,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
     final commands = <Command>[
       computeCompileToKernelCommand(tempDir, arguments, environmentOverrides),
     ];
-    return new CommandArtifact(commands, tempKernelFile(tempDir),
+    return CommandArtifact(commands, tempKernelFile(tempDir),
         'application/kernel-ir-fully-linked');
   }
 
@@ -274,7 +273,7 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
   }
 }
 
-typedef List<String> CompilerArgumentsFunction(
+typedef CompilerArgumentsFunction = List<String> Function(
     List<String> globalArguments, String previousCompilerOutput);
 
 class PipelineCommand {
@@ -285,7 +284,7 @@ class PipelineCommand {
 
   factory PipelineCommand.runWithGlobalArguments(
       CompilerConfiguration configuration) {
-    return new PipelineCommand._(configuration,
+    return PipelineCommand._(configuration,
         (List<String> globalArguments, String previousOutput) {
       assert(previousOutput == null);
       return globalArguments;
@@ -294,7 +293,7 @@ class PipelineCommand {
 
   factory PipelineCommand.runWithDartOrKernelFile(
       CompilerConfiguration configuration) {
-    return new PipelineCommand._(configuration,
+    return PipelineCommand._(configuration,
         (List<String> globalArguments, String previousOutput) {
       var filtered = globalArguments
           .where((name) => name.endsWith('.dart') || name.endsWith('.dill'))
@@ -306,7 +305,7 @@ class PipelineCommand {
 
   factory PipelineCommand.runWithPreviousKernelOutput(
       CompilerConfiguration configuration) {
-    return new PipelineCommand._(configuration,
+    return PipelineCommand._(configuration,
         (List<String> globalArguments, String previousOutput) {
       assert(previousOutput.endsWith('.dill'));
       return _replaceDartFiles(globalArguments, previousOutput);
@@ -349,8 +348,7 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       allCommands.addAll(artifact.commands);
     }
 
-    return new CommandArtifact(
-        allCommands, artifact.filename, artifact.mimeType);
+    return CommandArtifact(allCommands, artifact.filename, artifact.mimeType);
   }
 
   List<String> computeCompilerArguments(
@@ -438,7 +436,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
         _configuration.buildDirectory,
         () => [
               Uri.base
-                  .resolveUri(new Uri.directory(_configuration.buildDirectory))
+                  .resolveUri(Uri.directory(_configuration.buildDirectory))
                   .resolve('dart-sdk/bin/snapshots/dart2js.dart.snapshot')
             ]);
   }
@@ -480,7 +478,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
     var inputFile = arguments.last;
-    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var inputFilename = (Uri.file(inputFile)).pathSegments.last;
     var out = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
     var babel = _configuration.babel;
     var babelOut = out;
@@ -494,7 +492,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       commands.add(computeBabelCommand(out, babelOut, babel));
     }
 
-    return new CommandArtifact(commands, babelOut, 'application/javascript');
+    return CommandArtifact(commands, babelOut, 'application/javascript');
   }
 
   List<String> computeRuntimeArguments(
@@ -506,8 +504,8 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> originalArguments,
       CommandArtifact artifact) {
     Uri sdk = _useSdk
-        ? new Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
-        : new Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
+        ? Uri.directory(_configuration.buildDirectory).resolve('dart-sdk/')
+        : Uri.directory(Repository.dir.toNativePath()).resolve('sdk/');
     Uri preambleDir = sdk.resolve('lib/_internal/js_runtime/lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
       ..add(artifact.filename);
@@ -589,7 +587,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // at the built summary file location.
       var sdkSummaryFile =
           useDillFormat ? 'kernel/ddc_sdk.dill' : 'ddc_sdk.sum';
-      var sdkSummary = new Path(_configuration.buildDirectory)
+      var sdkSummary = Path(_configuration.buildDirectory)
           .append("/gen/utils/dartdevc/$sdkSummaryFile")
           .absolute
           .toNativePath();
@@ -600,7 +598,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     if (!useKernel) {
       // TODO(jmesserly): library-root needs to be removed.
       args.addAll(
-          ["--library-root", new Path(inputFile).directoryPath.toNativePath()]);
+          ["--library-root", Path(inputFile).directoryPath.toNativePath()]);
     }
 
     args.addAll([
@@ -622,15 +620,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // Since the summaries for the packages are not near the tests, we give
       // dartdevc explicit module paths for each one. When the test is run, we
       // will tell require.js where to find each package's compiled JS.
-      var summary = new Path(_configuration.buildDirectory)
+      var summary = Path(_configuration.buildDirectory)
           .append("/gen/utils/dartdevc/$pkgDir/$package.$pkgExtension")
           .absolute
           .toNativePath();
       args.add("$summary=$package");
     }
 
-    var inputDir =
-        new Path(inputFile).append("..").canonicalize().toNativePath();
+    var inputDir = Path(inputFile).append("..").canonicalize().toNativePath();
     var displayName = useKernel ? 'dartdevk' : 'dartdevc';
     return Command.compilation(displayName, outputFile, bootstrapDependencies(),
         computeCompilerPath(), args, environment,
@@ -646,10 +643,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // computeCompilerArguments() to here seems hacky. Is there a cleaner way?
     var sharedOptions = arguments.sublist(0, arguments.length - 1);
     var inputFile = arguments.last;
-    var inputFilename = (new Uri.file(inputFile)).pathSegments.last;
+    var inputFilename = (Uri.file(inputFile)).pathSegments.last;
     var outputFile = "$tempDir/${inputFilename.replaceAll('.dart', '.js')}";
 
-    return new CommandArtifact(
+    return CommandArtifact(
         [_createCommand(inputFile, outputFile, sharedOptions, environment)],
         outputFile,
         "application/javascript");
@@ -669,7 +666,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   bool get _isAot => true;
 
   PrecompilerCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2: true})
+      {this.previewDart2 = true})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -703,7 +700,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
-    return new CommandArtifact(
+    return CommandArtifact(
         commands, '$tempDir', 'application/dart-precompiled');
   }
 
@@ -913,7 +910,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   final bool previewDart2;
 
   AppJitCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2: true})
+      {this.previewDart2 = true})
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -926,7 +923,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var snapshot = "$tempDir/out.jitsnapshot";
-    return new CommandArtifact(
+    return CommandArtifact(
         [computeCompilationCommand(tempDir, arguments, environmentOverrides)],
         snapshot,
         'application/dart-snapshot');
@@ -1013,7 +1010,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
     if (!previewDart2) {
-      throw new ArgumentError('--no-preview-dart-2 not supported');
+      throw ArgumentError('--no-preview-dart-2 not supported');
     }
     if (_configuration.useAnalyzerCfe) {
       arguments.add('--use-cfe');
@@ -1023,7 +1020,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
     }
 
     // Since this is not a real compilation, no artifacts are produced.
-    return new CommandArtifact([
+    return CommandArtifact([
       Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
@@ -1059,11 +1056,11 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     arguments = arguments.toList();
     if (!previewDart2) {
-      throw new ArgumentError('--no-preview-dart-2 not supported');
+      throw ArgumentError('--no-preview-dart-2 not supported');
     }
 
     // Since this is not a real compilation, no artifacts are produced.
-    return new CommandArtifact([
+    return CommandArtifact([
       Command.compareAnalyzerCfe(
           computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
@@ -1093,7 +1090,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
 
     // Since this is not a real compilation, no artifacts are produced.
-    return new CommandArtifact([
+    return CommandArtifact([
       Command.specParse(computeCompilerPath(), arguments, environmentOverrides)
     ], null, null);
   }
@@ -1112,7 +1109,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
 abstract class VMKernelCompilerMixin {
   static final noCausalAsyncStacksRegExp =
-      new RegExp('--no[_-]causal[_-]async[_-]stacks');
+      RegExp('--no[_-]causal[_-]async[_-]stacks');
 
   TestConfiguration get _configuration;
 
@@ -1127,7 +1124,7 @@ abstract class VMKernelCompilerMixin {
   List<Uri> bootstrapDependencies();
 
   String tempKernelFile(String tempDir) =>
-      new Path('$tempDir/out.dill').toNativePath();
+      Path('$tempDir/out.dill').toNativePath();
 
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
@@ -1202,7 +1199,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
   factory FastaCompilerConfiguration(TestConfiguration configuration) {
     var buildDirectory =
-        Uri.base.resolveUri(new Uri.directory(configuration.buildDirectory));
+        Uri.base.resolveUri(Uri.directory(configuration.buildDirectory));
 
     var dillDir = buildDirectory;
     if (configuration.useSdk) {
@@ -1214,7 +1211,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
-    return new FastaCompilerConfiguration._(
+    return FastaCompilerConfiguration._(
         platformDill, vmExecutable, configuration);
   }
 
@@ -1232,7 +1229,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
     var output =
-        Uri.base.resolveUri(new Uri.directory(tempDir)).resolve("out.dill");
+        Uri.base.resolveUri(Uri.directory(tempDir)).resolve("out.dill");
     var outputFileName = output.toFilePath();
 
     var compilerArguments = <String>['--verify'];
@@ -1244,7 +1241,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
         ["-o", outputFileName, "--platform", _platformDill.toFilePath()]);
     compilerArguments.addAll(arguments);
 
-    return new CommandArtifact([
+    return CommandArtifact([
       Command.fasta(
           _compilerLocation,
           output,
@@ -1264,7 +1261,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    List<String> arguments = new List<String>.from(sharedOptions);
+    List<String> arguments = List<String>.from(sharedOptions);
     arguments.addAll(_configuration.sharedOptions);
     for (String argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;

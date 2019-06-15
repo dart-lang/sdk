@@ -173,7 +173,7 @@ class TestConfiguration {
 
   TestingServers get servers {
     if (_servers == null) {
-      throw new StateError("Servers have not been started yet.");
+      throw StateError("Servers have not been started yet.");
     }
     return _servers;
   }
@@ -255,7 +255,7 @@ class TestConfiguration {
 
   String get windowsSdkPath {
     if (!Platform.isWindows) {
-      throw new StateError(
+      throw StateError(
           "Should not use windowsSdkPath when not running on Windows.");
     }
 
@@ -263,8 +263,8 @@ class TestConfiguration {
       // When running tests on Windows, use cdb from depot_tools to dump
       // stack traces of tests timing out.
       try {
-        var path = new Path("build/win_toolchain.json").toNativePath();
-        var text = new File(path).readAsStringSync();
+        var path = Path("build/win_toolchain.json").toNativePath();
+        var text = File(path).readAsStringSync();
         _windowsSdkPath = jsonDecode(text)['win_sdk'] as String;
       } on dynamic {
         // Ignore errors here. If win_sdk is not found, stack trace dumping
@@ -293,29 +293,29 @@ class TestConfiguration {
 
     if (location != null) return location;
 
-    const locations = const {
-      Runtime.firefox: const {
+    const locations = {
+      Runtime.firefox: {
         System.win: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
         System.linux: 'firefox',
         System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox'
       },
-      Runtime.chrome: const {
+      Runtime.chrome: {
         System.win:
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
         System.linux: 'google-chrome'
       },
-      Runtime.safari: const {
+      Runtime.safari: {
         System.mac: '/Applications/Safari.app/Contents/MacOS/Safari'
       },
-      Runtime.ie9: const {
+      Runtime.ie9: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       },
-      Runtime.ie10: const {
+      Runtime.ie10: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       },
-      Runtime.ie11: const {
+      Runtime.ie11: {
         System.win: 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
       }
     };
@@ -332,12 +332,12 @@ class TestConfiguration {
   RuntimeConfiguration _runtimeConfiguration;
 
   RuntimeConfiguration get runtimeConfiguration =>
-      _runtimeConfiguration ??= new RuntimeConfiguration(this);
+      _runtimeConfiguration ??= RuntimeConfiguration(this);
 
   CompilerConfiguration _compilerConfiguration;
 
   CompilerConfiguration get compilerConfiguration =>
-      _compilerConfiguration ??= new CompilerConfiguration(this);
+      _compilerConfiguration ??= CompilerConfiguration(this);
 
   /// Determines if this configuration has a compatible compiler and runtime
   /// and other valid fields.
@@ -377,7 +377,7 @@ class TestConfiguration {
   /// server for cross-domain tests can be found by calling
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
-    _servers = new TestingServers(
+    _servers = TestingServers(
         buildDirectory, isCsp, runtime, null, packageRoot, packages);
     var future = servers.startServers(localIP,
         port: testServerPort, crossOriginPort: testServerCrossOriginPort);
@@ -414,8 +414,8 @@ class TestConfiguration {
     var normal = '$modeName$os$arch';
     var cross = '$modeName${os}X$arch';
     var outDir = system.outputDirectory;
-    var normalDir = new Directory(new Path('$outDir$normal').toNativePath());
-    var crossDir = new Directory(new Path('$outDir$cross').toNativePath());
+    var normalDir = Directory(Path('$outDir$normal').toNativePath());
+    var crossDir = Directory(Path('$outDir$cross').toNativePath());
 
     if (normalDir.existsSync() && crossDir.existsSync()) {
       throw "You can't have both $normalDir and $crossDir. We don't know which"
@@ -468,18 +468,18 @@ class TestConfiguration {
 }
 
 class Progress {
-  static const compact = const Progress._('compact');
-  static const color = const Progress._('color');
-  static const line = const Progress._('line');
-  static const verbose = const Progress._('verbose');
-  static const silent = const Progress._('silent');
-  static const status = const Progress._('status');
-  static const buildbot = const Progress._('buildbot');
-  static const diff = const Progress._('diff');
+  static const compact = Progress._('compact');
+  static const color = Progress._('color');
+  static const line = Progress._('line');
+  static const verbose = Progress._('verbose');
+  static const silent = Progress._('silent');
+  static const status = Progress._('status');
+  static const buildbot = Progress._('buildbot');
+  static const diff = Progress._('diff');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = new Map<String, Progress>.fromIterable(
+  static final _all = Map<String, Progress>.fromIterable(
       [compact, color, line, verbose, silent, status, buildbot, diff],
       key: (progress) => (progress as Progress).name);
 
@@ -487,7 +487,7 @@ class Progress {
     var progress = _all[name];
     if (progress != null) return progress;
 
-    throw new ArgumentError('Unknown progress type "$name".');
+    throw ArgumentError('Unknown progress type "$name".');
   }
 
   final String name;

@@ -8,7 +8,7 @@ import "package:status_file/expectation.dart";
 
 import "test_case.dart";
 
-final summaryReport = new SummaryReport();
+final summaryReport = SummaryReport();
 
 class SummaryReport {
   int _total = 0;

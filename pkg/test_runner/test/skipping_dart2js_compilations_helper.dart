@@ -6,6 +6,6 @@ import 'dart:io';
 
 main(List<String> arguments) {
   var outputFile = arguments[0];
-  var file = new File(outputFile);
+  var file = File(outputFile);
   file.createSync();
 }

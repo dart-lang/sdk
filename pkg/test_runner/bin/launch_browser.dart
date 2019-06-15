@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Simple command line interface to launching browsers.
- * Uses the browser_controller framework.
- * The usage is:
- *   DARTBIN launch_browser.dart BROWSER_NAME URL
- * DARTBIN should be the checked in stable binary.
- */
+/// Simple command line interface to launching browsers.
+/// Uses the browser_controller framework.
+/// The usage is:
+///   DARTBIN launch_browser.dart BROWSER_NAME URL
+/// DARTBIN should be the checked in stable binary.
 
 import 'package:test_runner/src/browser_controller.dart';
 import 'package:test_runner/src/configuration.dart';
@@ -16,7 +14,7 @@ import 'package:test_runner/src/configuration.dart';
 void printHelp() {
   print("Usage pattern:");
   print("launch_browser.dart browser url");
-  print("Supported browsers: ${Browser.SUPPORTED_BROWSERS}");
+  print("Supported browsers: ${Browser.supportedBrowsers}");
 }
 
 void main(List<String> arguments) {
@@ -34,10 +32,10 @@ void main(List<String> arguments) {
   }
 
   var runtime = Runtime.find(name);
-  var configuration = new TestConfiguration(
-      configuration: new Configuration(
+  var configuration = TestConfiguration(
+      configuration: Configuration(
           "dummy configuration", null, null, null, runtime, null));
   var executable = configuration.browserLocation;
-  var browser = new Browser.byRuntime(runtime, executable);
+  var browser = Browser.byRuntime(runtime, executable);
   browser.start(arguments[1]);
 }

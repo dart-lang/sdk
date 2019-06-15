@@ -77,7 +77,7 @@ import "test_suite.dart";
 import "utils.dart";
 
 /// Until legacy multitests are ported we need to support both /// and //#
-final _multitestMarker = new RegExp(r"//[/#]");
+final _multitestMarker = RegExp(r"//[/#]");
 
 final _multitestOutcomes = [
   'ok',
@@ -92,7 +92,7 @@ final _multitestOutcomes = [
 
 void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
     Map<String, Set<String>> outcomes) {
-  var contents = new File(filePath.toNativePath()).readAsStringSync();
+  var contents = File(filePath.toNativePath()).readAsStringSync();
 
   var firstNewline = contents.indexOf('\n');
   var lineSeparator =
@@ -105,8 +105,8 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
   var testsAsLines = <String, List<String>>{};
 
   // Add the default case with key "none".
-  testsAsLines['none'] = <String>[];
-  outcomes['none'] = new Set<String>();
+  testsAsLines['none'] = [];
+  outcomes['none'] = {};
 
   var lineCount = 0;
   for (var line in lines) {
@@ -114,12 +114,12 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
     var annotation = _Annotation.tryParse(line);
     if (annotation != null) {
       testsAsLines.putIfAbsent(
-          annotation.key, () => new List<String>.from(testsAsLines["none"]));
+          annotation.key, () => List<String>.from(testsAsLines["none"]));
       // Add line to test with annotation.key as key, empty line to the rest.
       for (var key in testsAsLines.keys) {
         testsAsLines[key].add(annotation.key == key ? line : "");
       }
-      outcomes.putIfAbsent(annotation.key, () => new Set<String>());
+      outcomes.putIfAbsent(annotation.key, () => <String>{});
       if (annotation.rest != 'continued') {
         for (var nextOutcome in annotation.outcomes) {
           if (_multitestOutcomes.contains(nextOutcome)) {
@@ -165,8 +165,7 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
 Future doMultitest(Path filePath, String outputDir, Path suiteDir,
     CreateTest doTest, bool hotReload) {
   void writeFile(String filepath, String content) {
-    final File file = new File(filepath);
-
+    var file = File(filepath);
     if (file.existsSync()) {
       var oldContent = file.readAsStringSync();
       if (oldContent == content) {
@@ -190,7 +189,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
   var importsToCopy = _findAllRelativeImports(filePath);
   var futureCopies = <Future>[];
   for (var relativeImport in importsToCopy) {
-    var importPath = new Path(relativeImport);
+    var importPath = Path(relativeImport);
     // Make sure the target directory exists.
     var importDir = importPath.directoryPath;
     if (!importDir.isEmpty) {
@@ -249,12 +248,12 @@ class _Annotation {
         .split(_multitestMarker)[1]
         .split(':')
         .map((s) => s.trim())
-        .where((s) => s.length > 0)
+        .where((s) => s.isNotEmpty)
         .toList();
 
     if (parts.length <= 1) return null;
 
-    return new _Annotation._(parts[0], parts[1]);
+    return _Annotation._(parts[0], parts[1]);
   }
 
   final String key;
@@ -272,9 +271,9 @@ class _Annotation {
 /// Finds all relative imports and copies them into the directory with the
 /// generated tests.
 Set<String> _findAllRelativeImports(Path topLibrary) {
-  var found = new Set<String>();
+  var found = <String>{};
   var libraryDir = topLibrary.directoryPath;
-  var relativeImportRegExp = new RegExp(
+  var relativeImportRegExp = RegExp(
       '^(?:@.*\\s+)?' // Allow for a meta-data annotation.
       '(import|part)'
       '\\s+["\']'
@@ -283,7 +282,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
       '["\']');
 
   processFile(Path filePath) {
-    var file = new File(filePath.toNativePath());
+    var file = File(filePath.toNativePath());
     for (var line in file.readAsLinesSync()) {
       var match = relativeImportRegExp.firstMatch(line);
       if (match == null) continue;
@@ -327,10 +326,10 @@ String _suiteNameFromPath(Path suiteDir) {
 Path _createMultitestDirectory(
     String outputDir, Path suiteDir, Path sourceDir) {
   var relative = sourceDir.relativeTo(suiteDir);
-  var path = new Path(outputDir)
+  var path = Path(outputDir)
       .append('generated_tests')
       .append(_suiteNameFromPath(suiteDir))
       .join(relative);
   TestUtils.mkdirRecursive(Path.workingDirectory, path);
-  return new Path(new File(path.toNativePath()).absolute.path);
+  return Path(File(path.toNativePath()).absolute.path);
 }
