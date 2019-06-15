@@ -8,7 +8,6 @@ import 'package:meta/meta.dart';
 /// object to another [NullabilityNode] that is "downstream" from it (meaning
 /// that if the former node is nullable, then the latter node will either have
 /// to be nullable, or null checks will have to be added).
-@visibleForTesting
 class NullabilityEdge {
   /// The node that is downstream.
   final NullabilityNode destinationNode;
@@ -29,6 +28,25 @@ class NullabilityEdge {
   bool get isUnion => _kind == _NullabilityEdgeKind.union;
 
   NullabilityNode get primarySource => sources.first;
+
+  @override
+  String toString() {
+    var edgeDecorations = <Object>[];
+    switch (_kind) {
+      case _NullabilityEdgeKind.soft:
+        break;
+      case _NullabilityEdgeKind.hard:
+        edgeDecorations.add('hard');
+        break;
+      case _NullabilityEdgeKind.union:
+        edgeDecorations.add('union');
+        break;
+    }
+    edgeDecorations.addAll(guards);
+    var edgeDecoration =
+        edgeDecorations.isEmpty ? '' : '-(${edgeDecorations.join(', ')})';
+    return '$primarySource $edgeDecoration-> $destinationNode';
+  }
 }
 
 /// Data structure to keep track of the relationship between [NullabilityNode]
@@ -55,20 +73,25 @@ class NullabilityGraph {
   final NullabilityNode never = _NullabilityNodeImmutable('never', false);
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
-  void connect(NullabilityNode sourceNode, NullabilityNode destinationNode,
+  ///
+  /// Returns the edge created by the connection.
+  NullabilityEdge connect(
+      NullabilityNode sourceNode, NullabilityNode destinationNode,
       {bool hard: false, List<NullabilityNode> guards: const []}) {
     var sources = [sourceNode]..addAll(guards);
     var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
-    _connect(sources, destinationNode, kind);
+    return _connect(sources, destinationNode, kind);
   }
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
-  void propagate() {
+  ///
+  /// Returns a list of edges that couldn't be satisfied.
+  List<NullabilityEdge> propagate() {
     if (_debugBeforePropagation) _debugDump();
     var nullableNodes = _propagateAlways();
     _propagateUpstream();
-    _propagateDownstream(nullableNodes);
+    return _propagateDownstream(nullableNodes);
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -77,13 +100,14 @@ class NullabilityGraph {
     _connect([y], x, _NullabilityEdgeKind.union);
   }
 
-  void _connect(List<NullabilityNode> sources, NullabilityNode destinationNode,
-      _NullabilityEdgeKind kind) {
+  NullabilityEdge _connect(List<NullabilityNode> sources,
+      NullabilityNode destinationNode, _NullabilityEdgeKind kind) {
     var edge = NullabilityEdge._(destinationNode, sources, kind);
     for (var source in sources) {
       _connectDownstream(source, edge);
     }
     destinationNode._upstreamEdges.add(edge);
+    return edge;
   }
 
   void _connectDownstream(NullabilityNode source, NullabilityEdge edge) {
@@ -139,7 +163,9 @@ class NullabilityGraph {
   }
 
   /// Propagates nullability downstream.
-  void _propagateDownstream(List<NullabilityNode> nullableNodes) {
+  List<NullabilityEdge> _propagateDownstream(
+      List<NullabilityNode> nullableNodes) {
+    var unsatisfiedEdges = <NullabilityEdge>[];
     var pendingEdges = <NullabilityEdge>[];
     for (var node in nullableNodes) {
       pendingEdges.addAll(node._downstreamEdges);
@@ -150,16 +176,17 @@ class NullabilityGraph {
       while (pendingEdges.isNotEmpty) {
         var edge = pendingEdges.removeLast();
         var node = edge.destinationNode;
-        if (node._state == _NullabilityState.nonNullable) {
-          // Non-nullable nodes are never made nullable; a null check will need
-          // to be added instead.
-          continue;
-        }
         for (var source in edge.sources) {
           if (!source.isNullable) {
             // Not all sources are nullable, so this edge doesn't apply yet.
             continue nextEdge;
           }
+        }
+        if (node._state == _NullabilityState.nonNullable) {
+          // The node has already been marked as non-nullable, so the edge can't
+          // be satisfied.
+          unsatisfiedEdges.add(edge);
+          continue;
         }
         if (node is NullabilityNodeMutable && !node.isNullable) {
           node._state = _NullabilityState.ordinaryNullable;
@@ -182,6 +209,7 @@ class NullabilityGraph {
       pendingEdges.add(NullabilityEdge._(
           node.innerNode, const [], _NullabilityEdgeKind.soft));
     }
+    return unsatisfiedEdges;
   }
 
   /// Propagates non-null intent upstream along unconditional control flow
