@@ -118,7 +118,7 @@ class DocumentationGenerator {
                           .arguments[1] as StringLiteral)
                       .stringValue;
               docs = [
-                '### ${_escape(variableName.toLowerCase())}',
+                '### ${variableName.toLowerCase()}',
                 '',
                 ..._split('_${_escape(message)}_'),
                 '',
