@@ -34,12 +34,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
     var identifier = AstTestFactory.identifier3('foo');
     var unit = _wrapExpression(identifier);
     identifier.staticType = BottomTypeImpl.instance;
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_bottomQuestion() async {
@@ -61,12 +58,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
     var unit = _wrapExpression(identifier);
     identifier.staticType = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.none);
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeArgument() async {
@@ -77,12 +71,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
           .withNullability(NullabilitySuffix.question)
     ]);
 
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeParameter() async {
@@ -99,12 +90,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
             .type
             .toString(withNullability: true),
         'E');
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_nonNullTypeParameterBound() async {
@@ -122,12 +110,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
             .bound
             .toString(withNullability: true),
         'int');
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_null() async {
@@ -142,12 +127,9 @@ class LegacyTypeAsserterTest extends DriverResolutionTest {
     var unit = _wrapExpression(identifier);
     identifier.staticType = (typeProvider.intType as TypeImpl)
         .withNullability(NullabilitySuffix.question);
-    try {
+    expect(() {
       LegacyTypeAsserter.assertLegacyTypes(unit);
-      fail('expected an exception');
-    } on AssertionError {
-      // expected
-    }
+    }, throwsStateError);
   }
 
   test_nullableUnit_expressionStaticType_star() async {
