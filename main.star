@@ -301,8 +301,8 @@ def dart_builder(name,
                  on_cq=False,
                  experiment_percentage=None,
                  location_regexp=None):
-    if dimensions.setdefault("os", "Linux") == "Linux":
-        dimensions.setdefault("inside_docker", "0")
+    dimensions.setdefault("os", "Linux")
+    dimensions.setdefault("host_class", "default")
     dimensions.setdefault("pool", "luci.dart.try")
     dimensions["cpu"] = cpu
     properties.setdefault("clobber", "true")
