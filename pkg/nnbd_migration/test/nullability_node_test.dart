@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,7 +29,8 @@ class NullabilityNodeTest {
 
   NullabilityEdge connect(NullabilityNode source, NullabilityNode destination,
       {bool hard = false, List<NullabilityNode> guards = const []}) {
-    return graph.connect(source, destination, hard: hard, guards: guards);
+    return graph.connect(source, destination, _TestEdgeOrigin(),
+        hard: hard, guards: guards);
   }
 
   NullabilityNode lub(NullabilityNode left, NullabilityNode right) {
@@ -487,6 +489,8 @@ class NullabilityNodeTest {
   }
 
   void union(NullabilityNode x, NullabilityNode y) {
-    graph.union(x, y);
+    graph.union(x, y, _TestEdgeOrigin());
   }
 }
+
+class _TestEdgeOrigin extends EdgeOrigin {}

@@ -19,6 +19,8 @@ import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
+import 'edge_origin.dart';
+
 /// Visitor that builds nullability graph edges by examining code to be
 /// migrated.
 ///
@@ -154,8 +156,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (identical(_conditionInfo?.condition, node.condition)) {
       if (!_inConditionalControlFlow &&
           _conditionInfo.trueDemonstratesNonNullIntent != null) {
-        _conditionInfo.trueDemonstratesNonNullIntent
-            ?.recordNonNullIntent(_guards, _graph);
+        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
+            _graph.never, NonNullAssertionOrigin(_source, node.offset),
+            hard: true);
       }
     }
     node.message?.accept(this);
@@ -271,9 +274,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else {
-        NullabilityNode.recordAssignment(_graph.always,
-            getOrComputeElementType(node.declaredElement).node, _guards, _graph,
-            hard: false);
+        _graph.connect(
+            _graph.always,
+            getOrComputeElementType(node.declaredElement).node,
+            OptionalFormalParameterOrigin(_source, node.offset),
+            guards: _guards);
       }
     } else {
       _handleAssignment(
@@ -607,11 +612,13 @@ $stackTrace''');
           throw new StateError('No type annotation for type name '
               '${typeName.toSource()}, offset=${typeName.offset}');
         }
+        var origin = InstantiateToBoundsOrigin(_source, typeName.offset);
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
               instantiatedType.typeArguments[i],
               _variables.decoratedElementType(element.typeParameters[i],
-                  create: true));
+                  create: true),
+              origin);
         }
       } else {
         for (int i = 0; i < typeArguments.length; i++) {
@@ -648,9 +655,8 @@ $stackTrace''');
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       ExpressionChecks expressionChecks,
       {@required bool hard}) {
-    NullabilityNode.recordAssignment(
-        sourceType.node, destinationType.node, _guards, _graph,
-        hard: hard);
+    _graph.connect(sourceType.node, destinationType.node, expressionChecks,
+        guards: _guards, hard: hard);
     // TODO(paulberry): generalize this.
     if ((_isSimple(sourceType) || destinationType.type.isObject) &&
         _isSimple(destinationType)) {
@@ -732,7 +738,8 @@ $stackTrace''');
     // Any parameters not supplied must be optional.
     for (var entry in calleeType.namedParameters.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph);
+      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph,
+          NamedParameterNotSuppliedOrigin(_source, argumentList.offset));
     }
   }
 
@@ -812,8 +819,9 @@ $stackTrace''');
     return false;
   }
 
-  void _unionDecoratedTypes(DecoratedType x, DecoratedType y) {
-    _graph.union(x.node, y.node);
+  void _unionDecoratedTypes(
+      DecoratedType x, DecoratedType y, EdgeOrigin origin) {
+    _graph.union(x.node, y.node, origin);
     if (x.typeArguments.isNotEmpty ||
         y.typeArguments.isNotEmpty ||
         x.returnType != null ||

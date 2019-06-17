@@ -16,6 +16,8 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
+import 'edge_origin.dart';
+
 /// Visitor that builds nullability nodes based on visiting code to be migrated.
 ///
 /// The return type of each `visit...` method is a [DecoratedType] indicating
@@ -58,7 +60,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         ? new DecoratedType(
             DynamicTypeImpl.instance,
             NullabilityNode.forInferredDynamicType(
-                _graph, enclosingNode.offset))
+                _graph, _source, enclosingNode.offset))
         : type.accept(this);
   }
 
@@ -167,7 +169,8 @@ $stackTrace''');
     var type = node.type;
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
-      _graph.connect(_graph.always, nullabilityNode);
+      _graph.connect(_graph.always, nullabilityNode,
+          AlwaysNullableTypeOrigin(_source, node.offset));
       var decoratedType =
           DecoratedTypeAnnotation(type, nullabilityNode, node.offset);
       _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType,
@@ -218,12 +221,16 @@ $stackTrace''');
         positionalParameters: positionalParameters,
         namedParameters: namedParameters);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
-    switch (_classifyComment(node.endToken.next.precedingComments)) {
+    var commentToken = node.endToken.next.precedingComments;
+    switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
-        _graph.connect(decoratedType.node, _graph.never, hard: true);
+        _graph.connect(decoratedType.node, _graph.never,
+            NullabilityCommentOrigin(_source, commentToken.offset),
+            hard: true);
         break;
       case _NullabilityComment.question:
-        _graph.connect(_graph.always, decoratedType.node);
+        _graph.connect(_graph.always, decoratedType.node,
+            NullabilityCommentOrigin(_source, commentToken.offset));
         break;
       case _NullabilityComment.none:
         break;
@@ -238,8 +245,10 @@ $stackTrace''');
   DecoratedType visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement;
     var decoratedBound = node.bound?.accept(this) ??
-        DecoratedType(element.bound ?? _typeProvider.objectType,
-            NullabilityNode.forInferredDynamicType(_graph, node.offset));
+        DecoratedType(
+            element.bound ?? _typeProvider.objectType,
+            NullabilityNode.forInferredDynamicType(
+                _graph, _source, node.offset));
     _variables.recordDecoratedElementType(element, decoratedBound);
     return null;
   }

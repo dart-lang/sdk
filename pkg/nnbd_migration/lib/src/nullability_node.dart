@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
+
+import 'edge_origin.dart';
 
 /// Data structure to keep track of the relationship from one [NullabilityNode]
 /// object to another [NullabilityNode] that is "downstream" from it (meaning
@@ -19,7 +22,12 @@ class NullabilityEdge {
 
   final _NullabilityEdgeKind _kind;
 
-  NullabilityEdge._(this.destinationNode, this.sources, this._kind);
+  /// An [EdgeOrigin] object indicating what was found in the source code that
+  /// caused the edge to be generated.
+  final EdgeOrigin origin;
+
+  NullabilityEdge._(
+      this.destinationNode, this.sources, this._kind, this.origin);
 
   Iterable<NullabilityNode> get guards => sources.skip(1);
 
@@ -75,12 +83,12 @@ class NullabilityGraph {
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
   /// Returns the edge created by the connection.
-  NullabilityEdge connect(
-      NullabilityNode sourceNode, NullabilityNode destinationNode,
+  NullabilityEdge connect(NullabilityNode sourceNode,
+      NullabilityNode destinationNode, EdgeOrigin origin,
       {bool hard: false, List<NullabilityNode> guards: const []}) {
     var sources = [sourceNode]..addAll(guards);
     var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
-    return _connect(sources, destinationNode, kind);
+    return _connect(sources, destinationNode, kind, origin);
   }
 
   /// Determines the nullability of each node in the graph by propagating
@@ -95,14 +103,17 @@ class NullabilityGraph {
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
-  void union(NullabilityNode x, NullabilityNode y) {
-    _connect([x], y, _NullabilityEdgeKind.union);
-    _connect([y], x, _NullabilityEdgeKind.union);
+  void union(NullabilityNode x, NullabilityNode y, EdgeOrigin origin) {
+    _connect([x], y, _NullabilityEdgeKind.union, origin);
+    _connect([y], x, _NullabilityEdgeKind.union, origin);
   }
 
-  NullabilityEdge _connect(List<NullabilityNode> sources,
-      NullabilityNode destinationNode, _NullabilityEdgeKind kind) {
-    var edge = NullabilityEdge._(destinationNode, sources, kind);
+  NullabilityEdge _connect(
+      List<NullabilityNode> sources,
+      NullabilityNode destinationNode,
+      _NullabilityEdgeKind kind,
+      EdgeOrigin origin) {
+    var edge = NullabilityEdge._(destinationNode, sources, kind, origin);
     for (var source in sources) {
       _connectDownstream(source, edge);
     }
@@ -206,8 +217,8 @@ class NullabilityGraph {
       }
       // Heuristically choose to propagate to the inner node since this seems
       // to lead to better quality migrations.
-      pendingEdges.add(NullabilityEdge._(
-          node.innerNode, const [], _NullabilityEdgeKind.soft));
+      pendingEdges.add(NullabilityEdge._(node.innerNode, const [],
+          _NullabilityEdgeKind.soft, _SubstitutionHeuristicOrigin()));
     }
     return unsatisfiedEdges;
   }
@@ -272,9 +283,9 @@ abstract class NullabilityNode {
   /// TODO(paulberry): this should go away; we should decorate the actual
   /// inferred type rather than assuming `dynamic`.
   factory NullabilityNode.forInferredDynamicType(
-      NullabilityGraph graph, int offset) {
+      NullabilityGraph graph, Source source, int offset) {
     var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.union(node, graph.always);
+    graph.union(node, graph.always, AlwaysNullableTypeOrigin(source, offset));
     return node;
   }
 
@@ -334,16 +345,11 @@ abstract class NullabilityNode {
   /// Records the fact that an invocation was made to a function with named
   /// parameters, and the named parameter associated with this node was not
   /// supplied.
-  void recordNamedParameterNotSupplied(
-      List<NullabilityNode> guards, NullabilityGraph graph) {
+  void recordNamedParameterNotSupplied(List<NullabilityNode> guards,
+      NullabilityGraph graph, NamedParameterNotSuppliedOrigin origin) {
     if (isPossiblyOptional) {
-      graph.connect(graph.always, this, guards: guards);
+      graph.connect(graph.always, this, origin, guards: guards);
     }
-  }
-
-  void recordNonNullIntent(
-      List<NullabilityNode> guards, NullabilityGraph graph) {
-    graph.connect(this, graph.never, hard: true);
   }
 
   String toString() {
@@ -369,25 +375,6 @@ abstract class NullabilityNode {
   /// required.
   void trackPossiblyOptional() {
     _isPossiblyOptional = true;
-  }
-
-  /// Connect the nullability nodes [sourceNode] and [destinationNode]
-  /// appopriately to account for an assignment in the source code being
-  /// analyzed.  Any constraints generated are recorded in [constraints].
-  ///
-  /// If [checkNotNull] is non-null, then it tracks the expression that may
-  /// require null-checking.
-  ///
-  /// [inConditionalControlFlow] indicates whether the assignment being analyzed
-  /// is reachable conditionally or unconditionally from the entry point of the
-  /// function; this affects how non-null intent is back-propagated.
-  static void recordAssignment(
-      NullabilityNode sourceNode,
-      NullabilityNode destinationNode,
-      List<NullabilityNode> guards,
-      NullabilityGraph graph,
-      {@required bool hard}) {
-    graph.connect(sourceNode, destinationNode, guards: guards, hard: hard);
   }
 }
 
@@ -531,3 +518,5 @@ class _NullabilityState {
   @override
   String toString() => name;
 }
+
+class _SubstitutionHeuristicOrigin extends EdgeOrigin {}

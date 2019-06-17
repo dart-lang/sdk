@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
 
@@ -13,7 +14,7 @@ import 'package:nnbd_migration/src/potential_modification.dart';
 /// TODO(paulberry): the only check we support now is [nullCheck], which checks
 /// that the expression is not null.  We need to add other checks, e.g. to check
 /// that a List<int?> is actually a List<int>.
-class ExpressionChecks extends PotentialModification {
+class ExpressionChecks extends PotentialModification implements EdgeOrigin {
   /// Source offset where a trailing `!` might need to be inserted.
   final int offset;
 
