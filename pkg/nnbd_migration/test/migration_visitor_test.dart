@@ -272,6 +272,40 @@ void f(C c, int i) {
         checkExpression('c.s'), decoratedTypeAnnotation('C c').node);
   }
 
+  @failingTest
+  test_awaitExpression_future_nonNullable() async {
+    await analyze('''
+Future<void> f() async {
+  int x = await g();
+}
+Future<int> g() async => 3;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
+  @failingTest
+  test_awaitExpression_future_nullable() async {
+    await analyze('''
+Future<void> f() async {
+  int x = await g();
+}
+Future<int> g() async => null;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
+  test_awaitExpression_nonFuture() async {
+    await analyze('''
+Future<void> f() async {
+  int x = await 3;
+}
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
   test_binaryExpression_add_left_check() async {
     await analyze('''
 int f(int i, int j) => i + j;

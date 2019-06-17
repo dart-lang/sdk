@@ -180,7 +180,13 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitAwaitExpression(AwaitExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    var expressionType = node.expression.accept(this);
+    // TODO(paulberry) Handle subclasses of Future.
+    if (expressionType.type.isDartAsyncFuture ||
+        expressionType.type.isDartAsyncFutureOr) {
+      expressionType = expressionType.typeArguments[0];
+    }
+    return expressionType;
   }
 
   @override
