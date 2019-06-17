@@ -1870,6 +1870,10 @@ class FragmentEmitter {
           js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
     }
 
+    if (_options.experimentNewRti) {
+      globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
+    }
+
     globals.add(emitMangledGlobalNames());
 
     // The [MANGLED_NAMES] table must contain the mapping for const symbols.
@@ -1904,6 +1908,22 @@ class FragmentEmitter {
           [js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap]));
     }
     return js.Block(statements);
+  }
+
+  /// Returns an expression that creates the initial Rti Universe.
+  ///
+  /// This needs to be kept in sync with `_Universe.create` in `dart:_rti`.
+  js.Expression createRtiUniverse() {
+    List<js.Property> universeFields = [];
+    void initField(String name, String value) {
+      universeFields.add(js.Property(js.string(name), js.js(value)));
+    }
+
+    initField(RtiUniverseFieldNames.evalCache, 'new Map()');
+    initField(RtiUniverseFieldNames.unprocessedRules, '[]');
+    initField(RtiUniverseFieldNames.sharedEmptyArray, '[]');
+
+    return js.ObjectInitializer(universeFields);
   }
 
   /// Emits data needed for native classes.

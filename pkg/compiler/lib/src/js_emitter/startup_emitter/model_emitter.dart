@@ -24,6 +24,8 @@ import 'package:js_runtime/shared/embedded_names.dart'
         MANGLED_NAMES,
         METADATA,
         NATIVE_SUPERCLASS_TAG_NAME,
+        RTI_UNIVERSE,
+        RtiUniverseFieldNames,
         TYPE_TO_INTERCEPTOR_MAP,
         TYPES;
 

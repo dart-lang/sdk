@@ -5,8 +5,11 @@
 /// This library contains support for runtime type information.
 library rti;
 
-import 'dart:_foreign_helper' show JS, RAW_DART_FUNCTION_REF;
+import 'dart:_foreign_helper'
+    show JS, JS_EMBEDDED_GLOBAL, RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
+
+import 'dart:_js_embedded_names' show RtiUniverseFieldNames, RTI_UNIVERSE;
 
 /// An Rti object represents both a type (e.g `Map<int, String>`) and a type
 /// environment (`Map<int, String>` binds `Map.K=int` and `Map.V=String`).
@@ -51,7 +54,10 @@ class Rti {
 
   /// Method called from generated code to evaluate a type environment recipe in
   /// `this` type environment.
-  Rti _eval(String recipe) => _rtiEval(this, recipe);
+  Rti _eval(String recipe) {
+    // TODO(sra): Clone the fast-path of _Universe.evalInEnvironment to here.
+    return _rtiEval(this, recipe);
+  }
 
   /// Method called from generated code to extend `this` type environment (an
   /// interface or binding Rti) with function type arguments (a singleton
@@ -201,19 +207,24 @@ class Rti {
   }
 }
 
+Object _theUniverse() => JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE);
+
 Rti _rtiEval(Rti environment, String recipe) {
-  // TODO(sra): return _Universe.eval(the-universe, environment, recipe);
-  throw UnimplementedError('_rtiEval');
+  return _Universe.evalInEnvironment(_theUniverse(), environment, recipe);
 }
 
 Rti _rtiBind1(Rti environment, Rti types) {
-  // TODO(sra): return _Universe.bind1(the-universe, environment, types);
-  throw UnimplementedError('_rtiBind1');
+  return _Universe.bind1(_theUniverse(), environment, types);
 }
 
-Rti _rtiBind(Rti environment, Rti typeTuple) {
-  // TODO(sra): return _Universe.bind(the-universe, environment, types);
-  throw UnimplementedError('_rtiBind');
+Rti _rtiBind(Rti environment, Rti types) {
+  return _Universe.bind(_theUniverse(), environment, types);
+}
+
+/// Evaluate a ground-term type.
+/// Called from generated code.
+Rti rtiTypeEval(String recipe) {
+  _Universe.eval(_theUniverse(), recipe);
 }
 
 Type getRuntimeType(object) {
@@ -322,26 +333,32 @@ class _Universe {
 
   @pragma('dart2js:noInline')
   static Object create() {
-    // TODO(sra): For consistency, this expression should be a JS_BUILTIN that
-    // uses the same template as emitted by the emitter.
+    // This needs to be kept in sync with `FragmentEmitter.createRtiUniverse` in
+    // `fragment_emtter.dart`.
     return JS(
         '',
         '{'
-            'evalCache: new Map(),'
-            'unprocessedRules:[],'
-            'a0:[],' // shared empty array.
-            '}');
+            '#: new Map(),'
+            '#: [],'
+            '#: [],' // shared empty array.
+            '}',
+        RtiUniverseFieldNames.evalCache,
+        RtiUniverseFieldNames.unprocessedRules,
+        RtiUniverseFieldNames.sharedEmptyArray);
   }
 
   // Field accessors.
 
-  static evalCache(universe) => JS('', '#.evalCache', universe);
+  static evalCache(universe) =>
+      JS('', '#.#', universe, RtiUniverseFieldNames.evalCache);
 
   static void addRules(universe, String rules) {
-    JS('', '#.unprocessedRules.push(#)', universe, rules);
+    JS('', '#.#.push(#)', universe, RtiUniverseFieldNames.unprocessedRules,
+        rules);
   }
 
-  static Object sharedEmptyArray(universe) => JS('JSArray', '#.a0', universe);
+  static Object sharedEmptyArray(universe) =>
+      JS('JSArray', '#.#', universe, RtiUniverseFieldNames.sharedEmptyArray);
 
   /// Evaluates [recipe] in the global environment.
   static Rti eval(Object universe, String recipe) {
@@ -386,6 +403,10 @@ class _Universe {
     var rti = _lookupBindingRti(universe, environment, argumentsArray);
     _cacheSet(cache, argumentsRecipe, rti);
     return rti;
+  }
+
+  static Rti bind1(Object universe, Rti environment, Rti argumentsRti) {
+    throw UnimplementedError('_Universe.bind1');
   }
 
   static Rti evalTypeVariable(Object universe, Rti environment, String name) {
