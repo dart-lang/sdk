@@ -978,7 +978,6 @@ Isolate::~Isolate() {
       nullptr;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when isolate deleted.
-  delete spawn_state_;
   ASSERT(spawn_count_ == 0);
   delete safepoint_handler_;
   delete thread_registry_;

@@ -10,6 +10,7 @@
 #endif
 
 #include <memory>
+#include <utility>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -346,8 +347,10 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = CompactionInProgressBit::update(value, isolate_flags_);
   }
 
-  IsolateSpawnState* spawn_state() const { return spawn_state_; }
-  void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
+  IsolateSpawnState* spawn_state() const { return spawn_state_.get(); }
+  void set_spawn_state(std::unique_ptr<IsolateSpawnState> value) {
+    spawn_state_ = std::move(value);
+  }
 
   Mutex* mutex() { return &mutex_; }
   Mutex* symbols_mutex() { return &symbols_mutex_; }
@@ -1033,7 +1036,7 @@ class Isolate : public BaseIsolate {
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
-  IsolateSpawnState* spawn_state_ = nullptr;
+  std::unique_ptr<IsolateSpawnState> spawn_state_;
   intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_ = nullptr;
