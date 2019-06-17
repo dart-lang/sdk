@@ -81,9 +81,9 @@ class FileStat {
   final DateTime accessed;
 
   /**
-   * The type of the object (file, directory, or link).
+   * The type of the underlying file system object.
    *
-   * If the call to stat() fails, the type of the returned object is notFound.
+   * [FileSystemEntityType.notFound] if [stat] or [statSync] failed.
    */
   final FileSystemEntityType type;
 
@@ -114,11 +114,11 @@ class FileStat {
   external static _statSync(_Namespace namespace, String path);
 
   /**
-   * Calls the operating system's stat() function on [path].
+   * Calls the operating system's `stat()` function (or equivalent) on [path].
    *
-   * Returns a [FileStat] object containing the data returned by stat().
-   * If the call fails, returns a [FileStat] object with .type set to
-   * FileSystemEntityType.notFound and the other fields invalid.
+   * Returns a [FileStat] object containing the data returned by `stat()`.
+   * If the call fails, returns a [FileStat] object with [FileStat.type] set to
+   * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   static FileStat statSync(String path) {
     final IOOverrides overrides = IOOverrides.current;
@@ -145,12 +145,10 @@ class FileStat {
   }
 
   /**
-   * Asynchronously calls the operating system's stat() function on [path].
+   * Asynchronously calls the operating system's `stat()` function (or
+   * equivalent) on [path].
    *
-   * Returns a Future which completes with a [FileStat] object containing
-   * the data returned by stat(). If the call fails, completes the future with a
-   * [FileStat] object with `.type` set to FileSystemEntityType.notFound and
-   * the other fields invalid.
+   * Returns a [Future] which completes with the same results as [statSync].
    */
   static Future<FileStat> stat(String path) {
     final IOOverrides overrides = IOOverrides.current;
@@ -408,8 +406,8 @@ abstract class FileSystemEntity {
    * stat().
    *
    * If the call fails, completes the future with a [FileStat] object
-   * with .type set to
-   * FileSystemEntityType.notFound and the other fields invalid.
+   * with `.type` set to [FileSystemEntityType.notFound] and the other fields
+   * invalid.
    */
   Future<FileStat> stat() => FileStat.stat(path);
 
@@ -421,8 +419,8 @@ abstract class FileSystemEntity {
    *
    * Returns a [FileStat] object containing the data returned by stat().
    *
-   * If the call fails, returns a [FileStat] object with .type set to
-   * FileSystemEntityType.notFound and the other fields invalid.
+   * If the call fails, returns a [FileStat] object with `.type` set to
+   * [FileSystemEntityType.notFound] and the other fields invalid.
    */
   FileStat statSync() => FileStat.statSync(path);
 
@@ -670,15 +668,8 @@ abstract class FileSystemEntity {
   /**
    * Finds the type of file system object that a path points to.
    *
-   * Returns a [:Future<FileSystemEntityType>:] that completes with the result.
-   *
-   * [FileSystemEntityType] has the constant instances file, directory,
-   * link, and notFound.  [type] will return link only if the optional
-   * named argument [followLinks] is false, and [path] points to a link.
-   * If the path does not point to a file system object, or any other error
-   * occurs in looking up the path, notFound is returned.  The only
-   * error or exception that may be put on the returned future is ArgumentError,
-   * caused by passing the wrong type of arguments to the function.
+   * Returns a [:Future<FileSystemEntityType>:] that completes with the same
+   * results as [typeSync].
    */
   static Future<FileSystemEntityType> type(String path,
       {bool followLinks: true}) {
@@ -690,13 +681,11 @@ abstract class FileSystemEntity {
    *
    * Returns a [FileSystemEntityType].
    *
-   * [FileSystemEntityType] has the constant instances file, directory,
-   * link, and notFound.  [type] will return link only if the optional
-   * named argument [followLinks] is false, and [path] points to a link.
-   * If the path does not point to a file system object, or any other error
-   * occurs in looking up the path, notFound is returned.  The only
-   * error or exception that may be thrown is ArgumentError,
-   * caused by passing the wrong type of arguments to the function.
+   * Returns [FileSystemEntityType.link] only if [followLinks] is false and if
+   * [path] points to a link.
+   *
+   * Returns [FileSystemEntityType.notFound] if [path] does not point to a file
+   * system object or if any other error occurs in looking up the path.
    */
   static FileSystemEntityType typeSync(String path, {bool followLinks: true}) {
     return _getTypeSync(_toUtf8Array(path), followLinks);
