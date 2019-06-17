@@ -481,11 +481,64 @@ class NullabilityNodeTest {
     assertUnsatisfied([edge_always_1, edge_always_2, edge_always_3]);
   }
 
+  test_satisfied_edge_destination_nullable() {
+    var n1 = newNode(1);
+    var edge = connect(always, n1);
+    propagate();
+    assertUnsatisfied([]);
+    expect(edge.isSatisfied, true);
+  }
+
+  test_satisfied_edge_source_non_nullable() {
+    var n1 = newNode(1);
+    var n2 = newNode(1);
+    var edge = connect(n1, n2);
+    propagate();
+    assertUnsatisfied([]);
+    expect(edge.isSatisfied, true);
+  }
+
+  test_satisfied_edge_two_sources_first_non_nullable() {
+    var n1 = newNode(1);
+    var n2 = newNode(1);
+    connect(always, n2);
+    var edge = connect(n1, never, guards: [n2]);
+    propagate();
+    assertUnsatisfied([]);
+    expect(edge.isSatisfied, true);
+  }
+
+  test_satisfied_edge_two_sources_second_non_nullable() {
+    var n1 = newNode(1);
+    var n2 = newNode(1);
+    connect(always, n1);
+    var edge = connect(n1, never, guards: [n2]);
+    propagate();
+    assertUnsatisfied([]);
+    expect(edge.isSatisfied, true);
+  }
+
   test_unconstrainted_node_non_nullable() {
     var n1 = newNode(1);
     propagate();
     expect(n1.isNullable, false);
     assertUnsatisfied([]);
+  }
+
+  test_unsatisfied_edge_multiple_sources() {
+    var n1 = newNode(1);
+    connect(always, n1);
+    var edge = connect(always, never, guards: [n1]);
+    propagate();
+    assertUnsatisfied([edge]);
+    expect(edge.isSatisfied, false);
+  }
+
+  test_unsatisfied_edge_single_source() {
+    var edge = connect(always, never);
+    propagate();
+    assertUnsatisfied([edge]);
+    expect(edge.isSatisfied, false);
   }
 
   void union(NullabilityNode x, NullabilityNode y) {

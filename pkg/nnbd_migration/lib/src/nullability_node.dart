@@ -33,9 +33,26 @@ class NullabilityEdge {
 
   bool get hard => _kind != _NullabilityEdgeKind.soft;
 
+  /// Indicates whether nullability was successfully propagated through this
+  /// edge.
+  bool get isSatisfied {
+    if (!_isTriggered) return true;
+    return destinationNode.isNullable;
+  }
+
   bool get isUnion => _kind == _NullabilityEdgeKind.union;
 
   NullabilityNode get primarySource => sources.first;
+
+  /// Indicates whether all the sources of this edge are nullable (and thus
+  /// downstream nullability propagation should try to make the destination node
+  /// nullable, if possible).
+  bool get _isTriggered {
+    for (var source in sources) {
+      if (!source.isNullable) return false;
+    }
+    return true;
+  }
 
   @override
   String toString() {
@@ -183,16 +200,10 @@ class NullabilityGraph {
     }
     var pendingSubstitutions = <NullabilityNodeForSubstitution>[];
     while (true) {
-      nextEdge:
       while (pendingEdges.isNotEmpty) {
         var edge = pendingEdges.removeLast();
+        if (!edge._isTriggered) continue;
         var node = edge.destinationNode;
-        for (var source in edge.sources) {
-          if (!source.isNullable) {
-            // Not all sources are nullable, so this edge doesn't apply yet.
-            continue nextEdge;
-          }
-        }
         if (node._state == _NullabilityState.nonNullable) {
           // The node has already been marked as non-nullable, so the edge can't
           // be satisfied.
