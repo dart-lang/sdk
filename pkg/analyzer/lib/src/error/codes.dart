@@ -175,7 +175,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // #### Common fixes
   //
   // There are two common ways to fix this problem. The first is to remove all
-  // of the spread elements of one kind or other, so that the elements are
+  // of the spread elements of one kind or another, so that the elements are
   // consistent. In this case, that likely means removing the list and deciding
   // what to do about the now unused parameter:
   //
