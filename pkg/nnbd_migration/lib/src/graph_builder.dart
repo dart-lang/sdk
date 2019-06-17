@@ -540,7 +540,8 @@ $stackTrace''');
   @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
-      _checkAssignment(_currentFunctionType.returnType, _nullType, null);
+      _checkAssignment(_currentFunctionType.returnType, _nullType, null,
+          hard: false);
     } else {
       _handleAssignment(_currentFunctionType.returnType, node.expression);
     }
@@ -641,28 +642,15 @@ $stackTrace''');
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to
-  /// [destinationType].  [expression] is the expression whose type is
-  /// [sourceType]; it is the expression we will have to null-check in the case
-  /// where a nullable source is assigned to a non-nullable destination.
+  /// [destinationType].  [expressionChecks] tracks checks that might have to be
+  /// done on the type of an expression.  [hard] indicates whether a hard edge
+  /// should be created.
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
-      Expression expression,
-      {bool hard}) {
-    if (expression != null) {
-      _variables.recordExpressionChecks(
-          _source,
-          expression,
-          ExpressionChecks(
-              expression.end, sourceType.node, destinationType.node, _guards));
-    }
+      ExpressionChecks expressionChecks,
+      {@required bool hard}) {
     NullabilityNode.recordAssignment(
         sourceType.node, destinationType.node, _guards, _graph,
-        hard: hard ??
-            (_isVariableOrParameterReference(expression) &&
-                !_inConditionalControlFlow));
-    // TODO(paulberry): it's a cheat to pass in expression=null for the
-    // recursive checks.  Really we want to unify all the checks in a single
-    // ExpressionChecks object.
-    expression = null;
+        hard: hard);
     // TODO(paulberry): generalize this.
     if ((_isSimple(sourceType) || destinationType.type.isObject) &&
         _isSimple(destinationType)) {
@@ -674,7 +662,8 @@ $stackTrace''');
           destinationType.typeArguments.length);
       for (int i = 0; i < sourceType.typeArguments.length; i++) {
         _checkAssignment(destinationType.typeArguments[i],
-            sourceType.typeArguments[i], expression);
+            sourceType.typeArguments[i], expressionChecks,
+            hard: false);
       }
     } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
       // ok; nothing further to do.
@@ -705,8 +694,15 @@ $stackTrace''');
       throw StateError('No type computed for ${expression.runtimeType} '
           '(${expression.toSource()}) offset=${expression.offset}');
     }
-    _checkAssignment(
-        destinationType, sourceType, canInsertChecks ? expression : null);
+    ExpressionChecks expressionChecks;
+    if (canInsertChecks) {
+      expressionChecks = ExpressionChecks(
+          expression.end, sourceType.node, destinationType.node, _guards);
+      _variables.recordExpressionChecks(_source, expression, expressionChecks);
+    }
+    _checkAssignment(destinationType, sourceType, expressionChecks,
+        hard: _isVariableOrParameterReference(expression) &&
+            !_inConditionalControlFlow);
     return sourceType;
   }
 
