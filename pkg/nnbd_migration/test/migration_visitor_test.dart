@@ -56,26 +56,13 @@ class GraphBuilderTest extends MigrationVisitorTestBase {
     }
   }
 
-  /// Verifies that a null check will occur under the proper circumstances.
+  /// Verifies that a null check will occur when the given edge is unsatisfied.
   ///
   /// [expressionChecks] is the object tracking whether or not a null check is
-  /// needed.  [valueNode] is the node representing the possibly-nullable value
-  /// that is the source of the assignment or use.  [contextNode] is the node
-  /// representing the possibly-nullable value that is the destination of the
-  /// assignment (if the value is being assigned), or `null` if the value is
-  /// being used in a circumstance where `null` is not permitted.  [guards] is
-  /// a list of nullability nodes for which there are enclosing if statements
-  /// checking that the corresponding values are non-null.
+  /// needed.
   void assertNullCheck(
-      ExpressionChecks expressionChecks, NullabilityNode valueNode,
-      {NullabilityNode contextNode, List<NullabilityNode> guards = const []}) {
-    expect(expressionChecks.valueNode, same(valueNode));
-    if (contextNode == null) {
-      expect(expressionChecks.contextNode, same(never));
-    } else {
-      expect(expressionChecks.contextNode, same(contextNode));
-    }
-    expect(expressionChecks.guards, guards);
+      ExpressionChecks expressionChecks, NullabilityEdge expectedEdge) {
+    expect(expressionChecks.edges, contains(expectedEdge));
   }
 
   /// Gets the [ExpressionChecks] associated with the expression whose text
@@ -139,8 +126,8 @@ void f(C c, int i) {
   c.x = i;
 }
 ''');
-    assertNullCheck(
-        checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c.x'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_assignmentExpression_field_target_check_cascaded() async {
@@ -152,8 +139,8 @@ void f(C c, int i) {
   c..x = i;
 }
 ''');
-    assertNullCheck(
-        checkExpression('c..x'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c..x'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_assignmentExpression_indexExpression_index() async {
@@ -191,7 +178,8 @@ void f(C c, int i, int j) {
   c[i] = j;
 }
 ''');
-    assertNullCheck(checkExpression('c['), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c['),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_assignmentExpression_indexExpression_value() async {
@@ -268,8 +256,8 @@ void f(C c, int i) {
   c.s = i;
 }
 ''');
-    assertNullCheck(
-        checkExpression('c.s'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c.s'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   @failingTest
@@ -311,8 +299,8 @@ Future<void> f() async {
 int f(int i, int j) => i + j;
 ''');
 
-    assertNullCheck(
-        checkExpression('i +'), decoratedTypeAnnotation('int i').node);
+    assertNullCheck(checkExpression('i +'),
+        assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true));
   }
 
   test_binaryExpression_add_left_check_custom() async {
@@ -323,8 +311,8 @@ class Int {
 Int f(Int i, Int j) => i + j;
 ''');
 
-    assertNullCheck(
-        checkExpression('i +'), decoratedTypeAnnotation('Int i').node);
+    assertNullCheck(checkExpression('i +'),
+        assertEdge(decoratedTypeAnnotation('Int i').node, never, hard: true));
   }
 
   test_binaryExpression_add_result_custom() async {
@@ -335,9 +323,11 @@ class Int {
 Int f(Int i, Int j) => (i + j);
 ''');
 
-    assertNullCheck(checkExpression('(i + j)'),
-        decoratedTypeAnnotation('Int operator+').node,
-        contextNode: decoratedTypeAnnotation('Int f').node);
+    assertNullCheck(
+        checkExpression('(i + j)'),
+        assertEdge(decoratedTypeAnnotation('Int operator+').node,
+            decoratedTypeAnnotation('Int f').node,
+            hard: false));
   }
 
   test_binaryExpression_add_result_not_null() async {
@@ -353,8 +343,8 @@ int f(int i, int j) => i + j;
 int f(int i, int j) => i + j;
 ''');
 
-    assertNullCheck(
-        checkExpression('j;'), decoratedTypeAnnotation('int j').node);
+    assertNullCheck(checkExpression('j;'),
+        assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true));
   }
 
   test_binaryExpression_add_right_check_custom() async {
@@ -366,8 +356,10 @@ Int f(Int i, Int j) => i + j/*check*/;
 ''');
 
     assertNullCheck(
-        checkExpression('j/*check*/'), decoratedTypeAnnotation('Int j').node,
-        contextNode: decoratedTypeAnnotation('Int other').node);
+        checkExpression('j/*check*/'),
+        assertEdge(decoratedTypeAnnotation('Int j').node,
+            decoratedTypeAnnotation('Int other').node,
+            hard: true));
   }
 
   test_binaryExpression_equal() async {
@@ -408,7 +400,7 @@ int f(bool b, int i, int j) {
 
     var nullable_b = decoratedTypeAnnotation('bool b').node;
     var check_b = checkExpression('b ?');
-    assertNullCheck(check_b, nullable_b);
+    assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
   }
 
   test_conditionalExpression_general() async {
@@ -423,8 +415,8 @@ int f(bool b, int i, int j) {
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertConditional(nullable_conditional, nullable_i, nullable_j);
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('(b ? i : j)'), nullable_conditional,
-        contextNode: nullable_return);
+    assertNullCheck(checkExpression('(b ? i : j)'),
+        assertEdge(nullable_conditional, nullable_return, hard: false));
   }
 
   test_conditionalExpression_left_non_null() async {
@@ -496,8 +488,10 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
 ''');
 
     assertNullCheck(
-        checkExpression('i/*3*/'), decoratedTypeAnnotation('int/*2*/').node,
-        contextNode: decoratedTypeAnnotation('int/*1*/').node);
+        checkExpression('i/*3*/'),
+        assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+            decoratedTypeAnnotation('int/*1*/').node,
+            hard: true));
   }
 
   test_functionDeclaration_parameter_named_default_notNull() async {
@@ -585,7 +579,7 @@ void test(int/*2*/ i) {
     var int_1 = decoratedTypeAnnotation('int/*1*/');
     var int_2 = decoratedTypeAnnotation('int/*2*/');
     var i_3 = checkExpression('i/*3*/');
-    assertNullCheck(i_3, int_2.node, contextNode: int_1.node);
+    assertNullCheck(i_3, assertEdge(int_2.node, int_1.node, hard: true));
     assertEdge(int_2.node, int_1.node, hard: true);
   }
 
@@ -598,8 +592,8 @@ void g(int j) {
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    assertNullCheck(checkExpression('j/*check*/'), nullable_j,
-        contextNode: nullable_i);
+    assertNullCheck(checkExpression('j/*check*/'),
+        assertEdge(nullable_j, nullable_i, hard: true));
   }
 
   test_functionInvocation_parameter_named_missing() async {
@@ -638,8 +632,8 @@ void test() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'), always,
-        contextNode: decoratedTypeAnnotation('int').node);
+    assertNullCheck(checkExpression('null'),
+        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
   }
 
   test_functionInvocation_return() async {
@@ -651,8 +645,10 @@ int/*2*/ g() {
 ''');
 
     assertNullCheck(
-        checkExpression('(f())'), decoratedTypeAnnotation('int/*1*/').node,
-        contextNode: decoratedTypeAnnotation('int/*2*/').node);
+        checkExpression('(f())'),
+        assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+            decoratedTypeAnnotation('int/*2*/').node,
+            hard: false));
   }
 
   test_if_condition() async {
@@ -662,8 +658,8 @@ void f(bool b) {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('b) {}'), decoratedTypeAnnotation('bool b').node);
+    assertNullCheck(checkExpression('b) {}'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
   }
 
   test_if_conditional_control_flow_after() async {
@@ -708,10 +704,12 @@ int f(int i, int j, int k) {
     var nullable_j = decoratedTypeAnnotation('int j').node;
     var nullable_k = decoratedTypeAnnotation('int k').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('j/*check*/'), nullable_j,
-        contextNode: nullable_return, guards: [nullable_i]);
-    assertNullCheck(checkExpression('k/*check*/'), nullable_k,
-        contextNode: nullable_return);
+    assertNullCheck(
+        checkExpression('j/*check*/'),
+        assertEdge(nullable_j, nullable_return,
+            guards: [nullable_i], hard: false));
+    assertNullCheck(checkExpression('k/*check*/'),
+        assertEdge(nullable_k, nullable_return, hard: false));
     var discard = statementDiscard('if (i == null)');
     expect(discard.trueGuard, same(nullable_i));
     expect(discard.falseGuard, null);
@@ -732,10 +730,10 @@ int f(bool b, int i, int j) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('i/*check*/'), nullable_i,
-        contextNode: nullable_return);
-    assertNullCheck(checkExpression('j/*check*/'), nullable_j,
-        contextNode: nullable_return);
+    assertNullCheck(checkExpression('i/*check*/'),
+        assertEdge(nullable_i, nullable_return, hard: false));
+    assertNullCheck(checkExpression('j/*check*/'),
+        assertEdge(nullable_j, nullable_return, hard: false));
   }
 
   test_if_without_else() async {
@@ -750,8 +748,8 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_return = decoratedTypeAnnotation('int f').node;
-    assertNullCheck(checkExpression('i/*check*/'), nullable_i,
-        contextNode: nullable_return);
+    assertNullCheck(checkExpression('i/*check*/'),
+        assertEdge(nullable_i, nullable_return, hard: false));
   }
 
   test_indexExpression_index() async {
@@ -797,7 +795,8 @@ class C {
 }
 int f(C c) => c[0];
 ''');
-    assertNullCheck(checkExpression('c['), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c['),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_indexExpression_target_check_cascaded() async {
@@ -807,8 +806,8 @@ class C {
 }
 C f(C c) => c..[0];
 ''');
-    assertNullCheck(
-        checkExpression('c..['), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c..['),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_indexExpression_target_demonstrates_non_null_intent() async {
@@ -991,11 +990,11 @@ void g(C<int> c, int i) {
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var check_i = checkExpression('i/*check*/');
     var nullable_c_t_or_nullable_t =
-        check_i.contextNode as NullabilityNodeForSubstitution;
+        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
     expect(nullable_c_t_or_nullable_t.innerNode, same(nullable_c_t));
     expect(nullable_c_t_or_nullable_t.outerNode, same(nullable_t));
-    assertNullCheck(check_i, nullable_i,
-        contextNode: nullable_c_t_or_nullable_t);
+    assertNullCheck(check_i,
+        assertEdge(nullable_i, nullable_c_t_or_nullable_t, hard: true));
   }
 
   test_methodInvocation_parameter_generic() async {
@@ -1010,9 +1009,11 @@ void g(C<int/*3*/>/*4*/ c) {
     assertEdge(decoratedTypeAnnotation('int/*3*/').node,
         decoratedTypeAnnotation('int/*1*/').node,
         hard: false);
-    assertNullCheck(checkExpression('c/*check*/'),
-        decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
-        contextNode: decoratedTypeAnnotation('C<int/*1*/>/*2*/').node);
+    assertNullCheck(
+        checkExpression('c/*check*/'),
+        assertEdge(decoratedTypeAnnotation('C<int/*3*/>/*4*/').node,
+            decoratedTypeAnnotation('C<int/*1*/>/*2*/').node,
+            hard: true));
   }
 
   test_methodInvocation_parameter_named() async {
@@ -1026,8 +1027,8 @@ void g(C c, int j) {
 ''');
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
-    assertNullCheck(checkExpression('j/*check*/'), nullable_j,
-        contextNode: nullable_i);
+    assertNullCheck(checkExpression('j/*check*/'),
+        assertEdge(nullable_j, nullable_i, hard: true));
   }
 
   test_methodInvocation_return_type() async {
@@ -1066,8 +1067,8 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('c.m'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c.m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_methodInvocation_target_check_cascaded() async {
@@ -1080,8 +1081,8 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('c..m'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c..m'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_methodInvocation_target_demonstrates_non_null_intent() async {
@@ -1123,8 +1124,8 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('(null)'), always,
-        contextNode: decoratedTypeAnnotation('int').node);
+    assertNullCheck(checkExpression('(null)'),
+        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
   }
 
   test_prefixedIdentifier_field_type() async {
@@ -1161,8 +1162,8 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('c.x'), decoratedTypeAnnotation('C c').node);
+    assertNullCheck(checkExpression('c.x'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_prefixedIdentifier_target_demonstrates_non_null_intent() async {
@@ -1187,7 +1188,7 @@ bool f(bool b) {
 
     var nullable_b = decoratedTypeAnnotation('bool b').node;
     var check_b = checkExpression('b;');
-    assertNullCheck(check_b, nullable_b);
+    assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
 
     var return_f = decoratedTypeAnnotation('bool f').node;
     assertEdge(never, return_f, hard: false);
@@ -1229,8 +1230,9 @@ void test(C c) {
 }
 ''');
 
-    assertNullCheck(
-        checkExpression('c).x'), decoratedTypeAnnotation('C c').node);
+    // TODO(paulberry): this is wrong.  It should be a hard edge.
+    assertNullCheck(checkExpression('c).x'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
   }
 
   test_return_implicit_null() async {
@@ -1251,8 +1253,8 @@ int f() {
 }
 ''');
 
-    assertNullCheck(checkExpression('null'), always,
-        contextNode: decoratedTypeAnnotation('int').node);
+    assertNullCheck(checkExpression('null'),
+        assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
   }
 
   test_return_null_generic() async {
@@ -1265,7 +1267,8 @@ class C<T> {
 ''');
     var tNode = decoratedTypeAnnotation('T f').node;
     assertEdge(always, tNode, hard: false);
-    assertNullCheck(checkExpression('null'), always, contextNode: tNode);
+    assertNullCheck(
+        checkExpression('null'), assertEdge(always, tNode, hard: false));
   }
 
   test_simpleIdentifier_local() async {
@@ -1413,8 +1416,9 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     return testUnit;
   }
 
-  void assertEdge(NullabilityNode source, NullabilityNode destination,
-      {@required bool hard}) {
+  NullabilityEdge assertEdge(
+      NullabilityNode source, NullabilityNode destination,
+      {@required bool hard, List<NullabilityNode> guards}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -1423,6 +1427,10 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     } else {
       var edge = edges[0];
       expect(edge.hard, hard);
+      if (guards != null) {
+        expect(edge.guards, unorderedEquals(guards));
+      }
+      return edge;
     }
   }
 

@@ -655,8 +655,10 @@ $stackTrace''');
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
       ExpressionChecks expressionChecks,
       {@required bool hard}) {
-    _graph.connect(sourceType.node, destinationType.node, expressionChecks,
+    var edge = _graph.connect(
+        sourceType.node, destinationType.node, expressionChecks,
         guards: _guards, hard: hard);
+    expressionChecks?.edges?.add(edge);
     // TODO(paulberry): generalize this.
     if ((_isSimple(sourceType) || destinationType.type.isObject) &&
         _isSimple(destinationType)) {
@@ -702,8 +704,7 @@ $stackTrace''');
     }
     ExpressionChecks expressionChecks;
     if (canInsertChecks) {
-      expressionChecks = ExpressionChecks(
-          expression.end, sourceType.node, destinationType.node, _guards);
+      expressionChecks = ExpressionChecks(expression.end);
       _variables.recordExpressionChecks(_source, expression, expressionChecks);
     }
     _checkAssignment(destinationType, sourceType, expressionChecks,
