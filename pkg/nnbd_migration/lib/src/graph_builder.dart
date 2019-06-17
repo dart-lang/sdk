@@ -17,6 +17,7 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/variables.dart';
 
 /// Visitor that builds nullability graph edges by examining code to be
 /// migrated.
@@ -412,7 +413,27 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitListLiteral(ListLiteral node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    var listType = node.staticType as InterfaceType;
+    if (node.typeArguments == null) {
+      // TODO(brianwilkerson) We might want to create a fake node in the graph
+      //  to represent the type argument so that we can still create edges from
+      //  the elements to it.
+      throw new UnimplementedError('TODO(brianwilkerson)');
+    } else {
+      var typeArgumentType = _variables.decoratedTypeAnnotation(
+          _source, node.typeArguments.arguments[0]);
+      for (var element in node.elements) {
+        if (element is Expression) {
+          _handleAssignment(typeArgumentType, element);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          throw new UnimplementedError('TODO(brianwilkerson)');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [typeArgumentType]);
+    }
   }
 
   @override

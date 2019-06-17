@@ -908,6 +908,56 @@ bool f(a) => a is List<int>;
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
   }
 
+  @failingTest
+  test_listLiteral_noTypeArgument_noNullableElements() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+List<String> f() {
+  return ['a', 'b'];
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
+    // TODO(brianwilkerson) Add an assertion that there is an edge from the list
+    //  literal's fake type argument to the return type's type argument.
+  }
+
+  @failingTest
+  test_listLiteral_noTypeArgument_nullableElement() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+List<String> f() {
+  return ['a', null, 'c'];
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
+    assertEdge(always, decoratedTypeAnnotation('String').node, hard: false);
+  }
+
+  test_listLiteral_typeArgument_noNullableElements() async {
+    await analyze('''
+List<String> f() {
+  return <String>['a', 'b'];
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
+    var typeArgForLiteral = decoratedTypeAnnotation('String>[').node;
+    var typeArgForReturnType = decoratedTypeAnnotation('String> ').node;
+    assertNoUpstreamNullability(typeArgForLiteral);
+    assertEdge(typeArgForLiteral, typeArgForReturnType, hard: false);
+  }
+
+  test_listLiteral_typeArgument_nullableElement() async {
+    await analyze('''
+List<String> f() {
+  return <String>['a', null, 'c'];
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
+    assertEdge(always, decoratedTypeAnnotation('String>[').node, hard: false);
+  }
+
   test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {
