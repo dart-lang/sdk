@@ -78,6 +78,7 @@ abstract class CompilerConfiguration {
             previewDart2: false);
 
       case Compiler.dartk:
+      case Compiler.dartkb:
         if (configuration.architecture == Architecture.simdbc64 ||
             configuration.architecture == Architecture.simarm ||
             configuration.architecture == Architecture.simarm64 ||
@@ -85,9 +86,6 @@ abstract class CompilerConfiguration {
           return VMKernelCompilerConfiguration(configuration);
         }
         return NoneCompilerConfiguration(configuration);
-
-      case Compiler.dartkb:
-        return VMKernelCompilerConfiguration(configuration);
 
       case Compiler.dartkp:
         return PrecompilerCompilerConfiguration(configuration);
