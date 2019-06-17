@@ -1216,6 +1216,16 @@ String f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('String').node);
   }
 
+  test_superExpression() async {
+    await analyze('''
+class C {
+  C f() => super;
+}
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('C f').node);
+  }
+
   test_symbolLiteral() async {
     await analyze('''
 Symbol f() {

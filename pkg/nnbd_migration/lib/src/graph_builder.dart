@@ -547,7 +547,7 @@ $stackTrace''');
 
   @override
   DecoratedType visitSuperExpression(SuperExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
