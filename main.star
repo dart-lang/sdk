@@ -252,6 +252,7 @@ def dart_try_builder(name,
     dimensions = dict(dimensions)
     dimensions["pool"] = "luci.dart.try"
     dimensions.setdefault("os", "Linux")
+    dimensions.setdefault("host_class", "default")
     dimensions.setdefault("cpu", "x86-64")
     properties.setdefault("clobber", "true")
     builder = name + "-try"
