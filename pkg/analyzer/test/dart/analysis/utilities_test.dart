@@ -66,6 +66,17 @@ int? f() => 1;
     expect(result.unit.toString(), equals('int? f() => 1;'));
   }
 
+  test_parseString_lineInfo() {
+    String content = '''
+main() {
+  print('Hello, world!');
+}
+''';
+    ParseStringResult result = parseString(content: content);
+    expect(result.lineInfo, same(result.unit.lineInfo));
+    expect(result.lineInfo.lineStarts, [0, 9, 35, 37]);
+  }
+
   test_parseString_noErrors() {
     String content = '''
 void main() => print('Hello, world!');

@@ -55,8 +55,9 @@ ParseStringResult parseString(
   var token = scanner.tokenize();
   var parser = Parser(source, errorCollector, featureSet: scanner.featureSet);
   var unit = parser.parseCompilationUnit(token);
-  ParseStringResult result = ParseStringResultImpl(
-      content, LineInfo(scanner.lineStarts), unit, errorCollector.errors);
+  unit.lineInfo = LineInfo(scanner.lineStarts);
+  ParseStringResult result =
+      ParseStringResultImpl(content, unit, errorCollector.errors);
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
     throw new ArgumentError('Content produced diagnostics when parsed');
   }

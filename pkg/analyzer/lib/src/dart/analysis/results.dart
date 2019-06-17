@@ -171,12 +171,12 @@ class ParseStringResultImpl implements ParseStringResult {
   final List<AnalysisError> errors;
 
   @override
-  final LineInfo lineInfo;
-
-  @override
   final CompilationUnit unit;
 
-  ParseStringResultImpl(this.content, this.lineInfo, this.unit, this.errors);
+  ParseStringResultImpl(this.content, this.unit, this.errors);
+
+  @override
+  LineInfo get lineInfo => unit.lineInfo;
 }
 
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
