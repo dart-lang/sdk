@@ -2396,7 +2396,8 @@ class ProgramCompiler extends Object
     }
 
     var nameExpr = _emitTopLevelName(p);
-    body.add(js.statement('# = #', [nameExpr, fn]));
+    body.add(js.statement('# = #',
+        [nameExpr, js_ast.NamedFunction(js_ast.TemporaryId(p.name.name), fn)]));
     // Function types of top-level/static functions are only needed when
     // dart:mirrors is enabled.
     // TODO(jmesserly): do we even need this for mirrors, since statics are not

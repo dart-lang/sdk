@@ -274,6 +274,7 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
       originalTarget = f;
       $f = ${bindCall(f, _canonicalMember(f, 'call'))};
       $ftype = null;
+      $displayName = "call";
     }
     if ($f == null) return callNSM(
         "Dynamic call of object has no instance method 'call'.");
@@ -325,8 +326,8 @@ _checkAndCall(f, ftype, obj, typeArgs, args, named, displayName) =>
   return callNSM(errorMessage);
 })()''');
 
-dcall(f, args, [@undefined named]) =>
-    _checkAndCall(f, null, JS('', 'void 0'), null, args, named, 'call');
+dcall(f, args, [@undefined named]) => _checkAndCall(
+    f, null, JS('', 'void 0'), null, args, named, JS('', 'f.name'));
 
 dgcall(f, typeArgs, args, [@undefined named]) =>
     _checkAndCall(f, null, JS('', 'void 0'), typeArgs, args, named, 'call');

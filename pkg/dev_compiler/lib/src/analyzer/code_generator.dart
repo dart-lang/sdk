@@ -2630,7 +2630,10 @@ class CodeGenerator extends Object
 
     var element = resolutionMap.elementDeclaredByFunctionDeclaration(node);
     var nameExpr = _emitTopLevelName(element);
-    body.add(js.statement('# = #', [nameExpr, fn]));
+    body.add(js.statement('# = #', [
+      nameExpr,
+      js_ast.NamedFunction(js_ast.TemporaryId(element.name), fn)
+    ]));
     // Function types of top-level/static functions are only needed when
     // dart:mirrors is enabled.
     // TODO(jmesserly): do we even need this for mirrors, since statics are not
