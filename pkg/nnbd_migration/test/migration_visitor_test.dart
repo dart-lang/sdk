@@ -1418,7 +1418,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   NullabilityEdge assertEdge(
       NullabilityNode source, NullabilityNode destination,
-      {@required bool hard, List<NullabilityNode> guards}) {
+      {@required bool hard, List<NullabilityNode> guards = const []}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -1427,9 +1427,7 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     } else {
       var edge = edges[0];
       expect(edge.hard, hard);
-      if (guards != null) {
-        expect(edge.guards, unorderedEquals(guards));
-      }
+      expect(edge.guards, unorderedEquals(guards));
       return edge;
     }
   }
