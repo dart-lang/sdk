@@ -523,25 +523,6 @@ DART_EXPORT void Regress37069(uint64_t a,
   Dart_ExecuteInternalCommand("gc-now");
 }
 
-// Calls a Dart function to allocate 'count' objects.
-// Used for stress-testing GC when re-entering the API.
-DART_EXPORT void AllocateThroughDart() {
-  Dart_EnterScope();
-  Dart_Handle root = Dart_RootLibrary();
-  Dart_Handle result = Dart_Invoke(
-      root, Dart_NewStringFromCString("testAllocationsInDartHelper"), 0, NULL);
-  const char* error;
-  if (Dart_IsError(result)) {
-    Dart_StringToCString(Dart_ToString(result), &error);
-    fprintf(stderr, "Could not call 'testAllocationsInDartHelper': %s\n",
-            error);
-    Dart_DumpNativeStackTrace(nullptr);
-    Dart_PrepareToAbort();
-    abort();
-  }
-  Dart_ExitScope();
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
 
@@ -660,6 +641,24 @@ DART_EXPORT int TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
   CHECK_EQ(fn(nullptr), nullptr);
   int64_t p[2] = {0};
   CHECK_EQ(fn(p), p + 1);
+  return 0;
+}
+
+// Defined in ffi_test_functions.S.
+//
+// Clobbers some registers with special meaning in Dart before re-entry, for
+// stress-testing. Not used on 32-bit Windows due to complications with Windows
+// "safeseh".
+#if defined(TARGET_OS_WINDOWS) && defined(HOST_ARCH_IA32)
+void ClobberAndCall(void (*fn)()) {
+  fn();
+}
+#else
+extern "C" void ClobberAndCall(void (*fn)());
+#endif
+
+DART_EXPORT int TestGC(void (*do_gc)()) {
+  ClobberAndCall(do_gc);
   return 0;
 }
 
