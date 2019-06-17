@@ -31,14 +31,8 @@ V8SnapshotProfileWriter::V8SnapshotProfileWriter(Zone* zone)
   edge_types_.Insert({"element", kElement});
   edge_types_.Insert({"property", kProperty});
   edge_types_.Insert({"internal", kInternal});
-  edge_types_.Insert({"hidden", kHidden});
-  edge_types_.Insert({"shortcut", kShortcut});
-  edge_types_.Insert({"weak", kWeak});
-  edge_types_.Insert({"extra", kExtra});
 
   strings_.Insert({"<unknown>", kUnknownString});
-  strings_.Insert({"<object>", kObjectString});
-  strings_.Insert({"<property>", kPropertyString});
   strings_.Insert({"<artificial root>", kArtificialRootString});
 }
 
@@ -55,11 +49,11 @@ void V8SnapshotProfileWriter::SetObjectTypeAndName(ObjectId object_id,
   intptr_t type_id = node_types_.LookupValue(type);
   ASSERT(info->type == kUnknown || info->type == type_id);
   info->type = type_id;
-
   if (name != nullptr) {
-    info->name = EnsureString(OS::SCreate(zone_, "[%s] %s", type, name));
+    info->name = EnsureString(name);
   } else {
-    info->name = EnsureString(type);
+    info->name =
+        EnsureString(OS::SCreate(zone_, "Unnamed [%s] %s", type, name));
   }
 }
 
@@ -245,7 +239,7 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
     auto roots_it = roots_.GetIterator();
     for (int i = 0; (entry = roots_it.Next()) != nullptr; ++i) {
-      WriteEdgeInfo(writer, {kElement, i, entry->key});
+      WriteEdgeInfo(writer, {kInternal, i, entry->key});
     }
 
     auto nodes_it = nodes_.GetIterator();
