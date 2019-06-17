@@ -13,6 +13,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
@@ -396,7 +397,7 @@ class FileState {
   bool refresh({bool allowCached: false}) {
     counterFileStateRefresh++;
 
-    if (_fsState.useSummary2) {
+    if (AnalysisDriver.useSummary2) {
       return _refresh2(allowCached: allowCached);
     }
 
@@ -748,8 +749,9 @@ class FileState {
 
   static UnlinkedUnit2Builder serializeAstUnlinked2(CompilationUnit unit) {
     var exports = <String>[];
-    var imports = <String>['dart:core'];
+    var imports = <String>[];
     var parts = <String>[];
+    var hasDartCoreImport = false;
     var hasLibraryDirective = false;
     var hasPartOfDirective = false;
     for (var directive in unit.directives) {
@@ -759,6 +761,9 @@ class FileState {
       } else if (directive is ImportDirective) {
         var uriStr = directive.uri.stringValue;
         imports.add(uriStr ?? '');
+        if (uriStr == 'dart:core') {
+          hasDartCoreImport = true;
+        }
       } else if (directive is LibraryDirective) {
         hasLibraryDirective = true;
       } else if (directive is PartDirective) {
@@ -767,6 +772,9 @@ class FileState {
       } else if (directive is PartOfDirective) {
         hasPartOfDirective = true;
       }
+    }
+    if (!hasDartCoreImport) {
+      imports.add('dart:core');
     }
     var informativeData = createInformativeData(unit);
     return UnlinkedUnit2Builder(
@@ -823,7 +831,6 @@ class FileSystemState {
   final AnalysisOptions _analysisOptions;
   final Uint32List _unlinkedSalt;
   final Uint32List _linkedSalt;
-  final bool useSummary2;
 
   /**
    * The optional store with externally provided unlinked and corresponding
@@ -904,7 +911,6 @@ class FileSystemState {
     this._unlinkedSalt,
     this._linkedSalt, {
     this.externalSummaries,
-    this.useSummary2 = false,
   }) {
     _fileContentCache = _FileContentCache.getInstance(
       _resourceProvider,

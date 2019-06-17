@@ -1575,7 +1575,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _unlinkedSalt,
       _linkedSalt,
       externalSummaries: _externalSummaries,
-      useSummary2: useSummary2,
     );
     _fileTracker = new FileTracker(_logger, _fsState, _changeHook);
   }
