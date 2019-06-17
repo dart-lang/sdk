@@ -87,6 +87,37 @@ class CompletionHandler
         ));
   }
 
+  /// Build a list of existing imports so we can filter out any suggestions
+  /// that resolve to the same underlying declared symbol.
+  /// Map with key "elementName/elementDeclaringLibraryUri"
+  /// Value is a set of imported URIs that import that element.
+  Map<String, Set<String>> _buildLookupOfImportedSymbols(
+      ResolvedUnitResult unit) {
+    final alreadyImportedSymbols = <String, Set<String>>{};
+    final importElementList = unit.libraryElement.imports;
+    for (var import in importElementList) {
+      final importedLibrary = import.importedLibrary;
+      if (importedLibrary == null) continue;
+
+      for (var element in import.namespace.definedNames.values) {
+        if (element.librarySource != null) {
+          final declaringLibraryUri = element.librarySource.uri;
+          final elementName = element.name;
+
+          final key =
+              _createImportedSymbolKey(elementName, declaringLibraryUri);
+          alreadyImportedSymbols.putIfAbsent(key, () => Set<String>());
+          alreadyImportedSymbols[key]
+              .add('${importedLibrary.librarySource.uri}');
+        }
+      }
+    }
+    return alreadyImportedSymbols;
+  }
+
+  String _createImportedSymbolKey(String name, Uri declaringUri) =>
+      '$name/$declaringUri';
+
   Future<ErrorOr<List<CompletionItem>>> _getItems(
     TextDocumentClientCapabilitiesCompletion completionCapabilities,
     HashSet<CompletionItemKind> clientSupportedCompletionKinds,
@@ -142,6 +173,10 @@ class CompletionHandler
                   unit,
                 );
 
+      // Build a fast lookup for imported symbols so that we can filter out
+      // duplicates.
+      final alreadyImportedSymbols = _buildLookupOfImportedSymbols(unit);
+
       includedSuggestionSets.forEach((includedSet) {
         final library = server.declarationsTracker.getLibrary(includedSet.id);
         if (library == null) {
@@ -157,7 +192,23 @@ class CompletionHandler
             // Filter to only the kinds we should return.
             .where((item) =>
                 includedElementKinds.contains(protocolElementKind(item.kind)))
-            .map((item) => declarationToCompletionItem(
+            .where((item) {
+          // Check existing imports to ensure we don't already import
+          // this element (this exact element from its declaring
+          // library, not just something with the same name). If we do
+          // we'll want to skip it.
+          final declaringUri = item.parent != null
+              ? item.parent.locationLibraryUri
+              : item.locationLibraryUri;
+          final key = _createImportedSymbolKey(item.name, declaringUri);
+          final importingUris = alreadyImportedSymbols[key];
+
+          // Keep it only if there are either:
+          // - no URIs importing it
+          // - the URIs importing it include this one
+          return importingUris == null ||
+              importingUris.contains('${library.uri}');
+        }).map((item) => declarationToCompletionItem(
                   completionCapabilities,
                   clientSupportedCompletionKinds,
                   unit.path,
