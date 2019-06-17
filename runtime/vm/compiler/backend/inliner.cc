@@ -54,7 +54,7 @@ DEFINE_FLAG(int,
             "Always inline functions containing threshold or fewer calls.");
 DEFINE_FLAG(int,
             inlining_callee_size_threshold,
-            80,
+            160,
             "Do not inline callees larger than threshold");
 DEFINE_FLAG(int,
             inlining_small_leaf_size_threshold,
@@ -64,21 +64,6 @@ DEFINE_FLAG(int,
             inlining_caller_size_threshold,
             50000,
             "Stop inlining once caller reaches the threshold.");
-DEFINE_FLAG(int,
-            inlining_constant_arguments_count,
-            1,
-            "Inline function calls with sufficient constant arguments "
-            "and up to the increased threshold on instructions");
-DEFINE_FLAG(
-    int,
-    inlining_constant_arguments_max_size_threshold,
-    200,
-    "Do not inline callees larger than threshold if constant arguments");
-DEFINE_FLAG(int,
-            inlining_constant_arguments_min_size_threshold,
-            60,
-            "Inline function calls with sufficient constant arguments "
-            "and up to the increased threshold on instructions");
 DEFINE_FLAG(int,
             inlining_hotness,
             10,
@@ -779,44 +764,35 @@ class CallSiteInliner : public ValueObject {
   };
 
   // Inlining heuristics based on Cooper et al. 2008.
-  // TODO(ajcbik): with the better specialized computation of counts,
-  //               do we still want to special-case const_arg_count here?
   InliningDecision ShouldWeInline(const Function& callee,
                                   intptr_t instr_count,
-                                  intptr_t call_site_count,
-                                  intptr_t const_arg_count) {
+                                  intptr_t call_site_count) {
+    // Pragma or size heuristics.
     if (inliner_->AlwaysInline(callee)) {
       return InliningDecision::Yes("AlwaysInline");
-    }
-    if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
-      // Prevent methods becoming humongous and thus slow to compile.
+    } else if (inlined_size_ > FLAG_inlining_caller_size_threshold) {
+      // Prevent caller methods becoming humongous and thus slow to compile.
       return InliningDecision::No("--inlining-caller-size-threshold");
-    }
-    if (const_arg_count > 0) {
-      if (instr_count > FLAG_inlining_constant_arguments_max_size_threshold) {
-        return InliningDecision(
-            false, "--inlining-constant-arguments-max-size-threshold");
-      }
     } else if (instr_count > FLAG_inlining_callee_size_threshold) {
+      // Prevent inlining of callee methods that exceed certain size.
       return InliningDecision::No("--inlining-callee-size-threshold");
     }
-    int callee_inlining_depth = callee.inlining_depth();
-    if (callee_inlining_depth > 0 && callee_inlining_depth + inlining_depth_ >
-                                         FLAG_inlining_depth_threshold) {
+    // Inlining depth.
+    const int callee_inlining_depth = callee.inlining_depth();
+    if (callee_inlining_depth > 0 &&
+        ((callee_inlining_depth + inlining_depth_) >
+         FLAG_inlining_depth_threshold)) {
       return InliningDecision::No("--inlining-depth-threshold");
     }
-    // 'instr_count' can be 0 if it was not computed yet.
-    if ((instr_count != 0) && (instr_count <= FLAG_inlining_size_threshold)) {
+    // Situation instr_count == 0 denotes no counts have been computed yet.
+    // In that case, we say ok to the early heuristic and come back with the
+    // late heuristic.
+    if (instr_count == 0) {
+      return InliningDecision::Yes("need to count first");
+    } else if (instr_count <= FLAG_inlining_size_threshold) {
       return InliningDecision::Yes("--inlining-size-threshold");
-    }
-    if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
+    } else if (call_site_count <= FLAG_inlining_callee_call_sites_threshold) {
       return InliningDecision::Yes("--inlining-callee-call-sites-threshold");
-    }
-    if ((const_arg_count >= FLAG_inlining_constant_arguments_count) &&
-        (instr_count <= FLAG_inlining_constant_arguments_min_size_threshold)) {
-      return InliningDecision(true,
-                              "--inlining-constant-arguments-count and "
-                              "inlining-constant-arguments-min-size-threshold");
     }
     return InliningDecision::No("default");
   }
@@ -968,8 +944,8 @@ class CallSiteInliner : public ValueObject {
         constant_arg_count == 0 ? function.optimized_instruction_count() : 0;
     const intptr_t call_site_count =
         constant_arg_count == 0 ? function.optimized_call_site_count() : 0;
-    InliningDecision decision = ShouldWeInline(
-        function, instruction_count, call_site_count, constant_arg_count);
+    InliningDecision decision =
+        ShouldWeInline(function, instruction_count, call_site_count);
     if (!decision.value) {
       TRACE_INLINING(
           THR_Print("     Bailout: early heuristics (%s) with "
@@ -1216,16 +1192,12 @@ class CallSiteInliner : public ValueObject {
                                            &call_site_count);
 
         // Use heuristics do decide if this call should be inlined.
-        InliningDecision decision = ShouldWeInline(
-            function, instruction_count, call_site_count, constants_count);
+        InliningDecision decision =
+            ShouldWeInline(function, instruction_count, call_site_count);
         if (!decision.value) {
           // If size is larger than all thresholds, don't consider it again.
           if ((instruction_count > FLAG_inlining_size_threshold) &&
-              (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
-              (instruction_count >
-               FLAG_inlining_constant_arguments_min_size_threshold) &&
-              (instruction_count >
-               FLAG_inlining_constant_arguments_max_size_threshold)) {
+              (call_site_count > FLAG_inlining_callee_call_sites_threshold)) {
             function.set_is_inlinable(false);
           }
           TRACE_INLINING(
