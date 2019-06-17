@@ -1323,8 +1323,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     assert(_fields == null);
 
     var context = enclosingUnit.linkedContext;
-    var accessorList = <PropertyAccessorElementImpl>[];
-    var fieldList = <FieldElementImpl>[];
+    var accessorList = <PropertyAccessorElement>[];
+    var fieldList = <FieldElement>[];
 
     var fields = context.getFields(linkedNode);
     for (var field in fields) {
@@ -2164,18 +2164,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     assert(unit._accessors == null);
 
     var accessorMap =
-        <CompilationUnitElementImpl, List<PropertyAccessorElementImpl>>{};
+        <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
     var variableMap =
-        <CompilationUnitElementImpl, List<TopLevelVariableElementImpl>>{};
+        <CompilationUnitElementImpl, List<TopLevelVariableElement>>{};
 
     var units = unit.library.units;
     for (CompilationUnitElementImpl unit in units) {
       var context = unit.linkedContext;
 
-      var accessorList = <PropertyAccessorElementImpl>[];
+      var accessorList = <PropertyAccessorElement>[];
       accessorMap[unit] = accessorList;
 
-      var variableList = <TopLevelVariableElementImpl>[];
+      var variableList = <TopLevelVariableElement>[];
       variableMap[unit] = variableList;
 
       var unitNode = unit.linkedContext.unit_withDeclarations;
