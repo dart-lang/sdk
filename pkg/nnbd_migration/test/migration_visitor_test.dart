@@ -1271,6 +1271,166 @@ class C<T> {
         checkExpression('null'), assertEdge(always, tNode, hard: false));
   }
 
+  @failingTest
+  test_setOrMapLiteral_map_noTypeArgument_noNullableKeysAndValues() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Map<String, int> f() {
+  return {'a' : 1, 'b' : 2};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    // TODO(brianwilkerson) Add an assertion that there is an edge from the set
+    //  literal's fake type argument to the return type's type argument.
+  }
+
+  @failingTest
+  test_setOrMapLiteral_map_noTypeArgument_nullableKey() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Map<String, int> f() {
+  return {'a' : 1, null : 2, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertEdge(always, decoratedTypeAnnotation('String').node, hard: false);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
+  }
+
+  @failingTest
+  test_setOrMapLiteral_map_noTypeArgument_nullableKeyAndValue() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Map<String, int> f() {
+  return {'a' : 1, null : null, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertEdge(always, decoratedTypeAnnotation('String').node, hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+  }
+
+  @failingTest
+  test_setOrMapLiteral_map_noTypeArgument_nullableValue() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Map<String, int> f() {
+  return {'a' : 1, 'b' : null, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('String').node);
+    assertEdge(always, decoratedTypeAnnotation('int').node, hard: false);
+  }
+
+  test_setOrMapLiteral_map_typeArguments_noNullableKeysAndValues() async {
+    await analyze('''
+Map<String, int> f() {
+  return <String, int>{'a' : 1, 'b' : 2};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+
+    var keyForLiteral = decoratedTypeAnnotation('String, int>{').node;
+    var keyForReturnType = decoratedTypeAnnotation('String, int> ').node;
+    assertNoUpstreamNullability(keyForLiteral);
+    assertEdge(keyForLiteral, keyForReturnType, hard: false);
+
+    var valueForLiteral = decoratedTypeAnnotation('int>{').node;
+    var valueForReturnType = decoratedTypeAnnotation('int> ').node;
+    assertNoUpstreamNullability(valueForLiteral);
+    assertEdge(valueForLiteral, valueForReturnType, hard: false);
+  }
+
+  test_setOrMapLiteral_map_typeArguments_nullableKey() async {
+    await analyze('''
+Map<String, int> f() {
+  return <String, int>{'a' : 1, null : 2, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertEdge(always, decoratedTypeAnnotation('String, int>{').node,
+        hard: false);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int>{').node);
+  }
+
+  test_setOrMapLiteral_map_typeArguments_nullableKeyAndValue() async {
+    await analyze('''
+Map<String, int> f() {
+  return <String, int>{'a' : 1, null : null, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertEdge(always, decoratedTypeAnnotation('String, int>{').node,
+        hard: false);
+    assertEdge(always, decoratedTypeAnnotation('int>{').node, hard: false);
+  }
+
+  test_setOrMapLiteral_map_typeArguments_nullableValue() async {
+    await analyze('''
+Map<String, int> f() {
+  return <String, int>{'a' : 1, 'b' : null, 'c' : 3};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Map').node);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('String, int>{').node);
+    assertEdge(always, decoratedTypeAnnotation('int>{').node, hard: false);
+  }
+
+  @failingTest
+  test_setOrMapLiteral_set_noTypeArgument_noNullableElements() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Set<String> f() {
+  return {'a', 'b'};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
+    // TODO(brianwilkerson) Add an assertion that there is an edge from the set
+    //  literal's fake type argument to the return type's type argument.
+  }
+
+  @failingTest
+  test_setOrMapLiteral_set_noTypeArgument_nullableElement() async {
+    // Failing because we're not yet handling collection literals without a
+    // type argument.
+    await analyze('''
+Set<String> f() {
+  return {'a', null, 'c'};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
+    assertEdge(always, decoratedTypeAnnotation('String').node, hard: false);
+  }
+
+  test_setOrMapLiteral_set_typeArgument_noNullableElements() async {
+    await analyze('''
+Set<String> f() {
+  return <String>{'a', 'b'};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
+    var typeArgForLiteral = decoratedTypeAnnotation('String>{').node;
+    var typeArgForReturnType = decoratedTypeAnnotation('String> ').node;
+    assertNoUpstreamNullability(typeArgForLiteral);
+    assertEdge(typeArgForLiteral, typeArgForReturnType, hard: false);
+  }
+
+  test_setOrMapLiteral_set_typeArgument_nullableElement() async {
+    await analyze('''
+Set<String> f() {
+  return <String>{'a', null, 'c'};
+}
+''');
+    assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
+    assertEdge(always, decoratedTypeAnnotation('String>{').node, hard: false);
+  }
+
   test_simpleIdentifier_local() async {
     await analyze('''
 main() {

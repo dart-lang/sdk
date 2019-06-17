@@ -555,7 +555,47 @@ $stackTrace''');
 
   @override
   DecoratedType visitSetOrMapLiteral(SetOrMapLiteral node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    var listType = node.staticType as InterfaceType;
+    var typeArguments = node.typeArguments?.arguments;
+    if (typeArguments == null) {
+      // TODO(brianwilkerson) We might want to create fake nodes in the graph to
+      //  represent the type arguments so that we can still create edges from
+      //  the elements to them.
+      throw new UnimplementedError('TODO(brianwilkerson)');
+    } else if (typeArguments.length == 1) {
+      var elementType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+      for (var element in node.elements) {
+        if (element is Expression) {
+          _handleAssignment(elementType, element);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          throw new UnimplementedError('TODO(brianwilkerson)');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [elementType]);
+    } else if (typeArguments.length == 2) {
+      var keyType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+      var valueType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[1]);
+      for (var element in node.elements) {
+        if (element is MapLiteralEntry) {
+          _handleAssignment(keyType, element.key);
+          _handleAssignment(valueType, element.value);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          throw new UnimplementedError('TODO(brianwilkerson)');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [keyType, valueType]);
+    } else {
+      throw new UnimplementedError('TODO(brianwilkerson)');
+    }
   }
 
   @override
