@@ -1230,9 +1230,8 @@ void test(C c) {
 }
 ''');
 
-    // TODO(paulberry): this is wrong.  It should be a hard edge.
     assertNullCheck(checkExpression('c).x'),
-        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: false));
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
   test_return_implicit_null() async {

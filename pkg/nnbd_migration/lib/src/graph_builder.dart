@@ -852,6 +852,7 @@ $stackTrace''');
   }
 
   bool _isVariableOrParameterReference(Expression expression) {
+    expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
       if (element is LocalVariableElement) return true;
