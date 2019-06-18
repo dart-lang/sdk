@@ -57,6 +57,7 @@ static const intptr_t STB_GLOBAL = 1;
 static const intptr_t STT_OBJECT = 1;  // I.e., data.
 static const intptr_t STT_FUNC = 2;
 
+static const intptr_t DT_NULL = 0;
 static const intptr_t DT_HASH = 4;
 static const intptr_t DT_STRTAB = 5;
 static const intptr_t DT_SYMTAB = 6;
@@ -323,6 +324,7 @@ class DynamicTable : public Section {
     AddEntry(DT_STRSZ, strtab->memory_size);
     AddEntry(DT_SYMTAB, symtab->memory_offset);
     AddEntry(DT_SYMENT, kElfSymbolTableEntrySize);
+    AddEntry(DT_NULL, 0);
   }
 
   void Write(Elf* stream) {
