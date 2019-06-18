@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
@@ -18,6 +19,8 @@ const _details = r'''
 var points = new List();
 var addresses = new Map();
 var uniqueNames = new Set();
+var ids = new LinkedHashSet();
+var coordinates = new LinkedHashMap();
 ```
 
 **GOOD:**
@@ -25,6 +28,8 @@ var uniqueNames = new Set();
 var points = [];
 var addresses = <String,String>{};
 var uniqueNames = <String>{};
+var ids = <int>{};
+var coordinates = <int,int>{};
 ```
 
 ''';
@@ -66,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final constructorName = node.constructorName.name?.name;
 
     // Lists, Maps.
-    if (isList(node) || isMap(node) || isHashMap(node)) {
+    if (_isList(node) || _isMap(node) || _isHashMap(node)) {
       if (constructorName == null && node.argumentList.arguments.isEmpty) {
         rule.reportLint(node);
       }
@@ -74,24 +79,29 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Sets.
-    if (isSet(node) || isHashSet(node)) {
+    if (_isSet(node) || _isHashSet(node)) {
       // Skip: LinkedHashSet<int> s =  ...;
       var parent = node.parent;
       if (parent is VariableDeclaration) {
         var parent2 = parent.parent;
         if (parent2 is VariableDeclarationList) {
           var assignmentType = parent2.type?.type;
-          if (assignmentType != null &&
-              !DartTypeUtilities.isClass(assignmentType, 'Set', 'dart.core')) {
+          if (assignmentType != null && !_isTypeSet(assignmentType)) {
             return;
           }
+        }
+      }
+      // Skip: function(LinkedHashSet()); when function(LinkedHashSet mySet)
+      if (parent is ArgumentList) {
+        final paramType = parent.arguments.first.staticParameterElement.type;
+        if (paramType != null && !_isTypeSet(paramType)) {
+          return;
         }
       }
       // Skip: <int, LinkedHashSet<String>>{}.putIfAbsent(3, () => LinkedHashSet<String>());
       if (parent is ExpressionFunctionBody) {
         var expressionType = parent.expression.staticType;
-        if (expressionType != null &&
-            !DartTypeUtilities.isClass(expressionType, 'Set', 'dart.core')) {
+        if (expressionType != null && !_isTypeSet(expressionType)) {
           return;
         }
       }
@@ -114,14 +124,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   // todo (pq): migrate to using typeProvider
-  bool isSet(Expression expression) =>
-      DartTypeUtilities.isClass(expression.staticType, 'Set', 'dart.core');
-  bool isHashSet(Expression expression) => DartTypeUtilities.isClass(
+  bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
+  bool _isHashSet(Expression expression) => DartTypeUtilities.isClass(
       expression.staticType, 'LinkedHashSet', 'dart.collection');
-  bool isList(Expression expression) =>
+  bool _isList(Expression expression) =>
       DartTypeUtilities.isClass(expression.staticType, 'List', 'dart.core');
-  bool isMap(Expression expression) =>
+  bool _isMap(Expression expression) =>
       DartTypeUtilities.isClass(expression.staticType, 'Map', 'dart.core');
-  bool isHashMap(Expression expression) => DartTypeUtilities.isClass(
+  bool _isHashMap(Expression expression) => DartTypeUtilities.isClass(
       expression.staticType, 'LinkedHashMap', 'dart.collection');
+  bool _isTypeSet(DartType type) =>
+      DartTypeUtilities.isClass(type, 'Set', 'dart.core');
 }
