@@ -213,6 +213,11 @@ class MessageTestSuite extends ChainContext {
       for (Example example in examples) {
         yield createDescription(example.name, example, null);
       }
+      // "Wrap" example as a part.
+      for (Example example in examples) {
+        yield createDescription("part_wrapped_${example.name}",
+            new PartWrapExample("part_wrapped_${example.name}", name, example), null);
+      }
 
       yield createDescription(
           "knownKeys",
@@ -312,8 +317,10 @@ abstract class Example {
   Uint8List get bytes;
 
   Map<String, Uint8List> get scripts {
-    return {"main.dart": bytes};
+    return {mainFilename: bytes};
   }
+
+  String get mainFilename => "main.dart";
 }
 
 class BytesExample extends Example {
@@ -418,9 +425,55 @@ class ScriptExample extends Example {
       });
       return scriptFiles;
     } else {
-      return {"main.dart": new Uint8List.fromList(utf8.encode(script))};
+      return {mainFilename: new Uint8List.fromList(utf8.encode(script))};
     }
   }
+}
+
+class PartWrapExample extends Example {
+  final Example example;
+  PartWrapExample(String name, String code, this.example) : super(name, code);
+
+  @override
+  Uint8List get bytes => throw "Unsupported: PartWrapExample.bytes";
+
+  @override
+  String get mainFilename => "main_wrapped.dart";
+
+  @override
+  Map<String, Uint8List> get scripts {
+    Map<String, Uint8List> wrapped = example.scripts;
+
+    var scriptFiles = <String, Uint8List>{};
+    scriptFiles.addAll(wrapped);
+
+    // Create a new main file
+    // TODO: Technically we should find a un-used name.
+    if (scriptFiles.containsKey(mainFilename)) {
+      throw "Framework failure: "
+          "Wanted to create wrapper file, but the file alread exists!";
+    }
+    scriptFiles[mainFilename] = new Uint8List.fromList(utf8.encode("""
+      part "${example.mainFilename}";
+    """));
+
+    // Modify the original main file to be part of the wrapper and add lots of
+    // gunk so every actual position in the file is not a valid position in the
+    // wrapper.
+    scriptFiles[example.mainFilename] = new Uint8List.fromList(utf8.encode("""
+      part of "${mainFilename}";
+      // La la la la la la la la la la la la la.
+      // La la la la la la la la la la la la la.
+      // La la la la la la la la la la la la la.
+      // La la la la la la la la la la la la la.
+      // La la la la la la la la la la la la la.
+    """) + scriptFiles[example.mainFilename]);
+
+    return scriptFiles;
+  }
+
+  @override
+  YamlNode get node => example.node;
 }
 
 class Validate extends Step<MessageTestDescription, Example, MessageTestSuite> {
@@ -450,7 +503,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
       Uri uri = suite.fileSystem.currentDirectory.resolve("$dir/$fileName");
       suite.fileSystem.entityForUri(uri).writeAsBytesSync(bytes);
     });
-    Uri main = suite.fileSystem.currentDirectory.resolve("$dir/main.dart");
+    Uri main = suite.fileSystem.currentDirectory
+        .resolve("$dir/${example.mainFilename}");
     Uri output =
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
