@@ -652,8 +652,8 @@ intptr_t ActivationFrame::ColumnNumber() {
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     if (IsInterpreted()) {
-      // TODO(regis): Kernel bytecode does not yet provide var descriptors.
-      var_descriptors_ = Object::empty_var_descriptors().raw();
+      var_descriptors_ = bytecode().GetLocalVarDescriptors();
+      ASSERT(!var_descriptors_.IsNull());
       return;
     }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
@@ -684,9 +684,14 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   DisassembleToStdout formatter;
-  if (IsInterpreted()) {
-    bytecode().Disassemble(&formatter);
-    PcDescriptors::Handle(bytecode().pc_descriptors()).Print();
+  if (function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(function().HasBytecode());
+    const Bytecode& bytecode = Bytecode::Handle(function().bytecode());
+    bytecode.Disassemble(&formatter);
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
@@ -702,38 +707,97 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::Abort();
 }
 
-// Calculate the context level at the current token index of the frame.
+// Calculate the context level at the current bytecode pc or code deopt id
+// of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  // TODO(regis): get context level information using
-  //  BytecodeLocalVariablesIterator for interpreted frames and compiled frames
-  //  with a function coming from bytecode (function.is_declared_in_bytecode())
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
-    ASSERT(!code_.is_optimized());
-
-    GetVarDescriptors();
-    intptr_t deopt_id = DeoptId();
-    if (deopt_id == DeoptId::kNone) {
-      PrintDescriptorsError("Missing deopt id");
-    }
-    intptr_t var_desc_len = var_descriptors_.Length();
-    bool found = false;
-    for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(cur_idx, &var_info);
-      const int8_t kind = var_info.kind();
-      if ((kind == RawLocalVarDescriptors::kContextLevel) &&
-          (deopt_id >= var_info.begin_pos.value()) &&
-          (deopt_id <= var_info.end_pos.value())) {
-        context_level_ = var_info.index();
-        found = true;
-        break;
+    ASSERT(IsInterpreted() || !code_.is_optimized());
+    if (function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // Although this activation frame may not have bytecode, its code was
+      // compiled from bytecode.
+      if (!IsInterpreted()) {
+        // TODO(regis): If this frame was compiled from bytecode, pc_ does not
+        // reflect a bytecode pc. How do we map to one? We should generate new
+        // LocalVarDescriptors for code compiled from bytecode so that they
+        // provide deopt_id to context level mapping.
+        UNIMPLEMENTED();
       }
+      ASSERT(function().HasBytecode());
+      Thread* thread = Thread::Current();
+      Zone* zone = thread->zone();
+      Bytecode& bytecode = Bytecode::Handle(zone, function().bytecode());
+      if (!bytecode.HasLocalVariablesInfo()) {
+        PrintDescriptorsError("Missing local variables info");
+      }
+      intptr_t pc_offset = pc_ - bytecode.PayloadStart();
+      kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+      while (local_vars.MoveNext()) {
+        if (local_vars.Kind() ==
+            kernel::BytecodeLocalVariablesIterator::kScope) {
+          if (local_vars.StartPC() <= pc_offset &&
+              pc_offset < local_vars.EndPC()) {
+            context_level_ = local_vars.ContextLevel();
+            break;
+          }
+        }
+      }
+      if (context_level_ < 0 && function().IsClosureFunction()) {
+        // Obtain the context level from the parent function.
+        // TODO(alexmarkov): Define scope which includes the whole closure body.
+        Function& parent = Function::Handle(zone, function().parent_function());
+        intptr_t depth = 1;
+        do {
+          bytecode = parent.bytecode();
+          kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+          while (local_vars.MoveNext()) {
+            if (local_vars.Kind() ==
+                kernel::BytecodeLocalVariablesIterator::kScope) {
+              if (local_vars.StartTokenPos() <= TokenPos() &&
+                  TokenPos() <= local_vars.EndTokenPos()) {
+                context_level_ = local_vars.ContextLevel() + depth;
+                break;
+              }
+            }
+          }
+          if (context_level_ >= 0) break;
+          parent = parent.parent_function();
+          depth++;
+        } while (!parent.IsNull());
+      }
+      if (context_level_ < 0) {
+        PrintDescriptorsError("Missing context level in local variables info");
+      }
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      ASSERT(!code_.is_optimized());
+      GetVarDescriptors();
+      intptr_t deopt_id = DeoptId();
+      if (deopt_id == DeoptId::kNone) {
+        PrintDescriptorsError("Missing deopt id");
+      }
+      intptr_t var_desc_len = var_descriptors_.Length();
+      bool found = false;
+      for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+        RawLocalVarDescriptors::VarInfo var_info;
+        var_descriptors_.GetInfo(cur_idx, &var_info);
+        const int8_t kind = var_info.kind();
+        if ((kind == RawLocalVarDescriptors::kContextLevel) &&
+            (deopt_id >= var_info.begin_pos.value()) &&
+            (deopt_id <= var_info.end_pos.value())) {
+          context_level_ = var_info.index();
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        PrintDescriptorsError("Missing context level");
+      }
+      ASSERT(context_level_ >= 0);
     }
-    if (!found) {
-      PrintDescriptorsError("Missing context level");
-    }
-    ASSERT(context_level_ >= 0);
   }
   return context_level_;
 }
@@ -1135,9 +1199,21 @@ DART_FORCE_INLINE static RawObject* GetVariableValue(uword addr) {
   return *reinterpret_cast<RawObject**>(addr);
 }
 
+// Caution: GetParameter only works for fixed parameters.
 RawObject* ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
+
+  if (IsInterpreted()) {
+    if (function().NumOptionalParameters() > 0) {
+      // Note that we do not access optional but only fixed parameters, hence
+      // we do not need to replicate the logic of IndexFor() in bytecode reader.
+      return GetVariableValue(fp() + index * kWordSize);
+    } else {
+      return GetVariableValue(
+          fp() - (kKBCParamEndSlotFromFp + num_parameters - index) * kWordSize);
+    }
+  }
 
   if (function().NumOptionalParameters() > 0) {
     // If the function has optional parameters, the first positional parameter
@@ -1159,6 +1235,13 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  if (IsInterpreted()) {
+    intptr_t slot_index = -variable_index.value();
+    if (slot_index < 0) {
+      slot_index -= kKBCParamEndSlotFromFp;  // Accessing a parameter.
+    }
+    return GetVariableValue(fp() + slot_index * kWordSize);
+  }
   const intptr_t slot_index =
       runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {

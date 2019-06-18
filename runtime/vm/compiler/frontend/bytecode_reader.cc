@@ -266,8 +266,16 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
       if (FLAG_dump_kernel_bytecode) {
         KernelBytecodeDisassembler::Disassemble(closure);
       }
+
+#if !defined(PRODUCT)
+      thread_->isolate()->debugger()->NotifyBytecodeLoaded(closure);
+#endif
     }
   }
+
+#if !defined(PRODUCT)
+  thread_->isolate()->debugger()->NotifyBytecodeLoaded(function);
+#endif
 }
 
 static intptr_t IndexFor(Zone* zone,
@@ -2343,13 +2351,6 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
         bytecode_reader.ReadCode(function, code_offset);
       }
     }
-
-#if !defined(PRODUCT)
-    if (function.HasBytecode()) {
-      thread->isolate()->debugger()->NotifyBytecodeLoaded(function);
-    }
-#endif
-
     return Error::null();
   } else {
     return thread->StealStickyError();
@@ -2416,6 +2417,7 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
             function.token_pos() <= var_info.end_pos) ||
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
+        var_info.scope_id++;  // One level higher in the context chain.
         vars.Add(
             VarDesc{&String::Handle(zone, parent_vars.GetName(i)), var_info});
       }

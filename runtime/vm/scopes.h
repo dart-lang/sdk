@@ -42,7 +42,7 @@ class LocalScope;
 //    c) [LocalVariable]s referring to values on the expression stack. Those are
 //       assigned by the flow graph builder. The indices of those variables are
 //       assigned by the flow graph builder (it simulates the expression stack
-//       height), they go from -NumVariabables - ExpressionHeight.
+//       height), they go from -NumVariables - ExpressionHeight.
 //
 //       -> These variables participate only partially in SSA renaming and can
 //          therefore only be used with [LoadLocalInstr]s and with
