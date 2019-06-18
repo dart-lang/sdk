@@ -111,6 +111,7 @@ class CLIError implements Comparable<CLIError> {
   final String message;
   final String errorCode;
   final String correction;
+  final String url;
 
   CLIError({
     this.severity,
@@ -121,6 +122,7 @@ class CLIError implements Comparable<CLIError> {
     this.message,
     this.errorCode,
     this.correction,
+    this.url,
   });
 
   @override
@@ -248,10 +250,15 @@ class HumanErrorFormatter extends ErrorFormatter {
       out.write('${ansi.bullet} ${error.errorCode}');
       out.writeln();
 
-      // If verbose, also print any associated correction.
-      if (options.verbose && error.correction != null) {
-        out.writeln(
-            '${' '.padLeft(error.severity.length + 2)}${error.correction}');
+      // If verbose, also print any associated correction and URL.
+      if (options.verbose) {
+        String padding = ' '.padLeft(error.severity.length + 2);
+        if (error.correction != null) {
+          out.writeln('$padding${error.correction}');
+        }
+        if (error.url != null) {
+          out.writeln('$padding${error.url}');
+        }
       }
     }
 
@@ -303,6 +310,7 @@ class HumanErrorFormatter extends ErrorFormatter {
       message: message,
       errorCode: error.errorCode.name.toLowerCase(),
       correction: error.correction,
+      url: error.errorCode.url,
     ));
   }
 }
