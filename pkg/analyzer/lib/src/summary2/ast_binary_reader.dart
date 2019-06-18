@@ -384,6 +384,16 @@ class AstBinaryReader {
     returnType.token.offset =
         informativeData?.constructorDeclaration_returnTypeOffset ?? 0;
 
+    Token periodToken;
+    SimpleIdentifier nameIdentifier;
+    if (AstBinaryFlags.hasName(data.flags)) {
+      periodToken = Token(
+        TokenType.PERIOD,
+        informativeData?.constructorDeclaration_periodOffset ?? 0,
+      );
+      nameIdentifier = _declaredIdentifier(data);
+    }
+
     var node = astFactory.constructorDeclaration(
       _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
@@ -391,13 +401,8 @@ class AstBinaryReader {
       AstBinaryFlags.isConst(data.flags) ? _Tokens.CONST : null,
       AstBinaryFlags.isFactory(data.flags) ? _Tokens.FACTORY : null,
       returnType,
-      data.name.isNotEmpty
-          ? Token(
-              TokenType.PERIOD,
-              informativeData?.constructorDeclaration_periodOffset ?? 0,
-            )
-          : null,
-      data.name.isNotEmpty ? _declaredIdentifier(data) : null,
+      periodToken,
+      nameIdentifier,
       _readNodeLazy(data.constructorDeclaration_parameters),
       _Tokens.choose(
         AstBinaryFlags.hasSeparatorColon(data.flags),
