@@ -4383,6 +4383,9 @@ class HAsCheck extends HCheck {
   HInstruction get checkedInput => inputs[1];
 
   @override
+  bool isJsStatement() => false;
+
+  @override
   accept(HVisitor visitor) => visitor.visitAsCheck(this);
 
   @override

@@ -99,6 +99,9 @@ abstract class CommonElements {
   LibraryEntity get foreignLibrary;
 
   /// The dart:_internal library.
+  LibraryEntity get rtiLibrary;
+
+  /// The dart:_internal library.
   LibraryEntity get internalLibrary;
 
   /// The `NativeTypedData` class from dart:typed_data.
@@ -475,6 +478,15 @@ abstract class CommonElements {
 
   FunctionEntity get extractFunctionTypeObjectFromInternal;
 
+  // From dart:_rti
+
+  FunctionEntity get findType;
+  FieldEntity get rtiAsField;
+  FieldEntity get rtiCheckField;
+  FieldEntity get rtiIsField;
+  FunctionEntity get rtiEvalMethod;
+  FunctionEntity get rtiBindMethod;
+
   // From dart:_internal
 
   ClassEntity get symbolImplementationClass;
@@ -728,6 +740,11 @@ class CommonElementsImpl
   @override
   LibraryEntity get foreignLibrary =>
       _foreignLibrary ??= _env.lookupLibrary(Uris.dart__foreign_helper);
+
+  LibraryEntity _rtiLibrary;
+  @override
+  LibraryEntity get rtiLibrary =>
+      _rtiLibrary ??= _env.lookupLibrary(Uris.dart__rti, required: true);
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryEntity _internalLibrary;
@@ -1784,6 +1801,42 @@ class CommonElementsImpl
         cls.name != 'Instantiation' &&
         cls.name.startsWith('Instantiation');
   }
+
+  // From dart:_rti
+
+  FunctionEntity _findRtiFunction(String name) =>
+      _findLibraryMember(rtiLibrary, name);
+
+  FunctionEntity _findType;
+  @override
+  FunctionEntity get findType => _findType ??= _findRtiFunction('findType');
+
+  ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
+  FieldEntity _findRtiClassField(String name) =>
+      _findClassMember(_rtiImplClass, name);
+
+  FieldEntity _rtiAsField;
+  @override
+  FieldEntity get rtiAsField => _rtiAsField ??= _findRtiClassField('_as');
+
+  FieldEntity _rtiIsField;
+  @override
+  FieldEntity get rtiIsField => _rtiIsField ??= _findRtiClassField('_is');
+
+  FieldEntity _rtiCheckField;
+  @override
+  FieldEntity get rtiCheckField =>
+      _rtiCheckField ??= _findRtiClassField('_check');
+
+  FunctionEntity _rtiEvalMethod;
+  @override
+  FunctionEntity get rtiEvalMethod =>
+      _rtiEvalMethod ??= _findClassMember(_rtiImplClass, '_eval');
+
+  FunctionEntity _rtiBindMethod;
+  @override
+  FunctionEntity get rtiBindMethod =>
+      _rtiBindMethod ??= _findClassMember(_rtiImplClass, '_bind');
 
   // From dart:_internal
 

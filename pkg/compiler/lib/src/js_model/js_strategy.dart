@@ -237,7 +237,8 @@ class JsBackendStrategy implements BackendStrategy {
         globalInferenceResults, codegen, oneShotInterceptorData);
     ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
     CommonElements commonElements = closedWorld.commonElements;
-    BackendImpacts impacts = new BackendImpacts(commonElements);
+    BackendImpacts impacts =
+        new BackendImpacts(commonElements, _compiler.options.experimentNewRti);
     _customElementsCodegenAnalysis = new CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
     return new CodegenEnqueuer(
@@ -290,7 +291,8 @@ class JsBackendStrategy implements BackendStrategy {
     emitterTask.createEmitter(_namer, codegen, closedWorld);
     // TODO(johnniwinther): Share the impact object created in
     // createCodegenEnqueuer.
-    BackendImpacts impacts = new BackendImpacts(closedWorld.commonElements);
+    BackendImpacts impacts = new BackendImpacts(
+        closedWorld.commonElements, _compiler.options.experimentNewRti);
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
         _compiler.options,

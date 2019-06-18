@@ -223,7 +223,7 @@ Rti _rtiBind(Rti environment, Rti types) {
 
 /// Evaluate a ground-term type.
 /// Called from generated code.
-Rti rtiTypeEval(String recipe) {
+Rti findType(String recipe) {
   _Universe.eval(_theUniverse(), recipe);
 }
 

@@ -353,6 +353,10 @@ abstract class TypeBuilder {
     if (type == null) return original;
     type = type.unaliased;
 
+    if (type.isDynamic) return original;
+    if (type.isVoid) return original;
+    if (type == _closedWorld.commonElements.objectType) return original;
+
     HInstruction reifiedType =
         analyzeTypeArgumentNewRti(type, builder.sourceElement);
     if (type is InterfaceType) {
