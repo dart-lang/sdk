@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -120,16 +119,7 @@ class DartFixContextImpl implements DartFixContext {
   @override
   final AnalysisError error;
 
-  final List<TopLevelDeclaration> Function(String name)
-      getTopLevelDeclarationsFunction;
-
-  DartFixContextImpl(this.workspace, this.resolveResult, this.error,
-      this.getTopLevelDeclarationsFunction);
-
-  @override
-  List<TopLevelDeclaration> getTopLevelDeclarations(String name) {
-    return getTopLevelDeclarationsFunction(name);
-  }
+  DartFixContextImpl(this.workspace, this.resolveResult, this.error);
 }
 
 /// An enumeration of quick fix kinds found in a Dart file.

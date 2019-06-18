@@ -23,7 +23,6 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix/manifest/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -635,16 +634,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         int errorLine = lineInfo.getLocation(error.offset).lineNumber;
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(server.currentSessions);
-          var context =
-              new DartFixContextImpl(workspace, result, error, (name) {
-            var tracker = server.declarationsTracker;
-            var provider = TopLevelDeclarationsProvider(tracker);
-            return provider.get(
-              result.session.analysisContext,
-              result.path,
-              name,
-            );
-          });
+          var context = new DartFixContextImpl(workspace, result, error);
           List<Fix> fixes =
               await new DartFixContributor().computeFixes(context);
           if (fixes.isNotEmpty) {
