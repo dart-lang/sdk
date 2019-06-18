@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/organize_imports.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/send_workspace_edit.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -22,6 +23,7 @@ class ExecuteCommandHandler
       : commandHandlers = {
           Commands.sortMembers: new SortMembersCommandHandler(server),
           Commands.organizeImports: new OrganizeImportsCommandHandler(server),
+          Commands.performRefactor: new PerformRefactorCommandHandler(server),
           Commands.sendWorkspaceEdit:
               new SendWorkspaceEditCommandHandler(server),
         },
