@@ -182,8 +182,8 @@ void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
                                 FreeList* freelist) {
-  bool result = Dart::thread_pool()->Run(new ConcurrentSweeperTask(
-      isolate, isolate->heap()->old_space(), first, last, freelist));
+  bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
+      isolate, isolate->heap()->old_space(), first, last, freelist);
   ASSERT(result);
 }
 

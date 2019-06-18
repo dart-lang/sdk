@@ -234,9 +234,9 @@ void GCCompactor::Compact(HeapPage* pages,
     intptr_t next_forwarding_task = 0;
 
     for (intptr_t task_index = 0; task_index < num_tasks; task_index++) {
-      Dart::thread_pool()->Run(new CompactorTask(
+      Dart::thread_pool()->Run<CompactorTask>(
           thread()->isolate(), this, &barrier, &next_forwarding_task,
-          heads[task_index], &tails[task_index], freelist));
+          heads[task_index], &tails[task_index], freelist);
     }
 
     // Plan pages.

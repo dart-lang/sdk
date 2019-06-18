@@ -44,7 +44,7 @@ VM_UNIT_TEST_CASE(ThreadPool_RunOne) {
   ThreadPool thread_pool;
   Monitor sync;
   bool done = true;
-  thread_pool.Run(new TestTask(&sync, &done));
+  thread_pool.Run<TestTask>(&sync, &done);
   {
     MonitorLocker ml(&sync);
     done = false;
@@ -68,7 +68,7 @@ VM_UNIT_TEST_CASE(ThreadPool_RunMany) {
 
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = true;
-    thread_pool.Run(new TestTask(&sync[i], &done[i]));
+    thread_pool.Run<TestTask>(&sync[i], &done[i]);
   }
   for (int i = 0; i < kTaskCount; i++) {
     MonitorLocker ml(&sync[i]);
@@ -124,7 +124,7 @@ VM_UNIT_TEST_CASE(ThreadPool_WorkerShutdown) {
 
   // Run a single task.
   for (int i = 0; i < kTaskCount; i++) {
-    thread_pool->Run(new SleepTask(&sync, &started_count, &slept_count, 2));
+    thread_pool->Run<SleepTask>(&sync, &started_count, &slept_count, 2);
   }
 
   {
@@ -162,7 +162,7 @@ VM_UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
   // Run a worker.
   Monitor sync;
   bool done = true;
-  thread_pool.Run(new TestTask(&sync, &done));
+  thread_pool.Run<TestTask>(&sync, &done);
   EXPECT_EQ(1U, thread_pool.workers_started());
   EXPECT_EQ(0U, thread_pool.workers_stopped());
   {
@@ -197,11 +197,10 @@ class SpawnTask : public ThreadPool::Task {
 
     // Spawn 0-2 children.
     if (todo_ > 0) {
-      pool_->Run(
-          new SpawnTask(pool_, sync_, todo_ - child_todo, total_, done_));
+      pool_->Run<SpawnTask>(pool_, sync_, todo_ - child_todo, total_, done_);
     }
     if (todo_ > 1) {
-      pool_->Run(new SpawnTask(pool_, sync_, child_todo, total_, done_));
+      pool_->Run<SpawnTask>(pool_, sync_, child_todo, total_, done_);
     }
 
     {
@@ -226,8 +225,8 @@ VM_UNIT_TEST_CASE(ThreadPool_RecursiveSpawn) {
   Monitor sync;
   const int kTotalTasks = 500;
   int done = 0;
-  thread_pool.Run(
-      new SpawnTask(&thread_pool, &sync, kTotalTasks, kTotalTasks, &done));
+  thread_pool.Run<SpawnTask>(&thread_pool, &sync, kTotalTasks, kTotalTasks,
+                             &done);
   {
     MonitorLocker ml(&sync);
     while (done < kTotalTasks) {

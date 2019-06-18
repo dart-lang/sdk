@@ -804,8 +804,8 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
                                           &deferred_marking_stack_);
 
     // Begin marking on a helper thread.
-    bool result = Dart::thread_pool()->Run(
-        new ConcurrentMarkTask(this, isolate_, page_space, visitors_[i]));
+    bool result = Dart::thread_pool()->Run<ConcurrentMarkTask>(
+        this, isolate_, page_space, visitors_[i]);
     ASSERT(result);
   }
 
@@ -862,8 +862,8 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
               isolate_, page_space, &marking_stack_, &deferred_marking_stack_);
         }
 
-        bool result = Dart::thread_pool()->Run(new ParallelMarkTask(
-            this, isolate_, &marking_stack_, &barrier, visitor, &num_busy));
+        bool result = Dart::thread_pool()->Run<ParallelMarkTask>(
+            this, isolate_, &marking_stack_, &barrier, visitor, &num_busy);
         ASSERT(result);
       }
       bool more_to_mark = false;

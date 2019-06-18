@@ -114,7 +114,7 @@ void MessageHandler::Run(ThreadPool* pool,
   start_callback_ = start_callback;
   end_callback_ = end_callback;
   callback_data_ = data;
-  task_running_ = pool_->Run(new MessageHandlerTask(this));
+  task_running_ = pool_->Run<MessageHandlerTask>(this);
   ASSERT(task_running_);
 }
 
@@ -157,7 +157,7 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
 
     if ((pool_ != NULL) && !task_running_) {
       ASSERT(!delete_me_);
-      task_running_ = pool_->Run(new MessageHandlerTask(this));
+      task_running_ = pool_->Run<MessageHandlerTask>(this);
       ASSERT(task_running_);
     }
   }

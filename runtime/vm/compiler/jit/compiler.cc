@@ -1389,8 +1389,7 @@ void BackgroundCompiler::Start() {
   if (running_ || !done_) return;
   running_ = true;
   done_ = false;
-  bool task_started =
-      Dart::thread_pool()->Run(new BackgroundCompilerTask(this));
+  bool task_started = Dart::thread_pool()->Run<BackgroundCompilerTask>(this);
   if (!task_started) {
     running_ = false;
     done_ = true;

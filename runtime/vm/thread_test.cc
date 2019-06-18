@@ -180,8 +180,8 @@ ISOLATE_UNIT_TEST_CASE(ManyTasksWithZones) {
   isolate->heap()->DisableGrowthControl();
   for (int i = 0; i < kTaskCount; i++) {
     done[i] = false;
-    Dart::thread_pool()->Run(
-        new TaskWithZoneAllocation(isolate, &sync[i], &done[i], i));
+    Dart::thread_pool()->Run<TaskWithZoneAllocation>(isolate, &sync[i],
+                                                     &done[i], i);
   }
   bool in_isolate = true;
   for (int i = 0; i < kTaskCount; i++) {
@@ -302,8 +302,8 @@ ISOLATE_UNIT_TEST_CASE(ManySimpleTasksWithZones) {
   EXPECT(isolate->heap()->GrowthControlState());
   isolate->heap()->DisableGrowthControl();
   for (intptr_t i = 0; i < kTaskCount; i++) {
-    Dart::thread_pool()->Run(new SimpleTaskWithZoneAllocation(
-        (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait));
+    Dart::thread_pool()->Run<SimpleTaskWithZoneAllocation>(
+        (i + 1), isolate, &threads[i], &sync, &monitor, &done_count, &wait);
   }
   // Wait until all spawned tasks finish their memory operations.
   {
@@ -497,8 +497,8 @@ ISOLATE_UNIT_TEST_CASE(ICDataTest) {
   }
 
   for (int i = 0; i < ICDataTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run(
-        new ICDataTestTask(isolate, ic_datas, &monitor, &exited, &done));
+    Dart::thread_pool()->Run<ICDataTestTask>(isolate, ic_datas, &monitor,
+                                             &exited, &done);
   }
 
   for (int i = 0; i < 0x10000; i++) {
@@ -630,8 +630,8 @@ TEST_CASE(SafepointTestDart) {
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &monitor, &expected_count, &total_done, &exited));
+    Dart::thread_pool()->Run<SafepointTestTask>(
+        isolate, &monitor, &expected_count, &total_done, &exited);
   }
 // Run Dart code on the main thread long enough to allow all helpers
 // to get their verification done and exit. Use a specific UserTag
@@ -681,8 +681,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM) {
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &monitor, &expected_count, &total_done, &exited));
+    Dart::thread_pool()->Run<SafepointTestTask>(
+        isolate, &monitor, &expected_count, &total_done, &exited);
   }
   String& label = String::Handle(String::New("foo"));
   UserTag& tag = UserTag::Handle(UserTag::New(label));
@@ -802,8 +802,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointTestVM2) {
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &monitor, &expected_count, &total_done, &exited));
+    Dart::thread_pool()->Run<SafepointTestTask>(
+        isolate, &monitor, &expected_count, &total_done, &exited);
   }
   bool all_helpers = false;
   do {
@@ -833,8 +833,8 @@ ISOLATE_UNIT_TEST_CASE(RecursiveSafepointTest2) {
   intptr_t total_done = 0;
   intptr_t exited = 0;
   for (int i = 0; i < SafepointTestTask::kTaskCount; i++) {
-    Dart::thread_pool()->Run(new SafepointTestTask(
-        isolate, &monitor, &expected_count, &total_done, &exited));
+    Dart::thread_pool()->Run<SafepointTestTask>(
+        isolate, &monitor, &expected_count, &total_done, &exited);
   }
   bool all_helpers = false;
   do {
@@ -899,7 +899,7 @@ ISOLATE_UNIT_TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
   Isolate* isolate = thread->isolate();
-  Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
+  Dart::thread_pool()->Run<AllocAndGCTask>(isolate, &done_monitor, &done);
   {
     while (true) {
       TransitionVMToBlocked transition(thread);
@@ -951,8 +951,8 @@ ISOLATE_UNIT_TEST_CASE(ExerciseTLABs) {
   Isolate* isolate = thread->isolate();
   for (int i = 0; i < NUMBER_TEST_THREADS; i++) {
     done[i] = false;
-    Dart::thread_pool()->Run(
-        new AllocateGlobsOfMemoryTask(isolate, &done_monitor[i], &done[i]));
+    Dart::thread_pool()->Run<AllocateGlobsOfMemoryTask>(
+        isolate, &done_monitor[i], &done[i]);
   }
 
   for (int i = 0; i < NUMBER_TEST_THREADS; i++) {

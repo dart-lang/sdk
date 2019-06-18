@@ -45,7 +45,7 @@ VM_UNIT_TEST_CASE(ThreadBarrier) {
   {
     ThreadBarrier barrier(kNumTasks + 1, monitor, monitor_done);
     for (intptr_t i = 0; i < kNumTasks; ++i) {
-      Dart::thread_pool()->Run(new FuzzTask(kNumRounds, &barrier, i + 1));
+      Dart::thread_pool()->Run<FuzzTask>(kNumRounds, &barrier, i + 1);
     }
     for (intptr_t i = 0; i < kNumRounds; ++i) {
       barrier.Sync();

@@ -245,14 +245,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
 
-      ThreadPool::Task* spawn_task =
-          new SpawnIsolateTask(isolate, std::move(state));
-
-      if (!Dart::thread_pool()->Run(spawn_task)) {
-        // Running on the thread pool failed. Clean up everything.
-        delete spawn_task;
-        spawn_task = NULL;
-      }
+      Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
       return Object::null();
     }
   }
@@ -373,14 +366,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   // Since this is a call to Isolate.spawnUri, don't copy the parent's code.
   state->isolate_flags()->copy_parent_code = false;
 
-  ThreadPool::Task* spawn_task =
-      new SpawnIsolateTask(isolate, std::move(state));
-
-  if (!Dart::thread_pool()->Run(spawn_task)) {
-    // Running on the thread pool failed. Clean up everything.
-    delete spawn_task;
-    spawn_task = NULL;
-  }
+  Dart::thread_pool()->Run<SpawnIsolateTask>(isolate, std::move(state));
   return Object::null();
 }
 

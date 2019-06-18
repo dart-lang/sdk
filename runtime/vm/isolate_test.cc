@@ -130,7 +130,7 @@ TEST_CASE(StackLimitInterrupts) {
                         isolate->heap()->barrier_done());
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
-    Dart::thread_pool()->Run(new InterruptChecker(thread, &barrier));
+    Dart::thread_pool()->Run<InterruptChecker>(thread, &barrier);
   }
   // Wait for all tasks to get ready for the first round.
   barrier.Sync();
