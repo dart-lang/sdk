@@ -8271,7 +8271,7 @@ RawFfiTrampolineData* FfiTrampolineData::New() {
       Object::Allocate(FfiTrampolineData::kClassId,
                        FfiTrampolineData::InstanceSize(), Heap::kOld);
   RawFfiTrampolineData* data = reinterpret_cast<RawFfiTrampolineData*>(raw);
-  data->ptr()->callback_id_ = -1;
+  data->ptr()->callback_id_ = 0;
   return data;
 }
 

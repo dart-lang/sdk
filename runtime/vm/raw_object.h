@@ -1034,13 +1034,17 @@ class RawFfiTrampolineData : public RawObject {
   RawFunction* callback_target_;
 
   VISIT_TO(RawObject*, callback_target_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  // Callback id for callbacks, otherwise 0.
+  // Callback id for callbacks.
   //
   // The callbacks ids are used so that native callbacks can lookup their own
   // code objects, since native code doesn't pass code objects into function
   // calls. The callback id is also used to for verifying that callbacks are
   // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  //
+  // Will be 0 for non-callbacks. Check 'callback_target_' to determine if this
+  // is a callback or not.
   uint32_t callback_id_;
 };
 

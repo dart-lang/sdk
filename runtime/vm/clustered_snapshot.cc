@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
+#include "vm/class_id.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/relocation.h"
@@ -763,6 +764,74 @@ class SignatureDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(data, kSignatureDataCid,
                                      SignatureData::InstanceSize());
       ReadFromTo(data);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class FfiTrampolineDataSerializationCluster : public SerializationCluster {
+ public:
+  FfiTrampolineDataSerializationCluster()
+      : SerializationCluster("FfiTrampolineData") {}
+  ~FfiTrampolineDataSerializationCluster() {}
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawFfiTrampolineData* data = FfiTrampolineData::RawCast(object);
+    objects_.Add(data);
+    PushFromTo(data);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kFfiTrampolineDataCid);
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      s->AssignRef(objects_[i]);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawFfiTrampolineData* const data = objects_[i];
+      AutoTraceObject(data);
+      WriteFromTo(data);
+
+      // TODO(37295): FFI callbacks shouldn't be written to a snapshot. They
+      // should only be referenced by the callback registry in Thread.
+      ASSERT(data->ptr()->callback_id_ == 0);
+    }
+  }
+
+ private:
+  GrowableArray<RawFfiTrampolineData*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
+ public:
+  FfiTrampolineDataDeserializationCluster() {}
+  ~FfiTrampolineDataDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(
+          AllocateUninitialized(old_space, FfiTrampolineData::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawFfiTrampolineData* data =
+          reinterpret_cast<RawFfiTrampolineData*>(d->Ref(id));
+      Deserializer::InitializeHeader(data, kFfiTrampolineDataCid,
+                                     FfiTrampolineData::InstanceSize());
+      ReadFromTo(data);
+      data->ptr()->callback_id_ = 0;
     }
   }
 };
@@ -4308,6 +4377,8 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) SignatureDataSerializationCluster();
     case kRedirectionDataCid:
       return new (Z) RedirectionDataSerializationCluster();
+    case kFfiTrampolineDataCid:
+      return new (Z) FfiTrampolineDataSerializationCluster();
     case kFieldCid:
       return new (Z) FieldSerializationCluster();
     case kScriptCid:
@@ -4944,6 +5015,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) SignatureDataDeserializationCluster();
     case kRedirectionDataCid:
       return new (Z) RedirectionDataDeserializationCluster();
+    case kFfiTrampolineDataCid:
+      return new (Z) FfiTrampolineDataDeserializationCluster();
     case kFieldCid:
       return new (Z) FieldDeserializationCluster();
     case kScriptCid:

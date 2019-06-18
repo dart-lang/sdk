@@ -13,14 +13,6 @@ data_not_asan_test: SkipByDesign # This test tries to allocate too much memory o
 function_structs_test: Skip
 structs_test: Skip
 
-# dartbug.com/35934
-[ $compiler == app_jitk ]
-dynamic_library_test: Skip
-function_callbacks_test: Skip
-function_structs_test: Skip
-function_test: Skip
-negative_function_test: Skip
-
 [ $arch == x64 || $arch == arm64 || $arch == simdbc64 ]
 enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit systems.
 
@@ -44,3 +36,10 @@ enable_structs_test: SkipByDesign  # Tests that structs don't work on 32-bit sys
 
 [ $arch == simdbc64 ]
 function_callbacks_test: Skip  # Issue 37140
+
+# These tests trigger and catch an abort (intentionally) and terminate the VM
+# before it can generate a snapshot.
+[ $compiler == app_jitk ]
+function_callbacks_test/01: Skip
+function_callbacks_test/02: Skip
+function_callbacks_test/03: Skip

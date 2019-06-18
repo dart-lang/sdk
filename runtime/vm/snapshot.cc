@@ -1134,7 +1134,12 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
 
 #define SNAPSHOT_WRITE(clazz) case kFfi##clazz##Cid:
 
-    CLASS_LIST_FFI(SNAPSHOT_WRITE) { UNREACHABLE(); }
+      CLASS_LIST_FFI(SNAPSHOT_WRITE) {
+        SetWriteException(Exceptions::kArgument,
+                          "Native objects (from dart:ffi) such as Pointers and "
+                          "Structs cannot be passed between isolates.");
+        UNREACHABLE();
+      }
 #undef SNAPSHOT_WRITE
     default:
       break;
