@@ -6,7 +6,7 @@
 
 import 'dart:collection';
 
-//ignore_for_file: unused_local_variable, prefer_collection_literals
+//ignore_for_file: unused_local_variable
 void main() {
   var listToLint = new List(); //LINT
   var mapToLint = new Map(); // LINT
