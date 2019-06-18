@@ -4569,10 +4569,15 @@ RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
 Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
   const intptr_t receiver_cid = Receiver()->Type()->ToCid();
 
-  // TODO(erikcorry): Even for cold call sites we could still try to look up
-  // methods when we know the receiver cid. We don't currently do this because
-  // it turns the InstanceCall into a PolymorphicInstanceCall which doesn't get
-  // recognized or inlined when it is cold.
+  // We could turn cold call sites for known receiver cids into a StaticCall.
+  // However, that keeps the ICData of the InstanceCall from being updated.
+  // This is fine if there is no later deoptimization, but if there is, then
+  // the InstanceCall with the updated ICData for this receiver may then be
+  // better optimized by the compiler.
+  //
+  // TODO(dartbug.com/37291): Allow this optimization, but accumulate affected
+  // InstanceCallInstrs and the corresponding reciever cids during compilation.
+  // After compilation, add receiver checks to the ICData for those call sites.
   if (ic_data()->NumberOfUsedChecks() == 0) return this;
 
   const CallTargets* new_target =
