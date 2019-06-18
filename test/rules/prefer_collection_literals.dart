@@ -65,7 +65,16 @@ void main() {
 
   var lhs = LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)..addAll({}); // OK
 
+  LinkedHashMap hashMap = LinkedHashMap(); // OK
+
+  printMap(Map()); // LINT
+  printMap(LinkedHashMap<int, int>()); // LINT
+  printHashMap(LinkedHashMap<int, int>()); // OK
+
+  LinkedHashMap<String, String> lhm = <int, LinkedHashMap<String,String>>{}.putIfAbsent(3, () => LinkedHashMap<String, String>()); // OK
 }
 
 void printSet(Set<int> ids) => print('$ids!');
 void printHashSet(LinkedHashSet<int> ids) => printSet(ids);
+void printMap(Map map) => print('$map!');
+void printHashMap(LinkedHashMap map) => printMap(map);
