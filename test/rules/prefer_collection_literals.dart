@@ -51,6 +51,10 @@ void main() {
   Set<int> ss5 = LinkedHashSet<int>(); // LINT
   LinkedHashSet<int> ss6 = LinkedHashSet<int>(); // OK
 
+  printSet(Set()); // LINT
+  printSet(LinkedHashSet<int>()); // LINT
+  printHashSet(LinkedHashSet<int>()); // OK
+
   Set<int> ss7 = LinkedHashSet.from([1, 2, 3]); // LINT
   LinkedHashSet<int> ss8 =  LinkedHashSet.from([1, 2, 3]); // OK
 
@@ -62,3 +66,6 @@ void main() {
   var lhs = LinkedHashSet(equals: (a, b) => false, hashCode: (o) => 13)..addAll({}); // OK
 
 }
+
+void printSet(Set<int> ids) => print('$ids!');
+void printHashSet(LinkedHashSet<int> ids) => printSet(ids);
