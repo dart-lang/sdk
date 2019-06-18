@@ -27,11 +27,13 @@ main() {
   test('fix example', () async {
     final driver = new Driver();
     final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final testLogger = new TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
-    await driver.start([exampleDir.path],
-        testContext: testContext, testLogger: testLogger);
+    await driver.start([
+      if (_debug) '-v',
+      exampleDir.path,
+    ], testContext: testContext, testLogger: testLogger);
     if (_debug) {
       print(testLogger.stderrBuffer.toString());
       print(testLogger.stdoutBuffer.toString());

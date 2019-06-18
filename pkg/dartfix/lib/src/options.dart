@@ -17,6 +17,7 @@ const overwriteOption = 'overwrite';
 const requiredOption = 'required';
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
+const _serverSnapshot = 'server';
 
 // options only supported by server 1.22.2 and greater
 const _helpOption = 'help';
@@ -29,6 +30,7 @@ class Options {
 
   List<String> targets;
   final String sdkPath;
+  final String serverSnapshot;
 
   final bool requiredFixes;
   final List<String> includeFixes;
@@ -49,6 +51,7 @@ class Options {
         overwrite = results[overwriteOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
+        serverSnapshot = results[_serverSnapshot],
         showHelp = results[_helpOption] as bool || results.arguments.isEmpty,
         targets = results.rest,
         useColor = results.wasParsed(_colorOption)
@@ -92,6 +95,8 @@ class Options {
           help: 'Display this help message.',
           defaultsTo: false,
           negatable: false)
+      ..addOption(_serverSnapshot,
+          help: 'Path to the analysis server snapshot file.', valueHelp: 'path')
       ..addFlag(_verboseOption,
           abbr: 'v',
           defaultsTo: false,
@@ -109,7 +114,6 @@ class Options {
     } on FormatException catch (e) {
       logger ??= new Logger.standard(ansi: new Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
-      logger.stderr('\n');
       _showUsage(parser, logger);
       context.exit(15);
     }
@@ -194,6 +198,7 @@ Usage: $_binaryName [options...] <directory paths>
     out(parser.usage);
     out(showHelpHint
         ? '''
+
 Use --$_helpOption to display the fixes that can be specified using either
 --$includeOption or --$excludeOption.'''
         : '');

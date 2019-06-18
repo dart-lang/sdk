@@ -30,6 +30,7 @@ main() {
     String normalOut,
     bool requiredFixes = false,
     bool overwrite = false,
+    String serverSnapshot,
     List<String> targetSuffixes,
     bool verbose = false,
   }) {
@@ -53,6 +54,7 @@ main() {
     expect(options.force, force);
     expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
+    expect(options.serverSnapshot, serverSnapshot);
     expect(options.showHelp, showHelp);
     expect(options.includeFixes, includeFixes);
     expect(options.excludeFixes, excludeFixes);
@@ -117,6 +119,10 @@ main() {
 
   test('required fixes', () {
     parse(['--required', 'foo'], requiredFixes: true);
+  });
+
+  test('server snapshot', () {
+    parse(['--server', 'some/path', 'foo'], serverSnapshot: 'some/path');
   });
 
   test('simple', () {

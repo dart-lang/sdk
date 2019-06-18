@@ -261,15 +261,19 @@ These fixes are NOT automatically applied, but may be enabled using --$includeOp
   }
 
   Future<bool> startServer(Options options) async {
-    if (options.verbose) {
-      logger.trace('Dart SDK version ${Platform.version}');
-      logger.trace('  ${Platform.resolvedExecutable}');
-      logger.trace('dartfix');
-      logger.trace('  ${Platform.script.toFilePath()}');
-    }
     // Automatically run analysis server from source
     // if this command line tool is being run from source within the SDK repo.
-    String serverPath = findServerPath();
+    String serverPath = options.serverSnapshot ?? findServerPath();
+    if (options.verbose) {
+      logger.trace('''
+Dart SDK version ${Platform.version}
+  ${Platform.resolvedExecutable}
+dartfix
+  ${Platform.script.toFilePath()}
+analysis server
+  $serverPath
+''');
+    }
     await server.start(
       clientId: 'dartfix',
       clientVersion: 'unspecified',
