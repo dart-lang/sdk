@@ -11,6 +11,7 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
+// On iOS, thread_local requires iOS 9+.
 #if !HOST_OS_IOS
 #define HAS_C11_THREAD_LOCAL 1
 #endif
