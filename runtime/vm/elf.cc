@@ -69,12 +69,14 @@ static const intptr_t kElfSectionTableEntrySize = 40;
 static const intptr_t kElfProgramTableEntrySize = 32;
 static const intptr_t kElfSymbolTableEntrySize = 16;
 static const intptr_t kElfDynamicTableEntrySize = 8;
+static const intptr_t kElfSymbolHashTableEntrySize = 4;
 #else
 static const intptr_t kElfHeaderSize = 64;
 static const intptr_t kElfSectionTableEntrySize = 64;
 static const intptr_t kElfProgramTableEntrySize = 56;
 static const intptr_t kElfSymbolTableEntrySize = 24;
 static const intptr_t kElfDynamicTableEntrySize = 16;
+static const intptr_t kElfSymbolHashTableEntrySize = 4;
 #endif
 
 static const intptr_t kPageSize = 4096;
@@ -133,9 +135,9 @@ class ProgramBits : public Section {
 
 class StringTable : public Section {
  public:
-  StringTable() : text_(128) {
+  explicit StringTable(bool allocate) : text_(128) {
     section_type = SHT_STRTAB;
-    section_flags = SHF_ALLOC;
+    section_flags = allocate ? SHF_ALLOC : 0;
     segment_type = PT_LOAD;
     segment_flags = PF_R;
 
@@ -257,6 +259,7 @@ class SymbolHashTable : public Section {
     section_type = SHT_HASH;
     section_flags = SHF_ALLOC;
     section_link = symtab->section_index;
+    section_entry_size = kElfSymbolHashTableEntrySize;
     segment_type = PT_LOAD;
     segment_flags = PF_R;
 
@@ -357,14 +360,14 @@ class DynamicTable : public Section {
   GrowableArray<Entry*> entries_;
 };
 
-static uint8_t kNothing = 0;
-
 // The first section must be written out and contains only zeros.
 static const intptr_t kNumInvalidSections = 1;
 
 // Extra segments put in the program table that aren't reified in
 // Elf::segments_.
 static const intptr_t kNumImplicitSegments = 3;
+
+static const intptr_t kProgramTableSegmentSize = kPageSize;
 
 Elf::Elf(Zone* zone, StreamingWriteStream* stream)
     : zone_(zone), stream_(stream), memory_offset_(0) {
@@ -373,25 +376,17 @@ Elf::Elf(Zone* zone, StreamingWriteStream* stream)
 
   // All our strings would fit in a single page. However, we use separate
   // .shstrtab and .dynstr to work around a bug in Android's strip utility.
-  shstrtab_ = new (zone_) StringTable();
+  shstrtab_ = new (zone_) StringTable(/* allocate= */ false);
   shstrtab_->section_name = shstrtab_->AddString(".shstrtab");
-  AddSection(shstrtab_);
 
-  symstrtab_ = new (zone_) StringTable();
+  symstrtab_ = new (zone_) StringTable(/* allocate= */ true);
   symstrtab_->section_name = shstrtab_->AddString(".dynstr");
-  AddSection(symstrtab_);
 
   symtab_ = new (zone_) SymbolTable();
   symtab_->section_name = shstrtab_->AddString(".dynsym");
-  symtab_->section_link = symstrtab_->section_index;
-  AddSection(symtab_);
 
-  // dlsym gets confused if a symbol's value is dso offset 0, treating this as a
-  // failed lookup instead of answering dso base + 0. dladdr answers the wrong
-  // dso base if we don't start allocating from 0 (answering the address of
-  // either the first or lowest PT_LOAD). Sacrifice the first page to work
-  // around these issues. (gcc places build metadata in the first page.)
-  AddROData("nothing", &kNothing, sizeof(kNothing));
+  // Allocate regular segments after the program table.
+  memory_offset_ = kProgramTableSegmentSize;
 }
 
 void Elf::AddSection(Section* section) {
@@ -464,51 +459,57 @@ void Elf::AddDebug(const char* name, const uint8_t* bytes, intptr_t size) {
 void Elf::Finalize() {
   SymbolHashTable* hash = new (zone_) SymbolHashTable(symstrtab_, symtab_);
   hash->section_name = shstrtab_->AddString(".hash");
+
   AddSection(hash);
-  AddSegment(hash);
+  AddSection(symtab_);
+  AddSection(symstrtab_);
+
+  symtab_->section_link = symstrtab_->section_index;
+  hash->section_link = symtab_->section_index;
 
   // Before finalizing the string table's memory size:
   intptr_t name_dynamic = shstrtab_->AddString(".dynamic");
 
   // Finalizes memory size of string and symbol tables.
-  AddSegment(shstrtab_);
-  AddSegment(symstrtab_);
+  AddSegment(hash);
   AddSegment(symtab_);
+  AddSegment(symstrtab_);
 
   dynamic_ = new (zone_) DynamicTable(symstrtab_, symtab_, hash);
   dynamic_->section_name = name_dynamic;
   AddSection(dynamic_);
   AddSegment(dynamic_);
 
+  AddSection(shstrtab_);
+  shstrtab_->memory_offset = 0;  // No segment.
+
   ComputeFileOffsets();
 
   WriteHeader();
   WriteProgramTable();
-  WriteSectionTable();
   WriteSections();
+  WriteSectionTable();
 }
 
 void Elf::ComputeFileOffsets() {
   intptr_t file_offset = kElfHeaderSize;
 
-  file_offset = Utils::RoundUp(file_offset, kPageSize);
   program_table_file_offset_ = file_offset;
   program_table_file_size_ =
       (segments_.length() + kNumImplicitSegments) * kElfProgramTableEntrySize;
   file_offset += program_table_file_size_;
-
-  section_table_file_offset_ = file_offset;
-  section_table_file_size_ =
-      (sections_.length() + kNumInvalidSections) * kElfSectionTableEntrySize;
-  file_offset += section_table_file_size_;
 
   for (intptr_t i = 0; i < sections_.length(); i++) {
     Section* section = sections_[i];
     file_offset = Utils::RoundUp(file_offset, section->alignment);
     section->file_offset = file_offset;
     file_offset += section->file_size;
-    file_offset = Utils::RoundUp(file_offset, section->alignment);
   }
+
+  section_table_file_offset_ = file_offset;
+  section_table_file_size_ =
+      (sections_.length() + kNumInvalidSections) * kElfSectionTableEntrySize;
+  file_offset += section_table_file_size_;
 }
 
 void Elf::WriteHeader() {
@@ -562,20 +563,18 @@ void Elf::WriteHeader() {
 }
 
 void Elf::WriteProgramTable() {
-  stream_->Align(kPageSize);
-
   ASSERT(stream_->position() == program_table_file_offset_);
 
-  // Self-reference to program header table that Android wants for some reason.
-  // Must appear before any PT_LOAD entries.
+  // Self-reference to program header table. Required by Android but not by
+  // Linux. Must appear before any PT_LOAD entries.
   {
     ASSERT(kNumImplicitSegments == 3);
     const intptr_t start = stream_->position();
 #if defined(TARGET_ARCH_IS_32_BIT)
     WriteWord(PT_PHDR);
-    WriteOff(program_table_file_offset_);
-    WriteAddr(memory_offset_);
-    WriteAddr(0);  // Physical address, not used.
+    WriteOff(program_table_file_offset_);   // File offset.
+    WriteAddr(program_table_file_offset_);  // Virtual address.
+    WriteAddr(program_table_file_offset_);  // Physical address, not used.
     WriteWord(program_table_file_size_);
     WriteWord(program_table_file_size_);
     WriteWord(PF_R);
@@ -583,11 +582,46 @@ void Elf::WriteProgramTable() {
 #else
     WriteWord(PT_PHDR);
     WriteWord(PF_R);
-    WriteOff(program_table_file_offset_);
-    WriteAddr(memory_offset_);
+    WriteOff(program_table_file_offset_);   // File offset.
+    WriteAddr(program_table_file_offset_);  // Virtual address.
+    WriteAddr(program_table_file_offset_);  // Physical address, not used.
+    WriteXWord(program_table_file_size_);
+    WriteXWord(program_table_file_size_);
+    WriteXWord(kPageSize);
+#endif
+    const intptr_t end = stream_->position();
+    ASSERT((end - start) == kElfProgramTableEntrySize);
+  }
+  // Load for self-reference to program header table. Required by Android but
+  // not by Linux.
+  {
+    // We pre-allocated the virtual memory space for the program table itself.
+    // Check that we didn't generate too many segments. Currently we generate a
+    // fixed num of segments based on the four pieces of a snapshot, but if we
+    // use more in the future we'll likely need to do something more compilated
+    // to generate DWARF without knowing a piece's virtual address in advance.
+    RELEASE_ASSERT((program_table_file_offset_ + program_table_file_size_) <
+                   kProgramTableSegmentSize);
+
+    ASSERT(kNumImplicitSegments == 3);
+    const intptr_t start = stream_->position();
+#if defined(TARGET_ARCH_IS_32_BIT)
+    WriteWord(PT_LOAD);
+    WriteOff(0);   // File offset.
+    WriteAddr(0);  // Virtual address.
     WriteAddr(0);  // Physical address, not used.
-    WriteXWord(program_table_file_size_);
-    WriteXWord(program_table_file_size_);
+    WriteWord(program_table_file_offset_ + program_table_file_size_);
+    WriteWord(program_table_file_offset_ + program_table_file_size_);
+    WriteWord(PF_R);
+    WriteWord(kPageSize);
+#else
+    WriteWord(PT_LOAD);
+    WriteWord(PF_R);
+    WriteOff(0);   // File offset.
+    WriteAddr(0);  // Virtual address.
+    WriteAddr(0);  // Physical address, not used.
+    WriteXWord(program_table_file_offset_ + program_table_file_size_);
+    WriteXWord(program_table_file_offset_ + program_table_file_size_);
     WriteXWord(kPageSize);
 #endif
     const intptr_t end = stream_->position();
@@ -600,8 +634,8 @@ void Elf::WriteProgramTable() {
 #if defined(TARGET_ARCH_IS_32_BIT)
     WriteWord(section->segment_type);
     WriteOff(section->file_offset);
-    WriteAddr(section->memory_offset);
-    WriteAddr(0);  // Physical address, not used.
+    WriteAddr(section->memory_offset);  // Virtual address.
+    WriteAddr(section->memory_offset);  // Physical address, not used.
     WriteWord(section->file_size);
     WriteWord(section->memory_size);
     WriteWord(section->segment_flags);
@@ -610,8 +644,8 @@ void Elf::WriteProgramTable() {
     WriteWord(section->segment_type);
     WriteWord(section->segment_flags);
     WriteOff(section->file_offset);
-    WriteAddr(section->memory_offset);
-    WriteAddr(0);  // Physical address, not used.
+    WriteAddr(section->memory_offset);  // Virtual address.
+    WriteAddr(section->memory_offset);  // Physical address, not used.
     WriteXWord(section->file_size);
     WriteXWord(section->memory_size);
     WriteXWord(section->alignment);
@@ -628,8 +662,8 @@ void Elf::WriteProgramTable() {
 #if defined(TARGET_ARCH_IS_32_BIT)
     WriteWord(PT_DYNAMIC);
     WriteOff(dynamic_->file_offset);
-    WriteAddr(dynamic_->memory_offset);
-    WriteAddr(0);  // Physical address, not used.
+    WriteAddr(dynamic_->memory_offset);  // Virtual address.
+    WriteAddr(dynamic_->memory_offset);  // Physical address, not used.
     WriteWord(dynamic_->file_size);
     WriteWord(dynamic_->memory_size);
     WriteWord(dynamic_->segment_flags);
@@ -638,38 +672,11 @@ void Elf::WriteProgramTable() {
     WriteWord(PT_DYNAMIC);
     WriteWord(dynamic_->segment_flags);
     WriteOff(dynamic_->file_offset);
-    WriteAddr(dynamic_->memory_offset);
-    WriteAddr(0);  // Physical address, not used.
+    WriteAddr(dynamic_->memory_offset);  // Virtual address.
+    WriteAddr(dynamic_->memory_offset);  // Physical address, not used.
     WriteXWord(dynamic_->file_size);
     WriteXWord(dynamic_->memory_size);
     WriteXWord(dynamic_->alignment);
-#endif
-    const intptr_t end = stream_->position();
-    ASSERT((end - start) == kElfProgramTableEntrySize);
-  }
-
-  // Self-reference to program header table that Android wants for some reason.
-  {
-    ASSERT(kNumImplicitSegments == 3);
-    const intptr_t start = stream_->position();
-#if defined(TARGET_ARCH_IS_32_BIT)
-    WriteWord(PT_LOAD);
-    WriteOff(program_table_file_offset_);
-    WriteAddr(memory_offset_);
-    WriteAddr(0);  // Physical address, not used.
-    WriteWord(program_table_file_size_);
-    WriteWord(program_table_file_size_);
-    WriteWord(PF_R);
-    WriteWord(kPageSize);
-#else
-    WriteWord(PT_LOAD);
-    WriteWord(PF_R);
-    WriteOff(program_table_file_offset_);
-    WriteAddr(memory_offset_);
-    WriteAddr(0);  // Physical address, not used.
-    WriteXWord(program_table_file_size_);
-    WriteXWord(program_table_file_size_);
-    WriteXWord(kPageSize);
 #endif
     const intptr_t end = stream_->position();
     ASSERT((end - start) == kElfProgramTableEntrySize);
@@ -748,7 +755,6 @@ void Elf::WriteSections() {
     ASSERT(stream_->position() == section->file_offset);
     section->Write(this);
     ASSERT(stream_->position() == section->file_offset + section->file_size);
-    stream_->Align(section->alignment);
   }
 }
 
