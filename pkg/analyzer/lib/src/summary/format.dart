@@ -16038,8 +16038,6 @@ class LinkedNodeTypeBuilder extends Object
   int _functionTypedef;
   List<LinkedNodeTypeBuilder> _functionTypedefTypeArguments;
   List<LinkedNodeTypeTypeParameterBuilder> _functionTypeParameters;
-  int _genericTypeAliasReference;
-  List<LinkedNodeTypeBuilder> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<LinkedNodeTypeBuilder> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
@@ -16086,22 +16084,6 @@ class LinkedNodeTypeBuilder extends Object
 
   set functionTypeParameters(List<LinkedNodeTypeTypeParameterBuilder> value) {
     this._functionTypeParameters = value;
-  }
-
-  @override
-  int get genericTypeAliasReference => _genericTypeAliasReference ??= 0;
-
-  set genericTypeAliasReference(int value) {
-    assert(value == null || value >= 0);
-    this._genericTypeAliasReference = value;
-  }
-
-  @override
-  List<LinkedNodeTypeBuilder> get genericTypeAliasTypeArguments =>
-      _genericTypeAliasTypeArguments ??= <LinkedNodeTypeBuilder>[];
-
-  set genericTypeAliasTypeArguments(List<LinkedNodeTypeBuilder> value) {
-    this._genericTypeAliasTypeArguments = value;
   }
 
   @override
@@ -16158,8 +16140,6 @@ class LinkedNodeTypeBuilder extends Object
       int functionTypedef,
       List<LinkedNodeTypeBuilder> functionTypedefTypeArguments,
       List<LinkedNodeTypeTypeParameterBuilder> functionTypeParameters,
-      int genericTypeAliasReference,
-      List<LinkedNodeTypeBuilder> genericTypeAliasTypeArguments,
       int interfaceClass,
       List<LinkedNodeTypeBuilder> interfaceTypeArguments,
       idl.LinkedNodeTypeKind kind,
@@ -16171,8 +16151,6 @@ class LinkedNodeTypeBuilder extends Object
         _functionTypedef = functionTypedef,
         _functionTypedefTypeArguments = functionTypedefTypeArguments,
         _functionTypeParameters = functionTypeParameters,
-        _genericTypeAliasReference = genericTypeAliasReference,
-        _genericTypeAliasTypeArguments = genericTypeAliasTypeArguments,
         _interfaceClass = interfaceClass,
         _interfaceTypeArguments = interfaceTypeArguments,
         _kind = kind,
@@ -16186,7 +16164,6 @@ class LinkedNodeTypeBuilder extends Object
     _functionReturnType?.flushInformative();
     _functionTypedefTypeArguments?.forEach((b) => b.flushInformative());
     _functionTypeParameters?.forEach((b) => b.flushInformative());
-    _genericTypeAliasTypeArguments?.forEach((b) => b.flushInformative());
     _interfaceTypeArguments?.forEach((b) => b.flushInformative());
   }
 
@@ -16222,15 +16199,6 @@ class LinkedNodeTypeBuilder extends Object
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addInt(this._typeParameterElement ?? 0);
     signature.addInt(this._typeParameterId ?? 0);
-    signature.addInt(this._genericTypeAliasReference ?? 0);
-    if (this._genericTypeAliasTypeArguments == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._genericTypeAliasTypeArguments.length);
-      for (var x in this._genericTypeAliasTypeArguments) {
-        x?.collectApiSignature(signature);
-      }
-    }
     signature.addInt(
         this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
     signature.addInt(this._functionTypedef ?? 0);
@@ -16249,7 +16217,6 @@ class LinkedNodeTypeBuilder extends Object
     fb.Offset offset_functionReturnType;
     fb.Offset offset_functionTypedefTypeArguments;
     fb.Offset offset_functionTypeParameters;
-    fb.Offset offset_genericTypeAliasTypeArguments;
     fb.Offset offset_interfaceTypeArguments;
     if (!(_functionFormalParameters == null ||
         _functionFormalParameters.isEmpty)) {
@@ -16270,13 +16237,6 @@ class LinkedNodeTypeBuilder extends Object
       offset_functionTypeParameters = fbBuilder.writeList(
           _functionTypeParameters.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_genericTypeAliasTypeArguments == null ||
-        _genericTypeAliasTypeArguments.isEmpty)) {
-      offset_genericTypeAliasTypeArguments = fbBuilder.writeList(
-          _genericTypeAliasTypeArguments
-              .map((b) => b.finish(fbBuilder))
-              .toList());
-    }
     if (!(_interfaceTypeArguments == null || _interfaceTypeArguments.isEmpty)) {
       offset_interfaceTypeArguments = fbBuilder.writeList(
           _interfaceTypeArguments.map((b) => b.finish(fbBuilder)).toList());
@@ -16289,19 +16249,13 @@ class LinkedNodeTypeBuilder extends Object
       fbBuilder.addOffset(1, offset_functionReturnType);
     }
     if (_functionTypedef != null && _functionTypedef != 0) {
-      fbBuilder.addUint32(11, _functionTypedef);
+      fbBuilder.addUint32(9, _functionTypedef);
     }
     if (offset_functionTypedefTypeArguments != null) {
-      fbBuilder.addOffset(12, offset_functionTypedefTypeArguments);
+      fbBuilder.addOffset(10, offset_functionTypedefTypeArguments);
     }
     if (offset_functionTypeParameters != null) {
       fbBuilder.addOffset(2, offset_functionTypeParameters);
-    }
-    if (_genericTypeAliasReference != null && _genericTypeAliasReference != 0) {
-      fbBuilder.addUint32(8, _genericTypeAliasReference);
-    }
-    if (offset_genericTypeAliasTypeArguments != null) {
-      fbBuilder.addOffset(9, offset_genericTypeAliasTypeArguments);
     }
     if (_interfaceClass != null && _interfaceClass != 0) {
       fbBuilder.addUint32(3, _interfaceClass);
@@ -16314,7 +16268,7 @@ class LinkedNodeTypeBuilder extends Object
     }
     if (_nullabilitySuffix != null &&
         _nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
-      fbBuilder.addUint8(10, _nullabilitySuffix.index);
+      fbBuilder.addUint8(8, _nullabilitySuffix.index);
     }
     if (_typeParameterElement != null && _typeParameterElement != 0) {
       fbBuilder.addUint32(6, _typeParameterElement);
@@ -16347,8 +16301,6 @@ class _LinkedNodeTypeImpl extends Object
   int _functionTypedef;
   List<idl.LinkedNodeType> _functionTypedefTypeArguments;
   List<idl.LinkedNodeTypeTypeParameter> _functionTypeParameters;
-  int _genericTypeAliasReference;
-  List<idl.LinkedNodeType> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<idl.LinkedNodeType> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
@@ -16376,7 +16328,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   int get functionTypedef {
     _functionTypedef ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
     return _functionTypedef;
   }
 
@@ -16384,7 +16336,7 @@ class _LinkedNodeTypeImpl extends Object
   List<idl.LinkedNodeType> get functionTypedefTypeArguments {
     _functionTypedefTypeArguments ??=
         const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
-            .vTableGet(_bc, _bcOffset, 12, const <idl.LinkedNodeType>[]);
+            .vTableGet(_bc, _bcOffset, 10, const <idl.LinkedNodeType>[]);
     return _functionTypedefTypeArguments;
   }
 
@@ -16396,21 +16348,6 @@ class _LinkedNodeTypeImpl extends Object
             .vTableGet(
                 _bc, _bcOffset, 2, const <idl.LinkedNodeTypeTypeParameter>[]);
     return _functionTypeParameters;
-  }
-
-  @override
-  int get genericTypeAliasReference {
-    _genericTypeAliasReference ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
-    return _genericTypeAliasReference;
-  }
-
-  @override
-  List<idl.LinkedNodeType> get genericTypeAliasTypeArguments {
-    _genericTypeAliasTypeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
-            .vTableGet(_bc, _bcOffset, 9, const <idl.LinkedNodeType>[]);
-    return _genericTypeAliasTypeArguments;
   }
 
   @override
@@ -16437,7 +16374,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   idl.EntityRefNullabilitySuffix get nullabilitySuffix {
     _nullabilitySuffix ??= const _EntityRefNullabilitySuffixReader().vTableGet(
-        _bc, _bcOffset, 10, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
+        _bc, _bcOffset, 8, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
     return _nullabilitySuffix;
   }
 
@@ -16473,12 +16410,6 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
     if (functionTypeParameters.isNotEmpty)
       _result["functionTypeParameters"] =
           functionTypeParameters.map((_value) => _value.toJson()).toList();
-    if (genericTypeAliasReference != 0)
-      _result["genericTypeAliasReference"] = genericTypeAliasReference;
-    if (genericTypeAliasTypeArguments.isNotEmpty)
-      _result["genericTypeAliasTypeArguments"] = genericTypeAliasTypeArguments
-          .map((_value) => _value.toJson())
-          .toList();
     if (interfaceClass != 0) _result["interfaceClass"] = interfaceClass;
     if (interfaceTypeArguments.isNotEmpty)
       _result["interfaceTypeArguments"] =
@@ -16500,8 +16431,6 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
         "functionTypedef": functionTypedef,
         "functionTypedefTypeArguments": functionTypedefTypeArguments,
         "functionTypeParameters": functionTypeParameters,
-        "genericTypeAliasReference": genericTypeAliasReference,
-        "genericTypeAliasTypeArguments": genericTypeAliasTypeArguments,
         "interfaceClass": interfaceClass,
         "interfaceTypeArguments": interfaceTypeArguments,
         "kind": kind,

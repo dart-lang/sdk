@@ -1997,15 +1997,11 @@ table LinkedNodeType {
   functionReturnType:LinkedNodeType (id: 1);
 
   /// The typedef this function type is created for.
-  functionTypedef:uint (id: 11);
+  functionTypedef:uint (id: 9);
 
-  functionTypedefTypeArguments:[LinkedNodeType] (id: 12);
+  functionTypedefTypeArguments:[LinkedNodeType] (id: 10);
 
   functionTypeParameters:[LinkedNodeTypeTypeParameter] (id: 2);
-
-  genericTypeAliasReference:uint (id: 8);
-
-  genericTypeAliasTypeArguments:[LinkedNodeType] (id: 9);
 
   /// Reference to a [LinkedNodeReferences].
   interfaceClass:uint (id: 3);
@@ -2014,7 +2010,7 @@ table LinkedNodeType {
 
   kind:LinkedNodeTypeKind (id: 5);
 
-  nullabilitySuffix:EntityRefNullabilitySuffix (id: 10);
+  nullabilitySuffix:EntityRefNullabilitySuffix (id: 8);
 
   typeParameterElement:uint (id: 6);
 
