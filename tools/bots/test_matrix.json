@@ -2111,7 +2111,8 @@
         },
         {
           "name": "run tests",
-          "script": "tools/run_abi_tests.py"
+          "script": "tools/run_abi_tests.py",
+          "testRunner": true
         }
       ]
     }
