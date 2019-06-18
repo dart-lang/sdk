@@ -816,7 +816,7 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // LR: return address.
   // SP: receiver.
   // Sequence node has one return node, its input is load field node.
-  __ Comment("Inlined Getter");
+  __ Comment("Intrinsic Getter");
   __ LoadFromOffset(R0, SP, 0 * kWordSize);
   __ LoadFieldFromOffset(R0, R0, offset);
   __ ret();
@@ -827,7 +827,7 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // SP+1: receiver.
   // SP+0: value.
   // Sequence node has one store node and one return NULL node.
-  __ Comment("Inlined Setter");
+  __ Comment("Intrinsic Setter");
   __ LoadFromOffset(R0, SP, 1 * kWordSize);  // Receiver.
   __ LoadFromOffset(R1, SP, 0 * kWordSize);  // Value.
   __ StoreIntoObjectOffset(R0, offset, R1);

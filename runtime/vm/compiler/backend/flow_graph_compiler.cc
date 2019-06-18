@@ -1239,7 +1239,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-          return !isolate()->use_field_guards();
+          return true;
         }
         return false;
       }
@@ -1258,7 +1258,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
             SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
             GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
             SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
-            return !isolate()->use_field_guards();
+            return true;
           }
           return false;
         }
