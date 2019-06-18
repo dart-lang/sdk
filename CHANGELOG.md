@@ -1,6 +1,6 @@
-## 2.4.1-dev.XX.0
+## Next release
 (Add new changes here, and they will be copied to the change section for the
- next dev version)
+ next release)
 
 ### Language
 
