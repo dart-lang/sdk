@@ -66,6 +66,7 @@ static const intptr_t DT_SYMENT = 11;
 
 #if defined(TARGET_ARCH_IS_32_BIT)
 static const intptr_t kElfHeaderSize = 52;
+static const intptr_t kElfSectionTableAlignment = 4;
 static const intptr_t kElfSectionTableEntrySize = 40;
 static const intptr_t kElfProgramTableEntrySize = 32;
 static const intptr_t kElfSymbolTableEntrySize = 16;
@@ -73,6 +74,7 @@ static const intptr_t kElfDynamicTableEntrySize = 8;
 static const intptr_t kElfSymbolHashTableEntrySize = 4;
 #else
 static const intptr_t kElfHeaderSize = 64;
+static const intptr_t kElfSectionTableAlignment = 8;
 static const intptr_t kElfSectionTableEntrySize = 64;
 static const intptr_t kElfProgramTableEntrySize = 56;
 static const intptr_t kElfSymbolTableEntrySize = 24;
@@ -508,6 +510,7 @@ void Elf::ComputeFileOffsets() {
     file_offset += section->file_size;
   }
 
+  file_offset = Utils::RoundUp(file_offset, kElfSectionTableAlignment);
   section_table_file_offset_ = file_offset;
   section_table_file_size_ =
       (sections_.length() + kNumInvalidSections) * kElfSectionTableEntrySize;
@@ -686,6 +689,8 @@ void Elf::WriteProgramTable() {
 }
 
 void Elf::WriteSectionTable() {
+  stream_->Align(kElfSectionTableAlignment);
+
   ASSERT(stream_->position() == section_table_file_offset_);
 
   {
