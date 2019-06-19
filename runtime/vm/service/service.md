@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.18
+# Dart VM Service Protocol 3.19
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.18_ of the Dart VM Service Protocol. This
+This document describes of _version 3.19_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,6 +27,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
   - [addBreakpointAtEntry](#addbreakpointatentry)
+  - [clearVMTimeline](#clearvmtimeline)
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
@@ -39,6 +40,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getStack](#getstack)
   - [getVersion](#getversion)
   - [getVM](#getvm)
+  - [getVMTimeline](#getvmtimeline)
+  - [getVMTimelineFlags](#getvmtimelineflags)
   - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
@@ -50,6 +53,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setLibraryDebuggable](#setlibrarydebuggable)
   - [setName](#setname)
   - [setVMName](#setvmname)
+  - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
   - [streamListen](#streamlisten)
 - [Public Types](#public-types)
@@ -98,6 +102,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Stack](#stack)
   - [StepOption](#stepoption)
   - [Success](#success)
+  - [Timeline](#timeline)
+  - [TimelineEvent](#timelineevent)
+  - [TimelineFlags](#timelineflags)
   - [TypeArguments](#typearguments)
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
@@ -203,8 +210,7 @@ code | message | meaning
 111 | Service already registered | Service with such name has already been registered by this client
 112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available
 113 | Expression compilation error | Request to compile expression failed
-
-
+114 | Invalid timeline request | The timeline related request could not be completed due to the current configuration
 
 ## Events
 
@@ -478,6 +484,17 @@ breakpoint) error code is returned.
 See [Breakpoint](#breakpoint).
 
 Note that breakpoints are added and removed on a per-isolate basis.
+
+
+### clearVMTimeline
+
+``` 
+Success clearVMTimeline()
+```
+
+Clears all VM timeline events.
+
+See [Success](#success).
 
 ### invoke
 
@@ -768,6 +785,42 @@ The _getVM_ RPC returns global information about a Dart virtual machine.
 
 See [VM](#vm).
 
+
+### getVMTimeline
+
+```
+Timeline getVMTimeline(int timeOriginMicros,
+                       int timeExtentMicros)
+```
+
+The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
+events.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to filter
+timeline events.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to filter
+timeline events should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
+from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
+Systrace, the _114_ error code, invalid timeline request, will be returned as
+timeline events are handled by the OS in these modes.
+
+### getVMTimelineFlags
+
+```
+TimelineFlags getVMTimelineFlags()
+```
+
+The _getVMTimelineFlags_ RPC returns information about the current VM timeline configuration.
+
+To change which timeline streams are currently enabled, see [setVMTimelineFlags](#setvmtimelineflags).
+
+See [TimelineFlags](#timelineflags).
+
 ### pause
 
 ```
@@ -793,7 +846,6 @@ The isolate is killed regardless of whether it is paused or running.
 See [Success](#success).
 
 ### reloadSources
-
 
 ```
 ReloadReport reloadSources(string isolateId,
@@ -931,6 +983,22 @@ Success setVMName(string name)
 ```
 
 The _setVMName_ RPC is used to change the debugging name for the vm.
+
+See [Success](#success).
+
+### setVMTimelineFlags
+
+```
+Success setVMTimelineFlags(string[] recordedStreams)
+```
+
+The _setVMTimelineFlags_ RPC is used to set which timeline streams are enabled.
+
+The _recordedStreams_ parameter is the list of all timeline streams which are
+to be enabled. Streams not explicitly specified will be disabled. Invalid stream
+names are ignored.
+
+To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
 
 See [Success](#success).
 
@@ -2767,6 +2835,21 @@ class Success extends Response {
 
 The _Success_ type is used to indicate that an operation completed successfully.
 
+### Timeline
+
+```
+class Timeline extends Response {
+  // A list of timeline events.
+  TimelineEvent[] traceEvents;
+
+  // The start of the period of time in which traceEvents were collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the timeline.
+  int timeExtentMicros;
+}
+```
+
 ### TimelineEvent
 
 ```
@@ -2775,6 +2858,23 @@ class TimelineEvent {
 ```
 
 An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview) event.
+
+### TimelineFlags
+
+```
+class TimelineFlags extends Response {
+  // The name of the recorder currently in use. Recorder types include, but are
+  // not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
+  // Set to "null" if no recorder is currently set. 
+  string recorderName;
+
+  // The list of all available timeline streams.
+  string[] availableStreams;
+
+  // The list of timeline streams that are currently enabled.
+  string[] recordedStreams;
+}
+```
 
 ### TypeArguments
 
@@ -2922,5 +3022,6 @@ version | comments
 3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
 3.17 | Add 'Logging' event kind and the LogRecord class.
 3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
+3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

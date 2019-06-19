@@ -61,6 +61,7 @@ enum JSONRpcErrorCode {
   kServiceAlreadyRegistered = 111,
   kServiceDisappeared = 112,
   kExpressionCompilationError = 113,
+  kInvalidTimelineRequest = 114,
 
   // Experimental (used in private rpcs).
   kFileSystemAlreadyExists = 1001,

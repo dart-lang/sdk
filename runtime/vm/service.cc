@@ -3656,6 +3656,18 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   // TODO(johnmccutchan): Return an error.
   ASSERT(timeline_recorder != NULL);
+  const char* name = timeline_recorder->name();
+  if ((strcmp(name, FUCHSIA_RECORDER_NAME) == 0) ||
+      (strcmp(name, SYSTRACE_RECORDER_NAME) == 0)) {
+    js->PrintError(kInvalidTimelineRequest,
+                   "A recorder of type \"%s\" is "
+                   "currently in use. As a result, timeline events are handled "
+                   "by the OS rather than the VM. See the VM service "
+                   "documentation for more details on where timeline events "
+                   "can be found for this recorder type.",
+                   timeline_recorder->name());
+    return true;
+  }
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -4882,7 +4894,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     build_expression_evaluation_scope_params },
   { "_clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
-  { "_clearVMTimeline", ClearVMTimeline,
+  { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
   { "_enableProfiler", EnableProfiler,
@@ -4959,9 +4971,9 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_params },
   { "_getVMMetricList", GetVMMetricList,
     get_vm_metric_list_params },
-  { "_getVMTimeline", GetVMTimeline,
+  { "getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
-  { "_getVMTimelineFlags", GetVMTimelineFlags,
+  { "getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
@@ -4991,7 +5003,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
-  { "_setVMTimelineFlags", SetVMTimelineFlags,
+  { "setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
   { "_collectAllGarbage", CollectAllGarbage,
     collect_all_garbage_params },

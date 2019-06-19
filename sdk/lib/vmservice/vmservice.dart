@@ -69,6 +69,7 @@ const kIsolateMustHaveReloaded = 110;
 const kServiceAlreadyRegistered = 111;
 const kServiceDisappeared = 112;
 const kExpressionCompilationError = 113;
+const kInvalidTimelineRequest = 114;
 
 // Experimental (used in private rpcs).
 const kFileSystemAlreadyExists = 1001;
@@ -87,6 +88,8 @@ var _errorMessages = {
   kServiceAlreadyRegistered: 'Service already registered',
   kServiceDisappeared: 'Service has disappeared',
   kExpressionCompilationError: 'Expression compilation error',
+  kInvalidTimelineRequest: 'The timeline related request could not be completed'
+      'due to the current configuration',
 };
 
 String encodeRpcError(Message message, int code, {String details}) {
