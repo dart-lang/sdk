@@ -484,6 +484,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitNamespaceDirective(NamespaceDirective node) {
+    // skip directives
+    return null;
+  }
+
+  @override
   DecoratedType visitNode(AstNode node) {
     if (listener != null) {
       try {

@@ -1435,6 +1435,15 @@ main() {
         hard: true);
   }
 
+  test_skipDirectives() async {
+    await analyze('''
+import "dart:core" as one;
+main() {}
+''');
+    // No test expectations.
+    // Just verifying that the test passes
+  }
+
   test_soft_edge_for_non_variable_reference() async {
     // Edges originating in things other than variable references should be
     // soft.
