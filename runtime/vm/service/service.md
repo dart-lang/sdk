@@ -797,7 +797,8 @@ The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
 events.
 
 The _timeOriginMicros_ parameter is the beginning of the time range used to filter
-timeline events.
+timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
+and the VM embedding API's `Dart_TimelineGetMicros`.
 
 The _timeExtentMicros_ parameter specifies how large the time range used to filter
 timeline events should be.

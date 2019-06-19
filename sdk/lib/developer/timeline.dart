@@ -166,6 +166,9 @@ class Timeline {
 
   /// The current time stamp from the clock used by the timeline. Units are
   /// microseconds.
+  ///
+  /// When run on the Dart VM, uses the same monotonic clock as the embedding
+  /// API's `Dart_TimelineGetMicros`.
   static int get now => _getTraceClock();
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
 }

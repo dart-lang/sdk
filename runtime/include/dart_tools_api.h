@@ -301,7 +301,8 @@ DART_EXPORT bool Dart_IsReloading();
 
 /**
  * Returns a timestamp in microseconds. This timestamp is suitable for
- * passing into the timeline system.
+ * passing into the timeline system, and uses the same monotonic clock
+ * as dart:developer's Timeline.now.
  *
  * \return A timestamp that can be passed to the timeline system.
  */
