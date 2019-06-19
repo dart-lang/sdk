@@ -114,8 +114,8 @@ issue31596_super_test/01: CompileTimeError
 issue31596_super_test/03: CompileTimeError
 left_shift_test: RuntimeError # non JS number semantics
 library_env_test/has_io_support: RuntimeError, OK # dart2js doesn't support io when compiling on --categories=Client
-library_env_test/has_mirror_support: Fail # mirrors not supported on web
 library_env_test/has_mirror_support: RuntimeError
+library_env_test/has_mirror_support: Fail # mirrors not supported on web
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
 list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
