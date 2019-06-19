@@ -420,6 +420,6 @@ enum JsBuiltin {
 /// Names of fields of the Rti Universe object.
 class RtiUniverseFieldNames {
   static String evalCache = 'eC';
-  static String unprocessedRules = 'uR';
+  static String typeRules = 'tR';
   static String sharedEmptyArray = 'sEA';
 }

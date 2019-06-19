@@ -158,6 +158,11 @@ class Rti {
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
 
+  static Rti _getFutureOrArgument(Rti rti) {
+    assert(_getKind(rti) == kindFutureOr);
+    return _castToRti(_getPrimary(rti));
+  }
+
   /// On [Rti]s that are type environments*, derived types are cached on the
   /// environment to ensure fast canonicalization. Ground-term types (i.e. not
   /// dependent on class or function type parameters) are cached in the
@@ -334,16 +339,16 @@ class _Universe {
   @pragma('dart2js:noInline')
   static Object create() {
     // This needs to be kept in sync with `FragmentEmitter.createRtiUniverse` in
-    // `fragment_emtter.dart`.
+    // `fragment_emitter.dart`.
     return JS(
         '',
         '{'
             '#: new Map(),'
-            '#: [],'
+            '#: {},'
             '#: [],' // shared empty array.
             '}',
         RtiUniverseFieldNames.evalCache,
-        RtiUniverseFieldNames.unprocessedRules,
+        RtiUniverseFieldNames.typeRules,
         RtiUniverseFieldNames.sharedEmptyArray);
   }
 
@@ -352,9 +357,12 @@ class _Universe {
   static evalCache(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.evalCache);
 
-  static void addRules(universe, String rules) {
-    JS('', '#.#.push(#)', universe, RtiUniverseFieldNames.unprocessedRules,
-        rules);
+  static findRule(universe, String targetType) =>
+      JS('', '#.#.#', universe, RtiUniverseFieldNames.typeRules, targetType);
+
+  static void addRule(universe, String targetType, rule) {
+    JS('', '#.#.# = #', universe, RtiUniverseFieldNames.typeRules, targetType,
+        rule);
   }
 
   static Object sharedEmptyArray(universe) =>
@@ -921,18 +929,139 @@ class _Parser {
   static const int $TILDE = 0x7E;
 }
 
+/// Represents the set of supertypes and type variable bindings for a given
+/// target type. The target type itself is not stored on the [TypeRule].
+class TypeRule {
+  TypeRule._() {
+    throw UnimplementedError("TypeRule is static methods only.");
+  }
+
+  // TODO(fishythefish): Create whole rule at once rather than adding individual
+  // supertypes/type variables.
+
+  @pragma('dart2js:noInline')
+  static Object create() {
+    return JS('=Object', '{}');
+  }
+
+  static void addTypeVariable(rule, String typeVariable, String binding) {
+    JS('', '#.# = #', rule, typeVariable, binding);
+  }
+
+  static String lookupTypeVariable(rule, String typeVariable) =>
+      JS('String|Null', '#.#', rule, typeVariable);
+
+  static void addSupertype(rule, String supertype, Object supertypeArgs) {
+    JS('', '#.# = #', rule, supertype, supertypeArgs);
+  }
+
+  static JSArray lookupSupertype(rule, String supertype) =>
+      JS('JSArray|Null', '#.#', rule, supertype);
+}
+
 // -------- Subtype tests ------------------------------------------------------
 
 // Future entry point from compiled code.
-bool isSubtype(Rti s, Rti t) {
-  return _isSubtype(s, null, t, null);
+bool isSubtype(universe, Rti s, Rti t) {
+  return _isSubtype(universe, s, null, t, null);
 }
 
-bool _isSubtype(Rti s, var sEnv, Rti t, var tEnv) {
+bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
+  // TODO(fishythefish): Update for NNBD. See
+  // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
+
+  // Subtyping is reflexive.
   if (_Utils.isIdentical(s, t)) return true;
-  int tKind = Rti._getKind(t);
-  if (tKind == Rti.kindDynamic) return true;
-  if (tKind == Rti.kindNever) return false;
+
+  if (isTopType(t)) return true;
+
+  if (isJsInteropType(s)) return true;
+
+  if (isTopType(s)) {
+    if (isGenericFunctionTypeParameter(t)) return false;
+    if (isFutureOrType(t)) {
+      // [t] is FutureOr<T>. Check [s] <: T.
+      var tTypeArgument = Rti._getFutureOrArgument(t);
+      return _isSubtype(universe, s, sEnv, tTypeArgument, tEnv);
+    }
+    return false;
+  }
+
+  // Generic function type parameters must match exactly, which would have
+  // exited earlier. The de Bruijn indexing ensures the representation as a
+  // small number can be used for type comparison.
+  // TODO(fishythefish): Use the bound of the type variable.
+  if (isGenericFunctionTypeParameter(s)) return false;
+  if (isGenericFunctionTypeParameter(t)) return false;
+
+  if (isNullType(s)) return true;
+
+  if (isFunctionType(t)) {
+    // TODO(fishythefish): Check if s is a function subtype of t.
+    throw UnimplementedError("isFunctionType(t)");
+  }
+
+  if (isFunctionType(s)) {
+    // TODO(fishythefish): Check if t is Function.
+    throw UnimplementedError("isFunctionType(s)");
+  }
+
+  if (isFutureOrType(t)) {
+    // [t] is FutureOr<T>.
+    var tTypeArgument = Rti._getFutureOrArgument(t);
+    if (isFutureOrType(s)) {
+      // [s] is FutureOr<S>. Check S <: T.
+      var sTypeArgument = Rti._getFutureOrArgument(s);
+      return _isSubtype(universe, sTypeArgument, sEnv, tTypeArgument, tEnv);
+    } else if (_isSubtype(universe, s, sEnv, tTypeArgument, tEnv)) {
+      // `true` because [s] <: T.
+      return true;
+    } else {
+      // TODO(fishythefish): Check [s] <: Future<T>.
+    }
+  }
+
+  assert(Rti._getKind(s) == Rti.kindInterface);
+  assert(Rti._getKind(t) == Rti.kindInterface);
+  String sName = Rti._getInterfaceName(s);
+  String tName = Rti._getInterfaceName(t);
+  // TODO(fishythefish): Handle identical names.
+
+  var rule = _Universe.findRule(universe, sName);
+  if (rule == null) return false;
+  var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
+  if (supertypeArgs == null) return false;
+  var tArgs = Rti._getInterfaceTypeArguments(t);
+  int length = _Utils.arrayLength(supertypeArgs);
+  assert(length == _Utils.arrayLength(tArgs));
+  for (int i = 0; i < length; i++) {
+    String recipe = _Utils.arrayAt(supertypeArgs, i);
+    Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
+    Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
+    if (!isSubtype(universe, supertypeArg, tArg)) return false;
+  }
+
+  return true;
+}
+
+bool isTopType(Rti t) =>
+    isDynamicType(t) || isVoidType(t) || isObjectType(t) || isJsInteropType(t);
+
+bool isDynamicType(Rti t) => Rti._getKind(t) == Rti.kindDynamic;
+bool isVoidType(Rti t) => Rti._getKind(t) == Rti.kindVoid;
+bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
+bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
+bool isFunctionType(Rti t) => Rti._getKind(t) == Rti.kindFunction;
+bool isGenericFunctionTypeParameter(Rti t) =>
+    Rti._getKind(t) == Rti.kindGenericFunctionParameter;
+
+bool isObjectType(Rti t) {
+  // TODO(fishythefish): Look up Object in universe and compare.
+  return false;
+}
+
+bool isNullType(Rti t) {
+  // TODO(fishythefish): Look up Null in universe and compare.
   return false;
 }
 
@@ -990,12 +1119,24 @@ Object testingCreateUniverse() {
   return _Universe.create();
 }
 
-Object testingAddRules(universe, String rules) {
-  _Universe.addRules(universe, rules);
+Object testingCreateRule() {
+  return TypeRule.create();
 }
 
-bool testingIsSubtype(rti1, rti2) {
-  return isSubtype(_castToRti(rti1), _castToRti(rti2));
+void testingAddTypeVariable(rule, String typeVariable, String binding) {
+  TypeRule.addTypeVariable(rule, typeVariable, binding);
+}
+
+void testingAddSupertype(rule, String supertype, Object supertypeArgs) {
+  TypeRule.addSupertype(rule, supertype, supertypeArgs);
+}
+
+void testingAddRule(universe, String targetType, rule) {
+  _Universe.addRule(universe, targetType, rule);
+}
+
+bool testingIsSubtype(universe, rti1, rti2) {
+  return isSubtype(universe, _castToRti(rti1), _castToRti(rti2));
 }
 
 Object testingUniverseEval(universe, String recipe) {
