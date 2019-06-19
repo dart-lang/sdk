@@ -2,62 +2,60 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+/// Sets of variables that are potentially assigned in a statement.
+class AssignedVariables<Statement, Element> {
+  final emptySet = Set<Element>();
 
-/// Sets of variables that are potentially assigned in a node.
-class AssignedVariables {
-  static final emptySet = Set<VariableElement>();
+  /// Mapping from a [Statement] representing a loop to the set of variables
+  /// that are potentially assigned in that loop.
+  final Map<Statement, Set<Element>> _map = {};
 
-  /// Mapping from a loop [AstNode] to the set of variables that are
-  /// potentially assigned in this loop.
-  final Map<AstNode, Set<VariableElement>> _map = {};
+  /// The stack of nested nodes.
+  final List<Set<Element>> _stack = [];
 
-  /// The stack of nested loops.
-  final List<Set<VariableElement>> _stack = [];
+  AssignedVariables();
 
-  /// Return the set of variables that are potentially assigned in the [loop].
-  Set<VariableElement> operator [](AstNode loop) {
-    return _map[loop] ?? emptySet;
+  /// Return the set of variables that are potentially assigned in the
+  /// [statement].
+  Set<Element> operator [](Statement statement) {
+    return _map[statement] ?? emptySet;
   }
 
   void beginLoop() {
-    var set = Set<VariableElement>.identity();
+    var set = Set<Element>.identity();
     _stack.add(set);
   }
 
-  void endLoop(AstNode loop) {
-    _map[loop] = _stack.removeLast();
+  void endLoop(Statement node) {
+    _map[node] = _stack.removeLast();
   }
 
-  void write(VariableElement variable) {
+  void write(Element variable) {
     for (var i = 0; i < _stack.length; ++i) {
       _stack[i].add(variable);
     }
   }
 }
 
-class FlowAnalysis<T> {
-  final _identity = _State<T>(
-    false,
-    _ElementSet.empty,
-    _ElementSet.empty,
-    _ElementSet.empty,
-    const {},
-  );
+class FlowAnalysis<Statement, Expression, Element, Type> {
+  final _ElementSet<Element> _emptySet;
+  final _State<Element, Type> _identity;
 
   /// The output list of variables that were read before they were written.
   /// TODO(scheglov) use _ElementSet?
-  final List<LocalVariableElement> readBeforeWritten = [];
+  final List<Element> readBeforeWritten = [];
+
+  /// The [NodeOperations], used to manipulate expressions.
+  final NodeOperations<Expression> nodeOperations;
 
   /// The [TypeOperations], used to access types, and check subtyping.
-  final TypeOperations<T> typeOperations;
+  final TypeOperations<Element, Type> typeOperations;
 
-  /// The enclosing [FunctionBody], used to check for potential mutations.
-  final FunctionBody functionBody;
+  /// The enclosing function body, used to check for potential mutations.
+  final FunctionBodyAccess functionBody;
 
   /// The stack of states of variables that are not definitely assigned.
-  final List<_State> _stack = [];
+  final List<_State<Element, Type>> _stack = [];
 
   /// The mapping from labeled [Statement]s to the index in the [_stack]
   /// where the first related element is located.  The number of elements
@@ -66,25 +64,55 @@ class FlowAnalysis<T> {
   final Map<Statement, int> _statementToStackIndex = {};
 
   /// The list of all variables.
-  final List<VariableElement> _variables = [];
+  final List<Element> _variables = [];
 
-  _State<T> _current;
+  _State<Element, Type> _current;
 
   /// The last boolean condition, for [_conditionTrue] and [_conditionFalse].
   Expression _condition;
 
   /// The state when [_condition] evaluates to `true`.
-  _State<T> _conditionTrue;
+  _State<Element, Type> _conditionTrue;
 
   /// The state when [_condition] evaluates to `false`.
-  _State<T> _conditionFalse;
+  _State<Element, Type> _conditionFalse;
 
-  FlowAnalysis(this.typeOperations, this.functionBody) {
-    _current = _State<T>(
+  factory FlowAnalysis(
+    NodeOperations<Expression> nodeOperations,
+    TypeOperations<Element, Type> typeOperations,
+    FunctionBodyAccess functionBody,
+  ) {
+    var emptySet = _ElementSet<Element>._(
+      List<Element>(0),
+    );
+    var identifyState = _State<Element, Type>(
+      false,
+      emptySet,
+      emptySet,
+      emptySet,
+      const {},
+    );
+    return FlowAnalysis._(
+      nodeOperations,
+      typeOperations,
+      functionBody,
+      emptySet,
+      identifyState,
+    );
+  }
+
+  FlowAnalysis._(
+    this.nodeOperations,
+    this.typeOperations,
+    this.functionBody,
+    this._emptySet,
+    this._identity,
+  ) {
+    _current = _State<Element, Type>(
       true,
-      _ElementSet.empty,
-      _ElementSet.empty,
-      _ElementSet.empty,
+      _emptySet,
+      _emptySet,
+      _emptySet,
       const {},
     );
   }
@@ -93,17 +121,18 @@ class FlowAnalysis<T> {
   bool get isReachable => _current.reachable;
 
   /// Add a new [variable], which might be already [assigned].
-  void add(VariableElement variable, {bool assigned: false}) {
+  void add(Element variable, {bool assigned: false}) {
     _variables.add(variable);
     _current = _current.add(variable, assigned: assigned);
   }
 
-  void conditional_elseBegin(ConditionalExpression node, bool isBool) {
+  void conditional_elseBegin(Expression conditionalExpression,
+      Expression thenExpression, bool isBool) {
     var afterThen = _current;
     var falseCondition = _stack.removeLast();
 
     if (isBool) {
-      _conditionalEnd(node.thenExpression);
+      _conditionalEnd(thenExpression);
       // Tail of the stack: falseThen, trueThen
     }
 
@@ -111,12 +140,13 @@ class FlowAnalysis<T> {
     _current = falseCondition;
   }
 
-  void conditional_end(ConditionalExpression node, bool isBool) {
+  void conditional_end(Expression conditionalExpression,
+      Expression elseExpression, bool isBool) {
     var afterThen = _stack.removeLast();
     var afterElse = _current;
 
     if (isBool) {
-      _conditionalEnd(node.elseExpression);
+      _conditionalEnd(elseExpression);
       // Tail of the stack: falseThen, trueThen, falseElse, trueElse
 
       var trueElse = _stack.removeLast();
@@ -128,7 +158,7 @@ class FlowAnalysis<T> {
       var trueResult = _join(trueThen, trueElse);
       var falseResult = _join(falseThen, falseElse);
 
-      _condition = node;
+      _condition = conditionalExpression;
       _conditionTrue = trueResult;
       _conditionFalse = falseResult;
     }
@@ -136,41 +166,41 @@ class FlowAnalysis<T> {
     _current = _join(afterThen, afterElse);
   }
 
-  void conditional_thenBegin(ConditionalExpression node) {
-    _conditionalEnd(node.condition);
+  void conditional_thenBegin(
+      Expression conditionalExpression, Expression condition) {
+    _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 
     var trueCondition = _stack.removeLast();
     _current = trueCondition;
   }
 
-  /// The [node] checks that the [variable] is equal to `null`.
-  void conditionEqNull(BinaryExpression node, VariableElement variable) {
+  /// The [binaryExpression] checks that the [variable] is equal to `null`.
+  void conditionEqNull(Expression binaryExpression, Element variable) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
 
-    _condition = node;
-    _conditionTrue = _current.markNullable(variable);
-    _conditionFalse = _current.markNonNullable(variable);
+    _condition = binaryExpression;
+    _conditionTrue = _current.markNullable(_emptySet, variable);
+    _conditionFalse = _current.markNonNullable(_emptySet, variable);
   }
 
-  /// The [node] checks that the [variable] is not equal to `null`.
-  void conditionNotEqNull(BinaryExpression node, VariableElement variable) {
+  /// The [binaryExpression] checks that the [variable] is not equal to `null`.
+  void conditionNotEqNull(Expression binaryExpression, Element variable) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
 
-    _condition = node;
-    _conditionTrue = _current.markNonNullable(variable);
-    _conditionFalse = _current.markNullable(variable);
+    _condition = binaryExpression;
+    _conditionTrue = _current.markNonNullable(_emptySet, variable);
+    _conditionFalse = _current.markNullable(_emptySet, variable);
   }
 
-  void doStatement_bodyBegin(
-      DoStatement node, Set<VariableElement> loopAssigned) {
+  void doStatement_bodyBegin(Statement doStatement, Set<Element> loopAssigned) {
     _current = _current.removePromotedAll(loopAssigned);
 
-    _statementToStackIndex[node] = _stack.length;
+    _statementToStackIndex[doStatement] = _stack.length;
     _stack.add(_identity); // break
     _stack.add(_identity); // continue
   }
@@ -182,8 +212,8 @@ class FlowAnalysis<T> {
     _current = _join(_current, continueState);
   }
 
-  void doStatement_end(DoStatement node) {
-    _conditionalEnd(node.condition);
+  void doStatement_end(Statement doStatement, Expression condition) {
+    _conditionalEnd(condition);
     // Tail of the stack:  break, falseCondition, trueCondition
 
     _stack.removeLast(); // trueCondition
@@ -193,13 +223,13 @@ class FlowAnalysis<T> {
     _current = _join(falseCondition, breakState);
   }
 
-  void falseLiteral(BooleanLiteral expression) {
+  void falseLiteral(Expression expression) {
     _condition = expression;
     _conditionTrue = _identity;
     _conditionFalse = _current;
   }
 
-  void forEachStatement_bodyBegin(Set<VariableElement> loopAssigned) {
+  void forEachStatement_bodyBegin(Set<Element> loopAssigned) {
     _stack.add(_current);
     _current = _current.removePromotedAll(loopAssigned);
   }
@@ -222,7 +252,7 @@ class FlowAnalysis<T> {
     _current = trueCondition;
   }
 
-  void forStatement_conditionBegin(Set<VariableElement> loopAssigned) {
+  void forStatement_conditionBegin(Set<Element> loopAssigned) {
     _current = _current.removePromotedAll(loopAssigned);
   }
 
@@ -245,10 +275,10 @@ class FlowAnalysis<T> {
   void functionExpression_begin() {
     _stack.add(_current);
 
-    Set<VariableElement> notPromoted = null;
+    Set<Element> notPromoted = null;
     for (var variable in _current.promoted.keys) {
       if (functionBody.isPotentiallyMutatedInScope(variable)) {
-        notPromoted ??= Set<VariableElement>.identity();
+        notPromoted ??= Set<Element>.identity();
         notPromoted.add(variable);
       }
     }
@@ -262,7 +292,7 @@ class FlowAnalysis<T> {
     _current = _stack.removeLast();
   }
 
-  void handleBreak(AstNode target) {
+  void handleBreak(Statement target) {
     var breakIndex = _statementToStackIndex[target];
     if (breakIndex != null) {
       _stack[breakIndex] = _join(_stack[breakIndex], _current);
@@ -270,7 +300,7 @@ class FlowAnalysis<T> {
     _current = _current.exit();
   }
 
-  void handleContinue(AstNode target) {
+  void handleContinue(Statement target) {
     var breakIndex = _statementToStackIndex[target];
     if (breakIndex != null) {
       var continueIndex = breakIndex + 1;
@@ -302,8 +332,8 @@ class FlowAnalysis<T> {
   }
 
   void ifStatement_end(bool hasElse) {
-    _State<T> afterThen;
-    _State<T> afterElse;
+    _State<Element, Type> afterThen;
+    _State<Element, Type> afterElse;
     if (hasElse) {
       afterThen = _stack.removeLast();
       afterElse = _current;
@@ -314,8 +344,8 @@ class FlowAnalysis<T> {
     _current = _join(afterThen, afterElse);
   }
 
-  void ifStatement_thenBegin(IfStatement ifStatement) {
-    _conditionalEnd(ifStatement.condition);
+  void ifStatement_thenBegin(Statement ifStatement, Expression condition) {
+    _conditionalEnd(condition);
     // Tail of the stack:  falseCondition, trueCondition
 
     var trueCondition = _stack.removeLast();
@@ -323,33 +353,33 @@ class FlowAnalysis<T> {
   }
 
   void isExpression_end(
-      IsExpression isExpression, VariableElement variable, T type) {
+      Expression isExpression, Element variable, bool isNot, Type type) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
 
     _condition = isExpression;
-    if (isExpression.notOperator == null) {
-      _conditionTrue = _current.promote(typeOperations, variable, type);
-      _conditionFalse = _current;
-    } else {
+    if (isNot) {
       _conditionTrue = _current;
       _conditionFalse = _current.promote(typeOperations, variable, type);
+    } else {
+      _conditionTrue = _current.promote(typeOperations, variable, type);
+      _conditionFalse = _current;
     }
   }
 
   /// Return `true` if the [variable] is known to be be nullable.
-  bool isNonNullable(VariableElement variable) {
+  bool isNonNullable(Element variable) {
     return !_current.notNonNullable.contains(variable);
   }
 
   /// Return `true` if the [variable] is known to be be non-nullable.
-  bool isNullable(VariableElement variable) {
+  bool isNullable(Element variable) {
     return !_current.notNullable.contains(variable);
   }
 
-  void logicalAnd_end(BinaryExpression andExpression) {
-    _conditionalEnd(andExpression.rightOperand);
+  void logicalAnd_end(Expression andExpression, Expression rightOperand) {
+    _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
 
     var trueRight = _stack.removeLast();
@@ -369,16 +399,16 @@ class FlowAnalysis<T> {
     _current = afterResult;
   }
 
-  void logicalAnd_rightBegin(BinaryExpression andExpression) {
-    _conditionalEnd(andExpression.leftOperand);
+  void logicalAnd_rightBegin(Expression andExpression, Expression leftOperand) {
+    _conditionalEnd(leftOperand);
     // Tail of the stack: falseLeft, trueLeft
 
     var trueLeft = _stack.last;
     _current = trueLeft;
   }
 
-  void logicalNot_end(PrefixExpression notExpression) {
-    _conditionalEnd(notExpression.operand);
+  void logicalNot_end(Expression notExpression, Expression operand) {
+    _conditionalEnd(operand);
     var trueExpr = _stack.removeLast();
     var falseExpr = _stack.removeLast();
 
@@ -387,8 +417,8 @@ class FlowAnalysis<T> {
     _conditionFalse = trueExpr;
   }
 
-  void logicalOr_end(BinaryExpression orExpression) {
-    _conditionalEnd(orExpression.rightOperand);
+  void logicalOr_end(Expression orExpression, Expression rightOperand) {
+    _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
 
     var trueRight = _stack.removeLast();
@@ -408,8 +438,8 @@ class FlowAnalysis<T> {
     _current = afterResult;
   }
 
-  void logicalOr_rightBegin(BinaryExpression orExpression) {
-    _conditionalEnd(orExpression.leftOperand);
+  void logicalOr_rightBegin(Expression orExpression, Expression leftOperand) {
+    _conditionalEnd(leftOperand);
     // Tail of the stack: falseLeft, trueLeft
 
     var falseLeft = _stack[_stack.length - 2];
@@ -418,12 +448,12 @@ class FlowAnalysis<T> {
 
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
-  T promotedType(VariableElement variable) {
+  Type promotedType(Element variable) {
     return _current.promoted[variable];
   }
 
   /// Register read of the given [variable] in the current state.
-  void read(LocalVariableElement variable) {
+  void read(Element variable) {
     if (_current.notAssigned.contains(variable)) {
       // Add to the list of violating variables, if not there yet.
       for (var i = 0; i < readBeforeWritten.length; ++i) {
@@ -440,11 +470,11 @@ class FlowAnalysis<T> {
   /// assigned in other cases that might target this with `continue`, so
   /// these variables might have different types and are "un-promoted" from
   /// the "afterExpression" state.
-  void switchStatement_beginCase(Set<VariableElement> notPromoted) {
+  void switchStatement_beginCase(Set<Element> notPromoted) {
     _current = _stack.last.removePromotedAll(notPromoted);
   }
 
-  void switchStatement_end(SwitchStatement node, bool hasDefault) {
+  void switchStatement_end(Statement switchStatement, bool hasDefault) {
     // Tail of the stack: break, continue, afterExpression
     var afterExpression = _current = _stack.removeLast();
     _stack.removeLast(); // continue
@@ -457,14 +487,14 @@ class FlowAnalysis<T> {
     }
   }
 
-  void switchStatement_expressionEnd(SwitchStatement node) {
-    _statementToStackIndex[node] = _stack.length;
+  void switchStatement_expressionEnd(Statement switchStatement) {
+    _statementToStackIndex[switchStatement] = _stack.length;
     _stack.add(_identity); // break
     _stack.add(_identity); // continue
     _stack.add(_current); // afterExpression
   }
 
-  void trueLiteral(BooleanLiteral expression) {
+  void trueLiteral(Expression expression) {
     _condition = expression;
     _conditionTrue = _current;
     _conditionFalse = _identity;
@@ -475,7 +505,7 @@ class FlowAnalysis<T> {
     // Tail of the stack: beforeBody
   }
 
-  void tryCatchStatement_bodyEnd(Set<VariableElement> assignedInBody) {
+  void tryCatchStatement_bodyEnd(Set<Element> assignedInBody) {
     var beforeBody = _stack.removeLast();
     var beforeCatch = beforeBody.removePromotedAll(assignedInBody);
     _stack.add(beforeCatch);
@@ -503,12 +533,17 @@ class FlowAnalysis<T> {
     _stack.add(_current); // beforeTry
   }
 
-  void tryFinallyStatement_end(Set<VariableElement> assignedInFinally) {
+  void tryFinallyStatement_end(Set<Element> assignedInFinally) {
     var afterBody = _stack.removeLast();
-    _current = _current.restrict(typeOperations, afterBody, assignedInFinally);
+    _current = _current.restrict(
+      typeOperations,
+      _emptySet,
+      afterBody,
+      assignedInFinally,
+    );
   }
 
-  void tryFinallyStatement_finallyBegin(Set<VariableElement> assignedInBody) {
+  void tryFinallyStatement_finallyBegin(Set<Element> assignedInBody) {
     var beforeTry = _stack.removeLast();
     var afterBody = _current;
     _stack.add(afterBody);
@@ -519,20 +554,21 @@ class FlowAnalysis<T> {
     assert(_stack.isEmpty);
   }
 
-  void whileStatement_bodyBegin(WhileStatement node) {
-    _conditionalEnd(node.condition);
+  void whileStatement_bodyBegin(
+      Statement whileStatement, Expression condition) {
+    _conditionalEnd(condition);
     // Tail of the stack: falseCondition, trueCondition
 
     var trueCondition = _stack.removeLast();
 
-    _statementToStackIndex[node] = _stack.length;
+    _statementToStackIndex[whileStatement] = _stack.length;
     _stack.add(_identity); // break
     _stack.add(_identity); // continue
 
     _current = trueCondition;
   }
 
-  void whileStatement_conditionBegin(Set<VariableElement> loopAssigned) {
+  void whileStatement_conditionBegin(Set<Element> loopAssigned) {
     _current = _current.removePromotedAll(loopAssigned);
   }
 
@@ -546,17 +582,16 @@ class FlowAnalysis<T> {
 
   /// Register write of the given [variable] in the current state.
   void write(
-    VariableElement variable, {
+    Element variable, {
     bool isNull = false,
     bool isNonNull = false,
   }) {
-    _current = _current.write(variable, isNull: isNull, isNonNull: isNonNull);
+    _current = _current.write(typeOperations, _emptySet, variable,
+        isNull: isNull, isNonNull: isNonNull);
   }
 
   void _conditionalEnd(Expression condition) {
-    while (condition is ParenthesizedExpression) {
-      condition = (condition as ParenthesizedExpression).expression;
-    }
+    condition = nodeOperations.unwrapParenthesized(condition);
     if (identical(condition, _condition)) {
       _stack.add(_conditionFalse);
       _stack.add(_conditionTrue);
@@ -566,7 +601,10 @@ class FlowAnalysis<T> {
     }
   }
 
-  _State<T> _join(_State<T> first, _State<T> second) {
+  _State<Element, Type> _join(
+    _State<Element, Type> first,
+    _State<Element, Type> second,
+  ) {
     if (identical(first, _identity)) return second;
     if (identical(second, _identity)) return first;
 
@@ -590,14 +628,14 @@ class FlowAnalysis<T> {
     );
   }
 
-  Map<VariableElement, T> _joinPromoted(
-    Map<VariableElement, T> first,
-    Map<VariableElement, T> second,
+  Map<Element, Type> _joinPromoted(
+    Map<Element, Type> first,
+    Map<Element, Type> second,
   ) {
     if (identical(first, second)) return first;
     if (first.isEmpty || second.isEmpty) return const {};
 
-    var result = <VariableElement, T>{};
+    var result = <Element, Type>{};
     var alwaysFirst = true;
     var alwaysSecond = true;
     for (var element in first.keys) {
@@ -627,32 +665,44 @@ class FlowAnalysis<T> {
   }
 }
 
+/// Accessor for function body information.
+abstract class FunctionBodyAccess<Element> {
+  bool isPotentiallyMutatedInClosure(Element variable);
+
+  bool isPotentiallyMutatedInScope(Element variable);
+}
+
+/// Operations on nodes, abstracted from concrete node interfaces.
+abstract class NodeOperations<Expression> {
+  /// If the [node] is a parenthesized expression, recursively unwrap it.
+  Expression unwrapParenthesized(Expression node);
+}
+
 /// Operations on types, abstracted from concrete type interfaces.
-abstract class TypeOperations<T> {
-  /// Return the static type of with the given [element].
-  T elementType(VariableElement element);
+abstract class TypeOperations<Element, Type> {
+  /// Return the static type of the given [element].
+  Type elementType(Element element);
+
+  /// Return `true` if the [element] is a local variable, not a parameter.
+  bool isLocalVariable(Element element);
 
   /// Return `true` if the [leftType] is a subtype of the [rightType].
-  bool isSubtypeOf(T leftType, T rightType);
+  bool isSubtypeOf(Type leftType, Type rightType);
 }
 
 /// List based immutable set of elements.
-class _ElementSet {
-  static final empty = _ElementSet._(
-    List<VariableElement>(0),
-  );
-
-  final List<VariableElement> elements;
+class _ElementSet<Element> {
+  final List<Element> elements;
 
   _ElementSet._(this.elements);
 
-  _ElementSet add(VariableElement addedElement) {
+  _ElementSet<Element> add(Element addedElement) {
     if (contains(addedElement)) {
       return this;
     }
 
     var length = elements.length;
-    var newElements = List<VariableElement>(length + 1);
+    var newElements = List<Element>(length + 1);
     for (var i = 0; i < length; ++i) {
       newElements[i] = elements[i];
     }
@@ -660,7 +710,7 @@ class _ElementSet {
     return _ElementSet._(newElements);
   }
 
-  _ElementSet addAll(Iterable<VariableElement> elements) {
+  _ElementSet<Element> addAll(Iterable<Element> elements) {
     var result = this;
     for (var element in elements) {
       result = result.add(element);
@@ -668,7 +718,7 @@ class _ElementSet {
     return result;
   }
 
-  bool contains(VariableElement element) {
+  bool contains(Element element) {
     var length = elements.length;
     for (var i = 0; i < length; ++i) {
       if (identical(elements[i], element)) {
@@ -678,7 +728,10 @@ class _ElementSet {
     return false;
   }
 
-  _ElementSet intersect(_ElementSet other) {
+  _ElementSet<Element> intersect({
+    _ElementSet<Element> empty,
+    _ElementSet<Element> other,
+  }) {
     if (identical(other, empty)) return empty;
 
     // TODO(scheglov) optimize
@@ -689,7 +742,10 @@ class _ElementSet {
     return _ElementSet._(newElements);
   }
 
-  _ElementSet remove(VariableElement removedElement) {
+  _ElementSet<Element> remove(
+    _ElementSet<Element> empty,
+    Element removedElement,
+  ) {
     if (!contains(removedElement)) {
       return this;
     }
@@ -699,7 +755,7 @@ class _ElementSet {
       return empty;
     }
 
-    var newElements = List<VariableElement>(length - 1);
+    var newElements = List<Element>(length - 1);
     var newIndex = 0;
     for (var i = 0; i < length; ++i) {
       var element = elements[i];
@@ -711,7 +767,7 @@ class _ElementSet {
     return _ElementSet._(newElements);
   }
 
-  _ElementSet union(_ElementSet other) {
+  _ElementSet<Element> union(_ElementSet<Element> other) {
     if (other.elements.isEmpty) {
       return this;
     }
@@ -726,12 +782,12 @@ class _ElementSet {
   }
 }
 
-class _State<T> {
+class _State<Element, Type> {
   final bool reachable;
-  final _ElementSet notAssigned;
-  final _ElementSet notNullable;
-  final _ElementSet notNonNullable;
-  final Map<VariableElement, T> promoted;
+  final _ElementSet<Element> notAssigned;
+  final _ElementSet<Element> notNullable;
+  final _ElementSet<Element> notNonNullable;
+  final Map<Element, Type> promoted;
 
   _State(
     this.reachable,
@@ -742,7 +798,7 @@ class _State<T> {
   );
 
   /// Add a new [variable] to track definite assignment.
-  _State<T> add(VariableElement variable, {bool assigned: false}) {
+  _State<Element, Type> add(Element variable, {bool assigned: false}) {
     var newNotAssigned = assigned ? notAssigned : notAssigned.add(variable);
     var newNotNullable = notNullable.add(variable);
     var newNotNonNullable = notNonNullable.add(variable);
@@ -753,7 +809,7 @@ class _State<T> {
       return this;
     }
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       newNotAssigned,
       newNotNullable,
@@ -762,20 +818,27 @@ class _State<T> {
     );
   }
 
-  _State<T> exit() {
-    return _State<T>(false, notAssigned, notNullable, notNonNullable, promoted);
+  _State<Element, Type> exit() {
+    return _State<Element, Type>(
+      false,
+      notAssigned,
+      notNullable,
+      notNonNullable,
+      promoted,
+    );
   }
 
-  _State<T> markNonNullable(VariableElement variable) {
+  _State<Element, Type> markNonNullable(
+      _ElementSet<Element> emptySet, Element variable) {
     var newNotNullable = notNullable.add(variable);
-    var newNotNonNullable = notNonNullable.remove(variable);
+    var newNotNonNullable = notNonNullable.remove(emptySet, variable);
 
     if (identical(newNotNullable, notNullable) &&
         identical(newNotNonNullable, notNonNullable)) {
       return this;
     }
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       notAssigned,
       newNotNullable,
@@ -784,8 +847,9 @@ class _State<T> {
     );
   }
 
-  _State<T> markNullable(VariableElement variable) {
-    var newNotNullable = notNullable.remove(variable);
+  _State<Element, Type> markNullable(
+      _ElementSet<Element> emptySet, Element variable) {
+    var newNotNullable = notNullable.remove(emptySet, variable);
     var newNotNonNullable = notNonNullable.add(variable);
 
     if (identical(newNotNullable, notNullable) &&
@@ -793,7 +857,7 @@ class _State<T> {
       return this;
     }
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       notAssigned,
       newNotNullable,
@@ -802,19 +866,19 @@ class _State<T> {
     );
   }
 
-  _State<T> promote(
-    TypeOperations<T> typeOperations,
-    VariableElement variable,
-    T type,
+  _State<Element, Type> promote(
+    TypeOperations<Element, Type> typeOperations,
+    Element variable,
+    Type type,
   ) {
     var previousType = promoted[variable];
     previousType ??= typeOperations.elementType(variable);
 
     if (typeOperations.isSubtypeOf(type, previousType) &&
         type != previousType) {
-      var newPromoted = <VariableElement, T>{}..addAll(promoted);
+      var newPromoted = <Element, Type>{}..addAll(promoted);
       newPromoted[variable] = type;
-      return _State<T>(
+      return _State<Element, Type>(
         reachable,
         notAssigned,
         notNullable,
@@ -826,7 +890,7 @@ class _State<T> {
     return this;
   }
 
-  _State<T> removePromotedAll(Set<VariableElement> variables) {
+  _State<Element, Type> removePromotedAll(Set<Element> variables) {
     var newNotNullable = notNullable.addAll(variables);
     var newNotNonNullable = notNonNullable.addAll(variables);
     var newPromoted = _removePromotedAll(promoted, variables);
@@ -835,7 +899,7 @@ class _State<T> {
         identical(newNotNonNullable, notNonNullable) &&
         identical(newPromoted, promoted)) return this;
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       notAssigned,
       newNotNullable,
@@ -844,22 +908,26 @@ class _State<T> {
     );
   }
 
-  _State<T> restrict(
-    TypeOperations<T> typeOperations,
-    _State<T> other,
-    Set<VariableElement> unsafe,
+  _State<Element, Type> restrict(
+    TypeOperations<Element, Type> typeOperations,
+    _ElementSet<Element> emptySet,
+    _State<Element, Type> other,
+    Set<Element> unsafe,
   ) {
     var newReachable = reachable && other.reachable;
-    var newNotAssigned = notAssigned.intersect(other.notAssigned);
+    var newNotAssigned = notAssigned.intersect(
+      empty: emptySet,
+      other: other.notAssigned,
+    );
 
-    var newNotNullable = _ElementSet.empty;
+    var newNotNullable = emptySet;
     for (var variable in notNullable.elements) {
       if (unsafe.contains(variable) || other.notNullable.contains(variable)) {
         newNotNullable = newNotNullable.add(variable);
       }
     }
 
-    var newNotNonNullable = _ElementSet.empty;
+    var newNotNonNullable = emptySet;
     for (var variable in notNonNullable.elements) {
       if (unsafe.contains(variable) ||
           other.notNonNullable.contains(variable)) {
@@ -867,7 +935,7 @@ class _State<T> {
       }
     }
 
-    var newPromoted = <VariableElement, T>{};
+    var newPromoted = <Element, Type>{};
     for (var variable in promoted.keys) {
       var thisType = promoted[variable];
       if (!unsafe.contains(variable)) {
@@ -892,10 +960,10 @@ class _State<T> {
     );
   }
 
-  _State<T> setReachable(bool reachable) {
+  _State<Element, Type> setReachable(bool reachable) {
     if (this.reachable == reachable) return this;
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       notAssigned,
       notNullable,
@@ -904,20 +972,23 @@ class _State<T> {
     );
   }
 
-  _State<T> write(
-    VariableElement variable, {
+  _State<Element, Type> write(
+    TypeOperations<Element, Type> typeOperations,
+    _ElementSet<Element> emptySet,
+    Element variable, {
     bool isNull = false,
     bool isNonNull = false,
   }) {
-    var newNotAssigned = variable is LocalVariableElement
-        ? notAssigned.remove(variable)
+    var newNotAssigned = typeOperations.isLocalVariable(variable)
+        ? notAssigned.remove(emptySet, variable)
         : notAssigned;
 
-    var newNotNullable =
-        isNull ? notNullable.remove(variable) : notNullable.add(variable);
+    var newNotNullable = isNull
+        ? notNullable.remove(emptySet, variable)
+        : notNullable.add(variable);
 
     var newNotNonNullable = isNonNull
-        ? notNonNullable.remove(variable)
+        ? notNonNullable.remove(emptySet, variable)
         : notNonNullable.add(variable);
 
     var newPromoted = _removePromoted(promoted, variable);
@@ -929,7 +1000,7 @@ class _State<T> {
       return this;
     }
 
-    return _State<T>(
+    return _State<Element, Type>(
       reachable,
       newNotAssigned,
       newNotNullable,
@@ -938,13 +1009,10 @@ class _State<T> {
     );
   }
 
-  Map<VariableElement, T> _removePromoted(
-    Map<VariableElement, T> map,
-    VariableElement variable,
-  ) {
+  Map<Element, Type> _removePromoted(Map<Element, Type> map, Element variable) {
     if (map.isEmpty) return const {};
 
-    var result = <VariableElement, T>{};
+    var result = <Element, Type>{};
     for (var key in map.keys) {
       if (!identical(key, variable)) {
         result[key] = map[key];
@@ -955,14 +1023,14 @@ class _State<T> {
     return result;
   }
 
-  Map<VariableElement, T> _removePromotedAll(
-    Map<VariableElement, T> map,
-    Set<VariableElement> variables,
+  Map<Element, Type> _removePromotedAll(
+    Map<Element, Type> map,
+    Set<Element> variables,
   ) {
     if (map.isEmpty) return const {};
     if (variables.isEmpty) return map;
 
-    var result = <VariableElement, T>{};
+    var result = <Element, Type>{};
     var noChanges = true;
     for (var key in map.keys) {
       if (variables.contains(key)) {
@@ -977,14 +1045,14 @@ class _State<T> {
     return result;
   }
 
-  static _State<T> _identicalOrNew<T>(
-    _State<T> first,
-    _State<T> second,
+  static _State<Element, Type> _identicalOrNew<Element, Type>(
+    _State<Element, Type> first,
+    _State<Element, Type> second,
     bool newReachable,
-    _ElementSet newNotAssigned,
-    _ElementSet newNotNullable,
-    _ElementSet newNotNonNullable,
-    Map<VariableElement, T> newPromoted,
+    _ElementSet<Element> newNotAssigned,
+    _ElementSet<Element> newNotNullable,
+    _ElementSet<Element> newNotNonNullable,
+    Map<Element, Type> newPromoted,
   ) {
     if (first.reachable == newReachable &&
         identical(first.notAssigned, newNotAssigned) &&
@@ -1001,7 +1069,7 @@ class _State<T> {
       return second;
     }
 
-    return _State<T>(
+    return _State<Element, Type>(
       newReachable,
       newNotAssigned,
       newNotNullable,
