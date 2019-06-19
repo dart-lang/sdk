@@ -132,7 +132,6 @@ class FastaContext extends ChainContext with MatchContext {
   final bool legacyMode;
   final bool onlyCrashes;
   final bool enableControlFlowCollections;
-  final bool enableSetLiterals;
   final bool enableSpreadCollections;
   final bool skipVm;
   final Map<Component, KernelTarget> componentToTarget =
@@ -158,7 +157,6 @@ class FastaContext extends ChainContext with MatchContext {
       this.platformBinaries,
       this.onlyCrashes,
       this.enableControlFlowCollections,
-      this.enableSetLiterals,
       this.enableSpreadCollections,
       bool ignoreExpectations,
       this.updateExpectations,
@@ -250,7 +248,6 @@ class FastaContext extends ChainContext with MatchContext {
     bool legacyMode = environment.containsKey(LEGACY_MODE);
     bool enableControlFlowCollections =
         environment["enableControlFlowCollections"] != "false" && !legacyMode;
-    bool enableSetLiterals = environment["enableSetLiterals"] != "false";
     bool enableSpreadCollections =
         environment["enableSpreadCollections"] != "false" && !legacyMode;
     var options = new ProcessedOptions(
@@ -263,7 +260,6 @@ class FastaContext extends ChainContext with MatchContext {
           ..experimentalFlags = <ExperimentalFlag, bool>{
             ExperimentalFlag.controlFlowCollections:
                 enableControlFlowCollections,
-            ExperimentalFlag.setLiterals: enableSetLiterals,
             ExperimentalFlag.spreadCollections: enableSpreadCollections,
           });
     UriTranslator uriTranslator = await options.getUriTranslator();
@@ -286,7 +282,6 @@ class FastaContext extends ChainContext with MatchContext {
             : Uri.base.resolve(platformBinaries),
         onlyCrashes,
         enableControlFlowCollections,
-        enableSetLiterals,
         enableSpreadCollections,
         ignoreExpectations,
         updateExpectations,
@@ -356,7 +351,6 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           ..experimentalFlags = <ExperimentalFlag, bool>{
             ExperimentalFlag.controlFlowCollections:
                 context.enableControlFlowCollections,
-            ExperimentalFlag.setLiterals: context.enableSetLiterals,
             ExperimentalFlag.spreadCollections: context.enableSpreadCollections,
           },
         inputs: <Uri>[description.uri]);

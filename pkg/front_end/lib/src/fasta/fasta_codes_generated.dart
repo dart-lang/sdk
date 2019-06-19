@@ -8359,14 +8359,6 @@ const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
     message: r"""A set literal requires exactly one type argument.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeSetLiteralsNotSupported = messageSetLiteralsNotSupported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetLiteralsNotSupported = const MessageCode(
-    "SetLiteralsNotSupported",
-    message: r"""Set literals are not supported yet.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSetOrMapLiteralTooManyTypeArguments =
     messageSetOrMapLiteralTooManyTypeArguments;
 

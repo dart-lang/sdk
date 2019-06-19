@@ -1278,34 +1278,30 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     assert((node.keyType is ImplicitTypeArgument) ==
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
-    KernelLibraryBuilder library = inferrer.library;
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
-    if (!inferrer.isTopLevel) {
-      if (library.loader.target.enableSetLiterals && inferenceNeeded) {
-        // Ambiguous set/map literal
-        DartType context =
-            inferrer.typeSchemaEnvironment.unfutureType(typeContext);
-        if (context is InterfaceType) {
-          typeContextIsMap = typeContextIsMap ||
-              inferrer.classHierarchy
-                  .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
-          typeContextIsIterable = typeContextIsIterable ||
-              inferrer.classHierarchy.isSubtypeOf(
-                  context.classNode, inferrer.coreTypes.iterableClass);
-          if (node.entries.isEmpty &&
-              typeContextIsIterable &&
-              !typeContextIsMap) {
-            // Set literal
-            SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
-                typeArgument: const ImplicitTypeArgument(),
-                isConst: node.isConst)
-              ..fileOffset = node.fileOffset;
-            node.parent.replaceChild(node, setLiteral);
-            visitSetLiteralJudgment(setLiteral, typeContext);
-            node.inferredType = setLiteral.inferredType;
-            return;
-          }
+    if (!inferrer.isTopLevel && inferenceNeeded) {
+      // Ambiguous set/map literal
+      DartType context =
+          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+      if (context is InterfaceType) {
+        typeContextIsMap = typeContextIsMap ||
+            inferrer.classHierarchy
+                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
+        typeContextIsIterable = typeContextIsIterable ||
+            inferrer.classHierarchy.isSubtypeOf(
+                context.classNode, inferrer.coreTypes.iterableClass);
+        if (node.entries.isEmpty &&
+            typeContextIsIterable &&
+            !typeContextIsMap) {
+          // Set literal
+          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+              typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+          node.parent.replaceChild(node, setLiteral);
+          visitSetLiteralJudgment(setLiteral, typeContext);
+          node.inferredType = setLiteral.inferredType;
+          return;
         }
       }
     }
