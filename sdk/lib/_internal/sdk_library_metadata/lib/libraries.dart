@@ -181,6 +181,11 @@ const Map<String, LibraryInfo> libraries = const {
       categories: "",
       documented: false,
       platforms: DART2JS_PLATFORM),
+  "_recipe_syntax": const LibraryInfo(
+      "_internal/js_runtime/lib/shared/recipe_syntax.dart",
+      categories: "",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
   "_metadata": const LibraryInfo("html/html_common/metadata.dart",
       categories: "", documented: false, platforms: DART2JS_PLATFORM),
 };
@@ -293,26 +298,26 @@ class Maturity {
       1,
       "Experimental",
       "This library is experimental and will likely change or be removed\n"
-      "in future versions.");
+          "in future versions.");
 
   static const Maturity UNSTABLE = const Maturity(
       2,
       "Unstable",
       "This library is in still changing and have not yet endured\n"
-      "sufficient real-world testing.\n"
-      "Backwards-compatibility is NOT guaranteed.");
+          "sufficient real-world testing.\n"
+          "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity WEB_STABLE = const Maturity(
       3,
       "Web Stable",
       "This library is tracking the DOM evolution as defined by WC3.\n"
-      "Backwards-compatibility is NOT guaranteed.");
+          "Backwards-compatibility is NOT guaranteed.");
 
   static const Maturity STABLE = const Maturity(
       4,
       "Stable",
       "The library is stable. API backwards-compatibility is guaranteed.\n"
-      "However implementation details might change.");
+          "However implementation details might change.");
 
   static const Maturity LOCKED = const Maturity(5, "Locked",
       "This library will not change except when serious bugs are encountered.");

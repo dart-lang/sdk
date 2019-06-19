@@ -11,6 +11,8 @@ import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
 import 'dart:_js_embedded_names' show RtiUniverseFieldNames, RTI_UNIVERSE;
 
+import 'dart:_recipe_syntax';
+
 /// An Rti object represents both a type (e.g `Map<int, String>`) and a type
 /// environment (`Map<int, String>` binds `Map.K=int` and `Map.V=String`).
 ///
@@ -728,42 +730,41 @@ class _Parser {
     int i = 0;
     while (i < source.length) {
       int ch = charCodeAt(source, i);
-      if (isDigit(ch)) {
+      if (Recipe.isDigit(ch)) {
         i = handleDigit(i + 1, ch, source, stack);
-      } else if (isIdentifierStart(ch)) {
+      } else if (Recipe.isIdentifierStart(ch)) {
         i = handleIdentifer(parser, i, source, stack, false);
-      } else if (ch == $PERIOD) {
+      } else if (ch == Recipe.period) {
         i = handleIdentifer(parser, i, source, stack, true);
       } else {
         i++;
         switch (ch) {
-          case $COMMA:
-            // ignored
+          case Recipe.noOp:
             break;
 
-          case $SEMICOLON:
+          case Recipe.toType:
             push(stack,
                 toType(universe(parser), environment(parser), pop(stack)));
             break;
 
-          case $AT:
+          case Recipe.pushDynamic:
             push(stack, _Universe._lookupDynamicRti(universe(parser)));
             break;
 
-          case $TILDE:
+          case Recipe.pushVoid:
             push(stack, _Universe._lookupVoidRti(universe(parser)));
             break;
 
-          case $LT:
+          case Recipe.startTypeArguments:
             push(stack, position(parser));
             setPosition(parser, _Utils.arrayLength(stack));
             break;
 
-          case $GT:
+          case Recipe.endTypeArguments:
             handleTypeArguments(parser, stack);
             break;
 
-          case $AMPERSAND:
+          case Recipe.extensionOp:
             handleExtendedOperations(parser, stack);
             break;
 
@@ -777,11 +778,11 @@ class _Parser {
   }
 
   static int handleDigit(int i, int digit, String source, Object stack) {
-    int value = digit - $0;
+    int value = Recipe.digitValue(digit);
     for (; i < source.length; i++) {
       int ch = charCodeAt(source, i);
-      if (!isDigit(ch)) break;
-      value = value * 10 + ch - $0;
+      if (!Recipe.isDigit(ch)) break;
+      value = value * 10 + Recipe.digitValue(ch);
     }
     push(stack, value);
     return i;
@@ -792,10 +793,10 @@ class _Parser {
     int i = start + 1;
     for (; i < source.length; i++) {
       int ch = charCodeAt(source, i);
-      if (ch == $PERIOD) {
+      if (ch == Recipe.period) {
         if (hasPeriod) break;
         hasPeriod = true;
-      } else if (isIdentifierStart(ch) || isDigit(ch)) {
+      } else if (Recipe.isIdentifierStart(ch) || Recipe.isDigit(ch)) {
         // Accept.
       } else {
         break;
@@ -899,34 +900,6 @@ class _Parser {
     }
     throw AssertionError('Bad index $index for $environment');
   }
-
-  static bool isDigit(int ch) => ch >= $0 && ch <= $9;
-  static bool isIdentifierStart(int ch) =>
-      (ch >= $A && ch <= $Z) ||
-      (ch >= $a && ch <= $z) ||
-      (ch == $_) ||
-      (ch == $$);
-
-  static const int $$ = 0x24;
-  static const int $AMPERSAND = 0x26;
-  static const int $PLUS = 0x2B;
-  static const int $COMMA = 0x2C;
-  static const int $PERIOD = 0x2E;
-  static const int $0 = 0x30;
-  static const int $9 = 0x39;
-  static const int $SEMICOLON = 0x3B;
-  static const int $LT = 0x3C;
-  static const int $GT = 0x3E;
-  static const int $QUESTION = 0x3F;
-  static const int $AT = 0x40;
-  static const int $A = 0x41;
-  static const int $Z = 0x5A;
-  static const int $LBRACKET = 0x5B;
-  static const int $RBRACKET = 0x5D;
-  static const int $a = $A + 32;
-  static const int $z = $Z + 32;
-  static const int $_ = 0x5F;
-  static const int $TILDE = 0x7E;
 }
 
 /// Represents the set of supertypes and type variable bindings for a given
