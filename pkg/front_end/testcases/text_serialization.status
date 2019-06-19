@@ -105,7 +105,7 @@ functions: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
 hello: TextSerializationFailure # Was: Pass
 having_part_with_part_and_annotation: TextSerializationFailure
-having_part_with_parts_and_annotation: Crash
+having_part_with_parts_and_annotation: TextSerializationFailure
 illegal_named_function_expression: TextSerializationFailure # Was: Pass
 illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 implicit_const_with_static_fields: TextSerializationFailure # Was: Pass

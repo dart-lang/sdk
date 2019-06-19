@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Not sorted --- these crashes should be fixed ASAP!
-PartTwice/part_wrapped_script: Crash
-
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/part_wrapped_script5: Fail
 AbstractClassMember/part_wrapped_script6: Fail
@@ -413,6 +410,7 @@ PartOfUriMismatch/example: Fail
 PartOfUseUri/example: Fail
 PartOrphan/analyzerCode: Fail # Analyzer can't handle this situation
 PartOrphan/part_wrapped_script: Fail # Already using 'part of' in the (now) part.
+PartTwice/part_wrapped_script: Fail # Using 'part' in the (now) part.
 PatchClassTypeVariablesMismatch/analyzerCode: Fail
 PatchClassTypeVariablesMismatch/example: Fail
 PatchDeclarationMismatch/analyzerCode: Fail
