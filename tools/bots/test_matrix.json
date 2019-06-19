@@ -2106,7 +2106,7 @@
           "arguments": [
             "--mode=release",
             "--arch=x64",
-            "create_sdk"
+            "create_sdk_with_abi_versions"
           ]
         },
         {
