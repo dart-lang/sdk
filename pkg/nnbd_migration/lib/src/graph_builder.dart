@@ -195,43 +195,41 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitBinaryExpression(BinaryExpression node) {
-    switch (node.operator.type) {
-      case TokenType.EQ_EQ:
-      case TokenType.BANG_EQ:
-        assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
-        var leftType = node.leftOperand.accept(this);
-        node.rightOperand.accept(this);
-        if (node.rightOperand is NullLiteral) {
-          // TODO(paulberry): figure out what the rules for isPure should be.
-          // TODO(paulberry): only set falseChecksNonNull in unconditional
-          // control flow
-          bool isPure = node.leftOperand is SimpleIdentifier;
-          var conditionInfo = _ConditionInfo(node,
-              isPure: isPure,
-              trueGuard: leftType.node,
-              falseDemonstratesNonNullIntent: leftType.node);
-          _conditionInfo = node.operator.type == TokenType.EQ_EQ
-              ? conditionInfo
-              : conditionInfo.not(node);
-        }
-        return _nonNullableBoolType;
-      case TokenType.PLUS:
-        _handleAssignment(_notNullType, node.leftOperand);
-        var callee = node.staticElement;
-        assert(!(callee is ClassMemberElement &&
-            callee.enclosingElement.typeParameters
-                .isNotEmpty)); // TODO(paulberry)
-        assert(callee != null); // TODO(paulberry)
-        var calleeType = getOrComputeElementType(callee);
-        // TODO(paulberry): substitute if necessary
-        assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
-        _handleAssignment(
-            calleeType.positionalParameters[0], node.rightOperand);
-        return calleeType.returnType;
-      default:
-        // TODO(paulberry)
-        _unimplemented(
-            node, 'Binary expression with operator ${node.operator.lexeme}');
+    var operatorType = node.operator.type;
+    if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
+      assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
+      var leftType = node.leftOperand.accept(this);
+      node.rightOperand.accept(this);
+      if (node.rightOperand is NullLiteral) {
+        // TODO(paulberry): figure out what the rules for isPure should be.
+        // TODO(paulberry): only set falseChecksNonNull in unconditional
+        // control flow
+        bool isPure = node.leftOperand is SimpleIdentifier;
+        var conditionInfo = _ConditionInfo(node,
+            isPure: isPure,
+            trueGuard: leftType.node,
+            falseDemonstratesNonNullIntent: leftType.node);
+        _conditionInfo = operatorType == TokenType.EQ_EQ
+            ? conditionInfo
+            : conditionInfo.not(node);
+      }
+      return _nonNullableBoolType;
+    } else if (operatorType.isUserDefinableOperator) {
+      _handleAssignment(_notNullType, node.leftOperand);
+      var callee = node.staticElement;
+      assert(!(callee is ClassMemberElement &&
+          callee
+              .enclosingElement.typeParameters.isNotEmpty)); // TODO(paulberry)
+      assert(callee != null); // TODO(paulberry)
+      var calleeType = getOrComputeElementType(callee);
+      // TODO(paulberry): substitute if necessary
+      assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
+      _handleAssignment(calleeType.positionalParameters[0], node.rightOperand);
+      return calleeType.returnType;
+    } else {
+      // TODO(paulberry)
+      _unimplemented(
+          node, 'Binary expression with operator ${node.operator.lexeme}');
     }
   }
 

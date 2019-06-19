@@ -286,7 +286,111 @@ Future<void> f() async {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
-  test_binaryExpression_add_left_check() async {
+  test_binaryExpression_ampersand_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i & j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_bar_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i | j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_caret_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i ^ j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_equal() async {
+    await analyze('''
+bool f(int i, int j) => i == j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_gt_result_not_null() async {
+    await analyze('''
+bool f(int i, int j) => i > j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_gtEq_result_not_null() async {
+    await analyze('''
+bool f(int i, int j) => i >= j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_gtGt_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i >> j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_lt_result_not_null() async {
+    await analyze('''
+bool f(int i, int j) => i < j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_ltEq_result_not_null() async {
+    await analyze('''
+bool f(int i, int j) => i <= j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_ltLt_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i << j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_minus_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i - j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_notEqual() async {
+    await analyze('''
+bool f(int i, int j) => i != j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+  }
+
+  test_binaryExpression_percent_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i % j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_plus_left_check() async {
     await analyze('''
 int f(int i, int j) => i + j;
 ''');
@@ -295,7 +399,7 @@ int f(int i, int j) => i + j;
         assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true));
   }
 
-  test_binaryExpression_add_left_check_custom() async {
+  test_binaryExpression_plus_left_check_custom() async {
     await analyze('''
 class Int {
   Int operator+(Int other) => this;
@@ -307,7 +411,7 @@ Int f(Int i, Int j) => i + j;
         assertEdge(decoratedTypeAnnotation('Int i').node, never, hard: true));
   }
 
-  test_binaryExpression_add_result_custom() async {
+  test_binaryExpression_plus_result_custom() async {
     await analyze('''
 class Int {
   Int operator+(Int other) => this;
@@ -322,7 +426,7 @@ Int f(Int i, Int j) => (i + j);
             hard: false));
   }
 
-  test_binaryExpression_add_result_not_null() async {
+  test_binaryExpression_plus_result_not_null() async {
     await analyze('''
 int f(int i, int j) => i + j;
 ''');
@@ -330,7 +434,7 @@ int f(int i, int j) => i + j;
     assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
-  test_binaryExpression_add_right_check() async {
+  test_binaryExpression_plus_right_check() async {
     await analyze('''
 int f(int i, int j) => i + j;
 ''');
@@ -339,7 +443,7 @@ int f(int i, int j) => i + j;
         assertEdge(decoratedTypeAnnotation('int j').node, never, hard: true));
   }
 
-  test_binaryExpression_add_right_check_custom() async {
+  test_binaryExpression_plus_right_check_custom() async {
     await analyze('''
 class Int {
   Int operator+(Int other) => this;
@@ -354,12 +458,28 @@ Int f(Int i, Int j) => i + j/*check*/;
             hard: true));
   }
 
-  test_binaryExpression_equal() async {
+  test_binaryExpression_slash_result_not_null() async {
     await analyze('''
-bool f(int i, int j) => i == j;
+double f(int i, int j) => i / j;
 ''');
 
-    assertNoUpstreamNullability(decoratedTypeAnnotation('bool f').node);
+    assertNoUpstreamNullability(decoratedTypeAnnotation('double f').node);
+  }
+
+  test_binaryExpression_star_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i * j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_tildeSlash_result_not_null() async {
+    await analyze('''
+int f(int i, int j) => i ~/ j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
   test_boolLiteral() async {
