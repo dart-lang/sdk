@@ -52,20 +52,17 @@ void testSyncStarTransform(String source, String expected) {
 }
 
 main() {
-  testAsyncTransform(
-
-          /// 01: ok
-          r"""function() async {
+  testAsyncTransform( //# 01: ok
+      r"""function() async {
   var closures = [new A.main_closure()], v0 = await closures, v1 = 0, v2, v3;
   if (v1 < 0 || v1 >= v0.length)
     H.ioore(v0, v1);
   v2 = 4;
   v3 = 2;
   P.print(v0[v1].call$2(v2, v3));
-}""",
-
-          /// 01: ok
-          r"""function() {
+}"""
+, //# 01: ok
+      r"""function() {
   var __goto = 0,
     __completer = NewCompleter(CompleterType),
     closures, v0, v1, v2, v3;
@@ -93,10 +90,9 @@ main() {
       }
   });
   return startHelper(body, __completer);
-}""")
-
-      /// 01: ok
-      ;
+}"""
+    ) //# 01: ok
+  ;
 
   testAsyncTransform("""
 function(a) async {
@@ -439,7 +435,7 @@ function(x, y) async {
   while (true) {
     switch(y) { // Switch with no awaits in case key expressions
       case 0:
-      case 1: 
+      case 1:
         await foo();
         continue; // Continue the loop, not the switch
       case 1: // Duplicate case
@@ -594,7 +590,7 @@ function(g) async {
       return;
     }
     print(await(foo(i)));
-  } 
+  }
 }
 """, """
 function(g) {

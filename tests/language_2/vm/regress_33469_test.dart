@@ -8,8 +8,8 @@ class X {
 }
 
 void main() {
-  print(const X(1 << -1).x);  /// 01: compile-time error
-  print(const X(1 >> -1).x);  /// 02: compile-time error
-  print(const X(1 % 0).x);    /// 03: compile-time error
-  print(const X(1 ~/ 0).x);   /// 04: compile-time error
+  print(const X(1 << -1).x);  //# 01: compile-time error
+  print(const X(1 >> -1).x);  //# 02: compile-time error
+  print(const X(1 % 0).x);    //# 03: compile-time error
+  print(const X(1 ~/ 0).x);   //# 04: compile-time error
 }
