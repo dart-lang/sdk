@@ -23,7 +23,7 @@ class C {
 Object? f() => null;
 
 main() {
-  List<Object> listOfObject;
+  List<Object> listOfObject = [];
 
   var x1 = [0!];
   listOfObject = x1;

@@ -724,12 +724,11 @@ m() {
 @pragma('analyzer:non-nullable')
 library foo;
 
-m() {
-  int x;
+m(int x) {
   x ?? 1;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 69, 1),
+      error(HintCode.DEAD_CODE, 65, 1),
     ]);
   }
 
@@ -774,12 +773,11 @@ m() {
 @pragma('analyzer:non-nullable')
 library foo;
 
-m() {
-  int x;
+m(int x) {
   x ??= 1;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 70, 1),
+      error(HintCode.DEAD_CODE, 66, 1),
     ]);
   }
 

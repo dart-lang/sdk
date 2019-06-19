@@ -236,6 +236,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+  CompileTimeErrorCode.NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
   CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,

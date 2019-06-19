@@ -10,7 +10,7 @@ void main() async {
   bool? cond;
   List? list;
   Function? func;
-  List<Function?> funcList;
+  List<Function?> funcList = [];
   Stream? stream;
   x.isEven; //# 00: compile-time error
   x.round(); //# 01: compile-time error
