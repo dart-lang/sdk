@@ -34,7 +34,7 @@ var coordinates = <int,int>{};
 
 **EXCEPTIONS:**
 
-There are cases with LinkedHasSet or LinkedHashMap where a literal constructor
+There are cases with `LinkedHashSet` or `LinkedHashMap` where a literal constructor
 will trigger a type error so those will be excluded from the lint.
 
 ```
