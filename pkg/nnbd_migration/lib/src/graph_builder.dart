@@ -145,7 +145,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitAsExpression(AsExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'AsExpression');
   }
 
   @override
@@ -166,7 +167,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type != TokenType.EQ) {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Assignment with operator ${node.operator.lexeme}');
     }
     var leftType = node.leftHandSide.accept(this);
     var conditionalNode = _lastConditionalNode;
@@ -227,8 +229,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
             calleeType.positionalParameters[0], node.rightOperand);
         return calleeType.returnType;
       default:
-        assert(false); // TODO(paulberry)
-        return null;
+        // TODO(paulberry)
+        _unimplemented(
+            node, 'Binary expression with operator ${node.operator.lexeme}');
     }
   }
 
@@ -314,13 +317,15 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitFunctionExpression(FunctionExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionExpression');
   }
 
   @override
   DecoratedType visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    throw UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionExpressionInvocation');
   }
 
   @override
@@ -369,7 +374,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var callee = node.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Index expression with no static type');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
@@ -389,7 +395,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (callee.enclosingElement.typeParameters.isNotEmpty) {
       // If the class has type parameters then we might need to substitute the
       // appropriate type arguments.
-      throw UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Instance creation expression with type arguments');
     }
     _handleInvocationArguments(node.argumentList, calleeType);
     return calleeType.returnType;
@@ -406,9 +413,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (type is NamedType && type.typeArguments != null) {
       // TODO(brianwilkerson) Figure out what constraints we need to add to
       //  allow the tool to decide whether to make the type arguments nullable.
-      throw new UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Is expression with type arguments');
     } else if (type is GenericFunctionType) {
-      throw new UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Is expression with GenericFunctionType');
     }
     node.visitChildren(this);
     return DecoratedType(node.staticType, _graph.never);
@@ -421,7 +430,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       // TODO(brianwilkerson) We might want to create a fake node in the graph
       //  to represent the type argument so that we can still create edges from
       //  the elements to it.
-      throw new UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'List literal with no type arguments');
     } else {
       var typeArgumentType = _variables.decoratedTypeAnnotation(
           _source, node.typeArguments.arguments[0]);
@@ -431,7 +441,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
-          throw new UnimplementedError('TODO(brianwilkerson)');
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
         }
       }
       return DecoratedType(listType, _graph.never,
@@ -469,7 +480,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var callee = node.methodName.staticElement;
     if (callee == null) {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Unresolved method name');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
@@ -518,13 +530,15 @@ $stackTrace''');
 
   @override
   DecoratedType visitPostfixExpression(PostfixExpression node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'PostfixExpression');
   }
 
   @override
   DecoratedType visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.prefix.staticElement is ImportElement) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
       return _handlePropertyAccess(node, node.prefix, node.identifier);
     }
@@ -538,7 +552,8 @@ $stackTrace''');
       return _nonNullableBoolType;
     }
     // TODO(brianwilkerson) The remaining cases are invocations.
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    _unimplemented(
+        node, 'Prefix expression with operator ${node.operator.lexeme}');
   }
 
   @override
@@ -565,7 +580,8 @@ $stackTrace''');
       // TODO(brianwilkerson) We might want to create fake nodes in the graph to
       //  represent the type arguments so that we can still create edges from
       //  the elements to them.
-      throw new UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Set or map literal with no type arguments');
     } else if (typeArguments.length == 1) {
       var elementType =
           _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
@@ -575,7 +591,8 @@ $stackTrace''');
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
-          throw new UnimplementedError('TODO(brianwilkerson)');
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
         }
       }
       return DecoratedType(listType, _graph.never,
@@ -592,13 +609,16 @@ $stackTrace''');
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
-          throw new UnimplementedError('TODO(brianwilkerson)');
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
         }
       }
       return DecoratedType(listType, _graph.never,
           typeArguments: [keyType, valueType]);
     } else {
-      throw new UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(
+          node, 'Set or map literal with more than two type arguments');
     }
   }
 
@@ -612,7 +632,8 @@ $stackTrace''');
       return _nonNullableTypeType;
     } else {
       // TODO(paulberry)
-      throw new UnimplementedError('${staticElement.runtimeType}');
+      _unimplemented(node,
+          'Simple identifier with a static element of type ${staticElement.runtimeType}');
     }
   }
 
@@ -685,7 +706,8 @@ $stackTrace''');
     var destinationType = getOrComputeElementType(node.declaredElement);
     var initializer = node.initializer;
     if (initializer == null) {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Variable declaration with no initializer');
     } else {
       _handleAssignment(destinationType, initializer);
     }
@@ -769,13 +791,15 @@ $stackTrace''');
         var name = expression.name.label.name;
         var parameterType = calleeType.namedParameters[name];
         if (parameterType == null) {
-          throw UnimplementedError('TODO(paulberry)');
+          // TODO(paulberry)
+          _unimplemented(expression, 'Missing type for named parameter');
         }
         _handleAssignment(parameterType, expression.expression);
         suppliedNamedParameters.add(name);
       } else {
         if (calleeType.positionalParameters.length <= i) {
-          throw UnimplementedError('TODO(paulberry)');
+          // TODO(paulberry)
+          _unimplemented(argumentList, 'Missing positional parameter at $i');
         }
         _handleAssignment(calleeType.positionalParameters[i++], expression);
       }
@@ -800,7 +824,8 @@ $stackTrace''');
     }
     var callee = propertyName.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Unresolved property access');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
@@ -837,7 +862,9 @@ $stackTrace''');
       case TokenType.QUESTION_PERIOD:
         return true;
       default:
-        throw new UnimplementedError('TODO(paulberry)');
+        // TODO(paulberry)
+        _unimplemented(
+            expression, 'Conditional expression with operator ${token.lexeme}');
     }
   }
 
@@ -865,6 +892,21 @@ $stackTrace''');
     return false;
   }
 
+  @alwaysThrows
+  void _unimplemented(AstNode node, String message) {
+    CompilationUnit unit = node.root as CompilationUnit;
+    StringBuffer buffer = StringBuffer();
+    buffer.write(message);
+    buffer.write(' in "');
+    buffer.write(node.toSource());
+    buffer.write('" on line ');
+    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+    buffer.write(' of "');
+    buffer.write(unit.declaredElement.source.fullName);
+    buffer.write('"');
+    throw UnimplementedError(buffer.toString());
+  }
+
   void _unionDecoratedTypes(
       DecoratedType x, DecoratedType y, EdgeOrigin origin) {
     _graph.union(x.node, y.node, origin);
@@ -876,7 +918,8 @@ $stackTrace''');
         y.positionalParameters.isNotEmpty ||
         x.namedParameters.isNotEmpty ||
         y.namedParameters.isNotEmpty) {
-      throw UnimplementedError('TODO(paulberry): _unionDecoratedTypes($x, $y)');
+      // TODO(paulberry)
+      throw UnimplementedError('_unionDecoratedTypes($x, $y, $origin)');
     }
   }
 }

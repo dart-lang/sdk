@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -69,7 +70,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (node.factoryKeyword != null) {
       // Factory constructors can return null, but we don't want to propagate a
       // null type if we can prove that null is never returned.
-      throw UnimplementedError('TODO(brianwilkerson)');
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Declaration of a factory constructor');
     }
     _handleExecutableDeclaration(
         node.declaredElement, null, node.parameters, node.body, node);
@@ -93,7 +95,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FieldFormalParameter');
   }
 
   @override
@@ -117,13 +120,15 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitFunctionTypeAlias(FunctionTypeAlias node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionTypeAlias');
   }
 
   @override
   DecoratedType visitFunctionTypedFormalParameter(
       FunctionTypedFormalParameter node) {
-    throw new UnimplementedError('TODO(brianwilkerson)');
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionTypedFormalParameter');
   }
 
   @override
@@ -197,7 +202,8 @@ $stackTrace''');
     if (node is GenericFunctionType) {
       returnType = decorateType(node.returnType, node);
       if (node.typeParameters != null) {
-        throw UnimplementedError('TODO(paulberry)');
+        // TODO(paulberry)
+        _unimplemented(node, 'Generic function type with type parameters');
       }
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
@@ -281,7 +287,9 @@ $stackTrace''');
           typeArguments:
               type.typeArguments.map(_decorateImplicitTypeArgument).toList());
     }
-    throw UnimplementedError('TODO(paulberry): ${type.runtimeType}');
+    // TODO(paulberry)
+    throw UnimplementedError(
+        '_decorateImplicitTypeArgument(${type.runtimeType})');
   }
 
   /// Common handling of function and method declarations.
@@ -298,11 +306,15 @@ $stackTrace''');
       if (declaredElement.isFactory) {
         // Factory constructors can return null, but we don't want to propagate
         // a null type if we can prove that null is never returned.
-        throw UnimplementedError('TODO(brianwilkerson)');
+        // TODO(brianwilkerson)
+        _unimplemented(
+            parameters.parent, 'Declaration of a factory constructor');
       }
       if (declaredElement.enclosingElement.typeParameters.isNotEmpty) {
         // Need to decorate the type parameters appropriately.
-        throw new UnimplementedError('TODO(paulberry,brianwilkerson)');
+        // TODO(paulberry,brianwilkerson)
+        _unimplemented(parameters.parent,
+            'Declaration of a constructor with type parameters');
       }
       decoratedReturnType = new DecoratedType(
           declaredElement.enclosingElement.type, _graph.never);
@@ -326,6 +338,21 @@ $stackTrace''');
       _namedParameters = previousNamedParameters;
     }
     _variables.recordDecoratedElementType(declaredElement, functionType);
+  }
+
+  @alwaysThrows
+  void _unimplemented(AstNode node, String message) {
+    CompilationUnit unit = node.root as CompilationUnit;
+    StringBuffer buffer = StringBuffer();
+    buffer.write(message);
+    buffer.write(' in "');
+    buffer.write(node.toSource());
+    buffer.write('" on line ');
+    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+    buffer.write(' of "');
+    buffer.write(unit.declaredElement.source.fullName);
+    buffer.write('"');
+    throw UnimplementedError(buffer.toString());
   }
 }
 
