@@ -94,7 +94,7 @@ abstract class TypeSystem {
   @experimental
   bool isPotentiallyNonNullable(DartType type);
 
-  /// Return `true` if the [type] is not a potentially nullable type.
+  /// Return `true` if the [type] is a potentially nullable type.
   ///
   /// We say that a type `T` is potentially nullable if `T` is not non-nullable.
   /// Note that this is different from saying that `T` is nullable. For example,

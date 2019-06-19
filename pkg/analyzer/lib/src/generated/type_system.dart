@@ -2107,9 +2107,13 @@ abstract class TypeSystem implements public.TypeSystem {
       return false;
     } else if (type.isDartAsyncFutureOr) {
       isNonNullable((type as InterfaceType).typeArguments[0]);
+    } else if ((type as TypeImpl).nullabilitySuffix ==
+        NullabilitySuffix.question) {
+      return false;
+    } else if (type is TypeParameterType) {
+      return isNonNullable(type.bound);
     }
-    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.question &&
-        (type is TypeParameterType ? isNonNullable(type.bound) : true);
+    return true;
   }
 
   @override

@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/source.dart'
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -2459,8 +2460,10 @@ class TypeBuilder {
 class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get futureOrWithNoneType =>
       typeProvider.futureOrType.instantiate([noneType]);
+
   DartType get futureOrWithQuestionType =>
       typeProvider.futureOrType.instantiate([questionType]);
+
   DartType get futureOrWithStarType =>
       typeProvider.futureOrType.instantiate([starType]);
 
@@ -2505,6 +2508,51 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isNonNullable(starType), true);
   }
 
+  test_isNonNullable_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_typeParameter_noneBound_question() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeQuestion(bound: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeNone(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeQuestion(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_starBound_star() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeStar(bound: starType),
+      ),
+      true,
+    );
+  }
+
   test_isNonNullable_void() {
     expect(typeSystem.isNonNullable(voidType), false);
   }
@@ -2539,6 +2587,51 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isNullable_star() {
     expect(typeSystem.isNullable(starType), true);
+  }
+
+  test_isNullable_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_typeParameter_noneBound_question() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeQuestion(bound: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeNone(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeQuestion(bound: questionType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_typeParameter_starBound_star() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeStar(bound: starType),
+      ),
+      true,
+    );
   }
 
   test_isNullable_void() {
@@ -2616,5 +2709,29 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isPotentiallyNullable_void() {
     expect(typeSystem.isPotentiallyNullable(voidType), true);
+  }
+
+  DartType typeParameterTypeNone({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.none);
+  }
+
+  DartType typeParameterTypeQuestion({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.question);
+  }
+
+  DartType typeParameterTypeStar({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.star);
   }
 }
