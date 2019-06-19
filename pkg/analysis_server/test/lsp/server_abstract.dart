@@ -21,7 +21,6 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../abstract_context.dart';
 import '../mocks.dart';
 
 const dartLanguageId = 'dart';
@@ -844,7 +843,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 }
 
-abstract class AbstractLspAnalysisServerTest extends AbstractContextTest
+abstract class AbstractLspAnalysisServerTest
     with
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,

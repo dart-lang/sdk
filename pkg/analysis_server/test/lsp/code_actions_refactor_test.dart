@@ -6,13 +6,14 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../src/utilities/flutter_util.dart' as flutter;
+import '../src/utilities/meta_util.dart' as meta;
 import 'code_actions_abstract.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
-    // TODO(dantup): Restore this once the tests are fixed for Windows.
-    //defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
   });
 }
 
@@ -68,8 +69,21 @@ main() {}
 @reflectiveTest
 class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
   final extractWidgetTitle = 'Extract Widget';
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    final flutterLibFolder = flutter.configureFlutterPackage(resourceProvider);
+    final metaLibFolder = meta.configureMetaPackage(resourceProvider);
+    // Create .packages in the project.
+    newFile(join(projectFolderPath, '.packages'), content: '''
+flutter:${flutterLibFolder.toUri()}
+meta:${metaLibFolder.toUri()}
+''');
+  }
+
   test_appliesCorrectEdits() async {
-    addFlutterPackage();
     const content = '''
 import 'package:flutter/material.dart';
 
