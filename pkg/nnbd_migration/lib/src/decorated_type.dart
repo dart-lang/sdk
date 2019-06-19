@@ -47,19 +47,29 @@ class DecoratedType {
   /// presumed to have come from code that is already migrated.
   factory DecoratedType.forElement(Element element, NullabilityGraph graph) {
     DecoratedType decorate(DartType type) {
+      if (type.isVoid || type.isDynamic) {
+        return DecoratedType(type, graph.always);
+      }
       assert((type as TypeImpl).nullabilitySuffix ==
           NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
         var positionalParameters = <DecoratedType>[];
         for (var parameter in type.parameters) {
-          assert(parameter.isPositional); // TODO(paulberry)
-          positionalParameters.add(decorate(parameter.type));
+          if (parameter.isPositional) {
+            positionalParameters.add(decorate(parameter.type));
+          } else {
+            // TODO(paulberry)
+            throw UnimplementedError('Decorating (${parameter.displayName})');
+          }
         }
         return DecoratedType(type, graph.never,
             returnType: decorate(type.returnType),
             positionalParameters: positionalParameters);
       } else if (type is InterfaceType) {
-        assert(type.typeParameters.isEmpty); // TODO(paulberry)
+        if (type.typeParameters.isNotEmpty) {
+          // TODO(paulberry)
+          throw UnimplementedError('Decorating ${type.displayName}');
+        }
         return DecoratedType(type, graph.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
@@ -67,14 +77,11 @@ class DecoratedType {
     }
 
     DecoratedType decoratedType;
-    if (element is MethodElement) {
-      decoratedType = decorate(element.type);
-    } else if (element is PropertyAccessorElement) {
-      decoratedType = decorate(element.type);
-    } else if (element is ConstructorElement) {
+    if (element is ExecutableElement) {
       decoratedType = decorate(element.type);
     } else {
-      throw element.runtimeType; // TODO(paulberry)
+      // TODO(paulberry)
+      throw UnimplementedError('Decorating ${element.runtimeType}');
     }
     return decoratedType;
   }
