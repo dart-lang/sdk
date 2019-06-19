@@ -1392,7 +1392,7 @@ DEFINE_RUNTIME_ENTRY(SingleTargetMiss, 2) {
   // DBC does not use switchable calls.
   UNREACHABLE();
 #else
-  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(1));
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
