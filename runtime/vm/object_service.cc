@@ -860,12 +860,6 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintJSONInlineIntervals(&jsobj);
 }
 
-void Code::set_await_token_positions(const Array& await_token_positions) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  StorePointer(&raw_ptr()->await_token_positions_, await_token_positions.raw());
-#endif
-}
-
 void Bytecode::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // N.B. This is polymorphic with Code.
 

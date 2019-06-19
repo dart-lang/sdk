@@ -5120,9 +5120,6 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
-  RawArray* await_token_positions() const;
-  void set_await_token_positions(const Array& await_token_positions) const;
-
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
   // that are embedded inside the Code or ObjecPool objects.
   void ResetICDatas(Zone* zone) const;

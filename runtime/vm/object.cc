@@ -15215,14 +15215,6 @@ void Code::DumpSourcePositions() const {
   reader.DumpSourcePositions(PayloadStart());
 }
 
-RawArray* Code::await_token_positions() const {
-#if defined(PRODUCT)
-  return Array::null();
-#else
-  return raw_ptr()->await_token_positions_;
-#endif
-}
-
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #if !defined(DART_PRECOMPILED_RUNTIME)

@@ -960,10 +960,9 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // This should only be called on frames that aren't active on the stack.
   ASSERT(fp() == 0);
 
+  ASSERT(script.kind() == RawScript::kKernelTag);
   const Array& await_to_token_map =
-      Array::Handle(zone, script.kind() == RawScript::kKernelTag
-                              ? script.yield_positions()
-                              : code_.await_token_positions());
+      Array::Handle(zone, script.yield_positions());
   if (await_to_token_map.IsNull()) {
     // No mapping.
     return;

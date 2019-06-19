@@ -1397,7 +1397,6 @@ class CodeSerializationCluster : public SerializationCluster {
       s->Push(code->ptr()->deopt_info_array_);
       s->Push(code->ptr()->static_calls_target_table_);
     }
-    NOT_IN_PRODUCT(s->Push(code->ptr()->await_token_positions_));
     NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
   }
 
@@ -1459,7 +1458,6 @@ class CodeSerializationCluster : public SerializationCluster {
         WriteField(code, deopt_info_array_);
         WriteField(code, static_calls_target_table_);
       }
-      NOT_IN_PRODUCT(WriteField(code, await_token_positions_));
       NOT_IN_PRODUCT(WriteField(code, return_address_metadata_));
 
       s->Write<int32_t>(code->ptr()->state_bits_);
@@ -1574,8 +1572,6 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif  // !DART_PRECOMPILED_RUNTIME
 
 #if !defined(PRODUCT)
-      code->ptr()->await_token_positions_ =
-          reinterpret_cast<RawArray*>(d->ReadRef());
       code->ptr()->return_address_metadata_ = d->ReadRef();
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
       code->ptr()->comments_ = Array::null();

@@ -55,7 +55,6 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
       loop_hierarchy_(nullptr),
       loop_invariant_loads_(nullptr),
       deferred_prefixes_(parsed_function.deferred_prefixes()),
-      await_token_positions_(nullptr),
       captured_parameters_(new (zone()) BitVector(zone(), variable_count())),
       inlining_id_(-1),
       should_print_(FlowGraphPrinter::ShouldPrint(parsed_function.function())) {
