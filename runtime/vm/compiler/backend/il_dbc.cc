@@ -77,6 +77,8 @@ static LocationSummary* CreateLocationSummary(
     intptr_t num_temps = 0) {
   LocationSummary* locs =
       new (zone) LocationSummary(zone, num_inputs, num_temps, contains_call);
+  ASSERT(contains_call == LocationSummary::kNoCall ||
+         num_inputs <= kMaxNumberOfFixedInputRegistersUsedByIL);
   for (intptr_t i = 0; i < num_inputs; i++) {
     locs->set_in(i, (contains_call == LocationSummary::kNoCall)
                         ? Location::RequiresRegister()
@@ -1356,6 +1358,7 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
       new (zone) LocationSummary(zone, 0, 0, LocationSummary::kCall);
   // TODO(vegorov) support allocating out registers for calls.
   // Currently we require them to be fixed.
+  ASSERT(0 < kMaxNumberOfFixedInputRegistersUsedByIL);
   result->set_out(0, Location::RegisterLocation(0));
   return result;
 }
