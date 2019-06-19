@@ -9,7 +9,6 @@ html/xhr_test: Pass, Slow
 
 [ $compiler == dartdevk ]
 async/slow_consumer_test: CompileTimeError
-html/debugger_test: CompileTimeError
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/element_animate_test/timing_dict: RuntimeError # Issue 29922
