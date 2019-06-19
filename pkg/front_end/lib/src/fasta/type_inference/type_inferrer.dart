@@ -1611,6 +1611,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
           actualMethodName,
           interfaceTarget,
           arguments,
+          helper.uri,
           fileOffset,
           inferred: getExplicitTypeArguments(arguments) == null);
     }
@@ -1957,9 +1958,9 @@ abstract class MixinInferrer {
               mixinSuperclass.implementedTypes.length != 2)) {
         unexpected(
             'Compiler-generated mixin applications have a mixin or else '
-            'implement exactly one type',
+                'implement exactly one type',
             '$mixinSuperclass implements '
-            '${mixinSuperclass.implementedTypes.length} types',
+                '${mixinSuperclass.implementedTypes.length} types',
             mixinSuperclass.fileOffset,
             mixinSuperclass.fileUri);
       }

@@ -3,17 +3,6 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Not sorted --- these crashes should be fixed ASAP!
-GenericFunctionTypeInferredAsActualTypeArgument/part_wrapped_script: Crash
-GenericFunctionTypeUsedAsActualTypeArgument/part_wrapped_script1: Crash
-GenericFunctionTypeUsedAsActualTypeArgument/part_wrapped_script2: Crash
-IncorrectTypeArgument/part_wrapped_script: Crash
-IncorrectTypeArgumentInReturnType/part_wrapped_script: Crash
-IncorrectTypeArgumentInSupertype/part_wrapped_script: Crash
-IncorrectTypeArgumentInSupertypeInferred/part_wrapped_script: Crash
-IncorrectTypeArgumentInferred/part_wrapped_script: Crash
-IncorrectTypeArgumentQualified/part_wrapped_script: Crash
-IncorrectTypeArgumentQualifiedInferred/part_wrapped_script: Crash
-IntersectionTypeAsTypeArgument/part_wrapped_script: Crash
 PartTwice/part_wrapped_script: Crash
 
 AbstractClassInstantiation/example: Fail

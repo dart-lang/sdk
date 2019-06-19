@@ -340,7 +340,8 @@ abstract class KernelClassBuilder
           }
         }
 
-        library.reportTypeArgumentIssue(message, charOffset, typeParameter);
+        library.reportTypeArgumentIssue(
+            message, fileUri, charOffset, typeParameter);
       }
     }
   }
@@ -379,7 +380,7 @@ abstract class KernelClassBuilder
           }
 
           library.reportTypeArgumentIssue(
-              message, parameter.fileOffset, typeParameter);
+              message, fileUri, parameter.fileOffset, typeParameter);
         }
       }
     }
@@ -402,15 +403,17 @@ abstract class KernelClassBuilder
       library.checkBoundsInField(field, typeEnvironment);
     }
     for (Procedure procedure in cls.procedures) {
-      library.checkBoundsInFunctionNode(procedure.function, typeEnvironment);
+      library.checkBoundsInFunctionNode(
+          procedure.function, typeEnvironment, fileUri);
     }
     for (Constructor constructor in cls.constructors) {
-      library.checkBoundsInFunctionNode(constructor.function, typeEnvironment);
+      library.checkBoundsInFunctionNode(
+          constructor.function, typeEnvironment, fileUri);
     }
     for (RedirectingFactoryConstructor redirecting
         in cls.redirectingFactoryConstructors) {
       library.checkBoundsInFunctionNodeParts(
-          typeEnvironment, redirecting.fileOffset,
+          typeEnvironment, fileUri, redirecting.fileOffset,
           typeParameters: redirecting.typeParameters,
           positionalParameters: redirecting.positionalParameters,
           namedParameters: redirecting.namedParameters);
