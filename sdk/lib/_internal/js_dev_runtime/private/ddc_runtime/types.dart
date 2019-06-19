@@ -472,8 +472,7 @@ class FunctionType extends AbstractFunctionType {
       var actual = JS('', '#[#]', obj, _runtimeType);
       // If there's no actual type, it's a JS function.
       // Allow them to subtype all Dart function types.
-      if (actual == null ||
-          _isSubtypeOrIgnorableCastFailure(actual, this, isImplicit)) {
+      if (actual == null || _isSubtypeOrLegacySubtype(actual, this) == true) {
         return obj;
       }
     }

@@ -174,7 +174,6 @@ window.ddcSettings = {
 <script type="text/javascript">
 requirejs(["$testName", "dart_sdk", "async_helper"],
     function($testId, sdk, async_helper) {
-  sdk.dart.ignoreWhitelistedErrors(false);
   sdk._isolate_helper.startRootIsolate(function() {}, []);
   sdk._debugger.registerDevtoolsFormatter();
 

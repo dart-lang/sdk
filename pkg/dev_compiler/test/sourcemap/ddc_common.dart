@@ -152,7 +152,6 @@ String getWrapperContent(
     };
 
     let main = $inputFileNameNoExt.main;
-    dart.ignoreWhitelistedErrors(false);
     try {
       dartMainRunner(main, []);
     } catch(e) {
@@ -191,7 +190,6 @@ String getWrapperHtmlContent(String jsRootDart, String outFileRootBuild) {
     import { dart, _isolate_helper } from '$jsRootDart';
     import { test } from '$outFileRootBuild';
     let main = test.main;
-    dart.ignoreWhitelistedErrors(false);
     main();
     </script>
   </head>

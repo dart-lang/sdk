@@ -92,7 +92,7 @@ bool polyfill(window) => JS('', '''(() => {
     if (typeof $window.SourceBufferList == "undefined") {
       if ('MediaSource' in $window) {
         $window.SourceBufferList =
-          new $window.MediaSource().sourceBuffers.constructor; 
+          new $window.MediaSource().sourceBuffers.constructor;
       }
     }
     if (typeof $window.SpeechRecognition == "undefined") {
@@ -130,9 +130,6 @@ final global_ = JS('', '''
     let settings = 'ddcSettings' in globalState ? globalState.ddcSettings : {};
     $trapRuntimeErrors(
         'trapRuntimeErrors' in settings ? settings.trapRuntimeErrors : false);
-    $ignoreWhitelistedErrors(
-        'ignoreWhitelistedErrors' in settings ?
-            settings.ignoreWhitelistedErrors : false);
 
     $ignoreAllErrors(
         'ignoreAllErrors' in settings ? settings.ignoreAllErrors : false);
@@ -200,7 +197,6 @@ void hotRestart() {
   for (var m in _cacheMaps) JS('', '#.clear()', m);
   _cacheMaps.clear();
   JS('', '#.clear()', constantMaps);
-  JS('', '#.clear()', _ignoreSubtypeCache);
 }
 
 /// Marks enqueuing an async operation.
