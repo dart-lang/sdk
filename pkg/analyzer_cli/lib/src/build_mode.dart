@@ -195,7 +195,7 @@ class BuildMode with HasContextMixin {
   PackageBundleAssembler assembler;
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  final bool buildSummary2 = true;
+  final bool buildSummary2 = false;
   final bool consumeSummary2 = false;
   final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
