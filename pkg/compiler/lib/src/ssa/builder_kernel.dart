@@ -45,6 +45,7 @@ import '../options.dart';
 import '../tracer.dart';
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';
+import '../universe/member_usage.dart' show MemberAccess;
 import '../universe/selector.dart';
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/target_checks.dart' show TargetChecks;
@@ -1197,7 +1198,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// that no corresponding ir.Node actually exists for it. We just use the
   /// targetElement.
   void _buildMethodSignature(ir.FunctionNode originalClosureNode) {
-    _openFunction(targetElement);
+    _openFunction(targetElement, checks: TargetChecks.none);
     List<HInstruction> typeArguments = <HInstruction>[];
 
     // Add function type variables.
@@ -1243,13 +1244,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    // TODO(sra): Static methods with no tear-off can be generated with no
-    // checks.
-    // TODO(sra): Instance methods can be generated with reduced checks if
-    // called only from non-dynamic call-sites.
     _openFunction(function,
         functionNode: functionNode,
-        parameterStructure: function.parameterStructure);
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
 
     // If [functionNode] is `operator==` we explicitly add a null check at the
     // beginning of the method. This is to avoid having call sites do the null
@@ -1308,7 +1306,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   void _buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
     _openFunction(function,
         functionNode: functionNode,
-        parameterStructure: function.parameterStructure);
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
 
     // Prepare to tail-call the body.
 
@@ -1474,7 +1473,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     assert(functionNode.body == null);
     _openFunction(function,
         functionNode: functionNode,
-        parameterStructure: function.parameterStructure);
+        parameterStructure: function.parameterStructure,
+        checks: _checksForFunction(function));
 
     if (closedWorld.nativeData.isNativeMember(targetElement)) {
       registry.registerNativeMethod(targetElement);
@@ -1572,12 +1572,24 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
   }
 
+  TargetChecks _checksForFunction(FunctionEntity function) {
+    if (!function.isInstanceMember) {
+      // Static methods with no tear-off can be generated with no checks.
+      MemberAccess access = closedWorld.getMemberAccess(function);
+      if (access != null && access.reads.isEmpty) {
+        return TargetChecks.none;
+      }
+    }
+    // TODO(sra): Instance methods can be generated with reduced checks if
+    // called only from non-dynamic call-sites.
+    return TargetChecks.dynamicChecks;
+  }
+
   void _openFunction(MemberEntity member,
       {ir.FunctionNode functionNode,
       ParameterStructure parameterStructure,
       TargetChecks checks}) {
-    // TODO(sra): Pass from all sites.
-    checks ??= TargetChecks.dynamicChecks;
+    assert(checks != null);
 
     Map<Local, AbstractValue> parameterMap = {};
     List<ir.VariableDeclaration> elidedParameters = [];
