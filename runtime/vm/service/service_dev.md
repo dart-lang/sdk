@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.20-dev
+# Dart VM Service Protocol 3.21-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.20-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.21-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -32,6 +32,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
   - [getFlagList](#getflaglist)
+  - [getInstances](#getinstances)
   - [getIsolate](#getisolate)
   - [getMemoryUsage](#getmemoryusage)
   - [getScripts](#getscripts)
@@ -79,6 +80,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Frame](#frame)
   - [Function](#function)
   - [Instance](#instance)
+  - [InstanceSet](#instanceset)
   - [Isolate](#isolate)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
@@ -637,6 +639,21 @@ The _getFlagList_ RPC returns a list of all command line flags in the
 VM along with their current values.
 
 See [FlagList](#flaglist).
+
+### getInstances
+
+```
+InstanceSet getInstances(string objectId,
+                         int limit)
+```
+
+The _getInstances_ RPC is used to retrieve a set of instances which are of a specific type.
+
+_objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must be the ID of a `Class`, otherwise an error is returned.
+
+_limit_ is the maximum number of instances to be returned.
+
+See [InstanceSet](#instanceset).
 
 ### getIsolate
 
@@ -2293,6 +2310,20 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
+### InstanceSet
+
+```
+class InstanceSet extends Response {
+  // The number of instances of the requested type currently allocated.
+  int totalCount;
+
+  // An array of instances of the requested type.
+  @Instance[] instances;
+}
+```
+
+See [getInstances](#getinstances).
+
 ### Library
 
 ```
@@ -3002,7 +3033,7 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-1.0 | initial revision
+1.0 | Initial revision
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
@@ -3024,5 +3055,6 @@ version | comments
 3.17 | Add 'Logging' event kind and the LogRecord class.
 3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
 3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
+3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

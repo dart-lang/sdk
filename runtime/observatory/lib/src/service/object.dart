@@ -1904,7 +1904,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'classId': cls.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('_getInstances', params);
+    return invokeRpc('getInstances', params);
   }
 
   Future<ServiceObject /*HeapObject*/ > getObjectByAddress(String address,
@@ -4049,7 +4049,7 @@ class TypeArguments extends HeapObject implements M.TypeArguments {
 class InstanceSet extends HeapObject implements M.InstanceSet {
   HeapObject dartOwner;
   int count;
-  Iterable<HeapObject> samples;
+  Iterable<HeapObject> instances;
 
   InstanceSet._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -4061,7 +4061,7 @@ class InstanceSet extends HeapObject implements M.InstanceSet {
       return;
     }
     count = map['totalCount'];
-    samples = new List<HeapObject>.from(map['samples']);
+    instances = new List<HeapObject>.from(map['instances']);
   }
 }
 

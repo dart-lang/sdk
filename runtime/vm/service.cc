@@ -2989,8 +2989,10 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
 
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(const Class& cls, const Array& storage)
-      : cls_(cls), storage_(storage), count_(0) {}
+  GetInstancesVisitor(const Class& cls,
+                      ZoneGrowableHandlePtrArray<Object>* storage,
+                      intptr_t limit)
+      : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
@@ -3002,8 +3004,8 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
     Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     if (obj.GetClassId() == cls_.id()) {
-      if (!storage_.IsNull() && count_ < storage_.Length()) {
-        storage_.SetAt(count_, obj);
+      if (count_ < limit_) {
+        storage_->Add(Object::Handle(raw_obj));
       }
       ++count_;
     }
@@ -3014,7 +3016,8 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
  private:
   const Class& cls_;
-  const Array& storage_;
+  ZoneGrowableHandlePtrArray<Object>* storage_;
+  const intptr_t limit_;
   intptr_t count_;
 };
 
@@ -3023,9 +3026,9 @@ static const MethodParameter* get_instances_params[] = {
 };
 
 static bool GetInstances(Thread* thread, JSONStream* js) {
-  const char* target_id = js->LookupParam("classId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "classId");
+  const char* object_id = js->LookupParam("objectId");
+  if (object_id == NULL) {
+    PrintMissingParamError(js, "objectId");
     return true;
   }
   const char* limit_cstr = js->LookupParam("limit");
@@ -3038,14 +3041,20 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
     PrintInvalidParamError(js, "limit");
     return true;
   }
-  const Object& obj = Object::Handle(LookupHeapObject(thread, target_id, NULL));
+
+  const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsClass()) {
-    PrintInvalidParamError(js, "classId");
+    PrintInvalidParamError(js, "objectId");
     return true;
   }
   const Class& cls = Class::Cast(obj);
-  Array& storage = Array::Handle(Array::New(limit));
-  GetInstancesVisitor visitor(cls, storage);
+
+  // Ensure the array and handles created below are promptly destroyed.
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+
+  ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
+  GetInstancesVisitor visitor(cls, &storage, limit);
   ObjectGraph graph(thread);
   HeapIterationScope iteration_scope(Thread::Current(), true);
   graph.IterateObjects(&visitor);
@@ -3054,20 +3063,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("type", "InstanceSet");
   jsobj.AddProperty("totalCount", count);
   {
-    JSONArray samples(&jsobj, "samples");
-    for (int i = 0; (i < storage.Length()) && (i < count); i++) {
-      const Object& sample = Object::Handle(storage.At(i));
-      samples.AddValue(sample);
+    JSONArray samples(&jsobj, "instances");
+    for (int i = 0; (i < limit) && (i < count); i++) {
+      samples.AddValue(storage.At(i));
     }
   }
-
-  // We nil out the array after generating the response to prevent
-  // reporting spurious references when looking for inbound references
-  // after looking at allInstances.
-  for (intptr_t i = 0; i < storage.Length(); i++) {
-    storage.SetAt(i, Object::null_object());
-  }
-
   return true;
 }
 
@@ -4926,7 +4926,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_heap_map_params },
   { "_getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
-  { "_getInstances", GetInstances,
+  { "getInstances", GetInstances,
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
