@@ -24,9 +24,7 @@ final DEFAULT_TIMEOUT = 20;
 final LONG_TIMEOUT = 30;
 
 List<String> packageOptions() {
-  if (Platform.packageRoot != null) {
-    return <String>['--package-root=${Platform.packageRoot}'];
-  } else if (Platform.packageConfig != null) {
+  if (Platform.packageConfig != null) {
     return <String>['--packages=${Platform.packageConfig}'];
   } else {
     return <String>[];
