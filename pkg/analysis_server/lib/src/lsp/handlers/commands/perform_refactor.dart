@@ -96,6 +96,18 @@ class PerformRefactorCommandHandler extends SimpleEditCommandHandler {
         refactor.extractAll = false;
         return success(refactor);
 
+      case RefactoringKind.EXTRACT_WIDGET:
+        final refactor = ExtractWidgetRefactoring(
+            server.searchEngine, result, offset, length);
+        // TODO(dantup): For now we don't have a good way to prompt the user
+        // for a method name so we just use a placeholder and expect them to
+        // rename (this is what C#/Omnisharp does), but there's an open request
+        // to handle this better.
+        // https://github.com/microsoft/language-server-protocol/issues/764
+        refactor.name =
+            (options != null ? options['name'] : null) ?? 'NewWidget';
+        return success(refactor);
+
       default:
         return error(ServerErrorCodes.InvalidCommandArguments,
             'Unknown RefactoringKind $kind was supplied to $commandName');

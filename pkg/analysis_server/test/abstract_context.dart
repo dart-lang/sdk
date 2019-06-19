@@ -194,7 +194,8 @@ class _VisibleForTesting {
 
   void addTestPackageDependency(String name, String rootPath) {
     var packagesFile = getFile('/home/test/.packages');
-    var packagesContent = packagesFile.readAsStringSync();
+    var packagesContent =
+        packagesFile.exists ? packagesFile.readAsStringSync() : '';
 
     // Ignore if there is already the same package dependency.
     if (packagesContent.contains('$name:file://')) {

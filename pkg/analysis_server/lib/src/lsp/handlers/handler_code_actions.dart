@@ -266,7 +266,12 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
             'Extract Method', RefactoringKind.EXTRACT_METHOD));
       }
 
-      // TODO(dantup): Extract Widget
+      // Extract Widget
+      if (ExtractWidgetRefactoring(server.searchEngine, unit, offset, length)
+          .isAvailable()) {
+        refactorActions.add(createRefactor(CodeActionKind.RefactorExtract,
+            'Extract Widget', RefactoringKind.EXTRACT_WIDGET));
+      }
 
       return refactorActions;
     } on InconsistentAnalysisException {

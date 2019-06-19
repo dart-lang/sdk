@@ -21,6 +21,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../abstract_context.dart';
 import '../mocks.dart';
 
 const dartLanguageId = 'dart';
@@ -843,7 +844,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 }
 
-abstract class AbstractLspAnalysisServerTest
+abstract class AbstractLspAnalysisServerTest extends AbstractContextTest
     with
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
@@ -888,7 +889,7 @@ abstract class AbstractLspAnalysisServerTest
         new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
 
-    projectFolderPath = convertPath('/project');
+    projectFolderPath = convertPath('/home/test');
     projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));

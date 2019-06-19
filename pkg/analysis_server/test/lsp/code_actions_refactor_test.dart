@@ -11,6 +11,7 @@ import 'code_actions_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
+    defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
   });
 }
 
@@ -59,6 +60,93 @@ main() {}
     final codeActions = await getCodeActions(mainFileUri.toString());
     final codeAction =
         findCommand(codeActions, Commands.performRefactor, extractMethodTitle);
+    expect(codeAction, isNull);
+  }
+}
+
+@reflectiveTest
+class ExtractWidgetRefactorCodeActionsTest extends AbstractCodeActionsTest {
+  final extractWidgetTitle = 'Extract Widget';
+  test_appliesCorrectEdits() async {
+    addFlutterPackage();
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new [[Column]](
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+    ''';
+    const expectedContent = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new NewWidget(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class NewWidget extends StatelessWidget {
+  const NewWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+    ''';
+    await newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString(),
+        range: rangeFromMarkers(content));
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
+    expect(codeAction, isNotNull);
+
+    await verifyCodeActionEdits(
+        codeAction, withoutMarkers(content), expectedContent);
+  }
+
+  test_invalidLocation() async {
+    const content = '''
+import 'dart:convert';
+^
+main() {}
+    ''';
+    await newFile(mainFilePath, content: content);
+    await initialize();
+
+    final codeActions = await getCodeActions(mainFileUri.toString());
+    final codeAction =
+        findCommand(codeActions, Commands.performRefactor, extractWidgetTitle);
     expect(codeAction, isNull);
   }
 }
