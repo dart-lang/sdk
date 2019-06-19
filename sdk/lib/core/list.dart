@@ -674,6 +674,22 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * A range from [start] to [end] is valid if `0 <= start <= end <= len`, where
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
+   *
+   *     List<int> list1 = new List(3);
+   *     list1.fillRange(0, 2, 1);
+   *     print(list); //  [1, 1, null]
+   *
+   * Note: Usage on dynamic list throws RangeError: Invalid Value
+   *
+   *      List<int> list = new List();
+   *      list.fillRange(0, 2, 1); // throws `RangeError: Invalid Value` exception.
+   *
+   *
+   * However, works on dynamic list of fixed length:
+   *
+   *      List<int> list2 = new List()..length = 3;
+   *      list2.fillRange(0, 2, 1);
+   *      print(list2); // [1, 1, null]
    */
   void fillRange(int start, int end, [E fillValue]);
 
