@@ -2131,16 +2131,16 @@ RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
   RawLibrary* result;
   name_index_handle_ = Smi::New(library);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     result = kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result != Library::null()) {
       return result;
     }
   }
   const String& url = H.DartString(H.CanonicalNameString(library));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     result = Library::LookupLibrary(thread_, url);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result == Library::null()) {
       return result;
     }
@@ -2154,9 +2154,9 @@ RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
 RawLibrary* KernelLoader::LookupLibrary(NameIndex library) {
   name_index_handle_ = Smi::New(library);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     RawLibrary* result =
         kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result != Library::null()) {
       return result;
     }
@@ -2192,9 +2192,9 @@ RawLibrary* KernelLoader::LookupLibraryFromClass(NameIndex klass) {
 RawClass* KernelLoader::LookupClass(const Library& library, NameIndex klass) {
   name_index_handle_ = Smi::New(klass);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     RawClass* raw_class =
         kernel_program_info_.LookupClass(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
     }

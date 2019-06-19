@@ -1756,11 +1756,6 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
-#if !defined(PRODUCT)
-  // Clean up debugger resources.
-  debugger()->Shutdown();
-#endif
-
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
@@ -1859,6 +1854,9 @@ void Isolate::Shutdown() {
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
     KernelIsolate::NotifyAboutIsolateShutdown(this);
+#if !defined(PRODUCT)
+    debugger()->Shutdown();
+#endif
   }
 
   if (heap_ != nullptr) {
@@ -2552,7 +2550,7 @@ void Isolate::PauseEventHandler() {
     pause_loop_monitor_ = new Monitor();
   }
   Dart_EnterScope();
-  MonitorLocker ml(pause_loop_monitor_);
+  MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);

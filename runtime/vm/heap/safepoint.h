@@ -290,7 +290,9 @@ class TransitionNativeToVM : public TransitionSafepointState {
   explicit TransitionNativeToVM(Thread* T) : TransitionSafepointState(T) {
     // We are about to execute vm code and so we are not at a safepoint anymore.
     ASSERT(T->execution_state() == Thread::kThreadInNative);
-    T->ExitSafepoint();
+    if (T->no_callback_scope_depth() == 0) {
+      T->ExitSafepoint();
+    }
     T->set_execution_state(Thread::kThreadInVM);
   }
 
@@ -298,7 +300,9 @@ class TransitionNativeToVM : public TransitionSafepointState {
     // We are returning to native code and so we are at a safepoint.
     ASSERT(thread()->execution_state() == Thread::kThreadInVM);
     thread()->set_execution_state(Thread::kThreadInNative);
-    thread()->EnterSafepoint();
+    if (thread()->no_callback_scope_depth() == 0) {
+      thread()->EnterSafepoint();
+    }
   }
 
  private:

@@ -736,6 +736,7 @@ class Thread : public ThreadState {
   }
 
   void EnterSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
     if (!TryEnterSafepoint()) {
@@ -765,6 +766,7 @@ class Thread : public ThreadState {
   }
 
   void CheckForSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
       BlockForSafepoint();
     }

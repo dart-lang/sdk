@@ -499,10 +499,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(IsLibrary(kernel_library) ||
          IsAdministrative(CanonicalNameParent(kernel_library)));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawLibrary* raw_lib;
     name_index_handle_ = Smi::New(kernel_library);
-    raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    RawLibrary* raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_lib != Library::null()) {
       return raw_lib;
     }
@@ -521,10 +520,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
 RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawClass* raw_class;
     name_index_handle_ = Smi::New(kernel_class);
-    raw_class = info_.LookupClass(thread_, name_index_handle_);
+    RawClass* raw_class = info_.LookupClass(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
     }
