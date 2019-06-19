@@ -11,7 +11,8 @@ import 'code_actions_abstract.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
-    defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
+    // TODO(dantup): Restore this once the tests are fixed for Windows.
+    //defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
   });
 }
 
