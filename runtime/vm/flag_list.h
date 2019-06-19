@@ -79,6 +79,8 @@ constexpr bool kDartPrecompiledRuntime = false;
   R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
   R(disassemble, false, bool, false, "Disassemble dart code.")                 \
   R(disassemble_optimized, false, bool, false, "Disassemble optimized code.")  \
+  R(disassemble_relative, false, bool, false,                                  \
+    "Use offsets instead of absolute PCs")                                     \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \

@@ -5536,8 +5536,8 @@ const char* TypeArguments::ToCString() const {
     return "TypeArguments: null";
   }
   Zone* zone = Thread::Current()->zone();
-  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (@%p H%" Px ")",
-                                      raw(), Smi::Value(raw_ptr()->hash_));
+  const char* prev_cstr = OS::SCreate(zone, "TypeArguments: (H%" Px ")",
+                                      Smi::Value(raw_ptr()->hash_));
   for (int i = 0; i < Length(); i++) {
     const AbstractType& type_at = AbstractType::Handle(zone, TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
@@ -12619,17 +12619,24 @@ const char* ObjectPool::ToCString() const {
 }
 
 void ObjectPool::DebugPrint() const {
-  THR_Print("Object Pool: 0x%" Px "{\n", reinterpret_cast<uword>(raw()));
+  THR_Print("ObjectPool len:%" Pd " {\n", Length());
   for (intptr_t i = 0; i < Length(); i++) {
     intptr_t offset = OffsetFromIndex(i);
-    THR_Print("  %" Pd " PP+0x%" Px ": ", i, offset);
+    THR_Print("  [pp+0x%" Px "] ", offset);
     if ((TypeAt(i) == EntryType::kTaggedObject) ||
         (TypeAt(i) == EntryType::kNativeEntryData)) {
-      RawObject* obj = ObjectAt(i);
-      THR_Print("0x%" Px " %s (obj)\n", reinterpret_cast<uword>(obj),
-                Object::Handle(obj).ToCString());
+      const Object& obj = Object::Handle(ObjectAt(i));
+      THR_Print("%s (obj)\n", obj.ToCString());
     } else if (TypeAt(i) == EntryType::kNativeFunction) {
-      THR_Print("0x%" Px " (native function)\n", RawValueAt(i));
+      uword pc = RawValueAt(i);
+      uintptr_t start = 0;
+      char* name = NativeSymbolResolver::LookupSymbolName(pc, &start);
+      if (name != NULL) {
+        THR_Print("%s (native function)\n", name);
+        NativeSymbolResolver::FreeSymbolName(name);
+      } else {
+        THR_Print("0x%" Px " (native function)\n", pc);
+      }
     } else if (TypeAt(i) == EntryType::kNativeFunctionWrapper) {
       THR_Print("0x%" Px " (native function wrapper)\n", RawValueAt(i));
     } else {
@@ -15451,7 +15458,7 @@ void Context::Dump(int indent) const {
   }
 
   IndentN(indent);
-  THR_Print("Context@%p vars(%" Pd ") {\n", this->raw(), num_variables());
+  THR_Print("Context vars(%" Pd ") {\n", num_variables());
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
@@ -18061,8 +18068,8 @@ const char* Type::ToCString() const {
     return OS::SCreate(zone, "Type: class '%s'", class_name);
   } else if (IsFinalized() && IsRecursive()) {
     const intptr_t hash = Hash();
-    return OS::SCreate(zone, "Type: (@%p H%" Px ") class '%s', args:[%s]",
-                       raw(), hash, class_name, args_cstr);
+    return OS::SCreate(zone, "Type: (H%" Px ") class '%s', args:[%s]", hash,
+                       class_name, args_cstr);
   } else {
     return OS::SCreate(zone, "Type: class '%s', args:[%s]", class_name,
                        args_cstr);
@@ -18196,17 +18203,17 @@ RawTypeRef* TypeRef::New(const AbstractType& type) {
 }
 
 const char* TypeRef::ToCString() const {
-  AbstractType& ref_type = AbstractType::Handle(type());
+  Zone* zone = Thread::Current()->zone();
+  AbstractType& ref_type = AbstractType::Handle(zone, type());
   if (ref_type.IsNull()) {
     return "TypeRef: null";
   }
-  const char* type_cstr = String::Handle(ref_type.Name()).ToCString();
+  const char* type_cstr = String::Handle(zone, ref_type.Name()).ToCString();
   if (ref_type.IsFinalized()) {
     const intptr_t hash = ref_type.Hash();
-    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s (@%p H%" Px ")",
-                       type_cstr, ref_type.raw(), hash);
+    return OS::SCreate(zone, "TypeRef: %s (H%" Px ")", type_cstr, hash);
   } else {
-    return OS::SCreate(Thread::Current()->zone(), "TypeRef: %s", type_cstr);
+    return OS::SCreate(zone, "TypeRef: %s", type_cstr);
   }
 }
 

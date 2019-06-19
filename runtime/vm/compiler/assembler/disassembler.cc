@@ -28,8 +28,11 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              Object* object,
                                              uword pc) {
   static const int kHexColumnWidth = 23;
-  uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
-  THR_Print("%p    %s", pc_ptr, hex_buffer);
+#if defined(TARGET_ARCH_IS_32_BIT)
+  THR_Print("0x%" Px32 "    %s", static_cast<uint32_t>(pc), hex_buffer);
+#else
+  THR_Print("0x%" Px64 "    %s", static_cast<uint64_t>(pc), hex_buffer);
+#endif
   int hex_length = strlen(hex_buffer);
   if (hex_length < kHexColumnWidth) {
     for (int i = kHexColumnWidth - hex_length; i > 0; i--) {
@@ -201,7 +204,8 @@ void Disassembler::Disassemble(uword start,
                       sizeof(human_buffer), &instruction_length, code, &object,
                       pc);
     formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
-                                  sizeof(human_buffer), object, pc);
+                                  sizeof(human_buffer), object,
+                                  FLAG_disassemble_relative ? offset : pc);
     pc += instruction_length;
   }
 }
@@ -248,6 +252,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
 
   const auto& instructions = Instructions::Handle(code.instructions());
   const uword start = instructions.PayloadStart();
+  const uword base = FLAG_disassemble_relative ? 0 : start;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const Array& deopt_table = Array::Handle(zone, code.deopt_info_array());
@@ -263,7 +268,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
           DeoptTable::ReasonField::decode(reason_and_flags.Value());
       ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
       THR_Print(
-          "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, start + offset.Value(),
+          "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, base + offset.Value(),
           DeoptInfo::ToCString(deopt_table, info),
           DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
     }
@@ -322,19 +327,20 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
     THR_Print("Entry points for function '%s' {\n", function_fullname);
     THR_Print("  [code+0x%02" Px "] %" Px " kNormal\n",
               Code::entry_point_offset(CodeEntryKind::kNormal) - kHeapObjectTag,
-              Instructions::EntryPoint(instructions.raw()));
-    THR_Print(
-        "  [code+0x%02" Px "] %" Px " kUnchecked\n",
-        Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
-        Instructions::UncheckedEntryPoint(instructions.raw()));
+              Instructions::EntryPoint(instructions.raw()) - start + base);
     THR_Print(
         "  [code+0x%02" Px "] %" Px " kMonomorphic\n",
         Code::entry_point_offset(CodeEntryKind::kMonomorphic) - kHeapObjectTag,
-        Instructions::MonomorphicEntryPoint(instructions.raw()));
+        Instructions::MonomorphicEntryPoint(instructions.raw()) - start + base);
+    THR_Print(
+        "  [code+0x%02" Px "] %" Px " kUnchecked\n",
+        Code::entry_point_offset(CodeEntryKind::kUnchecked) - kHeapObjectTag,
+        Instructions::UncheckedEntryPoint(instructions.raw()) - start + base);
     THR_Print("  [code+0x%02" Px "] %" Px " kMonomorphicUnchecked\n",
               Code::entry_point_offset(CodeEntryKind::kMonomorphicUnchecked) -
                   kHeapObjectTag,
-              Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()));
+              Instructions::MonomorphicUncheckedEntryPoint(instructions.raw()) -
+                  start + base);
     THR_Print("}\n");
   }
 
@@ -376,17 +382,15 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
         if (function.IsNull()) {
           cls ^= code.owner();
           if (cls.IsNull()) {
-            THR_Print("  0x%" Px ": %s, %p (%s)%s\n", start + offset,
-                      code.QualifiedName(), code.raw(), skind, s_entry_point);
+            THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
+                      code.QualifiedName(), skind, s_entry_point);
           } else {
-            THR_Print("  0x%" Px ": allocation stub for %s, %p (%s)%s\n",
-                      start + offset, cls.ToCString(), code.raw(), skind,
-                      s_entry_point);
+            THR_Print("  0x%" Px ": allocation stub for %s, (%s)%s\n",
+                      base + offset, cls.ToCString(), skind, s_entry_point);
           }
         } else {
-          THR_Print("  0x%" Px ": %s, %p (%s)%s\n", start + offset,
-                    function.ToFullyQualifiedCString(), code.raw(), skind,
-                    s_entry_point);
+          THR_Print("  0x%" Px ": %s, (%s)%s\n", base + offset,
+                    function.ToFullyQualifiedCString(), skind, s_entry_point);
         }
       }
     }
