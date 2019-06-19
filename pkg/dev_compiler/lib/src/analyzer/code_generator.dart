@@ -769,8 +769,7 @@ class CodeGenerator extends Object
 
   @override
   js_ast.Statement visitClassTypeAlias(ClassTypeAlias node) {
-    return _emitClassDeclaration(
-        node, node.declaredElement as ClassElement, []);
+    return _emitClassDeclaration(node, node.declaredElement, []);
   }
 
   @override

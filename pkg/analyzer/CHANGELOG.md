@@ -18,6 +18,9 @@
   `parseDirectives`.  Note that there is no option to parse only directives,
   since this functionality is broken anyway (`parseDirectives`, despite its
   name, parses the entire compilation unit).
+* Changed the return type of `ClassTypeAlias.declaredElement` to `ClassElement`.
+  There is no functional change; it has always returned an instance of
+  `ClassElement`.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

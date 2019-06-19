@@ -1051,6 +1051,9 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Set the token for the 'abstract' keyword to the given [token].
   void set abstractKeyword(Token token);
 
+  @override
+  ClassElement get declaredElement;
+
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
 
