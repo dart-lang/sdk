@@ -54,16 +54,17 @@ class DecoratedType {
           NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
         var positionalParameters = <DecoratedType>[];
+        var namedParameters = <String, DecoratedType>{};
         for (var parameter in type.parameters) {
           if (parameter.isPositional) {
             positionalParameters.add(decorate(parameter.type));
           } else {
-            // TODO(paulberry)
-            throw UnimplementedError('Decorating (${parameter.displayName})');
+            namedParameters[parameter.name] = decorate(parameter.type);
           }
         }
         return DecoratedType(type, graph.never,
             returnType: decorate(type.returnType),
+            namedParameters: namedParameters,
             positionalParameters: positionalParameters);
       } else if (type is InterfaceType) {
         if (type.typeParameters.isNotEmpty) {

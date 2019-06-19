@@ -1143,6 +1143,23 @@ void g(C c, int j) {
         assertEdge(nullable_j, nullable_i, hard: true));
   }
 
+  test_methodInvocation_parameter_named_differentPackage() async {
+    addPackageFile('pkgC', 'c.dart', '''
+class C {
+  void f({int i}) {}
+}
+''');
+    await analyze('''
+import "package:pkgC/c.dart";
+void g(C c, int j) {
+  c.f(i: j/*check*/);
+}
+''');
+    var nullable_j = decoratedTypeAnnotation('int j');
+    assertNullCheck(checkExpression('j/*check*/'),
+        assertEdge(nullable_j.node, never, hard: true));
+  }
+
   test_methodInvocation_return_type() async {
     await analyze('''
 class C {
