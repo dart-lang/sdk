@@ -115,7 +115,7 @@ abstract class InternetAddress {
    * 4 or 16 byte long list. The returned list is a copy, making it possible
    * to change the list without modifying the [InternetAddress].
    */
-  List<int> get rawAddress;
+  Uint8List get rawAddress;
 
   /**
    * Returns true if the [InternetAddress] is a loopback address.
