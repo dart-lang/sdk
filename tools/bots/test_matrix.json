@@ -100,15 +100,11 @@
       "out/DebugIA32/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
-      "out/DebugSIMDBC/",
-      "out/DebugSIMDBC64/",
       "out/DebugX64/",
       "out/ProductX64/",
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
-      "out/ReleaseSIMDBC/",
-      "out/ReleaseSIMDBC64/",
       "out/ReleaseX64/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -2063,7 +2059,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm,simdbc,simdbc64",
+            "--arch=ia32,simarm",
             "runtime"
           ]
         },
