@@ -2470,6 +2470,12 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     ActivationFrame* activation = new (zone) ActivationFrame(async_activation);
     activation->ExtractTokenPositionFromAsyncClosure();
     stack_trace->AddActivation(activation);
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr(
+          "CollectAwaiterReturnStackTrace: visiting awaiter return "
+          "closures:\n\t%s\n",
+          activation->function().ToFullyQualifiedCString());
+    }
     next_async_activation = activation->GetAsyncAwaiter();
     if (next_async_activation.IsNull()) {
       // No more awaiters. Extract the causal stack trace (if it exists).
