@@ -113,7 +113,9 @@ static void CheckOffsets() {
                CHECK_RANGE, CHECK_CONSTANT, NOT_IN_PRECOMPILED_RUNTIME)
 
   if (!ok) {
-    FATAL("CheckOffsets failed.");
+    FATAL(
+        "CheckOffsets failed. Try updating offsets by running "
+        "./tools/run_offsets_extractor.sh");
   }
 #undef CHECK_FIELD
 #undef CHECK_ARRAY
