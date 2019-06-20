@@ -13,6 +13,7 @@ constructor_const_inference: RuntimeError # Test exercises strong mode semantics
 constructor_initializer_invalid: RuntimeError # Fails execution after recovery
 control_flow_collection: RuntimeError
 duplicated_field_initializer: RuntimeError
+extension_methods: RuntimeError
 external_import: RuntimeError # Expected -- test uses import which doesn't exist.
 fallthrough: Fail # Missing FallThroughError.
 function_type_recovery: Fail

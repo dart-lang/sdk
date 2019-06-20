@@ -90,6 +90,7 @@ export_test: TextSerializationFailure # Was: Pass
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
 expressions: TextSerializationFailure # Was: RuntimeError
+extension_methods: TypeCheckError
 external: TextSerializationFailure # Was: Pass
 external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 fallthrough: ExpectationFileMismatch
