@@ -359,12 +359,14 @@ class _Universe {
   static evalCache(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.evalCache);
 
-  static findRule(universe, String targetType) =>
-      JS('', '#.#.#', universe, RtiUniverseFieldNames.typeRules, targetType);
+  static Object typeRules(universe) =>
+      JS('', '#.#', universe, RtiUniverseFieldNames.typeRules);
 
-  static void addRule(universe, String targetType, rule) {
-    JS('', '#.#.# = #', universe, RtiUniverseFieldNames.typeRules, targetType,
-        rule);
+  static Object findRule(universe, String targetType) =>
+      JS('', '#.#', typeRules(universe), targetType);
+
+  static void addRules(universe, rules) {
+    JS('', 'Object.assign(#, #)', typeRules(universe), rules);
   }
 
   static Object sharedEmptyArray(universe) =>
@@ -909,27 +911,11 @@ class TypeRule {
     throw UnimplementedError("TypeRule is static methods only.");
   }
 
-  // TODO(fishythefish): Create whole rule at once rather than adding individual
-  // supertypes/type variables.
-
-  @pragma('dart2js:noInline')
-  static Object create() {
-    return JS('=Object', '{}');
-  }
-
-  static void addTypeVariable(rule, String typeVariable, String binding) {
-    JS('', '#.# = #', rule, typeVariable, binding);
-  }
-
   static String lookupTypeVariable(rule, String typeVariable) =>
-      JS('String|Null', '#.#', rule, typeVariable);
-
-  static void addSupertype(rule, String supertype, Object supertypeArgs) {
-    JS('', '#.# = #', rule, supertype, supertypeArgs);
-  }
+      JS('', '#.#', rule, typeVariable);
 
   static JSArray lookupSupertype(rule, String supertype) =>
-      JS('JSArray|Null', '#.#', rule, supertype);
+      JS('', '#.#', rule, supertype);
 }
 
 // -------- Subtype tests ------------------------------------------------------
@@ -1000,6 +986,7 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
   String tName = Rti._getInterfaceName(t);
   // TODO(fishythefish): Handle identical names.
 
+  // TODO(fishythefish): Should we recursively attempt to find supertypes?
   var rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
@@ -1092,20 +1079,8 @@ Object testingCreateUniverse() {
   return _Universe.create();
 }
 
-Object testingCreateRule() {
-  return TypeRule.create();
-}
-
-void testingAddTypeVariable(rule, String typeVariable, String binding) {
-  TypeRule.addTypeVariable(rule, typeVariable, binding);
-}
-
-void testingAddSupertype(rule, String supertype, Object supertypeArgs) {
-  TypeRule.addSupertype(rule, supertype, supertypeArgs);
-}
-
-void testingAddRule(universe, String targetType, rule) {
-  _Universe.addRule(universe, targetType, rule);
+void testingAddRules(universe, rules) {
+  _Universe.addRules(universe, rules);
 }
 
 bool testingIsSubtype(universe, rti1, rti2) {
