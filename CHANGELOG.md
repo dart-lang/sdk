@@ -6,6 +6,40 @@
 
 ### Core libraries
 
+* As part of (Issue [36900][]), the following methods and properties across
+  various core libraries, which used to declare a return type of `List<int>`,
+  were updated to declare a return type of `Uint8List`:
+
+  * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
+  * `BytesBuilder.takeBytes()`
+  * `BytesBuilder.toBytes()`
+  * `File.readAsBytes()` (`Future<Uint8List>`)
+  * `File.readAsBytesSync()`
+  * `RandomAccessFile.read()` (`Future<Uint8List>`)
+  * `RandomAccessFile.readSync()`
+  * `InternetAddress.rawAddress`
+  * `RawSocket.read()`
+
+  In addition, the following typed lists were updated to have their `sublist()`
+  methods declare a return type that is the same as the source list:
+
+  * `Uint8List.sublist()` → `Uint8List`
+  * `Int8List.sublist()` → `Int8List`
+  * `Uint8ClampedList.sublist()` → `Uint8ClampedList`
+  * `Int16List.sublist()` → `Int16List`
+  * `Uint16List.sublist()` → `Uint16List`
+  * `Int32List.sublist()` → `Int32List`
+  * `Uint32List.sublist()` → `Uint32List`
+  * `Int64List.sublist()` → `Int64List`
+  * `Uint64List.sublist()` → `Uint64List`
+  * `Float32List.sublist()` → `Float32List`
+  * `Float64List.sublist()` → `Float64List`
+  * `Float32x4List.sublist()` → `Float32x4List`
+  * `Int32x4List.sublist()` → `Int32x4List`
+  * `Float64x2List.sublist()` → `Float64x2List`
+
+  [36900]: https://github.com/dart-lang/sdk/issues/36900
+
 #### `dart:core`
 
 * Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):

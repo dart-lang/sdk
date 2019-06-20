@@ -85,7 +85,7 @@ vars = {
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
-  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
+  "http_io_rev": "773f4bc73ef572e2c37e879b065c3b406d75e8fd",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
