@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 10;
+const int currentBytecodeFormatVersion = 11;
 
 /// Version of experimental / bleeding edge bytecode format.
 /// Produced by bytecode generator when --use-future-bytecode-format

@@ -75,7 +75,7 @@ ConstantPool {
   [38] = Reserved
   [39] = EndClosureFunctionScope
 }
-Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
+Closure #lib::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < dart:core::Null >
 ClosureCode {
   EntryFixed           2, 4
   CheckStack           0
@@ -1708,7 +1708,7 @@ ConstantPool {
   [38] = Reserved
   [39] = EndClosureFunctionScope
 }
-Closure #lib::closure::'nested' () -> dart:async::Future < dart:core::int >
+Closure #lib::closure::'nested' async () -> dart:async::Future < dart:core::int >
 ClosureCode {
   EntryFixed           1, 4
   CheckStack           0

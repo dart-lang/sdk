@@ -1852,7 +1852,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
   }
 
-  int _genClosureBytecode(TreeNode node, String name, FunctionNode function) {
+  int _genClosureBytecode(
+      LocalFunction node, String name, FunctionNode function) {
     _pushAssemblerState();
 
     locals.enterScope(node);
@@ -1864,15 +1865,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     enclosingFunction = function;
     final savedLoopDepth = currentLoopDepth;
     currentLoopDepth = 0;
-
-    int position = TreeNode.noOffset;
-    int endPosition = TreeNode.noOffset;
-    if (emitSourcePositions) {
-      position = (node is ast.FunctionDeclaration)
-          ? node.fileOffset
-          : function.fileOffset;
-      endPosition = function.fileEndOffset;
-    }
 
     if (function.typeParameters.isNotEmpty) {
       functionTypeParameters ??= new List<TypeParameter>();
@@ -1890,27 +1882,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     locals.sortedNamedParameters.forEach(_evaluateDefaultParameterValue);
 
     final int closureIndex = closures.length;
-    objectTable.declareClosure(function, enclosingMember, closureIndex);
-    final List<NameAndType> parameters = function.positionalParameters
-        .followedBy(function.namedParameters)
-        .map((v) => new NameAndType(objectTable.getNameHandle(null, v.name),
-            objectTable.getHandle(v.type)))
-        .toList();
-    final ClosureDeclaration closure = new ClosureDeclaration(
-        objectTable
-            .getHandle(savedIsClosure ? parentFunction : enclosingMember),
-        objectTable.getNameHandle(null, name),
-        position,
-        endPosition,
-        function.typeParameters
-            .map((tp) => new NameAndType(
-                objectTable.getNameHandle(null, tp.name),
-                objectTable.getHandle(tp.bound)))
-            .toList(),
-        function.requiredParameterCount,
-        function.namedParameters.length,
-        parameters,
-        objectTable.getHandle(function.returnType));
+    final closure = getClosureDeclaration(node, function, name, closureIndex,
+        savedIsClosure ? parentFunction : enclosingMember);
     closures.add(closure);
 
     final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
@@ -1970,6 +1943,71 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     yieldPoints = savedYieldPoints;
 
     return closureFunctionIndex;
+  }
+
+  ClosureDeclaration getClosureDeclaration(LocalFunction node,
+      FunctionNode function, String name, int closureIndex, TreeNode parent) {
+    objectTable.declareClosure(function, enclosingMember, closureIndex);
+
+    int flags = 0;
+    int position = TreeNode.noOffset;
+    int endPosition = TreeNode.noOffset;
+    if (emitSourcePositions) {
+      position = (node is ast.FunctionDeclaration)
+          ? node.fileOffset
+          : function.fileOffset;
+      endPosition = function.fileEndOffset;
+      if (position != TreeNode.noOffset) {
+        flags |= ClosureDeclaration.hasSourcePositionsFlag;
+      }
+    }
+
+    switch (function.dartAsyncMarker) {
+      case AsyncMarker.Async:
+        flags |= ClosureDeclaration.isAsyncFlag;
+        break;
+      case AsyncMarker.AsyncStar:
+        flags |= ClosureDeclaration.isAsyncStarFlag;
+        break;
+      case AsyncMarker.SyncStar:
+        flags |= ClosureDeclaration.isSyncStarFlag;
+        break;
+      default:
+        break;
+    }
+
+    final List<NameAndType> parameters = function.positionalParameters
+        .followedBy(function.namedParameters)
+        .map((v) => new NameAndType(objectTable.getNameHandle(null, v.name),
+            objectTable.getHandle(v.type)))
+        .toList();
+    if (function.requiredParameterCount != parameters.length) {
+      if (function.namedParameters.isNotEmpty) {
+        flags |= ClosureDeclaration.hasOptionalNamedParamsFlag;
+      } else {
+        flags |= ClosureDeclaration.hasOptionalPositionalParamsFlag;
+      }
+    }
+
+    final typeParams = function.typeParameters
+        .map((tp) => new NameAndType(objectTable.getNameHandle(null, tp.name),
+            objectTable.getHandle(tp.bound)))
+        .toList();
+    if (typeParams.isNotEmpty) {
+      flags |= ClosureDeclaration.hasTypeParamsFlag;
+    }
+
+    return new ClosureDeclaration(
+        flags,
+        objectTable.getHandle(parent),
+        objectTable.getNameHandle(null, name),
+        position,
+        endPosition,
+        typeParams,
+        function.requiredParameterCount,
+        function.namedParameters.length,
+        parameters,
+        objectTable.getHandle(function.returnType));
   }
 
   void _genSyncYieldingPrologue(FunctionNode function, Label continuationLabel,
@@ -2045,7 +2083,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitStoreFieldTOS(cp.addInstanceField(closureContext));
   }
 
-  void _genClosure(TreeNode node, String name, FunctionNode function) {
+  void _genClosure(LocalFunction node, String name, FunctionNode function) {
     final int closureFunctionIndex = _genClosureBytecode(node, name, function);
     _genAllocateClosureInstance(node, closureFunctionIndex, function);
   }

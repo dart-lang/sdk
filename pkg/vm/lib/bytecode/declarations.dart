@@ -890,7 +890,11 @@ class ClosureDeclaration {
   static const int hasOptionalNamedParamsFlag = 1 << 1;
   static const int hasTypeParamsFlag = 1 << 2;
   static const int hasSourcePositionsFlag = 1 << 3;
+  static const int isAsyncFlag = 1 << 4;
+  static const int isAsyncStarFlag = 1 << 5;
+  static const int isSyncStarFlag = 1 << 6;
 
+  final int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -903,6 +907,7 @@ class ClosureDeclaration {
   ClosureCode code;
 
   ClosureDeclaration(
+      this.flags,
       this.parent,
       this.name,
       this.position,
@@ -914,20 +919,6 @@ class ClosureDeclaration {
       this.returnType);
 
   void write(BufferedWriter writer) {
-    int flags = 0;
-    if (numRequiredParams != parameters.length) {
-      if (numNamedParams > 0) {
-        flags |= hasOptionalNamedParamsFlag;
-      } else {
-        flags |= hasOptionalPositionalParamsFlag;
-      }
-    }
-    if (typeParams.isNotEmpty) {
-      flags |= hasTypeParamsFlag;
-    }
-    if (position != TreeNode.noOffset) {
-      flags |= hasSourcePositionsFlag;
-    }
     writer.writePackedUInt30(flags);
     writer.writePackedObject(parent);
     writer.writePackedObject(name);
@@ -996,7 +987,7 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(parent, name, position, endPosition,
+    return new ClosureDeclaration(flags, parent, name, position, endPosition,
         typeParams, numRequiredParams, numNamedParams, parameters, returnType);
   }
 
@@ -1004,6 +995,15 @@ class ClosureDeclaration {
   String toString() {
     final StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if ((flags & isAsyncFlag) != 0) {
+      sb.write(' async');
+    }
+    if ((flags & isAsyncStarFlag) != 0) {
+      sb.write(' async*');
+    }
+    if ((flags & isSyncStarFlag) != 0) {
+      sb.write(' sync*');
+    }
     if (position != TreeNode.noOffset) {
       sb.write(' pos = $position, end-pos = $endPosition');
     }

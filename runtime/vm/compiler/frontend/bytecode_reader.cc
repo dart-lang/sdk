@@ -472,6 +472,9 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   const int kHasOptionalNamedParamsFlag = 1 << 1;
   const int kHasTypeParamsFlag = 1 << 2;
   const int kHasSourcePositionsFlag = 1 << 3;
+  const int kIsAsyncFlag = 1 << 4;
+  const int kIsAsyncStarFlag = 1 << 5;
+  const int kIsSyncStarFlag = 1 << 6;
 
   const intptr_t flags = reader_.ReadUInt();
 
@@ -498,6 +501,19 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
 
   closure.set_is_declared_in_bytecode(true);
   closure.set_end_token_pos(end_position);
+
+  if ((flags & kIsSyncStarFlag) != 0) {
+    closure.set_modifier(RawFunction::kSyncGen);
+  } else if ((flags & kIsAsyncFlag) != 0) {
+    closure.set_modifier(RawFunction::kAsync);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+  } else if ((flags & kIsAsyncStarFlag) != 0) {
+    closure.set_modifier(RawFunction::kAsyncGen);
+    closure.set_is_inlinable(!FLAG_causal_async_stacks);
+  }
+  if (Function::Cast(parent).IsAsyncOrGenerator()) {
+    closure.set_is_generated_body(true);
+  }
 
   closures_->SetAt(closureIndex, closure);
 
