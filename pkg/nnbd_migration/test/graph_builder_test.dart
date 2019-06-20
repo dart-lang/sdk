@@ -1638,6 +1638,20 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_topLevelVar_reference() async {
+    await analyze('''
+double pi = 3.1415;
+double get myPi => pi;
+''');
+    var pi = findNode.topLevelVariableDeclaration('double pi');
+    var piType =
+        variables.decoratedTypeAnnotation(testSource, pi.variables.type);
+    var myPi = findNode.any('myPi').parent as FunctionDeclaration;
+    var myPiType =
+        variables.decoratedTypeAnnotation(testSource, myPi.returnType);
+    assertEdge(piType.node, myPiType.node, hard: false);
+  }
+
   test_type_argument_explicit_bound() async {
     await analyze('''
 class C<T extends Object> {}

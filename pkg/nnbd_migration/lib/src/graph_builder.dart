@@ -626,6 +626,9 @@ $stackTrace''');
     if (staticElement is ParameterElement ||
         staticElement is LocalVariableElement) {
       return getOrComputeElementType(staticElement);
+    } else if (staticElement is PropertyAccessorElement) {
+      // TODO(danrubel): assuming getter context... need to handle setter
+      return getOrComputeElementType(staticElement).returnType;
     } else if (staticElement is ClassElement) {
       return _nonNullableTypeType;
     } else {
@@ -724,10 +727,14 @@ $stackTrace''');
         guards: _guards, hard: hard);
     expressionChecks?.edges?.add(edge);
     // TODO(paulberry): generalize this.
+
     if ((_isSimple(sourceType) || destinationType.type.isObject) &&
         _isSimple(destinationType)) {
       // Ok; nothing further to do.
-    } else if (sourceType.type is InterfaceType &&
+      return;
+    }
+
+    if (sourceType.type is InterfaceType &&
         destinationType.type is InterfaceType &&
         sourceType.type.element == destinationType.type.element) {
       assert(sourceType.typeArguments.length ==
@@ -737,11 +744,16 @@ $stackTrace''');
             sourceType.typeArguments[i], expressionChecks,
             hard: false);
       }
-    } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
-      // ok; nothing further to do.
-    } else {
-      throw '$destinationType <= $sourceType'; // TODO(paulberry)
+      return;
     }
+
+    if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
+      // ok; nothing further to do.
+      return;
+    }
+
+    // TODO(paulberry)
+    throw '$destinationType <= $sourceType';
   }
 
   /// Double checks that [name] is not the name of a method or getter declared
