@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/resynthesize.dart'
     show RecursiveInstantiateToBounds;
@@ -725,8 +724,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
               normalParameterTypes, object.normalParameterTypes) &&
           TypeImpl.equalArrays(
               optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes) &&
-          TypeImpl.equalArrays(typeArguments, object.typeArguments);
+          _equals(namedParameterTypes, object.namedParameterTypes);
     }
     return false;
   }
@@ -2262,9 +2260,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
-    if (listsEqual(newTypeArguments, typeArguments)) {
-      return this;
-    }
 
     InterfaceTypeImpl newType =
         new InterfaceTypeImpl(element, prune, nullabilitySuffix);
