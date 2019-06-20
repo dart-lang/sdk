@@ -947,11 +947,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 }
 
 void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
-  // Attempt to determine the token position from the async closure.
-  if (IsInterpreted()) {
-    // TODO(regis): Implement.
-    return;
-  }
+  // Attempt to determine the token pos and try index from the async closure.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& script = Script::Handle(zone, function().script());
@@ -968,7 +964,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
     return;
   }
   GetVarDescriptors();
-  GetPcDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
   for (intptr_t i = 0; i < var_desc_len; i++) {
@@ -986,28 +981,20 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  intptr_t await_to_token_map_index =
-      script.kind() == RawScript::kKernelTag
-          ? await_jump_var - 1
-          :
-          // source script tokens array has first element duplicated
-          await_jump_var;
-
-  if (script.kind() == RawScript::kKernelTag) {
-    // yield_positions returns all yield positions for the script (in sorted
-    // order).
-    // We thus need to offset the function start to get the actual index.
-    if (!function_.token_pos().IsReal()) {
-      return;
-    }
-    const intptr_t function_start = function_.token_pos().value();
-    for (intptr_t i = 0;
-         i < await_to_token_map.Length() &&
-         Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
-             function_start;
-         i++) {
-      await_to_token_map_index++;
-    }
+  intptr_t await_to_token_map_index = await_jump_var - 1;
+  // yield_positions returns all yield positions for the script (in sorted
+  // order).
+  // We thus need to offset the function start to get the actual index.
+  if (!function_.token_pos().IsReal()) {
+    return;
+  }
+  const intptr_t function_start = function_.token_pos().value();
+  for (intptr_t i = 0;
+       i < await_to_token_map.Length() &&
+       Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
+           function_start;
+       i++) {
+    await_to_token_map_index++;
   }
 
   if (await_to_token_map_index >= await_to_token_map.Length()) {
@@ -1022,6 +1009,30 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
+  if (IsInterpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // In order to determine the try index, we need to map the token position
+    // to a pc offset, and then a pc offset to the try index.
+    // TODO(regis): Should we set the token position fields in pc descriptors?
+    uword pc_offset = kUwordMax;
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode());
+    while (iter.MoveNext()) {
+      // PcOffsets are monotonic in source positions, so we get the lowest one.
+      if (iter.TokenPos() == token_pos_) {
+        pc_offset = iter.PcOffset();
+        break;
+      }
+    }
+    if (pc_offset < kUwordMax) {
+      try_index_ =
+          bytecode().GetTryIndexAtPc(bytecode().PayloadStart() + pc_offset);
+    }
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    return;
+  }
+  GetPcDescriptors();
   PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.TokenPos() == token_pos_) {
@@ -2935,19 +2946,15 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
     const TokenPosition begin_pos = best_fit_pos;
 
     TokenPosition end_of_line_pos;
-    if (script.kind() == RawScript::kKernelTag) {
-      if (best_line == -1) {
-        script.GetTokenLocation(begin_pos, &best_line, NULL);
-      }
-      ASSERT(best_line > 0);
-      TokenPosition ignored;
-      script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
-      if (end_of_line_pos < begin_pos) {
-        end_of_line_pos = begin_pos;
-      }
-    } else {
-      UNREACHABLE();
-      end_of_line_pos = TokenPosition::kNoSource;
+    ASSERT(script.kind() == RawScript::kKernelTag);
+    if (best_line == -1) {
+      script.GetTokenLocation(begin_pos, &best_line, NULL);
+    }
+    ASSERT(best_line > 0);
+    TokenPosition ignored;
+    script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
+    if (end_of_line_pos < begin_pos) {
+      end_of_line_pos = begin_pos;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -4148,18 +4155,15 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    if (script.kind() == RawScript::kKernelTag) {
-      // Are we at a yield point (previous await)?
-      const Array& yields = Array::Handle(script.yield_positions());
-      intptr_t looking_for = top_frame->TokenPos().value();
-      Smi& value = Smi::Handle(zone);
-      for (int i = 0; i < yields.Length(); i++) {
-        value ^= yields.At(i);
-        if (value.Value() == looking_for) return true;
-      }
-      return false;
+    ASSERT(script.kind() == RawScript::kKernelTag);
+    // Are we at a yield point (previous await)?
+    const Array& yields = Array::Handle(script.yield_positions());
+    intptr_t looking_for = top_frame->TokenPos().value();
+    Smi& value = Smi::Handle(zone);
+    for (int i = 0; i < yields.Length(); i++) {
+      value ^= yields.At(i);
+      if (value.Value() == looking_for) return true;
     }
-    UNREACHABLE();
   }
   return false;
 }
@@ -4396,8 +4400,11 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
+// Note: this should only be called for compiled functions and not for
+// bytecode functions.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             TokenPosition token_pos) {
+  ASSERT(function.HasCode());
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -4454,7 +4461,6 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
     script = loc->script();
     if (FunctionOverlaps(func, script, loc->token_pos(),
                          loc->end_token_pos())) {
-      Function& inner_function = Function::Handle(zone);
       TokenPosition token_pos = loc->token_pos();
       TokenPosition end_token_pos = loc->end_token_pos();
       if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
@@ -4466,23 +4472,31 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
                                            loc->requested_column_number());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
-      // TODO(regis): Bytecode closures are not currently added to
-      // object_store()->closure_functions(). Should they? Revisit.
-      inner_function = FindInnermostClosure(func, token_pos);
-      if (!inner_function.IsNull()) {
-        // The local function of a function we just compiled cannot
-        // be compiled already.
-        ASSERT(!inner_function.HasCode());
-        if (FLAG_verbose_debug) {
-          OS::PrintErr("Pending BP remains unresolved in inner function '%s'\n",
-                       inner_function.ToFullyQualifiedCString());
+      if (bytecode_loaded) {
+        // func's bytecode was just loaded.
+        // If func has an inner closure, we got notified earlier.
+        // Therefore we will always resolve the breakpoint correctly to the
+        // innermost function without searching for it.
+      } else {
+        // func was just compiled.
+        const Function& inner_function =
+            Function::Handle(zone, FindInnermostClosure(func, token_pos));
+        if (!inner_function.IsNull()) {
+          // The local function of a function we just compiled cannot
+          // be compiled already.
+          ASSERT(!inner_function.HasCode());
+          if (FLAG_verbose_debug) {
+            OS::PrintErr(
+                "Pending BP remains unresolved in inner function '%s'\n",
+                inner_function.ToFullyQualifiedCString());
+          }
+          continue;
         }
-        continue;
-      }
 
-      // TODO(hausner): What should we do if function is optimized?
-      // Can we deoptimize the function?
-      ASSERT(!func.HasOptimizedCode());
+        // TODO(hausner): What should we do if function is optimized?
+        // Can we deoptimize the function?
+        ASSERT(!func.HasOptimizedCode());
+      }
 
       // There is no local function within func that contains the
       // breakpoint token position. Resolve the breakpoint if necessary

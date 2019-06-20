@@ -15302,7 +15302,7 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
   while (iter.MoveNext()) {
     // PC descriptors for try blocks in bytecode are generated in pairs,
     // marking start and end of a try block.
-    // See BytecodeMetadataHelper::ReadExceptionsTable for details.
+    // See BytecodeReaderHelper::ReadExceptionsTable for details.
     const intptr_t current_try_index = iter.TryIndex();
     const uword start_pc = iter.PcOffset();
     if (pc_offset < start_pc) {
