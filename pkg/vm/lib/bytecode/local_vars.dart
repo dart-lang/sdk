@@ -25,6 +25,7 @@ class LocalVariables {
   final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
       <ForInStatement, VariableDeclaration>{};
   final bool enableAsserts;
+  final bool causalAsyncStacks;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -137,6 +138,13 @@ class LocalVariables {
         .getSyntheticVar(ContinuationVariables.awaitContextVar);
   }
 
+  VariableDeclaration get asyncStackTraceVar {
+    assert(causalAsyncStacks);
+    assert(_currentFrame.isSyncYielding);
+    return _currentFrame.parent
+        .getSyntheticVar(ContinuationVariables.asyncStackTraceVar);
+  }
+
   VariableDeclaration capturedSavedContextVar(TreeNode node) =>
       _capturedSavedContextVars[node];
   VariableDeclaration capturedExceptionVar(TreeNode node) =>
@@ -176,7 +184,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.enableAsserts) {
+  LocalVariables(Member node, this.enableAsserts, this.causalAsyncStacks) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -230,7 +238,7 @@ class Frame {
   bool hasOptionalParameters = false;
   bool hasCapturedParameters = false;
   bool hasClosures = false;
-  bool isDartSync = true;
+  AsyncMarker dartAsyncMarker = AsyncMarker.Sync;
   bool isSyncYielding = false;
   VariableDeclaration receiverVar;
   VariableDeclaration capturedReceiverVar;
@@ -311,7 +319,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       FunctionNode function = (node as dynamic).function;
       assert(function != null);
 
-      _currentFrame.isDartSync = function.dartAsyncMarker == AsyncMarker.Sync;
+      _currentFrame.dartAsyncMarker = function.dartAsyncMarker;
 
       _currentFrame.isSyncYielding =
           function.asyncMarker == AsyncMarker.SyncYielding;
@@ -363,6 +371,14 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
             .getSyntheticVar(ContinuationVariables.awaitJumpVar));
         _useVariable(_currentFrame.parent
             .getSyntheticVar(ContinuationVariables.awaitContextVar));
+
+        if (locals.causalAsyncStacks &&
+            (_currentFrame.parent.dartAsyncMarker == AsyncMarker.Async ||
+                _currentFrame.parent.dartAsyncMarker ==
+                    AsyncMarker.AsyncStar)) {
+          _useVariable(_currentFrame.parent
+              .getSyntheticVar(ContinuationVariables.asyncStackTraceVar));
+        }
       }
 
       if (node is Constructor) {
@@ -535,7 +551,8 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
   visitVariableDeclaration(VariableDeclaration node) {
     _declareVariable(node);
 
-    if (!_currentFrame.isDartSync && node.name[0] == ':') {
+    if (_currentFrame.dartAsyncMarker != AsyncMarker.Sync &&
+        node.name[0] == ':') {
       _currentFrame.syntheticVars ??= <String, VariableDeclaration>{};
       assert(_currentFrame.syntheticVars[node.name] == null);
       _currentFrame.syntheticVars[node.name] = node;

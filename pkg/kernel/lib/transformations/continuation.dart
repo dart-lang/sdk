@@ -15,6 +15,7 @@ import 'async.dart';
 class ContinuationVariables {
   static const awaitJumpVar = ':await_jump_var';
   static const awaitContextVar = ':await_ctx_var';
+  static const asyncStackTraceVar = ':async_stack_trace';
   static const exceptionParam = ':exception';
   static const stackTraceParam = ':stack_trace';
 
@@ -270,7 +271,7 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   final VariableDeclaration nestedClosureVariable =
       new VariableDeclaration(":async_op");
   final VariableDeclaration stackTraceVariable =
-      new VariableDeclaration(":async_stack_trace");
+      new VariableDeclaration(ContinuationVariables.asyncStackTraceVar);
   final VariableDeclaration thenContinuationVariable =
       new VariableDeclaration(":async_op_then");
   final VariableDeclaration catchErrorContinuationVariable =

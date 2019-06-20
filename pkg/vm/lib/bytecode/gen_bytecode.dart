@@ -59,6 +59,7 @@ const String symbolForTypeCast = ' in type cast';
 void generateBytecode(
   ast.Component component, {
   bool enableAsserts: true,
+  bool causalAsyncStacks,
   bool emitSourcePositions: false,
   bool emitSourceFiles: false,
   bool emitLocalVarInfo: false,
@@ -79,6 +80,8 @@ void generateBytecode(
   final constantsBackend = new VmConstantsBackend(coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors();
   libraries ??= component.libraries;
+  causalAsyncStacks ??=
+      environmentDefines['dart.developer.causal_async_stacks'] == 'true';
   try {
     final bytecodeGenerator = new BytecodeGenerator(
         component,
@@ -88,6 +91,7 @@ void generateBytecode(
         constantsBackend,
         environmentDefines,
         enableAsserts,
+        causalAsyncStacks,
         emitSourcePositions,
         emitSourceFiles,
         emitLocalVarInfo,
@@ -112,6 +116,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final ConstantsBackend constantsBackend;
   final Map<String, String> environmentDefines;
   final bool enableAsserts;
+  final bool causalAsyncStacks;
   final bool emitSourcePositions;
   final bool emitSourceFiles;
   final bool emitLocalVarInfo;
@@ -167,6 +172,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.constantsBackend,
       this.environmentDefines,
       this.enableAsserts,
+      this.causalAsyncStacks,
       this.emitSourcePositions,
       this.emitSourceFiles,
       this.emitLocalVarInfo,
@@ -852,6 +858,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _asyncAwaitCompleterGetFuture ??= libraryIndex.getMember(
           'dart:async', '_AsyncAwaitCompleter', 'get:future');
 
+  Procedure _setAsyncThreadStackTrace;
+  Procedure get setAsyncThreadStackTrace => _setAsyncThreadStackTrace ??=
+      libraryIndex.getTopLevelMember('dart:async', '_setAsyncThreadStackTrace');
+
+  Procedure _clearAsyncThreadStackTrace;
+  Procedure get clearAsyncThreadStackTrace =>
+      _clearAsyncThreadStackTrace ??= libraryIndex.getTopLevelMember(
+          'dart:async', '_clearAsyncThreadStackTrace');
+
   Library _dartFfiLibrary;
   Library get dartFfiLibrary =>
       _dartFfiLibrary ??= libraryIndex.tryGetLibrary('dart:ffi');
@@ -976,6 +991,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genReturnTOS() {
+    if (causalAsyncStacks &&
+        parentFunction != null &&
+        (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
+            parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar)) {
+      _genDirectCall(
+          clearAsyncThreadStackTrace, objectTable.getArgDescHandle(0), 0);
+      asm.emitDrop1();
+    }
+
     asm.emitReturnTOS();
   }
 
@@ -1345,7 +1369,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedMaxSourcePositions = <int>[];
     maxSourcePosition = node.fileOffset;
 
-    locals = new LocalVariables(node, enableAsserts);
+    locals = new LocalVariables(node, enableAsserts, causalAsyncStacks);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
@@ -1891,6 +1915,17 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _recordSourcePosition(function.fileOffset);
     _genPrologue(node, function);
 
+    if (causalAsyncStacks &&
+        parentFunction != null &&
+        (parentFunction.dartAsyncMarker == AsyncMarker.Async ||
+            parentFunction.dartAsyncMarker == AsyncMarker.AsyncStar)) {
+      _genLoadVar(locals.asyncStackTraceVar,
+          currentContextLevel: locals.contextLevelAtEntry);
+      _genDirectCall(
+          setAsyncThreadStackTrace, objectTable.getArgDescHandle(1), 1);
+      asm.emitDrop1();
+    }
+
     Label continuationSwitchLabel;
     int continuationSwitchVar;
     if (locals.isSyncYieldingFrame) {
@@ -1902,8 +1937,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     _setupInitialContext(function);
     _checkArguments(function);
-
-    // TODO(alexmarkov): support --causal_async_stacks.
 
     _generateNode(function.body);
 
@@ -3279,12 +3312,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         _getEnclosingTryFinallyBlocks(node, null);
     if (tryFinallyBlocks.isEmpty) {
       _generateNode(expr);
-      asm.emitReturnTOS();
+      _genReturnTOS();
     } else {
       if (expr is BasicLiteral) {
         _addFinallyBlocks(tryFinallyBlocks, () {
           _generateNode(expr);
-          asm.emitReturnTOS();
+          _genReturnTOS();
         });
       } else {
         // Keep return value in a variable as try-catch statements
@@ -3294,7 +3327,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
         _addFinallyBlocks(tryFinallyBlocks, () {
           asm.emitPush(locals.returnVarIndexInFrame);
-          asm.emitReturnTOS();
+          _genReturnTOS();
         });
       }
     }
@@ -3663,7 +3696,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     // return <expression>
     // Note: finally blocks are *not* executed on the way out.
     _generateNode(node.expression);
-    asm.emitReturnTOS();
+    _genReturnTOS();
 
     asm.bind(continuationLabel);
 
