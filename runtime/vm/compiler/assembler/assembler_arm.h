@@ -310,6 +310,21 @@ class Address : public ValueObject {
            (mode() == NegPreIndex) || (mode() == NegPostIndex);
   }
 
+  static bool has_writeback(BlockAddressMode am) {
+    switch (am) {
+      case DA:
+      case IA:
+      case DB:
+      case IB:
+        return false;
+      case DA_W:
+      case IA_W:
+      case DB_W:
+      case IB_W:
+        return true;
+    }
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.

@@ -782,6 +782,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
       COMPILE_ASSERT(R25 > CODE_REG);
       __ ldr(R25, Address(FP, 2 * target::kWordSize));
       __ str(R25, Address(SP, -1 * target::kWordSize, Address::PreIndex));
+    } else if (r == R15) {
+      // Because we save registers in decreasing order, IP0 will already be
+      // saved.
+      COMPILE_ASSERT(IP0 == R16);
+      __ mov(IP0, R15);
+      __ str(IP0, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     } else {
       __ str(r, Address(SP, -1 * target::kWordSize, Address::PreIndex));
     }

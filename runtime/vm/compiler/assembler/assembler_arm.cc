@@ -131,7 +131,8 @@ void Assembler::EmitMemOp(Condition cond,
                           Address ad) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
-  ASSERT(!ad.has_writeback() || (ad.rn() != rd));  // Unpredictable.
+  // Unpredictable, illegal on some microarchitectures.
+  ASSERT(!ad.has_writeback() || (ad.rn() != rd));
 
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B26 |
                      (ad.kind() == Address::Immediate ? 0 : B25) |
@@ -146,6 +147,9 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
                                       Address ad) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
+  // Unpredictable, illegal on some microarchitectures.
+  ASSERT(!ad.has_writeback() || (ad.rn() != rd));
+
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | mode |
                      ArmEncode::Rd(rd) | ad.encoding3();
   Emit(encoding);
@@ -158,6 +162,8 @@ void Assembler::EmitMultiMemOp(Condition cond,
                                RegList regs) {
   ASSERT(base != kNoRegister);
   ASSERT(cond != kNoCondition);
+  // Unpredictable, illegal on some microarchitectures.
+  ASSERT(!Address::has_writeback(am) || !(regs & (1 << base)));
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) | B27 |
                      am | (load ? L : 0) | ArmEncode::Rn(base) | regs;
   Emit(encoding);
