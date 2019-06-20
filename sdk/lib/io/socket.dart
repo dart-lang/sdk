@@ -624,7 +624,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * available for immediate reading. If no data is available [:null:]
    * is returned.
    */
-  List<int> read([int len]);
+  Uint8List read([int len]);
 
   /**
    * Writes up to [count] bytes of the buffer from [offset] buffer offset to

@@ -665,7 +665,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
-  List<int> read(int len) {
+  Uint8List read(int len) {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
@@ -1378,7 +1378,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 
   int available() => _socket.available;
 
-  List<int> read([int len]) {
+  Uint8List read([int len]) {
     if (_isMacOSTerminalInput) {
       var available = this.available();
       if (available == 0) return null;
