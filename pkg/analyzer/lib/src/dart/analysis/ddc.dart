@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/restricted_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -96,8 +97,11 @@ class DevCompilerResynthesizerBuilder {
   }
 
   void _buildPackageBundleBytes() {
-    _computeLinkedLibraries1();
-    _computeLinkedLibraries2();
+    if (AnalysisDriver.useSummary2) {
+      _computeLinkedLibraries2();
+    } else {
+      _computeLinkedLibraries1();
+    }
     summaryBytes = _assembler.assemble().toBuffer();
   }
 
