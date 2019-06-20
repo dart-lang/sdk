@@ -887,9 +887,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(false);
   __ EnterDartFrame(0, PP);
 
-  // Save the stack limit address.
-  __ PushRegister(CSP);
-
   // Make space for arguments and align the frame.
   __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
                               kWordSize);
@@ -905,27 +902,29 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
-  __ adr(temp, Immediate(0));
+  //
+  // ADR loads relative to itself, so add kInstrSize to point to the next
+  // instruction.
+  __ adr(temp, Immediate(Instr::kInstrSize));
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::Kind::kOther, locs());
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
+  // Update information in the thread object and enter a safepoint.
+  __ TransitionGeneratedToNative(branch, FPREG, temp);
+
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack.
   __ mov(CSP, SP);
 
-  // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(branch, FPREG, temp);
-
   __ blr(branch);
+
+  // Restore the Dart stack pointer.
+  __ mov(SP, CSP);
 
   // Update information in the thread object and leave the safepoint.
   __ TransitionNativeToGenerated(temp);
-
-  // Restore the Dart stack pointer and the saved C stack pointer.
-  __ mov(SP, CSP);
-  __ LoadFromOffset(CSP, FPREG, kFirstLocalSlotFromFp * kWordSize);
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,
@@ -3004,15 +3003,19 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareRegisters(SP, TMP);
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
-    const Register temp = locs()->temp(0).reg();
+    const Register function = locs()->temp(0).reg();
     // In unoptimized code check the usage counter to trigger OSR at loop
     // stack checks.  Use progressively higher thresholds for more deeply
     // nested loops to attempt to hit outer loops with OSR when possible.
-    __ LoadObject(temp, compiler->parsed_function().function());
+    __ LoadObject(function, compiler->parsed_function().function());
     intptr_t threshold =
         FLAG_optimization_counter_threshold * (loop_depth() + 1);
-    __ LoadFieldFromOffset(temp, temp, Function::usage_counter_offset(), kWord);
-    __ CompareImmediate(temp, threshold);
+    __ LoadFieldFromOffset(TMP, function, Function::usage_counter_offset(),
+                           kWord);
+    __ add(TMP, TMP, Operand(1));
+    __ StoreFieldToOffset(TMP, function, Function::usage_counter_offset(),
+                          kWord);
+    __ CompareImmediate(TMP, threshold);
     __ b(slow_path->osr_entry_label(), GE);
   }
   if (compiler->ForceSlowPathForStackOverflow()) {

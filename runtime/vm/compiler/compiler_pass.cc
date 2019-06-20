@@ -217,6 +217,9 @@ void CompilerPass::RunInliningPipeline(PipelineMode mode,
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(ApplyICData);
   INVOKE_PASS(Canonicalize);
+  // Run constant propagation to make sure we specialize for
+  // (optional) constant arguments passed into the inlined method.
+  INVOKE_PASS(ConstantPropagation);
   // Optimize (a << b) & c patterns, merge instructions. Must occur
   // before 'SelectRepresentations' which inserts conversion nodes.
   INVOKE_PASS(TryOptimizePatterns);
@@ -475,10 +478,17 @@ COMPILER_PASS(WriteBarrierElimination,
               { WriteBarrierElimination(flow_graph); });
 
 COMPILER_PASS(FinalizeGraph, {
-  // Compute and store graph informations (call & instruction counts)
-  // to be later used by the inliner.
-  FlowGraphInliner::CollectGraphInfo(flow_graph, true);
+  // At the end of the pipeline, force recomputing and caching graph
+  // information (instruction and call site counts) for the (assumed)
+  // non-specialized case with better values, for future inlining.
+  intptr_t instruction_count = 0;
+  intptr_t call_site_count = 0;
+  FlowGraphInliner::CollectGraphInfo(flow_graph,
+                                     /*constants_count*/ 0,
+                                     /*force*/ true, &instruction_count,
+                                     &call_site_count);
   flow_graph->function().set_inlining_depth(state->inlining_depth);
+  // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
 });
 

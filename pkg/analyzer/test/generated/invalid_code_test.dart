@@ -32,6 +32,22 @@ class C {
 ''');
   }
 
+  test_constructorDeclaration_named_missingName() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  C.();
+}
+''');
+  }
+
+  test_constructorDeclaration_named_missingName_factory() async {
+    await _assertCanBeAnalyzed('''
+class C {
+  factory C.();
+}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;

@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'foo1', static, has-optional-positional-params, reflectable, debuggable
     parameters [dynamic 'x', dynamic 'a', dynamic 'b'] (required: 1)
     return-type void
-
 
 Bytecode {
   EntryOptional        1, 2, 0
@@ -86,7 +84,6 @@ ConstantPool {
 Function 'foo2', static, has-optional-named-params, reflectable, debuggable
     parameters [dynamic 'y', dynamic 'z', dynamic 'c', dynamic 'a', dynamic 'b'] (required: 2)
     return-type void
-
 
 Bytecode {
   EntryOptional        2, 0, 3
@@ -200,7 +197,6 @@ Function 'foo3', static, has-optional-named-params, reflectable, debuggable
     parameters [dynamic 'z', dynamic 'y', dart:core::bool 'a', dart:core::Map < #lib::foo3::TypeParam/0, #lib::foo3::TypeParam/1 > 'b'] (required: 2)
     return-type void
 
-
 Bytecode {
   EntryOptional        2, 0, 2
   LoadConstant         r2, CP#0
@@ -239,7 +235,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -266,7 +261,6 @@ ConstantPool {
   [7] = Reserved
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

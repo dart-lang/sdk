@@ -100,15 +100,11 @@
       "out/DebugIA32/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
-      "out/DebugSIMDBC/",
-      "out/DebugSIMDBC64/",
       "out/DebugX64/",
       "out/ProductX64/",
       "out/ReleaseIA32/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
-      "out/ReleaseSIMDBC/",
-      "out/ReleaseSIMDBC64/",
       "out/ReleaseX64/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -192,6 +188,7 @@
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
+      "pkg/test_runner/",
       "pkg/vm/",
       "runtime/",
       "sdk/",
@@ -1778,6 +1775,11 @@
           "arguments": ["--fatal-warnings", "pkg/telemetry"]
         },
         {
+          "name": "analyze pkg/test_runner",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/test_runner"]
+        },
+        {
           "name": "analyze pkg/testing",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/testing"]
@@ -1801,12 +1803,6 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "tools/gardening"]
         },
-        {
-          "name": "analyze tools/testing/dart",
-          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
-          "arguments": ["--fatal-warnings", "tools/testing/dart"]
-        },
-
         {
           "name": "dartanalyzer --batch tests",
           "arguments": [
@@ -2063,7 +2059,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--mode=debug,release",
-            "--arch=ia32,simarm,simdbc,simdbc64",
+            "--arch=ia32,simarm",
             "runtime"
           ]
         },
@@ -2106,12 +2102,13 @@
           "arguments": [
             "--mode=release",
             "--arch=x64",
-            "create_sdk"
+            "create_sdk_with_abi_versions"
           ]
         },
         {
           "name": "run tests",
-          "script": "tools/run_abi_tests.py"
+          "script": "tools/run_abi_tests.py",
+          "testRunner": true
         }
       ]
     }

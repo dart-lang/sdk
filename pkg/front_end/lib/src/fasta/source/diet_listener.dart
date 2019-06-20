@@ -496,8 +496,14 @@ class DietListener extends StackListener {
 
     Token metadata = pop();
     Library libraryNode = library.target;
-    LibraryPart part = libraryNode.parts[partDirectiveIndex++];
-    parseMetadata(library, metadata, part);
+    if (libraryNode.parts.length > partDirectiveIndex) {
+      // If partDirectiveIndex >= libraryNode.parts.length we are in a case of
+      // on part having other parts. An error has already been issued.
+      // Don't try to parse metadata into other parts that have nothing to do
+      // with the one this keyword is talking about.
+      LibraryPart part = libraryNode.parts[partDirectiveIndex++];
+      parseMetadata(library, metadata, part);
+    }
   }
 
   @override

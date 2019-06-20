@@ -124,9 +124,9 @@ For quick investigation you can do
 Implementation of crash dump archiving consists of two parts:
 
 * Code in the testing framework (`UnexpectedCrashLogger` in
-`tools/testing/dart/test_progress.dart`) that detects unexpected crashes, that
-is situations when test _unexpectedly_ completes with a `Crash` status. In this
-case it logs a line about this crash into `unexpected-crashes` file in the
+`pkg/test_runner/lib/src/test_progress.dart`) that detects unexpected crashes,
+that is situations when test _unexpectedly_ completes with a `Crash` status. In
+this case it logs a line about this crash into `unexpected-crashes` file in the
 root of the SDK checkout. This line has format `test,pid,binary` and identifies
 which test crashed, what was the process id and which binary crashed.
 * Code in the Python wrapper around testing framework (see `CoreDumpArchiver`
@@ -202,7 +202,7 @@ See `WindowsCoreDumpEnabler` and `WindowsCoreDumpArchiver` in `tools/utils.py`.
 
 **Note: `DART_CRASHPAD_CRASHES_DIR` is set by `WindowsCoreDumpEnabler` in
 `tools/utils.py`, while `DART_CRASHPAD_HANDLER` is set by `TestSuite` in
-`tools/testing/dart/test_suite.dart`.**
+`pkg/test_runner/lib/src/test_suite.dart`.**
 
 **Note: Crashpad is optimized for end-user crash reporting use case and does not write full crash dumps.**
 

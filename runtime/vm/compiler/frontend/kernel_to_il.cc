@@ -724,9 +724,17 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
          info.potential_natives() == GrowableObjectArray::null());
 #endif
 
+  auto& kernel_data = ExternalTypedData::Handle(Z);
+  intptr_t kernel_data_program_offset = 0;
+  if (!function.is_declared_in_bytecode()) {
+    kernel_data = function.KernelData();
+    kernel_data_program_offset = function.KernelDataProgramOffset();
+  }
+
+  // TODO(alexmarkov): refactor this - StreamingFlowGraphBuilder should not be
+  //  used for bytecode functions.
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
-      this, ExternalTypedData::Handle(Z, function.KernelData()),
-      function.KernelDataProgramOffset());
+      this, kernel_data, kernel_data_program_offset);
   return streaming_flow_graph_builder.BuildGraph();
 }
 
@@ -2234,7 +2242,13 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
                          function.IsImplicitSetterFunction();
   const bool is_method = !function.IsStaticFunction();
 
-  Field& field = Field::ZoneHandle(Z, function.accessor_field());
+  Field& field = Field::ZoneHandle(Z);
+  if (function.IsDynamicInvocationForwarder()) {
+    Function& target = Function::Handle(function.ForwardingTarget());
+    field = target.accessor_field();
+  } else {
+    field = function.accessor_field();
+  }
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -2320,8 +2334,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += CheckStackOverflowInPrologue(function.token_pos());
   }
 
-  ASSERT(parsed_function_->node_sequence()->scope()->num_context_variables() ==
-         0);
+  ASSERT(parsed_function_->scope()->num_context_variables() == 0);
 
   // Should never build a dynamic invocation forwarder for equality
   // operator.

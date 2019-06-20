@@ -36,6 +36,13 @@ class TimelineStream;
 class VirtualMemory;
 class Zone;
 
+#define CALLBACK_RECORDER_NAME "Callback"
+#define ENDLESS_RECORDER_NAME "Endless"
+#define FUCHSIA_RECORDER_NAME "Fuchsia"
+#define RING_RECORDER_NAME "Ring"
+#define STARTUP_RECORDER_NAME "Startup"
+#define SYSTRACE_RECORDER_NAME "Systrace"
+
 // (name, fuchsia_name).
 #define TIMELINE_STREAM_LIST(V)                                                \
   V(API, "dart:api")                                                           \
@@ -787,7 +794,7 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
       : TimelineEventFixedBufferRecorder(capacity) {}
   virtual ~TimelineEventRingRecorder() {}
 
-  const char* name() const { return "Ring"; }
+  const char* name() const { return RING_RECORDER_NAME; }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked();
@@ -801,7 +808,7 @@ class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
       : TimelineEventFixedBufferRecorder(capacity) {}
   virtual ~TimelineEventStartupRecorder() {}
 
-  const char* name() const { return "Startup"; }
+  const char* name() const { return STARTUP_RECORDER_NAME; }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked();
@@ -823,7 +830,7 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   // |event| as it may be freed as soon as this function returns.
   virtual void OnEvent(TimelineEvent* event) = 0;
 
-  const char* name() const { return "Callback"; }
+  const char* name() const { return CALLBACK_RECORDER_NAME; }
 
  protected:
   TimelineEventBlock* GetNewBlockLocked() { return NULL; }
@@ -846,7 +853,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 #endif
 
-  const char* name() const { return "Endless"; }
+  const char* name() const { return ENDLESS_RECORDER_NAME; }
 
  protected:
   TimelineEvent* StartEvent();
@@ -919,7 +926,7 @@ class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
   TimelineEventFuchsiaRecorder() {}
   virtual ~TimelineEventFuchsiaRecorder() {}
 
-  const char* name() const { return "Fuchsia"; }
+  const char* name() const { return FUCHSIA_RECORDER_NAME; }
 
  private:
   void OnEvent(TimelineEvent* event);
@@ -939,7 +946,7 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
                                 char* buffer,
                                 intptr_t buffer_size);
 
-  const char* name() const { return "Systrace"; }
+  const char* name() const { return SYSTRACE_RECORDER_NAME; }
 
  private:
   void OnEvent(TimelineEvent* event);

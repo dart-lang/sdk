@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -20,6 +21,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
 import 'package:analyzer/src/error/pending_error.dart';
@@ -201,6 +203,9 @@ class LibraryAnalyzer {
         }
       });
     }
+
+    assert(units.values.every(LegacyTypeAsserter.assertLegacyTypes));
+
     timerLibraryAnalyzerVerify.stop();
 
     // Return full results.
@@ -519,7 +524,11 @@ class LibraryAnalyzer {
     definingCompilationUnit.element = _libraryElement.definingCompilationUnit;
 
     bool matchNodeElement(Directive node, Element element) {
-      return node.offset == element.nameOffset;
+      if (AnalysisDriver.useSummary2) {
+        return node.keyword.offset == element.nameOffset;
+      } else {
+        return node.offset == element.nameOffset;
+      }
     }
 
     ErrorReporter libraryErrorReporter = _getErrorReporter(_library);

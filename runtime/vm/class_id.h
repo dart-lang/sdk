@@ -36,6 +36,7 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(ParameterTypeCheck)                                                        \
   V(SingleTargetCache)                                                         \
   V(UnlinkedCall)                                                              \
   V(ICData)                                                                    \

@@ -1058,7 +1058,9 @@ class Assembler : public AssemblerBase {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void MonomorphicCheckedEntry();
+  void MonomorphicCheckedEntryJIT();
+  void MonomorphicCheckedEntryAOT();
+  void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to MaybeTraceAllocation and

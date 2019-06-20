@@ -19,9 +19,9 @@ import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/kernel/loader.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 import 'package:expect/expect.dart';
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir
-    show RedirectingFactoryBody;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show isRedirectingFactory;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -97,11 +97,9 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   @override
   Null visitProcedure(ir.Procedure node) {
-    if (node.kind == ir.ProcedureKind.Factory) {
-      if (node.function.body is ir.RedirectingFactoryBody) {
-        // Don't visit redirecting factories.
-        return;
-      }
+    if (node.kind == ir.ProcedureKind.Factory && isRedirectingFactory(node)) {
+      // Don't visit redirecting factories.
+      return;
     }
     if (node.name.name.contains('#')) {
       // Skip synthetic .dill members.

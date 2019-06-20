@@ -28,12 +28,7 @@ class FixErrorTask {
 
   Future<void> fixError(ResolvedUnitResult result, AnalysisError error) async {
     final workspace = DartChangeWorkspace(listener.server.currentSessions);
-    final dartContext = new DartFixContextImpl(
-      workspace,
-      result,
-      error,
-      (name) => [],
-    );
+    final dartContext = new DartFixContextImpl(workspace, result, error);
     final processor = new FixProcessor(dartContext);
     Fix fix = await processor.computeFix();
     final location = listener.locationFor(result, error.offset, error.length);

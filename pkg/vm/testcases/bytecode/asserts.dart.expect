@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'test1', static, reflectable, debuggable
     parameters [dart:core::bool 'condition'] (required: 1)
     return-type void
-
 
 Bytecode {
   Entry                0
@@ -41,7 +39,6 @@ ConstantPool {
 Function 'test2', static, reflectable, debuggable
     parameters [FunctionType () -> dart:core::bool 'condition', FunctionType () -> dart:core::String 'message'] (required: 2)
     return-type void
-
 
 Bytecode {
   Entry                0
@@ -74,7 +71,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -84,7 +80,6 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

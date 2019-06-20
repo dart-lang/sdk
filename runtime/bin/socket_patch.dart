@@ -144,7 +144,7 @@ class _InternetAddress implements InternetAddress {
 
   String get host => _host != null ? _host : address;
 
-  List<int> get rawAddress => new Uint8List.fromList(_in_addr);
+  Uint8List get rawAddress => new Uint8List.fromList(_in_addr);
 
   bool get isLoopback {
     switch (type) {
@@ -665,7 +665,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
-  List<int> read(int len) {
+  Uint8List read(int len) {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
@@ -1177,15 +1177,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeRecvFrom() native "Socket_RecvFrom";
   nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
-  nativeSendTo(List<int> buffer, int offset, int bytes, List<int> address,
+  nativeSendTo(List<int> buffer, int offset, int bytes, Uint8List address,
       int port) native "Socket_SendTo";
-  nativeCreateConnect(List<int> addr, int port) native "Socket_CreateConnect";
-  nativeCreateBindConnect(List<int> addr, int port, List<int> sourceAddr)
+  nativeCreateConnect(Uint8List addr, int port) native "Socket_CreateConnect";
+  nativeCreateBindConnect(Uint8List addr, int port, Uint8List sourceAddr)
       native "Socket_CreateBindConnect";
   bool isBindError(int errorNumber) native "SocketBase_IsBindError";
-  nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
+  nativeCreateBindListen(Uint8List addr, int port, int backlog, bool v6Only,
       bool shared) native "ServerSocket_CreateBindListen";
-  nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress,
+  nativeCreateBindDatagram(Uint8List addr, int port, bool reuseAddress,
       bool reusePort, int ttl) native "Socket_CreateBindDatagram";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
@@ -1199,9 +1199,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       native "Socket_SetOption";
   OSError nativeSetRawOption(int level, int option, Uint8List data)
       native "Socket_SetRawOption";
-  OSError nativeJoinMulticast(List<int> addr, List<int> interfaceAddr,
+  OSError nativeJoinMulticast(Uint8List addr, Uint8List interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";
-  bool nativeLeaveMulticast(List<int> addr, List<int> interfaceAddr,
+  bool nativeLeaveMulticast(Uint8List addr, Uint8List interfaceAddr,
       int interfaceIndex) native "Socket_LeaveMulticast";
 }
 
@@ -1378,7 +1378,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
 
   int available() => _socket.available;
 
-  List<int> read([int len]) {
+  Uint8List read([int len]) {
     if (_isMacOSTerminalInput) {
       var available = this.available();
       if (available == 0) return null;
@@ -1985,6 +1985,6 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
 @pragma("vm:entry-point", "call")
 Datagram _makeDatagram(
-    List<int> data, String address, List<int> in_addr, int port) {
+    List<int> data, String address, Uint8List in_addr, int port) {
   return new Datagram(data, new _InternetAddress(address, null, in_addr), port);
 }

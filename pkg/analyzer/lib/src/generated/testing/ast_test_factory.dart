@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -286,6 +287,22 @@ class AstTestFactory {
               : declarations,
           endToken: TokenFactory.tokenFromType(TokenType.EOF),
           featureSet: null);
+
+  static CompilationUnit compilationUnit9(
+          {String scriptTag,
+          List<Directive> directives,
+          List<CompilationUnitMember> declarations,
+          FeatureSet featureSet}) =>
+      astFactory.compilationUnit2(
+          beginToken: TokenFactory.tokenFromType(TokenType.EOF),
+          scriptTag:
+              scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
+          directives: directives == null ? new List<Directive>() : directives,
+          declarations: declarations == null
+              ? new List<CompilationUnitMember>()
+              : declarations,
+          endToken: TokenFactory.tokenFromType(TokenType.EOF),
+          featureSet: featureSet);
 
   static ConditionalExpression conditionalExpression(Expression condition,
           Expression thenExpression, Expression elseExpression) =>

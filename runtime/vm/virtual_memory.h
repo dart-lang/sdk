@@ -99,10 +99,6 @@ class VirtualMemory {
 
   static uword page_size_;
 
-#if defined(HOST_OS_FUCHSIA)
-  static uword base_;  // Cached base of root vmar.
-#endif
-
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };
 

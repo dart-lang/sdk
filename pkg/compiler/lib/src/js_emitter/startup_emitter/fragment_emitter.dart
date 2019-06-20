@@ -432,12 +432,15 @@ var #staticStateDeclaration = {};
 // Builds the inheritance structure.
 #inheritance;
 
+// Emits the embedded globals. This needs to be before constants so the embedded
+// global type resources are available for generating constants.
+#embeddedGlobalsPart1;
+
 // Instantiates all constants.
 #constants;
 
-// Emits the embedded globals. Due to type checks in eager initializers this is
-// needed before static non-final fields initializers.
-#embeddedGlobals;
+// Adds to the embedded globals. A few globals refer to constants.
+#embeddedGlobalsPart2; 
 
 // Initializes the static non-final fields (with their constant values).
 #staticNonFinalFields;
@@ -660,7 +663,10 @@ class FragmentEmitter {
       'constants': emitConstants(fragment),
       'staticNonFinalFields': emitStaticNonFinalFields(fragment),
       'lazyStatics': emitLazilyInitializedStatics(fragment),
-      'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadingState),
+      'embeddedGlobalsPart1':
+          emitEmbeddedGlobalsPart1(program, deferredLoadingState),
+      'embeddedGlobalsPart2':
+          emitEmbeddedGlobalsPart2(program, deferredLoadingState),
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
           : new js.EmptyStatement(),
@@ -1848,7 +1854,7 @@ class FragmentEmitter {
   }
 
   /// Emits all embedded globals.
-  js.Statement emitEmbeddedGlobals(
+  js.Statement emitEmbeddedGlobalsPart1(
       Program program, DeferredLoadingState deferredLoadingState) {
     List<js.Property> globals = [];
 
@@ -1858,8 +1864,14 @@ class FragmentEmitter {
     }
 
     if (program.typeToInterceptorMap != null) {
+      // This property is assigned later.
+      // Initialize property to avoid map transitions.
       globals.add(new js.Property(
-          js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap));
+          js.string(TYPE_TO_INTERCEPTOR_MAP), js.LiteralNull()));
+    }
+
+    if (_options.experimentNewRti) {
+      globals.add(js.Property(js.string(RTI_UNIVERSE), createRtiUniverse()));
     }
 
     globals.add(emitMangledGlobalNames());
@@ -1885,6 +1897,33 @@ class FragmentEmitter {
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
     return js.js.statement('var init = #;', globalsObject);
+  }
+
+  /// Finish setting up embedded globals.
+  js.Statement emitEmbeddedGlobalsPart2(
+      Program program, DeferredLoadingState deferredLoadingState) {
+    List<js.Statement> statements = [];
+    if (program.typeToInterceptorMap != null) {
+      statements.add(js.js.statement('init.# = #;',
+          [js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap]));
+    }
+    return js.Block(statements);
+  }
+
+  /// Returns an expression that creates the initial Rti Universe.
+  ///
+  /// This needs to be kept in sync with `_Universe.create` in `dart:_rti`.
+  js.Expression createRtiUniverse() {
+    List<js.Property> universeFields = [];
+    void initField(String name, String value) {
+      universeFields.add(js.Property(js.string(name), js.js(value)));
+    }
+
+    initField(RtiUniverseFieldNames.evalCache, 'new Map()');
+    initField(RtiUniverseFieldNames.typeRules, '{}');
+    initField(RtiUniverseFieldNames.sharedEmptyArray, '[]');
+
+    return js.ObjectInitializer(universeFields);
   }
 
   /// Emits data needed for native classes.

@@ -196,6 +196,9 @@ class KernelLoader : public ValueObject {
   // was no main procedure, or a failure object if there was an error.
   RawObject* LoadProgram(bool process_pending_classes = true);
 
+  // Load given library.
+  void LoadLibrary(const Library& library);
+
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
   RawObject* LoadExpressionEvaluationFunction(const String& library_url,
@@ -218,8 +221,6 @@ class KernelLoader : public ValueObject {
   static RawString* FindSourceForScript(const uint8_t* kernel_buffer,
                                         intptr_t kernel_buffer_length,
                                         const String& url);
-
-  RawLibrary* LoadLibrary(intptr_t index);
 
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
@@ -258,6 +259,16 @@ class KernelLoader : public ValueObject {
     return translation_helper_.DartSymbolObfuscate(index);
   }
 
+ private:
+  KernelLoader(const Script& script,
+               const ExternalTypedData& kernel_data,
+               intptr_t data_program_offset);
+
+  void InitializeFields(
+      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
+
+  RawLibrary* LoadLibrary(intptr_t index);
+
   const String& LibraryUri(intptr_t library_index) {
     return translation_helper_.DartSymbolPlain(
         translation_helper_.CanonicalNameString(
@@ -284,15 +295,6 @@ class KernelLoader : public ValueObject {
 
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
- private:
-  friend class BuildingTranslationHelper;
-
-  KernelLoader(const Script& script,
-               const ExternalTypedData& kernel_data,
-               intptr_t data_program_offset);
-
-  void InitializeFields(
-      DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
   static void index_programs(kernel::Reader* reader,
                              GrowableArray<intptr_t>* subprogram_file_starts);
   void walk_incremental_kernel(BitVector* modified_libs,
@@ -458,6 +460,8 @@ class KernelLoader : public ValueObject {
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;
+
+  friend class BuildingTranslationHelper;
 
   DISALLOW_COPY_AND_ASSIGN(KernelLoader);
 };

@@ -23,7 +23,6 @@ import 'package:front_end/src/fasta/scanner.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
 import 'package:front_end/src/fasta/scanner/error_token.dart' show ErrorToken;
-import 'package:front_end/src/fasta/scanner/string_scanner.dart';
 import 'package:pub_semver/src/version.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1495,6 +1494,30 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.members, hasLength(0));
   }
 
+  void test_complex_type2() {
+    var unit = parseCompilationUnit('extension E<T> on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_complex_type2_no_name() {
+    var unit = parseCompilationUnit('extension<T> on C<T> { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name, isNull);
+    expect(extension.onKeyword.lexeme, 'on');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments.arguments, hasLength(1));
+    expect(extension.members, hasLength(0));
+  }
+
   void test_missing_on() {
     var unit = parseCompilationUnit('extension E', errors: [
       expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 1),
@@ -1568,6 +1591,19 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect(extension.name.name, 'E');
     expect(extension.onKeyword.lexeme, 'implements');
     expect((extension.extendedType as NamedType).name.name, 'C');
+    expect(extension.members, hasLength(0));
+  }
+
+  void test_simple_no_name() {
+    var unit = parseCompilationUnit('extension on C { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name, isNull);
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'C');
+    var namedType = (extension.extendedType as NamedType);
+    expect(namedType.name.name, 'C');
+    expect(namedType.typeArguments, isNull);
     expect(extension.members, hasLength(0));
   }
 
@@ -1669,9 +1705,12 @@ class FastaParserTestCase
   void createParser(String content,
       {int expectedEndOffset, FeatureSet featureSet}) {
     featureSet ??= FeatureSet.forTesting();
-    var scanner = new StringScanner(content,
-        configuration: ScannerConfiguration.nonNullable, includeComments: true);
-    _fastaTokens = scanner.tokenize();
+    var result = scanString(content,
+        configuration: featureSet.isEnabled(Feature.non_nullable)
+            ? ScannerConfiguration.nonNullable
+            : ScannerConfiguration.classic,
+        includeComments: true);
+    _fastaTokens = result.tokens;
     _parserProxy = new ParserProxy(_fastaTokens, featureSet,
         allowNativeClause: allowNativeClause,
         expectedEndOffset: expectedEndOffset);
@@ -2415,6 +2454,39 @@ class NNBDParserTest_Fasta extends FastaParserTestCase {
 
   void test_gft_nullable_prefixed() {
     parseCompilationUnit('main() { C.a? Function()? x = 7; }');
+  }
+
+  void test_indexed() {
+    CompilationUnit unit = parseCompilationUnit('main() { a[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '[');
+  }
+
+  void test_indexed_nullAware() {
+    CompilationUnit unit = parseCompilationUnit('main() { a?.[7]; }');
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    IndexExpression expression = statement.expression;
+    expect(expression.leftBracket.lexeme, '?.[');
+    expect(expression.rightBracket.lexeme, ']');
+    expect(expression.leftBracket.endGroup, expression.rightBracket);
+  }
+
+  void test_indexed_nullAware_optOut() {
+    CompilationUnit unit = parseCompilationUnit('''
+// @dart = 2.2
+main() { a?.[7]; }''',
+        errors: [expectedError(ParserErrorCode.MISSING_IDENTIFIER, 27, 1)]);
+    FunctionDeclaration method = unit.declarations[0];
+    BlockFunctionBody body = method.functionExpression.body;
+    ExpressionStatement statement = body.block.statements[0];
+    PropertyAccess expression = statement.expression;
+    expect(expression.target.toSource(), 'a');
+    expect(expression.operator.lexeme, '?.');
   }
 
   void test_is_nullable() {

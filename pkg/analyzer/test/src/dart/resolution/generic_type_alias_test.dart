@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
-import 'resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,10 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest
-    with GenericTypeAliasResolutionMixin {}
-
-mixin GenericTypeAliasResolutionMixin implements ResolutionTest {
+class GenericTypeAliasDriverResolutionTest extends DriverResolutionTest {
   test_genericFunctionTypeCannotBeTypeArgument_def_class() async {
     addTestFile(r'''
 class C<T> {}
@@ -122,6 +119,26 @@ C<Function()> x;
 ''');
     await resolveTestFile();
     assertNoTestErrors();
+  }
+
+  test_type_element() async {
+    addTestFile(r'''
+G<int> g;
+
+typedef G<T> = T Function(double);
+''');
+    await resolveTestFile();
+
+    FunctionType type = findElement.topVar('g').type;
+    assertElementTypeString(type, 'int Function(double)');
+
+    var typedefG = findElement.genericTypeAlias('G');
+    var functionG = typedefG.function;
+
+    expect(type.element, functionG);
+    expect(type.element?.enclosingElement, typedefG);
+
+    assertElementTypeStrings(type.typeArguments, ['int']);
   }
 
   test_typeParameters() async {

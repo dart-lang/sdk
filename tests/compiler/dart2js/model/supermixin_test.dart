@@ -61,7 +61,7 @@ main() {
     MemberEntity method2 = lookupMember(elementEnvironment, 'Class.method2');
     Expect.equals(mixin, method2.enclosingClass);
 
-    ProgramLookup lookup = new ProgramLookup(result.compiler);
+    ProgramLookup lookup = new ProgramLookup(result.compiler.backendStrategy);
     ClassData data = lookup.getClassData(superClass);
     Expect.isNotNull(data.getMethod(method1));
     Expect.isNull(data.getMethod(method2));

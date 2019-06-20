@@ -2337,6 +2337,7 @@ static void TestDirectAccess(Dart_Handle lib,
   void* data;
   intptr_t len;
   result = Dart_TypedDataAcquireData(array, &type, &data, &len);
+  EXPECT(!Thread::Current()->IsAtSafepoint());
   EXPECT_VALID(result);
   EXPECT_EQ(expected_type, type);
   EXPECT_EQ(kLength, len);
@@ -2345,14 +2346,12 @@ static void TestDirectAccess(Dart_Handle lib,
     EXPECT_EQ(i, dataP[i]);
   }
 
-  if (!is_external) {
-    // Now try allocating a string with outstanding Acquires and it should
-    // return an error.
-    result = NewString("We expect an error here");
-    EXPECT_ERROR(result,
-                 "Internal Dart data pointers have been acquired, "
-                 "please release them using Dart_TypedDataReleaseData.");
-  }
+  // Now try allocating a string with outstanding Acquires and it should
+  // return an error.
+  result = NewString("We expect an error here");
+  EXPECT_ERROR(result,
+               "Internal Dart data pointers have been acquired, "
+               "please release them using Dart_TypedDataReleaseData.");
 
   // Now modify the values in the directly accessible array and then check
   // it we see the changes back in dart.
@@ -2361,6 +2360,7 @@ static void TestDirectAccess(Dart_Handle lib,
   }
 
   // Release direct access to the typed data object.
+  EXPECT(!Thread::Current()->IsAtSafepoint());
   result = Dart_TypedDataReleaseData(array);
   EXPECT_VALID(result);
 
@@ -2368,6 +2368,29 @@ static void TestDirectAccess(Dart_Handle lib,
   result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
   EXPECT_VALID(result);
 }
+
+class BackgroundGCTask : public ThreadPool::Task {
+ public:
+  BackgroundGCTask(Isolate* isolate, Monitor* monitor, bool* done)
+      : isolate_(isolate), monitor_(monitor), done_(done) {}
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
+    for (intptr_t i = 0; i < 10; i++) {
+      Thread::Current()->heap()->CollectAllGarbage(Heap::kDebugging);
+    }
+    Thread::ExitIsolateAsHelper();
+    {
+      MonitorLocker ml(monitor_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* monitor_;
+  bool* done_;
+};
 
 static void TestTypedDataDirectAccess1() {
   const char* kScriptChars =
@@ -2397,20 +2420,35 @@ static void TestTypedDataDirectAccess1() {
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
-  // Test with an regular typed data object.
-  Dart_Handle list_access_test_obj;
-  list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8, false);
+  Monitor monitor;
+  bool done = false;
+  Dart::thread_pool()->Run<BackgroundGCTask>(Isolate::Current(), &monitor,
+                                             &done);
 
-  // Test with an external typed data object.
-  uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  intptr_t data_length = ARRAY_SIZE(data);
-  Dart_Handle ext_list_access_test_obj;
-  ext_list_access_test_obj =
-      Dart_NewExternalTypedData(Dart_TypedData_kUint8, data, data_length);
-  EXPECT_VALID(ext_list_access_test_obj);
-  TestDirectAccess(lib, ext_list_access_test_obj, Dart_TypedData_kUint8, true);
+  for (intptr_t i = 0; i < 10; i++) {
+    // Test with an regular typed data object.
+    Dart_Handle list_access_test_obj;
+    list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(list_access_test_obj);
+    TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8, false);
+
+    // Test with an external typed data object.
+    uint8_t data[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    intptr_t data_length = ARRAY_SIZE(data);
+    Dart_Handle ext_list_access_test_obj;
+    ext_list_access_test_obj =
+        Dart_NewExternalTypedData(Dart_TypedData_kUint8, data, data_length);
+    EXPECT_VALID(ext_list_access_test_obj);
+    TestDirectAccess(lib, ext_list_access_test_obj, Dart_TypedData_kUint8,
+                     true);
+  }
+
+  {
+    MonitorLocker ml(&monitor);
+    while (!done) {
+      ml.Wait();
+    }
+  }
 }
 
 TEST_CASE(DartAPI_TypedDataDirectAccess1Unverified) {

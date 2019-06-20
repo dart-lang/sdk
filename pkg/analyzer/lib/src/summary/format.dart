@@ -16035,9 +16035,9 @@ class LinkedNodeTypeBuilder extends Object
     implements idl.LinkedNodeType {
   List<LinkedNodeTypeFormalParameterBuilder> _functionFormalParameters;
   LinkedNodeTypeBuilder _functionReturnType;
+  int _functionTypedef;
+  List<LinkedNodeTypeBuilder> _functionTypedefTypeArguments;
   List<LinkedNodeTypeTypeParameterBuilder> _functionTypeParameters;
-  int _genericTypeAliasReference;
-  List<LinkedNodeTypeBuilder> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<LinkedNodeTypeBuilder> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
@@ -16062,27 +16062,28 @@ class LinkedNodeTypeBuilder extends Object
   }
 
   @override
+  int get functionTypedef => _functionTypedef ??= 0;
+
+  /// The typedef this function type is created for.
+  set functionTypedef(int value) {
+    assert(value == null || value >= 0);
+    this._functionTypedef = value;
+  }
+
+  @override
+  List<LinkedNodeTypeBuilder> get functionTypedefTypeArguments =>
+      _functionTypedefTypeArguments ??= <LinkedNodeTypeBuilder>[];
+
+  set functionTypedefTypeArguments(List<LinkedNodeTypeBuilder> value) {
+    this._functionTypedefTypeArguments = value;
+  }
+
+  @override
   List<LinkedNodeTypeTypeParameterBuilder> get functionTypeParameters =>
       _functionTypeParameters ??= <LinkedNodeTypeTypeParameterBuilder>[];
 
   set functionTypeParameters(List<LinkedNodeTypeTypeParameterBuilder> value) {
     this._functionTypeParameters = value;
-  }
-
-  @override
-  int get genericTypeAliasReference => _genericTypeAliasReference ??= 0;
-
-  set genericTypeAliasReference(int value) {
-    assert(value == null || value >= 0);
-    this._genericTypeAliasReference = value;
-  }
-
-  @override
-  List<LinkedNodeTypeBuilder> get genericTypeAliasTypeArguments =>
-      _genericTypeAliasTypeArguments ??= <LinkedNodeTypeBuilder>[];
-
-  set genericTypeAliasTypeArguments(List<LinkedNodeTypeBuilder> value) {
-    this._genericTypeAliasTypeArguments = value;
   }
 
   @override
@@ -16136,9 +16137,9 @@ class LinkedNodeTypeBuilder extends Object
   LinkedNodeTypeBuilder(
       {List<LinkedNodeTypeFormalParameterBuilder> functionFormalParameters,
       LinkedNodeTypeBuilder functionReturnType,
+      int functionTypedef,
+      List<LinkedNodeTypeBuilder> functionTypedefTypeArguments,
       List<LinkedNodeTypeTypeParameterBuilder> functionTypeParameters,
-      int genericTypeAliasReference,
-      List<LinkedNodeTypeBuilder> genericTypeAliasTypeArguments,
       int interfaceClass,
       List<LinkedNodeTypeBuilder> interfaceTypeArguments,
       idl.LinkedNodeTypeKind kind,
@@ -16147,9 +16148,9 @@ class LinkedNodeTypeBuilder extends Object
       int typeParameterId})
       : _functionFormalParameters = functionFormalParameters,
         _functionReturnType = functionReturnType,
+        _functionTypedef = functionTypedef,
+        _functionTypedefTypeArguments = functionTypedefTypeArguments,
         _functionTypeParameters = functionTypeParameters,
-        _genericTypeAliasReference = genericTypeAliasReference,
-        _genericTypeAliasTypeArguments = genericTypeAliasTypeArguments,
         _interfaceClass = interfaceClass,
         _interfaceTypeArguments = interfaceTypeArguments,
         _kind = kind,
@@ -16161,8 +16162,8 @@ class LinkedNodeTypeBuilder extends Object
   void flushInformative() {
     _functionFormalParameters?.forEach((b) => b.flushInformative());
     _functionReturnType?.flushInformative();
+    _functionTypedefTypeArguments?.forEach((b) => b.flushInformative());
     _functionTypeParameters?.forEach((b) => b.flushInformative());
-    _genericTypeAliasTypeArguments?.forEach((b) => b.flushInformative());
     _interfaceTypeArguments?.forEach((b) => b.flushInformative());
   }
 
@@ -16198,24 +16199,24 @@ class LinkedNodeTypeBuilder extends Object
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addInt(this._typeParameterElement ?? 0);
     signature.addInt(this._typeParameterId ?? 0);
-    signature.addInt(this._genericTypeAliasReference ?? 0);
-    if (this._genericTypeAliasTypeArguments == null) {
+    signature.addInt(
+        this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
+    signature.addInt(this._functionTypedef ?? 0);
+    if (this._functionTypedefTypeArguments == null) {
       signature.addInt(0);
     } else {
-      signature.addInt(this._genericTypeAliasTypeArguments.length);
-      for (var x in this._genericTypeAliasTypeArguments) {
+      signature.addInt(this._functionTypedefTypeArguments.length);
+      for (var x in this._functionTypedefTypeArguments) {
         x?.collectApiSignature(signature);
       }
     }
-    signature.addInt(
-        this._nullabilitySuffix == null ? 0 : this._nullabilitySuffix.index);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_functionFormalParameters;
     fb.Offset offset_functionReturnType;
+    fb.Offset offset_functionTypedefTypeArguments;
     fb.Offset offset_functionTypeParameters;
-    fb.Offset offset_genericTypeAliasTypeArguments;
     fb.Offset offset_interfaceTypeArguments;
     if (!(_functionFormalParameters == null ||
         _functionFormalParameters.isEmpty)) {
@@ -16225,16 +16226,16 @@ class LinkedNodeTypeBuilder extends Object
     if (_functionReturnType != null) {
       offset_functionReturnType = _functionReturnType.finish(fbBuilder);
     }
+    if (!(_functionTypedefTypeArguments == null ||
+        _functionTypedefTypeArguments.isEmpty)) {
+      offset_functionTypedefTypeArguments = fbBuilder.writeList(
+          _functionTypedefTypeArguments
+              .map((b) => b.finish(fbBuilder))
+              .toList());
+    }
     if (!(_functionTypeParameters == null || _functionTypeParameters.isEmpty)) {
       offset_functionTypeParameters = fbBuilder.writeList(
           _functionTypeParameters.map((b) => b.finish(fbBuilder)).toList());
-    }
-    if (!(_genericTypeAliasTypeArguments == null ||
-        _genericTypeAliasTypeArguments.isEmpty)) {
-      offset_genericTypeAliasTypeArguments = fbBuilder.writeList(
-          _genericTypeAliasTypeArguments
-              .map((b) => b.finish(fbBuilder))
-              .toList());
     }
     if (!(_interfaceTypeArguments == null || _interfaceTypeArguments.isEmpty)) {
       offset_interfaceTypeArguments = fbBuilder.writeList(
@@ -16247,14 +16248,14 @@ class LinkedNodeTypeBuilder extends Object
     if (offset_functionReturnType != null) {
       fbBuilder.addOffset(1, offset_functionReturnType);
     }
+    if (_functionTypedef != null && _functionTypedef != 0) {
+      fbBuilder.addUint32(9, _functionTypedef);
+    }
+    if (offset_functionTypedefTypeArguments != null) {
+      fbBuilder.addOffset(10, offset_functionTypedefTypeArguments);
+    }
     if (offset_functionTypeParameters != null) {
       fbBuilder.addOffset(2, offset_functionTypeParameters);
-    }
-    if (_genericTypeAliasReference != null && _genericTypeAliasReference != 0) {
-      fbBuilder.addUint32(8, _genericTypeAliasReference);
-    }
-    if (offset_genericTypeAliasTypeArguments != null) {
-      fbBuilder.addOffset(9, offset_genericTypeAliasTypeArguments);
     }
     if (_interfaceClass != null && _interfaceClass != 0) {
       fbBuilder.addUint32(3, _interfaceClass);
@@ -16267,7 +16268,7 @@ class LinkedNodeTypeBuilder extends Object
     }
     if (_nullabilitySuffix != null &&
         _nullabilitySuffix != idl.EntityRefNullabilitySuffix.starOrIrrelevant) {
-      fbBuilder.addUint8(10, _nullabilitySuffix.index);
+      fbBuilder.addUint8(8, _nullabilitySuffix.index);
     }
     if (_typeParameterElement != null && _typeParameterElement != 0) {
       fbBuilder.addUint32(6, _typeParameterElement);
@@ -16297,9 +16298,9 @@ class _LinkedNodeTypeImpl extends Object
 
   List<idl.LinkedNodeTypeFormalParameter> _functionFormalParameters;
   idl.LinkedNodeType _functionReturnType;
+  int _functionTypedef;
+  List<idl.LinkedNodeType> _functionTypedefTypeArguments;
   List<idl.LinkedNodeTypeTypeParameter> _functionTypeParameters;
-  int _genericTypeAliasReference;
-  List<idl.LinkedNodeType> _genericTypeAliasTypeArguments;
   int _interfaceClass;
   List<idl.LinkedNodeType> _interfaceTypeArguments;
   idl.LinkedNodeTypeKind _kind;
@@ -16325,6 +16326,21 @@ class _LinkedNodeTypeImpl extends Object
   }
 
   @override
+  int get functionTypedef {
+    _functionTypedef ??=
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    return _functionTypedef;
+  }
+
+  @override
+  List<idl.LinkedNodeType> get functionTypedefTypeArguments {
+    _functionTypedefTypeArguments ??=
+        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+            .vTableGet(_bc, _bcOffset, 10, const <idl.LinkedNodeType>[]);
+    return _functionTypedefTypeArguments;
+  }
+
+  @override
   List<idl.LinkedNodeTypeTypeParameter> get functionTypeParameters {
     _functionTypeParameters ??=
         const fb.ListReader<idl.LinkedNodeTypeTypeParameter>(
@@ -16332,21 +16348,6 @@ class _LinkedNodeTypeImpl extends Object
             .vTableGet(
                 _bc, _bcOffset, 2, const <idl.LinkedNodeTypeTypeParameter>[]);
     return _functionTypeParameters;
-  }
-
-  @override
-  int get genericTypeAliasReference {
-    _genericTypeAliasReference ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
-    return _genericTypeAliasReference;
-  }
-
-  @override
-  List<idl.LinkedNodeType> get genericTypeAliasTypeArguments {
-    _genericTypeAliasTypeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
-            .vTableGet(_bc, _bcOffset, 9, const <idl.LinkedNodeType>[]);
-    return _genericTypeAliasTypeArguments;
   }
 
   @override
@@ -16373,7 +16374,7 @@ class _LinkedNodeTypeImpl extends Object
   @override
   idl.EntityRefNullabilitySuffix get nullabilitySuffix {
     _nullabilitySuffix ??= const _EntityRefNullabilitySuffixReader().vTableGet(
-        _bc, _bcOffset, 10, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
+        _bc, _bcOffset, 8, idl.EntityRefNullabilitySuffix.starOrIrrelevant);
     return _nullabilitySuffix;
   }
 
@@ -16401,15 +16402,14 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
           functionFormalParameters.map((_value) => _value.toJson()).toList();
     if (functionReturnType != null)
       _result["functionReturnType"] = functionReturnType.toJson();
+    if (functionTypedef != 0) _result["functionTypedef"] = functionTypedef;
+    if (functionTypedefTypeArguments.isNotEmpty)
+      _result["functionTypedefTypeArguments"] = functionTypedefTypeArguments
+          .map((_value) => _value.toJson())
+          .toList();
     if (functionTypeParameters.isNotEmpty)
       _result["functionTypeParameters"] =
           functionTypeParameters.map((_value) => _value.toJson()).toList();
-    if (genericTypeAliasReference != 0)
-      _result["genericTypeAliasReference"] = genericTypeAliasReference;
-    if (genericTypeAliasTypeArguments.isNotEmpty)
-      _result["genericTypeAliasTypeArguments"] = genericTypeAliasTypeArguments
-          .map((_value) => _value.toJson())
-          .toList();
     if (interfaceClass != 0) _result["interfaceClass"] = interfaceClass;
     if (interfaceTypeArguments.isNotEmpty)
       _result["interfaceTypeArguments"] =
@@ -16428,9 +16428,9 @@ abstract class _LinkedNodeTypeMixin implements idl.LinkedNodeType {
   Map<String, Object> toMap() => {
         "functionFormalParameters": functionFormalParameters,
         "functionReturnType": functionReturnType,
+        "functionTypedef": functionTypedef,
+        "functionTypedefTypeArguments": functionTypedefTypeArguments,
         "functionTypeParameters": functionTypeParameters,
-        "genericTypeAliasReference": genericTypeAliasReference,
-        "genericTypeAliasTypeArguments": genericTypeAliasTypeArguments,
         "interfaceClass": interfaceClass,
         "interfaceTypeArguments": interfaceTypeArguments,
         "kind": kind,
@@ -16698,6 +16698,7 @@ class LinkedNodeUnitBuilder extends Object
   bool _isNNBD;
   bool _isSynthetic;
   LinkedNodeBuilder _node;
+  String _partUriStr;
   UnlinkedTokensBuilder _tokens;
   String _uriStr;
 
@@ -16723,6 +16724,15 @@ class LinkedNodeUnitBuilder extends Object
   }
 
   @override
+  String get partUriStr => _partUriStr ??= '';
+
+  /// If the unit is a part, the URI specified in the `part` directive.
+  /// Otherwise empty.
+  set partUriStr(String value) {
+    this._partUriStr = value;
+  }
+
+  @override
   UnlinkedTokensBuilder get tokens => _tokens;
 
   set tokens(UnlinkedTokensBuilder value) {
@@ -16732,6 +16742,7 @@ class LinkedNodeUnitBuilder extends Object
   @override
   String get uriStr => _uriStr ??= '';
 
+  /// The absolute URI.
   set uriStr(String value) {
     this._uriStr = value;
   }
@@ -16740,11 +16751,13 @@ class LinkedNodeUnitBuilder extends Object
       {bool isNNBD,
       bool isSynthetic,
       LinkedNodeBuilder node,
+      String partUriStr,
       UnlinkedTokensBuilder tokens,
       String uriStr})
       : _isNNBD = isNNBD,
         _isSynthetic = isSynthetic,
         _node = node,
+        _partUriStr = partUriStr,
         _tokens = tokens,
         _uriStr = uriStr;
 
@@ -16763,14 +16776,19 @@ class LinkedNodeUnitBuilder extends Object
     this._node?.collectApiSignature(signature);
     signature.addBool(this._isSynthetic == true);
     signature.addBool(this._isNNBD == true);
+    signature.addString(this._partUriStr ?? '');
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_node;
+    fb.Offset offset_partUriStr;
     fb.Offset offset_tokens;
     fb.Offset offset_uriStr;
     if (_node != null) {
       offset_node = _node.finish(fbBuilder);
+    }
+    if (_partUriStr != null) {
+      offset_partUriStr = fbBuilder.writeString(_partUriStr);
     }
     if (_tokens != null) {
       offset_tokens = _tokens.finish(fbBuilder);
@@ -16787,6 +16805,9 @@ class LinkedNodeUnitBuilder extends Object
     }
     if (offset_node != null) {
       fbBuilder.addOffset(2, offset_node);
+    }
+    if (offset_partUriStr != null) {
+      fbBuilder.addOffset(5, offset_partUriStr);
     }
     if (offset_tokens != null) {
       fbBuilder.addOffset(1, offset_tokens);
@@ -16817,6 +16838,7 @@ class _LinkedNodeUnitImpl extends Object
   bool _isNNBD;
   bool _isSynthetic;
   idl.LinkedNode _node;
+  String _partUriStr;
   idl.UnlinkedTokens _tokens;
   String _uriStr;
 
@@ -16836,6 +16858,12 @@ class _LinkedNodeUnitImpl extends Object
   idl.LinkedNode get node {
     _node ??= const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 2, null);
     return _node;
+  }
+
+  @override
+  String get partUriStr {
+    _partUriStr ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 5, '');
+    return _partUriStr;
   }
 
   @override
@@ -16859,6 +16887,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
     if (isNNBD != false) _result["isNNBD"] = isNNBD;
     if (isSynthetic != false) _result["isSynthetic"] = isSynthetic;
     if (node != null) _result["node"] = node.toJson();
+    if (partUriStr != '') _result["partUriStr"] = partUriStr;
     if (tokens != null) _result["tokens"] = tokens.toJson();
     if (uriStr != '') _result["uriStr"] = uriStr;
     return _result;
@@ -16869,6 +16898,7 @@ abstract class _LinkedNodeUnitMixin implements idl.LinkedNodeUnit {
         "isNNBD": isNNBD,
         "isSynthetic": isSynthetic,
         "node": node,
+        "partUriStr": partUriStr,
         "tokens": tokens,
         "uriStr": uriStr,
       };
@@ -22621,12 +22651,12 @@ class UnlinkedInformativeDataBuilder extends Object
     implements idl.UnlinkedInformativeData {
   int _variantField_2;
   int _variantField_3;
+  List<int> _variantField_7;
+  int _variantField_6;
+  int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
   idl.LinkedNodeKind _kind;
-  int _variantField_5;
-  int _variantField_6;
-  List<int> _variantField_7;
 
   @override
   int get codeLength {
@@ -22710,6 +22740,43 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.variableDeclaration);
     assert(value == null || value >= 0);
     _variantField_3 = value;
+  }
+
+  @override
+  List<int> get compilationUnit_lineStarts {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    return _variantField_7 ??= <int>[];
+  }
+
+  /// Offsets of the first character of each line in the source code.
+  set compilationUnit_lineStarts(List<int> value) {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    assert(value == null || value.every((e) => e >= 0));
+    _variantField_7 = value;
+  }
+
+  @override
+  int get constructorDeclaration_periodOffset {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    return _variantField_6 ??= 0;
+  }
+
+  set constructorDeclaration_periodOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_6 = value;
+  }
+
+  @override
+  int get constructorDeclaration_returnTypeOffset {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    return _variantField_5 ??= 0;
+  }
+
+  set constructorDeclaration_returnTypeOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    assert(value == null || value >= 0);
+    _variantField_5 = value;
   }
 
   @override
@@ -22815,43 +22882,6 @@ class UnlinkedInformativeDataBuilder extends Object
     this._kind = value;
   }
 
-  @override
-  int get constructorDeclaration_returnTypeOffset {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    return _variantField_5 ??= 0;
-  }
-
-  set constructorDeclaration_returnTypeOffset(int value) {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    assert(value == null || value >= 0);
-    _variantField_5 = value;
-  }
-
-  @override
-  int get constructorDeclaration_periodOffset {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    return _variantField_6 ??= 0;
-  }
-
-  set constructorDeclaration_periodOffset(int value) {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    assert(value == null || value >= 0);
-    _variantField_6 = value;
-  }
-
-  @override
-  List<int> get compilationUnit_lineStarts {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
-    return _variantField_7 ??= <int>[];
-  }
-
-  /// Offsets of the first character of each line in the source code.
-  set compilationUnit_lineStarts(List<int> value) {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
-    assert(value == null || value.every((e) => e >= 0));
-    _variantField_7 = value;
-  }
-
   UnlinkedInformativeDataBuilder.classDeclaration({
     int codeLength,
     int codeOffset,
@@ -22886,17 +22916,17 @@ class UnlinkedInformativeDataBuilder extends Object
   UnlinkedInformativeDataBuilder.constructorDeclaration({
     int codeLength,
     int codeOffset,
+    int constructorDeclaration_periodOffset,
+    int constructorDeclaration_returnTypeOffset,
     int nameOffset,
     List<String> documentationComment_tokens,
-    int constructorDeclaration_returnTypeOffset,
-    int constructorDeclaration_periodOffset,
   })  : _kind = idl.LinkedNodeKind.constructorDeclaration,
         _variantField_2 = codeLength,
         _variantField_3 = codeOffset,
-        _variantField_1 = nameOffset,
-        _variantField_4 = documentationComment_tokens,
+        _variantField_6 = constructorDeclaration_periodOffset,
         _variantField_5 = constructorDeclaration_returnTypeOffset,
-        _variantField_6 = constructorDeclaration_periodOffset;
+        _variantField_1 = nameOffset,
+        _variantField_4 = documentationComment_tokens;
 
   UnlinkedInformativeDataBuilder.defaultFormalParameter({
     int codeLength,
@@ -23308,14 +23338,14 @@ class UnlinkedInformativeDataBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_variantField_4;
     fb.Offset offset_variantField_7;
+    fb.Offset offset_variantField_4;
+    if (!(_variantField_7 == null || _variantField_7.isEmpty)) {
+      offset_variantField_7 = fbBuilder.writeListUint32(_variantField_7);
+    }
     if (!(_variantField_4 == null || _variantField_4.isEmpty)) {
       offset_variantField_4 = fbBuilder.writeList(
           _variantField_4.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_variantField_7 == null || _variantField_7.isEmpty)) {
-      offset_variantField_7 = fbBuilder.writeListUint32(_variantField_7);
     }
     fbBuilder.startTable();
     if (_variantField_2 != null && _variantField_2 != 0) {
@@ -23323,6 +23353,15 @@ class UnlinkedInformativeDataBuilder extends Object
     }
     if (_variantField_3 != null && _variantField_3 != 0) {
       fbBuilder.addUint32(3, _variantField_3);
+    }
+    if (offset_variantField_7 != null) {
+      fbBuilder.addOffset(7, offset_variantField_7);
+    }
+    if (_variantField_6 != null && _variantField_6 != 0) {
+      fbBuilder.addUint32(6, _variantField_6);
+    }
+    if (_variantField_5 != null && _variantField_5 != 0) {
+      fbBuilder.addUint32(5, _variantField_5);
     }
     if (_variantField_1 != null && _variantField_1 != 0) {
       fbBuilder.addUint32(1, _variantField_1);
@@ -23332,15 +23371,6 @@ class UnlinkedInformativeDataBuilder extends Object
     }
     if (_kind != null && _kind != idl.LinkedNodeKind.adjacentStrings) {
       fbBuilder.addUint8(0, _kind.index);
-    }
-    if (_variantField_5 != null && _variantField_5 != 0) {
-      fbBuilder.addUint32(5, _variantField_5);
-    }
-    if (_variantField_6 != null && _variantField_6 != 0) {
-      fbBuilder.addUint32(6, _variantField_6);
-    }
-    if (offset_variantField_7 != null) {
-      fbBuilder.addOffset(7, offset_variantField_7);
     }
     return fbBuilder.endTable();
   }
@@ -23365,12 +23395,12 @@ class _UnlinkedInformativeDataImpl extends Object
 
   int _variantField_2;
   int _variantField_3;
+  List<int> _variantField_7;
+  int _variantField_6;
+  int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
   idl.LinkedNodeKind _kind;
-  int _variantField_5;
-  int _variantField_6;
-  List<int> _variantField_7;
 
   @override
   int get codeLength {
@@ -23414,6 +23444,28 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_3 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _variantField_3;
+  }
+
+  @override
+  List<int> get compilationUnit_lineStarts {
+    assert(kind == idl.LinkedNodeKind.compilationUnit);
+    _variantField_7 ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
+    return _variantField_7;
+  }
+
+  @override
+  int get constructorDeclaration_periodOffset {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    _variantField_6 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
+    return _variantField_6;
+  }
+
+  @override
+  int get constructorDeclaration_returnTypeOffset {
+    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
+    _variantField_5 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
+    return _variantField_5;
   }
 
   @override
@@ -23474,28 +23526,6 @@ class _UnlinkedInformativeDataImpl extends Object
         .vTableGet(_bc, _bcOffset, 0, idl.LinkedNodeKind.adjacentStrings);
     return _kind;
   }
-
-  @override
-  int get constructorDeclaration_returnTypeOffset {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    _variantField_5 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
-    return _variantField_5;
-  }
-
-  @override
-  int get constructorDeclaration_periodOffset {
-    assert(kind == idl.LinkedNodeKind.constructorDeclaration);
-    _variantField_6 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 6, 0);
-    return _variantField_6;
-  }
-
-  @override
-  List<int> get compilationUnit_lineStarts {
-    assert(kind == idl.LinkedNodeKind.compilationUnit);
-    _variantField_7 ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 7, const <int>[]);
-    return _variantField_7;
-  }
 }
 
 abstract class _UnlinkedInformativeDataMixin
@@ -23528,15 +23558,15 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.constructorDeclaration) {
       if (codeLength != 0) _result["codeLength"] = codeLength;
       if (codeOffset != 0) _result["codeOffset"] = codeOffset;
-      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
-      if (documentationComment_tokens.isNotEmpty)
-        _result["documentationComment_tokens"] = documentationComment_tokens;
-      if (constructorDeclaration_returnTypeOffset != 0)
-        _result["constructorDeclaration_returnTypeOffset"] =
-            constructorDeclaration_returnTypeOffset;
       if (constructorDeclaration_periodOffset != 0)
         _result["constructorDeclaration_periodOffset"] =
             constructorDeclaration_periodOffset;
+      if (constructorDeclaration_returnTypeOffset != 0)
+        _result["constructorDeclaration_returnTypeOffset"] =
+            constructorDeclaration_returnTypeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (documentationComment_tokens.isNotEmpty)
+        _result["documentationComment_tokens"] = documentationComment_tokens;
     }
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {
       if (codeLength != 0) _result["codeLength"] = codeLength;
@@ -23671,21 +23701,21 @@ abstract class _UnlinkedInformativeDataMixin
       return {
         "codeLength": codeLength,
         "codeOffset": codeOffset,
-        "kind": kind,
         "compilationUnit_lineStarts": compilationUnit_lineStarts,
+        "kind": kind,
       };
     }
     if (kind == idl.LinkedNodeKind.constructorDeclaration) {
       return {
         "codeLength": codeLength,
         "codeOffset": codeOffset,
+        "constructorDeclaration_periodOffset":
+            constructorDeclaration_periodOffset,
+        "constructorDeclaration_returnTypeOffset":
+            constructorDeclaration_returnTypeOffset,
         "nameOffset": nameOffset,
         "documentationComment_tokens": documentationComment_tokens,
         "kind": kind,
-        "constructorDeclaration_returnTypeOffset":
-            constructorDeclaration_returnTypeOffset,
-        "constructorDeclaration_periodOffset":
-            constructorDeclaration_periodOffset,
       };
     }
     if (kind == idl.LinkedNodeKind.defaultFormalParameter) {

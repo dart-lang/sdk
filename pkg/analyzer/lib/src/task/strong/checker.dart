@@ -896,7 +896,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // parameters are properly substituted.
       var classType = targetType.element.type;
       var classLowerBound = classType.instantiate(new List.filled(
-          classType.typeParameters.length, typeProvider.bottomType));
+          classType.typeParameters.length, BottomTypeImpl.instance));
       var memberLowerBound = inheritance.getMember(
           classLowerBound, Name(element.librarySource.uri, element.name));
       var expectedType = invokeType.returnType;

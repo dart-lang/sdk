@@ -40,7 +40,6 @@ main() {
 }
 ''');
     await waitForTasksFinished();
-    doAllDeclarationsTrackerWork();
     List<AnalysisErrorFixes> errorFixes =
         await _getFixesAt('Completer<String>');
     expect(errorFixes, hasLength(1));
@@ -144,6 +143,9 @@ dependencies:
   bbb: any
 ''');
 
+    // Ensure that the target is analyzed as an implicit source.
+    newFile('/aaa/lib/foo.dart', content: 'import "package:bbb/target.dart";');
+
     newFolder('/bbb');
     newFile('/bbb/.packages', content: '''
 bbb:${toUri('/bbb/lib')}
@@ -161,7 +163,6 @@ bbb:${toUri('/bbb/lib')}
     _addOverlay(testFile, testCode);
 
     await waitForTasksFinished();
-    doAllDeclarationsTrackerWork();
 
     List<String> fixes = (await _getFixesAt('Foo()'))
         .single

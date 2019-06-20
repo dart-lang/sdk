@@ -659,6 +659,7 @@ void KernelLoader::LoadNativeExtensionLibraries(
 
   for (intptr_t i = 0; i < length; ++i) {
     library ^= potential_extension_libraries_.At(i);
+    ASSERT(!library.is_declared_in_bytecode());
     helper_.SetOffset(library.kernel_offset());
 
     LibraryHelper library_helper(&helper_);
@@ -729,11 +730,17 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
 
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    // Note that `problemsAsJson` on Component is implicitly skipped.
-    const intptr_t length = program_->library_count();
-    Object& last_library = Library::Handle(Z);
-    for (intptr_t i = 0; i < length; i++) {
-      last_library = LoadLibrary(i);
+    bool libraries_loaded = false;
+    if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+      libraries_loaded = bytecode_metadata_helper_.ReadLibraries();
+    }
+
+    if (!libraries_loaded) {
+      // Note that `problemsAsJson` on Component is implicitly skipped.
+      const intptr_t length = program_->library_count();
+      for (intptr_t i = 0; i < length; i++) {
+        LoadLibrary(i);
+      }
     }
 
     if (process_pending_classes) {
@@ -795,6 +802,26 @@ RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
   // Either class finalization failed or we caught a compile error.
   // In both cases sticky error would be set.
   return Thread::Current()->StealStickyError();
+}
+
+void KernelLoader::LoadLibrary(const Library& library) {
+  ASSERT(!library.Loaded());
+
+  if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    bytecode_metadata_helper_.ReadLibrary(library);
+    if (library.Loaded()) {
+      return;
+    }
+  }
+  const auto& uri = String::Handle(Z, library.url());
+  const intptr_t num_libraries = program_->library_count();
+  for (intptr_t i = 0; i < num_libraries; ++i) {
+    const String& library_uri = LibraryUri(i);
+    if (library_uri.Equals(uri)) {
+      LoadLibrary(i);
+      return;
+    }
+  }
 }
 
 RawObject* KernelLoader::LoadExpressionEvaluationFunction(
@@ -1067,11 +1094,11 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   LoadLibraryImportsAndExports(&library, toplevel_class);
   library_helper.SetJustRead(LibraryHelper::kDependencies);
 
-  const GrowableObjectArray& classes =
-      GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
-
   // Everything up til the classes are skipped implicitly, and library_helper
   // is no longer used.
+
+  const GrowableObjectArray& classes =
+      GrowableObjectArray::Handle(Z, I->object_store()->pending_classes());
 
   // Load all classes.
   intptr_t next_class_offset = library_index.ClassOffset(0);
@@ -1092,12 +1119,10 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (FLAG_enable_mirrors && annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
     library.AddLibraryMetadata(toplevel_class, TokenPosition::kNoSource,
-                               annotations_kernel_offset);
+                               annotations_kernel_offset, 0);
   }
 
   if (register_class) {
-    classes.Add(toplevel_class, Heap::kOld);
-
     if (library_index.HasSourceReferences()) {
       helper_.SetOffset(library_index.SourceReferencesOffset());
       intptr_t count = helper_.ReadUInt();
@@ -1129,6 +1154,9 @@ void KernelLoader::FinishTopLevelClassLoading(
   ActiveClassScope active_class_scope(&active_class_, &toplevel_class);
 
   if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
+                  "Cleanup support for old bytecode format versions");
+    ASSERT(!toplevel_class.is_declared_in_bytecode());
     if (bytecode_metadata_helper_.ReadMembers(library_kernel_offset_,
                                               toplevel_class, false)) {
       ASSERT(toplevel_class.is_loaded());
@@ -1342,6 +1370,10 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
 void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
                                         intptr_t type_parameter_count) {
   const Class* klass = active_class_.klass;
+
+  // Enable access to type_parameters().
+  klass->set_is_declaration_loaded();
+
   // Note: This assumes that ClassHelper is exactly at the position where
   // the length of the type parameters have been read, and that the order in
   // the binary is as follows: [...], kTypeParameters, kSuperClass, kMixinType,
@@ -1379,8 +1411,6 @@ void KernelLoader::LoadPreliminaryClass(ClassHelper* class_helper,
   if (class_helper->is_transformed_mixin_application()) {
     klass->set_is_transformed_mixin_application();
   }
-
-  klass->set_is_declaration_loaded();
 }
 
 void KernelLoader::LoadClass(const Library& library,
@@ -1443,7 +1473,7 @@ void KernelLoader::LoadClass(const Library& library,
   if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
     library.AddClassMetadata(*out_class, toplevel_class,
                              TokenPosition::kNoSource,
-                             class_offset - correction_offset_);
+                             class_offset - correction_offset_, 0);
   }
 
   // We do not register expression evaluation classes with the VM:
@@ -1474,17 +1504,15 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 
   ActiveClassScope active_class_scope(&active_class_, &klass);
 
-  bool discard_fields = false;
-  if (library.raw() == Library::InternalLibrary() &&
-      klass.Name() == Symbols::ClassID().raw()) {
-    // If this is a dart:internal.ClassID class ignore field declarations
-    // contained in the Kernel file and instead inject our own const
-    // fields.
-    klass.InjectCIDFields();
-    discard_fields = true;
-  }
+  // If this is a dart:internal.ClassID class ignore field declarations
+  // contained in the Kernel file and instead inject our own const
+  // fields.
+  const bool discard_fields = klass.InjectCIDFields();
 
   if (FLAG_enable_interpreter || FLAG_use_bytecode_compiler) {
+    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 10,
+                  "Cleanup support for old bytecode format versions");
+    ASSERT(!klass.is_declared_in_bytecode());
     if (bytecode_metadata_helper_.ReadMembers(
             klass.kernel_offset() + library_kernel_offset_, klass,
             discard_fields)) {
@@ -1681,6 +1709,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
 }
 
 void KernelLoader::FinishLoading(const Class& klass) {
+  ASSERT(!klass.is_declared_in_bytecode());
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
@@ -2131,16 +2160,16 @@ RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
   RawLibrary* result;
   name_index_handle_ = Smi::New(library);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     result = kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result != Library::null()) {
       return result;
     }
   }
   const String& url = H.DartString(H.CanonicalNameString(library));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     result = Library::LookupLibrary(thread_, url);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result == Library::null()) {
       return result;
     }
@@ -2154,9 +2183,9 @@ RawLibrary* KernelLoader::LookupLibraryOrNull(NameIndex library) {
 RawLibrary* KernelLoader::LookupLibrary(NameIndex library) {
   name_index_handle_ = Smi::New(library);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     RawLibrary* result =
         kernel_program_info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (result != Library::null()) {
       return result;
     }
@@ -2192,9 +2221,9 @@ RawLibrary* KernelLoader::LookupLibraryFromClass(NameIndex klass) {
 RawClass* KernelLoader::LookupClass(const Library& library, NameIndex klass) {
   name_index_handle_ = Smi::New(klass);
   {
-    NoSafepointScope no_safepoint_scope(thread_);
     RawClass* raw_class =
         kernel_program_info_.LookupClass(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
     }
@@ -2257,9 +2286,11 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
   const PatchClass& initializer_owner =
       PatchClass::Handle(zone, PatchClass::New(field_owner, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
-  initializer_owner.set_library_kernel_data(
-      ExternalTypedData::Handle(zone, lib.kernel_data()));
-  initializer_owner.set_library_kernel_offset(lib.kernel_offset());
+  if (!lib.is_declared_in_bytecode()) {
+    initializer_owner.set_library_kernel_data(
+        ExternalTypedData::Handle(zone, lib.kernel_data()));
+    initializer_owner.set_library_kernel_offset(lib.kernel_offset());
+  }
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(

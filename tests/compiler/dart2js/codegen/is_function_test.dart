@@ -9,6 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:expect/expect.dart';
 import '../helpers/memory_compiler.dart';
 
@@ -24,8 +25,10 @@ main() {
         memorySourceFiles: {'main.dart': SOURCE}, options: options);
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
-    Program program = compiler.backend.emitterTask.emitter.programForTesting;
-    var name = compiler.backend.namerForTesting.operatorIs(
+    Program program =
+        compiler.backendStrategy.emitterTask.emitter.programForTesting;
+    JsBackendStrategy backendStrategy = compiler.backendStrategy;
+    var name = backendStrategy.namerForTesting.operatorIs(
         compiler.backendClosedWorldForTesting.commonElements.functionClass);
     for (Fragment fragment in program.fragments) {
       for (Library library in fragment.libraries) {

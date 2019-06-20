@@ -1907,8 +1907,10 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
         function = code.function();
         code = function.unoptimized_code();
         ASSERT(!code.IsNull());
+        code.ResetSwitchableCalls(zone);
         code.ResetICDatas(zone);
       } else {
+        code.ResetSwitchableCalls(zone);
         code.ResetICDatas(zone);
       }
     }
@@ -2029,6 +2031,7 @@ void IsolateReloadContext::RunInvalidationVisitors() {
         if (!stub_code) {
           // We are preserving the unoptimized code, fill all ICData arrays with
           // the sentinel values so that we have no stale type feedback.
+          code.ResetSwitchableCalls(zone);
           code.ResetICDatas(zone);
         }
         if (!bytecode.IsNull()) {

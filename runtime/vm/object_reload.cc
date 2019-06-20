@@ -4,10 +4,13 @@
 
 #include "vm/object.h"
 
+#include "vm/code_patcher.h"
 #include "vm/hash_table.h"
 #include "vm/isolate_reload.h"
 #include "vm/log.h"
+#include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -86,6 +89,63 @@ void Code::ResetICDatas(Zone* zone) const {
   const ObjectPool& pool = ObjectPool::Handle(zone, object_pool());
   ASSERT(!pool.IsNull());
   pool.ResetICDatas(zone);
+#endif
+}
+
+void Code::ResetSwitchableCalls(Zone* zone) const {
+#if !defined(TARGET_ARCH_DBC)
+  if (is_optimized()) {
+    return;  // No switchable calls in optimized code.
+  }
+
+  const Object& owner = Object::Handle(zone, this->owner());
+  if (!owner.IsFunction()) {
+    return;  // No switchable calls in stub code.
+  }
+
+  const Array& ic_data_array =
+      Array::Handle(zone, Function::Cast(owner).ic_data_array());
+  if (ic_data_array.IsNull()) {
+    // The megamorphic miss stub and some recognized function doesn't populate
+    // their ic_data_array. Check this only happens for functions without IC
+    // calls.
+#if defined(DEBUG)
+    const PcDescriptors& descriptors =
+        PcDescriptors::Handle(zone, pc_descriptors());
+    PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kIcCall);
+    while (iter.MoveNext()) {
+      FATAL1("%s has IC calls but no ic_data_array\n", owner.ToCString());
+    }
+#endif
+    return;
+  }
+  ICData& ic_data = ICData::Handle(zone);
+  Object& data = Object::Handle(zone);
+  for (intptr_t i = 1; i < ic_data_array.Length(); i++) {
+    ic_data ^= ic_data_array.At(i);
+    if (ic_data.rebind_rule() != ICData::kInstance) {
+      continue;
+    }
+    if (ic_data.NumArgsTested() != 1) {
+      continue;
+    }
+    uword pc = GetPcForDeoptId(ic_data.deopt_id(), RawPcDescriptors::kIcCall);
+    CodePatcher::GetInstanceCallAt(pc, *this, &data);
+    // This check both avoids unnecessary patching to reduce log spam and
+    // prevents patching over breakpoint stubs.
+    if (!data.IsICData()) {
+      const Code& stub =
+          ic_data.is_tracking_exactness()
+              ? StubCode::OneArgCheckInlineCacheWithExactnessCheck()
+              : StubCode::OneArgCheckInlineCache();
+      CodePatcher::PatchInstanceCallAt(pc, *this, ic_data, stub);
+      if (FLAG_trace_ic) {
+        OS::PrintErr("Instance call at %" Px
+                     " resetting to polymorphic dispatch, %s\n",
+                     pc, ic_data.ToCString());
+      }
+    }
+  }
 #endif
 }
 
@@ -362,8 +422,10 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-  patch.set_library_kernel_offset(lib.kernel_offset());
+  if (!lib.is_declared_in_bytecode()) {
+    patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
+    patch.set_library_kernel_offset(lib.kernel_offset());
+  }
 
   const Array& funcs = Array::Handle(functions());
   Function& func = Function::Handle();

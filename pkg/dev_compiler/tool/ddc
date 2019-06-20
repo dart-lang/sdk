@@ -106,7 +106,6 @@ echo "
     }
     let sdk = require(\"dart_sdk\");
     let main = require(\"./$BASENAME\").$BASENAME.main;
-    sdk.dart.ignoreWhitelistedErrors(false);
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {

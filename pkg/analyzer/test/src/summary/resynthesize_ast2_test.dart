@@ -150,7 +150,7 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     List<LinkInputUnit> units,
   ) {
     units.add(
-      LinkInputUnit(definingSource, false, definingUnit),
+      LinkInputUnit(null, definingSource, false, definingUnit),
     );
     for (var directive in definingUnit.directives) {
       if (directive is PartDirective) {
@@ -165,12 +165,12 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
           var text = _readSafely(partSource.fullName);
           var unit = parseText(text, featureSet);
           units.add(
-            LinkInputUnit(partSource, false, unit),
+            LinkInputUnit(relativeUriStr, partSource, false, unit),
           );
         } else {
           var unit = parseText('', featureSet);
           units.add(
-            LinkInputUnit(partSource, false, unit),
+            LinkInputUnit(relativeUriStr, partSource, false, unit),
           );
         }
       }

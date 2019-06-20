@@ -18,11 +18,11 @@ import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
-import '../compiler/js_names.dart' as JS;
+import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';
 import '../compiler/shared_command.dart';
 import '../compiler/shared_compiler.dart';
-import '../js_ast/js_ast.dart' as JS;
+import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
 
@@ -130,13 +130,14 @@ Future<CompilerResult> _compile(List<String> args,
   // the correct location and keeps the real file location hidden from the
   // front end.
   var multiRootScheme = argResults['multi-root-scheme'] as String;
+  var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
+      .map(Uri.base.resolve)
+      .toList();
+  var multiRootOutputPath =
+      _longestPrefixingPath(path.absolute(output), multiRootPaths);
 
   var fileSystem = MultiRootFileSystem(
-      multiRootScheme,
-      (argResults['multi-root'] as Iterable<String>)
-          .map(Uri.base.resolve)
-          .toList(),
-      fe.StandardFileSystem.instance);
+      multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
 
   Uri toCustomUri(Uri uri) {
     if (uri.scheme == '') {
@@ -354,7 +355,8 @@ Future<CompilerResult> _compile(List<String> args,
       jsUrl: path.toUri(output).toString(),
       mapUrl: path.toUri(output + '.map').toString(),
       bazelMapping: options.bazelMapping,
-      customScheme: multiRootScheme);
+      customScheme: multiRootScheme,
+      multiRootOutputPath: multiRootOutputPath);
 
   outFiles.add(file.writeAsString(jsCode.code));
   if (jsCode.sourceMap != null) {
@@ -384,32 +386,35 @@ class JSCode {
   JSCode(this.code, this.sourceMap);
 }
 
-JSCode jsProgramToCode(JS.Program moduleTree, ModuleFormat format,
+JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     {bool buildSourceMap = false,
     bool inlineSourceMap = false,
     String jsUrl,
     String mapUrl,
     Map<String, String> bazelMapping,
-    String customScheme}) {
-  var opts = JS.JavaScriptPrintingOptions(
+    String customScheme,
+    String multiRootOutputPath}) {
+  var opts = js_ast.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true, allowSingleLineIfStatements: true);
-  JS.SimpleJavaScriptPrintingContext printer;
+  js_ast.SimpleJavaScriptPrintingContext printer;
   SourceMapBuilder sourceMap;
   if (buildSourceMap) {
     var sourceMapContext = SourceMapPrintingContext();
     sourceMap = sourceMapContext.sourceMap;
     printer = sourceMapContext;
   } else {
-    printer = JS.SimpleJavaScriptPrintingContext();
+    printer = js_ast.SimpleJavaScriptPrintingContext();
   }
 
   var tree = transformModuleFormat(format, moduleTree);
-  tree.accept(JS.Printer(opts, printer, localNamer: JS.TemporaryNamer(tree)));
+  tree.accept(
+      js_ast.Printer(opts, printer, localNamer: js_ast.TemporaryNamer(tree)));
 
   Map builtMap;
   if (buildSourceMap && sourceMap != null) {
     builtMap = placeSourceMap(
-        sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme);
+        sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme,
+        multiRootOutputPath: multiRootOutputPath);
     var jsDir = path.dirname(path.fromUri(jsUrl));
     var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
     var relativeMapUrl = path.toUri(relative).toString();
@@ -504,4 +509,15 @@ String _findPackagesFilePath() {
     if (dir.path == parent.path) return null;
     dir = parent;
   }
+}
+
+/// Inputs must be absolute paths. Returns null if no prefixing path is found.
+String _longestPrefixingPath(String basePath, List<Uri> prefixingPaths) {
+  return prefixingPaths.fold(null, (String previousValue, Uri element) {
+    if (basePath.startsWith(element.path) &&
+        (previousValue == null || previousValue.length < element.path.length)) {
+      return element.path;
+    }
+    return previousValue;
+  });
 }

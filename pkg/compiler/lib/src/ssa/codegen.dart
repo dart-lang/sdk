@@ -696,6 +696,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (instruction is HCheck) {
       if (instruction is HTypeConversion ||
           instruction is HPrimitiveCheck ||
+          instruction is HAsCheck ||
           instruction is HBoolConversion) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
@@ -3333,31 +3334,91 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTest(HIsTest node) {
-    throw UnimplementedError('SsaCodeGenerator.visitIsTest');
+    use(node.typeInput);
+    js.Expression first = pop();
+    use(node.checkedInput);
+    js.Expression second = pop();
+
+    FieldEntity field = _commonElements.rtiIsField;
+    js.Name name = _namer.instanceFieldPropertyName(field);
+
+    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
   }
 
   @override
   visitAsCheck(HAsCheck node) {
-    throw UnimplementedError('SsaCodeGenerator.visitAsCheck');
+    use(node.typeInput);
+    js.Expression first = pop();
+    use(node.checkedInput);
+    js.Expression second = pop();
+
+    FieldEntity field = node.isTypeError
+        ? _commonElements.rtiCheckField
+        : _commonElements.rtiAsField;
+    js.Name name = _namer.instanceFieldPropertyName(field);
+
+    push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
   }
 
   @override
   visitSubtypeCheck(HSubtypeCheck node) {
-    throw UnimplementedError('SsaCodeGenerator.visitSubtypeCheck');
+    throw UnimplementedError('SsaCodeGenerator.visitSubtypeCheck  $node');
   }
 
   @override
   visitLoadType(HLoadType node) {
-    throw UnimplementedError('SsaCodeGenerator.visitLoadType');
+    FunctionEntity helperElement = _commonElements.findType;
+    _registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
+    // TODO(sra): Encode recipe.
+    js.Expression recipe = js.string('${node.typeExpression}');
+    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+    push(js.js(r'#(#)', [helper, recipe]).withSourceInformation(
+        node.sourceInformation));
   }
 
   @override
   visitTypeEval(HTypeEval node) {
-    throw UnimplementedError('SsaCodeGenerator.visitTypeEval');
+    // Call `env._eval("recipe")`.
+    use(node.inputs[0]);
+    js.Expression environment = pop();
+    // TODO(sra): Encode recipe.
+    js.Expression recipe = js.string('${node.typeExpression}');
+
+    MemberEntity method = _commonElements.rtiEvalMethod;
+    Selector selector = Selector.fromElement(method);
+    js.Name methodLiteral = _namer.invocationName(selector);
+    push(js.js('#.#(#)', [
+      environment,
+      methodLiteral,
+      recipe
+    ]).withSourceInformation(node.sourceInformation));
+
+    _registry.registerStaticUse(
+        new StaticUse.directInvoke(method, selector.callStructure, null));
   }
 
   @override
   visitTypeBind(HTypeBind node) {
-    throw UnimplementedError('SsaCodeGenerator.visitTypeBind');
+    // Call `env1._bind(env2)`.
+    assert(node.inputs.length == 2);
+    use(node.inputs[0]);
+    js.Expression environment = pop();
+    use(node.inputs[1]);
+    js.Expression extensions = pop();
+
+    MemberEntity method = _commonElements.rtiEvalMethod;
+    Selector selector = Selector.fromElement(method);
+    js.Name methodLiteral = _namer.invocationName(selector);
+    push(js.js('#.#(#)', [
+      environment,
+      methodLiteral,
+      extensions
+    ]).withSourceInformation(node.sourceInformation));
+
+    _registry.registerStaticUse(
+        new StaticUse.directInvoke(method, selector.callStructure, null));
   }
 }

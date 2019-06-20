@@ -1323,8 +1323,8 @@ class ClassElementImpl extends AbstractClassElementImpl
     assert(_fields == null);
 
     var context = enclosingUnit.linkedContext;
-    var accessorList = <PropertyAccessorElementImpl>[];
-    var fieldList = <FieldElementImpl>[];
+    var accessorList = <PropertyAccessorElement>[];
+    var fieldList = <FieldElement>[];
 
     var fields = context.getFields(linkedNode);
     for (var field in fields) {
@@ -2164,18 +2164,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     assert(unit._accessors == null);
 
     var accessorMap =
-        <CompilationUnitElementImpl, List<PropertyAccessorElementImpl>>{};
+        <CompilationUnitElementImpl, List<PropertyAccessorElement>>{};
     var variableMap =
-        <CompilationUnitElementImpl, List<TopLevelVariableElementImpl>>{};
+        <CompilationUnitElementImpl, List<TopLevelVariableElement>>{};
 
     var units = unit.library.units;
     for (CompilationUnitElementImpl unit in units) {
       var context = unit.linkedContext;
 
-      var accessorList = <PropertyAccessorElementImpl>[];
+      var accessorList = <PropertyAccessorElement>[];
       accessorMap[unit] = accessorList;
 
-      var variableList = <TopLevelVariableElementImpl>[];
+      var variableList = <TopLevelVariableElement>[];
       variableMap[unit] = variableList;
 
       var unitNode = unit.linkedContext.unit_withDeclarations;
@@ -4851,6 +4851,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ExportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedExportPublic != null) {
       return _selectedUri ??= _selectUri(
           _unlinkedExportPublic.uri, _unlinkedExportPublic.configurations);
@@ -5611,7 +5616,9 @@ class GenericTypeAliasElementImpl extends ElementImpl
         var function = context.getGeneticTypeAliasFunction(linkedNode);
         if (function != null) {
           var reference = context.getGenericFunctionTypeReference(function);
-          return _function = reference.element;
+          _function = reference.element;
+          encloseElement(_function);
+          return _function;
         } else {
           return null;
         }
@@ -6123,6 +6130,11 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   String get uri {
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return node.uri.stringValue;
+    }
+
     if (_unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
         return null;

@@ -89,6 +89,7 @@ for command; do
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
+      out/ReleaseIA32/gen/kernel_service.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -170,6 +171,7 @@ for command; do
       third_party/d8/linux/ia32/snapshot_blob.bin \
       out/ReleaseIA32/vm_outline_strong.dill \
       out/ReleaseIA32/vm_platform_strong.dill \
+      out/ReleaseIA32/gen/kernel_service.dill \
       third_party/firefox_jsshell/linux/ \
       out/ReleaseIA32/dart-sdk \
       tools/dart2js/angular2_testing_deps \
@@ -216,6 +218,7 @@ EOF
     out/ReleaseIA32/dart --print_metrics pkg/analyzer_cli/bin/analyzer.dart --dart-sdk=sdk hello.dart
     out/ReleaseIA32/run_vm_tests InitialRSS
     out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
+    out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ] ||
@@ -244,6 +247,7 @@ EOF
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
+      out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       $simdbc_dart \
       out/ReleaseX64/dart \
@@ -345,6 +349,7 @@ EOF
       third_party/d8/linux/x64/snapshot_blob.bin \
       out/ReleaseX64/vm_outline_strong.dill \
       out/ReleaseX64/vm_platform_strong.dill \
+      out/ReleaseX64/gen/kernel_service.dill \
       out/ReleaseX64/dart-sdk \
       $simdbc_dart \
       out/ReleaseX64/dart \
@@ -397,6 +402,7 @@ EOF
     out/ReleaseX64/dart --packages=.packages pkg/kernel/test/binary_bench.dart --golem AstFromBinaryLazy out/ReleaseX64/vm_platform_strong.dill
     out/ReleaseX64/run_vm_tests InitialRSS
     out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
+    out/ReleaseX64/run_vm_tests KernelServiceCompileAll
     cd ..
     rm -rf tmp
   else

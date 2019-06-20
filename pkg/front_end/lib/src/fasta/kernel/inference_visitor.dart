@@ -183,7 +183,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       KernelLibraryBuilder library = inferrer.library;
       if (!hasExplicitTypeArguments) {
         library.checkBoundsInConstructorInvocation(
-            node, inferrer.typeSchemaEnvironment,
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }
@@ -244,7 +244,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       KernelLibraryBuilder library = inferrer.library;
       if (!hadExplicitTypeArguments) {
         library.checkBoundsInFactoryInvocation(
-            node, inferrer.typeSchemaEnvironment,
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }
@@ -919,7 +919,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (!inferrer.isTopLevel) {
       KernelLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
-        library.checkBoundsInListLiteral(node, inferrer.typeSchemaEnvironment,
+        library.checkBoundsInListLiteral(
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }
@@ -1277,34 +1278,30 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     assert((node.keyType is ImplicitTypeArgument) ==
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
-    KernelLibraryBuilder library = inferrer.library;
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
     bool typeContextIsIterable = false;
-    if (!inferrer.isTopLevel) {
-      if (library.loader.target.enableSetLiterals && inferenceNeeded) {
-        // Ambiguous set/map literal
-        DartType context =
-            inferrer.typeSchemaEnvironment.unfutureType(typeContext);
-        if (context is InterfaceType) {
-          typeContextIsMap = typeContextIsMap ||
-              inferrer.classHierarchy
-                  .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
-          typeContextIsIterable = typeContextIsIterable ||
-              inferrer.classHierarchy.isSubtypeOf(
-                  context.classNode, inferrer.coreTypes.iterableClass);
-          if (node.entries.isEmpty &&
-              typeContextIsIterable &&
-              !typeContextIsMap) {
-            // Set literal
-            SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
-                typeArgument: const ImplicitTypeArgument(),
-                isConst: node.isConst)
-              ..fileOffset = node.fileOffset;
-            node.parent.replaceChild(node, setLiteral);
-            visitSetLiteralJudgment(setLiteral, typeContext);
-            node.inferredType = setLiteral.inferredType;
-            return;
-          }
+    if (!inferrer.isTopLevel && inferenceNeeded) {
+      // Ambiguous set/map literal
+      DartType context =
+          inferrer.typeSchemaEnvironment.unfutureType(typeContext);
+      if (context is InterfaceType) {
+        typeContextIsMap = typeContextIsMap ||
+            inferrer.classHierarchy
+                .isSubtypeOf(context.classNode, inferrer.coreTypes.mapClass);
+        typeContextIsIterable = typeContextIsIterable ||
+            inferrer.classHierarchy.isSubtypeOf(
+                context.classNode, inferrer.coreTypes.iterableClass);
+        if (node.entries.isEmpty &&
+            typeContextIsIterable &&
+            !typeContextIsMap) {
+          // Set literal
+          SetLiteralJudgment setLiteral = new SetLiteralJudgment([],
+              typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
+            ..fileOffset = node.fileOffset;
+          node.parent.replaceChild(node, setLiteral);
+          visitSetLiteralJudgment(setLiteral, typeContext);
+          node.inferredType = setLiteral.inferredType;
+          return;
         }
       }
     }
@@ -1475,7 +1472,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       // Either both [_declaredKeyType] and [_declaredValueType] are omitted or
       // none of them, so we may just check one.
       if (inferenceNeeded) {
-        library.checkBoundsInMapLiteral(node, inferrer.typeSchemaEnvironment,
+        library.checkBoundsInMapLiteral(
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }
@@ -1760,7 +1758,8 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     if (!inferrer.isTopLevel) {
       KernelLibraryBuilder library = inferrer.library;
       if (inferenceNeeded) {
-        library.checkBoundsInSetLiteral(node, inferrer.typeSchemaEnvironment,
+        library.checkBoundsInSetLiteral(
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
 
@@ -1814,7 +1813,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
     inferrer.storeInferredType(node, inferenceResult.type);
     if (!hadExplicitTypeArguments && node.target != null) {
       inferrer.library?.checkBoundsInStaticInvocation(
-          node, inferrer.typeSchemaEnvironment,
+          node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
           inferred: true);
     }
   }
@@ -2025,7 +2024,7 @@ class InferenceVisitor extends BodyVisitor1<void, DartType> {
       KernelLibraryBuilder library = inferrer.library;
       if (node._implicitlyTyped) {
         library.checkBoundsInVariableDeclaration(
-            node, inferrer.typeSchemaEnvironment,
+            node, inferrer.typeSchemaEnvironment, inferrer.helper.uri,
             inferred: true);
       }
     }

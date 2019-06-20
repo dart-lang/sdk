@@ -208,7 +208,7 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     }
     ASSERT(idx == num_locals);
 
-    ASSERT(parsed_function()->node_sequence() == nullptr);
+    ASSERT(parsed_function()->scope() == nullptr);
     parsed_function()->AllocateBytecodeVariables(num_locals);
   }
 }

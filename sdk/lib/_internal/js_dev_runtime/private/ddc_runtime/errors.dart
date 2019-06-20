@@ -14,10 +14,6 @@ void trapRuntimeErrors(bool flag) {
   JS('', 'dart.__trapRuntimeErrors = #', flag);
 }
 
-void ignoreWhitelistedErrors(bool flag) {
-  JS('', 'dart.__ignoreWhitelistedErrors = #', flag);
-}
-
 // TODO(jmesserly): remove this?
 void ignoreAllErrors(bool flag) {
   JS('', 'dart.__ignoreAllErrors = #', flag);

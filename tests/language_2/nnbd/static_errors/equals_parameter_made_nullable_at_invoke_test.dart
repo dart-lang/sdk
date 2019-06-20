@@ -20,14 +20,14 @@ import 'dart:async';
 // operator==, but it should not be an error to "assign null" to the parameter
 // of the comparison operator.
 main() {
-  Object o;
+  Object o = 0;
   // Valid comparison.
   o == null;
 
   // Caveat: it is NOT that the argument is promoted to non-null. Otherwise,
   // types which we can't cleanly promote, such as FutureOr<int?>, would not be
   // assignable in comparisons.
-  FutureOr<int?> foInt;
+  FutureOr<int?> foInt = Future.value(0);
 
   // Valid comparison.
   o == foInt;

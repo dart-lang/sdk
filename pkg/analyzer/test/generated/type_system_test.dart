@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/source.dart'
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1867,19 +1868,41 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     typeProvider = new NonNullableTypeProvider(coreLibrary, asyncLibrary);
   }
 
+  void test_dynamicType() {
+    List<DartType> equivalents = <DartType>[
+      voidType,
+      _question(objectType),
+      _star(objectType),
+    ];
+    List<DartType> subtypes = <DartType>[bottomType, nullType, objectType];
+    _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
+  }
+
   void test_int_nullableTypes() {
     List<DartType> equivalents = <DartType>[
       intType,
       _star(intType),
+    ];
+    List<DartType> subtypes = <DartType>[
+      bottomType,
     ];
     List<DartType> supertypes = <DartType>[
       _question(intType),
       objectType,
       _question(objectType),
     ];
-    List<DartType> unrelated = <DartType>[doubleType, nullType];
+    List<DartType> unrelated = <DartType>[
+      doubleType,
+      nullType,
+      _star(nullType),
+      _question(nullType),
+      _question(bottomType),
+    ];
     _checkGroups(intType,
-        equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
   }
 
   void test_intQuestion_nullableTypes() {
@@ -1890,6 +1913,11 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     List<DartType> subtypes = <DartType>[
       intType,
       nullType,
+      _question(nullType),
+      _star(nullType),
+      bottomType,
+      _question(bottomType),
+      _star(bottomType),
     ];
     List<DartType> supertypes = <DartType>[
       _question(numType),
@@ -1911,7 +1939,14 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
       _question(intType),
       _star(intType),
     ];
-    List<DartType> subtypes = <DartType>[nullType];
+    List<DartType> subtypes = <DartType>[
+      nullType,
+      _star(nullType),
+      _question(nullType),
+      bottomType,
+      _star(bottomType),
+      _question(bottomType),
+    ];
     List<DartType> supertypes = <DartType>[
       numType,
       _question(numType),
@@ -1921,6 +1956,61 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     ];
     List<DartType> unrelated = <DartType>[doubleType];
     _checkGroups(_star(intType),
+        equivalents: equivalents,
+        supertypes: supertypes,
+        unrelated: unrelated,
+        subtypes: subtypes);
+  }
+
+  void test_nullType() {
+    List<DartType> equivalents = <DartType>[
+      nullType,
+      _question(nullType),
+      _star(nullType),
+      _question(bottomType),
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(intType),
+      _star(intType),
+      _question(objectType),
+      _star(objectType),
+      dynamicType,
+      voidType,
+    ];
+    List<DartType> subtypes = <DartType>[bottomType];
+    List<DartType> unrelated = <DartType>[
+      doubleType,
+      intType,
+      numType,
+      objectType
+    ];
+
+    for (final formOfNull in equivalents) {
+      _checkGroups(formOfNull,
+          equivalents: equivalents,
+          supertypes: supertypes,
+          unrelated: unrelated,
+          subtypes: subtypes);
+    }
+  }
+
+  void test_objectType() {
+    List<DartType> equivalents = <DartType>[
+      _star(objectType),
+    ];
+    List<DartType> supertypes = <DartType>[
+      _question(objectType),
+      dynamicType,
+      voidType,
+    ];
+    List<DartType> subtypes = <DartType>[bottomType];
+    List<DartType> unrelated = <DartType>[
+      _question(doubleType),
+      _question(numType),
+      _question(intType),
+      nullType
+    ];
+    _checkGroups(objectType,
         equivalents: equivalents,
         supertypes: supertypes,
         unrelated: unrelated,
@@ -2370,8 +2460,10 @@ class TypeBuilder {
 class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get futureOrWithNoneType =>
       typeProvider.futureOrType.instantiate([noneType]);
+
   DartType get futureOrWithQuestionType =>
       typeProvider.futureOrType.instantiate([questionType]);
+
   DartType get futureOrWithStarType =>
       typeProvider.futureOrType.instantiate([starType]);
 
@@ -2416,6 +2508,51 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isNonNullable(starType), true);
   }
 
+  test_isNonNullable_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_typeParameter_noneBound_question() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeQuestion(bound: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeNone(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeQuestion(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_typeParameter_starBound_star() {
+    expect(
+      typeSystem.isNonNullable(
+        typeParameterTypeStar(bound: starType),
+      ),
+      true,
+    );
+  }
+
   test_isNonNullable_void() {
     expect(typeSystem.isNonNullable(voidType), false);
   }
@@ -2450,6 +2587,51 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isNullable_star() {
     expect(typeSystem.isNullable(starType), true);
+  }
+
+  test_isNullable_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_typeParameter_noneBound_question() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeQuestion(bound: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeNone(bound: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeQuestion(bound: questionType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_typeParameter_starBound_star() {
+    expect(
+      typeSystem.isNullable(
+        typeParameterTypeStar(bound: starType),
+      ),
+      true,
+    );
   }
 
   test_isNullable_void() {
@@ -2527,5 +2709,29 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isPotentiallyNullable_void() {
     expect(typeSystem.isPotentiallyNullable(voidType), true);
+  }
+
+  DartType typeParameterTypeNone({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.none);
+  }
+
+  DartType typeParameterTypeQuestion({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.question);
+  }
+
+  DartType typeParameterTypeStar({@required DartType bound}) {
+    expect(bound, isNotNull);
+    var element = TypeParameterElementImpl.synthetic('T');
+    element.bound = bound;
+    return TypeParameterTypeImpl(element,
+        nullabilitySuffix: NullabilitySuffix.star);
   }
 }

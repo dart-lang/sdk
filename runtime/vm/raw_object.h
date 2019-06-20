@@ -807,7 +807,12 @@ class RawClass : public RawObject {
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   uint16_t num_native_fields_;
   uint32_t state_bits_;
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
   friend class Isolate;
@@ -1034,13 +1039,17 @@ class RawFfiTrampolineData : public RawObject {
   RawFunction* callback_target_;
 
   VISIT_TO(RawObject*, callback_target_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  // Callback id for callbacks, otherwise 0.
+  // Callback id for callbacks.
   //
   // The callbacks ids are used so that native callbacks can lookup their own
   // code objects, since native code doesn't pass code objects into function
   // calls. The callback id is also used to for verifying that callbacks are
   // called on the correct isolate. See DLRT_VerifyCallbackIsolate for details.
+  //
+  // Will be 0 for non-callbacks. Check 'callback_target_' to determine if this
+  // is a callback or not.
   uint32_t callback_id_;
 };
 
@@ -1211,9 +1220,12 @@ class RawLibrary : public RawObject {
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);  // Offset of this library's
-                                                // kernel data in the overall
-                                                // kernel program.
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Class;
   friend class Isolate;
@@ -1318,7 +1330,6 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRODUCT(RawArray* await_token_positions_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRODUCT(RawObject* return_address_metadata_);
@@ -1703,6 +1714,18 @@ class RawContextScope : public RawObject {
   friend class Object;
   friend class RawClosureData;
   friend class SnapshotReader;
+};
+
+class RawParameterTypeCheck : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ParameterTypeCheck);
+  intptr_t index_;
+  VISIT_FROM(RawObject*, param_);
+  RawAbstractType* param_;
+  RawAbstractType* type_or_bound_;
+  RawString* name_;
+  RawSubtypeTestCache* cache_;
+  VISIT_TO(RawObject*, cache_);
+  RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class RawSingleTargetCache : public RawObject {

@@ -41,7 +41,6 @@ import '../ir/visitors.dart';
 import '../ir/util.dart';
 import '../js/js.dart' as js;
 import '../js_backend/annotations.dart';
-import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../js_backend/namer.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -1206,8 +1205,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
                   getMethodInternal(procedure), node.name, index),
               new KTypeVariableData(node));
         }
-      } else if (func.parent is ir.FunctionDeclaration ||
-          func.parent is ir.FunctionExpression) {
+      } else if (func.parent is ir.LocalFunction) {
         // Ensure that local function type variables have been created.
         getLocalFunction(func.parent);
         return typeVariableMap[node];
@@ -1417,11 +1415,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  Local getLocalFunction(ir.TreeNode node) {
-    assert(
-        node is ir.FunctionDeclaration || node is ir.FunctionExpression,
-        failedAt(
-            CURRENT_ELEMENT_SPANNABLE, 'Invalid local function node: $node'));
+  Local getLocalFunction(ir.LocalFunction node) {
     KLocalFunction localFunction = localFunctionMap[node];
     if (localFunction == null) {
       MemberEntity memberContext;
@@ -1432,8 +1426,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
           executableContext = memberContext = getMember(parent);
           break;
         }
-        if (parent is ir.FunctionDeclaration ||
-            parent is ir.FunctionExpression) {
+        if (parent is ir.LocalFunction) {
           KLocalFunction localFunction = getLocalFunction(parent);
           executableContext = localFunction;
           memberContext = localFunction.memberContext;
@@ -1492,13 +1485,13 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
-        case JavaScriptBackend.JS:
+        case Identifiers.JS:
           return ForeignKind.JS;
-        case JavaScriptBackend.JS_BUILTIN:
+        case Identifiers.JS_BUILTIN:
           return ForeignKind.JS_BUILTIN;
-        case JavaScriptBackend.JS_EMBEDDED_GLOBAL:
+        case Identifiers.JS_EMBEDDED_GLOBAL:
           return ForeignKind.JS_EMBEDDED_GLOBAL;
-        case JavaScriptBackend.JS_INTERCEPTOR_CONSTANT:
+        case Identifiers.JS_INTERCEPTOR_CONSTANT:
           return ForeignKind.JS_INTERCEPTOR_CONSTANT;
       }
     }

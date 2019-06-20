@@ -10,11 +10,14 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:front_end/src/scanner/token.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+
+import 'edge_origin.dart';
 
 /// Visitor that builds nullability nodes based on visiting code to be migrated.
 ///
@@ -30,12 +33,14 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   final Source _source;
 
   /// If the parameters of a function or method are being visited, the
-  /// [DecoratedType] of the corresponding function or method type.
-  ///
-  /// TODO(paulberry): should this be updated when we visit generic function
-  /// type syntax?  How about when we visit old-style function-typed formal
-  /// parameters?
-  DecoratedType _currentFunctionType;
+  /// [DecoratedType]s of the function's named parameters that have been seen so
+  /// far.  Otherwise `null`.
+  Map<String, DecoratedType> _namedParameters;
+
+  /// If the parameters of a function or method are being visited, the
+  /// [DecoratedType]s of the function's positional parameters that have been
+  /// seen so far.  Otherwise `null`.
+  List<DecoratedType> _positionalParameters;
 
   final NullabilityMigrationListener /*?*/ listener;
 
@@ -56,12 +61,18 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         ? new DecoratedType(
             DynamicTypeImpl.instance,
             NullabilityNode.forInferredDynamicType(
-                _graph, enclosingNode.offset))
+                _graph, _source, enclosingNode.offset))
         : type.accept(this);
   }
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.factoryKeyword != null) {
+      // Factory constructors can return null, but we don't want to propagate a
+      // null type if we can prove that null is never returned.
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Declaration of a factory constructor');
+    }
     _handleExecutableDeclaration(
         node.declaredElement, null, node.parameters, node.body, node);
     return null;
@@ -73,9 +84,19 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (node.declaredElement.hasRequired || node.defaultValue != null) {
       return null;
     }
+    if (decoratedType == null) {
+      throw StateError('No type computed for ${node.parameter.runtimeType} '
+          '(${node.parent.parent.toSource()}) offset=${node.offset}');
+    }
     decoratedType.node.trackPossiblyOptional();
     _variables.recordPossiblyOptional(_source, node, decoratedType.node);
     return null;
+  }
+
+  @override
+  DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FieldFormalParameter');
   }
 
   @override
@@ -95,6 +116,19 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
         node.functionExpression.parameters, node.functionExpression.body, node);
     return null;
+  }
+
+  @override
+  DecoratedType visitFunctionTypeAlias(FunctionTypeAlias node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionTypeAlias');
+  }
+
+  @override
+  DecoratedType visitFunctionTypedFormalParameter(
+      FunctionTypedFormalParameter node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionTypedFormalParameter');
   }
 
   @override
@@ -127,9 +161,9 @@ $stackTrace''');
     var declaredElement = node.declaredElement;
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
-      _currentFunctionType.namedParameters[declaredElement.name] = type;
+      _namedParameters[declaredElement.name] = type;
     } else {
-      _currentFunctionType.positionalParameters.add(type);
+      _positionalParameters.add(type);
     }
     return type;
   }
@@ -140,7 +174,8 @@ $stackTrace''');
     var type = node.type;
     if (type.isVoid || type.isDynamic) {
       var nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
-      _graph.connect(NullabilityNode.always, nullabilityNode);
+      _graph.connect(_graph.always, nullabilityNode,
+          AlwaysNullableTypeOrigin(_source, node.offset));
       var decoratedType =
           DecoratedTypeAnnotation(type, nullabilityNode, node.offset);
       _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType,
@@ -153,9 +188,13 @@ $stackTrace''');
     var namedParameters = const <String, DecoratedType>{};
     if (type is InterfaceType && type.typeParameters.isNotEmpty) {
       if (node is TypeName) {
-        assert(node.typeArguments != null);
-        typeArguments =
-            node.typeArguments.arguments.map((t) => t.accept(this)).toList();
+        if (node.typeArguments == null) {
+          typeArguments =
+              type.typeArguments.map(_decorateImplicitTypeArgument).toList();
+        } else {
+          typeArguments =
+              node.typeArguments.arguments.map((t) => t.accept(this)).toList();
+        }
       } else {
         assert(false); // TODO(paulberry): is this possible?
       }
@@ -163,10 +202,23 @@ $stackTrace''');
     if (node is GenericFunctionType) {
       returnType = decorateType(node.returnType, node);
       if (node.typeParameters != null) {
-        throw UnimplementedError('TODO(paulberry)');
+        // TODO(paulberry)
+        _unimplemented(node, 'Generic function type with type parameters');
       }
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
+    }
+    if (node is GenericFunctionType) {
+      var previousPositionalParameters = _positionalParameters;
+      var previousNamedParameters = _namedParameters;
+      try {
+        _positionalParameters = positionalParameters;
+        _namedParameters = namedParameters;
+        node.parameters.accept(this);
+      } finally {
+        _positionalParameters = previousPositionalParameters;
+        _namedParameters = previousNamedParameters;
+      }
     }
     var decoratedType = DecoratedTypeAnnotation(
         type, NullabilityNode.forTypeAnnotation(node.end), node.end,
@@ -175,21 +227,16 @@ $stackTrace''');
         positionalParameters: positionalParameters,
         namedParameters: namedParameters);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
-    if (node is GenericFunctionType) {
-      var previousFunctionType = _currentFunctionType;
-      try {
-        _currentFunctionType = decoratedType;
-        node.parameters.accept(this);
-      } finally {
-        _currentFunctionType = previousFunctionType;
-      }
-    }
-    switch (_classifyComment(node.endToken.next.precedingComments)) {
+    var commentToken = node.endToken.next.precedingComments;
+    switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
-        _graph.connect(decoratedType.node, NullabilityNode.never, hard: true);
+        _graph.connect(decoratedType.node, _graph.never,
+            NullabilityCommentOrigin(_source, commentToken.offset),
+            hard: true);
         break;
       case _NullabilityComment.question:
-        _graph.connect(NullabilityNode.always, decoratedType.node);
+        _graph.connect(_graph.always, decoratedType.node,
+            NullabilityCommentOrigin(_source, commentToken.offset));
         break;
       case _NullabilityComment.none:
         break;
@@ -204,8 +251,10 @@ $stackTrace''');
   DecoratedType visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement;
     var decoratedBound = node.bound?.accept(this) ??
-        DecoratedType(element.bound ?? _typeProvider.objectType,
-            NullabilityNode.forInferredDynamicType(_graph, node.offset));
+        DecoratedType(
+            element.bound ?? _typeProvider.objectType,
+            NullabilityNode.forInferredDynamicType(
+                _graph, _source, node.offset));
     _variables.recordDecoratedElementType(element, decoratedBound);
     return null;
   }
@@ -227,6 +276,22 @@ $stackTrace''');
     return _NullabilityComment.none;
   }
 
+  /// Creates a DecoratedType corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  DecoratedType _decorateImplicitTypeArgument(DartType type) {
+    if (type.isDynamic) {
+      return DecoratedType(type, _graph.always);
+    } else if (type is InterfaceType) {
+      return DecoratedType(type, NullabilityNode.forInferredType(),
+          typeArguments:
+              type.typeArguments.map(_decorateImplicitTypeArgument).toList());
+    }
+    // TODO(paulberry)
+    throw UnimplementedError(
+        '_decorateImplicitTypeArgument(${type.runtimeType})');
+  }
+
   /// Common handling of function and method declarations.
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
@@ -234,23 +299,60 @@ $stackTrace''');
       FormalParameterList parameters,
       FunctionBody body,
       AstNode enclosingNode) {
-    var decoratedReturnType = decorateType(returnType, enclosingNode);
-    var previousFunctionType = _currentFunctionType;
-    // TODO(paulberry): test that it's correct to use `null` for the nullability
-    // of the function type
-    var functionType = DecoratedType(
-        declaredElement.type, NullabilityNode.never,
-        returnType: decoratedReturnType,
-        positionalParameters: [],
-        namedParameters: {});
-    _currentFunctionType = functionType;
+    DecoratedType decoratedReturnType;
+    if (returnType == null && declaredElement is ConstructorElement) {
+      // Constructors have no explicit return type annotation, so use the
+      // implicit return type.
+      if (declaredElement.isFactory) {
+        // Factory constructors can return null, but we don't want to propagate
+        // a null type if we can prove that null is never returned.
+        // TODO(brianwilkerson)
+        _unimplemented(
+            parameters.parent, 'Declaration of a factory constructor');
+      }
+      if (declaredElement.enclosingElement.typeParameters.isNotEmpty) {
+        // Need to decorate the type parameters appropriately.
+        // TODO(paulberry,brianwilkerson)
+        _unimplemented(parameters.parent,
+            'Declaration of a constructor with type parameters');
+      }
+      decoratedReturnType = new DecoratedType(
+          declaredElement.enclosingElement.type, _graph.never);
+    } else {
+      decoratedReturnType = decorateType(returnType, enclosingNode);
+    }
+    var previousPositionalParameters = _positionalParameters;
+    var previousNamedParameters = _namedParameters;
+    _positionalParameters = [];
+    _namedParameters = {};
+    DecoratedType functionType;
     try {
       parameters?.accept(this);
       body?.accept(this);
+      functionType = DecoratedType(declaredElement.type, _graph.never,
+          returnType: decoratedReturnType,
+          positionalParameters: _positionalParameters,
+          namedParameters: _namedParameters);
     } finally {
-      _currentFunctionType = previousFunctionType;
+      _positionalParameters = previousPositionalParameters;
+      _namedParameters = previousNamedParameters;
     }
     _variables.recordDecoratedElementType(declaredElement, functionType);
+  }
+
+  @alwaysThrows
+  void _unimplemented(AstNode node, String message) {
+    CompilationUnit unit = node.root as CompilationUnit;
+    StringBuffer buffer = StringBuffer();
+    buffer.write(message);
+    buffer.write(' in "');
+    buffer.write(node.toSource());
+    buffer.write('" on line ');
+    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+    buffer.write(' of "');
+    buffer.write(unit.declaredElement.source.fullName);
+    buffer.write('"');
+    throw UnimplementedError(buffer.toString());
   }
 }
 

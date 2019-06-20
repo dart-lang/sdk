@@ -14,6 +14,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_model/type_recipe.dart' show TypeEnvironmentStructure, TypeRecipe;
 import '../native/behavior.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -4373,12 +4374,16 @@ class HAsCheck extends HCheck {
 
   HAsCheck(HInstruction checked, HInstruction rti, this.isTypeError,
       AbstractValue type)
-      : super([rti, checked], type) {}
+      : assert(isTypeError != null),
+        super([rti, checked], type);
 
   // The type input is first to facilitate the `type.as(value)` codegen pattern.
   HInstruction get typeInput => inputs[0];
   @override
   HInstruction get checkedInput => inputs[1];
+
+  @override
+  bool isJsStatement() => false;
 
   @override
   accept(HVisitor visitor) => visitor.visitAsCheck(this);
@@ -4461,9 +4466,11 @@ class HLoadType extends HRtiInstruction {
 
 /// Evaluates an Rti type recipe in an Rti environment.
 class HTypeEval extends HRtiInstruction {
-  DartType typeExpression; // TODO(sra); Allow a type environment expression.
+  TypeEnvironmentStructure envStructure;
+  TypeRecipe typeExpression;
 
-  HTypeEval(HInstruction environment, this.typeExpression, AbstractValue type)
+  HTypeEval(HInstruction environment, this.envStructure, this.typeExpression,
+      AbstractValue type)
       : super([environment], type) {
     setUseGvn();
   }

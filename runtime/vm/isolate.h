@@ -10,6 +10,7 @@
 #endif
 
 #include <memory>
+#include <utility>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -346,8 +347,10 @@ class Isolate : public BaseIsolate {
     isolate_flags_ = CompactionInProgressBit::update(value, isolate_flags_);
   }
 
-  IsolateSpawnState* spawn_state() const { return spawn_state_; }
-  void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
+  IsolateSpawnState* spawn_state() const { return spawn_state_.get(); }
+  void set_spawn_state(std::unique_ptr<IsolateSpawnState> value) {
+    spawn_state_ = std::move(value);
+  }
 
   Mutex* mutex() { return &mutex_; }
   Mutex* symbols_mutex() { return &symbols_mutex_; }
@@ -355,7 +358,7 @@ class Isolate : public BaseIsolate {
   Mutex* constant_canonicalization_mutex() {
     return &constant_canonicalization_mutex_;
   }
-  Mutex* megamorphic_lookup_mutex() { return &megamorphic_lookup_mutex_; }
+  Mutex* megamorphic_mutex() { return &megamorphic_mutex_; }
 
   Mutex* kernel_data_lib_cache_mutex() { return &kernel_data_lib_cache_mutex_; }
   Mutex* kernel_data_class_cache_mutex() {
@@ -795,6 +798,13 @@ class Isolate : public BaseIsolate {
         UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
   }
 
+  bool has_attempted_stepping() const {
+    return HasAttemptedSteppingBit::decode(isolate_flags_);
+  }
+  void set_has_attempted_stepping(bool value) {
+    isolate_flags_ = HasAttemptedSteppingBit::update(value, isolate_flags_);
+  }
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -909,6 +919,7 @@ class Isolate : public BaseIsolate {
   V(RemappingCids)                                                             \
   V(ResumeRequest)                                                             \
   V(HasAttemptedReload)                                                        \
+  V(HasAttemptedStepping)                                                      \
   V(ShouldPausePostServiceRequest)                                             \
   V(EnableTypeChecks)                                                          \
   V(EnableAsserts)                                                             \
@@ -1019,12 +1030,13 @@ class Isolate : public BaseIsolate {
   Mutex symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex type_canonicalization_mutex_;      // Protects type canonicalization.
   Mutex constant_canonicalization_mutex_;  // Protects const canonicalization.
-  Mutex megamorphic_lookup_mutex_;         // Protects megamorphic table lookup.
+  Mutex megamorphic_mutex_;  // Protects the table of megamorphic caches and
+                             // their entries.
   Mutex kernel_data_lib_cache_mutex_;
   Mutex kernel_data_class_cache_mutex_;
   Mutex kernel_constants_mutex_;
   MessageHandler* message_handler_ = nullptr;
-  IsolateSpawnState* spawn_state_ = nullptr;
+  std::unique_ptr<IsolateSpawnState> spawn_state_;
   intptr_t defer_finalization_count_ = 0;
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_ = nullptr;

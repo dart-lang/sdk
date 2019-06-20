@@ -133,6 +133,9 @@ class LibraryContext {
    * Get the [LibraryElement] for the given library.
    */
   LibraryElement getLibraryElement(FileState library) {
+    if (elementFactory != null) {
+      return elementFactory.libraryOfUri(library.uriStr);
+    }
     return resynthesizer.getLibraryElement(library.uriStr);
   }
 
@@ -283,11 +286,24 @@ class LibraryContext {
           if (librarySource == null) continue;
 
           var inputUnits = <link2.LinkInputUnit>[];
+          var partIndex = -1;
           for (var file in libraryFile.libraryFiles) {
             var isSynthetic = !file.exists;
             var unit = file.parse();
+
+            String partUriStr;
+            if (partIndex >= 0) {
+              partUriStr = libraryFile.unlinked2.parts[partIndex];
+            }
+            partIndex++;
+
             inputUnits.add(
-              link2.LinkInputUnit(file.source, isSynthetic, unit),
+              link2.LinkInputUnit(
+                partUriStr,
+                file.source,
+                isSynthetic,
+                unit,
+              ),
             );
           }
 
@@ -322,8 +338,7 @@ class LibraryContext {
       // We are about to load dart:core, but if we have just linked it, the
       // linker might have set the type provider. So, clear it, and recreate
       // the element factory - it is empty anyway.
-      var hasDartCoreBeforeBundle = elementFactory.hasDartCore;
-      if (!hasDartCoreBeforeBundle) {
+      if (!elementFactory.hasDartCore) {
         analysisContext.clearTypeProvider();
         _createElementFactory();
       }
@@ -346,10 +361,8 @@ class LibraryContext {
         }
       }
 
-      // If the first bundle, with dart:core, create the type provider.
-      if (!hasDartCoreBeforeBundle && elementFactory.hasDartCore) {
-        _createElementFactoryTypeProvider();
-      }
+      // We might have just linked dart:core, ensure the type provider.
+      _createElementFactoryTypeProvider();
     }
 
     logger.run('Prepare linked bundles', () {
@@ -364,6 +377,11 @@ class LibraryContext {
         '[bytesGet: $bytesGet][bytesPut: $bytesPut]',
       );
     });
+
+    // There might be a rare (and wrong) situation, when the external summaries
+    // already include the [targetLibrary]. When this happens, [loadBundle]
+    // exists without doing any work. But the type provider must be created.
+    _createElementFactoryTypeProvider();
 
     timerLoad2.stop();
   }
@@ -392,7 +410,10 @@ class LibraryContext {
     }
   }
 
+  /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
+    if (analysisContext.typeProvider != null) return;
+
     var dartCore = elementFactory.libraryOfUri('dart:core');
     var dartAsync = elementFactory.libraryOfUri('dart:async');
     var typeProvider = SummaryTypeProvider()

@@ -4,11 +4,11 @@
 
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common_elements.dart';
-import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/namer.dart';
 import 'package:compiler/src/js_emitter/model.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js/js.dart' as js;
 
 ClassEntity lookupClass(JElementEnvironment elementEnvironment, String name) {
@@ -42,9 +42,9 @@ class ProgramLookup {
   final Program program;
   final Namer namer;
 
-  ProgramLookup(Compiler compiler)
-      : this.program = compiler.backend.emitterTask.emitter.programForTesting,
-        this.namer = compiler.backend.namerForTesting;
+  ProgramLookup(JsBackendStrategy backendStrategy)
+      : this.program = backendStrategy.emitterTask.emitter.programForTesting,
+        this.namer = backendStrategy.namerForTesting;
 
   Fragment getFragment(OutputUnit outputUnit) {
     for (Fragment fragment in program.fragments) {

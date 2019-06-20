@@ -148,7 +148,7 @@ class _RegExpHashValue {
 }
 
 class _RegExpMatch implements RegExpMatch {
-  _RegExpMatch(this._regexp, this.input, this._match);
+  _RegExpMatch._(this._regexp, this.input, this._match);
 
   int get start => _start(0);
   int get end => _end(0);
@@ -222,7 +222,7 @@ class _RegExp implements RegExp {
     if (match == null) {
       return null;
     }
-    return new _RegExpMatch(this, str, match);
+    return new _RegExpMatch._(this, str, match);
   }
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
@@ -242,7 +242,7 @@ class _RegExp implements RegExp {
     }
     List<int> list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
-    return new _RegExpMatch(this, string, list);
+    return new _RegExpMatch._(this, string, list);
   }
 
   bool hasMatch(String str) {
@@ -379,7 +379,7 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
     if (_nextIndex <= _str.length) {
       var match = _re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {
-        _current = new _RegExpMatch(_re, _str, match);
+        _current = new _RegExpMatch._(_re, _str, match);
         _nextIndex = _current.end;
         if (_nextIndex == _current.start) {
           // Zero-width match. Advance by one more, unless the regexp

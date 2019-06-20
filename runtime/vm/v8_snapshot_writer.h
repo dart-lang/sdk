@@ -61,9 +61,7 @@ class V8SnapshotProfileWriter : public ZoneAllocated {
 
   enum ConstantStrings {
     kUnknownString = 0,
-    kPropertyString = 1,
-    kObjectString = 2,
-    kArtificialRootString = 3,
+    kArtificialRootString = 1,
   };
 
 #if !defined(DART_PRECOMPILER)

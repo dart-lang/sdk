@@ -499,10 +499,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(IsLibrary(kernel_library) ||
          IsAdministrative(CanonicalNameParent(kernel_library)));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawLibrary* raw_lib;
     name_index_handle_ = Smi::New(kernel_library);
-    raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    RawLibrary* raw_lib = info_.LookupLibrary(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_lib != Library::null()) {
       return raw_lib;
     }
@@ -521,10 +520,9 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
 RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   ASSERT(IsClass(kernel_class));
   {
-    NoSafepointScope no_safepoint_scope(thread_);
-    RawClass* raw_class;
     name_index_handle_ = Smi::New(kernel_class);
-    raw_class = info_.LookupClass(thread_, name_index_handle_);
+    RawClass* raw_class = info_.LookupClass(thread_, name_index_handle_);
+    NoSafepointScope no_safepoint_scope(thread_);
     if (raw_class != Class::null()) {
       return raw_class;
     }
@@ -2563,47 +2561,8 @@ RawTypedData* KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
   SkipBytes(ReadUInt());                         // skip source.
-  const intptr_t line_start_count = ReadUInt();  // read number of line start
-  // entries.
-  MallocGrowableArray<int32_t> line_starts_array;
-
-  intptr_t max_delta = 0;
-  for (intptr_t i = 0; i < line_start_count; ++i) {
-    int32_t delta = ReadUInt();
-    line_starts_array.Add(delta);
-    if (delta > max_delta) {
-      max_delta = delta;
-    }
-  }
-
-  intptr_t cid;
-  if (max_delta <= kMaxInt8) {
-    cid = kTypedDataInt8ArrayCid;
-  } else if (max_delta <= kMaxInt16) {
-    cid = kTypedDataInt16ArrayCid;
-  } else {
-    cid = kTypedDataInt32ArrayCid;
-  }
-
-  TypedData& line_starts_data =
-      TypedData::Handle(Z, TypedData::New(cid, line_start_count, Heap::kOld));
-  for (intptr_t j = 0; j < line_start_count; ++j) {
-    int32_t line_start = line_starts_array[j];
-    switch (cid) {
-      case kTypedDataInt8ArrayCid:
-        line_starts_data.SetInt8(j, static_cast<int8_t>(line_start));
-        break;
-      case kTypedDataInt16ArrayCid:
-        line_starts_data.SetInt16(j << 1, static_cast<int16_t>(line_start));
-        break;
-      case kTypedDataInt32ArrayCid:
-        line_starts_data.SetInt32(j << 2, line_start);
-        break;
-      default:
-        UNREACHABLE();
-    }
-  }
-  return line_starts_data.raw();
+  const intptr_t line_start_count = ReadUInt();
+  return reader_.ReadLineStartsData(line_start_count);
 }
 
 String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index,
@@ -2789,8 +2748,7 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
     } else {
       // Note that the type argument vector is not yet extended.
       result_ =
-          Type::New(klass, TypeArguments::Handle(Z, klass.type_parameters()),
-                    klass.token_pos());
+          Type::New(klass, Object::null_type_arguments(), klass.token_pos());
     }
     return;
   }

@@ -103,7 +103,7 @@ void testResponseAddStream() {
   }, bytes: bytes * 2);
 
   testServerRequest((server, request) {
-    var controller = new StreamController(sync: true);
+    var controller = new StreamController<List<int>>(sync: true);
     request.response.addStream(controller.stream).then((response) {
       response.close();
       response.done.then((_) => server.close());

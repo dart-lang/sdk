@@ -85,14 +85,14 @@ class _CopyingBytesBuilder implements BytesBuilder {
     _buffer = newBuffer;
   }
 
-  List<int> takeBytes() {
+  Uint8List takeBytes() {
     if (_length == 0) return _emptyList;
     var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
     clear();
     return buffer;
   }
 
-  List<int> toBytes() {
+  Uint8List toBytes() {
     if (_length == 0) return _emptyList;
     return new Uint8List.fromList(
         new Uint8List.view(_buffer.buffer, 0, _length));

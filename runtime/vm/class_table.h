@@ -157,7 +157,9 @@ class ClassHeapStats {
   void UpdatePromotedAfterNewGC();
   void UpdateSize(intptr_t instance_size);
 #ifndef PRODUCT
-  void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
+  void PrintToJSONObject(const Class& cls,
+                         JSONObject* obj,
+                         bool internal) const;
 #endif
   void Verify();
 
@@ -311,7 +313,7 @@ class ClassTable {
 
   ClassHeapStats* StatsWithUpdatedSize(intptr_t cid);
 
-  void AllocationProfilePrintJSON(JSONStream* stream);
+  void AllocationProfilePrintJSON(JSONStream* stream, bool internal);
   void ResetAllocationAccumulators();
 
   void PrintToJSONObject(JSONObject* object);

@@ -31,129 +31,74 @@ class Driver {
 
   Ansi get ansi => logger.ansi;
 
-  Future start(
-    List<String> args, {
-    Context testContext,
-    Logger testLogger,
-  }) async {
-    final Options options = Options.parse(args, testContext, testLogger);
-
-    force = options.force;
-    overwrite = options.overwrite;
-    targets = options.targets;
-    context = testContext ?? options.context;
-    logger = testLogger ?? options.logger;
-    server = new Server(listener: new _Listener(logger));
-    handler = new _Handler(this);
-
-    // Start showing progress before we start the analysis server.
-    Progress progress;
-    if (options.showHelp) {
-      progress = logger.progress('${ansi.emphasized('Listing fixes')}');
-    } else {
-      progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
+  Future applyFixes() async {
+    showDescriptions('Recommended changes', result.suggestions);
+    showDescriptions('Recommended changes that cannot be automatically applied',
+        result.otherSuggestions);
+    showDetails(result.details);
+    if (result.suggestions.isEmpty) {
+      logger.stdout('');
+      logger.stdout(result.otherSuggestions.isNotEmpty
+          ? 'None of the recommended changes can be automatically applied.'
+          : 'No recommended changes.');
+      return;
     }
-
-    if (!await startServer(options)) {
-      context.exit(15);
+    logger.stdout('');
+    logger.stdout(ansi.emphasized('Files to be changed:'));
+    for (SourceFileEdit fileEdit in result.edits) {
+      logger.stdout('  ${_relativePath(fileEdit.file)}');
     }
-
-    if (!checkSupported(options)) {
-      await server.stop();
-      context.exit(1);
-    }
-
-    if (options.showHelp) {
-      try {
-        await showListOfFixes(progress: progress);
-      } finally {
-        await server.stop();
+    if (checkIfChangesShouldBeApplied(result)) {
+      for (SourceFileEdit fileEdit in result.edits) {
+        final file = new File(fileEdit.file);
+        String code = file.existsSync() ? file.readAsStringSync() : '';
+        code = SourceEdit.applySequence(code, fileEdit.edits);
+        await file.writeAsString(code);
       }
-      context.exit(0);
-    }
-
-    Future serverStopped;
-    try {
-      await setupFixesAnalysis(options);
-      result = await requestFixes(options, progress: progress);
-      serverStopped = server.stop();
-      await applyFixes();
-      await serverStopped;
-    } finally {
-      // If we didn't already try to stop the server, then stop it now.
-      if (serverStopped == null) {
-        await server.stop();
-      }
+      logger.stdout(ansi.emphasized('Changes applied.'));
     }
   }
 
-  Future<bool> startServer(Options options) async {
-    if (options.verbose) {
-      logger.trace('Dart SDK version ${Platform.version}');
-      logger.trace('  ${Platform.resolvedExecutable}');
-      logger.trace('dartfix');
-      logger.trace('  ${Platform.script.toFilePath()}');
+  bool checkIfChangesShouldBeApplied(EditDartfixResult result) {
+    logger.stdout('');
+    if (result.hasErrors) {
+      logger.stdout('WARNING: The analyzed source contains errors'
+          ' that may affect the accuracy of these changes.');
+      logger.stdout('');
+      if (!force) {
+        logger.stdout('Rerun with --$forceOption to apply these changes.');
+        return false;
+      }
+    } else if (!overwrite && !force) {
+      logger.stdout('Rerun with --$overwriteOption to apply these changes.');
+      return false;
     }
-    // Automatically run analysis server from source
-    // if this command line tool is being run from source within the SDK repo.
-    String serverPath = findServerPath();
-    await server.start(
-      clientId: 'dartfix',
-      clientVersion: 'unspecified',
-      sdkPath: options.sdkPath,
-      serverPath: serverPath,
-    );
-    server.listenToOutput(notificationProcessor: handler.handleEvent);
-    return handler.serverConnected(timeLimit: const Duration(seconds: 30));
+    return true;
   }
 
   /// Check if the specified options is supported by the version of analysis
   /// server being run and return `true` if they are.
   /// Display an error message and return `false` if not.
-  bool checkSupported(Options options) {
+  bool checkIfSelectedOptionsAreSupported(Options options) {
     if (handler.serverProtocolVersion.compareTo(new Version(1, 22, 2)) >= 0) {
       return true;
     }
     if (options.excludeFixes.isNotEmpty) {
-      unsupportedOption(excludeOption);
+      _unsupportedOption(excludeOption);
       return false;
     }
     if (options.includeFixes.isNotEmpty) {
-      unsupportedOption(includeOption);
+      _unsupportedOption(includeOption);
       return false;
     }
     if (options.requiredFixes) {
-      unsupportedOption(requiredOption);
+      _unsupportedOption(requiredOption);
       return false;
     }
     if (options.showHelp) {
       return false;
     }
     return true;
-  }
-
-  void unsupportedOption(String option) {
-    final version = handler.serverProtocolVersion.toString();
-    logger.stderr('''
-The --$option option is not supported by analysis server version $version.
-Please upgrade to a newer version of the Dart SDK to use this option.''');
-  }
-
-  Future<Progress> setupFixesAnalysis(
-    Options options, {
-    Progress progress,
-  }) async {
-    logger.trace('');
-    logger.trace('Setup analysis');
-    await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
-        new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-    await server.send(
-        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
-        new AnalysisSetAnalysisRootsParams(
-          options.targets,
-          const [],
-        ).toJson());
-    return progress;
   }
 
   Future<EditDartfixResult> requestFixes(
@@ -187,33 +132,6 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
     return EditDartfixResult.fromJson(decoder, 'result', json);
   }
 
-  Future applyFixes() async {
-    showDescriptions('Recommended changes', result.suggestions);
-    showDescriptions('Recommended changes that cannot be automatically applied',
-        result.otherSuggestions);
-    if (result.suggestions.isEmpty) {
-      logger.stdout('');
-      logger.stdout(result.otherSuggestions.isNotEmpty
-          ? 'None of the recommended changes can be automatically applied.'
-          : 'No recommended changes.');
-      return;
-    }
-    logger.stdout('');
-    logger.stdout(ansi.emphasized('Files to be changed:'));
-    for (SourceFileEdit fileEdit in result.edits) {
-      logger.stdout('  ${relativePath(fileEdit.file)}');
-    }
-    if (shouldApplyChanges(result)) {
-      for (SourceFileEdit fileEdit in result.edits) {
-        final file = new File(fileEdit.file);
-        String code = file.existsSync() ? file.readAsStringSync() : '';
-        code = SourceEdit.applySequence(code, fileEdit.edits);
-        await file.writeAsString(code);
-      }
-      logger.stdout(ansi.emphasized('Changes applied.'));
-    }
-  }
-
   void showDescriptions(String title, List<DartFixSuggestion> suggestions) {
     if (suggestions.isNotEmpty) {
       logger.stdout('');
@@ -225,7 +143,7 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
         msg.write('  ${toSentenceFragment(suggestion.description)}');
         final loc = suggestion.location;
         if (loc != null) {
-          msg.write(' • ${relativePath(loc.file)}');
+          msg.write(' • ${_relativePath(loc.file)}');
           msg.write(' • ${loc.startLine}:${loc.startColumn}');
         }
         logger.stdout(msg.toString());
@@ -233,33 +151,33 @@ Please upgrade to a newer version of the Dart SDK to use this option.''');
     }
   }
 
-  bool shouldApplyChanges(EditDartfixResult result) {
-    logger.stdout('');
-    if (result.hasErrors) {
-      logger.stdout('WARNING: The analyzed source contains errors'
-          ' that may affect the accuracy of these changes.');
-      logger.stdout('');
-      if (!force) {
-        logger.stdout('Rerun with --$forceOption to apply these changes.');
-        return false;
-      }
-    } else if (!overwrite && !force) {
-      logger.stdout('Rerun with --$overwriteOption to apply these changes.');
-      return false;
+  void showDetails(List<String> details) {
+    if (details == null || details.isEmpty) {
+      return;
     }
-    return true;
+    logger.stdout('''
+
+Analysis Details:
+''');
+    for (String detail in details) {
+      logger.stdout('''
+ • $detail
+''');
+    }
   }
 
-  String relativePath(String filePath) {
-    for (String target in targets) {
-      if (filePath.startsWith(target)) {
-        return filePath.substring(target.length + 1);
+  void showFix(DartFix fix) {
+    logger.stdout('''
+
+• ${fix.name}''');
+    if (fix.description != null) {
+      for (String line in _indentAndWrapDescription(fix.description)) {
+        logger.stdout(line);
       }
     }
-    return filePath;
   }
 
-  Future<EditGetDartfixInfoResult> showListOfFixes({Progress progress}) async {
+  Future<EditGetDartfixInfoResult> showFixes({Progress progress}) async {
     Map<String, dynamic> json = await server.send(
         EDIT_REQUEST_GET_DARTFIX_INFO, new EditGetDartfixInfoParams().toJson());
     progress?.finish(showTiming: true);
@@ -286,32 +204,120 @@ These fixes are NOT automatically applied, but may be enabled using --$includeOp
     return result;
   }
 
-  void showFix(DartFix fix) {
-    logger.stdout('''
+  Future start(
+    List<String> args, {
+    Context testContext,
+    Logger testLogger,
+  }) async {
+    final Options options = Options.parse(args, testContext, testLogger);
 
-* ${fix.name}''');
-    if (fix.description != null) {
-      for (String line in indentAndWrapDescription(fix.description)) {
-        logger.stdout(line);
+    force = options.force;
+    overwrite = options.overwrite;
+    targets = options.targets;
+    context = testContext ?? options.context;
+    logger = testLogger ?? options.logger;
+    server = new Server(listener: new _Listener(logger));
+    handler = new _Handler(this);
+
+    // Start showing progress before we start the analysis server.
+    Progress progress;
+    if (options.showHelp) {
+      progress = logger.progress('${ansi.emphasized('Listing fixes')}');
+    } else {
+      progress = logger.progress('${ansi.emphasized('Calculating fixes')}');
+    }
+
+    if (!await startServer(options)) {
+      context.exit(15);
+    }
+
+    if (!checkIfSelectedOptionsAreSupported(options)) {
+      await server.stop();
+      context.exit(1);
+    }
+
+    if (options.showHelp) {
+      try {
+        await showFixes(progress: progress);
+      } finally {
+        await server.stop();
+      }
+      context.exit(0);
+    }
+
+    Future serverStopped;
+    try {
+      await startServerAnalysis(options);
+      result = await requestFixes(options, progress: progress);
+      serverStopped = server.stop();
+      await applyFixes();
+      await serverStopped;
+    } finally {
+      // If we didn't already try to stop the server, then stop it now.
+      if (serverStopped == null) {
+        await server.stop();
       }
     }
   }
 
-  List<String> indentAndWrapDescription(String description) =>
-      description.split('\n').map((line) => '    $line').toList();
-}
-
-class _Listener with ServerListener, BadMessageListener {
-  final Logger logger;
-  final bool verbose;
-
-  _Listener(this.logger) : verbose = logger.isVerbose;
-
-  @override
-  void log(String prefix, String details) {
-    if (verbose) {
-      logger.trace('$prefix $details');
+  Future<bool> startServer(Options options) async {
+    // Automatically run analysis server from source
+    // if this command line tool is being run from source within the SDK repo.
+    String serverPath = options.serverSnapshot ?? findServerPath();
+    if (options.verbose) {
+      logger.trace('''
+Dart SDK version ${Platform.version}
+  ${Platform.resolvedExecutable}
+dartfix
+  ${Platform.script.toFilePath()}
+analysis server
+  $serverPath
+''');
     }
+    await server.start(
+      clientId: 'dartfix',
+      clientVersion: 'unspecified',
+      sdkPath: options.sdkPath,
+      serverPath: serverPath,
+    );
+    server.listenToOutput(notificationProcessor: handler.handleEvent);
+    return handler.serverConnected(timeLimit: const Duration(seconds: 30));
+  }
+
+  Future<Progress> startServerAnalysis(
+    Options options, {
+    Progress progress,
+  }) async {
+    logger.trace('');
+    logger.trace('Setup analysis');
+    await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
+        new ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
+    await server.send(
+        ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+        new AnalysisSetAnalysisRootsParams(
+          options.targets,
+          const [],
+        ).toJson());
+    return progress;
+  }
+
+  List<String> _indentAndWrapDescription(String description) =>
+      description.split('\n').map((line) => '    $line').toList();
+
+  String _relativePath(String filePath) {
+    for (String target in targets) {
+      if (filePath.startsWith(target)) {
+        return filePath.substring(target.length + 1);
+      }
+    }
+    return filePath;
+  }
+
+  void _unsupportedOption(String option) {
+    final version = handler.serverProtocolVersion.toString();
+    logger.stderr('''
+The --$option option is not supported by analysis server version $version.
+Please upgrade to a newer version of the Dart SDK to use this option.''');
   }
 }
 
@@ -333,6 +339,23 @@ class _Handler
   }
 
   @override
+  void onAnalysisErrors(AnalysisErrorsParams params) {
+    List<AnalysisError> errors = params.errors;
+    bool foundAtLeastOneError = false;
+    for (AnalysisError error in errors) {
+      if (shouldShowError(error)) {
+        if (!foundAtLeastOneError) {
+          foundAtLeastOneError = true;
+          logger.stdout('${driver._relativePath(params.file)}:');
+        }
+        Location loc = error.location;
+        logger.stdout('  ${toSentenceFragment(error.message)}'
+            ' • ${loc.startLine}:${loc.startColumn}');
+      }
+    }
+  }
+
+  @override
   void onFailedToConnect() {
     logger.stderr('Failed to connect to server');
   }
@@ -344,7 +367,7 @@ class _Handler
     final expectedVersion = Version.parse(PROTOCOL_VERSION);
     if (version > expectedVersion) {
       logger.stdout('''
-This version of dartfix is incompatible with the current Dart SDK. 
+This version of dartfix is incompatible with the current Dart SDK.
 Try installing a newer version of dartfix by running
 
     pub global activate dartfix
@@ -372,21 +395,18 @@ or installing an older version of dartfix using
     }
     super.onServerError(params);
   }
+}
+
+class _Listener with ServerListener, BadMessageListener {
+  final Logger logger;
+  final bool verbose;
+
+  _Listener(this.logger) : verbose = logger.isVerbose;
 
   @override
-  void onAnalysisErrors(AnalysisErrorsParams params) {
-    List<AnalysisError> errors = params.errors;
-    bool foundAtLeastOneError = false;
-    for (AnalysisError error in errors) {
-      if (shouldShowError(error)) {
-        if (!foundAtLeastOneError) {
-          foundAtLeastOneError = true;
-          logger.stdout('${driver.relativePath(params.file)}:');
-        }
-        Location loc = error.location;
-        logger.stdout('  ${toSentenceFragment(error.message)}'
-            ' • ${loc.startLine}:${loc.startColumn}');
-      }
+  void log(String prefix, String details) {
+    if (verbose) {
+      logger.trace('$prefix $details');
     }
   }
 }

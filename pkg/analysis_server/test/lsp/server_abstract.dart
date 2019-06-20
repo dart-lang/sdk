@@ -147,34 +147,51 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     // Complex text manipulations are described with an array of TextEdit's,
     // representing a single change to the document.
     //
-    //  All text edits ranges refer to positions in the original document. Text
+    // All text edits ranges refer to positions in the original document. Text
     // edits ranges must never overlap, that means no part of the original
-    // document must be manipulated by more than one edit. However, it is possible
-    // that multiple edits have the same start position: multiple inserts, or any
-    // number of inserts followed by a single remove or replace edit. If multiple
-    // inserts have the same position, the order in the array defines the order in
-    // which the inserted strings appear in the resulting text.
+    // document must be manipulated by more than one edit. It is possible
+    // that multiple edits have the same start position (eg. multiple inserts in
+    // reverse order), however since that involves complicated tracking and we
+    // only apply edits here sequentially, we don't supported them. We do sort
+    // edits to ensure we apply the later ones first, so we can assume the locations
+    // in the edit are still valid against the new string as each edit is applied.
 
     /// Ensures changes are simple enough to apply easily without any complicated
     /// logic.
     void validateChangesCanBeApplied() {
-      bool intersectsWithOrComesAfter(Position pos, Position other) =>
-          pos.line > other.line ||
-          (pos.line == other.line || pos.character >= other.character);
+      /// Check if a position is before (but not equal) to another position.
+      bool isBefore(Position p, Position other) =>
+          p.line < other.line ||
+          (p.line == other.line && p.character < other.character);
 
-      Position earliestPositionChanged;
-      for (final change in changes) {
-        if (earliestPositionChanged != null &&
-            intersectsWithOrComesAfter(
-                change.range.end, earliestPositionChanged)) {
-          throw 'Test helper applyTextEdits does not support applying multiple edits '
-              'where the edits are not in reverse order.';
+      /// Check if a position is after (but not equal) to another position.
+      bool isAfter(Position p, Position other) =>
+          p.line > other.line ||
+          (p.line == other.line && p.character > other.character);
+      // Check if two ranges intersect or touch.
+      bool rangesIntersect(Range r1, Range r2) {
+        bool endsBefore = isBefore(r1.end, r2.start);
+        bool startsAfter = isAfter(r1.start, r2.end);
+        return !(endsBefore || startsAfter);
+      }
+
+      for (final change1 in changes) {
+        for (final change2 in changes) {
+          if (change1 != change2 &&
+              rangesIntersect(change1.range, change2.range)) {
+            throw 'Test helper applyTextEdits does not support applying multiple edits '
+                'where the edits are not in reverse order.';
+          }
         }
-        earliestPositionChanged = change.range.start;
       }
     }
 
     validateChangesCanBeApplied();
+    changes.sort(
+      (c1, c2) =>
+          positionCompare(c1.range.start, c2.range.start) *
+          -1, // Multiply by -1 to get descending sort.
+    );
     for (final change in changes) {
       newContent = applyTextEdit(newContent, change);
     }
@@ -623,6 +640,16 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await pumpEventQueue();
   }
 
+  int positionCompare(Position p1, Position p2) {
+    if (p1.line < p2.line) return -1;
+    if (p1.line > p2.line) return 1;
+
+    if (p1.character < p2.character) return -1;
+    if (p1.character > p2.character) return -1;
+
+    return 0;
+  }
+
   Position positionFromMarker(String contents) =>
       positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
 
@@ -861,7 +888,7 @@ abstract class AbstractLspAnalysisServerTest
         new DartSdkManager(convertPath('/sdk'), false),
         InstrumentationService.NULL_SERVICE);
 
-    projectFolderPath = convertPath('/project');
+    projectFolderPath = convertPath('/home/test');
     projectFolderUri = Uri.file(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));

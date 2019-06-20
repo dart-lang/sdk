@@ -36,7 +36,7 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
   "fuchsia_git": "https://fuchsia.googlesource.com",
 
-  "co19_2_rev": "c4a8862775188ecb25991b815e2f1f700b19d0cc",
+  "co19_2_rev": "b0220fc898c32d3944cb8c54cf7b78dd8c7cbadb",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
   # should be kept up to date with the revisions pulled by the Flutter engine.
@@ -85,7 +85,7 @@ vars = {
   "fixnum_tag": "0.10.9",
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
-  "http_io_rev": "57da05a66f5bf7df3dd7aebe7b7efe0dfc477baa",
+  "http_io_rev": "773f4bc73ef572e2c37e879b065c3b406d75e8fd",
   "http_multi_server_tag" : "2.0.5",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
@@ -109,7 +109,7 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
-  "pedantic_tag": "v1.5.0",
+  "pedantic_tag": "v1.7.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",
@@ -157,7 +157,7 @@ deps = {
   Var("dart_root") + "/tools/sdks": {
       "packages": [{
           "package": "dart/dart-sdk/${{platform}}",
-          "version": "version:2.3.0",
+          "version": "version:2.3.3-dev.0.0",
       }],
       "dep_type": "cipd",
   },

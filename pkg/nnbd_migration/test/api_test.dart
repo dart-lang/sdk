@@ -645,12 +645,89 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_genericType_noTypeArguments() async {
+    var content = '''
+void f(C c) {}
+class C<E> {}
+''';
+    var expected = '''
+void f(C c) {}
+class C<E> {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_genericType_noTypeArguments_use_bound() async {
+    var content = '''
+abstract class C<T extends Object> { // (1)
+  void put(T t);
+  T get();
+}
+Object f(C c) => c.get();            // (2)
+void g(C<int> c) {                   // (3)
+  c.put(null);                       // (4)
+}
+''';
+    // (4) forces `...C<int?>...` at (3), which means (1) must be
+    // `...extends Object?`.  Therefore (2) is equivalent to
+    // `...f(C<Object?> c)...`, so the return type of `f` is `Object?`.
+    var expected = '''
+abstract class C<T extends Object?> { // (1)
+  void put(T t);
+  T get();
+}
+Object? f(C c) => c.get();            // (2)
+void g(C<int?> c) {                   // (3)
+  c.put(null);                       // (4)
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_getter_topLevel() async {
     var content = '''
 int get g => 0;
 ''';
     var expected = '''
 int get g => 0;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_ifStatement_nullCheck_noElse() async {
+    var content = '''
+int f(int x) {
+  if (x == null) return 0;
+  return x;
+}
+''';
+    var expected = '''
+int f(int x) {
+  if (x == null) return 0;
+  return x;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_instanceCreation_noTypeArguments_noParameters() async {
+    var content = '''
+void main() {
+  C c = C();
+  c.length;
+}
+class C {
+  int get length => 0;
+}
+''';
+    var expected = '''
+void main() {
+  C c = C();
+  c.length;
+}
+class C {
+  int get length => 0;
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -955,6 +1032,32 @@ int f(int x, int Function(int i) g) {
     var expected = '''
 int f(int x, int Function(int i) g) {
   return g(x);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefixExpression_bang() async {
+    var content = '''
+bool f(bool b) => !b;
+void g(bool b1, bool b2) {
+  if (b1) {
+    f(b2);
+  }
+}
+main() {
+  g(false, null);
+}
+''';
+    var expected = '''
+bool f(bool b) => !b;
+void g(bool b1, bool? b2) {
+  if (b1) {
+    f(b2!);
+  }
+}
+main() {
+  g(false, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);

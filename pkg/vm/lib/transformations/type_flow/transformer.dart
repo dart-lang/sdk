@@ -739,8 +739,8 @@ class _TreeShakerPass1 extends Transformer {
   }
 
   @override
-  TreeNode visitConstantExpression(ConstantExpression node) {
-    shaker.constantVisitor.analyzeConstant(node.constant);
+  Constant visitConstant(Constant node) {
+    shaker.constantVisitor.analyzeConstant(node);
     return node;
   }
 

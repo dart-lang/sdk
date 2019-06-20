@@ -68,7 +68,7 @@ main() {
     Expect.isTrue(result.isSuccess);
     Compiler compiler = result.compiler;
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    ProgramLookup programLookup = new ProgramLookup(compiler);
+    ProgramLookup programLookup = new ProgramLookup(compiler.backendStrategy);
 
     void checkStubs(ClassEntity element, List<String> expectedStubs) {
       Class cls = programLookup.getClass(element);

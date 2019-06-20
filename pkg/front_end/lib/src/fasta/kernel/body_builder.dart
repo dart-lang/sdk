@@ -2092,7 +2092,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         isConst: isConst)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
-    library.checkBoundsInVariableDeclaration(variable, typeEnvironment);
+    library.checkBoundsInVariableDeclaration(variable, typeEnvironment, uri);
     push(variable);
   }
 
@@ -2464,7 +2464,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         leftBracket,
         expressions,
         rightBracket);
-    library.checkBoundsInListLiteral(node, typeEnvironment);
+    library.checkBoundsInListLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -2503,12 +2503,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         leftBrace,
         expressions,
         leftBrace.endGroup);
-    library.checkBoundsInSetLiteral(node, typeEnvironment);
-    if (!library.loader.target.enableSetLiterals) {
-      internalProblem(
-          fasta.messageSetLiteralsNotSupported, node.fileOffset, uri);
-      return;
-    }
+    library.checkBoundsInSetLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -2627,7 +2622,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         leftBrace,
         entries,
         leftBrace.endGroup);
-    library.checkBoundsInMapLiteral(node, typeEnvironment);
+    library.checkBoundsInMapLiteral(node, typeEnvironment, uri);
     push(node);
   }
 
@@ -2793,7 +2788,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleAsOperator(Token operator) {
     debugEvent("AsOperator");
     DartType type = buildDartType(pop());
-    library.checkBoundsInType(type, typeEnvironment, operator.charOffset);
+    library.checkBoundsInType(type, typeEnvironment, uri, operator.charOffset);
     Expression expression = popForValue();
     if (!library.loader.target.enableConstantUpdate2018 &&
         constantContext != ConstantContext.none) {
@@ -2815,7 +2810,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     bool isInverted = not != null;
     Expression isExpression =
         forest.isExpression(operand, isOperator, not, type);
-    library.checkBoundsInType(type, typeEnvironment, isOperator.charOffset);
+    library.checkBoundsInType(
+        type, typeEnvironment, uri, isOperator.charOffset);
     if (operand is VariableGet) {
       typePromoter?.handleIsCheck(isExpression, isInverted, operand.variable,
           type, functionNestingLevel);
@@ -3372,7 +3368,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           target, forest.castArguments(arguments),
           isConst: isConst)
         ..fileOffset = charOffset;
-      library.checkBoundsInConstructorInvocation(node, typeEnvironment);
+      library.checkBoundsInConstructorInvocation(node, typeEnvironment, uri);
       return node;
     } else {
       Procedure procedure = target;
@@ -3392,14 +3388,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
             target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
-        library.checkBoundsInFactoryInvocation(node, typeEnvironment);
+        library.checkBoundsInFactoryInvocation(node, typeEnvironment, uri);
         return node;
       } else {
         StaticInvocation node = new StaticInvocation(
             target, forest.castArguments(arguments),
             isConst: isConst)
           ..fileOffset = charOffset;
-        library.checkBoundsInStaticInvocation(node, typeEnvironment);
+        library.checkBoundsInStaticInvocation(node, typeEnvironment, uri);
         return node;
       }
     }

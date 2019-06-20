@@ -10,7 +10,7 @@ library dart2js.test.generate_code_with_compile_time_errors;
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/js_model/js_strategy.dart';
 import '../helpers/memory_compiler.dart';
 import '../helpers/output_collector.dart';
 
@@ -45,8 +45,8 @@ test(List<String> options,
   Expect.equals(expectHint, collector.hints.isNotEmpty,
       "Unexpected hints: ${collector.warnings}");
 
-  JavaScriptBackend backend = compiler.backend;
-  bool isCodeGenerated = backend.generatedCode.isNotEmpty;
+  JsBackendStrategy backendStrategy = compiler.backendStrategy;
+  bool isCodeGenerated = backendStrategy.generatedCode.isNotEmpty;
   Expect.equals(
       expectedCodeGenerated,
       isCodeGenerated,

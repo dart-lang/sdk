@@ -7,6 +7,10 @@
 // This type corresponds to the VM-internal class LibraryPrefix.
 @pragma("vm:entry-point")
 class _LibraryPrefix {
+  factory _LibraryPrefix._uninstantiable() {
+    throw "Unreachable";
+  }
+
   bool _load() native "LibraryPrefix_load";
   Object _loadError() native "LibraryPrefix_loadError";
   bool isLoaded() native "LibraryPrefix_isLoaded";

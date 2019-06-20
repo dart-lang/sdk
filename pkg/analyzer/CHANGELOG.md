@@ -13,6 +13,14 @@
   impacts to value returned by `FunctionType.displayName` and
   `FunctionType.toString` and `ExecutableElement.toString`. Client code might be
   broken if it depends on the content of the returned value.
+* Introduced the function `parseString` to the public API.  This can be used in
+  place of the deprecated functions `parseCompilationUnit` and
+  `parseDirectives`.  Note that there is no option to parse only directives,
+  since this functionality is broken anyway (`parseDirectives`, despite its
+  name, parses the entire compilation unit).
+* Changed the return type of `ClassTypeAlias.declaredElement` to `ClassElement`.
+  There is no functional change; it has always returned an instance of
+  `ClassElement`.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

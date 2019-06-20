@@ -11,6 +11,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:bazel_worker/bazel_worker.dart';
@@ -24,7 +25,9 @@ import 'package:vm/target/flutter.dart';
 import 'package:vm/target/flutter_runner.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 
-main(List<String> args) async {
+/// [sendPort] may be passed in when started in an isolate. If provided, it is
+/// used for bazel worker communication instead of stdin/stdout.
+main(List<String> args, SendPort sendPort) async {
   args = preprocessArgs(args);
 
   if (args.contains('--persistent_worker')) {
@@ -32,7 +35,7 @@ main(List<String> args) async {
       throw new StateError(
           "unexpected args, expected only --persistent-worker but got: $args");
     }
-    await new KernelWorker().run();
+    await new KernelWorker(sendPort: sendPort).run();
   } else {
     var result = await computeKernel(args);
     if (!result.succeeded) {
@@ -44,6 +47,14 @@ main(List<String> args) async {
 /// A bazel worker loop that can compute full or summary kernel files.
 class KernelWorker extends AsyncWorkerLoop {
   fe.InitializedCompilerState previousState;
+
+  /// If [sendPort] is provided it is used for bazel worker communication
+  /// instead of stdin/stdout.
+  KernelWorker({SendPort sendPort})
+      : super(
+            connection: sendPort == null
+                ? null
+                : SendPortAsyncWorkerConnection(sendPort));
 
   Future<WorkResponse> performRequest(WorkRequest request) async {
     var outputBuffer = new StringBuffer();

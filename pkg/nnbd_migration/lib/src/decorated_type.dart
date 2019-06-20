@@ -45,33 +45,44 @@ class DecoratedType {
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
   /// presumed to have come from code that is already migrated.
-  factory DecoratedType.forElement(Element element) {
+  factory DecoratedType.forElement(Element element, NullabilityGraph graph) {
     DecoratedType decorate(DartType type) {
+      if (type.isVoid || type.isDynamic) {
+        return DecoratedType(type, graph.always);
+      }
       assert((type as TypeImpl).nullabilitySuffix ==
           NullabilitySuffix.star); // TODO(paulberry)
       if (type is FunctionType) {
-        var decoratedType = DecoratedType(type, NullabilityNode.never,
-            returnType: decorate(type.returnType), positionalParameters: []);
+        var positionalParameters = <DecoratedType>[];
+        var namedParameters = <String, DecoratedType>{};
         for (var parameter in type.parameters) {
-          assert(parameter.isPositional); // TODO(paulberry)
-          decoratedType.positionalParameters.add(decorate(parameter.type));
+          if (parameter.isPositional) {
+            positionalParameters.add(decorate(parameter.type));
+          } else {
+            namedParameters[parameter.name] = decorate(parameter.type);
+          }
         }
-        return decoratedType;
+        return DecoratedType(type, graph.never,
+            returnType: decorate(type.returnType),
+            namedParameters: namedParameters,
+            positionalParameters: positionalParameters);
       } else if (type is InterfaceType) {
-        assert(type.typeParameters.isEmpty); // TODO(paulberry)
-        return DecoratedType(type, NullabilityNode.never);
+        if (type.typeParameters.isNotEmpty) {
+          // TODO(paulberry)
+          throw UnimplementedError('Decorating ${type.displayName}');
+        }
+        return DecoratedType(type, graph.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
     }
 
     DecoratedType decoratedType;
-    if (element is MethodElement) {
-      decoratedType = decorate(element.type);
-    } else if (element is PropertyAccessorElement) {
+    if (element is ExecutableElement) {
       decoratedType = decorate(element.type);
     } else {
-      throw element.runtimeType; // TODO(paulberry)
+      // TODO(paulberry)
+      throw UnimplementedError('Decorating ${element.runtimeType}');
     }
     return decoratedType;
   }

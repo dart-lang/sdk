@@ -395,29 +395,28 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
       }
     }
     case 'd': {
+      int64_t off;
       if (format[4] == '2') {
         ASSERT(STRING_STARTS_WITH(format, "dest26"));
-        int64_t off = instr->SImm26Field() << 2;
+        off = instr->SImm26Field() << 2;
+      } else {
+        if (format[5] == '4') {
+          ASSERT(STRING_STARTS_WITH(format, "dest14"));
+          off = instr->SImm14Field() << 2;
+        } else {
+          ASSERT(STRING_STARTS_WITH(format, "dest19"));
+          off = instr->SImm19Field() << 2;
+        }
+      }
+      if (FLAG_disassemble_relative) {
+        buffer_pos_ +=
+            Utils::SNPrint(current_position_in_buffer(),
+                           remaining_size_in_buffer(), "%+" Pd64 "", off);
+      } else {
         uword destination = reinterpret_cast<uword>(instr) + off;
         buffer_pos_ +=
             Utils::SNPrint(current_position_in_buffer(),
                            remaining_size_in_buffer(), "%#" Px "", destination);
-      } else {
-        if (format[5] == '4') {
-          ASSERT(STRING_STARTS_WITH(format, "dest14"));
-          int64_t off = instr->SImm14Field() << 2;
-          uword destination = reinterpret_cast<uword>(instr) + off;
-          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
-                                        remaining_size_in_buffer(), "%#" Px "",
-                                        destination);
-        } else {
-          ASSERT(STRING_STARTS_WITH(format, "dest19"));
-          int64_t off = instr->SImm19Field() << 2;
-          uword destination = reinterpret_cast<uword>(instr) + off;
-          buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
-                                        remaining_size_in_buffer(), "%#" Px "",
-                                        destination);
-        }
       }
       return 6;
     }

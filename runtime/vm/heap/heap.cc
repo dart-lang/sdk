@@ -876,11 +876,15 @@ void Heap::PrintToJSONObject(Space space, JSONObject* object) const {
 }
 
 void Heap::PrintMemoryUsageJSON(JSONStream* stream) const {
-  JSONObject jsobj(stream);
-  jsobj.AddProperty("type", "MemoryUsage");
-  jsobj.AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
-  jsobj.AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
-  jsobj.AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
+  JSONObject obj(stream);
+  PrintMemoryUsageJSON(&obj);
+}
+
+void Heap::PrintMemoryUsageJSON(JSONObject* jsobj) const {
+  jsobj->AddProperty("type", "MemoryUsage");
+  jsobj->AddProperty64("heapUsage", TotalUsedInWords() * kWordSize);
+  jsobj->AddProperty64("heapCapacity", TotalCapacityInWords() * kWordSize);
+  jsobj->AddProperty64("externalUsage", TotalExternalInWords() * kWordSize);
 }
 #endif  // PRODUCT
 

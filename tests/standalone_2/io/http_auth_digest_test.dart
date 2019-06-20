@@ -210,7 +210,7 @@ void testAuthenticateCallback(String algorithm, String qop) {
     client.authenticate = (Uri url, String scheme, String realm) {
       Expect.equals("Digest", scheme);
       Expect.equals("test", realm);
-      Completer completer = new Completer();
+      Completer completer = new Completer<bool>();
       new Timer(const Duration(milliseconds: 10), () {
         client.addCredentials(
             Uri.parse("http://127.0.0.1:${server.port}/digest"),
@@ -277,8 +277,7 @@ void testStaleNonce() {
 }
 
 void testNextNonce() {
-  Server
-      .start("MD5", "auth", nonceStaleAfter: 2, useNextNonce: true)
+  Server.start("MD5", "auth", nonceStaleAfter: 2, useNextNonce: true)
       .then((server) {
     HttpClient client = new HttpClient();
 

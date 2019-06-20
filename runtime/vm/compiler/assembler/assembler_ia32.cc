@@ -2097,6 +2097,56 @@ void Assembler::EmitEntryFrameVerification() {
 #endif
 }
 
+// EBX receiver, ECX ICData entries array
+// Preserve EDX (ARGS_DESC_REG), not required today, but maybe later.
+void Assembler::MonomorphicCheckedEntryJIT() {
+  has_single_entry_point_ = false;
+  intptr_t start = CodeSize();
+  Label have_cid, miss;
+  Bind(&miss);
+  jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetJIT);
+
+  const intptr_t cid_offset = target::Array::element_offset(0);
+  const intptr_t count_offset = target::Array::element_offset(1);
+
+  movl(EAX, Immediate(kSmiCid << 1));
+  testl(EBX, Immediate(kSmiTagMask));
+  j(ZERO, &have_cid, kNearJump);
+  LoadClassId(EAX, EBX);
+  SmiTag(EAX);
+  Bind(&have_cid);
+  // EAX: cid as Smi
+
+  cmpl(EAX, FieldAddress(ECX, cid_offset));
+  j(NOT_EQUAL, &miss, Assembler::kNearJump);
+  addl(FieldAddress(ECX, count_offset), Immediate(target::ToRawSmi(1)));
+  xorl(EDX, EDX);  // GC-safe for OptimizeInvokedFunction.
+  nop(1);
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetJIT);
+}
+
+// EBX receiver, ECX guarded cid as Smi.
+// Preserve EDX (ARGS_DESC_REG), not required today, but maybe later.
+void Assembler::MonomorphicCheckedEntryAOT() {
+  UNIMPLEMENTED();
+}
+
+void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
+  has_single_entry_point_ = false;
+  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+    int3();
+  }
+  jmp(label);
+  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+    int3();
+  }
+}
+
 void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
                                             Register scratch) {

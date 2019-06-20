@@ -652,8 +652,8 @@ intptr_t ActivationFrame::ColumnNumber() {
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     if (IsInterpreted()) {
-      // TODO(regis): Kernel bytecode does not yet provide var descriptors.
-      var_descriptors_ = Object::empty_var_descriptors().raw();
+      var_descriptors_ = bytecode().GetLocalVarDescriptors();
+      ASSERT(!var_descriptors_.IsNull());
       return;
     }
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
@@ -684,9 +684,14 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   DisassembleToStdout formatter;
-  if (IsInterpreted()) {
-    bytecode().Disassemble(&formatter);
-    PcDescriptors::Handle(bytecode().pc_descriptors()).Print();
+  if (function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(function().HasBytecode());
+    const Bytecode& bytecode = Bytecode::Handle(function().bytecode());
+    bytecode.Disassemble(&formatter);
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   } else {
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
@@ -702,38 +707,97 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::Abort();
 }
 
-// Calculate the context level at the current token index of the frame.
+// Calculate the context level at the current bytecode pc or code deopt id
+// of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  // TODO(regis): get context level information using
-  //  BytecodeLocalVariablesIterator for interpreted frames and compiled frames
-  //  with a function coming from bytecode (function.is_declared_in_bytecode())
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
-    ASSERT(!code_.is_optimized());
-
-    GetVarDescriptors();
-    intptr_t deopt_id = DeoptId();
-    if (deopt_id == DeoptId::kNone) {
-      PrintDescriptorsError("Missing deopt id");
-    }
-    intptr_t var_desc_len = var_descriptors_.Length();
-    bool found = false;
-    for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-      RawLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(cur_idx, &var_info);
-      const int8_t kind = var_info.kind();
-      if ((kind == RawLocalVarDescriptors::kContextLevel) &&
-          (deopt_id >= var_info.begin_pos.value()) &&
-          (deopt_id <= var_info.end_pos.value())) {
-        context_level_ = var_info.index();
-        found = true;
-        break;
+    ASSERT(IsInterpreted() || !code_.is_optimized());
+    if (function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      // Although this activation frame may not have bytecode, its code was
+      // compiled from bytecode.
+      if (!IsInterpreted()) {
+        // TODO(regis): If this frame was compiled from bytecode, pc_ does not
+        // reflect a bytecode pc. How do we map to one? We should generate new
+        // LocalVarDescriptors for code compiled from bytecode so that they
+        // provide deopt_id to context level mapping.
+        UNIMPLEMENTED();
       }
+      ASSERT(function().HasBytecode());
+      Thread* thread = Thread::Current();
+      Zone* zone = thread->zone();
+      Bytecode& bytecode = Bytecode::Handle(zone, function().bytecode());
+      if (!bytecode.HasLocalVariablesInfo()) {
+        PrintDescriptorsError("Missing local variables info");
+      }
+      intptr_t pc_offset = pc_ - bytecode.PayloadStart();
+      kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+      while (local_vars.MoveNext()) {
+        if (local_vars.Kind() ==
+            kernel::BytecodeLocalVariablesIterator::kScope) {
+          if (local_vars.StartPC() <= pc_offset &&
+              pc_offset < local_vars.EndPC()) {
+            context_level_ = local_vars.ContextLevel();
+            break;
+          }
+        }
+      }
+      if (context_level_ < 0 && function().IsClosureFunction()) {
+        // Obtain the context level from the parent function.
+        // TODO(alexmarkov): Define scope which includes the whole closure body.
+        Function& parent = Function::Handle(zone, function().parent_function());
+        intptr_t depth = 1;
+        do {
+          bytecode = parent.bytecode();
+          kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
+          while (local_vars.MoveNext()) {
+            if (local_vars.Kind() ==
+                kernel::BytecodeLocalVariablesIterator::kScope) {
+              if (local_vars.StartTokenPos() <= TokenPos() &&
+                  TokenPos() <= local_vars.EndTokenPos()) {
+                context_level_ = local_vars.ContextLevel() + depth;
+                break;
+              }
+            }
+          }
+          if (context_level_ >= 0) break;
+          parent = parent.parent_function();
+          depth++;
+        } while (!parent.IsNull());
+      }
+      if (context_level_ < 0) {
+        PrintDescriptorsError("Missing context level in local variables info");
+      }
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    } else {
+      ASSERT(!code_.is_optimized());
+      GetVarDescriptors();
+      intptr_t deopt_id = DeoptId();
+      if (deopt_id == DeoptId::kNone) {
+        PrintDescriptorsError("Missing deopt id");
+      }
+      intptr_t var_desc_len = var_descriptors_.Length();
+      bool found = false;
+      for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+        RawLocalVarDescriptors::VarInfo var_info;
+        var_descriptors_.GetInfo(cur_idx, &var_info);
+        const int8_t kind = var_info.kind();
+        if ((kind == RawLocalVarDescriptors::kContextLevel) &&
+            (deopt_id >= var_info.begin_pos.value()) &&
+            (deopt_id <= var_info.end_pos.value())) {
+          context_level_ = var_info.index();
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        PrintDescriptorsError("Missing context level");
+      }
+      ASSERT(context_level_ >= 0);
     }
-    if (!found) {
-      PrintDescriptorsError("Missing context level");
-    }
-    ASSERT(context_level_ >= 0);
   }
   return context_level_;
 }
@@ -883,11 +947,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 }
 
 void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
-  // Attempt to determine the token position from the async closure.
-  if (IsInterpreted()) {
-    // TODO(regis): Implement.
-    return;
-  }
+  // Attempt to determine the token pos and try index from the async closure.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& script = Script::Handle(zone, function().script());
@@ -896,16 +956,14 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   // This should only be called on frames that aren't active on the stack.
   ASSERT(fp() == 0);
 
+  ASSERT(script.kind() == RawScript::kKernelTag);
   const Array& await_to_token_map =
-      Array::Handle(zone, script.kind() == RawScript::kKernelTag
-                              ? script.yield_positions()
-                              : code_.await_token_positions());
+      Array::Handle(zone, script.yield_positions());
   if (await_to_token_map.IsNull()) {
     // No mapping.
     return;
   }
   GetVarDescriptors();
-  GetPcDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
   for (intptr_t i = 0; i < var_desc_len; i++) {
@@ -923,28 +981,20 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   if (await_jump_var < 0) {
     return;
   }
-  intptr_t await_to_token_map_index =
-      script.kind() == RawScript::kKernelTag
-          ? await_jump_var - 1
-          :
-          // source script tokens array has first element duplicated
-          await_jump_var;
-
-  if (script.kind() == RawScript::kKernelTag) {
-    // yield_positions returns all yield positions for the script (in sorted
-    // order).
-    // We thus need to offset the function start to get the actual index.
-    if (!function_.token_pos().IsReal()) {
-      return;
-    }
-    const intptr_t function_start = function_.token_pos().value();
-    for (intptr_t i = 0;
-         i < await_to_token_map.Length() &&
-         Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
-             function_start;
-         i++) {
-      await_to_token_map_index++;
-    }
+  intptr_t await_to_token_map_index = await_jump_var - 1;
+  // yield_positions returns all yield positions for the script (in sorted
+  // order).
+  // We thus need to offset the function start to get the actual index.
+  if (!function_.token_pos().IsReal()) {
+    return;
+  }
+  const intptr_t function_start = function_.token_pos().value();
+  for (intptr_t i = 0;
+       i < await_to_token_map.Length() &&
+       Smi::Value(reinterpret_cast<RawSmi*>(await_to_token_map.At(i))) <
+           function_start;
+       i++) {
+    await_to_token_map_index++;
   }
 
   if (await_to_token_map_index >= await_to_token_map.Length()) {
@@ -959,6 +1009,30 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
+  if (IsInterpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // In order to determine the try index, we need to map the token position
+    // to a pc offset, and then a pc offset to the try index.
+    // TODO(regis): Should we set the token position fields in pc descriptors?
+    uword pc_offset = kUwordMax;
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode());
+    while (iter.MoveNext()) {
+      // PcOffsets are monotonic in source positions, so we get the lowest one.
+      if (iter.TokenPos() == token_pos_) {
+        pc_offset = iter.PcOffset();
+        break;
+      }
+    }
+    if (pc_offset < kUwordMax) {
+      try_index_ =
+          bytecode().GetTryIndexAtPc(bytecode().PayloadStart() + pc_offset);
+    }
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    return;
+  }
+  GetPcDescriptors();
   PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.TokenPos() == token_pos_) {
@@ -1135,9 +1209,21 @@ DART_FORCE_INLINE static RawObject* GetVariableValue(uword addr) {
   return *reinterpret_cast<RawObject**>(addr);
 }
 
+// Caution: GetParameter only works for fixed parameters.
 RawObject* ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
+
+  if (IsInterpreted()) {
+    if (function().NumOptionalParameters() > 0) {
+      // Note that we do not access optional but only fixed parameters, hence
+      // we do not need to replicate the logic of IndexFor() in bytecode reader.
+      return GetVariableValue(fp() + index * kWordSize);
+    } else {
+      return GetVariableValue(
+          fp() - (kKBCParamEndSlotFromFp + num_parameters - index) * kWordSize);
+    }
+  }
 
   if (function().NumOptionalParameters() > 0) {
     // If the function has optional parameters, the first positional parameter
@@ -1159,6 +1245,13 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 RawObject* ActivationFrame::GetStackVar(VariableIndex variable_index) {
+  if (IsInterpreted()) {
+    intptr_t slot_index = -variable_index.value();
+    if (slot_index < 0) {
+      slot_index -= kKBCParamEndSlotFromFp;  // Accessing a parameter.
+    }
+    return GetVariableValue(fp() + slot_index * kWordSize);
+  }
   const intptr_t slot_index =
       runtime_frame_layout.FrameSlotForVariableIndex(variable_index.value());
   if (deopt_frame_.IsNull()) {
@@ -1860,18 +1953,26 @@ RawFunction* Debugger::ResolveFunction(const Library& library,
 // that inline the function that contains the newly created breakpoint.
 // We currently don't have this info so we deoptimize all functions.
 void Debugger::DeoptimizeWorld() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   BackgroundCompiler::Stop(isolate_);
   if (FLAG_trace_deoptimization) {
     THR_Print("Deopt for debugger\n");
   }
+  isolate_->set_has_attempted_stepping(true);
+
   DeoptimizeFunctionsOnStack();
+
   // Iterate over all classes, deoptimize functions.
   // TODO(hausner): Could possibly be combined with RemoveOptimizedCode()
   const ClassTable& class_table = *isolate_->class_table();
-  Class& cls = Class::Handle();
-  Array& functions = Array::Handle();
-  GrowableObjectArray& closures = GrowableObjectArray::Handle();
-  Function& function = Function::Handle();
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Code& code = Code::Handle(zone);
   intptr_t num_classes = class_table.NumCids();
   for (intptr_t i = 1; i < num_classes; i++) {
     if (class_table.HasValidClassAt(i)) {
@@ -1887,11 +1988,19 @@ void Debugger::DeoptimizeWorld() {
           if (function.HasOptimizedCode()) {
             function.SwitchToUnoptimizedCode();
           }
+          code = function.unoptimized_code();
+          if (!code.IsNull()) {
+            code.ResetSwitchableCalls(zone);
+          }
           // Also disable any optimized implicit closure functions.
           if (function.HasImplicitClosureFunction()) {
             function = function.ImplicitClosureFunction();
             if (function.HasOptimizedCode()) {
               function.SwitchToUnoptimizedCode();
+            }
+            code = function.unoptimized_code();
+            if (!code.IsNull()) {
+              code.ResetSwitchableCalls(zone);
             }
           }
         }
@@ -1908,7 +2017,12 @@ void Debugger::DeoptimizeWorld() {
     if (function.HasOptimizedCode()) {
       function.SwitchToUnoptimizedCode();
     }
+    code = function.unoptimized_code();
+    if (!code.IsNull()) {
+      code.ResetSwitchableCalls(zone);
+    }
   }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Debugger::NotifySingleStepping(bool value) const {
@@ -2367,6 +2481,12 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
     ActivationFrame* activation = new (zone) ActivationFrame(async_activation);
     activation->ExtractTokenPositionFromAsyncClosure();
     stack_trace->AddActivation(activation);
+    if (FLAG_trace_debugger_stacktrace) {
+      OS::PrintErr(
+          "CollectAwaiterReturnStackTrace: visiting awaiter return "
+          "closures:\n\t%s\n",
+          activation->function().ToFullyQualifiedCString());
+    }
     next_async_activation = activation->GetAsyncAwaiter();
     if (next_async_activation.IsNull()) {
       // No more awaiters. Extract the causal stack trace (if it exists).
@@ -2826,19 +2946,15 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
     const TokenPosition begin_pos = best_fit_pos;
 
     TokenPosition end_of_line_pos;
-    if (script.kind() == RawScript::kKernelTag) {
-      if (best_line == -1) {
-        script.GetTokenLocation(begin_pos, &best_line, NULL);
-      }
-      ASSERT(best_line > 0);
-      TokenPosition ignored;
-      script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
-      if (end_of_line_pos < begin_pos) {
-        end_of_line_pos = begin_pos;
-      }
-    } else {
-      UNREACHABLE();
-      end_of_line_pos = TokenPosition::kNoSource;
+    ASSERT(script.kind() == RawScript::kKernelTag);
+    if (best_line == -1) {
+      script.GetTokenLocation(begin_pos, &best_line, NULL);
+    }
+    ASSERT(best_line > 0);
+    TokenPosition ignored;
+    script.TokenRangeAtLine(best_line, &ignored, &end_of_line_pos);
+    if (end_of_line_pos < begin_pos) {
+      end_of_line_pos = begin_pos;
     }
 
     uword lowest_pc_offset = kUwordMax;
@@ -4039,18 +4155,15 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
-    if (script.kind() == RawScript::kKernelTag) {
-      // Are we at a yield point (previous await)?
-      const Array& yields = Array::Handle(script.yield_positions());
-      intptr_t looking_for = top_frame->TokenPos().value();
-      Smi& value = Smi::Handle(zone);
-      for (int i = 0; i < yields.Length(); i++) {
-        value ^= yields.At(i);
-        if (value.Value() == looking_for) return true;
-      }
-      return false;
+    ASSERT(script.kind() == RawScript::kKernelTag);
+    // Are we at a yield point (previous await)?
+    const Array& yields = Array::Handle(script.yield_positions());
+    intptr_t looking_for = top_frame->TokenPos().value();
+    Smi& value = Smi::Handle(zone);
+    for (int i = 0; i < yields.Length(); i++) {
+      value ^= yields.At(i);
+      if (value.Value() == looking_for) return true;
     }
-    UNREACHABLE();
   }
   return false;
 }
@@ -4287,8 +4400,11 @@ void Debugger::NotifyIsolateCreated() {
 
 // Return innermost closure contained in 'function' that contains
 // the given token position.
+// Note: this should only be called for compiled functions and not for
+// bytecode functions.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             TokenPosition token_pos) {
+  ASSERT(function.HasCode());
   Zone* zone = Thread::Current()->zone();
   const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
@@ -4345,7 +4461,6 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
     script = loc->script();
     if (FunctionOverlaps(func, script, loc->token_pos(),
                          loc->end_token_pos())) {
-      Function& inner_function = Function::Handle(zone);
       TokenPosition token_pos = loc->token_pos();
       TokenPosition end_token_pos = loc->end_token_pos();
       if (token_pos != end_token_pos && loc->requested_column_number() >= 0) {
@@ -4357,23 +4472,31 @@ void Debugger::HandleCodeChange(bool bytecode_loaded, const Function& func) {
                                            loc->requested_column_number());
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
       }
-      // TODO(regis): Bytecode closures are not currently added to
-      // object_store()->closure_functions(). Should they? Revisit.
-      inner_function = FindInnermostClosure(func, token_pos);
-      if (!inner_function.IsNull()) {
-        // The local function of a function we just compiled cannot
-        // be compiled already.
-        ASSERT(!inner_function.HasCode());
-        if (FLAG_verbose_debug) {
-          OS::PrintErr("Pending BP remains unresolved in inner function '%s'\n",
-                       inner_function.ToFullyQualifiedCString());
+      if (bytecode_loaded) {
+        // func's bytecode was just loaded.
+        // If func has an inner closure, we got notified earlier.
+        // Therefore we will always resolve the breakpoint correctly to the
+        // innermost function without searching for it.
+      } else {
+        // func was just compiled.
+        const Function& inner_function =
+            Function::Handle(zone, FindInnermostClosure(func, token_pos));
+        if (!inner_function.IsNull()) {
+          // The local function of a function we just compiled cannot
+          // be compiled already.
+          ASSERT(!inner_function.HasCode());
+          if (FLAG_verbose_debug) {
+            OS::PrintErr(
+                "Pending BP remains unresolved in inner function '%s'\n",
+                inner_function.ToFullyQualifiedCString());
+          }
+          continue;
         }
-        continue;
-      }
 
-      // TODO(hausner): What should we do if function is optimized?
-      // Can we deoptimize the function?
-      ASSERT(!func.HasOptimizedCode());
+        // TODO(hausner): What should we do if function is optimized?
+        // Can we deoptimize the function?
+        ASSERT(!func.HasOptimizedCode());
+      }
 
       // There is no local function within func that contains the
       // breakpoint token position. Resolve the breakpoint if necessary

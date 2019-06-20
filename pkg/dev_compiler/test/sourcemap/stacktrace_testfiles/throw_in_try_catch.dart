@@ -10,5 +10,7 @@ test() {
   try {
     /*2:test*/ throw '>ExceptionMarker<';
     // ignore: UNUSED_CATCH_CLAUSE
-  } on Error catch (e) {}
+  } on Error catch (e) {
+    // ignore: EMPTY_CATCHES
+  }
 }

@@ -513,10 +513,10 @@ class _File extends FileSystemEntity implements File {
     return new IOSink(consumer, encoding: encoding);
   }
 
-  Future<List<int>> readAsBytes() {
-    Future<List<int>> readDataChunked(RandomAccessFile file) {
+  Future<Uint8List> readAsBytes() {
+    Future<Uint8List> readDataChunked(RandomAccessFile file) {
       var builder = new BytesBuilder(copy: false);
-      var completer = new Completer<List<int>>();
+      var completer = new Completer<Uint8List>();
       void read() {
         file.read(_blockSize).then((data) {
           if (data.length > 0) {
@@ -543,10 +543,10 @@ class _File extends FileSystemEntity implements File {
     });
   }
 
-  List<int> readAsBytesSync() {
+  Uint8List readAsBytesSync() {
     var opened = openSync();
     try {
-      List<int> data;
+      Uint8List data;
       var length = opened.lengthSync();
       if (length == 0) {
         // May be character device, try to read it in chunks.
@@ -741,19 +741,19 @@ class _RandomAccessFile implements RandomAccessFile {
     return result;
   }
 
-  Future<List<int>> read(int bytes) {
+  Future<Uint8List> read(int bytes) {
     ArgumentError.checkNotNull(bytes, 'bytes');
     return _dispatch(_IOService.fileRead, [null, bytes]).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response, "read failed", path);
       }
       _resourceInfo.addRead(response[1].length);
-      List<int> result = response[1];
+      Uint8List result = response[1];
       return result;
     });
   }
 
-  List<int> readSync(int bytes) {
+  Uint8List readSync(int bytes) {
     _checkAvailable();
     ArgumentError.checkNotNull(bytes, 'bytes');
     var result = _ops.read(bytes);

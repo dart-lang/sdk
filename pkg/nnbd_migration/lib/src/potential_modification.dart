@@ -33,7 +33,7 @@ class ConditionalModification extends PotentialModification {
           discard,
           _KeepNode(node.condition),
           _KeepNode(node.thenStatement),
-          _KeepNode(node.elseStatement));
+          node.elseStatement == null ? null : _KeepNode(node.elseStatement));
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
@@ -58,7 +58,7 @@ class ConditionalModification extends PotentialModification {
     if (discard.keepTrue) {
       keepNodes.add(thenStatement); // TODO(paulberry): test
     }
-    if (discard.keepFalse) {
+    if (discard.keepFalse && elseStatement != null) {
       keepNodes.add(elseStatement); // TODO(paulberry): test
     }
     // TODO(paulberry): test thoroughly

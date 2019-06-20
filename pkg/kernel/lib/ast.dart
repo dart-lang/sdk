@@ -3330,17 +3330,18 @@ class MapConcatenation extends Expression {
 /// Create an instance directly from the field values.
 ///
 /// This expression arises from const constructor calls when one or more field
-/// initializing expressions, field initializers or assert initializers contain
-/// unevaluated expressions. They only ever occur within unevaluated constants
-/// in constant expressions.
+/// initializing expressions, field initializers, assert initializers or unused
+/// arguments contain unevaluated expressions. They only ever occur within
+/// unevaluated constants in constant expressions.
 class InstanceCreation extends Expression {
   final Reference classReference;
   final List<DartType> typeArguments;
   final Map<Reference, Expression> fieldValues;
   final List<AssertStatement> asserts;
+  final List<Expression> unusedArguments;
 
-  InstanceCreation(
-      this.classReference, this.typeArguments, this.fieldValues, this.asserts);
+  InstanceCreation(this.classReference, this.typeArguments, this.fieldValues,
+      this.asserts, this.unusedArguments);
 
   Class get classNode => classReference.asClass;
 
@@ -3363,6 +3364,7 @@ class InstanceCreation extends Expression {
       value.accept(v);
     }
     visitList(asserts, v);
+    visitList(unusedArguments, v);
   }
 
   transformChildren(Transformer v) {
@@ -3374,6 +3376,7 @@ class InstanceCreation extends Expression {
       }
     });
     transformList(asserts, v, this);
+    transformList(unusedArguments, v, this);
   }
 }
 
@@ -3737,10 +3740,15 @@ class AwaitExpression extends Expression {
   }
 }
 
+/// Common super-interface for [FunctionExpression] and [FunctionDeclaration].
+abstract class LocalFunction implements TreeNode {
+  FunctionNode get function;
+}
+
 /// Expression of form `(x,y) => ...` or `(x,y) { ... }`
 ///
 /// The arrow-body form `=> e` is desugared into `return e;`.
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression implements LocalFunction {
   FunctionNode function;
 
   FunctionExpression(this.function) {
@@ -4676,7 +4684,7 @@ class VariableDeclaration extends Statement {
 /// Declaration a local function.
 ///
 /// The body of the function may use [variable] as its self-reference.
-class FunctionDeclaration extends Statement {
+class FunctionDeclaration extends Statement implements LocalFunction {
   VariableDeclaration variable; // Is final and has no initializer.
   FunctionNode function;
 

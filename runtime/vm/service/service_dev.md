@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.18-dev
+# Dart VM Service Protocol 3.21-dev
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.18-dev_ of the Dart VM Service Protocol. This
+This document describes of _version 3.21-dev_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -27,9 +27,12 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [addBreakpoint](#addbreakpoint)
   - [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
   - [addBreakpointAtEntry](#addbreakpointatentry)
+  - [clearVMTimeline](#clearvmtimeline)
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
+  - [getAllocationProfile](#getallocationprofile)
   - [getFlagList](#getflaglist)
+  - [getInstances](#getinstances)
   - [getIsolate](#getisolate)
   - [getMemoryUsage](#getmemoryusage)
   - [getScripts](#getscripts)
@@ -38,6 +41,8 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getStack](#getstack)
   - [getVersion](#getversion)
   - [getVM](#getvm)
+  - [getVMTimeline](#getvmtimeline)
+  - [getVMTimelineFlags](#getvmtimelineflags)
   - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
@@ -49,13 +54,16 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [setLibraryDebuggable](#setlibrarydebuggable)
   - [setName](#setname)
   - [setVMName](#setvmname)
+  - [setVMTimelineFlags](#setvmtimelineflags)
   - [streamCancel](#streamcancel)
   - [streamListen](#streamlisten)
 - [Public Types](#public-types)
+  - [AllocationProfile](#allocationprofile)
   - [BoundField](#boundfield)
   - [BoundVariable](#boundvariable)
   - [Breakpoint](#breakpoint)
   - [Class](#class)
+  - [ClassHeapStats](#classheapstats)
   - [ClassList](#classlist)
   - [Code](#code)
   - [CodeKind](#codekind)
@@ -72,6 +80,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Frame](#frame)
   - [Function](#function)
   - [Instance](#instance)
+  - [InstanceSet](#instanceset)
   - [Isolate](#isolate)
   - [Library](#library)
   - [LibraryDependency](#librarydependency)
@@ -95,6 +104,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Stack](#stack)
   - [StepOption](#stepoption)
   - [Success](#success)
+  - [Timeline](#timeline)
+  - [TimelineEvent](#timelineevent)
+  - [TimelineFlags](#timelineflags)
   - [TypeArguments](#typearguments)
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
@@ -200,8 +212,7 @@ code | message | meaning
 111 | Service already registered | Service with such name has already been registered by this client
 112 | Service disappeared | Failed to fulfill service request, likely service handler is no longer available
 113 | Expression compilation error | Request to compile expression failed
-
-
+114 | Invalid timeline request | The timeline related request could not be completed due to the current configuration
 
 ## Events
 
@@ -476,6 +487,17 @@ See [Breakpoint](#breakpoint).
 
 Note that breakpoints are added and removed on a per-isolate basis.
 
+
+### clearVMTimeline
+
+``` 
+Success clearVMTimeline()
+```
+
+Clears all VM timeline events.
+
+See [Success](#success).
+
 ### invoke
 
 ```
@@ -589,6 +611,24 @@ reference will be returned.
 If the expression is evaluated successfully, an [@Instance](#instance)
 reference will be returned.
 
+### getAllocationProfile
+
+```
+AllocationProfile getAllocationProfile(string isolateId,
+                                       boolean reset [optional],
+                                       boolean gc [optional])
+```
+
+The _getAllocationProfile_ RPC is used to retrieve allocation information for a
+given isolate.
+
+If _reset_ is provided and is set to true, the allocation accumulators will be reset
+before collecting allocation information.
+
+If _gc_ is provided and is set to true, a garbage collection will be attempted
+before collecting allocation information. There is no guarantee that a garbage
+collection will be actually be performed.
+
 ### getFlagList
 
 ```
@@ -599,6 +639,21 @@ The _getFlagList_ RPC returns a list of all command line flags in the
 VM along with their current values.
 
 See [FlagList](#flaglist).
+
+### getInstances
+
+```
+InstanceSet getInstances(string objectId,
+                         int limit)
+```
+
+The _getInstances_ RPC is used to retrieve a set of instances which are of a specific type.
+
+_objectId_ is the ID of the `Class` to retrieve instances for. _objectId_ must be the ID of a `Class`, otherwise an error is returned.
+
+_limit_ is the maximum number of instances to be returned.
+
+See [InstanceSet](#instanceset).
 
 ### getIsolate
 
@@ -747,6 +802,43 @@ The _getVM_ RPC returns global information about a Dart virtual machine.
 
 See [VM](#vm).
 
+
+### getVMTimeline
+
+```
+Timeline getVMTimeline(int timeOriginMicros,
+                       int timeExtentMicros)
+```
+
+The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
+events.
+
+The _timeOriginMicros_ parameter is the beginning of the time range used to filter
+timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
+and the VM embedding API's `Dart_TimelineGetMicros`.
+
+The _timeExtentMicros_ parameter specifies how large the time range used to filter
+timeline events should be.
+
+For example, given _timeOriginMicros_ and _timeExtentMicros_, only timeline events
+from the following time range will be returned: `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
+
+If _getVMTimeline_ is invoked while the current recorder is one of Fuchsia or
+Systrace, the _114_ error code, invalid timeline request, will be returned as
+timeline events are handled by the OS in these modes.
+
+### getVMTimelineFlags
+
+```
+TimelineFlags getVMTimelineFlags()
+```
+
+The _getVMTimelineFlags_ RPC returns information about the current VM timeline configuration.
+
+To change which timeline streams are currently enabled, see [setVMTimelineFlags](#setvmtimelineflags).
+
+See [TimelineFlags](#timelineflags).
+
 ### pause
 
 ```
@@ -772,7 +864,6 @@ The isolate is killed regardless of whether it is paused or running.
 See [Success](#success).
 
 ### reloadSources
-
 
 ```
 ReloadReport reloadSources(string isolateId,
@@ -913,6 +1004,22 @@ The _setVMName_ RPC is used to change the debugging name for the vm.
 
 See [Success](#success).
 
+### setVMTimelineFlags
+
+```
+Success setVMTimelineFlags(string[] recordedStreams)
+```
+
+The _setVMTimelineFlags_ RPC is used to set which timeline streams are enabled.
+
+The _recordedStreams_ parameter is the list of all timeline streams which are
+to be enabled. Streams not explicitly specified will be disabled. Invalid stream
+names are ignored.
+
+To get the list of currently enabled timeline streams, see [getVMTimelineFlags](#getvmtimelineflags).
+
+See [Success](#success).
+
 ### streamCancel
 
 ```
@@ -1046,6 +1153,28 @@ enum PermittedValues {
 
 This means that _PermittedValues_ is a _string_ with two potential values,
 _Value1_ and _Value2_.
+
+### AllocationProfile
+
+```
+class AllocationProfile extends Response {
+  // Allocation information for all class types.
+  ClassHeapStats[] members;
+
+  // Information about memory usage for the isolate.
+  MemoryUsage memoryUsage;
+
+  // The timestamp of the last accumulator reset.
+  //
+  // If the accumulators have not been reset, this field is not present.
+  int dateLastAccumulatorReset [optional];
+
+  // The timestamp of the last manually triggered GC.
+  //
+  // If a GC has not been triggered manually, this field is not present.
+  int dateLastServiceGC [optional];
+}
+```
 
 ### BoundField
 
@@ -1185,6 +1314,29 @@ class Class extends Object {
 ```
 
 A _Class_ provides information about a Dart language class.
+
+### ClassHeapStats
+
+```
+class ClassHeapStats extends Response {
+  // The class for which this memory information is associated.
+  @Class class;
+
+  // The number of bytes allocated for instances of class since the
+  // accumulator was last reset.
+  int accumulatedSize;
+
+  // The number of bytes currently allocated for instances of class.
+  int bytesCurrent;
+
+  // The number of instances of class which have been allocated since
+  // the accumulator was last reset.
+  int instancesAccumulated;
+
+  // The number of instances of class which are currently alive.
+  int instancesCurrent;
+}
+```
 
 ### ClassList
 
@@ -2158,6 +2310,20 @@ class Isolate extends Response {
 
 An _Isolate_ object provides information about one isolate in the VM.
 
+### InstanceSet
+
+```
+class InstanceSet extends Response {
+  // The number of instances of the requested type currently allocated.
+  int totalCount;
+
+  // An array of instances of the requested type.
+  @Instance[] instances;
+}
+```
+
+See [getInstances](#getinstances).
+
 ### Library
 
 ```
@@ -2701,6 +2867,21 @@ class Success extends Response {
 
 The _Success_ type is used to indicate that an operation completed successfully.
 
+### Timeline
+
+```
+class Timeline extends Response {
+  // A list of timeline events.
+  TimelineEvent[] traceEvents;
+
+  // The start of the period of time in which traceEvents were collected.
+  int timeOriginMicros;
+
+  // The duration of time covered by the timeline.
+  int timeExtentMicros;
+}
+```
+
 ### TimelineEvent
 
 ```
@@ -2709,6 +2890,23 @@ class TimelineEvent {
 ```
 
 An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview) event.
+
+### TimelineFlags
+
+```
+class TimelineFlags extends Response {
+  // The name of the recorder currently in use. Recorder types include, but are
+  // not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
+  // Set to "null" if no recorder is currently set. 
+  string recorderName;
+
+  // The list of all available timeline streams.
+  string[] availableStreams;
+
+  // The list of timeline streams that are currently enabled.
+  string[] recordedStreams;
+}
+```
 
 ### TypeArguments
 
@@ -2835,7 +3033,7 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-1.0 | initial revision
+1.0 | Initial revision
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
@@ -2855,5 +3053,8 @@ version | comments
 3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
 3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
 3.17 | Add 'Logging' event kind and the LogRecord class.
+3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
+3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
+3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -1903,14 +1903,15 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(1)
   LinkedNodeType get functionReturnType;
 
+  /// The typedef this function type is created for.
+  @Id(9)
+  int get functionTypedef;
+
+  @Id(10)
+  List<LinkedNodeType> get functionTypedefTypeArguments;
+
   @Id(2)
   List<LinkedNodeTypeTypeParameter> get functionTypeParameters;
-
-  @Id(8)
-  int get genericTypeAliasReference;
-
-  @Id(9)
-  List<LinkedNodeType> get genericTypeAliasTypeArguments;
 
   /// Reference to a [LinkedNodeReferences].
   @Id(3)
@@ -1922,7 +1923,7 @@ abstract class LinkedNodeType extends base.SummaryClass {
   @Id(5)
   LinkedNodeTypeKind get kind;
 
-  @Id(10)
+  @Id(8)
   EntityRefNullabilitySuffix get nullabilitySuffix;
 
   @Id(6)
@@ -1974,9 +1975,15 @@ abstract class LinkedNodeUnit extends base.SummaryClass {
   @Id(2)
   LinkedNode get node;
 
+  /// If the unit is a part, the URI specified in the `part` directive.
+  /// Otherwise empty.
+  @Id(5)
+  String get partUriStr;
+
   @Id(1)
   UnlinkedTokens get tokens;
 
+  /// The absolute URI.
   @Id(0)
   String get uriStr;
 }
@@ -3567,6 +3574,16 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
   ])
   int get codeOffset;
 
+  /// Offsets of the first character of each line in the source code.
+  @VariantId(7, variant: LinkedNodeKind.compilationUnit)
+  List<int> get compilationUnit_lineStarts;
+
+  @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_periodOffset;
+
+  @VariantId(5, variant: LinkedNodeKind.constructorDeclaration)
+  int get constructorDeclaration_returnTypeOffset;
+
   @VariantId(1, variantList: [
     LinkedNodeKind.exportDirective,
     LinkedNodeKind.importDirective,
@@ -3615,16 +3632,6 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
   ])
   int get nameOffset;
-
-  @VariantId(5, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_returnTypeOffset;
-
-  @VariantId(6, variant: LinkedNodeKind.constructorDeclaration)
-  int get constructorDeclaration_periodOffset;
-
-  /// Offsets of the first character of each line in the source code.
-  @VariantId(7, variant: LinkedNodeKind.compilationUnit)
-  List<int> get compilationUnit_lineStarts;
 }
 
 /// Unlinked summary information about a function parameter.

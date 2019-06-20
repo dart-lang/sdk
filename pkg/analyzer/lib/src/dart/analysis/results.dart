@@ -163,6 +163,22 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   ResultState get state => ResultState.VALID;
 }
 
+class ParseStringResultImpl implements ParseStringResult {
+  @override
+  final String content;
+
+  @override
+  final List<AnalysisError> errors;
+
+  @override
+  final CompilationUnit unit;
+
+  ParseStringResultImpl(this.content, this.unit, this.errors);
+
+  @override
+  LineInfo get lineInfo => unit.lineInfo;
+}
+
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override

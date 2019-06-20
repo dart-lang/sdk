@@ -7,8 +7,8 @@ import 'dart:collection' show HashMap, HashSet, Queue;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
-import '../compiler/js_names.dart' as JS;
-import '../js_ast/js_ast.dart' as JS;
+
+import '../compiler/js_names.dart' as js_ast;
 import 'kernel_helpers.dart';
 import 'native_types.dart';
 
@@ -183,7 +183,7 @@ class ClassPropertyModel {
   /// pair in JavaScript.
   ///
   /// The value property stores the symbol used for the field's storage slot.
-  final virtualFields = <Field, JS.TemporaryId>{};
+  final virtualFields = <Field, js_ast.TemporaryId>{};
 
   /// The set of inherited getters, used because JS getters/setters are paired,
   /// so if we're generating a setter we may need to emit a getter that calls
@@ -246,7 +246,7 @@ class ClassPropertyModel {
           fieldModel.isVirtual(field) ||
           field.isCovariant ||
           field.isGenericCovariantImpl) {
-        virtualFields[field] = JS.TemporaryId(name);
+        virtualFields[field] = js_ast.TemporaryId(name);
       }
     }
   }

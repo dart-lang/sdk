@@ -755,6 +755,20 @@ class SsaInstructionMerger extends HBaseVisitor with CodegenPhase {
   }
 
   @override
+  void visitAsCheck(HAsCheck instruction) {
+    // Type checks and cast checks compile to code that only use their input
+    // once, so we can safely visit them and try to merge the input.
+    visitInstruction(instruction);
+  }
+
+  @override
+  void visitTypeEval(HTypeEval instruction) {
+    // Type expressions compile to code that only use their input once, so we
+    // can safely visit them and try to merge the input.
+    visitInstruction(instruction);
+  }
+
+  @override
   void visitPrimitiveCheck(HPrimitiveCheck instruction) {}
 
   @override

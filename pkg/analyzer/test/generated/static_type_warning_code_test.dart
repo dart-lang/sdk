@@ -1732,7 +1732,7 @@ class B {
   }
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 58, 2),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 58, 2),
     ]);
   }
 

@@ -1438,9 +1438,6 @@ SetOrMapLiteralTooManyTypeArguments:
   template: "A set or map literal requires exactly one or two type arguments, respectively."
   severity: ERROR_LEGACY_WARNING
 
-SetLiteralsNotSupported:
-  template: "Set literals are not supported yet."
-
 LoadLibraryTakesNoArguments:
   template: "'loadLibrary' takes no arguments."
   severity: ERROR_LEGACY_WARNING
@@ -3563,3 +3560,9 @@ BadTypeVariableInSupertype:
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
+
+IllegalRecursiveType:
+  template: "Illegal recursive type '#type'."
+  script: >
+    class Base<T> {}
+    class Derived<T> extends Base<Derived<Derived<T>>> {}

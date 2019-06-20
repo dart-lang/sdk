@@ -167,6 +167,19 @@ class LinkingBundleContext {
       typeParameterBuilders[i].bound = writeType(typeParameter.bound);
     }
 
+    Element typedefElement;
+    List<DartType> typedefTypeArguments = const <DartType>[];
+    if (type.element is GenericTypeAliasElement) {
+      typedefElement = type.element;
+      typedefTypeArguments = type.typeArguments;
+    }
+    // TODO(scheglov) Cleanup to always use GenericTypeAliasElement.
+    if (type.element is GenericFunctionTypeElement &&
+        type.element.enclosingElement is GenericTypeAliasElement) {
+      typedefElement = type.element.enclosingElement;
+      typedefTypeArguments = type.typeArguments;
+    }
+
     var result = LinkedNodeTypeBuilder(
       kind: LinkedNodeTypeKind.function,
       functionFormalParameters: type.parameters
@@ -178,6 +191,9 @@ class LinkingBundleContext {
           .toList(),
       functionReturnType: writeType(type.returnType),
       functionTypeParameters: typeParameterBuilders,
+      functionTypedef: indexOfElement(typedefElement),
+      functionTypedefTypeArguments:
+          typedefTypeArguments.map(writeType).toList(),
       nullabilitySuffix: _nullabilitySuffix(type),
     );
 

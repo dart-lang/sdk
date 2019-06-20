@@ -52,7 +52,6 @@ abstract class TargetImplementation extends Target {
   bool enableControlFlowCollections;
   bool enableExtensionMethods;
   bool enableNonNullable;
-  bool enableSetLiterals;
   bool enableSpreadCollections;
   bool enableTripleShift;
 
@@ -65,8 +64,6 @@ abstract class TargetImplementation extends Target {
             .isExperimentEnabled(ExperimentalFlag.extensionMethods),
         enableNonNullable = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.nonNullable),
-        enableSetLiterals = CompilerContext.current.options
-            .isExperimentEnabled(ExperimentalFlag.setLiterals),
         enableSpreadCollections = CompilerContext.current.options
             .isExperimentEnabled(ExperimentalFlag.spreadCollections),
         enableTripleShift = CompilerContext.current.options

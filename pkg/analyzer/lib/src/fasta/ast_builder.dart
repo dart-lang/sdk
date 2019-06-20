@@ -198,9 +198,13 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionHeader");
 
     TypeParameterList typeParameters = pop();
-    SimpleIdentifier name = pop();
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, extensionKeyword);
+
+    SimpleIdentifier name;
+    if (nameToken != null) {
+      name = ast.simpleIdentifier(nameToken);
+    }
 
     extensionDeclaration = ast.extensionDeclaration(
       comment: comment,
@@ -321,6 +325,116 @@ class AstBuilder extends StackListener {
     } else {
       push(NullValue.Modifiers);
     }
+  }
+
+  ConstructorInitializer buildInitializer(Object initializerObject) {
+    if (initializerObject is FunctionExpressionInvocation) {
+      Expression function = initializerObject.function;
+      if (function is SuperExpression) {
+        return ast.superConstructorInvocation(
+            function.superKeyword, null, null, initializerObject.argumentList);
+      } else {
+        return ast.redirectingConstructorInvocation(
+            (function as ThisExpression).thisKeyword,
+            null,
+            null,
+            initializerObject.argumentList);
+      }
+    }
+
+    if (initializerObject is MethodInvocation) {
+      Expression target = initializerObject.target;
+      if (target is SuperExpression) {
+        return ast.superConstructorInvocation(
+            target.superKeyword,
+            initializerObject.operator,
+            initializerObject.methodName,
+            initializerObject.argumentList);
+      }
+      if (target is ThisExpression) {
+        return ast.redirectingConstructorInvocation(
+            target.thisKeyword,
+            initializerObject.operator,
+            initializerObject.methodName,
+            initializerObject.argumentList);
+      }
+      return buildInitializerTargetExpressionRecovery(
+          target, initializerObject);
+    }
+
+    if (initializerObject is PropertyAccess) {
+      return buildInitializerTargetExpressionRecovery(
+          initializerObject.target, initializerObject);
+    }
+
+    if (initializerObject is AssignmentExpression) {
+      Token thisKeyword;
+      Token period;
+      SimpleIdentifier fieldName;
+      Expression left = initializerObject.leftHandSide;
+      if (left is PropertyAccess) {
+        Expression target = left.target;
+        if (target is ThisExpression) {
+          thisKeyword = target.thisKeyword;
+          period = left.operator;
+        } else {
+          assert(target is SuperExpression);
+          // Recovery:
+          // Parser has reported FieldInitializedOutsideDeclaringClass.
+        }
+        fieldName = left.propertyName;
+      } else if (left is SimpleIdentifier) {
+        fieldName = left;
+      } else {
+        // Recovery:
+        // Parser has reported invalid assignment.
+        SuperExpression superExpression = left;
+        fieldName = ast.simpleIdentifier(superExpression.superKeyword);
+      }
+      return ast.constructorFieldInitializer(thisKeyword, period, fieldName,
+          initializerObject.operator, initializerObject.rightHandSide);
+    }
+
+    if (initializerObject is AssertInitializer) {
+      return initializerObject;
+    }
+
+    if (initializerObject is IndexExpression) {
+      return buildInitializerTargetExpressionRecovery(
+          initializerObject.target, initializerObject);
+    }
+
+    throw new UnsupportedError('unsupported initializer:'
+        ' ${initializerObject.runtimeType} :: $initializerObject');
+  }
+
+  AstNode buildInitializerTargetExpressionRecovery(
+      Expression target, Object initializerObject) {
+    if (target is FunctionExpressionInvocation) {
+      Expression targetFunct = target.function;
+      if (targetFunct is SuperExpression) {
+        // TODO(danrubel): Consider generating this error in the parser
+        // This error is also reported in the body builder
+        handleRecoverableError(messageInvalidSuperInInitializer,
+            targetFunct.superKeyword, targetFunct.superKeyword);
+        return ast.superConstructorInvocation(
+            targetFunct.superKeyword, null, null, target.argumentList);
+      }
+      if (targetFunct is ThisExpression) {
+        // TODO(danrubel): Consider generating this error in the parser
+        // This error is also reported in the body builder
+        handleRecoverableError(messageInvalidThisInInitializer,
+            targetFunct.thisKeyword, targetFunct.thisKeyword);
+        return ast.redirectingConstructorInvocation(
+            targetFunct.thisKeyword, null, null, target.argumentList);
+      }
+      throw new UnsupportedError('unsupported initializer:'
+          ' ${initializerObject.runtimeType} :: $initializerObject'
+          ' %% targetFunct : ${targetFunct.runtimeType} :: $targetFunct');
+    }
+    throw new UnsupportedError('unsupported initializer:'
+        ' ${initializerObject.runtimeType} :: $initializerObject'
+        ' %% target : ${target.runtimeType} :: $target');
   }
 
   void checkFieldFormalParameters(FormalParameterList parameters) {
@@ -1217,122 +1331,12 @@ class AstBuilder extends StackListener {
 
     var initializers = <ConstructorInitializer>[];
     for (Object initializerObject in initializerObjects) {
-      if (initializerObject is FunctionExpressionInvocation) {
-        Expression function = initializerObject.function;
-        if (function is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(function.superKeyword,
-              null, null, initializerObject.argumentList));
-        } else {
-          initializers.add(ast.redirectingConstructorInvocation(
-              (function as ThisExpression).thisKeyword,
-              null,
-              null,
-              initializerObject.argumentList));
-        }
-      } else if (initializerObject is MethodInvocation) {
-        Expression target = initializerObject.target;
-        if (target is SuperExpression) {
-          initializers.add(ast.superConstructorInvocation(
-              target.superKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else if (target is ThisExpression) {
-          initializers.add(ast.redirectingConstructorInvocation(
-              target.thisKeyword,
-              initializerObject.operator,
-              initializerObject.methodName,
-              initializerObject.argumentList));
-        } else {
-          // Recovery: Invalid initializer
-          if (target is FunctionExpressionInvocation) {
-            var targetFunct = target.function;
-            if (targetFunct is SuperExpression) {
-              initializers.add(ast.superConstructorInvocation(
-                  targetFunct.superKeyword, null, null, target.argumentList));
-              // TODO(danrubel): Consider generating this error in the parser
-              // This error is also reported in the body builder
-              handleRecoverableError(messageInvalidSuperInInitializer,
-                  targetFunct.superKeyword, targetFunct.superKeyword);
-            } else if (targetFunct is ThisExpression) {
-              initializers.add(ast.redirectingConstructorInvocation(
-                  targetFunct.thisKeyword, null, null, target.argumentList));
-              // TODO(danrubel): Consider generating this error in the parser
-              // This error is also reported in the body builder
-              handleRecoverableError(messageInvalidThisInInitializer,
-                  targetFunct.thisKeyword, targetFunct.thisKeyword);
-            } else {
-              throw new UnsupportedError(
-                  'unsupported initializer $initializerObject');
-            }
-          } else {
-            throw new UnsupportedError(
-                'unsupported initializer $initializerObject');
-          }
-        }
-      } else if (initializerObject is AssignmentExpression) {
-        Token thisKeyword;
-        Token period;
-        SimpleIdentifier fieldName;
-        Expression left = initializerObject.leftHandSide;
-        if (left is PropertyAccess) {
-          Expression target = left.target;
-          if (target is ThisExpression) {
-            thisKeyword = target.thisKeyword;
-            period = left.operator;
-          } else {
-            assert(target is SuperExpression);
-            // Recovery:
-            // Parser has reported FieldInitializedOutsideDeclaringClass.
-          }
-          fieldName = left.propertyName;
-        } else if (left is SimpleIdentifier) {
-          fieldName = left;
-        } else {
-          // Recovery:
-          // Parser has reported invalid assignment.
-          SuperExpression superExpression = left;
-          fieldName = ast.simpleIdentifier(superExpression.superKeyword);
-        }
-        initializers.add(ast.constructorFieldInitializer(
-            thisKeyword,
-            period,
-            fieldName,
-            initializerObject.operator,
-            initializerObject.rightHandSide));
-      } else if (initializerObject is AssertInitializer) {
-        initializers.add(initializerObject);
-      } else if (initializerObject is PropertyAccess) {
-        // Recovery: Invalid initializer
-        Expression target = initializerObject.target;
-        if (target is FunctionExpressionInvocation) {
-          var targetFunct = target.function;
-          if (targetFunct is SuperExpression) {
-            initializers.add(ast.superConstructorInvocation(
-                targetFunct.superKeyword, null, null, target.argumentList));
-            // TODO(danrubel): Consider generating this error in the parser
-            // This error is also reported in the body builder
-            handleRecoverableError(messageInvalidSuperInInitializer,
-                targetFunct.superKeyword, targetFunct.superKeyword);
-          } else if (targetFunct is ThisExpression) {
-            initializers.add(ast.redirectingConstructorInvocation(
-                targetFunct.thisKeyword, null, null, target.argumentList));
-            // TODO(danrubel): Consider generating this error in the parser
-            // This error is also reported in the body builder
-            handleRecoverableError(messageInvalidThisInInitializer,
-                targetFunct.thisKeyword, targetFunct.thisKeyword);
-          } else {
-            throw new UnsupportedError(
-                'unsupported initializer $initializerObject');
-          }
-        } else {
-          throw new UnsupportedError(
-              'unsupported initializer $initializerObject');
-        }
-      } else {
+      ConstructorInitializer initializer = buildInitializer(initializerObject);
+      if (initializer == null) {
         throw new UnsupportedError('unsupported initializer:'
             ' ${initializerObject.runtimeType} :: $initializerObject');
       }
+      initializers.add(initializer);
     }
 
     push(initializers);
@@ -2478,7 +2482,8 @@ class AstBuilder extends StackListener {
   }
 
   void handleIndexedExpression(Token leftBracket, Token rightBracket) {
-    assert(optional('[', leftBracket));
+    assert(optional('[', leftBracket) ||
+        (enableNonNullable && optional('?.[', leftBracket)));
     assert(optional(']', rightBracket));
     debugEvent("IndexedExpression");
 

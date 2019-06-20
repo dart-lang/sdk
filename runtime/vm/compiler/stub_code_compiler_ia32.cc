@@ -407,8 +407,10 @@ void StubCodeCompiler::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // EDX: arguments descriptor array.
 void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
+  Label monomorphic;
+  __ BranchOnMonomorphicCheckedEntryJIT(&monomorphic);
+
+  // This was a static call.
   __ EnterStubFrame();
   __ pushl(EDX);           // Preserve arguments descriptor array.
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -416,6 +418,22 @@ void StubCodeCompiler::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
   __ movl(EAX, FieldAddress(EAX, target::Code::entry_point_offset()));
+  __ LeaveFrame();
+  __ jmp(EAX);
+  __ int3();
+
+  __ Bind(&monomorphic);
+  // This was a switchable call.
+  __ EnterStubFrame();
+  __ pushl(ECX);           // Preserve cache (guarded CID as Smi).
+  __ pushl(EBX);           // Preserve receiver.
+  __ pushl(Immediate(0));  // Result slot.
+  __ CallRuntime(kFixCallersTargetMonomorphicRuntimeEntry, 0);
+  __ popl(CODE_REG);  // Get Code object.
+  __ popl(EBX);       // Restore receiver.
+  __ popl(ECX);       // Restore cache (guarded CID as Smi).
+  __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
+                                          CodeEntryKind::kMonomorphic)));
   __ LeaveFrame();
   __ jmp(EAX);
   __ int3();
@@ -2119,6 +2137,23 @@ void StubCodeCompiler::GenerateICCallBreakpointStub(Assembler* assembler) {
 #endif  // defined(PRODUCT)
 }
 
+void StubCodeCompiler::GenerateUnoptStaticCallBreakpointStub(
+    Assembler* assembler) {
+#if defined(PRODUCT)
+  __ Stop("No debugging in PRODUCT mode");
+#else
+  __ EnterStubFrame();
+  __ pushl(ECX);           // Preserve ICData.
+  __ pushl(Immediate(0));  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Code of original stub.
+  __ popl(ECX);  // Restore ICData.
+  __ LeaveFrame();
+  // Jump to original stub.
+  __ jmp(FieldAddress(EAX, target::Code::entry_point_offset()));
+#endif  // defined(PRODUCT)
+}
+
 void StubCodeCompiler::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 #if defined(PRODUCT)
   __ Stop("No debugging in PRODUCT mode");
@@ -2449,7 +2484,7 @@ void StubCodeCompiler::GenerateDeoptForRewindStub(Assembler* assembler) {
 // EBX: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCodeCompiler::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ movl(CODE_REG, Address(THR, Thread::optimize_stub_offset()));
+  __ movl(CODE_REG, Address(THR, target::Thread::optimize_stub_offset()));
   __ EnterStubFrame();
   __ pushl(EDX);
   __ pushl(Immediate(0));  // Setup space on stack for return value.
@@ -2661,7 +2696,23 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
 }
 
 void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
-  __ int3();  // AOT only.
+  __ EnterStubFrame();
+  __ pushl(EBX);  // Preserve receiver.
+
+  __ pushl(Immediate(0));  // Result slot.
+  __ pushl(Immediate(0));  // Arg0: stub out
+  __ pushl(EBX);           // Arg1: Receiver
+  __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
+  __ popl(ECX);
+  __ popl(CODE_REG);  // result = stub
+  __ popl(ECX);       // result = IC
+
+  __ popl(EBX);  // Restore receiver.
+  __ LeaveFrame();
+
+  __ movl(EAX, FieldAddress(CODE_REG, target::Code::entry_point_offset(
+                                          CodeEntryKind::kMonomorphic)));
+  __ jmp(EAX);
 }
 
 void StubCodeCompiler::GenerateFrameAwaitingMaterializationStub(

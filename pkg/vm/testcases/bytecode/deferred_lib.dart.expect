@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'callDeferred', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                1
@@ -37,7 +35,6 @@ Function 'testLoadLibrary', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -55,7 +52,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -65,7 +61,6 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

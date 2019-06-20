@@ -20,7 +20,7 @@ static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
 
 // Both version numbers are inclusive.
 static const uint32_t kMinSupportedKernelFormatVersion = 18;
-static const uint32_t kMaxSupportedKernelFormatVersion = 25;
+static const uint32_t kMaxSupportedKernelFormatVersion = 26;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -365,6 +365,8 @@ class Reader : public ValueObject {
     ASSERT((offset >= 0) && (offset < size_));
     return &buffer()[offset];
   }
+
+  RawTypedData* ReadLineStartsData(intptr_t line_start_count);
 
  private:
   const uint8_t* buffer() const {

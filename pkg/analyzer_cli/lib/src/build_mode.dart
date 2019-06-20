@@ -195,7 +195,7 @@ class BuildMode with HasContextMixin {
   PackageBundleAssembler assembler;
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  final bool buildSummary2 = true;
+  final bool buildSummary2 = false;
   final bool consumeSummary2 = false;
   final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
@@ -398,7 +398,7 @@ class BuildMode with HasContextMixin {
 
         var inputUnits = <summary2.LinkInputUnit>[];
         inputUnits.add(
-          summary2.LinkInputUnit(librarySource, false, unit),
+          summary2.LinkInputUnit(null, librarySource, false, unit),
         );
 
         for (var directive in unit.directives) {
@@ -411,7 +411,12 @@ class BuildMode with HasContextMixin {
               throw ArgumentError('No parsed unit for part $partPath in $path');
             }
             inputUnits.add(
-              summary2.LinkInputUnit(partSource, false, partParseResult.unit),
+              summary2.LinkInputUnit(
+                partUri,
+                partSource,
+                false,
+                partParseResult.unit,
+              ),
             );
           }
         }

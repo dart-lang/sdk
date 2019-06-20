@@ -4,6 +4,7 @@
 //
 // Dart test program for testing dart:ffi function pointers with callbacks.
 //
+// VMOptions=--enable-testing-pragmas
 // SharedObjects=ffi_test_functions
 
 library FfiTest;
@@ -14,6 +15,8 @@ import 'dart:isolate';
 import 'dylib_utils.dart';
 
 import "package:expect/expect.dart";
+
+import 'ffi_test_helpers.dart';
 
 typedef NativeCallbackTest = Int32 Function(Pointer);
 typedef NativeCallbackTestFn = int Function(Pointer);
@@ -147,6 +150,10 @@ int returnNull() {
 typedef ReturnVoid = Void Function();
 void returnVoid() {}
 
+void testGC() {
+  triggerGc();
+}
+
 final List<Test> testcases = [
   Test("SimpleAddition", fromFunction<SimpleAdditionType>(simpleAddition)),
   Test("IntComputation", fromFunction<IntComputationType>(intComputation)),
@@ -160,6 +167,7 @@ final List<Test> testcases = [
   Test("Store", fromFunction<StoreType>(store)),
   Test("NullPointers", fromFunction<NullPointersType>(nullPointers)),
   Test("ReturnNull", fromFunction<ReturnNullType>(returnNull)),
+  Test("GC", fromFunction<ReturnVoid>(testGC)),
 ];
 
 testCallbackWrongThread() =>

@@ -41,11 +41,14 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
   }
 
   Either2<Command, CodeAction> findCommand(
-      List<Either2<Command, CodeAction>> actions, String commandID) {
+      List<Either2<Command, CodeAction>> actions, String commandID,
+      [String wantedTitle]) {
     for (var codeAction in actions) {
       final id = codeAction.map(
           (cmd) => cmd.command, (action) => action.command.command);
-      if (id == commandID) {
+      final title =
+          codeAction.map((cmd) => cmd.title, (action) => action.title);
+      if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
         return codeAction;
       }
     }
@@ -66,5 +69,65 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       }
     }
     return null;
+  }
+
+  /// Verifies that executing the given code actions command on the server
+  /// results in an edit being sent in the client that updates the file to match
+  /// the expected content.
+  Future verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
+      String content, String expectedContent,
+      {bool expectDocumentChanges = false}) async {
+    final command = codeAction.map(
+      (command) => command,
+      (codeAction) => codeAction.command,
+    );
+
+    await verifyCommandEdits(command, content, expectedContent,
+        expectDocumentChanges: expectDocumentChanges);
+  }
+
+  /// Verifies that executing the given command on the server results in an edit
+  /// being sent in the client that updates the file to match the expected
+  /// content.
+  Future<void> verifyCommandEdits(
+      Command command, String content, String expectedContent,
+      {bool expectDocumentChanges = false}) async {
+    ApplyWorkspaceEditParams editParams;
+
+    final commandResponse = await handleExpectedRequest<Object,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+      Method.workspace_applyEdit,
+      () => executeCommand(command),
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (it'll be verified below).
+        editParams = edit;
+        return new ApplyWorkspaceEditResponse(true, null);
+      },
+    );
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+
+    // Ensure the edit came back, and using the expected changes.
+    expect(editParams, isNotNull);
+    if (expectDocumentChanges) {
+      expect(editParams.edit.changes, isNull);
+      expect(editParams.edit.documentChanges, isNotNull);
+    } else {
+      expect(editParams.edit.changes, isNotNull);
+      expect(editParams.edit.documentChanges, isNull);
+    }
+
+    // Ensure applying the changes will give us the expected content.
+    final contents = {
+      mainFilePath: withoutMarkers(content),
+    };
+
+    if (expectDocumentChanges) {
+      applyDocumentChanges(contents, editParams.edit.documentChanges);
+    } else {
+      applyChanges(contents, editParams.edit.changes);
+    }
+    expect(contents[mainFilePath], equals(expectedContent));
   }
 }

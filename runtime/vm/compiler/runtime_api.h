@@ -626,6 +626,7 @@ class Thread : public AllStatic {
   static word dart_stream_offset();
   static word async_stack_trace_offset();
   static word predefined_symbols_address_offset();
+  static word optimize_entry_offset();
   static word deoptimize_entry_offset();
   static word megamorphic_call_checked_entry_offset();
   static word active_exception_offset();
@@ -676,7 +677,6 @@ class Thread : public AllStatic {
   static word fix_allocation_stub_code_offset();
 
   static word monomorphic_miss_stub_offset();
-  static word ic_lookup_through_code_stub_offset();
   static word lazy_specialize_type_test_stub_offset();
   static word slow_type_test_stub_offset();
   static word call_to_runtime_stub_offset();
@@ -691,6 +691,7 @@ class Thread : public AllStatic {
   static word stack_overflow_shared_with_fpu_regs_stub_offset();
   static word lazy_deopt_from_return_stub_offset();
   static word lazy_deopt_from_throw_stub_offset();
+  static word optimize_stub_offset();
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
@@ -775,8 +776,10 @@ class ClassHeapStats : public AllStatic {
 
 class Instructions : public AllStatic {
  public:
-  static const word kPolymorphicEntryOffset;
-  static const word kMonomorphicEntryOffset;
+  static const word kMonomorphicEntryOffsetJIT;
+  static const word kPolymorphicEntryOffsetJIT;
+  static const word kMonomorphicEntryOffsetAOT;
+  static const word kPolymorphicEntryOffsetAOT;
   static word HeaderSize();
   static word UnalignedHeaderSize();
 };

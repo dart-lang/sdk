@@ -34,6 +34,7 @@ import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -369,15 +370,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    _checkForNonBoolExpression(node);
-    _checkForNullableDereference(node.condition);
+    _checkForNonBoolExpression(node.condition,
+        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
     super.visitAssertInitializer(node);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    _checkForNonBoolExpression(node);
-    _checkForNullableDereference(node.condition);
+    _checkForNonBoolExpression(node.condition,
+        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
     super.visitAssertStatement(node);
   }
 
@@ -418,8 +419,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForAssignability(node.rightOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
-      _checkForNullableDereference(node.leftOperand);
-      _checkForNullableDereference(node.rightOperand);
     } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
           promoteParameterToNullable: true);
@@ -1168,12 +1167,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression operand = node.operand;
     if (operatorType == TokenType.BANG) {
       _checkForNonBoolNegationExpression(operand);
-    } else if (operatorType.isIncrementOperator) {
-      _checkForAssignmentToFinal(operand);
+    } else {
+      if (operatorType.isIncrementOperator) {
+        _checkForAssignmentToFinal(operand);
+      }
+      _checkForNullableDereference(operand);
+      _checkForUseOfVoidResult(operand);
+      _checkForIntNotAssignable(operand);
     }
-    _checkForIntNotAssignable(operand);
-    _checkForNullableDereference(operand);
-    _checkForUseOfVoidResult(operand);
     super.visitPrefixExpression(node);
   }
 
@@ -1293,6 +1294,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    if (node.spreadOperator.type != TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      _checkForNullableDereference(node.expression);
+    }
+    super.visitSpreadElement(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     DartType type =
         resolutionMap.staticElementForConstructorReference(node)?.type;
@@ -1344,6 +1353,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _checkForFinalNotInitialized(node.variables);
+    _checkForNotInitializedNonNullableTopLevelVariable(node.variables);
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -1430,6 +1440,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _checkForFinalNotInitialized(node.variables);
+    _checkForNotInitializedPotentiallyNonNullableLocalVariable(node.variables);
     super.visitVariableDeclarationStatement(node);
   }
 
@@ -3358,6 +3369,75 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNotInitializedPotentiallyNonNullableLocalVariable(
+    VariableDeclarationList node,
+  ) {
+    // Const and final checked separately.
+    if (node.isConst || node.isFinal) {
+      return;
+    }
+
+    if (!_isNonNullable) {
+      return;
+    }
+
+    if (node.isLate) {
+      return;
+    }
+
+    if (node.type == null) {
+      return;
+    }
+    var type = node.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) {
+      return;
+    }
+
+    for (var variable in node.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
+  void _checkForNotInitializedNonNullableTopLevelVariable(
+    VariableDeclarationList node,
+  ) {
+    // Const and final checked separately.
+    if (node.isConst || node.isFinal) {
+      return;
+    }
+
+    if (!_isNonNullable) {
+      return;
+    }
+
+    if (node.type == null) {
+      return;
+    }
+    var type = node.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) {
+      return;
+    }
+
+    for (var variable in node.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
   /**
    * If there are no constructors in the given [members], verify that all
    * final fields are initialized.  Cases in which there is at least one
@@ -4561,38 +4641,25 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticTypeWarningCode.NON_BOOL_CONDITION].
    */
   void _checkForNonBoolCondition(Expression condition) {
-    DartType conditionType = getStaticType(condition);
-    if (!_checkForNullableDereference(condition) &&
-        !_checkForUseOfVoidResult(condition) &&
-        conditionType != null &&
-        !_typeSystem.isAssignableTo(conditionType, _boolType,
-            featureSet: _featureSet)) {
-      _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
-    }
+    _checkForNonBoolExpression(condition,
+        errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION);
   }
 
   /**
-   * Verify that the given [assertion] has either a 'bool' or '() -> bool'
-   * condition.
+   * Verify that the given [expression] is of type 'bool', and report
+   * [errorCode] if not, or a nullability error if its improperly nullable.
    */
-  void _checkForNonBoolExpression(Assertion assertion) {
-    Expression expression = assertion.condition;
+  void _checkForNonBoolExpression(Expression expression,
+      {@required ErrorCode errorCode}) {
     DartType type = getStaticType(expression);
-    if (type is InterfaceType) {
-      if (!_typeSystem.isAssignableTo(type, _boolType,
-          featureSet: _featureSet)) {
-        if (type.element == _boolType.element) {
-          _errorReporter.reportErrorForNode(
-              StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-        } else {
-          _errorReporter.reportErrorForNode(
-              StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
-        }
+    if (!_checkForUseOfVoidResult(expression) &&
+        !_typeSystem.isAssignableTo(type, _boolType, featureSet: _featureSet)) {
+      if (type.element == _boolType.element) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
+      } else {
+        _errorReporter.reportErrorForNode(errorCode, expression);
       }
-    } else if (type is FunctionType) {
-      _errorReporter.reportErrorForNode(
-          StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
     }
   }
 
@@ -4600,18 +4667,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * Checks to ensure that the given [expression] is assignable to bool.
    */
   void _checkForNonBoolNegationExpression(Expression expression) {
-    DartType conditionType = getStaticType(expression);
-    if (conditionType != null &&
-        !_typeSystem.isAssignableTo(conditionType, _boolType,
-            featureSet: _featureSet)) {
-      if (conditionType.element == _boolType.element) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-      } else {
-        _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, expression);
-      }
-    }
+    _checkForNonBoolExpression(expression,
+        errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION);
   }
 
   /**

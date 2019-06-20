@@ -4,6 +4,9 @@
 
 #include "vm/service.h"
 
+#include <memory>
+#include <utility>
+
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/globals.h"
@@ -13,6 +16,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -1164,14 +1168,11 @@ void Service::PostEvent(Isolate* isolate,
   json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
-  // In certain cases (e.g. in the implementation of Dart_IsolateMakeRunnable)
-  // we do not have a current isolate/thread.
-  auto thread = Thread::Current();
-  if (thread != nullptr) {
-    TransitionVMToNative transition(thread);
-    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
-  } else {
-    Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
+  ApiMessageWriter writer;
+  std::unique_ptr<Message> msg = writer.WriteCMessage(
+      &list_cobj, ServiceIsolate::Port(), Message::kNormalPriority);
+  if (msg != nullptr) {
+    PortMap::PostMessage(std::move(msg));
   }
 }
 
@@ -2988,8 +2989,10 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
 
 class GetInstancesVisitor : public ObjectGraph::Visitor {
  public:
-  GetInstancesVisitor(const Class& cls, const Array& storage)
-      : cls_(cls), storage_(storage), count_(0) {}
+  GetInstancesVisitor(const Class& cls,
+                      ZoneGrowableHandlePtrArray<Object>* storage,
+                      intptr_t limit)
+      : cls_(cls), storage_(storage), limit_(limit), count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
@@ -3001,8 +3004,8 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
     Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     if (obj.GetClassId() == cls_.id()) {
-      if (!storage_.IsNull() && count_ < storage_.Length()) {
-        storage_.SetAt(count_, obj);
+      if (count_ < limit_) {
+        storage_->Add(Object::Handle(raw_obj));
       }
       ++count_;
     }
@@ -3013,7 +3016,8 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
 
  private:
   const Class& cls_;
-  const Array& storage_;
+  ZoneGrowableHandlePtrArray<Object>* storage_;
+  const intptr_t limit_;
   intptr_t count_;
 };
 
@@ -3022,9 +3026,9 @@ static const MethodParameter* get_instances_params[] = {
 };
 
 static bool GetInstances(Thread* thread, JSONStream* js) {
-  const char* target_id = js->LookupParam("classId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "classId");
+  const char* object_id = js->LookupParam("objectId");
+  if (object_id == NULL) {
+    PrintMissingParamError(js, "objectId");
     return true;
   }
   const char* limit_cstr = js->LookupParam("limit");
@@ -3037,14 +3041,20 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
     PrintInvalidParamError(js, "limit");
     return true;
   }
-  const Object& obj = Object::Handle(LookupHeapObject(thread, target_id, NULL));
+
+  const Object& obj = Object::Handle(LookupHeapObject(thread, object_id, NULL));
   if (obj.raw() == Object::sentinel().raw() || !obj.IsClass()) {
-    PrintInvalidParamError(js, "classId");
+    PrintInvalidParamError(js, "objectId");
     return true;
   }
   const Class& cls = Class::Cast(obj);
-  Array& storage = Array::Handle(Array::New(limit));
-  GetInstancesVisitor visitor(cls, storage);
+
+  // Ensure the array and handles created below are promptly destroyed.
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
+
+  ZoneGrowableHandlePtrArray<Object> storage(thread->zone(), limit);
+  GetInstancesVisitor visitor(cls, &storage, limit);
   ObjectGraph graph(thread);
   HeapIterationScope iteration_scope(Thread::Current(), true);
   graph.IterateObjects(&visitor);
@@ -3053,20 +3063,11 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("type", "InstanceSet");
   jsobj.AddProperty("totalCount", count);
   {
-    JSONArray samples(&jsobj, "samples");
-    for (int i = 0; (i < storage.Length()) && (i < count); i++) {
-      const Object& sample = Object::Handle(storage.At(i));
-      samples.AddValue(sample);
+    JSONArray samples(&jsobj, "instances");
+    for (int i = 0; (i < limit) && (i < count); i++) {
+      samples.AddValue(storage.At(i));
     }
   }
-
-  // We nil out the array after generating the response to prevent
-  // reporting spurious references when looking for inbound references
-  // after looking at allInstances.
-  for (intptr_t i = 0; i < storage.Length(); i++) {
-    storage.SetAt(i, Object::null_object());
-  }
-
   return true;
 }
 
@@ -3656,6 +3657,18 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   // TODO(johnmccutchan): Return an error.
   ASSERT(timeline_recorder != NULL);
+  const char* name = timeline_recorder->name();
+  if ((strcmp(name, FUCHSIA_RECORDER_NAME) == 0) ||
+      (strcmp(name, SYSTRACE_RECORDER_NAME) == 0)) {
+    js->PrintError(kInvalidTimelineRequest,
+                   "A recorder of type \"%s\" is "
+                   "currently in use. As a result, timeline events are handled "
+                   "by the OS rather than the VM. See the VM service "
+                   "documentation for more details on where timeline events "
+                   "can be found for this recorder type.",
+                   timeline_recorder->name());
+    return true;
+  }
   int64_t time_origin_micros =
       Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
   int64_t time_extent_micros =
@@ -3958,11 +3971,9 @@ static bool ClearCpuProfile(Thread* thread, JSONStream* js) {
   return true;
 }
 
-static const MethodParameter* get_allocation_profile_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, NULL,
-};
-
-static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
+static bool GetAllocationProfileImpl(Thread* thread,
+                                     JSONStream* js,
+                                     bool internal) {
   bool should_reset_accumulator = false;
   bool should_collect = false;
   if (js->HasParam("reset")) {
@@ -3974,7 +3985,7 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
     }
   }
   if (js->HasParam("gc")) {
-    if (js->ParamIs("gc", "full")) {
+    if (js->ParamIs("gc", "true")) {
       should_collect = true;
     } else {
       PrintInvalidParamError(js, "gc");
@@ -3990,8 +4001,21 @@ static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
     isolate->UpdateLastAllocationProfileGCTimestamp();
     isolate->heap()->CollectAllGarbage();
   }
-  isolate->class_table()->AllocationProfilePrintJSON(js);
+  isolate->class_table()->AllocationProfilePrintJSON(js, internal);
   return true;
+}
+
+static const MethodParameter* get_allocation_profile_params[] = {
+    RUNNABLE_ISOLATE_PARAMETER,
+    NULL,
+};
+
+static bool GetAllocationProfilePublic(Thread* thread, JSONStream* js) {
+  return GetAllocationProfileImpl(thread, js, false);
+}
+
+static bool GetAllocationProfile(Thread* thread, JSONStream* js) {
+  return GetAllocationProfileImpl(thread, js, true);
 }
 
 static const MethodParameter* collect_all_garbage_params[] = {
@@ -4871,7 +4895,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     build_expression_evaluation_scope_params },
   { "_clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
-  { "_clearVMTimeline", ClearVMTimeline,
+  { "clearVMTimeline", ClearVMTimeline,
     clear_vm_timeline_params, },
   { "_compileExpression", CompileExpression, compile_expression_params },
   { "_enableProfiler", EnableProfiler,
@@ -4881,6 +4905,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
   { "evaluateInFrame", EvaluateInFrame,
     evaluate_in_frame_params },
   { "_getAllocationProfile", GetAllocationProfile,
+    get_allocation_profile_params },
+  { "getAllocationProfile", GetAllocationProfilePublic,
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
@@ -4900,7 +4926,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_heap_map_params },
   { "_getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
-  { "_getInstances", GetInstances,
+  { "getInstances", GetInstances,
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
@@ -4946,9 +4972,9 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_params },
   { "_getVMMetricList", GetVMMetricList,
     get_vm_metric_list_params },
-  { "_getVMTimeline", GetVMTimeline,
+  { "getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
-  { "_getVMTimelineFlags", GetVMTimelineFlags,
+  { "getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
@@ -4978,7 +5004,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
-  { "_setVMTimelineFlags", SetVMTimelineFlags,
+  { "setVMTimelineFlags", SetVMTimelineFlags,
     set_vm_timeline_flags_params },
   { "_collectAllGarbage", CollectAllGarbage,
     collect_all_garbage_params },

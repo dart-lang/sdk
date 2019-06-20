@@ -90,8 +90,9 @@ class BackendImpact {
 /// The JavaScript backend dependencies for various features.
 class BackendImpacts {
   final CommonElements _commonElements;
+  final bool _newRti;
 
-  BackendImpacts(this._commonElements);
+  BackendImpacts(this._commonElements, this._newRti);
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -110,7 +111,7 @@ class BackendImpacts {
       _commonElements.setRuntimeTypeInfo,
       _commonElements.getRuntimeTypeInfo,
       _commonElements.computeSignature,
-      _commonElements.getRuntimeTypeArguments
+      _commonElements.getRuntimeTypeArguments,
     ], otherImpacts: [
       listValues
     ]);
@@ -186,8 +187,9 @@ class BackendImpacts {
   BackendImpact _asCheck;
 
   BackendImpact get asCheck {
-    return _asCheck ??=
-        new BackendImpact(staticUses: [_commonElements.throwRuntimeError]);
+    return _asCheck ??= new BackendImpact(staticUses: [
+      _commonElements.throwRuntimeError,
+    ], otherImpacts: _newRti ? [usesNewRti] : []);
   }
 
   BackendImpact _throwNoSuchMethod;
@@ -759,4 +761,16 @@ class BackendImpacts {
       ], instantiatedClasses: [
         _commonElements.getInstantiationClass(typeArgumentCount),
       ]);
+
+  BackendImpact _usesNewRti;
+
+  /// Backend impact for --experiment-new-rti.
+  BackendImpact get usesNewRti {
+    // TODO(sra): Can this be broken down into more selective impacts?
+    return _usesNewRti ??= BackendImpact(staticUses: [
+      _commonElements.findType,
+      _commonElements.rtiEvalMethod,
+      _commonElements.rtiBindMethod,
+    ]);
+  }
 }

@@ -257,9 +257,9 @@ class MessageHandler {
   bool is_paused_on_exit_;
   int64_t paused_timestamp_;
 #endif
+  bool task_running_;
   bool delete_me_;
   ThreadPool* pool_;
-  ThreadPool::Task* task_;
   int64_t idle_start_time_;
   StartCallback start_callback_;
   EndCallback end_callback_;

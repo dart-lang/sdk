@@ -63,10 +63,6 @@ class Linker {
     return elementFactory.analysisContext;
   }
 
-  FeatureSet get contextFeatures {
-    return analysisContext.analysisOptions.contextFeatures;
-  }
-
   DeclaredVariables get declaredVariables {
     return analysisContext.declaredVariables;
   }
@@ -188,6 +184,7 @@ class Linker {
         builder.node.units.add(
           LinkedNodeUnitBuilder(
             isSynthetic: unitContext.isSynthetic,
+            partUriStr: unitContext.partUriStr,
             uriStr: unitContext.uriStr,
             node: unitLinkedNode,
             isNNBD: unit.featureSet.isEnabled(Feature.non_nullable),
@@ -273,11 +270,17 @@ class LinkInputLibrary {
 }
 
 class LinkInputUnit {
+  final String partUriStr;
   final Source source;
   final bool isSynthetic;
   final CompilationUnit unit;
 
-  LinkInputUnit(this.source, this.isSynthetic, this.unit);
+  LinkInputUnit(
+    this.partUriStr,
+    this.source,
+    this.isSynthetic,
+    this.unit,
+  );
 }
 
 class LinkResult {

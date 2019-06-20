@@ -62,6 +62,7 @@ class TranslationHelper {
   RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
+  const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
 
   intptr_t StringOffset(StringIndex index) const;
   intptr_t StringSize(StringIndex index) const;

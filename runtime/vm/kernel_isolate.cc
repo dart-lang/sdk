@@ -232,7 +232,7 @@ void KernelIsolate::Run() {
     KernelIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run(new RunKernelTask());
+  bool task_started = Dart::thread_pool()->Run<RunKernelTask>();
   ASSERT(task_started);
 }
 

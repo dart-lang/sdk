@@ -278,7 +278,7 @@ class GeneralizingAstVisitor<R>
 
   @override
   R visitExtensionDeclaration(ExtensionDeclaration node) =>
-      visitNamedCompilationUnitMember(node);
+      visitCompilationUnitMember(node);
 
   @override
   R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);

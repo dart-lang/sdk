@@ -77,6 +77,15 @@ def _CheckDartFormat(input_api, output_api):
     return []
 
   def HasFormatErrors(filename=None, contents=None):
+    # Don't look for formatting errors in multitests. Since those are very
+    # sensitive to whitespace, many cannot be formatted with dartfmt without
+    # breaking them.
+    if filename and filename.endswith('_test.dart'):
+      with open(filename) as f:
+        contents = f.read()
+        if '//#' in contents:
+          return False
+
     args = [prebuilt_dartfmt, '--set-exit-if-changed']
     if not contents:
       args += [filename, '-n']

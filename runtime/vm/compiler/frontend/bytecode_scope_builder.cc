@@ -19,7 +19,7 @@ BytecodeScopeBuilder::BytecodeScopeBuilder(ParsedFunction* parsed_function)
       scope_(nullptr) {}
 
 void BytecodeScopeBuilder::BuildScopes() {
-  if (parsed_function_->node_sequence() != nullptr) {
+  if (parsed_function_->scope() != nullptr) {
     return;  // Scopes are already built.
   }
 
@@ -60,8 +60,7 @@ void BytecodeScopeBuilder::BuildScopes() {
   context_var->set_is_forced_stack();
   scope_->AddVariable(context_var);
 
-  parsed_function_->SetNodeSequence(
-      new SequenceNode(TokenPosition::kNoSource, scope_));
+  parsed_function_->set_scope(scope_);
 
   switch (function.kind()) {
     case RawFunction::kImplicitClosureFunction: {

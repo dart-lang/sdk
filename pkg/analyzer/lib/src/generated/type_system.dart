@@ -33,7 +33,8 @@ import 'package:meta/meta.dart';
  * This is expressed by their topiness (higher = more toppy).
  */
 int _getTopiness(DartType t) {
-  assert(_isTop(t), 'only Top types have a topiness');
+  // TODO(mfairhurst): switch legacy Top checks to true Top checks
+  assert(_isLegacyTop(t, orTrueTop: true), 'only Top types have a topiness');
 
   // Highest top
   if (t.isVoid) return 3;
@@ -50,12 +51,25 @@ int _getTopiness(DartType t) {
 }
 
 bool _isBottom(DartType t) {
-  return t.isBottom ||
-      // TODO(mfairhurst): Remove the exception treating Null* as Top.
-      t.isDartCoreNull &&
-          (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.star ||
+  return (t.isBottom &&
+          (t as TypeImpl).nullabilitySuffix != NullabilitySuffix.question) ||
       identical(t, UnknownInferredType.instance);
 }
+
+/// Is [t] the bottom of the legacy type hierarchy.
+bool _isLegacyBottom(DartType t, {@required bool orTrueBottom}) {
+  return (t.isBottom &&
+          (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.question) ||
+      t.isDartCoreNull ||
+      (orTrueBottom ? _isBottom(t) : false);
+}
+
+/// Is [t] the top of the legacy type hierarch.
+bool _isLegacyTop(DartType t, {@required bool orTrueTop}) =>
+// TODO(mfairhurst): handle FutureOr<LegacyTop> cases, with tests.
+    (t.isObject &&
+        (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) ||
+    (orTrueTop ? _isTop(t) : false);
 
 bool _isTop(DartType t) {
   if (t.isDartAsyncFutureOr) {
@@ -141,16 +155,23 @@ class Dart2TypeSystem extends TypeSystem {
 
     // For the purpose of GLB, we say some Tops are subtypes (less toppy) than
     // the others. Return the least toppy.
-    if (_isTop(type1) && _isTop(type2)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    if (_isLegacyTop(type1, orTrueTop: true) &&
+        _isLegacyTop(type2, orTrueTop: true)) {
       return _getTopiness(type1) < _getTopiness(type2) ? type1 : type2;
     }
 
     // The GLB of top and any type is just that type.
     // Also GLB of bottom and any type is bottom.
-    if (_isTop(type1) || _isBottom(type2)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks.
+    if (_isLegacyTop(type1, orTrueTop: true) ||
+        _isLegacyBottom(type2, orTrueBottom: true)) {
       return type2;
     }
-    if (_isTop(type2) || _isBottom(type1)) {
+    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
+    if (_isLegacyTop(type2, orTrueTop: true) ||
+        _isLegacyBottom(type1, orTrueBottom: true)) {
       return type1;
     }
 
@@ -515,13 +536,17 @@ class Dart2TypeSystem extends TypeSystem {
     if (t is TypeParameterType) {
       return false;
     }
-    if (_isTop(t)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    if (_isLegacyTop(t, orTrueTop: true)) {
       return true;
     }
 
     if (t is FunctionType) {
-      if (!_isTop(t.returnType) ||
-          anyParameterType(t, (pt) => !_isBottom(pt))) {
+      // TODO(mfairhurst): switch legacy Top checks to true Top checks
+      // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
+      if (!_isLegacyTop(t.returnType, orTrueTop: true) ||
+          anyParameterType(
+              t, (pt) => !_isLegacyBottom(pt, orTrueBottom: true))) {
         return false;
       } else {
         return true;
@@ -531,7 +556,8 @@ class Dart2TypeSystem extends TypeSystem {
     if (t is InterfaceType) {
       List<DartType> typeArguments = t.typeArguments;
       for (DartType typeArgument in typeArguments) {
-        if (!_isTop(typeArgument)) return false;
+        // TODO(mfairhurst): switch legacy Top checks to true Top checks
+        if (!_isLegacyTop(typeArgument, orTrueTop: true)) return false;
       }
       return true;
     }
@@ -577,6 +603,14 @@ class Dart2TypeSystem extends TypeSystem {
     var t1 = _t1 as TypeImpl;
     var t2 = _t2 as TypeImpl;
 
+    // Convert Null to Never? so that NullabilitySuffix can handle more cases.
+    if (t1.isDartCoreNull) {
+      t1 = BottomTypeImpl.instanceNullable;
+    }
+    if (t2.isDartCoreNull) {
+      t2 = BottomTypeImpl.instanceNullable;
+    }
+
     if (identical(t1, t2)) {
       return true;
     }
@@ -585,25 +619,26 @@ class Dart2TypeSystem extends TypeSystem {
     //
     // We proceed by eliminating these different classes from consideration.
 
-    // Trivially true.
-    //
-    // Note that `?` is treated as a top and a bottom type during inference,
-    // so it's also covered here.
-    if (_isTop(t2) || _isBottom(t1)) {
+    // `?` is treated as a top and a bottom type during inference.
+    if (identical(t1, UnknownInferredType.instance) ||
+        identical(t2, UnknownInferredType.instance)) {
       return true;
     }
 
-    // Trivially false.
-    if (_isTop(t1) || _isBottom(t2)) {
-      return false;
+    // Trivial top case.
+    if (_isTop(t2)) {
+      return true;
     }
 
-    // TODO(mfairhurst): Convert Null to Never?, to simplify the algorithm, and
-    // remove this check.
-    if (t1.isDartCoreNull) {
-      if (t2.nullabilitySuffix != NullabilitySuffix.none) {
-        return true;
-      }
+    // Legacy top case. Must be done now to find Object* <: Object.
+    if (t1.nullabilitySuffix == NullabilitySuffix.star &&
+        _isLegacyTop(t2, orTrueTop: false)) {
+      return true;
+    }
+
+    // Having excluded RHS top, this now must be false.
+    if (_isTop(t1)) {
+      return false;
     }
 
     // Handle T1? <: T2
@@ -614,14 +649,21 @@ class Dart2TypeSystem extends TypeSystem {
           return false;
         }
 
-        // T1? <: FutureOr<T2> is true if T2 is S2?.
-        // TODO(mfairhurst): handle T1? <: FutureOr<dynamic>, etc.
-        if (t2 is InterfaceTypeImpl &&
-            (t2.typeArguments[0] as TypeImpl).nullabilitySuffix ==
-                NullabilitySuffix.none) {
+        // T1? <: FutureOr<S2> is true if S2 is nullable.
+        final s2 = (t2 as InterfaceType).typeArguments[0];
+        if (!isNullable(s2)) {
           return false;
         }
       }
+    }
+
+    // Legacy bottom cases
+    if (_isLegacyBottom(t1, orTrueBottom: true)) {
+      return true;
+    }
+
+    if (_isLegacyBottom(t2, orTrueBottom: true)) {
+      return false;
     }
 
     // Handle FutureOr<T> union type.
@@ -1101,8 +1143,11 @@ class Dart2TypeSystem extends TypeSystem {
       }
 
       return new FunctionTypeImpl.synthetic(
-          newReturnType, type.typeFormals, newParameters,
-          nullabilitySuffix: (type as TypeImpl).nullabilitySuffix);
+        newReturnType,
+        type.typeFormals,
+        newParameters,
+        nullabilitySuffix: (type as TypeImpl).nullabilitySuffix,
+      );
     }
     return type;
   }
@@ -1775,7 +1820,10 @@ class GenericInferrer {
       return false;
     }
 
-    if (_isBottom(t1) || _isTop(t2)) return true;
+    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    if (_isLegacyBottom(t1, orTrueBottom: true) ||
+        _isLegacyTop(t2, orTrueTop: true)) return true;
 
     if (t1 is InterfaceType && t2 is InterfaceType) {
       return _matchInterfaceSubtypeOf(t1, t2, visited, origin,
@@ -1955,16 +2003,24 @@ abstract class TypeSystem implements public.TypeSystem {
 
     // For the purpose of LUB, we say some Tops are subtypes (less toppy) than
     // the others. Return the most toppy.
-    if (_isTop(type1) && _isTop(type2)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    if (_isLegacyTop(type1, orTrueTop: true) &&
+        _isLegacyTop(type2, orTrueTop: true)) {
       return _getTopiness(type1) > _getTopiness(type2) ? type1 : type2;
     }
 
     // The least upper bound of top and any type T is top.
     // The least upper bound of bottom and any type T is T.
-    if (_isTop(type1) || _isBottom(type2)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
+    if (_isLegacyTop(type1, orTrueTop: true) ||
+        _isLegacyBottom(type2, orTrueBottom: true)) {
       return type1;
     }
-    if (_isTop(type2) || _isBottom(type1)) {
+    // TODO(mfairhurst): switch legacy Top checks to true Top checks
+    // TODO(mfairhurst): switch legacy Bottom checks to true Bottom checks
+    if (_isLegacyTop(type2, orTrueTop: true) ||
+        _isLegacyBottom(type1, orTrueBottom: true)) {
       return type2;
     }
 
@@ -2051,9 +2107,13 @@ abstract class TypeSystem implements public.TypeSystem {
       return false;
     } else if (type.isDartAsyncFutureOr) {
       isNonNullable((type as InterfaceType).typeArguments[0]);
+    } else if ((type as TypeImpl).nullabilitySuffix ==
+        NullabilitySuffix.question) {
+      return false;
+    } else if (type is TypeParameterType) {
+      return isNonNullable(type.bound);
     }
-    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.question &&
-        (type is TypeParameterType ? isNonNullable(type.bound) : true);
+    return true;
   }
 
   @override

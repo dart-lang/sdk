@@ -28,6 +28,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
     node.accept(LocalElementBuilder(holder, null));
 
     var astResolver = AstResolver(_linker, _libraryElement, _libraryScope);
+    astResolver.rewriteAst(node);
     astResolver.resolve(node);
   }
 

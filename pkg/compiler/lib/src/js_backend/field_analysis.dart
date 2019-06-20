@@ -41,7 +41,7 @@ class KFieldAnalysis {
   final Map<KClass, ClassData> _classData = {};
   final Map<KField, StaticFieldData> _staticFieldData = {};
 
-  KFieldAnalysis(KernelFrontEndStrategy kernelStrategy)
+  KFieldAnalysis(KernelFrontendStrategy kernelStrategy)
       : _elementMap = kernelStrategy.elementMap;
 
   // Register class during resolution. Use simple syntactic analysis to find

@@ -25,12 +25,17 @@ class BytecodeMetadataHelper : public MetadataHelper {
                                   ActiveClass* active_class);
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function);
-  void ParseBytecodeImplicitClosureFunction(ParsedFunction* parsed_function);
 
   // Reads members associated with given [node_offset] and fills in [cls].
   // Discards fields if [discard_fields] is true.
   // Returns true if class members are loaded.
   bool ReadMembers(intptr_t node_offset, const Class& cls, bool discard_fields);
+
+  // Read all library declarations.
+  bool ReadLibraries();
+
+  // Read specific library declaration.
+  void ReadLibrary(const Library& library);
 
   RawLibrary* GetMainLibrary();
 
@@ -54,12 +59,17 @@ class BytecodeReaderHelper : public ValueObject {
 
   void ReadCode(const Function& function, intptr_t code_offset);
 
-  void ReadMembers(const Class& cls,
-                   intptr_t members_offset,
-                   bool discard_fields);
+  RawArray* CreateForwarderChecks(const Function& function);
+
+  void ReadMembers(const Class& cls, bool discard_fields);
 
   void ReadFieldDeclarations(const Class& cls, bool discard_fields);
   void ReadFunctionDeclarations(const Class& cls);
+  void ReadClassDeclaration(const Class& cls);
+  void ReadLibraryDeclaration(const Library& library, bool lookup_classes);
+  void ReadLibraryDeclarations(intptr_t num_libraries);
+  void FindAndReadSpecificLibrary(const Library& library,
+                                  intptr_t num_libraries);
 
   void ParseBytecodeFunction(ParsedFunction* parsed_function,
                              const Function& function);
@@ -184,12 +194,19 @@ class BytecodeReaderHelper : public ValueObject {
 
   RawObject* ReadObjectContents(uint32_t header);
   RawObject* ReadConstObject(intptr_t tag);
+  RawObject* ReadType(intptr_t tag);
   RawString* ReadString(bool is_canonical = true);
-  RawTypeArguments* ReadTypeArguments(const Class& instantiator);
+  RawScript* ReadSourceFile(const String& uri, intptr_t offset);
+  RawTypeArguments* ReadTypeArguments();
   RawPatchClass* GetPatchClass(const Class& cls, const Script& script);
   void ParseForwarderFunction(ParsedFunction* parsed_function,
                               const Function& function,
                               const Function& target);
+
+  bool IsExpressionEvaluationLibrary(const Library& library) const {
+    return expression_evaluation_library_ != nullptr &&
+           expression_evaluation_library_->raw() == library.raw();
+  }
 
   Reader reader_;
   TranslationHelper& translation_helper_;
@@ -199,12 +216,15 @@ class BytecodeReaderHelper : public ValueObject {
   BytecodeComponentData* const bytecode_component_;
   Array* closures_ = nullptr;
   const TypeArguments* function_type_type_parameters_ = nullptr;
+  GrowableObjectArray* pending_recursive_types_ = nullptr;
   PatchClass* patch_class_ = nullptr;
   Array* functions_ = nullptr;
   intptr_t function_index_ = 0;
   Function& scoped_function_;
   String& scoped_function_name_;
   Class& scoped_function_class_;
+  Library* expression_evaluation_library_ = nullptr;
+  bool loading_native_wrappers_library_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeReaderHelper);
 };
@@ -217,24 +237,38 @@ class BytecodeComponentData : ValueObject {
     kStringsContentsOffset,
     kObjectsContentsOffset,
     kMainOffset,
+    kNumLibraries,
+    kLibraryIndexOffset,
+    kLibrariesOffset,
+    kClassesOffset,
     kMembersOffset,
     kCodesOffset,
     kSourcePositionsOffset,
+    kSourceFilesOffset,
+    kLineStartsOffset,
     kLocalVariablesOffset,
     kAnnotationsOffset,
     kNumFields
   };
 
-  explicit BytecodeComponentData(const Array& data) : data_(data) {}
+  explicit BytecodeComponentData(Array* data) : data_(*data) {}
+
+  void Init(const Array& data) { data_ = data.raw(); }
 
   intptr_t GetVersion() const;
   intptr_t GetStringsHeaderOffset() const;
   intptr_t GetStringsContentsOffset() const;
   intptr_t GetObjectsContentsOffset() const;
   intptr_t GetMainOffset() const;
+  intptr_t GetNumLibraries() const;
+  intptr_t GetLibraryIndexOffset() const;
+  intptr_t GetLibrariesOffset() const;
+  intptr_t GetClassesOffset() const;
   intptr_t GetMembersOffset() const;
   intptr_t GetCodesOffset() const;
   intptr_t GetSourcePositionsOffset() const;
+  intptr_t GetSourceFilesOffset() const;
+  intptr_t GetLineStartsOffset() const;
   intptr_t GetLocalVariablesOffset() const;
   intptr_t GetAnnotationsOffset() const;
   void SetObject(intptr_t index, const Object& obj) const;
@@ -249,15 +283,21 @@ class BytecodeComponentData : ValueObject {
                        intptr_t strings_contents_offset,
                        intptr_t objects_contents_offset,
                        intptr_t main_offset,
+                       intptr_t num_libraries,
+                       intptr_t library_index_offset,
+                       intptr_t libraries_offset,
+                       intptr_t classes_offset,
                        intptr_t members_offset,
                        intptr_t codes_offset,
                        intptr_t source_positions_offset,
+                       intptr_t source_files_offset,
+                       intptr_t line_starts_offset,
                        intptr_t local_variables_offset,
                        intptr_t annotations_offset,
                        Heap::Space space);
 
  private:
-  const Array& data_;
+  Array& data_;
 };
 
 class BytecodeReader : public AllStatic {
@@ -269,6 +309,15 @@ class BytecodeReader : public AllStatic {
 
   // Read annotation for the given annotation field.
   static RawObject* ReadAnnotation(const Field& annotation_field);
+
+  // Read declaration of the given library.
+  static void LoadLibraryDeclaration(const Library& library);
+
+  // Read declaration of the given class.
+  static void LoadClassDeclaration(const Class& cls);
+
+  // Read members of the given class.
+  static void FinishClassLoading(const Class& cls);
 
 #if !defined(PRODUCT)
   // Compute local variable descriptors for [function] with [bytecode].

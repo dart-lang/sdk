@@ -5,11 +5,15 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'api_test.dart' as api_test;
-import 'migration_visitor_test.dart' as migration_visitor_test;
+import 'graph_builder_test.dart' as graph_builder_test;
+import 'node_builder_test.dart' as node_builder_test;
+import 'nullability_node_test.dart' as nullability_node_test;
 
 main() {
   defineReflectiveSuite(() {
-    migration_visitor_test.main();
     api_test.main();
+    graph_builder_test.main();
+    node_builder_test.main();
+    nullability_node_test.main();
   });
 }

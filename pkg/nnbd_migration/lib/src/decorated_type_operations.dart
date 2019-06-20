@@ -9,7 +9,8 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 
 /// [TypeOperations] that works with [DecoratedType]s.
-class DecoratedTypeOperations implements TypeOperations<DecoratedType> {
+class DecoratedTypeOperations
+    implements TypeOperations<VariableElement, DecoratedType> {
   final TypeSystem _typeSystem;
   final VariableRepository _variableRepository;
 
@@ -18,6 +19,11 @@ class DecoratedTypeOperations implements TypeOperations<DecoratedType> {
   @override
   DecoratedType elementType(VariableElement element) {
     return _variableRepository.decoratedElementType(element);
+  }
+
+  @override
+  bool isLocalVariable(VariableElement element) {
+    return element is LocalVariableElement;
   }
 
   @override

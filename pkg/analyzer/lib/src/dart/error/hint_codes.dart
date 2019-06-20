@@ -79,8 +79,7 @@ class HintCode extends ErrorCode {
   // #### Common fixes
   //
   // The documentation for declarations that are annotated with `@deprecated`
-  // should have documentation to indicate what code to use in place of the
-  // deprecated code.
+  // should indicate what code to use in place of the deprecated code.
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
       correction:
@@ -668,8 +667,8 @@ class HintCode extends ErrorCode {
   //
   // #### Example
   //
-  // In a package that defines SDK constraints in the `pubspec.yaml` file that
-  // have a lower bound that's less than 2.2:
+  // In a package that defines the SDK constraint (in the pubspec.yaml file),
+  // with a lower bound of less than 2.2. For example:
   //
   // ```yaml
   // environment:

@@ -315,6 +315,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       informativeId: getInformativeId(node),
     );
     builder.flags = AstBinaryFlags.encode(
+      hasName: node.name != null,
       hasSeparatorColon: node.separator?.type == TokenType.COLON,
       hasSeparatorEquals: node.separator?.type == TokenType.EQ,
       isAbstract: node.body is EmptyFunctionBody,

@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/resynthesize.dart'
     show RecursiveInstantiateToBounds;
@@ -567,8 +566,12 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /// element tree.
   factory FunctionTypeImpl.synthetic(DartType returnType,
       List<TypeParameterElement> typeFormals, List<ParameterElement> parameters,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
+      {Element element,
+      List<DartType> typeArguments = const <DartType>[],
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star}) {
     return new _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
+        element: element,
+        typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix);
   }
 
@@ -721,8 +724,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
               normalParameterTypes, object.normalParameterTypes) &&
           TypeImpl.equalArrays(
               optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes) &&
-          TypeImpl.equalArrays(typeArguments, object.typeArguments);
+          _equals(namedParameterTypes, object.namedParameterTypes);
     }
     return false;
   }
@@ -2258,9 +2260,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     List<DartType> newTypeArguments = TypeImpl.substitute(
         typeArguments, argumentTypes, parameterTypes, prune);
-    if (listsEqual(newTypeArguments, typeArguments)) {
-      return this;
-    }
 
     InterfaceTypeImpl newType =
         new InterfaceTypeImpl(element, prune, nullabilitySuffix);
@@ -3773,12 +3772,27 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   @override
   final List<ParameterElement> parameters;
 
+  @override
+  final List<DartType> typeArguments;
+
   _FunctionTypeImplStrict._(this.returnType, this.typeFormals, this.parameters,
-      {NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
-      : super._(null, null, nullabilitySuffix);
+      {Element element,
+      List<DartType> typeArguments,
+      NullabilitySuffix nullabilitySuffix = NullabilitySuffix.star})
+      : typeArguments = typeArguments ?? const <DartType>[],
+        super._(element, null, nullabilitySuffix);
 
   @override
   List<TypeParameterElement> get boundTypeParameters => typeFormals;
+
+  @override
+  FunctionTypedElement get element {
+    var element = super.element;
+    if (element is GenericTypeAliasElement) {
+      return element.function;
+    }
+    return element;
+  }
 
   @override
   bool get isInstantiated => throw new UnimplementedError('TODO(paulberry)');
@@ -3800,9 +3814,6 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
 
   @override
   List<FunctionTypeAliasElement> get prunedTypedefs => const [];
-
-  @override
-  List<DartType> get typeArguments => const [] /*TODO(paulberry)*/;
 
   @override
   List<TypeParameterElement> get typeParameters => const [] /*TODO(paulberry)*/;
@@ -3891,8 +3902,13 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
         identical(parameters, newParameters)) {
       return this;
     }
+
+    var typeArguments = this.typeArguments.map(transformType).toList();
+
     return new _FunctionTypeImplStrict._(
         newReturnType, newTypeFormals, newParameters,
+        element: element,
+        typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix);
   }
 
@@ -3900,6 +3916,8 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
     return _FunctionTypeImplStrict._(returnType, typeFormals, parameters,
+        element: element,
+        typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix);
   }
 

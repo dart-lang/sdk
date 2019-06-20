@@ -43,6 +43,24 @@ class Identifiers {
 
   /// The name of the signature function in closure classes.
   static const String signature = ':signature';
+
+  /// The name of the 'JS' foreign function.
+  static const String JS = 'JS';
+
+  /// The name of the 'JS_BUILTIN' foreign function.
+  static const String JS_BUILTIN = 'JS_BUILTIN';
+
+  /// The name of the 'JS_EMBEDDED_GLOBAL' foreign function.
+  static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
+
+  /// The name of the 'JS_INTERCEPTOR_CONSTANT' foreign function.
+  static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
+
+  /// The name of the 'JS_STRING_CONCAT' foreign function.
+  static const String JS_STRING_CONCAT = 'JS_STRING_CONCAT';
+
+  /// The name of the 'DART_CLOSURE_TO_JS' foreign function.
+  static const String DART_CLOSURE_TO_JS = 'DART_CLOSURE_TO_JS';
 }
 
 /// [Name]s commonly used.

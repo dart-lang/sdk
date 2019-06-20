@@ -30,7 +30,7 @@ ThreadPool::~ThreadPool() {
   Shutdown();
 }
 
-bool ThreadPool::Run(Task* task) {
+bool ThreadPool::RunImpl(std::unique_ptr<Task> task) {
   Worker* worker = NULL;
   bool new_worker = false;
   {
@@ -63,7 +63,7 @@ bool ThreadPool::Run(Task* task) {
 
   // Release ThreadPool::mutex_ before calling Worker functions.
   ASSERT(worker != NULL);
-  worker->SetTask(task);
+  worker->SetTask(std::move(task));
   if (new_worker) {
     // Call StartThread after we've assigned the first task.
     worker->StartThread();
@@ -314,7 +314,7 @@ ThreadPool::Task::~Task() {}
 
 ThreadPool::Worker::Worker(ThreadPool* pool)
     : pool_(pool),
-      task_(NULL),
+      task_(nullptr),
       id_(OSThread::kInvalidThreadId),
       done_(false),
       owned_(false),
@@ -332,7 +332,7 @@ void ThreadPool::Worker::StartThread() {
   // Must call SetTask before StartThread.
   {  // NOLINT
     MonitorLocker ml(&monitor_);
-    ASSERT(task_ != NULL);
+    ASSERT(task_ != nullptr);
   }
 #endif
   int result = OSThread::Start("Dart ThreadPool Worker", &Worker::Main,
@@ -342,10 +342,10 @@ void ThreadPool::Worker::StartThread() {
   }
 }
 
-void ThreadPool::Worker::SetTask(Task* task) {
+void ThreadPool::Worker::SetTask(std::unique_ptr<Task> task) {
   MonitorLocker ml(&monitor_);
-  ASSERT(task_ == NULL);
-  task_ = task;
+  ASSERT(task_ == nullptr);
+  task_ = std::move(task);
   ml.Notify();
 }
 
@@ -372,18 +372,17 @@ bool ThreadPool::Worker::Loop() {
   MonitorLocker ml(&monitor_);
   int64_t idle_start;
   while (true) {
-    ASSERT(task_ != NULL);
-    Task* task = task_;
-    task_ = NULL;
+    ASSERT(task_ != nullptr);
+    std::unique_ptr<Task> task = std::move(task_);
 
     // Release monitor while handling the task.
     ml.Exit();
     task->Run();
     ASSERT(Isolate::Current() == NULL);
-    delete task;
+    task.reset();
     ml.Enter();
 
-    ASSERT(task_ == NULL);
+    ASSERT(task_ == nullptr);
     if (IsDone()) {
       return false;
     }
@@ -392,7 +391,7 @@ bool ThreadPool::Worker::Loop() {
     idle_start = OS::GetCurrentMonotonicMicros();
     while (true) {
       Monitor::WaitResult result = ml.WaitMicros(ComputeTimeout(idle_start));
-      if (task_ != NULL) {
+      if (task_ != nullptr) {
         // We've found a task.  Process it, regardless of whether the
         // worker is done_.
         break;

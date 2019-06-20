@@ -113,6 +113,21 @@ print();
     expect(markup.value, contains('This is a string.'));
   }
 
+  test_range_multiLineConstructorCall() async {
+    final content = '''
+    final a = new [[Str^ing.fromCharCodes]]([
+      1,
+      2,
+    ]);
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final hover = await getHover(mainFileUri, positionFromMarker(content));
+    expect(hover, isNotNull);
+    expect(hover.range, equals(rangeFromMarkers(content)));
+  }
+
   test_noElement() async {
     final content = '''
     String abc;

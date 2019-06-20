@@ -1308,13 +1308,13 @@ void f() {
 
     var unit = result.unit;
 
-    var loopAssignedVariables = AssignedVariables();
-    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    unit.accept(_AssignedVariablesVisitor(assignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
       typeSystem,
-      loopAssignedVariables,
+      assignedVariables,
       {},
       readBeforeWritten,
       [],
@@ -1623,13 +1623,13 @@ void f(int x) {
 
     var unit = result.unit;
 
-    var loopAssignedVariables = AssignedVariables();
-    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    unit.accept(_AssignedVariablesVisitor(assignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
       typeSystem,
-      loopAssignedVariables,
+      assignedVariables,
       {},
       [],
       nullableNodes,
@@ -2070,13 +2070,13 @@ void f() { // f
 
     var unit = result.unit;
 
-    var loopAssignedVariables = AssignedVariables();
-    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    unit.accept(_AssignedVariablesVisitor(assignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
       typeSystem,
-      loopAssignedVariables,
+      assignedVariables,
       {},
       [],
       [],
@@ -2903,13 +2903,13 @@ void f(bool b, Object x) {
 
     var unit = result.unit;
 
-    var loopAssignedVariables = AssignedVariables();
-    unit.accept(_AssignedVariablesVisitor(loopAssignedVariables));
+    var assignedVariables = AssignedVariables<Statement, VariableElement>();
+    unit.accept(_AssignedVariablesVisitor(assignedVariables));
 
     var typeSystem = unit.declaredElement.context.typeSystem;
     unit.accept(_AstVisitor(
       typeSystem,
-      loopAssignedVariables,
+      assignedVariables,
       promotedTypes,
       [],
       [],
@@ -3018,7 +3018,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _AstVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
-  final TypeOperations<DartType> typeOperations;
+  final NodeOperations<Expression> nodeOperations;
+  final TypeOperations<VariableElement, DartType> typeOperations;
   final AssignedVariables assignedVariables;
   final Map<AstNode, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
@@ -3027,7 +3028,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   final List<AstNode> unreachableNodes;
   final List<FunctionBody> functionBodiesThatDontComplete;
 
-  FlowAnalysis<DartType> flow;
+  FlowAnalysis<Statement, Expression, VariableElement, DartType> flow;
 
   _AstVisitor(
       TypeSystem typeSystem,
@@ -3038,7 +3039,8 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
       this.nonNullableNodes,
       this.unreachableNodes,
       this.functionBodiesThatDontComplete)
-      : typeOperations = _TypeSystemTypeOperations(typeSystem);
+      : nodeOperations = _NodeOperations(),
+        typeOperations = _TypeSystemTypeOperations(typeSystem);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -3080,19 +3082,19 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     if (operator == TokenType.AMPERSAND_AMPERSAND) {
       left.accept(this);
 
-      flow.logicalAnd_rightBegin(node);
+      flow.logicalAnd_rightBegin(node, node.leftOperand);
       _checkUnreachableNode(node.rightOperand);
       right.accept(this);
 
-      flow.logicalAnd_end(node);
+      flow.logicalAnd_end(node, node.rightOperand);
     } else if (operator == TokenType.BAR_BAR) {
       left.accept(this);
 
-      flow.logicalOr_rightBegin(node);
+      flow.logicalOr_rightBegin(node, node.leftOperand);
       _checkUnreachableNode(node.rightOperand);
       right.accept(this);
 
-      flow.logicalOr_end(node);
+      flow.logicalOr_end(node, node.rightOperand);
     } else if (operator == TokenType.BANG_EQ) {
       left.accept(this);
       right.accept(this);
@@ -3133,7 +3135,11 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var isFlowOwner = flow == null;
 
     if (isFlowOwner) {
-      flow = FlowAnalysis<DartType>(typeOperations, node);
+      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+        nodeOperations,
+        typeOperations,
+        _FunctionBodyAccess(node),
+      );
 
       var function = node.parent;
       if (function is FunctionExpression) {
@@ -3149,7 +3155,10 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     super.visitBlockFunctionBody(node);
 
     if (isFlowOwner) {
-      readBeforeWritten.addAll(flow.readBeforeWritten);
+      for (var variable in flow.readBeforeWritten) {
+        assert(variable is LocalVariableElement);
+        readBeforeWritten.add(variable);
+      }
 
       if (!flow.isReachable) {
         functionBodiesThatDontComplete.add(node);
@@ -3186,16 +3195,16 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
     condition.accept(this);
 
-    flow.conditional_thenBegin(node);
+    flow.conditional_thenBegin(node, node.condition);
     _checkUnreachableNode(node.thenExpression);
     thenExpression.accept(this);
     var isBool = thenExpression.staticType.isDartCoreBool;
 
-    flow.conditional_elseBegin(node, isBool);
+    flow.conditional_elseBegin(node, node.thenExpression, isBool);
     _checkUnreachableNode(node.elseExpression);
     elseExpression.accept(this);
 
-    flow.conditional_end(node, isBool);
+    flow.conditional_end(node, node.elseExpression, isBool);
   }
 
   @override
@@ -3218,7 +3227,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     flow.doStatement_conditionBegin();
     condition.accept(this);
 
-    flow.doStatement_end(node);
+    flow.doStatement_end(node, node.condition);
   }
 
   @override
@@ -3285,7 +3294,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
 
     condition.accept(this);
 
-    flow.ifStatement_thenBegin(node);
+    flow.ifStatement_thenBegin(node, node.condition);
     thenStatement.accept(this);
 
     if (elseStatement != null) {
@@ -3305,7 +3314,12 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
       if (element is VariableElement) {
-        flow.isExpression_end(node, element, typeAnnotation.type);
+        flow.isExpression_end(
+          node,
+          element,
+          node.notOperator != null,
+          typeAnnotation.type,
+        );
       }
     }
   }
@@ -3317,7 +3331,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     var operator = node.operator.type;
     if (operator == TokenType.BANG) {
       operand.accept(this);
-      flow.logicalNot_end(node);
+      flow.logicalNot_end(node, node.operand);
     } else {
       operand.accept(this);
     }
@@ -3385,7 +3399,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
       var member = members[i];
 
       flow.switchStatement_beginCase(
-        member.labels.isNotEmpty ? assignedInCases : AssignedVariables.emptySet,
+        member.labels.isNotEmpty ? assignedInCases : assignedVariables.emptySet,
       );
       member.accept(this);
 
@@ -3460,7 +3474,7 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
     flow.whileStatement_conditionBegin(assignedVariables[node]);
     condition.accept(this);
 
-    flow.whileStatement_bodyBegin(node);
+    flow.whileStatement_bodyBegin(node, node.condition);
     body.accept(this);
 
     flow.whileStatement_end();
@@ -3532,7 +3546,34 @@ class _AstVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
-class _TypeSystemTypeOperations implements TypeOperations<DartType> {
+class _FunctionBodyAccess implements FunctionBodyAccess<VariableElement> {
+  final FunctionBody node;
+
+  _FunctionBodyAccess(this.node);
+
+  @override
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    return node.isPotentiallyMutatedInClosure(variable);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    return node.isPotentiallyMutatedInScope(variable);
+  }
+}
+
+class _NodeOperations implements NodeOperations<Expression> {
+  @override
+  Expression unwrapParenthesized(Expression node) {
+    while (node is ParenthesizedExpression) {
+      node = (node as ParenthesizedExpression).expression;
+    }
+    return node;
+  }
+}
+
+class _TypeSystemTypeOperations
+    implements TypeOperations<VariableElement, DartType> {
   final TypeSystem typeSystem;
 
   _TypeSystemTypeOperations(this.typeSystem);
@@ -3545,5 +3586,10 @@ class _TypeSystemTypeOperations implements TypeOperations<DartType> {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
+  }
+
+  @override
+  bool isLocalVariable(VariableElement element) {
+    return element is LocalVariableElement;
   }
 }

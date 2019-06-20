@@ -24,6 +24,11 @@ class AstBinaryFlags {
     VariableDeclaration,
   );
 
+  static final _hasName = _checkBit(
+    5,
+    ConstructorDeclaration,
+  );
+
   static final _hasNot = _checkBit(
     0,
     IsExpression,
@@ -217,6 +222,7 @@ class AstBinaryFlags {
     bool hasAwait: false,
     bool hasEqual: false,
     bool hasInitializer: false,
+    bool hasName: false,
     bool hasNot: false,
     bool hasPeriod: false,
     bool hasPeriod2: false,
@@ -259,6 +265,9 @@ class AstBinaryFlags {
     }
     if (hasInitializer) {
       result |= _hasInitializer;
+    }
+    if (hasName) {
+      result |= _hasName;
     }
     if (hasNot) {
       result |= _hasNot;
@@ -369,6 +378,10 @@ class AstBinaryFlags {
 
   static bool hasInitializer(int flags) {
     return (flags & _hasInitializer) != 0;
+  }
+
+  static bool hasName(int flags) {
+    return (flags & _hasName) != 0;
   }
 
   static bool hasNot(int flags) {

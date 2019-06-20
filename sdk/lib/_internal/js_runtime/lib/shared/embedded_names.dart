@@ -192,6 +192,11 @@ const IS_HUNK_INITIALIZED = 'isHunkInitialized';
 /// globals don't clash with it.
 const DEFERRED_INITIALIZED = 'deferredInitialized';
 
+/// A 'Universe' object used by 'dart:_rti'.
+///
+/// This embedded global is used for --experiment-new-rti.
+const RTI_UNIVERSE = 'typeUniverse';
+
 /// Returns a function that creates all precompiled functions (in particular
 /// constructors).
 ///
@@ -410,4 +415,11 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:var;effects:none;depends:none',
   ///                JsBuiltin.getType, index);
   getType,
+}
+
+/// Names of fields of the Rti Universe object.
+class RtiUniverseFieldNames {
+  static String evalCache = 'eC';
+  static String typeRules = 'tR';
+  static String sharedEmptyArray = 'sEA';
 }

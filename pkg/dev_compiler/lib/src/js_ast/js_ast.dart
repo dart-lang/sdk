@@ -5,6 +5,7 @@
 library js_ast;
 
 import 'precedence.dart';
+// ignore: library_prefixes
 import 'characters.dart' as charCodes;
 
 part 'nodes.dart';

@@ -21,12 +21,6 @@ issue34488_test/none: Fail # Issue 34488
 mixin_class_from_core_library_test: Fail # Issue 34488
 nested_generic_closure_test: Fail # Issue 28515
 
-[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
-mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
-mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
-mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
-
 [ $compiler != dart2analyzer ]
 switch_case_warn_test: Skip # Analyzer only, see language_analyzer2.status
 
@@ -73,6 +67,12 @@ compile_time_constant_static5_test/16: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/21: CompileTimeError # Issue 30546
 compile_time_constant_static5_test/23: CompileTimeError # Issue 30546
 type_promotion_more_specific_test/04: CompileTimeError # Issue 30906.
+
+[ $compiler != compare_analyzer_cfe && $compiler != spec_parser ]
+mixin_constructor_forwarding/const_constructor_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/const_constructor_with_field_test/none: CompileTimeError # Issue 32223
+mixin_constructor_forwarding/optional_named_parameters_test/none: CompileTimeError # Issue 31543
+mixin_constructor_forwarding/optional_positional_parameters_test/none: CompileTimeError # Issue 31543
 
 # Detection of compile-time errors that are related to constants can't be fully
 # done at the front end, because constants are evaluated at back ends.  So, some

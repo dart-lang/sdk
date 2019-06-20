@@ -64,9 +64,9 @@ MessageHandler::MessageHandler()
       is_paused_on_exit_(false),
       paused_timestamp_(-1),
 #endif
+      task_running_(false),
       delete_me_(false),
       pool_(NULL),
-      task_(NULL),
       idle_start_time_(0),
       start_callback_(NULL),
       end_callback_(NULL),
@@ -81,7 +81,6 @@ MessageHandler::~MessageHandler() {
   queue_ = NULL;
   oob_queue_ = NULL;
   pool_ = NULL;
-  task_ = NULL;
 }
 
 const char* MessageHandler::name() const {
@@ -102,7 +101,6 @@ void MessageHandler::Run(ThreadPool* pool,
                          StartCallback start_callback,
                          EndCallback end_callback,
                          CallbackData data) {
-  bool task_running;
   MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
     OS::PrintErr(
@@ -116,15 +114,14 @@ void MessageHandler::Run(ThreadPool* pool,
   start_callback_ = start_callback;
   end_callback_ = end_callback;
   callback_data_ = data;
-  task_ = new MessageHandlerTask(this);
-  task_running = pool_->Run(task_);
-  ASSERT(task_running);
+  task_running_ = pool_->Run<MessageHandlerTask>(this);
+  ASSERT(task_running_);
 }
 
 void MessageHandler::PostMessage(std::unique_ptr<Message> message,
                                  bool before_events) {
   Message::Priority saved_priority;
-  bool task_running = true;
+
   {
     MonitorLocker ml(&monitor_);
     if (FLAG_trace_isolates) {
@@ -158,13 +155,12 @@ void MessageHandler::PostMessage(std::unique_ptr<Message> message,
       ml.Notify();
     }
 
-    if ((pool_ != NULL) && (task_ == NULL)) {
+    if ((pool_ != NULL) && !task_running_) {
       ASSERT(!delete_me_);
-      task_ = new MessageHandlerTask(this);
-      task_running = pool_->Run(task_);
+      task_running_ = pool_->Run<MessageHandlerTask>(this);
+      ASSERT(task_running_);
     }
   }
-  ASSERT(task_running);
 
   // Invoke any custom message notification.
   MessageNotify(saved_priority);
@@ -279,7 +275,7 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
     int64_t timeout_millis) {
   MonitorLocker ml(&monitor_);
-  ASSERT(task_ != NULL);
+  ASSERT(task_running_);
   ASSERT(!delete_me_);
 #if defined(DEBUG)
   CheckAccess();
@@ -287,7 +283,7 @@ MessageHandler::MessageStatus MessageHandler::PauseAndHandleAllMessages(
   paused_for_messages_ = true;
   while (queue_->IsEmpty() && oob_queue_->IsEmpty()) {
     Monitor::WaitResult wr = ml.Wait(timeout_millis);
-    ASSERT(task_ != NULL);
+    ASSERT(task_running_);
     ASSERT(!delete_me_);
     if (wr == Monitor::kTimedOut) {
       break;
@@ -375,7 +371,7 @@ void MessageHandler::TaskCallback() {
       if (ShouldPauseOnStart(status)) {
         // Still paused.
         ASSERT(oob_queue_->IsEmpty());
-        task_ = NULL;  // No task in queue.
+        task_running_ = false;  // No task in queue.
         return;
       } else {
         PausedOnStartLocked(&ml, false);
@@ -386,7 +382,7 @@ void MessageHandler::TaskCallback() {
       if (ShouldPauseOnExit(status)) {
         // Still paused.
         ASSERT(oob_queue_->IsEmpty());
-        task_ = NULL;  // No task in queue.
+        task_running_ = false;  // No task in queue.
         return;
       } else {
         PausedOnExitLocked(&ml, false);
@@ -440,7 +436,7 @@ void MessageHandler::TaskCallback() {
         if (ShouldPauseOnExit(status)) {
           // Still paused.
           ASSERT(oob_queue_->IsEmpty());
-          task_ = NULL;  // No task in queue.
+          task_running_ = false;  // No task in queue.
           return;
         } else {
           PausedOnExitLocked(&ml, false);
@@ -470,10 +466,10 @@ void MessageHandler::TaskCallback() {
       delete_me = delete_me_;
     }
 
-    // Clear the task_ last.  This allows other tasks to potentially start
+    // Clear task_running_ last.  This allows other tasks to potentially start
     // for this message handler.
     ASSERT(oob_queue_->IsEmpty());
-    task_ = NULL;
+    task_running_ = false;
   }
 
   // The handler may have been deleted by another thread here if it is a native
@@ -562,7 +558,7 @@ void MessageHandler::RequestDeletion() {
   ASSERT(OwnedByPortMap());
   {
     MonitorLocker ml(&monitor_);
-    if (task_ != NULL) {
+    if (task_running_) {
       // This message handler currently has a task running on the thread pool.
       delete_me_ = true;
       return;

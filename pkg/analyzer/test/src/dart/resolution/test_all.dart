@@ -18,6 +18,7 @@ import 'for_element_test.dart' as for_element;
 import 'for_in_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
     as function_expression_invocation;
+import 'function_type_alias_test.dart' as function_type_alias;
 import 'generic_function_type_test.dart' as generic_function_type;
 import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'import_prefix_test.dart' as import_prefix;
@@ -26,6 +27,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'metadata_test.dart' as metadata;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
 import 'namespace_test.dart' as namespace;
@@ -50,12 +52,14 @@ main() {
     for_element.main();
     for_in.main();
     function_expression_invocation.main();
+    function_type_alias.main();
     generic_function_type.main();
     generic_type_alias.main();
     import_prefix.main();
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    metadata.main();
     method_invocation.main();
     mixin_resolution.main();
     namespace.main();

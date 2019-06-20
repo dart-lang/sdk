@@ -17,6 +17,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/object.h"
+#include "vm/service.h"
 #include "vm/service_event.h"
 #include "vm/thread.h"
 
@@ -665,7 +666,7 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     if (isolate_id_ != ILLEGAL_PORT) {
       // If we have one, append the isolate id.
       stream->UncloseObject();
-      stream->PrintfProperty("isolateNumber", "%" Pd64 "",
+      stream->PrintfProperty("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                              static_cast<int64_t>(isolate_id_));
       stream->CloseObject();
     }
@@ -677,7 +678,7 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     }
     if (isolate_id_ != ILLEGAL_PORT) {
       // If we have one, append the isolate id.
-      args.AddPropertyF("isolateNumber", "%" Pd64 "",
+      args.AddPropertyF("isolateId", ISOLATE_SERVICE_ID_FORMAT_STRING,
                         static_cast<int64_t>(isolate_id_));
     }
   }
@@ -1199,7 +1200,7 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
     return;
   }
   JSONObject topLevel(js);
-  topLevel.AddProperty("type", "_Timeline");
+  topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
@@ -1294,11 +1295,13 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
     return;
   }
   JSONObject topLevel(js);
-  topLevel.AddProperty("type", "_Timeline");
+  topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 void TimelineEventCallbackRecorder::PrintTraceEvent(
@@ -1332,11 +1335,13 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
     return;
   }
   JSONObject topLevel(js);
-  topLevel.AddProperty("type", "_Timeline");
+  topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
   }
+  topLevel.AddPropertyTimeMicros("timeOriginMicros", TimeOriginMicros());
+  topLevel.AddPropertyTimeMicros("timeExtentMicros", TimeExtentMicros());
 }
 
 void TimelineEventPlatformRecorder::PrintTraceEvent(
@@ -1380,7 +1385,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     return;
   }
   JSONObject topLevel(js);
-  topLevel.AddProperty("type", "_Timeline");
+  topLevel.AddProperty("type", "Timeline");
   {
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);

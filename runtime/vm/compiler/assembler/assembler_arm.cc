@@ -3393,9 +3393,9 @@ void Assembler::LeaveStubFrame() {
   LeaveDartFrame();
 }
 
-// R0 receiver, R9 guarded cid as Smi.
+// R0 receiver, R9 ICData entries array
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
-void Assembler::MonomorphicCheckedEntry() {
+void Assembler::MonomorphicCheckedEntryJIT() {
   has_single_entry_point_ = false;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
@@ -3404,17 +3404,63 @@ void Assembler::MonomorphicCheckedEntry() {
   intptr_t start = CodeSize();
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetJIT);
+
+  const intptr_t cid_offset = target::Array::element_offset(0);
+  const intptr_t count_offset = target::Array::element_offset(1);
+
+  // Sadly this cannot use ldm because ldm takes no offset.
+  ldr(R1, FieldAddress(R9, cid_offset));
+  ldr(R2, FieldAddress(R9, count_offset));
+  LoadClassIdMayBeSmi(IP, R0);
+  add(R2, R2, Operand(target::ToRawSmi(1)));
+  cmp(R1, Operand(IP, LSL, 1));
+  Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
+  str(R2, FieldAddress(R9, count_offset));
+  LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
+
+  // Fall through to unchecked entry.
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetJIT);
+
+#if defined(TESTING) || defined(DEBUG)
+  set_use_far_branches(saved_use_far_branches);
+#endif
+}
+
+// R0 receiver, R9 guarded cid as Smi.
+// Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
+void Assembler::MonomorphicCheckedEntryAOT() {
+  has_single_entry_point_ = false;
+#if defined(TESTING) || defined(DEBUG)
+  bool saved_use_far_branches = use_far_branches();
+  set_use_far_branches(false);
+#endif
+  intptr_t start = CodeSize();
+
+  Comment("MonomorphicCheckedEntry");
+  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetAOT);
+
   LoadClassIdMayBeSmi(IP, R0);
   cmp(R9, Operand(IP, LSL, 1));
   Branch(Address(THR, Thread::monomorphic_miss_entry_offset()), NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffset);
+  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetAOT);
 
 #if defined(TESTING) || defined(DEBUG)
   set_use_far_branches(saved_use_far_branches);
 #endif
+}
+
+void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
+  has_single_entry_point_ = false;
+  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+    bkpt(0);
+  }
+  b(label);
+  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+    bkpt(0);
+  }
 }
 
 #ifndef PRODUCT

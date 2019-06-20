@@ -736,7 +736,7 @@ void FlowGraphCompiler::GenerateGetterIntrinsic(intptr_t offset) {
   // TOS: return address.
   // +1 : receiver.
   // Sequence node has one return node, its input is load field node.
-  __ Comment("Inlined Getter");
+  __ Comment("Intrinsic Getter");
   __ movl(EAX, Address(ESP, 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, offset));
   __ ret();
@@ -747,7 +747,7 @@ void FlowGraphCompiler::GenerateSetterIntrinsic(intptr_t offset) {
   // +1 : value
   // +2 : receiver.
   // Sequence node has one store node and one return NULL node.
-  __ Comment("Inlined Setter");
+  __ Comment("Intrinsic Setter");
   __ movl(EAX, Address(ESP, 2 * kWordSize));  // Receiver.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Value.
   __ StoreIntoObject(EAX, FieldAddress(EAX, offset), EBX);
@@ -922,17 +922,25 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(const Code& stub,
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitInstanceCall(const Code& stub,
-                                         const ICData& ic_data,
-                                         intptr_t deopt_id,
-                                         TokenPosition token_pos,
-                                         LocationSummary* locs) {
+void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
+                                            const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
+  ASSERT(entry_kind == Code::EntryKind::kNormal ||
+         entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   // Load receiver into EBX.
   __ movl(EBX, Address(ESP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadObject(ECX, ic_data);
-  GenerateDartCall(deopt_id, token_pos, stub, RawPcDescriptors::kIcCall, locs,
-                   Code::EntryKind::kMonomorphic);
+  __ LoadObject(ECX, ic_data, true);
+  __ LoadObject(CODE_REG, stub, true);
+  const intptr_t entry_point_offset =
+      entry_kind == Code::EntryKind::kNormal
+          ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
+          : Code::entry_point_offset(Code::EntryKind::kMonomorphicUnchecked);
+  __ call(FieldAddress(CODE_REG, entry_point_offset));
+  EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kIcCall, locs);
   __ Drop(ic_data.CountWithTypeArgs());
 }
 
@@ -972,11 +980,11 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ Drop(args_desc.CountWithTypeArgs());
 }
 
-void FlowGraphCompiler::EmitSwitchableInstanceCall(const ICData& ic_data,
-                                                   intptr_t deopt_id,
-                                                   TokenPosition token_pos,
-                                                   LocationSummary* locs,
-                                                   Code::EntryKind entry_kind) {
+void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
+                                            intptr_t deopt_id,
+                                            TokenPosition token_pos,
+                                            LocationSummary* locs,
+                                            Code::EntryKind entry_kind) {
   // Only generated with precompilation.
   UNREACHABLE();
 }

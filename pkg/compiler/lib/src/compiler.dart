@@ -32,7 +32,7 @@ import 'inferrer/typemasks/masks.dart' show TypeMaskStrategy;
 import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'io/source_information.dart' show SourceInformation;
-import 'js_backend/backend.dart' show CodegenInputs, JavaScriptBackend;
+import 'js_backend/backend.dart' show CodegenInputs, JavaScriptImpactStrategy;
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart';
@@ -97,7 +97,6 @@ abstract class Compiler {
   List<CompilerTask> tasks;
   KernelLoaderTask kernelLoader;
   GlobalTypeInferenceTask globalInference;
-  JavaScriptBackend backend;
   CodegenWorldBuilder _codegenWorldBuilder;
 
   AbstractValueStrategy abstractValueStrategy;
@@ -148,9 +147,9 @@ abstract class Compiler {
       _reporter = new CompilerDiagnosticReporter(this, options);
     }
     kernelFrontEndTask = new GenericTask('Front end', measurer);
-    frontendStrategy = new KernelFrontEndStrategy(
+    frontendStrategy = new KernelFrontendStrategy(
         kernelFrontEndTask, options, reporter, environment);
-    backendStrategy = new JsBackendStrategy(this);
+    backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
     _impactCacheDeleter = new _MapImpactCacheDeleter(_impactCache);
 
@@ -158,8 +157,7 @@ abstract class Compiler {
       progress = new InteractiveProgress();
     }
 
-    backend = createBackend();
-    enqueuer = backend.makeEnqueuer();
+    enqueuer = new EnqueueTask(this);
 
     tasks = [
       kernelLoader = new KernelLoaderTask(
@@ -176,17 +174,14 @@ abstract class Compiler {
           options, reporter, provider, outputProvider, measurer),
     ];
 
-    tasks.addAll(backend.tasks);
+    tasks.addAll(backendStrategy.tasks);
   }
 
-  /// Creates the backend.
+  /// Creates the backend strategy.
   ///
-  /// Override this to mock the backend for testing.
-  JavaScriptBackend createBackend() {
-    return new JavaScriptBackend(this,
-        generateSourceMap: options.generateSourceMap,
-        useMultiSourceInfo: options.useMultiSourceInfo,
-        useNewSourceInfo: options.useNewSourceInfo);
+  /// Override this to mock the backend strategy for testing.
+  BackendStrategy createBackendStrategy() {
+    return new JsBackendStrategy(this);
   }
 
   ResolutionWorldBuilder get resolutionWorldBuilder =>
@@ -247,11 +242,6 @@ abstract class Compiler {
       if (options.cfeOnly) return;
 
       frontendStrategy.registerLoadedLibraries(result);
-      for (Uri uri in result.libraries) {
-        LibraryEntity library =
-            frontendStrategy.elementEnvironment.lookupLibrary(uri);
-        backend.setAnnotations(library);
-      }
 
       // TODO(efortuna, sigmund): These validation steps should be done in the
       // front end for the Kernel path since Kernel doesn't have the notion of
@@ -272,7 +262,7 @@ abstract class Compiler {
     backendStrategy.registerJClosedWorld(closedWorld);
     phase = PHASE_COMPILING;
     CodegenInputs codegenInputs =
-        backend.onCodegenStart(globalTypeInferenceResults);
+        backendStrategy.onCodegenStart(globalTypeInferenceResults);
 
     if (options.readCodegenUri != null) {
       CodegenResults codegenResults =
@@ -283,7 +273,9 @@ abstract class Compiler {
     } else {
       reporter.log('Compiling methods');
       CodegenResults codegenResults = new OnDemandCodegenResults(
-          globalTypeInferenceResults, codegenInputs, backend.functionCompiler);
+          globalTypeInferenceResults,
+          codegenInputs,
+          backendStrategy.functionCompiler);
       if (options.writeCodegenUri != null) {
         serializationTask.serializeCodegen(backendStrategy, codegenResults);
       } else {
@@ -320,7 +312,7 @@ abstract class Compiler {
       resolutionEnqueuer = enqueuer.resolution;
     } else {
       resolutionEnqueuer = enqueuer.createResolutionEnqueuer();
-      backend.onResolutionStart();
+      frontendStrategy.onResolutionStart();
     }
     return resolutionEnqueuer;
   }
@@ -344,7 +336,9 @@ abstract class Compiler {
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(rootLibraryUri, libraries);
-    impactStrategy = backend.createImpactStrategy(
+
+    impactStrategy = new JavaScriptImpactStrategy(
+        impactCacheDeleter, dumpInfoTask,
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
         supportDumpInfo: options.dumpInfo);
 
@@ -355,7 +349,7 @@ abstract class Compiler {
     processQueue(
         frontendStrategy.elementEnvironment, resolutionEnqueuer, mainFunction,
         onProgress: showResolutionProgress);
-    backend.onResolutionEnd();
+    frontendStrategy.onResolutionEnd();
     resolutionEnqueuer.logSummary(reporter.log);
 
     _reporter.reportSuppressedMessagesSummary();
@@ -402,7 +396,7 @@ abstract class Compiler {
       codegenWorldForTesting = codegenWorld;
     }
     reporter.log('Emitting JavaScript');
-    int programSize = backend.assembleProgram(closedWorld,
+    int programSize = backendStrategy.assembleProgram(closedWorld,
         globalInferenceResults.inferredData, codegenInputs, codegenWorld);
 
     if (options.dumpInfo) {
@@ -410,7 +404,7 @@ abstract class Compiler {
       dumpInfoTask.dumpInfo(closedWorld, globalInferenceResults);
     }
 
-    backend.onCodegenEnd(codegenInputs);
+    backendStrategy.onCodegenEnd(codegenInputs);
 
     checkQueue(codegenEnqueuer);
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
@@ -15,10 +16,10 @@ import '../../test/integration/support/integration_tests.dart';
  */
 class AnalysisServerMemoryUsageTest
     extends AbstractAnalysisServerIntegrationTest {
-  static const int vmServicePort = 12345;
+  int _vmServicePort;
 
   Future<int> getMemoryUsage() async {
-    Uri uri = Uri.parse('ws://127.0.0.1:$vmServicePort/ws');
+    Uri uri = Uri.parse('ws://127.0.0.1:$_vmServicePort/ws');
     final ServiceProtocol service = await ServiceProtocol.connect(uri);
     final Map vm = await service.call('getVM');
 
@@ -50,7 +51,9 @@ class AnalysisServerMemoryUsageTest
    * The server is automatically started before every test.
    */
   @override
-  Future setUp() {
+  Future setUp() async {
+    _vmServicePort = await _findAvailableSocketPort();
+
     onAnalysisErrors.listen((AnalysisErrorsParams params) {
       currentAnalysisErrors[params.file] = params.errors;
     });
@@ -63,7 +66,7 @@ class AnalysisServerMemoryUsageTest
       outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return startServer(servicesPort: vmServicePort).then((_) {
+    return startServer(servicesPort: _vmServicePort).then((_) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -83,5 +86,14 @@ class AnalysisServerMemoryUsageTest
    */
   Future subscribeToStatusNotifications() async {
     await sendServerSetSubscriptions([ServerService.STATUS]);
+  }
+
+  static Future<int> _findAvailableSocketPort() async {
+    var socket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
+    try {
+      return socket.port;
+    } finally {
+      await socket.close();
+    }
   }
 }

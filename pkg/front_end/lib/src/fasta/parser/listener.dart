@@ -181,7 +181,6 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of an extension methods declaration.  Substructures:
   /// - metadata
-  /// - extension name
   /// - type variables
   void beginExtensionDeclaration(Token extensionKeyword, Token name) {}
 

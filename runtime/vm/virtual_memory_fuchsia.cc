@@ -39,22 +39,9 @@ DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
 uword VirtualMemory::page_size_ = 0;
-uword VirtualMemory::base_ = 0;
 
 void VirtualMemory::Init() {
   page_size_ = getpagesize();
-
-  // Cache the base of zx_vmar_root_self() which is used to align mappings.
-  zx_info_vmar_t buf[1];
-  size_t actual;
-  size_t avail;
-  zx_status_t status =
-      zx_object_get_info(zx_vmar_root_self(), ZX_INFO_VMAR, buf,
-                         sizeof(zx_info_vmar_t), &actual, &avail);
-  if (status != ZX_OK) {
-    FATAL1("zx_object_get_info failed: %s\n", zx_status_get_string(status));
-  }
-  base_ = buf[0].base;
 }
 
 static void Unmap(zx_handle_t vmar, uword start, uword end) {
@@ -68,48 +55,6 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
   if (status != ZX_OK) {
     FATAL1("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
   }
-}
-
-static void* MapAligned(zx_handle_t vmar,
-                        zx_handle_t vmo,
-                        zx_vm_option_t options,
-                        uword size,
-                        uword alignment,
-                        uword vmar_base,
-                        uword padded_size) {
-  // Allocate a larger mapping than needed in order to find a suitable aligned
-  // mapping within it.
-  uword base;
-  zx_status_t status =
-      zx_vmar_map(vmar, options, 0, vmo, 0u, padded_size, &base);
-  LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", options, base, padded_size);
-  if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", options, base,
-            padded_size, zx_status_get_string(status));
-    return NULL;
-  }
-
-  // Allocate a smaller aligned mapping inside the larger mapping.
-  const uword orig_base = base;
-  const uword aligned_base = Utils::RoundUp(base, alignment);
-  const zx_vm_option_t overwrite_options = options | ZX_VM_SPECIFIC_OVERWRITE;
-  status = zx_vmar_map(vmar, overwrite_options, aligned_base - vmar_base, vmo,
-                       0u, size, &base);
-  LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", overwrite_options,
-           aligned_base - vmar_base, size);
-
-  if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", overwrite_options,
-            aligned_base - vmar_base, size, zx_status_get_string(status));
-    return NULL;
-  }
-  ASSERT(base == aligned_base);
-
-  // Unmap the unused prefix and suffix.
-  Unmap(vmar, orig_base, base);
-  Unmap(vmar, base + size, orig_base + padded_size);
-
-  return reinterpret_cast<void*>(base);
 }
 
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
@@ -127,7 +72,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   ASSERT(Utils::IsAligned(size, page_size_));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
-  const intptr_t padded_size = size + alignment - page_size_;
+
+  const zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(alignment)
+                                    << ZX_VM_ALIGN_BASE;
+  ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
 
   zx_handle_t vmar = zx_vmar_root_self();
   zx_handle_t vmo = ZX_HANDLE_INVALID;
@@ -154,27 +102,34 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
 
   const zx_vm_option_t region_options =
-      ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
+      ZX_VM_PERM_READ | ZX_VM_PERM_WRITE | align_flag |
       ((is_executable && !FLAG_write_protect_code) ? ZX_VM_PERM_EXECUTE : 0);
-  void* region_ptr = MapAligned(vmar, vmo, region_options, size, alignment,
-                                base_, padded_size);
-  if (region_ptr == NULL) {
+  uword base;
+  status = zx_vmar_map(vmar, region_options, 0, vmo, 0u, size, &base);
+  LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", region_options, base, size);
+  if (status != ZX_OK) {
+    LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
+            size, zx_status_get_string(status));
     return NULL;
   }
+  void* region_ptr = reinterpret_cast<void*>(base);
   MemoryRegion region(region_ptr, size);
 
   VirtualMemory* result;
 
   if (dual_mapping) {
     // ZX_VM_PERM_EXECUTE is added later via VirtualMemory::Protect.
-    const zx_vm_option_t alias_options = ZX_VM_PERM_READ;
-    void* alias_ptr = MapAligned(vmar, vmo, alias_options, size, alignment,
-                                 base_, padded_size);
-    if (alias_ptr == NULL) {
+    const zx_vm_option_t alias_options = ZX_VM_PERM_READ | align_flag;
+    status = zx_vmar_map(vmar, alias_options, 0, vmo, 0u, size, &base);
+    LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", alias_options, base, size);
+    if (status != ZX_OK) {
+      LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", alias_options, base,
+              size, zx_status_get_string(status));
       const uword region_base = reinterpret_cast<uword>(region_ptr);
       Unmap(vmar, region_base, region_base + size);
       return NULL;
     }
+    void* alias_ptr = reinterpret_cast<void*>(base);
     ASSERT(region_ptr != alias_ptr);
     MemoryRegion alias(alias_ptr, size);
     result = new VirtualMemory(region, alias, region);

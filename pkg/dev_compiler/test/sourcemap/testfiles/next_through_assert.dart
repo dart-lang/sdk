@@ -7,6 +7,6 @@ void main() {
   assert(/*bc:1*/ foo());
 }
 
-foo() {
+bool foo() {
   return true;
 }

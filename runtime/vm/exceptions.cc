@@ -569,10 +569,6 @@ void Exceptions::JumpToFrame(Thread* thread,
                              uword stack_pointer,
                              uword frame_pointer,
                              bool clear_deopt_at_target) {
-  uword fp_for_clearing =
-      (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
-  ClearLazyDeopts(thread, fp_for_clearing);
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // TODO(regis): We still possibly need to unwind interpreter frames if they
   // are callee frames of the C++ frame handling the exception.
@@ -584,6 +580,10 @@ void Exceptions::JumpToFrame(Thread* thread,
     }
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  const uword fp_for_clearing =
+      (clear_deopt_at_target ? frame_pointer + 1 : frame_pointer);
+  ClearLazyDeopts(thread, fp_for_clearing);
 
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done

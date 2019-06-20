@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 9;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 10;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -999,12 +999,25 @@ class KernelBytecode {
   DART_FORCE_INLINE static bool IsDebugBreakCheckedOpcode(
       const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kPopLocal:
+      case KernelBytecode::kPopLocal_Wide:
+      case KernelBytecode::kStoreLocal:
+      case KernelBytecode::kStoreLocal_Wide:
+      case KernelBytecode::kStoreStaticTOS:
+      case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kCheckStack:
       case KernelBytecode::kDirectCall:
+      case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:
+      case KernelBytecode::kInterfaceCall_Wide:
       case KernelBytecode::kUncheckedInterfaceCall:
+      case KernelBytecode::kUncheckedInterfaceCall_Wide:
       case KernelBytecode::kDynamicCall:
+      case KernelBytecode::kDynamicCall_Wide:
       case KernelBytecode::kReturnTOS:
+      case KernelBytecode::kThrow:
+      case KernelBytecode::kJump:
+      case KernelBytecode::kJump_Wide:
         return true;
       default:
         return false;

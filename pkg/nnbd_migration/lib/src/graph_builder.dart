@@ -14,6 +14,7 @@ import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -78,14 +79,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this.listener)
-      : _notNullType =
-            DecoratedType(typeProvider.objectType, NullabilityNode.never),
+      : _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
-            DecoratedType(typeProvider.boolType, NullabilityNode.never),
+            DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
-            DecoratedType(typeProvider.typeType, NullabilityNode.never),
-        _nullType =
-            DecoratedType(typeProvider.nullType, NullabilityNode.always);
+            DecoratedType(typeProvider.typeType, _graph.never),
+        _nullType = DecoratedType(typeProvider.nullType, _graph.always);
 
   /// Gets the decorated type of [element] from [_variables], performing any
   /// necessary substitutions.
@@ -120,13 +119,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var decoratedElementType =
           _variables.decoratedElementType(variable, create: true);
       if (baseElement.isGetter) {
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             returnType: decoratedElementType);
       } else {
         assert(baseElement.isSetter);
-        decoratedBaseType = DecoratedType(
-            baseElement.type, NullabilityNode.never,
+        decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             positionalParameters: [decoratedElementType]);
       }
     } else {
@@ -147,13 +144,20 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitAsExpression(AsExpression node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'AsExpression');
+  }
+
+  @override
   DecoratedType visitAssertStatement(AssertStatement node) {
     _handleAssignment(_notNullType, node.condition);
     if (identical(_conditionInfo?.condition, node.condition)) {
       if (!_inConditionalControlFlow &&
           _conditionInfo.trueDemonstratesNonNullIntent != null) {
-        _conditionInfo.trueDemonstratesNonNullIntent
-            ?.recordNonNullIntent(_guards, _graph);
+        _graph.connect(_conditionInfo.trueDemonstratesNonNullIntent,
+            _graph.never, NonNullAssertionOrigin(_source, node.offset),
+            hard: true);
       }
     }
     node.message?.accept(this);
@@ -163,7 +167,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitAssignmentExpression(AssignmentExpression node) {
     if (node.operator.type != TokenType.EQ) {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Assignment with operator ${node.operator.lexeme}');
     }
     var leftType = node.leftHandSide.accept(this);
     var conditionalNode = _lastConditionalNode;
@@ -178,49 +183,59 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitAwaitExpression(AwaitExpression node) {
+    var expressionType = node.expression.accept(this);
+    // TODO(paulberry) Handle subclasses of Future.
+    if (expressionType.type.isDartAsyncFuture ||
+        expressionType.type.isDartAsyncFutureOr) {
+      expressionType = expressionType.typeArguments[0];
+    }
+    return expressionType;
+  }
+
+  @override
   DecoratedType visitBinaryExpression(BinaryExpression node) {
-    switch (node.operator.type) {
-      case TokenType.EQ_EQ:
-      case TokenType.BANG_EQ:
-        assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
-        var leftType = node.leftOperand.accept(this);
-        node.rightOperand.accept(this);
-        if (node.rightOperand is NullLiteral) {
-          // TODO(paulberry): figure out what the rules for isPure should be.
-          // TODO(paulberry): only set falseChecksNonNull in unconditional
-          // control flow
-          bool isPure = node.leftOperand is SimpleIdentifier;
-          var conditionInfo = _ConditionInfo(node,
-              isPure: isPure,
-              trueGuard: leftType.node,
-              falseDemonstratesNonNullIntent: leftType.node);
-          _conditionInfo = node.operator.type == TokenType.EQ_EQ
-              ? conditionInfo
-              : conditionInfo.not(node);
-        }
-        return _nonNullableBoolType;
-      case TokenType.PLUS:
-        _handleAssignment(_notNullType, node.leftOperand);
-        var callee = node.staticElement;
-        assert(!(callee is ClassMemberElement &&
-            callee.enclosingElement.typeParameters
-                .isNotEmpty)); // TODO(paulberry)
-        assert(callee != null); // TODO(paulberry)
-        var calleeType = getOrComputeElementType(callee);
-        // TODO(paulberry): substitute if necessary
-        assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
-        _handleAssignment(
-            calleeType.positionalParameters[0], node.rightOperand);
-        return calleeType.returnType;
-      default:
-        assert(false); // TODO(paulberry)
-        return null;
+    var operatorType = node.operator.type;
+    if (operatorType == TokenType.EQ_EQ || operatorType == TokenType.BANG_EQ) {
+      assert(node.leftOperand is! NullLiteral); // TODO(paulberry)
+      var leftType = node.leftOperand.accept(this);
+      node.rightOperand.accept(this);
+      if (node.rightOperand is NullLiteral) {
+        // TODO(paulberry): figure out what the rules for isPure should be.
+        // TODO(paulberry): only set falseChecksNonNull in unconditional
+        // control flow
+        bool isPure = node.leftOperand is SimpleIdentifier;
+        var conditionInfo = _ConditionInfo(node,
+            isPure: isPure,
+            trueGuard: leftType.node,
+            falseDemonstratesNonNullIntent: leftType.node);
+        _conditionInfo = operatorType == TokenType.EQ_EQ
+            ? conditionInfo
+            : conditionInfo.not(node);
+      }
+      return _nonNullableBoolType;
+    } else if (operatorType.isUserDefinableOperator) {
+      _handleAssignment(_notNullType, node.leftOperand);
+      var callee = node.staticElement;
+      assert(!(callee is ClassMemberElement &&
+          callee
+              .enclosingElement.typeParameters.isNotEmpty)); // TODO(paulberry)
+      assert(callee != null); // TODO(paulberry)
+      var calleeType = getOrComputeElementType(callee);
+      // TODO(paulberry): substitute if necessary
+      assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
+      _handleAssignment(calleeType.positionalParameters[0], node.rightOperand);
+      return calleeType.returnType;
+    } else {
+      // TODO(paulberry)
+      _unimplemented(
+          node, 'Binary expression with operator ${node.operator.lexeme}');
     }
   }
 
   @override
   DecoratedType visitBooleanLiteral(BooleanLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -258,9 +273,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
         // Nothing to do; the implicit default value of `null` will never be
         // reached.
       } else {
-        NullabilityNode.recordAssignment(NullabilityNode.always,
-            getOrComputeElementType(node.declaredElement).node, _guards, _graph,
-            hard: false);
+        _graph.connect(
+            _graph.always,
+            getOrComputeElementType(node.declaredElement).node,
+            OptionalFormalParameterOrigin(_source, node.offset),
+            guards: _guards);
       }
     } else {
       _handleAssignment(
@@ -268,6 +285,11 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
           canInsertChecks: false);
     }
     return null;
+  }
+
+  @override
+  DecoratedType visitDoubleLiteral(DoubleLiteral node) {
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
@@ -289,6 +311,19 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _currentFunctionType = null;
     }
     return null;
+  }
+
+  @override
+  DecoratedType visitFunctionExpression(FunctionExpression node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionExpression');
+  }
+
+  @override
+  DecoratedType visitFunctionExpressionInvocation(
+      FunctionExpressionInvocation node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'FunctionExpressionInvocation');
   }
 
   @override
@@ -337,7 +372,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var callee = node.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Index expression with no static type');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
@@ -350,8 +386,66 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitInstanceCreationExpression(
+      InstanceCreationExpression node) {
+    var callee = node.staticElement;
+    var calleeType = getOrComputeElementType(callee);
+    if (callee.enclosingElement.typeParameters.isNotEmpty) {
+      // If the class has type parameters then we might need to substitute the
+      // appropriate type arguments.
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Instance creation expression with type arguments');
+    }
+    _handleInvocationArguments(node.argumentList, calleeType);
+    return calleeType.returnType;
+  }
+
+  @override
   DecoratedType visitIntegerLiteral(IntegerLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitIsExpression(IsExpression node) {
+    var type = node.type;
+    if (type is NamedType && type.typeArguments != null) {
+      // TODO(brianwilkerson) Figure out what constraints we need to add to
+      //  allow the tool to decide whether to make the type arguments nullable.
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Is expression with type arguments');
+    } else if (type is GenericFunctionType) {
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Is expression with GenericFunctionType');
+    }
+    node.visitChildren(this);
+    return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitListLiteral(ListLiteral node) {
+    var listType = node.staticType as InterfaceType;
+    if (node.typeArguments == null) {
+      // TODO(brianwilkerson) We might want to create a fake node in the graph
+      //  to represent the type argument so that we can still create edges from
+      //  the elements to it.
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'List literal with no type arguments');
+    } else {
+      var typeArgumentType = _variables.decoratedTypeAnnotation(
+          _source, node.typeArguments.arguments[0]);
+      for (var element in node.elements) {
+        if (element is Expression) {
+          _handleAssignment(typeArgumentType, element);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [typeArgumentType]);
+    }
   }
 
   @override
@@ -384,30 +478,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var callee = node.methodName.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Unresolved method name');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
-    var arguments = node.argumentList.arguments;
-    int i = 0;
-    var suppliedNamedParameters = Set<String>();
-    for (var expression in arguments) {
-      if (expression is NamedExpression) {
-        var name = expression.name.label.name;
-        var parameterType = calleeType.namedParameters[name];
-        assert(parameterType != null); // TODO(paulberry)
-        _handleAssignment(parameterType, expression.expression);
-        suppliedNamedParameters.add(name);
-      } else {
-        assert(calleeType.positionalParameters.length > i); // TODO(paulberry)
-        _handleAssignment(calleeType.positionalParameters[i++], expression);
-      }
-    }
-    // Any parameters not supplied must be optional.
-    for (var entry in calleeType.namedParameters.entries) {
-      if (suppliedNamedParameters.contains(entry.key)) continue;
-      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph);
-    }
+    _handleInvocationArguments(node.argumentList, calleeType);
     var expressionType = calleeType.returnType;
     if (isConditional) {
       expressionType = expressionType.withNode(
@@ -415,6 +491,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _variables.recordDecoratedExpressionType(node, expressionType);
     }
     return expressionType;
+  }
+
+  @override
+  DecoratedType visitNamespaceDirective(NamespaceDirective node) {
+    // skip directives
+    return null;
   }
 
   @override
@@ -445,12 +527,31 @@ $stackTrace''');
   }
 
   @override
+  DecoratedType visitPostfixExpression(PostfixExpression node) {
+    // TODO(brianwilkerson)
+    _unimplemented(node, 'PostfixExpression');
+  }
+
+  @override
   DecoratedType visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.prefix.staticElement is ImportElement) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'PrefixedIdentifier with a prefix');
     } else {
       return _handlePropertyAccess(node, node.prefix, node.identifier);
     }
+  }
+
+  @override
+  DecoratedType visitPrefixExpression(PrefixExpression node) {
+    /* DecoratedType operandType = */
+    _handleAssignment(_notNullType, node.operand);
+    if (node.operator.type == TokenType.BANG) {
+      return _nonNullableBoolType;
+    }
+    // TODO(brianwilkerson) The remaining cases are invocations.
+    _unimplemented(
+        node, 'Prefix expression with operator ${node.operator.lexeme}');
   }
 
   @override
@@ -461,11 +562,62 @@ $stackTrace''');
   @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
-      _checkAssignment(_currentFunctionType.returnType, _nullType, null);
+      _checkAssignment(_currentFunctionType.returnType, _nullType, null,
+          hard: false);
     } else {
       _handleAssignment(_currentFunctionType.returnType, node.expression);
     }
     return null;
+  }
+
+  @override
+  DecoratedType visitSetOrMapLiteral(SetOrMapLiteral node) {
+    var listType = node.staticType as InterfaceType;
+    var typeArguments = node.typeArguments?.arguments;
+    if (typeArguments == null) {
+      // TODO(brianwilkerson) We might want to create fake nodes in the graph to
+      //  represent the type arguments so that we can still create edges from
+      //  the elements to them.
+      // TODO(brianwilkerson)
+      _unimplemented(node, 'Set or map literal with no type arguments');
+    } else if (typeArguments.length == 1) {
+      var elementType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+      for (var element in node.elements) {
+        if (element is Expression) {
+          _handleAssignment(elementType, element);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [elementType]);
+    } else if (typeArguments.length == 2) {
+      var keyType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
+      var valueType =
+          _variables.decoratedTypeAnnotation(_source, typeArguments[1]);
+      for (var element in node.elements) {
+        if (element is MapLiteralEntry) {
+          _handleAssignment(keyType, element.key);
+          _handleAssignment(valueType, element.value);
+        } else {
+          // Handle spread and control flow elements.
+          element.accept(this);
+          // TODO(brianwilkerson)
+          _unimplemented(node, 'Spread or control flow element');
+        }
+      }
+      return DecoratedType(listType, _graph.never,
+          typeArguments: [keyType, valueType]);
+    } else {
+      // TODO(brianwilkerson)
+      _unimplemented(
+          node, 'Set or map literal with more than two type arguments');
+    }
   }
 
   @override
@@ -474,50 +626,80 @@ $stackTrace''');
     if (staticElement is ParameterElement ||
         staticElement is LocalVariableElement) {
       return getOrComputeElementType(staticElement);
+    } else if (staticElement is PropertyAccessorElement) {
+      // TODO(danrubel): assuming getter context... need to handle setter
+      return getOrComputeElementType(staticElement).returnType;
     } else if (staticElement is ClassElement) {
       return _nonNullableTypeType;
     } else {
       // TODO(paulberry)
-      throw new UnimplementedError('${staticElement.runtimeType}');
+      _unimplemented(node,
+          'Simple identifier with a static element of type ${staticElement.runtimeType}');
     }
   }
 
   @override
   DecoratedType visitStringLiteral(StringLiteral node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    node.visitChildren(this);
+    return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitSuperExpression(SuperExpression node) {
+    return DecoratedType(node.staticType, _graph.never);
+  }
+
+  @override
+  DecoratedType visitSymbolLiteral(SymbolLiteral node) {
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThisExpression(ThisExpression node) {
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitThrowExpression(ThrowExpression node) {
     node.expression.accept(this);
     // TODO(paulberry): do we need to check the expression type?  I think not.
-    return DecoratedType(node.staticType, NullabilityNode.never);
+    return DecoratedType(node.staticType, _graph.never);
   }
 
   @override
   DecoratedType visitTypeName(TypeName typeName) {
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
-    if (typeArguments != null) {
-      for (int i = 0; i < typeArguments.length; i++) {
-        DecoratedType bound;
-        if (element is TypeParameterizedElement) {
+    if (element is TypeParameterizedElement) {
+      if (typeArguments == null) {
+        var instantiatedType =
+            _variables.decoratedTypeAnnotation(_source, typeName);
+        if (instantiatedType == null) {
+          throw new StateError('No type annotation for type name '
+              '${typeName.toSource()}, offset=${typeName.offset}');
+        }
+        var origin = InstantiateToBoundsOrigin(_source, typeName.offset);
+        for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
+          _unionDecoratedTypes(
+              instantiatedType.typeArguments[i],
+              _variables.decoratedElementType(element.typeParameters[i],
+                  create: true),
+              origin);
+        }
+      } else {
+        for (int i = 0; i < typeArguments.length; i++) {
+          DecoratedType bound;
           bound = _variables.decoratedElementType(element.typeParameters[i],
               create: true);
-        } else {
-          throw new UnimplementedError('TODO(paulberry)');
+          _checkAssignment(
+              bound,
+              _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
+              null,
+              hard: true);
         }
-        _checkAssignment(bound,
-            _variables.decoratedTypeAnnotation(_source, typeArguments[i]), null,
-            hard: true);
       }
     }
-    return DecoratedType(typeName.type, NullabilityNode.never);
+    return _nonNullableTypeType;
   }
 
   @override
@@ -525,7 +707,8 @@ $stackTrace''');
     var destinationType = getOrComputeElementType(node.declaredElement);
     var initializer = node.initializer;
     if (initializer == null) {
-      throw UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Variable declaration with no initializer');
     } else {
       _handleAssignment(destinationType, initializer);
     }
@@ -533,46 +716,44 @@ $stackTrace''');
   }
 
   /// Creates the necessary constraint(s) for an assignment from [sourceType] to
-  /// [destinationType].  [expression] is the expression whose type is
-  /// [sourceType]; it is the expression we will have to null-check in the case
-  /// where a nullable source is assigned to a non-nullable destination.
+  /// [destinationType].  [expressionChecks] tracks checks that might have to be
+  /// done on the type of an expression.  [hard] indicates whether a hard edge
+  /// should be created.
   void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
-      Expression expression,
-      {bool hard}) {
-    if (expression != null) {
-      _variables.recordExpressionChecks(
-          _source,
-          expression,
-          ExpressionChecks(
-              expression.end, sourceType.node, destinationType.node, _guards));
-    }
-    NullabilityNode.recordAssignment(
-        sourceType.node, destinationType.node, _guards, _graph,
-        hard: hard ??
-            (_isVariableOrParameterReference(expression) &&
-                !_inConditionalControlFlow));
-    // TODO(paulberry): it's a cheat to pass in expression=null for the
-    // recursive checks.  Really we want to unify all the checks in a single
-    // ExpressionChecks object.
-    expression = null;
+      ExpressionChecks expressionChecks,
+      {@required bool hard}) {
+    var edge = _graph.connect(
+        sourceType.node, destinationType.node, expressionChecks,
+        guards: _guards, hard: hard);
+    expressionChecks?.edges?.add(edge);
     // TODO(paulberry): generalize this.
+
     if ((_isSimple(sourceType) || destinationType.type.isObject) &&
         _isSimple(destinationType)) {
       // Ok; nothing further to do.
-    } else if (sourceType.type is InterfaceType &&
+      return;
+    }
+
+    if (sourceType.type is InterfaceType &&
         destinationType.type is InterfaceType &&
         sourceType.type.element == destinationType.type.element) {
       assert(sourceType.typeArguments.length ==
           destinationType.typeArguments.length);
       for (int i = 0; i < sourceType.typeArguments.length; i++) {
         _checkAssignment(destinationType.typeArguments[i],
-            sourceType.typeArguments[i], expression);
+            sourceType.typeArguments[i], expressionChecks,
+            hard: false);
       }
-    } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
-      // ok; nothing further to do.
-    } else {
-      throw '$destinationType <= $sourceType'; // TODO(paulberry)
+      return;
     }
+
+    if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
+      // ok; nothing further to do.
+      return;
+    }
+
+    // TODO(paulberry)
+    throw '$destinationType <= $sourceType';
   }
 
   /// Double checks that [name] is not the name of a method or getter declared
@@ -593,9 +774,52 @@ $stackTrace''');
       DecoratedType destinationType, Expression expression,
       {bool canInsertChecks = true}) {
     var sourceType = expression.accept(this);
-    _checkAssignment(
-        destinationType, sourceType, canInsertChecks ? expression : null);
+    if (sourceType == null) {
+      throw StateError('No type computed for ${expression.runtimeType} '
+          '(${expression.toSource()}) offset=${expression.offset}');
+    }
+    ExpressionChecks expressionChecks;
+    if (canInsertChecks) {
+      expressionChecks = ExpressionChecks(expression.end);
+      _variables.recordExpressionChecks(_source, expression, expressionChecks);
+    }
+    _checkAssignment(destinationType, sourceType, expressionChecks,
+        hard: _isVariableOrParameterReference(expression) &&
+            !_inConditionalControlFlow);
     return sourceType;
+  }
+
+  /// Creates the necessary constraint(s) for an [argumentList] when invoking an
+  /// executable element whose type is [calleeType].
+  void _handleInvocationArguments(
+      ArgumentList argumentList, DecoratedType calleeType) {
+    var arguments = argumentList.arguments;
+    int i = 0;
+    var suppliedNamedParameters = Set<String>();
+    for (var expression in arguments) {
+      if (expression is NamedExpression) {
+        var name = expression.name.label.name;
+        var parameterType = calleeType.namedParameters[name];
+        if (parameterType == null) {
+          // TODO(paulberry)
+          _unimplemented(expression, 'Missing type for named parameter');
+        }
+        _handleAssignment(parameterType, expression.expression);
+        suppliedNamedParameters.add(name);
+      } else {
+        if (calleeType.positionalParameters.length <= i) {
+          // TODO(paulberry)
+          _unimplemented(argumentList, 'Missing positional parameter at $i');
+        }
+        _handleAssignment(calleeType.positionalParameters[i++], expression);
+      }
+    }
+    // Any parameters not supplied must be optional.
+    for (var entry in calleeType.namedParameters.entries) {
+      if (suppliedNamedParameters.contains(entry.key)) continue;
+      entry.value.node.recordNamedParameterNotSupplied(_guards, _graph,
+          NamedParameterNotSuppliedOrigin(_source, argumentList.offset));
+    }
   }
 
   DecoratedType _handlePropertyAccess(
@@ -610,7 +834,8 @@ $stackTrace''');
     }
     var callee = propertyName.staticElement;
     if (callee == null) {
-      throw new UnimplementedError('TODO(paulberry)');
+      // TODO(paulberry)
+      _unimplemented(node, 'Unresolved property access');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
@@ -647,7 +872,9 @@ $stackTrace''');
       case TokenType.QUESTION_PERIOD:
         return true;
       default:
-        throw new UnimplementedError('TODO(paulberry)');
+        // TODO(paulberry)
+        _unimplemented(
+            expression, 'Conditional expression with operator ${token.lexeme}');
     }
   }
 
@@ -666,12 +893,44 @@ $stackTrace''');
   }
 
   bool _isVariableOrParameterReference(Expression expression) {
+    expression = expression.unParenthesized;
     if (expression is SimpleIdentifier) {
       var element = expression.staticElement;
       if (element is LocalVariableElement) return true;
       if (element is ParameterElement) return true;
     }
     return false;
+  }
+
+  @alwaysThrows
+  void _unimplemented(AstNode node, String message) {
+    CompilationUnit unit = node.root as CompilationUnit;
+    StringBuffer buffer = StringBuffer();
+    buffer.write(message);
+    buffer.write(' in "');
+    buffer.write(node.toSource());
+    buffer.write('" on line ');
+    buffer.write(unit.lineInfo.getLocation(node.offset).lineNumber);
+    buffer.write(' of "');
+    buffer.write(unit.declaredElement.source.fullName);
+    buffer.write('"');
+    throw UnimplementedError(buffer.toString());
+  }
+
+  void _unionDecoratedTypes(
+      DecoratedType x, DecoratedType y, EdgeOrigin origin) {
+    _graph.union(x.node, y.node, origin);
+    if (x.typeArguments.isNotEmpty ||
+        y.typeArguments.isNotEmpty ||
+        x.returnType != null ||
+        y.returnType != null ||
+        x.positionalParameters.isNotEmpty ||
+        y.positionalParameters.isNotEmpty ||
+        x.namedParameters.isNotEmpty ||
+        y.namedParameters.isNotEmpty) {
+      // TODO(paulberry)
+      throw UnimplementedError('_unionDecoratedTypes($x, $y, $origin)');
+    }
   }
 }
 

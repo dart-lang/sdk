@@ -1035,10 +1035,12 @@ symbol_conflict_test: Pass, Slow
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 least_upper_bound_expansive_test/none: RuntimeError # Please triage.
 
+[ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
+type_alias_equality_test/04: RuntimeError # Issue 32783
+
 [ ($compiler == app_jitk || $compiler == dartk || $compiler == dartkp) && ($runtime == dart_precompiled || $runtime == vm) ]
 covariant_subtyping_with_mixin_test: RuntimeError # Issue 34321
 type_alias_equality_test/03: RuntimeError # Issue 32783
-type_alias_equality_test/04: RuntimeError # Issue 32783
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 async_star_test/01: Skip # Timeout

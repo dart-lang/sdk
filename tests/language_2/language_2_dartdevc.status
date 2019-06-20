@@ -259,8 +259,8 @@ regress_23408_test: CompileTimeError # Issue 31533
 regress_24283_test: RuntimeError # Expect.equals(expected: <-1>, actual: <4294967295>) fails.
 regress_29025_test: CompileTimeError
 regress_29405_test: CompileTimeError # Issue 31402 Error: A value of type '#lib2::Foo' can't be assigned to a variable of type '(#lib2::Foo) → void'.
-regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 regress_30339_test: CompileTimeError
+regress_30339_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 setter_no_getter_test/01: CompileTimeError
 super_bound_closure_test/none: CompileTimeError # Issue 31533
 super_call4_test/01: MissingCompileTimeError

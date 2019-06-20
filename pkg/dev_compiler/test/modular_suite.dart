@@ -68,7 +68,7 @@ class SourceToSummaryDillStep implements IOModularStep {
         _sourceToImportUri(module, rootScheme, relativeUri);
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    _createPackagesFile(module, root, transitiveDependencies);
+    await _createPackagesFile(module, root, transitiveDependencies);
 
     List<String> sources;
     List<String> extraArgs;
@@ -132,7 +132,7 @@ class DDKStep implements IOModularStep {
     if (_options.verbose) print("\nstep: ddk on $module");
 
     Set<Module> transitiveDependencies = computeTransitiveDependencies(module);
-    _createPackagesFile(module, root, transitiveDependencies);
+    await _createPackagesFile(module, root, transitiveDependencies);
 
     String rootScheme = module.isSdk ? 'dev-dart-sdk' : 'dev-dart-app';
     List<String> sources;

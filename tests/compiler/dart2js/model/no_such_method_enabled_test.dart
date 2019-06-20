@@ -261,7 +261,8 @@ main() {
 checkTest(Compiler compiler, NoSuchMethodTest test) {
   ElementEnvironment frontendEnvironment =
       compiler.frontendStrategy.elementEnvironment;
-  NoSuchMethodRegistryImpl registry = compiler.backend.noSuchMethodRegistry;
+  NoSuchMethodRegistryImpl registry =
+      compiler.frontendStrategy.noSuchMethodRegistry;
   NoSuchMethodResolver resolver = registry.internalResolverForTesting;
   FunctionEntity ObjectNSM = frontendEnvironment.lookupClassMember(
       compiler.frontendStrategy.commonElements.objectClass, 'noSuchMethod');

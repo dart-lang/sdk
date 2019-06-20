@@ -534,14 +534,10 @@ class DartFuzzTestSession {
     'jit-debug-x64',
     'jit-debug-arm32',
     'jit-debug-arm64',
-    'jit-debug-dbc',
-    'jit-debug-dbc64',
     'jit-ia32',
     'jit-x64',
     'jit-arm32',
     'jit-arm64',
-    'jit-dbc',
-    'jit-dbc64',
     'aot-debug-x64',
     'aot-x64',
     'kbc-int-debug-x64',
@@ -554,6 +550,11 @@ class DartFuzzTestSession {
 
   // Modes not used on cluster runs because they have outstanding issues.
   static const List<String> nonClusterModes = [
+    // Deprecated.
+    'jit-debug-dbc',
+    'jit-debug-dbc64',
+    'jit-dbc',
+    'jit-dbc64',
     // Times out often:
     'aot-debug-arm32',
     'aot-debug-arm64',
@@ -586,6 +587,8 @@ main(List<String> arguments) {
         help: 'number of shards used in cluster run', defaultsTo: '1')
     ..addOption('shard', help: 'shard id in cluster run', defaultsTo: '1')
     ..addOption('output_directory',
+        help: 'path to output (ignored)', defaultsTo: null)
+    ..addOption('output-directory',
         help: 'path to output (ignored)', defaultsTo: null);
 
   // Starts fuzz testing session.

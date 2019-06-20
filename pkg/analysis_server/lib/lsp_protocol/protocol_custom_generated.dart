@@ -17,6 +17,7 @@ import 'dart:core' as core show deprecated;
 import 'dart:convert' show JsonEncoder;
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart'
     show listEqual, mapEqual;
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -46,10 +47,30 @@ class AnalyzerStatusParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('isAnalyzing') &&
-        obj['isAnalyzing'] is bool;
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('isAnalyzing');
+      try {
+        if (!obj.containsKey('isAnalyzing')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['isAnalyzing'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['isAnalyzing'] is bool)) {
+          reporter.reportError("must be of type bool");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type AnalyzerStatusParams");
+      return false;
+    }
   }
 
   @override
@@ -99,12 +120,47 @@ class ClosingLabel implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('range') &&
-        Range.canParse(obj['range']) &&
-        obj.containsKey('label') &&
-        obj['label'] is String;
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('range');
+      try {
+        if (!obj.containsKey('range')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['range'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(Range.canParse(obj['range'], reporter))) {
+          reporter.reportError("must be of type Range");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('label');
+      try {
+        if (!obj.containsKey('label')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['label'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['label'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type ClosingLabel");
+      return false;
+    }
   }
 
   @override
@@ -185,20 +241,115 @@ class CompletionItemResolutionInfo implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('file') &&
-        obj['file'] is String &&
-        obj.containsKey('offset') &&
-        obj['offset'] is num &&
-        obj.containsKey('libId') &&
-        obj['libId'] is num &&
-        obj.containsKey('displayUri') &&
-        obj['displayUri'] is String &&
-        obj.containsKey('rOffset') &&
-        obj['rOffset'] is num &&
-        obj.containsKey('rLength') &&
-        obj['rLength'] is num;
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('file');
+      try {
+        if (!obj.containsKey('file')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['file'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['file'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('offset');
+      try {
+        if (!obj.containsKey('offset')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['offset'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['offset'] is num)) {
+          reporter.reportError("must be of type num");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('libId');
+      try {
+        if (!obj.containsKey('libId')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['libId'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['libId'] is num)) {
+          reporter.reportError("must be of type num");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('displayUri');
+      try {
+        if (!obj.containsKey('displayUri')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['displayUri'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['displayUri'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('rOffset');
+      try {
+        if (!obj.containsKey('rOffset')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['rOffset'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['rOffset'] is num)) {
+          reporter.reportError("must be of type num");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('rLength');
+      try {
+        if (!obj.containsKey('rLength')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['rLength'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['rLength'] is num)) {
+          reporter.reportError("must be of type num");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type CompletionItemResolutionInfo");
+      return false;
+    }
   }
 
   @override
@@ -253,10 +404,30 @@ class DartDiagnosticServer implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('port') &&
-        obj['port'] is num;
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('port');
+      try {
+        if (!obj.containsKey('port')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['port'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['port'] is num)) {
+          reporter.reportError("must be of type num");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type DartDiagnosticServer");
+      return false;
+    }
   }
 
   @override
@@ -309,13 +480,49 @@ class PublishClosingLabelsParams implements ToJsonable {
     return __result;
   }
 
-  static bool canParse(Object obj) {
-    return obj is Map<String, dynamic> &&
-        obj.containsKey('uri') &&
-        obj['uri'] is String &&
-        obj.containsKey('labels') &&
-        (obj['labels'] is List &&
-            (obj['labels'].every((item) => ClosingLabel.canParse(item))));
+  static bool canParse(Object obj, LspJsonReporter reporter) {
+    if (obj is Map<String, dynamic>) {
+      reporter.push('uri');
+      try {
+        if (!obj.containsKey('uri')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['uri'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!(obj['uri'] is String)) {
+          reporter.reportError("must be of type String");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      reporter.push('labels');
+      try {
+        if (!obj.containsKey('labels')) {
+          reporter.reportError("must not be undefined");
+          return false;
+        }
+        if (obj['labels'] == null) {
+          reporter.reportError("must not be null");
+          return false;
+        }
+        if (!((obj['labels'] is List &&
+            (obj['labels']
+                .every((item) => ClosingLabel.canParse(item, reporter)))))) {
+          reporter.reportError("must be of type List<ClosingLabel>");
+          return false;
+        }
+      } finally {
+        reporter.pop();
+      }
+      return true;
+    } else {
+      reporter.reportError("must be of type PublishClosingLabelsParams");
+      return false;
+    }
   }
 
   @override

@@ -483,7 +483,7 @@ void ServiceIsolate::Run() {
     ServiceIsolate::InitializingFailed();
     return;
   }
-  bool task_started = Dart::thread_pool()->Run(new RunServiceTask());
+  bool task_started = Dart::thread_pool()->Run<RunServiceTask>();
   ASSERT(task_started);
 }
 

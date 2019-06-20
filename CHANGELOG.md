@@ -1,3 +1,85 @@
+## Next release
+(Add new changes here, and they will be copied to the change section for the
+ next release)
+
+### Language
+
+### Core libraries
+
+* As part of (Issue [36900][]), the following methods and properties across
+  various core libraries, which used to declare a return type of `List<int>`,
+  were updated to declare a return type of `Uint8List`:
+
+  * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
+  * `BytesBuilder.takeBytes()`
+  * `BytesBuilder.toBytes()`
+  * `File.readAsBytes()` (`Future<Uint8List>`)
+  * `File.readAsBytesSync()`
+  * `RandomAccessFile.read()` (`Future<Uint8List>`)
+  * `RandomAccessFile.readSync()`
+  * `InternetAddress.rawAddress`
+  * `RawSocket.read()`
+
+  In addition, the following typed lists were updated to have their `sublist()`
+  methods declare a return type that is the same as the source list:
+
+  * `Uint8List.sublist()` → `Uint8List`
+  * `Int8List.sublist()` → `Int8List`
+  * `Uint8ClampedList.sublist()` → `Uint8ClampedList`
+  * `Int16List.sublist()` → `Int16List`
+  * `Uint16List.sublist()` → `Uint16List`
+  * `Int32List.sublist()` → `Int32List`
+  * `Uint32List.sublist()` → `Uint32List`
+  * `Int64List.sublist()` → `Int64List`
+  * `Uint64List.sublist()` → `Uint64List`
+  * `Float32List.sublist()` → `Float32List`
+  * `Float64List.sublist()` → `Float64List`
+  * `Float32x4List.sublist()` → `Float32x4List`
+  * `Int32x4List.sublist()` → `Int32x4List`
+  * `Float64x2List.sublist()` → `Float64x2List`
+
+  [36900]: https://github.com/dart-lang/sdk/issues/36900
+
+#### `dart:core`
+
+* Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):
+  "%25" or "%" can be appended to the end of a valid IPv6 representing a Zone
+  Identifier. A valid zone ID consists of unreversed character or Percent
+  encoded octet, which was defined in RFC3986.
+  IPv6addrz = IPv6address "%25" ZoneID
+
+  [29456]: https://github.com/dart-lang/sdk/issues/29456
+
+#### `dart:io`
+
+* **Breaking Change:** The `Cookie` class's constructor's `name` and `value`
+  optional positional parameters are now mandatory (Issue [37192][]). The
+  signature changes from:
+
+      Cookie([String name, String value])
+
+  to
+
+      Cookie(String name, String value)
+
+  However, it has not been possible to set `name` and `value` to null since Dart
+  1.3.0 (2014) where a bug made it impossible. Any code not using both
+  parameters or setting any to null would necessarily get a noSuchMethod
+  exception at runtime. This change catches such erroneous uses at compile time.
+  Since code could not previously correctly omit the parameters, this is not
+  really a breaking change.
+
+* **Breaking Change:** The `Cookie` class's `name` and `value` setters now
+  validates that the strings are made from the allowed character set and are not
+  null (Issue [37192][]). The constructor already made these checks and this
+  fixes the loophole where the setters didn't also validate.
+
+[37192]: https://github.com/dart-lang/sdk/issues/37192
+
+### Dart VM
+
+### Tools
+
 ## 2.4.0 - 2019-06-24
 
 ### Core libraries
@@ -89,6 +171,19 @@ class B<X> extends A<void Function(X)> {};
 
 [35097]: https://github.com/dart-lang/sdk/issues/35097
 
+### Dart for the Web
+
+#### Dart Dev Compiler (DDC)
+
+* Improve `NoSuchMethod` errors for failing dynamic calls. Now they include
+  specific information about the nature of the error such as:
+  * Attempting to call a null value.
+  * Calling an object instance with a null `call()` method.
+  * Passing too few or too many arguments.
+  * Passing incorrect named arguments.
+  * Passing too few or too many type arguments.
+  * Passing type arguments to a non-generic method.
+
 ### Tools
 
 #### Linter
@@ -104,7 +199,6 @@ The Linter was updated to `0.1.91`, which includes the following changes:
 * Added `prefer_if_null_operators`.
 * Fixed `prefer_contains` false positives.
 * Fixed `unnecessary_parenthesis` false positives.
-* New lint: `prefer_double_quotes`
 * Fixed `prefer_asserts_in_initializer_lists` false positives
 * Fixed `curly_braces_in_flow_control_structures` to handle more cases
 * New lint: `prefer_double_quotes`

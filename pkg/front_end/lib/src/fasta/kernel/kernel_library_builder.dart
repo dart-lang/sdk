@@ -1481,7 +1481,8 @@ class KernelLibraryBuilder
     addToExportScope(name, member);
   }
 
-  void reportTypeArgumentIssues(List<TypeArgumentIssue> issues, int offset,
+  void reportTypeArgumentIssues(
+      List<TypeArgumentIssue> issues, Uri fileUri, int offset,
       {bool inferred, DartType targetReceiver, String targetName}) {
     for (TypeArgumentIssue issue in issues) {
       DartType argument = issue.argument;
@@ -1542,12 +1543,12 @@ class KernelLibraryBuilder
         }
       }
 
-      reportTypeArgumentIssue(message, offset, typeParameter);
+      reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
     }
   }
 
-  void reportTypeArgumentIssue(
-      Message message, int fileOffset, TypeParameter typeParameter) {
+  void reportTypeArgumentIssue(Message message, Uri fileUri, int fileOffset,
+      TypeParameter typeParameter) {
     List<LocatedMessage> context;
     if (typeParameter != null && typeParameter.fileOffset != -1) {
       // It looks like when parameters come from patch files, they don't
@@ -1562,12 +1563,13 @@ class KernelLibraryBuilder
 
   void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
     if (loader.target.legacyMode) return;
-    checkBoundsInType(field.type, typeEnvironment, field.fileOffset,
+    checkBoundsInType(
+        field.type, typeEnvironment, field.fileUri, field.fileOffset,
         allowSuperBounded: true);
   }
 
   void checkBoundsInFunctionNodeParts(
-      TypeEnvironment typeEnvironment, int fileOffset,
+      TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
@@ -1576,19 +1578,21 @@ class KernelLibraryBuilder
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
-            parameter.bound, typeEnvironment, parameter.fileOffset,
+            parameter.bound, typeEnvironment, fileUri, parameter.fileOffset,
             allowSuperBounded: true);
       }
     }
     if (positionalParameters != null) {
       for (VariableDeclaration formal in positionalParameters) {
-        checkBoundsInType(formal.type, typeEnvironment, formal.fileOffset,
+        checkBoundsInType(
+            formal.type, typeEnvironment, fileUri, formal.fileOffset,
             allowSuperBounded: true);
       }
     }
     if (namedParameters != null) {
       for (VariableDeclaration named in namedParameters) {
-        checkBoundsInType(named.type, typeEnvironment, named.fileOffset,
+        checkBoundsInType(
+            named.type, typeEnvironment, fileUri, named.fileOffset,
             allowSuperBounded: true);
       }
     }
@@ -1617,16 +1621,17 @@ class KernelLibraryBuilder
                 getGenericTypeName(issue.enclosingType));
           }
 
-          reportTypeArgumentIssue(message, offset, typeParameter);
+          reportTypeArgumentIssue(message, fileUri, offset, typeParameter);
         }
       }
     }
   }
 
   void checkBoundsInFunctionNode(
-      FunctionNode function, TypeEnvironment typeEnvironment) {
+      FunctionNode function, TypeEnvironment typeEnvironment, Uri fileUri) {
     if (loader.target.legacyMode) return;
-    checkBoundsInFunctionNodeParts(typeEnvironment, function.fileOffset,
+    checkBoundsInFunctionNodeParts(
+        typeEnvironment, fileUri, function.fileOffset,
         typeParameters: function.typeParameters,
         positionalParameters: function.positionalParameters,
         namedParameters: function.namedParameters,
@@ -1634,64 +1639,69 @@ class KernelLibraryBuilder
   }
 
   void checkBoundsInListLiteral(
-      ListLiteral node, TypeEnvironment typeEnvironment,
+      ListLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
-    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+    checkBoundsInType(
+        node.typeArgument, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
   }
 
-  void checkBoundsInSetLiteral(SetLiteral node, TypeEnvironment typeEnvironment,
+  void checkBoundsInSetLiteral(
+      SetLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
-    checkBoundsInType(node.typeArgument, typeEnvironment, node.fileOffset,
+    checkBoundsInType(
+        node.typeArgument, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
   }
 
-  void checkBoundsInMapLiteral(MapLiteral node, TypeEnvironment typeEnvironment,
+  void checkBoundsInMapLiteral(
+      MapLiteral node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
-    checkBoundsInType(node.keyType, typeEnvironment, node.fileOffset,
+    checkBoundsInType(node.keyType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
-    checkBoundsInType(node.valueType, typeEnvironment, node.fileOffset,
+    checkBoundsInType(node.valueType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
   }
 
   void checkBoundsInType(
-      DartType type, TypeEnvironment typeEnvironment, int offset,
+      DartType type, TypeEnvironment typeEnvironment, Uri fileUri, int offset,
       {bool inferred, bool allowSuperBounded = true}) {
     if (loader.target.legacyMode) return;
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
         type, typeEnvironment,
         allowSuperBounded: allowSuperBounded);
     if (issues != null) {
-      reportTypeArgumentIssues(issues, offset, inferred: inferred);
+      reportTypeArgumentIssues(issues, fileUri, offset, inferred: inferred);
     }
   }
 
   void checkBoundsInVariableDeclaration(
-      VariableDeclaration node, TypeEnvironment typeEnvironment,
+      VariableDeclaration node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
     if (node.type == null) return;
-    checkBoundsInType(node.type, typeEnvironment, node.fileOffset,
+    checkBoundsInType(node.type, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: true);
   }
 
   void checkBoundsInConstructorInvocation(
-      ConstructorInvocation node, TypeEnvironment typeEnvironment,
+      ConstructorInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
     Constructor constructor = node.target;
     Class klass = constructor.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    checkBoundsInType(constructedType, typeEnvironment, node.fileOffset,
+    checkBoundsInType(
+        constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
   }
 
   void checkBoundsInFactoryInvocation(
-      StaticInvocation node, TypeEnvironment typeEnvironment,
+      StaticInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
@@ -1699,12 +1709,13 @@ class KernelLibraryBuilder
     assert(factory.isFactory);
     Class klass = factory.enclosingClass;
     DartType constructedType = new InterfaceType(klass, node.arguments.types);
-    checkBoundsInType(constructedType, typeEnvironment, node.fileOffset,
+    checkBoundsInType(
+        constructedType, typeEnvironment, fileUri, node.fileOffset,
         inferred: inferred, allowSuperBounded: false);
   }
 
   void checkBoundsInStaticInvocation(
-      StaticInvocation node, TypeEnvironment typeEnvironment,
+      StaticInvocation node, TypeEnvironment typeEnvironment, Uri fileUri,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
     if (node.arguments.types.isEmpty) return;
@@ -1721,7 +1732,7 @@ class KernelLibraryBuilder
         targetReceiver = new InterfaceType(klass);
       }
       String targetName = node.target.name.name;
-      reportTypeArgumentIssues(issues, node.fileOffset,
+      reportTypeArgumentIssues(issues, fileUri, node.fileOffset,
           inferred: inferred,
           targetReceiver: targetReceiver,
           targetName: targetName);
@@ -1736,6 +1747,7 @@ class KernelLibraryBuilder
       Name name,
       Member interfaceTarget,
       Arguments arguments,
+      Uri fileUri,
       int offset,
       {bool inferred = false}) {
     if (loader.target.legacyMode) return;
@@ -1781,7 +1793,7 @@ class KernelLibraryBuilder
     List<TypeArgumentIssue> issues = findTypeArgumentIssuesForInvocation(
         instantiatedMethodParameters, arguments.types, typeEnvironment);
     if (issues != null) {
-      reportTypeArgumentIssues(issues, offset,
+      reportTypeArgumentIssues(issues, fileUri, offset,
           inferred: inferred,
           targetReceiver: receiverType,
           targetName: name.name);
@@ -1796,7 +1808,8 @@ class KernelLibraryBuilder
       if (declaration is KernelFieldBuilder) {
         checkBoundsInField(declaration.target, typeEnvironment);
       } else if (declaration is KernelProcedureBuilder) {
-        checkBoundsInFunctionNode(declaration.target.function, typeEnvironment);
+        checkBoundsInFunctionNode(
+            declaration.target.function, typeEnvironment, declaration.fileUri);
       } else if (declaration is KernelClassBuilder) {
         declaration.checkBoundsInOutline(typeEnvironment);
       }

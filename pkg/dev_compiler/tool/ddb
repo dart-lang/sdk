@@ -17,10 +17,6 @@ import 'dart:io';
 import 'package:args/args.dart' show ArgParser;
 import 'package:path/path.dart' as path;
 
-// TODO(vsm): Remove this once we stop ignoring.  It's off here, but
-// configurable for manual testing.
-const ignoreWhitelistedErrors = false;
-
 void main(List<String> args) async {
   void printUsage() {
     print('Usage: ddb [options] <dart-script-file>\n');
@@ -201,7 +197,6 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     sdk._debugger.registerDevtoolsFormatter();
-    sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
     app.$basename.main();
   });
 </script>
@@ -228,7 +223,6 @@ void main(List<String> args) async {
     }
     let sdk = require(\"dart_sdk\");
     let main = require(\"./$basename\").$basename.main;
-    sdk.dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {
@@ -259,7 +253,6 @@ void main(List<String> args) async {
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
     import { $basename } from '$basename.js';
     let main = $basename.main;
-    dart.ignoreWhitelistedErrors($ignoreWhitelistedErrors);
     try {
       _isolate_helper.startRootIsolate(() => {}, []);
       main();

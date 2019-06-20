@@ -11,6 +11,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"  // For Parser::kParameter* constants.
+#include "vm/stack_frame.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -264,7 +265,6 @@ static void CollectBytecodeTokenPositions(
     Zone* zone,
     GrowableArray<intptr_t>* token_positions,
     GrowableArray<intptr_t>* yield_positions) {
-  ASSERT(bytecode.HasSourcePositions());
   BytecodeSourcePositionsIterator iter(zone, bytecode);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
@@ -291,7 +291,7 @@ static void CollectBytecodeFunctionTokenPositions(
   }
   Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
   ASSERT(!bytecode.IsNull());
-  if (bytecode.HasSourcePositions()) {
+  if (bytecode.HasSourcePositions() && !function.IsLocalFunction()) {
     CollectBytecodeTokenPositions(bytecode, zone, token_positions,
                                   yield_positions);
     // Find closure functions in the object pool.
@@ -307,10 +307,13 @@ static void CollectBytecodeFunctionTokenPositions(
       if (object.IsFunction()) {
         closure ^= object.raw();
         if ((closure.kind() == RawFunction::kClosureFunction) &&
-            (closure.raw() != function.raw())) {
+            (closure.IsLocalFunction())) {
           bytecode = closure.bytecode();
-          CollectBytecodeTokenPositions(bytecode, zone, token_positions,
-                                        yield_positions);
+          ASSERT(!bytecode.IsNull());
+          if (bytecode.HasSourcePositions()) {
+            CollectBytecodeTokenPositions(bytecode, zone, token_positions,
+                                          yield_positions);
+          }
         }
       }
     }
@@ -349,12 +352,22 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (klass.script() == interesting_script.raw()) {
           token_positions.Add(klass.token_pos().value());
         }
+        // If class is declared in bytecode, its members should be loaded
+        // (via class finalization) before their token positions could be
+        // collected.
+        if (klass.is_declared_in_bytecode() && !klass.is_finalized()) {
+          const Error& error =
+              Error::Handle(zone, klass.EnsureIsFinalized(thread));
+          if (!error.IsNull()) {
+            Exceptions::PropagateError(error);
+          }
+        }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_field ^= temp_array.At(i);
-            // TODO(alexmarkov): collect token positions from bytecode
-            if (temp_field.is_declared_in_bytecode() ||
+            // TODO(regis): Factorize field handling code.
+            if (!temp_field.is_declared_in_bytecode() &&
                 temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
               continue;
@@ -363,16 +376,25 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             if (entry_script.raw() != interesting_script.raw()) {
               continue;
             }
-            data = temp_field.KernelData();
-            CollectKernelDataTokenPositions(
-                data, interesting_script, entry_script,
-                temp_field.kernel_offset(),
-                temp_field.KernelDataProgramOffset(), zone, &helper,
-                &token_positions, &yield_positions);
+            if (temp_field.is_declared_in_bytecode()) {
+              if (temp_field.is_static() && temp_field.has_initializer()) {
+                temp_function = temp_field.EnsureInitializerFunction();
+                CollectBytecodeFunctionTokenPositions(
+                    temp_function, &token_positions, &yield_positions);
+              }
+            } else {
+              data = temp_field.KernelData();
+              CollectKernelDataTokenPositions(
+                  data, interesting_script, entry_script,
+                  temp_field.kernel_offset(),
+                  temp_field.KernelDataProgramOffset(), zone, &helper,
+                  &token_positions, &yield_positions);
+            }
           }
           temp_array = klass.functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
+            // TODO(regis): Factorize function handling code.
             entry_script = temp_function.script();
             if (entry_script.raw() != interesting_script.raw()) {
               continue;
@@ -391,6 +413,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
+          ASSERT(!klass.is_declared_in_bytecode());
           ASSERT(klass.kernel_offset() > 0);
           data = lib.kernel_data();
           ASSERT(!data.IsNull());
@@ -409,6 +432,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.raw();
+        // TODO(regis): Factorize function handling code.
         entry_script = temp_function.script();
         if (entry_script.raw() != interesting_script.raw()) {
           continue;
@@ -426,8 +450,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        // TODO(alexmarkov): collect token positions from bytecode
-        if (field.is_declared_in_bytecode() || field.kernel_offset() <= 0) {
+        // TODO(regis): Factorize field handling code.
+        if (!field.is_declared_in_bytecode() && field.kernel_offset() <= 0) {
           // Skip artificially injected fields.
           continue;
         }
@@ -435,11 +459,19 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (entry_script.raw() != interesting_script.raw()) {
           continue;
         }
-        data = field.KernelData();
-        CollectKernelDataTokenPositions(
-            data, interesting_script, entry_script, field.kernel_offset(),
-            field.KernelDataProgramOffset(), zone, &helper, &token_positions,
-            &yield_positions);
+        if (field.is_declared_in_bytecode()) {
+          if (field.is_static() && field.has_initializer()) {
+            temp_function = field.EnsureInitializerFunction();
+            CollectBytecodeFunctionTokenPositions(
+                temp_function, &token_positions, &yield_positions);
+          }
+        } else {
+          data = field.KernelData();
+          CollectKernelDataTokenPositions(
+              data, interesting_script, entry_script, field.kernel_offset(),
+              field.KernelDataProgramOffset(), zone, &helper, &token_positions,
+              &yield_positions);
+        }
       }
     }
   }

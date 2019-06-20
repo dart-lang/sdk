@@ -1465,13 +1465,14 @@ DART_EXPORT Dart_Handle Dart_GetStickyError() {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   CHECK_ISOLATE(I);
-  NoSafepointScope no_safepoint_scope;
-  if (I->sticky_error() != Error::null()) {
-    TransitionNativeToVM transition(T);
-    Dart_Handle error = Api::NewHandle(T, I->sticky_error());
-    return error;
+  {
+    NoSafepointScope no_safepoint_scope;
+    if (I->sticky_error() == Error::null()) {
+      return Api::Null();
+    }
   }
-  return Dart_Null();
+  TransitionNativeToVM transition(T);
+  return Api::NewHandle(T, I->sticky_error());
 }
 
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline) {
@@ -3695,7 +3696,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   intptr_t size_in_bytes = 0;
   void* data_tmp = NULL;
   bool external = false;
-  // If it is an external typed data object just return the data field.
+  T->IncrementNoSafepointScopeDepth();
+  START_NO_CALLBACK_SCOPE(T);
   if (RawObject::IsExternalTypedDataClassId(class_id)) {
     const ExternalTypedData& obj =
         Api::UnwrapExternalTypedDataHandle(Z, object);
@@ -3705,13 +3707,10 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     data_tmp = obj.DataAddr(0);
     external = true;
   } else if (RawObject::IsTypedDataClassId(class_id)) {
-    // Regular typed data object, set up some GC and API callback guards.
     const TypedData& obj = Api::UnwrapTypedDataHandle(Z, object);
     ASSERT(!obj.IsNull());
     length = obj.Length();
     size_in_bytes = length * TypedData::ElementSizeInBytes(class_id);
-    T->IncrementNoSafepointScopeDepth();
-    START_NO_CALLBACK_SCOPE(T);
     data_tmp = obj.DataAddr(0);
   } else {
     ASSERT(RawObject::IsTypedDataViewClassId(class_id));
@@ -3724,8 +3723,6 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     val = view_obj.offset_in_bytes();
     intptr_t offset_in_bytes = val.Value();
     const auto& obj = Instance::Handle(view_obj.typed_data());
-    T->IncrementNoSafepointScopeDepth();
-    START_NO_CALLBACK_SCOPE(T);
     if (TypedData::IsTypedData(obj)) {
       const TypedData& data_obj = TypedData::Cast(obj);
       data_tmp = data_obj.DataAddr(offset_in_bytes);
@@ -3769,10 +3766,8 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
       !RawObject::IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(Z, object, 'TypedData');
   }
-  if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    T->DecrementNoSafepointScopeDepth();
-    END_NO_CALLBACK_SCOPE(T);
-  }
+  T->DecrementNoSafepointScopeDepth();
+  END_NO_CALLBACK_SCOPE(T);
   if (FLAG_verify_acquired_data) {
     const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
     WeakTable* table = I->api_state()->acquired_table();

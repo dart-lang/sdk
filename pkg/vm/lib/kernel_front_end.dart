@@ -45,9 +45,9 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:kernel/vm/constants_native_effects.dart' as vm_constants;
 
-import 'bytecode/ast_remover.dart' show ASTRemover;
 import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
-import 'bytecode/gen_bytecode.dart' show generateBytecode;
+import 'bytecode/gen_bytecode.dart'
+    show generateBytecode, createFreshComponentWithBytecode;
 
 import 'constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import 'target/install.dart' show installAdditionalTargets;
@@ -306,7 +306,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
   options.onDiagnostic = errorDetector;
 
   setVMEnvironmentDefines(environmentDefines, options);
-  final component = await kernelForProgram(source, options);
+  Component component = await kernelForProgram(source, options);
 
   // Run global transformations only if component is correct.
   if (aot && component != null) {
@@ -327,6 +327,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
       generateBytecode(component,
           enableAsserts: enableAsserts,
           emitSourcePositions: emitBytecodeSourcePositions,
+          emitSourceFiles: options.embedSourceText,
           emitLocalVarInfo: emitBytecodeLocalVarInfo,
           emitAnnotations: emitBytecodeAnnotations,
           useFutureBytecodeFormat: useFutureBytecodeFormat,
@@ -334,7 +335,7 @@ Future<Component> compileToKernel(Uri source, CompilerOptions options,
     });
 
     if (dropAST) {
-      new ASTRemover(component).visitComponent(component);
+      component = createFreshComponentWithBytecode(component);
     }
   }
 
@@ -717,7 +718,7 @@ Future writeOutputSplitByPackages(
         component.problemsAsJson = null;
       }
 
-      ASTRemover astRemover;
+      Component partComponent = component;
       if (genBytecode) {
         final List<Library> libraries = component.libraries
             .where((lib) => packageFor(lib) == package)
@@ -727,26 +728,21 @@ Future writeOutputSplitByPackages(
             hierarchy: hierarchy,
             enableAsserts: enableAsserts,
             emitSourcePositions: emitBytecodeSourcePositions,
+            emitSourceFiles: compilerOptions.embedSourceText,
             emitLocalVarInfo: emitBytecodeLocalVarInfo,
             emitAnnotations: emitBytecodeAnnotations,
             useFutureBytecodeFormat: useFutureBytecodeFormat,
             environmentDefines: environmentDefines);
 
         if (dropAST) {
-          astRemover = new ASTRemover(component);
-          for (var library in libraries) {
-            astRemover.visitLibrary(library);
-          }
+          partComponent = createFreshComponentWithBytecode(component);
         }
       }
 
       final BinaryPrinter printer = new LimitedBinaryPrinter(sink,
           (lib) => packageFor(lib) == package, false /* excludeUriToSource */);
-      printer.writeComponentFile(component);
+      printer.writeComponentFile(partComponent);
 
-      if (genBytecode && dropAST) {
-        astRemover.restoreAST();
-      }
       component.mainMethod = main;
       component.problemsAsJson = problems;
 

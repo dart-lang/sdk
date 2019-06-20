@@ -703,6 +703,12 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       AssignSafepoints(defn, range);
       range->finger()->Initialize(range);
       slot_index = kNumberOfCpuRegisters - 1 - slot_index;
+      if (slot_index < kMaxNumberOfFixedInputRegistersUsedByIL) {
+        // We ran out of registers for the catch block parameters.
+        // Bail out to unoptimized code
+        flow_graph_.parsed_function().Bailout("FlowGraphAllocator", "CATCH");
+        UNREACHABLE();
+      }
       range->set_assigned_location(Location::RegisterLocation(slot_index));
       SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
       ConvertAllUses(range);

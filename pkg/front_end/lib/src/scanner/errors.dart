@@ -49,7 +49,7 @@ class ScannerErrorCode extends ErrorCode {
       const ScannerErrorCode(
           'UNEXPECTED_DOLLAR_IN_STRING',
           "A '\$' has special meaning inside a string, and must be followed by "
-          "an identifier or an expression in curly braces ({}).",
+              "an identifier or an expression in curly braces ({}).",
           correction: "Try adding a backslash (\\) to escape the '\$'.");
 
   /**
@@ -157,7 +157,8 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
         }
-        if (type == TokenType.OPEN_SQUARE_BRACKET) {
+        if (type == TokenType.OPEN_SQUARE_BRACKET ||
+            type == TokenType.QUESTION_PERIOD_OPEN_SQUARE_BRACKET) {
           return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {

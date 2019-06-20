@@ -725,13 +725,8 @@ class InferrerEngineImpl extends InferrerEngine {
         }
         break;
       case MemberKind.closureCall:
-        ir.TreeNode node = definition.node;
-        if (node is ir.FunctionDeclaration) {
-          return node.function;
-        } else if (node is ir.FunctionExpression) {
-          return node.function;
-        }
-        break;
+        ir.LocalFunction node = definition.node;
+        return node.function;
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
@@ -1361,8 +1356,7 @@ class KernelTypeSystemStrategy implements TypeSystemStrategy {
     bool isClosure = false;
     if (functionNode.parent is ir.Member) {
       member = _closedWorld.elementMap.getMember(functionNode.parent);
-    } else if (functionNode.parent is ir.FunctionExpression ||
-        functionNode.parent is ir.FunctionDeclaration) {
+    } else if (functionNode.parent is ir.LocalFunction) {
       ClosureRepresentationInfo info =
           _closedWorld.closureDataLookup.getClosureInfo(functionNode.parent);
       member = info.callMethod;

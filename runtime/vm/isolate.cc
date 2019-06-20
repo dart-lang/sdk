@@ -892,8 +892,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
           NOT_IN_PRODUCT("Isolate::type_canonicalization_mutex_")),
       constant_canonicalization_mutex_(
           NOT_IN_PRODUCT("Isolate::constant_canonicalization_mutex_")),
-      megamorphic_lookup_mutex_(
-          NOT_IN_PRODUCT("Isolate::megamorphic_lookup_mutex_")),
+      megamorphic_mutex_(NOT_IN_PRODUCT("Isolate::megamorphic_mutex_")),
       kernel_data_lib_cache_mutex_(
           NOT_IN_PRODUCT("Isolate::kernel_data_lib_cache_mutex_")),
       kernel_data_class_cache_mutex_(
@@ -979,7 +978,6 @@ Isolate::~Isolate() {
       nullptr;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when isolate deleted.
-  delete spawn_state_;
   ASSERT(spawn_count_ == 0);
   delete safepoint_handler_;
   delete thread_registry_;
@@ -1758,11 +1756,6 @@ void Isolate::LowLevelShutdown() {
     }
   }
 
-#if !defined(PRODUCT)
-  // Clean up debugger resources.
-  debugger()->Shutdown();
-#endif
-
   // Close all the ports owned by this isolate.
   PortMap::ClosePorts(message_handler());
 
@@ -1861,6 +1854,9 @@ void Isolate::Shutdown() {
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
     KernelIsolate::NotifyAboutIsolateShutdown(this);
+#if !defined(PRODUCT)
+    debugger()->Shutdown();
+#endif
   }
 
   if (heap_ != nullptr) {
@@ -2554,7 +2550,7 @@ void Isolate::PauseEventHandler() {
     pause_loop_monitor_ = new Monitor();
   }
   Dart_EnterScope();
-  MonitorLocker ml(pause_loop_monitor_);
+  MonitorLocker ml(pause_loop_monitor_, false);
 
   Dart_MessageNotifyCallback saved_notify_callback = message_notify_callback();
   set_message_notify_callback(Isolate::WakePauseEventHandler);

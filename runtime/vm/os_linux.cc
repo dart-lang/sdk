@@ -497,6 +497,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
+  // DBC alignment should be at least as much as host architecture.
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM)
   const int kMinimumAlignment = 8;

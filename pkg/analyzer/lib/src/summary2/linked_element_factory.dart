@@ -213,6 +213,12 @@ class _ElementRequest {
       return reference.element;
     }
 
+    if (reference.name == '@function' && parent2.name == '@typeAlias') {
+      var parent = reference.parent;
+      GenericTypeAliasElementImpl alias = elementOfReference(parent);
+      return alias.function;
+    }
+
     throw StateError('Not found: $input');
   }
 
@@ -302,6 +308,7 @@ class _ElementRequest {
       unitElement.lineInfo = unitNode.lineInfo;
       unitElement.source = unitSource;
       unitElement.librarySource = librarySource;
+      unitElement.uri = unitContext.partUriStr;
       units.add(unitElement);
       unitContainerRef.getChild(unitContext.uriStr).element = unitElement;
     }

@@ -1,17 +1,16 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < dart:core::Null >, getter = 'get:asyncInFieldInitializer', reflectable, static
-    initializer 
+    initializer
 Bytecode {
   Entry                3
   CheckStack           0
@@ -167,7 +166,6 @@ ClosureCode {
   LoadContextVar       0, 1
   InterfaceCall        CP#37, 1
   ReturnTOS
-
 }
 
 Closure #lib::asyncInFieldInitializer (field)::Closure/0::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
@@ -255,14 +253,12 @@ L1:
   LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L4
-
 }
 
 
 Function 'foo', static, reflectable, async
     parameters [] (required: 0)
     return-type dart:async::Future < dart:core::int >
-
 
 Bytecode {
   Entry                7
@@ -420,14 +416,12 @@ L3:
   ReturnTOS
 L1:
   Trap
-
 }
 
 
 Function 'simpleAsyncAwait', static, reflectable, async
     parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b'] (required: 2)
     return-type dart:async::Future < dart:core::int >
-
 
 Bytecode {
   Entry                4
@@ -677,14 +671,12 @@ L1:
   PushInt              1
   JumpIfEqStrict       L6
   Jump                 L7
-
 }
 
 
 Function 'loops', static, reflectable, async
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:async::Future < dart:core::int >
-
 
 Bytecode {
   Entry                4
@@ -1058,14 +1050,12 @@ L1:
   LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L11
-
 }
 
 
 Function 'tryCatchRethrow', static, reflectable, async
     parameters [dart:async::Future < dart:core::int > 'a', dart:async::Future < dart:core::int > 'b', dart:async::Future < dart:core::int > 'c'] (required: 3)
     return-type dart:async::Future < dart:core::int >
-
 
 Bytecode {
   Entry                4
@@ -1637,14 +1627,12 @@ L1:
   PushInt              4
   JumpIfEqStrict       L16
   Jump                 L17
-
 }
 
 
 Function 'closure', static, reflectable, debuggable
     parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
     return-type dynamic
-
 
 Bytecode {
   Entry                4
@@ -1808,7 +1796,6 @@ ClosureCode {
   LoadContextVar       1, 0
   InterfaceCall        CP#37, 1
   ReturnTOS
-
 }
 
 Closure #lib::closure::Closure/0::':async_op' ([ dynamic :result, dynamic :exception, dynamic :stack_trace ]) -> dynamic
@@ -1966,14 +1953,12 @@ L1:
   LoadContextVar       1, 5
   PopLocal             r4
   Jump                 L6
-
 }
 
 
 Function 'testAssert', static, reflectable, async
     parameters [dart:async::Future < dart:core::int > 'a'] (required: 1)
     return-type dart:async::Future < dart:core::int >
-
 
 Bytecode {
   Entry                4
@@ -2198,14 +2183,12 @@ L1:
   LoadContextVar       0, 6
   PopLocal             r4
   Jump                 L6
-
 }
 
 
 Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                0
@@ -2216,7 +2199,6 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

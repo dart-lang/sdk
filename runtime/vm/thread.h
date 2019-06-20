@@ -112,8 +112,6 @@ class Zone;
   V(RawCode*, stack_overflow_shared_with_fpu_regs_stub_,                       \
     StubCode::StackOverflowSharedWithFPURegs().raw(), NULL)                    \
   V(RawCode*, monomorphic_miss_stub_, StubCode::MonomorphicMiss().raw(), NULL) \
-  V(RawCode*, ic_lookup_through_code_stub_,                                    \
-    StubCode::ICCallThroughCode().raw(), NULL)                                 \
   V(RawCode*, optimize_stub_, StubCode::OptimizeFunction().raw(), NULL)        \
   V(RawCode*, deoptimize_stub_, StubCode::Deoptimize().raw(), NULL)            \
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
@@ -738,6 +736,7 @@ class Thread : public ThreadState {
   }
 
   void EnterSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     // First try a fast update of the thread state to indicate it is at a
     // safepoint.
     if (!TryEnterSafepoint()) {
@@ -767,6 +766,7 @@ class Thread : public ThreadState {
   }
 
   void CheckForSafepoint() {
+    ASSERT(no_safepoint_scope_depth() == 0);
     if (IsSafepointRequested()) {
       BlockForSafepoint();
     }

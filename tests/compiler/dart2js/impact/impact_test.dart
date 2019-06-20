@@ -54,7 +54,7 @@ class ImpactDataComputer extends DataComputer<Features> {
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
-    KernelFrontEndStrategy frontendStrategy = compiler.frontendStrategy;
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     WorldImpact impact = compiler.impactCache[member];
     ir.Member node = frontendStrategy.elementMap.getMemberNode(member);
     Features features = new Features();
