@@ -2453,12 +2453,29 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try adding the missing arguments.");
 
   /**
+   * It is an error if a top level variable <cut> with potentially non-nullable
+   * type has no initializer expression <cut>.
+   *
+   * Parameters:
+   * 0: the name of the variable that is invalid
+   */
+  static const CompileTimeErrorCode
+      NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE =
+      const CompileTimeErrorCode(
+          'NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE',
+          "Non-nullable top-level variable '{0}' must be initialized.",
+          correction: "Try adding an initializer expression.");
+
+  /**
    * It is an error if a potentially non-nullable local variable which has no
    * initializer expression and is not marked `late` is used before it is
    * definitely assigned.
    *
    * TODO(scheglov) Update the code and the message when implement definite
    * assignment analysis.
+   *
+   * Parameters:
+   * 0: the name of the variable that is invalid
    */
   static const CompileTimeErrorCode
       NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
