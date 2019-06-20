@@ -433,6 +433,9 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
     } else {
       var typeArgumentType = _variables.decoratedTypeAnnotation(
           _source, node.typeArguments.arguments[0]);
+      if (typeArgumentType == null) {
+        _unimplemented(node, 'Could not compute type argument type');
+      }
       for (var element in node.elements) {
         if (element is Expression) {
           _handleAssignment(typeArgumentType, element);
