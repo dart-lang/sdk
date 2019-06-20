@@ -50,6 +50,32 @@
 
   [29456]: https://github.com/dart-lang/sdk/issues/29456
 
+#### `dart:io`
+
+* **Breaking Change:** The `Cookie` class's constructor's `name` and `value`
+  optional positional parameters are now mandatory (Issue [37192][]). The
+  signature changes from:
+
+      Cookie([String name, String value])
+
+  to
+
+      Cookie(String name, String value)
+
+  However, it has not been possible to set `name` and `value` to null since Dart
+  1.3.0 (2014) where a bug made it impossible. Any code not using both
+  parameters or setting any to null would necessarily get a noSuchMethod
+  exception at runtime. This change catches such erroneous uses at compile time.
+  Since code could not previously correctly omit the parameters, this is not
+  really a breaking change.
+
+* **Breaking Change:** The `Cookie` class's `name` and `value` setters now
+  validates that the strings are made from the allowed character set and are not
+  null (Issue [37192][]). The constructor already made these checks and this
+  fixes the loophole where the setters didn't also validate.
+
+[37192]: https://github.com/dart-lang/sdk/issues/37192
+
 ### Dart VM
 
 ### Tools
