@@ -933,6 +933,7 @@ regress/issue_36647: TextSerializationFailure
 regress/issue_36647_2: TextSerializationFailure
 regress/issue_36669: TextSerializationFailure
 regress/issue_36793: TextSerializationFailure
+regress/issue_37285: TextSerializationFailure
 reject_generic_function_types_in_bounds: TextSerializationFailure # Was: RuntimeError # Expected
 return_with_unknown_type_in_context: TextSerializationFailure # Was: Pass
 runtime_checks/call_kinds: TextSerializationFailure # Was: Pass
