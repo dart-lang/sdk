@@ -1931,7 +1931,8 @@ RawError* Object::Init(Isolate* isolate,
     ASSERT(!lib.IsNull());
     cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
     ASSERT(!cls.IsNull());
-    cls.InjectCIDFields();
+    const bool injected = cls.InjectCIDFields();
+    ASSERT(injected);
 
     isolate->object_store()->InitKnownObjects();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -2311,7 +2312,8 @@ RawClass* Class::New() {
     // references, but do not recompute size.
     result.set_is_prefinalized();
   }
-  result.set_kernel_offset(-1);
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.InitEmptyFields();
   Isolate::Current()->RegisterClass(result);
   return result.raw();
@@ -2593,17 +2595,21 @@ void Class::set_library(const Library& value) const {
 
 void Class::set_type_parameters(const TypeArguments& value) const {
   ASSERT((num_type_arguments() == kUnknownNumTypeArguments) ||
-         is_prefinalized());
+         is_declared_in_bytecode() || is_prefinalized());
   StorePointer(&raw_ptr()->type_parameters_, value.raw());
 }
 
 intptr_t Class::NumTypeParameters(Thread* thread) const {
-  if (type_parameters() == TypeArguments::null()) {
+  if (!is_declaration_loaded()) {
+    ASSERT(is_prefinalized());
     const intptr_t cid = id();
     if ((cid == kArrayCid) || (cid == kImmutableArrayCid) ||
         (cid == kGrowableObjectArrayCid)) {
       return 1;  // List's type parameter may not have been parsed yet.
     }
+    return 0;
+  }
+  if (type_parameters() == TypeArguments::null()) {
     return 0;
   }
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
@@ -3596,7 +3602,12 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
   SetFields(new_arr);
 }
 
-void Class::InjectCIDFields() const {
+bool Class::InjectCIDFields() const {
+  if (library() != Library::InternalLibrary() ||
+      Name() != Symbols::ClassID().raw()) {
+    return false;
+  }
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Field& field = Field::Handle(zone);
@@ -3631,6 +3642,8 @@ void Class::InjectCIDFields() const {
   CLASS_LIST_TYPED_DATA(ADD_SET_FIELD)
 #undef ADD_SET_FIELD
 #undef CLASS_LIST_WITH_NULL
+
+  return true;
 }
 
 template <class FakeInstance>
@@ -3654,6 +3667,8 @@ RawClass* Class::NewCommon(intptr_t index) {
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
   result.set_state_bits(0);
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.InitEmptyFields();
   return result.raw();
 }
@@ -3661,7 +3676,6 @@ RawClass* Class::NewCommon(intptr_t index) {
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
   Class& result = Class::Handle(NewCommon<FakeInstance>(index));
-  result.set_kernel_offset(-1);
   Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
@@ -3676,7 +3690,6 @@ RawClass* Class::New(const Library& lib,
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
-  result.set_kernel_offset(-1);
   if (register_class) {
     Isolate::Current()->RegisterClass(result);
   }
@@ -3707,7 +3720,6 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
     cls.set_is_synthesized_class();
-    cls.set_kernel_offset(-1);
     library.AddClass(cls);
     return cls.raw();
   } else {
@@ -3978,6 +3990,11 @@ TokenPosition Class::ComputeEndTokenPos() const {
   ASSERT(!scr.IsNull());
 
   if (scr.kind() == RawScript::kKernelTag) {
+    if (is_declared_in_bytecode()) {
+      // TODO(alexmarkov): keep end_token_pos in Class?
+      UNIMPLEMENTED();
+      return token_pos();
+    }
     ASSERT(kernel_offset() > 0);
     const Library& lib = Library::Handle(zone, library());
     const ExternalTypedData& kernel_data =
@@ -7779,6 +7796,10 @@ RawExternalTypedData* Function::KernelData() const {
 }
 
 intptr_t Function::KernelDataProgramOffset() const {
+  ASSERT(!is_declared_in_bytecode());
+  if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+    return 0;
+  }
   Object& data = Object::Handle(raw_ptr()->data_);
   if (data.IsArray()) {
     Object& script = Object::Handle(Array::Cast(data).At(0));
@@ -7795,6 +7816,7 @@ intptr_t Function::KernelDataProgramOffset() const {
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
+    ASSERT(!lib.is_declared_in_bytecode());
     return lib.kernel_offset();
   }
   ASSERT(obj.IsPatchClass());
@@ -8434,6 +8456,7 @@ void Field::InheritBinaryDeclarationFrom(const Field& src) const {
 }
 
 intptr_t Field::KernelDataProgramOffset() const {
+  ASSERT(!is_declared_in_bytecode());
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   // During background JIT compilation field objects are copied
   // and copy points to the original field via the owner field.
@@ -8441,6 +8464,7 @@ intptr_t Field::KernelDataProgramOffset() const {
     return Field::Cast(obj).KernelDataProgramOffset();
   } else if (obj.IsClass()) {
     Library& lib = Library::Handle(Class::Cast(obj).library());
+    ASSERT(!lib.is_declared_in_bytecode());
     return lib.kernel_offset();
   }
   ASSERT(obj.IsPatchClass());
@@ -9995,14 +10019,15 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos,
-                               intptr_t kernel_offset) const {
+                               intptr_t kernel_offset,
+                               intptr_t bytecode_offset) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
               String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
-              token_pos, kernel_offset, 0);
+              token_pos, kernel_offset, bytecode_offset);
 }
 
 void Library::AddFieldMetadata(const Field& field,
@@ -10039,8 +10064,10 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 
 void Library::AddLibraryMetadata(const Object& tl_owner,
                                  TokenPosition token_pos,
-                                 intptr_t kernel_offset) const {
-  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset, 0);
+                                 intptr_t kernel_offset,
+                                 intptr_t bytecode_offset) const {
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos, kernel_offset,
+              bytecode_offset);
 }
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
@@ -10969,7 +10996,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url, bool import_core_lib) {
     result.set_debuggable(true);
   }
   result.set_is_dart_scheme(dart_scheme);
-  result.set_kernel_offset(-1);
+  NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
+  NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
@@ -17684,7 +17712,14 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
         for (intptr_t i = 0; i < from_index; i++) {
           type_arg = type_args.TypeAt(i);
           other_type_arg = other_type_args.TypeAt(i);
-          ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
+          // Type arguments may not match if they are TypeRefs without
+          // underlying type (which will be set later).
+          ASSERT(
+              type_arg.IsEquivalent(other_type_arg, trail) ||
+              (type_arg.IsTypeRef() &&
+               TypeRef::Cast(type_arg).type() == AbstractType::null()) ||
+              (other_type_arg.IsTypeRef() &&
+               TypeRef::Cast(other_type_arg).type() == AbstractType::null()));
         }
       }
 #endif
@@ -18127,7 +18162,7 @@ RawTypeRef* TypeRef::InstantiateFrom(
 }
 
 void TypeRef::set_type(const AbstractType& value) const {
-  ASSERT(value.IsFunctionType() || value.HasTypeClass());
+  ASSERT(value.IsNull() || value.IsFunctionType() || value.HasTypeClass());
   ASSERT(!value.IsTypeRef());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -18143,9 +18178,10 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   // TODO(regis): Try to reduce the number of nodes required to represent the
   // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsNull());
-  ref_type = ref_type.Canonicalize(trail);
-  set_type(ref_type);
+  if (!ref_type.IsNull()) {
+    ref_type = ref_type.Canonicalize(trail);
+    set_type(ref_type);
+  }
   return raw();
 }
 
@@ -18172,10 +18208,10 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
 
 intptr_t TypeRef::Hash() const {
   // Do not calculate the hash of the referenced type to avoid divergence.
-  const AbstractType& ref_type = AbstractType::Handle(type());
-  ASSERT(!ref_type.IsNull());
-  const uint32_t result = Class::Handle(ref_type.type_class()).id();
-  return FinalizeHash(result, kHashBits);
+  // TypeRef can participate in type canonicalization even before referenced
+  // type is set, so its hash should not rely on referenced type.
+  const intptr_t kTypeRefHash = 37;
+  return kTypeRefHash;
 }
 
 RawTypeRef* TypeRef::New() {

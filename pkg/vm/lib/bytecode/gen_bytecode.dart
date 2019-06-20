@@ -8,6 +8,8 @@ library vm.bytecode.gen_bytecode;
 // explicitly once constant-update-2018 is shipped.
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, EvaluationEnvironment, ErrorReporter;
+import 'package:front_end/src/api_unstable/vm.dart'
+    show CompilerContext, Severity, templateIllegalRecursiveType;
 
 import 'package:kernel/ast.dart' hide MapEntry, Component, FunctionDeclaration;
 import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
@@ -38,12 +40,15 @@ import 'generics.dart'
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'local_vars.dart' show LocalVariables;
 import 'nullability_detector.dart' show NullabilityDetector;
-import 'object_table.dart' show ObjectHandle, ObjectTable, NameAndType;
+import 'object_table.dart'
+    show ObjectHandle, ObjectTable, NameAndType, topLevelClassName;
 import 'recognized_methods.dart' show RecognizedMethods;
-import 'source_positions.dart' show SourcePositions;
+import 'recursive_types_validator.dart' show IllegalRecursiveTypeException;
+import 'source_positions.dart' show LineStarts, SourcePositions;
 import '../constants_error_reporter.dart' show ForwardConstantEvaluationErrors;
 import '../metadata/bytecode.dart';
 
+import 'dart:convert' show utf8;
 import 'dart:math' as math;
 
 // This symbol is used as the name in assert assignable's to indicate it comes
@@ -55,6 +60,7 @@ void generateBytecode(
   ast.Component component, {
   bool enableAsserts: true,
   bool emitSourcePositions: false,
+  bool emitSourceFiles: false,
   bool emitLocalVarInfo: false,
   bool emitAnnotations: false,
   bool omitAssertSourcePositions: false,
@@ -73,22 +79,29 @@ void generateBytecode(
   final constantsBackend = new VmConstantsBackend(coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors();
   libraries ??= component.libraries;
-  final bytecodeGenerator = new BytecodeGenerator(
-      component,
-      coreTypes,
-      hierarchy,
-      typeEnvironment,
-      constantsBackend,
-      environmentDefines,
-      enableAsserts,
-      emitSourcePositions,
-      emitLocalVarInfo,
-      emitAnnotations,
-      omitAssertSourcePositions,
-      useFutureBytecodeFormat,
-      errorReporter);
-  for (var library in libraries) {
-    bytecodeGenerator.visitLibrary(library);
+  try {
+    final bytecodeGenerator = new BytecodeGenerator(
+        component,
+        coreTypes,
+        hierarchy,
+        typeEnvironment,
+        constantsBackend,
+        environmentDefines,
+        enableAsserts,
+        emitSourcePositions,
+        emitSourceFiles,
+        emitLocalVarInfo,
+        emitAnnotations,
+        omitAssertSourcePositions,
+        useFutureBytecodeFormat,
+        errorReporter);
+    for (var library in libraries) {
+      bytecodeGenerator.visitLibrary(library);
+    }
+  } on IllegalRecursiveTypeException catch (e) {
+    CompilerContext.current.options.report(
+        templateIllegalRecursiveType.withArguments(e.type).withoutLocation(),
+        Severity.error);
   }
 }
 
@@ -100,6 +113,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final Map<String, String> environmentDefines;
   final bool enableAsserts;
   final bool emitSourcePositions;
+  final bool emitSourceFiles;
   final bool emitLocalVarInfo;
   final bool emitAnnotations;
   final bool omitAssertSourcePositions;
@@ -108,11 +122,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
   final int formatVersion;
+  final Map<Uri, Source> astUriToSource;
   StringTable stringTable;
   ObjectTable objectTable;
   Component bytecodeComponent;
   NullabilityDetector nullabilityDetector;
 
+  List<ClassDeclaration> classDeclarations;
   List<FieldDeclaration> fieldDeclarations;
   List<FunctionDeclaration> functionDeclarations;
   Class enclosingClass;
@@ -152,6 +168,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       this.environmentDefines,
       this.enableAsserts,
       this.emitSourcePositions,
+      this.emitSourceFiles,
       this.emitLocalVarInfo,
       this.emitAnnotations,
       this.omitAssertSourcePositions,
@@ -160,14 +177,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       : recognizedMethods = new RecognizedMethods(typeEnvironment),
         formatVersion = useFutureBytecodeFormat
             ? futureBytecodeFormatVersion
-            : currentBytecodeFormatVersion {
+            : currentBytecodeFormatVersion,
+        astUriToSource = component.uriToSource {
     nullabilityDetector = new NullabilityDetector(recognizedMethods);
     component.addMetadataRepository(metadata);
 
     bytecodeComponent = new Component(formatVersion);
-    metadata.bytecodeComponent = bytecodeComponent;
-    metadata.mapping[component] =
-        new ComponentBytecodeMetadata(bytecodeComponent);
+    metadata.mapping[component] = new BytecodeMetadata(bytecodeComponent);
 
     stringTable = bytecodeComponent.stringTable;
     objectTable = bytecodeComponent.objectTable;
@@ -185,12 +201,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    visitList(node.classes, this);
-
     startMembers();
     visitList(node.procedures, this);
     visitList(node.fields, this);
-    endMembers(node);
+    final members = endMembers(node);
+
+    classDeclarations = <ClassDeclaration>[
+      getTopLevelClassDeclaration(node, members)
+    ];
+
+    visitList(node.classes, this);
+
+    bytecodeComponent.libraries
+        .add(getLibraryDeclaration(node, classDeclarations));
+    classDeclarations = null;
   }
 
   @override
@@ -199,7 +223,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     visitList(node.constructors, this);
     visitList(node.procedures, this);
     visitList(node.fields, this);
-    endMembers(node);
+    final members = endMembers(node);
+
+    classDeclarations.add(getClassDeclaration(node, members));
   }
 
   void startMembers() {
@@ -207,13 +233,159 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     functionDeclarations = <FunctionDeclaration>[];
   }
 
-  void endMembers(TreeNode node) {
+  Members endMembers(TreeNode node) {
     final members = new Members(fieldDeclarations, functionDeclarations);
     bytecodeComponent.members.add(members);
-    metadata.mapping[node] = new MembersBytecodeMetadata(members);
-
     fieldDeclarations = null;
     functionDeclarations = null;
+    return members;
+  }
+
+  ObjectHandle getScript(Uri uri, bool includeSource) {
+    SourceFile source;
+    if (includeSource && (emitSourceFiles || emitSourcePositions)) {
+      source = bytecodeComponent.uriToSource[uri];
+      if (source == null) {
+        final astSource = astUriToSource[uri];
+        if (astSource != null) {
+          final importUri =
+              objectTable.getNameHandle(null, astSource.importUri.toString());
+          LineStarts lineStarts;
+          if (emitSourcePositions) {
+            lineStarts = new LineStarts(astSource.lineStarts);
+            bytecodeComponent.lineStarts.add(lineStarts);
+          }
+          String text = '';
+          if (emitSourceFiles) {
+            text = astSource.cachedText ??
+                utf8.decode(astSource.source, allowMalformed: true);
+          }
+          source = new SourceFile(importUri, lineStarts, text);
+          bytecodeComponent.sourceFiles.add(source);
+          bytecodeComponent.uriToSource[uri] = source;
+        }
+      }
+    }
+    return objectTable.getScriptHandle(uri, source);
+  }
+
+  LibraryDeclaration getLibraryDeclaration(
+      Library library, List<ClassDeclaration> classes) {
+    final importUri =
+        objectTable.getNameHandle(null, library.importUri.toString());
+    int flags = 0;
+    for (var dependency in library.dependencies) {
+      final targetLibrary = dependency.targetLibrary;
+      assert(targetLibrary != null);
+      if (targetLibrary == coreTypes.mirrorsLibrary) {
+        flags |= LibraryDeclaration.usesDartMirrorsFlag;
+      } else if (targetLibrary == dartFfiLibrary) {
+        flags |= LibraryDeclaration.usesDartFfiFlag;
+      }
+    }
+    final name = objectTable.getNameHandle(null, library.name ?? '');
+    final script = getScript(library.fileUri, true);
+    return new LibraryDeclaration(importUri, flags, name, script, classes);
+  }
+
+  ClassDeclaration getClassDeclaration(Class cls, Members members) {
+    int flags = 0;
+    if (cls.isAbstract) {
+      flags |= ClassDeclaration.isAbstractFlag;
+    }
+    if (cls.isEnum) {
+      flags |= ClassDeclaration.isEnumFlag;
+    }
+    int numTypeArguments = 0;
+    TypeParametersDeclaration typeParameters;
+    if (hasInstantiatorTypeArguments(cls)) {
+      flags |= ClassDeclaration.hasTypeArgumentsFlag;
+      numTypeArguments = flattenInstantiatorTypeArguments(
+              cls,
+              cls.typeParameters
+                  .map((tp) => new TypeParameterType(tp))
+                  .toList())
+          .length;
+      assert(numTypeArguments > 0);
+      if (cls.typeParameters.isNotEmpty) {
+        flags |= ClassDeclaration.hasTypeParamsFlag;
+        typeParameters = getTypeParametersDeclaration(cls.typeParameters);
+      }
+    }
+    if (cls.isEliminatedMixin) {
+      flags |= ClassDeclaration.isTransformedMixinApplicationFlag;
+    }
+    int position = TreeNode.noOffset;
+    int endPosition = TreeNode.noOffset;
+    if (emitSourcePositions && cls.fileOffset != TreeNode.noOffset) {
+      flags |= ClassDeclaration.hasSourcePositionsFlag;
+      position = cls.fileOffset;
+      endPosition = cls.fileEndOffset;
+    }
+    Annotations annotations = getAnnotations(cls.annotations);
+    if (annotations.object != null) {
+      flags |= ClassDeclaration.hasAnnotationsFlag;
+      if (annotations.hasPragma) {
+        flags |= ClassDeclaration.hasPragmaFlag;
+      }
+    }
+
+    final nameHandle = objectTable.getNameHandle(
+        cls.name.startsWith('_') ? cls.enclosingLibrary : null, cls.name);
+    final script = getScript(cls.fileUri, !cls.isAnonymousMixin);
+    final superType = objectTable.getHandle(cls.supertype?.asInterfaceType);
+    final interfaces = objectTable.getHandles(
+        cls.implementedTypes.map((t) => t.asInterfaceType).toList());
+
+    final classDeclaration = new ClassDeclaration(
+        nameHandle,
+        flags,
+        script,
+        position,
+        endPosition,
+        typeParameters,
+        numTypeArguments,
+        superType,
+        interfaces,
+        members,
+        annotations.object);
+    bytecodeComponent.classes.add(classDeclaration);
+    return classDeclaration;
+  }
+
+  ClassDeclaration getTopLevelClassDeclaration(
+      Library library, Members members) {
+    int flags = 0;
+    int position = TreeNode.noOffset;
+    if (emitSourcePositions && library.fileOffset != TreeNode.noOffset) {
+      flags |= ClassDeclaration.hasSourcePositionsFlag;
+      position = library.fileOffset;
+    }
+    Annotations annotations = getAnnotations(library.annotations);
+    if (annotations.object != null) {
+      flags |= ClassDeclaration.hasAnnotationsFlag;
+      if (annotations.hasPragma) {
+        flags |= ClassDeclaration.hasPragmaFlag;
+      }
+    }
+
+    final nameHandle = objectTable.getNameHandle(null, topLevelClassName);
+    final script = getScript(library.fileUri, true);
+
+    final classDeclaration = new ClassDeclaration(
+        nameHandle,
+        flags,
+        script,
+        position,
+        /* endPosition */ TreeNode.noOffset,
+        /* typeParameters */ null,
+        /* numTypeArguments */ 0,
+        /* superType */ null,
+        /* interfaces */ const <ObjectHandle>[],
+        members,
+        annotations.object);
+    bytecodeComponent.classes.add(classDeclaration);
+    return classDeclaration;
   }
 
   bool _isPragma(Constant annotation) =>
@@ -224,7 +396,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (nodes.isEmpty) {
       return const Annotations(null, false);
     }
+    final savedConstantEvaluator = constantEvaluator;
+    if (constantEvaluator == null) {
+      constantEvaluator = new ConstantEvaluator(constantsBackend,
+          environmentDefines, typeEnvironment, enableAsserts, errorReporter)
+        ..env = new EvaluationEnvironment();
+    }
     List<Constant> constants = nodes.map(_evaluateConstantExpression).toList();
+    constantEvaluator = savedConstantEvaluator;
     bool hasPragma = constants.any(_isPragma);
     if (!emitAnnotations) {
       if (hasPragma) {
@@ -672,6 +851,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Procedure get asyncAwaitCompleterGetFuture =>
       _asyncAwaitCompleterGetFuture ??= libraryIndex.getMember(
           'dart:async', '_AsyncAwaitCompleter', 'get:future');
+
+  Library _dartFfiLibrary;
+  Library get dartFfiLibrary =>
+      _dartFfiLibrary ??= libraryIndex.tryGetLibrary('dart:ffi');
 
   void _recordSourcePosition(int fileOffset) {
     if (emitSourcePositions) {
@@ -3534,4 +3717,16 @@ class Annotations {
   final bool hasPragma;
 
   const Annotations(this.object, this.hasPragma);
+}
+
+ast.Component createFreshComponentWithBytecode(ast.Component component) {
+  final newComponent = new ast.Component();
+  final newRepository = new BytecodeMetadataRepository();
+  newComponent.addMetadataRepository(newRepository);
+
+  final oldRepository = component.metadata[newRepository.tag];
+  final metadata = oldRepository.mapping[component];
+  newRepository.mapping[newComponent] = metadata;
+
+  return newComponent;
 }

@@ -352,6 +352,16 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (klass.script() == interesting_script.raw()) {
           token_positions.Add(klass.token_pos().value());
         }
+        // If class is declared in bytecode, its members should be loaded
+        // (via class finalization) before their token positions could be
+        // collected.
+        if (klass.is_declared_in_bytecode() && !klass.is_finalized()) {
+          const Error& error =
+              Error::Handle(zone, klass.EnsureIsFinalized(thread));
+          if (!error.IsNull()) {
+            Exceptions::PropagateError(error);
+          }
+        }
         if (klass.is_finalized()) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
@@ -403,6 +413,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
+          ASSERT(!klass.is_declared_in_bytecode());
           ASSERT(klass.kernel_offset() > 0);
           data = lib.kernel_data();
           ASSERT(!data.IsNull());

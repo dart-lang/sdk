@@ -280,6 +280,9 @@ IllegalAssignmentToNonAssignable/script1: Fail
 IllegalAsyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 IllegalMixin/example: Fail
 IllegalMixinDueToConstructors/example: Fail
+IllegalRecursiveType/analyzerCode: Fail
+IllegalRecursiveType/part_wrapped_script: Fail
+IllegalRecursiveType/script: Fail
 IllegalSyncGeneratorVoidReturnType/analyzerCode: Fail # The analyzer doesn't report this error.
 ImplementsBeforeExtends/part_wrapped_script: Fail
 ImplementsBeforeExtends/script: Fail

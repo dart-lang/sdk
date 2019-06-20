@@ -4277,6 +4277,29 @@ Message _withArgumentsIllegalMixinDueToConstructorsCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type)> templateIllegalRecursiveType =
+    const Template<Message Function(DartType _type)>(
+        messageTemplate: r"""Illegal recursive type '#type'.""",
+        withArguments: _withArgumentsIllegalRecursiveType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type)> codeIllegalRecursiveType =
+    const Code<Message Function(DartType _type)>(
+  "IllegalRecursiveType",
+  templateIllegalRecursiveType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsIllegalRecursiveType(DartType _type) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeIllegalRecursiveType,
+      message: """Illegal recursive type '${type}'.""" + labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeIllegalSyncGeneratorReturnType =
     messageIllegalSyncGeneratorReturnType;
 

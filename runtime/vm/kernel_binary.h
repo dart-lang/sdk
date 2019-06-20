@@ -366,6 +366,8 @@ class Reader : public ValueObject {
     return &buffer()[offset];
   }
 
+  RawTypedData* ReadLineStartsData(intptr_t line_start_count);
+
  private:
   const uint8_t* buffer() const {
     if (raw_buffer_ != NULL) {

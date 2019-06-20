@@ -99,18 +99,10 @@ static RawError* BootstrapFromKernel(Thread* thread,
 
   // Load the bootstrap libraries in order (see object_store.h).
   Library& library = Library::Handle(zone);
-  String& dart_name = String::Handle(zone);
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
-    dart_name = library.url();
-    for (intptr_t j = 0; j < program->library_count(); ++j) {
-      const String& kernel_name = loader.LibraryUri(j);
-      if (kernel_name.Equals(dart_name)) {
-        loader.LoadLibrary(j);
-        break;
-      }
-    }
+    loader.LoadLibrary(library);
   }
 
   // Finish bootstrapping, including class finalization.
@@ -125,8 +117,8 @@ static RawError* BootstrapFromKernel(Thread* thread,
   }
 
   // The builtin library should be registered with the VM.
-  dart_name = String::New("dart:_builtin");
-  library = Library::LookupLibrary(thread, dart_name);
+  const auto& dart_builtin = String::Handle(zone, String::New("dart:_builtin"));
+  library = Library::LookupLibrary(thread, dart_builtin);
   isolate->object_store()->set_builtin_library(library);
 
   return Error::null();

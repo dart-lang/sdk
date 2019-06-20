@@ -2565,6 +2565,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
 
     // N.B.: Update the pending deopt table before updating the frame. The
     // profiler may attempt a stack walk in between.
+    ASSERT(!frame->is_interpreted());
     thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 

@@ -60,3 +60,29 @@ class SourcePositions {
         new MapEntry(pc, 'source position $fileOffset'));
   }
 }
+
+/// Keeps file offsets of line starts. This information is used to
+/// decode source positions to line/column.
+class LineStarts {
+  final List<int> lineStarts;
+
+  LineStarts(this.lineStarts);
+
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(lineStarts.length);
+    final encodeLineStarts = new PackedUInt30DeltaEncoder();
+    for (int lineStart in lineStarts) {
+      encodeLineStarts.write(writer, lineStart);
+    }
+  }
+
+  factory LineStarts.read(BufferedReader reader) {
+    final decodeLineStarts = new PackedUInt30DeltaDecoder();
+    final lineStarts = new List<int>.generate(
+        reader.readPackedUInt30(), (_) => decodeLineStarts.read(reader));
+    return new LineStarts(lineStarts);
+  }
+
+  @override
+  String toString() => 'Line starts: $lineStarts';
+}

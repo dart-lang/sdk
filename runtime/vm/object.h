@@ -900,6 +900,7 @@ class Class : public Object {
   // The type parameters (and their bounds) are specified as an array of
   // TypeParameter.
   RawTypeArguments* type_parameters() const {
+    ASSERT(is_declaration_loaded());
     return raw_ptr()->type_parameters_;
   }
   void set_type_parameters(const TypeArguments& value) const;
@@ -965,7 +966,10 @@ class Class : public Object {
   RawClass* SuperClass(bool original_classes = false) const;
 
   // Interfaces is an array of Types.
-  RawArray* interfaces() const { return raw_ptr()->interfaces_; }
+  RawArray* interfaces() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->interfaces_;
+  }
   void set_interfaces(const Array& value) const;
 
   // Returns the list of classes directly implementing this class.
@@ -1050,7 +1054,10 @@ class Class : public Object {
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
 
-  void InjectCIDFields() const;
+  // If this is a dart:internal.ClassID class, then inject our own const
+  // fields. Returns true if synthetic fields are injected and regular
+  // field declarations should be ignored.
+  bool InjectCIDFields() const;
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
@@ -1192,17 +1199,71 @@ class Class : public Object {
   RawCode* allocation_stub() const { return raw_ptr()->allocation_stub_; }
   void set_allocation_stub(const Code& value) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t binary_declaration_offset() const {
+    return RawClass::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawClass::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   intptr_t kernel_offset() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
-    return -1;
+    return 0;
 #else
-    return raw_ptr()->kernel_offset_;
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
 #endif
   }
 
-  void set_kernel_offset(intptr_t offset) const {
-    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
   }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawClass::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawClass::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   void DisableAllocationStub() const;
 
@@ -1397,9 +1458,10 @@ class Class : public Object {
   static const intptr_t kUnknownNumTypeArguments = -1;
 
   int16_t num_type_arguments() const { return raw_ptr()->num_type_arguments_; }
-  void set_num_type_arguments(intptr_t value) const;
 
  public:
+  void set_num_type_arguments(intptr_t value) const;
+
   bool has_pragma() const {
     return HasPragmaBit::decode(raw_ptr()->state_bits_);
   }
@@ -3955,7 +4017,8 @@ class Library : public Object {
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
                         TokenPosition token_pos,
-                        intptr_t kernel_offset) const;
+                        intptr_t kernel_offset,
+                        intptr_t bytecode_offset) const;
   void AddFieldMetadata(const Field& field,
                         TokenPosition token_pos,
                         intptr_t kernel_offset,
@@ -3966,7 +4029,8 @@ class Library : public Object {
                            intptr_t bytecode_offset) const;
   void AddLibraryMetadata(const Object& tl_owner,
                           TokenPosition token_pos,
-                          intptr_t kernel_offset) const;
+                          intptr_t kernel_offset,
+                          intptr_t bytecode_offset) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 TokenPosition token_pos) const;
   void CloneMetadataFrom(const Library& from_library,
@@ -4057,16 +4121,71 @@ class Library : public Object {
   RawExternalTypedData* kernel_data() const { return raw_ptr()->kernel_data_; }
   void set_kernel_data(const ExternalTypedData& data) const;
 
-  intptr_t kernel_offset() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    return raw_ptr()->kernel_offset_;
+  intptr_t binary_declaration_offset() const {
+    return RawLibrary::BinaryDeclarationOffset::decode(
+        raw_ptr()->binary_declaration_);
+  }
+  void set_binary_declaration_offset(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawLibrary::BinaryDeclarationOffset::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  intptr_t kernel_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
 #else
-    return -1;
+    ASSERT(!is_declared_in_bytecode());
+    return binary_declaration_offset();
 #endif
   }
-  void set_kernel_offset(intptr_t offset) const {
-    NOT_IN_PRECOMPILED(StoreNonPointer(&raw_ptr()->kernel_offset_, offset));
+
+  void set_kernel_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(!is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
   }
+
+  intptr_t bytecode_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    ASSERT(is_declared_in_bytecode());
+    return binary_declaration_offset();
+#endif
+  }
+
+  void set_bytecode_offset(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    ASSERT(is_declared_in_bytecode());
+    set_binary_declaration_offset(value);
+#endif
+  }
+
+  bool is_declared_in_bytecode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return false;
+#else
+    return RawLibrary::IsDeclaredInBytecode::decode(
+        raw_ptr()->binary_declaration_);
+#endif
+  }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void set_is_declared_in_bytecode(bool value) const {
+    StoreNonPointer(&raw_ptr()->binary_declaration_,
+                    RawLibrary::IsDeclaredInBytecode::update(
+                        value, raw_ptr()->binary_declaration_));
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   static RawLibrary* LookupLibrary(Thread* thread, const String& url);
   static RawLibrary* GetLibrary(intptr_t index);

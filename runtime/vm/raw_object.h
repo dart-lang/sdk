@@ -807,7 +807,12 @@ class RawClass : public RawObject {
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   uint16_t num_native_fields_;
   uint32_t state_bits_;
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Instance;
   friend class Isolate;
@@ -1215,9 +1220,12 @@ class RawLibrary : public RawObject {
   bool is_dart_scheme_;
   bool debuggable_;          // True if debugger can stop in library.
   bool is_in_fullsnapshot_;  // True if library is in a full snapshot.
-  NOT_IN_PRECOMPILED(intptr_t kernel_offset_);  // Offset of this library's
-                                                // kernel data in the overall
-                                                // kernel program.
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
+  typedef BitField<uint32_t, uint32_t, 1, 31> BinaryDeclarationOffset;
+  uint32_t binary_declaration_;
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Class;
   friend class Isolate;

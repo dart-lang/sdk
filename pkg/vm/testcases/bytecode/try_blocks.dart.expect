@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'testTryCatch1', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                4
@@ -68,7 +66,6 @@ ConstantPool {
 Function 'testTryCatch2', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                5
@@ -206,7 +203,6 @@ ConstantPool {
 Function 'testTryCatch3', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                7
@@ -381,7 +377,6 @@ Try #0 handler:
 L1:
   PushNull
   ReturnTOS
-
 }
 
 Closure #lib::testTryCatch3::'bar' () -> void
@@ -443,14 +438,12 @@ L2:
 L1:
   PushNull
   ReturnTOS
-
 }
 
 
 Function 'testRethrow', static, reflectable, debuggable
     parameters [dart:core::bool 'cond'] (required: 1)
     return-type dynamic
-
 
 Bytecode {
   Entry                8
@@ -535,7 +528,6 @@ Function 'testTryFinally1', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                3
   CheckStack           0
@@ -598,7 +590,6 @@ ConstantPool {
 Function 'testTryFinally2', static, reflectable, debuggable
     parameters [dart:core::int 'x'] (required: 1)
     return-type dynamic
-
 
 Bytecode {
   Entry                9
@@ -756,14 +747,12 @@ ClosureCode {
   Drop1
   PushNull
   ReturnTOS
-
 }
 
 
 Function 'testTryFinally3', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                6
@@ -944,14 +933,12 @@ L3:
   Drop1
   PushInt              43
   ReturnTOS
-
 }
 
 
 Function 'testTryCatchFinally', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
-
 
 Bytecode {
   Entry                5
@@ -1011,7 +998,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -1021,7 +1007,6 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

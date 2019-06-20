@@ -234,6 +234,11 @@ class BufferedReader {
     return linkReader.get<T>(offset);
   }
 
+  ForwardReference<T> readLinkOffsetAsForwardReference<T>() {
+    final offset = readPackedUInt30();
+    return new ForwardReference<T>(offset, linkReader);
+  }
+
   void align(int alignment) {
     assert(alignment & (alignment - 1) == 0);
     _pos = ((_pos + alignment - 1) & -alignment);
@@ -455,6 +460,16 @@ class LinkReader {
   }
 }
 
+// Placeholder for an object which will be read in future.
+class ForwardReference<T> {
+  final int offset;
+  final LinkReader linkReader;
+
+  ForwardReference(this.offset, this.linkReader);
+
+  T get() => linkReader.get<T>(offset);
+}
+
 class NamedEntryStatistics {
   final String name;
   int size = 0;
@@ -471,7 +486,15 @@ class BytecodeSizeStatistics {
   static int objectTableSize = 0;
   static int objectTableEntriesCount = 0;
   static int stringTableSize = 0;
+  static int librariesSize = 0;
+  static int classesSize = 0;
   static int membersSize = 0;
+  static int codeSize = 0;
+  static int sourcePositionsSize = 0;
+  static int sourceFilesSize = 0;
+  static int lineStartsSize = 0;
+  static int localVariablesSize = 0;
+  static int annotationsSize = 0;
   static int constantPoolSize = 0;
   static int instructionsSize = 0;
   static List<NamedEntryStatistics> constantPoolStats =
@@ -483,7 +506,15 @@ class BytecodeSizeStatistics {
     objectTableSize = 0;
     objectTableEntriesCount = 0;
     stringTableSize = 0;
+    librariesSize = 0;
+    classesSize = 0;
     membersSize = 0;
+    codeSize = 0;
+    sourcePositionsSize = 0;
+    sourceFilesSize = 0;
+    lineStartsSize = 0;
+    localVariablesSize = 0;
+    annotationsSize = 0;
     constantPoolSize = 0;
     instructionsSize = 0;
     constantPoolStats = <NamedEntryStatistics>[];
@@ -499,7 +530,15 @@ class BytecodeSizeStatistics {
       print("       - $entry");
     }
     print("   - string table:     $stringTableSize");
-    print("  Bytecode members:    $membersSize");
+    print("  Libraries:           $librariesSize");
+    print("  Classes:             $classesSize");
+    print("  Members:             $membersSize");
+    print("  Source positions:    $sourcePositionsSize");
+    print("  Source files:        $sourceFilesSize");
+    print("  Line starts:         $lineStartsSize");
+    print("  Local variables:     $localVariablesSize");
+    print("  Annotations:         $annotationsSize");
+    print("  Code:                $codeSize");
     print("   - constant pool:    $constantPoolSize");
     for (var entry in constantPoolStats) {
       print("       - $entry");

@@ -178,7 +178,7 @@ class ClassSerializationCluster : public SerializationCluster {
     }
     s->WriteCid(class_id);
     if (s->kind() != Snapshot::kFullAOT) {
-      s->Write<int32_t>(cls->ptr()->kernel_offset_);
+      s->Write<uint32_t>(cls->ptr()->binary_declaration_);
     }
     s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
     s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
@@ -233,7 +233,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->id_ = class_id;
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+        cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
       if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
@@ -264,7 +264,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->id_ = class_id;
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        cls->ptr()->kernel_offset_ = d->Read<int32_t>();
+        cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
       cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
@@ -1176,7 +1176,7 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<bool>(lib->ptr()->is_dart_scheme_);
       s->Write<bool>(lib->ptr()->debuggable_);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<int32_t>(lib->ptr()->kernel_offset_);
+        s->Write<uint32_t>(lib->ptr()->binary_declaration_);
       }
     }
   }
@@ -1216,7 +1216,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
       lib->ptr()->is_in_fullsnapshot_ = true;
 #if !defined(DART_PRECOMPILED_RUNTIME)
       if (d->kind() != Snapshot::kFullAOT) {
-        lib->ptr()->kernel_offset_ = d->Read<int32_t>();
+        lib->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
     }
@@ -1364,7 +1364,7 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       array = info.bytecode_component();
       if (!array.IsNull()) {
         kernel::BytecodeReader::UseBytecodeVersion(
-            kernel::BytecodeComponentData(array).GetVersion());
+            kernel::BytecodeComponentData(&array).GetVersion());
       }
     }
   }

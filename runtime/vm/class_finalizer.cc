@@ -1066,26 +1066,30 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   }
   cls.set_is_type_finalized();
 
+  RegisterClassInHierarchy(thread->zone(), cls);
+}
+
+void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
+  auto& type = AbstractType::Handle(zone, cls.super_type());
+  auto& other_cls = Class::Handle(zone);
   // Add this class to the direct subclasses of the superclass, unless the
   // superclass is Object.
-  if (!super_type.IsNull() && !super_type.IsObjectType()) {
-    ASSERT(!super_class.IsNull());
-    super_class.AddDirectSubclass(cls);
+  if (!type.IsNull() && !type.IsObjectType()) {
+    other_cls = cls.SuperClass();
+    ASSERT(!other_cls.IsNull());
+    other_cls.AddDirectSubclass(cls);
   }
 
   // Add this class as an implementor to the implemented interface's type
   // classes.
-  Zone* zone = thread->zone();
-  auto& interface_class = Class::Handle(zone);
-  const intptr_t mixin_index = cls.is_transformed_mixin_application()
-                                   ? interface_types.Length() - 1
-                                   : -1;
-  for (intptr_t i = 0; i < interface_types.Length(); ++i) {
-    interface_type ^= interface_types.At(i);
-    interface_class = interface_type.type_class();
-    MarkImplemented(thread->zone(), interface_class);
-    interface_class.AddDirectImplementor(cls,
-                                         /* is_mixin = */ i == mixin_index);
+  const auto& interfaces = Array::Handle(zone, cls.interfaces());
+  const intptr_t mixin_index =
+      cls.is_transformed_mixin_application() ? interfaces.Length() - 1 : -1;
+  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
+    type ^= interfaces.At(i);
+    other_cls = type.type_class();
+    MarkImplemented(zone, other_cls);
+    other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
   }
 }
 
@@ -1113,9 +1117,14 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If loading from a kernel, make sure that the class is fully loaded.
-  ASSERT(cls.IsTopLevel() || (cls.kernel_offset() > 0));
+  ASSERT(cls.IsTopLevel() || cls.is_declared_in_bytecode() ||
+         (cls.kernel_offset() > 0));
   if (!cls.is_loaded()) {
-    kernel::KernelLoader::FinishLoading(cls);
+    if (cls.is_declared_in_bytecode()) {
+      kernel::BytecodeReader::FinishClassLoading(cls);
+    } else {
+      kernel::KernelLoader::FinishLoading(cls);
+    }
     if (cls.is_finalized()) {
       return;
     }
@@ -1180,6 +1189,14 @@ RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (!cls.is_declaration_loaded()) {
+      // Loading of class declaration can be postponed until needed
+      // if class comes from bytecode.
+      ASSERT(cls.is_declared_in_bytecode());
+      kernel::BytecodeReader::LoadClassDeclaration(cls);
+    }
+#endif
     // TODO(36584) : We expect is_type_finalized to be true for all classes
     // here, but with eager reading of the constant table we get into
     // situations where we see classes whose types have not been finalized yet,
@@ -1241,7 +1258,7 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
                                       ->object_store()
                                       ->pending_unevaluated_const_fields());
 
-  ASSERT(enum_cls.kernel_offset() > 0);
+  ASSERT(enum_cls.is_declared_in_bytecode() || enum_cls.kernel_offset() > 0);
   Error& error = Error::Handle(zone);
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
@@ -1419,7 +1436,7 @@ void ClassFinalizer::SortClasses() {
       continue;
     }
     cls = table->At(cid);
-    if (cls.is_patch()) {
+    if (cls.is_patch() || !cls.is_declaration_loaded()) {
       continue;
     }
     if (cls.SuperClass() == I->object_store()->object_class()) {

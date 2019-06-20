@@ -6,13 +6,16 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/testing/mock_sdk_component.dart';
 import 'package:test/test.dart';
-import 'package:vm/bytecode/generics.dart';
+import 'package:expect/expect.dart';
+import 'package:vm/bytecode/recursive_types_validator.dart';
 
 main() {
   Library lib;
   Supertype objectSuper;
   DartType intType;
+  DartType doubleType;
   Class base;
+  RecursiveTypesValidator validator;
 
   Class addClass(String name, List<TypeParameter> typeParameters) {
     Class cls = new Class(
@@ -27,6 +30,7 @@ main() {
     CoreTypes coreTypes = new CoreTypes(component);
     objectSuper = coreTypes.objectClass.asThisSupertype;
     intType = new InterfaceType(coreTypes.intClass);
+    doubleType = new InterfaceType(coreTypes.doubleClass);
 
     // Add the test library.
     lib = new Library(Uri.parse('org-dartlang:///test.dart'), name: 'lib');
@@ -35,11 +39,13 @@ main() {
 
     // class Base<T>
     base = addClass('Base', [new TypeParameter('T')]);
+
+    validator = new RecursiveTypesValidator();
   });
 
   tearDown(() {});
 
-  test('isRecursiveAfterFlattening-00', () async {
+  test('simple-recursive-type', () async {
     // class Derived<T> extends Base<Derived<T>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
@@ -48,11 +54,14 @@ main() {
     DartType derivedOfInt = new InterfaceType(derived, [intType]);
     derived.supertype = new Supertype(base, [derivedOfT]);
 
-    expect(isRecursiveAfterFlattening(derivedOfT), isTrue);
-    expect(isRecursiveAfterFlattening(derivedOfInt), isTrue);
+    validator.validateType(derivedOfT);
+    Expect.isTrue(validator.isRecursive(derivedOfT));
+
+    validator.validateType(derivedOfInt);
+    Expect.isTrue(validator.isRecursive(derivedOfInt));
   });
 
-  test('isRecursiveAfterFlattening-01', () async {
+  test('recursive-type-extends-instantiated', () async {
     // class Derived<T> extends Base<Derived<Derived<int>>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
@@ -62,11 +71,15 @@ main() {
     DartType derivedOfDerivedOfInt = new InterfaceType(derived, [derivedOfInt]);
     derived.supertype = new Supertype(base, [derivedOfDerivedOfInt]);
 
-    expect(isRecursiveAfterFlattening(derivedOfT), isFalse);
-    expect(isRecursiveAfterFlattening(derivedOfInt), isTrue);
+    validator.validateType(derivedOfT);
+    validator.validateType(derivedOfInt);
+
+    Expect.isFalse(validator.isRecursive(derivedOfT));
+    Expect.isTrue(validator.isRecursive(derivedOfInt));
+    Expect.isTrue(validator.isRecursive(derivedOfDerivedOfInt));
   });
 
-  test('isRecursiveAfterFlattening-02', () async {
+  test('recursive-non-contractive-type', () async {
     // class Derived<T> extends Base<Derived<Derived<T>>>
     TypeParameter t = new TypeParameter('T');
     Class derived = addClass('Derived', [t]);
@@ -76,11 +89,18 @@ main() {
     DartType derivedOfDerivedOfT = new InterfaceType(derived, [derivedOfT]);
     derived.supertype = new Supertype(base, [derivedOfDerivedOfT]);
 
-    expect(isRecursiveAfterFlattening(derivedOfT), isTrue);
-    expect(isRecursiveAfterFlattening(derivedOfInt), isTrue);
+    Expect.throws(() {
+      validator.validateType(derivedOfT);
+    });
+    Expect.throws(() {
+      validator.validateType(derivedOfDerivedOfT);
+    });
+    Expect.throws(() {
+      validator.validateType(derivedOfInt);
+    });
   });
 
-  test('isRecursiveAfterFlattening-03', () async {
+  test('mutually-recursive-types', () async {
     // class Derived1<U> extends Base<Derived2<U>>
     // class Derived2<V> extends Base<Derived1<V>>
     TypeParameter u = new TypeParameter('U');
@@ -105,9 +125,40 @@ main() {
         new InterfaceType(derived2, [new TypeParameterType(v)]);
     DartType derived2OfInt = new InterfaceType(derived2, [intType]);
 
-    expect(isRecursiveAfterFlattening(derived1OfU), isTrue);
-    expect(isRecursiveAfterFlattening(derived1OfInt), isTrue);
-    expect(isRecursiveAfterFlattening(derived2OfV), isTrue);
-    expect(isRecursiveAfterFlattening(derived2OfInt), isTrue);
+    validator.validateType(derived1OfU);
+    Expect.isTrue(validator.isRecursive(derived1OfU));
+
+    validator.validateType(derived1OfInt);
+    Expect.isTrue(validator.isRecursive(derived1OfInt));
+
+    validator.validateType(derived2OfV);
+    Expect.isTrue(validator.isRecursive(derived2OfV));
+
+    validator.validateType(derived2OfInt);
+    Expect.isTrue(validator.isRecursive(derived2OfInt));
+  });
+
+  test('recursive-two-type-params', () async {
+    // class F<P1, P2> {}
+    // class E<Q1, Q2> extends F<E<Q1, int>, Q2> {}
+    TypeParameter p1 = new TypeParameter('P1');
+    TypeParameter p2 = new TypeParameter('P2');
+    Class f = addClass('F', [p1, p2]);
+
+    TypeParameter q1 = new TypeParameter('Q1');
+    TypeParameter q2 = new TypeParameter('Q2');
+    Class e = addClass('E', [q1, q2]);
+
+    DartType eOfQ1Int =
+        new InterfaceType(e, [new TypeParameterType(q1), intType]);
+    e.supertype = new Supertype(f, [eOfQ1Int, new TypeParameterType(q2)]);
+
+    DartType eOfIntDouble = new InterfaceType(e, [intType, doubleType]);
+
+    validator.validateType(eOfIntDouble);
+    validator.validateType(e.thisType);
+
+    Expect.isFalse(validator.isRecursive(eOfIntDouble));
+    Expect.isFalse(validator.isRecursive(e.thisType));
   });
 }

@@ -1,20 +1,18 @@
 main = #lib::main;
  [@vm.bytecode=
-ComponentBytecodeMetadata {
-
+BytecodeMetadata {
 Bytecode (version: stable)
 Main library: #lib
+Library '#lib'
+    name '#lib'
+    script '#lib'
 
-}
-] [@vm.bytecode=
-MembersBytecodeMetadata {
+Class '', script = '#lib'
 
-Members {
 
 Function 'test_for', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -57,7 +55,6 @@ ConstantPool {
 Function 'test_for_break', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -106,7 +103,6 @@ ConstantPool {
 Function 'test_for_continue', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                2
@@ -158,7 +154,6 @@ Function 'test_while', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                4
   CheckStack           0
@@ -203,7 +198,6 @@ Function 'test_do_while', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                2
   CheckStack           0
@@ -243,7 +237,6 @@ Function 'test_for_in', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
 
-
 Bytecode {
   Entry                3
   CheckStack           0
@@ -282,7 +275,6 @@ ConstantPool {
 Function 'test_for_in_with_outer_var', static, reflectable, debuggable
     parameters [dart:core::List < dart:core::int > 'list'] (required: 1)
     return-type dart:core::int
-
 
 Bytecode {
   Entry                4
@@ -327,7 +319,6 @@ Function 'main', static, reflectable, debuggable
     parameters [] (required: 0)
     return-type dynamic
 
-
 Bytecode {
   Entry                0
   CheckStack           0
@@ -337,7 +328,6 @@ Bytecode {
 ConstantPool {
 }
 
-}
 
 }
 ]library #lib from "#lib" as #lib {

@@ -3560,3 +3560,9 @@ BadTypeVariableInSupertype:
   script: >
     class A<X> {}
     class B<Y> extends A<Function(Y)> {}
+
+IllegalRecursiveType:
+  template: "Illegal recursive type '#type'."
+  script: >
+    class Base<T> {}
+    class Derived<T> extends Base<Derived<Derived<T>>> {}

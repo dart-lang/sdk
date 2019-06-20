@@ -85,6 +85,7 @@ class ObjectPointerVisitor;
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMProduct, "dart.vm.product")                                          \
+  V(DartVMServiceIO, "dart:vmservice_io")                                      \
   V(DartVMService, "dart:_vmservice")                                          \
   V(DebugClassName, "#DebugClass")                                             \
   V(DebugProcedureName, ":Eval")                                               \

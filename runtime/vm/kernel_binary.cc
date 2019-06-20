@@ -29,6 +29,50 @@ const char* Reader::TagName(Tag tag) {
   return "Unknown";
 }
 
+RawTypedData* Reader::ReadLineStartsData(intptr_t line_start_count) {
+  TypedData& line_starts_data = TypedData::Handle(
+      TypedData::New(kTypedDataInt8ArrayCid, line_start_count, Heap::kOld));
+
+  const intptr_t start_offset = offset();
+  intptr_t i = 0;
+  for (; i < line_start_count; ++i) {
+    const intptr_t delta = ReadUInt();
+    if (delta > kMaxInt8) {
+      break;
+    }
+    line_starts_data.SetInt8(i, static_cast<int8_t>(delta));
+  }
+
+  if (i < line_start_count) {
+    // Slow path: choose representation between Int16 and Int32 typed data.
+    set_offset(start_offset);
+    intptr_t max_delta = 0;
+    for (intptr_t i = 0; i < line_start_count; ++i) {
+      const intptr_t delta = ReadUInt();
+      if (delta > max_delta) {
+        max_delta = delta;
+      }
+    }
+
+    ASSERT(max_delta > kMaxInt8);
+    const intptr_t cid = (max_delta <= kMaxInt16) ? kTypedDataInt16ArrayCid
+                                                  : kTypedDataInt32ArrayCid;
+    line_starts_data = TypedData::New(cid, line_start_count, Heap::kOld);
+
+    set_offset(start_offset);
+    for (intptr_t i = 0; i < line_start_count; ++i) {
+      const intptr_t delta = ReadUInt();
+      if (cid == kTypedDataInt16ArrayCid) {
+        line_starts_data.SetInt16(i << 1, static_cast<int16_t>(delta));
+      } else {
+        line_starts_data.SetInt32(i << 2, delta);
+      }
+    }
+  }
+
+  return line_starts_data.raw();
+}
+
 const char* kKernelInvalidFilesize =
     "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
