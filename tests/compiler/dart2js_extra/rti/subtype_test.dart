@@ -13,8 +13,7 @@ const typeRulesJson = r'''
   "CodeUnits": {
     "List": ["int"],
     "Iterable": ["int"]
-  },
-  "Object": {"Object": []}
+  }
 }
 ''';
 final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
@@ -29,8 +28,26 @@ main() {
 void runTests() {
   strictSubtype('List<CodeUnits>', 'Iterable<List<int>>');
   strictSubtype('CodeUnits', 'Iterable<num>');
+  strictSubtype('Iterable<int>', 'Iterable<num>');
   unrelated('int', 'CodeUnits');
+  equivalent('double', 'double');
   equivalent('Object', 'Object');
+  equivalent('@', '@');
+  equivalent('~', '~');
+  equivalent('1&', '1&');
+  equivalent('List<int>', 'List<int>');
+  //equivalent('Object', '@');
+  //equivalent('Object', '~');
+  //equivalent('Object', '1&');
+  equivalent('@', '~');
+  equivalent('@', '1&');
+  equivalent('~', '1&');
+  //equivalent('List<Object>', 'List<@>');
+  //equivalent('List<Object>', 'List<~>');
+  //equivalent('List<Object>', 'List<1&>');
+  equivalent('List<@>', 'List<~>');
+  equivalent('List<@>', 'List<1&>');
+  equivalent('List<~>', 'List<1&>');
 }
 
 void strictSubtype(String s, String t) {

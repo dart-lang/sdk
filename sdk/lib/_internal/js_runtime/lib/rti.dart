@@ -984,7 +984,19 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
   assert(Rti._getKind(t) == Rti.kindInterface);
   String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
-  // TODO(fishythefish): Handle identical names.
+
+  if (sName == tName) {
+    var sArgs = Rti._getInterfaceTypeArguments(s);
+    var tArgs = Rti._getInterfaceTypeArguments(t);
+    int length = _Utils.arrayLength(sArgs);
+    assert(length == _Utils.arrayLength(tArgs));
+    for (int i = 0; i < length; i++) {
+      Rti sArg = _castToRti(_Utils.arrayAt(sArgs, i));
+      Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
+      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+    }
+    return true;
+  }
 
   // TODO(fishythefish): Should we recursively attempt to find supertypes?
   var rule = _Universe.findRule(universe, sName);
@@ -998,7 +1010,7 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
     String recipe = _Utils.arrayAt(supertypeArgs, i);
     Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
     Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
-    if (!isSubtype(universe, supertypeArg, tArg)) return false;
+    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) return false;
   }
 
   return true;
