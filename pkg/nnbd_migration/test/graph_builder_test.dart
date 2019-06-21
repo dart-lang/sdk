@@ -1284,6 +1284,36 @@ int f() {
         assertEdge(always, decoratedTypeAnnotation('int').node, hard: false));
   }
 
+  test_postfixExpression_minusMinus() async {
+    await analyze('''
+int f(int i) {
+  return i--;
+}
+''');
+
+    var declaration = decoratedTypeAnnotation('int i').node;
+    var use = checkExpression('i--');
+    assertNullCheck(use, assertEdge(declaration, never, hard: true));
+
+    var returnType = decoratedTypeAnnotation('int f').node;
+    assertEdge(never, returnType, hard: false);
+  }
+
+  test_postfixExpression_plusPlus() async {
+    await analyze('''
+int f(int i) {
+  return i++;
+}
+''');
+
+    var declaration = decoratedTypeAnnotation('int i').node;
+    var use = checkExpression('i++');
+    assertNullCheck(use, assertEdge(declaration, never, hard: true));
+
+    var returnType = decoratedTypeAnnotation('int f').node;
+    assertEdge(never, returnType, hard: false);
+  }
+
   test_prefixedIdentifier_field_type() async {
     await analyze('''
 class C {

@@ -554,8 +554,27 @@ $stackTrace''');
 
   @override
   DecoratedType visitPostfixExpression(PostfixExpression node) {
-    // TODO(brianwilkerson)
-    _unimplemented(node, 'PostfixExpression');
+    var operatorType = node.operator.type;
+    if (operatorType == TokenType.PLUS_PLUS ||
+        operatorType == TokenType.MINUS_MINUS) {
+      _handleAssignment(_notNullType, node.operand);
+      var callee = node.staticElement;
+      if (callee is ClassMemberElement &&
+          callee.enclosingElement.typeParameters.isNotEmpty) {
+        // TODO(paulberry)
+        _unimplemented(node,
+            'Operator ${operatorType.lexeme} defined on a class with type parameters');
+      }
+      if (callee == null) {
+        // TODO(paulberry)
+        _unimplemented(node, 'Unresolved operator ${operatorType.lexeme}');
+      }
+      var calleeType = getOrComputeElementType(callee);
+      // TODO(paulberry): substitute if necessary
+      return calleeType.returnType;
+    }
+    _unimplemented(
+        node, 'Postfix expression with operator ${node.operator.lexeme}');
   }
 
   @override
