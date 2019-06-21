@@ -65,11 +65,17 @@ bool _isLegacyBottom(DartType t, {@required bool orTrueBottom}) {
 }
 
 /// Is [t] the top of the legacy type hierarch.
-bool _isLegacyTop(DartType t, {@required bool orTrueTop}) =>
-// TODO(mfairhurst): handle FutureOr<LegacyTop> cases, with tests.
-    (t.isObject &&
-        (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) ||
-    (orTrueTop ? _isTop(t) : false);
+bool _isLegacyTop(DartType t, {@required bool orTrueTop}) {
+  if (t.isDartAsyncFutureOr) {
+    return _isLegacyTop((t as InterfaceType).typeArguments[0],
+        orTrueTop: orTrueTop);
+  }
+  if (t.isObject &&
+      (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) {
+    return true;
+  }
+  return orTrueTop ? _isTop(t) : false;
+}
 
 bool _isTop(DartType t) {
   if (t.isDartAsyncFutureOr) {
@@ -631,6 +637,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Legacy top case. Must be done now to find Object* <: Object.
+    // TODO: handle false positives like FutureOr<Object?>* and T* extends int?.
     if (t1.nullabilitySuffix == NullabilitySuffix.star &&
         _isLegacyTop(t2, orTrueTop: false)) {
       return true;

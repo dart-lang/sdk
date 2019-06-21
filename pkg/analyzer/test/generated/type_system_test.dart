@@ -2108,6 +2108,46 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
   }
 
+  @failingTest
+  void test_futureOr_topTypes() {
+    var objectStar =
+        (objectType as TypeImpl).withNullability(NullabilitySuffix.star);
+    var objectQuestion =
+        (objectType as TypeImpl).withNullability(NullabilitySuffix.question);
+    var futureOrObject = futureOrType.instantiate([objectType]);
+    var futureOrObjectStar = futureOrType.instantiate([objectStar]);
+    var futureOrObjectQuestion = futureOrType.instantiate([objectQuestion]);
+    var futureOrStarObject =
+        (futureOrObject as TypeImpl).withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObject = (futureOrObject as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+    var futureOrStarObjectStar = (futureOrObjectStar as TypeImpl)
+        .withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObjectStar = (futureOrObjectStar as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+    var futureOrStarObjectQuestion = (futureOrObjectQuestion as TypeImpl)
+        .withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObjectQuestion = (futureOrObjectQuestion as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+
+    //FutureOr<Object> <: FutureOr*<Object?>
+    _checkGroups(futureOrObject, equivalents: [
+      objectStar,
+      futureOrObjectStar,
+      futureOrStarObject,
+      futureOrStarObjectStar,
+      objectType
+    ], subtypes: [], supertypes: [
+      objectQuestion,
+      futureOrQuestionObject,
+      futureOrObjectQuestion,
+      futureOrQuestionObject,
+      futureOrQuestionObjectStar,
+      futureOrStarObjectQuestion,
+      futureOrQuestionObjectQuestion
+    ]);
+  }
+
   void test_int_nullableTypes() {
     List<DartType> equivalents = <DartType>[
       intType,
