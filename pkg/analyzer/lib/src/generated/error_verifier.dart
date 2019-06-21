@@ -4026,6 +4026,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForListConstructor(
       InstanceCreationExpression node, InterfaceType type) {
+    if (!_isNonNullable) return;
+
     if (node.argumentList.arguments.length == 1 &&
         _isDartCoreList(type) &&
         _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
