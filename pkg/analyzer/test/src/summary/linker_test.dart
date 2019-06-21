@@ -327,7 +327,7 @@ class C {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.fields, hasLength(1));
     var field = cls.fields[0];
-    expect(field.type.toString(), 'int Function(Never)');
+    expect(field.type.toString(), 'int Function<T>(T)');
   }
 
   void test_inferredType_instanceField_dynamic() {

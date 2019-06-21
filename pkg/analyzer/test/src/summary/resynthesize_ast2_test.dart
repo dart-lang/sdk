@@ -136,14 +136,6 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     return elementFactory.libraryOfUri('${source.uri}');
   }
 
-  @override
-  @failingTest
-  test_syntheticFunctionType_genericClosure() async {
-    // TODO(scheglov) Bug in TypeSystem.getLeastUpperBound().
-    // LUB(<T>(T) → int, <T>(T) → int) gives `(T) → int`, note absence of `<T>`.
-    await super.test_syntheticFunctionType_genericClosure();
-  }
-
   void _addLibraryUnits(
     Source definingSource,
     CompilationUnit definingUnit,

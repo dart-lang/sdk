@@ -1212,13 +1212,17 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       variables1.add(variable1);
       variables2.add(variable2);
       variablesFresh.add(variableFresh);
+
       DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
       DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
       bound1 = bound1.substitute2(variablesFresh, variables1);
       bound2 = bound2.substitute2(variablesFresh, variables2);
-      pFresh.bound = bound2;
       if (!relation(bound2, bound1, p2, p1)) {
         return null;
+      }
+
+      if (!bound2.isDynamic) {
+        pFresh.bound = bound2;
       }
     }
     return variablesFresh;

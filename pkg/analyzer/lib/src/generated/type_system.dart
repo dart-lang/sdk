@@ -2342,8 +2342,30 @@ abstract class TypeSystem implements public.TypeSystem {
    *   Return a function type with those types.
    */
   DartType _functionLeastUpperBound(FunctionType f, FunctionType g) {
-    // TODO(rnystrom): Right now, this assumes f and g do not have any type
-    // parameters. Revisit that in the presence of generic methods.
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // If F and G differ in their number of type parameters, then the
+    // least upper bound of F and G is Function.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return typeProvider.functionType;
+    }
+
+    // If F and G differ in bounds of their of type parameters, then the
+    // least upper bound of F and G is Function.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+    if (freshTypeFormalTypes == null) {
+      return typeProvider.functionType;
+    }
+
+    var typeFormals = freshTypeFormalTypes
+        .map<TypeParameterElement>((t) => t.element)
+        .toList();
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
     List<DartType> fRequired = f.normalParameterTypes;
     List<DartType> gRequired = g.normalParameterTypes;
 
@@ -2394,7 +2416,14 @@ abstract class TypeSystem implements public.TypeSystem {
 
     // Calculate the LUB of the return type.
     DartType returnType = getLeastUpperBound(f.returnType, g.returnType);
-    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+
+    if (AnalysisDriver.useSummary2) {
+      return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    }
+
+    var element = FunctionElementImpl.synthetic(parameters, returnType);
+    element.typeParameters = typeFormals;
+    return element.type;
   }
 
   /**

@@ -414,17 +414,66 @@ abstract class BoundTestBase {
    *
    * The return type defaults to `void` if omitted.
    */
-  FunctionType _functionType(List<DartType> required,
-      {List<DartType> optional,
-      Map<String, DartType> named,
-      DartType returns}) {
-    if (returns == null) {
-      returns = voidType;
+  FunctionType _functionType({
+    List<TypeParameterElement> typeFormals,
+    List<DartType> required,
+    List<DartType> optional,
+    Map<String, DartType> named,
+    DartType returns,
+  }) {
+    if (optional != null && named != null) {
+      throw ArgumentError(
+        'Cannot have both optional positional and named parameters.',
+      );
     }
 
-    return ElementFactory.functionElement8(required, returns,
-            optional: optional, named: named)
-        .type;
+    var parameters = <ParameterElement>[];
+    if (required != null) {
+      for (var i = 0; i < required.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'r$i',
+            required[i],
+            ParameterKind.REQUIRED,
+          ),
+        );
+      }
+    }
+    if (optional != null) {
+      for (var i = 0; i < optional.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'p$i',
+            optional[i],
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      }
+    }
+    if (named != null) {
+      for (var namedEntry in named.entries) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            namedEntry.key,
+            namedEntry.value,
+            ParameterKind.NAMED,
+          ),
+        );
+      }
+    }
+
+    return FunctionTypeImpl.synthetic(
+      returns ?? voidType,
+      typeFormals ?? const <TypeParameterElement>[],
+      parameters,
+    );
+  }
+
+  TypeParameterElementImpl _typeParameterElement(String name,
+      {DartType bound}) {
+    var element = TypeParameterElementImpl.synthetic(name);
+    element.bound = bound ?? typeProvider.objectType;
+    return element;
   }
 }
 
@@ -1205,92 +1254,170 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_functionsDifferentNamedTakeUnion() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 =
-        _functionType([], named: {'b': doubleType, 'c': stringType});
-    FunctionType expected =
-        _functionType([], named: {'a': intType, 'b': numType, 'c': stringType});
+    var type1 = _functionType(
+      named: {'a': intType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'b': doubleType, 'c': stringType},
+    );
+    var expected = _functionType(
+      named: {'a': intType, 'b': numType, 'c': stringType},
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsDifferentOptionalArityTakeMax() {
-    FunctionType type1 = _functionType([], optional: [intType]);
-    FunctionType type2 =
-        _functionType([], optional: [doubleType, stringType, objectType]);
-    FunctionType expected =
-        _functionType([], optional: [numType, stringType, objectType]);
+    var type1 = _functionType(
+      optional: [intType],
+    );
+    var type2 = _functionType(
+      required: [],
+      optional: [doubleType, stringType, objectType],
+    );
+    var expected = _functionType(
+      optional: [numType, stringType, objectType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsDifferentRequiredArityBecomeOptional() {
-    FunctionType type1 = _functionType([intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
-    FunctionType expected =
-        _functionType([intType], optional: [intType, intType]);
+    var type1 = _functionType(
+      required: [intType],
+    );
+    var type2 = _functionType(
+      required: [intType, intType, intType],
+    );
+    var expected = _functionType(
+      required: [intType],
+      optional: [intType, intType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsFromDynamic() {
-    FunctionType type1 = _functionType([dynamicType]);
-    FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([dynamicType]);
+    var type1 = _functionType(required: [dynamicType]);
+    var type2 = _functionType(required: [intType]);
+    var expected = _functionType(required: [dynamicType]);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsGlbReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: numType);
-    FunctionType expected = _functionType([], returns: intType);
+    var type1 = _functionType(returns: intType);
+    var type2 = _functionType(returns: numType);
+    var expected = _functionType(returns: intType);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': objectType, 'b': numType});
+    var type1 = _functionType(
+      named: {'a': stringType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'b': numType},
+    );
+    var expected = _functionType(
+      named: {'a': objectType, 'b': numType},
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [objectType, numType]);
+    var type1 = _functionType(
+      optional: [stringType, intType],
+    );
+    var type2 = _functionType(
+      optional: [intType, numType],
+    );
+    var expected = _functionType(
+      optional: [objectType, numType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([objectType, numType, numType]);
+    var type1 = _functionType(
+      required: [stringType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType, doubleType, numType],
+    );
+    var expected = _functionType(
+      required: [objectType, numType, numType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsMixedOptionalAndRequiredBecomeOptional() {
-    FunctionType type1 = _functionType([intType, intType],
-        optional: [intType, intType, intType]);
-    FunctionType type2 = _functionType([intType], optional: [intType, intType]);
-    FunctionType expected = _functionType([intType],
-        optional: [intType, intType, intType, intType]);
+    var type1 = _functionType(
+      required: [intType, intType],
+      optional: [intType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType],
+      optional: [intType, intType],
+    );
+    var expected = _functionType(
+      required: [intType],
+      optional: [intType, intType, intType, intType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsReturnBottomIfMixOptionalAndNamed() {
     // Dart doesn't allow a function to have both optional and named parameters,
     // so if we would have synthethized that, pick bottom instead.
-    FunctionType type1 = _functionType([intType], named: {'a': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType});
+    var type1 = _functionType(
+      required: [intType],
+      named: {'a': intType},
+    );
+    var type2 = _functionType(
+      required: [],
+      named: {'a': intType},
+    );
     _checkGreatestLowerBound(type1, type2, bottomType);
   }
 
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
+  void test_functionsSameType_withNamed() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsSameType_withOptional() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
@@ -1386,8 +1513,11 @@ class GreatestLowerBoundTest extends BoundTestBase {
       ElementFactory.typeParameterElement('T').type
     ];
     for (DartType type in types) {
-      _checkGreatestLowerBound(_functionType([], returns: voidType),
-          _functionType([], returns: type), _functionType([], returns: type));
+      _checkGreatestLowerBound(
+        _functionType(required: [], returns: voidType),
+        _functionType(required: [], returns: type),
+        _functionType(required: [], returns: type),
+      );
     }
   }
 }
@@ -1399,71 +1529,164 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
     typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
-  void test_functionsDifferentRequiredArity() {
-    FunctionType type1 = _functionType([intType, intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
+  void test_differentRequiredArity() {
+    var type1 = _functionType(required: [intType, intType]);
+    var type2 = _functionType(required: [intType, intType, intType]);
     _checkLeastUpperBound(type1, type2, functionType);
   }
 
-  void test_functionsFuzzyArrows() {
-    FunctionType type1 = _functionType([dynamicType]);
-    FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([intType]);
+  void test_fuzzyArrows() {
+    var type1 = _functionType(required: [dynamicType]);
+    var type2 = _functionType(required: [intType]);
+    var expected = _functionType(required: [intType]);
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': bottomType, 'b': intType});
+  void test_glbNamedParams() {
+    var type1 = _functionType(
+      named: {'a': stringType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'b': numType},
+    );
+    var expected = _functionType(
+      named: {'a': bottomType, 'b': intType},
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [bottomType, intType]);
+  void test_glbPositionalParams() {
+    var type1 = _functionType(
+      optional: [stringType, intType],
+    );
+    var type2 = _functionType(
+      optional: [intType, numType],
+    );
+    var expected = _functionType(
+      optional: [bottomType, intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([bottomType, bottomType, intType]);
+  void test_glbRequiredParams() {
+    var type1 = _functionType(
+      required: [stringType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType, doubleType, numType],
+    );
+    var expected = _functionType(
+      required: [bottomType, bottomType, intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsIgnoreExtraNamedParams() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'c': intType});
-    FunctionType expected = _functionType([], named: {'a': intType});
+  void test_ignoreExtraNamedParams() {
+    var type1 = _functionType(
+      named: {'a': intType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'c': intType},
+    );
+    var expected = _functionType(
+      named: {'a': intType},
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsIgnoreExtraPositionalParams() {
-    FunctionType type1 =
-        _functionType([], optional: [intType, intType, stringType]);
-    FunctionType type2 = _functionType([], optional: [intType]);
-    FunctionType expected = _functionType([], optional: [intType]);
+  void test_ignoreExtraPositionalParams() {
+    var type1 = _functionType(
+      optional: [intType, intType, stringType],
+    );
+    var type2 = _functionType(
+      optional: [intType],
+    );
+    var expected = _functionType(
+      optional: [intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsLubReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: doubleType);
-    FunctionType expected = _functionType([], returns: numType);
+  void test_lubReturnType() {
+    var type1 = _functionType(returns: intType);
+    var type2 = _functionType(returns: doubleType);
+    var expected = _functionType(returns: numType);
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
+  void test_sameType_withNamed() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_sameType_withOptional() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_typeFormals_differentBounds() {
+    var T1 = _typeParameterElement('T1', bound: intType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var T2 = _typeParameterElement('T2', bound: doubleType);
+    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+
+    _checkLeastUpperBound(type1, type2, functionType);
+  }
+
+  void test_typeFormals_differentNumber() {
+    var T1 = _typeParameterElement('T1', bound: numType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var type2 = _functionType(returns: intType);
+
+    _checkLeastUpperBound(type1, type2, functionType);
+  }
+
+  void test_typeFormals_sameBounds() {
+    var T1 = _typeParameterElement('T1', bound: numType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var T2 = _typeParameterElement('T2', bound: numType);
+    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+
+    var TE = _typeParameterElement('T', bound: numType);
+    var expected = _functionType(typeFormals: [TE], returns: TE.type);
+
     _checkLeastUpperBound(type1, type2, expected);
   }
 }
@@ -1566,32 +1789,38 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_nestedFunctionsLubInnerParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([stringType, intType, intType])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([intType, doubleType, numType])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([objectType, numType, numType])
-    ]);
+    var type1 = _functionType(
+      required: [
+        _functionType(required: [stringType, intType, intType])
+      ],
+    );
+    var type2 = _functionType(
+      required: [
+        _functionType(required: [intType, doubleType, numType])
+      ],
+    );
+    var expected = _functionType(
+      required: [
+        _functionType(required: [objectType, numType, numType])
+      ],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
   void test_nestedNestedFunctionsGlbInnermostParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([
-        _functionType([stringType, intType, intType])
+    FunctionType type1 = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [stringType, intType, intType])
       ])
     ]);
-    FunctionType type2 = _functionType([
-      _functionType([
-        _functionType([intType, doubleType, numType])
+    FunctionType type2 = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [intType, doubleType, numType])
       ])
     ]);
-    FunctionType expected = _functionType([
-      _functionType([
-        _functionType([bottomType, bottomType, intType])
+    FunctionType expected = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [bottomType, bottomType, intType])
       ])
     ]);
     _checkLeastUpperBound(type1, type2, expected);
@@ -1840,9 +2069,10 @@ class LeastUpperBoundTest extends BoundTestBase {
     ];
     for (DartType type in types) {
       _checkLeastUpperBound(
-          _functionType([], returns: voidType),
-          _functionType([], returns: type),
-          _functionType([], returns: voidType));
+        _functionType(returns: voidType),
+        _functionType(returns: type),
+        _functionType(returns: voidType),
+      );
     }
   }
 }
