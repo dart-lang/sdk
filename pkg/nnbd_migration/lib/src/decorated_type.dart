@@ -87,6 +87,8 @@ class DecoratedType {
     DecoratedType decoratedType;
     if (element is ExecutableElement) {
       decoratedType = decorate(element.type);
+    } else if (element is TopLevelVariableElement) {
+      decoratedType = decorate(element.type);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');

@@ -1667,13 +1667,21 @@ int f() {
 double pi = 3.1415;
 double get myPi => pi;
 ''');
-    var pi = findNode.topLevelVariableDeclaration('double pi');
-    var piType =
-        variables.decoratedTypeAnnotation(testSource, pi.variables.type);
-    var myPi = findNode.any('myPi').parent as FunctionDeclaration;
-    var myPiType =
-        variables.decoratedTypeAnnotation(testSource, myPi.returnType);
+    var piType = decoratedTypeAnnotation('double pi');
+    var myPiType = decoratedTypeAnnotation('double get');
     assertEdge(piType.node, myPiType.node, hard: false);
+  }
+
+  test_topLevelVar_reference_differentPackage() async {
+    addPackageFile('pkgPi', 'piConst.dart', '''
+double pi = 3.1415;
+''');
+    await analyze('''
+import "package:pkgPi/piConst.dart";
+double get myPi => pi;
+''');
+    var myPiType = decoratedTypeAnnotation('double get');
+    assertEdge(never, myPiType.node, hard: false);
   }
 
   test_type_argument_explicit_bound() async {
