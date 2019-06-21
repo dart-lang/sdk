@@ -615,8 +615,8 @@ reference will be returned.
 
 ```
 AllocationProfile getAllocationProfile(string isolateId,
-                                       boolean reset [optional],
-                                       boolean gc [optional])
+                                       bool reset [optional],
+                                       bool gc [optional])
 ```
 
 The _getAllocationProfile_ RPC is used to retrieve allocation information for a
