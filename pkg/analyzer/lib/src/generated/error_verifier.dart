@@ -6059,6 +6059,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
+    if (!_isNonNullable) return;
+
     AstNode parent = node.parent;
     if (parent is FieldFormalParameter ||
         parent is FunctionTypeAlias ||
