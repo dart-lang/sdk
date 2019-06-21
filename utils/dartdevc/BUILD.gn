@@ -87,6 +87,7 @@ template("dart2js_compile") {
       "$abs_main",
       "-m",
       "-o$abs_output",
+      "--no-source-maps",
     ]
   }
 }
