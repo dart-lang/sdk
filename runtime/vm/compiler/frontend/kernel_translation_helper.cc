@@ -2900,9 +2900,10 @@ void TypeTranslator::BuildTypeParameterType() {
       }
       parameter_index -= class_types.Length();
     }
-
+    // Factory function should not be considered as procedure.
     intptr_t procedure_type_parameter_count =
-        active_class_->MemberIsProcedure()
+        (active_class_->MemberIsProcedure() &&
+         !active_class_->MemberIsFactoryProcedure())
             ? active_class_->MemberTypeParameterCount(Z)
             : 0;
     if (procedure_type_parameter_count > 0) {
