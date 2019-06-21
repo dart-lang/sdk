@@ -1450,6 +1450,15 @@ void test(C c) {
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
+  test_return_function_type_simple() async {
+    await analyze('''
+int/*1*/ Function() f(int/*2*/ Function() x) => x;
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int2.node, int1.node, hard: true);
+  }
+
   test_return_implicit_null() async {
     verifyNoTestUnitErrors = false;
     await analyze('''
@@ -1644,6 +1653,19 @@ Set<String> f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('Set').node);
     assertEdge(always, decoratedTypeAnnotation('String>{').node, hard: false);
+  }
+
+  test_simpleIdentifier_function() async {
+    await analyze('''
+int f() => null;
+main() {
+  int Function() g = f;
+}
+''');
+
+    assertEdge(decoratedTypeAnnotation('int f').node,
+        decoratedTypeAnnotation('int Function').node,
+        hard: false);
   }
 
   test_simpleIdentifier_local() async {

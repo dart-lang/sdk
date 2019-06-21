@@ -332,6 +332,24 @@ int? f(C c) => c.f;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_function_return_type() async {
+    var content = '''
+int Function() f(int Function() x) => x;
+int g() => null;
+main() {
+  f(g);
+}
+''';
+    var expected = '''
+int? Function() f(int? Function() x) => x;
+int? g() => null;
+main() {
+  f(g);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_contravariant_inward() async {
     var content = '''
 class C<T> {

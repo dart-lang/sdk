@@ -686,7 +686,8 @@ $stackTrace''');
   DecoratedType visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
     if (staticElement is ParameterElement ||
-        staticElement is LocalVariableElement) {
+        staticElement is LocalVariableElement ||
+        staticElement is FunctionElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       var elementType = getOrComputeElementType(staticElement);
@@ -803,6 +804,23 @@ $stackTrace''');
         _checkAssignment(destinationType.typeArguments[i],
             sourceType.typeArguments[i], expressionChecks,
             hard: false);
+      }
+    } else if (sourceType.type is FunctionType &&
+        destinationType.type is FunctionType) {
+      _checkAssignment(
+          destinationType.returnType, sourceType.returnType, expressionChecks,
+          hard: hard);
+      if (sourceType.typeArguments.isNotEmpty ||
+          destinationType.typeArguments.isNotEmpty) {
+        throw UnimplementedError('TODO(paulberry)');
+      }
+      if (sourceType.positionalParameters.isNotEmpty ||
+          destinationType.positionalParameters.isNotEmpty) {
+        throw UnimplementedError('TODO(paulberry)');
+      }
+      if (sourceType.namedParameters.isNotEmpty ||
+          destinationType.namedParameters.isNotEmpty) {
+        throw UnimplementedError('TODO(paulberry)');
       }
     } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
       // ok; nothing further to do.
