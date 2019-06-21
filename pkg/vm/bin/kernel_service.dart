@@ -34,6 +34,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
@@ -147,11 +148,14 @@ abstract class Compiler {
         await runWithFrontEndCompilerContext(script, options, component, () {
           // TODO(alexmarkov): disable source positions, local variables info
           //  and source files in VM PRODUCT mode.
+          // TODO(alexmarkov): disable asserts if they are not enabled in VM.
           generateBytecode(component,
-              environmentDefines: options.environmentDefines,
-              emitSourcePositions: true,
-              emitLocalVarInfo: true,
-              emitSourceFiles: true);
+              options: new BytecodeOptions(
+                  enableAsserts: true,
+                  environmentDefines: options.environmentDefines,
+                  emitSourcePositions: true,
+                  emitLocalVarInfo: true,
+                  emitSourceFiles: true));
         });
       }
 

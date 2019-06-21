@@ -8,8 +8,7 @@ import 'package:kernel/ast.dart';
 import 'bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
 import 'constant_pool.dart' show ConstantPool;
-import 'dbc.dart'
-    show currentBytecodeFormatVersion, futureBytecodeFormatVersion;
+import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
@@ -1440,8 +1439,6 @@ class Component {
     sb.write("Bytecode (version: ");
     if (version == currentBytecodeFormatVersion) {
       sb.write("stable");
-    } else if (version == futureBytecodeFormatVersion) {
-      sb.write("future");
     } else {
       sb.write("v$version");
     }

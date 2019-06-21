@@ -12,11 +12,6 @@ library vm.bytecode.dbc;
 /// version of bytecode.
 const int currentBytecodeFormatVersion = 11;
 
-/// Version of experimental / bleeding edge bytecode format.
-/// Produced by bytecode generator when --use-future-bytecode-format
-/// option is enabled.
-const int futureBytecodeFormatVersion = currentBytecodeFormatVersion + 1;
-
 enum Opcode {
   // Old instructions, used before bytecode v7.
   // TODO(alexmarkov): remove
