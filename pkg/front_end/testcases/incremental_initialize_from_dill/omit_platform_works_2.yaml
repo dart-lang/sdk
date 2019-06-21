@@ -6,7 +6,6 @@
 # Omit platform is true by default in tests.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

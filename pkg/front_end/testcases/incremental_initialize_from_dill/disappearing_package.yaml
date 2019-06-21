@@ -8,7 +8,6 @@
 # but shouldn't cause trouble, nor be included in the output.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:

@@ -5,7 +5,6 @@
 # Regression test from flutter.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

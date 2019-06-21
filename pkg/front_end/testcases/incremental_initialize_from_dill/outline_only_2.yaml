@@ -6,7 +6,6 @@
 # This is a reproduction of http://dartbug.com/36498.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

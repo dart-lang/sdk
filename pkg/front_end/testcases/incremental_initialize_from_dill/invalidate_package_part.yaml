@@ -6,7 +6,6 @@
 # URI.
 
 type: newworld
-strong: false
 worlds:
   - entry: "package:example/main.dart"
     sources:

@@ -11,7 +11,6 @@
 # that it pulled in should be included.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:

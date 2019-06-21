@@ -8,7 +8,6 @@
 # of the library list --- initializing from the dill with n libraries.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:

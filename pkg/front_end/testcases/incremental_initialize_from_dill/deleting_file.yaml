@@ -7,7 +7,6 @@
 # we should keep getting an error.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:
@@ -24,7 +23,6 @@ worlds:
     expectedLibraryCount: 2
   - entry: main.dart
     errors: true
-    warnings: true
     invalidate:
       - b.dart
     sources:
@@ -37,7 +35,6 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    warnings: true
     checkInvalidatedFiles: false
     worldType: updated
     invalidate:
@@ -52,7 +49,6 @@ worlds:
     expectedLibraryCount: 1
   - entry: main.dart
     errors: true
-    warnings: true
     checkInvalidatedFiles: false
     worldType: updated
     invalidate:

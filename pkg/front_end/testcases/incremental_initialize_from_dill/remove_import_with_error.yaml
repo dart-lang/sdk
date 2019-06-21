@@ -7,7 +7,6 @@
 # invalidating a. Compiling this should not result in any errors.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     errors: true

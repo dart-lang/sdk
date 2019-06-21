@@ -7,7 +7,6 @@
 # we keep getting errors. Once we fix it, we no longer get errors.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:
