@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -135,6 +136,10 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
       }
     }
     fail('Expected union between $x and $y, not found');
+  }
+
+  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(String name) {
+    return variables.decoratedDirectSupertypes(findElement.classOrMixin(name));
   }
 
   /// Gets the [DecoratedType] associated with the generic function type

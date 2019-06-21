@@ -41,6 +41,158 @@ class C {
     expect(decoratedType.node, same(never));
   }
 
+  test_directSupertypes_class_extends() async {
+    await analyze('''
+class C<T, U> {}
+class D<V> extends C<int, V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
+  test_directSupertypes_class_extends_default() async {
+    await analyze('''
+class C<T, U> {}
+''');
+    var types = decoratedDirectSupertypes('C');
+    var decorated = types[typeProvider.objectType.element];
+    expect(decorated.type.toString(), 'Object');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, isEmpty);
+  }
+
+  test_directSupertypes_class_implements() async {
+    await analyze('''
+class C<T, U> {}
+class D<V> implements C<int, V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
+  test_directSupertypes_class_with() async {
+    await analyze('''
+class C<T, U> {}
+class D<V> extends Object with C<int, V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
+  test_directSupertypes_classAlias_extends() async {
+    await analyze('''
+class M {}
+class C<T, U> {}
+class D<V> = C<int, V> with M;
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> w').node));
+  }
+
+  test_directSupertypes_classAlias_implements() async {
+    await analyze('''
+class M {}
+class C<T, U> {}
+class D<V> = Object with M implements C<int, V>;
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V>;').node));
+  }
+
+  test_directSupertypes_classAlias_with() async {
+    await analyze('''
+class C<T, U> {}
+class D<V> = Object with C<int, V>;
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V>;').node));
+  }
+
+  test_directSupertypes_mixin_extends_default() async {
+    await analyze('''
+mixin C<T, U> {}
+''');
+    var types = decoratedDirectSupertypes('C');
+    var decorated = types[typeProvider.objectType.element];
+    expect(decorated.type.toString(), 'Object');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, isEmpty);
+  }
+
+  test_directSupertypes_mixin_implements() async {
+    await analyze('''
+class C<T, U> {}
+mixin D<V> implements C<int, V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
+  test_directSupertypes_mixin_on() async {
+    await analyze('''
+class C<T, U> {}
+mixin D<V> on C<int, V> {}
+''');
+    var types = decoratedDirectSupertypes('D');
+    var decorated = types[findElement.class_('C')];
+    expect(decorated.type.toString(), 'C<int, V>');
+    expect(decorated.node, same(never));
+    expect(decorated.typeArguments, hasLength(2));
+    expect(decorated.typeArguments[0].node,
+        same(decoratedTypeAnnotation('int').node));
+    expect(decorated.typeArguments[1].node,
+        same(decoratedTypeAnnotation('V> {').node));
+  }
+
   test_dynamic_type() async {
     await analyze('''
 dynamic f() {}

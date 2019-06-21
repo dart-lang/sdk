@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -48,8 +49,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   final TypeProvider _typeProvider;
 
+  /// For convenience, a [DecoratedType] representing non-nullable `Object`.
+  final DecoratedType _nonNullableObjectType;
+
   NodeBuilder(this._variables, this._source, this.listener, this._graph,
-      this._typeProvider);
+      this._typeProvider)
+      : _nonNullableObjectType =
+            DecoratedType(_typeProvider.objectType, _graph.never);
 
   @override
   DecoratedType visitCompilationUnit(CompilationUnit node) {
@@ -69,6 +75,32 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
             NullabilityNode.forInferredDynamicType(
                 _graph, _source, enclosingNode.offset))
         : type.accept(this);
+  }
+
+  @override
+  DecoratedType visitClassDeclaration(ClassDeclaration node) {
+    node.metadata.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    node.nativeClause?.accept(this);
+    node.members.accept(this);
+    _handleSupertypeClauses(
+        node.declaredElement,
+        node.extendsClause?.superclass,
+        node.withClause,
+        node.implementsClause,
+        null);
+    return null;
+  }
+
+  @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    node.metadata.accept(this);
+    node.name.accept(this);
+    node.typeParameters?.accept(this);
+    _handleSupertypeClauses(node.declaredElement, node.superclass,
+        node.withClause, node.implementsClause, null);
+    return null;
   }
 
   @override
@@ -141,6 +173,17 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(node.declaredElement, node.returnType,
         node.parameters, node.body, node);
+    return null;
+  }
+
+  @override
+  visitMixinDeclaration(MixinDeclaration node) {
+    node.metadata.accept(this);
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
+    _handleSupertypeClauses(
+        node.declaredElement, null, null, node.implementsClause, node.onClause);
     return null;
   }
 
@@ -226,8 +269,18 @@ $stackTrace''');
         _namedParameters = previousNamedParameters;
       }
     }
-    var decoratedType = DecoratedTypeAnnotation(
-        type, NullabilityNode.forTypeAnnotation(node.end), node.end,
+    NullabilityNode nullabilityNode;
+    var parent = node.parent;
+    if (parent is ExtendsClause ||
+        parent is ImplementsClause ||
+        parent is WithClause ||
+        parent is OnClause ||
+        parent is ClassTypeAlias) {
+      nullabilityNode = _graph.never;
+    } else {
+      nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);
+    }
+    var decoratedType = DecoratedTypeAnnotation(type, nullabilityNode, node.end,
         typeArguments: typeArguments,
         returnType: returnType,
         positionalParameters: positionalParameters,
@@ -346,6 +399,41 @@ $stackTrace''');
     _variables.recordDecoratedElementType(declaredElement, functionType);
   }
 
+  void _handleSupertypeClauses(
+      ClassElement declaredElement,
+      TypeName superclass,
+      WithClause withClause,
+      ImplementsClause implementsClause,
+      OnClause onClause) {
+    var supertypes = <TypeName>[];
+    supertypes.add(superclass);
+    if (withClause != null) {
+      supertypes.addAll(withClause.mixinTypes);
+    }
+    if (implementsClause != null) {
+      supertypes.addAll(implementsClause.interfaces);
+    }
+    if (onClause != null) {
+      supertypes.addAll(onClause.superclassConstraints);
+    }
+    var decoratedSupertypes = <ClassElement, DecoratedType>{};
+    for (var supertype in supertypes) {
+      DecoratedType decoratedSupertype;
+      if (supertype == null) {
+        decoratedSupertype = _nonNullableObjectType;
+      } else {
+        decoratedSupertype = supertype.accept(this);
+      }
+      var class_ = (decoratedSupertype.type as InterfaceType).element;
+      if (class_ is ClassElementHandle) {
+        class_ = (class_ as ClassElementHandle).actualElement;
+      }
+      decoratedSupertypes[class_] = decoratedSupertype;
+    }
+    _variables.recordDecoratedDirectSupertypes(
+        declaredElement, decoratedSupertypes);
+  }
+
   @alwaysThrows
   void _unimplemented(AstNode node, String message) {
     CompilationUnit unit = node.root as CompilationUnit;
@@ -369,6 +457,11 @@ $stackTrace''');
 /// ([NodeBuilder], which finds all the variables that need to be
 /// constrained).
 abstract class VariableRecorder {
+  /// Associates a [class_] with decorated type information for the superclasses
+  /// it directly implements/extends/etc.
+  void recordDecoratedDirectSupertypes(ClassElement class_,
+      Map<ClassElement, DecoratedType> decoratedDirectSupertypes);
+
   /// Associates decorated type information with the given [element].
   void recordDecoratedElementType(Element element, DecoratedType type);
 
@@ -392,6 +485,11 @@ abstract class VariableRecorder {
 /// results of the first ([NodeBuilder], which finds all the
 /// variables that need to be constrained).
 abstract class VariableRepository {
+  /// Given a [class_], gets the decorated type information for the superclasses
+  /// it directly implements/extends/etc.
+  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
+      ClassElement class_);
+
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
   ///

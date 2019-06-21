@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -17,12 +18,23 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
+  final _decoratedDirectSupertypes =
+      <ClassElement, Map<ClassElement, DecoratedType>>{};
+
   final _decoratedTypeAnnotations =
       <Source, Map<int, DecoratedTypeAnnotation>>{};
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
   Variables(this._graph);
+
+  @override
+  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
+      ClassElement class_) {
+    assert(class_ is! ClassElementHandle);
+    return _decoratedDirectSupertypes[class_] ??
+        _decorateDirectSupertypes(class_);
+  }
 
   @override
   DecoratedType decoratedElementType(Element element, {bool create: false}) =>
@@ -49,6 +61,19 @@ class Variables implements VariableRecorder, VariableRepository {
       Source source, AstNode node, ConditionalDiscard conditionalDiscard) {
     _addPotentialModification(
         source, ConditionalModification(node, conditionalDiscard));
+  }
+
+  @override
+  void recordDecoratedDirectSupertypes(ClassElement class_,
+      Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
+    assert(() {
+      assert(class_ is! ClassElementHandle);
+      for (var key in decoratedDirectSupertypes.keys) {
+        assert(key is! ClassElementHandle);
+      }
+      return true;
+    }());
+    _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
   }
 
   void recordDecoratedElementType(Element element, DecoratedType type) {
@@ -128,6 +153,20 @@ class Variables implements VariableRecorder, VariableRepository {
   void _addPotentialModification(
       Source source, PotentialModification potentialModification) {
     (_potentialModifications[source] ??= []).add(potentialModification);
+  }
+
+  /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
+  /// class.
+  Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
+      ClassElement class_) {
+    if (class_.type.isObject) {
+      // TODO(paulberry): this special case is just to get the basic
+      // infrastructure working (necessary since all classes derive from
+      // Object).  Once we have the full implementation this case shouldn't be
+      // needed.
+      return const {};
+    }
+    throw UnimplementedError('TODO(paulberry)');
   }
 
   int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>

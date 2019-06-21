@@ -162,10 +162,22 @@ class DecoratedType {
           returnType: returnType._substitute(
               substitution, undecoratedResult.returnType),
           positionalParameters: newPositionalParameters);
+    } else if (type is InterfaceType && undecoratedResult is InterfaceType) {
+      List<DecoratedType> newTypeArguments = [];
+      for (int i = 0; i < typeArguments.length; i++) {
+        newTypeArguments.add(typeArguments[i]
+            .substitute(substitution, undecoratedResult.typeArguments[i]));
+      }
+      return DecoratedType(undecoratedResult, node,
+          typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      return DecoratedType(undecoratedResult,
-          NullabilityNode.forSubstitution(inner?.node, node));
+      if (inner == null) {
+        return this;
+      } else {
+        return inner
+            .withNode(NullabilityNode.forSubstitution(inner.node, node));
+      }
     } else if (type is VoidType) {
       return this;
     }
