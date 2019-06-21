@@ -214,6 +214,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
             : conditionInfo.not(node);
       }
       return _nonNullableBoolType;
+    } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
+        operatorType == TokenType.BAR_BAR ||
+        operatorType == TokenType.QUESTION_QUESTION) {
+      _handleAssignment(_notNullType, node.leftOperand);
+      node.rightOperand.accept(this);
+      return _nonNullableBoolType;
     } else if (operatorType.isUserDefinableOperator) {
       _handleAssignment(_notNullType, node.leftOperand);
       var callee = node.staticElement;
@@ -228,6 +234,8 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       return calleeType.returnType;
     } else {
       // TODO(paulberry)
+      node.leftOperand.accept(this);
+      node.rightOperand.accept(this);
       _unimplemented(
           node, 'Binary expression with operator ${node.operator.lexeme}');
     }

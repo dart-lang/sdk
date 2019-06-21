@@ -294,12 +294,28 @@ int f(int i, int j) => i & j;
     assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
   }
 
+  test_binaryExpression_ampersandAmpersand() async {
+    await analyze('''
+bool f(bool i, bool j) => i && j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool i').node);
+  }
+
   test_binaryExpression_bar_result_not_null() async {
     await analyze('''
 int f(int i, int j) => i | j;
 ''');
 
     assertNoUpstreamNullability(decoratedTypeAnnotation('int f').node);
+  }
+
+  test_binaryExpression_barBar() async {
+    await analyze('''
+bool f(bool i, bool j) => i || j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('bool i').node);
   }
 
   test_binaryExpression_caret_result_not_null() async {
@@ -456,6 +472,14 @@ Int f(Int i, Int j) => i + j/*check*/;
         assertEdge(decoratedTypeAnnotation('Int j').node,
             decoratedTypeAnnotation('Int other').node,
             hard: true));
+  }
+
+  test_binaryExpression_questionQuestion() async {
+    await analyze('''
+int f(int i, int j) => i ?? j;
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('int i').node);
   }
 
   test_binaryExpression_slash_result_not_null() async {
