@@ -21,6 +21,9 @@
 * Changed the return type of `ClassTypeAlias.declaredElement` to `ClassElement`.
   There is no functional change; it has always returned an instance of
   `ClassElement`.
+* Deprecated `parseFile`.  Please use `parseFile2` instead--in addition to
+  supporting the same `featureSet` and `throwIfDiagnostics` parameters as
+  `parseString`, it is much more efficient than `parseFile`.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this
