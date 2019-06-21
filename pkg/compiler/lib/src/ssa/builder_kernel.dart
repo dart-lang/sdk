@@ -6876,6 +6876,12 @@ class InlineWeeder extends ir.Visitor {
   }
 
   @override
+  visitConstantExpression(ir.ConstantExpression node) {
+    registerRegularNode();
+    registerReductiveNode();
+  }
+
+  @override
   visitReturnStatement(ir.ReturnStatement node) {
     registerRegularNode();
     node.visitChildren(this);
