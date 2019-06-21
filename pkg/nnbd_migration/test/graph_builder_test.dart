@@ -1662,6 +1662,24 @@ int f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('int').node);
   }
 
+  test_topLevelSetter() async {
+    await analyze('''
+void set x(int value) {}
+main() { x = 1; }
+''');
+    var setXType = decoratedTypeAnnotation('int value');
+    assertEdge(never, setXType.node, hard: false);
+  }
+
+  test_topLevelSetter_nullable() async {
+    await analyze('''
+void set x(int value) {}
+main() { x = null; }
+''');
+    var setXType = decoratedTypeAnnotation('int value');
+    assertEdge(always, setXType.node, hard: false);
+  }
+
   test_topLevelVar_reference() async {
     await analyze('''
 double pi = 3.1415;

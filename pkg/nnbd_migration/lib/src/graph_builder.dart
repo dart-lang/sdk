@@ -638,12 +638,10 @@ $stackTrace''');
         staticElement is LocalVariableElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
-      if (staticElement.isGetter) {
-        return getOrComputeElementType(staticElement).returnType;
-      } else {
-        // TODO(danrubel) handle setter
-        _unimplemented(node, 'Setter');
-      }
+      var elementType = getOrComputeElementType(staticElement);
+      return staticElement.isGetter
+          ? elementType.returnType
+          : elementType.positionalParameters[0];
     } else if (staticElement is ClassElement) {
       return _nonNullableTypeType;
     } else {
