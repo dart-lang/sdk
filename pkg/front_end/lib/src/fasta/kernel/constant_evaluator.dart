@@ -306,7 +306,12 @@ class ConstantsTransformer extends Transformer {
 
         // If this constant is inlined, remove it.
         if (!keepVariables && shouldInline(node.initializer)) {
-          return null;
+          if (constant is! UnevaluatedConstant) {
+            // If the constant is unevaluated we need to keep the expression,
+            // so that, in the case the constant contains error but the local
+            // is unused, the error will still be reported.
+            return null;
+          }
         }
       } else {
         node.initializer = node.initializer.accept(this)..parent = node;
@@ -933,6 +938,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         instanceBuilder.setFieldValue(
             fieldRef.asField, _evaluateSubexpression(value));
       });
+      node.unusedArguments.forEach((Expression value) {
+        Constant constant = _evaluateSubexpression(value);
+        if (constant is UnevaluatedConstant) {
+          instanceBuilder.unusedArguments.add(extract(constant));
+        }
+      });
       if (shouldBeUnevaluated) {
         return unevaluated(node, instanceBuilder.buildUnevaluatedInstance());
       }
@@ -1132,6 +1143,10 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
                 'No support for handling initializer of type '
                 '"${init.runtimeType}".');
           }
+        }
+
+        for (UnevaluatedConstant constant in env.unevaluatedUnreadConstants) {
+          instanceBuilder.unusedArguments.add(extract(constant));
         }
       });
     });
@@ -1763,7 +1778,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (shouldBeUnevaluated) {
       return unevaluated(node,
-          new AsExpression(extract(constant), env.subsituteType(node.type)));
+          new AsExpression(extract(constant), env.substituteType(node.type)));
     }
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
   }
@@ -1808,7 +1823,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return unevaluated(
           node,
           new Instantiation(extract(constant),
-              node.typeArguments.map((t) => env.subsituteType(t)).toList()));
+              node.typeArguments.map((t) => env.substituteType(t)).toList()));
     }
     if (constant is TearOffConstant) {
       if (node.typeArguments.length ==
@@ -1927,7 +1942,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   DartType evaluateDartType(TreeNode node, DartType type) {
-    final result = env.subsituteType(type);
+    final result = env.substituteType(type);
 
     if (!isInstantiated(result)) {
       return report(
@@ -2118,6 +2133,8 @@ class InstanceBuilder {
 
   final List<AssertStatement> asserts = <AssertStatement>[];
 
+  final List<Expression> unusedArguments = <Expression>[];
+
   InstanceBuilder(this.evaluator, this.klass, this.typeArguments);
 
   void setFieldValue(Field field, Constant constant) {
@@ -2131,6 +2148,7 @@ class InstanceBuilder {
       assert(value is! UnevaluatedConstant);
       fieldValues[field.reference] = value;
     });
+    assert(unusedArguments.isEmpty);
     return new InstanceConstant(klass.reference, typeArguments, fieldValues);
   }
 
@@ -2139,9 +2157,8 @@ class InstanceBuilder {
     fields.forEach((Field field, Constant value) {
       fieldValues[field.reference] = evaluator.extract(value);
     });
-    // TODO(askesc): Put actual unused arguments.
     return new InstanceCreation(
-        klass.reference, typeArguments, fieldValues, asserts, []);
+        klass.reference, typeArguments, fieldValues, asserts, unusedArguments);
   }
 }
 
@@ -2155,6 +2172,13 @@ class EvaluationEnvironment {
   final Map<VariableDeclaration, Constant> _variables =
       <VariableDeclaration, Constant>{};
 
+  /// The variables that hold unevaluated constants.
+  ///
+  /// Variables are removed from this set when looked up, leaving only the
+  /// unread variables at the end.
+  final Set<VariableDeclaration> _unreadUnevaluatedVariables =
+      new Set<VariableDeclaration>();
+
   /// Whether the current environment is empty.
   bool get isEmpty => _typeVariables.isEmpty && _variables.isEmpty;
 
@@ -2165,6 +2189,9 @@ class EvaluationEnvironment {
 
   void addVariableValue(VariableDeclaration variable, Constant value) {
     _variables[variable] = value;
+    if (value is UnevaluatedConstant) {
+      _unreadUnevaluatedVariables.add(variable);
+    }
   }
 
   DartType lookupParameterValue(TypeParameter parameter) {
@@ -2174,10 +2201,21 @@ class EvaluationEnvironment {
   }
 
   Constant lookupVariable(VariableDeclaration variable) {
-    return _variables[variable];
+    Constant value = _variables[variable];
+    if (value is UnevaluatedConstant) {
+      _unreadUnevaluatedVariables.remove(variable);
+    }
+    return value;
   }
 
-  DartType subsituteType(DartType type) {
+  /// The unevaluated constants of variables that were never read.
+  Iterable<UnevaluatedConstant> get unevaluatedUnreadConstants {
+    if (_unreadUnevaluatedVariables.isEmpty) return const [];
+    return _unreadUnevaluatedVariables.map<UnevaluatedConstant>(
+        (VariableDeclaration variable) => _variables[variable]);
+  }
+
+  DartType substituteType(DartType type) {
     if (_typeVariables.isEmpty) return type;
     return substitute(type, _typeVariables);
   }
