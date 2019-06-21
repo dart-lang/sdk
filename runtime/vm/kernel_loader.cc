@@ -6,6 +6,8 @@
 
 #include <string.h>
 
+#include <memory>
+
 #include "vm/compiler/frontend/constant_evaluator.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
@@ -1630,7 +1632,11 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
   }
 
-  ASSERT(!klass.is_loaded());
+  // Due to ReadVMAnnotations(), the klass may have been loaded at this point
+  // (loading the class while evaluating annotations).
+  if (klass.is_loaded()) {
+    return;
+  }
 
   // Everything up til the procedures are skipped implicitly, and class_helper
   // is no longer used.
