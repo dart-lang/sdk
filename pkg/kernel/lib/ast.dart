@@ -4799,6 +4799,41 @@ class _PublicName extends Name {
 //                             TYPES
 // ------------------------------------------------------------------------
 
+/// Represents nullability of a type.
+enum Nullability {
+  /// Types in opt-out libraries are 'legacy' types.
+  ///
+  /// They are both subtypes and supertypes of the nullable and non-nullable
+  /// versions of the type.
+  legacy,
+
+  /// Nullable types are marked with the '?' modifier.
+  ///
+  /// Null, dynamic, and void are nullable by default.
+  nullable,
+
+  /// Non-nullable types are types that aren't marked with the '?' modifier.
+  ///
+  /// Note that Null, dynamic, and void that are nullable by default.  Note also
+  /// that some types denoted by a type parameter without the '?' modifier can
+  /// be something else rather than non-nullable.
+  nonNullable,
+
+  /// Non-legacy types that are neither nullable, nor non-nullable.
+  ///
+  /// An example of such type is type T in the example below.  Note that both
+  /// int and int? can be passed in for T, so an attempt to assign null to x is
+  /// a compile-time error as well as assigning x to y.
+  ///
+  ///   class A<T extends Object?> {
+  ///     foo(T x) {
+  ///       x = null;      // Compile-time error.
+  ///       Object y = x;  // Compile-time error.
+  ///     }
+  ///   }
+  neither
+}
+
 /// A syntax-independent notion of a type.
 ///
 /// [DartType]s are not AST nodes and may be shared between different parents.
@@ -4817,6 +4852,8 @@ abstract class DartType extends Node {
   accept1(DartTypeVisitor1 v, arg);
 
   bool operator ==(Object other);
+
+  Nullability get nullability;
 
   /// If this is a typedef type, repeatedly unfolds its type definition until
   /// the root term is not a typedef type, otherwise returns the type itself.
@@ -4843,6 +4880,8 @@ class InvalidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is InvalidType;
+
+  Nullability get nullability => throw "InvalidType doesn't have nullabiliity";
 }
 
 class DynamicType extends DartType {
@@ -4855,6 +4894,8 @@ class DynamicType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is DynamicType;
+
+  Nullability get nullability => Nullability.nullable;
 }
 
 class VoidType extends DartType {
@@ -4867,6 +4908,8 @@ class VoidType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is VoidType;
+
+  Nullability get nullability => Nullability.nullable;
 }
 
 class BottomType extends DartType {
@@ -4879,21 +4922,29 @@ class BottomType extends DartType {
   visitChildren(Visitor v) {}
 
   bool operator ==(Object other) => other is BottomType;
+
+  Nullability get nullability => Nullability.nonNullable;
 }
 
 @coq
 class InterfaceType extends DartType {
   Reference className;
+
+  final Nullability nullability;
+
   @nocoq
   final List<DartType> typeArguments;
 
   /// The [typeArguments] list must not be modified after this call. If the
   /// list is omitted, 'dynamic' type arguments are filled in.
-  InterfaceType(Class classNode, [List<DartType> typeArguments])
+  InterfaceType(Class classNode,
+      [List<DartType> typeArguments,
+      Nullability nullability = Nullability.legacy])
       : this.byReference(getClassReference(classNode),
-            typeArguments ?? _defaultTypeArguments(classNode));
+            typeArguments ?? _defaultTypeArguments(classNode), nullability);
 
-  InterfaceType.byReference(this.className, this.typeArguments);
+  InterfaceType.byReference(this.className, this.typeArguments,
+      [this.nullability = Nullability.legacy]);
 
   Class get classNode => className.asClass;
 
@@ -4946,6 +4997,7 @@ class FunctionType extends DartType {
   @coqsingle
   final List<DartType> positionalParameters;
   final List<NamedType> namedParameters; // Must be sorted.
+  final Nullability nullability;
 
   /// The [Typedef] this function type is created for.
   final TypedefType typedefType;
@@ -4956,6 +5008,7 @@ class FunctionType extends DartType {
   FunctionType(List<DartType> positionalParameters, this.returnType,
       {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
+      this.nullability: Nullability.legacy,
       int requiredParameterCount,
       this.typedefType})
       : this.positionalParameters = positionalParameters,
@@ -5073,14 +5126,18 @@ class FunctionType extends DartType {
 ///
 /// The underlying type can be extracted using [unalias].
 class TypedefType extends DartType {
+  final Nullability nullability;
   final Reference typedefReference;
   final List<DartType> typeArguments;
 
-  TypedefType(Typedef typedefNode, [List<DartType> typeArguments])
-      : this.byReference(
-            typedefNode.reference, typeArguments ?? const <DartType>[]);
+  TypedefType(Typedef typedefNode,
+      [List<DartType> typeArguments,
+      Nullability nullability = Nullability.legacy])
+      : this.byReference(typedefNode.reference,
+            typeArguments ?? const <DartType>[], nullability);
 
-  TypedefType.byReference(this.typedefReference, this.typeArguments);
+  TypedefType.byReference(this.typedefReference, this.typeArguments,
+      [this.nullability = Nullability.legacy]);
 
   Typedef get typedefNode => typedefReference.asTypedef;
 
@@ -5163,6 +5220,8 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
 class TypeParameterType extends DartType {
+  final Nullability nullability;
+
   TypeParameter parameter;
 
   /// An optional promoted bound on the type parameter.
@@ -5171,7 +5230,10 @@ class TypeParameterType extends DartType {
   /// is therefore the same as the bound of [parameter].
   DartType promotedBound;
 
-  TypeParameterType(this.parameter, [this.promotedBound]);
+  TypeParameterType(this.parameter,
+      [this.promotedBound, Nullability nullability])
+      : this.nullability =
+            getNullability(parameter, promotedBound, nullability);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
   accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
@@ -5186,6 +5248,115 @@ class TypeParameterType extends DartType {
 
   /// Returns the bound of the type parameter, accounting for promotions.
   DartType get bound => promotedBound ?? parameter.bound;
+
+  /// Get nullability of [TypeParameterType] from arguments to its constructor.
+  ///
+  /// This method is supposed to be used only in the constructor of
+  /// [TypeParameterType] to compute the value of
+  /// [TypeParameterType.nullability] from the arguments passed to the constructor.
+  static Nullability getNullability(TypeParameter parameter,
+      DartType promotedBound, Nullability nullability) {
+    // If promotedBound is null, getNullability returns the nullability of
+    // either T or T? where T is parameter and the presence of '?' is determined
+    // by nullability.
+
+    // If promotedBound isn't null, getNullability returns the nullability of an
+    // instesection of the left-hand side (referred to as LHS below) and the
+    // right-hand side (referred to as RHS below).  LHS is parameter followed by
+    // nullability, and RHS is promotedBound.  That is, getNullability returns
+    // the nullability of either T & P or T? & P where T is parameter, P is
+    // promotedBound, and the presence of '?' is determined by nullability.
+    // Note that RHS is always a subtype of the bound of the type parameter.
+
+    Nullability lhsNullability;
+
+    // If the nullability is explicitly nullable, that is, if the type parameter
+    // type is followed by '?' in the code, the nullability of the type is
+    // 'nullable.'
+    if (nullability == Nullability.nullable) {
+      lhsNullability = Nullability.nullable;
+    } else {
+      // If the bound is nullable, both nullable and non-nullable types can be
+      // passed in for the type parameter, making the corresponding type
+      // parameter types 'neither.'  Otherwise, the nullability matches that of
+      // the bound.
+      DartType bound = parameter.bound ?? const DynamicType();
+      Nullability boundNullability =
+          bound is InvalidType ? Nullability.neither : bound.nullability;
+      lhsNullability = boundNullability == Nullability.nullable
+          ? Nullability.neither
+          : boundNullability;
+    }
+    if (promotedBound == null) {
+      return lhsNullability;
+    }
+
+    // In practice a type parameter of legacy type can only be used in type
+    // annotations within the corresponding class declaration.  If it's legacy,
+    // then the entire library containing the class is opt-out, and any RHS is
+    // deemed to be legacy too.  So, it's necessary to only check LHS for being
+    // legacy.
+    if (lhsNullability == Nullability.legacy) {
+      return Nullability.legacy;
+    }
+
+    // Intersection is non-nullable if and only if RHS is non-nullable.
+    //
+    // The proof is as follows.  Intersection is non-nullable if at least one of
+    // LHS or RHS is non-nullable.  The case of non-nullable RHS is trivial.  In
+    // the case of non-nullable LHS, its bound should be non-nullable.  RHS is
+    // known to always be a subtype of the bound of LHS; therefore, RHS is
+    // non-nullable.
+    //
+    // Note that it also follows from the above that non-nullable RHS implies
+    // non-nullable LHS, so the check below covers the case lhsNullability ==
+    // Nullability.nonNullable.
+    if (promotedBound.nullability == Nullability.nonNullable) {
+      return Nullability.nonNullable;
+    }
+
+    // If the nullability of LHS is 'neither,' the nullability of the
+    // intersection is also 'neither' if RHS is 'neither' or nullable.
+    //
+    // Consider the following example:
+    //
+    //     class A<X extends Object?, Y extends X> {
+    //       foo(X x) {
+    //         if (x is Y) {
+    //           x = null;     // Compile-time error.  Consider X = Y = int.
+    //           Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //         }
+    //         if (x is int?) {
+    //           x = null;     // Compile-time error.  Consider X = int.
+    //           Object b = x; // Compile-time error.  Consider X = int?.
+    //         }
+    //       }
+    //     }
+    //
+    // Note that RHS can't be 'legacy' or non-nullable at this point due to the
+    // checks above.
+    if (lhsNullability == Nullability.neither) {
+      return Nullability.neither;
+    }
+
+    // At this point the only possibility for LHS is to be nullable, and for RHS
+    // is to be either nullable or legacy.  Both combinations for LHS and RHS
+    // should yield the nullability of RHS as the nullability for the
+    // intersection.  Consider the following code for clarification:
+    //
+    //   class A<X extends Object?, Y extends X> {
+    //     foo(X? x) {
+    //       if (x is Y) {
+    //         x = null;     // Compile-time error.  Consider X = Y = int.
+    //         Object a = x; // Compile-time error.  Consider X = Y = int?.
+    //       }
+    //       if (x is int?) {
+    //         x = null;     // Ok.  Both X? and int? are nullable.
+    //       }
+    //     }
+    //   }
+    return promotedBound.nullability;
+  }
 }
 
 /// Declaration of a type variable.

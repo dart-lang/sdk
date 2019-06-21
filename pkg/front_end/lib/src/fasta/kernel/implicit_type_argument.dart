@@ -7,7 +7,7 @@ library fasta.implicit_type_argument;
 import 'package:kernel/ast.dart'
     show DartType, DartTypeVisitor, DartTypeVisitor1, Visitor;
 
-import '../problems.dart' show unhandled;
+import '../problems.dart' show unhandled, unsupported;
 
 /// Marker type used as type argument on list, set and map literals whenever
 /// type arguments are omitted in the source.
@@ -16,6 +16,9 @@ import '../problems.dart' show unhandled;
 /// error if one survives to the final output.
 class ImplicitTypeArgument extends DartType {
   const ImplicitTypeArgument();
+
+  @override
+  get nullability => unsupported("nullability", -1, null);
 
   @override
   accept(DartTypeVisitor<Object> v) {

@@ -17,6 +17,9 @@ class ImplicitFieldType extends DartType {
   final MemberBuilder member;
   Token initializerToken;
 
+  get nullability =>
+      unsupported("nullability", member.charOffset, member.fileUri);
+
   ImplicitFieldType(this.member, this.initializerToken);
 
   accept(DartTypeVisitor<Object> v) {
