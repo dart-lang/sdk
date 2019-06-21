@@ -479,7 +479,10 @@ Int f(Int i, Int j) => i + j/*check*/;
 int f(int i, int j) => i ?? j;
 ''');
 
-    assertNoUpstreamNullability(decoratedTypeAnnotation('int i').node);
+    var left = decoratedTypeAnnotation('int i').node;
+    var right = decoratedTypeAnnotation('int j').node;
+    var expression = decoratedExpressionType('??').node;
+    assertEdge(right, expression, guards: [left], hard: false);
   }
 
   test_binaryExpression_slash_result_not_null() async {

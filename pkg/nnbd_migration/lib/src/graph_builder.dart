@@ -215,11 +215,26 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
       }
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
-        operatorType == TokenType.BAR_BAR ||
-        operatorType == TokenType.QUESTION_QUESTION) {
+        operatorType == TokenType.BAR_BAR) {
       _handleAssignment(_notNullType, node.leftOperand);
-      node.rightOperand.accept(this);
+      _handleAssignment(_notNullType, node.rightOperand);
       return _nonNullableBoolType;
+    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      DecoratedType expressionType;
+      var leftType = node.leftOperand.accept(this);
+      try {
+        _guards.add(leftType.node);
+        var rightType = node.rightOperand.accept(this);
+        var ifNullNode = NullabilityNode.forIfNotNull();
+        expressionType = DecoratedType(node.staticType, ifNullNode);
+        _graph.connect(rightType.node, expressionType.node,
+            IfNullOrigin(_source, node.offset),
+            guards: _guards);
+      } finally {
+        _guards.removeLast();
+      }
+      _variables.recordDecoratedExpressionType(node, expressionType);
+      return expressionType;
     } else if (operatorType.isUserDefinableOperator) {
       _handleAssignment(_notNullType, node.leftOperand);
       var callee = node.staticElement;

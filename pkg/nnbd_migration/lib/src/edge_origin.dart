@@ -34,6 +34,11 @@ abstract class EdgeOriginWithLocation extends EdgeOrigin {
   EdgeOriginWithLocation(this.source, this.offset);
 }
 
+/// Edge origin resulting from the presence of a `??` operator.
+class IfNullOrigin extends EdgeOriginWithLocation {
+  IfNullOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:

@@ -302,6 +302,11 @@ abstract class NullabilityNode {
   final _upstreamEdges = <NullabilityEdge>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
+  /// whose type is determined by the `??` operator.
+  factory NullabilityNode.forIfNotNull() =>
+      _NullabilityNodeSimple('?? operator');
+
+  /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is `dynamic` due to type inference.
   ///
   /// TODO(paulberry): this should go away; we should decorate the actual
