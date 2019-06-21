@@ -326,8 +326,6 @@ class BytecodeReader : public AllStatic {
       const Function& function,
       const Bytecode& bytecode);
 #endif
-
-  static void UseBytecodeVersion(intptr_t version);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
@@ -337,9 +335,6 @@ class BytecodeSourcePositionsIterator : ValueObject {
     if (bytecode.HasSourcePositions()) {
       reader_.set_offset(bytecode.source_positions_binary_offset());
       pairs_remaining_ = reader_.ReadUInt();
-      if (Isolate::Current()->is_using_old_bytecode_instructions()) {
-        pc_shifter_ = 2;
-      }
     }
   }
 
@@ -349,7 +344,7 @@ class BytecodeSourcePositionsIterator : ValueObject {
     }
     ASSERT(pairs_remaining_ > 0);
     --pairs_remaining_;
-    cur_bci_ += reader_.ReadUInt() << pc_shifter_;
+    cur_bci_ += reader_.ReadUInt();
     cur_token_pos_ += reader_.ReadSLEB128();
     return true;
   }
@@ -361,7 +356,6 @@ class BytecodeSourcePositionsIterator : ValueObject {
  private:
   Reader reader_;
   intptr_t pairs_remaining_ = 0;
-  intptr_t pc_shifter_ = 0;
   intptr_t cur_bci_ = 0;
   intptr_t cur_token_pos_ = 0;
 };

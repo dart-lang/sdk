@@ -8,7 +8,6 @@
 #include "vm/bootstrap.h"
 #include "vm/class_id.h"
 #include "vm/compiler/backend/code_statistics.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/heap/heap.h"
@@ -1358,14 +1357,6 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       info.set_libraries_cache(array);
       array = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
       info.set_classes_cache(array);
-
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
-                    "Cleanup support for old bytecode format versions");
-      array = info.bytecode_component();
-      if (!array.IsNull()) {
-        kernel::BytecodeReader::UseBytecodeVersion(
-            kernel::BytecodeComponentData(&array).GetVersion());
-      }
     }
   }
 };

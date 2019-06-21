@@ -388,12 +388,10 @@ void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
 #define BUILD_BYTECODE_CASE(name, encoding, kind, op1, op2, op3)               \
   BUILD_BYTECODE_CASE_##kind(name, encoding)
 
-#define BUILD_BYTECODE_CASE_OLD(name, encoding)
 #define BUILD_BYTECODE_CASE_WIDE(name, encoding)
 #define BUILD_BYTECODE_CASE_RESV(name, encoding)
 #define BUILD_BYTECODE_CASE_ORDN(name, encoding)                               \
   case KernelBytecode::k##name:                                                \
-  case KernelBytecode::k##name##_Old:                                          \
     WIDE_CASE_##encoding(name) Build##name();                                  \
     break;
 
@@ -410,7 +408,6 @@ void BytecodeFlowGraphBuilder::BuildInstruction(KernelBytecode::Opcode opcode) {
 #undef WIDE_CASE_D_F
 #undef WIDE_CASE_A_B_C
 #undef BUILD_BYTECODE_CASE
-#undef BUILD_BYTECODE_CASE_OLD
 #undef BUILD_BYTECODE_CASE_WIDE
 #undef BUILD_BYTECODE_CASE_RESV
 #undef BUILD_BYTECODE_CASE_ORDN
@@ -1804,16 +1801,13 @@ JoinEntryInstr* BytecodeFlowGraphBuilder::EnsureControlFlowJoin(
 bool BytecodeFlowGraphBuilder::RequiresScratchVar(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
     case KernelBytecode::kEntryOptional:
-    case KernelBytecode::kEntryOptional_Old:
       return KernelBytecode::DecodeC(instr) > 0;
 
     case KernelBytecode::kEqualsNull:
-    case KernelBytecode::kEqualsNull_Old:
       return true;
 
     case KernelBytecode::kNativeCall:
     case KernelBytecode::kNativeCall_Wide:
-    case KernelBytecode::kNativeCall_Old:
       return MethodRecognizer::RecognizeKind(function()) ==
              MethodRecognizer::kListFactory;
 

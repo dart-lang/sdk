@@ -453,9 +453,9 @@ namespace dart {
 //     V(BytecodeName, OperandForm, BytecodeKind, Op1, Op2, Op3)
 //
 // - OperandForm specifies operand encoding and should be one of 0, A, D, X, T,
-//   A_D (old), A_X (old), A_E, A_Y, D_F or A_B_C (see ENCODING section above).
+//   A_E, A_Y, D_F or A_B_C (see ENCODING section above).
 //
-// - BytecodeKind is one of OLD, WIDE, RESV (reserved), ORDN (ordinary)
+// - BytecodeKind is one of WIDE, RESV (reserved), ORDN (ordinary)
 //
 // - Op1, Op2, Op3 specify operand meaning. Possible values:
 //
@@ -471,91 +471,91 @@ namespace dart {
 //               and before decoding.
 //
 #define PUBLIC_KERNEL_BYTECODES_LIST(V)                                        \
-  V(Trap_Old,                              0,  OLD, ___, ___, ___)             \
-  V(Entry_Old,                             D,  OLD, num, ___, ___)             \
-  V(EntryFixed_Old,                      A_D,  OLD, num, num, ___)             \
-  V(EntryOptional_Old,                 A_B_C,  OLD, num, num, num)             \
-  V(LoadConstant_Old,                    A_D,  OLD, reg, lit, ___)             \
-  V(Frame_Old,                             D,  OLD, num, ___, ___)             \
-  V(CheckFunctionTypeArgs_Old,           A_D,  OLD, num, reg, ___)             \
-  V(CheckStack_Old,                        A,  OLD, num, ___, ___)             \
-  V(Allocate_Old,                          D,  OLD, lit, ___, ___)             \
-  V(AllocateT_Old,                         0,  OLD, ___, ___, ___)             \
-  V(CreateArrayTOS_Old,                    0,  OLD, ___, ___, ___)             \
-  V(AllocateContext_Old,                   D,  OLD, num, ___, ___)             \
-  V(CloneContext_Old,                      D,  OLD, num, ___, ___)             \
-  V(LoadContextParent_Old,                 0,  OLD, ___, ___, ___)             \
-  V(StoreContextParent_Old,                0,  OLD, ___, ___, ___)             \
-  V(LoadContextVar_Old,                    D,  OLD, num, ___, ___)             \
-  V(StoreContextVar_Old,                   D,  OLD, num, ___, ___)             \
-  V(PushConstant_Old,                      D,  OLD, lit, ___, ___)             \
-  V(PushNull_Old,                          0,  OLD, ___, ___, ___)             \
-  V(PushTrue_Old,                          0,  OLD, ___, ___, ___)             \
-  V(PushFalse_Old,                         0,  OLD, ___, ___, ___)             \
-  V(PushInt_Old,                           X,  OLD, num, ___, ___)             \
-  V(Drop1_Old,                             0,  OLD, ___, ___, ___)             \
-  V(Push_Old,                              X,  OLD, xeg, ___, ___)             \
-  V(PopLocal_Old,                          X,  OLD, xeg, ___, ___)             \
-  V(StoreLocal_Old,                        X,  OLD, xeg, ___, ___)             \
-  V(LoadFieldTOS_Old,                      D,  OLD, lit, ___, ___)             \
-  V(StoreFieldTOS_Old,                     D,  OLD, lit, ___, ___)             \
-  V(StoreIndexedTOS_Old,                   0,  OLD, ___, ___, ___)             \
-  V(PushStatic_Old,                        D,  OLD, lit, ___, ___)             \
-  V(StoreStaticTOS_Old,                    D,  OLD, lit, ___, ___)             \
-  V(Jump_Old,                              T,  OLD, tgt, ___, ___)             \
-  V(JumpIfNoAsserts_Old,                   T,  OLD, tgt, ___, ___)             \
-  V(JumpIfNotZeroTypeArgs_Old,             T,  OLD, tgt, ___, ___)             \
-  V(JumpIfEqStrict_Old,                    T,  OLD, tgt, ___, ___)             \
-  V(JumpIfNeStrict_Old,                    T,  OLD, tgt, ___, ___)             \
-  V(JumpIfTrue_Old,                        T,  OLD, tgt, ___, ___)             \
-  V(JumpIfFalse_Old,                       T,  OLD, tgt, ___, ___)             \
-  V(JumpIfNull_Old,                        T,  OLD, tgt, ___, ___)             \
-  V(JumpIfNotNull_Old,                     T,  OLD, tgt, ___, ___)             \
-  V(Unused00_Old,                          0, RESV, num, num, ___)             \
-  V(InterfaceCall_Old,                   A_D,  OLD, num, num, ___)             \
-  V(DynamicCall_Old,                     A_D,  OLD, num, num, ___)             \
-  V(NativeCall_Old,                        D,  OLD, lit, ___, ___)             \
-  V(ReturnTOS_Old,                         0,  OLD, ___, ___, ___)             \
-  V(AssertAssignable_Old,                A_D,  OLD, num, lit, ___)             \
-  V(AssertBoolean_Old,                     A,  OLD, num, ___, ___)             \
-  V(AssertSubtype_Old,                     0,  OLD, ___, ___, ___)             \
-  V(LoadTypeArgumentsField_Old,            D,  OLD, lit, ___, ___)             \
-  V(InstantiateType_Old,                   D,  OLD, lit, ___, ___)             \
-  V(InstantiateTypeArgumentsTOS_Old,     A_D,  OLD, num, lit, ___)             \
-  V(Throw_Old,                             A,  OLD, num, ___, ___)             \
-  V(MoveSpecial_Old,                     A_X,  OLD, num, xeg, ___)             \
-  V(SetFrame_Old,                          A,  OLD, num, ___, num)             \
-  V(BooleanNegateTOS_Old,                  0,  OLD, ___, ___, ___)             \
-  V(EqualsNull_Old,                        0,  OLD, ___, ___, ___)             \
-  V(NegateInt_Old,                         0,  OLD, ___, ___, ___)             \
-  V(AddInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(SubInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(MulInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(TruncDivInt_Old,                       0,  OLD, ___, ___, ___)             \
-  V(ModInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(BitAndInt_Old,                         0,  OLD, ___, ___, ___)             \
-  V(BitOrInt_Old,                          0,  OLD, ___, ___, ___)             \
-  V(BitXorInt_Old,                         0,  OLD, ___, ___, ___)             \
-  V(ShlInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(ShrInt_Old,                            0,  OLD, ___, ___, ___)             \
-  V(CompareIntEq_Old,                      0,  OLD, ___, ___, ___)             \
-  V(CompareIntGt_Old,                      0,  OLD, ___, ___, ___)             \
-  V(CompareIntLt_Old,                      0,  OLD, ___, ___, ___)             \
-  V(CompareIntGe_Old,                      0,  OLD, ___, ___, ___)             \
-  V(CompareIntLe_Old,                      0,  OLD, ___, ___, ___)             \
-  V(DirectCall_Old,                      A_D,  OLD, num, num, ___)             \
-  V(AllocateClosure_Old,                   D,  OLD, lit, ___, ___)             \
-  V(UncheckedInterfaceCall_Old,          A_D,  OLD, num, num, ___)             \
-  V(NegateDouble_Old,                      0,  OLD, ___, ___, ___)             \
-  V(AddDouble_Old,                         0,  OLD, ___, ___, ___)             \
-  V(SubDouble_Old,                         0,  OLD, ___, ___, ___)             \
-  V(MulDouble_Old,                         0,  OLD, ___, ___, ___)             \
-  V(DivDouble_Old,                         0,  OLD, ___, ___, ___)             \
-  V(CompareDoubleEq_Old,                   0,  OLD, ___, ___, ___)             \
-  V(CompareDoubleGt_Old,                   0,  OLD, ___, ___, ___)             \
-  V(CompareDoubleLt_Old,                   0,  OLD, ___, ___, ___)             \
-  V(CompareDoubleGe_Old,                   0,  OLD, ___, ___, ___)             \
-  V(CompareDoubleLe_Old,                   0,  OLD, ___, ___, ___)             \
+  V(UnusedOpcode000,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode001,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode002,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode003,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode004,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode005,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode006,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode007,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode008,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode009,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode010,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode011,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode012,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode013,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode014,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode015,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode016,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode017,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode018,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode019,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode020,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode021,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode022,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode023,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode024,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode025,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode026,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode027,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode028,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode029,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode030,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode031,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode032,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode033,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode034,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode035,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode036,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode037,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode038,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode039,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode040,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode041,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode042,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode043,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode044,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode045,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode046,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode047,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode048,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode049,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode050,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode051,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode052,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode053,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode054,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode055,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode056,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode057,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode058,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode059,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode060,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode061,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode062,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode063,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode064,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode065,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode066,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode067,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode068,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode069,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode070,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode071,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode072,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode073,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode074,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode075,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode076,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode077,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode078,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode079,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode080,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode081,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode082,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode083,                       0, RESV, ___, ___, ___)             \
+  V(UnusedOpcode084,                       0, RESV, ___, ___, ___)             \
   V(Trap,                                  0, ORDN, ___, ___, ___)             \
   V(Entry,                                 D, ORDN, num, ___, ___)             \
   V(Entry_Wide,                            D, WIDE, num, ___, ___)             \
@@ -745,7 +745,7 @@ class KernelBytecode {
   // Magic value of bytecode files.
   static const intptr_t kMagicValue = 0x44424332;  // 'DBC2'
   // Minimum bytecode format version supported by VM.
-  static const intptr_t kMinSupportedBytecodeFormatVersion = 3;
+  static const intptr_t kMinSupportedBytecodeFormatVersion = 7;
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
@@ -777,12 +777,6 @@ class KernelBytecode {
  private:
   static const intptr_t kWideModifier = 1;
 
-  static_assert(kMinSupportedBytecodeFormatVersion < 7,
-                "Cleanup support for old bytecode format versions");
-  DART_FORCE_INLINE static bool IsOld(const KBCInstr* instr) {
-    return DecodeOpcode(instr) < kTrap;
-  }
-
   // Should be used only on instructions with wide variants.
   DART_FORCE_INLINE static bool IsWide(const KBCInstr* instr) {
     return ((DecodeOpcode(instr) & kWideModifier) != 0);
@@ -796,9 +790,7 @@ class KernelBytecode {
   DART_FORCE_INLINE static uint8_t DecodeC(const KBCInstr* bc) { return bc[3]; }
 
   DART_FORCE_INLINE static uint32_t DecodeD(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return static_cast<uint16_t>(bc[2]) | (static_cast<uint16_t>(bc[3]) << 8);
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return static_cast<uint32_t>(bc[1]) |
              (static_cast<uint32_t>(bc[2]) << 8) |
              (static_cast<uint32_t>(bc[3]) << 16) |
@@ -809,10 +801,7 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static int32_t DecodeX(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return static_cast<int16_t>(static_cast<uint16_t>(bc[2]) |
-                                  (static_cast<uint16_t>(bc[3]) << 8));
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return static_cast<int32_t>(static_cast<uint32_t>(bc[1]) |
                                   (static_cast<uint32_t>(bc[2]) << 8) |
                                   (static_cast<uint32_t>(bc[3]) << 16) |
@@ -823,12 +812,7 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static int32_t DecodeT(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return static_cast<int32_t>((static_cast<uint32_t>(bc[1]) << 8) |
-                                  (static_cast<uint32_t>(bc[2]) << 16) |
-                                  (static_cast<uint32_t>(bc[3]) << 24)) >>
-             (8 - 2);
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return static_cast<int32_t>((static_cast<uint32_t>(bc[1]) << 8) |
                                   (static_cast<uint32_t>(bc[2]) << 16) |
                                   (static_cast<uint32_t>(bc[3]) << 24)) >>
@@ -839,9 +823,7 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static uint32_t DecodeE(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return static_cast<uint16_t>(bc[2]) | (static_cast<uint16_t>(bc[3]) << 8);
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return static_cast<uint32_t>(bc[2]) |
              (static_cast<uint32_t>(bc[3]) << 8) |
              (static_cast<uint32_t>(bc[4]) << 16) |
@@ -852,10 +834,7 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static int32_t DecodeY(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return static_cast<int16_t>(static_cast<uint16_t>(bc[2]) |
-                                  (static_cast<uint16_t>(bc[3]) << 8));
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return static_cast<int32_t>(static_cast<uint32_t>(bc[2]) |
                                   (static_cast<uint32_t>(bc[3]) << 8) |
                                   (static_cast<uint32_t>(bc[4]) << 16) |
@@ -866,9 +845,7 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static uint8_t DecodeF(const KBCInstr* bc) {
-    if (IsOld(bc)) {
-      return bc[1];
-    } else if (IsWide(bc)) {
+    if (IsWide(bc)) {
       return bc[5];
     } else {
       return bc[2];
@@ -885,15 +862,6 @@ class KernelBytecode {
 
   DART_FORCE_INLINE static bool IsJumpOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kJump_Old:
-      case KernelBytecode::kJumpIfNoAsserts_Old:
-      case KernelBytecode::kJumpIfNotZeroTypeArgs_Old:
-      case KernelBytecode::kJumpIfEqStrict_Old:
-      case KernelBytecode::kJumpIfNeStrict_Old:
-      case KernelBytecode::kJumpIfTrue_Old:
-      case KernelBytecode::kJumpIfFalse_Old:
-      case KernelBytecode::kJumpIfNull_Old:
-      case KernelBytecode::kJumpIfNotNull_Old:
       case KernelBytecode::kJump:
       case KernelBytecode::kJump_Wide:
       case KernelBytecode::kJumpIfNoAsserts:
@@ -923,7 +891,6 @@ class KernelBytecode {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kLoadConstant:
       case KernelBytecode::kLoadConstant_Wide:
-      case KernelBytecode::kLoadConstant_Old:
         return true;
       default:
         return false;
@@ -931,30 +898,17 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static bool IsCheckStackOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kCheckStack:
-      case KernelBytecode::kCheckStack_Old:
-        return true;
-      default:
-        return false;
-    }
+    return DecodeOpcode(instr) == KernelBytecode::kCheckStack;
   }
 
   DART_FORCE_INLINE static bool IsEntryOptionalOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kEntryOptional:
-      case KernelBytecode::kEntryOptional_Old:
-        return true;
-      default:
-        return false;
-    }
+    return DecodeOpcode(instr) == KernelBytecode::kEntryOptional;
   }
 
   DART_FORCE_INLINE static bool IsFrameOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kFrame:
       case KernelBytecode::kFrame_Wide:
-      case KernelBytecode::kFrame_Old:
         return true;
       default:
         return false;
@@ -962,33 +916,13 @@ class KernelBytecode {
   }
 
   DART_FORCE_INLINE static bool IsSetFrameOpcode(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kSetFrame:
-      case KernelBytecode::kSetFrame_Old:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  DART_FORCE_INLINE static bool IsCallOpcode_Old(const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kDirectCall_Old:
-      case KernelBytecode::kInterfaceCall_Old:
-      case KernelBytecode::kUncheckedInterfaceCall_Old:
-      case KernelBytecode::kDynamicCall_Old:
-        return true;
-
-      default:
-        return false;
-    }
+    return DecodeOpcode(instr) == KernelBytecode::kSetFrame;
   }
 
   DART_FORCE_INLINE static bool IsNativeCallOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kNativeCall:
       case KernelBytecode::kNativeCall_Wide:
-      case KernelBytecode::kNativeCall_Old:
         return true;
       default:
         return false;
@@ -1025,19 +959,6 @@ class KernelBytecode {
   }
 
   static const uint8_t kNativeCallToGrowableListArgc = 2;
-
-  DART_FORCE_INLINE static uint8_t DecodeArgc_Old(const KBCInstr* ret_addr) {
-    const intptr_t kOldInstructionSize = 4;
-    const KBCInstr* call = ret_addr - kOldInstructionSize;
-    ASSERT(IsOld(call));
-    if (DecodeOpcode(call) == KernelBytecode::kNativeCall_Old) {
-      // The only NativeCall redirecting to a bytecode function is the call
-      // to new _GrowableList<E>(0).
-      return kNativeCallToGrowableListArgc;
-    }
-    ASSERT(IsCallOpcode_Old(call));
-    return DecodeA(call);
-  }
 
   // Returns a fake return address which points after the 2-argument
   // bytecode call, followed by ReturnTOS instructions.

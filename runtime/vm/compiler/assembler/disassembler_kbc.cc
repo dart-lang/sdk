@@ -160,32 +160,6 @@ static void FormatT(char* buf,
   Apply(&buf, &size, instr, op1, x, "");
 }
 
-static void FormatA_D(char* buf,
-                      intptr_t size,
-                      KernelBytecode::Opcode opcode,
-                      const KBCInstr* instr,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = KernelBytecode::DecodeA(instr);
-  const int32_t bc = KernelBytecode::DecodeD(instr);
-  Apply(&buf, &size, instr, op1, a, ", ");
-  Apply(&buf, &size, instr, op2, bc, "");
-}
-
-static void FormatA_X(char* buf,
-                      intptr_t size,
-                      KernelBytecode::Opcode opcode,
-                      const KBCInstr* instr,
-                      Fmt op1,
-                      Fmt op2,
-                      Fmt op3) {
-  const int32_t a = KernelBytecode::DecodeA(instr);
-  const int32_t bc = KernelBytecode::DecodeX(instr);
-  Apply(&buf, &size, instr, op1, a, ", ");
-  Apply(&buf, &size, instr, op2, bc, "");
-}
-
 static void FormatA_E(char* buf,
                       intptr_t size,
                       KernelBytecode::Opcode opcode,
@@ -257,21 +231,6 @@ static const BytecodeFormatter kFormatters[] = {
 
 static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
   switch (KernelBytecode::DecodeOpcode(instr)) {
-    case KernelBytecode::kLoadConstant_Old:
-    case KernelBytecode::kInstantiateTypeArgumentsTOS_Old:
-    case KernelBytecode::kAssertAssignable_Old:
-    case KernelBytecode::kPushConstant_Old:
-    case KernelBytecode::kStoreStaticTOS_Old:
-    case KernelBytecode::kPushStatic_Old:
-    case KernelBytecode::kAllocate_Old:
-    case KernelBytecode::kAllocateClosure_Old:
-    case KernelBytecode::kInstantiateType_Old:
-    case KernelBytecode::kDirectCall_Old:
-    case KernelBytecode::kInterfaceCall_Old:
-    case KernelBytecode::kUncheckedInterfaceCall_Old:
-    case KernelBytecode::kDynamicCall_Old:
-      return KernelBytecode::DecodeD(instr);
-
     case KernelBytecode::kLoadConstant:
     case KernelBytecode::kLoadConstant_Wide:
     case KernelBytecode::kInstantiateTypeArgumentsTOS:
