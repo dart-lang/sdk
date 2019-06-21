@@ -33,8 +33,12 @@ class Variables implements VariableRecorder, VariableRepository {
   @override
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation) {
-    return _decoratedTypeAnnotations[source]
-        [_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    var annotationsInSource = _decoratedTypeAnnotations[source];
+    if (annotationsInSource == null) {
+      throw StateError('No declarated type annotations in ${source.fullName}; '
+          'expected one for ${typeAnnotation.toSource()}');
+    }
+    return annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
   }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
