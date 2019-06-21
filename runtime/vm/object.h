@@ -4402,6 +4402,10 @@ class KernelProgramInfo : public Object {
   RawArray* constants() const { return raw_ptr()->constants_; }
   void set_constants(const Array& constants) const;
 
+  // Records libraries under evaluation to break evaluation cycles.
+  RawGrowableObjectArray* evaluating() const { return raw_ptr()->evaluating_; }
+  void set_evaluating(const GrowableObjectArray& evaluating) const;
+
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
   // (since native names are encoded as constants).

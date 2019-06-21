@@ -168,10 +168,12 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
         EvaluateNullLiteral();
         break;
       case kConstantExpression:
-        EvaluateConstantExpression(tag);
+        helper_->ReadPosition();
+        helper_->SkipDartType();
+        result_ = EvaluateConstantExpression(helper_->ReadUInt());
         break;
       case kDeprecated_ConstantExpression:
-        EvaluateConstantExpression(tag);
+        result_ = EvaluateConstantExpression(helper_->ReadUInt());
         break;
       default:
         H.ReportError(
@@ -289,6 +291,248 @@ RawObject* ConstantEvaluator::EvaluateAnnotations() {
     metadata_values.SetAt(i, value);
   }
   return metadata_values.raw();
+}
+
+RawInstance* ConstantEvaluator::EvaluateConstantExpression(
+    intptr_t constant_offset) {
+  ASSERT(!H.constants().IsNull());
+  ASSERT(!H.constants_table().IsNull());  // raw bytes
+
+  // For kernel-level cache (in contrast with script-level caching),
+  // we need to access the raw constants array inside the shared
+  // KernelProgramInfo directly, so that all scripts will see the
+  // results after new insertions. These accesses at kernel-level
+  // must be locked since mutator and background compiler can
+  // access the array at the same time.
+  {
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    KernelConstantsMap constant_map(H.info().constants());
+    result_ ^= constant_map.GetOrNull(constant_offset);
+    ASSERT(constant_map.Release().raw() == H.info().constants());
+  }
+
+  // On miss, evaluate, and insert value.
+  if (result_.IsNull()) {
+    result_ = EvaluateConstant(constant_offset);
+    SafepointMutexLocker ml(H.thread()->isolate()->kernel_constants_mutex());
+    KernelConstantsMap constant_map(H.info().constants());
+    auto insert = constant_map.InsertNewOrGetValue(constant_offset, result_);
+    ASSERT(insert == result_.raw());
+    H.info().set_constants(constant_map.Release());  // update!
+  }
+  return result_.raw();
+}
+
+RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
+  // Get reader directly into raw bytes of constant table.
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
+  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  // Construct constant from raw bytes.
+  Instance& instance = Instance::Handle(Z);
+  const intptr_t constant_tag = reader.ReadByte();
+  switch (constant_tag) {
+    case kNullConstant:
+      instance = Instance::null();
+      break;
+    case kBoolConstant:
+      instance = reader.ReadByte() == 1 ? Object::bool_true().raw()
+                                        : Object::bool_false().raw();
+      break;
+    case kIntConstant: {
+      uint8_t payload = 0;
+      Tag integer_tag = reader.ReadTag(&payload);  // read tag.
+      switch (integer_tag) {
+        case kBigIntLiteral: {
+          const String& value = H.DartString(reader.ReadStringReference());
+          instance = Integer::New(value, Heap::kOld);
+          break;
+        }
+        case kSpecializedIntLiteral: {
+          const int64_t value =
+              static_cast<int32_t>(payload) - SpecializedIntLiteralBias;
+          instance = Integer::New(value, Heap::kOld);
+          break;
+        }
+        case kNegativeIntLiteral: {
+          const int64_t value = -static_cast<int64_t>(reader.ReadUInt());
+          instance = Integer::New(value, Heap::kOld);
+          break;
+        }
+        case kPositiveIntLiteral: {
+          const int64_t value = reader.ReadUInt();
+          instance = Integer::New(value, Heap::kOld);
+          break;
+        }
+        default:
+          H.ReportError(
+              script_, TokenPosition::kNoSource,
+              "Cannot lazily read integer: unexpected kernel tag %s (%d)",
+              Reader::TagName(integer_tag), integer_tag);
+      }
+      break;
+    }
+    case kDoubleConstant:
+      instance = Double::New(reader.ReadDouble(), Heap::kOld);
+      break;
+    case kStringConstant:
+      instance = H.DartSymbolPlain(reader.ReadStringReference()).raw();
+      break;
+    case kSymbolConstant: {
+      Library& library = Library::Handle(Z);
+      library = Library::InternalLibrary();
+      const Class& symbol_class =
+          Class::Handle(Z, library.LookupClass(Symbols::Symbol()));
+      const Field& symbol_name_field = Field::Handle(
+          Z, symbol_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
+      ASSERT(!symbol_name_field.IsNull());
+      const NameIndex index = reader.ReadCanonicalNameReference();
+      if (index == -1) {
+        library = Library::null();
+      } else {
+        library = H.LookupLibraryByKernelLibrary(index);
+      }
+      const String& symbol =
+          H.DartIdentifier(library, reader.ReadStringReference());
+      instance = Instance::New(symbol_class, Heap::kOld);
+      instance.SetField(symbol_name_field, symbol);
+      break;
+    }
+    case kListConstant: {
+      const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
+      const Class& list_class =
+          Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
+      // Build type from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(&reader, active_class_, true);
+      TypeArguments& type_arguments =
+          TypeArguments::ZoneHandle(Z, TypeArguments::New(1, Heap::kOld));
+      AbstractType& type = type_translator.BuildType();
+      type_arguments.SetTypeAt(0, type);
+      // Instantiate class.
+      type = Type::New(list_class, type_arguments, TokenPosition::kNoSource);
+      type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
+                                          ClassFinalizer::kCanonicalize);
+      type_arguments = type.arguments();
+      // Fill array with constant elements.
+      const intptr_t length = reader.ReadUInt();
+      const Array& array =
+          Array::Handle(Z, ImmutableArray::New(length, Heap::kOld));
+      array.SetTypeArguments(type_arguments);
+      Instance& constant = Instance::Handle(Z);
+      for (intptr_t j = 0; j < length; ++j) {
+        // Recurse into lazily evaluating all "sub" constants
+        // needed to evaluate the current constant.
+        const intptr_t entry_offset = reader.ReadUInt();
+        ASSERT(entry_offset < constant_offset);  // DAG!
+        constant = EvaluateConstantExpression(entry_offset);
+        array.SetAt(j, constant);
+      }
+      instance = array.raw();
+      break;
+    }
+    case kInstanceConstant: {
+      const NameIndex index = reader.ReadCanonicalNameReference();
+      const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
+      const Object& obj =
+          Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
+      ASSERT(obj.IsNull());
+      instance = Instance::New(klass, Heap::kOld);
+      // Build type from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(&reader, active_class_, true);
+      const intptr_t number_of_type_arguments = reader.ReadUInt();
+      if (klass.NumTypeArguments() > 0) {
+        TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+            Z, TypeArguments::New(number_of_type_arguments, Heap::kOld));
+        for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
+          type_arguments.SetTypeAt(j, type_translator.BuildType());
+        }
+        // Instantiate class.
+        AbstractType& type = AbstractType::Handle(
+            Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
+        type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
+                                            ClassFinalizer::kCanonicalize);
+        type_arguments = type.arguments();
+        instance.SetTypeArguments(type_arguments);
+      } else {
+        ASSERT(number_of_type_arguments == 0);
+      }
+      // Set the fields.
+      const intptr_t number_of_fields = reader.ReadUInt();
+      Field& field = Field::Handle(Z);
+      Instance& constant = Instance::Handle(Z);
+      for (intptr_t j = 0; j < number_of_fields; ++j) {
+        field = H.LookupFieldByKernelField(reader.ReadCanonicalNameReference());
+        // Recurse into lazily evaluating all "sub" constants
+        // needed to evaluate the current constant.
+        const intptr_t entry_offset = reader.ReadUInt();
+        ASSERT(entry_offset < constant_offset);  // DAG!
+        constant = EvaluateConstantExpression(entry_offset);
+        instance.SetField(field, constant);
+      }
+      break;
+    }
+    case kPartialInstantiationConstant: {
+      // Recurse into lazily evaluating the "sub" constant
+      // needed to evaluate the current constant.
+      const intptr_t entry_offset = reader.ReadUInt();
+      ASSERT(entry_offset < constant_offset);  // DAG!
+      Instance& constant =
+          Instance::Handle(Z, EvaluateConstantExpression(entry_offset));
+      // Happens if the tearoff was in the vmservice library and we have
+      // [skip_vm_service_library] enabled.
+      if (constant.IsNull()) {
+        instance = Instance::null();
+        break;
+      }
+      // Build type from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(&reader, active_class_, true);
+      const intptr_t number_of_type_arguments = reader.ReadUInt();
+      ASSERT(number_of_type_arguments > 0);
+      TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+          Z, TypeArguments::New(number_of_type_arguments, Heap::kOld));
+      for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
+        type_arguments.SetTypeAt(j, type_translator.BuildType());
+      }
+      // Make a copy of the old closure, and set delayed type arguments.
+      Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
+      Function& function = Function::Handle(Z, closure.function());
+      TypeArguments& type_arguments2 =
+          TypeArguments::ZoneHandle(Z, closure.instantiator_type_arguments());
+      TypeArguments& type_arguments3 =
+          TypeArguments::ZoneHandle(Z, closure.function_type_arguments());
+      Context& context = Context::Handle(Z, closure.context());
+      instance = Closure::New(type_arguments2, Object::null_type_arguments(),
+                              type_arguments3, function, context,
+                              Heap::kOld);  // was type_arguments?
+      break;
+    }
+    case kTearOffConstant: {
+      const NameIndex index = reader.ReadCanonicalNameReference();
+      Function& function =
+          Function::Handle(Z, H.LookupStaticMethodByKernelProcedure(index));
+      function = function.ImplicitClosureFunction();
+      instance = function.ImplicitStaticClosure();
+      break;
+    }
+    case kTypeLiteralConstant: {
+      // Build type from the raw bytes (needs temporary translator).
+      TypeTranslator type_translator(&reader, active_class_, true);
+      instance = type_translator.BuildType().raw();
+      break;
+    }
+    default:
+      // Set literals (kSetConstant) are currently desugared in the frontend
+      // and will not reach the VM. See http://dartbug.com/35124 for some
+      // discussion. Map constants (kMapConstant ) are already lowered to
+      // InstanceConstant or ListConstant. We should never see unevaluated
+      // constants (kUnevaluatedConstant) in the constant table, they should
+      // have been fully evaluated before we get them.
+      H.ReportError(script_, TokenPosition::kNoSource,
+                    "Cannot lazily read constant: unexpected kernel tag (%" Pd
+                    ")",
+                    constant_tag);
+  }
+  return H.Canonicalize(instance);
 }
 
 void ConstantEvaluator::BailoutIfBackgroundCompilation() {
@@ -868,20 +1112,6 @@ void ConstantEvaluator::EvaluateNullLiteral() {
   result_ = Instance::null();
 }
 
-void ConstantEvaluator::EvaluateConstantExpression(Tag tag) {
-  // Please note that this constants array is constructed exactly once, see
-  // ReadConstantTable() and is immutable from that point on, so there is no
-  // need to guard against concurrent access between mutator and background
-  // compiler.
-  KernelConstantsMap constant_map(H.constants().raw());
-  if (tag == kConstantExpression) {
-    helper_->ReadPosition();
-    helper_->SkipDartType();
-  }
-  result_ ^= constant_map.GetOrDie(helper_->ReadUInt());
-  ASSERT(constant_map.Release().raw() == H.constants().raw());
-}
-
 // This depends on being about to read the list of positionals on arguments.
 const Object& ConstantEvaluator::RunFunction(TokenPosition position,
                                              const Function& function,
@@ -1107,273 +1337,6 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
                                   value);
     script_.set_compile_time_constants(constants.Release());
   }
-}
-
-ConstantHelper::ConstantHelper(Zone* zone,
-                               KernelReaderHelper* helper,
-                               TypeTranslator* type_translator,
-                               ActiveClass* active_class,
-                               NameIndex skip_vmservice_library)
-    : zone_(zone),
-      helper_(*helper),
-      type_translator_(*type_translator),
-      active_class_(active_class),
-      const_evaluator_(helper, type_translator, active_class, nullptr),
-      translation_helper_(helper->translation_helper_),
-      skip_vmservice_library_(skip_vmservice_library),
-      symbol_class_(Class::Handle(zone)),
-      symbol_name_field_(Field::Handle(zone)),
-      temp_type_(AbstractType::Handle(zone)),
-      temp_type_arguments_(TypeArguments::Handle(zone)),
-      temp_type_arguments2_(TypeArguments::Handle(zone)),
-      temp_type_arguments3_(TypeArguments::Handle(zone)),
-      temp_object_(Object::Handle(zone)),
-      temp_string_(String::Handle(zone)),
-      temp_array_(Array::Handle(zone)),
-      temp_instance_(Instance::Handle(zone)),
-      temp_field_(Field::Handle(zone)),
-      temp_class_(Class::Handle(zone)),
-      temp_library_(Library::Handle(zone)),
-      temp_function_(Function::Handle(zone)),
-      temp_closure_(Closure::Handle(zone)),
-      temp_context_(Context::Handle(zone)),
-      temp_integer_(Integer::Handle(zone)) {
-  temp_library_ = Library::InternalLibrary();
-  ASSERT(!temp_library_.IsNull());
-
-  symbol_class_ = temp_library_.LookupClass(Symbols::Symbol());
-  ASSERT(!symbol_class_.IsNull());
-
-  symbol_name_field_ =
-      symbol_class_.LookupInstanceFieldAllowPrivate(Symbols::_name());
-  ASSERT(!symbol_name_field_.IsNull());
-}
-
-const Array& ConstantHelper::ReadConstantTable() {
-  const intptr_t number_of_constants = helper_.ReadUInt();
-  if (number_of_constants == 0) {
-    return Array::empty_array();
-  }
-
-  const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
-  const Class& list_class =
-      Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
-
-  // Eagerly finalize _ImmutableList (instead of doing it on every list
-  // constant).
-  temp_class_ = I->class_table()->At(kImmutableArrayCid);
-  temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
-  ASSERT(temp_object_.IsNull());
-
-  KernelConstantsMap constants(
-      HashTables::New<KernelConstantsMap>(number_of_constants, Heap::kOld));
-
-  const intptr_t start_offset = helper_.ReaderOffset();
-
-  for (intptr_t i = 0; i < number_of_constants; ++i) {
-    const intptr_t offset = helper_.ReaderOffset();
-    const intptr_t constant_tag = helper_.ReadByte();
-    switch (constant_tag) {
-      case kNullConstant:
-        temp_instance_ = Instance::null();
-        break;
-      case kBoolConstant:
-        temp_instance_ = helper_.ReadByte() == 1 ? Object::bool_true().raw()
-                                                 : Object::bool_false().raw();
-        break;
-      case kIntConstant: {
-        temp_instance_ = const_evaluator_.EvaluateExpression(
-            helper_.ReaderOffset(), false /* reset position */);
-        break;
-      }
-      case kDoubleConstant: {
-        temp_instance_ = Double::New(helper_.ReadDouble(), Heap::kOld);
-        temp_instance_ = H.Canonicalize(temp_instance_);
-        break;
-      }
-      case kStringConstant: {
-        temp_instance_ =
-            H.Canonicalize(H.DartString(helper_.ReadStringReference()));
-        break;
-      }
-      case kSymbolConstant: {
-        const NameIndex index = helper_.ReadCanonicalNameReference();
-        if (index == -1) {
-          temp_library_ = Library::null();
-        } else {
-          temp_library_ = H.LookupLibraryByKernelLibrary(index);
-        }
-        const String& symbol =
-            H.DartIdentifier(temp_library_, helper_.ReadStringReference());
-        temp_instance_ = Instance::New(symbol_class_, Heap::kOld);
-        temp_instance_.SetField(symbol_name_field_, symbol);
-        temp_instance_ = H.Canonicalize(temp_instance_);
-        break;
-      }
-      case kListConstant: {
-        temp_type_arguments_ = TypeArguments::New(1, Heap::kOld);
-        const AbstractType& type = type_translator_.BuildType();
-        temp_type_arguments_.SetTypeAt(0, type);
-        InstantiateTypeArguments(list_class, &temp_type_arguments_);
-
-        const intptr_t length = helper_.ReadUInt();
-        temp_array_ = ImmutableArray::New(length, Heap::kOld);
-        temp_array_.SetTypeArguments(temp_type_arguments_);
-        for (intptr_t j = 0; j < length; ++j) {
-          const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
-          temp_object_ = constants.GetOrDie(entry_offset);
-          temp_array_.SetAt(j, temp_object_);
-        }
-
-        temp_instance_ = H.Canonicalize(temp_array_);
-        break;
-      }
-      case kSetConstant:
-        // Set literals are currently desugared in the frontend and will not
-        // reach the VM. See http://dartbug.com/35124 for discussion.
-        H.ReportError(script(), TokenPosition::kNoSource,
-                      "Unexpected set constant, this constant"
-                      " is expected to be evaluated at this point (%" Pd ")",
-                      constant_tag);
-        break;
-      case kInstanceConstant: {
-        const NameIndex index = helper_.ReadCanonicalNameReference();
-        if (ShouldSkipConstant(index)) {
-          temp_instance_ = Instance::null();
-          break;
-        }
-
-        temp_class_ = H.LookupClassByKernelClass(index);
-        temp_object_ = temp_class_.EnsureIsFinalized(H.thread());
-        ASSERT(temp_object_.IsNull());
-
-        temp_instance_ = Instance::New(temp_class_, Heap::kOld);
-
-        const intptr_t number_of_type_arguments = helper_.ReadUInt();
-        if (temp_class_.NumTypeArguments() > 0) {
-          temp_type_arguments_ =
-              TypeArguments::New(number_of_type_arguments, Heap::kOld);
-          for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
-            temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
-          }
-          InstantiateTypeArguments(temp_class_, &temp_type_arguments_);
-          temp_instance_.SetTypeArguments(temp_type_arguments_);
-        } else {
-          ASSERT(number_of_type_arguments == 0);
-        }
-
-        const intptr_t number_of_fields = helper_.ReadUInt();
-        for (intptr_t j = 0; j < number_of_fields; ++j) {
-          temp_field_ =
-              H.LookupFieldByKernelField(helper_.ReadCanonicalNameReference());
-          const intptr_t entry_offset = helper_.ReadUInt();
-          ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
-          temp_object_ = constants.GetOrDie(entry_offset);
-          temp_instance_.SetField(temp_field_, temp_object_);
-        }
-
-        temp_instance_ = H.Canonicalize(temp_instance_);
-        break;
-      }
-      case kPartialInstantiationConstant: {
-        const intptr_t entry_offset = helper_.ReadUInt();
-        ASSERT(entry_offset < (offset - start_offset));  // We have a DAG!
-        temp_object_ = constants.GetOrDie(entry_offset);
-
-        // Happens if the tearoff was in the vmservice library and we have
-        // [skip_vm_service_library] enabled.
-        if (temp_object_.IsNull()) {
-          temp_instance_ = Instance::null();
-          break;
-        }
-
-        const intptr_t number_of_type_arguments = helper_.ReadUInt();
-        ASSERT(number_of_type_arguments > 0);
-        temp_type_arguments_ =
-            TypeArguments::New(number_of_type_arguments, Heap::kOld);
-        for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
-          temp_type_arguments_.SetTypeAt(j, type_translator_.BuildType());
-        }
-        temp_type_arguments_ = temp_type_arguments_.Canonicalize();
-
-        // Make a copy of the old closure, with the delayed type arguments
-        // set to [temp_type_arguments_].
-        temp_closure_ = Closure::RawCast(temp_object_.raw());
-        temp_function_ = temp_closure_.function();
-        temp_type_arguments2_ = temp_closure_.instantiator_type_arguments();
-        temp_type_arguments3_ = temp_closure_.function_type_arguments();
-        temp_context_ = temp_closure_.context();
-        temp_closure_ = Closure::New(
-            temp_type_arguments2_, Object::null_type_arguments(),
-            temp_type_arguments_, temp_function_, temp_context_, Heap::kOld);
-        temp_instance_ = H.Canonicalize(temp_closure_);
-        break;
-      }
-      case kTearOffConstant: {
-        const NameIndex index = helper_.ReadCanonicalNameReference();
-        if (ShouldSkipConstant(index)) {
-          temp_instance_ = Instance::null();
-          break;
-        }
-
-        temp_function_ = H.LookupStaticMethodByKernelProcedure(index);
-        temp_function_ = temp_function_.ImplicitClosureFunction();
-        temp_instance_ = temp_function_.ImplicitStaticClosure();
-        temp_instance_ = H.Canonicalize(temp_instance_);
-        break;
-      }
-      case kTypeLiteralConstant: {
-        temp_instance_ = type_translator_.BuildType().raw();
-        break;
-      }
-      case kMapConstant:
-        // Note: This is already lowered to InstanceConstant/ListConstant.
-        H.ReportError(script(), TokenPosition::kNoSource,
-                      "Unexpected map constant, this constant"
-                      " is expected to be evaluated at this point (%" Pd ")",
-                      constant_tag);
-        break;
-      case kUnevaluatedConstant:
-        // We should not see unevaluated constants in the constant table, they
-        // should have been fully evaluated before we get them.
-        H.ReportError(
-            script(), TokenPosition::kNoSource,
-            "Unexpected unevaluated constant, All constant expressions"
-            " are expected to be evaluated at this point (%" Pd ")",
-            constant_tag);
-        break;
-      default:
-        UNREACHABLE();
-    }
-    constants.InsertNewOrGetValue(offset - start_offset, temp_instance_);
-  }
-  return Array::Handle(Z, constants.Release().raw());
-}
-
-void ConstantHelper::InstantiateTypeArguments(const Class& receiver_class,
-                                              TypeArguments* type_arguments) {
-  // We make a temporary [Type] object and use `ClassFinalizer::FinalizeType` to
-  // finalize the argument types.
-  // (This can for example make the [type_arguments] vector larger)
-  temp_type_ =
-      Type::New(receiver_class, *type_arguments, TokenPosition::kNoSource);
-  temp_type_ = ClassFinalizer::FinalizeType(*active_class_->klass, temp_type_,
-                                            ClassFinalizer::kCanonicalize);
-  *type_arguments = temp_type_.arguments();
-}
-
-// If [index] has `dart:vm_service` as a parent and we are skipping the VM
-// service library, this method returns `true`, otherwise `false`.
-bool ConstantHelper::ShouldSkipConstant(NameIndex index) {
-  if (index == NameIndex::kInvalidName) {
-    return false;
-  }
-  while (!H.IsLibrary(index)) {
-    index = H.CanonicalNameParent(index);
-  }
-  ASSERT(H.IsLibrary(index));
-  return index == skip_vmservice_library_;
 }
 
 }  // namespace kernel

@@ -3776,10 +3776,8 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   }
   if (position != nullptr) *position = p;
   const intptr_t constant_offset = ReadUInt();
-  KernelConstantsMap constant_map(H.constants().raw());
-  Fragment result =
-      Constant(Object::ZoneHandle(Z, constant_map.GetOrDie(constant_offset)));
-  ASSERT(constant_map.Release().raw() == H.constants().raw());
+  Fragment result = Constant(Object::ZoneHandle(
+      Z, constant_evaluator_.EvaluateConstantExpression(constant_offset)));
   return result;
 }
 

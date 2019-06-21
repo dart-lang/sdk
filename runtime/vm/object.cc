@@ -12149,6 +12149,11 @@ void KernelProgramInfo::set_constants_table(
   StorePointer(&raw_ptr()->constants_table_, value.raw());
 }
 
+void KernelProgramInfo::set_evaluating(
+    const GrowableObjectArray& evaluating) const {
+  StorePointer(&raw_ptr()->evaluating_, evaluating.raw());
+}
+
 void KernelProgramInfo::set_potential_natives(
     const GrowableObjectArray& candidates) const {
   StorePointer(&raw_ptr()->potential_natives_, candidates.raw());

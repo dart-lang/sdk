@@ -1197,14 +1197,7 @@ RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
       kernel::BytecodeReader::LoadClassDeclaration(cls);
     }
 #endif
-    // TODO(36584) : We expect is_type_finalized to be true for all classes
-    // here, but with eager reading of the constant table we get into
-    // situations where we see classes whose types have not been finalized yet,
-    // the real solution is to implement lazy evaluation of constants. This is
-    // a temporary workaround until lazy evaluation is implemented.
-    if (!cls.is_type_finalized()) {
-      FinalizeTypesInClass(cls);
-    }
+    ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);
     return Error::null();
   } else {

@@ -230,8 +230,6 @@ class KernelLoader : public ValueObject {
 
   void ReadObfuscationProhibitions();
 
-  const Array& ReadConstantTable();
-
   // Check for the presence of a (possibly const) constructor for the
   // 'ExternalName' class. If found, returns the name parameter to the
   // constructor.
@@ -243,11 +241,12 @@ class KernelLoader : public ValueObject {
 
   bool IsClassName(NameIndex name, const String& library, const String& klass);
 
-  void AnnotateNativeProcedures(const Array& constant_table);
-  void LoadNativeExtensionLibraries(const Array& constant_table);
+  void AnnotateNativeProcedures();
+  void LoadNativeExtensionLibraries();
   void EvaluateDelayedPragmas();
 
-  void ReadVMAnnotations(intptr_t annotation_count,
+  void ReadVMAnnotations(const Library& library,
+                         intptr_t annotation_count,
                          String* native_name,
                          bool* is_potential_native,
                          bool* has_pragma_annotation);
@@ -396,6 +395,37 @@ class KernelLoader : public ValueObject {
     }
   }
 
+  // Returns `true` if the [library] was newly enqueued or `false`
+  // if it was already enqueued. Allocates storage on first enqueue.
+  bool EnqueueLibraryForEvaluation(const Library& library) {
+    evaluating_ = kernel_program_info_.evaluating();
+    if (evaluating_.IsNull()) {
+      evaluating_ = GrowableObjectArray::New();
+      kernel_program_info_.set_evaluating(evaluating_);
+      ASSERT(!evaluating_.IsNull());
+    } else {
+      for (intptr_t i = 0, n = evaluating_.Length(); i < n; i++) {
+        if (library.raw() == evaluating_.At(i)) {
+          return false;
+        }
+      }
+    }
+    evaluating_.Add(library);
+    return true;
+  }
+
+  // Dequeues most recent libary. Releases storage when empty.
+  void DequeueLibraryForEvaluation(const Library& library) {
+    ASSERT(!evaluating_.IsNull());
+    RawObject* object = evaluating_.RemoveLast();
+    ASSERT(library.raw() == object);
+    if (evaluating_.Length() == 0) {
+      evaluating_ = GrowableObjectArray::null();
+      kernel_program_info_.set_evaluating(evaluating_);
+      ASSERT(evaluating_.IsNull());
+    }
+  }
+
   Program* program_;
 
   Thread* thread_;
@@ -423,6 +453,7 @@ class KernelLoader : public ValueObject {
 
   Class& external_name_class_;
   Field& external_name_field_;
+  GrowableObjectArray& evaluating_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
   GrowableObjectArray& potential_extension_libraries_;

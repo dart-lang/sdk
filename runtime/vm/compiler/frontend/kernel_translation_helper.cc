@@ -32,6 +32,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -46,6 +47,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -79,6 +81,7 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
   SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
+  SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
 }
 
@@ -124,6 +127,12 @@ void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull() ||
          (constants.IsNull() || constants.Length() == 0));
   constants_ = constants.raw();
+}
+
+void TranslationHelper::SetConstantsTable(
+    const ExternalTypedData& constants_table) {
+  ASSERT(constants_table_.IsNull());
+  constants_table_ = constants_table.raw();
 }
 
 void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
