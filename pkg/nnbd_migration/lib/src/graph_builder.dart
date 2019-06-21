@@ -572,8 +572,25 @@ $stackTrace''');
   DecoratedType visitPrefixExpression(PrefixExpression node) {
     /* DecoratedType operandType = */
     _handleAssignment(_notNullType, node.operand);
-    if (node.operator.type == TokenType.BANG) {
+    var operatorType = node.operator.type;
+    if (operatorType == TokenType.BANG) {
       return _nonNullableBoolType;
+    } else if (operatorType == TokenType.PLUS_PLUS ||
+        operatorType == TokenType.MINUS_MINUS) {
+      var callee = node.staticElement;
+      if (callee is ClassMemberElement &&
+          callee.enclosingElement.typeParameters.isNotEmpty) {
+        // TODO(paulberry)
+        _unimplemented(node,
+            'Operator ${operatorType.lexeme} defined on a class with type parameters');
+      }
+      if (callee == null) {
+        // TODO(paulberry)
+        _unimplemented(node, 'Unresolved operator ${operatorType.lexeme}');
+      }
+      var calleeType = getOrComputeElementType(callee);
+      // TODO(paulberry): substitute if necessary
+      return calleeType.returnType;
     }
     // TODO(brianwilkerson) The remaining cases are invocations.
     _unimplemented(

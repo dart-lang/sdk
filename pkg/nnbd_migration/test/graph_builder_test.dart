@@ -1335,7 +1335,7 @@ void test(C c) {
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
-  test_prefixExpression_bang2() async {
+  test_prefixExpression_bang() async {
     await analyze('''
 bool f(bool b) {
   return !b;
@@ -1348,6 +1348,36 @@ bool f(bool b) {
 
     var return_f = decoratedTypeAnnotation('bool f').node;
     assertEdge(never, return_f, hard: false);
+  }
+
+  test_prefixExpression_minusMinus() async {
+    await analyze('''
+int f(int i) {
+  return --i;
+}
+''');
+
+    var declaration = decoratedTypeAnnotation('int i').node;
+    var use = checkExpression('i;');
+    assertNullCheck(use, assertEdge(declaration, never, hard: true));
+
+    var returnType = decoratedTypeAnnotation('int f').node;
+    assertEdge(never, returnType, hard: false);
+  }
+
+  test_prefixExpression_plusPlus() async {
+    await analyze('''
+int f(int i) {
+  return ++i;
+}
+''');
+
+    var declaration = decoratedTypeAnnotation('int i').node;
+    var use = checkExpression('i;');
+    assertNullCheck(use, assertEdge(declaration, never, hard: true));
+
+    var returnType = decoratedTypeAnnotation('int f').node;
+    assertEdge(never, returnType, hard: false);
   }
 
   test_propertyAccess_return_type() async {
