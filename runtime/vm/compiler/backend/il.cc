@@ -3197,7 +3197,7 @@ Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsSmi()) {
-    if (!is_truncating() && (kSmiBits > 32)) {
+    if (!is_truncating()) {
       // Check that constant fits into 32-bit integer.
       const int64_t value = static_cast<int64_t>(Smi::Cast(c->value()).Value());
       if (!Utils::IsInt(32, value)) {

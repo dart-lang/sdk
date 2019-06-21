@@ -16382,7 +16382,7 @@ uint32_t Instance::CanonicalizeHash() const {
   NoSafepointScope no_safepoint;
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uint32_t hash = instance_size;
+  uint32_t hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;

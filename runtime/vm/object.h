@@ -4555,7 +4555,8 @@ class ObjectPool : public Object {
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
-    ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
+    ASSERT(
+        Utils::IsAligned(offset + kHeapObjectTag, compiler::target::kWordSize));
     return (offset + kHeapObjectTag - data_offset()) /
            sizeof(RawObjectPool::Entry);
   }
@@ -4712,7 +4713,9 @@ class Instructions : public Object {
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
     intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+#if !defined(IS_SIMARM_X64)
     ASSERT(aligned_size == alignment);
+#endif  // !defined(IS_SIMARM_X64)
     return aligned_size;
   }
 

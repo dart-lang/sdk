@@ -174,15 +174,11 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(
-          size, compiler::target::ObjectAlignment::kObjectAlignment));
-      return (size > kMaxSizeTag)
-                 ? 0
-                 : (size >>
-                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
+      return value << kObjectAlignmentLog2;
     }
   };
 
@@ -490,6 +486,10 @@ class RawObject {
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
+#elif defined(IS_SIMARM_X64)
+  // On simarm_x64 the hash isn't used, but we need the padding anyway so that
+  // the object layout fits assumptions made about X64.
+  uint32_t padding_;
 #endif
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
@@ -1457,6 +1457,7 @@ class RawInstructions : public RawObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class BlobImageWriter;
 };
 
 class RawPcDescriptors : public RawObject {
@@ -1518,6 +1519,7 @@ class RawPcDescriptors : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // CodeSourceMap encodes a mapping from code PC ranges to source token
@@ -1536,6 +1538,7 @@ class RawCodeSourceMap : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // StackMap is an immutable representation of the layout of the stack at a
@@ -1559,6 +1562,8 @@ class RawStackMap : public RawObject {
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class ImageWriter;
 };
 
 class RawLocalVarDescriptors : public RawObject {
@@ -2088,6 +2093,7 @@ class RawString : public RawInstance {
   friend class OneByteStringDeserializationCluster;
   friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
+  friend class ImageWriter;
 };
 
 class RawOneByteString : public RawString {

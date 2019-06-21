@@ -87,6 +87,7 @@ class ReadOnlyHandles {
 };
 
 static void CheckOffsets() {
+#if !defined(IS_SIMARM_X64)
   // These offsets are embedded in precompiled instructions. We need the
   // compiler and the runtime to agree.
   bool ok = true;
@@ -124,6 +125,7 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#endif  // !defined(IS_SIMARM_X64)
 }
 
 char* Dart::Init(const uint8_t* vm_isolate_snapshot,

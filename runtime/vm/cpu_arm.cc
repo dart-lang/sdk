@@ -15,7 +15,7 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
-#if !defined(USING_SIMULATOR)
+#if !defined(TARGET_HOST_MISMATCH)
 #include <sys/syscall.h> /* NOLINT */
 #include <unistd.h>      /* NOLINT */
 #endif
@@ -81,7 +81,7 @@ DEFINE_FLAG(bool,
             "Use integer division instruction if supported");
 #endif
 
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_HOST_MISMATCH)
 #if defined(TARGET_ARCH_ARM_5TE) || defined(TARGET_OS_ANDROID) \
     || defined(TARGET_OS_IOS)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the hardfp ABI.");
@@ -96,7 +96,7 @@ void CPU::FlushICache(uword start, uword size) {
   UNREACHABLE();
 #endif
 
-#if !defined(USING_SIMULATOR) && !HOST_OS_IOS
+#if !defined(TARGET_HOST_MISMATCH) && HOST_ARCH_ARM && !HOST_OS_IOS
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -120,9 +120,9 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_HOST_MISMATCH)
       "sim"
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(TARGET_HOST_MISMATCH)
       "arm";
 }
 
@@ -137,7 +137,7 @@ intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 bool HostCPUFeatures::initialized_ = false;
 #endif
 
-#if !defined(USING_SIMULATOR)
+#if !defined(TARGET_HOST_MISMATCH)
 #if HOST_OS_IOS
 void HostCPUFeatures::Init() {
   // TODO(24743): Actually check the CPU features and fail if we're missing
@@ -292,7 +292,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = NULL;
   CpuInfo::Cleanup();
 }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(TARGET_HOST_MISMATCH)
 
 }  // namespace dart
 

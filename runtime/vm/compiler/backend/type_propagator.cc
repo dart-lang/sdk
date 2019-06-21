@@ -1088,6 +1088,11 @@ CompileType ConstantInstr::ComputeType() const {
 
   intptr_t cid = value().GetClassId();
 
+  if (cid == kSmiCid && !compiler::target::IsSmi(Smi::Cast(value()).Value())) {
+    return CompileType::Create(kMintCid,
+                               AbstractType::ZoneHandle(Type::MintType()));
+  }
+
   if ((cid != kTypeArgumentsCid) && value().IsInstance()) {
     // Allocate in old-space since this may be invoked from the
     // background compiler.

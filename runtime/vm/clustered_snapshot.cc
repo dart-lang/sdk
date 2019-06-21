@@ -1878,7 +1878,8 @@ class RODataSerializationCluster : public SerializationCluster {
       }
       uint32_t offset = s->GetDataOffset(object);
       s->TraceDataOffset(offset);
-      ASSERT(Utils::IsAligned(offset, kObjectAlignment));
+      ASSERT(Utils::IsAligned(
+          offset, compiler::target::ObjectAlignment::kObjectAlignment));
       ASSERT(offset > running_offset);
       s->WriteUnsigned((offset - running_offset) >>
                        compiler::target::ObjectAlignment::kObjectAlignmentLog2);
