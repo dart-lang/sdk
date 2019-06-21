@@ -526,17 +526,6 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
-template <class T>
-class ResourceHolder : ValueObject {
-  T* resource_;
-
- public:
-  ResourceHolder() : resource_(NULL) {}
-  void set(T* resource) { resource_ = resource; }
-  T* get() { return resource_; }
-  ~ResourceHolder() { delete (resource_); }
-};
-
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
@@ -582,7 +571,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   Object& result = Object::Handle(thread->zone());
-  ResourceHolder<kernel::Program> kernel_program;
+  std::unique_ptr<kernel::Program> kernel_program;
   String& packages_url = String::Handle();
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
@@ -609,10 +598,10 @@ void IsolateReloadContext::Reload(bool force_reload,
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
     // compiled, so ReadKernelFromFile returns NULL.
-    kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
-    if (kernel_program.get() != NULL) {
-      num_received_libs_ = kernel_program.get()->library_count();
-      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+    kernel_program = kernel::Program::ReadFromFile(root_script_url);
+    if (kernel_program != nullptr) {
+      num_received_libs_ = kernel_program->library_count();
+      bytes_received_libs_ = kernel_program->kernel_data_size();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -669,7 +658,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       // into the middle of c-allocated buffer and don't have a finalizer).
       I->RetainKernelBlob(typed_data);
 
-      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
+      kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
     kernel::KernelLoader::FindModifiedLibraries(

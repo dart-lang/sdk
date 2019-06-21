@@ -11334,7 +11334,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
-  kernel::Program* kernel_pgm =
+  std::unique_ptr<kernel::Program> kernel_pgm =
       kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
 
   if (kernel_pgm == NULL) {
@@ -11342,12 +11342,11 @@ static RawObject* EvaluateCompiledExpressionHelper(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  kernel::KernelLoader loader(kernel_pgm, /*uri_to_source_table=*/nullptr);
+  kernel::KernelLoader loader(kernel_pgm.get(),
+                              /*uri_to_source_table=*/nullptr);
   const Object& result = Object::Handle(
       loader.LoadExpressionEvaluationFunction(library_url, klass));
-
-  delete kernel_pgm;
-  kernel_pgm = NULL;
+  kernel_pgm.reset();
 
   if (result.IsError()) return result.raw();
 

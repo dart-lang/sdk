@@ -5042,13 +5042,13 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
-  kernel::Program* program =
+  std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-  delete program;
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
+  program.reset();
 
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
@@ -5288,14 +5288,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
-  kernel::Program* program =
+  std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
   const Object& result =
-      kernel::KernelLoader::LoadEntireProgram(program, false);
-  delete program;
+      kernel::KernelLoader::LoadEntireProgram(program.get(), false);
+  program.reset();
 
   return Api::NewHandle(T, result.raw());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

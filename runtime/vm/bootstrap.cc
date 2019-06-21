@@ -79,7 +79,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
   const char* error = nullptr;
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
+  std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
       kernel_buffer, kernel_buffer_size, &error);
   if (program == nullptr) {
     const intptr_t kMessageBufferSize = 512;
@@ -89,7 +89,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
-  kernel::KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
+  kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
   Isolate* isolate = thread->isolate();
 
@@ -111,7 +111,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
   const Object& result = Object::Handle(zone, loader.LoadProgram());
-  delete program;
+  program.reset();
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }
