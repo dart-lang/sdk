@@ -29,12 +29,9 @@ void f2({
 // Out of order modifiers
 class C2 {
   void m({
-    covariant
-    required //# 07: compile-time error
-    int i2,
-    final
-    required //# 08: compile-time error
-    int i3,
+    required int i1,
+    covariant required int i2, //# 07: compile-time error
+    final required int i3, //# 08: compile-time error
   }) {
   }
 }
