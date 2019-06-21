@@ -97,6 +97,9 @@ class NullabilityGraph {
   /// node.
   final NullabilityNode never = _NullabilityNodeImmutable('never', false);
 
+  /// Set containing all sources being migrated.
+  final _sourcesBeingMigrated = <Source>{};
+
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
   /// Returns the edge created by the connection.
@@ -106,6 +109,16 @@ class NullabilityGraph {
     var sources = [sourceNode]..addAll(guards);
     var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
     return _connect(sources, destinationNode, kind, origin);
+  }
+
+  /// Determine if [source] is in the code being migrated.
+  bool isBeingMigrated(Source source) {
+    return _sourcesBeingMigrated.contains(source);
+  }
+
+  /// Record source as code that is being migrated.
+  void migrating(Source source) {
+    _sourcesBeingMigrated.add(source);
   }
 
   /// Determines the nullability of each node in the graph by propagating

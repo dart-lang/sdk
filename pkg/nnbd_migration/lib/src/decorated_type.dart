@@ -77,6 +77,13 @@ class DecoratedType {
       }
     }
 
+    // Sanity check:
+    // Ensure the element is not from a library that is being migrated.
+    if (graph.isBeingMigrated(element.source)) {
+      throw 'Internal Error: DecorateType.forElement should not be called'
+          ' for elements being migrated: ${element.runtimeType} :: $element';
+    }
+
     DecoratedType decoratedType;
     if (element is ExecutableElement) {
       decoratedType = decorate(element.type);

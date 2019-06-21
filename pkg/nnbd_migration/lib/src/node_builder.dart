@@ -51,6 +51,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   NodeBuilder(this._variables, this._source, this.listener, this._graph,
       this._typeProvider);
 
+  @override
+  DecoratedType visitCompilationUnit(CompilationUnit node) {
+    _graph.migrating(_source);
+    return super.visitCompilationUnit(node);
+  }
+
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
   DecoratedType decorateType(TypeAnnotation type, AstNode enclosingNode) {
