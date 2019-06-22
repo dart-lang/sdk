@@ -20,6 +20,7 @@ import 'annotations.dart';
 import 'checked_mode_helpers.dart';
 import 'namer.dart';
 import 'runtime_types.dart';
+import 'runtime_types_new.dart';
 
 abstract class FunctionCompiler {
   void initialize(
@@ -305,6 +306,7 @@ abstract class CodegenInputs {
   CheckedModeHelpers get checkedModeHelpers;
   RuntimeTypesSubstitutions get rtiSubstitutions;
   RuntimeTypesEncoder get rtiEncoder;
+  RecipeEncoder get rtiRecipeEncoder;
   Tracer get tracer;
   RuntimeTypeTags get rtiTags;
   FixedNames get fixedNames;
@@ -321,6 +323,9 @@ class CodegenInputsImpl implements CodegenInputs {
   final RuntimeTypesEncoder rtiEncoder;
 
   @override
+  final RecipeEncoder rtiRecipeEncoder;
+
+  @override
   final Tracer tracer;
 
   @override
@@ -329,6 +334,6 @@ class CodegenInputsImpl implements CodegenInputs {
   @override
   final FixedNames fixedNames;
 
-  CodegenInputsImpl(this.rtiSubstitutions, this.rtiEncoder, this.tracer,
-      this.rtiTags, this.fixedNames);
+  CodegenInputsImpl(this.rtiSubstitutions, this.rtiEncoder,
+      this.rtiRecipeEncoder, this.tracer, this.rtiTags, this.fixedNames);
 }

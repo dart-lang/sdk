@@ -179,6 +179,9 @@ abstract class ModularEmitter {
   /// Returns the JS expression representing the type [e].
   jsAst.Expression typeAccess(Entity e);
 
+  /// Returns the JS name representing the type [e].
+  jsAst.Name typeAccessNewRti(Entity e);
+
   /// Returns the JS code for accessing the embedded [global].
   jsAst.Expression generateEmbeddedGlobalAccess(String global);
 

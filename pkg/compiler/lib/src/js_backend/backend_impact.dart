@@ -101,7 +101,7 @@ class BackendImpacts {
       _commonElements.getRuntimeTypeArgumentIntercepted,
       _commonElements.getRuntimeTypeArgument,
       _commonElements.getTypeArgumentByIndex,
-    ]);
+    ], otherImpacts: newRtiImpacts('getRuntimeTypeArgument'));
   }
 
   BackendImpact _computeSignature;
@@ -189,7 +189,7 @@ class BackendImpacts {
   BackendImpact get asCheck {
     return _asCheck ??= new BackendImpact(staticUses: [
       _commonElements.throwRuntimeError,
-    ], otherImpacts: _newRti ? [usesNewRti] : []);
+    ], otherImpacts: newRtiImpacts('asCheck'));
   }
 
   BackendImpact _throwNoSuchMethod;
@@ -762,15 +762,16 @@ class BackendImpacts {
         _commonElements.getInstantiationClass(typeArgumentCount),
       ]);
 
-  BackendImpact _usesNewRti;
-
   /// Backend impact for --experiment-new-rti.
-  BackendImpact get usesNewRti {
-    // TODO(sra): Can this be broken down into more selective impacts?
-    return _usesNewRti ??= BackendImpact(staticUses: [
-      _commonElements.findType,
-      _commonElements.rtiEvalMethod,
-      _commonElements.rtiBindMethod,
-    ]);
+  List<BackendImpact> newRtiImpacts(String what) {
+    if (!_newRti) return [];
+    // TODO(sra): Split into refined impacts.
+    return [
+      BackendImpact(staticUses: [
+        _commonElements.findType,
+        _commonElements.rtiEvalMethod,
+        _commonElements.rtiBindMethod,
+      ])
+    ];
   }
 }

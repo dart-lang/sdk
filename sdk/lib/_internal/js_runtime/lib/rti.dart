@@ -741,7 +741,7 @@ class _Parser {
       } else {
         i++;
         switch (ch) {
-          case Recipe.noOp:
+          case Recipe.separator:
             break;
 
           case Recipe.toType:
