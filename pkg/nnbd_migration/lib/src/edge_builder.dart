@@ -26,7 +26,7 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// the static type of the visited expression, along with the constraint
 /// variables that will determine its nullability.  For `visit...` methods that
 /// don't visit expressions, `null` will be returned.
-class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
+class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   /// The repository of constraint variables and decorated types (from a
   /// previous pass over the source code).
   final VariableRepository _variables;
@@ -77,7 +77,7 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   NullabilityNode _lastConditionalNode;
 
-  GraphBuilder(TypeProvider typeProvider, this._variables, this._graph,
+  EdgeBuilder(TypeProvider typeProvider, this._variables, this._graph,
       this._source, this.listener)
       : _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =

@@ -4,8 +4,8 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
-import 'package:nnbd_migration/src/graph_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,18 +14,18 @@ import 'migration_visitor_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(GraphBuilderTest);
+    defineReflectiveTests(EdgeBuilderTest);
   });
 }
 
 @reflectiveTest
-class GraphBuilderTest extends MigrationVisitorTestBase {
+class EdgeBuilderTest extends MigrationVisitorTestBase {
   /// Analyzes the given source code, producing constraint variables and
   /// constraints for it.
   @override
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
-    unit.accept(GraphBuilder(typeProvider, variables, graph, testSource, null));
+    unit.accept(EdgeBuilder(typeProvider, variables, graph, testSource, null));
     return unit;
   }
 
