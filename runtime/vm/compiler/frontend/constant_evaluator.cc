@@ -480,6 +480,7 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
           Instance::Handle(Z, EvaluateConstantExpression(entry_offset));
       // Happens if the tearoff was in the vmservice library and we have
       // [skip_vm_service_library] enabled.
+      // TODO(ajcbik): probably ASSERT that this no longer happens
       if (constant.IsNull()) {
         instance = Instance::null();
         break;
@@ -493,17 +494,18 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
       for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
         type_arguments.SetTypeAt(j, type_translator.BuildType());
       }
+      type_arguments = type_arguments.Canonicalize();
       // Make a copy of the old closure, and set delayed type arguments.
       Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
       Function& function = Function::Handle(Z, closure.function());
       TypeArguments& type_arguments2 =
           TypeArguments::ZoneHandle(Z, closure.instantiator_type_arguments());
-      TypeArguments& type_arguments3 =
-          TypeArguments::ZoneHandle(Z, closure.function_type_arguments());
+      // TODO(ajcbik): why was this here in original reader?
+      // TypeArguments& type_arguments3 =
+      //     TypeArguments::ZoneHandle(Z, closure.function_type_arguments());
       Context& context = Context::Handle(Z, closure.context());
       instance = Closure::New(type_arguments2, Object::null_type_arguments(),
-                              type_arguments3, function, context,
-                              Heap::kOld);  // was type_arguments?
+                              type_arguments, function, context, Heap::kOld);
       break;
     }
     case kTearOffConstant: {
