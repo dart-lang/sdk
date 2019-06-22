@@ -275,6 +275,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitComment(Comment node) {
+    // Ignore comments.
+    return null;
+  }
+
+  @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
     _handleAssignment(_notNullType, node.condition);
     // TODO(paulberry): guard anything inside the true and false branches
@@ -317,6 +323,12 @@ class GraphBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (_currentFunctionType == null) {
+      _unimplemented(
+          node,
+          'ExpressionFunctionBody with no current function '
+          '(parent is ${node.parent.runtimeType})');
+    }
     _handleAssignment(_currentFunctionType.returnType, node.expression);
     return null;
   }
@@ -756,11 +768,13 @@ $stackTrace''');
           DecoratedType bound;
           bound = _variables.decoratedElementType(element.typeParameters[i],
               create: true);
-          _checkAssignment(
-              bound,
-              _variables.decoratedTypeAnnotation(_source, typeArguments[i]),
-              null,
-              hard: true);
+          var argumentType =
+              _variables.decoratedTypeAnnotation(_source, typeArguments[i]);
+          if (argumentType == null) {
+            _unimplemented(typeName,
+                'No decorated type for type argument ${typeArguments[i]} ($i)');
+          }
+          _checkAssignment(bound, argumentType, null, hard: true);
         }
       }
     }
