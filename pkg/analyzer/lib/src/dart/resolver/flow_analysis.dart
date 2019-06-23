@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Sets of variables that are potentially assigned in a statement.
+/// Sets of local variables that are potentially assigned in a statement.
+///
+/// These statements are loops, `switch`, and `try` statements.
 class AssignedVariables<Statement, Element> {
   final emptySet = Set<Element>();
 
-  /// Mapping from a [Statement] representing a loop to the set of variables
-  /// that are potentially assigned in that loop.
+  /// Mapping from a [Statement] to the set of local variables that are
+  /// potentially assigned in that statement.
   final Map<Statement, Set<Element>> _map = {};
 
-  /// The stack of nested nodes.
+  /// The stack of nested statements.
   final List<Set<Element>> _stack = [];
 
   AssignedVariables();
@@ -21,12 +23,12 @@ class AssignedVariables<Statement, Element> {
     return _map[statement] ?? emptySet;
   }
 
-  void beginLoop() {
+  void beginStatement() {
     var set = Set<Element>.identity();
     _stack.add(set);
   }
 
-  void endLoop(Statement node) {
+  void endStatement(Statement node) {
     _map[node] = _stack.removeLast();
   }
 
@@ -126,6 +128,17 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     _current = _current.add(variable, assigned: assigned);
   }
 
+  void booleanLiteral(Expression expression, bool value) {
+    _condition = expression;
+    if (value) {
+      _conditionTrue = _current;
+      _conditionFalse = _identity;
+    } else {
+      _conditionTrue = _identity;
+      _conditionFalse = _current;
+    }
+  }
+
   void conditional_elseBegin(Expression conditionalExpression,
       Expression thenExpression, bool isBool) {
     var afterThen = _current;
@@ -221,12 +234,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     var breakState = _stack.removeLast();
 
     _current = _join(falseCondition, breakState);
-  }
-
-  void falseLiteral(Expression expression) {
-    _condition = expression;
-    _conditionTrue = _identity;
-    _conditionFalse = _current;
   }
 
   void forEachStatement_bodyBegin(Set<Element> loopAssigned) {
@@ -492,12 +499,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     _stack.add(_identity); // break
     _stack.add(_identity); // continue
     _stack.add(_current); // afterExpression
-  }
-
-  void trueLiteral(Expression expression) {
-    _condition = expression;
-    _conditionTrue = _current;
-    _conditionFalse = _identity;
   }
 
   void tryCatchStatement_bodyBegin() {

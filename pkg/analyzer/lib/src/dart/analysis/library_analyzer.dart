@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -407,11 +408,17 @@ class LibraryAnalyzer {
         _context.typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
+    FlowAnalysisResult flowAnalysisResult;
+    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
+      flowAnalysisResult = performFlowAnalysis(_context.typeSystem, unit);
+    }
+
     //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance, false,
+        flowAnalysisResult: flowAnalysisResult);
     unit.accept(errorVerifier);
   }
 

@@ -24,6 +24,56 @@ class NotInitializedPotentiallyNonNullableLocalVariableTest
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
+  test_definitelyAssigned_basic() async {
+    assertNoErrorsInCode('''
+void f() {
+  int v;
+  v = 0;
+  v;
+}
+''');
+  }
+
+  test_definitelyAssigned_if_then() async {
+    assertErrorsInCode('''
+void f(bool b) {
+  int v;
+  if (b) {
+    v = 1;
+  }
+  v;
+}
+''', [
+      error(
+          CompileTimeErrorCode
+              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          23,
+          1),
+    ]);
+  }
+
+  test_definitelyAssigned_if_thenElse_all() async {
+    assertNoErrorsInCode('''
+void f(bool b) {
+  int v;
+  if (b) {
+    v = 1;
+  } else {
+    v = 2;
+  }
+  v;
+}
+''');
+  }
+
+  test_definitelyAssigned_notUsed() async {
+    assertNoErrorsInCode('''
+void f() {
+  int v;
+}
+''');
+  }
+
   test_hasInitializer() async {
     assertNoErrorsInCode('''
 f() {
@@ -44,6 +94,7 @@ f() {
     assertErrorsInCode('''
 f() {
   int v;
+  v;
 }
 ''', [
       error(
@@ -51,7 +102,6 @@ f() {
               .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           12,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 12, 1),
     ]);
   }
 
@@ -59,6 +109,7 @@ f() {
     assertErrorsInCode('''
 f<T>() {
   T v;
+  v;
 }
 ''', [
       error(
@@ -66,7 +117,6 @@ f<T>() {
               .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           13,
           1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
     ]);
   }
 

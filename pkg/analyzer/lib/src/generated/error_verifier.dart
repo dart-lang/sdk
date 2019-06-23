@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -43,7 +44,7 @@ import 'package:meta/meta.dart';
 class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Properties on the object class which are safe to call on nullable types.
-   * 
+   *
    * Note that this must include tear-offs.
    *
    * TODO(mfairhurst): Calculate these fields rather than hard-code them.
@@ -293,6 +294,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
+  /// If running with [_isNonNullable], the result of the flow analysis of the
+  /// unit being verified by this visitor.
+  final FlowAnalysisResult flowAnalysisResult;
+
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
@@ -301,7 +306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
       this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false})
+      {this.disableConflictingGenericsCheck: false, this.flowAnalysisResult})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter) {
@@ -3395,7 +3400,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     for (var variable in node.variables) {
-      if (variable.initializer == null) {
+      if (variable.initializer == null &&
+          flowAnalysisResult.readBeforeWritten
+              .contains(variable.declaredElement)) {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode
               .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,

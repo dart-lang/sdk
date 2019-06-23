@@ -10,20 +10,21 @@
 // TODO(scheglov) Update once we implement definite assignment analysis.
 
 void main() {
-  int v; //# 01: compile-time error
-  int v = 0; //# 02: ok
-  late int v; //# 03: ok
-  late int v = 0; //# 04: ok
-  int? v; //# 05: ok
-  int? v = 0; //# 06: ok
+  int v; v; //# 01: compile-time error
+  int v; //# 02: ok
+  int v = 0; //# 03: ok
+  late int v; //# 04: ok
+  late int v = 0; //# 05: ok
+  int? v; //# 06: ok
+  int? v = 0; //# 07: ok
 
 }
 
 f<T>(T a) {
-  T v; //# 07: compile-time error
-  T v = a; //# 08: ok
-  late T v; //# 09: ok
-  late T v = a; //# 10: ok
-  T? v; //# 11: ok
-  T? v = a; //# 12: ok
+  T v; v; //# 08: compile-time error
+  T v = a; //# 09: ok
+  late T v; //# 10: ok
+  late T v = a; //# 11: ok
+  T? v; //# 12: ok
+  T? v = a; //# 13: ok
 }
