@@ -29,4 +29,7 @@ class DynamicLibrary {
 
   /// The hash code for a DynamicLibrary only depends on the loaded library
   external int get hashCode;
+
+  /// The handle to the dynamic library.
+  external Pointer<Void> get handle;
 }

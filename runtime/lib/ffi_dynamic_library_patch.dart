@@ -32,4 +32,7 @@ class DynamicLibrary {
   int get hashCode {
     return getHandle().hashCode;
   }
+
+  @patch
+  Pointer<Void> get handle => fromAddress(getHandle());
 }
