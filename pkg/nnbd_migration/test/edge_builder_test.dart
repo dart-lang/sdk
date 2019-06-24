@@ -1047,6 +1047,13 @@ bool f(a) => a is List<int>;
     assertNoUpstreamNullability(decoratedTypeAnnotation('bool').node);
   }
 
+  test_libraryDirective() async {
+    await analyze('''
+library foo;
+''');
+    // Passes if no exceptions are thrown.
+  }
+
   @failingTest
   test_listLiteral_noTypeArgument_noNullableElements() async {
     // Failing because we're not yet handling collection literals without a

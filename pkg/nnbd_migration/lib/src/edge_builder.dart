@@ -465,6 +465,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitLibraryDirective(LibraryDirective node) {
+    // skip directives
+    return null;
+  }
+
+  @override
   DecoratedType visitListLiteral(ListLiteral node) {
     var listType = node.staticType as InterfaceType;
     if (node.typeArguments == null) {
