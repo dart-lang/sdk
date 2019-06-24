@@ -375,12 +375,12 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     }
   }
 
-  /// Return `true` if the [variable] is known to be be nullable.
+  /// Return `true` if the [variable] is known to be be non-nullable.
   bool isNonNullable(Element variable) {
     return !_current.notNonNullable.contains(variable);
   }
 
-  /// Return `true` if the [variable] is known to be be non-nullable.
+  /// Return `true` if the [variable] is known to be be nullable.
   bool isNullable(Element variable) {
     return !_current.notNullable.contains(variable);
   }

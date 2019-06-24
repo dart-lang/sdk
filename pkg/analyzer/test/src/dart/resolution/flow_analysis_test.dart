@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,7 +20,7 @@ main() {
 
 @reflectiveTest
 class DefiniteAssignmentFlowTest extends DriverResolutionTest {
-  final List<LocalVariableElement> readBeforeWritten = [];
+  FlowAnalysisResult flowResult;
 
   /// Assert that only local variables with the given names are marked as read
   /// before being written.  All the other local variables are implicitly
@@ -34,7 +31,7 @@ class DefiniteAssignmentFlowTest extends DriverResolutionTest {
         .where((i) => i != null)
         .map((name) => findElement.localVar(name))
         .toList();
-    expect(readBeforeWritten, unorderedEquals(expected));
+    expect(flowResult.readBeforeWritten, unorderedEquals(expected));
   }
 
   test_assignment_leftExpression() async {
@@ -613,7 +610,7 @@ void f() {
 }
 ''');
     var localV = findNode.simple('v; // 1').staticElement;
-    expect(readBeforeWritten, unorderedEquals([localV]));
+    expect(flowResult.readBeforeWritten, unorderedEquals([localV]));
   }
 
   test_functionExpression_localFunction_local2() async {
@@ -1306,15 +1303,13 @@ void f() {
     var unit = result.unit;
     var typeSystem = result.typeSystem;
 
-    var flowAnalysisResult = performFlowAnalysis(typeSystem, unit);
-    readBeforeWritten.addAll(flowAnalysisResult.readBeforeWritten);
+    flowResult = performFlowAnalysis(typeSystem, unit);
   }
 }
 
 @reflectiveTest
 class NullableFlowTest extends DriverResolutionTest {
-  final List<AstNode> nullableNodes = [];
-  final List<AstNode> nonNullableNodes = [];
+  FlowAnalysisResult flowResult;
 
   void assertNonNullable([
     String search1,
@@ -1327,7 +1322,7 @@ class NullableFlowTest extends DriverResolutionTest {
         .where((i) => i != null)
         .map((search) => findNode.simple(search))
         .toList();
-    expect(nonNullableNodes, unorderedEquals(expected));
+    expect(flowResult.nonNullableNodes, unorderedEquals(expected));
   }
 
   void assertNullable([
@@ -1341,7 +1336,7 @@ class NullableFlowTest extends DriverResolutionTest {
         .where((i) => i != null)
         .map((search) => findNode.simple(search))
         .toList();
-    expect(nullableNodes, unorderedEquals(expected));
+    expect(flowResult.nullableNodes, unorderedEquals(expected));
   }
 
   test_assign_toNonNull() async {
@@ -1608,28 +1603,15 @@ void f(int x) {
     await resolveTestFile();
 
     var unit = result.unit;
+    var typeSystem = result.typeSystem;
 
-    var assignedVariables = AssignedVariables<Statement, VariableElement>();
-    unit.accept(AssignedVariablesVisitor(assignedVariables));
-
-    var typeSystem = unit.declaredElement.context.typeSystem;
-    unit.accept(FlowAnalysisVisitor(
-      typeSystem,
-      assignedVariables,
-      {},
-      [],
-      nullableNodes,
-      nonNullableNodes,
-      [],
-      [],
-    ));
+    flowResult = performFlowAnalysis(typeSystem, unit);
   }
 }
 
 @reflectiveTest
 class ReachableFlowTest extends DriverResolutionTest {
-  final List<AstNode> unreachableNodes = [];
-  final List<FunctionBody> functionBodiesThatDontComplete = [];
+  FlowAnalysisResult flowResult;
 
   test_conditional_false() async {
     await trackCode(r'''
@@ -2055,21 +2037,9 @@ void f() { // f
     await resolveTestFile();
 
     var unit = result.unit;
+    var typeSystem = result.typeSystem;
 
-    var assignedVariables = AssignedVariables<Statement, VariableElement>();
-    unit.accept(AssignedVariablesVisitor(assignedVariables));
-
-    var typeSystem = unit.declaredElement.context.typeSystem;
-    unit.accept(FlowAnalysisVisitor(
-      typeSystem,
-      assignedVariables,
-      {},
-      [],
-      [],
-      [],
-      unreachableNodes,
-      functionBodiesThatDontComplete,
-    ));
+    flowResult = performFlowAnalysis(typeSystem, unit);
   }
 
   void verify({
@@ -2086,11 +2056,11 @@ void f() { // f
     );
 
     expect(
-      this.unreachableNodes,
+      flowResult.unreachableNodes,
       unorderedEquals(expectedUnreachableNodes),
     );
     expect(
-      this.functionBodiesThatDontComplete,
+      flowResult.functionBodiesThatDontComplete,
       unorderedEquals(
         functionBodiesThatDontComplete
             .map((search) => findNode.functionBody(search))
@@ -2102,17 +2072,17 @@ void f() { // f
 
 @reflectiveTest
 class TypePromotionFlowTest extends DriverResolutionTest {
-  final Map<AstNode, DartType> promotedTypes = {};
+  FlowAnalysisResult flowResult;
 
   void assertNotPromoted(String search) {
     var node = findNode.simple(search);
-    var actualType = promotedTypes[node];
+    var actualType = flowResult.promotedTypes[node];
     expect(actualType, isNull, reason: search);
   }
 
   void assertPromoted(String search, String expectedType) {
     var node = findNode.simple(search);
-    var actualType = promotedTypes[node];
+    var actualType = flowResult.promotedTypes[node];
     if (actualType == null) {
       fail('$expectedType expected, but actually not promoted\n$search');
     }
@@ -2888,20 +2858,8 @@ void f(bool b, Object x) {
     await resolveTestFile();
 
     var unit = result.unit;
+    var typeSystem = result.typeSystem;
 
-    var assignedVariables = AssignedVariables<Statement, VariableElement>();
-    unit.accept(AssignedVariablesVisitor(assignedVariables));
-
-    var typeSystem = unit.declaredElement.context.typeSystem;
-    unit.accept(FlowAnalysisVisitor(
-      typeSystem,
-      assignedVariables,
-      promotedTypes,
-      [],
-      [],
-      [],
-      [],
-      [],
-    ));
+    flowResult = performFlowAnalysis(typeSystem, unit);
   }
 }

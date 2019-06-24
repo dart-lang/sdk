@@ -17,35 +17,77 @@ FlowAnalysisResult performFlowAnalysis(
   CompilationUnit unit,
 ) {
   var assignedVariables = AssignedVariables<Statement, VariableElement>();
-  unit.accept(AssignedVariablesVisitor(assignedVariables));
+  unit.accept(_AssignedVariablesVisitor(assignedVariables));
 
   var readBeforeWritten = <LocalVariableElement>[];
+  var nullableNodes = <SimpleIdentifier>[];
+  var nonNullableNodes = <SimpleIdentifier>[];
+  var unreachableNodes = <AstNode>[];
+  var functionBodiesThatDontComplete = <FunctionBody>[];
+  var promotedTypes = <SimpleIdentifier, DartType>{};
 
-  unit.accept(FlowAnalysisVisitor(
+  unit.accept(_FlowAnalysisVisitor(
     typeSystem,
     assignedVariables,
-    {},
+    promotedTypes,
     readBeforeWritten,
-    [],
-    [],
-    [],
-    [],
+    nullableNodes,
+    nonNullableNodes,
+    unreachableNodes,
+    functionBodiesThatDontComplete,
   ));
 
   return FlowAnalysisResult(
     readBeforeWritten,
+    nullableNodes,
+    nonNullableNodes,
+    unreachableNodes,
+    functionBodiesThatDontComplete,
+    promotedTypes,
+  );
+}
+
+/// The result of performing flow analysis on a unit.
+class FlowAnalysisResult {
+  final List<LocalVariableElement> readBeforeWritten;
+
+  /// The list of identifiers, resolved to a local variable or a parameter,
+  /// where the variable is known to be nullable.
+  final List<SimpleIdentifier> nullableNodes;
+
+  /// The list of identifiers, resolved to a local variable or a parameter,
+  /// where the variable is known to be non-nullable.
+  final List<SimpleIdentifier> nonNullableNodes;
+
+  /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
+  /// for example because a previous statement always exits.
+  final List<AstNode> unreachableNodes;
+
+  /// The list of [FunctionBody]s that don't complete, for example because
+  /// there is a `return` statement at the end of the function body block.
+  final List<FunctionBody> functionBodiesThatDontComplete;
+
+  /// For each local variable or parameter, which type is promoted to a type
+  /// specific than its declaration type, this map included references where
+  /// the variable where it is read, and the type it has.
+  final Map<SimpleIdentifier, DartType> promotedTypes;
+
+  FlowAnalysisResult(
+    this.readBeforeWritten,
+    this.nullableNodes,
+    this.nonNullableNodes,
+    this.unreachableNodes,
+    this.functionBodiesThatDontComplete,
+    this.promotedTypes,
   );
 }
 
 /// The visitor that gathers local variables that are potentially assigned
 /// in corresponding statements, such as loops, `switch` and `try`.
-///
-/// TODO(scheglov) Change other tests to use [performFlowAnalysis],
-/// and make this class private.
-class AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
+class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   final AssignedVariables assignedVariables;
 
-  AssignedVariablesVisitor(this.assignedVariables);
+  _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -135,34 +177,24 @@ class AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-/// The result of performing flow analysis on a unit.
-class FlowAnalysisResult {
-  final List<LocalVariableElement> readBeforeWritten;
-
-  FlowAnalysisResult(this.readBeforeWritten);
-}
-
 /// [AstVisitor] that drives the [FlowAnalysis].
-///
-/// TODO(scheglov) Change other tests to use [performFlowAnalysis],
-/// and make this class private.
-class FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
+class _FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
   static final trueLiteral = astFactory.booleanLiteral(null, true);
 
   final NodeOperations<Expression> nodeOperations;
   final TypeOperations<VariableElement, DartType> typeOperations;
   final AssignedVariables assignedVariables;
 
-  final Map<AstNode, DartType> promotedTypes;
+  final Map<SimpleIdentifier, DartType> promotedTypes;
   final List<LocalVariableElement> readBeforeWritten;
-  final List<AstNode> nullableNodes;
-  final List<AstNode> nonNullableNodes;
+  final List<SimpleIdentifier> nullableNodes;
+  final List<SimpleIdentifier> nonNullableNodes;
   final List<AstNode> unreachableNodes;
   final List<FunctionBody> functionBodiesThatDontComplete;
 
   FlowAnalysis<Statement, Expression, VariableElement, DartType> flow;
 
-  FlowAnalysisVisitor(
+  _FlowAnalysisVisitor(
       TypeSystem typeSystem,
       this.assignedVariables,
       this.promotedTypes,
