@@ -1987,6 +1987,9 @@ void Debugger::DeoptimizeWorld() {
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
+          // Force-optimized functions don't have unoptimized code and can't
+          // deoptimize. Their optimized codes are still valid.
+          if (function.ForceOptimize()) continue;
           if (function.HasOptimizedCode()) {
             function.SwitchToUnoptimizedCode();
           }
