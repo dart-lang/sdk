@@ -98,10 +98,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
     }
     _flushCodes();
     jsAst.LiteralString quote = jsAst.LiteralString('"');
-    // TODO(37302): Use [quote, ..._fragments, quote].
-    return jsAst.StringConcatenation(<jsAst.Literal>[quote]
-      ..addAll(_fragments)
-      ..add(quote));
+    return jsAst.StringConcatenation([quote, ..._fragments, quote]);
   }
 
   void _start(TypeRecipe recipe) {
