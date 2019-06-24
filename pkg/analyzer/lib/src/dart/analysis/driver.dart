@@ -12,7 +12,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
-import 'package:analyzer/diagnostic/diagnostic.dart' as diagnostic;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -1737,7 +1736,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             errorCode,
             error.message,
             error.correction.isEmpty ? null : error.correction,
-            contextMessages: contextMessages));
+            contextMessages: contextMessages ?? const []));
       }
     }
     return errors;
