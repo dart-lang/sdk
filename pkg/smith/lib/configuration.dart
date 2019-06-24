@@ -303,7 +303,7 @@ class Configuration {
 
   final bool isCsp;
 
-  // TODO(rnystrom): Remove this when Dart 1.0 is no longer supported.
+  /// Enables asserts in the dart2js compiler.
   final bool isHostChecked;
 
   final bool isMinified;
