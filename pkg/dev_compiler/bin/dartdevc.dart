@@ -52,7 +52,20 @@ class _CompilerWorker extends AsyncWorkerLoop {
     var args = _startupArgs.merge(request.arguments);
     var output = StringBuffer();
     var context = args.reuseResult ? lastResult : null;
-    lastResult = await runZoned(() => compile(args, previousResult: context),
+
+    /// Build a map of uris to digests.
+    final inputDigests = <Uri, List<int>>{};
+    for (var input in request.inputs) {
+      var uri = Uri.parse(input.path);
+      if (uri.scheme.isEmpty) {
+        uri = Uri.parse('file://${input.path}');
+      }
+      inputDigests[uri] = input.digest;
+    }
+
+    lastResult = await runZoned(
+        () =>
+            compile(args, previousResult: context, inputDigests: inputDigests),
         zoneSpecification:
             ZoneSpecification(print: (self, parent, zone, message) {
       output.writeln(message.toString());

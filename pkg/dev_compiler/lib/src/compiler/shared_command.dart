@@ -400,7 +400,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
 /// The result may also contain a [previousResult], which can be passed back in
 /// for batch/worker executions to attempt to existing state.
 Future<CompilerResult> compile(ParsedArguments args,
-    {CompilerResult previousResult}) {
+    {CompilerResult previousResult, Map<Uri, List<int>> inputDigests}) {
   if (previousResult != null && !args.isBatchOrWorker) {
     throw ArgumentError(
         'previousResult requires --batch or --bazel_worker mode/');
@@ -408,7 +408,8 @@ Future<CompilerResult> compile(ParsedArguments args,
   if (args.isKernel) {
     return kernel_compiler.compile(args.rest,
         compilerState: previousResult?.kernelState,
-        useIncrementalCompiler: args.useIncrementalCompiler);
+        useIncrementalCompiler: args.useIncrementalCompiler,
+        inputDigests: inputDigests);
   } else {
     var result = analyzer_compiler.compile(args.rest,
         compilerState: previousResult?.analyzerState);

@@ -131,6 +131,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Uri packagesFile,
     Uri librariesSpecificationUri,
     List<Uri> inputSummaries,
+    Map<Uri, List<int>> workerInputDigests,
     Target target,
     {FileSystem fileSystem,
     Map<ExperimentalFlag, bool> experiments}) async {
@@ -143,12 +144,18 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
   Map<Uri, WorkerInputComponent> workerInputCache =
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
+  var sdkDigest = workerInputDigests[sdkSummary];
+  if (sdkDigest == null) {
+    throw new StateError("Expected to get sdk digest at $cachedSdkInput");
+  }
+
   cachedSdkInput = workerInputCache[sdkSummary];
 
   if (oldState == null ||
       oldState.incrementalCompiler == null ||
       oldState.options.compileSdk != compileSdk ||
-      cachedSdkInput == null) {
+      cachedSdkInput == null ||
+      !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
     // No previous state.
     options = new CompilerOptions()
       ..compileSdk = compileSdk
@@ -166,8 +173,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
 
     processedOpts = new ProcessedOptions(options: options);
 
-    cachedSdkInput = new WorkerInputComponent(null /* not compared anyway */,
-        await processedOpts.loadSdkSummary(null));
+    cachedSdkInput = new WorkerInputComponent(
+        sdkDigest, await processedOpts.loadSdkSummary(null));
     workerInputCache[sdkSummary] = cachedSdkInput;
     incrementalCompiler = new IncrementalCompiler.fromComponent(
         new CompilerContext(processedOpts), cachedSdkInput.component);
@@ -207,10 +214,13 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   for (int i = 0; i < inputSummaries.length; i++) {
     Uri inputSummary = inputSummaries[i];
     WorkerInputComponent cachedInput = workerInputCache[inputSummary];
+    var digest = workerInputDigests[inputSummary];
+    if (digest == null) {
+      throw new StateError("Expected to get digest for $inputSummary");
+    }
     if (cachedInput == null ||
         cachedInput.component.root != nameRoot ||
-        !digestsEqual(await fileSystem.entityForUri(inputSummary).readAsBytes(),
-            cachedInput.digest)) {
+        !digestsEqual(digest, cachedInput.digest)) {
       loadFromDillIndexes.add(i);
     } else {
       // Need to reset cached components so they are usable again.
@@ -226,11 +236,15 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
   for (int i = 0; i < loadFromDillIndexes.length; i++) {
     int index = loadFromDillIndexes[i];
     Uri summary = inputSummaries[index];
-    List<int> data = await fileSystem.entityForUri(summary).readAsBytes();
+    List<int> digest = workerInputDigests[summary];
+    if (digest == null) {
+      throw new StateError("Expected to get digest for $summary");
+    }
+    var bytes = await fileSystem.entityForUri(summary).readAsBytes();
     WorkerInputComponent cachedInput = WorkerInputComponent(
-        data,
+        digest,
         await compilerState.processedOpts
-            .loadComponent(data, nameRoot, alwaysCreateNewNamedNodes: true));
+            .loadComponent(bytes, nameRoot, alwaysCreateNewNamedNodes: true));
     workerInputCache[summary] = cachedInput;
     doneInputSummaries[index] = cachedInput.component;
   }
