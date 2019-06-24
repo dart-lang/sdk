@@ -270,7 +270,6 @@ class _FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
     } else if (operator == TokenType.BANG_EQ) {
       left.accept(this);
       right.accept(this);
-      // TODO(scheglov) Support `null != name`
       if (right is NullLiteral) {
         if (left is SimpleIdentifier) {
           var element = left.staticElement;
@@ -278,14 +277,27 @@ class _FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
             flow.conditionNotEqNull(node, element);
           }
         }
+      } else if (left is NullLiteral) {
+        if (right is SimpleIdentifier) {
+          var element = right.staticElement;
+          if (element is VariableElement) {
+            flow.conditionNotEqNull(node, element);
+          }
+        }
       }
     } else if (operator == TokenType.EQ_EQ) {
-      // TODO(scheglov) Support `null == name`
       left.accept(this);
       right.accept(this);
       if (right is NullLiteral) {
         if (left is SimpleIdentifier) {
           var element = left.staticElement;
+          if (element is VariableElement) {
+            flow.conditionEqNull(node, element);
+          }
+        }
+      } else if (left is NullLiteral) {
+        if (right is SimpleIdentifier) {
+          var element = right.staticElement;
           if (element is VariableElement) {
             flow.conditionEqNull(node, element);
           }

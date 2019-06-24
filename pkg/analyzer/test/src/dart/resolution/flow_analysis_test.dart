@@ -1431,7 +1431,18 @@ void f(int a, int b) {
     assertNonNullable('b; // 2', 'a; // 3', 'b; // 4', 'b; // 6');
   }
 
-  test_if_notNull_thenExit() async {
+  test_if_notNull_thenExit_left() async {
+    await trackCode(r'''
+void f(int x) {
+  if (null != x) return;
+  x; // 1
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable();
+  }
+
+  test_if_notNull_thenExit_right() async {
     await trackCode(r'''
 void f(int x) {
   if (x != null) return;
@@ -1442,7 +1453,18 @@ void f(int x) {
     assertNonNullable();
   }
 
-  test_if_null_thenExit() async {
+  test_if_null_thenExit_left() async {
+    await trackCode(r'''
+void f(int x) {
+  if (null == x) return;
+  x; // 1
+}
+''');
+    assertNullable();
+    assertNonNullable('x; // 1');
+  }
+
+  test_if_null_thenExit_right() async {
     await trackCode(r'''
 void f(int x) {
   if (x == null) return;
