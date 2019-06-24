@@ -860,13 +860,22 @@ $stackTrace''');
           destination.typeArguments.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');
       }
-      if (source.positionalParameters.isNotEmpty ||
-          destination.positionalParameters.isNotEmpty) {
-        throw UnimplementedError('TODO(paulberry)');
+      for (int i = 0;
+          i < source.positionalParameters.length &&
+              i < destination.positionalParameters.length;
+          i++) {
+        // Note: source and destination are swapped due to contravariance.
+        _checkAssignment(expressionChecks,
+            source: destination.positionalParameters[i],
+            destination: source.positionalParameters[i],
+            hard: hard);
       }
-      if (source.namedParameters.isNotEmpty ||
-          destination.namedParameters.isNotEmpty) {
-        throw UnimplementedError('TODO(paulberry)');
+      for (var entry in destination.namedParameters.entries) {
+        // Note: source and destination are swapped due to contravariance.
+        _checkAssignment(expressionChecks,
+            source: entry.value,
+            destination: source.namedParameters[entry.key],
+            hard: hard);
       }
     } else if (destination.type.isDynamic || source.type.isDynamic) {
       // ok; nothing further to do.

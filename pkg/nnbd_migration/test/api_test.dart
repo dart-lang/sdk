@@ -1043,6 +1043,72 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_override_parameter_type_non_nullable() async {
+    var content = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+void g(int i, bool b, Base base) {
+  if (b) {
+    base.f(i);
+  }
+}
+void h(Base base) {
+  g(null, false, base);
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+void g(int? i, bool b, Base base) {
+  if (b) {
+    base.f(i!);
+  }
+}
+void h(Base base) {
+  g(null, false, base);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_parameter_type_nullable() async {
+    var content = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {}
+}
+void g(int i, Base base) {
+  base.f(null);
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int? i);
+}
+class Derived extends Base {
+  void f(int? i) {}
+}
+void g(int i, Base base) {
+  base.f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_override_return_type_non_nullable() async {
     var content = '''
 abstract class Base {

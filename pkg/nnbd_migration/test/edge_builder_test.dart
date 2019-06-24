@@ -1274,6 +1274,114 @@ void test(C c) {
     expect(never.isNullable, isFalse);
   }
 
+  test_override_parameter_type_named() async {
+    await analyze('''
+abstract class Base {
+  void f({int/*1*/ i});
+}
+class Derived extends Base {
+  void f({int/*2*/ i}) {}
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: true);
+  }
+
+  test_override_parameter_type_named_over_none() async {
+    await analyze('''
+abstract class Base {
+  void f();
+}
+class Derived extends Base {
+  void f({int i}) {}
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
+  test_override_parameter_type_operator() async {
+    await analyze('''
+abstract class Base {
+  Base operator+(Base/*1*/ b);
+}
+class Derived extends Base {
+  Base operator+(Base/*2*/ b) => this;
+}
+''');
+    var base1 = decoratedTypeAnnotation('Base/*1*/');
+    var base2 = decoratedTypeAnnotation('Base/*2*/');
+    assertEdge(base1.node, base2.node, hard: true);
+  }
+
+  test_override_parameter_type_optional() async {
+    await analyze('''
+abstract class Base {
+  void f([int/*1*/ i]);
+}
+class Derived extends Base {
+  void f([int/*2*/ i]) {}
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: true);
+  }
+
+  test_override_parameter_type_optional_over_none() async {
+    await analyze('''
+abstract class Base {
+  void f();
+}
+class Derived extends Base {
+  void f([int i]) {}
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
+  test_override_parameter_type_optional_over_required() async {
+    await analyze('''
+abstract class Base {
+  void f(int/*1*/ i);
+}
+class Derived extends Base {
+  void f([int/*2*/ i]) {}
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: true);
+  }
+
+  test_override_parameter_type_required() async {
+    await analyze('''
+abstract class Base {
+  void f(int/*1*/ i);
+}
+class Derived extends Base {
+  void f(int/*2*/ i) {}
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: true);
+  }
+
+  test_override_parameter_type_setter() async {
+    await analyze('''
+abstract class Base {
+  void set x(int/*1*/ value);
+}
+class Derived extends Base {
+  void set x(int/*2*/ value) {}
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: true);
+  }
+
   test_override_return_type_getter() async {
     await analyze('''
 abstract class Base {
