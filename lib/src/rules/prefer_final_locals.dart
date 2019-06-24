@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
 
 const _desc =
-    r'Prefer final for variable declaration if reference is not reassigned.';
+    r'Prefer final for variable declarations if they are not reassigned.';
 
 const _details = r'''
 
