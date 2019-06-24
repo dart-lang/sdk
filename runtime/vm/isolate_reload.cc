@@ -922,7 +922,11 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     if (frame->IsDartFrame() && !frame->is_interpreted()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      func.EnsureHasCompiledUnoptimizedCode();
+      // Force-optimized functions don't need unoptimized code because their
+      // optimized code cannot deopt.
+      if (!func.ForceOptimize()) {
+        func.EnsureHasCompiledUnoptimizedCode();
+      }
     }
   }
 }
@@ -1889,7 +1893,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       bytecode.ResetICDatas(zone);
     } else {
       code = frame->LookupDartCode();
-      if (code.is_optimized()) {
+      if (code.is_optimized() && !code.is_force_optimized()) {
         // If this code is optimized, we need to reset the ICs in the
         // corresponding unoptimized code, which will be executed when the stack
         // unwinds to the optimized code.

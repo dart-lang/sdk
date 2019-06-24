@@ -304,6 +304,8 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
   }
 #endif
   if (bytecode_.IsNull()) {
+    // Force-optimize functions should not be debuggable.
+    ASSERT(!function_.ForceOptimize());
     function_.EnsureHasCompiledUnoptimizedCode();
     code_ = function_.unoptimized_code();
   }

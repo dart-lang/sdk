@@ -2132,7 +2132,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->IsInterpreted()) {
+      if (!frame->IsInterpreted() && !frame->function().ForceOptimize()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
@@ -2510,6 +2510,11 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
+
+  // Force-optimized code is optimized code which cannot deoptimize and doesn't
+  // have unoptimized code to fall back to.
+  ASSERT(!optimized_code.is_force_optimized());
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Function& function = Function::Handle(zone, optimized_code.function());
@@ -2590,7 +2595,8 @@ void DeoptimizeFunctionsOnStack() {
   while (frame != NULL) {
     if (!frame->is_interpreted()) {
       optimized_code = frame->LookupDartCode();
-      if (optimized_code.is_optimized()) {
+      if (optimized_code.is_optimized() &&
+          !optimized_code.is_force_optimized()) {
         DeoptimizeAt(optimized_code, frame);
       }
     }

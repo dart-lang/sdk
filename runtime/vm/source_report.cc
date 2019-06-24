@@ -88,6 +88,9 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     }
   }
 
+  // These don't have unoptimized code and are only used for synthetic stubs.
+  if (func.ForceOptimize()) return true;
+
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:

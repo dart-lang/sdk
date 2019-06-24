@@ -38,6 +38,7 @@ void main() {
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
+    testException();
   }
 }
 
@@ -429,4 +430,16 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
+}
+
+// Throw an exception from within the trampoline and collect a stacktrace
+// include its frame.
+void testException() {
+  try {
+    sumPlus42(null, null);
+  } catch (e, s) {
+    print("$e, $s");
+    return;
+  }
+  throw "Didn't throw!";
 }

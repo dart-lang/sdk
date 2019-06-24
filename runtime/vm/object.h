@@ -5200,6 +5200,14 @@ class Code : public Object {
     return Code::OptimizedBit::decode(code->ptr()->state_bits_);
   }
 
+  bool is_force_optimized() const {
+    return ForceOptimizedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_force_optimized(bool value) const;
+  static bool IsForceOptimized(RawCode* code) {
+    return Code::ForceOptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -5553,12 +5561,19 @@ class Code : public Object {
   friend class RawCode;
   enum {
     kOptimizedBit = 0,
-    kAliveBit = 1,
-    kPtrOffBit = 2,
-    kPtrOffSize = 30,
+    kForceOptimizedBit = 1,
+    kAliveBit = 2,
+    kPtrOffBit = 3,
+    kPtrOffSize = 29,
   };
 
   class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+
+  // Force-optimized is true if the Code was generated for a function with
+  // Function::ForceOptimize().
+  class ForceOptimizedBit
+      : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
+
   class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};

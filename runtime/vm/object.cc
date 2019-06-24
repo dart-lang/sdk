@@ -5747,6 +5747,7 @@ void Function::ClearCode() const {
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
+  ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
@@ -8095,7 +8096,7 @@ RawCode* Function::EnsureHasCode() const {
   }
   // Compiling in unoptimized mode should never fail if there are no errors.
   ASSERT(HasCode());
-  ASSERT(unoptimized_code() == result.raw());
+  ASSERT(ForceOptimize() || unoptimized_code() == result.raw());
   return CurrentCode();
 }
 
@@ -14480,6 +14481,10 @@ void Code::set_is_optimized(bool value) const {
   set_state_bits(OptimizedBit::update(value, raw_ptr()->state_bits_));
 }
 
+void Code::set_is_force_optimized(bool value) const {
+  set_state_bits(ForceOptimizedBit::update(value, raw_ptr()->state_bits_));
+}
+
 void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
 }
@@ -14753,6 +14758,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_is_force_optimized(false);
     result.set_is_alive(false);
     NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
