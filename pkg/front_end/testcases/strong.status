@@ -77,6 +77,7 @@ invocations: RuntimeError
 issue34899: TypeCheckError
 micro: RuntimeError
 mixin_application_override: TypeCheckError
+nnbd/nullable_param: RuntimeError
 operator_method_not_found: RuntimeError # Expected
 optional: TypeCheckError
 override_check_accessor_after_inference: TypeCheckError # Issue #31620

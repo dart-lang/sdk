@@ -707,6 +707,7 @@ named_parameters: TextSerializationFailure # Was: Pass
 native_as_name: TextSerializationFailure # Was: Pass
 nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/nullable_param: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass
