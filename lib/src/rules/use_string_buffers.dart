@@ -9,11 +9,11 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Use string buffer to compose strings.';
+const _desc = r'Use string buffers to compose strings.';
 
 const _details = r'''
 
-**DO** use string buffer to compose strings.
+**DO** use string buffers to compose strings.
 
 In most cases, using a string buffer is preferred for composing strings due to
 its improved performance.
