@@ -22,6 +22,14 @@ class NotInitializedNonNullableTopLevelVariableTest
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
+  test_futureOr_questionArgument_none() async {
+    assertNoErrorsInCode('''
+import 'dart:async';
+
+FutureOr<int?> v;
+''');
+  }
+
   test_hasInitializer() async {
     assertNoErrorsInCode('''
 int v = 0;

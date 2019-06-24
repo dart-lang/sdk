@@ -2112,11 +2112,11 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNonNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return false;
-    } else if (type.isDartAsyncFutureOr) {
-      isNonNullable((type as InterfaceType).typeArguments[0]);
     } else if ((type as TypeImpl).nullabilitySuffix ==
         NullabilitySuffix.question) {
       return false;
+    } else if (type.isDartAsyncFutureOr) {
+      return isNonNullable((type as InterfaceType).typeArguments[0]);
     } else if (type is TypeParameterType) {
       return isNonNullable(type.bound);
     }
@@ -2127,10 +2127,13 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return true;
+    } else if ((type as TypeImpl).nullabilitySuffix ==
+        NullabilitySuffix.question) {
+      return true;
     } else if (type.isDartAsyncFutureOr) {
-      isNullable((type as InterfaceType).typeArguments[0]);
+      return isNullable((type as InterfaceType).typeArguments[0]);
     }
-    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.none;
+    return false;
   }
 
   /// Check that [f1] is a subtype of [f2] for a member override.

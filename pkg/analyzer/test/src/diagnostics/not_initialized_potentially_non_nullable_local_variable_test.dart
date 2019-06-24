@@ -74,6 +74,16 @@ void f() {
 ''');
   }
 
+  test_futureOr_questionArgument_none() async {
+    assertNoErrorsInCode('''
+import 'dart:async';
+
+f() {
+  FutureOr<int?> v;
+}
+''');
+  }
+
   test_hasInitializer() async {
     assertNoErrorsInCode('''
 f() {
