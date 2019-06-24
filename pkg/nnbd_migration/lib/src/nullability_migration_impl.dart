@@ -59,8 +59,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   void processInput(ResolvedUnitResult result) {
     var unit = result.unit;
-    unit.accept(EdgeBuilder(result.typeProvider, _variables, _graph,
-        unit.declaredElement.source, _permissive ? listener : null));
+    unit.accept(EdgeBuilder(result.typeProvider, result.typeSystem, _variables,
+        _graph, unit.declaredElement.source, _permissive ? listener : null));
   }
 }
 

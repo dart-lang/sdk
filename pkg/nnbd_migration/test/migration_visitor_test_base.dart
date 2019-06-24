@@ -97,6 +97,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
+  TypeSystem get typeSystem => testAnalysisResult.typeSystem;
+
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
     testUnit

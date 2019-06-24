@@ -7,12 +7,14 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
@@ -27,6 +29,8 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// variables that will determine its nullability.  For `visit...` methods that
 /// don't visit expressions, `null` will be returned.
 class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
+  final InheritanceManager2 _inheritanceManager;
+
   /// The repository of constraint variables and decorated types (from a
   /// previous pass over the source code).
   final VariableRepository _variables;
@@ -37,6 +41,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   /// The file being analyzed.
   final Source _source;
+
+  final DecoratedClassHierarchy _decoratedClassHierarchy;
 
   /// For convenience, a [DecoratedType] representing non-nullable `Object`.
   final DecoratedType _notNullType;
@@ -77,9 +83,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   NullabilityNode _lastConditionalNode;
 
-  EdgeBuilder(TypeProvider typeProvider, this._variables, this._graph,
-      this._source, this.listener)
-      : _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
+  EdgeBuilder(TypeProvider typeProvider, TypeSystem typeSystem, this._variables,
+      this._graph, this._source, this.listener)
+      : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
+        _inheritanceManager = InheritanceManager2(typeSystem),
+        _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
             DecoratedType(typeProvider.boolType, _graph.never),
         _nonNullableTypeType =
@@ -490,11 +498,31 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     node.parameters?.accept(this);
     assert(_currentFunctionType == null);
-    _currentFunctionType =
-        _variables.decoratedElementType(node.declaredElement);
+    var declaredElement = node.declaredElement;
+    _currentFunctionType = _variables.decoratedElementType(declaredElement);
     _inConditionalControlFlow = false;
     try {
       node.body.accept(this);
+      var classElement = declaredElement.enclosingElement as ClassElement;
+      for (var overridden in _inheritanceManager.getOverridden(
+              classElement.type,
+              Name(classElement.library.source.uri, declaredElement.name)) ??
+          const []) {
+        var overriddenElement = overridden.element as ExecutableElement;
+        assert(overriddenElement is! ExecutableMember);
+        var overriddenClass =
+            overriddenElement.enclosingElement as ClassElement;
+        var decoratedOverriddenFunctionType =
+            _variables.decoratedElementType(overriddenElement);
+        var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
+            classElement, overriddenClass);
+        var substitution = decoratedSupertype.asSubstitution;
+        _checkAssignment(null,
+            source: _currentFunctionType,
+            destination:
+                decoratedOverriddenFunctionType.substitute(substitution),
+            hard: true);
+      }
     } finally {
       _currentFunctionType = null;
     }

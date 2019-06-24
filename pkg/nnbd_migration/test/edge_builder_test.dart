@@ -25,7 +25,8 @@ class EdgeBuilderTest extends MigrationVisitorTestBase {
   @override
   Future<CompilationUnit> analyze(String code) async {
     var unit = await super.analyze(code);
-    unit.accept(EdgeBuilder(typeProvider, variables, graph, testSource, null));
+    unit.accept(EdgeBuilder(
+        typeProvider, typeSystem, variables, graph, testSource, null));
     return unit;
   }
 
@@ -1271,6 +1272,48 @@ void test(C c) {
     await analyze('');
 
     expect(never.isNullable, isFalse);
+  }
+
+  test_override_return_type_getter() async {
+    await analyze('''
+abstract class Base {
+  int/*1*/ get x;
+}
+class Derived extends Base {
+  int/*2*/ get x => null;
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int2.node, int1.node, hard: true);
+  }
+
+  test_override_return_type_method() async {
+    await analyze('''
+abstract class Base {
+  int/*1*/ f();
+}
+class Derived extends Base {
+  int/*2*/ f() => null;
+}
+''');
+    var int1 = decoratedTypeAnnotation('int/*1*/');
+    var int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int2.node, int1.node, hard: true);
+  }
+
+  test_override_return_type_operator() async {
+    await analyze('''
+abstract class Base {
+  Base/*1*/ operator-();
+}
+class Derived extends Base {
+  Derived/*2*/ operator-() => null;
+}
+''');
+    var base1 = decoratedTypeAnnotation('Base/*1*/');
+    var derived2 = decoratedTypeAnnotation('Derived/*2*/');
+    assertEdge(derived2.node, base1.node, hard: true);
   }
 
   test_parenthesizedExpression() async {

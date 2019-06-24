@@ -1043,6 +1043,88 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_override_return_type_non_nullable() async {
+    var content = '''
+abstract class Base {
+  int/*!*/ f();
+}
+class Derived extends Base {
+  int f() => g();
+}
+int g() => null;
+''';
+    var expected = '''
+abstract class Base {
+  int/*!*/ f();
+}
+class Derived extends Base {
+  int f() => g()!;
+}
+int? g() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable() async {
+    var content = '''
+abstract class Base {
+  int f();
+}
+class Derived extends Base {
+  int f() => null;
+}
+''';
+    var expected = '''
+abstract class Base {
+  int? f();
+}
+class Derived extends Base {
+  int? f() => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable_substitution_complex() async {
+    var content = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<List<int>> {
+  List<int> f() => <int>[null];
+}
+''';
+    var expected = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<List<int?>> {
+  List<int?> f() => <int?>[null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable_substitution_simple() async {
+    var content = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<int> {
+  int f() => null;
+}
+''';
+    var expected = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<int?> {
+  int? f() => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_parameter_genericFunctionType() async {
     var content = '''
 int f(int x, int Function(int i) g) {

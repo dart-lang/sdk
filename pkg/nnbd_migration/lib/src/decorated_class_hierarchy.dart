@@ -62,11 +62,8 @@ class DecoratedClassHierarchy {
         var supertype = decoratedSupertype.type as InterfaceType;
         // Compute a type substitution to determine how [class_] relates to
         // this specific [superclass].
-        var argumentTypes = supertype.typeArguments;
-        var parameterTypes =
-            supertype.typeParameters.map((p) => p.type).toList();
         Map<TypeParameterElement, DecoratedType> substitution = {};
-        for (int i = 0; i < argumentTypes.length; i++) {
+        for (int i = 0; i < supertype.typeArguments.length; i++) {
           substitution[supertype.typeParameters[i]] =
               decoratedSupertype.typeArguments[i];
         }
@@ -76,10 +73,7 @@ class DecoratedClassHierarchy {
         var recursiveSupertypeDecorations =
             _getGenericSupertypeDecorations(superclass);
         for (var entry in recursiveSupertypeDecorations.entries) {
-          var undecoratedResult =
-              entry.value.type.substitute2(argumentTypes, parameterTypes);
-          decorations[entry.key] ??=
-              entry.value.substitute(substitution, undecoratedResult);
+          decorations[entry.key] ??= entry.value.substitute(substitution);
         }
         // Also record the relation between [class_] and its direct
         // superclass.

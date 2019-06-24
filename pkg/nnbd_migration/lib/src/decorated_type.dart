@@ -96,14 +96,41 @@ class DecoratedType {
     return decoratedType;
   }
 
+  /// If `this` represents an interface type, returns the substitution necessary
+  /// to produce this type using the class's type as a starting point.
+  /// Otherwise throws an exception.
+  ///
+  /// For instance, if `this` represents `List<int?1>`, returns the substitution
+  /// `{T: int?1}`, where `T` is the [TypeParameterElement] for `List`'s type
+  /// parameter.
+  Map<TypeParameterElement, DecoratedType> get asSubstitution {
+    var type = this.type;
+    if (type is InterfaceType) {
+      return Map<TypeParameterElement, DecoratedType>.fromIterables(
+          type.element.typeParameters, typeArguments);
+    } else {
+      throw StateError(
+          'Tried to convert a non-interface type to a substitution');
+    }
+  }
+
   /// Apply the given [substitution] to this type.
   ///
   /// [undecoratedResult] is the result of the substitution, as determined by
-  /// the normal type system.
+  /// the normal type system.  If not supplied, it is inferred.
   DecoratedType substitute(
       Map<TypeParameterElement, DecoratedType> substitution,
-      DartType undecoratedResult) {
+      [DartType undecoratedResult]) {
     if (substitution.isEmpty) return this;
+    if (undecoratedResult == null) {
+      List<DartType> argumentTypes = [];
+      List<DartType> parameterTypes = [];
+      for (var entry in substitution.entries) {
+        argumentTypes.add(entry.value.type);
+        parameterTypes.add(entry.key.type);
+      }
+      undecoratedResult = type.substitute2(argumentTypes, parameterTypes);
+    }
     return _substitute(substitution, undecoratedResult);
   }
 
