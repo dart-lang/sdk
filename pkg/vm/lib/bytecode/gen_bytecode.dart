@@ -700,6 +700,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
             // BytecodeAssembler eliminates this bytecode if it is unreachable.
             asm.emitPushNull();
           }
+          if (node.function != null) {
+            _recordSourcePosition(node.function.fileEndOffset);
+          }
           _genReturnTOS();
         }
       } else {
@@ -1931,9 +1934,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _generateNode(function.body);
 
     // BytecodeAssembler eliminates this bytecode if it is unreachable.
+    _recordSourcePosition(function.fileEndOffset);
     asm.emitPushNull();
     _genReturnTOS();
-    _recordSourcePosition(function.fileEndOffset);
 
     if (locals.isSyncYieldingFrame) {
       _genSyncYieldingEpilogue(
