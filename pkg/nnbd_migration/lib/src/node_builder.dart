@@ -103,8 +103,23 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     node.metadata.accept(this);
     node.name.accept(this);
     node.typeParameters?.accept(this);
-    _handleSupertypeClauses(node.declaredElement, node.superclass,
-        node.withClause, node.implementsClause, null);
+    var classElement = node.declaredElement;
+    _handleSupertypeClauses(classElement, node.superclass, node.withClause,
+        node.implementsClause, null);
+    for (var constructorElement in classElement.constructors) {
+      assert(constructorElement.isSynthetic);
+      var decoratedReturnType =
+          _createDecoratedTypeForClass(classElement, node);
+      if (constructorElement.parameters.isNotEmpty) {
+        _unimplemented(node,
+            'Implicit constructor of a mixin application, with parameters');
+      }
+      var functionType = DecoratedType(constructorElement.type, _graph.never,
+          returnType: decoratedReturnType,
+          positionalParameters: [],
+          namedParameters: {});
+      _variables.recordDecoratedElementType(constructorElement, functionType);
+    }
     return null;
   }
 

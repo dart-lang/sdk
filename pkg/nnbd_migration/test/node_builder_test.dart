@@ -31,6 +31,33 @@ class NodeBuilderTest extends MigrationVisitorTestBase {
   DecoratedType decoratedTypeParameterBound(String search) => variables
       .decoratedElementType(findNode.typeParameter(search).declaredElement);
 
+  test_class_alias_synthetic_constructors_no_parameters() async {
+    await analyze('''
+class C {
+  C.a();
+  C.b();
+}
+mixin M {}
+class D = C with M;
+''');
+    var constructors = findElement.class_('D').constructors;
+    expect(constructors, hasLength(2));
+    var a = findElement.constructor('a', of: 'D');
+    var aType = variables.decoratedElementType(a);
+    expect(aType.type.toString(), 'D Function()');
+    expect(aType.node, same(never));
+    expect(aType.typeArguments, isEmpty);
+    expect(aType.returnType.type.toString(), 'D');
+    expect(aType.returnType.node, same(never));
+    var b = findElement.constructor('b', of: 'D');
+    var bType = variables.decoratedElementType(b);
+    expect(bType.type.toString(), 'D Function()');
+    expect(bType.node, same(never));
+    expect(bType.typeArguments, isEmpty);
+    expect(bType.returnType.type.toString(), 'D');
+    expect(bType.returnType.node, same(never));
+  }
+
   test_class_with_default_constructor() async {
     await analyze('''
 class C {}
