@@ -76,6 +76,20 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  test_class_with_default_constructor() async {
+    var content = '''
+void main() => f(Foo());
+f(Foo f) {}
+class Foo {}
+''';
+    var expected = '''
+void main() => f(Foo());
+f(Foo f) {}
+class Foo {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_comment_bang_implies_non_null_intent() async {
     var content = '''
 void f(int/*!*/ i) {}
@@ -728,8 +742,6 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @failingTest
-  // DecorateType.forElement is called on element being migrated
   test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {

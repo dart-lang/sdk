@@ -79,6 +79,9 @@ class DecoratedType {
 
     // Sanity check:
     // Ensure the element is not from a library that is being migrated.
+    // If this assertion fires, it probably means that the NodeBuilder failed to
+    // generate the appropriate decorated type for the element when it was
+    // visiting the source file.
     if (graph.isBeingMigrated(element.source)) {
       throw 'Internal Error: DecorateType.forElement should not be called'
           ' for elements being migrated: ${element.runtimeType} :: $element';

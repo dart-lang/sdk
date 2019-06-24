@@ -57,12 +57,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       : _nonNullableObjectType =
             DecoratedType(_typeProvider.objectType, _graph.never);
 
-  @override
-  DecoratedType visitCompilationUnit(CompilationUnit node) {
-    _graph.migrating(_source);
-    return super.visitCompilationUnit(node);
-  }
-
   /// Creates and stores a [DecoratedType] object corresponding to the given
   /// [type] AST, and returns it.
   DecoratedType decorateType(TypeAnnotation type, AstNode enclosingNode) {
@@ -84,12 +78,30 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     node.typeParameters?.accept(this);
     node.nativeClause?.accept(this);
     node.members.accept(this);
-    _handleSupertypeClauses(
-        node.declaredElement,
-        node.extendsClause?.superclass,
-        node.withClause,
-        node.implementsClause,
-        null);
+    var classElement = node.declaredElement;
+    _handleSupertypeClauses(classElement, node.extendsClause?.superclass,
+        node.withClause, node.implementsClause, null);
+    var constructors = classElement.constructors;
+    if (constructors.length == 1) {
+      var constructorElement = constructors[0];
+      if (constructorElement.isSynthetic) {
+        // Need to create a decorated type for the default constructor.
+        if (classElement.typeParameters.isNotEmpty) {
+          // TODO(paulberry): handle the default constructor for a generic
+          // class.
+        } else {
+          var decoratedReturnType =
+              _createDecoratedTypeForClass(classElement, node);
+          var functionType = DecoratedType(
+              constructorElement.type, _graph.never,
+              returnType: decoratedReturnType,
+              positionalParameters: [],
+              namedParameters: {});
+          _variables.recordDecoratedElementType(
+              constructorElement, functionType);
+        }
+      }
+    }
     return null;
   }
 
@@ -101,6 +113,12 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleSupertypeClauses(node.declaredElement, node.superclass,
         node.withClause, node.implementsClause, null);
     return null;
+  }
+
+  @override
+  DecoratedType visitCompilationUnit(CompilationUnit node) {
+    _graph.migrating(_source);
+    return super.visitCompilationUnit(node);
   }
 
   @override
@@ -335,6 +353,17 @@ $stackTrace''');
     return _NullabilityComment.none;
   }
 
+  DecoratedType _createDecoratedTypeForClass(
+      ClassElement classElement, AstNode node) {
+    if (classElement.typeParameters.isNotEmpty) {
+      // Need to decorate the type parameters appropriately.
+      // TODO(paulberry,brianwilkerson)
+      _unimplemented(node, 'Declaration of a constructor with type parameters');
+    }
+    var decoratedType = new DecoratedType(classElement.type, _graph.never);
+    return decoratedType;
+  }
+
   /// Creates a DecoratedType corresponding to [type], with fresh nullability
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
@@ -369,14 +398,8 @@ $stackTrace''');
         _unimplemented(
             parameters.parent, 'Declaration of a factory constructor');
       }
-      if (declaredElement.enclosingElement.typeParameters.isNotEmpty) {
-        // Need to decorate the type parameters appropriately.
-        // TODO(paulberry,brianwilkerson)
-        _unimplemented(parameters.parent,
-            'Declaration of a constructor with type parameters');
-      }
-      decoratedReturnType = new DecoratedType(
-          declaredElement.enclosingElement.type, _graph.never);
+      decoratedReturnType = _createDecoratedTypeForClass(
+          declaredElement.enclosingElement, parameters.parent);
     } else {
       decoratedReturnType = decorateType(returnType, enclosingNode);
     }
