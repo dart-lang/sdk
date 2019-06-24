@@ -9,7 +9,12 @@ library vm.bytecode.gen_bytecode;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, EvaluationEnvironment, ErrorReporter;
 import 'package:front_end/src/api_unstable/vm.dart'
-    show CompilerContext, Severity, templateIllegalRecursiveType;
+    show
+        CompilerContext,
+        Severity,
+        messageBytecodeLimitExceededTooManyArguments,
+        noLength,
+        templateIllegalRecursiveType;
 
 import 'package:kernel/ast.dart' hide MapEntry, Component, FunctionDeclaration;
 import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
@@ -691,9 +696,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         throw 'Unexpected member ${node.runtimeType} $node';
       }
       end(node, hasCode);
-    } on BytecodeLimitExceededException {
-      // Do not generate bytecode and fall back to using kernel AST.
-      // TODO(alexmarkov): issue compile-time error
+    } on TooManyArgumentsException catch (e) {
+      CompilerContext.current.options.report(
+          messageBytecodeLimitExceededTooManyArguments.withLocation(
+              node.fileUri, e.fileOffset, noLength),
+          Severity.error);
       hasErrors = true;
       end(node, false);
     }
@@ -970,18 +977,21 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genDirectCall(Member target, ObjectHandle argDesc, int totalArgCount,
-      {bool isGet: false, bool isSet: false}) {
+      {bool isGet: false, bool isSet: false, TreeNode context}) {
     assert(!isGet || !isSet);
     final kind = isGet
         ? InvocationKind.getter
         : (isSet ? InvocationKind.setter : InvocationKind.method);
     final cpIndex = cp.addDirectCall(kind, target, argDesc);
 
+    if (totalArgCount >= argumentsLimit) {
+      throw new TooManyArgumentsException(context.fileOffset);
+    }
     asm.emitDirectCall(cpIndex, totalArgCount);
   }
 
   void _genDirectCallWithArgs(Member target, Arguments args,
-      {bool hasReceiver: false, bool isFactory: false}) {
+      {bool hasReceiver: false, bool isFactory: false, TreeNode context}) {
     final argDesc = objectTable.getArgDescHandleByArguments(args,
         hasReceiver: hasReceiver, isFactory: isFactory);
 
@@ -995,7 +1005,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       totalArgCount++;
     }
 
-    _genDirectCall(target, argDesc, totalArgCount);
+    _genDirectCall(target, argDesc, totalArgCount, context: context);
   }
 
   void _genTypeArguments(List<DartType> typeArgs, {Class instantiatingClass}) {
@@ -2359,7 +2369,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         new Arguments(node.arguments.positional, named: node.arguments.named)
           ..parent = node;
     _genArguments(null, args);
-    _genDirectCallWithArgs(node.target, args, hasReceiver: true);
+    _genDirectCallWithArgs(node.target, args, hasReceiver: true, context: node);
     asm.emitDrop1();
   }
 
@@ -2369,7 +2379,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _genArguments(node.receiver, args);
     final target = node.target;
     if (target is Procedure && !target.isGetter && !target.isSetter) {
-      _genDirectCallWithArgs(target, args, hasReceiver: true);
+      _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
     } else {
       throw new UnsupportedOperationError(
           'Unsupported DirectMethodInvocation with target ${target.runtimeType} $target');
@@ -2624,7 +2634,11 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   void _genInstanceCall(
-      int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked) {
+      int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked,
+      [TreeNode context]) {
+    if (totalArgCount >= argumentsLimit) {
+      throw new TooManyArgumentsException(context.fileOffset);
+    }
     if (isDynamic) {
       assert(!isUnchecked);
       asm.emitDynamicCall(callCpIndex, totalArgCount);
@@ -2662,7 +2676,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         args.named.length +
         1 /* receiver */ +
         (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
-    _genInstanceCall(totalArgCount, callCpIndex, isDynamic, isUnchecked);
+    _genInstanceCall(totalArgCount, callCpIndex, isDynamic, isUnchecked, node);
   }
 
   @override
@@ -2719,7 +2733,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     _genArguments(new ThisExpression(), args);
-    _genDirectCallWithArgs(target, args, hasReceiver: true);
+    _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
   }
 
   @override
@@ -2872,7 +2886,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
             ..parent = node;
     }
     _genArguments(null, args);
-    _genDirectCallWithArgs(target, args, isFactory: target.isFactory);
+    _genDirectCallWithArgs(target, args,
+        isFactory: target.isFactory, context: node);
   }
 
   @override
@@ -3700,7 +3715,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final args = node.arguments;
     assert(args.types.isEmpty);
     _genArguments(new ThisExpression(), args);
-    _genDirectCallWithArgs(node.target, args, hasReceiver: true);
+    _genDirectCallWithArgs(node.target, args, hasReceiver: true, context: node);
     asm.emitDrop1();
   }
 
@@ -3718,7 +3733,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
     assert(target != null);
-    _genDirectCallWithArgs(target, args, hasReceiver: true);
+    _genDirectCallWithArgs(target, args, hasReceiver: true, context: node);
     asm.emitDrop1();
   }
 
@@ -3744,6 +3759,11 @@ class UnsupportedOperationError {
 
   @override
   String toString() => message;
+}
+
+class TooManyArgumentsException extends BytecodeLimitExceededException {
+  final int fileOffset;
+  TooManyArgumentsException(this.fileOffset);
 }
 
 typedef void GenerateContinuation();

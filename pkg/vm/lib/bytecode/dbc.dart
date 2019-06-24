@@ -645,6 +645,9 @@ const int capturedVariableIndexLimit = 1 << 32;
 // Context IDs are referenced using 8-bit unsigned operands.
 const int contextIdLimit = 1 << 8;
 
+// Number of arguments is encoded as 8-bit unsigned operand.
+const int argumentsLimit = 1 << 8;
+
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.
 abstract class BytecodeLimitExceededException {}

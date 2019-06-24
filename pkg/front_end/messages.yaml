@@ -3566,3 +3566,6 @@ IllegalRecursiveType:
   script: >
     class Base<T> {}
     class Derived<T> extends Base<Derived<Derived<T>>> {}
+
+BytecodeLimitExceededTooManyArguments:
+  template: "Dart bytecode limit exceeded: too many arguments."

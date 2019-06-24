@@ -28,6 +28,8 @@ AwaitNotAsync/example: Fail
 BadTypeVariableInSupertype/analyzerCode: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
+BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
+BytecodeLimitExceededTooManyArguments/example: Fail
 CannotAssignToParenthesizedExpression/example: Fail
 CannotAssignToSuper/example: Fail
 CannotReadPackagesFile/analyzerCode: Fail

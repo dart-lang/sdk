@@ -461,6 +461,15 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeBytecodeLimitExceededTooManyArguments =
+    messageBytecodeLimitExceededTooManyArguments;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageBytecodeLimitExceededTooManyArguments =
+    const MessageCode("BytecodeLimitExceededTooManyArguments",
+        message: r"""Dart bytecode limit exceeded: too many arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
