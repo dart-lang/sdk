@@ -6,10 +6,11 @@
 library rti;
 
 import 'dart:_foreign_helper'
-    show JS, JS_EMBEDDED_GLOBAL, RAW_DART_FUNCTION_REF;
+    show JS, JS_EMBEDDED_GLOBAL, JS_GET_NAME, RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
-import 'dart:_js_embedded_names' show RtiUniverseFieldNames, RTI_UNIVERSE;
+import 'dart:_js_embedded_names'
+    show JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE;
 
 import 'dart:_recipe_syntax';
 
@@ -955,14 +956,13 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
 
   if (isNullType(s)) return true;
 
-  if (isFunctionType(t)) {
+  if (isFunctionKind(t)) {
     // TODO(fishythefish): Check if s is a function subtype of t.
-    throw UnimplementedError("isFunctionType(t)");
+    throw UnimplementedError("isFunctionKind(t)");
   }
 
-  if (isFunctionType(s)) {
-    // TODO(fishythefish): Check if t is Function.
-    throw UnimplementedError("isFunctionType(s)");
+  if (isFunctionKind(s)) {
+    return isFunctionType(t);
   }
 
   if (isFutureOrType(t)) {
@@ -1023,19 +1023,23 @@ bool isDynamicType(Rti t) => Rti._getKind(t) == Rti.kindDynamic;
 bool isVoidType(Rti t) => Rti._getKind(t) == Rti.kindVoid;
 bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
 bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
-bool isFunctionType(Rti t) => Rti._getKind(t) == Rti.kindFunction;
+bool isFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindFunction;
 bool isGenericFunctionTypeParameter(Rti t) =>
     Rti._getKind(t) == Rti.kindGenericFunctionParameter;
 
-bool isObjectType(Rti t) {
-  // TODO(fishythefish): Look up Object in universe and compare.
-  return false;
-}
+bool isObjectType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
 
-bool isNullType(Rti t) {
-  // TODO(fishythefish): Look up Null in universe and compare.
-  return false;
-}
+// TODO(fishythefish): Which representation should we use for NNBD?
+// Do we also need to check for `Never?`, etc.?
+bool isNullType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
+
+bool isFunctionType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME);
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);

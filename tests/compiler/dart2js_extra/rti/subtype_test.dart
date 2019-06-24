@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_NAME;
+import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
+
+final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
+final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
 
 const typeRulesJson = r'''
 {
@@ -29,44 +33,51 @@ void runTests() {
   strictSubtype('List<CodeUnits>', 'Iterable<List<int>>');
   strictSubtype('CodeUnits', 'Iterable<num>');
   strictSubtype('Iterable<int>', 'Iterable<num>');
+  strictSubtype('List<int>', objectName);
+  strictSubtype(nullName, 'int');
+  strictSubtype(nullName, 'Iterable<CodeUnits>');
+  strictSubtype(nullName, objectName);
   unrelated('int', 'CodeUnits');
+  equivalent(nullName, nullName);
   equivalent('double', 'double');
-  equivalent('Object', 'Object');
+  equivalent(objectName, objectName);
   equivalent('@', '@');
   equivalent('~', '~');
   equivalent('1&', '1&');
   equivalent('List<int>', 'List<int>');
-  //equivalent('Object', '@');
-  //equivalent('Object', '~');
-  //equivalent('Object', '1&');
+  equivalent(objectName, '@');
+  equivalent(objectName, '~');
+  equivalent(objectName, '1&');
   equivalent('@', '~');
   equivalent('@', '1&');
   equivalent('~', '1&');
-  //equivalent('List<Object>', 'List<@>');
-  //equivalent('List<Object>', 'List<~>');
-  //equivalent('List<Object>', 'List<1&>');
+  equivalent('List<$objectName>', 'List<@>');
+  equivalent('List<$objectName>', 'List<~>');
+  equivalent('List<$objectName>', 'List<1&>');
   equivalent('List<@>', 'List<~>');
   equivalent('List<@>', 'List<1&>');
   equivalent('List<~>', 'List<1&>');
 }
 
+String reason(String s, String t) => "$s <: $t";
+
 void strictSubtype(String s, String t) {
   var sRti = rti.testingUniverseEval(universe, s);
   var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti));
-  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti));
+  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
 }
 
 void unrelated(String s, String t) {
   var sRti = rti.testingUniverseEval(universe, s);
   var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isFalse(rti.testingIsSubtype(universe, sRti, tRti));
-  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti));
+  Expect.isFalse(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
 }
 
 void equivalent(String s, String t) {
   var sRti = rti.testingUniverseEval(universe, s);
   var tRti = rti.testingUniverseEval(universe, t);
-  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti));
-  Expect.isTrue(rti.testingIsSubtype(universe, tRti, sRti));
+  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isTrue(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
 }
