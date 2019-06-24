@@ -1445,7 +1445,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _checkForFinalNotInitialized(node.variables);
-    _checkForNotInitializedPotentiallyNonNullableLocalVariable(node.variables);
+    _checkForNotAssignedPotentiallyNonNullableLocalVariable(node.variables);
     super.visitVariableDeclarationStatement(node);
   }
 
@@ -3374,77 +3374,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForNotInitializedPotentiallyNonNullableLocalVariable(
-    VariableDeclarationList node,
-  ) {
-    // Const and final checked separately.
-    if (node.isConst || node.isFinal) {
-      return;
-    }
-
-    if (!_isNonNullable) {
-      return;
-    }
-
-    if (node.isLate) {
-      return;
-    }
-
-    if (node.type == null) {
-      return;
-    }
-    var type = node.type.type;
-
-    if (!_typeSystem.isPotentiallyNonNullable(type)) {
-      return;
-    }
-
-    for (var variable in node.variables) {
-      if (variable.initializer == null &&
-          flowAnalysisResult.readBeforeWritten
-              .contains(variable.declaredElement)) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          variable.name,
-          [variable.name.name],
-        );
-      }
-    }
-  }
-
-  void _checkForNotInitializedNonNullableTopLevelVariable(
-    VariableDeclarationList node,
-  ) {
-    // Const and final checked separately.
-    if (node.isConst || node.isFinal) {
-      return;
-    }
-
-    if (!_isNonNullable) {
-      return;
-    }
-
-    if (node.type == null) {
-      return;
-    }
-    var type = node.type.type;
-
-    if (!_typeSystem.isPotentiallyNonNullable(type)) {
-      return;
-    }
-
-    for (var variable in node.variables) {
-      if (variable.initializer == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
-          variable.name,
-          [variable.name.name],
-        );
-      }
-    }
-  }
-
   /**
    * If there are no constructors in the given [members], verify that all
    * final fields are initialized.  Cases in which there is at least one
@@ -4746,6 +4675,77 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (type != null && !type.isVoid) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
+      }
+    }
+  }
+
+  void _checkForNotAssignedPotentiallyNonNullableLocalVariable(
+    VariableDeclarationList node,
+  ) {
+    // Const and final checked separately.
+    if (node.isConst || node.isFinal) {
+      return;
+    }
+
+    if (!_isNonNullable) {
+      return;
+    }
+
+    if (node.isLate) {
+      return;
+    }
+
+    if (node.type == null) {
+      return;
+    }
+    var type = node.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) {
+      return;
+    }
+
+    for (var variable in node.variables) {
+      if (variable.initializer == null &&
+          flowAnalysisResult.readBeforeWritten
+              .contains(variable.declaredElement)) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
+  void _checkForNotInitializedNonNullableTopLevelVariable(
+    VariableDeclarationList node,
+  ) {
+    // Const and final checked separately.
+    if (node.isConst || node.isFinal) {
+      return;
+    }
+
+    if (!_isNonNullable) {
+      return;
+    }
+
+    if (node.type == null) {
+      return;
+    }
+    var type = node.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) {
+      return;
+    }
+
+    for (var variable in node.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
+          variable.name,
+          [variable.name.name],
+        );
       }
     }
   }

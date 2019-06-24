@@ -46,7 +46,7 @@ void f(bool b) {
 ''', [
       error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           23,
           1),
     ]);
@@ -109,7 +109,7 @@ f() {
 ''', [
       error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           12,
           1),
     ]);
@@ -124,7 +124,7 @@ f<T>() {
 ''', [
       error(
           CompileTimeErrorCode
-              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
           13,
           1),
     ]);

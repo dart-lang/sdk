@@ -7,24 +7,27 @@
 // It is an error if a potentially non-nullable local variable which has no
 // initializer expression and is not marked `late` is used before it is
 // definitely assigned.
-// TODO(scheglov) Update once we implement definite assignment analysis.
+
+// This test check cases when the variable is only initialized (or not)
+// at its declaration, and there are no other assignments.
 
 void main() {
   int v; v; //# 01: compile-time error
   int v; //# 02: ok
-  int v = 0; //# 03: ok
-  late int v; //# 04: ok
-  late int v = 0; //# 05: ok
-  int? v; //# 06: ok
-  int? v = 0; //# 07: ok
+  int v = 0; v; //# 03: ok
+  late int v; v; //# 04: ok
+  late int v = 0; v; //# 05: ok
+  int? v; v; //# 06: ok
+  int? v = 0; v; //# 07: ok
 
 }
 
 f<T>(T a) {
   T v; v; //# 08: compile-time error
-  T v = a; //# 09: ok
-  late T v; //# 10: ok
-  late T v = a; //# 11: ok
-  T? v; //# 12: ok
-  T? v = a; //# 13: ok
+  T v; //# 09: ok
+  T v = a; v; //# 10: ok
+  late T v; v; //# 11: ok
+  late T v = a; v; //# 12: ok
+  T? v; v; //# 13: ok
+  T? v = a; v; //# 14: ok
 }

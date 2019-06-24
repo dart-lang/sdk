@@ -2437,6 +2437,24 @@ class CompileTimeErrorCode extends ErrorCode {
           "Factory bodies can't use 'async', 'async*', or 'sync*'.");
 
   /**
+   * It is an error if a potentially non-nullable local variable which has no
+   * initializer expression and is not marked `late` is used before it is
+   * definitely assigned.
+   *
+   * Parameters:
+   * 0: the name of the variable that is invalid
+   */
+  static const CompileTimeErrorCode
+      NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
+      const CompileTimeErrorCode(
+          'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+          "Non-nullable local variable '{0}' must be assigned before "
+              "it can be used.",
+          correction: "Try giving it an initializer expression, "
+              "or ensure that it is assigned on every execution path, "
+              "or mark it 'late'.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
    * or if <i>m > n</i>.
    *
@@ -2465,25 +2483,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE',
           "Non-nullable top-level variable '{0}' must be initialized.",
           correction: "Try adding an initializer expression.");
-
-  /**
-   * It is an error if a potentially non-nullable local variable which has no
-   * initializer expression and is not marked `late` is used before it is
-   * definitely assigned.
-   *
-   * TODO(scheglov) Update the code and the message when implement definite
-   * assignment analysis.
-   *
-   * Parameters:
-   * 0: the name of the variable that is invalid
-   */
-  static const CompileTimeErrorCode
-      NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
-      const CompileTimeErrorCode(
-          'NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
-          "Non-nullable local variable '{0}' must be initialized.",
-          correction:
-              "Try giving it an initializer expression, or mark it 'late'.");
 
   /**
    * No parameters.
