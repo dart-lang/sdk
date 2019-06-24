@@ -38,7 +38,8 @@ class Dart : public AllStatic {
                     Dart_FileCloseCallback file_close,
                     Dart_EntropySource entropy_source,
                     Dart_GetVMServiceAssetsArchive get_service_assets,
-                    bool start_kernel_isolate);
+                    bool start_kernel_isolate,
+                    Dart_CodeObserver* observer);
 
   // Returns null if cleanup succeeds, otherwise returns an error message
   // (caller owns error message and has to free it).

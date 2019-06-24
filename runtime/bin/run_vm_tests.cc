@@ -322,7 +322,7 @@ static int Main(int argc, const char** argv) {
       dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
       dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
       nullptr /* entropy_source */, nullptr /* get_service_assets */,
-      start_kernel_isolate);
+      start_kernel_isolate, nullptr /* observer */);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);
     free(error);

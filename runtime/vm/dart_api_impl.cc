@@ -1009,7 +1009,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
                     params->thread_exit, params->file_open, params->file_read,
                     params->file_write, params->file_close,
                     params->entropy_source, params->get_service_assets,
-                    params->start_kernel_isolate);
+                    params->start_kernel_isolate, params->code_observer);
 }
 
 DART_EXPORT char* Dart_Cleanup() {

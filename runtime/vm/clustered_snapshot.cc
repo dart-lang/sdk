@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/class_id.h"
+#include "vm/code_observers.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
@@ -1572,6 +1573,19 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->state_bits_ = d->Read<int32_t>();
     }
   }
+
+#if !(defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT))
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    if (!CodeObservers::AreActive()) return;
+    Code& code = Code::Handle(zone);
+    Function& function = Function::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      code ^= refs.At(id);
+      function = code.function();
+      Code::NotifyCodeObservers(function, code, code.is_optimized());
+    }
+  }
+#endif  // !DART_PRECOMPILED_RUNTIME
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

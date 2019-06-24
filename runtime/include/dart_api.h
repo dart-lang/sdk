@@ -714,7 +714,31 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000003)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000004)
+
+/** Forward declaration */
+struct Dart_CodeObserver;
+
+/**
+ * Callback provided by the embedder that is used by the VM to notify on code
+ * object creation, *before* it is invoked the first time.
+ * This is useful for embedders wanting to e.g. keep track of PCs beyond
+ * the lifetime of the garbage collected code objects.
+ * Note that an address range may be used by more than one code object over the
+ * lifecycle of a process. Clients of this function should record timestamps for
+ * these compilation events and when collecting PCs to disambiguate reused
+ * address ranges.
+ */
+typedef void (*Dart_OnNewCodeCallback)(struct Dart_CodeObserver* observer,
+                                       const char* name,
+                                       uintptr_t base,
+                                       uintptr_t size);
+
+typedef struct Dart_CodeObserver {
+  void* data;
+
+  Dart_OnNewCodeCallback on_new_code;
+} Dart_CodeObserver;
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -736,6 +760,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
+ * \param code_observer An external code observer callback function.
+ *    The observer can be invoked as early as during the Dart_Initialize() call.
  */
 typedef struct {
   int32_t version;
@@ -752,6 +778,7 @@ typedef struct {
   Dart_EntropySource entropy_source;
   Dart_GetVMServiceAssetsArchive get_service_assets;
   bool start_kernel_isolate;
+  Dart_CodeObserver* code_observer;
 } Dart_InitializeParams;
 
 /**

@@ -140,7 +140,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_FileCloseCallback file_close,
                  Dart_EntropySource entropy_source,
                  Dart_GetVMServiceAssetsArchive get_service_assets,
-                 bool start_kernel_isolate) {
+                 bool start_kernel_isolate,
+                 Dart_CodeObserver* observer) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -194,6 +195,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   set_entropy_source_callback(entropy_source);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
+  NOT_IN_PRODUCT(CodeObservers::RegisterExternal(observer));
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();
