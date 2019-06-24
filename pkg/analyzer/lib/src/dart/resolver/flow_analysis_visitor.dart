@@ -327,16 +327,12 @@ class _FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
         _FunctionBodyAccess(node),
       );
 
-      var function = node.parent;
-      if (function is FunctionExpression) {
-        var parameters = function.parameters;
-        if (parameters != null) {
-          for (var parameter in parameters?.parameters) {
-            flow.add(parameter.declaredElement, assigned: true);
-          }
+      var parameters = _enclosingExecutableParameters(node);
+      if (parameters != null) {
+        for (var parameter in parameters.parameters) {
+          flow.add(parameter.declaredElement, assigned: true);
         }
       }
-      // TODO(scheglov) Methods and constructors.
 
       super.visitBlockFunctionBody(node);
 
@@ -701,6 +697,20 @@ class _FlowAnalysisVisitor extends GeneralizingAstVisitor<void> {
     }
 
     unreachableNodes.add(node);
+  }
+
+  FormalParameterList _enclosingExecutableParameters(FunctionBody node) {
+    var parent = node.parent;
+    if (parent is ConstructorDeclaration) {
+      return parent.parameters;
+    }
+    if (parent is FunctionExpression) {
+      return parent.parameters;
+    }
+    if (parent is MethodDeclaration) {
+      return parent.parameters;
+    }
+    return null;
   }
 
   /// Return the target of the `break` or `continue` statement with the

@@ -1489,6 +1489,38 @@ void f(int x) {
     assertNonNullable('x; // 2');
   }
 
+  test_method_if_then_else() async {
+    await trackCode(r'''
+class C {
+  void f(int x) {
+    if (x == null) {
+      x; // 1
+    } else {
+      x; // 2
+    }
+  }
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
+  test_constructor_if_then_else() async {
+    await trackCode(r'''
+class C {
+  C(int x) {
+    if (x == null) {
+      x; // 1
+    } else {
+      x; // 2
+    }
+  }
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
   test_potentiallyMutatedInClosure() async {
     await trackCode(r'''
 f(int a, int b) {
