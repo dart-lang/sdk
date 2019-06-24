@@ -1455,6 +1455,9 @@ table AnalysisDriverSubtype {
 
 /// Information about an error in a resolved unit.
 table AnalysisDriverUnitError {
+  /// The context messages associated with the error.
+  contextMessages:[DiagnosticMessage] (id: 5);
+
   /// The optional correction hint for the error.
   correction:string (id: 4);
 
@@ -1687,6 +1690,21 @@ table CodeRange {
 
   /// Offset of the element code relative to the beginning of the file.
   offset:uint (id: 0);
+}
+
+table DiagnosticMessage {
+  /// The absolute and normalized path of the file associated with this message.
+  filePath:string (id: 0);
+
+  /// The length of the source range associated with this message.
+  length:uint (id: 1);
+
+  /// The text of the message.
+  message:string (id: 2);
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  offset:uint (id: 3);
 }
 
 /// Information about the Dartdoc directives in an [AvailableFile].

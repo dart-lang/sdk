@@ -837,12 +837,14 @@ class AnalysisError implements Diagnostic {
    * Initialize a newly created analysis error with given values.
    */
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction) {
+      String message, this._correction,
+      {List<DiagnosticMessage> contextMessages}) {
     _problemMessage = new DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
         offset: offset);
+    _contextMessages = contextMessages;
   }
 
   List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];

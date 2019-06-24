@@ -118,6 +118,10 @@ abstract class AnalysisDriverSubtype extends base.SummaryClass {
 
 /// Information about an error in a resolved unit.
 abstract class AnalysisDriverUnitError extends base.SummaryClass {
+  /// The context messages associated with the error.
+  @Id(5)
+  List<DiagnosticMessage> get contextMessages;
+
   /// The optional correction hint for the error.
   @Id(4)
   String get correction;
@@ -441,6 +445,25 @@ abstract class CodeRange extends base.SummaryClass {
 
   /// Offset of the element code relative to the beginning of the file.
   @Id(0)
+  int get offset;
+}
+
+abstract class DiagnosticMessage extends base.SummaryClass {
+  /// The absolute and normalized path of the file associated with this message.
+  @Id(0)
+  String get filePath;
+
+  /// The length of the source range associated with this message.
+  @Id(1)
+  int get length;
+
+  /// The text of the message.
+  @Id(2)
+  String get message;
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  @Id(3)
   int get offset;
 }
 

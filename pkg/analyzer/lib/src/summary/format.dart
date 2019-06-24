@@ -887,11 +887,21 @@ abstract class _AnalysisDriverSubtypeMixin
 class AnalysisDriverUnitErrorBuilder extends Object
     with _AnalysisDriverUnitErrorMixin
     implements idl.AnalysisDriverUnitError {
+  List<DiagnosticMessageBuilder> _contextMessages;
   String _correction;
   int _length;
   String _message;
   int _offset;
   String _uniqueName;
+
+  @override
+  List<DiagnosticMessageBuilder> get contextMessages =>
+      _contextMessages ??= <DiagnosticMessageBuilder>[];
+
+  /// The context messages associated with the error.
+  set contextMessages(List<DiagnosticMessageBuilder> value) {
+    this._contextMessages = value;
+  }
 
   @override
   String get correction => _correction ??= '';
@@ -936,19 +946,23 @@ class AnalysisDriverUnitErrorBuilder extends Object
   }
 
   AnalysisDriverUnitErrorBuilder(
-      {String correction,
+      {List<DiagnosticMessageBuilder> contextMessages,
+      String correction,
       int length,
       String message,
       int offset,
       String uniqueName})
-      : _correction = correction,
+      : _contextMessages = contextMessages,
+        _correction = correction,
         _length = length,
         _message = message,
         _offset = offset,
         _uniqueName = uniqueName;
 
   /// Flush [informative] data recursively.
-  void flushInformative() {}
+  void flushInformative() {
+    _contextMessages?.forEach((b) => b.flushInformative());
+  }
 
   /// Accumulate non-[informative] data into [signature].
   void collectApiSignature(api_sig.ApiSignature signature) {
@@ -957,12 +971,25 @@ class AnalysisDriverUnitErrorBuilder extends Object
     signature.addString(this._uniqueName ?? '');
     signature.addString(this._message ?? '');
     signature.addString(this._correction ?? '');
+    if (this._contextMessages == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._contextMessages.length);
+      for (var x in this._contextMessages) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_contextMessages;
     fb.Offset offset_correction;
     fb.Offset offset_message;
     fb.Offset offset_uniqueName;
+    if (!(_contextMessages == null || _contextMessages.isEmpty)) {
+      offset_contextMessages = fbBuilder
+          .writeList(_contextMessages.map((b) => b.finish(fbBuilder)).toList());
+    }
     if (_correction != null) {
       offset_correction = fbBuilder.writeString(_correction);
     }
@@ -973,6 +1000,9 @@ class AnalysisDriverUnitErrorBuilder extends Object
       offset_uniqueName = fbBuilder.writeString(_uniqueName);
     }
     fbBuilder.startTable();
+    if (offset_contextMessages != null) {
+      fbBuilder.addOffset(5, offset_contextMessages);
+    }
     if (offset_correction != null) {
       fbBuilder.addOffset(4, offset_correction);
     }
@@ -1009,11 +1039,20 @@ class _AnalysisDriverUnitErrorImpl extends Object
 
   _AnalysisDriverUnitErrorImpl(this._bc, this._bcOffset);
 
+  List<idl.DiagnosticMessage> _contextMessages;
   String _correction;
   int _length;
   String _message;
   int _offset;
   String _uniqueName;
+
+  @override
+  List<idl.DiagnosticMessage> get contextMessages {
+    _contextMessages ??= const fb.ListReader<idl.DiagnosticMessage>(
+            const _DiagnosticMessageReader())
+        .vTableGet(_bc, _bcOffset, 5, const <idl.DiagnosticMessage>[]);
+    return _contextMessages;
+  }
 
   @override
   String get correction {
@@ -1051,6 +1090,9 @@ abstract class _AnalysisDriverUnitErrorMixin
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (contextMessages.isNotEmpty)
+      _result["contextMessages"] =
+          contextMessages.map((_value) => _value.toJson()).toList();
     if (correction != '') _result["correction"] = correction;
     if (length != 0) _result["length"] = length;
     if (message != '') _result["message"] = message;
@@ -1061,6 +1103,7 @@ abstract class _AnalysisDriverUnitErrorMixin
 
   @override
   Map<String, Object> toMap() => {
+        "contextMessages": contextMessages,
         "correction": correction,
         "length": length,
         "message": message,
@@ -3519,6 +3562,162 @@ abstract class _CodeRangeMixin implements idl.CodeRange {
   @override
   Map<String, Object> toMap() => {
         "length": length,
+        "offset": offset,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class DiagnosticMessageBuilder extends Object
+    with _DiagnosticMessageMixin
+    implements idl.DiagnosticMessage {
+  String _filePath;
+  int _length;
+  String _message;
+  int _offset;
+
+  @override
+  String get filePath => _filePath ??= '';
+
+  /// The absolute and normalized path of the file associated with this message.
+  set filePath(String value) {
+    this._filePath = value;
+  }
+
+  @override
+  int get length => _length ??= 0;
+
+  /// The length of the source range associated with this message.
+  set length(int value) {
+    assert(value == null || value >= 0);
+    this._length = value;
+  }
+
+  @override
+  String get message => _message ??= '';
+
+  /// The text of the message.
+  set message(String value) {
+    this._message = value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
+  }
+
+  DiagnosticMessageBuilder(
+      {String filePath, int length, String message, int offset})
+      : _filePath = filePath,
+        _length = length,
+        _message = message,
+        _offset = offset;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {}
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._filePath ?? '');
+    signature.addInt(this._length ?? 0);
+    signature.addString(this._message ?? '');
+    signature.addInt(this._offset ?? 0);
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_filePath;
+    fb.Offset offset_message;
+    if (_filePath != null) {
+      offset_filePath = fbBuilder.writeString(_filePath);
+    }
+    if (_message != null) {
+      offset_message = fbBuilder.writeString(_message);
+    }
+    fbBuilder.startTable();
+    if (offset_filePath != null) {
+      fbBuilder.addOffset(0, offset_filePath);
+    }
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(1, _length);
+    }
+    if (offset_message != null) {
+      fbBuilder.addOffset(2, offset_message);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(3, _offset);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _DiagnosticMessageReader extends fb.TableReader<_DiagnosticMessageImpl> {
+  const _DiagnosticMessageReader();
+
+  @override
+  _DiagnosticMessageImpl createObject(fb.BufferContext bc, int offset) =>
+      new _DiagnosticMessageImpl(bc, offset);
+}
+
+class _DiagnosticMessageImpl extends Object
+    with _DiagnosticMessageMixin
+    implements idl.DiagnosticMessage {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _DiagnosticMessageImpl(this._bc, this._bcOffset);
+
+  String _filePath;
+  int _length;
+  String _message;
+  int _offset;
+
+  @override
+  String get filePath {
+    _filePath ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _filePath;
+  }
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _length;
+  }
+
+  @override
+  String get message {
+    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _message;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
+    return _offset;
+  }
+}
+
+abstract class _DiagnosticMessageMixin implements idl.DiagnosticMessage {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (filePath != '') _result["filePath"] = filePath;
+    if (length != 0) _result["length"] = length;
+    if (message != '') _result["message"] = message;
+    if (offset != 0) _result["offset"] = offset;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "filePath": filePath,
+        "length": length,
+        "message": message,
         "offset": offset,
       };
 

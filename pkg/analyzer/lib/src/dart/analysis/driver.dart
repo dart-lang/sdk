@@ -12,6 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/diagnostic/diagnostic.dart' as diagnostic;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -29,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/top_level_declaration.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show
@@ -94,7 +96,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 83;
+  static const int DATA_VERSION = 84;
 
   /**
    * The number of exception contexts allowed to write. Once this field is
@@ -1717,13 +1719,25 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         AnalysisEngine.instance.instrumentationService
             .logError('No error code for "$error" in "$file"');
       } else {
+        List<DiagnosticMessageImpl> contextMessages;
+        if (error.contextMessages.isNotEmpty) {
+          contextMessages = <DiagnosticMessageImpl>[];
+          for (var message in error.contextMessages) {
+            contextMessages.add(DiagnosticMessageImpl(
+                filePath: message.filePath,
+                length: message.length,
+                message: message.message,
+                offset: message.offset));
+          }
+        }
         errors.add(new AnalysisError.forValues(
             file.source,
             error.offset,
             error.length,
             errorCode,
             error.message,
-            error.correction.isEmpty ? null : error.correction));
+            error.correction.isEmpty ? null : error.correction,
+            contextMessages: contextMessages));
       }
     }
     return errors;
@@ -1814,14 +1828,26 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         ? indexUnit(resolvedUnit)
         : new AnalysisDriverUnitIndexBuilder();
     return new AnalysisDriverResolvedUnitBuilder(
-            errors: errors
-                .map((error) => new AnalysisDriverUnitErrorBuilder(
-                    offset: error.offset,
-                    length: error.length,
-                    uniqueName: error.errorCode.uniqueName,
-                    message: error.message,
-                    correction: error.correction))
-                .toList(),
+            errors: errors.map((error) {
+              List<DiagnosticMessageBuilder> contextMessages;
+              if (error.contextMessages != null) {
+                contextMessages = <DiagnosticMessageBuilder>[];
+                for (var message in error.contextMessages) {
+                  contextMessages.add(DiagnosticMessageBuilder(
+                      filePath: message.filePath,
+                      length: message.length,
+                      message: message.message,
+                      offset: message.offset));
+                }
+              }
+              return new AnalysisDriverUnitErrorBuilder(
+                  offset: error.offset,
+                  length: error.length,
+                  uniqueName: error.errorCode.uniqueName,
+                  message: error.message,
+                  correction: error.correction,
+                  contextMessages: contextMessages);
+            }).toList(),
             index: index)
         .toBuffer();
   }
