@@ -155,7 +155,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       oldState.incrementalCompiler == null ||
       oldState.options.compileSdk != compileSdk ||
       cachedSdkInput == null ||
-      !digestsEqual(cachedSdkInput.digest, sdkDigest)) {
+      !digestsEqual(cachedSdkInput.digest, sdkDigest) ||
+      !equalMaps(oldState.options.experimentalFlags, experiments)) {
     // No previous state.
     options = new CompilerOptions()
       ..compileSdk = compileSdk

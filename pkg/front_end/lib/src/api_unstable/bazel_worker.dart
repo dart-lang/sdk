@@ -105,7 +105,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..target = target
       ..fileSystem = fileSystem
       ..omitPlatform = true
-      ..environmentDefines = const {};
+      ..environmentDefines = const {}
+      ..experimentalFlags = experimentalFlags;
 
     processedOpts = new ProcessedOptions(options: options);
     cachedSdkInput = WorkerInputComponent(
