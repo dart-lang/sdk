@@ -86,20 +86,13 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var constructorElement = constructors[0];
       if (constructorElement.isSynthetic) {
         // Need to create a decorated type for the default constructor.
-        if (classElement.typeParameters.isNotEmpty) {
-          // TODO(paulberry): handle the default constructor for a generic
-          // class.
-        } else {
-          var decoratedReturnType =
-              _createDecoratedTypeForClass(classElement, node);
-          var functionType = DecoratedType(
-              constructorElement.type, _graph.never,
-              returnType: decoratedReturnType,
-              positionalParameters: [],
-              namedParameters: {});
-          _variables.recordDecoratedElementType(
-              constructorElement, functionType);
-        }
+        var decoratedReturnType =
+            _createDecoratedTypeForClass(classElement, node);
+        var functionType = DecoratedType(constructorElement.type, _graph.never,
+            returnType: decoratedReturnType,
+            positionalParameters: [],
+            namedParameters: {});
+        _variables.recordDecoratedElementType(constructorElement, functionType);
       }
     }
     return null;
@@ -355,13 +348,11 @@ $stackTrace''');
 
   DecoratedType _createDecoratedTypeForClass(
       ClassElement classElement, AstNode node) {
-    if (classElement.typeParameters.isNotEmpty) {
-      // Need to decorate the type parameters appropriately.
-      // TODO(paulberry,brianwilkerson)
-      _unimplemented(node, 'Declaration of a constructor with type parameters');
-    }
-    var decoratedType = new DecoratedType(classElement.type, _graph.never);
-    return decoratedType;
+    var typeArguments = classElement.typeParameters
+        .map((t) => DecoratedType(t.type, _graph.never))
+        .toList();
+    return DecoratedType(classElement.type, _graph.never,
+        typeArguments: typeArguments);
   }
 
   /// Creates a DecoratedType corresponding to [type], with fresh nullability

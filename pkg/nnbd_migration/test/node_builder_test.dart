@@ -44,6 +44,26 @@ class C {}
     expect(decoratedConstructorType.returnType.node, same(never));
   }
 
+  test_class_with_default_constructor_generic() async {
+    await analyze('''
+class C<T, U> {}
+''');
+    var defaultConstructor = findElement.class_('C').constructors.single;
+    var decoratedConstructorType =
+        variables.decoratedElementType(defaultConstructor);
+    expect(decoratedConstructorType.type.toString(), 'C<T, U> Function()');
+    expect(decoratedConstructorType.node, same(never));
+    expect(decoratedConstructorType.typeArguments, isEmpty);
+    var returnType = decoratedConstructorType.returnType;
+    expect(returnType.type.toString(), 'C<T, U>');
+    expect(returnType.node, same(never));
+    expect(returnType.typeArguments, hasLength(2));
+    expect(returnType.typeArguments[0].type.toString(), 'T');
+    expect(returnType.typeArguments[0].node, same(never));
+    expect(returnType.typeArguments[1].type.toString(), 'U');
+    expect(returnType.typeArguments[1].node, same(never));
+  }
+
   test_constructor_returnType_implicit_dynamic() async {
     await analyze('''
 class C {
