@@ -1543,6 +1543,11 @@ class _ScriptHandle extends ObjectHandle {
 
   set source(SourceFile sourceFile) {
     _source = sourceFile;
+    if (_source != null) {
+      _flags |= flagHasSourceFile;
+    } else {
+      _flags &= ~flagHasSourceFile;
+    }
   }
 
   @override
@@ -1571,7 +1576,8 @@ class _ScriptHandle extends ObjectHandle {
   bool operator ==(other) => other is _ScriptHandle && this.uri == other.uri;
 
   @override
-  String toString() => "$uri";
+  String toString() =>
+      "$uri${source != null ? '(source ${source.importUri})' : ''}";
 }
 
 class ObjectTable implements ObjectWriter, ObjectReader {

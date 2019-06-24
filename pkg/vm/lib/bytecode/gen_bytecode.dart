@@ -452,16 +452,20 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FieldDeclaration.hasPragmaFlag;
       }
     }
-    if (field.fileUri != (field.parent as dynamic).fileUri) {
-      // TODO(alexmarkov): support custom scripts
-      // flags |= FieldDeclaration.hasCustomScriptFlag;
+    ObjectHandle script;
+    if (field.fileUri != null &&
+        field.fileUri != (field.parent as FileUriNode).fileUri) {
+      final isInAnonymousMixin =
+          enclosingClass != null && enclosingClass.isAnonymousMixin;
+      script = getScript(field.fileUri, !isInAnonymousMixin);
+      flags |= FieldDeclaration.hasCustomScriptFlag;
     }
     return new FieldDeclaration(
         flags,
         name,
         objectTable.getHandle(field.type),
         objectTable.getHandle(value),
-        null, // TODO(alexmarkov): script
+        script,
         position,
         endPosition,
         getterName,
@@ -556,9 +560,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FunctionDeclaration.hasPragmaFlag;
       }
     }
-    if (member.fileUri != (member.parent as dynamic).fileUri) {
-      // TODO(alexmarkov): support custom scripts
-      // flags |= FunctionDeclaration.hasCustomScriptFlag;
+    ObjectHandle script;
+    if (member.fileUri != null &&
+        member.fileUri != (member.parent as FileUriNode).fileUri) {
+      final isInAnonymousMixin =
+          enclosingClass != null && enclosingClass.isAnonymousMixin;
+      final isSynthetic = member is Procedure &&
+          (member.isNoSuchMethodForwarder || member.isSyntheticForwarder);
+      script = getScript(member.fileUri, !isInAnonymousMixin && !isSynthetic);
+      flags |= FunctionDeclaration.hasCustomScriptFlag;
     }
 
     final name = objectTable.getNameHandle(member.name.library,
@@ -572,7 +582,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     return new FunctionDeclaration(
         flags,
         name,
-        null, // TODO(alexmarkov): script
+        script,
         position,
         endPosition,
         typeParameters,
