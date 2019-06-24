@@ -226,11 +226,11 @@ class C {
   test_class_field_withType() {
     assertSameSignature(r'''
 class C {
-  int a = 1, b, c = 3;
+  int a = 1;
 }
 ''', r'''
 class C {
-  int a = 0, b = 2, c;
+  int a = 2;
 }
 ''');
   }
@@ -744,11 +744,11 @@ mixin M {
   test_mixin_field_withType() {
     assertSameSignature(r'''
 mixin M {
-  int a = 1, b, c = 3;
+  int a = 1;
 }
 ''', r'''
 mixin M {
-  int a = 0, b = 2, c;
+  int a = 2;
 }
 ''');
   }
@@ -819,9 +819,9 @@ var a = 1, b, c = 3, d = 4;;
 
   test_topLevelVariable_withType() {
     assertSameSignature(r'''
-int a = 1, b, c = 3;
+int a = 1;
 ''', r'''
-int a = 0, b = 2, c;
+int a = 2;
 ''');
   }
 
@@ -838,6 +838,22 @@ const int a = 2;
 final int a = 1;
 ''', r'''
 final int a = 2;
+''');
+  }
+
+  test_topLevelVariable_withType_initializer_add() {
+    assertNotSameSignature(r'''
+int a;
+''', r'''
+int a = 1;
+''');
+  }
+
+  test_topLevelVariable_withType_initializer_remove() {
+    assertNotSameSignature(r'''
+int a = 1;
+''', r'''
+int a;
 ''');
   }
 
