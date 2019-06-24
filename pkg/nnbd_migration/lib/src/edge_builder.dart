@@ -151,7 +151,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitAssertStatement(AssertStatement node) {
-    _handleAssignment(_notNullType, node.condition);
+    _handleAssignment(node.condition, _notNullType);
     if (identical(_conditionInfo?.condition, node.condition)) {
       if (!_inConditionalControlFlow &&
           _conditionInfo.trueDemonstratesNonNullIntent != null) {
@@ -173,7 +173,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     var leftType = node.leftHandSide.accept(this);
     var conditionalNode = _lastConditionalNode;
     _lastConditionalNode = null;
-    var expressionType = _handleAssignment(leftType, node.rightHandSide);
+    var expressionType = _handleAssignment(node.rightHandSide, leftType);
     if (_isConditionalExpression(node.leftHandSide)) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(conditionalNode, expressionType.node));
@@ -216,8 +216,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
         operatorType == TokenType.BAR_BAR) {
-      _handleAssignment(_notNullType, node.leftOperand);
-      _handleAssignment(_notNullType, node.rightOperand);
+      _handleAssignment(node.leftOperand, _notNullType);
+      _handleAssignment(node.rightOperand, _notNullType);
       return _nonNullableBoolType;
     } else if (operatorType == TokenType.QUESTION_QUESTION) {
       DecoratedType expressionType;
@@ -236,7 +236,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _variables.recordDecoratedExpressionType(node, expressionType);
       return expressionType;
     } else if (operatorType.isUserDefinableOperator) {
-      _handleAssignment(_notNullType, node.leftOperand);
+      _handleAssignment(node.leftOperand, _notNullType);
       var callee = node.staticElement;
       assert(!(callee is ClassMemberElement &&
           callee
@@ -245,7 +245,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var calleeType = getOrComputeElementType(callee);
       // TODO(paulberry): substitute if necessary
       assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
-      _handleAssignment(calleeType.positionalParameters[0], node.rightOperand);
+      _handleAssignment(node.rightOperand, calleeType.positionalParameters[0]);
       return calleeType.returnType;
     } else {
       // TODO(paulberry)
@@ -282,7 +282,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitConditionalExpression(ConditionalExpression node) {
-    _handleAssignment(_notNullType, node.condition);
+    _handleAssignment(node.condition, _notNullType);
     // TODO(paulberry): guard anything inside the true and false branches
     var thenType = node.thenExpression.accept(this);
     assert(_isSimple(thenType)); // TODO(paulberry)
@@ -310,7 +310,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       }
     } else {
       _handleAssignment(
-          getOrComputeElementType(node.declaredElement), defaultValue,
+          defaultValue, getOrComputeElementType(node.declaredElement),
           canInsertChecks: false);
     }
     return null;
@@ -329,7 +329,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
           'ExpressionFunctionBody with no current function '
           '(parent is ${node.parent.runtimeType})');
     }
-    _handleAssignment(_currentFunctionType.returnType, node.expression);
+    _handleAssignment(node.expression, _currentFunctionType.returnType);
     return null;
   }
 
@@ -365,7 +365,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitIfStatement(IfStatement node) {
     // TODO(paulberry): should the use of a boolean in an if-statement be
     // treated like an implicit `assert(b != null)`?  Probably.
-    _handleAssignment(_notNullType, node.condition);
+    _handleAssignment(node.condition, _notNullType);
     _inConditionalControlFlow = true;
     NullabilityNode trueGuard;
     NullabilityNode falseGuard;
@@ -403,7 +403,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     DecoratedType targetType;
     var target = node.realTarget;
     if (target != null) {
-      targetType = _handleAssignment(_notNullType, target);
+      targetType = _handleAssignment(target, _notNullType);
     }
     var callee = node.staticElement;
     if (callee == null) {
@@ -412,7 +412,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
-    _handleAssignment(calleeType.positionalParameters[0], node.index);
+    _handleAssignment(node.index, calleeType.positionalParameters[0]);
     if (node.inSetterContext()) {
       return calleeType.positionalParameters[1];
     } else {
@@ -473,7 +473,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       }
       for (var element in node.elements) {
         if (element is Expression) {
-          _handleAssignment(typeArgumentType, element);
+          _handleAssignment(element, typeArgumentType);
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
@@ -511,7 +511,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         targetType = target.accept(this);
       } else {
         _checkNonObjectMember(node.methodName.name); // TODO(paulberry)
-        targetType = _handleAssignment(_notNullType, target);
+        targetType = _handleAssignment(target, _notNullType);
       }
     }
     var callee = node.methodName.staticElement;
@@ -569,7 +569,7 @@ $stackTrace''');
     var operatorType = node.operator.type;
     if (operatorType == TokenType.PLUS_PLUS ||
         operatorType == TokenType.MINUS_MINUS) {
-      _handleAssignment(_notNullType, node.operand);
+      _handleAssignment(node.operand, _notNullType);
       var callee = node.staticElement;
       if (callee is ClassMemberElement &&
           callee.enclosingElement.typeParameters.isNotEmpty) {
@@ -602,7 +602,7 @@ $stackTrace''');
   @override
   DecoratedType visitPrefixExpression(PrefixExpression node) {
     /* DecoratedType operandType = */
-    _handleAssignment(_notNullType, node.operand);
+    _handleAssignment(node.operand, _notNullType);
     var operatorType = node.operator.type;
     if (operatorType == TokenType.BANG) {
       return _nonNullableBoolType;
@@ -636,10 +636,12 @@ $stackTrace''');
   @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
     if (node.expression == null) {
-      _checkAssignment(_currentFunctionType.returnType, _nullType, null,
+      _checkAssignment(null,
+          source: _nullType,
+          destination: _currentFunctionType.returnType,
           hard: false);
     } else {
-      _handleAssignment(_currentFunctionType.returnType, node.expression);
+      _handleAssignment(node.expression, _currentFunctionType.returnType);
     }
     return null;
   }
@@ -659,7 +661,7 @@ $stackTrace''');
           _variables.decoratedTypeAnnotation(_source, typeArguments[0]);
       for (var element in node.elements) {
         if (element is Expression) {
-          _handleAssignment(elementType, element);
+          _handleAssignment(element, elementType);
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
@@ -676,8 +678,8 @@ $stackTrace''');
           _variables.decoratedTypeAnnotation(_source, typeArguments[1]);
       for (var element in node.elements) {
         if (element is MapLiteralEntry) {
-          _handleAssignment(keyType, element.key);
-          _handleAssignment(valueType, element.value);
+          _handleAssignment(element.key, keyType);
+          _handleAssignment(element.value, valueType);
         } else {
           // Handle spread and control flow elements.
           element.accept(this);
@@ -774,7 +776,8 @@ $stackTrace''');
             _unimplemented(typeName,
                 'No decorated type for type argument ${typeArguments[i]} ($i)');
           }
-          _checkAssignment(bound, argumentType, null, hard: true);
+          _checkAssignment(null,
+              source: argumentType, destination: bound, hard: true);
         }
       }
     }
@@ -789,57 +792,58 @@ $stackTrace''');
       // TODO(paulberry)
       _unimplemented(node, 'Variable declaration with no initializer');
     } else {
-      _handleAssignment(destinationType, initializer);
+      _handleAssignment(initializer, destinationType);
     }
     return null;
   }
 
-  /// Creates the necessary constraint(s) for an assignment from [sourceType] to
-  /// [destinationType].  [expressionChecks] tracks checks that might have to be
+  /// Creates the necessary constraint(s) for an assignment from [source] to
+  /// [destination].  [expressionChecks] tracks checks that might have to be
   /// done on the type of an expression.  [hard] indicates whether a hard edge
   /// should be created.
-  void _checkAssignment(DecoratedType destinationType, DecoratedType sourceType,
-      ExpressionChecks expressionChecks,
-      {@required bool hard}) {
-    var edge = _graph.connect(
-        sourceType.node, destinationType.node, expressionChecks,
+  void _checkAssignment(ExpressionChecks expressionChecks,
+      {@required DecoratedType source,
+      @required DecoratedType destination,
+      @required bool hard}) {
+    var edge = _graph.connect(source.node, destination.node, expressionChecks,
         guards: _guards, hard: hard);
     expressionChecks?.edges?.add(edge);
     // TODO(paulberry): generalize this.
-    if ((_isSimple(sourceType) || destinationType.type.isObject) &&
-        _isSimple(destinationType)) {
+    if ((_isSimple(source) || destination.type.isObject) &&
+        _isSimple(destination)) {
       // Ok; nothing further to do.
-    } else if (sourceType.type is InterfaceType &&
-        destinationType.type is InterfaceType &&
-        sourceType.type.element == destinationType.type.element) {
-      assert(sourceType.typeArguments.length ==
-          destinationType.typeArguments.length);
-      for (int i = 0; i < sourceType.typeArguments.length; i++) {
-        _checkAssignment(destinationType.typeArguments[i],
-            sourceType.typeArguments[i], expressionChecks,
+    } else if (source.type is InterfaceType &&
+        destination.type is InterfaceType &&
+        source.type.element == destination.type.element) {
+      assert(source.typeArguments.length == destination.typeArguments.length);
+      for (int i = 0; i < source.typeArguments.length; i++) {
+        _checkAssignment(expressionChecks,
+            source: source.typeArguments[i],
+            destination: destination.typeArguments[i],
             hard: false);
       }
-    } else if (sourceType.type is FunctionType &&
-        destinationType.type is FunctionType) {
-      _checkAssignment(
-          destinationType.returnType, sourceType.returnType, expressionChecks,
+    } else if (source.type is FunctionType &&
+        destination.type is FunctionType) {
+      _checkAssignment(expressionChecks,
+          source: source.returnType,
+          destination: destination.returnType,
           hard: hard);
-      if (sourceType.typeArguments.isNotEmpty ||
-          destinationType.typeArguments.isNotEmpty) {
+      if (source.typeArguments.isNotEmpty ||
+          destination.typeArguments.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');
       }
-      if (sourceType.positionalParameters.isNotEmpty ||
-          destinationType.positionalParameters.isNotEmpty) {
+      if (source.positionalParameters.isNotEmpty ||
+          destination.positionalParameters.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');
       }
-      if (sourceType.namedParameters.isNotEmpty ||
-          destinationType.namedParameters.isNotEmpty) {
+      if (source.namedParameters.isNotEmpty ||
+          destination.namedParameters.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');
       }
-    } else if (destinationType.type.isDynamic || sourceType.type.isDynamic) {
+    } else if (destination.type.isDynamic || source.type.isDynamic) {
       // ok; nothing further to do.
     } else {
-      throw '$destinationType <= $sourceType'; // TODO(paulberry)
+      throw '$destination <= $source'; // TODO(paulberry)
     }
   }
 
@@ -858,7 +862,7 @@ $stackTrace''');
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   DecoratedType _handleAssignment(
-      DecoratedType destinationType, Expression expression,
+      Expression expression, DecoratedType destinationType,
       {bool canInsertChecks = true}) {
     var sourceType = expression.accept(this);
     if (sourceType == null) {
@@ -870,7 +874,9 @@ $stackTrace''');
       expressionChecks = ExpressionChecks(expression.end);
       _variables.recordExpressionChecks(_source, expression, expressionChecks);
     }
-    _checkAssignment(destinationType, sourceType, expressionChecks,
+    _checkAssignment(expressionChecks,
+        source: sourceType,
+        destination: destinationType,
         hard: _isVariableOrParameterReference(expression) &&
             !_inConditionalControlFlow);
     return sourceType;
@@ -891,14 +897,14 @@ $stackTrace''');
           // TODO(paulberry)
           _unimplemented(expression, 'Missing type for named parameter');
         }
-        _handleAssignment(parameterType, expression.expression);
+        _handleAssignment(expression.expression, parameterType);
         suppliedNamedParameters.add(name);
       } else {
         if (calleeType.positionalParameters.length <= i) {
           // TODO(paulberry)
           _unimplemented(argumentList, 'Missing positional parameter at $i');
         }
-        _handleAssignment(calleeType.positionalParameters[i++], expression);
+        _handleAssignment(expression, calleeType.positionalParameters[i++]);
       }
     }
     // Any parameters not supplied must be optional.
@@ -917,7 +923,7 @@ $stackTrace''');
       targetType = target.accept(this);
     } else {
       _checkNonObjectMember(propertyName.name); // TODO(paulberry)
-      targetType = _handleAssignment(_notNullType, target);
+      targetType = _handleAssignment(target, _notNullType);
     }
     var callee = propertyName.staticElement;
     if (callee == null) {
