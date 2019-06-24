@@ -67,15 +67,8 @@ abstract class CompilerConfiguration {
       case Compiler.dartdevk:
         return DevCompilerConfiguration(configuration);
 
-      case Compiler.appJit:
-        return AppJitCompilerConfiguration(configuration, previewDart2: false);
-
       case Compiler.appJitk:
         return AppJitCompilerConfiguration(configuration);
-
-      case Compiler.precompiler:
-        return PrecompilerCompilerConfiguration(configuration,
-            previewDart2: false);
 
       case Compiler.dartk:
       case Compiler.dartkb:
@@ -653,8 +646,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  final bool previewDart2;
-
   bool get _isAndroid => _configuration.system == System.android;
 
   bool get _isArm => _configuration.architecture == Architecture.arm;
@@ -663,8 +654,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2 = true})
+  PrecompilerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -905,10 +895,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 }
 
 class AppJitCompilerConfiguration extends CompilerConfiguration {
-  final bool previewDart2;
-
-  AppJitCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2 = true})
+  AppJitCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier {

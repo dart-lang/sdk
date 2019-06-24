@@ -184,11 +184,11 @@ html/custom_elements_test: Pass, Timeout # Issue 26789
 html/request_animation_frame_test: Skip # Times out. Issue 22167
 html/transition_event_test: Skip # Times out. Issue 22167
 
+[ $runtime != dart_precompiled && ($runtime != vm || $compiler != dartk && $compiler != none) ]
+isolate/vm_rehash_test: SkipByDesign
+
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
-
-[ ($compiler != precompiler || $runtime != dart_precompiled) && ($runtime != vm || $compiler != dartk && $compiler != none) ]
-isolate/vm_rehash_test: SkipByDesign
 
 [ $arch == simarm || $arch == simarmv5te || $arch == simarmv6 ]
 convert/utf85_test: Skip # Pass, Slow Issue 12644.
@@ -196,15 +196,15 @@ convert/utf85_test: Skip # Pass, Slow Issue 12644.
 [ $arch != x64 || $compiler == dartkb || $runtime != vm ]
 isolate/int32_length_overflow_test: SkipSlow
 
-[ $compiler == app_jit || $mode == product || $runtime != vm ]
-isolate/checked_test: Skip # Unsupported.
-
 [ $compiler != none || $runtime != vm ]
 isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
 isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
 isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
 isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
 isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
+
+[ $mode == product || $runtime != vm ]
+isolate/checked_test: Skip # Unsupported.
 
 [ $runtime == chrome || $runtime == chromeOnAndroid ]
 html/webgl_1_test: Pass, Fail # Issue 8219

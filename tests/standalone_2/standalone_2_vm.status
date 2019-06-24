@@ -6,20 +6,6 @@
 link_natives_lazily_test: SkipByDesign # Not supported.
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 
-[ $compiler == app_jit ]
-full_coverage_test: Skip # Platform.executable
-io/namespace_test: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/00: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/01: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/02: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/03: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/04: RuntimeError # Issue 33168
-io/platform_resolved_executable_test/05: RuntimeError # Issue 33168
-io/platform_test: Skip # Platform.executable
-io/test_extension_fail_test: Skip # Platform.executable
-io/test_extension_test: Skip # Platform.executable
-regress_26031_test: Skip # Platform.resolvedExecutable
-
 [ $system == android ]
 io/file_stat_test: Skip # Issue 26376
 io/file_system_watcher_test: Skip # Issue 26376

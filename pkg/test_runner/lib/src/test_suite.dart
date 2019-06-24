@@ -1286,8 +1286,6 @@ class StandardTestSuite extends TestSuite {
       Compiler.dartk,
       Compiler.dartkb,
       Compiler.dartkp,
-      Compiler.precompiler,
-      Compiler.appJit,
       Compiler.appJitk,
     ];
 

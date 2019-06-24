@@ -43,9 +43,6 @@ dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invokin
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
 
-[ $compiler == precompiler ]
-dart/byte_array_test: SkipByDesign # Incompatible flag --disable_alloc_stubs_after_gc
-
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
 cc/IRTest_TypedDataAOT_FunctionalGetSet: Skip # run_vm_tests contains JIT/AOT but FLAG_precompiled_mode is not always correct. This causes this test to fail in debug mode, hitting an assertion. See http://dartbug.com/36521
@@ -53,6 +50,12 @@ cc/VerifyExplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash iff in DEBUG mode. TODO(koda): Improve support for negative tests.
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
+
+[ $mode == product ]
+cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
+cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
+cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $runtime == dart_precompiled ]
 dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
@@ -256,12 +259,6 @@ dart/entrypoints/jit/*: SkipByDesign # Only supported in the Dart 2 JIT and AOT,
 
 [ $compiler != dartkp || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 ]
 dart/entrypoints/aot/*: SkipByDesign # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
-
-[ $compiler == precompiler || $mode == product ]
-cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
-cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
-cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
-dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).

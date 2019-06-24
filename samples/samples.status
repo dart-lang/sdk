@@ -8,9 +8,6 @@ sample_extension/test/*: Skip # Issue 14705
 [ $builder_tag == optimization_counter_threshold ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign # This test is too slow for testing with low optimization counter threshold.
 
-[ $compiler == precompiler ]
-sample_extension/test/*: Skip # These tests attempt to spawn another script using the precompiled runtime.
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

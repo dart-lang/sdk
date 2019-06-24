@@ -70,11 +70,21 @@ string_from_environment3_test/03: MissingCompileTimeError
 bool_from_environment2_test/03: MissingCompileTimeError
 string_from_environment3_test/03: MissingCompileTimeError
 
-[ $compiler == precompiler ]
-bigint_test: Pass, Timeout # --no_intrinsify
-int_parse_radix_test: Pass, Timeout # --no_intrinsify
-integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
-regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+[ $compiler == none ]
+int_parse_radix_bad_handler_test: MissingCompileTimeError
+symbol_operator_test/03: Fail # Issue 11669
+symbol_reserved_word_test/02: CompileTimeError # Issue 20191
+symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
+symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
+symbol_test/01: Fail, Pass # Issue 11669
+symbol_test/02: MissingCompileTimeError # Issue 11669
+symbol_test/03: MissingCompileTimeError # Issue 11669
+symbol_test/none: Fail # Issue 11669
+unicode_test: Fail # Issue 6706
 
 [ $mode == debug ]
 regexp/pcre_test: Pass, Slow # Issue 22008
@@ -235,9 +245,11 @@ from_environment_const_type_undefined_test/16: MissingCompileTimeError
 iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 string_base_vm_static_test: MissingCompileTimeError
 
-[ $compiler == precompiler && $runtime == dart_precompiled && !$checked ]
-iterable_generate_test/01: RuntimeError
-splay_tree_from_iterable_test: RuntimeError
+# We no longer expect Dart2 tests to run with the standalone VM without the new
+# common front end, but for now we get better coverage by still running them in
+# checked mode, which is mostly Dart2-compatible.
+[ $compiler == none && !$checked && ($runtime == dart_precompiled || $runtime == vm) ]
+*: SkipByDesign
 
 [ $mode == release && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 bigint_parse_radix_test: Crash
@@ -271,12 +283,6 @@ symbol_reserved_word_test/12: RuntimeError # Issues 11669 and 31936 - throwing c
 symbol_test/none: RuntimeError # Issues 11669 and 31936 - throwing const constructors.
 unicode_test: RuntimeError # Issue 18061: German double S.
 
-# We no longer expect Dart2 tests to run with the standalone VM without the new
-# common front end, but for now we get better coverage by still running them in
-# checked mode, which is mostly Dart2-compatible.
-[ !$checked && ($compiler == app_jit || $compiler == none || $compiler == precompiler) && ($runtime == dart_precompiled || $runtime == vm) ]
-*: SkipByDesign
-
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
@@ -289,49 +295,6 @@ bigint_test: Skip # Issue 31659
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-
-[ $compiler == app_jit || $compiler == none || $compiler == precompiler ]
-int_parse_radix_bad_handler_test: MissingCompileTimeError
-symbol_operator_test/03: Fail # Issue 11669
-symbol_reserved_word_test/02: CompileTimeError # Issue 20191
-symbol_reserved_word_test/04: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/06: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/07: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/09: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_reserved_word_test/10: MissingCompileTimeError # Issue 11669, 19972, With the exception of 'void', const Symbol() should not accept reserved words.
-symbol_reserved_word_test/12: RuntimeError # Issue 11669, With the exception of 'void', new Symbol() should not accept reserved words.
-symbol_test/01: Fail, Pass # Issue 11669
-symbol_test/02: MissingCompileTimeError # Issue 11669
-symbol_test/03: MissingCompileTimeError # Issue 11669
-symbol_test/none: Fail # Issue 11669
-unicode_test: Fail # Issue 6706
-
-[ $compiler == app_jit || $compiler == precompiler ]
-from_environment_const_type_test/02: MissingCompileTimeError
-from_environment_const_type_test/03: MissingCompileTimeError
-from_environment_const_type_test/04: MissingCompileTimeError
-from_environment_const_type_test/06: MissingCompileTimeError
-from_environment_const_type_test/07: MissingCompileTimeError
-from_environment_const_type_test/08: MissingCompileTimeError
-from_environment_const_type_test/09: MissingCompileTimeError
-from_environment_const_type_test/11: MissingCompileTimeError
-from_environment_const_type_test/12: MissingCompileTimeError
-from_environment_const_type_test/13: MissingCompileTimeError
-from_environment_const_type_test/14: MissingCompileTimeError
-from_environment_const_type_test/16: MissingCompileTimeError
-from_environment_const_type_undefined_test/02: MissingCompileTimeError
-from_environment_const_type_undefined_test/03: MissingCompileTimeError
-from_environment_const_type_undefined_test/04: MissingCompileTimeError
-from_environment_const_type_undefined_test/06: MissingCompileTimeError
-from_environment_const_type_undefined_test/07: MissingCompileTimeError
-from_environment_const_type_undefined_test/08: MissingCompileTimeError
-from_environment_const_type_undefined_test/09: MissingCompileTimeError
-from_environment_const_type_undefined_test/11: MissingCompileTimeError
-from_environment_const_type_undefined_test/12: MissingCompileTimeError
-from_environment_const_type_undefined_test/13: MissingCompileTimeError
-from_environment_const_type_undefined_test/14: MissingCompileTimeError
-from_environment_const_type_undefined_test/16: MissingCompileTimeError
-iterable_to_set_test: RuntimeError # is-checks do not implement strong mode type system
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_from_test: RuntimeError # Issue 32589
