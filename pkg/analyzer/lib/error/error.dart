@@ -796,8 +796,15 @@ class AnalysisError implements Diagnostic {
    */
   final ErrorCode errorCode;
 
+  /**
+   * The message describing the problem.
+   */
   DiagnosticMessage _problemMessage;
 
+  /**
+   * The context messages associated with the problem. This list will be empty
+   * if there are no context messages.
+   */
   List<DiagnosticMessage> _contextMessages;
 
   /**
@@ -819,7 +826,8 @@ class AnalysisError implements Diagnostic {
    * [contextMessages] are provided, they will be recorded with the error.
    */
   AnalysisError(this.source, int offset, int length, this.errorCode,
-      [List<Object> arguments, List<DiagnosticMessage> contextMessages]) {
+      [List<Object> arguments,
+      List<DiagnosticMessage> contextMessages = const []]) {
     String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
@@ -838,7 +846,7 @@ class AnalysisError implements Diagnostic {
    */
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
       String message, this._correction,
-      {List<DiagnosticMessage> contextMessages}) {
+      {List<DiagnosticMessage> contextMessages = const []}) {
     _problemMessage = new DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
@@ -847,7 +855,7 @@ class AnalysisError implements Diagnostic {
     _contextMessages = contextMessages;
   }
 
-  List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];
+  List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**
    * Return the template used to create the correction to be displayed for this
