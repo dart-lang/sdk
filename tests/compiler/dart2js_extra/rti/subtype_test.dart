@@ -31,27 +31,27 @@ main() {
 }
 
 void runTests() {
+  testInterfaces();
+  testTopTypes();
+  testNull();
+  testFutureOr();
+}
+
+void testInterfaces() {
   strictSubtype('List<CodeUnits>', 'Iterable<List<int>>');
   strictSubtype('CodeUnits', 'Iterable<num>');
   strictSubtype('Iterable<int>', 'Iterable<num>');
-  strictSubtype('List<int>', objectName);
-  strictSubtype('$futureName<int>', '$futureName<num>');
-  strictSubtype('int', 'int/');
-  strictSubtype('$futureName<int>', 'int/');
-  strictSubtype('int/', 'num/');
-  strictSubtype('int', 'num/');
-  strictSubtype('$futureName<int>', 'num/');
-  strictSubtype(nullName, 'int');
-  strictSubtype(nullName, 'Iterable<CodeUnits>');
-  strictSubtype(nullName, objectName);
   unrelated('int', 'CodeUnits');
-  equivalent(nullName, nullName);
   equivalent('double', 'double');
+  equivalent('List<int>', 'List<int>');
+}
+
+void testTopTypes() {
+  strictSubtype('List<int>', objectName);
   equivalent(objectName, objectName);
   equivalent('@', '@');
   equivalent('~', '~');
   equivalent('1&', '1&');
-  equivalent('List<int>', 'List<int>');
   equivalent(objectName, '@');
   equivalent(objectName, '~');
   equivalent(objectName, '1&');
@@ -64,6 +64,22 @@ void runTests() {
   equivalent('List<@>', 'List<~>');
   equivalent('List<@>', 'List<1&>');
   equivalent('List<~>', 'List<1&>');
+}
+
+void testNull() {
+  strictSubtype(nullName, 'int');
+  strictSubtype(nullName, 'Iterable<CodeUnits>');
+  strictSubtype(nullName, objectName);
+  equivalent(nullName, nullName);
+}
+
+void testFutureOr() {
+  strictSubtype('$futureName<int>', '$futureName<num>');
+  strictSubtype('int', 'int/');
+  strictSubtype('$futureName<int>', 'int/');
+  strictSubtype('int/', 'num/');
+  strictSubtype('int', 'num/');
+  strictSubtype('$futureName<int>', 'num/');
   equivalent('@/', '~/');
 }
 
