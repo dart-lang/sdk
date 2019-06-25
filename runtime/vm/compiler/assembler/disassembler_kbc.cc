@@ -394,7 +394,7 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
               function_fullname);
     const auto& var_descriptors =
         LocalVarDescriptors::Handle(zone, bytecode.GetLocalVarDescriptors());
-    THR_Print("%s\n}\n", var_descriptors.ToCString());
+    THR_Print("%s}\n", var_descriptors.ToCString());
   }
 
 #else

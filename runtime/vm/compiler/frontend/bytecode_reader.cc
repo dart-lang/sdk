@@ -3070,7 +3070,6 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
             function.token_pos() <= var_info.end_pos) ||
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
-        var_info.scope_id++;  // One level higher in the context chain.
         vars.Add(
             VarDesc{&String::Handle(zone, parent_vars.GetName(i)), var_info});
       }

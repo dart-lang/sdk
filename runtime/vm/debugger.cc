@@ -2321,6 +2321,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
 
+  Object& code_object = Object::Handle(zone);
   Code& code = Code::Handle(zone);
   Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
@@ -2518,17 +2519,24 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         // the readability of the trace.
         i++;
       } else {
-        code = Code::RawCast(async_stack_trace.CodeAtFrame(i));
+        code_object = async_stack_trace.CodeAtFrame(i);
         offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
-        uword pc = code.PayloadStart() + offset.Value();
-        if (code.is_optimized()) {
-          for (InlinedFunctionsIterator it(code, pc); !it.Done();
-               it.Advance()) {
-            inlined_code = it.code();
-            stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
-          }
+        if (code_object.IsBytecode()) {
+          bytecode ^= code_object.raw();
+          uword pc = bytecode.PayloadStart() + offset.Value();
+          stack_trace->AddAsyncCausalFrame(pc, bytecode);
         } else {
-          stack_trace->AddAsyncCausalFrame(pc, code);
+          code ^= code_object.raw();
+          uword pc = code.PayloadStart() + offset.Value();
+          if (code.is_optimized()) {
+            for (InlinedFunctionsIterator it(code, pc); !it.Done();
+                 it.Advance()) {
+              inlined_code = it.code();
+              stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
+            }
+          } else {
+            stack_trace->AddAsyncCausalFrame(pc, code);
+          }
         }
       }
     }
