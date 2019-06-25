@@ -132,7 +132,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     // hence do not have a token position, and therefore cannot be reparsed.
     has_extra_parameter_info = false;
   }
-  if (func.HasBytecode() && (func.kernel_offset() == 0)) {
+  if (func.is_declared_in_bytecode()) {
     // Anonymous closures in bytecode cannot be reparsed.
     has_extra_parameter_info = false;
   }
@@ -1048,18 +1048,19 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, owner_mirror,
                                arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
-  const Library& library = Library::Handle(ref.GetLibraryReferent());
+  const Library& library = Library::Handle(zone, ref.GetLibraryReferent());
 
   library.EnsureTopLevelClassIsFinalized();
 
-  Instance& member_mirror = Instance::Handle();
+  Instance& member_mirror = Instance::Handle(zone);
   const GrowableObjectArray& member_mirrors =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
-  Object& entry = Object::Handle();
+  Object& entry = Object::Handle(zone);
   DictionaryIterator entries(library);
 
-  AbstractType& type = AbstractType::Handle();
+  Error& error = Error::Handle(zone);
+  AbstractType& type = AbstractType::Handle(zone);
 
   while (entries.HasNext()) {
     entry = entries.GetNext();
@@ -1068,6 +1069,10 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
       // We filter out dynamic.
       // TODO(12478): Should not need to filter out dynamic.
       if (!klass.IsDynamicClass()) {
+        error = klass.EnsureIsFinalized(thread);
+        if (!error.IsNull()) {
+          Exceptions::PropagateError(error);
+        }
         type = klass.DeclarationType();
         member_mirror = CreateClassMirror(klass, type,
                                           Bool::True(),  // is_declaration

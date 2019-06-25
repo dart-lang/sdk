@@ -74,10 +74,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     56;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    102;
+    106;
 static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 92;
+    Class_type_arguments_field_offset_in_words_offset = 96;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word
@@ -427,10 +427,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     112;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    186;
+    190;
 static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 176;
+    Class_type_arguments_field_offset_in_words_offset = 180;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word
@@ -781,10 +781,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     56;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    102;
+    106;
 static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 92;
+    Class_type_arguments_field_offset_in_words_offset = 96;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word
@@ -1130,10 +1130,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     112;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    186;
+    190;
 static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 176;
+    Class_type_arguments_field_offset_in_words_offset = 180;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word
@@ -1487,10 +1487,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     112;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    186;
+    190;
 static constexpr dart::compiler::target::word Class_super_type_offset = 88;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 176;
+    Class_type_arguments_field_offset_in_words_offset = 180;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word
@@ -1771,10 +1771,10 @@ static constexpr dart::compiler::target::word Array_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word Class_declaration_type_offset =
     56;
 static constexpr dart::compiler::target::word Class_num_type_arguments_offset =
-    102;
+    106;
 static constexpr dart::compiler::target::word Class_super_type_offset = 44;
 static constexpr dart::compiler::target::word
-    Class_type_arguments_field_offset_in_words_offset = 92;
+    Class_type_arguments_field_offset_in_words_offset = 96;
 static constexpr dart::compiler::target::word
     ClassHeapStats_TraceAllocationMask = 1;
 static constexpr dart::compiler::target::word

@@ -116,7 +116,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddLocation(script, token_pos(), ComputeEndTokenPos());
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");

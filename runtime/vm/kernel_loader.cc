@@ -1390,8 +1390,9 @@ void KernelLoader::LoadClass(const Library& library,
     out_class->set_script(script);
   }
   if (out_class->token_pos() == TokenPosition::kNoSource) {
-    class_helper.ReadUntilIncluding(ClassHelper::kStartPosition);
+    class_helper.ReadUntilIncluding(ClassHelper::kEndPosition);
     out_class->set_token_pos(class_helper.start_position_);
+    out_class->set_end_token_pos(class_helper.end_position_);
   }
 
   class_helper.ReadUntilIncluding(ClassHelper::kFlags);

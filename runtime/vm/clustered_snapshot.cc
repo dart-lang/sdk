@@ -186,6 +186,7 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int16_t>(cls->ptr()->num_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
+    s->WriteTokenPosition(cls->ptr()->end_token_pos_);
     s->Write<uint32_t>(cls->ptr()->state_bits_);
   }
 
@@ -247,6 +248,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
+      cls->ptr()->end_token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint32_t>();
     }
 
@@ -273,6 +275,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
+      cls->ptr()->end_token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint32_t>();
 
       table->AllocateIndex(class_id);
@@ -1611,7 +1614,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
-    ASSERT(s->kind() == Snapshot::kFullJIT);
+    ASSERT(s->kind() != Snapshot::kFullAOT);
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawBytecode* bytecode = objects_[i];
@@ -1644,7 +1647,7 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    ASSERT(d->kind() == Snapshot::kFullJIT);
+    ASSERT(d->kind() != Snapshot::kFullAOT);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));

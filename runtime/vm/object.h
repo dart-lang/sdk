@@ -866,8 +866,11 @@ class Class : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
-
-  TokenPosition ComputeEndTokenPos() const;
+  TokenPosition end_token_pos() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->end_token_pos_;
+  }
+  void set_end_token_pos(TokenPosition value) const;
 
   int32_t SourceFingerprint() const;
 

@@ -4,6 +4,8 @@
 
 #include "vm/object.h"
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/unicode.h"
@@ -2292,6 +2294,7 @@ RawClass* Class::New() {
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeObject::NextFieldOffset());
@@ -3660,6 +3663,7 @@ RawClass* Class::NewCommon(intptr_t index) {
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeInstance::NextFieldOffset());
@@ -3975,69 +3979,16 @@ void Class::set_token_pos(TokenPosition token_pos) const {
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
-TokenPosition Class::ComputeEndTokenPos() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return TokenPosition::kNoSource;
-#else
-  // Return the begin token for synthetic classes.
-  if (is_synthesized_class() || IsTopLevel()) {
-    return token_pos();
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& scr = Script::Handle(zone, script());
-  ASSERT(!scr.IsNull());
-
-  if (scr.kind() == RawScript::kKernelTag) {
-    if (is_declared_in_bytecode()) {
-      // TODO(alexmarkov): keep end_token_pos in Class?
-      UNIMPLEMENTED();
-      return token_pos();
-    }
-    ASSERT(kernel_offset() > 0);
-    const Library& lib = Library::Handle(zone, library());
-    const ExternalTypedData& kernel_data =
-        ExternalTypedData::Handle(zone, lib.kernel_data());
-    ASSERT(!kernel_data.IsNull());
-    const intptr_t library_kernel_offset = lib.kernel_offset();
-    ASSERT(library_kernel_offset > 0);
-    const intptr_t class_offset = kernel_offset();
-
-    kernel::TranslationHelper translation_helper(thread);
-    translation_helper.InitFromScript(scr);
-
-    kernel::KernelReaderHelper kernel_reader_helper(zone, &translation_helper,
-                                                    scr, kernel_data, 0);
-    kernel_reader_helper.SetOffset(class_offset);
-    kernel::ClassHelper class_helper(&kernel_reader_helper);
-    class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
-    if (class_helper.end_position_.IsReal()) return class_helper.end_position_;
-
-    TokenPosition largest_seen = token_pos();
-
-    // Walk through all functions and get their end_tokens to find the classes
-    // "end token".
-    // TODO(jensj): Should probably walk though all fields as well.
-    Function& function = Function::Handle(zone);
-    const Array& arr = Array::Handle(functions());
-    for (int i = 0; i < arr.Length(); i++) {
-      function ^= arr.At(i);
-      if (function.script() == script()) {
-        if (largest_seen < function.end_token_pos()) {
-          largest_seen = function.end_token_pos();
-        }
-      }
-    }
-    return TokenPosition(largest_seen);
-  }
-
-  UNREACHABLE();
-#endif
+void Class::set_end_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
+  StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
 }
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
       *this);
 #else
@@ -7943,6 +7894,9 @@ RawString* Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
 #else
@@ -8588,6 +8542,9 @@ RawField* Field::Clone(const Field& original) const {
 
 int32_t Field::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
       *this);
 #else

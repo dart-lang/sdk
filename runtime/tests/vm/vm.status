@@ -143,7 +143,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/redirection_type_shuffling_test/00: MissingCompileTimeError
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail

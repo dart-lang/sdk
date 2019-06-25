@@ -2233,10 +2233,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   cls.set_script(script);
 
   TokenPosition position = TokenPosition::kNoSource;
+  TokenPosition end_position = TokenPosition::kNoSource;
   if ((flags & kHasSourcePositionsFlag) != 0) {
     position = reader_.ReadPosition();
-    reader_.ReadPosition();  // end_position
+    end_position = reader_.ReadPosition();
     cls.set_token_pos(position);
+    cls.set_end_token_pos(end_position);
   }
 
   cls.set_has_pragma(has_pragma);

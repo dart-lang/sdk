@@ -562,7 +562,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           script = cls.script();
           range.AddProperty("scriptIndex", GetScriptIndex(script));
           range.AddProperty("startPos", cls.token_pos());
-          range.AddProperty("endPos", cls.ComputeEndTokenPos());
+          range.AddProperty("endPos", cls.end_token_pos());
           range.AddProperty("compiled", false);
           range.AddProperty("error", err);
           continue;
@@ -574,7 +574,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
         script = cls.script();
         range.AddProperty("scriptIndex", GetScriptIndex(script));
         range.AddProperty("startPos", cls.token_pos());
-        range.AddProperty("endPos", cls.ComputeEndTokenPos());
+        range.AddProperty("endPos", cls.end_token_pos());
         range.AddProperty("compiled", false);
         continue;
       }

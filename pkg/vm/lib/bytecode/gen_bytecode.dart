@@ -291,7 +291,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && cls.fileOffset != TreeNode.noOffset) {
       flags |= ClassDeclaration.hasSourcePositionsFlag;
-      position = cls.fileOffset;
+      position = cls.startFileOffset;
       endPosition = cls.fileEndOffset;
     }
     Annotations annotations = getAnnotations(cls.annotations);
@@ -550,7 +550,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && member.fileOffset != TreeNode.noOffset) {
       flags |= FunctionDeclaration.hasSourcePositionsFlag;
-      position = member.fileOffset;
+      position = (member as dynamic).startFileOffset;
       endPosition = member.fileEndOffset;
     }
     Annotations annotations = getAnnotations(member.annotations);
@@ -1366,7 +1366,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
-    _recordSourcePosition(node.fileOffset);
+    int position;
+    if (node is Procedure) {
+      position = node.startFileOffset;
+    } else if (node is Constructor) {
+      position = node.startFileOffset;
+    } else {
+      position = node.fileOffset;
+    }
+    _recordSourcePosition(position);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
     if (node is Procedure && node.isInstanceMember) {

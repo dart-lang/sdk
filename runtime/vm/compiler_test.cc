@@ -202,8 +202,7 @@ TEST_CASE(EvalExpression) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle obj_handle =
       Dart_Invoke(lib, Dart_NewStringFromCString("makeObj"), 0, NULL);
-  EXPECT(!Dart_IsNull(obj_handle));
-  EXPECT(!Dart_IsError(obj_handle));
+  EXPECT_VALID(obj_handle);
   TransitionNativeToVM transition(thread);
   const Object& obj = Object::Handle(Api::UnwrapHandle(obj_handle));
   EXPECT(!obj.IsNull());
