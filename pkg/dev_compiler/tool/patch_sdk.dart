@@ -9,9 +9,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-// ignore: deprecated_member_use
-import 'package:analyzer/analyzer.dart'
-    show parseCompilationUnit, parseDirectives;
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -90,7 +88,7 @@ void main(List<String> argv) {
       int inputModifyTime = math.max(selfModifyTime,
           libraryFile.lastModifiedSync().millisecondsSinceEpoch);
       var partFiles = <File>[];
-      for (var part in parseDirectives(libraryContents).directives) {
+      for (var part in parseString(content: libraryContents).unit.directives) {
         if (part is PartDirective) {
           var partPath = part.uri.stringValue;
           outPaths.add(path.join(path.dirname(libraryOut), partPath));
@@ -188,7 +186,7 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents) {
   bool failed = false;
   for (var partContent in partsContents) {
     var partEdits = StringEditBuffer(partContent);
-    var partUnit = parseCompilationUnit(partContent);
+    var partUnit = parseString(content: partContent).unit;
     var patcher = PatchApplier(partEdits, patchFinder);
     partUnit.accept(patcher);
     if (!failed) failed = patcher.patchWasMissing;
@@ -315,7 +313,7 @@ class PatchFinder extends GeneralizingAstVisitor {
 
   PatchFinder.parseAndVisit(String contents)
       : contents = contents,
-        unit = parseCompilationUnit(contents) {
+        unit = parseString(content: contents).unit {
     visitCompilationUnit(unit);
   }
 
@@ -482,6 +480,6 @@ List<SdkLibrary> _getSdkLibraries(String contents) {
   // It doesn't understand optional new/const in Dart 2. For now, we keep
   // redundant `const` in tool/input_sdk/libraries.dart as a workaround.
   var libraryBuilder = SdkLibrariesReader_LibraryBuilder(true);
-  parseCompilationUnit(contents).accept(libraryBuilder);
+  parseString(content: contents).unit.accept(libraryBuilder);
   return libraryBuilder.librariesMap.sdkLibraries;
 }
