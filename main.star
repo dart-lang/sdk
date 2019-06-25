@@ -457,6 +457,8 @@ dart_vm_extra_builder("vm-dartkb-linux-product-x64", category="vm|dartkb|p")
 dart_vm_extra_builder("vm-dartkb-linux-release-simarm64",
                         category="vm|dartkb|sr")
 dart_vm_extra_builder("vm-dartkb-linux-release-x64", category="vm|dartkb|r")
+dart_vm_extra_builder("vm-dartkb-linux-release-x64-abi",
+                        category="vm|dartkb|abi")
 
 #vm|kernel
 dart_ci_sandbox_builder("vm-canary-linux-debug",
