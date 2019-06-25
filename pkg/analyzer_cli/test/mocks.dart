@@ -31,7 +31,7 @@ class MockAnalysisError implements AnalysisError {
   MockAnalysisError(this.source, this.errorCode, this.offset, this.message);
 
   @override
-  List<DiagnosticMessage> get contextMessages => null;
+  List<DiagnosticMessage> get contextMessages => const [];
 
   @override
   String get correction => null;
