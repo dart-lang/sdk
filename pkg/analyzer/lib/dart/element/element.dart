@@ -1046,6 +1046,40 @@ abstract class ExportElement implements Element, UriReferencedElement {
   LibraryElement get exportedLibrary;
 }
 
+/// An element that represents an extension.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionElement implements Element {
+  /// Return a list containing all of the accessors (getters and setters)
+  /// declared in this extension.
+  List<PropertyAccessorElement> get accessors;
+
+  /// Return the type that is extended by this extension.
+  DartType get extendedType;
+
+  /// Return a list containing all of the methods declared in this extension.
+  List<MethodElement> get methods;
+
+  /// Return a list containing all of the type parameters declared by this
+  /// extension.
+  List<TypeParameterElement> get typeParameters;
+
+  /// Return the element representing the getter with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// getter with the given name.
+  PropertyAccessorElement /*?*/ getGetter(String name);
+
+  /// Return the element representing the method with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// method with the given name.
+  MethodElement /*?*/ getMethod(String name);
+
+  /// Return the element representing the setter with the given [name] that is
+  /// declared in this extension, or `null` if this extension does not declare a
+  /// setter with the given name.
+  PropertyAccessorElement /*?*/ getSetter(String name);
+}
+
 /// A field defined within a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1266,6 +1300,8 @@ abstract class LibraryElement implements Element {
   /// Return `true` if this library is part of the SDK.
   bool get isInSdk;
 
+  bool get isNonNullableByDefault;
+
   /// Return a list containing the strongly connected component in the
   /// import/export graph in which the current library resides.
   List<LibraryElement> get libraryCycle;
@@ -1298,8 +1334,6 @@ abstract class LibraryElement implements Element {
   /// consists of. This includes the defining compilation unit and units
   /// included using the `part` directive.
   List<CompilationUnitElement> get units;
-
-  bool get isNonNullableByDefault;
 
   /// Return a list containing all of the imports that share the given [prefix],
   /// or an empty array if there are no such imports.
