@@ -68,17 +68,18 @@ import '../fasta_codes.dart'
         templateSourceOutlineSummary,
         templateUntranslatableUri;
 
-import '../kernel/kernel_shadow_ast.dart'
-    show ShadowClass, ShadowTypeInferenceEngine;
+import '../kernel/kernel_shadow_ast.dart' show ShadowTypeInferenceEngine;
 
 import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
         ClassHierarchyBuilder,
         Declaration,
+        DelayedMember,
+        DelayedOverrideCheck,
         EnumBuilder,
+        FieldBuilder,
         KernelClassBuilder,
-        KernelFieldBuilder,
         KernelProcedureBuilder,
         KernelTypeBuilder,
         LibraryBuilder,
@@ -107,8 +108,6 @@ import '../problems.dart' show internalProblem;
 import '../scanner.dart'
     show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
 
-import '../type_inference/interface_resolver.dart' show InterfaceResolver;
-
 import 'diet_listener.dart' show DietListener;
 
 import 'diet_parser.dart' show DietParser;
@@ -128,6 +127,8 @@ class SourceLoader extends Loader<Library> {
 
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
+  ClassHierarchyBuilder builderHierarchy;
+
   // Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes coreTypes;
@@ -137,8 +138,6 @@ class SourceLoader extends Loader<Library> {
   DartType streamOfBottom;
 
   ShadowTypeInferenceEngine typeInferenceEngine;
-
-  InterfaceResolver interfaceResolver;
 
   Instrumentation instrumentation;
 
@@ -609,6 +608,10 @@ class SourceLoader extends Loader<Library> {
             break;
           }
         }
+        if (allSupertypesProcessed && cls.isPatch) {
+          allSupertypesProcessed =
+              topologicallySortedClasses.contains(cls.origin);
+        }
         if (allSupertypesProcessed) {
           topologicallySortedClasses.add(cls);
           checkClassSupertypes(cls, directSupertypes, blackListedClasses);
@@ -884,27 +887,33 @@ class SourceLoader extends Loader<Library> {
   }
 
   void checkOverrides(List<SourceClassBuilder> sourceClasses) {
-    assert(hierarchy != null);
-    for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkOverrides(
-            hierarchy, typeInferenceEngine?.typeSchemaEnvironment);
-      }
+    List<DelayedOverrideCheck> overrideChecks =
+        builderHierarchy.overrideChecks.toList();
+    builderHierarchy.overrideChecks.clear();
+    for (int i = 0; i < overrideChecks.length; i++) {
+      overrideChecks[i].check(builderHierarchy);
     }
-    ticker.logMs("Checked overrides");
+    ticker.logMs("Checked ${overrideChecks.length} overrides");
+
+    typeInferenceEngine?.finishTopLevelInitializingFormals();
+    ticker.logMs("Finished initializing formals");
   }
 
   void checkAbstractMembers(List<SourceClassBuilder> sourceClasses) {
-    // TODO(ahe): Move this to [ClassHierarchyBuilder].
-    if (target.legacyMode) return;
-    assert(hierarchy != null);
-    for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.library.loader == this && !builder.isPatch) {
-        builder.checkAbstractMembers(
-            coreTypes, hierarchy, typeInferenceEngine.typeSchemaEnvironment);
-      }
+    List<DelayedMember> delayedMemberChecks =
+        builderHierarchy.delayedMemberChecks.toList();
+    builderHierarchy.delayedMemberChecks.clear();
+    Set<Class> changedClasses = new Set<Class>();
+    for (int i = 0; i < delayedMemberChecks.length; i++) {
+      delayedMemberChecks[i].check(builderHierarchy);
+      changedClasses.add(delayedMemberChecks[i].parent.cls);
     }
-    ticker.logMs("Checked abstract members");
+    ticker.logMs(
+        "Computed ${delayedMemberChecks.length} combined member signatures");
+
+    hierarchy.applyMemberChanges(changedClasses, findDescendants: false);
+    ticker
+        .logMs("Updated ${changedClasses.length} classes in kernel hierarchy");
   }
 
   void checkRedirectingFactories(List<SourceClassBuilder> sourceClasses) {
@@ -968,12 +977,12 @@ class SourceLoader extends Loader<Library> {
     });
   }
 
-  ClassHierarchyBuilder buildClassHierarchy(
+  void buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
-    ClassHierarchyBuilder hierarchy = ClassHierarchyBuilder.build(
+    builderHierarchy = ClassHierarchyBuilder.build(
         objectClass, sourceClasses, this, coreTypes);
+    typeInferenceEngine?.hierarchyBuilder = builderHierarchy;
     ticker.logMs("Built class hierarchy");
-    return hierarchy;
   }
 
   void createTypeInferenceEngine() {
@@ -989,58 +998,30 @@ class SourceLoader extends Loader<Library> {
     /// might be subject to type inference, and records dependencies between
     /// them.
     typeInferenceEngine.prepareTopLevel(coreTypes, hierarchy);
-    interfaceResolver = new InterfaceResolver(typeInferenceEngine,
-        typeInferenceEngine.typeSchemaEnvironment, instrumentation);
+    List<FieldBuilder> allImplicitlyTypedFields = <FieldBuilder>[];
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        Iterator<Declaration> iterator = library.iterator;
-        while (iterator.moveNext()) {
-          Declaration member = iterator.current;
-          if (member is KernelFieldBuilder) {
-            member.prepareTopLevelInference();
-          }
+        List<FieldBuilder> implicitlyTypedFields =
+            library.takeImplicitlyTypedFields();
+        if (implicitlyTypedFields != null) {
+          allImplicitlyTypedFields.addAll(implicitlyTypedFields);
         }
       }
     }
-    for (int i = 0; i < sourceClasses.length; i++) {
-      sourceClasses[i].prepareTopLevelInference();
+
+    for (int i = 0; i < allImplicitlyTypedFields.length; i++) {
+      // TODO(ahe): This can cause a crash for parts that failed to get
+      // included, see for example,
+      // tests/standalone_2/io/http_cookie_date_test.dart.
+      allImplicitlyTypedFields[i].inferType();
     }
+
     typeInferenceEngine.isTypeInferencePrepared = true;
-    ticker.logMs("Prepared top level inference");
 
-    /// The second phase of top level initializer inference, which is to visit
-    /// fields and top level variables in topologically-sorted order and assign
-    /// their types.
-    typeInferenceEngine.finishTopLevelFields();
-    List<Class> changedClasses = new List<Class>();
-    for (var builder in sourceClasses) {
-      if (builder.isPatch) continue;
-      ShadowClass class_ = builder.target;
-      int memberCount = class_.fields.length +
-          class_.constructors.length +
-          class_.procedures.length +
-          class_.redirectingFactoryConstructors.length;
-      class_.finalizeCovariance(interfaceResolver);
-      ShadowClass.clearClassInferenceInfo(class_);
-      int newMemberCount = class_.fields.length +
-          class_.constructors.length +
-          class_.procedures.length +
-          class_.redirectingFactoryConstructors.length;
-      if (newMemberCount != memberCount) {
-        // The inference potentially adds new members (but doesn't otherwise
-        // change the classes), so if the member count has changed we need to
-        // update the class in the class hierarchy.
-        changedClasses.add(class_);
-      }
-    }
-
-    typeInferenceEngine.finishTopLevelInitializingFormals();
-    interfaceResolver = null;
     // Since finalization of covariance may have added forwarding stubs, we need
     // to recompute the class hierarchy so that method compilation will properly
     // target those forwarding stubs.
     hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
-    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
     ticker.logMs("Performed top level inference");
   }
 

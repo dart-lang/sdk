@@ -44,7 +44,6 @@ CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
-CantInferTypeDueToInconsistentOverrides/example: Fail
 CantReadFile/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseDeferredPrefixAsConstant/part_wrapped_script: Fail # Importing file in the (now) part.

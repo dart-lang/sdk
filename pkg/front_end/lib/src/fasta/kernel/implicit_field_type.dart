@@ -16,6 +16,7 @@ import 'kernel_builder.dart' show MemberBuilder;
 class ImplicitFieldType extends DartType {
   final MemberBuilder member;
   Token initializerToken;
+  bool isStarted = false;
 
   get nullability =>
       unsupported("nullability", member.charOffset, member.fileUri);

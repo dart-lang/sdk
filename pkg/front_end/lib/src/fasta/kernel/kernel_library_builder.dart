@@ -103,6 +103,8 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
+import '../names.dart' show indexSetName;
+
 import '../problems.dart' show unexpected, unhandled;
 
 import '../severity.dart' show Severity;
@@ -202,6 +204,8 @@ class KernelLibraryBuilder
   Map<String, String> unserializableExports;
 
   List<KernelFormalParameterBuilder> untypedInitializingFormals;
+
+  List<KernelFieldBuilder> implicitlyTypedFields;
 
   KernelLibraryBuilder(Uri uri, Uri fileUri, Loader loader, this.actualOrigin,
       [Scope scope, Library target])
@@ -648,6 +652,7 @@ class KernelLibraryBuilder
     addBuilder(name, field, charOffset);
     if (!legacyMode && type == null && initializerToken != null) {
       field.target.type = new ImplicitFieldType(field, initializerToken);
+      (implicitlyTypedFields ??= <KernelFieldBuilder>[]).add(field);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -713,6 +718,14 @@ class KernelLibraryBuilder
       String nativeMethodName,
       {bool isTopLevel}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
+    if (returnType == null) {
+      if (kind == ProcedureKind.Operator &&
+          identical(name, indexSetName.name)) {
+        returnType = addVoidType(charOffset);
+      } else if (kind == ProcedureKind.Setter) {
+        returnType = addVoidType(charOffset);
+      }
+    }
     ProcedureBuilder procedure = new KernelProcedureBuilder(
         metadata,
         modifiers,
@@ -1361,9 +1374,9 @@ class KernelLibraryBuilder
   }
 
   @override
-  void includePart(
+  bool includePart(
       covariant KernelLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
-    super.includePart(part, usedParts, partOffset);
+    if (!super.includePart(part, usedParts, partOffset)) return false;
     nativeMethods.addAll(part.nativeMethods);
     boundlessTypeVariables.addAll(part.boundlessTypeVariables);
     // Check that the targets are different. This is not normally a problem
@@ -1372,6 +1385,16 @@ class KernelLibraryBuilder
       target.problemsAsJson ??= <String>[];
       target.problemsAsJson.addAll(part.target.problemsAsJson);
     }
+    List<KernelFieldBuilder> partImplicitlyTypedFields =
+        part.takeImplicitlyTypedFields();
+    if (partImplicitlyTypedFields != null) {
+      if (implicitlyTypedFields == null) {
+        implicitlyTypedFields = partImplicitlyTypedFields;
+      } else {
+        implicitlyTypedFields.addAll(partImplicitlyTypedFields);
+      }
+    }
+    return true;
   }
 
   @override
@@ -1826,6 +1849,13 @@ class KernelLibraryBuilder
     int count = untypedInitializingFormals.length;
     untypedInitializingFormals = null;
     return count;
+  }
+
+  @override
+  List<KernelFieldBuilder> takeImplicitlyTypedFields() {
+    List<KernelFieldBuilder> result = implicitlyTypedFields;
+    implicitlyTypedFields = null;
+    return result;
   }
 }
 

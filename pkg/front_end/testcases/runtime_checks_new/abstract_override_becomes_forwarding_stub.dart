@@ -14,7 +14,7 @@ abstract class I<T> {
 }
 
 class C extends B implements I<num> {
-  void /*@forwardingStub=semi-stub*/ f(num x);
+  void f(num x);
 }
 
 main() {}

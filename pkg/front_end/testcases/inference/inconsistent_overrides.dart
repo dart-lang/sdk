@@ -2,23 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test;
+
 /*@testedFeatures=inference*/
 
 class A {
-  dynamic field1;
-  int field2;
-}
-
-class I {
-  int field1;
-  dynamic field2;
+  A f(A x, {A y}) {}
+  A g(A x, {A y}) {}
+  A h(A x, {A y}) {}
 }
 
 class B extends A implements I {
-  get field1 => null;
-  get field2 => null;
-  set field1(value) {}
-  set field2(value) {}
+  f(x, {y}) {}
+  g(x, {y}) {}
+  h(x, {y}) {}
+}
+
+class I {
+  I f(I x, {I y}) {}
+  A g(I x, {I y}) {}
+  A h(A x, {I y}) {}
 }
 
 main() {}

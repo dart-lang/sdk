@@ -368,7 +368,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTestingTarget(
+      KernelTarget sourceTarget = new KernelTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
@@ -463,15 +463,6 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
   }
 }
 
-class KernelTestingTarget extends KernelTarget {
-  @override
-  ClassHierarchyBuilder builderHierarchy;
-
-  KernelTestingTarget(StandardFileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
-}
-
 class MatchHierarchy extends Step<Component, Component, FastaContext> {
   const MatchHierarchy();
 
@@ -481,8 +472,8 @@ class MatchHierarchy extends Step<Component, Component, FastaContext> {
       Component component, FastaContext context) async {
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    KernelTestingTarget target = context.componentToTarget[component];
-    ClassHierarchyBuilder hierarchy = target.builderHierarchy;
+    KernelTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       node.toString(sb);

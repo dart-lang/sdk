@@ -590,6 +590,36 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateCantInferReturnTypeDueToInconsistentOverrides =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't infer a return type for '#name' as some of the inherited members have different types.""",
+        tipTemplate: r"""Try adding an explicit type.""",
+        withArguments:
+            _withArgumentsCantInferReturnTypeDueToInconsistentOverrides);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeCantInferReturnTypeDueToInconsistentOverrides =
+    const Code<Message Function(String name)>(
+        "CantInferReturnTypeDueToInconsistentOverrides",
+        templateCantInferReturnTypeDueToInconsistentOverrides,
+        analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCantInferReturnTypeDueToInconsistentOverrides(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeCantInferReturnTypeDueToInconsistentOverrides,
+      message:
+          """Can't infer a return type for '${name}' as some of the inherited members have different types.""",
+      tip: """Try adding an explicit type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -782,6 +812,38 @@ const MessageCode messageColonInPlaceOfIn = const MessageCode(
     index: 54,
     message: r"""For-in loops use 'in' rather than a colon.""",
     tip: r"""Try replacing the colon with the keyword 'in'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateCombinedMemberSignatureFailed = const Template<
+        Message Function(String name, String name2)>(
+    messageTemplate:
+        r"""Class '#name' inherits multiple members named '#name2' with incompatible signatures.""",
+    tipTemplate: r"""Try adding a declaration of '#name2' to '#name'.""",
+    withArguments: _withArgumentsCombinedMemberSignatureFailed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeCombinedMemberSignatureFailed =
+    const Code<Message Function(String name, String name2)>(
+        "CombinedMemberSignatureFailed", templateCombinedMemberSignatureFailed,
+        analyzerCodes: <String>["INCONSISTENT_INHERITANCE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsCombinedMemberSignatureFailed(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeCombinedMemberSignatureFailed,
+      message:
+          """Class '${name}' inherits multiple members named '${name2}' with incompatible signatures.""",
+      tip: """Try adding a declaration of '${name2}' to '${name}'.""",
+      arguments: {'name': name, 'name2': name2});
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
