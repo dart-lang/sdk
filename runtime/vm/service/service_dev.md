@@ -643,7 +643,8 @@ See [FlagList](#flaglist).
 ### getInstances
 
 ```
-InstanceSet getInstances(string objectId,
+InstanceSet getInstances(string isolateId,
+                         string objectId,
                          int limit)
 ```
 
@@ -806,8 +807,8 @@ See [VM](#vm).
 ### getVMTimeline
 
 ```
-Timeline getVMTimeline(int timeOriginMicros,
-                       int timeExtentMicros)
+Timeline getVMTimeline(int timeOriginMicros [optional],
+                       int timeExtentMicros [optional])
 ```
 
 The _getVMTimeline_ RPC is used to retrieve an object which contains VM timeline
@@ -2318,7 +2319,7 @@ class InstanceSet extends Response {
   int totalCount;
 
   // An array of instances of the requested type.
-  @Instance[] instances;
+  @Object[] instances;
 }
 ```
 
