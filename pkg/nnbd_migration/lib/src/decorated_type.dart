@@ -99,6 +99,50 @@ class DecoratedType {
     return decoratedType;
   }
 
+  /// Creates a decorated type corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  factory DecoratedType.forImplicitFunction(
+      FunctionType type, NullabilityNode node, NullabilityGraph graph,
+      {DecoratedType returnType}) {
+    if (type.typeFormals.isNotEmpty) {
+      throw new UnimplementedError('Decorating a generic function type');
+    }
+    var positionalParameters = <DecoratedType>[];
+    var namedParameters = <String, DecoratedType>{};
+    for (var parameter in type.parameters) {
+      if (parameter.isPositional) {
+        positionalParameters
+            .add(DecoratedType.forImplicitType(parameter.type, graph));
+      } else {
+        namedParameters[parameter.name] =
+            DecoratedType.forImplicitType(parameter.type, graph);
+      }
+    }
+    return DecoratedType(type, graph.never,
+        returnType:
+            returnType ?? DecoratedType.forImplicitType(type.returnType, graph),
+        namedParameters: namedParameters,
+        positionalParameters: positionalParameters);
+  }
+
+  /// Creates a DecoratedType corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  factory DecoratedType.forImplicitType(DartType type, NullabilityGraph graph) {
+    if (type.isDynamic) {
+      return DecoratedType(type, graph.always);
+    } else if (type is InterfaceType) {
+      return DecoratedType(type, NullabilityNode.forInferredType(),
+          typeArguments: type.typeArguments
+              .map((t) => DecoratedType.forImplicitType(t, graph))
+              .toList());
+    }
+    // TODO(paulberry)
+    throw UnimplementedError(
+        'DecoratedType.forImplicitType(${type.runtimeType})');
+  }
+
   /// If `this` represents an interface type, returns the substitution necessary
   /// to produce this type using the class's type as a starting point.
   /// Otherwise throws an exception.

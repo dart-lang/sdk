@@ -531,6 +531,88 @@ C f(C c, int i) => c..x = i;
         hard: false);
   }
 
+  test_class_alias_synthetic_constructor_with_parameters_complex() async {
+    await analyze('''
+class MyList<T> {}
+class C {
+  C(MyList<int>/*1*/ x);
+}
+mixin M {}
+class D = C with M;
+D f(MyList<int>/*2*/ x) => D(x);
+''');
+    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(decoratedTypeAnnotation('MyList<int>/*2*/').node,
+        constructorParameterType.node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int>/*2*/').node,
+        constructorParameterType.typeArguments[0].node,
+        hard: false);
+    assertUnion(constructorParameterType.node,
+        decoratedTypeAnnotation('MyList<int>/*1*/').node);
+    assertUnion(constructorParameterType.typeArguments[0].node,
+        decoratedTypeAnnotation('int>/*1*/').node);
+  }
+
+  test_class_alias_synthetic_constructor_with_parameters_named() async {
+    await analyze('''
+class C {
+  C({int/*1*/ i});
+}
+mixin M {}
+class D = C with M;
+D f(int/*2*/ i) => D(i: i);
+''');
+    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.namedParameters['i'];
+    assertEdge(
+        decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
+        hard: true);
+    assertUnion(constructorParameterType.node,
+        decoratedTypeAnnotation('int/*1*/').node);
+  }
+
+  test_class_alias_synthetic_constructor_with_parameters_optional() async {
+    await analyze('''
+class C {
+  C([int/*1*/ i]);
+}
+mixin M {}
+class D = C with M;
+D f(int/*2*/ i) => D(i);
+''');
+    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(
+        decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
+        hard: true);
+    assertUnion(constructorParameterType.node,
+        decoratedTypeAnnotation('int/*1*/').node);
+  }
+
+  test_class_alias_synthetic_constructor_with_parameters_required() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i);
+}
+mixin M {}
+class D = C with M;
+D f(int/*2*/ i) => D(i);
+''');
+    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertEdge(
+        decoratedTypeAnnotation('int/*2*/').node, constructorParameterType.node,
+        hard: true);
+    assertUnion(constructorParameterType.node,
+        decoratedTypeAnnotation('int/*1*/').node);
+  }
+
   test_conditionalExpression_condition_check() async {
     await analyze('''
 int f(bool b, int i, int j) {

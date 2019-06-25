@@ -283,6 +283,29 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitClassTypeAlias(ClassTypeAlias node) {
+    var classElement = node.declaredElement;
+    var supertype = classElement.supertype;
+    var superElement = supertype.element;
+    for (var constructorElement in classElement.constructors) {
+      assert(constructorElement.isSynthetic);
+      var superConstructorElement =
+          superElement.getNamedConstructor(constructorElement.name);
+      var constructorDecoratedType = _variables
+          .decoratedElementType(constructorElement)
+          .substitute(_decoratedClassHierarchy
+              .getDecoratedSupertype(classElement, superElement)
+              .asSubstitution);
+      var superConstructorDecoratedType = _variables
+          .decoratedElementType(superConstructorElement, create: true);
+      var origin = ImplicitMixinSuperCallOrigin(_source, node.offset);
+      _unionDecoratedTypeParameters(
+          constructorDecoratedType, superConstructorDecoratedType, origin);
+    }
+    return null;
+  }
+
+  @override
   DecoratedType visitComment(Comment node) {
     // Ignore comments.
     return null;
@@ -1053,17 +1076,32 @@ $stackTrace''');
     throw UnimplementedError(buffer.toString());
   }
 
+  void _unionDecoratedTypeParameters(
+      DecoratedType x, DecoratedType y, EdgeOrigin origin) {
+    for (int i = 0;
+        i < x.positionalParameters.length && i < y.positionalParameters.length;
+        i++) {
+      _unionDecoratedTypes(
+          x.positionalParameters[i], y.positionalParameters[i], origin);
+    }
+    for (var entry in x.namedParameters.entries) {
+      var superParameterType = y.namedParameters[entry.key];
+      if (superParameterType != null) {
+        _unionDecoratedTypes(entry.value, y.namedParameters[entry.key], origin);
+      }
+    }
+  }
+
   void _unionDecoratedTypes(
       DecoratedType x, DecoratedType y, EdgeOrigin origin) {
     _graph.union(x.node, y.node, origin);
-    if (x.typeArguments.isNotEmpty ||
-        y.typeArguments.isNotEmpty ||
-        x.returnType != null ||
-        y.returnType != null ||
-        x.positionalParameters.isNotEmpty ||
-        y.positionalParameters.isNotEmpty ||
-        x.namedParameters.isNotEmpty ||
-        y.namedParameters.isNotEmpty) {
+    _unionDecoratedTypeParameters(x, y, origin);
+    for (int i = 0;
+        i < x.typeArguments.length && i < y.typeArguments.length;
+        i++) {
+      _unionDecoratedTypes(x.typeArguments[i], y.typeArguments[i], origin);
+    }
+    if (x.returnType != null || y.returnType != null) {
       // TODO(paulberry)
       throw UnimplementedError('_unionDecoratedTypes($x, $y, $origin)');
     }

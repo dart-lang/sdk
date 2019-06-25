@@ -58,6 +58,75 @@ class D = C with M;
     expect(bType.returnType.node, same(never));
   }
 
+  test_class_alias_synthetic_constructors_with_parameters() async {
+    await analyze('''
+class C {
+  C.a(int i);
+  C.b([int i]);
+  C.c({int i});
+  C.d(List<int> x);
+}
+mixin M {}
+class D = C with M;
+''');
+    var constructors = findElement.class_('D').constructors;
+    expect(constructors, hasLength(4));
+    var a = findElement.constructor('a', of: 'D');
+    var aType = variables.decoratedElementType(a);
+    expect(aType.type.toString(), 'D Function(int)');
+    expect(aType.node, same(never));
+    expect(aType.typeArguments, isEmpty);
+    expect(aType.returnType.type.toString(), 'D');
+    expect(aType.returnType.node, same(never));
+    expect(aType.positionalParameters, hasLength(1));
+    expect(aType.positionalParameters[0].type.toString(), 'int');
+    expect(aType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(aType.namedParameters, isEmpty);
+    var b = findElement.constructor('b', of: 'D');
+    var bType = variables.decoratedElementType(b);
+    expect(bType.type.toString(), 'D Function([int])');
+    expect(bType.node, same(never));
+    expect(bType.typeArguments, isEmpty);
+    expect(bType.returnType.type.toString(), 'D');
+    expect(bType.returnType.node, same(never));
+    expect(bType.positionalParameters, hasLength(1));
+    expect(bType.positionalParameters[0].type.toString(), 'int');
+    expect(bType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(bType.namedParameters, isEmpty);
+    var c = findElement.constructor('c', of: 'D');
+    var cType = variables.decoratedElementType(c);
+    expect(cType.type.toString(), 'D Function({i: int})');
+    expect(cType.node, same(never));
+    expect(cType.typeArguments, isEmpty);
+    expect(cType.returnType.type.toString(), 'D');
+    expect(cType.returnType.node, same(never));
+    expect(cType.positionalParameters, isEmpty);
+    expect(cType.namedParameters, hasLength(1));
+    expect(cType.namedParameters, contains('i'));
+    expect(cType.namedParameters['i'].type.toString(), 'int');
+    expect(
+        cType.namedParameters['i'].node, TypeMatcher<NullabilityNodeMutable>());
+    var d = findElement.constructor('d', of: 'D');
+    var dType = variables.decoratedElementType(d);
+    expect(dType.type.toString(), 'D Function(List<int>)');
+    expect(dType.node, same(never));
+    expect(dType.typeArguments, isEmpty);
+    expect(dType.returnType.type.toString(), 'D');
+    expect(dType.returnType.node, same(never));
+    expect(dType.positionalParameters, hasLength(1));
+    expect(dType.positionalParameters[0].type.toString(), 'List<int>');
+    expect(dType.positionalParameters[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(dType.positionalParameters[0].typeArguments, hasLength(1));
+    expect(
+        dType.positionalParameters[0].typeArguments[0].type.toString(), 'int');
+    expect(dType.positionalParameters[0].typeArguments[0].node,
+        TypeMatcher<NullabilityNodeMutable>());
+    expect(dType.namedParameters, isEmpty);
+  }
+
   test_class_with_default_constructor() async {
     await analyze('''
 class C {}

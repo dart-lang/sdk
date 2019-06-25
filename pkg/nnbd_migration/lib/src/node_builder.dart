@@ -110,14 +110,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       assert(constructorElement.isSynthetic);
       var decoratedReturnType =
           _createDecoratedTypeForClass(classElement, node);
-      if (constructorElement.parameters.isNotEmpty) {
-        _unimplemented(node,
-            'Implicit constructor of a mixin application, with parameters');
-      }
-      var functionType = DecoratedType(constructorElement.type, _graph.never,
-          returnType: decoratedReturnType,
-          positionalParameters: [],
-          namedParameters: {});
+      var functionType = DecoratedType.forImplicitFunction(
+          constructorElement.type, _graph.never, _graph,
+          returnType: decoratedReturnType);
       _variables.recordDecoratedElementType(constructorElement, functionType);
     }
     return null;
@@ -264,8 +259,9 @@ $stackTrace''');
     if (type is InterfaceType && type.typeParameters.isNotEmpty) {
       if (node is TypeName) {
         if (node.typeArguments == null) {
-          typeArguments =
-              type.typeArguments.map(_decorateImplicitTypeArgument).toList();
+          typeArguments = type.typeArguments
+              .map((t) => DecoratedType.forImplicitType(t, _graph))
+              .toList();
         } else {
           typeArguments =
               node.typeArguments.arguments.map((t) => t.accept(this)).toList();
@@ -368,22 +364,6 @@ $stackTrace''');
         .toList();
     return DecoratedType(classElement.type, _graph.never,
         typeArguments: typeArguments);
-  }
-
-  /// Creates a DecoratedType corresponding to [type], with fresh nullability
-  /// nodes everywhere that don't correspond to any source location.  These
-  /// nodes can later be unioned with other nodes.
-  DecoratedType _decorateImplicitTypeArgument(DartType type) {
-    if (type.isDynamic) {
-      return DecoratedType(type, _graph.always);
-    } else if (type is InterfaceType) {
-      return DecoratedType(type, NullabilityNode.forInferredType(),
-          typeArguments:
-              type.typeArguments.map(_decorateImplicitTypeArgument).toList());
-    }
-    // TODO(paulberry)
-    throw UnimplementedError(
-        '_decorateImplicitTypeArgument(${type.runtimeType})');
   }
 
   /// Common handling of function and method declarations.

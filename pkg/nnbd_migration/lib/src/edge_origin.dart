@@ -39,6 +39,24 @@ class IfNullOrigin extends EdgeOriginWithLocation {
   IfNullOrigin(Source source, int offset) : super(source, offset);
 }
 
+/// Edge origin resulting from the implicit call from a mixin application
+/// constructor to the corresponding super constructor.
+///
+/// For example, in the following code snippet:
+///   class C {
+///     C(int i);
+///   }
+///   mixin M {}
+///   class D = C with M;
+///
+/// this class is used for the edge connecting the types of the `i` parameters
+/// between the implicit constructor for `D` and the explicit constructor for
+/// `C`.
+class ImplicitMixinSuperCallOrigin extends EdgeOriginWithLocation {
+  ImplicitMixinSuperCallOrigin(Source source, int offset)
+      : super(source, offset);
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:
