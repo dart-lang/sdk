@@ -1,3 +1,10 @@
+# 0.1.92
+
+* improved `prefer_collection_literals` to better handle `LinkedHashSet`s and `LinkedHashMap`s
+* updates to the Effective Dart rule set
+* updated `prefer_final_fields` to be more inclusive
+* miscellaneous documentation fixes
+
 # 0.1.91
 
 * fixed missed cases in `prefer_const_constructors`
