@@ -608,6 +608,10 @@ class ClassHierarchyNodeBuilder {
     }
     Substitution substitution;
     if (typeParameterCount != 0) {
+      for (int i = 0; i < typeParameterCount; i++) {
+        copyTypeParameterCovariance(
+            a.parent, aTypeParameters[i], bTypeParameters[i]);
+      }
       List<DartType> types = new List<DartType>(typeParameterCount);
       for (int i = 0; i < typeParameterCount; i++) {
         types[i] = new TypeParameterType(aTypeParameters[i]);
@@ -961,6 +965,15 @@ class ClassHierarchyNodeBuilder {
       }
       if (bParameter.isGenericCovariantImpl) {
         aField.isGenericCovariantImpl = true;
+      }
+    }
+  }
+
+  void copyTypeParameterCovariance(
+      Declaration parent, TypeParameter aParameter, TypeParameter bParameter) {
+    if (parent == cls) {
+      if (bParameter.isGenericCovariantImpl) {
+        aParameter.isGenericCovariantImpl = true;
       }
     }
   }
