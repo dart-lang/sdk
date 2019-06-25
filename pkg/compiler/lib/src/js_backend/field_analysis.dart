@@ -235,8 +235,8 @@ class JFieldAnalysis {
   factory JFieldAnalysis.readFromDataSource(
       DataSource source, CompilerOptions options) {
     source.begin(tag);
-    Map<FieldEntity, FieldAnalysisData> fieldData = source
-        .readMemberMap(() => new FieldAnalysisData.fromDataSource(source));
+    Map<FieldEntity, FieldAnalysisData> fieldData = source.readMemberMap(
+        (MemberEntity member) => new FieldAnalysisData.fromDataSource(source));
     source.end(tag);
     return new JFieldAnalysis._(fieldData);
   }
@@ -245,7 +245,9 @@ class JFieldAnalysis {
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
     sink.writeMemberMap(
-        _fieldData, (FieldAnalysisData data) => data.writeToDataSink(sink));
+        _fieldData,
+        (MemberEntity member, FieldAnalysisData data) =>
+            data.writeToDataSink(sink));
     sink.end(tag);
   }
 

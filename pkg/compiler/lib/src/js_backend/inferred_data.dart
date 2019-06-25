@@ -103,8 +103,8 @@ class InferredDataImpl implements InferredData {
       DataSource source, JClosedWorld closedWorld) {
     source.begin(tag);
     Set<MemberEntity> functionsCalledInLoop = source.readMembers().toSet();
-    Map<FunctionEntity, SideEffects> sideEffects =
-        source.readMemberMap(() => new SideEffects.readFromDataSource(source));
+    Map<FunctionEntity, SideEffects> sideEffects = source.readMemberMap(
+        (MemberEntity member) => new SideEffects.readFromDataSource(source));
     Set<FunctionEntity> sideEffectsFreeElements =
         source.readMembers<FunctionEntity>().toSet();
     Set<FunctionEntity> elementsThatCannotThrow =
@@ -126,8 +126,10 @@ class InferredDataImpl implements InferredData {
     sink.writeBool(false); // Is _not_ trivial.
     sink.begin(tag);
     sink.writeMembers(_functionsCalledInLoop);
-    sink.writeMemberMap(_sideEffects,
-        (SideEffects sideEffects) => sideEffects.writeToDataSink(sink));
+    sink.writeMemberMap(
+        _sideEffects,
+        (MemberEntity member, SideEffects sideEffects) =>
+            sideEffects.writeToDataSink(sink));
     sink.writeMembers(_sideEffectsFreeElements);
     sink.writeMembers(_elementsThatCannotThrow);
     sink.writeMembers(_functionsThatMightBePassedToApply);

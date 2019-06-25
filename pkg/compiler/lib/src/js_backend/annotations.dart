@@ -268,7 +268,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   factory AnnotationsDataImpl.readFromDataSource(DataSource source) {
     source.begin(tag);
     Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
-        source.readMemberMap(() => new EnumSet.fromValue(source.readInt()));
+        source.readMemberMap(
+            (MemberEntity member) => new EnumSet.fromValue(source.readInt()));
     source.end(tag);
     return new AnnotationsDataImpl(pragmaAnnotations);
   }
@@ -276,7 +277,8 @@ class AnnotationsDataImpl implements AnnotationsData {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeMemberMap(pragmaAnnotations, (EnumSet<PragmaAnnotation> set) {
+    sink.writeMemberMap(pragmaAnnotations,
+        (MemberEntity member, EnumSet<PragmaAnnotation> set) {
       sink.writeInt(set.value);
     });
     sink.end(tag);

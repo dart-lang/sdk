@@ -678,7 +678,7 @@ class FunctionDataImpl extends JMemberDataImpl
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
     StaticTypeCache staticTypes =
-        new StaticTypeCache.readFromDataSource(source);
+        new StaticTypeCache.readFromDataSource(source, node);
     source.end(tag);
     return new FunctionDataImpl(node, functionNode, definition, staticTypes);
   }
@@ -689,7 +689,7 @@ class FunctionDataImpl extends JMemberDataImpl
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    staticTypes.writeToDataSink(sink);
+    staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
 
@@ -877,7 +877,7 @@ class JConstructorDataImpl extends FunctionDataImpl
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
     StaticTypeCache staticTypes =
-        new StaticTypeCache.readFromDataSource(source);
+        new StaticTypeCache.readFromDataSource(source, node);
     source.end(tag);
     return new JConstructorDataImpl(
         node, functionNode, definition, staticTypes);
@@ -890,7 +890,7 @@ class JConstructorDataImpl extends FunctionDataImpl
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
     assert(constructorBody == null);
-    staticTypes.writeToDataSink(sink);
+    staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
 
@@ -940,7 +940,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
     StaticTypeCache staticTypes =
-        new StaticTypeCache.readFromDataSource(source);
+        new StaticTypeCache.readFromDataSource(source, node);
     source.end(tag);
     return new ConstructorBodyDataImpl(
         node, functionNode, definition, staticTypes);
@@ -952,7 +952,7 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    staticTypes.writeToDataSink(sink);
+    staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
 
@@ -988,7 +988,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     MemberDefinition definition =
         new MemberDefinition.readFromDataSource(source);
     StaticTypeCache staticTypes =
-        new StaticTypeCache.readFromDataSource(source);
+        new StaticTypeCache.readFromDataSource(source, node);
     source.end(tag);
     return new JFieldDataImpl(node, definition, staticTypes);
   }
@@ -999,7 +999,7 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     sink.begin(tag);
     sink.writeMemberNode(node);
     definition.writeToDataSink(sink);
-    staticTypes.writeToDataSink(sink);
+    staticTypes.writeToDataSink(sink, node);
     sink.end(tag);
   }
 

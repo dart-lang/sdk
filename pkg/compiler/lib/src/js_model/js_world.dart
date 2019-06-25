@@ -173,8 +173,8 @@ class JsClosedWorld implements JClosedWorld {
     elementMap.lateOutputUnitDataBuilder =
         new LateOutputUnitDataBuilder(outputUnitData);
 
-    Map<MemberEntity, MemberAccess> memberAccess =
-        source.readMemberMap(() => new MemberAccess.readFromDataSource(source));
+    Map<MemberEntity, MemberAccess> memberAccess = source.readMemberMap(
+        (MemberEntity member) => new MemberAccess.readFromDataSource(source));
 
     source.end(tag);
 
@@ -228,7 +228,9 @@ class JsClosedWorld implements JClosedWorld {
     closureDataLookup.writeToDataSink(sink);
     outputUnitData.writeToDataSink(sink);
     sink.writeMemberMap(
-        memberAccess, (MemberAccess access) => access.writeToDataSink(sink));
+        memberAccess,
+        (MemberEntity member, MemberAccess access) =>
+            access.writeToDataSink(sink));
     sink.end(tag);
   }
 

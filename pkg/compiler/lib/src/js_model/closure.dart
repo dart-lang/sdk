@@ -49,12 +49,13 @@ class ClosureDataImpl implements ClosureData {
       JsToElementMap elementMap, DataSource source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
-    Map<MemberEntity, ScopeInfo> scopeMap =
-        source.readMemberMap(() => new ScopeInfo.readFromDataSource(source));
+    Map<MemberEntity, ScopeInfo> scopeMap = source.readMemberMap(
+        (MemberEntity member) => new ScopeInfo.readFromDataSource(source));
     Map<ir.TreeNode, CapturedScope> capturedScopesMap = source
         .readTreeNodeMap(() => new CapturedScope.readFromDataSource(source));
-    Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap = source
-        .readMemberMap(() => new CapturedScope.readFromDataSource(source));
+    Map<MemberEntity, CapturedScope> capturedScopeForSignatureMap =
+        source.readMemberMap((MemberEntity member) =>
+            new CapturedScope.readFromDataSource(source));
     Map<ir.LocalFunction, ClosureRepresentationInfo>
         localClosureRepresentationMap = source.readTreeNodeMap(
             () => new ClosureRepresentationInfo.readFromDataSource(source));
@@ -67,13 +68,15 @@ class ClosureDataImpl implements ClosureData {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
-    sink.writeMemberMap(
-        _scopeMap, (ScopeInfo info) => info.writeToDataSink(sink));
+    sink.writeMemberMap(_scopeMap,
+        (MemberEntity member, ScopeInfo info) => info.writeToDataSink(sink));
     sink.writeTreeNodeMap(_capturedScopesMap, (CapturedScope scope) {
       scope.writeToDataSink(sink);
     });
-    sink.writeMemberMap(_capturedScopeForSignatureMap,
-        (CapturedScope scope) => scope.writeToDataSink(sink));
+    sink.writeMemberMap(
+        _capturedScopeForSignatureMap,
+        (MemberEntity member, CapturedScope scope) =>
+            scope.writeToDataSink(sink));
     sink.writeTreeNodeMap(_localClosureRepresentationMap,
         (ClosureRepresentationInfo info) {
       info.writeToDataSink(sink);

@@ -348,7 +348,7 @@ class NativeBasicDataImpl implements NativeBasicData {
         source.readClassMap(source.readString);
     Set<ClassEntity> anonymousJsInteropClasses = source.readClasses().toSet();
     Map<MemberEntity, String> jsInteropMembers =
-        source.readMemberMap(source.readString);
+        source.readMemberMap((MemberEntity member) => source.readString());
     source.end(tag);
     return new NativeBasicDataImpl(
         elementEnvironment,
@@ -369,7 +369,8 @@ class NativeBasicDataImpl implements NativeBasicData {
     sink.writeLibraryMap(jsInteropLibraries, sink.writeString);
     sink.writeClassMap(jsInteropClasses, sink.writeString);
     sink.writeClasses(anonymousJsInteropClasses);
-    sink.writeMemberMap(jsInteropMembers, sink.writeString);
+    sink.writeMemberMap(jsInteropMembers,
+        (MemberEntity member, String name) => sink.writeString(name));
     sink.end(tag);
   }
 
@@ -576,13 +577,16 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
     NativeBasicData nativeBasicData =
         new NativeBasicData.readFromDataSource(source, elementEnvironment);
     Map<MemberEntity, String> nativeMemberName =
-        source.readMemberMap(source.readString);
-    Map<FunctionEntity, NativeBehavior> nativeMethodBehavior = source
-        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
-    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior = source
-        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
-    Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior = source
-        .readMemberMap(() => new NativeBehavior.readFromDataSource(source));
+        source.readMemberMap((MemberEntity member) => source.readString());
+    Map<FunctionEntity, NativeBehavior> nativeMethodBehavior =
+        source.readMemberMap((MemberEntity member) =>
+            new NativeBehavior.readFromDataSource(source));
+    Map<MemberEntity, NativeBehavior> nativeFieldLoadBehavior =
+        source.readMemberMap((MemberEntity member) =>
+            new NativeBehavior.readFromDataSource(source));
+    Map<MemberEntity, NativeBehavior> nativeFieldStoreBehavior =
+        source.readMemberMap((MemberEntity member) =>
+            new NativeBehavior.readFromDataSource(source));
     source.end(tag);
     return new NativeDataImpl(
         nativeBasicData,
@@ -597,16 +601,20 @@ class NativeDataImpl implements NativeData, NativeBasicDataImpl {
     sink.begin(tag);
     _nativeBasicData.writeToDataSink(sink);
 
-    sink.writeMemberMap(nativeMemberName, sink.writeString);
+    sink.writeMemberMap(nativeMemberName,
+        (MemberEntity member, String name) => sink.writeString(name));
 
-    sink.writeMemberMap(nativeMethodBehavior, (NativeBehavior behavior) {
+    sink.writeMemberMap(nativeMethodBehavior,
+        (MemberEntity member, NativeBehavior behavior) {
       behavior.writeToDataSink(sink);
     });
 
-    sink.writeMemberMap(nativeFieldLoadBehavior, (NativeBehavior behavior) {
+    sink.writeMemberMap(nativeFieldLoadBehavior,
+        (MemberEntity member, NativeBehavior behavior) {
       behavior.writeToDataSink(sink);
     });
-    sink.writeMemberMap(nativeFieldStoreBehavior, (NativeBehavior behavior) {
+    sink.writeMemberMap(nativeFieldStoreBehavior,
+        (MemberEntity member, NativeBehavior behavior) {
       behavior.writeToDataSink(sink);
     });
 

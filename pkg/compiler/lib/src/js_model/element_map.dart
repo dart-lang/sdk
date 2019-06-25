@@ -120,11 +120,14 @@ abstract class JsToElementMap {
   List<DartType> getDartTypes(List<ir.DartType> types);
 
   /// Returns the definition information for [member].
-  MemberDefinition getMemberDefinition(covariant MemberEntity member);
+  MemberDefinition getMemberDefinition(MemberEntity member);
+
+  /// Returns the [ir.Member] containing the definition of [member], if any.
+  ir.Member getMemberContextNode(MemberEntity member);
 
   /// Returns the type of `this` in [member], or `null` if member is defined in
   /// a static context.
-  InterfaceType getMemberThisType(covariant MemberEntity member);
+  InterfaceType getMemberThisType(MemberEntity member);
 
   /// Returns how [member] has access to type variables of the this type
   /// returned by [getMemberThisType].

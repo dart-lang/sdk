@@ -437,8 +437,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     source.end(typeVariableDataTag);
 
     source.begin(nestedClosuresTag);
-    _nestedClosureMap.addAll(
-        source.readMemberMap(() => source.readMembers<IndexedFunction>()));
+    _nestedClosureMap.addAll(source.readMemberMap(
+        (MemberEntity member) => source.readMembers<IndexedFunction>()));
     source.end(nestedClosuresTag);
 
     source.end(tag);
@@ -548,7 +548,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     sink.end(typeVariableDataTag);
 
     sink.begin(nestedClosuresTag);
-    sink.writeMemberMap(_nestedClosureMap, sink.writeMembers);
+    sink.writeMemberMap(
+        _nestedClosureMap,
+        (MemberEntity member, List<IndexedFunction> functions) =>
+            sink.writeMembers(functions));
     sink.end(nestedClosuresTag);
 
     sink.end(tag);
@@ -1670,6 +1673,33 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   MemberDefinition getMemberDefinition(MemberEntity member) {
     return getMemberDefinitionInternal(member);
+  }
+
+  @override
+  ir.Member getMemberContextNode(MemberEntity member) {
+    ir.Member getParentMember(ir.TreeNode node) {
+      while (node != null) {
+        if (node is ir.Member) {
+          return node;
+        }
+        node = node.parent;
+      }
+      return null;
+    }
+
+    MemberDefinition definition = getMemberDefinition(member);
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+        return definition.node;
+      case MemberKind.closureCall:
+      case MemberKind.closureField:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        return getParentMember(definition.node);
+    }
+    throw new UnsupportedError('Unexpected member kind ${definition}');
   }
 
   @override
