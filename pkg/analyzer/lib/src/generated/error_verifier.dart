@@ -718,6 +718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     try {
+      _checkForNotInitializedNonNullableStaticField(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -4718,15 +4719,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNotInitializedNonNullableStaticField(FieldDeclaration node) {
+    if (!_isNonNullable) return;
+
+    if (!node.isStatic) return;
+
+    var fields = node.fields;
+
+    // Const and final checked separately.
+    if (fields.isConst || fields.isFinal) return;
+
+    if (fields.type == null) return;
+    var type = fields.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) return;
+
+    for (var variable in fields.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
   void _checkForNotInitializedNonNullableTopLevelVariable(
     VariableDeclarationList node,
   ) {
+    if (!_isNonNullable) return;
+
     // Const and final checked separately.
     if (node.isConst || node.isFinal) {
-      return;
-    }
-
-    if (!_isNonNullable) {
       return;
     }
 

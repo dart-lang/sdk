@@ -2471,6 +2471,18 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try adding the missing arguments.");
 
   /**
+   * It is an error if a static variable with potentially non-nullable type has
+   * no initializer expression.
+   *
+   * Parameters:
+   * 0: the name of the field that is invalid
+   */
+  static const CompileTimeErrorCode NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD =
+      const CompileTimeErrorCode('NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD',
+          "Non-nullable static field '{0}' must be initialized.",
+          correction: "Try adding an initializer expression.");
+
+  /**
    * It is an error if a top level variable <cut> with potentially non-nullable
    * type has no initializer expression <cut>.
    *
