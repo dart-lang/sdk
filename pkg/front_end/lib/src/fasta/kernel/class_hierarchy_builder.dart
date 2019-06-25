@@ -737,7 +737,13 @@ class ClassHierarchyNodeBuilder {
         VariableDeclaration bParameter = bNamed[bCount];
         copyParameterCovariance(a.parent, aParameter, bParameter);
         DartType aType = aParameter.type;
+        if (aSubstitution != null) {
+          aType = aSubstitution.substituteType(aType);
+        }
         DartType bType = bParameter.type;
+        if (bSubstitution != null) {
+          bType = bSubstitution.substituteType(bType);
+        }
         if (substitution != null) {
           bType = substitution.substituteType(bType);
         }

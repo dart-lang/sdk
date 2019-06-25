@@ -475,6 +475,7 @@ inference/null_literal_should_not_infer_as_bottom: TextSerializationFailure # Wa
 inference/overloaded_int_operators: TextSerializationFailure # Was: Pass
 inference/override_equals: TextSerializationFailure # Was: RuntimeError
 inference/override_inference_depends_on_field_inference: TextSerializationFailure
+inference/override_inference_with_type_parameters: TextSerializationFailure
 inference/parameter_defaults_downwards: TextSerializationFailure # Was: Pass
 inference/parameter_defaults_upwards: TextSerializationFailure # Was: Pass
 inference/promote_bounds: TextSerializationFailure # Was: Pass
