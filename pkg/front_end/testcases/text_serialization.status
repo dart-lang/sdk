@@ -98,6 +98,7 @@ fallthrough: ExpectationFileMismatch
 fibonacci: TextSerializationFailure # Was: Pass
 for_in_scope: TextSerializationFailure # Was: Pass
 for_in_without_declaration: TextSerializationFailure
+forwarding_stub_for_operator: TextSerializationFailure
 function_in_field: TextSerializationFailure # Was: Pass
 function_type_assignments: TextSerializationFailure # Was: Pass
 function_type_default_value: TextSerializationFailure

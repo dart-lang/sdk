@@ -2313,6 +2313,9 @@ class InterfaceConflict extends DelayedMember {
     ProcedureKind kind = ProcedureKind.Method;
     if (bestSoFar.isField || bestSoFar.isSetter || bestSoFar.isGetter) {
       kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
+    } else if (bestSoFar.target is Procedure &&
+        bestSoFar.target.kind == ProcedureKind.Operator) {
+      kind = ProcedureKind.Operator;
     }
 
     if (modifyKernel) {
