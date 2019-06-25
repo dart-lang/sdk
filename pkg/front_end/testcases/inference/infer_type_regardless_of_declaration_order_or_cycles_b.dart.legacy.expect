@@ -22,7 +22,7 @@ class C extends self::B {
   synthetic constructor •() → test::C
     : super self::B::•()
     ;
-  get x() → dynamic
+  get x() → core::int
     return null;
 }
 class A extends core::Object {

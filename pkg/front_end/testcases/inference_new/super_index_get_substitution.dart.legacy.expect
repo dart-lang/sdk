@@ -26,7 +26,7 @@ class C<U extends core::Object = dynamic> extends self::B<asy::Future<self::C::U
   synthetic constructor •() → self::C<self::C::U>
     : super self::B::•()
     ;
-  operator [](core::Object x) → self::E<asy::Future<self::C::U>>
+  operator [](generic-covariant-impl core::Object x) → self::E<asy::Future<self::C::U>>
     return null;
   method h() → void {
     dynamic x = super.{self::B::[]}(self::f<dynamic>());

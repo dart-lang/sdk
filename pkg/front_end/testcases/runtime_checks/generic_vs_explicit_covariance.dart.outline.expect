@@ -8,17 +8,17 @@ abstract class A extends core::Object {
   abstract set x(covariant core::Object value) → void;
 }
 class B extends core::Object implements self::A {
-  field core::Object x;
+  covariant field core::Object x;
   synthetic constructor •() → self::B
     ;
   method f(covariant core::Object x) → void
     ;
 }
 class C<T extends core::Object = dynamic> extends core::Object implements self::B {
-  generic-covariant-impl field self::C::T x;
+  covariant generic-covariant-impl field self::C::T x;
   synthetic constructor •() → self::C<self::C::T>
     ;
-  method f(generic-covariant-impl self::C::T x) → void
+  method f(covariant generic-covariant-impl self::C::T x) → void
     ;
 }
 static method main() → dynamic

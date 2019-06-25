@@ -77,7 +77,7 @@ D:
     C.x
   interfaceMembers:
     Object.toString
-    C.x
+    D.C.x%B.x
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
@@ -88,4 +88,4 @@ D:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    C.x
+    D.C.x%B.x

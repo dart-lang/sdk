@@ -19,7 +19,7 @@ class E extends self::D {
   synthetic constructor •() → self::E
     : super self::D::•()
     ;
-  method f(core::int x) → void {}
+  method f(covariant core::int x) → void {}
 }
 static method g1(self::C c) → void {
   c.f(1.5);

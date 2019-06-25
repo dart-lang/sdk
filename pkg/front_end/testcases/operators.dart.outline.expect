@@ -17,7 +17,7 @@ class Operators extends core::Object {
     ;
   operator /(dynamic other) → dynamic
     ;
-  operator ==(dynamic other) → dynamic
+  operator ==(dynamic other) → core::bool
     ;
   operator >(dynamic other) → dynamic
     ;

@@ -18,6 +18,6 @@ class D extends self::C implements self::I {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set x(dynamic value) → dynamic {}
+  set x(core::int value) → void {}
 }
 static method main() → dynamic {}

@@ -29,7 +29,7 @@ class E extends self::C<core::num> {
   synthetic constructor •() → self::E
     : super self::C::•()
     ;
-  method f(covariant core::int x) → void {}
+  method f(covariant generic-covariant-impl core::int x) → void {}
 }
 static method test() → dynamic {
   dynamic x = new self::D::•().g4() as (core::Object) → dynamic;

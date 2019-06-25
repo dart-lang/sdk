@@ -10,7 +10,7 @@ class MyFuture<T extends core::Object = dynamic> extends core::Object implements
     : super core::Object::•() {}
   constructor value([dynamic x = null]) → self::MyFuture<self::MyFuture::T>
     : super core::Object::•() {}
-  method noSuchMethod(dynamic invocation) → dynamic
+  method noSuchMethod(core::Invocation invocation) → dynamic
     return null;
   method then<S extends core::Object = dynamic>((self::MyFuture::T) → asy::FutureOr<self::MyFuture::then::S> f, {core::Function onError = null}) → self::MyFuture<self::MyFuture::then::S>
     return null;

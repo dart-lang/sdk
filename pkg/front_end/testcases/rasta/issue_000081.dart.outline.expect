@@ -11,7 +11,7 @@ class Sub extends self::Base {
   field core::int _hashCode;
   synthetic constructor •() → self::Sub
     ;
-  get hashCode() → dynamic
+  get hashCode() → core::int
     ;
   method foo() → dynamic
     ;

@@ -193,7 +193,7 @@ A1:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    A1.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -292,7 +292,7 @@ A2:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    A2.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -422,7 +422,7 @@ _A1X&S&M1 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _A1X&S&M1 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -456,7 +456,7 @@ A1X:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    A1X.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -555,7 +555,7 @@ _A2X&S&M1&M2 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _A2X&S&M1&M2 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -590,7 +590,7 @@ A2X:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    A2X.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -720,7 +720,7 @@ _B1&S&M1 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B1&S&M1 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -754,7 +754,7 @@ B1:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    B1.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -853,7 +853,7 @@ _B2&S&M1&M2 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B2&S&M1&M2 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -888,7 +888,7 @@ B2:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    B2.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1052,7 +1052,7 @@ _B1X&S&M1 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B1X&S&M1 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1086,7 +1086,7 @@ _B1X&S&M1&M with MX:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B1X&S&M1&M with MX.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1121,7 +1121,7 @@ B1X:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    B1X.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1220,7 +1220,7 @@ _B2X&S&M1&M2 with M:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B2X&S&M1&M2 with M.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1255,7 +1255,7 @@ _B2X&S&M1&M2&M with MX:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    _B2X&S&M1&M2&M with MX.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode
@@ -1291,7 +1291,7 @@ B2X:
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
-    M.foo
+    B2X.M.foo%S.foo
     Object.noSuchMethod
     Object._identityHashCode
     Object.hashCode

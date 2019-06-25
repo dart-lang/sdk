@@ -25,7 +25,7 @@ class C<V extends core::Object = dynamic, S extends core::Object = dynamic, R ex
   constructor •() → self::C<self::C::V, self::C::S, self::C::R>
     : super self::B::empty()
     ;
-  method toString() → dynamic
+  method toString() → core::String
     return "${self::C::V},${self::C::S},${self::C::R}";
 }
 static method main() → dynamic {

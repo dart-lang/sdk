@@ -12,7 +12,7 @@ class C extends self::B {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  method f() → dynamic {}
+  method f() → void {}
 }
 static field dynamic x = new self::C::•().f();
 static method main() → dynamic {

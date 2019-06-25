@@ -21,7 +21,7 @@ class B<U extends core::Object = dynamic, W extends core::Object = dynamic> exte
 class C<V extends core::Object = dynamic, S extends core::Object = dynamic, R extends core::Object = dynamic> extends self::B<self::C::V, self::C::S> {
   constructor •() → self::C<self::C::V, self::C::S, self::C::R>
     ;
-  method toString() → dynamic
+  method toString() → core::String
     ;
 }
 static method main() → dynamic

@@ -39,6 +39,7 @@ abstract class G extends core::Object implements self::D, self::E, self::F {
   synthetic constructor •() → self::G
     : super core::Object::•()
     ;
+  abstract forwarding-stub method foo() → self::B;
 }
 class H extends self::G {
   synthetic constructor •() → self::H

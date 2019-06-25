@@ -11,7 +11,7 @@ class X extends core::Object {
   constructor •(dynamic x, dynamic y) → self::X
     : self::X::x = x, self::X::y = y, super core::Object::•()
     ;
-  method toString() → dynamic
+  method toString() → core::String
     return "X(${this.{self::X::x}}, ${this.{self::X::y}})";
 }
 class Y extends core::Object {
