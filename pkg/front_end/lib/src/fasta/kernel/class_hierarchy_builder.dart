@@ -1323,6 +1323,7 @@ class ClassHierarchyNodeBuilder {
       superclasses,
       interfaces,
       maxInheritancePath,
+      hasNoSuchMethod,
     );
   }
 
@@ -1705,6 +1706,8 @@ class ClassHierarchyNode {
 
   int get depth => superclasses.length;
 
+  final bool hasNoSuchMethod;
+
   ClassHierarchyNode(
       this.cls,
       this.classMembers,
@@ -1713,7 +1716,8 @@ class ClassHierarchyNode {
       this.interfaceSetters,
       this.superclasses,
       this.interfaces,
-      this.maxInheritancePath);
+      this.maxInheritancePath,
+      this.hasNoSuchMethod);
 
   /// Returns a list of all supertypes of [cls], including this node.
   List<ClassHierarchyNode> computeAllSuperNodes(
@@ -2400,7 +2404,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
   Declaration get abstractMember => declarations[1];
 
   Member check(ClassHierarchyBuilder hierarchy) {
-    if (!parent.isAbstract) {
+    if (!parent.isAbstract && !hierarchy.nodes[parent.cls].hasNoSuchMethod) {
       new DelayedOverrideCheck(parent, concreteImplementation, abstractMember)
           .check(hierarchy);
     }

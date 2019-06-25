@@ -8,6 +8,7 @@
 
 DeltaBlue: TextSerializationFailure # Was: Pass
 abstract_members: TypeCheckError
+abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 accessors: TextSerializationFailure # Was: RuntimeError
 ambiguous_exports: TextSerializationFailure # Was: RuntimeError # Expected, this file exports two main methods.
 annotation_eof: TextSerializationFailure # Was: Pass
