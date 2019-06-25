@@ -8,6 +8,7 @@ import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
 final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
+final String futureName = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
 final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
 
 const typeRulesJson = r'''
@@ -34,6 +35,12 @@ void runTests() {
   strictSubtype('CodeUnits', 'Iterable<num>');
   strictSubtype('Iterable<int>', 'Iterable<num>');
   strictSubtype('List<int>', objectName);
+  strictSubtype('$futureName<int>', '$futureName<num>');
+  strictSubtype('int', 'int/');
+  strictSubtype('$futureName<int>', 'int/');
+  strictSubtype('int/', 'num/');
+  strictSubtype('int', 'num/');
+  strictSubtype('$futureName<int>', 'num/');
   strictSubtype(nullName, 'int');
   strictSubtype(nullName, 'Iterable<CodeUnits>');
   strictSubtype(nullName, objectName);
@@ -57,6 +64,7 @@ void runTests() {
   equivalent('List<@>', 'List<~>');
   equivalent('List<@>', 'List<1&>');
   equivalent('List<~>', 'List<1&>');
+  equivalent('@/', '~/');
 }
 
 String reason(String s, String t) => "$s <: $t";

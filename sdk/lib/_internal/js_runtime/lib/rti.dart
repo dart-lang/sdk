@@ -468,6 +468,9 @@ class _Universe {
   static String _canonicalRecipeOfNever() => '0&';
   static String _canonicalRecipeOfAny() => '1&';
 
+  static String _canonicalRecipeOfFutureOr(Rti baseType) =>
+      '${Rti._getCanonicalRecipe(baseType)}/';
+
   static Rti _lookupDynamicRti(universe) {
     return _lookupTerminalRti(
         universe, Rti.kindDynamic, _canonicalRecipeOfDynamic());
@@ -496,6 +499,23 @@ class _Universe {
   static Rti _createTerminalRti(universe, int kind, String canonicalRecipe) {
     var rti = Rti.allocate();
     Rti._setKind(rti, kind);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
+    return _finishRti(universe, rti);
+  }
+
+  static Rti _lookupFutureOrRti(universe, Rti baseType) {
+    String canonicalRecipe = _canonicalRecipeOfFutureOr(baseType);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, canonicalRecipe);
+    if (probe != null) return _castToRti(probe);
+    return _createFutureOrRti(universe, baseType, canonicalRecipe);
+  }
+
+  static Rti _createFutureOrRti(
+      universe, Rti baseType, String canonicalRecipe) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindFutureOr);
+    Rti._setPrimary(rti, baseType);
     Rti._setCanonicalRecipe(rti, canonicalRecipe);
     return _finishRti(universe, rti);
   }
@@ -771,6 +791,13 @@ class _Parser {
             handleExtendedOperations(parser, stack);
             break;
 
+          case Recipe.wrapFutureOr:
+            push(
+                stack,
+                _Universe._lookupFutureOrRti(universe(parser),
+                    toType(universe(parser), environment(parser), pop(stack))));
+            break;
+
           default:
             JS('', 'throw "Bad character " + #', ch);
         }
@@ -976,7 +1003,14 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
       // `true` because [s] <: T.
       return true;
     } else {
-      // TODO(fishythefish): Check [s] <: Future<T>.
+      // Check [s] <: Future<T>.
+      // TODO(fishythefish): Do this without allocating an RTI for Future<T>
+      // each time.
+      String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
+      var argumentsArray = JS('', '[#]', tTypeArgument);
+      var tFuture =
+          _Universe._lookupInterfaceRti(universe, futureClass, argumentsArray);
+      return _isSubtype(universe, s, sEnv, tFuture, tEnv);
     }
   }
 
