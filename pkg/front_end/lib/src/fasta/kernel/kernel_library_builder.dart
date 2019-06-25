@@ -917,8 +917,7 @@ class KernelLibraryBuilder
 
   @override
   void buildOutlineExpressions() {
-    KernelMetadataBuilder.buildAnnotations(
-        library, metadata, this, null, null, null);
+    KernelMetadataBuilder.buildAnnotations(library, metadata, this, null, null);
   }
 
   @override

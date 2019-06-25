@@ -47,14 +47,13 @@ class KernelBodyBuilder extends BodyBuilder {
       KernelClassBuilder classBuilder,
       ModifierBuilder member,
       Scope scope,
-      Scope parameterScope,
       Uri fileUri)
       : forest = const Fangorn(),
         super(
             library,
             member,
             scope,
-            parameterScope,
+            null,
             library.loader.hierarchy,
             library.loader.coreTypes,
             classBuilder,

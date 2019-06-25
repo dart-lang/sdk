@@ -108,12 +108,12 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
   void buildOutlineExpressions(LibraryBuilder library) {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
-        field, metadata, library, classBuilder, this, null);
+        field, metadata, library, classBuilder, this);
     if (constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
       KernelBodyBuilder bodyBuilder =
           new KernelBodyBuilder.forOutlineExpression(
-              library, classBuilder, this, scope, null, fileUri);
+              library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.none;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)

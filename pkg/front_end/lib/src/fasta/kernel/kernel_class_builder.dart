@@ -235,7 +235,7 @@ abstract class KernelClassBuilder
     }
 
     KernelMetadataBuilder.buildAnnotations(
-        isPatch ? origin.target : cls, metadata, library, this, null, null);
+        isPatch ? origin.target : cls, metadata, library, this, null);
     constructors.forEach(build);
     scope.forEach(build);
   }

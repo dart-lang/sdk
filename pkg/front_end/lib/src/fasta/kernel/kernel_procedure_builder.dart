@@ -359,14 +359,8 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
-        target,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
+        target, metadata, library, isClassMember ? parent : null, this);
   }
 
   Procedure get target => origin.procedure;
@@ -493,14 +487,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
-        target,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
+        target, metadata, library, parent, this);
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {
