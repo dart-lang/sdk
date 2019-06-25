@@ -463,13 +463,15 @@ class _Universe {
   //   for the proposed type.
   // * `createXXX` to create the type if it does not exist.
 
-  static String _canonicalRecipeOfDynamic() => '@';
-  static String _canonicalRecipeOfVoid() => '~';
-  static String _canonicalRecipeOfNever() => '0&';
-  static String _canonicalRecipeOfAny() => '1&';
+  static String _canonicalRecipeOfDynamic() => Recipe.pushDynamicString;
+  static String _canonicalRecipeOfVoid() => Recipe.pushVoidString;
+  static String _canonicalRecipeOfNever() =>
+      Recipe.pushNeverExtensionString + Recipe.extensionOpString;
+  static String _canonicalRecipeOfAny() =>
+      Recipe.pushAnyExtensionString + Recipe.extensionOpString;
 
   static String _canonicalRecipeOfFutureOr(Rti baseType) =>
-      '${Rti._getCanonicalRecipe(baseType)}/';
+      Rti._getCanonicalRecipe(baseType) + Recipe.wrapFutureOrString;
 
   static Rti _lookupDynamicRti(universe) {
     return _lookupTerminalRti(
@@ -527,7 +529,7 @@ class _Universe {
       Rti argument = _castToRti(_Utils.arrayAt(arguments, i));
       String subrecipe = Rti._getCanonicalRecipe(argument);
       s += sep + subrecipe;
-      sep = ',';
+      sep = Recipe.separatorString;
     }
     return s;
   }
@@ -537,7 +539,9 @@ class _Universe {
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
     if (length != 0) {
-      s += '<' + _canonicalRecipeJoin(arguments) + '>';
+      s += Recipe.startTypeArgumentsString +
+          _canonicalRecipeJoin(arguments) +
+          Recipe.endTypeArgumentsString;
     }
     return s;
   }
@@ -563,8 +567,11 @@ class _Universe {
 
   static String _canonicalRecipeOfBinding(Rti base, Object arguments) {
     String s = Rti._getCanonicalRecipe(base);
-    s += ';'; // TODO(sra): Omit when base encoding is Rti without ToType.
-    s += '<' + _canonicalRecipeJoin(arguments) + '>';
+    s += Recipe
+        .toTypeString; // TODO(sra): Omit when base encoding is Rti without ToType.
+    s += Recipe.startTypeArgumentsString +
+        _canonicalRecipeJoin(arguments) +
+        Recipe.endTypeArgumentsString;
     return s;
   }
 
@@ -1116,6 +1123,10 @@ class _Utils {
   }
 }
 // -------- Entry points for testing -------------------------------------------
+
+String testingCanonicalRecipe(rti) {
+  return Rti._getCanonicalRecipe(rti);
+}
 
 String testingRtiToString(rti) {
   return _rtiToString(_castToRti(rti), null);
