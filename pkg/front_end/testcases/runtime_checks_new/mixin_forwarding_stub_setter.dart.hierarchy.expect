@@ -116,8 +116,8 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    C.M.y%I.y
-    C.M.x%I.x
+    C.M.y=%I.y=
+    C.M.x=%I.x=
 
 Comparable:
   superclasses:

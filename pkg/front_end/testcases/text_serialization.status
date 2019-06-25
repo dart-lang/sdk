@@ -753,6 +753,7 @@ override_check_basic: TypeCheckError # Issue #31620
 override_check_generic_method_f_bounded: TextSerializationFailure # Was: Pass
 override_check_two_substitutions: TextSerializationFailure # Was: Pass
 override_check_with_covariant_modifier: TypeCheckError # Issue #31620
+override_inference_for_setters: TextSerializationFailure
 part_as_entry_point: TextSerializationFailure # Was: Pass
 part_as_entry_point_lib: TextSerializationFailure # Was: Pass
 part_not_part_of: TextSerializationFailure

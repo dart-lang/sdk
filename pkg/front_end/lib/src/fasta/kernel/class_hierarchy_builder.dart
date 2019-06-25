@@ -771,7 +771,7 @@ class ClassHierarchyNodeBuilder {
         VariableDeclaration bParameter =
             bTarget.function.positionalParameters.single;
         bType = bParameter.type;
-        if (!hasExplictlyTypedFormalParameter(b, 0)) {
+        if (!hasExplicitlyTypedFormalParameter(b, 0)) {
           debug?.log("Giving up (type may be inferred)");
           return false;
         }
@@ -794,7 +794,7 @@ class ClassHierarchyNodeBuilder {
 
   bool inferSetterType(KernelProcedureBuilder a, Declaration b) {
     debug?.log(
-        "Inferring getter types for ${fullName(a)} based on ${fullName(b)}");
+        "Inferring setter types for ${fullName(a)} based on ${fullName(b)}");
     Member bTarget = b.target;
     Procedure aProcedure = a.target;
     VariableDeclaration aParameter =
@@ -810,7 +810,8 @@ class ClassHierarchyNodeBuilder {
             bTarget.function.positionalParameters.single;
         bType = bParameter.type;
         copyParameterCovariance(a.parent, aParameter, bParameter);
-        if (!hasExplictlyTypedFormalParameter(b, 0)) {
+        if (!hasExplicitlyTypedFormalParameter(b, 0) ||
+            !hasExplicitlyTypedFormalParameter(a, 0)) {
           debug?.log("Giving up (type may be inferred)");
           return false;
         }
@@ -876,7 +877,7 @@ class ClassHierarchyNodeBuilder {
             bTarget.function.positionalParameters.single;
         // inheritedType = parameter.type;
         copyFieldCovarianceFromParameter(a.parent, a.target, parameter);
-        if (!hasExplictlyTypedFormalParameter(b, 0)) {
+        if (!hasExplicitlyTypedFormalParameter(b, 0)) {
           debug?.log("Giving up (type may be inferred)");
           return false;
         }
@@ -2012,7 +2013,7 @@ class DelayedOverrideCheck {
               inferReturnType(cls, a, type, a.hadTypesInferred, hierarchy);
             }
           }
-        } else if (a.isSetter && !hasExplictlyTypedFormalParameter(a, 0)) {
+        } else if (a.isSetter && !hasExplicitlyTypedFormalParameter(a, 0)) {
           DartType type;
           if (b.isGetter) {
             Procedure bTarget = b.target;
@@ -2448,11 +2449,14 @@ void addDeclarationIfDifferent(
 }
 
 String fullName(Declaration declaration) {
-  if (declaration is DelayedMember) return declaration.fullNameForErrors;
+  String suffix = declaration.isSetter ? "=" : "";
+  if (declaration is DelayedMember) {
+    return "${declaration.fullNameForErrors}$suffix";
+  }
   Declaration parent = declaration.parent;
   return parent == null
-      ? declaration.fullNameForErrors
-      : "${parent.fullNameForErrors}.${declaration.fullNameForErrors}";
+      ? "${declaration.fullNameForErrors}$suffix"
+      : "${parent.fullNameForErrors}.${declaration.fullNameForErrors}$suffix";
 }
 
 int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
@@ -2594,7 +2598,7 @@ bool hasExplicitReturnType(Declaration declaration) {
       : true;
 }
 
-bool hasExplictlyTypedFormalParameter(Declaration declaration, int index) {
+bool hasExplicitlyTypedFormalParameter(Declaration declaration, int index) {
   assert(
       declaration is KernelProcedureBuilder || declaration is DillMemberBuilder,
       "${declaration.runtimeType}");

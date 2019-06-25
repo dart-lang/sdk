@@ -100,8 +100,8 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    C.M.y%B.y%I.y
-    C.M.x%B.x%I.x
+    C.M.y%B.y=%I.y=
+    C.M.x%B.x=%I.x=
   interfaceMembers:
     C.M.y%B.y%I.y
     Object.toString
@@ -116,8 +116,8 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    C.M.y%B.y%I.y
-    C.M.x%B.x%I.x
+    C.M.y%B.y=%I.y=
+    C.M.x%B.x=%I.x=
 
 Comparable:
   superclasses:

@@ -387,7 +387,7 @@ H3:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    H3.E.foo%G.foo
+    H3.E.foo=%G.foo=
 
 H4:
   Longest path to Object: 3
