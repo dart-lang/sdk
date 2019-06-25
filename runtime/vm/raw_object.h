@@ -1266,7 +1266,7 @@ class RawKernelProgramInfo : public RawObject {
   VISIT_TO(RawObject*, classes_cache_);
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);
+    return reinterpret_cast<RawObject**>(&ptr()->constants_table_);
   }
 };
 

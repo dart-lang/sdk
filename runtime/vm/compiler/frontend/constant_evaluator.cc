@@ -381,9 +381,9 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
     case kSymbolConstant: {
       Library& library = Library::Handle(Z);
       library = Library::InternalLibrary();
-      const Class& symbol_class =
+      const auto& symbol_class =
           Class::Handle(Z, library.LookupClass(Symbols::Symbol()));
-      const Field& symbol_name_field = Field::Handle(
+      const auto& symbol_name_field = Field::Handle(
           Z, symbol_class.LookupInstanceFieldAllowPrivate(Symbols::_name()));
       ASSERT(!symbol_name_field.IsNull());
       const NameIndex index = reader.ReadCanonicalNameReference();
@@ -399,13 +399,13 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
       break;
     }
     case kListConstant: {
-      const Library& corelib = Library::Handle(Z, Library::CoreLibrary());
-      const Class& list_class =
+      const auto& corelib = Library::Handle(Z, Library::CoreLibrary());
+      const auto& list_class =
           Class::Handle(Z, corelib.LookupClassAllowPrivate(Symbols::_List()));
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(&reader, active_class_, true);
-      TypeArguments& type_arguments =
-          TypeArguments::ZoneHandle(Z, TypeArguments::New(1, Heap::kOld));
+      auto& type_arguments =
+          TypeArguments::Handle(Z, TypeArguments::New(1, Heap::kOld));
       AbstractType& type = type_translator.BuildType();
       type_arguments.SetTypeAt(0, type);
       // Instantiate class.
@@ -432,22 +432,21 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
     }
     case kInstanceConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
-      const Class& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
-      const Object& obj =
-          Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
+      const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
+      const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
       ASSERT(obj.IsNull());
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(&reader, active_class_, true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       if (klass.NumTypeArguments() > 0) {
-        TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+        auto& type_arguments = TypeArguments::Handle(
             Z, TypeArguments::New(number_of_type_arguments, Heap::kOld));
         for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
           type_arguments.SetTypeAt(j, type_translator.BuildType());
         }
         // Instantiate class.
-        AbstractType& type = AbstractType::Handle(
+        auto& type = AbstractType::Handle(
             Z, Type::New(klass, type_arguments, TokenPosition::kNoSource));
         type = ClassFinalizer::FinalizeType(*active_class_->klass, type,
                                             ClassFinalizer::kCanonicalize);
@@ -476,20 +475,15 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
       // needed to evaluate the current constant.
       const intptr_t entry_offset = reader.ReadUInt();
       ASSERT(entry_offset < constant_offset);  // DAG!
-      Instance& constant =
+      const auto& constant =
           Instance::Handle(Z, EvaluateConstantExpression(entry_offset));
-      // Happens if the tearoff was in the vmservice library and we have
-      // [skip_vm_service_library] enabled.
-      // TODO(ajcbik): probably ASSERT that this no longer happens
-      if (constant.IsNull()) {
-        instance = Instance::null();
-        break;
-      }
+      ASSERT(!constant.IsNull());
+
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(&reader, active_class_, true);
       const intptr_t number_of_type_arguments = reader.ReadUInt();
       ASSERT(number_of_type_arguments > 0);
-      TypeArguments& type_arguments = TypeArguments::ZoneHandle(
+      auto& type_arguments = TypeArguments::Handle(
           Z, TypeArguments::New(number_of_type_arguments, Heap::kOld));
       for (intptr_t j = 0; j < number_of_type_arguments; ++j) {
         type_arguments.SetTypeAt(j, type_translator.BuildType());
@@ -498,11 +492,12 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
       // Make a copy of the old closure, and set delayed type arguments.
       Closure& closure = Closure::Handle(Z, Closure::RawCast(constant.raw()));
       Function& function = Function::Handle(Z, closure.function());
-      TypeArguments& type_arguments2 =
-          TypeArguments::ZoneHandle(Z, closure.instantiator_type_arguments());
-      // TODO(ajcbik): why was this here in original reader?
-      // TypeArguments& type_arguments3 =
-      //     TypeArguments::ZoneHandle(Z, closure.function_type_arguments());
+      const auto& type_arguments2 =
+          TypeArguments::Handle(Z, closure.instantiator_type_arguments());
+      // The function type arguments are used for type parameters from enclosing
+      // closures. Though inner closures cannot be constants. We should
+      // therefore see `null here.
+      ASSERT(closure.function_type_arguments() == TypeArguments::null());
       Context& context = Context::Handle(Z, closure.context());
       instance = Closure::New(type_arguments2, Object::null_type_arguments(),
                               type_arguments, function, context, Heap::kOld);
@@ -577,7 +572,7 @@ void ConstantEvaluator::EvaluateGetStringLength(intptr_t expression_offset,
                                                 TokenPosition position) {
   EvaluateExpression(expression_offset);
   if (result_.IsString()) {
-    const String& str = String::Handle(Z, String::RawCast(result_.raw()));
+    const auto& str = String::Handle(Z, String::RawCast(result_.raw()));
     result_ = Integer::New(str.Length(), H.allocation_space());
   } else {
     H.ReportError(
@@ -628,7 +623,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
   ASSERT(Error::Handle(Z, H.thread()->sticky_error()).IsNull());
 
   if (H.IsField(target)) {
-    const Field& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
+    const auto& field = Field::Handle(Z, H.LookupFieldByKernelField(target));
     if (!field.is_const()) {
       H.ReportError(script_, position, "Not a constant field.");
     }
@@ -640,7 +635,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
       H.ReportError(script_, position, "Not a constant expression.");
     } else if (field.StaticValue() == Object::sentinel().raw()) {
       field.SetStaticValue(Object::transition_sentinel());
-      const Object& value = Object::Handle(Z, field.EvaluateInitializer());
+      const auto& value = Object::Handle(Z, field.EvaluateInitializer());
       if (value.IsError()) {
         field.SetStaticValue(Object::null_instance());
         H.ReportError(Error::Cast(value), script_, position,
@@ -664,12 +659,12 @@ void ConstantEvaluator::EvaluateStaticGet() {
       result_ = field.StaticValue();
     }
   } else if (H.IsProcedure(target)) {
-    const Function& function =
-        Function::ZoneHandle(Z, H.LookupStaticMethodByKernelProcedure(target));
+    const auto& function =
+        Function::Handle(Z, H.LookupStaticMethodByKernelProcedure(target));
 
     if (H.IsMethod(target)) {
-      Function& closure_function =
-          Function::ZoneHandle(Z, function.ImplicitClosureFunction());
+      const auto& closure_function =
+          Function::Handle(Z, function.ImplicitClosureFunction());
       result_ = closure_function.ImplicitStaticClosure();
       result_ = H.Canonicalize(result_);
     } else if (H.IsGetter(target)) {
@@ -683,7 +678,7 @@ void ConstantEvaluator::EvaluateStaticGet() {
 void ConstantEvaluator::EvaluateMethodInvocation() {
   TokenPosition position = helper_->ReadPosition();  // read position.
   // This method call wasn't cached, so receiver et al. isn't cached either.
-  const Instance& receiver = Instance::Handle(
+  const auto& receiver = Instance::Handle(
       Z, EvaluateExpression(helper_->ReaderOffset(), false));  // read receiver.
   Class& klass =
       Class::Handle(Z, isolate_->class_table()->At(receiver.GetClassId()));
@@ -709,13 +704,13 @@ void ConstantEvaluator::EvaluateMethodInvocation() {
 void ConstantEvaluator::EvaluateDirectMethodInvocation() {
   TokenPosition position = helper_->ReadPosition();  // read position.
 
-  const Instance& receiver = Instance::Handle(
+  const auto& receiver = Instance::Handle(
       Z, EvaluateExpression(helper_->ReaderOffset(), false));  // read receiver.
 
   NameIndex kernel_name =
       helper_->ReadCanonicalNameReference();  // read target_reference.
 
-  const Function& function = Function::ZoneHandle(
+  const auto& function = Function::Handle(
       Z, H.LookupMethodByMember(kernel_name, H.DartProcedureName(kernel_name)));
 
   // Read arguments, run the method and canonicalize the result.
@@ -739,7 +734,7 @@ void ConstantEvaluator::EvaluateSuperMethodInvocation() {
   ASSERT(!klass.IsNull());
 
   const String& method_name = helper_->ReadNameAsMethodName();  // read name.
-  Function& function =
+  const auto& function =
       Function::Handle(Z, H.LookupDynamicFunction(klass, method_name));
 
   // The frontend should guarantee that [MethodInvocation]s inside constant
@@ -759,7 +754,7 @@ void ConstantEvaluator::EvaluateStaticInvocation() {
   NameIndex procedure_reference =
       helper_->ReadCanonicalNameReference();  // read procedure reference.
 
-  const Function& function = Function::ZoneHandle(
+  const auto& function = Function::Handle(
       Z, H.LookupStaticMethodByKernelProcedure(procedure_reference));
   Class& klass = Class::Handle(Z, function.Owner());
 
@@ -781,7 +776,7 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
   TokenPosition position = helper_->ReadPosition();  // read position.
 
   NameIndex target = helper_->ReadCanonicalNameReference();  // read target.
-  const Function& constructor =
+  const auto& constructor =
       Function::Handle(Z, H.LookupConstructorByKernelConstructor(target));
   Class& klass = Class::Handle(Z, constructor.Owner());
 
@@ -793,12 +788,12 @@ void ConstantEvaluator::EvaluateConstructorInvocationInternal() {
       TranslateTypeArguments(constructor, &klass);  // read argument types.
 
   if (klass.NumTypeArguments() > 0 && !klass.IsGeneric()) {
-    Type& type = Type::ZoneHandle(Z, T.ReceiverType(klass).raw());
+    auto& type = Type::Handle(Z, T.ReceiverType(klass).raw());
     // TODO(27590): Can we move this code into [ReceiverType]?
     type ^= ClassFinalizer::FinalizeType(*active_class_->klass, type,
                                          ClassFinalizer::kFinalize);
-    TypeArguments& canonicalized_type_arguments =
-        TypeArguments::ZoneHandle(Z, type.arguments());
+    auto& canonicalized_type_arguments =
+        TypeArguments::Handle(Z, type.arguments());
     canonicalized_type_arguments = canonicalized_type_arguments.Canonicalize();
     type_arguments = &canonicalized_type_arguments;
   }
@@ -873,7 +868,7 @@ void ConstantEvaluator::EvaluateAsExpression() {
 
   const AbstractType& type = T.BuildType();
   if (!type.IsInstantiated()) {
-    const String& type_str = String::Handle(type.UserVisibleName());
+    const auto& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, position,
         "Not a constant expression: right hand side of an implicit "
@@ -881,14 +876,14 @@ void ConstantEvaluator::EvaluateAsExpression() {
         type_str.ToCString());
   }
 
-  const TypeArguments& instantiator_type_arguments = TypeArguments::Handle();
-  const TypeArguments& function_type_arguments = TypeArguments::Handle();
+  const auto& instantiator_type_arguments = TypeArguments::Handle();
+  const auto& function_type_arguments = TypeArguments::Handle();
   if (!result_.IsInstanceOf(type, instantiator_type_arguments,
                             function_type_arguments)) {
     const AbstractType& rtype =
         AbstractType::Handle(result_.GetType(Heap::kNew));
-    const String& result_str = String::Handle(rtype.UserVisibleName());
-    const String& type_str = String::Handle(type.UserVisibleName());
+    const auto& result_str = String::Handle(rtype.UserVisibleName());
+    const auto& type_str = String::Handle(type.UserVisibleName());
     H.ReportError(
         script_, position,
         "Not a constant expression: Type '%s' is not a subtype of type '%s'",
@@ -929,13 +924,13 @@ void ConstantEvaluator::EvaluateStringConcatenation() {
     const Class& cls =
         Class::Handle(Z, Library::LookupCoreClass(Symbols::StringBase()));
     ASSERT(!cls.IsNull());
-    const Function& func = Function::Handle(
+    const auto& func = Function::Handle(
         Z, cls.LookupStaticFunction(
                Library::PrivateCoreLibName(Symbols::Interpolate())));
     ASSERT(!func.IsNull());
 
     // Build argument array to pass to the interpolation function.
-    const Array& interpolate_arg = Array::Handle(Z, Array::New(1, Heap::kOld));
+    const auto& interpolate_arg = Array::Handle(Z, Array::New(1, Heap::kOld));
     interpolate_arg.SetAt(0, strings);
 
     // Run and canonicalize.
@@ -950,9 +945,9 @@ void ConstantEvaluator::EvaluateSymbolLiteral() {
   const Library& lib = Library::Handle(Z, owner.library());
   String& symbol_value = H.DartIdentifier(lib, helper_->ReadStringReference());
   const Class& symbol_class =
-      Class::ZoneHandle(Z, I->object_store()->symbol_class());
+      Class::Handle(Z, I->object_store()->symbol_class());
   ASSERT(!symbol_class.IsNull());
-  const Function& symbol_constructor = Function::ZoneHandle(
+  const auto& symbol_constructor = Function::Handle(
       Z, symbol_class.LookupConstructor(Symbols::SymbolCtor()));
   ASSERT(!symbol_constructor.IsNull());
   result_ ^= EvaluateConstConstructorCall(
@@ -968,8 +963,7 @@ void ConstantEvaluator::EvaluateListLiteralInternal() {
   helper_->ReadPosition();  // read position.
   const TypeArguments& type_arguments = T.BuildTypeArguments(1);  // read type.
   intptr_t length = helper_->ReadListLength();  // read list length.
-  const Array& const_list =
-      Array::ZoneHandle(Z, Array::New(length, Heap::kOld));
+  const auto& const_list = Array::Handle(Z, Array::New(length, Heap::kOld));
   const_list.SetTypeArguments(type_arguments);
   Instance& expression = Instance::Handle(Z);
   for (intptr_t i = 0; i < length; ++i) {
@@ -1043,7 +1037,7 @@ void ConstantEvaluator::EvaluateLet() {
 
 void ConstantEvaluator::EvaluatePartialTearoffInstantiation() {
   // This method call wasn't cached, so receiver et al. isn't cached either.
-  const Instance& receiver = Instance::Handle(
+  const auto& receiver = Instance::Handle(
       Z, EvaluateExpression(helper_->ReaderOffset(), false));  // read receiver.
   if (!receiver.IsClosure()) {
     H.ReportError(script_, TokenPosition::kNoSource, "Expected closure.");
@@ -1133,7 +1127,7 @@ const Object& ConstantEvaluator::RunFunction(TokenPosition position,
       (receiver != NULL ? 1 : 0) + (type_args != NULL ? 1 : 0);
 
   // Build up arguments.
-  const Array& arguments = Array::Handle(
+  const auto& arguments = Array::Handle(
       Z, Array::New(extra_arguments + argument_count, H.allocation_space()));
   intptr_t pos = 0;
   if (receiver != NULL) {
@@ -1173,9 +1167,9 @@ const Object& ConstantEvaluator::RunFunction(const TokenPosition position,
                                              const Array& names) {
   // We do not support generic methods yet.
   const int kTypeArgsLen = 0;
-  const Array& args_descriptor = Array::Handle(
+  const auto& args_descriptor = Array::Handle(
       Z, ArgumentsDescriptor::New(kTypeArgsLen, arguments.Length(), names));
-  const Object& result = Object::Handle(
+  const auto& result = Object::Handle(
       Z, DartEntry::InvokeFunction(function, arguments, args_descriptor));
   if (result.IsError()) {
     H.ReportError(Error::Cast(result), script_, position,
@@ -1235,7 +1229,7 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
   const Array& args_descriptor =
       Array::Handle(Z, ArgumentsDescriptor::New(kTypeArgsLen, argument_count,
                                                 Object::empty_array()));
-  const Object& result = Object::Handle(
+  const auto& result = Object::Handle(
       Z, DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   ASSERT(!result.IsError());
   if (constructor.IsFactory()) {
@@ -1325,7 +1319,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
   const intptr_t kInitialConstMapSize = 16;
   ASSERT(!script_.InVMIsolateHeap());
   if (script_.compile_time_constants() == Array::null()) {
-    const Array& array = Array::Handle(
+    const auto& array = Array::Handle(
         HashTables::New<KernelConstantsMap>(kInitialConstMapSize, Heap::kNew));
     script_.set_compile_time_constants(array);
   }
