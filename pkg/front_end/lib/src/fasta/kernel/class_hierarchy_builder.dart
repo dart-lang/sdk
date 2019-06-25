@@ -748,8 +748,13 @@ class ClassHierarchyNodeBuilder {
           bType = substitution.substituteType(bType);
         }
         if (aType != bType) {
-          FormalParameterBuilder<KernelTypeBuilder> parameter =
-              a.formals[aPositional.length + aCount];
+          FormalParameterBuilder<KernelTypeBuilder> parameter;
+          for (int i = aPositional.length; i < a.formals.length; ++i) {
+            if (a.formals[i].name == name) {
+              parameter = a.formals[i];
+              break;
+            }
+          }
           if (a.parent == cls && parameter.type == null) {
             result = inferParameterType(
                 cls, a, parameter, bType, hadTypesInferred, hierarchy);
