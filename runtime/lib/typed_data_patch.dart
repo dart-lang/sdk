@@ -111,13 +111,10 @@ abstract class _TypedListBase {
       int startFromInBytes, int toCid, int fromCid) native "TypedData_setRange";
 }
 
-abstract class _IntListMixin<SpawnedType extends List<int>>
-    implements List<int> {
+mixin _IntListMixin implements List<int> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
-
-  SpawnedType _createList(int length);
 
   Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
@@ -177,71 +174,6 @@ abstract class _IntListMixin<SpawnedType extends List<int>>
       this[i] = this[pos];
       this[pos] = tmp;
     }
-  }
-
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw new ArgumentError(skipCount);
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
-    if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<int>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
-        // Different element sizes, but same buffer means that we need
-        // an intermediate structure.
-        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
-        final fromAsList = from as List<int>;
-        final tempBuffer = _createList(count);
-        for (var i = 0; i < count; i++) {
-          tempBuffer[i] = fromAsList[skipCount + i];
-        }
-        for (var i = start; i < end; i++) {
-          this[i] = tempBuffer[i - start];
-        }
-        return;
-      }
-    }
-
-    List otherList;
-    int otherStart;
-    if (from is List<int>) {
-      otherList = from;
-      otherStart = skipCount;
-    } else {
-      otherList = from.skip(skipCount).toList(growable: false);
-      otherStart = 0;
-    }
-    if (otherStart + count > otherList.length) {
-      throw IterableElementError.tooFew();
-    }
-    Lists.copy(otherList, otherStart, this, start, count);
   }
 
   Iterable<int> where(bool f(int element)) => new WhereIterable<int>(this, f);
@@ -442,14 +374,6 @@ abstract class _IntListMixin<SpawnedType extends List<int>>
     throw IterableElementError.tooMany();
   }
 
-  SpawnedType sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
-    SpawnedType result = _createList(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
   void setAll(int index, Iterable<int> iterable) {
     final end = iterable.length + index;
     setRange(index, end, iterable);
@@ -463,13 +387,88 @@ abstract class _IntListMixin<SpawnedType extends List<int>>
   }
 }
 
-abstract class _DoubleListMixin<SpawnedType extends List<double>>
-    implements List<double> {
+mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
+    implements List<int> {
+  SpawnedType _createList(int length);
+
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<int> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<int>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<int>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<int>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  SpawnedType sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    SpawnedType result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
+  }
+}
+
+mixin _DoubleListMixin implements List<double> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
-
-  SpawnedType _createList(int length);
 
   Iterable<T> whereType<T>() => new WhereTypeIterable<T>(this);
 
@@ -529,72 +528,6 @@ abstract class _DoubleListMixin<SpawnedType extends List<double>>
       this[i] = this[pos];
       this[pos] = tmp;
     }
-  }
-
-  void setRange(int start, int end, Iterable<double> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw new ArgumentError(skipCount);
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
-    if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<double> so there is
-      // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<double>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
-        }
-      } else if (fromAsTypedList.buffer == this.buffer) {
-        // Different element sizes, but same buffer means that we need
-        // an intermediate structure.
-        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
-        final fromAsList = from as List<double>;
-        final tempBuffer = _createList(count);
-        for (var i = 0; i < count; i++) {
-          tempBuffer[i] = fromAsList[skipCount + i];
-        }
-        for (var i = start; i < end; i++) {
-          this[i] = tempBuffer[i - start];
-        }
-        return;
-      }
-    }
-
-    List otherList;
-    int otherStart;
-    if (from is List<double>) {
-      otherList = from;
-      otherStart = skipCount;
-    } else {
-      otherList = from.skip(skipCount).toList(growable: false);
-      otherStart = 0;
-    }
-    if (otherStart + count > otherList.length) {
-      throw IterableElementError.tooFew();
-    }
-    Lists.copy(otherList, otherStart, this, start, count);
   }
 
   Iterable<double> where(bool f(double element)) =>
@@ -797,14 +730,6 @@ abstract class _DoubleListMixin<SpawnedType extends List<double>>
     throw IterableElementError.tooMany();
   }
 
-  SpawnedType sublist(int start, [int end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    var length = end - start;
-    SpawnedType result = _createList(length);
-    result.setRange(0, length, this, start);
-    return result;
-  }
-
   void setAll(int index, Iterable<double> iterable) {
     final end = iterable.length + index;
     setRange(index, end, iterable);
@@ -815,6 +740,85 @@ abstract class _DoubleListMixin<SpawnedType extends List<double>>
     for (var i = start; i < end; ++i) {
       this[i] = fillValue;
     }
+  }
+}
+
+mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
+    on _DoubleListMixin implements List<double> {
+  SpawnedType _createList(int length);
+
+  void setRange(int start, int end, Iterable<double> from,
+      [int skipCount = 0]) {
+    // Check ranges.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (count == 0) return;
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<double> so there is
+      // no promotion here.
+      final fromAsTypedList = from as _TypedListBase;
+      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
+        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
+          Lists.copy(from as List<double>, skipCount, this, start, count);
+          return;
+        } else if (this.buffer._data._setRange(
+            start * elementSizeInBytes + this.offsetInBytes,
+            count * elementSizeInBytes,
+            fromAsTypedList.buffer._data,
+            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
+            ClassID.getID(this),
+            ClassID.getID(from))) {
+          return;
+        }
+      } else if (fromAsTypedList.buffer == this.buffer) {
+        // Different element sizes, but same buffer means that we need
+        // an intermediate structure.
+        // TODO(srdjan): Optimize to skip copying if the range does not overlap.
+        final fromAsList = from as List<double>;
+        final tempBuffer = _createList(count);
+        for (var i = 0; i < count; i++) {
+          tempBuffer[i] = fromAsList[skipCount + i];
+        }
+        for (var i = start; i < end; i++) {
+          this[i] = tempBuffer[i - start];
+        }
+        return;
+      }
+    }
+
+    List otherList;
+    int otherStart;
+    if (from is List<double>) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + count > otherList.length) {
+      throw IterableElementError.tooFew();
+    }
+    Lists.copy(otherList, otherStart, this, start, count);
+  }
+
+  SpawnedType sublist(int start, [int end]) {
+    end = RangeError.checkValidRange(start, end, this.length);
+    var length = end - start;
+    SpawnedType result = _createList(length);
+    result.setRange(0, length, this, start);
+    return result;
   }
 }
 
@@ -893,7 +897,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       assert(false);
     }
     if (skipCount < 0) {
-      throw new ArgumentError(skipCount);
+      throw RangeError.range(skipCount, 0, null, "skipCount");
     }
 
     final count = end - start;
@@ -1251,7 +1255,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       assert(false);
     }
     if (skipCount < 0) {
-      throw new ArgumentError(skipCount);
+      throw RangeError.range(skipCount, 0, null, "skipCount");
     }
 
     final count = end - start;
@@ -1608,7 +1612,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       assert(false);
     }
     if (skipCount < 0) {
-      throw new ArgumentError(skipCount);
+      throw RangeError.range(skipCount, 0, null, "skipCount");
     }
 
     final count = end - start;
@@ -2141,7 +2145,7 @@ class Int8List {
 
 @pragma("vm:entry-point")
 class _Int8List extends _TypedList
-    with _IntListMixin<Int8List>
+    with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   factory _Int8List._uninstantiable() {
     throw "Unreachable";
@@ -2189,7 +2193,7 @@ class Uint8List {
 
 @pragma("vm:entry-point")
 class _Uint8List extends _TypedList
-    with _IntListMixin<Uint8List>
+    with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   factory _Uint8List._uninstantiable() {
     throw "Unreachable";
@@ -2237,7 +2241,7 @@ class Uint8ClampedList {
 
 @pragma("vm:entry-point")
 class _Uint8ClampedList extends _TypedList
-    with _IntListMixin<Uint8ClampedList>
+    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   factory _Uint8ClampedList._uninstantiable() {
     throw "Unreachable";
@@ -2285,7 +2289,7 @@ class Int16List {
 
 @pragma("vm:entry-point")
 class _Int16List extends _TypedList
-    with _IntListMixin<Int16List>
+    with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   factory _Int16List._uninstantiable() {
     throw "Unreachable";
@@ -2352,7 +2356,7 @@ class Uint16List {
 
 @pragma("vm:entry-point")
 class _Uint16List extends _TypedList
-    with _IntListMixin<Uint16List>
+    with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   factory _Uint16List._uninstantiable() {
     throw "Unreachable";
@@ -2419,7 +2423,7 @@ class Int32List {
 
 @pragma("vm:entry-point")
 class _Int32List extends _TypedList
-    with _IntListMixin<Int32List>
+    with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   factory _Int32List._uninstantiable() {
     throw "Unreachable";
@@ -2474,7 +2478,7 @@ class Uint32List {
 
 @pragma("vm:entry-point")
 class _Uint32List extends _TypedList
-    with _IntListMixin<Uint32List>
+    with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   factory _Uint32List._uninstantiable() {
     throw "Unreachable";
@@ -2529,7 +2533,7 @@ class Int64List {
 
 @pragma("vm:entry-point")
 class _Int64List extends _TypedList
-    with _IntListMixin<Int64List>
+    with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   factory _Int64List._uninstantiable() {
     throw "Unreachable";
@@ -2584,7 +2588,7 @@ class Uint64List {
 
 @pragma("vm:entry-point")
 class _Uint64List extends _TypedList
-    with _IntListMixin<Uint64List>
+    with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   factory _Uint64List._uninstantiable() {
     throw "Unreachable";
@@ -2639,7 +2643,7 @@ class Float32List {
 
 @pragma("vm:entry-point")
 class _Float32List extends _TypedList
-    with _DoubleListMixin<Float32List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   factory _Float32List._uninstantiable() {
     throw "Unreachable";
@@ -2695,7 +2699,7 @@ class Float64List {
 
 @pragma("vm:entry-point")
 class _Float64List extends _TypedList
-    with _DoubleListMixin<Float64List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   factory _Float64List._uninstantiable() {
     throw "Unreachable";
@@ -2903,7 +2907,7 @@ class _Float64x2List extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalInt8Array extends _TypedList
-    with _IntListMixin<Int8List>
+    with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   factory _ExternalInt8Array._uninstantiable() {
     throw "Unreachable";
@@ -2937,7 +2941,7 @@ class _ExternalInt8Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalUint8Array extends _TypedList
-    with _IntListMixin<Uint8List>
+    with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   factory _ExternalUint8Array._uninstantiable() {
     throw "Unreachable";
@@ -2972,7 +2976,7 @@ class _ExternalUint8Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalUint8ClampedArray extends _TypedList
-    with _IntListMixin<Uint8ClampedList>
+    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   factory _ExternalUint8ClampedArray._uninstantiable() {
     throw "Unreachable";
@@ -3007,7 +3011,7 @@ class _ExternalUint8ClampedArray extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalInt16Array extends _TypedList
-    with _IntListMixin<Int16List>
+    with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   factory _ExternalInt16Array._uninstantiable() {
     throw "Unreachable";
@@ -3049,7 +3053,7 @@ class _ExternalInt16Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalUint16Array extends _TypedList
-    with _IntListMixin<Uint16List>
+    with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   factory _ExternalUint16Array._uninstantiable() {
     throw "Unreachable";
@@ -3091,7 +3095,7 @@ class _ExternalUint16Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalInt32Array extends _TypedList
-    with _IntListMixin<Int32List>
+    with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   factory _ExternalInt32Array._uninstantiable() {
     throw "Unreachable";
@@ -3133,7 +3137,7 @@ class _ExternalInt32Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalUint32Array extends _TypedList
-    with _IntListMixin<Uint32List>
+    with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   factory _ExternalUint32Array._uninstantiable() {
     throw "Unreachable";
@@ -3175,7 +3179,7 @@ class _ExternalUint32Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalInt64Array extends _TypedList
-    with _IntListMixin<Int64List>
+    with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   factory _ExternalInt64Array._uninstantiable() {
     throw "Unreachable";
@@ -3217,7 +3221,7 @@ class _ExternalInt64Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalUint64Array extends _TypedList
-    with _IntListMixin<Uint64List>
+    with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   factory _ExternalUint64Array._uninstantiable() {
     throw "Unreachable";
@@ -3259,7 +3263,7 @@ class _ExternalUint64Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalFloat32Array extends _TypedList
-    with _DoubleListMixin<Float32List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   factory _ExternalFloat32Array._uninstantiable() {
     throw "Unreachable";
@@ -3301,7 +3305,7 @@ class _ExternalFloat32Array extends _TypedList
 
 @pragma("vm:entry-point")
 class _ExternalFloat64Array extends _TypedList
-    with _DoubleListMixin<Float64List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   factory _ExternalFloat64Array._uninstantiable() {
     throw "Unreachable";
@@ -3716,7 +3720,7 @@ abstract class _TypedListView extends _TypedListBase implements TypedData {
 
 @pragma("vm:entry-point")
 class _Int8ArrayView extends _TypedListView
-    with _IntListMixin<Int8List>
+    with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int8ArrayView)
@@ -3753,7 +3757,7 @@ class _Int8ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Uint8ArrayView extends _TypedListView
-    with _IntListMixin<Uint8List>
+    with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint8ArrayView)
@@ -3790,7 +3794,7 @@ class _Uint8ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Uint8ClampedArrayView extends _TypedListView
-    with _IntListMixin<Uint8ClampedList>
+    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
@@ -3827,7 +3831,7 @@ class _Uint8ClampedArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Int16ArrayView extends _TypedListView
-    with _IntListMixin<Int16List>
+    with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int16ArrayView)
@@ -3876,7 +3880,7 @@ class _Int16ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Uint16ArrayView extends _TypedListView
-    with _IntListMixin<Uint16List>
+    with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint16ArrayView)
@@ -3926,7 +3930,7 @@ class _Uint16ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Int32ArrayView extends _TypedListView
-    with _IntListMixin<Int32List>
+    with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int32ArrayView)
@@ -3963,7 +3967,7 @@ class _Int32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Uint32ArrayView extends _TypedListView
-    with _IntListMixin<Uint32List>
+    with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint32ArrayView)
@@ -4000,7 +4004,7 @@ class _Uint32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Int64ArrayView extends _TypedListView
-    with _IntListMixin<Int64List>
+    with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Int64ArrayView)
@@ -4037,7 +4041,7 @@ class _Int64ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Uint64ArrayView extends _TypedListView
-    with _IntListMixin<Uint64List>
+    with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Uint64ArrayView)
@@ -4074,7 +4078,7 @@ class _Uint64ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Float32ArrayView extends _TypedListView
-    with _DoubleListMixin<Float32List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float32ArrayView)
@@ -4111,7 +4115,7 @@ class _Float32ArrayView extends _TypedListView
 
 @pragma("vm:entry-point")
 class _Float64ArrayView extends _TypedListView
-    with _DoubleListMixin<Float64List>
+    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
   // Constructor.
   @pragma("vm:exact-result-type", _Float64ArrayView)
