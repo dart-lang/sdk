@@ -19,6 +19,7 @@ import 'dependency_graph.dart';
 import 'output_log.dart';
 import 'runtime_configuration.dart';
 import 'test_case.dart';
+import 'test_file.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -236,7 +237,7 @@ class TestCaseEnqueuer {
     // Cache information about test cases per test suite. For multiple
     // configurations there is no need to repeatedly search the file
     // system, generate tests, and search test files for options.
-    var testCache = <String, List<TestInformation>>{};
+    var testCache = <String, List<TestFile>>{};
 
     var iterator = testSuites.iterator;
     void enqueueNextSuite() {

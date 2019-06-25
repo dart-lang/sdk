@@ -73,7 +73,7 @@ import "dart:async";
 import "dart:io";
 
 import "path.dart";
-import "test_suite.dart";
+import "test_file.dart";
 import "utils.dart";
 
 /// Until legacy multitests are ported we need to support both /// and //#
@@ -90,7 +90,7 @@ final _multitestOutcomes = [
   'checked mode compile-time error' // This is now a no-op
 ].toSet();
 
-void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
+void _generateTestsFromMultitest(Path filePath, Map<String, String> tests,
     Map<String, Set<String>> outcomes) {
   var contents = File(filePath.toNativePath()).readAsStringSync();
 
@@ -162,31 +162,26 @@ void extractTestsFromMultitest(Path filePath, Map<String, String> tests,
   }
 }
 
-Future doMultitest(Path filePath, String outputDir, Path suiteDir,
-    CreateTest doTest, bool hotReload) {
-  void writeFile(String filepath, String content) {
-    var file = File(filepath);
-    if (file.existsSync()) {
-      var oldContent = file.readAsStringSync();
-      if (oldContent == content) {
-        // Don't write to the file if the content is the same
-        return;
-      }
-    }
-    file.writeAsStringSync(content);
-  }
-
-  // Each new test is a single String value in the Map tests.
+/// Split the given [multitest] into a series of separate tests for each
+/// section.
+///
+/// Writes the resulting tests to [outputDir] and returns a list of [TestFile]s
+/// for each of those generated tests.
+Future<List<TestFile>> splitMultitest(
+    TestFile multitest, String outputDir, Path suiteDir,
+    {bool hotReload}) async {
+  // Each key in the map tests is a multitest tag or "none", and the texts of
+  // the generated test it its value.
   var tests = <String, String>{};
   var outcomes = <String, Set<String>>{};
-  extractTestsFromMultitest(filePath, tests, outcomes);
+  _generateTestsFromMultitest(multitest.path, tests, outcomes);
 
-  var sourceDir = filePath.directoryPath;
+  var sourceDir = multitest.path.directoryPath;
   var targetDir = _createMultitestDirectory(outputDir, suiteDir, sourceDir);
   assert(targetDir != null);
 
   // Copy all the relative imports of the multitest.
-  var importsToCopy = _findAllRelativeImports(filePath);
+  var importsToCopy = _findAllRelativeImports(multitest.path);
   var futureCopies = <Future>[];
   for (var relativeImport in importsToCopy) {
     var importPath = Path(relativeImport);
@@ -204,35 +199,52 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
   }
 
   // Wait until all imports are copied before scheduling test cases.
-  return Future.wait(futureCopies).then((_) {
-    var baseFilename = filePath.filenameWithoutExtension;
-    for (var key in tests.keys) {
-      var multitestFilename = targetDir.append('${baseFilename}_$key.dart');
-      writeFile(multitestFilename.toNativePath(), tests[key]);
+  await Future.wait(futureCopies);
 
-      var outcome = outcomes[key];
-      var hasStaticWarning = outcome.contains('static type warning');
-      var hasRuntimeError = outcome.contains('runtime error');
-      var hasSyntaxError = outcome.contains('syntax error');
-      var hasCompileError =
-          hasSyntaxError || outcome.contains('compile-time error');
+  var baseFilename = multitest.path.filenameWithoutExtension;
 
-      if (hotReload && hasCompileError) {
-        // Running a test that expects a compilation error with hot reloading
-        // is redundant with a regular run of the test.
-        continue;
-      }
+  var testFiles = <TestFile>[];
+  for (var section in tests.keys) {
+    var sectionFilePath = targetDir.append('${baseFilename}_$section.dart');
+    _writeFile(sectionFilePath.toNativePath(), tests[section]);
 
-      doTest(multitestFilename, filePath,
-          hasSyntaxError: hasSyntaxError,
-          hasCompileError: hasCompileError,
-          hasRuntimeError: hasRuntimeError,
-          hasStaticWarning: hasStaticWarning,
-          multitestKey: key);
+    var outcome = outcomes[section];
+    var hasStaticWarning = outcome.contains('static type warning');
+    var hasRuntimeError = outcome.contains('runtime error');
+    var hasSyntaxError = outcome.contains('syntax error');
+    var hasCompileError =
+        hasSyntaxError || outcome.contains('compile-time error');
+
+    if (hotReload && hasCompileError) {
+      // Running a test that expects a compilation error with hot reloading
+      // is redundant with a regular run of the test.
+      continue;
     }
 
-    return null;
-  });
+    // Create a [TestFile] for each split out section test.
+    testFiles.add(multitest.split(sectionFilePath, section,
+        hasSyntaxError: hasSyntaxError,
+        hasCompileError: hasCompileError,
+        hasRuntimeError: hasRuntimeError,
+        hasStaticWarning: hasStaticWarning));
+  }
+
+  return testFiles;
+}
+
+/// Writes [content] to [filePath] unless there is already a file at that path
+/// with the same content.
+void _writeFile(String filePath, String content) {
+  var file = File(filePath);
+
+  // Don't overwrite the file if the contents are the same. This way build
+  // systems don't think it has been modified.
+  if (file.existsSync()) {
+    var oldContent = file.readAsStringSync();
+    if (oldContent == content) return;
+  }
+
+  file.writeAsStringSync(content);
 }
 
 /// A multitest annotation in the special `//#` comment.
