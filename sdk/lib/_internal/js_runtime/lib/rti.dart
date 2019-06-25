@@ -410,8 +410,7 @@ class _Universe {
     if (Rti._getKind(argumentsRti) == Rti.kindBinding) {
       argumentsArray = Rti._getBindingArguments(argumentsRti);
     } else {
-      argumentsArray = JS('', '[]');
-      _Utils.arrayPush(argumentsArray, argumentsRti);
+      argumentsArray = JS('', '[#]', argumentsRti);
     }
     var rti = _lookupBindingRti(universe, environment, argumentsArray);
     _cacheSet(cache, argumentsRecipe, rti);
