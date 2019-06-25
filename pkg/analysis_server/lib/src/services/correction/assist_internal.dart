@@ -971,7 +971,8 @@ class AssistProcessor {
       return;
     }
     ConstructorElement element = creation.staticElement;
-    if (element.name != 'fromIterable' ||
+    if (element == null ||
+        element.name != 'fromIterable' ||
         element.enclosingElement != typeProvider.mapType.element) {
       _coverageMarker();
       return;
