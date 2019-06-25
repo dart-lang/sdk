@@ -17,12 +17,14 @@ import tempfile
 
 
 def _CheckFormat(input_api, identification, extension, windows,
-    hasFormatErrors):
+    hasFormatErrors, should_skip = lambda path : False):
   local_root = input_api.change.RepositoryRoot()
   upstream = input_api.change._upstream
   unformatted_files = []
   for git_file in input_api.AffectedTextFiles():
     if git_file.LocalPath().startswith("pkg/front_end/testcases/"):
+      continue
+    if should_skip(git_file.LocalPath()):
       continue
     filename = git_file.AbsoluteLocalPath()
     if filename.endswith(extension) and hasFormatErrors(filename=filename):
@@ -147,8 +149,12 @@ def _CheckStatusFiles(input_api, output_api):
     process.communicate(input=contents)
     return process.returncode != 0
 
+  def should_skip(path):
+      return (path.startswith("pkg/status_file/test/data/")
+              or path.startswith("pkg/front_end/"))
+
   unformatted_files = _CheckFormat(input_api, "status file", ".status",
-      windows, HasFormatErrors)
+      windows, HasFormatErrors, should_skip)
 
   if unformatted_files:
     normalize = os.path.join(local_root, 'pkg', 'status_file', 'bin',
