@@ -1,4 +1,4 @@
-## 0.36.4-dev (not yet published)
+## 0.36.4
 * Deprecated the `isNonNullableUnit` parameter of the `TypeResolverVisitor`
   constructor.  TypeResolverVisitor should now be configured using the
   `featureSet` parameter.
@@ -26,6 +26,11 @@
   `parseString`, it is much more efficient than `parseFile`.
 * Added more specific deprecation notices to `package:analyzer/analyzer.dart` to
   direct clients to suitable replacements.
+* Deprecated the enable flags `bogus-disabled` and `bogus-enabled`.  Clients
+  should not be relying on the presence of these flags.
+* Deprecated the constructor parameter
+  ConstantEvaluationEngine.forAnalysisDriver, which no longer has any effect.
+* Deprecated ElementImpl.RIGHT_ARROW.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this
