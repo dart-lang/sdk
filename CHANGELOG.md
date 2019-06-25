@@ -80,6 +80,15 @@
 
 ### Tools
 
+#### Linter
+
+The Linter was updated to `0.1.92`, which includes the following changes:
+
+* Improvements to `prefer_collection_literals` to better handle `LinkedHashSet`s and `LinkedHashMap`s
+* Updates to the Effective Dart rule set
+* Updates `prefer_final_fields` to be more inclusive
+* Miscellaneous documentation fixes
+
 ## 2.4.0 - 2019-06-24
 
 ### Core libraries
