@@ -71,6 +71,7 @@ continue_inference_after_error_lib: TextSerializationFailure # Was: Pass
 control_flow_collection: TextSerializationFailure
 control_flow_collection_inference: TextSerializationFailure
 covariant_generic: TextSerializationFailure # Was: RuntimeError
+covariant_parameter_in_superclass_of_mixin_application: TextSerializationFailure
 cycles: TextSerializationFailure # Was: Pass
 default_values: TextSerializationFailure # Was: Pass
 deferred_lib: TextSerializationFailure # Was: Pass

@@ -87,9 +87,9 @@ C:
       -> B
   interfaces: M, I<int>
   classMembers:
-    M.y
+    C.M.y%B.y%I.y
     Object.toString
-    M.x
+    C.M.x%B.x%I.x
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
@@ -100,12 +100,12 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    M.y
-    M.x
+    C.M.y%B.y%I.y
+    C.M.x%B.x%I.x
   interfaceMembers:
-    C.M.y%I.y
+    C.M.y%B.y%I.y
     Object.toString
-    C.M.x%I.x
+    C.M.x%B.x%I.x
     Object.runtimeType
     Object._simpleInstanceOf
     Object._instanceOf
@@ -116,8 +116,8 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    C.M.y%I.y
-    C.M.x%I.x
+    C.M.y%B.y%I.y
+    C.M.x%B.x%I.x
 
 Comparable:
   superclasses:

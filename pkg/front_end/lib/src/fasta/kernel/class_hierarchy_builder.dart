@@ -451,6 +451,17 @@ class ClassHierarchyNodeBuilder {
                 cls.library.loader == hierarchy.loader);
             hierarchy.delayedMemberChecks.add(result);
           }
+        } else if (cls.isMixinApplication && a.parent != cls) {
+          result = InheritedImplementationInterfaceConflict.combined(
+              cls,
+              a,
+              b,
+              mergeKind == MergeKind.superclassSetters,
+              cls.library.loader == hierarchy.loader,
+              isInheritableConflict: false);
+          if (result is DelayedMember) {
+            hierarchy.delayedMemberChecks.add(result);
+          }
         }
 
         Member target = result.target;
@@ -502,6 +513,13 @@ class ClassHierarchyNodeBuilder {
           debug?.log(
               "supertypes: checkValidOverride(${cls.fullNameForErrors}, ${fullName(a)}, ${fullName(b)})");
           checkValidOverride(a, b);
+          if (a is DelayedMember && !a.isInheritableConflict) {
+            if (b is DelayedMember) {
+              b.addAllDeclarationsTo(a.declarations);
+            } else {
+              addDeclarationIfDifferent(b, a.declarations);
+            }
+          }
         } else {
           if (isAbstract(a)) {
             result = InterfaceConflict.combined(
@@ -1091,7 +1109,8 @@ class ClassHierarchyNodeBuilder {
     }
     if (mergeKind != MergeKind.membersWithSetters &&
         mergeKind != MergeKind.settersWithMembers &&
-        member is DelayedMember) {
+        member is DelayedMember &&
+        member.isInheritableConflict) {
       hierarchy.delayedMemberChecks.add(member.withParent(cls));
     }
     return member;
@@ -2092,6 +2111,8 @@ abstract class DelayedMember extends Declaration {
   @override
   String get fullNameForErrors => declarations.map(fullName).join("%");
 
+  bool get isInheritableConflict => true;
+
   @override
   Member get target => declarations.first.target;
 }
@@ -2102,8 +2123,12 @@ abstract class DelayedMember extends Declaration {
 class InheritedImplementationInterfaceConflict extends DelayedMember {
   Member combinedMemberSignatureResult;
 
+  @override
+  final bool isInheritableConflict;
+
   InheritedImplementationInterfaceConflict(KernelClassBuilder parent,
-      List<Declaration> declarations, bool isSetter, bool modifyKernel)
+      List<Declaration> declarations, bool isSetter, bool modifyKernel,
+      {this.isInheritableConflict = true})
       : super(parent, declarations, isSetter, modifyKernel);
 
   @override
@@ -2144,7 +2169,8 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       Declaration concreteImplementation,
       Declaration other,
       bool isSetter,
-      bool createForwarders) {
+      bool createForwarders,
+      {bool isInheritableConflict = true}) {
     List<Declaration> declarations = <Declaration>[];
     if (concreteImplementation is DelayedMember) {
       concreteImplementation.addAllDeclarationsTo(declarations);
@@ -2160,7 +2186,8 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return declarations.single;
     } else {
       return new InheritedImplementationInterfaceConflict(
-          parent, declarations, isSetter, createForwarders);
+          parent, declarations, isSetter, createForwarders,
+          isInheritableConflict: isInheritableConflict);
     }
   }
 }
