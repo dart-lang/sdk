@@ -69,21 +69,49 @@ class MoveFileRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange() async {
-    var changeBuilder = new DartChangeBuilder(driver.currentSession);
-    final element = resolvedUnit.unit.declaredElement;
+    final DartChangeBuilder changeBuilder =
+        new DartChangeBuilder(driver.currentSession);
+    final CompilationUnitElement element = resolvedUnit.unit.declaredElement;
     if (element == null) {
       return changeBuilder.sourceChange;
     }
-    final library = element.library;
+    final LibraryElement libraryElement = element.library;
 
     // If this element is a library, update outgoing references inside the file.
-    if (element == library.definingCompilationUnit) {
-      await changeBuilder.addFileEdit(library.source.fullName, (builder) {
-        final oldDir = pathContext.dirname(oldFile);
-        final newDir = pathContext.dirname(newFile);
-        _updateUriReferences(builder, library.imports, oldDir, newDir);
-        _updateUriReferences(builder, library.exports, oldDir, newDir);
-        _updateUriReferences(builder, library.parts, oldDir, newDir);
+    if (element == libraryElement.definingCompilationUnit) {
+      // Handle part-of directives in this library
+      final ResolvedLibraryResult libraryResult = await driver.currentSession
+          .getResolvedLibraryByElement(libraryElement);
+      for (ResolvedUnitResult result in libraryResult.units) {
+        if (result.isPart) {
+          Iterable<PartOfDirective> partOfs = result.unit.directives
+              .whereType<PartOfDirective>()
+              .where(
+                  (po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
+          if (partOfs.isNotEmpty) {
+            await changeBuilder.addFileEdit(result.unit.element.source.fullName,
+                (builder) {
+              partOfs.forEach((po) {
+                final oldDir = pathContext.dirname(oldFile);
+                final newDir = pathContext.dirname(newFile);
+                String newLocation =
+                    pathContext.join(newDir, pathos.basename(newFile));
+                String newUri = _getRelativeUri(newLocation, oldDir);
+                builder.addSimpleReplacement(
+                    new SourceRange(po.uri.offset, po.uri.length), "'$newUri'");
+              });
+            });
+          }
+        }
+      }
+
+      await changeBuilder.addFileEdit(libraryElement.source.fullName,
+          (builder) {
+        final String oldDir = pathContext.dirname(oldFile);
+        final String newDir = pathContext.dirname(newFile);
+        _updateUriReferences(builder, libraryElement.imports, oldDir, newDir);
+        _updateUriReferences(builder, libraryElement.exports, oldDir, newDir);
+        _updateUriReferences(builder, libraryElement.parts, oldDir, newDir);
       });
     } else {
       // Otherwise, we need to update any relative part-of references.
