@@ -911,7 +911,7 @@ class ClassHierarchyNodeBuilder {
       debug?.log(
           "${cls.fullNameForErrors} -> ${bCls.fullNameForErrors} $bSubstitution");
     }
-    if (bSubstitution != null) {
+    if (bSubstitution != null && inheritedType is! ImplicitFieldType) {
       inheritedType = bSubstitution.substituteType(inheritedType);
     }
 
