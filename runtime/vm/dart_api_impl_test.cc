@@ -82,7 +82,7 @@ UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
 
   // Wait for 5 seconds to let the kernel service load the snapshot,
   // which should trigger calls to the code observer.
-  sleep(5);
+  OS::Sleep(5);
 
   EXPECT(was_called);
   EXPECT(Dart_Cleanup() == NULL);
