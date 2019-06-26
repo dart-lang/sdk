@@ -14905,6 +14905,20 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
   return code.raw();
 }
 
+void Code::NotifyCodeObservers(const Code& code, bool optimized) {
+#if !defined(PRODUCT)
+  ASSERT(!Thread::Current()->IsAtSafepoint());
+  if (CodeObservers::AreActive()) {
+    const Object& owner = Object::Handle(code.owner());
+    if (owner.IsFunction()) {
+      NotifyCodeObservers(Function::Cast(owner), code, optimized);
+    } else {
+      NotifyCodeObservers(code.Name(), code, optimized);
+    }
+  }
+#endif
+}
+
 void Code::NotifyCodeObservers(const Function& function,
                                const Code& code,
                                bool optimized) {

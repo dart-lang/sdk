@@ -5442,6 +5442,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
+  // WARNING: function() returns the owner which is not guaranteed to be
+  // a Function. It is up to the caller to guarantee it isn't a stub, class,
+  // or something else.
   // TODO(turnidge): Consider dropping this function and making
   // everybody use owner().  Currently this function is misused - even
   // while generating the snapshot.
@@ -5488,6 +5491,7 @@ class Code : public Object {
                                CodeStatistics* stats);
 
   // Notifies all active [CodeObserver]s.
+  static void NotifyCodeObservers(const Code& code, bool optimized);
   static void NotifyCodeObservers(const Function& function,
                                   const Code& code,
                                   bool optimized);

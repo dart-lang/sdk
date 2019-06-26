@@ -1581,11 +1581,9 @@ class CodeDeserializationCluster : public DeserializationCluster {
   void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
     if (!CodeObservers::AreActive()) return;
     Code& code = Code::Handle(zone);
-    Function& function = Function::Handle(zone);
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       code ^= refs.At(id);
-      function = code.function();
-      Code::NotifyCodeObservers(function, code, code.is_optimized());
+      Code::NotifyCodeObservers(code, code.is_optimized());
     }
   }
 #endif  // !DART_PRECOMPILED_RUNTIME
