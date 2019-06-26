@@ -12,7 +12,6 @@
 #include "include/dart_embedder_api.h"
 #include "include/dart_tools_api.h"
 
-#include "bin/abi_version.h"
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
@@ -597,8 +596,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(bool is_main_isolate,
   Dart_Isolate isolate = NULL;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if ((!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) ||
-      (Options::target_abi_version() != Options::kAbiVersionUnset)) {
+  if (!isolate_run_app_snapshot && (isolate_snapshot_data == NULL)) {
     const uint8_t* platform_kernel_buffer = NULL;
     intptr_t platform_kernel_buffer_size = 0;
     dfe.LoadPlatform(&platform_kernel_buffer, &platform_kernel_buffer_size);
