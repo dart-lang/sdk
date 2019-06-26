@@ -1148,8 +1148,7 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
   if (definition->IsAllocateObject()) {
     return !definition->AsAllocateObject()->closure_function().IsNull();
   }
-  return definition->IsLoadLocal() &&
-         !definition->AsLoadLocal()->local().IsInternal();
+  return definition->IsLoadLocal();
 }
 
 Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {

@@ -31,6 +31,7 @@ List<String> expected = [
   "$file:${LINE_A+1}:16", // on 'File'
   "$file:${LINE_A+2}:25", // on 'exists'
   "$file:${LINE_A+2}:17", // on 'await'
+  "$file:${LINE_A+2}:15", // on '='
   "$file:${LINE_A+4}:5" // on 'return'
 ];
 

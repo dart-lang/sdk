@@ -34,6 +34,7 @@ List<String> expected = [
   "$file:${LINE + 9}:3", // on yield
 
   "$file:${LINE + 1}:38", // on '{' in 'for' line
+  "$file:${LINE + 1}:12", // on 'datapoint'
   "$file:${LINE + 2}:5", // on 'print'
   "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
 
@@ -42,6 +43,7 @@ List<String> expected = [
   "$file:${LINE + 10}:3", // on yield
 
   "$file:${LINE + 1}:38", // on '{' in 'for' line
+  "$file:${LINE + 1}:12", // on 'datapoint'
   "$file:${LINE + 2}:5", // on 'print'
   "$file:${LINE + 1}:25", // on 'generator' (in 'for' line)
 
