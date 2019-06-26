@@ -45,9 +45,9 @@ Dart_Isolate CreateKernelServiceIsolate(const IsolateCreationData& data,
                                         const uint8_t* buffer,
                                         intptr_t buffer_size,
                                         char** error) {
-  Dart_Isolate kernel_isolate = Dart_CreateIsolateGroupFromKernel(
+  Dart_Isolate kernel_isolate = Dart_CreateIsolateFromKernel(
       data.script_uri, data.main, buffer, buffer_size, data.flags,
-      data.isolate_group_data, data.isolate_data, error);
+      data.callback_data, error);
   if (kernel_isolate == nullptr) {
     return nullptr;
   }
@@ -78,9 +78,9 @@ Dart_Isolate CreateVmServiceIsolate(const IsolateCreationData& data,
   }
   data.flags->load_vmservice_library = true;
 
-  Dart_Isolate service_isolate = Dart_CreateIsolateGroupFromKernel(
+  Dart_Isolate service_isolate = Dart_CreateIsolateFromKernel(
       data.script_uri, data.main, kernel_buffer, kernel_buffer_size, data.flags,
-      data.isolate_group_data, data.isolate_data, error);
+      data.callback_data, error);
   if (service_isolate == nullptr) {
     return nullptr;
   }

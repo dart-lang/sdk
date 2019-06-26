@@ -28,11 +28,9 @@ class Dart : public AllStatic {
   // (caller owns error message and has to free it).
   static char* Init(const uint8_t* vm_snapshot_data,
                     const uint8_t* vm_snapshot_instructions,
-                    Dart_IsolateGroupCreateCallback create_group,
-                    Dart_InitializeIsolateCallback initialize_isolate,
+                    Dart_IsolateCreateCallback create,
                     Dart_IsolateShutdownCallback shutdown,
                     Dart_IsolateCleanupCallback cleanup,
-                    Dart_IsolateGroupCleanupCallback cleanup_group,
                     Dart_ThreadExitCallback thread_exit,
                     Dart_FileOpenCallback file_open,
                     Dart_FileReadCallback file_read,

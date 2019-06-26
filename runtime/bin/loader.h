@@ -17,7 +17,7 @@ namespace bin {
 
 class Loader {
  public:
-  explicit Loader(IsolateGroupData* isolate_group_data);
+  explicit Loader(IsolateData* isolate_data);
   ~Loader();
 
   static void InitForSnapshot(const char* snapshot_uri);
@@ -43,8 +43,8 @@ class Loader {
  private:
   // The port assigned to our native message handler.
   Dart_Port port_;
-  // Each Loader is associated with an Isolate via its IsolateGroupData.
-  IsolateGroupData* isolate_group_data_;
+  // Each Loader is associated with an Isolate via its IsolateData.
+  IsolateData* isolate_data_;
   // Remember the first error that occurs during loading.
   Dart_Handle error_;
   // This monitor is used to protect the pending operations count and the
@@ -128,12 +128,12 @@ class Loader {
 
   // We use one native message handler callback for N loaders. The native
   // message handler callback provides us with the Dart_Port which we use as a
-  // key into our map of active loaders from |port| to |isolate_group_data|.
+  // key into our map of active loaders from |port| to |isolate_data|.
 
   // Static information to map Dart_Port back to the isolate in question.
   struct LoaderInfo {
     Dart_Port port;
-    IsolateGroupData* isolate_group_data;
+    IsolateData* isolate_data;
   };
 
   // The map of active loaders.
@@ -142,7 +142,7 @@ class Loader {
   static intptr_t loader_infos_length_;
   static intptr_t loader_infos_capacity_;
 
-  static void AddLoader(Dart_Port port, IsolateGroupData* data);
+  static void AddLoader(Dart_Port port, IsolateData* data);
   static void RemoveLoader(Dart_Port port);
   static intptr_t LoaderIndexFor(Dart_Port port);
   static Loader* LoaderFor(Dart_Port port);

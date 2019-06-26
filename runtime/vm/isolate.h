@@ -155,78 +155,6 @@ typedef FixedCache<intptr_t, CatchEntryMovesRefPtr, 16> CatchEntryMovesCache;
     unsafe_trust_strong_mode_types,                                            \
     FLAG_experimental_unsafe_mode_use_at_your_own_risk)
 
-// Represents the information used for spawning the first isolate within an
-// isolate group.
-//
-// Any subsequent isolates created via `Isolate.spawn()` will be created using
-// the same [IsolateGroupSource] (the object itself is shared among all isolates
-// within the same group).
-//
-// Issue(http://dartbug.com/36097): It is still possible to run into issues if
-// an isolate has spawned another one and then loads more code into the first
-// one, which the latter will not get. Though it makes the status quo better
-// than what we had before (where the embedder needed to maintain the
-// same-source guarantee).
-//
-// => This is only the first step towards having multiple isolates share the
-//    same heap (and therefore the same program structure).
-//
-class IsolateGroupSource {
- public:
-  IsolateGroupSource(const char* script_uri,
-                     const char* name,
-                     const uint8_t* snapshot_data,
-                     const uint8_t* snapshot_instructions,
-                     const uint8_t* shared_data,
-                     const uint8_t* shared_instructions,
-                     const uint8_t* kernel_buffer,
-                     intptr_t kernel_buffer_size,
-                     Dart_IsolateFlags flags,
-                     void* callback_data)
-      : script_uri(script_uri),
-        name(strdup(name)),
-        snapshot_data(snapshot_data),
-        snapshot_instructions(snapshot_instructions),
-        shared_data(shared_data),
-        shared_instructions(shared_instructions),
-        kernel_buffer(kernel_buffer),
-        kernel_buffer_size(kernel_buffer_size),
-        flags(flags),
-        callback_data(callback_data),
-        script_kernel_buffer(nullptr),
-        script_kernel_size(-1) {}
-  ~IsolateGroupSource() { free(name); }
-
-  // The arguments used for spawning in
-  // `Dart_CreateIsolateGroupFromKernel` / `Dart_CreateIsolate`.
-  const char* script_uri;
-  char* name;
-  const uint8_t* snapshot_data;
-  const uint8_t* snapshot_instructions;
-  const uint8_t* shared_data;
-  const uint8_t* shared_instructions;
-  const uint8_t* kernel_buffer;
-  const intptr_t kernel_buffer_size;
-  Dart_IsolateFlags flags;
-  void* callback_data;
-
-  // The kernel buffer used in `Dart_LoadScriptFromKernel`.
-  const uint8_t* script_kernel_buffer;
-  intptr_t script_kernel_size;
-
-  void IncrementIsolateUsageCount() {
-    AtomicOperations::IncrementBy(&isolate_count_, 1);
-  }
-
-  // Returns true if this was the last reference.
-  bool DecrementIsolateUsageCount() {
-    return AtomicOperations::FetchAndDecrement(&isolate_count_) == 1;
-  }
-
- private:
-  intptr_t isolate_count_ = 0;
-};
-
 class Isolate : public BaseIsolate {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
@@ -309,13 +237,6 @@ class Isolate : public BaseIsolate {
 
   void set_message_notify_callback(Dart_MessageNotifyCallback value) {
     message_notify_callback_ = value;
-  }
-
-  IsolateGroupSource* source() const { return source_; }
-
-  void set_source(IsolateGroupSource* source) {
-    source->IncrementIsolateUsageCount();
-    source_ = source;
   }
 
   bool HasPendingMessages();
@@ -516,18 +437,11 @@ class Isolate : public BaseIsolate {
   void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
 
-  static void SetCreateGroupCallback(Dart_IsolateGroupCreateCallback cb) {
-    create_group_callback_ = cb;
+  static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
+    create_callback_ = cb;
   }
-  static Dart_IsolateGroupCreateCallback CreateGroupCallback() {
-    return create_group_callback_;
-  }
-
-  static void SetInitializeCallback_(Dart_InitializeIsolateCallback cb) {
-    initialize_callback_ = cb;
-  }
-  static Dart_InitializeIsolateCallback InitializeCallback() {
-    return initialize_callback_;
+  static Dart_IsolateCreateCallback CreateCallback() {
+    return create_callback_;
   }
 
   static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
@@ -542,13 +456,6 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateCleanupCallback CleanupCallback() {
     return cleanup_callback_;
-  }
-
-  static void SetGroupCleanupCallback(Dart_IsolateGroupCleanupCallback cb) {
-    cleanup_group_callback_ = cb;
-  }
-  static Dart_IsolateGroupCleanupCallback GroupCleanupCallback() {
-    return cleanup_group_callback_;
   }
 
 #if !defined(PRODUCT)
@@ -1149,11 +1056,9 @@ class Isolate : public BaseIsolate {
 
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
 
-  static Dart_IsolateGroupCreateCallback create_group_callback_;
-  static Dart_InitializeIsolateCallback initialize_callback_;
+  static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_IsolateCleanupCallback cleanup_callback_;
-  static Dart_IsolateGroupCleanupCallback cleanup_group_callback_;
 
 #if !defined(PRODUCT)
   static void WakePauseEventHandler(Dart_Isolate isolate);
@@ -1167,7 +1072,6 @@ class Isolate : public BaseIsolate {
   static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
   static bool creation_enabled_;
-  IsolateGroupSource* source_ = nullptr;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -1241,8 +1145,7 @@ class IsolateSpawnState {
                     bool errorsAreFatal,
                     Dart_Port onExit,
                     Dart_Port onError,
-                    const char* debug_name,
-                    IsolateGroupSource* source);
+                    const char* debug_name);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_config,
@@ -1252,8 +1155,7 @@ class IsolateSpawnState {
                     bool errorsAreFatal,
                     Dart_Port onExit,
                     Dart_Port onError,
-                    const char* debug_name,
-                    IsolateGroupSource* source);
+                    const char* debug_name);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -1278,8 +1180,6 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
-  IsolateGroupSource* source() const { return source_; }
-
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
@@ -1292,7 +1192,6 @@ class IsolateSpawnState {
   const char* class_name_;
   const char* function_name_;
   const char* debug_name_;
-  IsolateGroupSource* source_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
 

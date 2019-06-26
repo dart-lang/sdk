@@ -91,7 +91,7 @@ var tests = <IsolateTest>[
     final numRanges = coverage['ranges'].length;
     expect(coverage['type'], equals('SourceReport'));
 
-    expect(numRanges, equals(12));
+    expect((numRanges == 12), isTrue);
     expect(coverage['ranges'][0], equals(expectedRange));
     expect(coverage['scripts'].length, 1);
     expect(

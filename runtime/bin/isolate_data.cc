@@ -9,10 +9,10 @@
 namespace dart {
 namespace bin {
 
-IsolateGroupData::IsolateGroupData(const char* url,
-                                   const char* package_root,
-                                   const char* packages_file,
-                                   AppSnapshot* app_snapshot)
+IsolateData::IsolateData(const char* url,
+                         const char* package_root,
+                         const char* packages_file,
+                         AppSnapshot* app_snapshot)
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
       packages_file(NULL),
@@ -30,7 +30,10 @@ IsolateGroupData::IsolateGroupData(const char* url,
   }
 }
 
-IsolateGroupData::~IsolateGroupData() {
+void IsolateData::OnIsolateShutdown() {
+}
+
+IsolateData::~IsolateData() {
   free(script_url);
   script_url = NULL;
   free(package_root);

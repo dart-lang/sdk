@@ -33,9 +33,9 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
   params.vm_snapshot_data = TesterState::vm_snapshot_data;
-  params.create_group = TesterState::create_callback;
-  params.shutdown_isolate = TesterState::shutdown_callback;
-  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.create = TesterState::create_callback;
+  params.shutdown = TesterState::shutdown_callback;
+  params.cleanup = TesterState::cleanup_callback;
   params.start_kernel_isolate = true;
 
   // Reinitialize and ensure we can execute Dart code.
@@ -63,9 +63,9 @@ UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
   memset(&params, 0, sizeof(Dart_InitializeParams));
   params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
   params.vm_snapshot_data = TesterState::vm_snapshot_data;
-  params.create_group = TesterState::create_callback;
-  params.shutdown_isolate = TesterState::shutdown_callback;
-  params.cleanup_group = TesterState::group_cleanup_callback;
+  params.create = TesterState::create_callback;
+  params.shutdown = TesterState::shutdown_callback;
+  params.cleanup = TesterState::cleanup_callback;
   params.start_kernel_isolate = true;
 
   bool was_called = false;
@@ -3670,21 +3670,20 @@ VM_UNIT_TEST_CASE(DartAPI_Isolates) {
 
 VM_UNIT_TEST_CASE(DartAPI_CurrentIsolateData) {
   Dart_IsolateShutdownCallback saved_shutdown = Isolate::ShutdownCallback();
-  Dart_IsolateGroupCleanupCallback saved_cleanup =
-      Isolate::GroupCleanupCallback();
+  Dart_IsolateCleanupCallback saved_cleanup = Isolate::CleanupCallback();
   Isolate::SetShutdownCallback(NULL);
-  Isolate::SetGroupCleanupCallback(NULL);
+  Isolate::SetCleanupCallback(NULL);
 
   intptr_t mydata = 12345;
   Dart_Isolate isolate =
       TestCase::CreateTestIsolate(NULL, reinterpret_cast<void*>(mydata));
   EXPECT(isolate != NULL);
-  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateGroupData()));
-  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateGroupData(isolate)));
+  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
+  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_IsolateData(isolate)));
   Dart_ShutdownIsolate();
 
   Isolate::SetShutdownCallback(saved_shutdown);
-  Isolate::SetGroupCleanupCallback(saved_cleanup);
+  Isolate::SetCleanupCallback(saved_cleanup);
 }
 
 static Dart_Handle LoadScript(const char* url_str, const char* source) {
@@ -6619,8 +6618,8 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
 
 // Common code for RunLoop_Success/RunLoop_Failure.
 static void RunLoopTest(bool throw_exception) {
-  Dart_IsolateGroupCreateCallback saved = Isolate::CreateGroupCallback();
-  Isolate::SetCreateGroupCallback(RunLoopTestCallback);
+  Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
+  Isolate::SetCreateCallback(RunLoopTestCallback);
   Dart_Isolate isolate =
       RunLoopTestCallback(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
@@ -6644,7 +6643,7 @@ static void RunLoopTest(bool throw_exception) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  Isolate::SetCreateGroupCallback(saved);
+  Isolate::SetCreateCallback(saved);
 }
 
 VM_UNIT_TEST_CASE(DartAPI_RunLoop_Success) {
@@ -6655,93 +6654,45 @@ VM_UNIT_TEST_CASE(DartAPI_RunLoop_Exception) {
   RunLoopTest(true);
 }
 
-static void* shutdown_isolate_group_data;
-static void* shutdown_isolate_data;
-static void* cleanup_isolate_group_data;
-static void* cleanup_isolate_data;
-
-// Called on isolate shutdown time (which is still allowed to run Dart code)
-static void IsolateShutdownTestCallback(void* group_data, void* isolate_data) {
-  // Shutdown runs before cleanup.
-  EXPECT(cleanup_isolate_group_data == nullptr);
-  EXPECT(cleanup_isolate_data == nullptr);
-
-  // Shutdown must have a current isolate (since it is allowed to execute Dart
-  // code)
-  EXPECT(Dart_CurrentIsolate() != nullptr);
-  EXPECT(Dart_CurrentIsolateGroupData() == group_data);
-  EXPECT(Dart_CurrentIsolateData() == isolate_data);
-
-  shutdown_isolate_group_data = group_data;
-  shutdown_isolate_data = isolate_data;
+static void* shutdown_callback_data;
+static void IsolateShutdownTestCallback(void* callback_data) {
+  shutdown_callback_data = callback_data;
 }
-
-// Called on isolate cleanup time (which is after the isolate has been
-// destroyed)
-static void IsolateCleanupTestCallback(void* group_data, void* isolate_data) {
-  // Cleanup runs after shutdown.
-  EXPECT(shutdown_isolate_group_data != nullptr);
-  EXPECT(shutdown_isolate_data != nullptr);
-
-  // The isolate was destroyed and there should not be a current isolate.
-  EXPECT(Dart_CurrentIsolate() == nullptr);
-
-  cleanup_isolate_group_data = group_data;
-  cleanup_isolate_data = isolate_data;
-}
-
-// Called on isolate group cleanup time (once all isolates have been destroyed)
-static void* cleanup_group_callback_data;
-static void IsolateGroupCleanupTestCallback(void* callback_data) {
-  cleanup_group_callback_data = callback_data;
+static void* cleanup_callback_data;
+static void IsolateCleanupTestCallback(void* callback_data) {
+  cleanup_callback_data = callback_data;
 }
 
 VM_UNIT_TEST_CASE(DartAPI_IsolateShutdownAndCleanup) {
   Dart_IsolateShutdownCallback saved_shutdown = Isolate::ShutdownCallback();
-  Dart_IsolateGroupCleanupCallback saved_cleanup =
-      Isolate::GroupCleanupCallback();
+  Dart_IsolateCleanupCallback saved_cleanup = Isolate::CleanupCallback();
   Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
   Isolate::SetCleanupCallback(IsolateCleanupTestCallback);
-  Isolate::SetGroupCleanupCallback(IsolateGroupCleanupTestCallback);
 
-  shutdown_isolate_group_data = nullptr;
-  shutdown_isolate_data = nullptr;
-  cleanup_group_callback_data = nullptr;
-  void* my_group_data = reinterpret_cast<void*>(123);
-  void* my_data = reinterpret_cast<void*>(456);
-
+  shutdown_callback_data = NULL;
+  cleanup_callback_data = NULL;
+  void* my_data = reinterpret_cast<void*>(12345);
   // Create an isolate.
-  Dart_Isolate isolate =
-      TestCase::CreateTestIsolate(nullptr, my_group_data, my_data);
+  Dart_Isolate isolate = TestCase::CreateTestIsolate(NULL, my_data);
   EXPECT(isolate != NULL);
 
   // The shutdown callback has not been called.
-  EXPECT(nullptr == shutdown_isolate_data);
-  EXPECT(nullptr == shutdown_isolate_group_data);
-  EXPECT(nullptr == cleanup_group_callback_data);
-
-  // The isolate is the active isolate which allows us to access the isolate
-  // specific and isolate-group specific data.
-  EXPECT(Dart_CurrentIsolateData() == my_data);
-  EXPECT(Dart_CurrentIsolateGroupData() == my_group_data);
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(shutdown_callback_data));
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(cleanup_callback_data));
 
   // Shutdown the isolate.
   Dart_ShutdownIsolate();
 
-  // The shutdown & cleanup callbacks have been called.
-  EXPECT(my_data == shutdown_isolate_data);
-  EXPECT(my_group_data == shutdown_isolate_group_data);
-  EXPECT(my_data == cleanup_isolate_data);
-  EXPECT(my_group_data == cleanup_isolate_group_data);
-  EXPECT(my_group_data == cleanup_group_callback_data);
+  // The shutdown callback has been called.
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(shutdown_callback_data));
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(cleanup_callback_data));
 
   Isolate::SetShutdownCallback(saved_shutdown);
-  Isolate::SetGroupCleanupCallback(saved_cleanup);
+  Isolate::SetCleanupCallback(saved_cleanup);
 }
 
 static int64_t add_result = 0;
-static void IsolateShutdownRunDartCodeTestCallback(void* isolate_group_data,
-                                                   void* isolate_data) {
+static void IsolateShutdownRunDartCodeTestCallback(void* callback_data) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   if (Dart_IsKernelIsolate(isolate) || Dart_IsServiceIsolate(isolate)) {
     return;

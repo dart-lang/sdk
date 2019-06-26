@@ -31,13 +31,13 @@ class Loader;
 // Data associated with every isolate in the standalone VM
 // embedding. This is used to free external resources for each isolate
 // when the isolate shuts down.
-class IsolateGroupData {
+class IsolateData {
  public:
-  IsolateGroupData(const char* url,
-                   const char* package_root,
-                   const char* packages_file,
-                   AppSnapshot* app_snapshot);
-  ~IsolateGroupData();
+  IsolateData(const char* url,
+              const char* package_root,
+              const char* packages_file,
+              AppSnapshot* app_snapshot);
+  ~IsolateData();
 
   char* script_url;
   char* package_root;
@@ -49,16 +49,16 @@ class IsolateGroupData {
 
   intptr_t kernel_buffer_size() const { return kernel_buffer_size_; }
 
-  // Associate the given kernel buffer with this IsolateGroupData without
-  // giving it ownership of the buffer.
+  // Associate the given kernel buffer with this IsolateData without giving it
+  // ownership of the buffer.
   void SetKernelBufferUnowned(uint8_t* buffer, intptr_t size) {
     ASSERT(kernel_buffer_.get() == NULL);
     kernel_buffer_ = std::shared_ptr<uint8_t>(buffer, FreeUnownedKernelBuffer);
     kernel_buffer_size_ = size;
   }
 
-  // Associate the given kernel buffer with this IsolateGroupData and give it
-  // ownership of the buffer. This IsolateGroupData is the first one to own the
+  // Associate the given kernel buffer with this IsolateData and give it
+  // ownership of the buffer. This IsolateData is the first one to own the
   // buffer.
   void SetKernelBufferNewlyOwned(uint8_t* buffer, intptr_t size) {
     ASSERT(kernel_buffer_.get() == NULL);
@@ -66,9 +66,9 @@ class IsolateGroupData {
     kernel_buffer_size_ = size;
   }
 
-  // Associate the given kernel buffer with this IsolateGroupData and give it
+  // Associate the given kernel buffer with this IsolateData and give it
   // ownership of the buffer. The buffer is already owned by another
-  // IsolateGroupData.
+  // IsolateData.
   void SetKernelBufferAlreadyOwned(std::shared_ptr<uint8_t> buffer,
                                    intptr_t size) {
     ASSERT(kernel_buffer_.get() == NULL);
@@ -111,7 +111,7 @@ class IsolateGroupData {
     dependencies_ = deps;
   }
 
-  bool RunFromAppSnapshot() const { return app_snapshot_ != nullptr; }
+  void OnIsolateShutdown();
 
  private:
   Loader* loader_;
@@ -123,7 +123,7 @@ class IsolateGroupData {
 
   static void FreeUnownedKernelBuffer(uint8_t*) {}
 
-  DISALLOW_COPY_AND_ASSIGN(IsolateGroupData);
+  DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };
 
 }  // namespace bin
