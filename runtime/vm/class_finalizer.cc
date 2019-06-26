@@ -195,14 +195,19 @@ bool ClassFinalizer::ProcessPendingClasses() {
 #if defined(DEBUG)
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      ASSERT(cls.is_declaration_loaded());
+      ASSERT(cls.is_declared_in_bytecode() || cls.is_declaration_loaded());
     }
 #endif
 
     // Finalize types in all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      FinalizeTypesInClass(cls);
+      if (cls.is_declared_in_bytecode()) {
+        cls.EnsureDeclarationLoaded();
+        ASSERT(cls.is_type_finalized());
+      } else {
+        FinalizeTypesInClass(cls);
+      }
     }
 
     if (FLAG_print_classes) {
@@ -407,6 +412,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   // The type class does not need to be finalized in order to finalize the type.
   // Also, the type parameters of the type class must be finalized.
   Class& type_class = Class::Handle(zone, type.type_class());
+  type_class.EnsureDeclarationLoaded();
   if (!type_class.is_type_finalized()) {
     FinalizeTypeParameters(type_class, pending_types);
   }
@@ -1003,7 +1009,7 @@ static void MarkImplemented(Zone* zone, const Class& iface) {
 void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
-  ASSERT(cls.is_declaration_loaded());
+  cls.EnsureDeclarationLoaded();
   if (cls.is_type_finalized()) {
     return;
   }
@@ -1190,12 +1196,7 @@ RawError* ClassFinalizer::LoadClassMembers(const Class& cls) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    if (!cls.is_declaration_loaded()) {
-      // Loading of class declaration can be postponed until needed
-      // if class comes from bytecode.
-      ASSERT(cls.is_declared_in_bytecode());
-      kernel::BytecodeReader::LoadClassDeclaration(cls);
-    }
+    cls.EnsureDeclarationLoaded();
 #endif
     ASSERT(cls.is_type_finalized());
     ClassFinalizer::FinalizeClass(cls);

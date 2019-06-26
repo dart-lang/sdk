@@ -2219,6 +2219,13 @@ static void HandleOSRRequest(Thread* thread) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
+  // If simulator was never called (for example, in pure
+  // interpreted mode) it may return 0 as a value of SPREG.
+  if (stack_pos == 0) {
+    // Use any reasonable value which would not be treated
+    // as stack overflow.
+    stack_pos = thread->saved_stack_limit();
+  }
 #else
   uword stack_pos = OSThread::GetCurrentStackPointer();
 #endif
@@ -2296,7 +2303,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   // If running with interpreter, do the unoptimized compilation first.
   const bool optimizing_compilation = function.ShouldCompilerOptimize();
   ASSERT(FLAG_enable_interpreter || optimizing_compilation);
-  ASSERT((!optimizing_compilation) || function.HasCode());
+  ASSERT((!optimizing_compilation) || function.HasCode() ||
+         function.ForceOptimize());
 
 #if defined(PRODUCT)
   if (!optimizing_compilation ||

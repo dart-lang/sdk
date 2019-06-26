@@ -1309,6 +1309,10 @@ class Class : public Object {
       const Array& param_values,
       const TypeArguments& type_param_values) const;
 
+  // Load class declaration (super type, interfaces, type parameters and
+  // number of type arguments) if it is not loaded yet.
+  void EnsureDeclarationLoaded() const;
+
   RawError* EnsureIsFinalized(Thread* thread) const;
 
   // Allocate a class used for VM internal objects.

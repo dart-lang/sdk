@@ -137,7 +137,7 @@ void BytecodeMetadataHelper::ReadLibrary(const Library& library) {
       &Array::Handle(helper_->zone_, GetBytecodeComponent()));
   BytecodeReaderHelper bytecode_reader(&H, active_class_, &bytecode_component);
   AlternativeReadingScope alt(&bytecode_reader.reader(),
-                              library.bytecode_offset());
+                              bytecode_component.GetLibraryIndexOffset());
   bytecode_reader.FindAndReadSpecificLibrary(
       library, bytecode_component.GetNumLibraries());
 }
@@ -527,6 +527,35 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   closure.SetSignatureType(signature_type);
 }
 
+static bool IsNonCanonical(const AbstractType& type) {
+  return type.IsTypeRef() || (type.IsType() && !type.IsCanonical());
+}
+
+static bool HasNonCanonicalTypes(Zone* zone, const Function& func) {
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < func.NumParameters(); ++i) {
+    type = func.ParameterTypeAt(i);
+    if (IsNonCanonical(type)) {
+      return true;
+    }
+  }
+  type = func.result_type();
+  if (IsNonCanonical(type)) {
+    return true;
+  }
+  const auto& type_params = TypeArguments::Handle(zone, func.type_parameters());
+  if (!type_params.IsNull()) {
+    for (intptr_t i = 0; i < type_params.Length(); ++i) {
+      type = type_params.TypeAt(i);
+      type = TypeParameter::Cast(type).bound();
+      if (IsNonCanonical(type)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 RawType* BytecodeReaderHelper::ReadFunctionSignature(
     const Function& func,
     bool has_optional_positional_params,
@@ -581,7 +610,14 @@ RawType* BytecodeReaderHelper::ReadFunctionSignature(
 
   // Finalize function type.
   type = func.SignatureType();
-  type = ClassFinalizer::FinalizeType(*(active_class_->klass), type);
+  ClassFinalizer::FinalizationKind finalization = ClassFinalizer::kCanonicalize;
+  if (pending_recursive_types_ != nullptr && HasNonCanonicalTypes(Z, func)) {
+    // This function type is a part of recursive type. Avoid canonicalization
+    // as not all TypeRef objects are filled up at this point.
+    finalization = ClassFinalizer::kFinalize;
+  }
+  type =
+      ClassFinalizer::FinalizeType(*(active_class_->klass), type, finalization);
   return Type::Cast(type).raw();
 }
 
@@ -1244,7 +1280,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         }
         return cls;
       }
-      RawClass* cls = library.LookupClassAllowPrivate(class_name);
+      RawClass* cls = library.LookupLocalClass(class_name);
       NoSafepointScope no_safepoint_scope(thread_);
       if (cls == Class::null()) {
         FATAL2("Unable to find class %s in %s", class_name.ToCString(),
@@ -1581,10 +1617,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
       return AbstractType::void_type().raw();
     case kSimpleType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      if (!cls.is_declaration_loaded()) {
-        ASSERT(cls.is_declared_in_bytecode());
-        BytecodeReader::LoadClassDeclaration(cls);
-      }
+      cls.EnsureDeclarationLoaded();
       return cls.DeclarationType();
     }
     case kTypeParameter: {
@@ -1615,10 +1648,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
     }
     case kGenericType: {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      if (!cls.is_declaration_loaded()) {
-        ASSERT(cls.is_declared_in_bytecode());
-        BytecodeReader::LoadClassDeclaration(cls);
-      }
+      cls.EnsureDeclarationLoaded();
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
       const Type& type = Type::Handle(
@@ -1629,10 +1659,7 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
     case kRecursiveGenericType: {
       const intptr_t id = reader_.ReadUInt();
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
-      if (!cls.is_declaration_loaded()) {
-        ASSERT(cls.is_declared_in_bytecode());
-        BytecodeReader::LoadClassDeclaration(cls);
-      }
+      cls.EnsureDeclarationLoaded();
       const auto saved_pending_recursive_types = pending_recursive_types_;
       if (id == 0) {
         pending_recursive_types_ = &GrowableObjectArray::Handle(
@@ -1643,8 +1670,10 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
           TypeRef::Handle(Z, TypeRef::New(AbstractType::null_abstract_type()));
       pending_recursive_types_->Add(type_ref);
 
+      reading_type_arguments_of_recursive_type_ = true;
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
+      reading_type_arguments_of_recursive_type_ = false;
 
       ASSERT(id == pending_recursive_types_->Length() - 1);
       ASSERT(pending_recursive_types_->At(id) == type_ref.raw());
@@ -1655,6 +1684,11 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
           Z, Type::New(cls, type_arguments, TokenPosition::kNoSource));
       type_ref.set_type(type);
       type.SetIsFinalized();
+      if (id != 0) {
+        // Do not canonicalize non-root recursive types
+        // as not all TypeRef objects are filled up at this point.
+        return type.raw();
+      }
       return type.Canonicalize();
     }
     case kRecursiveTypeRef: {
@@ -1770,6 +1804,8 @@ RawScript* BytecodeReaderHelper::ReadSourceFile(const String& uri,
 }
 
 RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments() {
+  const bool is_recursive = reading_type_arguments_of_recursive_type_;
+  reading_type_arguments_of_recursive_type_ = false;
   const intptr_t length = reader_.ReadUInt();
   TypeArguments& type_arguments =
       TypeArguments::ZoneHandle(Z, TypeArguments::New(length));
@@ -1777,6 +1813,14 @@ RawTypeArguments* BytecodeReaderHelper::ReadTypeArguments() {
   for (intptr_t i = 0; i < length; ++i) {
     type ^= ReadObject();
     type_arguments.SetTypeAt(i, type);
+  }
+  if (is_recursive) {
+    // Avoid canonicalization of type arguments of recursive type
+    // as not all TypeRef objects are filled up at this point.
+    // Type arguments will be canoncialized when the root recursive
+    // type is canonicalized.
+    ASSERT(pending_recursive_types_ != nullptr);
+    return type_arguments.raw();
   }
   return type_arguments.Canonicalize();
 }
@@ -2221,13 +2265,17 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   // Its cid is set in Class::New / Isolate::RegisterClass /
   // ClassTable::Register, unless it was loaded for expression evaluation.
   ASSERT(cls.is_declared_in_bytecode());
-  ASSERT(!cls.is_declaration_loaded());
+  ASSERT(!cls.is_declaration_loaded() || loading_native_wrappers_library_);
 
   const intptr_t flags = reader_.ReadUInt();
   const bool has_pragma = (flags & kHasPragmaFlag) != 0;
 
   // Set early to enable access to type_parameters().
-  cls.set_is_declaration_loaded();
+  // TODO(alexmarkov): revise early stamping of native wrapper classes
+  //  as loaded.
+  if (!cls.is_declaration_loaded()) {
+    cls.set_is_declaration_loaded();
+  }
 
   const auto& script = Script::CheckedHandle(Z, ReadObject());
   cls.set_script(script);
@@ -2294,13 +2342,6 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
 
         library.AddClassMetadata(cls, top_level_class, TokenPosition::kNoSource,
                                  0, annotations_offset);
-        if (has_pragma) {
-          // TODO(alexmarkov): read annotations right away using
-          //  annotations_offset.
-          NoOOBMessageScope no_msg_scope(thread_);
-          NoReloadScope no_reload_scope(thread_->isolate(), thread_);
-          library.GetMetadata(cls);
-        }
       }
     }
   }
@@ -2310,7 +2351,11 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
                           bytecode_component_->GetMembersOffset());
 
   // All types are finalized if loading from bytecode.
-  cls.set_is_type_finalized();
+  // TODO(alexmarkov): revise early stamping of native wrapper classes
+  //  as type-finalized.
+  if (!cls.is_type_finalized()) {
+    cls.set_is_type_finalized();
+  }
 
   // TODO(alexmarkov): move this to class finalization.
   ClassFinalizer::RegisterClassInHierarchy(Z, cls);
@@ -2379,10 +2424,11 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
       }
     } else {
       if (lookup_classes) {
-        cls = library.LookupClassAllowPrivate(name);
+        cls = library.LookupLocalClass(name);
       }
       if (lookup_classes && !cls.IsNull()) {
-        ASSERT(!cls.is_declaration_loaded());
+        ASSERT(!cls.is_declaration_loaded() ||
+               loading_native_wrappers_library_);
         cls.set_script(script);
       } else {
         cls = Class::New(library, name, script, TokenPosition::kNoSource,
@@ -2395,6 +2441,13 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
 
     cls.set_is_declared_in_bytecode(true);
     cls.set_bytecode_offset(class_offset);
+
+    if (loading_native_wrappers_library_ || !register_class) {
+      AlternativeReadingScope alt(&reader_, class_offset);
+      ReadClassDeclaration(cls);
+      AlternativeReadingScope alt2(&reader_, cls.bytecode_offset());
+      ReadMembers(cls, /* discard_fields = */ false);
+    }
   }
 
   ASSERT(!library.Loaded());

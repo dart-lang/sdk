@@ -225,6 +225,7 @@ class BytecodeReaderHelper : public ValueObject {
   Class& scoped_function_class_;
   Library* expression_evaluation_library_ = nullptr;
   bool loading_native_wrappers_library_ = false;
+  bool reading_type_arguments_of_recursive_type_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeReaderHelper);
 };
