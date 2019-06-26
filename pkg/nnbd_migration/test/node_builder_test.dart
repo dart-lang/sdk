@@ -160,6 +160,17 @@ class C<T, U> {}
     expect(returnType.typeArguments[1].node, same(never));
   }
 
+  test_constructor_factory() async {
+    await analyze('''
+class C {
+  C._();
+  factory C() => C._();
+}
+''');
+    var decoratedType = decoratedConstructorDeclaration('C(').returnType;
+    expect(decoratedType.node, same(never));
+  }
+
   test_constructor_returnType_implicit_dynamic() async {
     await analyze('''
 class C {

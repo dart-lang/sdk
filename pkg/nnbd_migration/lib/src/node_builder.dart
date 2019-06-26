@@ -126,12 +126,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.factoryKeyword != null) {
-      // Factory constructors can return null, but we don't want to propagate a
-      // null type if we can prove that null is never returned.
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Declaration of a factory constructor');
-    }
     _handleExecutableDeclaration(
         node.declaredElement, null, node.parameters, node.body, node);
     return null;
@@ -377,13 +371,6 @@ $stackTrace''');
     if (returnType == null && declaredElement is ConstructorElement) {
       // Constructors have no explicit return type annotation, so use the
       // implicit return type.
-      if (declaredElement.isFactory) {
-        // Factory constructors can return null, but we don't want to propagate
-        // a null type if we can prove that null is never returned.
-        // TODO(brianwilkerson)
-        _unimplemented(
-            parameters.parent, 'Declaration of a factory constructor');
-      }
       decoratedReturnType = _createDecoratedTypeForClass(
           declaredElement.enclosingElement, parameters.parent);
     } else {

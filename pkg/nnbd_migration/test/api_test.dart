@@ -262,6 +262,52 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_constructorDeclaration_factory_non_null_return() async {
+    var content = '''
+class C {
+  C._();
+  factory C() {
+    C c = f();
+    return c;
+  }
+}
+C f() => null;
+''';
+    var expected = '''
+class C {
+  C._();
+  factory C() {
+    C c = f()!;
+    return c;
+  }
+}
+C? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_constructorDeclaration_factory_simple() async {
+    var content = '''
+class C {
+  C._();
+  factory C(int i) => C._();
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  C._();
+  factory C(int? i) => C._();
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_constructorDeclaration_named() async {
     var content = '''
 class C {
