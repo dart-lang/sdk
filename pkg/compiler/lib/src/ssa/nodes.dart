@@ -110,6 +110,7 @@ abstract class HVisitor<R> {
   R visitAsCheck(HAsCheck node);
   R visitSubtypeCheck(HSubtypeCheck node);
   R visitLoadType(HLoadType node);
+  R visitInstanceEnvironment(HInstanceEnvironment node);
   R visitTypeEval(HTypeEval node);
   R visitTypeBind(HTypeBind node);
 }
@@ -606,6 +607,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   @override
   visitLoadType(HLoadType node) => visitInstruction(node);
   @override
+  visitInstanceEnvironment(HInstanceEnvironment node) => visitInstruction(node);
+  @override
   visitTypeEval(HTypeEval node) => visitInstruction(node);
   @override
   visitTypeBind(HTypeBind node) => visitInstruction(node);
@@ -1091,8 +1094,9 @@ abstract class HInstruction implements Spannable {
   static const int AS_CHECK_TYPECODE = 48;
   static const int SUBTYPE_CHECK_TYPECODE = 49;
   static const int LOAD_TYPE_TYPECODE = 50;
-  static const int TYPE_EVAL_TYPECODE = 51;
-  static const int TYPE_BIND_TYPECODE = 52;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 51;
+  static const int TYPE_EVAL_TYPECODE = 52;
+  static const int TYPE_BIND_TYPECODE = 53;
 
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
@@ -4463,6 +4467,33 @@ class HLoadType extends HRtiInstruction {
 
   @override
   String toString() => 'HLoadType($typeExpression)';
+}
+
+/// The reified Rti environment stored on a class instance.
+///
+/// Classes with reified type arguments have the type environment stored on the
+/// instance. The reified environment is typically stored as the instance type,
+/// e.g. "UnmodifiableListView<int>".
+class HInstanceEnvironment extends HRtiInstruction {
+  HInstanceEnvironment(HInstruction instance, AbstractValue type)
+      : super([instance], type) {
+    setUseGvn();
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitInstanceEnvironment(this);
+
+  @override
+  int typeCode() => HInstruction.INSTANCE_ENVIRONMENT_TYPECODE;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HInstanceEnvironment;
+
+  @override
+  bool dataEquals(HInstanceEnvironment other) => true;
+
+  @override
+  String toString() => 'HInstanceEnvironment()';
 }
 
 /// Evaluates an Rti type recipe in an Rti environment.

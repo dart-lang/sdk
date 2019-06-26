@@ -636,6 +636,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return splitInstruction;
     }
 
+    // TODO(sra): Implement tagging with `JSArray<String>` for new rti.
+
     node.block.addBefore(node, splitInstruction);
 
     HInstruction stringTypeInfo = new HTypeInfoExpression(

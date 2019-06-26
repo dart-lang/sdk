@@ -247,6 +247,10 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgument(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
+    if (builder.options.experimentNewRti) {
+      return analyzeTypeArgumentNewRti(argument, sourceElement,
+          sourceInformation: sourceInformation);
+    }
     argument = argument.unaliased;
     if (argument.treatAsDynamic) {
       // Represent [dynamic] as [null].
@@ -279,23 +283,134 @@ abstract class TypeBuilder {
       {SourceInformation sourceInformation}) {
     argument = argument.unaliased;
 
-    if (argument.containsFreeTypeVariables) {
-      // TODO(sra): Locate type environment.
-      HInstruction environment =
-          builder.graph.addConstantString("env", _closedWorld);
-      // TODO(sra): Determine environment structure from context.
-      TypeEnvironmentStructure structure = null;
-      HInstruction rti = HTypeEval(environment, structure,
-          TypeExpressionRecipe(argument), _abstractValueDomain.dynamicType)
+    if (!argument.containsTypeVariables) {
+      HInstruction rti = HLoadType(argument, _abstractValueDomain.dynamicType)
         ..sourceInformation = sourceInformation;
       builder.add(rti);
       return rti;
     }
+    // TODO(sra): Locate type environment.
+    _EnvironmentExpressionAndStructure environmentAccess =
+        _buildEnvironmentForType(argument, sourceElement,
+            sourceInformation: sourceInformation);
 
-    HInstruction rti = HLoadType(argument, _abstractValueDomain.dynamicType)
+    HInstruction rti = HTypeEval(
+        environmentAccess.expression,
+        environmentAccess.structure,
+        TypeExpressionRecipe(argument),
+        _abstractValueDomain.dynamicType)
       ..sourceInformation = sourceInformation;
     builder.add(rti);
     return rti;
+  }
+
+  _EnvironmentExpressionAndStructure _buildEnvironmentForType(
+      DartType type, MemberEntity member,
+      {SourceInformation sourceInformation}) {
+    assert(type.containsTypeVariables);
+    // Build the environment for each access, and hope GVN reduces the larger
+    // number of expressions. Another option is to precompute the environment at
+    // procedure entry and optimize early-exits by sinking the precomputed
+    // environment.
+
+    // Split the type variables into class-scope and function-scope(s).
+    bool usesInstanceParameters = false;
+    InterfaceType interfaceType;
+    Set<TypeVariableType> parameters = Set();
+
+    void processTypeVariable(TypeVariableType type) {
+      ClassTypeVariableAccess typeVariableAccess;
+      if (type.element.typeDeclaration is ClassEntity) {
+        typeVariableAccess = computeTypeVariableAccess(member);
+        interfaceType = _closedWorld.elementEnvironment
+            .getThisType(type.element.typeDeclaration);
+      } else {
+        typeVariableAccess = ClassTypeVariableAccess.parameter;
+      }
+      switch (typeVariableAccess) {
+        case ClassTypeVariableAccess.parameter:
+          parameters.add(type);
+          return;
+        case ClassTypeVariableAccess.instanceField:
+          if (member != builder.targetElement) {
+            // When [member] is a field, we can either be generating a checked
+            // setter or inlining its initializer in a constructor. An
+            // initializer is never built standalone, so in that case [target]
+            // is not the [member] itself.
+            parameters.add(type);
+            return;
+          }
+          usesInstanceParameters = true;
+          return;
+        case ClassTypeVariableAccess.property:
+          usesInstanceParameters = true;
+          return;
+        default:
+          builder.reporter.internalError(
+              type.element, 'Unexpected type variable in static context.');
+      }
+    }
+
+    type.forEachTypeVariable(processTypeVariable);
+
+    HInstruction environment;
+    TypeEnvironmentStructure structure;
+
+    if (usesInstanceParameters) {
+      HInstruction target =
+          builder.localsHandler.readThis(sourceInformation: sourceInformation);
+      // TODO(sra): HInstanceEnvironment should probably take an interceptor to
+      // allow the getInterceptor call to be reused.
+      environment =
+          HInstanceEnvironment(target, _abstractValueDomain.dynamicType)
+            ..sourceInformation = sourceInformation;
+      builder.add(environment);
+      structure = FullTypeEnvironmentStructure(classType: interfaceType);
+    }
+
+    // TODO(sra): Visit parameters in source-order.
+    for (TypeVariableType parameter in parameters) {
+      Local typeVariableLocal =
+          builder.localsHandler.getTypeVariableAsLocal(parameter);
+      HInstruction access = builder.localsHandler
+          .readLocal(typeVariableLocal, sourceInformation: sourceInformation);
+
+      if (environment == null) {
+        environment = access;
+        structure = SingletonTypeEnvironmentStructure(parameter);
+      } else if (structure is SingletonTypeEnvironmentStructure) {
+        SingletonTypeEnvironmentStructure singletonStructure = structure;
+        // Convert a singleton environment into a singleton tuple and extend it
+        // via 'bind'. i.e. generate `env1._eval("@<0>")._bind(env2)` TODO(sra):
+        // Have a bind1 instruction.
+        // TODO(sra): Add a 'Rti._bind1' method to shorten and accelerate this
+        // common case.
+        HInstruction singletonTuple = HTypeEval(
+            environment,
+            structure,
+            FullTypeEnvironmentRecipe(types: [singletonStructure.variable]),
+            _abstractValueDomain.dynamicType)
+          ..sourceInformation = sourceInformation;
+        builder.add(singletonTuple);
+        environment =
+            HTypeBind(singletonTuple, access, _abstractValueDomain.dynamicType);
+        builder.add(environment);
+        structure = FullTypeEnvironmentStructure(
+            bindings: [singletonStructure.variable, parameter]);
+      } else if (structure is FullTypeEnvironmentStructure) {
+        FullTypeEnvironmentStructure fullStructure = structure;
+        environment =
+            HTypeBind(environment, access, _abstractValueDomain.dynamicType);
+        builder.add(environment);
+        structure = FullTypeEnvironmentStructure(
+            classType: fullStructure.classType,
+            bindings: [...fullStructure.bindings, parameter]);
+      } else {
+        builder.reporter.internalError(parameter.element, 'Unexpected');
+      }
+    }
+
+    return _EnvironmentExpressionAndStructure(environment, structure);
   }
 
   /// Build a [HTypeConversion] for converting [original] to type [type].
@@ -357,8 +472,9 @@ abstract class TypeBuilder {
     if (type.isVoid) return original;
     if (type == _closedWorld.commonElements.objectType) return original;
 
-    HInstruction reifiedType =
-        analyzeTypeArgumentNewRti(type, builder.sourceElement);
+    HInstruction reifiedType = analyzeTypeArgumentNewRti(
+        type, builder.sourceElement,
+        sourceInformation: sourceInformation);
     if (type is InterfaceType) {
       // TODO(sra): Under NNDB opt-in, this will be NonNullable.
       AbstractValue subtype =
@@ -373,4 +489,10 @@ abstract class TypeBuilder {
         ..sourceInformation = sourceInformation;
     }
   }
+}
+
+class _EnvironmentExpressionAndStructure {
+  final HInstruction expression;
+  final TypeEnvironmentStructure structure;
+  _EnvironmentExpressionAndStructure(this.expression, this.structure);
 }

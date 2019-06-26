@@ -3386,6 +3386,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   @override
+  visitInstanceEnvironment(HInstanceEnvironment node) {
+    use(node.inputs.single);
+    js.Expression receiver = pop();
+    // TODO(sra): Optimize to direct field access where possible.
+    //
+    //    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
+
+    FunctionEntity helperElement = _commonElements.instanceType;
+    _registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
+    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+    push(js.js(r'#(#)', [helper, receiver]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
   visitTypeEval(HTypeEval node) {
     // Call `env._eval("recipe")`.
     use(node.inputs[0]);
@@ -3415,7 +3431,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.inputs[1]);
     js.Expression extensions = pop();
 
-    MemberEntity method = _commonElements.rtiEvalMethod;
+    MemberEntity method = _commonElements.rtiBindMethod;
     Selector selector = Selector.fromElement(method);
     js.Name methodLiteral = _namer.invocationName(selector);
     push(js.js('#.#(#)', [

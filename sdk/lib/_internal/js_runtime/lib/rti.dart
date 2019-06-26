@@ -6,11 +6,17 @@
 library rti;
 
 import 'dart:_foreign_helper'
-    show JS, JS_EMBEDDED_GLOBAL, JS_GET_NAME, RAW_DART_FUNCTION_REF;
+    show
+        getInterceptor,
+        JS,
+        JS_BUILTIN,
+        JS_EMBEDDED_GLOBAL,
+        JS_GET_NAME,
+        RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
 import 'dart:_js_embedded_names'
-    show JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE;
+    show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE;
 
 import 'dart:_recipe_syntax';
 
@@ -57,15 +63,15 @@ class Rti {
 
   /// Method called from generated code to evaluate a type environment recipe in
   /// `this` type environment.
-  Rti _eval(String recipe) {
+  Rti _eval(recipe) {
     // TODO(sra): Clone the fast-path of _Universe.evalInEnvironment to here.
-    return _rtiEval(this, recipe);
+    return _rtiEval(this, _Utils.asString(recipe));
   }
 
   /// Method called from generated code to extend `this` type environment (an
   /// interface or binding Rti) with function type arguments (a singleton
   /// argument or tuple of arguments).
-  Rti _bind(Rti typeOrTuple) => _rtiBind(this, typeOrTuple);
+  Rti _bind(typeOrTuple) => _rtiBind(this, _castToRti(typeOrTuple));
 
   /// Method called from generated code to extend `this` type (as a singleton
   /// type environment) with function type arguments (a singleton argument or
@@ -89,9 +95,9 @@ class Rti {
   ///
   /// The zero initializer ensures dart2js type analysis considers [_kind] is
   /// non-nullable.
-  int _kind = 0;
+  Object /*int*/ _kind = 0;
 
-  static int _getKind(Rti rti) => rti._kind;
+  static int _getKind(Rti rti) => _Utils.asInt(rti._kind);
   static void _setKind(Rti rti, int kind) {
     rti._kind = kind;
   }
@@ -144,7 +150,7 @@ class Rti {
     return _Utils.asString(_getPrimary(rti));
   }
 
-  static JSArray _getInterfaceTypeArguments(rti) {
+  static JSArray _getInterfaceTypeArguments(Rti rti) {
     // The array is a plain JavaScript Array, otherwise we would need the type
     // `JSArray<Rti>` to exist before we could create the type `JSArray<Rti>`.
     assert(_getKind(rti) == kindInterface);
@@ -156,7 +162,7 @@ class Rti {
     return _castToRti(_getPrimary(rti));
   }
 
-  static JSArray _getBindingArguments(rti) {
+  static JSArray _getBindingArguments(Rti rti) {
     assert(_getKind(rti) == kindBinding);
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
@@ -202,7 +208,7 @@ class Rti {
     return new Rti();
   }
 
-  String _canonicalRecipe;
+  Object _canonicalRecipe;
 
   static String _getCanonicalRecipe(Rti rti) {
     var s = rti._canonicalRecipe;
@@ -232,7 +238,45 @@ Rti _rtiBind(Rti environment, Rti types) {
 /// Evaluate a ground-term type.
 /// Called from generated code.
 Rti findType(String recipe) {
-  _Universe.eval(_theUniverse(), recipe);
+  return _Universe.eval(_theUniverse(), recipe);
+}
+
+/// Returns the Rti type of [object].
+/// Called from generated code.
+Rti instanceType(object) {
+  // TODO(sra): Add specializations of this method. One possible way is to
+  // arrange that the interceptor has a _getType method that is injected into
+  // DartObject, Interceptor and JSArray. Then this method can be replaced-by
+  // `getInterceptor(o)._getType(o)`, allowing interceptor optimizations to
+  // select the specialization.
+
+  if (_Utils.instanceOf(
+      object,
+      JS_BUILTIN(
+          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
+    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+    if (rti != null) return _castToRti(rti);
+    return _instanceTypeFromConstructor(JS('', '#.constructor', object));
+  }
+
+  if (_Utils.isArray(object)) {
+    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+    // TODO(sra): Do we need to protect against an Array passed between two Dart
+    // programs loaded into the same JavaScript isolate (e.g. via JS-interop).
+    // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
+    // program-local `symbol` for the type field.
+    if (rti != null) return _castToRti(rti);
+    // TODO(sra): Use JS_GET_NAME to access the recipe.
+    throw UnimplementedError('return JSArray<any>');
+  }
+
+  var interceptor = getInterceptor(object);
+  return _instanceTypeFromConstructor(JS('', '#.constructor', interceptor));
+}
+
+Rti _instanceTypeFromConstructor(constructor) {
+  // TODO(sra): Cache Rti on constructor.
+  return findType(JS('String', '#.name', constructor));
 }
 
 Type getRuntimeType(object) {
@@ -576,7 +620,7 @@ class _Universe {
 
   /// [arguments] becomes owned by the created Rti.
   static Rti _lookupBindingRti(Object universe, Rti base, Object arguments) {
-    var newBase = base;
+    Rti newBase = base;
     var newArguments = arguments;
     if (Rti._getKind(base) == Rti.kindBinding) {
       newBase = Rti._getBindingBase(base);
@@ -737,11 +781,11 @@ class _Parser {
   }
 
   // Field accessors for the parser.
-  static Object universe(Object parser) => JS('String', '#.u', parser);
+  static Object universe(Object parser) => JS('', '#.u', parser);
   static Rti environment(Object parser) => JS('Rti', '#.e', parser);
   static String recipe(Object parser) => JS('String', '#.r', parser);
   static Object stack(Object parser) => JS('', '#.s', parser);
-  static Object position(Object parser) => JS('int', '#.p', parser);
+  static int position(Object parser) => JS('int', '#.p', parser);
   static void setPosition(Object parser, int p) {
     JS('', '#.p = #', parser, p);
   }
@@ -1092,7 +1136,12 @@ class _Utils {
   static bool isString(Object o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object o) => JS('bool', 'typeof # == "number"', o);
 
+  static bool instanceOf(Object o, Object constructor) =>
+      JS('bool', '# instanceof #', o, constructor);
+
   static bool isIdentical(s, t) => JS('bool', '# === #', s, t);
+
+  static bool isArray(Object o) => JS('bool', 'Array.isArray(#)', o);
 
   static int arrayLength(Object array) => JS('int', '#.length', array);
 

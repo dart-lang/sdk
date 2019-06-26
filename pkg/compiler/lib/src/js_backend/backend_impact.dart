@@ -769,6 +769,7 @@ class BackendImpacts {
     return [
       BackendImpact(staticUses: [
         _commonElements.findType,
+        _commonElements.instanceType,
         _commonElements.rtiEvalMethod,
         _commonElements.rtiBindMethod,
       ])

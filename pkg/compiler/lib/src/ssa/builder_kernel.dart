@@ -789,25 +789,31 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       bool needsTypeArguments =
           closedWorld.rtiNeed.classNeedsTypeArguments(cls);
       if (needsTypeArguments) {
-        // Read the values of the type arguments and create a
-        // HTypeInfoExpression to set on the newly created object.
-        List<HInstruction> typeArguments = <HInstruction>[];
-        InterfaceType thisType = _elementEnvironment.getThisType(cls);
-        for (DartType typeVariable in thisType.typeArguments) {
-          HInstruction argument = localsHandler
-              .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
-          typeArguments.add(argument);
+        if (options.experimentNewRti) {
+          InterfaceType thisType = _elementEnvironment.getThisType(cls);
+          HInstruction typeArgument =
+              _typeBuilder.analyzeTypeArgumentNewRti(thisType, sourceElement);
+          constructorArguments.add(typeArgument);
+        } else {
+          // Read the values of the type arguments and create a
+          // HTypeInfoExpression to set on the newly created object.
+          List<HInstruction> typeArguments = <HInstruction>[];
+          InterfaceType thisType = _elementEnvironment.getThisType(cls);
+          for (DartType typeVariable in thisType.typeArguments) {
+            HInstruction argument = localsHandler
+                .readLocal(localsHandler.getTypeVariableAsLocal(typeVariable));
+            typeArguments.add(argument);
+          }
+
+          HInstruction typeInfo = new HTypeInfoExpression(
+              TypeInfoExpressionKind.INSTANCE,
+              thisType,
+              typeArguments,
+              _abstractValueDomain.dynamicType);
+          add(typeInfo);
+          constructorArguments.add(typeInfo);
         }
-
-        HInstruction typeInfo = new HTypeInfoExpression(
-            TypeInfoExpressionKind.INSTANCE,
-            thisType,
-            typeArguments,
-            _abstractValueDomain.dynamicType);
-        add(typeInfo);
-        constructorArguments.add(typeInfo);
       }
-
       newObject = new HCreate(cls, constructorArguments,
           _abstractValueDomain.createNonNullExact(cls), sourceInformation,
           instantiatedTypes: instantiatedTypes,
@@ -3047,6 +3053,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       InterfaceType type, SourceInformation sourceInformation) {
     if (!_rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
       return object;
+    }
+    if (options.experimentNewRti) {
+      // TODO(sra): For new-rti, construct Rti object. [type] could be `List<T>`
+      // or `JSArray<T>`.
+
+      // For now, fall through.
     }
     List<HInstruction> arguments = <HInstruction>[];
     for (DartType argument in type.typeArguments) {

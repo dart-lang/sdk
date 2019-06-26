@@ -481,6 +481,7 @@ abstract class CommonElements {
   // From dart:_rti
 
   FunctionEntity get findType;
+  FunctionEntity get instanceType;
   FieldEntity get rtiAsField;
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
@@ -1810,6 +1811,11 @@ class CommonElementsImpl
   FunctionEntity _findType;
   @override
   FunctionEntity get findType => _findType ??= _findRtiFunction('findType');
+
+  FunctionEntity _instanceType;
+  @override
+  FunctionEntity get instanceType =>
+      _instanceType ??= _findRtiFunction('instanceType');
 
   ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
   FieldEntity _findRtiClassField(String name) =>
