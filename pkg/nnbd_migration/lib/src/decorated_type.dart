@@ -136,7 +136,7 @@ class DecoratedType {
   /// nodes everywhere that don't correspond to any source location.  These
   /// nodes can later be unioned with other nodes.
   factory DecoratedType.forImplicitType(DartType type, NullabilityGraph graph) {
-    if (type.isDynamic) {
+    if (type.isDynamic || type.isVoid) {
       return DecoratedType(type, graph.always);
     } else if (type is InterfaceType) {
       return DecoratedType(type, NullabilityNode.forInferredType(),

@@ -421,6 +421,24 @@ void f(C x) {}
     expect(decoratedArgReturnType.typeArguments, isEmpty);
   }
 
+  test_interfaceType_generic_instantiate_to_function_type_void() async {
+    await analyze('''
+class C<T extends void Function()> {}
+void f(C x) {}
+''');
+    var decoratedCType = decoratedTypeAnnotation('C x');
+    expect(decoratedFunctionType('f').positionalParameters[0],
+        same(decoratedCType));
+    expect(decoratedCType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedCType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedCType.typeArguments[0];
+    expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedArgType.typeArguments, isEmpty);
+    var decoratedArgReturnType = decoratedArgType.returnType;
+    expect(decoratedArgReturnType.node, same(always));
+    expect(decoratedArgReturnType.typeArguments, isEmpty);
+  }
+
   test_interfaceType_generic_instantiate_to_generic_type() async {
     await analyze('''
 class C<T> {}
