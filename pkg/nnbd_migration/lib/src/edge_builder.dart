@@ -326,6 +326,16 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.redirectedConstructor != null) {
+      _unimplemented(node, 'Redirected constructor');
+    }
+    _handleExecutableDeclaration(node.declaredElement, node.metadata, null,
+        node.parameters, node.initializers, node.body);
+    return null;
+  }
+
+  @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var defaultValue = node.defaultValue;
     if (defaultValue == null) {
@@ -525,36 +535,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
-    node.parameters?.accept(this);
-    assert(_currentFunctionType == null);
-    var declaredElement = node.declaredElement;
-    _currentFunctionType = _variables.decoratedElementType(declaredElement);
-    _inConditionalControlFlow = false;
-    try {
-      node.body.accept(this);
-      var classElement = declaredElement.enclosingElement as ClassElement;
-      for (var overridden in _inheritanceManager.getOverridden(
-              classElement.type,
-              Name(classElement.library.source.uri, declaredElement.name)) ??
-          const []) {
-        var overriddenElement = overridden.element as ExecutableElement;
-        assert(overriddenElement is! ExecutableMember);
-        var overriddenClass =
-            overriddenElement.enclosingElement as ClassElement;
-        var decoratedOverriddenFunctionType =
-            _variables.decoratedElementType(overriddenElement);
-        var decoratedSupertype = _decoratedClassHierarchy.getDecoratedSupertype(
-            classElement, overriddenClass);
-        var substitution = decoratedSupertype.asSubstitution;
-        _checkAssignment(null,
-            source: _currentFunctionType,
-            destination:
-                decoratedOverriddenFunctionType.substitute(substitution),
-            hard: true);
-      }
-    } finally {
-      _currentFunctionType = null;
+    if (node.typeParameters != null) {
+      _unimplemented(node, 'Generic method');
     }
+    _handleExecutableDeclaration(node.declaredElement, node.metadata,
+        node.returnType, node.parameters, null, node.body);
     return null;
   }
 
@@ -946,6 +931,49 @@ $stackTrace''');
         hard: _isVariableOrParameterReference(expression) &&
             !_inConditionalControlFlow);
     return sourceType;
+  }
+
+  void _handleExecutableDeclaration(
+      ExecutableElement declaredElement,
+      NodeList<Annotation> metadata,
+      TypeAnnotation returnType,
+      FormalParameterList parameters,
+      NodeList<ConstructorInitializer> initializers,
+      FunctionBody body) {
+    assert(_currentFunctionType == null);
+    metadata.accept(this);
+    returnType?.accept(this);
+    parameters?.accept(this);
+    _currentFunctionType = _variables.decoratedElementType(declaredElement);
+    _inConditionalControlFlow = false;
+    try {
+      initializers?.accept(this);
+      body.accept(this);
+      if (declaredElement is! ConstructorElement) {
+        var classElement = declaredElement.enclosingElement as ClassElement;
+        for (var overridden in _inheritanceManager.getOverridden(
+                classElement.type,
+                Name(classElement.library.source.uri, declaredElement.name)) ??
+            const []) {
+          var overriddenElement = overridden.element as ExecutableElement;
+          assert(overriddenElement is! ExecutableMember);
+          var overriddenClass =
+              overriddenElement.enclosingElement as ClassElement;
+          var decoratedOverriddenFunctionType =
+              _variables.decoratedElementType(overriddenElement);
+          var decoratedSupertype = _decoratedClassHierarchy
+              .getDecoratedSupertype(classElement, overriddenClass);
+          var substitution = decoratedSupertype.asSubstitution;
+          _checkAssignment(null,
+              source: _currentFunctionType,
+              destination:
+                  decoratedOverriddenFunctionType.substitute(substitution),
+              hard: true);
+        }
+      }
+    } finally {
+      _currentFunctionType = null;
+    }
   }
 
   /// Creates the necessary constraint(s) for an [argumentList] when invoking an

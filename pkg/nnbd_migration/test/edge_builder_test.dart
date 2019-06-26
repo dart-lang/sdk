@@ -697,6 +697,16 @@ int f(bool b, int i) {
     assertConditional(nullable_conditional, nullable_i, always);
   }
 
+  test_constructor_named() async {
+    await analyze('''
+class C {
+  C.named();
+}
+''');
+    // No assertions; just need to make sure that the test doesn't cause an
+    // exception to be thrown.
+  }
+
   test_doubleLiteral() async {
     await analyze('''
 double f() {

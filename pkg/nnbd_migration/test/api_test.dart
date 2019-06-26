@@ -262,6 +262,26 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_constructorDeclaration_named() async {
+    var content = '''
+class C {
+  C.named(int i);
+}
+main() {
+  C.named(null);
+}
+''';
+    var expected = '''
+class C {
+  C.named(int? i);
+}
+main() {
+  C.named(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_constructorDeclaration_namedParameter() async {
     var content = '''
 class C {
