@@ -1692,7 +1692,11 @@ void TypedDataSpecializer::VisitInstanceCall(InstanceCallInstr* call) {
 }
 
 void TypedDataSpecializer::VisitStaticCall(StaticCallInstr* call) {
-  TryInlineCall(call);
+  const Function& function = call->function();
+  if (!function.is_static()) {
+    ASSERT(call->ArgumentCount() > 0);
+    TryInlineCall(call);
+  }
 }
 
 void TypedDataSpecializer::TryInlineCall(TemplateDartCall<0>* call) {
