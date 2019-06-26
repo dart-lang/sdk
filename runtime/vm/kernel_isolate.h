@@ -76,11 +76,11 @@ class KernelIsolate : public AllStatic {
   static void FinishedExiting();
   static void FinishedInitializing();
   static void InitializingFailed();
-  static Dart_IsolateCreateCallback create_callback() {
-    return create_callback_;
+  static Dart_IsolateGroupCreateCallback create_group_callback() {
+    return create_group_callback_;
   }
 
-  static Dart_IsolateCreateCallback create_callback_;
+  static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Monitor* monitor_;
   enum State {
     kStopped,

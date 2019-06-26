@@ -29,9 +29,9 @@ extern DFE dfe;
 static const intptr_t _Dart_kImportExtension = 9;
 static const intptr_t _Dart_kResolveAsFilePath = 10;
 
-Loader::Loader(IsolateData* isolate_data)
+Loader::Loader(IsolateGroupData* isolate_group_data)
     : port_(ILLEGAL_PORT),
-      isolate_data_(isolate_data),
+      isolate_group_data_(isolate_group_data),
       error_(Dart_Null()),
       monitor_(),
       pending_operations_(0),
@@ -40,10 +40,10 @@ Loader::Loader(IsolateData* isolate_data)
       results_capacity_(0),
       payload_(NULL),
       payload_length_(0) {
-  ASSERT(isolate_data_ != NULL);
+  ASSERT(isolate_group_data_ != NULL);
   port_ = Dart_NewNativePort("Loader", Loader::NativeMessageHandler, false);
-  isolate_data_->set_loader(this);
-  AddLoader(port_, isolate_data_);
+  isolate_group_data_->set_loader(this);
+  AddLoader(port_, isolate_group_data_);
 }
 
 Loader::~Loader() {
@@ -55,8 +55,8 @@ Loader::~Loader() {
   monitor_.Exit();
   RemoveLoader(port_);
   port_ = ILLEGAL_PORT;
-  isolate_data_->set_loader(NULL);
-  isolate_data_ = NULL;
+  isolate_group_data_->set_loader(NULL);
+  isolate_group_data_ = NULL;
   for (intptr_t i = 0; i < results_length_; i++) {
     results_[i].Cleanup();
   }
@@ -263,7 +263,7 @@ static bool PathContainsSeparator(const char* path) {
 
 void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
   MallocGrowableArray<char*>* dependencies =
-      loader->isolate_data_->dependencies();
+      loader->isolate_group_data_->dependencies();
   if (dependencies == NULL) {
     return;
   }
@@ -271,10 +271,10 @@ void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
 }
 
 void Loader::ResolveDependenciesAsFilePaths() {
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
-  MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
+  IsolateGroupData* isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  ASSERT(isolate_group_data != NULL);
+  MallocGrowableArray<char*>* dependencies = isolate_group_data->dependencies();
   if (dependencies == NULL) {
     return;
   }
@@ -455,14 +455,15 @@ bool Loader::ProcessQueueLocked(ProcessResult process_result) {
 }
 
 void Loader::InitForSnapshot(const char* snapshot_uri) {
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
-  ASSERT(!isolate_data->HasLoader());
+  IsolateGroupData* isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  ASSERT(isolate_group_data != NULL);
+  ASSERT(!isolate_group_data->HasLoader());
   // Setup a loader. The constructor does a bunch of leg work.
-  Loader* loader = new Loader(isolate_data);
+  Loader* loader = new Loader(isolate_group_data);
   // Send the init message.
-  loader->Init(isolate_data->package_root, isolate_data->packages_file,
+  loader->Init(isolate_group_data->package_root,
+               isolate_group_data->packages_file,
                DartUtils::original_working_directory, snapshot_uri);
   // Destroy the loader. The destructor does a bunch of leg work.
   delete loader;
@@ -516,18 +517,19 @@ Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
                                         Dart_Handle url,
                                         uint8_t** payload,
                                         intptr_t* payload_length) {
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
-  ASSERT(!isolate_data->HasLoader());
+  IsolateGroupData* isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  ASSERT(isolate_group_data != NULL);
+  ASSERT(!isolate_group_data->HasLoader());
   Loader* loader = NULL;
 
   // Setup the loader. The constructor does a bunch of leg work.
-  loader = new Loader(isolate_data);
-  loader->Init(isolate_data->package_root, isolate_data->packages_file,
+  loader = new Loader(isolate_group_data);
+  loader->Init(isolate_group_data->package_root,
+               isolate_group_data->packages_file,
                DartUtils::original_working_directory, NULL);
   ASSERT(loader != NULL);
-  ASSERT(isolate_data->HasLoader());
+  ASSERT(isolate_group_data->HasLoader());
 
   // Now send a load request to the service isolate.
   loader->SendRequest(tag, url, Dart_Null());
@@ -679,9 +681,9 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
 
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  ASSERT(isolate_data != NULL);
+  IsolateGroupData* isolate_group_data =
+      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
+  ASSERT(isolate_group_data != NULL);
   if ((tag == Dart_kScriptTag) && Dart_IsString(library)) {
     // Update packages file for isolate.
     const char* packages_file = NULL;
@@ -689,25 +691,26 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(result)) {
       return result;
     }
-    isolate_data->UpdatePackagesFile(packages_file);
+    isolate_group_data->UpdatePackagesFile(packages_file);
   }
   // Grab this isolate's loader.
   Loader* loader = NULL;
 
   // The outer invocation of the tag handler for this isolate. We make the outer
   // invocation block and allow any nested invocations to operate in parallel.
-  const bool blocking_call = !isolate_data->HasLoader();
+  const bool blocking_call = !isolate_group_data->HasLoader();
 
   // If we are the outer invocation of the tag handler and the tag is an import
   // this means that we are starting a deferred library load.
   const bool is_deferred_import = blocking_call && (tag == Dart_kImportTag);
-  if (!isolate_data->HasLoader()) {
+  if (!isolate_group_data->HasLoader()) {
     // The isolate doesn't have a loader -- this is the outer invocation which
     // will block.
 
     // Setup the loader. The constructor does a bunch of leg work.
-    loader = new Loader(isolate_data);
-    loader->Init(isolate_data->package_root, isolate_data->packages_file,
+    loader = new Loader(isolate_group_data);
+    loader->Init(isolate_group_data->package_root,
+                 isolate_group_data->packages_file,
                  DartUtils::original_working_directory,
                  (tag == Dart_kScriptTag) ? url_string : NULL);
   } else {
@@ -715,10 +718,10 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     // The isolate has a loader -- this is an inner invocation that will queue
     // work with the service isolate.
     // Use the existing loader.
-    loader = isolate_data->loader();
+    loader = isolate_group_data->loader();
   }
   ASSERT(loader != NULL);
-  ASSERT(isolate_data->HasLoader());
+  ASSERT(isolate_group_data->HasLoader());
 
   if (DartUtils::IsDartExtensionSchemeURL(url_string)) {
     loader->SendImportExtensionRequest(url, Dart_LibraryUrl(library));
@@ -815,11 +818,11 @@ Loader::LoaderInfo* Loader::loader_infos_ = NULL;
 intptr_t Loader::loader_infos_length_ = 0;
 intptr_t Loader::loader_infos_capacity_ = 0;
 
-// Add a mapping from |port| to |isolate_data| (really the loader). When a
+// Add a mapping from |port| to |isolate_group_data| (really the loader). When a
 // native message arrives, we use this map to report the I/O result to the
 // correct loader.
 // This happens whenever an isolate begins loading.
-void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
+void Loader::AddLoader(Dart_Port port, IsolateGroupData* isolate_group_data) {
   MutexLocker ml(loader_infos_lock_);
   ASSERT(LoaderForLocked(port) == NULL);
   if (loader_infos_length_ == loader_infos_capacity_) {
@@ -832,12 +835,12 @@ void Loader::AddLoader(Dart_Port port, IsolateData* isolate_data) {
     // Initialize new entries.
     for (intptr_t i = loader_infos_length_; i < loader_infos_capacity_; i++) {
       loader_infos_[i].port = ILLEGAL_PORT;
-      loader_infos_[i].isolate_data = NULL;
+      loader_infos_[i].isolate_group_data = NULL;
     }
   }
   ASSERT(loader_infos_length_ < loader_infos_capacity_);
   loader_infos_[loader_infos_length_].port = port;
-  loader_infos_[loader_infos_length_].isolate_data = isolate_data;
+  loader_infos_[loader_infos_length_].isolate_group_data = isolate_group_data;
   loader_infos_length_++;
   ASSERT(LoaderForLocked(port) != NULL);
 }
@@ -871,7 +874,7 @@ Loader* Loader::LoaderForLocked(Dart_Port port) {
   if (index < 0) {
     return NULL;
   }
-  return loader_infos_[index].isolate_data->loader();
+  return loader_infos_[index].isolate_group_data->loader();
 }
 
 Loader* Loader::LoaderFor(Dart_Port port) {

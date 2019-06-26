@@ -232,9 +232,9 @@ extern const intptr_t platform_strong_dill_size;
 class TesterState : public AllStatic {
  public:
   static const uint8_t* vm_snapshot_data;
-  static Dart_IsolateCreateCallback create_callback;
+  static Dart_IsolateGroupCreateCallback create_callback;
   static Dart_IsolateShutdownCallback shutdown_callback;
-  static Dart_IsolateCleanupCallback cleanup_callback;
+  static Dart_IsolateGroupCleanupCallback group_cleanup_callback;
   static const char** argv;
   static int argc;
 };
@@ -358,8 +358,9 @@ class TestCase : TestCaseBase {
                                                     const char* name = NULL) {
     return CreateIsolate(buffer, 0, NULL, name);
   }
-  static Dart_Isolate CreateTestIsolate(const char* name = NULL,
-                                        void* data = NULL);
+  static Dart_Isolate CreateTestIsolate(const char* name = nullptr,
+                                        void* isolate_group_data = nullptr,
+                                        void* isolate_data = nullptr);
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
                                      Dart_Handle url);
@@ -393,7 +394,8 @@ class TestCase : TestCaseBase {
                                     intptr_t len,
                                     const uint8_t* instr_buffer,
                                     const char* name,
-                                    void* data = NULL);
+                                    void* group_data = nullptr,
+                                    void* isolate_data = nullptr);
 
   static char* ValidateCompilationResult(Zone* zone,
                                          Dart_KernelCompilationResult result,
