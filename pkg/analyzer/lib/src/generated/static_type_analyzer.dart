@@ -19,6 +19,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
 import 'package:meta/meta.dart';
@@ -70,9 +71,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   InterfaceType thisType;
 
   /**
-   * The object keeping track of which elements have had their types promoted.
+   * The object providing promoted or declared types of variables.
    */
-  TypePromotionManager _promoteManager;
+  LocalVariableTypeProvider _localVariableTypeProvider;
 
   /**
    * Initialize a newly created static type analyzer to analyze types for the
@@ -84,7 +85,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
-    _promoteManager = _resolver.promoteManager;
+    _localVariableTypeProvider = _resolver.localVariableTypeProvider;
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
@@ -1040,8 +1041,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (element is TypeParameterElement) {
       staticType = _nonNullable(_typeProvider.typeType);
     } else if (element is VariableElement) {
-      VariableElement variable = element;
-      staticType = _promoteManager.getStaticType(variable);
+      staticType = _localVariableTypeProvider.getType(node);
     } else if (element is PrefixElement) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
@@ -1294,9 +1294,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
     } else if (element is ExecutableElement) {
       return _computeInvokeReturnType(element.type, isNullableInvoke: false);
-    } else if (element is VariableElement) {
-      DartType variableType = _promoteManager.getStaticType(element);
-      return _computeInvokeReturnType(variableType, isNullableInvoke: false);
     }
     return _dynamicType;
   }

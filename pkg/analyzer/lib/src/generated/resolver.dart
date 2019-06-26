@@ -35,7 +35,9 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
@@ -3715,7 +3717,7 @@ class ResolverVisitor extends ScopedVisitor {
   InferenceContext inferenceContext = null;
 
   /// The object keeping track of which elements have had their types promoted.
-  TypePromotionManager _promoteManager = new TypePromotionManager();
+  TypePromotionManager _promoteManager;
 
   /// A comment before a function should be resolved in the context of the
   /// function. But when we incrementally resolve a comment, we don't want to
@@ -3724,9 +3726,6 @@ class ResolverVisitor extends ScopedVisitor {
   /// So, this flag is set to `true`, when just context of the function should
   /// be built and the comment resolved.
   bool resolveOnlyCommentInFunctionBody = false;
-
-  /// Body of the function currently being analyzed, if any.
-  FunctionBody _currentFunctionBody;
 
   /// The type of the expression of the immediately enclosing [SwitchStatement],
   /// or `null` if not in a [SwitchStatement].
@@ -3784,9 +3783,10 @@ class ResolverVisitor extends ScopedVisitor {
                 featureSet.isEnabled(Feature.spread_collections),
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
+    this.typeSystem = definingLibrary.context.typeSystem;
+    this._promoteManager = TypePromotionManager(typeSystem);
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
-    this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
     AnalysisOptions options = _analysisOptions;
     if (options is AnalysisOptionsImpl) {
@@ -3803,12 +3803,10 @@ class ResolverVisitor extends ScopedVisitor {
   /// @return the element representing the function containing the current node
   ExecutableElement get enclosingFunction => _enclosingFunction;
 
-  /// Return the object keeping track of which elements have had their types
-  /// promoted.
-  ///
-  /// @return the object keeping track of which elements have had their types
-  ///         promoted
-  TypePromotionManager get promoteManager => _promoteManager;
+  /// Return the object providing promoted or declared types of variables.
+  LocalVariableTypeProvider get localVariableTypeProvider {
+    return _promoteManager.localVariableTypeProvider;
+  }
 
   /// Return the static element associated with the given expression whose type
   /// can be overridden, or `null` if there is no element whose type can be
@@ -3827,24 +3825,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
     if (element is VariableElement) {
       return element;
-    }
-    return null;
-  }
-
-  /// Return the static element associated with the given expression whose type
-  /// can be promoted, or `null` if there is no element whose type can be
-  /// promoted.
-  VariableElement getPromotionStaticElement(Expression expression) {
-    expression = expression?.unParenthesized;
-    if (expression is SimpleIdentifier) {
-      Element element = expression.staticElement;
-      if (element is VariableElement) {
-        ElementKind kind = element.kind;
-        if (kind == ElementKind.LOCAL_VARIABLE ||
-            kind == ElementKind.PARAMETER) {
-          return element;
-        }
-      }
     }
     return null;
   }
@@ -3907,7 +3887,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// Set the enclosing function body when partial AST is resolved.
   void prepareCurrentFunctionBody(FunctionBody body) {
-    _currentFunctionBody = body;
+    _promoteManager.enterFunctionBody(body);
   }
 
   /// Set information about enclosing declarations.
@@ -4049,22 +4029,15 @@ class ResolverVisitor extends ScopedVisitor {
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
       InferenceContext.setType(leftOperand, typeProvider.boolType);
       InferenceContext.setType(rightOperand, typeProvider.boolType);
+      // TODO(scheglov) Do we need these checks for null?
       leftOperand?.accept(this);
-      if (rightOperand != null) {
-        _promoteManager.enterScope();
-        try {
-          // Type promotion.
-          _promoteTypes(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(leftOperand);
-          _clearTypePromotionsIfPotentiallyMutatedIn(rightOperand);
-          _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-              rightOperand);
-          // Visit right operand.
+      _promoteManager.visitBinaryExpression_and_rhs(
+        leftOperand,
+        rightOperand,
+        () {
           rightOperand.accept(this);
-        } finally {
-          _promoteManager.exitScope();
-        }
-      }
+        },
+      );
       node.accept(elementResolver);
     } else if (operatorType == TokenType.BAR_BAR) {
       InferenceContext.setType(leftOperand, typeProvider.boolType);
@@ -4215,23 +4188,17 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
     Expression thenExpression = node.thenExpression;
-    if (thenExpression != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenExpression);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenExpression);
-        // Visit "then" expression.
+    _promoteManager.visitConditionalExpression_then(
+      condition,
+      thenExpression,
+      () {
         InferenceContext.setTypeFromNode(thenExpression, node);
         thenExpression.accept(this);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
+      },
+    );
     Expression elseExpression = node.elseExpression;
     if (elseExpression != null) {
       InferenceContext.setTypeFromNode(elseExpression, node);
@@ -4244,15 +4211,14 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       FunctionType type = _enclosingFunction.type;
       InferenceContext.setType(node.body, type.returnType);
       super.visitConstructorDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
     ConstructorElementImpl constructor = node.declaredElement;
@@ -4505,16 +4471,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
       SimpleIdentifier functionName = node.name;
-      _currentFunctionBody = node.functionExpression.body;
+      _promoteManager.enterFunctionBody(node.functionExpression.body);
       _enclosingFunction = functionName.staticElement as ExecutableElement;
       InferenceContext.setType(
           node.functionExpression, _enclosingFunction.type);
       super.visitFunctionDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
   }
@@ -4528,9 +4493,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       DartType functionType = InferenceContext.getContext(node);
       if (functionType is FunctionType) {
@@ -4544,7 +4508,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
       super.visitFunctionExpression(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
   }
@@ -4592,22 +4556,16 @@ class ResolverVisitor extends ScopedVisitor {
   void visitIfElement(IfElement node) {
     Expression condition = node.condition;
     InferenceContext.setType(condition, typeProvider.boolType);
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
     CollectionElement thenElement = node.thenElement;
-    if (thenElement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenElement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenElement);
-        // Visit "then".
+    _promoteManager.visitIfElement_thenElement(
+      condition,
+      thenElement,
+      () {
         thenElement.accept(this);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
+      },
+    );
     node.elseElement?.accept(this);
 
     node.accept(elementResolver);
@@ -4620,20 +4578,13 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
     Statement thenStatement = node.thenStatement;
-    if (thenStatement != null) {
-      _promoteManager.enterScope();
-      try {
-        // Type promotion.
-        _promoteTypes(condition);
-        _clearTypePromotionsIfPotentiallyMutatedIn(thenStatement);
-        _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-            thenStatement);
-        // Visit "then".
+    _promoteManager.visitIfStatement_thenStatement(
+      condition,
+      thenStatement,
+      () {
         visitStatementInScope(thenStatement);
-      } finally {
-        _promoteManager.exitScope();
-      }
-    }
+      },
+    );
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
       visitStatementInScope(elseStatement);
@@ -4701,16 +4652,15 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    FunctionBody outerFunctionBody = _currentFunctionBody;
     try {
-      _currentFunctionBody = node.body;
+      _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       DartType returnType =
           _computeReturnOrYieldType(_enclosingFunction.type?.returnType);
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
-      _currentFunctionBody = outerFunctionBody;
+      _promoteManager.exitFunctionBody();
       _enclosingFunction = outerFunction;
     }
   }
@@ -5021,36 +4971,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
   }
 
-  /// Checks each promoted variable in the current scope for compliance with the
-  /// following specification statement:
-  ///
-  /// If the variable <i>v</i> is accessed by a closure in <i>s<sub>1</sub></i>
-  /// then the variable <i>v</i> is not potentially mutated anywhere in the
-  /// scope of <i>v</i>.
-  void _clearTypePromotionsIfAccessedInClosureAndProtentiallyMutated(
-      AstNode target) {
-    for (Element element in _promoteManager.promotedElements) {
-      if (_currentFunctionBody.isPotentiallyMutatedInScope(element)) {
-        if (_isVariableAccessedInClosure(element, target)) {
-          _promoteManager.setType(element, null);
-        }
-      }
-    }
-  }
-
-  /// Checks each promoted variable in the current scope for compliance with the
-  /// following specification statement:
-  ///
-  /// <i>v</i> is not potentially mutated in <i>s<sub>1</sub></i> or within a
-  /// closure.
-  void _clearTypePromotionsIfPotentiallyMutatedIn(AstNode target) {
-    for (Element element in _promoteManager.promotedElements) {
-      if (_isVariablePotentiallyMutatedIn(element, target)) {
-        _promoteManager.setType(element, null);
-      }
-    }
-  }
-
   /// Given the declared return type of a function, compute the type of the
   /// values which should be returned or yielded as appropriate.  If a type
   /// cannot be computed from the declared return type, return null.
@@ -5330,86 +5250,6 @@ class ResolverVisitor extends ScopedVisitor {
       // To get this right, we'd have to delay reporting until we have the
       // complete type including return type.
       inferenceContext.recordInference(node.parent, type);
-    }
-  }
-
-  /// Return `true` if the given variable is accessed within a closure in the
-  /// given [AstNode] and also mutated somewhere in variable scope. This
-  /// information is only available for local variables (including parameters).
-  ///
-  /// @param variable the variable to check
-  /// @param target the [AstNode] to check within
-  /// @return `true` if this variable is potentially mutated somewhere in the
-  ///         given ASTNode
-  bool _isVariableAccessedInClosure(Element variable, AstNode target) {
-    _ResolverVisitor_isVariableAccessedInClosure visitor =
-        new _ResolverVisitor_isVariableAccessedInClosure(variable);
-    target.accept(visitor);
-    return visitor.result;
-  }
-
-  /// Return `true` if the given variable is potentially mutated somewhere in
-  /// the given [AstNode]. This information is only available for local
-  /// variables (including parameters).
-  ///
-  /// @param variable the variable to check
-  /// @param target the [AstNode] to check within
-  /// @return `true` if this variable is potentially mutated somewhere in the
-  ///         given ASTNode
-  bool _isVariablePotentiallyMutatedIn(Element variable, AstNode target) {
-    _ResolverVisitor_isVariablePotentiallyMutatedIn visitor =
-        new _ResolverVisitor_isVariablePotentiallyMutatedIn(variable);
-    target.accept(visitor);
-    return visitor.result;
-  }
-
-  /// If it is appropriate to do so, promotes the current type of the static
-  /// element associated with the given expression with the given type.
-  /// Generally speaking, it is appropriate if the given type is more specific
-  /// than the current type.
-  ///
-  /// @param expression the expression used to access the static element whose
-  ///        types might be promoted
-  /// @param potentialType the potential type of the elements
-  void _promote(Expression expression, DartType potentialType) {
-    VariableElement element = getPromotionStaticElement(expression);
-    if (element != null) {
-      // may be mutated somewhere in closure
-      if (_currentFunctionBody.isPotentiallyMutatedInClosure(element)) {
-        return;
-      }
-      // prepare current variable type
-      DartType type = _promoteManager.getType(element) ??
-          expression.staticType ??
-          DynamicTypeImpl.instance;
-
-      potentialType ??= DynamicTypeImpl.instance;
-
-      // Check if we can promote to potentialType from type.
-      DartType promoteType = typeSystem.tryPromoteToType(potentialType, type);
-      if (promoteType != null) {
-        // Do promote type of variable.
-        _promoteManager.setType(element, promoteType);
-      }
-    }
-  }
-
-  /// Promotes type information using given condition.
-  void _promoteTypes(Expression condition) {
-    if (condition is BinaryExpression) {
-      if (condition.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        Expression left = condition.leftOperand;
-        Expression right = condition.rightOperand;
-        _promoteTypes(left);
-        _promoteTypes(right);
-        _clearTypePromotionsIfPotentiallyMutatedIn(right);
-      }
-    } else if (condition is IsExpression) {
-      if (condition.notOperator == null) {
-        _promote(condition.expression, condition.type.type);
-      }
-    } else if (condition is ParenthesizedExpression) {
-      _promoteTypes(condition.expression);
     }
   }
 
@@ -7107,93 +6947,6 @@ class TypeParameterBoundsResolver {
         }
       }
     }
-  }
-}
-
-/// Instances of the class `TypePromotionManager` manage the ability to promote
-/// types of local variables and formal parameters from their declared types
-/// based on control flow.
-class TypePromotionManager {
-  /// The current promotion scope, or `null` if no scope has been entered.
-  TypePromotionManager_TypePromoteScope currentScope;
-
-  /// Returns the elements with promoted types.
-  Iterable<Element> get promotedElements => currentScope.promotedElements;
-
-  /// Enter a new promotions scope.
-  void enterScope() {
-    currentScope = new TypePromotionManager_TypePromoteScope(currentScope);
-  }
-
-  /// Exit the current promotion scope.
-  void exitScope() {
-    if (currentScope == null) {
-      throw new StateError("No scope to exit");
-    }
-    currentScope = currentScope._outerScope;
-  }
-
-  /// Return the static type of the given [variable] - declared or promoted.
-  DartType getStaticType(VariableElement variable) =>
-      getType(variable) ?? variable.type;
-
-  /// Return the promoted type of the given [element], or `null` if the type of
-  /// the element has not been promoted.
-  DartType getType(Element element) => currentScope?.getType(element);
-
-  /// Set the promoted type of the given element to the given type.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @param type the promoted type of the given element
-  void setType(Element element, DartType type) {
-    if (currentScope == null) {
-      throw new StateError("Cannot promote without a scope");
-    }
-    currentScope.setType(element, type);
-  }
-}
-
-/// Instances of the class `TypePromoteScope` represent a scope in which the
-/// types of elements can be promoted.
-class TypePromotionManager_TypePromoteScope {
-  /// The outer scope in which types might be promoter.
-  final TypePromotionManager_TypePromoteScope _outerScope;
-
-  /// A table mapping elements to the promoted type of that element.
-  Map<Element, DartType> _promotedTypes = new HashMap<Element, DartType>();
-
-  /// Initialize a newly created scope to be an empty child of the given scope.
-  ///
-  /// @param outerScope the outer scope in which types might be promoted
-  TypePromotionManager_TypePromoteScope(this._outerScope);
-
-  /// Returns the elements with promoted types.
-  Iterable<Element> get promotedElements => _promotedTypes.keys.toSet();
-
-  /// Return the promoted type of the given element, or `null` if the type of
-  /// the element has not been promoted.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @return the promoted type of the given element
-  DartType getType(Element element) {
-    DartType type = _promotedTypes[element];
-    if (type == null && element is PropertyAccessorElement) {
-      type = _promotedTypes[element.variable];
-    }
-    if (type != null) {
-      return type;
-    } else if (_outerScope != null) {
-      return _outerScope.getType(element);
-    }
-    return null;
-  }
-
-  /// Set the promoted type of the given element to the given type.
-  ///
-  /// @param element the element whose type might have been promoted
-  /// @param type the promoted type of the given element
-  void setType(Element element, DartType type) {
-    _promotedTypes[element] = type;
   }
 }
 
@@ -9076,56 +8829,3 @@ class _LiteralResolution {
 
 /// The kind of literal to which an unknown literal should be resolved.
 enum _LiteralResolutionKind { ambiguous, map, set }
-
-class _ResolverVisitor_isVariableAccessedInClosure
-    extends RecursiveAstVisitor<void> {
-  final Element variable;
-
-  bool result = false;
-
-  bool _inClosure = false;
-
-  _ResolverVisitor_isVariableAccessedInClosure(this.variable);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    bool inClosure = this._inClosure;
-    try {
-      this._inClosure = true;
-      super.visitFunctionExpression(node);
-    } finally {
-      this._inClosure = inClosure;
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result) {
-      return;
-    }
-    if (_inClosure && identical(node.staticElement, variable)) {
-      result = true;
-    }
-  }
-}
-
-class _ResolverVisitor_isVariablePotentiallyMutatedIn
-    extends RecursiveAstVisitor<void> {
-  final Element variable;
-
-  bool result = false;
-
-  _ResolverVisitor_isVariablePotentiallyMutatedIn(this.variable);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (result) {
-      return;
-    }
-    if (identical(node.staticElement, variable)) {
-      if (node.inSetterContext()) {
-        result = true;
-      }
-    }
-  }
-}

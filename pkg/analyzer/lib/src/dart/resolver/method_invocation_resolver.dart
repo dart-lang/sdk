@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 class MethodInvocationResolver {
   static final _nameCall = new Name(null, 'call');
@@ -35,8 +36,8 @@ class MethodInvocationResolver {
   /// The URI of [_definingLibrary].
   final Uri _definingLibraryUri;
 
-  /// The object keeping track of which elements have had their types promoted.
-  final TypePromotionManager _promoteManager;
+  /// The object providing promoted or declared types of variables.
+  final LocalVariableTypeProvider _localVariableTypeProvider;
 
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
@@ -49,7 +50,7 @@ class MethodInvocationResolver {
         _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
-        _promoteManager = _resolver.promoteManager;
+        _localVariableTypeProvider = _resolver.localVariableTypeProvider;
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
@@ -400,7 +401,7 @@ class MethodInvocationResolver {
         return _setResolution(node, calleeType);
       }
       if (element is VariableElement) {
-        var targetType = _promoteManager.getStaticType(element);
+        var targetType = _localVariableTypeProvider.getType(nameNode);
         return _setResolution(node, targetType);
       }
       // TODO(scheglov) This is a questionable distinction.
