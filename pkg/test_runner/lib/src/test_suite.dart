@@ -370,6 +370,7 @@ class VMTestSuite extends TestSuite {
       var dfePath = Path(filename).absolute.toNativePath();
       // '--dfe' has to be the first argument for run_vm_test to pick it up.
       args.insert(0, '--dfe=$dfePath');
+      args.addAll(configuration.vmOptions);
     }
     if (expectations.contains(Expectation.crash)) {
       args.insert(0, '--suppress-core-dump');

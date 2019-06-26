@@ -2276,6 +2276,7 @@ bool Class::IsInFullSnapshot() const {
 }
 
 RawAbstractType* Class::RareType() const {
+  ASSERT(is_declaration_loaded());
   const Type& type = Type::Handle(Type::New(
       *this, Object::null_type_arguments(), TokenPosition::kNoSource));
   return ClassFinalizer::FinalizeType(*this, type);
@@ -4152,6 +4153,7 @@ void Class::set_declaration_type(const Type& value) const {
 }
 
 RawType* Class::DeclarationType() const {
+  ASSERT(is_declaration_loaded());
   if (declaration_type() != Type::null()) {
     return declaration_type();
   }

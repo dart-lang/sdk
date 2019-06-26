@@ -569,6 +569,7 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
         }
         ASSERT(cls.is_finalized());
       } else {
+        cls.EnsureDeclarationLoaded();
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);
         script = cls.script();

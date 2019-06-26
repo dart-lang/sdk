@@ -307,7 +307,7 @@ ISOLATE_UNIT_TEST_CASE(WrapAroundAndDerived) {
       "  WRAP(-99, LIN(0 + -1 * i))\n"  // d
       "  LIN(1 + 1 * i)\n"              // add
       "  ]\n";
-  EXPECT_STREQ(ComputeInduction(thread, script_chars), expected);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 ISOLATE_UNIT_TEST_CASE(PeriodicAndDerived) {
@@ -342,7 +342,7 @@ ISOLATE_UNIT_TEST_CASE(PeriodicAndDerived) {
       "  PERIOD(95, 5)\n"       // p2
       "  LIN(1 + 1 * i)\n"      // add
       "  ]\n";
-  EXPECT_STREQ(ComputeInduction(thread, script_chars), expected);
+  EXPECT_STREQ(expected, ComputeInduction(thread, script_chars));
 }
 
 //

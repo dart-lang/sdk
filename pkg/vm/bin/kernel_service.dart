@@ -534,7 +534,12 @@ Future _processLoadRequest(request) async {
     assert(incremental,
         "Incremental compiler required for use of 'kUpdateSourcesTag'");
     compiler = lookupIncrementalCompiler(isolateId);
-    assert(compiler != null);
+    if (compiler == null) {
+      port.send(new CompilationResult.errors(
+              ["No incremental compiler available for this isolate."], null)
+          .toResponse());
+      return;
+    }
     updateSources(compiler, sourceFiles);
     port.send(new CompilationResult.ok(null).toResponse());
     return;

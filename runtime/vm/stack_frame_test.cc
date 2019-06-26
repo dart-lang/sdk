@@ -48,7 +48,7 @@ void FUNCTION_NAME(StackFrame_equals)(Dart_NativeArguments args) {
   if (!expected.OperatorEquals(actual)) {
     OS::PrintErr("expected: '%s' actual: '%s'\n", expected.ToCString(),
                  actual.ToCString());
-    FATAL("Expect_equals fails.\n");
+    EXPECT(false);
   }
 }
 
