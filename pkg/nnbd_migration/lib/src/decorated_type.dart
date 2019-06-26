@@ -72,6 +72,8 @@ class DecoratedType {
           throw UnimplementedError('Decorating ${type.displayName}');
         }
         return DecoratedType(type, graph.never);
+      } else if (type is TypeParameterType) {
+        return DecoratedType(type, graph.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
@@ -92,6 +94,10 @@ class DecoratedType {
       decoratedType = decorate(element.type);
     } else if (element is TopLevelVariableElement) {
       decoratedType = decorate(element.type);
+    } else if (element is TypeParameterElement) {
+      // By convention, type parameter elements are decorated with the type of
+      // their bounds.
+      decoratedType = decorate(element.bound ?? DynamicTypeImpl.instance);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');

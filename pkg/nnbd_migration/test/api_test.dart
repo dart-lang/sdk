@@ -426,6 +426,29 @@ void test(C<int> c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_generic_contravariant_inward_using_core_class() async {
+    var content = '''
+void f(List<int> x, int i) {
+  x.add(i);
+}
+void test(List<int> x) {
+  f(x, null);
+}
+''';
+    // TODO(paulberry): possible improvement: detect that since add uses T in
+    // a contravariant way, and deduce that test should change to
+    // `void test(List<int?> x)`
+    var expected = '''
+void f(List<int?> x, int? i) {
+  x.add(i);
+}
+void test(List<int> x) {
+  f(x, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_covariant_outward() async {
     var content = '''
 class C<T> {

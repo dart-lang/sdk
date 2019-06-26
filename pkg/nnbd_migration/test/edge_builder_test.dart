@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
@@ -1226,6 +1228,32 @@ void g(C<int> c, int i) {
         assertEdge(nullable_i, nullable_c_t_or_nullable_t, hard: true));
   }
 
+  test_methodInvocation_parameter_contravariant_from_migrated_class() async {
+    await analyze('''
+void f(List<int> x, int i) {
+  x.add(i/*check*/);
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_list_t =
+        decoratedTypeAnnotation('List<int>').typeArguments[0].node;
+    var addMethod = findNode.methodInvocation('x.add').methodName.staticElement
+        as MethodMember;
+    var nullable_t = variables
+        .decoratedElementType(addMethod.baseElement)
+        .positionalParameters[0]
+        .node;
+    expect(nullable_t, same(never));
+    var check_i = checkExpression('i/*check*/');
+    var nullable_list_t_or_nullable_t =
+        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    expect(nullable_list_t_or_nullable_t.innerNode, same(nullable_list_t));
+    expect(nullable_list_t_or_nullable_t.outerNode, same(nullable_t));
+    assertNullCheck(check_i,
+        assertEdge(nullable_i, nullable_list_t_or_nullable_t, hard: true));
+  }
+
   test_methodInvocation_parameter_generic() async {
     await analyze('''
 class C<T> {}
@@ -2034,6 +2062,31 @@ void f(C<int> c) {}
 ''');
     assertEdge(decoratedTypeAnnotation('int>').node,
         decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  test_type_parameterized_migrated_bound_class() async {
+    await analyze('''
+import 'dart:math';
+void f(Point<int> x) {}
+''');
+    var pointClass =
+        findNode.typeName('Point').name.staticElement as ClassElement;
+    var pointBound =
+        variables.decoratedElementType(pointClass.typeParameters[0]);
+    expect(pointBound.type.toString(), 'num');
+    assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
+        hard: true);
+  }
+
+  test_type_parameterized_migrated_bound_dynamic() async {
+    await analyze('''
+void f(List<int> x) {}
+''');
+    var listClass = typeProvider.listType.element;
+    var listBound = variables.decoratedElementType(listClass.typeParameters[0]);
+    expect(listBound.type.toString(), 'dynamic');
+    assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
   }
 

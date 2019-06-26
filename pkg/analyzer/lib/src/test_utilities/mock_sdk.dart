@@ -461,6 +461,7 @@ class Random {
   double nextDouble() => 2.0;
   int nextInt() => 1;
 }
+class Point<T extends num> {}
 ''');
 
 const List<SdkLibrary> _LIBRARIES = const [
