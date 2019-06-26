@@ -2056,6 +2056,17 @@ void f(C c) {}
     assertUnion(cType.typeArguments[0].node, cBound.node);
   }
 
+  test_typeName_union_with_bound_function_type() async {
+    await analyze('''
+class C<T extends int Function()> {}
+void f(C c) {}
+''');
+    var cType = decoratedTypeAnnotation('C c');
+    var cBound = decoratedGenericFunctionTypeAnnotation('int Function()');
+    assertUnion(cType.typeArguments[0].node, cBound.node);
+    assertUnion(cType.typeArguments[0].returnType.node, cBound.returnType.node);
+  }
+
   test_typeName_union_with_bounds() async {
     await analyze('''
 class C<T extends Object, U extends Object> {}

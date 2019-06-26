@@ -1101,9 +1101,8 @@ $stackTrace''');
         i++) {
       _unionDecoratedTypes(x.typeArguments[i], y.typeArguments[i], origin);
     }
-    if (x.returnType != null || y.returnType != null) {
-      // TODO(paulberry)
-      throw UnimplementedError('_unionDecoratedTypes($x, $y, $origin)');
+    if (x.returnType != null && y.returnType != null) {
+      _unionDecoratedTypes(x.returnType, y.returnType, origin);
     }
   }
 }

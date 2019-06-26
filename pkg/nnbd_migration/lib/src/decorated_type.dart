@@ -119,7 +119,7 @@ class DecoratedType {
             DecoratedType.forImplicitType(parameter.type, graph);
       }
     }
-    return DecoratedType(type, graph.never,
+    return DecoratedType(type, node,
         returnType:
             returnType ?? DecoratedType.forImplicitType(type.returnType, graph),
         namedParameters: namedParameters,
@@ -137,6 +137,9 @@ class DecoratedType {
           typeArguments: type.typeArguments
               .map((t) => DecoratedType.forImplicitType(t, graph))
               .toList());
+    } else if (type is FunctionType) {
+      return DecoratedType.forImplicitFunction(
+          type, NullabilityNode.forInferredType(), graph);
     }
     // TODO(paulberry)
     throw UnimplementedError(
