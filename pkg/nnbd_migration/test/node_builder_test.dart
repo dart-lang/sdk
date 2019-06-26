@@ -409,12 +409,12 @@ class C<T> {}
 class D<T extends C<int>> {}
 void f(D x) {}
 ''');
-    var decoratedListType = decoratedTypeAnnotation('D x');
+    var decoratedDType = decoratedTypeAnnotation('D x');
     expect(decoratedFunctionType('f').positionalParameters[0],
-        same(decoratedListType));
-    expect(decoratedListType.node, TypeMatcher<NullabilityNodeMutable>());
-    expect(decoratedListType.typeArguments, hasLength(1));
-    var decoratedArgType = decoratedListType.typeArguments[0];
+        same(decoratedDType));
+    expect(decoratedDType.node, TypeMatcher<NullabilityNodeMutable>());
+    expect(decoratedDType.typeArguments, hasLength(1));
+    var decoratedArgType = decoratedDType.typeArguments[0];
     expect(decoratedArgType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedArgType.typeArguments, hasLength(1));
     var decoratedArgArgType = decoratedArgType.typeArguments[0];
