@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -1320,48 +1318,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     return returnType.type;
   }
 
-  DartType _findIteratedType(DartType type, DartType targetType) {
-    // TODO(vsm): Use leafp's matchType here?
-    // Set by _find if match is found
-    DartType result;
-    // Elements we've already visited on a given inheritance path.
-    HashSet<ClassElement> visitedClasses;
-
-    type = type.resolveToBound(_typeProvider.objectType);
-
-    bool _find(InterfaceType type) {
-      ClassElement element = type.element;
-      if (type == _typeProvider.objectType || element == null) {
-        return false;
-      }
-      if (element == targetType.element) {
-        List<DartType> typeArguments = type.typeArguments;
-        assert(typeArguments.length == 1);
-        result = typeArguments[0];
-        return true;
-      }
-      if (visitedClasses == null) {
-        visitedClasses = new HashSet<ClassElement>();
-      }
-      // Already visited this class along this path
-      if (!visitedClasses.add(element)) {
-        return false;
-      }
-      try {
-        return _find(type.superclass) ||
-            type.interfaces.any(_find) ||
-            type.mixins.any(_find);
-      } finally {
-        visitedClasses.remove(element);
-      }
-    }
-
-    if (type is InterfaceType) {
-      _find(type);
-    }
-    return result;
-  }
-
   /**
    * If the given element name can be mapped to the name of a class defined within the given
    * library, return the type specified by the argument.
@@ -1573,14 +1529,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       if (iterable != null) {
         LocalVariableElementImpl element = loopVariable.declaredElement;
-        DartType exprType = iterable.staticType;
-        DartType targetType = (awaitKeyword == null)
-            ? _typeProvider.iterableType
-            : _typeProvider.streamType;
-        DartType iteratedType = _findIteratedType(exprType, targetType);
+
+        DartType iterableType = iterable.staticType;
+        iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+
+        ClassElement iteratedElement = (awaitKeyword == null)
+            ? _typeProvider.iterableType.element
+            : _typeProvider.streamType.element;
+
+        InterfaceType iteratedType = iterableType is InterfaceTypeImpl
+            ? iterableType.asInstanceOf(iteratedElement)
+            : null;
+
         if (element != null && iteratedType != null) {
-          element.type = iteratedType;
-          loopVariable.identifier.staticType = iteratedType;
+          DartType elementType = iteratedType.typeArguments.single;
+          element.type = elementType;
+          loopVariable.identifier.staticType = elementType;
         }
       }
     }
