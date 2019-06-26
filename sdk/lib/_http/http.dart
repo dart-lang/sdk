@@ -1776,7 +1776,7 @@ abstract class HttpClient {
    * with a server certificate that cannot be authenticated by any of our
    * trusted root certificates.
    *
-   * When an secure HTTP request if made, using this HttpClient, and the
+   * When a secure HTTP request is made using this HttpClient and the
    * server returns a server certificate that cannot be authenticated, the
    * callback is called asynchronously with the [X509Certificate] object and
    * the server's hostname and port.  If the value of [badCertificateCallback]
