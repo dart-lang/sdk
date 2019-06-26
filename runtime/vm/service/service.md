@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.20
+# Dart VM Service Protocol 3.21
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.20_ of the Dart VM Service Protocol. This
+This document describes of _version 3.21_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -43,6 +43,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [getVM](#getvm)
   - [getVMTimeline](#getvmtimeline)
   - [getVMTimelineFlags](#getvmtimelineflags)
+  - [getVMTimelineMicros](#getvmtimelinemicros)
   - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
@@ -107,6 +108,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [Timeline](#timeline)
   - [TimelineEvent](#timelineevent)
   - [TimelineFlags](#timelineflags)
+  - [Timestamp](#timestamp)
   - [TypeArguments](#typearguments)
   - [UresolvedSourceLocation](#unresolvedsourcelocation)
   - [Version](#version)
@@ -490,7 +492,7 @@ Note that breakpoints are added and removed on a per-isolate basis.
 
 ### clearVMTimeline
 
-``` 
+```
 Success clearVMTimeline()
 ```
 
@@ -816,7 +818,8 @@ events.
 
 The _timeOriginMicros_ parameter is the beginning of the time range used to filter
 timeline events. It uses the same monotonic clock as dart:developer's `Timeline.now`
-and the VM embedding API's `Dart_TimelineGetMicros`.
+and the VM embedding API's `Dart_TimelineGetMicros`. See [getVMTimelineMicros](#getvmtimelinemicros)
+for access to this clock through the service protocol.
 
 The _timeExtentMicros_ parameter specifies how large the time range used to filter
 timeline events should be.
@@ -839,6 +842,17 @@ The _getVMTimelineFlags_ RPC returns information about the current VM timeline c
 To change which timeline streams are currently enabled, see [setVMTimelineFlags](#setvmtimelineflags).
 
 See [TimelineFlags](#timelineflags).
+
+### getVMTimelineMicros
+
+```
+Timestamp getVMTimelineMicros()
+```
+
+The _getVMTimelineMicros_ RPC returns the current time stamp from the clock used by the timeline,
+similar to `Timeline.now` in `dart:developer` and `Dart_TimelineGetMicros` in the VM embedding API.
+
+See [Timestamp](#timestamp) and [getVMTimeline](#getvmtimeline).
 
 ### pause
 
@@ -2898,7 +2912,7 @@ An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](http
 class TimelineFlags extends Response {
   // The name of the recorder currently in use. Recorder types include, but are
   // not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
-  // Set to "null" if no recorder is currently set. 
+  // Set to "null" if no recorder is currently set.
   string recorderName;
 
   // The list of all available timeline streams.
@@ -2906,6 +2920,15 @@ class TimelineFlags extends Response {
 
   // The list of timeline streams that are currently enabled.
   string[] recordedStreams;
+}
+```
+
+### Timestamp
+
+```
+class Timestamp extends Response {
+  // A timestamp in microseconds since epoch.
+  int timestamp;
 }
 ```
 
@@ -3057,5 +3080,6 @@ version | comments
 3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
 3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
 3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
+3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
