@@ -10,7 +10,7 @@ import 'dart:typed_data';
 import 'package:async_helper/async_helper.dart' show asyncStart, asyncEnd;
 import 'package:expect/expect.dart';
 
-Uint8List generateSampleList(final size) {
+Uint8List generateSampleList(final int size) {
   final list = Uint8List(size);
   for (int i = 0; i < size; i++) {
     list[i] = i % 243;
@@ -18,7 +18,7 @@ Uint8List generateSampleList(final size) {
   return list;
 }
 
-void validateReceivedList(final expectedSize, final list) {
+void validateReceivedList(final int expectedSize, final list) {
   Expect.equals(expectedSize, list.length);
   // probe few elements
   for (int i = 0; i < list.length; i += max<num>(1, expectedSize ~/ 1000)) {
@@ -56,7 +56,7 @@ Future<Null> testSend(
 
 main() async {
   asyncStart();
-  int bignum = 100 * 1000 * 1000;
+  int bignum = 10 * 1000 * 1000;
   await testSend(false, bignum, 1); // none
   await testSend(true, bignum, 1); // 31959tr
   await testSend(false, bignum, 1); // 31960
