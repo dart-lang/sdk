@@ -186,7 +186,7 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
             ? await todoFallbackLoadLog(
                 changelistBuild["id"],
                 "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
-                "raw_io.output_text_latest_/0",
+                    "raw_io.output_text_latest_/0",
                 "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
@@ -368,9 +368,11 @@ ${parser.usage}""");
   final testMatrixBots = <String>[];
   for (final builderConfiguration in builderConfigurations) {
     final steps = builderConfiguration["steps"];
-    // Only consider bots that use tools/test.py.
+    // Only consider bots that use tools/test.py or custom test runners.
     if (!steps.any((step) =>
-        step["script"] == null || step["script"] == "tools/test.py")) {
+        step["script"] == null ||
+        step["script"] == "tools/test.py" ||
+        step["testRunner"] == true)) {
       continue;
     }
     final builders = builderConfiguration["builders"].cast<String>();
