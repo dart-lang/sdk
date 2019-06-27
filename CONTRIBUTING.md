@@ -10,7 +10,7 @@ the end).
 
 ### Before you contribute
 
-_See also: [Dart's code of conduct](https://www.dartlang.org/code-of-conduct)_
+_See also: [Dart's code of conduct](https://dart.dev/code-of-conduct)_
 
 Before we can use your code, you must sign the
 [Google Individual Contributor License Agreement](https://cla.developers.google.com/about/google-individual)

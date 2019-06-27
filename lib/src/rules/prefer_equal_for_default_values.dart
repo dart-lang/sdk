@@ -11,7 +11,7 @@ const _desc = r'Use `=` to separate a named parameter from its default value.';
 
 const _details = r'''
 
-From the [style guide](https://www.dartlang.org/guides/language/effective-dart/usage):
+From the [style guide](https://dart.dev/guides/language/effective-dart/usage):
 
 **DO** Use `=` to separate a named parameter from its default value.
 
