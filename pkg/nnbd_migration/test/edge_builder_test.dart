@@ -1264,6 +1264,25 @@ void f(List<int> x, int i) {
         assertEdge(nullable_i, nullable_list_t_or_nullable_t, hard: true));
   }
 
+  test_methodInvocation_parameter_contravariant_function() async {
+    await analyze('''
+void f<T>(T t) {}
+void g(int i) {
+  f<int>(i/*check*/);
+}
+''');
+    var nullable_i = decoratedTypeAnnotation('int i').node;
+    var nullable_f_t = decoratedTypeAnnotation('int>').node;
+    var nullable_t = decoratedTypeAnnotation('T t').node;
+    var check_i = checkExpression('i/*check*/');
+    var nullable_f_t_or_nullable_t =
+        check_i.edges.single.destinationNode as NullabilityNodeForSubstitution;
+    expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
+    expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
+    assertNullCheck(check_i,
+        assertEdge(nullable_i, nullable_f_t_or_nullable_t, hard: true));
+  }
+
   test_methodInvocation_parameter_generic() async {
     await analyze('''
 class C<T> {}
@@ -1325,6 +1344,23 @@ bool f(C c) => c.m();
     assertEdge(decoratedTypeAnnotation('bool m').node,
         decoratedTypeAnnotation('bool f').node,
         hard: false);
+  }
+
+  test_methodInvocation_return_type_generic_function() async {
+    await analyze('''
+T f<T>(T t) => t;
+int g() => (f<int>(1));
+''');
+    var check_i = checkExpression('(f<int>(1))');
+    var nullable_f_t = decoratedTypeAnnotation('int>').node;
+    var nullable_f_t_or_nullable_t =
+        check_i.edges.single.primarySource as NullabilityNodeForSubstitution;
+    var nullable_t = decoratedTypeAnnotation('T f').node;
+    expect(nullable_f_t_or_nullable_t.innerNode, same(nullable_f_t));
+    expect(nullable_f_t_or_nullable_t.outerNode, same(nullable_t));
+    var nullable_return = decoratedTypeAnnotation('int g').node;
+    assertNullCheck(check_i,
+        assertEdge(nullable_f_t_or_nullable_t, nullable_return, hard: false));
   }
 
   test_methodInvocation_return_type_null_aware() async {
