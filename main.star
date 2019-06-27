@@ -596,6 +596,7 @@ dart_vm_extra_builder("vm-ffi-android-product-arm", category="vm|ffi|p32")
 dart_ci_sandbox_builder("dart2js-strong-hostasserts-linux-ia32-d8",
                         category="dart2js|d8|ha",
                         on_cq=True)
+dart_ci_sandbox_builder("dart2js-rti-linux-x64-d8", category="dart2js|d8|rti")
 dart_ci_sandbox_builder("dart2js-minified-strong-linux-x64-d8",
                         category="dart2js|d8|mi",
                         on_cq=True)
