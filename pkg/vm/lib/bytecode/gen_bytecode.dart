@@ -20,7 +20,8 @@ import 'package:kernel/ast.dart' hide MapEntry, Component, FunctionDeclaration;
 import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:kernel/external_name.dart'
+    show getExternalName, getNativeExtensionUris;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show ConstantsBackend;
 import 'package:kernel/type_algebra.dart'
@@ -257,7 +258,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     final name = objectTable.getNameHandle(null, library.name ?? '');
     final script = getScript(library.fileUri, true);
-    return new LibraryDeclaration(importUri, flags, name, script, classes);
+    final extensionUris = getNativeExtensionUris(library)
+        .map((String uri) => objectTable.getNameHandle(null, uri))
+        .toList();
+    if (extensionUris.isNotEmpty) {
+      flags |= LibraryDeclaration.hasExtensionsFlag;
+    }
+    return new LibraryDeclaration(
+        importUri, flags, name, script, extensionUris, classes);
   }
 
   ClassDeclaration getClassDeclaration(Class cls, Members members) {

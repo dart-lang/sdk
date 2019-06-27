@@ -18,21 +18,26 @@ import 'source_positions.dart' show LineStarts, SourcePositions;
 class LibraryDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
+  static const hasExtensionsFlag = 1 << 2;
 
   ObjectHandle importUri;
   final int flags;
   final ObjectHandle name;
   final ObjectHandle script;
+  final List<ObjectHandle> extensionUris;
   final List<ClassDeclaration> classes;
 
-  LibraryDeclaration(
-      this.importUri, this.flags, this.name, this.script, this.classes);
+  LibraryDeclaration(this.importUri, this.flags, this.name, this.script,
+      this.extensionUris, this.classes);
 
   void write(BufferedWriter writer) {
     final start = writer.offset;
     writer.writePackedUInt30(flags);
     writer.writePackedObject(name);
     writer.writePackedObject(script);
+    if ((flags & hasExtensionsFlag) != 0) {
+      writer.writePackedList(extensionUris);
+    }
     writer.writePackedUInt30(classes.length);
     for (var cls in classes) {
       writer.writePackedObject(cls.name);
@@ -50,7 +55,11 @@ class LibraryDeclaration {
       final className = reader.readPackedObject();
       return reader.readLinkOffset<ClassDeclaration>()..name = className;
     });
-    return new LibraryDeclaration(null, flags, name, script, classes);
+    final extensionUris = ((flags & hasExtensionsFlag) != 0)
+        ? reader.readPackedList<ObjectHandle>()
+        : const <ObjectHandle>[];
+    return new LibraryDeclaration(
+        null, flags, name, script, extensionUris, classes);
   }
 
   @override
@@ -64,6 +73,9 @@ class LibraryDeclaration {
     }
     if ((flags & usesDartFfiFlag) != 0) {
       sb.writeln('    uses dart:ffi');
+    }
+    if ((flags & hasExtensionsFlag) != 0) {
+      sb.writeln('    extensions: $extensionUris');
     }
     sb.writeln();
     for (var cls in classes) {

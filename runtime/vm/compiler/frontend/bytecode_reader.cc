@@ -2367,6 +2367,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   // pkg/vm/lib/bytecode/declarations.dart.
   const int kUsesDartMirrorsFlag = 1 << 0;
   const int kUsesDartFfiFlag = 1 << 1;
+  const int kHasExtensionsFlag = 1 << 2;
 
   ASSERT(library.is_declared_in_bytecode());
   ASSERT(!library.Loaded());
@@ -2392,6 +2393,28 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   library.SetName(name);
 
   const auto& script = Script::CheckedHandle(Z, ReadObject());
+
+  if ((flags & kHasExtensionsFlag) != 0) {
+    const intptr_t num_extensions = reader_.ReadUInt();
+    auto& import_namespace = Namespace::Handle(Z);
+    auto& native_library = Library::Handle(Z);
+    for (intptr_t i = 0; i < num_extensions; ++i) {
+      name ^= ReadObject();
+      ASSERT(name.StartsWith(Symbols::DartExtensionScheme()));
+
+      // Create a dummy library and add it as an import to the current library.
+      // Actual loading occurs in KernelLoader::LoadNativeExtensionLibraries().
+      // This also allows later to discover and reload this native extension,
+      // e.g. when running from an app-jit snapshot.
+      // See Loader::ReloadNativeExtensions(...) which relies on
+      // Dart_GetImportsOfScheme('dart-ext').
+      native_library = Library::New(name);
+      import_namespace = Namespace::New(native_library, Array::null_array(),
+                                        Array::null_array());
+      library.AddImport(import_namespace);
+    }
+    H.AddPotentialExtensionLibrary(library);
+  }
 
   // The bootstrapper will take care of creating the native wrapper classes,
   // but we will add the synthetic constructors to them here.

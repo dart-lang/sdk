@@ -23,7 +23,7 @@ sample_extension/test/sample_extension_app_snapshot_test: Pass, RuntimeError # I
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
 ffi/sqlite/test/sqlite_test: Skip # FFI not supported or libsqlite3.so not available.
 
-[ $compiler == app_jitk || $compiler == dartkb || $compiler == dartkp ]
+[ $compiler == app_jitk || $compiler == dartkp ]
 sample_extension/test/sample_extension_app_snapshot_test: SkipByDesign
 sample_extension/test/sample_extension_test: SkipByDesign
 

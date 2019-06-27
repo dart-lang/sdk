@@ -72,6 +72,9 @@ class TranslationHelper {
 
   RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
 
+  void AddPotentialExtensionLibrary(const Library& library);
+  RawGrowableObjectArray* GetPotentialExtensionLibraries();
+
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
 
@@ -220,6 +223,7 @@ class TranslationHelper {
   ExternalTypedData& constants_table_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
+  GrowableObjectArray* potential_extension_libraries_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

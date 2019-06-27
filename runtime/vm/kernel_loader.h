@@ -243,6 +243,7 @@ class KernelLoader : public ValueObject {
 
   void AnnotateNativeProcedures();
   void LoadNativeExtensionLibraries();
+  void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
 
   void ReadVMAnnotations(const Library& library,
@@ -389,12 +390,6 @@ class KernelLoader : public ValueObject {
         translation_helper_.EnsurePotentialPragmaFunctions();
   }
 
-  void EnsurePotentialExtensionLibraries() {
-    if (potential_extension_libraries_.IsNull()) {
-      potential_extension_libraries_ = GrowableObjectArray::New();
-    }
-  }
-
   // Returns `true` if the [library] was newly enqueued or `false`
   // if it was already enqueued. Allocates storage on first enqueue.
   bool EnqueueLibraryForEvaluation(const Library& library) {
@@ -456,7 +451,6 @@ class KernelLoader : public ValueObject {
   GrowableObjectArray& evaluating_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
-  GrowableObjectArray& potential_extension_libraries_;
 
   Class& pragma_class_;
 

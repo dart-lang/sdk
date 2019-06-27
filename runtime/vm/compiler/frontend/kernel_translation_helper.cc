@@ -95,6 +95,23 @@ RawGrowableObjectArray* TranslationHelper::EnsurePotentialPragmaFunctions() {
   return funcs.raw();
 }
 
+void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
+  if (potential_extension_libraries_ == nullptr) {
+    potential_extension_libraries_ =
+        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  }
+  potential_extension_libraries_->Add(library);
+}
+
+RawGrowableObjectArray* TranslationHelper::GetPotentialExtensionLibraries() {
+  if (potential_extension_libraries_ != nullptr) {
+    GrowableObjectArray* result = potential_extension_libraries_;
+    potential_extension_libraries_ = nullptr;
+    return result->raw();
+  }
+  return GrowableObjectArray::null();
+}
+
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   ASSERT(string_offsets_.IsNull());
   string_offsets_ = string_offsets.raw();

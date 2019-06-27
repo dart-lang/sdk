@@ -20,7 +20,8 @@
 
 #define ASSERT(E)                                                              \
   if (!(E)) {                                                                  \
-    fprintf(stderr, "Assertion \"" #E "\" failed!");                           \
+    fprintf(stderr, "Assertion \"" #E "\" failed at %s:%d!\n", __FILE__,       \
+            __LINE__);                                                         \
     abort();                                                                   \
   }
 

@@ -212,7 +212,6 @@ KernelLoader::KernelLoader(Program* program,
       evaluating_(GrowableObjectArray::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
-      potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
@@ -460,7 +459,6 @@ KernelLoader::KernelLoader(const Script& script,
       evaluating_(GrowableObjectArray::Handle(Z)),
       potential_natives_(GrowableObjectArray::Handle(Z)),
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
-      potential_extension_libraries_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)),
@@ -618,10 +616,11 @@ bool KernelLoader::DetectPragmaCtor() {
 }
 
 void KernelLoader::LoadNativeExtensionLibraries() {
-  const intptr_t length = !potential_extension_libraries_.IsNull()
-                              ? potential_extension_libraries_.Length()
-                              : 0;
-  if (length == 0) return;
+  const auto& potential_extension_libraries =
+      GrowableObjectArray::Handle(Z, H.GetPotentialExtensionLibraries());
+  if (potential_extension_libraries.IsNull()) {
+    return;
+  }
 
   // Prepare lazy constant reading.
   ConstantEvaluator constant_evaluator(&helper_, &type_translator_,
@@ -633,70 +632,89 @@ void KernelLoader::LoadNativeExtensionLibraries() {
   Instance& constant = Instance::Handle(Z);
   String& uri_path = String::Handle(Z);
   Library& library = Library::Handle(Z);
-#if !defined(DART_PRECOMPILER)
-  Object& result = Object::Handle(Z);
-#endif
 
+  const intptr_t length = potential_extension_libraries.Length();
   for (intptr_t i = 0; i < length; ++i) {
-    library ^= potential_extension_libraries_.At(i);
-    ASSERT(!library.is_declared_in_bytecode());
-    helper_.SetOffset(library.kernel_offset());
+    library ^= potential_extension_libraries.At(i);
 
-    LibraryHelper library_helper(&helper_);
-    library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
-
-    const intptr_t annotation_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < annotation_count; ++j) {
-      uri_path = String::null();
-
-      const intptr_t tag = helper_.PeekTag();
-      if (tag == kConstantExpression || tag == kDeprecated_ConstantExpression) {
-        helper_.ReadByte();  // Skip the tag.
-
-        if (tag == kConstantExpression) {
-          helper_.ReadPosition();  // Skip fileOffset.
-          helper_.SkipDartType();  // Skip type.
+    if (library.is_declared_in_bytecode()) {
+      const auto& imports = Array::Handle(Z, library.imports());
+      auto& ns = Namespace::Handle(Z);
+      auto& importee = Library::Handle(Z);
+      for (intptr_t j = 0; j < imports.Length(); ++j) {
+        ns ^= imports.At(j);
+        if (ns.IsNull()) continue;
+        importee = ns.library();
+        uri_path = importee.url();
+        if (uri_path.StartsWith(Symbols::DartExtensionScheme())) {
+          LoadNativeExtension(library, uri_path);
         }
-        const intptr_t constant_table_offset = helper_.ReadUInt();
-        constant = constant_evaluator.EvaluateConstantExpression(
-            constant_table_offset);
-        if (constant.clazz() == external_name_class_.raw()) {
-          uri_path ^= constant.GetField(external_name_field_);
+      }
+    } else {
+      helper_.SetOffset(library.kernel_offset());
+
+      LibraryHelper library_helper(&helper_);
+      library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
+
+      const intptr_t annotation_count = helper_.ReadListLength();
+      for (intptr_t j = 0; j < annotation_count; ++j) {
+        uri_path = String::null();
+
+        const intptr_t tag = helper_.PeekTag();
+        if (tag == kConstantExpression ||
+            tag == kDeprecated_ConstantExpression) {
+          helper_.ReadByte();  // Skip the tag.
+
+          if (tag == kConstantExpression) {
+            helper_.ReadPosition();  // Skip fileOffset.
+            helper_.SkipDartType();  // Skip type.
+          }
+          const intptr_t constant_table_offset = helper_.ReadUInt();
+          constant = constant_evaluator.EvaluateConstantExpression(
+              constant_table_offset);
+          if (constant.clazz() == external_name_class_.raw()) {
+            uri_path ^= constant.GetField(external_name_field_);
+          }
+        } else if (tag == kConstructorInvocation ||
+                   tag == kConstConstructorInvocation) {
+          uri_path = DetectExternalNameCtor();
+        } else {
+          helper_.SkipExpression();
         }
-      } else if (tag == kConstructorInvocation ||
-                 tag == kConstConstructorInvocation) {
-        uri_path = DetectExternalNameCtor();
-      } else {
-        helper_.SkipExpression();
+
+        if (uri_path.IsNull()) continue;
+
+        LoadNativeExtension(library, uri_path);
+
+        // Create a dummy library and add it as an import to the current
+        // library. This allows later to discover and reload this native
+        // extension, e.g. when running from an app-jit snapshot.
+        // See Loader::ReloadNativeExtensions(...) which relies on
+        // Dart_GetImportsOfScheme('dart-ext').
+        const auto& native_library = Library::Handle(Library::New(uri_path));
+        library.AddImport(Namespace::Handle(Namespace::New(
+            native_library, Array::null_array(), Array::null_array())));
       }
-
-      if (uri_path.IsNull()) continue;
-
-#if !defined(DART_PRECOMPILER)
-      if (!I->HasTagHandler()) {
-        H.ReportError("no library handler registered.");
-      }
-
-      I->BlockClassFinalization();
-      result = I->CallTagHandler(Dart_kImportExtensionTag, library, uri_path);
-      I->UnblockClassFinalization();
-
-      if (result.IsError()) {
-        H.ReportError(Error::Cast(result), "library handler failed");
-      }
-#endif
-
-      // Create a dummy library and add it as an import to the current library.
-      // This allows later to discover and reload this native extension, e.g.
-      // when running from an app-jit snapshot.
-      // See Loader::ReloadNativeExtensions(...) which relies on
-      // Dart_GetImportsOfScheme('dart-ext').
-      const auto& native_library = Library::Handle(Library::New(uri_path));
-      library.AddImport(Namespace::Handle(Namespace::New(
-          native_library, Array::null_array(), Array::null_array())));
     }
   }
-  potential_extension_libraries_ = GrowableObjectArray::null();
+}
+
+void KernelLoader::LoadNativeExtension(const Library& library,
+                                       const String& uri_path) {
+#if !defined(DART_PRECOMPILER)
+  if (!I->HasTagHandler()) {
+    H.ReportError("no library handler registered.");
+  }
+
+  I->BlockClassFinalization();
+  const auto& result = Object::Handle(
+      Z, I->CallTagHandler(Dart_kImportExtensionTag, library, uri_path));
+  I->UnblockClassFinalization();
+
+  if (result.IsError()) {
+    H.ReportError(Error::Cast(result), "library handler failed");
+  }
+#endif
 }
 
 RawObject* KernelLoader::LoadProgram(bool process_pending_classes) {
@@ -1022,8 +1040,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   if (annotation_count > 0) {
     // This must wait until we can evaluate constants.
     // So put on the "pending" list.
-    EnsurePotentialExtensionLibraries();
-    potential_extension_libraries_.Add(library);
+    H.AddPotentialExtensionLibrary(library);
   }
   for (intptr_t i = 0; i < annotation_count; ++i) {
     helper_.SkipExpression();  // read ith annotation.
