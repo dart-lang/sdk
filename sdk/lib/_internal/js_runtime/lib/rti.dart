@@ -87,7 +87,12 @@ class Rti {
   dynamic _precomputed4;
 
   // The Type object corresponding to this Rti.
-  Type _typeCache;
+  Object _cachedRuntimeType;
+  static _Type _getCachedRuntimeType(Rti rti) =>
+      JS('_Type|Null', '#', rti._cachedRuntimeType);
+  static void _setCachedRuntimeType(Rti rti, _Type type) {
+    rti._cachedRuntimeType = type;
+  }
 
   /// The kind of Rti `this` is, one of the kindXXX constants below.
   ///
@@ -280,7 +285,43 @@ Rti _instanceTypeFromConstructor(constructor) {
 }
 
 Type getRuntimeType(object) {
-  throw UnimplementedError('getRuntimeType');
+  Rti rti = instanceType(object);
+  return _createRuntimeType(rti);
+}
+
+/// Called from generated code.
+Type _createRuntimeType(Rti rti) {
+  _Type type = Rti._getCachedRuntimeType(rti);
+  if (type != null) return type;
+  // TODO(https://github.com/dart-lang/language/issues/428) For NNBD transition,
+  // canonicalization may be needed. It might be possible to generate a
+  // star-free recipe from the canonical recipe and evaluate that.
+  type = _Type(rti);
+  Rti._setCachedRuntimeType(rti, type);
+  return type;
+}
+
+/// Called from generated code in the constant pool.
+Type typeLiteral(String recipe) {
+  return _createRuntimeType(findType(recipe));
+}
+
+/// Implementation of [Type] based on Rti.
+class _Type implements Type {
+  final Rti _rti;
+  int _hashCode;
+
+  _Type(this._rti);
+
+  int get hashCode => _hashCode ??= Rti._getCanonicalRecipe(_rti).hashCode;
+
+  @pragma('dart2js:noInline')
+  bool operator ==(other) {
+    return (other is _Type) && identical(_rti, other._rti);
+  }
+
+  @override
+  String toString() => _rtiToString(_rti, null);
 }
 
 /// Called from generated code.

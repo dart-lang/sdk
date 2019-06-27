@@ -138,7 +138,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements =
+        new CommonElementsImpl(_elementEnvironment, _elementMap.options);
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
@@ -317,7 +318,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       Environment environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment);
+    _commonElements = new CommonElementsImpl(_elementEnvironment, options);
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);

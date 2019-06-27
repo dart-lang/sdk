@@ -59,7 +59,7 @@ import 'dart:_js_names'
         unmangleGlobalNameIfPreservedAnyways,
         unmangleAllIdentifiersIfPreservedAnyways;
 
-import 'dart:_rti' as newRti show getRuntimeType;
+import 'dart:_rti' as newRti show createRuntimeType, getRuntimeType;
 
 part 'annotations.dart';
 part 'constant_map.dart';
