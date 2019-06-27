@@ -125,10 +125,10 @@ const int _OUTGOING_BUFFER_SIZE = 8 * 1024;
 
 typedef void _BytesConsumer(List<int> bytes);
 
-class _HttpIncoming extends Stream<List<int>> {
+class _HttpIncoming extends Stream<Uint8List> {
   final int _transferLength;
   final Completer _dataCompleter = new Completer();
-  Stream<List<int>> _stream;
+  Stream<Uint8List> _stream;
 
   bool fullBodyRead = false;
 
@@ -154,7 +154,7 @@ class _HttpIncoming extends Stream<List<int>> {
 
   _HttpIncoming(this.headers, this._transferLength, this._stream);
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     hasSubscriber = true;
     return _stream.handleError((error) {
@@ -173,7 +173,7 @@ class _HttpIncoming extends Stream<List<int>> {
   }
 }
 
-abstract class _HttpInboundMessage extends Stream<List<int>> {
+abstract class _HttpInboundMessage extends Stream<Uint8List> {
   final _HttpIncoming _incoming;
   List<Cookie> _cookies;
 
@@ -225,7 +225,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
     }
   }
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return _incoming.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -382,18 +382,21 @@ class _HttpClientResponse extends _HttpInboundMessage
     });
   }
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     if (_incoming.upgraded) {
       // If upgraded, the connection is already 'removed' form the client.
       // Since listening to upgraded data is 'bogus', simply close and
       // return empty stream subscription.
       _httpRequest._httpClientConnection.destroy();
-      return new Stream<List<int>>.empty().listen(null, onDone: onDone);
+      return new Stream<Uint8List>.empty().listen(null, onDone: onDone);
     }
-    Stream<List<int>> stream = _incoming;
+    Stream<Uint8List> stream = _incoming;
     if (compressionState == HttpClientResponseCompressionState.decompressed) {
-      stream = stream.transform(gzip.decoder);
+      stream = stream
+          .cast<List<int>>()
+          .transform(gzip.decoder)
+          .transform(const _ToUint8List());
     }
     return stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
@@ -531,6 +534,30 @@ class _HttpClientResponse extends _HttpInboundMessage
         return this;
       }
     });
+  }
+}
+
+class _ToUint8List extends Converter<List<int>, Uint8List> {
+  const _ToUint8List();
+
+  Uint8List convert(List<int> input) => Uint8List.fromList(input);
+
+  Sink<List<int>> startChunkedConversion(Sink<Uint8List> sink) {
+    return _Uint8ListConversionSink(sink);
+  }
+}
+
+class _Uint8ListConversionSink implements Sink<List<int>> {
+  const _Uint8ListConversionSink(this._target);
+
+  final Sink<Uint8List> _target;
+
+  void add(List<int> data) {
+    _target.add(Uint8List.fromList(data));
+  }
+
+  void close() {
+    _target.close();
   }
 }
 

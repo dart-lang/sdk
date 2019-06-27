@@ -6,37 +6,45 @@
 
 ### Core libraries
 
-* As part of (Issue [36900][]), the following methods and properties across
-  various core libraries, which used to declare a return type of `List<int>`,
-  were updated to declare a return type of `Uint8List`:
+* **Breaking change:** As part of (Issue [36900][]), the following methods and
+  properties across various core libraries, which used to declare a return type
+  of `List<int>`, were updated to declare a return type of `Uint8List`:
 
-  * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
   * `BytesBuilder.takeBytes()`
   * `BytesBuilder.toBytes()`
+  * `Datagram.data`
   * `File.readAsBytes()` (`Future<Uint8List>`)
   * `File.readAsBytesSync()`
+  * `InternetAddress.rawAddress`
   * `RandomAccessFile.read()` (`Future<Uint8List>`)
   * `RandomAccessFile.readSync()`
-  * `InternetAddress.rawAddress`
   * `RawSocket.read()`
+  * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
 
-  In addition, the following typed lists were updated to have their `sublist()`
+  In addition, the following methods and classes were updated to return or
+  implement `Stream<Uint8List>` rather than `Stream<List<int>>`:
+
+  * `File.openRead()`
+  * `HttpRequest`
+  * `HttpClientResponse`
+
+  Finally, the following typed lists were updated to have their `sublist()`
   methods declare a return type that is the same as the source list:
 
-  * `Uint8List.sublist()` → `Uint8List`
   * `Int8List.sublist()` → `Int8List`
-  * `Uint8ClampedList.sublist()` → `Uint8ClampedList`
   * `Int16List.sublist()` → `Int16List`
-  * `Uint16List.sublist()` → `Uint16List`
   * `Int32List.sublist()` → `Int32List`
-  * `Uint32List.sublist()` → `Uint32List`
   * `Int64List.sublist()` → `Int64List`
-  * `Uint64List.sublist()` → `Uint64List`
+  * `Int32x4List.sublist()` → `Int32x4List`
   * `Float32List.sublist()` → `Float32List`
   * `Float64List.sublist()` → `Float64List`
   * `Float32x4List.sublist()` → `Float32x4List`
-  * `Int32x4List.sublist()` → `Int32x4List`
   * `Float64x2List.sublist()` → `Float64x2List`
+  * `Uint8List.sublist()` → `Uint8List`
+  * `Uint8ClampedList.sublist()` → `Uint8ClampedList`
+  * `Uint16List.sublist()` → `Uint16List`
+  * `Uint32List.sublist()` → `Uint32List`
+  * `Uint64List.sublist()` → `Uint64List`
 
   [36900]: https://github.com/dart-lang/sdk/issues/36900
 

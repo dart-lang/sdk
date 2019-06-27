@@ -223,7 +223,7 @@ class TestingServers {
 
   void _handleEchoRequest(HttpRequest request) {
     request.response.headers.set("Access-Control-Allow-Origin", "*");
-    request.pipe(request.response).catchError((e) {
+    request.cast<List<int>>().pipe(request.response).catchError((e) {
       DebugLogger.warning(
           'HttpServer: error while closing the response stream', e);
     });

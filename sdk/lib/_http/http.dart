@@ -1051,7 +1051,7 @@ abstract class Cookie {
  *       res.close();
  *     }
  */
-abstract class HttpRequest implements Stream<List<int>> {
+abstract class HttpRequest implements Stream<Uint8List> {
   /**
    * The content length of the request body.
    *
@@ -1947,7 +1947,7 @@ abstract class HttpClientRequest implements IOSink {
  *            });
  *          });
  */
-abstract class HttpClientResponse implements Stream<List<int>> {
+abstract class HttpClientResponse implements Stream<Uint8List> {
   /**
    * Returns the status code.
    *

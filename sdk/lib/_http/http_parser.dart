@@ -265,7 +265,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   bool _paused = true;
   bool _bodyPaused = false;
   StreamController<_HttpIncoming> _controller;
-  StreamController<List<int>> _bodyController;
+  StreamController<Uint8List> _bodyController;
 
   factory _HttpParser.requestParser() {
     return new _HttpParser._(true);
@@ -762,7 +762,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
           // Always present the data as a view. This way we can handle all
           // cases like this, and the user will not experience different data
           // typed (which could lead to polymorphic user code).
-          List<int> data = new Uint8List.view(
+          Uint8List data = new Uint8List.view(
               _buffer.buffer, _buffer.offsetInBytes + _index, dataAvailable);
           _bodyController.add(data);
           if (_remainingContent != -1) {
@@ -993,7 +993,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     assert(_bodyController == null);
     assert(!_bodyPaused);
     var incoming;
-    _bodyController = new StreamController<List<int>>(
+    _bodyController = new StreamController<Uint8List>(
         sync: true,
         onListen: () {
           if (incoming != _incoming) return;

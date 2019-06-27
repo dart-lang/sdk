@@ -18,7 +18,7 @@ Future<int> runServer(int port, int connections, bool clean) {
   HttpServer.bind("127.0.0.1", port).then((server) {
     int i = 0;
     server.listen((request) {
-      request.pipe(request.response);
+      request.cast<List<int>>().pipe(request.response);
       i++;
       if (!clean && i == 10) {
         int port = server.port;

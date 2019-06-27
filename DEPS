@@ -116,7 +116,7 @@ vars = {
   "pub_rev": "ecd5b413271f2699f8cd9e23aa4eebb5030c964f",
   "pub_semver_tag": "1.4.2",
   "quiver-dart_tag": "2.0.0+1",
-  "resource_rev": "2.1.5",
+  "resource_rev": "f8e37558a1c4f54550aa463b88a6a831e3e33cd6",
   "root_certificates_rev": "16ef64be64c7dfdff2b9f4b910726e635ccc519e",
   "shelf_static_rev": "v0.2.8",
   "shelf_packages_handler_tag": "1.0.4",

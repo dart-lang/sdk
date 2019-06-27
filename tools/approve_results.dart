@@ -141,6 +141,7 @@ Future<String> loadLog(String id, String step) async {
       throw new Exception("Failed to download $logUrl: ${response.statusCode}");
     }
     final contents = (await response
+            .cast<List<int>>()
             .transform(new Utf8Decoder())
             .timeout(const Duration(seconds: 60))
             .toList())
@@ -278,6 +279,7 @@ Future<Map<String, dynamic>> loadJsonPrefixedAPI(String url) async {
       throw new Exception("Failed to request $url: ${response.statusCode}");
     }
     final text = await response
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .join()
         .timeout(const Duration(seconds: 30));
@@ -462,6 +464,7 @@ ${parser.usage}""");
       throw new Exception("Failed to request try runs for $gerrit");
     }
     final Map<String, dynamic> object = await response
+        .cast<List<int>>()
         .transform(new Utf8Decoder())
         .transform(new JsonDecoder())
         .first

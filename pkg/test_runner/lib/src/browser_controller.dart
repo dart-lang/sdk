@@ -1194,7 +1194,7 @@ class BrowserTestingServer {
     errorReportingServer = server;
     void errorReportingHandler(HttpRequest request) {
       var buffer = StringBuffer();
-      request.transform(utf8.decoder).listen((data) {
+      request.cast<List<int>>().transform(utf8.decoder).listen((data) {
         buffer.write(data);
       }, onDone: () {
         var back = buffer.toString();
@@ -1285,7 +1285,7 @@ class BrowserTestingServer {
   void handleReport(HttpRequest request, String browserId, int testId,
       {bool isStatusUpdate}) {
     var buffer = StringBuffer();
-    request.transform(utf8.decoder).listen((data) {
+    request.cast<List<int>>().transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       var back = buffer.toString();
@@ -1306,7 +1306,7 @@ class BrowserTestingServer {
     // If an error occurs while receiving the data from the request stream,
     // we don't handle it specially. We can safely ignore it, since the started
     // events are not crucial.
-    request.transform(utf8.decoder).listen((data) {
+    request.cast<List<int>>().transform(utf8.decoder).listen((data) {
       buffer.write(data);
     }, onDone: () {
       var back = buffer.toString();

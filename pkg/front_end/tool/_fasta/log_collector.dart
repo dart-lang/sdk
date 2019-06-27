@@ -31,7 +31,7 @@ badRequest(HttpRequest request, int status, String message) {
 }
 
 collectLog(DateTime time, HttpRequest request) async {
-  String json = await request.transform(utf8.decoder).join();
+  String json = await request.cast<List<int>>().transform(utf8.decoder).join();
   var data;
   try {
     data = jsonDecode(json);

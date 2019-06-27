@@ -12,7 +12,7 @@ import 'test_helper.dart';
 Future<String> readResponse(HttpClientResponse response) {
   var completer = new Completer<String>();
   var contents = new StringBuffer();
-  response.transform(utf8.decoder).listen((String data) {
+  response.cast<List<int>>().transform(utf8.decoder).listen((String data) {
     contents.write(data);
   }, onDone: () => completer.complete(contents.toString()));
   return completer.future;

@@ -261,6 +261,7 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   final request = await client.getUrl(requestUrl);
   final response = await request.close();
   final Map<String, dynamic> object = await response
+      .cast<List<int>>()
       .transform(new Utf8Decoder())
       .transform(new JsonDecoder())
       .first;

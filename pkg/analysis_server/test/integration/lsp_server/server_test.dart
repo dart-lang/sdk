@@ -34,7 +34,7 @@ class ServerTest extends AbstractLspAnalysisServerIntegrationTest {
     HttpClientRequest request = await client
         .getUrl(Uri.parse('http://localhost:${server.port}/status'));
     final response = await request.close();
-    final responseBody = await utf8.decodeStream(response);
+    final responseBody = await utf8.decodeStream(response.cast<List<int>>());
     expect(responseBody, contains('<title>Analysis Server</title>'));
   }
 
