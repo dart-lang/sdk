@@ -129,12 +129,18 @@ abstract class _TestFileBase {
 ///     the test output).
 class TestFile extends _TestFileBase {
   /// Read the test file from the given [filePath].
-  factory TestFile.read(Path suiteDirectory, String filePath) {
+  factory TestFile.read(Path suiteDirectory, String filePath) => TestFile.parse(
+      suiteDirectory, filePath, File(filePath).readAsStringSync());
+
+  /// Parse a test file with [contents].
+  factory TestFile.parse(
+      Path suiteDirectory, String filePath, String contents) {
     if (filePath.endsWith('.dill')) {
       return TestFile._(suiteDirectory, Path(filePath),
           vmOptions: [[]],
           sharedOptions: [],
           dart2jsOptions: [],
+          ddcOptions: [],
           dartOptions: [],
           packageRoot: null,
           packages: null,
@@ -142,12 +148,13 @@ class TestFile extends _TestFileBase {
           hasCompileError: false,
           hasRuntimeError: false,
           hasStaticWarning: false,
+          hasCrash: false,
           isMultitest: false,
           isMultiHtmlTest: false,
-          subtestNames: []);
+          subtestNames: [],
+          sharedObjects: [],
+          otherResources: []);
     }
-
-    var contents = File(filePath).readAsStringSync();
 
     // VM options.
     var vmOptions = <List<String>>[];
@@ -352,10 +359,10 @@ class TestFile extends _TestFileBase {
           bool hasStaticWarning,
           bool hasSyntaxError}) =>
       _MultitestFile(this, path, multitestKey,
-          hasCompileError: hasCompileError,
-          hasRuntimeError: hasRuntimeError,
-          hasStaticWarning: hasStaticWarning,
-          hasSyntaxError: hasSyntaxError);
+          hasCompileError: hasCompileError ?? false,
+          hasRuntimeError: hasRuntimeError ?? false,
+          hasStaticWarning: hasStaticWarning ?? false,
+          hasSyntaxError: hasSyntaxError ?? false);
 
   String toString() => """TestFile(
   packageRoot: $packageRoot
