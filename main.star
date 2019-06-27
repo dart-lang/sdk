@@ -18,6 +18,16 @@ ANALYZER_CHANNELS = ["analyzer-stable"] + CHANNELS
 BRANCHES = ["master", "dev", "stable"]
 
 
+VM_PATHS = [
+    "DEPS",
+    "build/.+",
+    "pkg/(front_end|kernel|vm)/.+",
+    "runtime/.+",
+    "sdk/.+",
+    "tests/.+",
+]
+
+
 def mac():
     return {"os": "Mac"}
 
@@ -180,14 +190,7 @@ def dart_poller(name, bucket="ci", branches=BRANCHES, paths=None):
 
 
 dart_poller("dart-gitiles-trigger", branches=BRANCHES + ["analyzer-stable"])
-dart_poller("dart-vm-gitiles-trigger", branches=["master"], paths=[
-    "DEPS",
-    "build/.+",
-    "pkg/(front_end|kernel|vm)/.+",
-    "runtime/.+",
-    "sdk/.+",
-    "tests/.+",
-])
+dart_poller("dart-vm-gitiles-trigger", branches=["master"], paths=VM_PATHS)
 
 luci.gitiles_poller(
     name="dart-flutter-engine-trigger",
@@ -406,9 +409,15 @@ def dart_ci_sandbox_builder(name,
                  **kwargs)
 
 
-def dart_vm_extra_builder(name, **kwargs):
+def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
     triggered_by = ["dart-vm-gitiles-trigger-%s"]
-    dart_ci_sandbox_builder(name, triggered_by=triggered_by, **kwargs)
+    if on_cq and not location_regexp:
+      location_regexp = [".+/[+]/%s" % path for path in VM_PATHS]
+    dart_ci_sandbox_builder(
+        name,
+        triggered_by=triggered_by,
+        on_cq=on_cq,
+        location_regexp=location_regexp, **kwargs)
 
 
 # fasta
