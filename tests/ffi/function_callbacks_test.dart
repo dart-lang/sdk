@@ -222,17 +222,18 @@ testCallbackWrongIsolate() async {
 
 // Correct type of exceptionalReturn argument to fromFunction.
 double testExceptionalReturn() {
-  fromFunction<Double Function()>(testExceptionalReturn, 0.0);  //# 60: ok
-  fromFunction<Void Function()>(returnVoid, 0);  //# 63: runtime error
-  fromFunction<Void Function()>(returnVoid, null);  //# 65: ok
-  fromFunction<Double Function()>(returnVoid, null);  //# 64: runtime error
+  fromFunction<Double Function()>(testExceptionalReturn, 0.0);
+  Expect.throwsArgumentError(() => fromFunction<Void Function()>(returnVoid, 0));
+  fromFunction<Void Function()>(returnVoid, null);
+  Expect.throwsArgumentError(() => fromFunction<Double Function()>(returnVoid, null));
+
   fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
   fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
 }
 
 void main() async {
   testcases.forEach((t) => t.run()); //# 00: ok
-  testExceptionalReturn();
+  testExceptionalReturn(); //# 00: ok
 
   // These tests terminate the process after successful completion, so we have
   // to run them separately.
