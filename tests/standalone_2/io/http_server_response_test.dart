@@ -67,6 +67,7 @@ void testResponseDone() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();
@@ -122,6 +123,7 @@ void testResponseAddStream() {
   testServerRequest((server, request) {
     new File("__nonexistent_file_")
         .openRead()
+        .cast<List<int>>()
         .pipe(request.response)
         .catchError((e) {
       server.close();

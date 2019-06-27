@@ -113,6 +113,7 @@ testMacros(String sdkRoot) async {
 
   await for (String line in File(rawObjectFieldsPath)
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(LineSplitter())) {
     Match match = matchComplete(fieldEntry, line);
@@ -133,6 +134,7 @@ testMacros(String sdkRoot) async {
   bool hasMissingFields = false;
   await for (String line in File(rawObjectPath)
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(LineSplitter())) {
     Match match = matchComplete(classStart, line);

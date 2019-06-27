@@ -195,7 +195,7 @@ Future<List<TestFile>> splitMultitest(
     // want to copy the permissions, so we create the copy by writing.
     final source = File(sourceDir.join(importPath).toNativePath()).openRead();
     final target = File(targetDir.join(importPath).toNativePath()).openWrite();
-    futureCopies.add(source.pipe(target));
+    futureCopies.add(source.cast<List<int>>().pipe(target));
   }
 
   // Wait until all imports are copied before scheduling test cases.

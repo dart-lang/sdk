@@ -41,7 +41,7 @@ handleRequest(HttpRequest request) {
   final File file = new File(requestPath.toFilePath());
   file.exists().then((bool found) {
     if (found) {
-      file.openRead().pipe(request.response).catchError((e) {
+      file.openRead().cast<List<int>>().pipe(request.response).catchError((e) {
         _sendNotFound(request.response);
       });
     } else {

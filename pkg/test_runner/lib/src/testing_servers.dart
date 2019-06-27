@@ -373,7 +373,7 @@ class TestingServers {
       response.headers.set('Content-Type', 'text/xml');
     }
     response.headers.removeAll("X-Frame-Options");
-    file.openRead().pipe(response).catchError((e) {
+    file.openRead().cast<List<int>>().pipe(response).catchError((e) {
       DebugLogger.warning(
           'HttpServer: error while closing the response stream', e);
     });

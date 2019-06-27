@@ -120,6 +120,7 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
   final results = <Map<String, dynamic>>[];
   final lines = new File(path)
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(new LineSplitter());
   await for (final line in lines) {

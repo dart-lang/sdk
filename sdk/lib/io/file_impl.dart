@@ -7,9 +7,9 @@ part of dart.io;
 // Read the file in blocks of size 64k.
 const int _blockSize = 64 * 1024;
 
-class _FileStream extends Stream<List<int>> {
+class _FileStream extends Stream<Uint8List> {
   // Stream controller.
-  StreamController<List<int>> _controller;
+  StreamController<Uint8List> _controller;
 
   // Information about the underlying file.
   String _path;
@@ -33,7 +33,7 @@ class _FileStream extends Stream<List<int>> {
 
   _FileStream.forStdin() : _position = 0;
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     _setupController();
     return _controller.stream.listen(onData,
@@ -41,7 +41,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   void _setupController() {
-    _controller = new StreamController<List<int>>(
+    _controller = new StreamController<Uint8List>(
         sync: true,
         onListen: _start,
         onResume: _readBlock,
@@ -498,7 +498,7 @@ class _File extends FileSystemEntity implements File {
     return new _RandomAccessFile(id, "");
   }
 
-  Stream<List<int>> openRead([int start, int end]) {
+  Stream<Uint8List> openRead([int start, int end]) {
     return new _FileStream(path, start, end);
   }
 

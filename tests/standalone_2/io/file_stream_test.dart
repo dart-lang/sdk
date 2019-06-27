@@ -12,7 +12,11 @@ void testPauseResumeCancelStream() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_file_stream').then((d) {
     var file = new File("${d.path}/file");
-    new File(Platform.executable).openRead().pipe(file.openWrite()).then((_) {
+    new File(Platform.executable)
+        .openRead()
+        .cast<List<int>>()
+        .pipe(file.openWrite())
+        .then((_) {
       var subscription;
       subscription = file.openRead().listen((data) {
         subscription.pause();
@@ -39,7 +43,11 @@ void testStreamIsEmpty() {
   asyncStart();
   Directory.systemTemp.createTemp('dart_file_stream').then((d) {
     var file = new File("${d.path}/file");
-    new File(Platform.executable).openRead().pipe(file.openWrite()).then((_) {
+    new File(Platform.executable)
+        .openRead()
+        .cast<List<int>>()
+        .pipe(file.openWrite())
+        .then((_) {
       // isEmpty will cancel the stream after first data event.
       file.openRead().isEmpty.then((empty) {
         Expect.isFalse(empty);
