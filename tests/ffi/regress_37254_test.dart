@@ -83,7 +83,6 @@ void store2() {
 
   // Successful implicit downcast of argument at runtime.
   // Should succeed now, should statically be rejected when NNBD lands.
-  // TODO(37254): Currently rejected by the frontend.
   a.store(b);
 
   a.free();
@@ -92,12 +91,10 @@ void store2() {
 
 void store3() {
   final Pointer<Pointer<Int8>> a = allocate<Pointer<Int8>>();
-  // TODO(37254): We currently disallow obtaining a Pointer<NativeType>.
   final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   // Failing implicit downcast of argument at runtime.
   // Should fail now at runtime, should statically be rejected when NNBD lands.
-  // TODO(37254): Currently rejected by the frontend.
   Expect.throws(() {
     a.store(b);
   });
@@ -111,7 +108,6 @@ void store4() {
       Pointer<Int8>>(); // Reified as Pointer<Pointer<Int8>> at runtime.
   final Pointer<Int8> b = allocate<Int8>();
 
-  // TODO(37254): Currently rejected by the frontend.
   a.store(b);
 
   a.free();
@@ -133,7 +129,6 @@ void store5() {
 void store6() {
   final Pointer<Pointer<NativeType>> a = allocate<
       Pointer<Int8>>(); // Reified as Pointer<Pointer<Int8>> at runtime.
-  // TODO(37254): We currently disallow obtaining a Pointer<NativeType>.
   final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   // Fails on type check of argument.
@@ -149,7 +144,6 @@ void store7() {
   final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
   final Pointer<Int8> b = allocate<Int8>();
 
-  // TODO(37254): Currently rejected by the frontend.
   a.store(b);
 
   a.free();
@@ -161,7 +155,6 @@ void store8() {
   final Pointer<NativeType> b =
       allocate<Int8>(); // Reified as Pointer<Int8> at runtime.
 
-  // TODO(37254): Currently hits assertion in VM.
   a.store(b);
 
   a.free();
@@ -170,7 +163,6 @@ void store8() {
 
 void store9() {
   final Pointer<Pointer<NativeType>> a = allocate<Pointer<NativeType>>();
-  // TODO(37254): We currently disallow obtaining a Pointer<NativeType>.
   final Pointer<NativeType> b = allocate<Int8>().cast<Pointer<NativeType>>();
 
   a.store(b);
@@ -203,7 +195,6 @@ void load3() {
   final Pointer<Pointer<NativeType>> a = allocate<
       Pointer<Int8>>(); // Reified as Pointer<Pointer<Int8>> at runtime.
 
-  // TODO(37254): Currently hits assertion in VM.
   Pointer<Int8> b = a.load<Pointer<NativeType>>();
   Expect.type<Pointer<Int8>>(b);
 
@@ -215,7 +206,6 @@ void load4() {
       Pointer<Int8>>(); // Reified as Pointer<Pointer<Int8>> at runtime.
 
   // Return value runtime type is Pointer<Int8>.
-  // TODO(37254): Currently hits assertion in VM.
   Pointer<NativeType> b = a.load();
   Expect.type<Pointer<Int8>>(b);
 

@@ -125,9 +125,7 @@ void testCastGeneric2() {
 
 void testCastNativeType() {
   ffi.Pointer<ffi.Int64> p = ffi.allocate();
-  Expect.throws(() {
-    p.cast<ffi.Pointer>();
-  });
+  p.cast<ffi.Pointer>();
   p.free();
 }
 

@@ -192,17 +192,20 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   void _ensureNativeTypeToDartType(
-      DartType nativeType, DartType dartType, Expression node) {
-    DartType shouldBeDartType = convertNativeTypeToDartType(nativeType);
-    if (dartType != shouldBeDartType) {
-      diagnosticReporter.report(
-          templateFfiTypeMismatch.withArguments(
-              dartType, shouldBeDartType, nativeType),
-          node.fileOffset,
-          1,
-          node.location.file);
-      throw _FfiStaticTypeError();
-    }
+      DartType containerTypeArg, DartType elementType, Expression node) {
+    final DartType shouldBeElementType =
+        convertNativeTypeToDartType(containerTypeArg);
+    if (elementType == shouldBeElementType) return;
+    // Both subtypes and implicit downcasts are allowed statically.
+    if (env.isSubtypeOf(shouldBeElementType, elementType)) return;
+    if (env.isSubtypeOf(elementType, shouldBeElementType)) return;
+    diagnosticReporter.report(
+        templateFfiTypeMismatch.withArguments(
+            elementType, shouldBeElementType, containerTypeArg),
+        node.fileOffset,
+        1,
+        node.location.file);
+    throw _FfiStaticTypeError();
   }
 
   void _ensureNativeTypeValid(DartType nativeType, Expression node) {
