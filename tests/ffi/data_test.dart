@@ -93,7 +93,25 @@ void testPointerPointerArithmeticSizes() {
 }
 
 void testPointerAllocateNonPositive() {
-  Expect.throws(() => ffi.allocate<ffi.Int8>(count: 0));
+  // > If size is 0, either a null pointer or a unique pointer that can be
+  // > successfully passed to free() shall be returned.
+  // http://pubs.opengroup.org/onlinepubs/009695399/functions/malloc.html
+  //
+  // Null pointer throws a Dart exception.
+  bool returnedNullPointer = false;
+  ffi.Pointer<ffi.Int8> p;
+  try {
+    p = ffi.allocate<ffi.Int8>(count: 0);
+  } on Exception {
+    returnedNullPointer = true;
+  }
+  if (!returnedNullPointer) {
+    p.free();
+  }
+
+  // Passing in -1 will be converted into an unsigned integer. So, it will try
+  // to allocate SIZE_MAX - 1 + 1 bytes. This will fail as it is the max amount
+  // of addressable memory on the system.
   Expect.throws(() => ffi.allocate<ffi.Int8>(count: -1));
 }
 

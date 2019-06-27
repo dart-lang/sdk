@@ -169,18 +169,6 @@ static void CheckDartAndCTypeCorrespond(const AbstractType& native_type,
 
 // The following functions are runtime checks on arguments.
 
-// Note that expected_from and expected_to are inclusive.
-static void CheckRange(const Integer& argument_value,
-                       intptr_t expected_from,
-                       intptr_t expected_to,
-                       const char* argument_name) {
-  int64_t value = argument_value.AsInt64Value();
-  if (value < expected_from || expected_to < value) {
-    Exceptions::ThrowRangeError(argument_name, argument_value, expected_from,
-                                expected_to);
-  }
-}
-
 static const Pointer& AsPointer(const Instance& instance) {
   if (!instance.IsPointer()) {
     const String& error = String::Handle(String::NewFormatted(
@@ -221,11 +209,10 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, argCount, arguments->NativeArgAt(0));
   int64_t count = argCount.AsInt64Value();
   classid_t type_cid = type_arg.type_class_id();
-  int64_t max_count = INTPTR_MAX / compiler::ffi::ElementSizeInBytes(type_cid);
-  CheckRange(argCount, 1, max_count, "count");
 
-  size_t size = compiler::ffi::ElementSizeInBytes(type_cid) * count;
-  uint64_t memory = reinterpret_cast<uint64_t>(malloc(size));
+  size_t size = compiler::ffi::ElementSizeInBytes(type_cid) *
+                count;  // Truncates overflow.
+  size_t memory = reinterpret_cast<size_t>(malloc(size));
   if (memory == 0) {
     const String& error = String::Handle(String::NewFormatted(
         "allocating (%" Pd ") bytes of memory failed", size));
