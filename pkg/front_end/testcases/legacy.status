@@ -7,6 +7,7 @@
 
 DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
+await_in_non_async: Fail # Issue 37108.
 bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
 call: Fail # Test can't run.
 constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.

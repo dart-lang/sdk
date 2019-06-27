@@ -10,7 +10,8 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File, Platform;
 
-import 'package:kernel/ast.dart' show Library, Component;
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -422,7 +423,34 @@ class Transform extends Step<Component, Component, FastaContext> {
     } finally {
       backendTarget.enabled = false;
     }
+    List<String> errors = VerifyTransformed.verify(component);
+    if (errors.isNotEmpty) {
+      return fail(component, errors.join('\n'));
+    }
     return pass(component);
+  }
+}
+
+/// Visitor that checks that the component has been transformed properly.
+// TODO(johnniwinther): Add checks for all nodes that are unsupported after
+// transformation.
+class VerifyTransformed extends Visitor<void> {
+  List<String> errors = [];
+
+  @override
+  void defaultNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    errors.add("ERROR: Untransformed await expression: $node");
+  }
+
+  static List<String> verify(Component component) {
+    VerifyTransformed visitor = new VerifyTransformed();
+    component.accept(visitor);
+    return visitor.errors;
   }
 }
 

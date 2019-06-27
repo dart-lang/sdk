@@ -10,6 +10,7 @@ abstract_members: TypeCheckError
 accessors: RuntimeError
 ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 argument_mismatch: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+await_in_non_async: Fail # Issue 37108.
 bug21938: TypeCheckError
 bug30695: TypeCheckError
 bug31124: RuntimeError # Test has no main method (and we shouldn't add one).

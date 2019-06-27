@@ -24,6 +24,7 @@ arrow_function: TextSerializationFailure # Was: Pass
 async_function: TextSerializationFailure # Was: Pass
 async_nested: TextSerializationFailure # Was: Pass
 await: TextSerializationFailure # Was: Pass
+await_in_non_async: TextSerializationFailure
 bad_setter_abstract: TextSerializationFailure # Was: Pass
 bad_store: TextSerializationFailure # Was: Pass
 bad_type_variable_uses_in_supertypes: TextSerializationFailure
