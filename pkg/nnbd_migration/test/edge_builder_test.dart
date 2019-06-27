@@ -543,7 +543,7 @@ mixin M {}
 class D = C with M;
 D f(MyList<int>/*2*/ x) => D(x);
 ''');
-    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
     var constructorParameterType = constructorType.positionalParameters[0];
     assertEdge(decoratedTypeAnnotation('MyList<int>/*2*/').node,
@@ -567,7 +567,7 @@ mixin M {}
 class D = C with M;
 D f(int/*2*/ i) => D(i: i);
 ''');
-    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
     var constructorParameterType = constructorType.namedParameters['i'];
     assertEdge(
@@ -586,7 +586,7 @@ mixin M {}
 class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
-    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
     var constructorParameterType = constructorType.positionalParameters[0];
     assertEdge(
@@ -605,7 +605,7 @@ mixin M {}
 class D = C with M;
 D f(int/*2*/ i) => D(i);
 ''');
-    var syntheticConstructor = findElement.class_('D').unnamedConstructor;
+    var syntheticConstructor = findElement.unnamedConstructor('D');
     var constructorType = variables.decoratedElementType(syntheticConstructor);
     var constructorParameterType = constructorType.positionalParameters[0];
     assertEdge(
