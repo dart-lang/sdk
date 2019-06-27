@@ -1573,14 +1573,14 @@
     {
       "builders": ["dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builders for Windows."
+        "description": "This configuration is used by the sdk-builders for Windows. It also adds CQ coverage for building on Windows."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64",
-                        "--mode=release", "create_sdk"]
+                        "--mode=release", "create_sdk", "runtime_kernel"]
         },
         {
           "name": "build gen_kernel.dart.snapshot and dart2aot",
