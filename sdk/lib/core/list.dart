@@ -464,7 +464,7 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This increases the length of the list by one and shifts all objects
    * at or after the index towards the end of the list.
    *
-   * An error occurs if the [index] is less than 0 or greater than length.
+   * A `RangeError` occurs if the [index] is less than 0 or greater than length.
    * An [UnsupportedError] occurs if the list is fixed-length.
    */
   void insert(int index, E element);
