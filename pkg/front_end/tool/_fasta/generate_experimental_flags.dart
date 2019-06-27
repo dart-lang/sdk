@@ -51,33 +51,53 @@ Future<String> generateMessagesFile() async {
 enum ExperimentalFlag {
 ''');
   for (var key in keys) {
+    var expired = (yaml[key] as YamlMap)['expired'];
+    if (expired == true) continue;
     sb.writeln('  ${keyToIdentifier(key)},');
   }
-  sb.writeln('}');
-
   sb.write('''
+
+  // A placeholder representing an "expired" flag which has been removed
+  // from the codebase but still needs to be gracefully ignored
+  // when specified on the command line.
+  expiredFlag,
+}
 
 ExperimentalFlag parseExperimentalFlag(String flag) {
   switch (flag) {
 ''');
+  var expiredKeys = <String>[];
   for (var key in keys) {
+    var expired = (yaml[key] as YamlMap)['expired'];
+    if (expired == true) {
+      expiredKeys.add(key);
+      continue;
+    }
     sb.writeln('    case "$key":');
     sb.writeln('     return ExperimentalFlag.${keyToIdentifier(key)};');
+  }
+  if (expiredKeys.isNotEmpty) {
+    sb.write('''
+
+    // Expired flags
+''');
+    for (var key in expiredKeys) {
+      sb.writeln('    case "$key":');
+      sb.writeln('     return ExperimentalFlag.expiredFlag;');
+    }
   }
   sb.write('''  }
   return null;
 }
-''');
-
-  sb.write('''
 
 const Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 ''');
   for (var key in keys) {
+    var expired = (yaml[key] as YamlMap)['expired'];
+    if (expired == true) continue;
     bool shipped = (yaml[key] as YamlMap)['enabledIn'] != null;
     sb.writeln('  ExperimentalFlag.${keyToIdentifier(key)}: ${shipped},');
     if (shipped) {
-      var expired = (yaml[key] as YamlMap)['expired'];
       if (expired == false) {
         throw 'Cannot mark shipped feature as "expired: false"';
       }

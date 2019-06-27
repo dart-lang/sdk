@@ -217,7 +217,9 @@ Future<CompilerResult> _compile(List<String> args,
   var experiments = <fe.ExperimentalFlag, bool>{};
   for (var name in options.experiments.keys) {
     var flag = fe.parseExperimentalFlag(name);
-    if (flag != null) {
+    if (flag == fe.ExperimentalFlag.expiredFlag) {
+      stderr.writeln("Flag '$name' is no longer required.");
+    } else if (flag != null) {
       experiments[flag] = options.experiments[name];
     } else {
       stderr.writeln("Unknown experiment flag '$name'.");
