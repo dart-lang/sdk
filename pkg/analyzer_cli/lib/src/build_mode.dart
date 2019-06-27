@@ -62,7 +62,7 @@ class AnalyzerWorkerLoop extends AsyncWorkerLoop {
       {this.dartSdkPath})
       : super(connection: connection) {
     packageBundleCache = new WorkerPackageBundleCache(
-        resourceProvider, logger, 256 * 1024 * 1024);
+        resourceProvider, logger, 512 * 1024 * 1024);
   }
 
   factory AnalyzerWorkerLoop.sendPort(
