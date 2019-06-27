@@ -1985,6 +1985,6 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
 
 @pragma("vm:entry-point", "call")
 Datagram _makeDatagram(
-    List<int> data, String address, Uint8List in_addr, int port) {
+    Uint8List data, String address, Uint8List in_addr, int port) {
   return new Datagram(data, new _InternetAddress(address, null, in_addr), port);
 }
