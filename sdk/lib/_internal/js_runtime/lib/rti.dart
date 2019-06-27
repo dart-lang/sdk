@@ -199,9 +199,9 @@ class Rti {
   /// (2)using `env._eval("@<0>")._bind(args)` in place of `env._bind1(args)`).
   Object _bindCache;
 
-  static Object _getBindCache(Rti rti) => rti._evalCache;
+  static Object _getBindCache(Rti rti) => rti._bindCache;
   static void _setBindCache(Rti rti, value) {
-    rti._evalCache = value;
+    rti._bindCache = value;
   }
 
   static Rti allocate() {
