@@ -579,18 +579,18 @@ namespace dart {
   V(CreateArrayTOS,                        0, ORDN, ___, ___, ___)             \
   V(AllocateClosure,                       D, ORDN, lit, ___, ___)             \
   V(AllocateClosure_Wide,                  D, WIDE, lit, ___, ___)             \
-  V(AllocateContext,                     A_E, ORDN, num, ___, ___)             \
-  V(AllocateContext_Wide,                A_E, WIDE, num, ___, ___)             \
-  V(CloneContext,                        A_E, ORDN, num, ___, ___)             \
-  V(CloneContext_Wide,                   A_E, WIDE, num, ___, ___)             \
+  V(AllocateContext,                     A_E, ORDN, num, num, ___)             \
+  V(AllocateContext_Wide,                A_E, WIDE, num, num, ___)             \
+  V(CloneContext,                        A_E, ORDN, num, num, ___)             \
+  V(CloneContext_Wide,                   A_E, WIDE, num, num, ___)             \
   V(LoadContextParent,                     0, ORDN, ___, ___, ___)             \
   V(StoreContextParent,                    0, ORDN, ___, ___, ___)             \
-  V(LoadContextVar,                      A_E, ORDN, num, ___, ___)             \
-  V(LoadContextVar_Wide,                 A_E, WIDE, num, ___, ___)             \
+  V(LoadContextVar,                      A_E, ORDN, num, num, ___)             \
+  V(LoadContextVar_Wide,                 A_E, WIDE, num, num, ___)             \
   V(Unused04,                              0, RESV, ___, ___, ___)             \
   V(Unused05,                              0, RESV, ___, ___, ___)             \
-  V(StoreContextVar,                     A_E, ORDN, num, ___, ___)             \
-  V(StoreContextVar_Wide,                A_E, WIDE, num, ___, ___)             \
+  V(StoreContextVar,                     A_E, ORDN, num, num, ___)             \
+  V(StoreContextVar_Wide,                A_E, WIDE, num, num, ___)             \
   V(PushConstant,                          D, ORDN, lit, ___, ___)             \
   V(PushConstant_Wide,                     D, WIDE, lit, ___, ___)             \
   V(Unused06,                              0, RESV, ___, ___, ___)             \

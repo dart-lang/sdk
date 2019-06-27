@@ -337,7 +337,8 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
                       sizeof(human_buffer), &instruction_length, bytecode,
                       &object, pc);
     formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
-                                  sizeof(human_buffer), object, pc);
+                                  sizeof(human_buffer), object,
+                                  FLAG_disassemble_relative ? pc - start : pc);
     pc += instruction_length;
   }
 #else
@@ -352,7 +353,8 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
   Zone* zone = Thread::Current()->zone();
   const Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
   THR_Print("Bytecode for function '%s' {\n", function_fullname);
-  uword start = bytecode.PayloadStart();
+  const uword start = bytecode.PayloadStart();
+  const uword base = FLAG_disassemble_relative ? 0 : start;
   DisassembleToStdout stdout_formatter;
   LogBlock lb;
   Disassemble(start, start + bytecode.Size(), &stdout_formatter, bytecode);
@@ -374,28 +376,58 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
     const int addr_width = (kBitsPerWord / 4) + 2;
     // "*" in a printf format specifier tells it to read the field width from
     // the printf argument list.
-    THR_Print("%-*s\ttok-ix\n", addr_width, "pc");
+    THR_Print("%-*s\tpos\n", addr_width, "pc");
     kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      THR_Print("%#-*" Px "\t%s\n", addr_width,
-                bytecode.PayloadStart() + iter.PcOffset(),
+      THR_Print("%#-*" Px "\t%s\n", addr_width, base + iter.PcOffset(),
                 iter.TokenPos().ToCString());
     }
     THR_Print("}\n");
   }
 
-  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
-  const ExceptionHandlers& handlers =
-      ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
-  THR_Print("%s}\n", handlers.ToCString());
+  if (FLAG_print_variable_descriptors && bytecode.HasLocalVariablesInfo()) {
+    THR_Print("Local variables info for function '%s' {\n", function_fullname);
+    kernel::BytecodeLocalVariablesIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      switch (iter.Kind()) {
+        case kernel::BytecodeLocalVariablesIterator::kScope: {
+          THR_Print("scope 0x%" Px "-0x%" Px " pos %s-%s\tlev %" Pd "\n",
+                    base + iter.StartPC(), base + iter.EndPC(),
+                    iter.StartTokenPos().ToCString(),
+                    iter.EndTokenPos().ToCString(), iter.ContextLevel());
+        } break;
+        case kernel::BytecodeLocalVariablesIterator::kVariableDeclaration: {
+          THR_Print("var   0x%" Px "-0x%" Px " pos %s-%s\tidx %" Pd
+                    "\tdecl %s\t%s %s %s\n",
+                    base + iter.StartPC(), base + iter.EndPC(),
+                    iter.StartTokenPos().ToCString(),
+                    iter.EndTokenPos().ToCString(), iter.Index(),
+                    iter.DeclarationTokenPos().ToCString(),
+                    String::Handle(
+                        zone, AbstractType::Handle(zone, iter.Type()).Name())
+                        .ToCString(),
+                    String::Handle(zone, iter.Name()).ToCString(),
+                    iter.IsCaptured() ? "captured" : "");
+        } break;
+        case kernel::BytecodeLocalVariablesIterator::kContextVariable: {
+          THR_Print("ctxt  0x%" Px "\tidx %" Pd "\n", base + iter.StartPC(),
+                    iter.Index());
+        } break;
+      }
+    }
+    THR_Print("}\n");
 
-  if (FLAG_print_variable_descriptors) {
     THR_Print("Local variable descriptors for function '%s' {\n",
               function_fullname);
     const auto& var_descriptors =
         LocalVarDescriptors::Handle(zone, bytecode.GetLocalVarDescriptors());
     THR_Print("%s}\n", var_descriptors.ToCString());
   }
+
+  THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
+  const ExceptionHandlers& handlers =
+      ExceptionHandlers::Handle(zone, bytecode.exception_handlers());
+  THR_Print("%s}\n", handlers.ToCString());
 
 #else
   UNREACHABLE();
