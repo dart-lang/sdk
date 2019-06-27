@@ -7,11 +7,11 @@ analysis server and the `dartanalyzer` commandline tool.
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
 [![Build status](https://ci.appveyor.com/api/projects/status/3a2437l58uhmvckm/branch/master?svg=true)](https://ci.appveyor.com/project/pq/linter/branch/master)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
-[![Pub](https://img.shields.io/pub/v/linter.svg)](https://pub.dartlang.org/packages/linter)
+[![Pub](https://img.shields.io/pub/v/linter.svg)](https://pub.dev/packages/linter)
 
 ## Installing
 
-The linter is bundled with the Dart [SDK](https://www.dartlang.org/tools/sdk); if you have an updated Dart SDK already, you're done!
+The linter is bundled with the Dart [SDK](https://dart.dev/tools/sdk); if you have an updated Dart SDK already, you're done!
 
 Alternatively, if you want to contribute to the linter or examine the source, clone the `linter` repo like this:
 
@@ -19,7 +19,7 @@ Alternatively, if you want to contribute to the linter or examine the source, cl
 
 ## Usage
 
-The linter gives you feedback to help you catch potential errors and keep your code in line with the published [Dart Style Guide](https://www.dartlang.org/articles/style-guide/). Currently enforceable lint rules (or "lints") are catalogued [here][lints] and can be configured via an [analysis options file][options_file].  The linter is run from within the `dartanalyzer` [command-line tool](https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer) shipped with the Dart SDK.  Assuming you have lints configured in an `analysis_options.yaml` file with these contents:
+The linter gives you feedback to help you catch potential errors and keep your code in line with the published [Dart Style Guide](https://dart.dev/guides/language/effective-dart/style/). Currently enforceable lint rules (or "lints") are catalogued [here][lints] and can be configured via an [analysis options file][options_file].  The linter is run from within the `dartanalyzer` [command-line tool](https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli#dartanalyzer) shipped with the Dart SDK.  Assuming you have lints configured in an `analysis_options.yaml` file with these contents:
 
 ```yaml
 linter:
@@ -67,5 +67,5 @@ Please file feature requests and bugs in the [issue tracker][tracker].
 [lints]: https://dart-lang.github.io/linter/lints/
 [package-pedantic]: https://github.com/dart-lang/pedantic/blob/master/lib/analysis_options.yaml
 [effective-dart-lints]: /example/effective-dart.yaml
-[options_file]: https://www.dartlang.org/guides/language/analysis-options#the-analysis-options-file
+[options_file]: https://dart.dev/guides/language/analysis-options#the-analysis-options-file
 

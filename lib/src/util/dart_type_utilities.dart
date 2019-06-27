@@ -312,7 +312,7 @@ class DartTypeUtilities {
   /// * Two types such that one is more specific than the other, such as classes
   ///   `List<dynamic>` and `Iterable<dynamic>`, and type variables `A` and `B`
   ///   where `A extends B`. The rules of type specificity are documented
-  ///   [InterfaceType.isMoreSpecificThan](https://pub.dartlang.org/documentation/analyzer/latest/dart_element_type/InterfaceType/isMoreSpecificThan.html).
+  ///   [InterfaceType.isMoreSpecificThan](https://pub.dev/documentation/analyzer/latest/dart_element_type/InterfaceType/isMoreSpecificThan.html).
   /// * Two types, each representing a class:
   ///   * are related if they represent the same class, modulo type arguments,
   ///     and each of their pair-wise type arguments are related, e.g.

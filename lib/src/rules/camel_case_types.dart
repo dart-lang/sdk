@@ -11,7 +11,7 @@ const _desc = r'Name types using UpperCamelCase.';
 
 const _details = r'''
 
-From the [style guide](https://www.dartlang.org/articles/style-guide/):
+From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DO** name types using UpperCamelCase.
 
