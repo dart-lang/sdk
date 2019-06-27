@@ -883,10 +883,11 @@ class _Parser {
             break;
 
           case Recipe.wrapFutureOr:
+            var u = universe(parser);
             push(
                 stack,
-                _Universe._lookupFutureOrRti(universe(parser),
-                    toType(universe(parser), environment(parser), pop(stack))));
+                _Universe._lookupFutureOrRti(
+                    u, toType(u, environment(parser), pop(stack))));
             break;
 
           default:
