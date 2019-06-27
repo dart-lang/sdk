@@ -1989,7 +1989,10 @@ void Debugger::DeoptimizeWorld() {
           ASSERT(!function.IsNull());
           // Force-optimized functions don't have unoptimized code and can't
           // deoptimize. Their optimized codes are still valid.
-          if (function.ForceOptimize()) continue;
+          if (function.ForceOptimize()) {
+            ASSERT(!function.HasImplicitClosureFunction());
+            continue;
+          }
           if (function.HasOptimizedCode()) {
             function.SwitchToUnoptimizedCode();
           }

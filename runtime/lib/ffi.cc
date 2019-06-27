@@ -8,6 +8,7 @@
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
+#include "vm/class_id.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/ffi.h"
 #include "vm/compiler/jit/compiler.h"
@@ -527,11 +528,11 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
 }
 
 // Generates assembly to trampoline from native code into Dart.
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
 static uword CompileNativeCallback(const Function& c_signature,
-                                   const Function& dart_target) {
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-  UNREACHABLE();
-#elif defined(TARGET_ARCH_DBC)
+                                   const Function& dart_target,
+                                   const Instance& exceptional_return) {
+#if defined(TARGET_ARCH_DBC)
   // https://github.com/dart-lang/sdk/issues/35774
   // FFI is supported, but callbacks are not.
   Exceptions::ThrowUnsupportedError(
@@ -564,6 +565,33 @@ static uword CompileNativeCallback(const Function& c_signature,
   function.SetFfiCallbackId(callback_id);
   function.SetFfiCallbackTarget(dart_target);
 
+  // We require that the exceptional return value for functions returning 'Void'
+  // must be 'null', since native code should not look at the result.
+  if (compiler::ffi::NativeTypeIsVoid(
+          AbstractType::Handle(c_signature.result_type())) &&
+      !exceptional_return.IsNull()) {
+    Exceptions::ThrowUnsupportedError(
+        "Only 'null' may be used as the exceptional return value for a "
+        "callback returning void.");
+  }
+
+  // We need to load the exceptional return value as a constant in the generated
+  // function. This means we need to ensure that it's in old space and has no
+  // (transitively) mutable fields. This is done by checking (asserting) that
+  // it's a built-in FFI class, whose fields are all immutable, or a
+  // user-defined Pointer class, which has no fields.
+  //
+  // TODO(36730): We'll need to extend this when we support passing/returning
+  // structs by value.
+  ASSERT(exceptional_return.IsNull() || exceptional_return.IsNumber() ||
+         exceptional_return.IsPointer());
+  if (!exceptional_return.IsSmi() && exceptional_return.IsNew()) {
+    function.SetFfiCallbackExceptionalReturn(
+        Instance::Handle(exceptional_return.CopyShallowToOldSpace(thread)));
+  } else {
+    function.SetFfiCallbackExceptionalReturn(exceptional_return);
+  }
+
   // We compile the callback immediately because we need to return a pointer to
   // the entry-point. Native calls do not use patching like Dart calls, so we
   // cannot compile it lazily.
@@ -578,23 +606,36 @@ static uword CompileNativeCallback(const Function& c_signature,
   thread->SetFfiCallbackCode(callback_id, code);
 
   return code.EntryPoint();
-#endif
+#endif  // defined(TARGET_ARCH_DBC)
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
 
-DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
+DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
+  UNREACHABLE();
+#else
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, exceptional_return,
+                               arguments->NativeArgAt(1));
+
+  if (!type_arg.IsInstantiated() || !type_arg.IsFunctionType()) {
+    // TODO(35902): Remove this when dynamic invocations of fromFunction are
+    // prohibited.
+    Exceptions::ThrowUnsupportedError(
+        "Type argument to fromFunction must an instantiated function type.");
+  }
 
   const Function& native_signature =
-      Function::Handle(((Type&)type_arg).signature());
+      Function::Handle(Type::Cast(type_arg).signature());
   Function& func = Function::Handle(closure.function());
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
   type_args = type_args.Canonicalize();
 
-  Class& native_function_class = Class::Handle(
-      Isolate::Current()->class_table()->At(kFfiNativeFunctionCid));
+  Class& native_function_class =
+      Class::Handle(isolate->class_table()->At(kFfiNativeFunctionCid));
   native_function_class.EnsureIsFinalized(Thread::Current());
 
   Type& native_function_type = Type::Handle(
@@ -613,12 +654,30 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 1) {
   func = func.parent_function();
   ASSERT(func.is_static());
 
-  const uword address = CompileNativeCallback(native_signature, func);
+  const AbstractType& return_type =
+      AbstractType::Handle(native_signature.result_type());
+  if (compiler::ffi::NativeTypeIsVoid(return_type)) {
+    if (!exceptional_return.IsNull()) {
+      const String& error = String::Handle(
+          String::NewFormatted("Exceptional return argument to 'fromFunction' "
+                               "must be null for functions returning void."));
+      Exceptions::ThrowArgumentError(error);
+    }
+  } else if (!compiler::ffi::NativeTypeIsPointer(return_type) &&
+             exceptional_return.IsNull()) {
+    const String& error = String::Handle(String::NewFormatted(
+        "Exceptional return argument to 'fromFunction' must not be null."));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  const uword address =
+      CompileNativeCallback(native_signature, func, exceptional_return);
 
   const Pointer& result = Pointer::Handle(Pointer::New(
       native_function_type, Integer::Handle(zone, Integer::New(address))));
 
   return result.raw();
+#endif
 }
 
 #if defined(TARGET_ARCH_DBC)

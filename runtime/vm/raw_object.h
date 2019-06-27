@@ -1039,7 +1039,10 @@ class RawFfiTrampolineData : public RawObject {
   // Target Dart method for callbacks, otherwise null.
   RawFunction* callback_target_;
 
-  VISIT_TO(RawObject*, callback_target_);
+  // For callbacks, value to return if Dart target throws an exception.
+  RawInstance* callback_exceptional_return_;
+
+  VISIT_TO(RawObject*, callback_exceptional_return_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Callback id for callbacks.

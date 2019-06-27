@@ -143,38 +143,66 @@ Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr?.elementAt(1);
 
 typedef ReturnNullType = Int32 Function();
 int returnNull() {
-  print('Expect "unhandled exception" error message to follow.');
   return null;
 }
 
 typedef ReturnVoid = Void Function();
 void returnVoid() {}
 
+void throwException() {
+  throw "Exception.";
+}
+
+typedef ThrowExceptionInt = IntPtr Function();
+int throwExceptionInt() {
+  throw "Exception.";
+}
+
+typedef ThrowExceptionDouble = Double Function();
+double throwExceptionDouble() {
+  throw "Exception.";
+}
+
+typedef ThrowExceptionPointer = Pointer<Void> Function();
+Pointer<Void> throwExceptionPointer() {
+  throw "Exception.";
+}
+
 void testGC() {
   triggerGc();
 }
 
 final List<Test> testcases = [
-  Test("SimpleAddition", fromFunction<SimpleAdditionType>(simpleAddition)),
-  Test("IntComputation", fromFunction<IntComputationType>(intComputation)),
-  Test("UintComputation", fromFunction<UintComputationType>(uintComputation)),
-  Test("SimpleMultiply", fromFunction<SimpleMultiplyType>(simpleMultiply)),
+  Test("SimpleAddition", fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  Test("IntComputation", fromFunction<IntComputationType>(intComputation, 0)),
+  Test(
+      "UintComputation", fromFunction<UintComputationType>(uintComputation, 0)),
+  Test("SimpleMultiply", fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
   Test("SimpleMultiplyFloat",
-      fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat)),
-  Test("ManyInts", fromFunction<ManyIntsType>(manyInts)),
-  Test("ManyDoubles", fromFunction<ManyDoublesType>(manyDoubles)),
-  Test("ManyArgs", fromFunction<ManyArgsType>(manyArgs)),
-  Test("Store", fromFunction<StoreType>(store)),
-  Test("NullPointers", fromFunction<NullPointersType>(nullPointers)),
-  Test("ReturnNull", fromFunction<ReturnNullType>(returnNull)),
-  Test("GC", fromFunction<ReturnVoid>(testGC)),
+      fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat, 0.0)),
+  Test("ManyInts", fromFunction<ManyIntsType>(manyInts, 0)),
+  Test("ManyDoubles", fromFunction<ManyDoublesType>(manyDoubles, 0.0)),
+  Test("ManyArgs", fromFunction<ManyArgsType>(manyArgs, 0.0)),
+  Test("Store", fromFunction<StoreType>(store, null)),
+  Test("NullPointers", fromFunction<NullPointersType>(nullPointers, null)),
+  Test("ReturnNull", fromFunction<ReturnNullType>(returnNull, 42)),
+  Test("ReturnVoid", fromFunction<ReturnVoid>(returnVoid, null)),
+  Test("ThrowExceptionDouble",
+      fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
+  Test(
+      "ThrowExceptionPointer",
+      fromFunction<ThrowExceptionPointer>(
+          throwExceptionPointer, fromAddress<Pointer<Void>>(42))),
+  Test("ThrowException", fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
+  Test("GC", fromFunction<ReturnVoid>(testGC, null)),
 ];
 
 testCallbackWrongThread() =>
-    Test("CallbackWrongThread", fromFunction<ReturnVoid>(returnVoid)).run();
+    Test("CallbackWrongThread", fromFunction<ReturnVoid>(returnVoid, null)).run();
 
 testCallbackOutsideIsolate() =>
-    Test("CallbackOutsideIsolate", fromFunction<ReturnVoid>(returnVoid)).run();
+    Test("CallbackOutsideIsolate", fromFunction<ReturnVoid>(returnVoid, null))
+        .run();
 
 isolateHelper(int callbackPointer) {
   final Pointer<Void> ptr = fromAddress(callbackPointer);
@@ -185,15 +213,26 @@ isolateHelper(int callbackPointer) {
 }
 
 testCallbackWrongIsolate() async {
-  final int callbackPointer = fromFunction<ReturnVoid>(returnVoid).address;
+  final int callbackPointer = fromFunction<ReturnVoid>(returnVoid, null).address;
   final ReceivePort exitPort = ReceivePort();
   await Isolate.spawn(isolateHelper, callbackPointer,
       errorsAreFatal: true, onExit: exitPort.sendPort);
   await exitPort.first;
 }
 
+// Correct type of exceptionalReturn argument to fromFunction.
+double testExceptionalReturn() {
+  fromFunction<Double Function()>(testExceptionalReturn, 0.0);  //# 60: ok
+  fromFunction<Void Function()>(returnVoid, 0);  //# 63: runtime error
+  fromFunction<Void Function()>(returnVoid, null);  //# 65: ok
+  fromFunction<Double Function()>(returnVoid, null);  //# 64: runtime error
+  fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
+  fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
+}
+
 void main() async {
   testcases.forEach((t) => t.run()); //# 00: ok
+  testExceptionalReturn();
 
   // These tests terminate the process after successful completion, so we have
   // to run them separately.

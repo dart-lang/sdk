@@ -8,6 +8,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
+        templateFfiDartTypeMismatch,
         templateFfiTypeUnsized,
         templateFfiNotStatic;
 
@@ -120,6 +121,20 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureIsStatic(func);
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+
+        // Check `exceptionalReturn`'s type.
+        final FunctionType funcType = dartType;
+        final Expression exceptionalReturn = node.arguments.positional[1];
+        final DartType returnType = exceptionalReturn.getStaticType(env);
+
+        if (!env.isSubtypeOf(returnType, funcType.returnType)) {
+          diagnosticReporter.report(
+              templateFfiDartTypeMismatch.withArguments(
+                  returnType, funcType.returnType),
+              exceptionalReturn.fileOffset,
+              1,
+              exceptionalReturn.location.file);
+        }
       }
     } catch (_FfiStaticTypeError) {}
 

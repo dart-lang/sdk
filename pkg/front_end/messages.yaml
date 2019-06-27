@@ -3477,6 +3477,11 @@ FfiStructAnnotation:
   template: "Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields."
   external: test/ffi_test.dart
 
+FfiDartTypeMismatch:
+  # Used by dart:ffi
+  template: "Expected '#type' to be a subtype of '#type2'."
+  external: test/ffi_test.dart
+
 SpreadTypeMismatch:
   template: "Unexpected type '#type' of a spread.  Expected 'dynamic' or an Iterable."
   script:

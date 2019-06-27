@@ -2125,6 +2125,13 @@ class Function : public Object {
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
 
+  // Can only be called on FFI trampolines.
+  // Null for Dart -> native calls.
+  RawInstance* FfiCallbackExceptionalReturn() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackExceptionalReturn(const Instance& value) const;
+
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
       const TypeArguments& instantiator_type_arguments,
@@ -3263,6 +3270,11 @@ class FfiTrampolineData : public Object {
 
   RawFunction* callback_target() const { return raw_ptr()->callback_target_; }
   void set_callback_target(const Function& value) const;
+
+  RawInstance* callback_exceptional_return() const {
+    return raw_ptr()->callback_exceptional_return_;
+  }
+  void set_callback_exceptional_return(const Instance& value) const;
 
   int32_t callback_id() const { return raw_ptr()->callback_id_; }
   void set_callback_id(int32_t value) const;
@@ -6257,6 +6269,8 @@ class Instance : public Object {
   // Returns true if all fields are OK for canonicalization.
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
+
+  RawInstance* CopyShallowToOldSpace(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if instance is canonical.

@@ -43,7 +43,8 @@ export '../fasta/fasta_codes.dart'
         templateFfiTypeMismatch,
         templateFfiTypeUnsized,
         templateFfiFieldInitializer,
-        templateIllegalRecursiveType;
+        templateIllegalRecursiveType,
+        templateFfiDartTypeMismatch;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 

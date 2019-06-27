@@ -632,8 +632,8 @@ DART_EXPORT int TestStore(int64_t* (*fn)(int64_t* a)) {
   return 0;
 }
 
-DART_EXPORT int TestReturnNull(int32_t fn()) {
-  CHECK_EQ(fn(), 0);
+DART_EXPORT int TestReturnNull(int32_t (*fn)()) {
+  CHECK_EQ(fn(), 42);
   return 0;
 }
 
@@ -659,6 +659,26 @@ extern "C" void ClobberAndCall(void (*fn)());
 
 DART_EXPORT int TestGC(void (*do_gc)()) {
   ClobberAndCall(do_gc);
+  return 0;
+}
+
+DART_EXPORT int TestReturnVoid(int (*return_void)()) {
+  CHECK_EQ(return_void(), 0);
+  return 0;
+}
+
+DART_EXPORT int TestThrowExceptionDouble(double (*fn)()) {
+  CHECK_EQ(fn(), 42.0);
+  return 0;
+}
+
+DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
+  CHECK_EQ(fn(), reinterpret_cast<void*>(42));
+  return 0;
+}
+
+DART_EXPORT int TestThrowException(int (*fn)()) {
+  CHECK_EQ(fn(), 42);
   return 0;
 }
 

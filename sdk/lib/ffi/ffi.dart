@@ -29,25 +29,18 @@ external int sizeOf<T extends NativeType>();
 /// Convert Dart function to a C function pointer, automatically marshalling
 /// the arguments and return value
 ///
-/// Note: this is not implemented, always returns Pointer with address 0.
+/// If an exception is thrown while calling `f()`, the native function will
+/// return `exceptionalReturn`, which must be assignable to return type of `f`.
 ///
-/// TODO(dacoharkes): Implement this feature.
-/// https://github.com/dart-lang/sdk/issues/35761
+/// The returned function address can only be invoked on the mutator (main)
+/// thread of the current isolate. It will abort the process if invoked on any
+/// other thread.
+///
+/// The pointer returned will remain alive for the duration of the current
+/// isolate's lifetime. After the isolate it was created in is terminated,
+/// invoking it from native code will cause undefined behavior.
 external Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-    @DartRepresentationOf("T") Function f);
-
-/*
-/// TODO(dacoharkes): Implement this feature.
-/// https://github.com/dart-lang/sdk/issues/35770
-/// Return a pointer object that has a finalizer attached to it. When this
-/// pointer object is collected by GC the given finalizer is invoked.
-///
-/// Note: the pointer object passed to the finalizer is not the same as
-/// the pointer object that is returned from [finalizable] - it points
-/// to the same memory region but has different identity.
-external Pointer<T> finalizable<T extends NativeType>(
-    Pointer<T> p, void finalizer(Pointer<T> ptr));
-*/
+    @DartRepresentationOf("T") Function f, Object exceptionalReturn);
 
 /// Represents a pointer into the native C memory.
 class Pointer<T extends NativeType> extends NativeType {

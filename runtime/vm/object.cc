@@ -6044,6 +6044,20 @@ void Function::SetFfiCallbackTarget(const Function& target) const {
   FfiTrampolineData::Cast(obj).set_callback_target(target);
 }
 
+RawInstance* Function::FfiCallbackExceptionalReturn() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_exceptional_return();
+}
+
+void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
+}
+
 RawType* Function::SignatureType() const {
   Type& type = Type::Handle(ExistingSignatureType());
   if (type.IsNull()) {
@@ -8259,6 +8273,11 @@ void FfiTrampolineData::set_callback_target(const Function& value) const {
 
 void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
   StoreNonPointer(&raw_ptr()->callback_id_, callback_id);
+}
+
+void FfiTrampolineData::set_callback_exceptional_return(
+    const Instance& value) const {
+  StorePointer(&raw_ptr()->callback_exceptional_return_, value.raw());
 }
 
 RawFfiTrampolineData* FfiTrampolineData::New() {
@@ -16452,6 +16471,10 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
 #endif  // DEBUG
   }
   return true;
+}
+
+RawInstance* Instance::CopyShallowToOldSpace(Thread* thread) const {
+  return Instance::RawCast(Object::Clone(*this, Heap::kOld));
 }
 
 RawInstance* Instance::CheckAndCanonicalize(Thread* thread,

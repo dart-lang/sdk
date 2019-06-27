@@ -253,6 +253,7 @@ FfiStructAnnotation/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
 FfiTypeUnsized/analyzerCode: Fail
+FfiDartTypeMismatch/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail

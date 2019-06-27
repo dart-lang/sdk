@@ -2454,22 +2454,6 @@ Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
   return Fragment(extend);
 }
 
-Fragment FlowGraphBuilder::FfiExceptionalReturnValue(
-    const AbstractType& result_type,
-    Representation representation) {
-  ASSERT(optimizing_);
-  Object& result = Object::ZoneHandle(Z, Object::null());
-  if (representation == kUnboxedFloat || representation == kUnboxedDouble) {
-    result = Double::New(0.0, Heap::kOld);
-  } else {
-    result = Integer::New(0, Heap::kOld);
-  }
-  Fragment code;
-  code += Constant(result);
-  code += UnboxTruncate(representation);
-  return code;
-}
-
 #if !defined(TARGET_ARCH_DBC)
 Fragment FlowGraphBuilder::NativeReturn(Representation result) {
   auto* instr = new (Z)
@@ -2568,6 +2552,15 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
     const AbstractType& ffi_type,
     const Representation native_representation) {
   Fragment body;
+
+  // Return 0 for void.
+  if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
+    body += Drop();
+    body += IntConstant(0);
+    body += UnboxTruncate(kUnboxedFfiIntPtr);
+    return body;
+  }
+
   // Check for 'null'. Only ffi.Pointers are allowed to be null.
   if (!compiler::ffi::NativeTypeIsPointer(ffi_type)) {
     body += LoadLocal(MakeTemporary());
@@ -2724,24 +2717,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   ++catch_depth_;
   Fragment catch_body =
       CatchBlockEntry(Array::empty_array(), try_handler_index,
-                      /*needs_stacktrace=*/true, /*is_synthesized=*/true);
+                      /*needs_stacktrace=*/false, /*is_synthesized=*/true);
 
-  catch_body += LoadLocal(CurrentException());
-  catch_body += PushArgument();
-  catch_body += LoadLocal(CurrentStackTrace());
-  catch_body += PushArgument();
-
-  // Find '_handleExposedException(e, st)' from ffi_patch.dart and call it.
-  const Library& ffi_lib =
-      Library::Handle(Z, Library::LookupLibrary(thread_, Symbols::DartFfi()));
-  const Function& handler = Function::ZoneHandle(
-      Z, ffi_lib.LookupFunctionAllowPrivate(Symbols::HandleExposedException()));
-  ASSERT(!handler.IsNull());
-  catch_body += StaticCall(TokenPosition::kNoSource, handler, /*num_args=*/2,
-                           /*arg_names=*/Array::empty_array(), ICData::kStatic);
-  catch_body += Drop();
-
-  catch_body += FfiExceptionalReturnValue(ffi_type, result_rep);
+  // Return the "exceptional return" value given in 'fromFunction'.
+  catch_body += Constant(
+      Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
+  catch_body += FfiConvertArgumentToNative(function, ffi_type, result_rep);
   catch_body += NativeReturn(result_rep);
   --catch_depth_;
 

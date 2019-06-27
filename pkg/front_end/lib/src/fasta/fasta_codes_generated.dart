@@ -3642,6 +3642,34 @@ const MessageCode messageFastaUsageShort =
   -h        Display this message (add -v for information about all options).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, DartType _type2)>
+    templateFfiDartTypeMismatch =
+    const Template<Message Function(DartType _type, DartType _type2)>(
+        messageTemplate: r"""Expected '#type' to be a subtype of '#type2'.""",
+        withArguments: _withArgumentsFfiDartTypeMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, DartType _type2)>
+    codeFfiDartTypeMismatch =
+    const Code<Message Function(DartType _type, DartType _type2)>(
+  "FfiDartTypeMismatch",
+  templateFfiDartTypeMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
+  TypeLabeler labeler = new TypeLabeler();
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeFfiDartTypeMismatch,
+      message: """Expected '${type}' to be a subtype of '${type2}'.""" +
+          labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(

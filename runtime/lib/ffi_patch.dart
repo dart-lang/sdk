@@ -15,7 +15,8 @@ int sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
 @patch
 Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-    @DartRepresentationOf("T") Function f) native "Ffi_fromFunction";
+    @DartRepresentationOf("T") Function f,
+    Object exceptionalReturn) native "Ffi_fromFunction";
 
 @patch
 @pragma("vm:entry-point")
@@ -52,22 +53,4 @@ class Pointer<T extends NativeType> {
 
   @patch
   void free() native "Ffi_free";
-}
-
-// This method gets called when an exception bubbles up to the native -> Dart
-// boundary from an FFI native callback. Since native code does not have any
-// concept of exceptions, the exception cannot be propagated any further.
-// Instead, print a warning with the exception and return 0/0.0 from the
-// callback.
-//
-// TODO(36856): Iron out the story behind exceptions.
-@pragma("vm:entry-point")
-void _handleExposedException(dynamic exception, dynamic stackTrace) {
-  print(
-      "==================== UNHANDLED EXCEPTION FROM FFI CALLBACK ====================");
-  print(
-      """ ** Native callbacks should not throw exceptions because they cannot be
-    propagated into native code. **""");
-  print("EXCEPTION: $exception");
-  print(stackTrace);
 }
