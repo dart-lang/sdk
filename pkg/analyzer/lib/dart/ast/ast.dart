@@ -2148,6 +2148,35 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
   TypeParameterList get typeParameters;
 }
 
+/// An override to force resolution to choose a member from a specific
+/// extension.
+///
+///    extensionOverride ::=
+///        [Identifier] [TypeArgumentList]? [ArgumentList]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionOverride implements Expression {
+  /// Return the list of arguments to the override. In valid code this will
+  /// contain a single argument, which evaluates to the object being extended.
+  ArgumentList get argumentList;
+
+  /// Return the name of the extension being selected.
+  Identifier get extensionName;
+
+  /// Return the type arguments to be applied to the extension, or `null` if no
+  /// type arguments were provided.
+  TypeArgumentList get typeArguments;
+
+  /// Return the actual type arguments to be applied to the extension, either
+  /// explicitly specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the extension does not have type parameters.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get typeArgumentTypes;
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
