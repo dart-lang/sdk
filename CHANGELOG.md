@@ -97,7 +97,7 @@ The Linter was updated to `0.1.92`, which includes the following changes:
 * Updates `prefer_final_fields` to be more inclusive
 * Miscellaneous documentation fixes
 
-## 2.4.0 - 2019-06-24
+## 2.4.0 - 2019-06-27
 
 ### Core libraries
 
