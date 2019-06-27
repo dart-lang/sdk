@@ -1,18 +1,5 @@
 Methods and annotations to specify interoperability with JavaScript APIs.
 
-*This packages requires Dart SDK 1.13.0.*
-
-*This is beta software. Please files [issues].*
-
-### Adding the dependency
-
-Add the following to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  js: ^0.6.0
-```
-
 ### Example
 
 See the [Chart.js Dart API](https://github.com/google/chartjs.dart/) for an
@@ -23,9 +10,14 @@ end-to-end example.
 #### Calling methods
 
 ```dart
+@JS()
+library stringify;
+
+import 'package:js/js.dart';
+
 // Calls invoke JavaScript `JSON.stringify(obj)`.
-@JS("JSON.stringify")
-external String stringify(obj);
+@JS('JSON.stringify')
+external String stringify(Object obj);
 ```
 
 #### Classes and Namespaces
@@ -34,24 +26,24 @@ external String stringify(obj);
 @JS('google.maps')
 library maps;
 
-import "package:js/js.dart";
+import 'package:js/js.dart';
 
 // Invokes the JavaScript getter `google.maps.map`.
 external Map get map;
 
-// `new Map` invokes JavaScript `new google.maps.Map(location)`
+// The `Map` constructor invokes JavaScript `new google.maps.Map(location)`
 @JS()
 class Map {
   external Map(Location location);
   external Location getLocation();
 }
 
-// `new Location(...)` invokes JavaScript `new google.maps.LatLng(...)`
+// The `Location` constructor invokes JavaScript `new google.maps.LatLng(...)`
 //
 // We recommend against using custom JavaScript names whenever
 // possible. It is easier for users if the JavaScript names and Dart names
 // are consistent.
-@JS("LatLng")
+@JS('LatLng')
 class Location {
   external Location(num lat, num lng);
 }
@@ -65,17 +57,19 @@ Many JavaScript APIs take an object literal as an argument. For example:
 printOptions({responsive: true});
 ```
 
-If you want to use `printOptions` from Dart, you cannot simply pass a Dart `Map`
-object – they are "opaque" in JavaScript.
+If you want to use `printOptions` from Dart a `Map<String, dynamic>` would be
+"opaque" in JavaScript.
 
-
-Instead, create a Dart class with both the `@JS()` and
-`@anonymous` annotations.
+Instead, create a Dart class with both the `@JS()` and `@anonymous` annotations.
 
 ```dart
-// Dart
+@JS()
+library print_options;
+
+import 'package:js/js.dart';
+
 void main() {
-  printOptions(new Options(responsive: true));
+  printOptions(Options(responsive: true));
 }
 
 @JS()
@@ -86,26 +80,24 @@ external printOptions(Options options);
 class Options {
   external bool get responsive;
 
+  // Must have an unnamed factory constructor with named arguments.
   external factory Options({bool responsive});
 }
 ```
 
-NB: This _anonymous_ class must have an unnamed _factory constructor_.
+#### Passing functions to JavaScript
 
-#### Passing functions to JavaScript.
+If you are passing a Dart function to a JavaScript API as an argument , you must
+wrap it using `allowInterop` or `allowInteropCaptureThis`. **Warning** There is
+a behavior difference between the Dart2JS and DDC compilers. When compiled with
+DDC there will be no errors despite missing `allowInterop` calls, because DDC
+uses JS calling semantics by default. When compiling with Dart2JS the
+`allowInterop` utility must be used.
 
-If you are passing a Dart function to a JavaScript API, you must wrap it using
-`allowInterop` or `allowInteropCaptureThis`.
 
-## Contributing and Filing Bugs
 
-Please file bugs and features requests on the [Github issue tracker][issues].
+## Reporting issues
 
-We also love and accept community contributions, from API suggestions to pull requests.
-Please file an issue before beginning work so we can discuss the design and implementation.
-We are trying to create issues for all current and future work, so if something there intrigues you (or you need it!) join in on the discussion.
-
-Code contributors must sign the
-[Google Individual Contributor License Agreement](https://developers.google.com/open-source/cla/individual?csw=1).
+Please file bugs and features requests on the [SDK issue tracker][issues].
 
 [issues]: https://goo.gl/j3rzs0
