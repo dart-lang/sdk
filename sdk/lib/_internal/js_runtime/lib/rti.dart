@@ -1044,7 +1044,7 @@ bool isSubtype(universe, Rti s, Rti t) {
   return _isSubtype(universe, s, null, t, null);
 }
 
-bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
+bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // TODO(fishythefish): Update for NNBD. See
   // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
 
@@ -1095,24 +1095,27 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
       return true;
     } else {
       // Check [s] <: Future<T>.
-      // TODO(fishythefish): Do this without allocating an RTI for Future<T>
-      // each time.
       String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
       var argumentsArray = JS('', '[#]', tTypeArgument);
-      var tFuture =
-          _Universe._lookupInterfaceRti(universe, futureClass, argumentsArray);
-      return _isSubtype(universe, s, sEnv, tFuture, tEnv);
+      return _isSubtypeOfInterface(
+          universe, s, sEnv, futureClass, argumentsArray, tEnv);
     }
   }
 
-  assert(Rti._getKind(s) == Rti.kindInterface);
   assert(Rti._getKind(t) == Rti.kindInterface);
-  String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
+  var tArgs = Rti._getInterfaceTypeArguments(t);
+
+  return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
+}
+
+bool _isSubtypeOfInterface(
+    universe, Rti s, sEnv, String tName, Object tArgs, tEnv) {
+  assert(Rti._getKind(s) == Rti.kindInterface);
+  String sName = Rti._getInterfaceName(s);
 
   if (sName == tName) {
     var sArgs = Rti._getInterfaceTypeArguments(s);
-    var tArgs = Rti._getInterfaceTypeArguments(t);
     int length = _Utils.arrayLength(sArgs);
     assert(length == _Utils.arrayLength(tArgs));
     for (int i = 0; i < length; i++) {
@@ -1128,7 +1131,6 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
   if (supertypeArgs == null) return false;
-  var tArgs = Rti._getInterfaceTypeArguments(t);
   int length = _Utils.arrayLength(supertypeArgs);
   assert(length == _Utils.arrayLength(tArgs));
   for (int i = 0; i < length; i++) {
