@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -3719,6 +3720,8 @@ class ResolverVisitor extends ScopedVisitor {
   /// The object keeping track of which elements have had their types promoted.
   TypePromotionManager _promoteManager;
 
+  final FlowAnalysisHelper _flowAnalysis;
+
   /// A comment before a function should be resolved in the context of the
   /// function. But when we incrementally resolve a comment, we don't want to
   /// resolve the whole function.
@@ -3754,7 +3757,8 @@ class ResolverVisitor extends ScopedVisitor {
       {FeatureSet featureSet,
       Scope nameScope,
       bool propagateTypes: true,
-      reportConstEvaluationErrors: true})
+      reportConstEvaluationErrors: true,
+      FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritance,
             definingLibrary,
@@ -3765,7 +3769,8 @@ class ResolverVisitor extends ScopedVisitor {
                 definingLibrary.context.analysisOptions.contextFeatures,
             nameScope,
             propagateTypes,
-            reportConstEvaluationErrors);
+            reportConstEvaluationErrors,
+            flowAnalysisHelper);
 
   ResolverVisitor._(
       this.inheritance,
@@ -3776,7 +3781,8 @@ class ResolverVisitor extends ScopedVisitor {
       FeatureSet featureSet,
       Scope nameScope,
       bool propagateTypes,
-      reportConstEvaluationErrors)
+      reportConstEvaluationErrors,
+      this._flowAnalysis)
       : _analysisOptions = definingLibrary.context.analysisOptions,
         _uiAsCodeEnabled =
             featureSet.isEnabled(Feature.control_flow_collections) ||
@@ -3999,14 +4005,22 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    node.leftHandSide?.accept(this);
+    var left = node.leftHandSide;
+    var right = node.rightHandSide;
+
+    left?.accept(this);
+
+    var leftLocalVariable = _flowAnalysis?.assignmentExpression(node);
+
     TokenType operator = node.operator.type;
     if (operator == TokenType.EQ ||
         operator == TokenType.QUESTION_QUESTION_EQ) {
-      InferenceContext.setType(
-          node.rightHandSide, node.leftHandSide.staticType);
+      InferenceContext.setType(right, left.staticType);
     }
-    node.rightHandSide?.accept(this);
+
+    right?.accept(this);
+    _flowAnalysis?.assignmentExpression_afterRight(leftLocalVariable, right);
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4023,59 +4037,92 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    TokenType operatorType = node.operator.type;
-    Expression leftOperand = node.leftOperand;
-    Expression rightOperand = node.rightOperand;
-    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      InferenceContext.setType(leftOperand, typeProvider.boolType);
-      InferenceContext.setType(rightOperand, typeProvider.boolType);
+    TokenType operator = node.operator.type;
+    Expression left = node.leftOperand;
+    Expression right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    if (operator == TokenType.AMPERSAND_AMPERSAND) {
+      InferenceContext.setType(left, typeProvider.boolType);
+      InferenceContext.setType(right, typeProvider.boolType);
+
       // TODO(scheglov) Do we need these checks for null?
-      leftOperand?.accept(this);
-      _promoteManager.visitBinaryExpression_and_rhs(
-        leftOperand,
-        rightOperand,
-        () {
-          rightOperand.accept(this);
-        },
-      );
-      node.accept(elementResolver);
-    } else if (operatorType == TokenType.BAR_BAR) {
-      InferenceContext.setType(leftOperand, typeProvider.boolType);
-      InferenceContext.setType(rightOperand, typeProvider.boolType);
-      leftOperand?.accept(this);
-      if (rightOperand != null) {
-        rightOperand.accept(this);
+      left?.accept(this);
+
+      if (_flowAnalysis != null) {
+        flow?.logicalAnd_rightBegin(node, left);
+        _flowAnalysis.checkUnreachableNode(right);
+        right.accept(this);
+        flow?.logicalAnd_end(node, right);
+      } else {
+        _promoteManager.visitBinaryExpression_and_rhs(
+          left,
+          right,
+          () {
+            right.accept(this);
+          },
+        );
       }
+
       node.accept(elementResolver);
+    } else if (operator == TokenType.BAR_BAR) {
+      InferenceContext.setType(left, typeProvider.boolType);
+      InferenceContext.setType(right, typeProvider.boolType);
+
+      left?.accept(this);
+
+      flow?.logicalOr_rightBegin(node, left);
+      _flowAnalysis?.checkUnreachableNode(right);
+      right.accept(this);
+      flow?.logicalOr_end(node, right);
+
+      node.accept(elementResolver);
+    } else if (operator == TokenType.BANG_EQ) {
+      left.accept(this);
+      right.accept(this);
+      node.accept(elementResolver);
+      _flowAnalysis?.binaryExpression_bangEq(node, left, right);
+    } else if (operator == TokenType.EQ_EQ) {
+      left.accept(this);
+      right.accept(this);
+      node.accept(elementResolver);
+      _flowAnalysis?.binaryExpression_eqEq(node, left, right);
     } else {
-      if (operatorType == TokenType.QUESTION_QUESTION) {
-        InferenceContext.setTypeFromNode(leftOperand, node);
+      if (operator == TokenType.QUESTION_QUESTION) {
+        InferenceContext.setTypeFromNode(left, node);
       }
-      leftOperand?.accept(this);
+      left?.accept(this);
 
       // Call ElementResolver.visitBinaryExpression to resolve the user-defined
       // operator method, if applicable.
       node.accept(elementResolver);
 
-      if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (operator == TokenType.QUESTION_QUESTION) {
         // Set the right side, either from the context, or using the information
         // from the left side if it is more precise.
         DartType contextType = InferenceContext.getContext(node);
-        DartType leftType = leftOperand?.staticType;
+        DartType leftType = left?.staticType;
         if (contextType == null || contextType.isDynamic) {
           contextType = leftType;
         }
-        InferenceContext.setType(rightOperand, contextType);
+        InferenceContext.setType(right, contextType);
       } else {
         var invokeType = node.staticInvokeType;
         if (invokeType != null && invokeType.parameters.isNotEmpty) {
           // If this is a user-defined operator, set the right operand context
           // using the operator method's parameter type.
           var rightParam = invokeType.parameters[0];
-          InferenceContext.setType(rightOperand, rightParam.type);
+          InferenceContext.setType(right, rightParam.type);
         }
       }
-      rightOperand?.accept(this);
+
+      if (operator == TokenType.QUESTION_QUESTION) {
+        flow?.ifNullExpression_rightBegin();
+        right.accept(this);
+        flow?.ifNullExpression_end();
+      } else {
+        right?.accept(this);
+      }
     }
     node.accept(typeAnalyzer);
   }
@@ -4083,11 +4130,19 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     try {
+      _flowAnalysis?.blockFunctionBody_enter(node);
       inferenceContext.pushReturnContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
       inferenceContext.popReturnContext(node);
+      _flowAnalysis?.blockFunctionBody_exit(node);
     }
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _flowAnalysis?.flow?.booleanLiteral(node, node.value);
+    super.visitBooleanLiteral(node);
   }
 
   @override
@@ -4098,6 +4153,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    _flowAnalysis?.breakStatement(node);
   }
 
   @override
@@ -4188,22 +4244,43 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
+    var flow = _flowAnalysis?.flow;
+
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+
     Expression thenExpression = node.thenExpression;
-    _promoteManager.visitConditionalExpression_then(
-      condition,
-      thenExpression,
-      () {
-        InferenceContext.setTypeFromNode(thenExpression, node);
-        thenExpression.accept(this);
-      },
-    );
+    InferenceContext.setTypeFromNode(thenExpression, node);
+
+    if (_flowAnalysis != null) {
+      if (flow != null) {
+        flow.conditional_thenBegin(node, condition);
+        _flowAnalysis.checkUnreachableNode(thenExpression);
+      }
+      thenExpression.accept(this);
+    } else {
+      _promoteManager.visitConditionalExpression_then(
+        condition,
+        thenExpression,
+        () {
+          thenExpression.accept(this);
+        },
+      );
+    }
+
     Expression elseExpression = node.elseExpression;
-    if (elseExpression != null) {
-      InferenceContext.setTypeFromNode(elseExpression, node);
+    InferenceContext.setTypeFromNode(elseExpression, node);
+
+    if (flow != null) {
+      var isBool = thenExpression.staticType.isDartCoreBool;
+      flow.conditional_elseBegin(node, thenExpression, isBool);
+      _flowAnalysis.checkUnreachableNode(elseExpression);
+      elseExpression.accept(this);
+      flow.conditional_end(node, elseExpression, isBool);
+    } else {
       elseExpression.accept(this);
     }
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4270,6 +4347,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    _flowAnalysis?.continueStatement(node);
   }
 
   @override
@@ -4293,9 +4371,24 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitDoStatement(DoStatement node) {
+  void visitDoStatementInScope(DoStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
+    var body = node.body;
+    var condition = node.condition;
+
     InferenceContext.setType(node.condition, typeProvider.boolType);
-    super.visitDoStatement(node);
+
+    _flowAnalysis?.flow?.doStatement_bodyBegin(
+      node,
+      _flowAnalysis?.assignedVariables[node],
+    );
+    visitStatementInScope(body);
+
+    _flowAnalysis?.flow?.doStatement_conditionBegin();
+    condition.accept(this);
+
+    _flowAnalysis?.flow?.doStatement_end(node, node.condition);
   }
 
   @override
@@ -4410,6 +4503,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForStatementInScope(ForStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
       if (forLoopParts is ForPartsWithDeclarations) {
@@ -4417,10 +4512,22 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       }
-      InferenceContext.setType(forLoopParts.condition, typeProvider.boolType);
-      forLoopParts.condition?.accept(this);
+
+      var condition = forLoopParts.condition;
+      InferenceContext.setType(condition, typeProvider.boolType);
+
+      _flowAnalysis?.forStatement_conditionBegin(node, condition);
+      if (condition != null) {
+        condition.accept(this);
+      }
+
+      _flowAnalysis?.forStatement_bodyBegin(node, condition);
       visitStatementInScope(node.body);
+
+      _flowAnalysis?.flow?.forStatement_updaterBegin();
       forLoopParts.updaters.accept(this);
+
+      _flowAnalysis?.flow?.forStatement_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
       DeclaredIdentifier loopVariable;
@@ -4459,10 +4566,18 @@ class ResolverVisitor extends ScopedVisitor {
       //
       iterable?.accept(this);
       loopVariable?.accept(this);
+
+      _flowAnalysis?.flow?.forEachStatement_bodyBegin(
+        _flowAnalysis?.assignedVariables[node],
+      );
+
       Statement body = node.body;
       if (body != null) {
         visitStatementInScope(body);
       }
+
+      _flowAnalysis?.flow?.forEachStatement_end();
+
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
     }
@@ -4494,7 +4609,12 @@ class ResolverVisitor extends ScopedVisitor {
   void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
-      _promoteManager.enterFunctionBody(node.body);
+      if (_flowAnalysis != null) {
+        _flowAnalysis.flow?.functionExpression_begin();
+      } else {
+        _promoteManager.enterFunctionBody(node.body);
+      }
+
       _enclosingFunction = node.declaredElement;
       DartType functionType = InferenceContext.getContext(node);
       if (functionType is FunctionType) {
@@ -4508,7 +4628,12 @@ class ResolverVisitor extends ScopedVisitor {
       }
       super.visitFunctionExpression(node);
     } finally {
-      _promoteManager.exitFunctionBody();
+      if (_flowAnalysis != null) {
+        _flowAnalysis.flow?.functionExpression_end();
+      } else {
+        _promoteManager.exitFunctionBody();
+      }
+
       _enclosingFunction = outerFunction;
     }
   }
@@ -4574,21 +4699,35 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitIfStatement(IfStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     Expression condition = node.condition;
+
     InferenceContext.setType(condition, typeProvider.boolType);
     condition?.accept(this);
+
     Statement thenStatement = node.thenStatement;
-    _promoteManager.visitIfStatement_thenStatement(
-      condition,
-      thenStatement,
-      () {
-        visitStatementInScope(thenStatement);
-      },
-    );
+    if (_flowAnalysis != null) {
+      _flowAnalysis.flow.ifStatement_thenBegin(node, condition);
+      visitStatementInScope(thenStatement);
+    } else {
+      _promoteManager.visitIfStatement_thenStatement(
+        condition,
+        thenStatement,
+        () {
+          visitStatementInScope(thenStatement);
+        },
+      );
+    }
+
     Statement elseStatement = node.elseStatement;
     if (elseStatement != null) {
+      _flowAnalysis?.flow?.ifStatement_elseBegin();
       visitStatementInScope(elseStatement);
     }
+
+    _flowAnalysis?.flow?.ifStatement_end(elseStatement != null);
+
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
   }
@@ -4613,6 +4752,12 @@ class ResolverVisitor extends ScopedVisitor {
     node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitIsExpression(IsExpression node) {
+    super.visitIsExpression(node);
+    _flowAnalysis?.isExpression(node);
   }
 
   @override
@@ -4717,6 +4862,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitNode(AstNode node) {
+    _flowAnalysis?.checkUnreachableNode(node);
     node.visitChildren(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -4737,6 +4883,16 @@ class ResolverVisitor extends ScopedVisitor {
     node.prefix?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    super.visitPrefixExpression(node);
+
+    var operator = node.operator.type;
+    if (operator == TokenType.BANG) {
+      _flowAnalysis?.flow?.logicalNot_end(node, node.operand);
+    }
   }
 
   @override
@@ -4766,6 +4922,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitRethrowExpression(RethrowExpression node) {
+    super.visitRethrowExpression(node);
+    _flowAnalysis?.flow?.handleExit();
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     Expression e = node.expression;
     InferenceContext.setType(e, inferenceContext.returnContext);
@@ -4779,6 +4941,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
       inferenceContext.addReturnOrYieldType(type);
     }
+    _flowAnalysis?.flow?.handleExit();
   }
 
   @override
@@ -4839,6 +5002,12 @@ class ResolverVisitor extends ScopedVisitor {
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _flowAnalysis?.simpleIdentifier(node);
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -4854,6 +5023,8 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchCase(SwitchCase node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
     super.visitSwitchCase(node);
@@ -4861,13 +5032,93 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSwitchStatementInScope(SwitchStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     var previousExpressionType = _enclosingSwitchStatementExpressionType;
     try {
-      node.expression?.accept(this);
-      _enclosingSwitchStatementExpressionType = node.expression.staticType;
-      node.members.accept(this);
+      var expression = node.expression;
+      expression.accept(this);
+      _enclosingSwitchStatementExpressionType = expression.staticType;
+
+      if (_flowAnalysis != null) {
+        var flow = _flowAnalysis.flow;
+        var assignedInCases = _flowAnalysis.assignedVariables[node];
+
+        flow.switchStatement_expressionEnd(node);
+
+        var hasDefault = false;
+        var members = node.members;
+        for (var member in members) {
+          flow.switchStatement_beginCase(
+            member.labels.isNotEmpty
+                ? assignedInCases
+                : _flowAnalysis.assignedVariables.emptySet,
+          );
+          member.accept(this);
+
+          // Implicit `break` at the end of `default`.
+          if (member is SwitchDefault) {
+            hasDefault = true;
+            flow.handleBreak(node);
+          }
+        }
+
+        flow.switchStatement_end(node, hasDefault);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       _enclosingSwitchStatementExpressionType = previousExpressionType;
+    }
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    super.visitThrowExpression(node);
+    _flowAnalysis?.flow?.handleExit();
+  }
+
+  @override
+  void visitTryStatement(TryStatement node) {
+    if (_flowAnalysis == null) {
+      return super.visitTryStatement(node);
+    }
+
+    _flowAnalysis.checkUnreachableNode(node);
+    var flow = _flowAnalysis.flow;
+
+    var body = node.body;
+    var catchClauses = node.catchClauses;
+    var finallyBlock = node.finallyBlock;
+
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_bodyBegin();
+    }
+
+    flow.tryCatchStatement_bodyBegin();
+    body.accept(this);
+    flow.tryCatchStatement_bodyEnd(
+      _flowAnalysis.assignedVariables[body],
+    );
+
+    var catchLength = catchClauses.length;
+    for (var i = 0; i < catchLength; ++i) {
+      var catchClause = catchClauses[i];
+      flow.tryCatchStatement_catchBegin();
+      catchClause.accept(this);
+      flow.tryCatchStatement_catchEnd();
+    }
+
+    flow.tryCatchStatement_end();
+
+    if (finallyBlock != null) {
+      flow.tryFinallyStatement_finallyBegin(
+        _flowAnalysis.assignedVariables[body],
+      );
+      finallyBlock.accept(this);
+      flow.tryFinallyStatement_end(
+        _flowAnalysis.assignedVariables[finallyBlock],
+      );
     }
   }
 
@@ -4904,18 +5155,34 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    _flowAnalysis?.variableDeclarationStatement(node);
+    super.visitVariableDeclarationStatement(node);
+  }
+
+  @override
   void visitWhileStatement(WhileStatement node) {
+    _flowAnalysis?.checkUnreachableNode(node);
+
     // Note: since we don't call the base class, we have to maintain
     // _implicitLabelScope ourselves.
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
+
       Expression condition = node.condition;
       InferenceContext.setType(condition, typeProvider.boolType);
+
+      _flowAnalysis?.flow?.whileStatement_conditionBegin(
+        _flowAnalysis?.assignedVariables[node],
+      );
       condition?.accept(this);
+
       Statement body = node.body;
       if (body != null) {
+        _flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
         visitStatementInScope(body);
+        _flowAnalysis?.flow?.whileStatement_end();
       }
     } finally {
       _implicitLabelScope = outerImplicitScope;
@@ -5649,11 +5916,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
-      visitStatementInScope(node.body);
-      node.condition?.accept(this);
+      visitDoStatementInScope(node);
     } finally {
       _implicitLabelScope = outerImplicitScope;
     }
+  }
+
+  void visitDoStatementInScope(DoStatement node) {
+    visitStatementInScope(node.body);
+    node.condition?.accept(this);
   }
 
   @override

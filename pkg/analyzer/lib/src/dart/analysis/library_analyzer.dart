@@ -77,6 +77,7 @@ class LibraryAnalyzer {
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
+  final Map<FileState, FlowAnalysisResult> _fileToFlowAnalysisResult = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
@@ -408,17 +409,12 @@ class LibraryAnalyzer {
         _context.typeSystem, _inheritance, errorReporter);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
-    FlowAnalysisResult flowAnalysisResult;
-    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
-      flowAnalysisResult = performFlowAnalysis(_context.typeSystem, unit);
-    }
-
     //
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
         errorReporter, _libraryElement, _typeProvider, _inheritance, false,
-        flowAnalysisResult: flowAnalysisResult);
+        flowAnalysisResult: _fileToFlowAnalysisResult[file]);
     unit.accept(errorVerifier);
   }
 
@@ -705,9 +701,16 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
+    FlowAnalysisHelper flowAnalysisHelper;
+    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
+      flowAnalysisHelper = FlowAnalysisHelper(_context.typeSystem, unit);
+      _fileToFlowAnalysisResult[file] = flowAnalysisHelper.result;
+      flowAnalysisHelper.result.putIntoNode(unit);
+    }
+
     unit.accept(new ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet));
+        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
   /**

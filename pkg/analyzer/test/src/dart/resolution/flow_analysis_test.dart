@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,8 +13,8 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NullableFlowTest);
     defineReflectiveTests(DefiniteAssignmentFlowTest);
+    defineReflectiveTests(NullableFlowTest);
     defineReflectiveTests(ReachableFlowTest);
     defineReflectiveTests(TypePromotionFlowTest);
   });
@@ -21,6 +23,10 @@ main() {
 @reflectiveTest
 class DefiniteAssignmentFlowTest extends DriverResolutionTest {
   FlowAnalysisResult flowResult;
+
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   /// Assert that only local variables with the given names are marked as read
   /// before being written.  All the other local variables are implicitly
@@ -1301,15 +1307,17 @@ void f() {
     await resolveTestFile();
 
     var unit = result.unit;
-    var typeSystem = result.typeSystem;
-
-    flowResult = performFlowAnalysis(typeSystem, unit);
+    flowResult = FlowAnalysisResult.getFromNode(unit);
   }
 }
 
 @reflectiveTest
 class NullableFlowTest extends DriverResolutionTest {
   FlowAnalysisResult flowResult;
+
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   void assertNonNullable([
     String search1,
@@ -1411,6 +1419,22 @@ void f(int x) {
     assertNonNullable('x.isEven');
   }
 
+  test_constructor_if_then_else() async {
+    await trackCode(r'''
+class C {
+  C(int x) {
+    if (x == null) {
+      x; // 1
+    } else {
+      x; // 2
+    }
+  }
+}
+''');
+    assertNullable('x; // 1');
+    assertNonNullable('x; // 2');
+  }
+
   test_if_joinThenElse_ifNull() async {
     await trackCode(r'''
 void f(int a, int b) {
@@ -1493,22 +1517,6 @@ void f(int x) {
     await trackCode(r'''
 class C {
   void f(int x) {
-    if (x == null) {
-      x; // 1
-    } else {
-      x; // 2
-    }
-  }
-}
-''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
-  }
-
-  test_constructor_if_then_else() async {
-    await trackCode(r'''
-class C {
-  C(int x) {
     if (x == null) {
       x; // 1
     } else {
@@ -1657,15 +1665,17 @@ void f(int x) {
     await resolveTestFile();
 
     var unit = result.unit;
-    var typeSystem = result.typeSystem;
-
-    flowResult = performFlowAnalysis(typeSystem, unit);
+    flowResult = FlowAnalysisResult.getFromNode(unit);
   }
 }
 
 @reflectiveTest
 class ReachableFlowTest extends DriverResolutionTest {
   FlowAnalysisResult flowResult;
+
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_conditional_false() async {
     await trackCode(r'''
@@ -1688,7 +1698,7 @@ void f() {
   test_do_false() async {
     await trackCode(r'''
 void f() {
-  do (true) {
+  do {
     1;
   } while (false);
   2;
@@ -1700,7 +1710,7 @@ void f() {
   test_do_true() async {
     await trackCode(r'''
 void f() { // f
-  do (true) {
+  do {
     1;
   } while (true);
   2;
@@ -2091,9 +2101,7 @@ void f() { // f
     await resolveTestFile();
 
     var unit = result.unit;
-    var typeSystem = result.typeSystem;
-
-    flowResult = performFlowAnalysis(typeSystem, unit);
+    flowResult = FlowAnalysisResult.getFromNode(unit);
   }
 
   void verify({
@@ -2127,6 +2135,10 @@ void f() { // f
 @reflectiveTest
 class TypePromotionFlowTest extends DriverResolutionTest {
   FlowAnalysisResult flowResult;
+
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   void assertNotPromoted(String search) {
     var node = findNode.simple(search);
@@ -2912,8 +2924,6 @@ void f(bool b, Object x) {
     await resolveTestFile();
 
     var unit = result.unit;
-    var typeSystem = result.typeSystem;
-
-    flowResult = performFlowAnalysis(typeSystem, unit);
+    flowResult = FlowAnalysisResult.getFromNode(unit);
   }
 }
