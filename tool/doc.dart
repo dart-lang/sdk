@@ -269,7 +269,7 @@ class Generator {
             ${getBadges(name)}
             <p class="view"><a href="https://github.com/dart-lang/linter">View the Project on GitHub <small>dart-lang/linter</small></a></p>
             <ul>
-               <li><a href="https://www.dartlang.org/articles/style-guide/">See the <strong>Style Guide</strong></a></li>
+               <li><a href="https://dart.dev/guides/language/effective-dart/style/">See the <strong>Style Guide</strong></a></li>
                <li><a href="https://dart-lang.github.io/linter/lints/">List of <strong>Lint Rules</strong></a></li>
             </ul>
          </header>

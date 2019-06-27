@@ -13,7 +13,7 @@ const _details = r'''
 
 **DO** provide doc comments for all public APIs.
 
-As described in the [pub package layout doc](https://www.dartlang.org/tools/pub/package-layout.html#implementation-files),
+As described in the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files),
 public APIs consist in everything in your package's `lib` folder, minus
 implementation files in `lib/src`, adding elements explicitly exported with an
 `export` directive.
