@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     bool isDartCore(MethodInvocation node) =>
-        node.staticInvokeType?.element?.library?.name == 'dart.core';
+        node.methodName.staticElement?.library?.name == 'dart.core';
 
     if (node.methodName.name == 'print' && isDartCore(node)) {
       rule.reportLint(node.methodName);
