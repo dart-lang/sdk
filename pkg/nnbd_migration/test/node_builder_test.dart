@@ -127,6 +127,34 @@ class D = C with M;
     expect(dType.namedParameters, isEmpty);
   }
 
+  test_class_alias_synthetic_constructors_with_parameters_generic() async {
+    await analyze('''
+class C<T> {
+  C(T t);
+}
+mixin M {}
+class D<U> = C<U> with M;
+''');
+    var cConstructor = findElement.unnamedConstructor('C');
+    var dConstructor = findElement.unnamedConstructor('D');
+    var cConstructorType = variables.decoratedElementType(cConstructor);
+    var dConstructorType = variables.decoratedElementType(dConstructor);
+    expect(dConstructorType.type.toString(), 'D<U> Function(U)');
+    expect(dConstructorType.node, same(never));
+    expect(dConstructorType.typeFormals, isEmpty);
+    expect(dConstructorType.returnType.type.toString(), 'D<U>');
+    expect(dConstructorType.returnType.node, same(never));
+    var typeArguments = dConstructorType.returnType.typeArguments;
+    expect(typeArguments, hasLength(1));
+    expect(typeArguments[0].type.toString(), 'U');
+    expect(typeArguments[0].node, same(never));
+    var cParams = cConstructorType.positionalParameters;
+    var dParams = dConstructorType.positionalParameters;
+    expect(dParams, hasLength(1));
+    expect(dParams[0].type.toString(), 'U');
+    expect(dParams[0].node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
   test_class_with_default_constructor() async {
     await analyze('''
 class C {}

@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -287,6 +288,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     var classElement = node.declaredElement;
     var supertype = classElement.supertype;
     var superElement = supertype.element;
+    if (superElement is ClassElementHandle) {
+      superElement = (superElement as ClassElementHandle).actualElement;
+    }
     for (var constructorElement in classElement.constructors) {
       assert(constructorElement.isSynthetic);
       var superConstructorElement =

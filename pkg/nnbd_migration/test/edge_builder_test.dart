@@ -558,6 +558,21 @@ D f(MyList<int>/*2*/ x) => D(x);
         decoratedTypeAnnotation('int>/*1*/').node);
   }
 
+  test_class_alias_synthetic_constructor_with_parameters_generic() async {
+    await analyze('''
+class C<T> {
+  C(T t);
+}
+mixin M {}
+class D<U> = C<U> with M;
+''');
+    var syntheticConstructor = findElement.unnamedConstructor('D');
+    var constructorType = variables.decoratedElementType(syntheticConstructor);
+    var constructorParameterType = constructorType.positionalParameters[0];
+    assertUnion(
+        constructorParameterType.node, decoratedTypeAnnotation('T t').node);
+  }
+
   test_class_alias_synthetic_constructor_with_parameters_named() async {
     await analyze('''
 class C {
@@ -705,6 +720,74 @@ class C {
 ''');
     // No assertions; just need to make sure that the test doesn't cause an
     // exception to be thrown.
+  }
+
+  test_constructorDeclaration_returnType_generic() async {
+    await analyze('''
+class C<T, U> {
+  C();
+}
+''');
+    var constructor = findElement.unnamedConstructor('C');
+    var constructorDecoratedType = variables.decoratedElementType(constructor);
+    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    expect(constructorDecoratedType.node, same(never));
+    expect(constructorDecoratedType.typeFormals, isEmpty);
+    expect(constructorDecoratedType.returnType.node, same(never));
+    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    var typeArguments = constructorDecoratedType.returnType.typeArguments;
+    expect(typeArguments, hasLength(2));
+    expect(typeArguments[0].type.toString(), 'T');
+    expect(typeArguments[0].node, same(never));
+    expect(typeArguments[1].type.toString(), 'U');
+    expect(typeArguments[1].node, same(never));
+  }
+
+  test_constructorDeclaration_returnType_generic_implicit() async {
+    await analyze('''
+class C<T, U> {}
+''');
+    var constructor = findElement.unnamedConstructor('C');
+    var constructorDecoratedType = variables.decoratedElementType(constructor);
+    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    expect(constructorDecoratedType.node, same(never));
+    expect(constructorDecoratedType.typeFormals, isEmpty);
+    expect(constructorDecoratedType.returnType.node, same(never));
+    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    var typeArguments = constructorDecoratedType.returnType.typeArguments;
+    expect(typeArguments, hasLength(2));
+    expect(typeArguments[0].type.toString(), 'T');
+    expect(typeArguments[0].node, same(never));
+    expect(typeArguments[1].type.toString(), 'U');
+    expect(typeArguments[1].node, same(never));
+  }
+
+  test_constructorDeclaration_returnType_simple() async {
+    await analyze('''
+class C {
+  C();
+}
+''');
+    var constructorDecoratedType =
+        variables.decoratedElementType(findElement.unnamedConstructor('C'));
+    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    expect(constructorDecoratedType.node, same(never));
+    expect(constructorDecoratedType.typeFormals, isEmpty);
+    expect(constructorDecoratedType.returnType.node, same(never));
+    expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
+  }
+
+  test_constructorDeclaration_returnType_simple_implicit() async {
+    await analyze('''
+class C {}
+''');
+    var constructorDecoratedType =
+        variables.decoratedElementType(findElement.unnamedConstructor('C'));
+    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    expect(constructorDecoratedType.node, same(never));
+    expect(constructorDecoratedType.typeFormals, isEmpty);
+    expect(constructorDecoratedType.returnType.node, same(never));
+    expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
   }
 
   test_doubleLiteral() async {
