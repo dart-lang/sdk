@@ -108,9 +108,9 @@ function_type_is_check: TextSerializationFailure # Was: Pass
 function_type_recovery: TextSerializationFailure # Was: Pass
 functions: TextSerializationFailure # Was: Pass
 future_or_test: TextSerializationFailure # Was: Pass
-hello: TextSerializationFailure # Was: Pass
 having_part_with_part_and_annotation: TextSerializationFailure
 having_part_with_parts_and_annotation: TextSerializationFailure
+hello: TextSerializationFailure # Was: Pass
 ignore_function: TypeCheckError
 illegal_named_function_expression: TextSerializationFailure # Was: Pass
 illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
@@ -698,6 +698,7 @@ issue34515: TextSerializationFailure
 issue34899: TypeCheckError
 issue35875: TextSerializationFailure
 issue37027: TextSerializationFailure
+issue37381: TextSerializationFailure
 literals: TextSerializationFailure # Was: Pass
 local_generic_function: TextSerializationFailure # Was: Pass
 magic_const: TextSerializationFailure # Was: Pass

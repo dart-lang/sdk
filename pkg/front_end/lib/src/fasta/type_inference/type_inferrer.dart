@@ -1446,7 +1446,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
-    returnContext = substitution.substituteType(returnContext);
+    if (returnContext is! UnknownType) {
+      returnContext = substitution.substituteType(returnContext);
+    }
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
