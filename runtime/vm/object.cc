@@ -3386,10 +3386,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  const Error& error = Error::Handle(zone, EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+  CHECK_ERROR(EnsureIsFinalized(thread));
 
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(zone, LookupStaticField(setter_name));
@@ -15314,21 +15311,21 @@ RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
   return info.metadata_payloads();
 }
 
-TokenPosition Bytecode::GetTokenIndexOfPC(uword pc) const {
+TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   if (!HasSourcePositions()) {
     return TokenPosition::kNoSource;
   }
-  uword pc_offset = pc - PayloadStart();
+  uword pc_offset = return_address - PayloadStart();
   // PC could equal to bytecode size if the last instruction is Throw.
   ASSERT(pc_offset <= static_cast<uword>(Size()));
   kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                *this);
   TokenPosition token_pos = TokenPosition::kNoSource;
   while (iter.MoveNext()) {
-    if (pc_offset < iter.PcOffset()) {
+    if (pc_offset <= iter.PcOffset()) {
       break;
     }
     token_pos = iter.TokenPos();
@@ -16170,9 +16167,11 @@ const char* UnwindError::ToCString() const {
 RawObject* Instance::InvokeGetter(const String& getter_name,
                                   bool respect_reflectable,
                                   bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
     type_args = GetTypeArguments();
@@ -16228,9 +16227,11 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
                                   const Instance& value,
                                   bool respect_reflectable,
                                   bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   const Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
     type_args = GetTypeArguments();
@@ -16273,8 +16274,10 @@ RawObject* Instance::Invoke(const String& function_name,
                             const Array& arg_names,
                             bool respect_reflectable,
                             bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
@@ -16528,6 +16531,12 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
+  if (!cls.is_finalized()) {
+    // Various predefined classes can be instantiated by the VM or
+    // Dart_NewString/Integer/TypedData/... before the class is finalized.
+    ASSERT(cls.is_prefinalized());
+    cls.EnsureDeclarationLoaded();
+  }
   if (cls.IsClosureClass()) {
     Function& signature =
         Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(

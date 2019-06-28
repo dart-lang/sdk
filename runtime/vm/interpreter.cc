@@ -256,6 +256,28 @@ DART_FORCE_INLINE static RawObject* InitializeHeader(uword addr,
   return RawObject::FromAddr(addr);
 }
 
+DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
+                                          intptr_t class_id,
+                                          intptr_t instance_size,
+                                          RawObject** result) {
+  const uword start = thread->top();
+#ifndef PRODUCT
+  ClassTable* table = thread->isolate()->class_table();
+  if (UNLIKELY(table->TraceAllocationFor(class_id))) {
+    return false;
+  }
+#endif
+  if (LIKELY((start + instance_size) < thread->end())) {
+    thread->set_top(start + instance_size);
+#ifndef PRODUCT
+    table->UpdateAllocatedNew(class_id, instance_size);
+#endif
+    *result = InitializeHeader(start, class_id, instance_size);
+    return true;
+  }
+  return false;
+}
+
 void LookupCache::Clear() {
   for (intptr_t i = 0; i < kNumEntries; i++) {
     entries_[i].receiver_cid = kIllegalCid;
@@ -1351,14 +1373,9 @@ DART_NOINLINE bool Interpreter::AllocateMint(Thread* thread,
                                              RawObject** FP,
                                              RawObject** SP) {
   ASSERT(!Smi::IsValid(value));
-  const intptr_t instance_size = Mint::InstanceSize();
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kMintCid, instance_size));
-    RawMint* result =
-        Mint::RawCast(InitializeHeader(start, kMintCid, instance_size));
+  RawMint* result;
+  if (TryAllocate(thread, kMintCid, Mint::InstanceSize(),
+                  reinterpret_cast<RawObject**>(&result))) {
     result->ptr()->value_ = value;
     SP[0] = result;
     return true;
@@ -1383,14 +1400,9 @@ DART_NOINLINE bool Interpreter::AllocateDouble(Thread* thread,
                                                const KBCInstr* pc,
                                                RawObject** FP,
                                                RawObject** SP) {
-  const intptr_t instance_size = Double::InstanceSize();
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kDoubleCid, instance_size));
-    RawDouble* result =
-        Double::RawCast(InitializeHeader(start, kDoubleCid, instance_size));
+  RawDouble* result;
+  if (TryAllocate(thread, kDoubleCid, Double::InstanceSize(),
+                  reinterpret_cast<RawObject**>(&result))) {
     result->ptr()->value_ = value;
     SP[0] = result;
     return true;
@@ -1415,14 +1427,9 @@ DART_NOINLINE bool Interpreter::AllocateFloat32x4(Thread* thread,
                                                   const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
-  const intptr_t instance_size = Float32x4::InstanceSize();
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kFloat32x4Cid, instance_size));
-    RawFloat32x4* result = Float32x4::RawCast(
-        InitializeHeader(start, kFloat32x4Cid, instance_size));
+  RawFloat32x4* result;
+  if (TryAllocate(thread, kFloat32x4Cid, Float32x4::InstanceSize(),
+                  reinterpret_cast<RawObject**>(&result))) {
     value.writeTo(result->ptr()->value_);
     SP[0] = result;
     return true;
@@ -1447,14 +1454,9 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
                                                   const KBCInstr* pc,
                                                   RawObject** FP,
                                                   RawObject** SP) {
-  const intptr_t instance_size = Float64x2::InstanceSize();
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kFloat64x2Cid, instance_size));
-    RawFloat64x2* result = Float64x2::RawCast(
-        InitializeHeader(start, kFloat64x2Cid, instance_size));
+  RawFloat64x2* result;
+  if (TryAllocate(thread, kFloat64x2Cid, Float64x2::InstanceSize(),
+                  reinterpret_cast<RawObject**>(&result))) {
     value.writeTo(result->ptr()->value_);
     SP[0] = result;
     return true;
@@ -1483,14 +1485,9 @@ bool Interpreter::AllocateArray(Thread* thread,
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
     if (LIKELY(Array::IsValidLength(length))) {
-      const intptr_t instance_size = Array::InstanceSize(length);
-      const uword start = thread->top();
-      if (LIKELY((start + instance_size) < thread->end())) {
-        thread->set_top(start + instance_size);
-        NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-            kArrayCid, instance_size));
-        RawArray* result =
-            Array::RawCast(InitializeHeader(start, kArrayCid, instance_size));
+      RawArray* result;
+      if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
+                      reinterpret_cast<RawObject**>(&result))) {
         result->ptr()->type_arguments_ = type_args;
         result->ptr()->length_ = Smi::New(length);
         for (intptr_t i = 0; i < length; i++) {
@@ -1517,21 +1514,15 @@ bool Interpreter::AllocateContext(Thread* thread,
                                   const KBCInstr* pc,
                                   RawObject** FP,
                                   RawObject** SP) {
-  const intptr_t instance_size = Context::InstanceSize(num_context_variables);
-  ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kContextCid, instance_size));
-    RawContext* result =
-        Context::RawCast(InitializeHeader(start, kContextCid, instance_size));
+  RawContext* result;
+  if (TryAllocate(thread, kContextCid,
+                  Context::InstanceSize(num_context_variables),
+                  reinterpret_cast<RawObject**>(&result))) {
     result->ptr()->num_variables_ = num_context_variables;
     RawObject* null_value = Object::null();
     result->ptr()->parent_ = static_cast<RawContext*>(null_value);
-    for (intptr_t offset = sizeof(RawContext); offset < instance_size;
-         offset += kWordSize) {
-      *reinterpret_cast<RawObject**>(start + offset) = null_value;
+    for (intptr_t i = 0; i < num_context_variables; i++) {
+      result->ptr()->data()[i] = null_value;
     }
     SP[0] = result;
     return true;
@@ -1551,13 +1542,10 @@ bool Interpreter::AllocateClosure(Thread* thread,
                                   RawObject** FP,
                                   RawObject** SP) {
   const intptr_t instance_size = Closure::InstanceSize();
-  const uword start = thread->top();
-  if (LIKELY((start + instance_size) < thread->end())) {
-    thread->set_top(start + instance_size);
-    NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-        kClosureCid, instance_size));
-    RawClosure* result =
-        Closure::RawCast(InitializeHeader(start, kClosureCid, instance_size));
+  RawClosure* result;
+  if (TryAllocate(thread, kClosureCid, instance_size,
+                  reinterpret_cast<RawObject**>(&result))) {
+    uword start = RawObject::ToAddr(result);
     RawObject* null_value = Object::null();
     for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
          offset += kWordSize) {
@@ -2492,12 +2480,9 @@ SwitchDispatch:
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->instance_size_in_words_
                                      << kWordSizeLog2;
-      const uword start = thread->top();
-      if (LIKELY((start + instance_size) < thread->end())) {
-        thread->set_top(start + instance_size);
-        NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-            class_id, instance_size));
-        RawObject* result = InitializeHeader(start, class_id, instance_size);
+      RawObject* result;
+      if (TryAllocate(thread, class_id, instance_size, &result)) {
+        uword start = RawObject::ToAddr(result);
         for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
              offset += kWordSize) {
           *reinterpret_cast<RawObject**>(start + offset) = null_value;
@@ -2525,12 +2510,9 @@ SwitchDispatch:
       const intptr_t class_id = cls->ptr()->id_;
       const intptr_t instance_size = cls->ptr()->instance_size_in_words_
                                      << kWordSizeLog2;
-      const uword start = thread->top();
-      if (LIKELY((start + instance_size) < thread->end())) {
-        thread->set_top(start + instance_size);
-        NOT_IN_PRODUCT(thread->isolate()->class_table()->UpdateAllocatedNew(
-            class_id, instance_size));
-        RawObject* result = InitializeHeader(start, class_id, instance_size);
+      RawObject* result;
+      if (TryAllocate(thread, class_id, instance_size, &result)) {
+        uword start = RawObject::ToAddr(result);
         for (intptr_t offset = sizeof(RawInstance); offset < instance_size;
              offset += kWordSize) {
           *reinterpret_cast<RawObject**>(start + offset) = null_value;

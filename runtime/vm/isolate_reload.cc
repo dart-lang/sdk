@@ -4,6 +4,8 @@
 
 #include "vm/isolate_reload.h"
 
+#include <memory>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -171,10 +173,10 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->kernel_offset() > 0) {
-      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
+    if (field->is_declared_in_bytecode()) {
+      UNIMPLEMENTED();
     } else {
-      UNREACHABLE();
+      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
     }
 
     for (intptr_t j = 0; j < after_->length(); j++) {
@@ -2307,6 +2309,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Can't have any subclasses or implementors yet.
+      }
       subclasses = cls.direct_subclasses();
       if (!subclasses.IsNull()) {
         cls.ClearDirectSubclasses();
@@ -2330,6 +2335,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Will register itself later when loaded.
+      }
       super_type = cls.super_type();
       if (!super_type.IsNull() && !super_type.IsObjectType()) {
         super_cls = cls.SuperClass();

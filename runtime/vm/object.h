@@ -5726,7 +5726,7 @@ class Bytecode : public Object {
 
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
-  TokenPosition GetTokenIndexOfPC(uword pc) const;
+  TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
