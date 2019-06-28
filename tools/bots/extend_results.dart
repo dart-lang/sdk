@@ -20,10 +20,6 @@ main(List<String> args) async {
   final commitTime = int.parse(args[6]);
   final commitHash = args[7];
   final newResultsPath = args[8];
-  if (builderName == '' || buildNumber == '' || commitHash == '') {
-    print("builderName, buildNumber, or commitHash was empty");
-    exit(1);
-  }
   // Load the input and the flakiness data if specified.
   final results = await loadResultsMap(resultsPath);
   final priorResults = await loadResultsMap(priorResultsPath);
