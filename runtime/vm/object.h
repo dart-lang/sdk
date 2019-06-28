@@ -7329,9 +7329,7 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(int64_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
-  }
+  static bool IsValid(int64_t value) { return compiler::target::IsSmi(value); }
 
   void operator=(RawSmi* value) {
     raw_ = value;

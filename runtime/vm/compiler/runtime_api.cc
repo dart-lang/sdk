@@ -3,12 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/runtime_api.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace compiler {
 namespace target {
 
 #include "vm/compiler/runtime_offsets_extracted.h"
+
+bool IsSmi(int64_t v) {
+  return Utils::IsInt(kSmiBits + 1, v);
+}
 
 }  // namespace target
 }  // namespace compiler
@@ -561,11 +566,7 @@ static_assert(
     "Expected that size of Smi on HOST is at least as large as on target.");
 
 bool IsSmi(const dart::Object& a) {
-  return a.IsSmi() && Utils::IsInt(kSmiBits + 1, dart::Smi::Cast(a).Value());
-}
-
-bool IsSmi(int64_t v) {
-  return Utils::IsInt(kSmiBits + 1, v);
+  return a.IsSmi() && IsSmi(dart::Smi::Cast(a).Value());
 }
 
 word ToRawSmi(const dart::Object& a) {
