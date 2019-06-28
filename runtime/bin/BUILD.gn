@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+
+import("../../build/config/gclient_args.gni")
 import("../../build/dart/dart_action.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
@@ -923,6 +925,9 @@ executable("run_vm_tests") {
     "..:libdart_nosnapshot_with_precompiler",
     "//third_party/zlib",
   ]
+  if (checkout_llvm) {
+    deps += [ "//runtime/llvm_codegen/bit:test" ]
+  }
   include_dirs = [
     "..",
     "$target_gen_dir",
