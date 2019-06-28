@@ -734,14 +734,17 @@ intptr_t ActivationFrame::ContextLevel() {
         PrintDescriptorsError("Missing local variables info");
       }
       intptr_t pc_offset = pc_ - bytecode.PayloadStart();
+      // Look for innermost scope, i.e. with the highest context level.
+      // Since scopes are ordered by StartPC(), the last scope which includes
+      // pc_offset will be the innermost one.
       kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
       while (local_vars.MoveNext()) {
         if (local_vars.Kind() ==
             kernel::BytecodeLocalVariablesIterator::kScope) {
           if (local_vars.StartPC() <= pc_offset &&
               pc_offset < local_vars.EndPC()) {
+            ASSERT(context_level_ <= local_vars.ContextLevel());
             context_level_ = local_vars.ContextLevel();
-            break;
           }
         }
       }
@@ -749,7 +752,6 @@ intptr_t ActivationFrame::ContextLevel() {
         // Obtain the context level from the parent function.
         // TODO(alexmarkov): Define scope which includes the whole closure body.
         Function& parent = Function::Handle(zone, function().parent_function());
-        intptr_t depth = 1;
         do {
           bytecode = parent.bytecode();
           kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
@@ -758,14 +760,13 @@ intptr_t ActivationFrame::ContextLevel() {
                 kernel::BytecodeLocalVariablesIterator::kScope) {
               if (local_vars.StartTokenPos() <= TokenPos() &&
                   TokenPos() <= local_vars.EndTokenPos()) {
-                context_level_ = local_vars.ContextLevel() + depth;
-                break;
+                ASSERT(context_level_ <= local_vars.ContextLevel());
+                context_level_ = local_vars.ContextLevel();
               }
             }
           }
           if (context_level_ >= 0) break;
           parent = parent.parent_function();
-          depth++;
         } while (!parent.IsNull());
       }
       if (context_level_ < 0) {

@@ -3174,6 +3174,7 @@ RawLocalVarDescriptors* BytecodeReader::ComputeLocalVarDescriptors(
             desc.info.scope_id = scope_id;
             if (local_vars.Index() < 0) {
               // Parameter
+              ASSERT(local_vars.Index() < -kKBCParamEndSlotFromFp);
               desc.info.set_index(-local_vars.Index() - kKBCParamEndSlotFromFp);
             } else {
               desc.info.set_index(-local_vars.Index());
