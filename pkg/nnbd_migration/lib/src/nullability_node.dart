@@ -270,6 +270,14 @@ class NullabilityGraph {
 /// testing.
 @visibleForTesting
 class NullabilityGraphForTesting extends NullabilityGraph {
+  /// Iterates through all edges that have this node as one of their sources.
+  ///
+  /// There is no guarantee of uniqueness of the iterated edges.
+  @visibleForTesting
+  Iterable<NullabilityEdge> getDownstreamEdges(NullabilityNode node) {
+    return node._downstreamEdges;
+  }
+
   /// Iterates through all edges that have this node as their destination.
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.

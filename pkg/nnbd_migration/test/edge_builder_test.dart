@@ -1847,6 +1847,80 @@ void test(C c) {
         assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
   }
 
+  test_redirecting_constructor_factory() async {
+    await analyze('''
+class C {
+  factory C(int/*1*/ i, {int/*2*/ j}) = D;
+}
+class D implements C {
+  D(int/*3*/ i, {int/*4*/ j});
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*3*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: true);
+  }
+
+  test_redirecting_constructor_factory_from_generic_to_generic() async {
+    await analyze('''
+class C<T> {
+  factory C(T/*1*/ t) = D<T/*2*/>;
+}
+class D<U> implements C<U> {
+  D(U/*3*/ u);
+}
+''');
+    var nullable_t1 = decoratedTypeAnnotation('T/*1*/').node;
+    var nullable_t2 = decoratedTypeAnnotation('T/*2*/').node;
+    var nullable_u3 = decoratedTypeAnnotation('U/*3*/').node;
+    var nullable_t2_or_nullable_u3 = graph
+        .getDownstreamEdges(nullable_t1)
+        .single
+        .destinationNode as NullabilityNodeForSubstitution;
+    expect(nullable_t2_or_nullable_u3.innerNode, same(nullable_t2));
+    expect(nullable_t2_or_nullable_u3.outerNode, same(nullable_u3));
+    assertEdge(nullable_t1, nullable_t2_or_nullable_u3, hard: true);
+  }
+
+  test_redirecting_constructor_factory_to_generic() async {
+    await analyze('''
+class C {
+  factory C(int/*1*/ i) = D<int/*2*/>;
+}
+class D<T> implements C {
+  D(T/*3*/ i);
+}
+''');
+    var nullable_i1 = decoratedTypeAnnotation('int/*1*/').node;
+    var nullable_i2 = decoratedTypeAnnotation('int/*2*/').node;
+    var nullable_t3 = decoratedTypeAnnotation('T/*3*/').node;
+    var nullable_i2_or_nullable_t3 = graph
+        .getDownstreamEdges(nullable_i1)
+        .single
+        .destinationNode as NullabilityNodeForSubstitution;
+    expect(nullable_i2_or_nullable_t3.innerNode, same(nullable_i2));
+    expect(nullable_i2_or_nullable_t3.outerNode, same(nullable_t3));
+    assertEdge(nullable_i1, nullable_i2_or_nullable_t3, hard: true);
+  }
+
+  test_redirecting_constructor_ordinary() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i, int/*2*/ j) : this.named(j, i);
+  C.named(int/*3*/ j, int/*4*/ i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*3*/').node,
+        hard: true);
+  }
+
   test_return_function_type_simple() async {
     await analyze('''
 int/*1*/ Function() f(int/*2*/ Function() x) => x;

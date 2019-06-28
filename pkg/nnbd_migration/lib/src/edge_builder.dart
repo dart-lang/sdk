@@ -331,11 +331,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (node.redirectedConstructor != null) {
-      _unimplemented(node, 'Redirected constructor');
-    }
-    _handleExecutableDeclaration(node.declaredElement, node.metadata, null,
-        node.parameters, node.initializers, node.body);
+    _handleExecutableDeclaration(
+        node.declaredElement,
+        node.metadata,
+        null,
+        node.parameters,
+        node.initializers,
+        node.body,
+        node.redirectedConstructor);
     return null;
   }
 
@@ -470,14 +473,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       InstanceCreationExpression node) {
     var callee = node.staticElement;
     var calleeType = getOrComputeElementType(callee);
-    if (callee.enclosingElement.typeParameters.isNotEmpty) {
+    var typeParameters = callee.enclosingElement.typeParameters;
+    if (typeParameters.isNotEmpty) {
       // If the class has type parameters then we might need to substitute the
       // appropriate type arguments.
       // TODO(brianwilkerson)
       _unimplemented(node, 'Instance creation expression with type arguments');
     }
-    _handleInvocationArguments(
-        node.argumentList, node.constructorName.type.typeArguments, calleeType);
+    _handleInvocationArguments(node, node.argumentList.arguments,
+        node.constructorName.type.typeArguments, calleeType, typeParameters);
     return calleeType.returnType;
   }
 
@@ -544,7 +548,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _unimplemented(node, 'Generic method');
     }
     _handleExecutableDeclaration(node.declaredElement, node.metadata,
-        node.returnType, node.parameters, null, node.body);
+        node.returnType, node.parameters, null, node.body, null);
     return null;
   }
 
@@ -568,8 +572,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
     // TODO(paulberry): substitute if necessary
-    var expressionType = _handleInvocationArguments(
-        node.argumentList, node.typeArguments, calleeType);
+    var expressionType = _handleInvocationArguments(node,
+        node.argumentList.arguments, node.typeArguments, calleeType, null);
     if (isConditional) {
       expressionType = expressionType.withNode(
           NullabilityNode.forLUB(targetType.node, expressionType.node));
@@ -678,6 +682,16 @@ $stackTrace''');
   @override
   DecoratedType visitPropertyAccess(PropertyAccess node) {
     return _handlePropertyAccess(node, node.realTarget, node.propertyName);
+  }
+
+  @override
+  DecoratedType visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    var callee = node.constructorName.staticElement;
+    var calleeType = _variables.decoratedElementType(callee);
+    _handleInvocationArguments(
+        node, node.argumentList.arguments, null, calleeType, null);
+    return null;
   }
 
   @override
@@ -938,13 +952,30 @@ $stackTrace''');
     return sourceType;
   }
 
+  void _handleConstructorRedirection(
+      FormalParameterList parameters, ConstructorName redirectedConstructor) {
+    var callee = redirectedConstructor.staticElement;
+    if (callee is ConstructorMember) {
+      callee = (callee as ConstructorMember).baseElement;
+    }
+    var redirectedClass = callee.enclosingElement;
+    var calleeType = _variables.decoratedElementType(callee);
+    _handleInvocationArguments(
+        redirectedConstructor,
+        parameters.parameters,
+        redirectedConstructor.type.typeArguments,
+        calleeType,
+        redirectedClass.typeParameters);
+  }
+
   void _handleExecutableDeclaration(
       ExecutableElement declaredElement,
       NodeList<Annotation> metadata,
       TypeAnnotation returnType,
       FormalParameterList parameters,
       NodeList<ConstructorInitializer> initializers,
-      FunctionBody body) {
+      FunctionBody body,
+      ConstructorName redirectedConstructor) {
     assert(_currentFunctionType == null);
     metadata.accept(this);
     returnType?.accept(this);
@@ -954,6 +985,9 @@ $stackTrace''');
     try {
       initializers?.accept(this);
       body.accept(this);
+      if (redirectedConstructor != null) {
+        _handleConstructorRedirection(parameters, redirectedConstructor);
+      }
       if (declaredElement is! ConstructorElement) {
         var classElement = declaredElement.enclosingElement as ClassElement;
         for (var overridden in _inheritanceManager.getOverridden(
@@ -986,44 +1020,67 @@ $stackTrace''');
   ///
   /// Returns the decorated return type of the invocation, after any necessary
   /// substitutions.
-  DecoratedType _handleInvocationArguments(ArgumentList argumentList,
-      TypeArgumentList typeArguments, DecoratedType calleeType) {
-    var typeFormals = calleeType.typeFormals;
+  DecoratedType _handleInvocationArguments(
+      AstNode node,
+      Iterable<AstNode> arguments,
+      TypeArgumentList typeArguments,
+      DecoratedType calleeType,
+      List<TypeParameterElement> constructorTypeParameters) {
+    var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
     if (typeFormals.isNotEmpty) {
       if (typeArguments != null) {
-        calleeType = calleeType.instantiate(typeArguments.arguments
+        var argumentTypes = typeArguments.arguments
             .map((t) => _variables.decoratedTypeAnnotation(_source, t))
-            .toList());
+            .toList();
+        if (constructorTypeParameters != null) {
+          calleeType = calleeType.substitute(
+              Map<TypeParameterElement, DecoratedType>.fromIterables(
+                  constructorTypeParameters, argumentTypes));
+        } else {
+          calleeType = calleeType.instantiate(argumentTypes);
+        }
       } else {
-        _unimplemented(argumentList, 'Inferred type parameters in invocation');
+        _unimplemented(node, 'Inferred type parameters in invocation');
       }
     }
-    var arguments = argumentList.arguments;
     int i = 0;
     var suppliedNamedParameters = Set<String>();
-    for (var expression in arguments) {
-      if (expression is NamedExpression) {
-        var name = expression.name.label.name;
-        var parameterType = calleeType.namedParameters[name];
+    for (var argument in arguments) {
+      String name;
+      Expression expression;
+      if (argument is NamedExpression) {
+        name = argument.name.label.name;
+        expression = argument.expression;
+      } else if (argument is FormalParameter) {
+        if (argument.isNamed) {
+          name = argument.identifier.name;
+        }
+        expression = argument.identifier;
+      } else {
+        expression = argument;
+      }
+      DecoratedType parameterType;
+      if (name != null) {
+        parameterType = calleeType.namedParameters[name];
         if (parameterType == null) {
           // TODO(paulberry)
           _unimplemented(expression, 'Missing type for named parameter');
         }
-        _handleAssignment(expression.expression, parameterType);
         suppliedNamedParameters.add(name);
       } else {
         if (calleeType.positionalParameters.length <= i) {
           // TODO(paulberry)
-          _unimplemented(argumentList, 'Missing positional parameter at $i');
+          _unimplemented(node, 'Missing positional parameter at $i');
         }
-        _handleAssignment(expression, calleeType.positionalParameters[i++]);
+        parameterType = calleeType.positionalParameters[i++];
       }
+      _handleAssignment(expression, parameterType);
     }
     // Any parameters not supplied must be optional.
     for (var entry in calleeType.namedParameters.entries) {
       if (suppliedNamedParameters.contains(entry.key)) continue;
       entry.value.node.recordNamedParameterNotSupplied(_guards, _graph,
-          NamedParameterNotSuppliedOrigin(_source, argumentList.offset));
+          NamedParameterNotSuppliedOrigin(_source, node.offset));
     }
     return calleeType.returnType;
   }
