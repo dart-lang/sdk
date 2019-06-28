@@ -21,8 +21,9 @@ const _flutterOptionsUrl =
     'https://raw.githubusercontent.com/flutter/flutter/master/packages/flutter/lib/analysis_options_user.yaml';
 const _flutterRepoOptionsUrl =
     'https://raw.githubusercontent.com/flutter/flutter/master/analysis_options.yaml';
-const _pedanticOptionsUrl =
-    'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
+const _pedanticOptionsRootUrl =
+    'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib';
+const _pedanticOptionsUrl = '$_pedanticOptionsRootUrl/analysis_options.yaml';
 const _stagehandOptionsUrl =
     'https://raw.githubusercontent.com/dart-lang/stagehand/master/templates/analysis_options.yaml';
 
@@ -42,7 +43,14 @@ Future<List<String>> get flutterRepoRules async =>
     _flutterRepoRules ??= await _fetchRules(_flutterRepoOptionsUrl);
 
 Future<List<String>> get pedanticRules async =>
-    _pedanticRules ??= await _fetchRules(_pedanticOptionsUrl);
+    _pedanticRules ??= await _fetchPedanticRules();
+
+Future<List<String>> _fetchPedanticRules() async {
+  var client = new http.Client();
+  var req = await client.get(_pedanticOptionsUrl);
+  var includedOptions = req.body.split('include: package:pedantic/')[1].trim();
+  return _fetchRules('$_pedanticOptionsRootUrl/$includedOptions');
+}
 
 Future<List<String>> get stagehandRules async =>
     _stagehandRules ??= await _fetchRules(_stagehandOptionsUrl);
