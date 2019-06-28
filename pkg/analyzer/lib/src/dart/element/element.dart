@@ -7162,13 +7162,15 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
 
   @override
   bool get isLate {
-    if (linkedNode != null) {
-      return enclosingUnit.linkedContext.isLate(linkedNode);
-    }
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isLate;
     }
     return hasModifier(Modifier.LATE);
+  }
+
+  /// Set whether this variable is late.
+  void set isLate(bool isLate) {
+    setModifier(Modifier.LATE, isLate);
   }
 
   @override

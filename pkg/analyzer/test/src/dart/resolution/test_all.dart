@@ -27,6 +27,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'local_variable_test.dart' as local_variable;
 import 'metadata_test.dart' as metadata;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
@@ -59,6 +60,7 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    local_variable.main();
     metadata.main();
     method_invocation.main();
     mixin_resolution.main();

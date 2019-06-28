@@ -1332,6 +1332,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     variableName.staticElement = element;
     element.isConst = isConst;
     element.isFinal = isFinal;
+    element.isLate = node.isLate;
     buildVariableInitializer(element, initializerNode);
   }
 
