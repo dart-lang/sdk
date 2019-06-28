@@ -107,6 +107,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
+  bool IsRecognizedMethodForFlowGraph(const Function& function);
+  FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
+
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
 

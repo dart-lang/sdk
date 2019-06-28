@@ -774,12 +774,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     bool is_constructor) {
   const Function& dart_function = parsed_function()->function();
 
-  // The prologue builder needs the default parameter values.
-  SetupDefaultParameterValues();
-  // TypeArgumentsHandling / BuildDefaultTypeHandling needs
-  // default function type arguments.
-  ReadDefaultFunctionTypeArguments(dart_function);
-
   intptr_t type_parameters_offset = 0;
   LocalVariable* first_parameter = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
@@ -961,9 +955,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     }
 
     ASSERT(function.HasBytecode());
+
     BytecodeFlowGraphBuilder bytecode_compiler(
         flow_graph_builder_, parsed_function(),
         &(flow_graph_builder_->ic_data_array_));
+
+    if (B->IsRecognizedMethodForFlowGraph(function)) {
+      bytecode_compiler.CreateParameterVariables();
+      return B->BuildGraphOfRecognizedMethod(function);
+    }
+
     return bytecode_compiler.BuildGraph();
   }
 
@@ -983,13 +984,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction: {
-      ReadUntilFunctionNode();
-      return BuildGraphOfFunction(false);
-    }
+    case RawFunction::kClosureFunction:
     case RawFunction::kConstructor: {
-      ReadUntilFunctionNode();
-      return BuildGraphOfFunction(!function.IsFactory());
+      if (B->IsRecognizedMethodForFlowGraph(function)) {
+        return B->BuildGraphOfRecognizedMethod(function);
+      }
+      return BuildGraphOfFunction(function.IsGenerativeConstructor());
     }
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
@@ -1053,6 +1053,11 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kSetterFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kConstructor:
+    case RawFunction::kImplicitClosureFunction:
+      ReadUntilFunctionNode();
+      SetupDefaultParameterValues();
+      ReadDefaultFunctionTypeArguments(function);
+      break;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
@@ -1061,11 +1066,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
     case RawFunction::kFfiTrampoline:
-      break;
-    case RawFunction::kImplicitClosureFunction:
-      ReadUntilFunctionNode();
-      SetupDefaultParameterValues();
-      ReadDefaultFunctionTypeArguments(function);
       break;
     case RawFunction::kDynamicInvocationForwarder:
       if (PeekTag() != kField) {

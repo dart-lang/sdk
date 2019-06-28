@@ -252,6 +252,110 @@ void BytecodeFlowGraphBuilder::AllocateFixedParameters() {
   parsed_function()->SetRawParameters(parameters);
 }
 
+const KBCInstr*
+BytecodeFlowGraphBuilder::AllocateParametersAndLocalsForEntryOptional() {
+  ASSERT(KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_));
+
+  const intptr_t num_fixed_params = DecodeOperandA().value();
+  const intptr_t num_opt_pos_params = DecodeOperandB().value();
+  const intptr_t num_opt_named_params = DecodeOperandC().value();
+
+  ASSERT(num_fixed_params == function().num_fixed_parameters());
+  ASSERT(num_opt_pos_params == function().NumOptionalPositionalParameters());
+  ASSERT(num_opt_named_params == function().NumOptionalNamedParameters());
+
+  ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
+  const intptr_t num_load_const = num_opt_pos_params + 2 * num_opt_named_params;
+
+  const KBCInstr* instr = KernelBytecode::Next(bytecode_instr_);
+  const KBCInstr* frame_instr = instr;
+  for (intptr_t i = 0; i < num_load_const; ++i) {
+    frame_instr = KernelBytecode::Next(frame_instr);
+  }
+  ASSERT(KernelBytecode::IsFrameOpcode(frame_instr));
+  const intptr_t num_extra_locals = KernelBytecode::DecodeD(frame_instr);
+  const intptr_t num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  const intptr_t total_locals = num_params + num_extra_locals;
+
+  AllocateLocalVariables(Operand(total_locals), num_params);
+
+  ZoneGrowableArray<const Instance*>* default_values =
+      new (Z) ZoneGrowableArray<const Instance*>(
+          Z, num_opt_pos_params + num_opt_named_params);
+  ZoneGrowableArray<LocalVariable*>* raw_parameters =
+      new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
+
+  intptr_t param = 0;
+  for (; param < num_fixed_params; ++param) {
+    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
+    raw_parameters->Add(param_var);
+  }
+
+  for (intptr_t i = 0; i < num_opt_pos_params; ++i, ++param) {
+    const KBCInstr* load_value_instr = instr;
+    instr = KernelBytecode::Next(instr);
+    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+    ASSERT(KernelBytecode::DecodeA(load_value_instr) == param);
+    const Object& default_value =
+        ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr))).value();
+
+    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
+    raw_parameters->Add(param_var);
+    default_values->Add(
+        &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw())));
+  }
+
+  if (num_opt_named_params > 0) {
+    default_values->EnsureLength(num_opt_named_params, nullptr);
+    raw_parameters->EnsureLength(num_params, nullptr);
+
+    ASSERT(scratch_var_ != nullptr);
+
+    for (intptr_t i = 0; i < num_opt_named_params; ++i, ++param) {
+      const KBCInstr* load_name_instr = instr;
+      const KBCInstr* load_value_instr = KernelBytecode::Next(load_name_instr);
+      instr = KernelBytecode::Next(load_value_instr);
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
+      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+      const String& param_name = String::Cast(
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_name_instr)))
+              .value());
+      ASSERT(param_name.IsSymbol());
+      const Object& default_value =
+          ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr)))
+              .value();
+
+      intptr_t param_index = num_fixed_params;
+      for (; param_index < num_params; ++param_index) {
+        if (function().ParameterNameAt(param_index) == param_name.raw()) {
+          break;
+        }
+      }
+      ASSERT(param_index < num_params);
+
+      ASSERT(default_values->At(param_index - num_fixed_params) == nullptr);
+      (*default_values)[param_index - num_fixed_params] =
+          &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw()));
+
+      const intptr_t local_index = KernelBytecode::DecodeA(load_name_instr);
+      ASSERT(local_index == KernelBytecode::DecodeA(load_value_instr));
+
+      LocalVariable* param_var =
+          AllocateParameter(param_index, VariableIndex(-param));
+      ASSERT(raw_parameters->At(param_index) == nullptr);
+      (*raw_parameters)[param_index] = param_var;
+    }
+  }
+
+  ASSERT(instr == frame_instr);
+
+  parsed_function()->set_default_parameter_values(default_values);
+  parsed_function()->SetRawParameters(raw_parameters);
+
+  return KernelBytecode::Next(frame_instr);
+}
+
 LocalVariable* BytecodeFlowGraphBuilder::LocalVariableAt(intptr_t local_index) {
   ASSERT(!is_generating_interpreter());
   if (local_index < 0) {
@@ -469,103 +573,13 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
 
-  const intptr_t num_fixed_params = DecodeOperandA().value();
-  const intptr_t num_opt_pos_params = DecodeOperandB().value();
-  const intptr_t num_opt_named_params = DecodeOperandC().value();
-  ASSERT(num_fixed_params == function().num_fixed_parameters());
-  ASSERT(num_opt_pos_params == function().NumOptionalPositionalParameters());
-  ASSERT(num_opt_named_params == function().NumOptionalNamedParameters());
+  const KBCInstr* next_instr = AllocateParametersAndLocalsForEntryOptional();
 
-  ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
-  const intptr_t num_load_const = num_opt_pos_params + 2 * num_opt_named_params;
-
-  const KBCInstr* instr = KernelBytecode::Next(bytecode_instr_);
-  const KBCInstr* frame_instr = instr;
-  for (intptr_t i = 0; i < num_load_const; ++i) {
-    frame_instr = KernelBytecode::Next(frame_instr);
-  }
-  ASSERT(KernelBytecode::IsFrameOpcode(frame_instr));
-  const intptr_t num_extra_locals = KernelBytecode::DecodeD(frame_instr);
-  const intptr_t num_params =
-      num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  const intptr_t total_locals = num_params + num_extra_locals;
-
-  AllocateLocalVariables(Operand(total_locals), num_params);
-
-  ZoneGrowableArray<const Instance*>* default_values =
-      new (Z) ZoneGrowableArray<const Instance*>(
-          Z, num_opt_pos_params + num_opt_named_params);
-  ZoneGrowableArray<LocalVariable*>* raw_parameters =
-      new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_params);
   LocalVariable* temp_var = nullptr;
-
-  intptr_t param = 0;
-  for (; param < num_fixed_params; ++param) {
-    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
-    raw_parameters->Add(param_var);
-  }
-
-  for (intptr_t i = 0; i < num_opt_pos_params; ++i, ++param) {
-    const KBCInstr* load_value_instr = instr;
-    instr = KernelBytecode::Next(instr);
-    ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
-    ASSERT(KernelBytecode::DecodeA(load_value_instr) == param);
-    const Object& default_value =
-        ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr))).value();
-
-    LocalVariable* param_var = AllocateParameter(param, VariableIndex(-param));
-    raw_parameters->Add(param_var);
-    default_values->Add(
-        &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw())));
-  }
-
-  if (num_opt_named_params > 0) {
-    default_values->EnsureLength(num_opt_named_params, nullptr);
-    raw_parameters->EnsureLength(num_params, nullptr);
-
+  if (function().HasOptionalNamedParameters()) {
     ASSERT(scratch_var_ != nullptr);
     temp_var = scratch_var_;
-
-    for (intptr_t i = 0; i < num_opt_named_params; ++i, ++param) {
-      const KBCInstr* load_name_instr = instr;
-      const KBCInstr* load_value_instr = KernelBytecode::Next(load_name_instr);
-      instr = KernelBytecode::Next(load_value_instr);
-      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
-      ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
-      const String& param_name = String::Cast(
-          ConstantAt(Operand(KernelBytecode::DecodeE(load_name_instr)))
-              .value());
-      ASSERT(param_name.IsSymbol());
-      const Object& default_value =
-          ConstantAt(Operand(KernelBytecode::DecodeE(load_value_instr)))
-              .value();
-
-      intptr_t param_index = num_fixed_params;
-      for (; param_index < num_params; ++param_index) {
-        if (function().ParameterNameAt(param_index) == param_name.raw()) {
-          break;
-        }
-      }
-      ASSERT(param_index < num_params);
-
-      ASSERT(default_values->At(param_index - num_fixed_params) == nullptr);
-      (*default_values)[param_index - num_fixed_params] =
-          &Instance::ZoneHandle(Z, Instance::RawCast(default_value.raw()));
-
-      const intptr_t local_index = KernelBytecode::DecodeA(load_name_instr);
-      ASSERT(local_index == KernelBytecode::DecodeA(load_value_instr));
-
-      LocalVariable* param_var =
-          AllocateParameter(param_index, VariableIndex(-param));
-      ASSERT(raw_parameters->At(param_index) == nullptr);
-      (*raw_parameters)[param_index] = param_var;
-    }
   }
-
-  ASSERT(instr == frame_instr);
-
-  parsed_function()->set_default_parameter_values(default_values);
-  parsed_function()->SetRawParameters(raw_parameters);
 
   Fragment copy_args_prologue;
 
@@ -599,7 +613,7 @@ void BytecodeFlowGraphBuilder::BuildEntryOptional() {
       PrologueInfo(prologue_entry->block_id(), prologue_exit->block_id() - 1);
 
   // Skip LoadConstant and Frame instructions.
-  next_pc_ = pc_ + (KernelBytecode::Next(instr) - bytecode_instr_);
+  next_pc_ = pc_ + (next_instr - bytecode_instr_);
 
   ASSERT(IsStackEmpty());
 }
@@ -892,194 +906,17 @@ void BytecodeFlowGraphBuilder::BuildNativeCall() {
   }
 
   ASSERT(function().is_native());
+  B->InlineBailout("BytecodeFlowGraphBuilder::BuildNativeCall");
 
-  // TODO(alexmarkov): find a way to avoid code duplication with
-  // FlowGraphBuilder::NativeFunctionBody.
-  const MethodRecognizer::Kind kind =
-      MethodRecognizer::RecognizeKind(function());
-  switch (kind) {
-    case MethodRecognizer::kObjectEquals:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StrictCompare(Token::kEQ_STRICT);
-      break;
-    case MethodRecognizer::kStringBaseLength:
-    case MethodRecognizer::kStringBaseIsEmpty:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::String_length());
-      if (kind == MethodRecognizer::kStringBaseIsEmpty) {
-        code_ += B->IntConstant(0);
-        code_ += B->StrictCompare(Token::kEQ_STRICT);
-      }
-      break;
-    case MethodRecognizer::kGrowableArrayLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::GrowableObjectArray_length());
-      break;
-    case MethodRecognizer::kObjectArrayLength:
-    case MethodRecognizer::kImmutableArrayLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kTypedListLength:
-    case MethodRecognizer::kTypedListViewLength:
-    case MethodRecognizer::kByteDataViewLength:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::TypedDataBase_length());
-      break;
-    case MethodRecognizer::kClassIDgetID:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadClassId();
-      break;
-    case MethodRecognizer::kGrowableArrayCapacity:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::GrowableObjectArray_data());
-      code_ += B->LoadNativeField(Slot::Array_length());
-      break;
-    case MethodRecognizer::kListFactory: {
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric() &&
-             function().HasOptionalParameters());
-      ASSERT(scratch_var_ != nullptr);
-      // Generate code that performs:
-      //
-      // factory List<E>([int length]) {
-      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
-      //                                            : new _GrowableList<E>(0);
-      // }
-      const auto& core_lib = Library::Handle(Z, Library::CoreLibrary());
-
-      TargetEntryInstr *allocate_non_growable, *allocate_growable;
-
-      code_ += B->Drop();  // Drop 'length'.
-      code_ += B->Drop();  // Drop 'type arguments'.
-      code_ += B->LoadArgDescriptor();
-      code_ += B->LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-      code_ += B->IntConstant(2);
-      code_ +=
-          B->BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
-
-      JoinEntryInstr* join = B->BuildJoinEntry();
-
-      {
-        const auto& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_List())));
-        ASSERT(!cls.IsNull());
-        const auto& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
-        ASSERT(!func.IsNull());
-
-        code_ = Fragment(allocate_non_growable);
-        code_ += B->LoadLocal(LocalVariableAt(0));
-        code_ += B->LoadLocal(LocalVariableAt(1));
-        auto* call = new (Z) StaticCallInstr(
-            TokenPosition::kNoSource, func, 0, Array::null_array(),
-            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
-            ICData::kStatic);
-        code_ <<= call;
-        B->Push(call);
-        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
-        code_ += B->Drop();
-        code_ += B->Goto(join);
-      }
-
-      {
-        const auto& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
-        ASSERT(!cls.IsNull());
-        const auto& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
-        ASSERT(!func.IsNull());
-
-        code_ = Fragment(allocate_growable);
-        code_ += B->LoadLocal(LocalVariableAt(0));
-        code_ += B->IntConstant(0);
-        auto* call = new (Z) StaticCallInstr(
-            TokenPosition::kNoSource, func, 0, Array::null_array(),
-            GetArguments(2), *ic_data_array_, B->GetNextDeoptId(),
-            ICData::kStatic);
-        code_ <<= call;
-        B->Push(call);
-        code_ += B->StoreLocal(TokenPosition::kNoSource, scratch_var_);
-        code_ += B->Drop();
-        code_ += B->Goto(join);
-      }
-
-      code_ = Fragment(join);
-      code_ += B->LoadLocal(scratch_var_);
-      break;
-    }
-    case MethodRecognizer::kObjectArrayAllocate:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->CreateArray();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getIndex:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_index());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setIndex:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_index());
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getData:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_data());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setData:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_data());
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getHashMask:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_hash_mask());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setHashMask:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_hash_mask(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getUsedData:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_used_data());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setUsedData:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_used_data(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
-      ASSERT((function().NumParameters() == 1) && !function().IsGeneric());
-      code_ += B->LoadNativeField(Slot::LinkedHashMap_deleted_keys());
-      break;
-    case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
-      ASSERT((function().NumParameters() == 2) && !function().IsGeneric());
-      code_ += B->StoreInstanceField(TokenPosition::kNoSource,
-                                     Slot::LinkedHashMap_deleted_keys(),
-                                     kNoStoreBarrier);
-      code_ += B->NullConstant();
-      break;
-    default: {
-      B->InlineBailout("BytecodeFlowGraphBuilder::BuildNativeCall");
-      const auto& name = String::ZoneHandle(Z, function().native_name());
-      const intptr_t num_args =
-          function().NumParameters() + (function().IsGeneric() ? 1 : 0);
-      ArgumentArray arguments = GetArguments(num_args);
-      auto* call =
-          new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
-                                  function().end_token_pos(), arguments);
-      code_ <<= call;
-      B->Push(call);
-      break;
-    }
-  }
+  const auto& name = String::ZoneHandle(Z, function().native_name());
+  const intptr_t num_args =
+      function().NumParameters() + (function().IsGeneric() ? 1 : 0);
+  ArgumentArray arguments = GetArguments(num_args);
+  auto* call =
+      new (Z) NativeCallInstr(&name, &function(), FLAG_link_natives_lazily,
+                              function().end_token_pos(), arguments);
+  code_ <<= call;
+  B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildAllocate() {
@@ -1891,6 +1728,25 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
 
     code_ = Fragment(entry);
     code_ += B->Goto(join);
+  }
+}
+
+void BytecodeFlowGraphBuilder::CreateParameterVariables() {
+  const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
+  object_pool_ = bytecode.object_pool();
+  bytecode_instr_ = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+
+  if (KernelBytecode::IsEntryOptionalOpcode(bytecode_instr_)) {
+    scratch_var_ = parsed_function_->EnsureExpressionTemp();
+    AllocateParametersAndLocalsForEntryOptional();
+  } else if (KernelBytecode::IsEntryOpcode(bytecode_instr_)) {
+    AllocateLocalVariables(DecodeOperandD());
+    AllocateFixedParameters();
+  } else if (KernelBytecode::IsEntryFixedOpcode(bytecode_instr_)) {
+    AllocateLocalVariables(DecodeOperandE());
+    AllocateFixedParameters();
+  } else {
+    UNREACHABLE();
   }
 }
 

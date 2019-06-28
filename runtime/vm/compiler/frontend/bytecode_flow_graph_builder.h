@@ -44,6 +44,9 @@ class BytecodeFlowGraphBuilder {
 
   FlowGraph* BuildGraph();
 
+  // Create parameter variables without building a flow graph.
+  void CreateParameterVariables();
+
  protected:
   // Returns `true` if building a flow graph for a bytecode interpreter, or
   // `false` if compiling a function from bytecode.
@@ -122,6 +125,12 @@ class BytecodeFlowGraphBuilder {
   LocalVariable* AllocateParameter(intptr_t param_index,
                                    VariableIndex var_index);
   void AllocateFixedParameters();
+
+  // Allocates parameters and local variables in case of EntryOptional.
+  // Returns pointer to the instruction after EntryOptional/LoadConstant/Frame
+  // bytecodes.
+  const KBCInstr* AllocateParametersAndLocalsForEntryOptional();
+
   LocalVariable* LocalVariableAt(intptr_t local_index);
   void StoreLocal(Operand local_index);
   void LoadLocal(Operand local_index);

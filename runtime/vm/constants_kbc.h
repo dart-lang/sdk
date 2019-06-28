@@ -901,6 +901,26 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kCheckStack;
   }
 
+  DART_FORCE_INLINE static bool IsEntryOpcode(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kEntry:
+      case KernelBytecode::kEntry_Wide:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  DART_FORCE_INLINE static bool IsEntryFixedOpcode(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kEntryFixed:
+      case KernelBytecode::kEntryFixed_Wide:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   DART_FORCE_INLINE static bool IsEntryOptionalOpcode(const KBCInstr* instr) {
     return DecodeOpcode(instr) == KernelBytecode::kEntryOptional;
   }
