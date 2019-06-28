@@ -93,6 +93,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await openFile(nestedFileUri, '');
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
 
+    // Ensure the file was cached in each driver. This happens as a result of
+    // adding to priority files, but if that's done before the file is in an
+    // analysis root it will not occur.
+    // https://github.com/dart-lang/sdk/issues/37338
+    server.driverMap.values.forEach((driver) {
+      expect(driver.getCachedResult(nestedFilePath), isNotNull);
+    });
+
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
     expect(server.contextManager.includedPaths, equals([]));
