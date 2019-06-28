@@ -760,7 +760,7 @@ class Code {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
   bool get hasNullableFields => nullableFields.isNotEmpty;
@@ -1056,7 +1056,7 @@ class ClosureCode {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
 

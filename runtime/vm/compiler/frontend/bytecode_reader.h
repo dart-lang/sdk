@@ -331,6 +331,10 @@ class BytecodeReader : public AllStatic {
 
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
+  // This constant should match corresponding constant in class SourcePositions
+  // (pkg/vm/lib/bytecode/source_positions.dart).
+  static const intptr_t kYieldPointMarker = -2;
+
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
       : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))) {
     if (bytecode.HasSourcePositions()) {
@@ -347,6 +351,12 @@ class BytecodeSourcePositionsIterator : ValueObject {
     --pairs_remaining_;
     cur_bci_ += reader_.ReadUInt();
     cur_token_pos_ += reader_.ReadSLEB128();
+    is_yield_point_ = false;
+    if (cur_token_pos_ == kYieldPointMarker) {
+      const bool result = MoveNext();
+      is_yield_point_ = true;
+      return result;
+    }
     return true;
   }
 
@@ -354,11 +364,14 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
   TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
 
+  bool IsYieldPoint() const { return is_yield_point_; }
+
  private:
   Reader reader_;
   intptr_t pairs_remaining_ = 0;
   intptr_t cur_bci_ = 0;
   intptr_t cur_token_pos_ = 0;
+  bool is_yield_point_ = false;
 };
 
 #if !defined(PRODUCT)

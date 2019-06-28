@@ -948,23 +948,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   return false;
 }
 
-void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
-  // Attempt to determine the token pos and try index from the async closure.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function().script());
-
-  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
-  // This should only be called on frames that aren't active on the stack.
-  ASSERT(fp() == 0);
-
-  ASSERT(script.kind() == RawScript::kKernelTag);
-  const Array& await_to_token_map =
-      Array::Handle(zone, script.yield_positions());
-  if (await_to_token_map.IsNull()) {
-    // No mapping.
-    return;
-  }
+intptr_t ActivationFrame::GetAwaitJumpVariable() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
@@ -980,6 +964,59 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
       await_jump_var = Smi::Cast(await_jump_index).Value();
     }
   }
+  return await_jump_var;
+}
+
+void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
+  // Attempt to determine the token pos and try index from the async closure.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function().script());
+
+  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
+  // This should only be called on frames that aren't active on the stack.
+  ASSERT(fp() == 0);
+
+  if (function_.is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const auto& bytecode = Bytecode::Handle(zone, function_.bytecode());
+    if (!bytecode.HasSourcePositions()) {
+      return;
+    }
+    const intptr_t await_jump_var = GetAwaitJumpVariable();
+    if (await_jump_var < 0) {
+      return;
+    }
+    // Yield points are counted from 1 (0 is reserved for normal entry).
+    intptr_t yield_point_index = 1;
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      if (iter.IsYieldPoint()) {
+        if (yield_point_index == await_jump_var) {
+          token_pos_ = iter.TokenPos();
+          token_pos_initialized_ = true;
+          try_index_ = bytecode.GetTryIndexAtPc(bytecode.PayloadStart() +
+                                                iter.PcOffset());
+          return;
+        }
+        ++yield_point_index;
+      }
+    }
+    return;
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ASSERT(!IsInterpreted());
+  ASSERT(script.kind() == RawScript::kKernelTag);
+  const Array& await_to_token_map =
+      Array::Handle(zone, script.yield_positions());
+  if (await_to_token_map.IsNull()) {
+    // No mapping.
+    return;
+  }
+  const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
   }
@@ -1011,29 +1048,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
-  if (IsInterpreted()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // In order to determine the try index, we need to map the token position
-    // to a pc offset, and then a pc offset to the try index.
-    // TODO(regis): Should we set the token position fields in pc descriptors?
-    uword pc_offset = kUwordMax;
-    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode());
-    while (iter.MoveNext()) {
-      // PcOffsets are monotonic in source positions, so we get the lowest one.
-      if (iter.TokenPos() == token_pos_) {
-        pc_offset = iter.PcOffset();
-        break;
-      }
-    }
-    if (pc_offset < kUwordMax) {
-      try_index_ =
-          bytecode().GetTryIndexAtPc(bytecode().PayloadStart() + pc_offset);
-    }
-#else
-    UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    return;
-  }
   GetPcDescriptors();
   PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -4170,6 +4184,23 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   if (!closure_or_null.IsNull()) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
+    if (top_frame->function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& bytecode =
+          Bytecode::Handle(zone, top_frame->function().bytecode());
+      const TokenPosition token_pos = top_frame->TokenPos();
+      kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+      while (iter.MoveNext()) {
+        if (iter.IsYieldPoint() && (iter.TokenPos() == token_pos)) {
+          return true;
+        }
+      }
+      return false;
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    }
+    ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
     ASSERT(script.kind() == RawScript::kKernelTag);
     // Are we at a yield point (previous await)?

@@ -1485,7 +1485,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   SourcePositions finalizeSourcePositions() {
-    if (asm.sourcePositions.mapping.isEmpty) {
+    if (asm.sourcePositions.isEmpty) {
       return null;
     }
     bytecodeComponent.sourcePositions.add(asm.sourcePositions);
@@ -3690,6 +3690,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
     if (asm.isUnreachable) {
       return;
+    }
+
+    if (options.emitSourcePositions) {
+      asm.emitYieldPointSourcePosition();
     }
 
     // 0 is reserved for normal entry, yield points are counted from 1.

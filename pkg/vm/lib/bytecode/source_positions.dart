@@ -15,7 +15,10 @@ import 'bytecode_serialization.dart'
 
 /// Maintains mapping between bytecode instructions and source positions.
 class SourcePositions {
-  final Map<int, int> mapping = <int, int>{}; // PC -> fileOffset
+  // Special value of fileOffset which marks yield point.
+  static const yieldPointMarker = -2;
+
+  final List<int> _positions = <int>[]; // Pairs (PC, fileOffset).
   int _lastPc = 0;
   int _lastOffset = 0;
 
@@ -25,20 +28,37 @@ class SourcePositions {
     assert(pc > _lastPc);
     assert(fileOffset >= 0);
     if (fileOffset != _lastOffset) {
-      mapping[pc] = fileOffset;
+      _positions.add(pc);
+      _positions.add(fileOffset);
       _lastPc = pc;
       _lastOffset = fileOffset;
     }
   }
 
+  void addYieldPoint(int pc, int fileOffset) {
+    assert(pc > _lastPc);
+    assert(fileOffset >= 0);
+    _positions.add(pc);
+    _positions.add(yieldPointMarker);
+    _positions.add(pc);
+    _positions.add(fileOffset);
+    _lastPc = pc;
+    _lastOffset = fileOffset;
+  }
+
+  bool get isEmpty => _positions.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+
   void write(BufferedWriter writer) {
-    writer.writePackedUInt30(mapping.length);
+    writer.writePackedUInt30(_positions.length ~/ 2);
     final encodePC = new PackedUInt30DeltaEncoder();
     final encodeOffset = new SLEB128DeltaEncoder();
-    mapping.forEach((int pc, int fileOffset) {
+    for (int i = 0; i < _positions.length; i += 2) {
+      final int pc = _positions[i];
+      final int fileOffset = _positions[i + 1];
       encodePC.write(writer, pc);
       encodeOffset.write(writer, fileOffset);
-    });
+    }
   }
 
   SourcePositions.read(BufferedReader reader) {
@@ -48,16 +68,29 @@ class SourcePositions {
     for (int i = 0; i < length; ++i) {
       int pc = decodePC.read(reader);
       int fileOffset = decodeOffset.read(reader);
-      add(pc, fileOffset);
+      _positions.add(pc);
+      _positions.add(fileOffset);
     }
   }
 
   @override
-  String toString() => mapping.toString();
+  String toString() => _positions.toString();
 
   Map<int, String> getBytecodeAnnotations() {
-    return mapping.map((int pc, int fileOffset) =>
-        new MapEntry(pc, 'source position $fileOffset'));
+    final map = <int, String>{};
+    for (int i = 0; i < _positions.length; i += 2) {
+      final int pc = _positions[i];
+      final int fileOffset = _positions[i + 1];
+      final entry = (fileOffset == yieldPointMarker)
+          ? 'yield point'
+          : 'source position $fileOffset';
+      if (map[pc] == null) {
+        map[pc] = entry;
+      } else {
+        map[pc] = "${map[pc]}; $entry";
+      }
+    }
+    return map;
   }
 }
 

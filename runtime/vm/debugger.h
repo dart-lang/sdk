@@ -388,6 +388,7 @@ class ActivationFrame : public ZoneAllocated {
   RawObject* GetAsyncStreamControllerStream();
   RawObject* GetAsyncCompleterAwaiter(const Object& completer);
   RawObject* GetAsyncCompleter();
+  intptr_t GetAwaitJumpVariable();
   void ExtractTokenPositionFromAsyncClosure();
 
   bool IsAsyncMachinery() const;
