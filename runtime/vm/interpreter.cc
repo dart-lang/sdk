@@ -404,9 +404,9 @@ Interpreter* Interpreter::Current() {
   Thread* thread = Thread::Current();
   Interpreter* interpreter = thread->interpreter();
   if (interpreter == nullptr) {
-    TransitionGeneratedToVM transition(thread);
+    NoSafepointScope no_safepoint;
     interpreter = new Interpreter();
-    Thread::Current()->set_interpreter(interpreter);
+    thread->set_interpreter(interpreter);
   }
   return interpreter;
 }
