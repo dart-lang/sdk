@@ -135,9 +135,7 @@ class C<T> {
 mixin M {}
 class D<U> = C<U> with M;
 ''');
-    var cConstructor = findElement.unnamedConstructor('C');
     var dConstructor = findElement.unnamedConstructor('D');
-    var cConstructorType = variables.decoratedElementType(cConstructor);
     var dConstructorType = variables.decoratedElementType(dConstructor);
     expect(dConstructorType.type.toString(), 'D<U> Function(U)');
     expect(dConstructorType.node, same(never));
@@ -148,7 +146,6 @@ class D<U> = C<U> with M;
     expect(typeArguments, hasLength(1));
     expect(typeArguments[0].type.toString(), 'U');
     expect(typeArguments[0].node, same(never));
-    var cParams = cConstructorType.positionalParameters;
     var dParams = dConstructorType.positionalParameters;
     expect(dParams, hasLength(1));
     expect(dParams[0].type.toString(), 'U');
