@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:usage/src/usage_impl.dart';
 import 'package:usage/src/usage_impl_io.dart';
@@ -52,14 +53,26 @@ String createAnalyticsStatusMessage(
 ///
 /// This analytics instance will share a common enablement state with the rest
 /// of the Dart SDK tools.
-_TelemetryAnalytics createAnalyticsInstance(
+Analytics createAnalyticsInstance(
   String trackingId,
   String applicationName, {
   bool disableForSession: false,
 }) {
   Directory dir = getDartStorageDirectory();
+  if (dir == null) {
+    // Some systems don't support user home directories; for those, fail
+    // gracefully by returning a disabled analytics object.
+    return new _DisabledAnalytics(trackingId, applicationName);
+  }
+
   if (!dir.existsSync()) {
-    dir.createSync();
+    try {
+      dir.createSync();
+    } catch (e) {
+      // If we can't create the directory for the analytics settings, fail
+      // gracefully by returning a disabled analytics object.
+      return new _DisabledAnalytics(trackingId, applicationName);
+    }
   }
 
   File file = new File(path.join(dir.path, _settingsFileName));
@@ -71,8 +84,15 @@ _TelemetryAnalytics createAnalyticsInstance(
 ///
 /// Typically, the directory is `~/.dart/` (and the settings file is
 /// `analytics.json`).
+///
+/// This can return null under some conditions, including when the user's home
+/// directory does not exist.
+@visibleForTesting
 Directory getDartStorageDirectory() {
-  return new Directory(path.join(userHomeDir(), _dartDirectoryName));
+  Directory homeDirectory = new Directory(userHomeDir());
+  if (!homeDirectory.existsSync()) return null;
+
+  return new Directory(path.join(homeDirectory.path, _dartDirectoryName));
 }
 
 /// Return the version of the Dart SDK.
@@ -111,6 +131,23 @@ class _TelemetryAnalytics extends AnalyticsImpl {
   }
 }
 
+class _DisabledAnalytics extends AnalyticsMock {
+  @override
+  final String trackingId;
+  @override
+  final String applicationName;
+
+  _DisabledAnalytics(this.trackingId, this.applicationName);
+
+  @override
+  bool get enabled => false;
+}
+
+/// Detect whether we're running on a bot or in a continuous testing
+/// environment.
+///
+/// We should periodically keep this code up to date with
+/// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/utils.dart#L20.
 bool isRunningOnBot() {
   final Map<String, String> env = Platform.environment;
 
