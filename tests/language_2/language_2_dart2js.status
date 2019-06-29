@@ -201,7 +201,7 @@ tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 type_constants_test/none: RuntimeError # Issue 35052
 type_error_test: RuntimeError
-type_literal_test: RuntimeError
+type_literal_canonicalization_test: RuntimeError
 type_promotion_more_specific_test/04: CompileTimeError
 vm/*: SkipByDesign # Tests for the VM.
 
@@ -498,7 +498,7 @@ symbol_literal_test/01: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
 truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
 type_check_const_function_typedef2_test: MissingCompileTimeError
-type_literal_test: RuntimeError
+type_literal_canonicalization_test: RuntimeError
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.
 type_parameter_test/09: Crash # Internal Error: Unexpected type variable in static context.
 type_variable_scope_test/03: Crash # Internal Error: Unexpected type variable in static context.
