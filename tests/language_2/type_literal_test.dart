@@ -99,11 +99,10 @@ void testType(Type type, Object expectedToStringValues) {
   String text = type.toString();
 
   // dart2js minified names should be tagged. We can still test types that don't
-  // contains minified names.
+  // contain minified names.
   if (text.contains('minified:')) return;
 
   if (expectedToStringValues is List) {
-    var s = type.toString();
     Expect.isTrue(expectedToStringValues.contains(text),
         'type `$type`.toString() should be one of: $expectedToStringValues.');
   } else {
