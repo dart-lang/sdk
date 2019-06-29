@@ -171,7 +171,7 @@ Future<List<TestFile>> splitMultitest(
     TestFile multitest, String outputDir, Path suiteDir,
     {bool hotReload}) async {
   // Each key in the map tests is a multitest tag or "none", and the texts of
-  // the generated test it its value.
+  // the generated test is its value.
   var tests = <String, String>{};
   var outcomes = <String, Set<String>>{};
   _generateTestsFromMultitest(multitest.path, tests, outcomes);
@@ -204,11 +204,11 @@ Future<List<TestFile>> splitMultitest(
   var baseFilename = multitest.path.filenameWithoutExtension;
 
   var testFiles = <TestFile>[];
-  for (var section in tests.keys) {
-    var sectionFilePath = targetDir.append('${baseFilename}_$section.dart');
-    _writeFile(sectionFilePath.toNativePath(), tests[section]);
+  for (var test in tests.keys) {
+    var sectionFilePath = targetDir.append('${baseFilename}_$test.dart');
+    _writeFile(sectionFilePath.toNativePath(), tests[test]);
 
-    var outcome = outcomes[section];
+    var outcome = outcomes[test];
     var hasStaticWarning = outcome.contains('static type warning');
     var hasRuntimeError = outcome.contains('runtime error');
     var hasSyntaxError = outcome.contains('syntax error');
@@ -222,7 +222,7 @@ Future<List<TestFile>> splitMultitest(
     }
 
     // Create a [TestFile] for each split out section test.
-    testFiles.add(multitest.split(sectionFilePath, section,
+    testFiles.add(multitest.split(sectionFilePath, test, tests[test],
         hasSyntaxError: hasSyntaxError,
         hasCompileError: hasCompileError,
         hasRuntimeError: hasRuntimeError,

@@ -37,6 +37,55 @@ List<String> _parseOption(String filePath, String contents, String name,
   return options;
 }
 
+/// A single error expectation comment from a [TestFile].
+///
+/// If a test contains any of these, then it is a "static error test" and
+/// exists to validate that a conforming front end produces the expected
+/// compile-time errors.
+///
+/// In order to make it easier to incrementally add error tests before a
+/// feature is fully implemented or specified, an error expectation can be in
+/// an "unspecified" state. That means all that's known is the line number. All
+/// other fields will be `null`. In that state, a front end is expected to
+/// report *some* error on that line, but it can be any location, error code, or
+/// message.
+///
+/// Aside from location, there are two interesting attributes of an error that
+/// a test can verify: its error code and the error message. Currently, for
+/// analyzer we only care about the error code. The CFE does not report an
+/// error code and only reports a message. So this class takes advantage of
+/// that by allowing you to set expectations for analyzer and CFE independently
+/// by assuming the [code] field is only used for the former and the [message]
+/// for the latter.
+class ErrorExpectation {
+  /// The one-based line number of the beginning of the error's location.
+  final int line;
+
+  /// The one-based column number of the beginning of the error's location.
+  final int column;
+
+  /// The number of characters in the error location.
+  final int length;
+
+  /// The expected analyzer error code for the error or `null` if this error
+  /// isn't expected to be reported by analyzer.
+  final String code;
+
+  /// The expected CFE error message or `null` if this error isn't expected to
+  /// be reported by the CFE.
+  final String message;
+
+  ErrorExpectation(
+      {this.line, this.column, this.length, this.code, this.message});
+
+  String toString() {
+    var result = "Error at line $line, column $column, length $length";
+    if (code != null) result += "\n$code";
+    if (message != null) result += "\n$message";
+    return result;
+  }
+}
+
 abstract class _TestFileBase {
   /// The test suite directory containing this test.
   final Path _suiteDirectory;
@@ -49,9 +98,15 @@ abstract class _TestFileBase {
   /// If this test was not generated from a multitest, just returns [path].
   Path get originPath;
 
+  /// The parsed error expectation markers in this test, if it is a static
+  /// error test.
+  final List<ErrorExpectation> expectedErrors;
+
+  /// The name of the multitest section this file corresponds to if it was
+  /// generated from a multitest. Otherwise, returns an empty string.
   String get multitestKey;
 
-  _TestFileBase(this._suiteDirectory, this.path) {
+  _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
     assert(path.isAbsolute);
   }
 
@@ -136,7 +191,7 @@ class TestFile extends _TestFileBase {
   factory TestFile.parse(
       Path suiteDirectory, String filePath, String contents) {
     if (filePath.endsWith('.dill')) {
-      return TestFile._(suiteDirectory, Path(filePath),
+      return TestFile._(suiteDirectory, Path(filePath), [],
           vmOptions: [[]],
           sharedOptions: [],
           dart2jsOptions: [],
@@ -257,7 +312,15 @@ class TestFile extends _TestFileBase {
     var hasSyntaxError = contents.contains("@syntax-error");
     var hasCompileError = hasSyntaxError || contents.contains("@compile-error");
 
-    return TestFile._(suiteDirectory, Path(filePath),
+    List<ErrorExpectation> errorExpectations;
+    try {
+      errorExpectations = _ErrorExpectationParser(contents).parse();
+    } on FormatException catch (error) {
+      throw FormatException(
+          "Invalid error expectation syntax in $filePath:\n$error");
+    }
+
+    return TestFile._(suiteDirectory, Path(filePath), errorExpectations,
         packageRoot: packageRoot,
         packages: packages,
         environment: environment,
@@ -298,9 +361,10 @@ class TestFile extends _TestFileBase {
         vmOptions = [],
         sharedObjects = [],
         otherResources = [],
-        super(null, null);
+        super(null, null, []);
 
-  TestFile._(Path suiteDirectory, Path path,
+  TestFile._(
+      Path suiteDirectory, Path path, List<ErrorExpectation> expectedErrors,
       {this.packageRoot,
       this.packages,
       this.environment,
@@ -319,14 +383,12 @@ class TestFile extends _TestFileBase {
       this.vmOptions,
       this.sharedObjects,
       this.otherResources})
-      : super(suiteDirectory, path) {
+      : super(suiteDirectory, path, expectedErrors) {
     assert(!isMultitest || dartOptions.isEmpty);
   }
 
   Path get originPath => path;
 
-  /// The name of the multitest section this file corresponds to if it was
-  /// generated from a multitest. Otherwise, returns an empty string.
   String get multitestKey => "";
 
   final String packageRoot;
@@ -353,12 +415,13 @@ class TestFile extends _TestFileBase {
 
   /// Derive a multitest test section file from this multitest file with the
   /// given [multitestKey] and expectations.
-  TestFile split(Path path, String multitestKey,
+  TestFile split(Path path, String multitestKey, String contents,
           {bool hasCompileError,
           bool hasRuntimeError,
           bool hasStaticWarning,
           bool hasSyntaxError}) =>
-      _MultitestFile(this, path, multitestKey,
+      _MultitestFile(
+          this, path, multitestKey, _ErrorExpectationParser(contents).parse(),
           hasCompileError: hasCompileError ?? false,
           hasRuntimeError: hasRuntimeError ?? false,
           hasStaticWarning: hasStaticWarning ?? false,
@@ -403,11 +466,12 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   bool get hasCrash => _origin.hasCrash;
 
   _MultitestFile(this._origin, Path path, this.multitestKey,
+      List<ErrorExpectation> expectedErrors,
       {this.hasCompileError,
       this.hasRuntimeError,
       this.hasStaticWarning,
       this.hasSyntaxError})
-      : super(_origin._suiteDirectory, path);
+      : super(_origin._suiteDirectory, path, expectedErrors);
 
   Path get originPath => _origin.path;
 
@@ -428,11 +492,184 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   List<String> get subtestNames => _origin.subtestNames;
   List<List<String>> get vmOptions => _origin.vmOptions;
 
-  TestFile split(Path path, String multitestKey,
+  TestFile split(Path path, String multitestKey, String contents,
           {bool hasCompileError,
           bool hasRuntimeError,
           bool hasStaticWarning,
           bool hasSyntaxError}) =>
       throw UnsupportedError(
           "Can't derive a test from one already derived from a multitest.");
+}
+
+class _ErrorExpectationParser {
+  /// Marks the location of an expected error, like so:
+  ///
+  ///     int i = "s";
+  ///     //      ^^^
+  ///
+  /// We look for a line that starts with a line comment followed by spaces and
+  /// carets.
+  static final _caretLocationRegExp = RegExp(r"^\s*//\s*(\^+)\s*$");
+
+  /// Matches an explicit error location, like:
+  ///
+  ///     // [error line 1, column 17, length 3]
+  static final _explicitLocationRegExp =
+      RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*,\s*"
+          r"length\s+(\d+)\s*\]\s*$");
+
+  /// An analyzer error code is a dotted identifier.
+  static final _unspecifiedErrorRegExp =
+      RegExp(r"^\s*// \[unspecified error\]");
+
+  /// An analyzer error expectation starts with "// [analyzer]".
+  static final _analyzerErrorRegExp = RegExp(r"^\s*// \[analyzer\]\s*(.*)");
+
+  /// An analyzer error code is a dotted identifier.
+  static final _errorCodeRegExp = RegExp(r"^\w+\.\w+$");
+
+  /// The first line of a CFE error expectation starts with "// [cfe]".
+  static final _cfeErrorRegExp = RegExp(r"^\s*// \[cfe\]\s*(.*)");
+
+  /// Any line-comment-only lines after the first line of a CFE error message are
+  /// part of it.
+  static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
+
+  /// Matches the multitest marker and yields the preceding content.
+  final _stripMultitestRegExp = RegExp(r"(.*)//#");
+
+  final List<String> _lines;
+  final List<ErrorExpectation> _errors = [];
+  int _currentLine = 0;
+
+  /// One-based index of the last line that wasn't part of an error expectation.
+  int _lastRealLine = -1;
+
+  _ErrorExpectationParser(String source) : _lines = source.split("\n");
+
+  List<ErrorExpectation> parse() {
+    while (!_isAtEnd) {
+      var sourceLine = _peek(0);
+
+      var match = _caretLocationRegExp.firstMatch(sourceLine);
+      if (match != null) {
+        if (_lastRealLine == -1) {
+          _fail("An error expectation must follow some code.");
+        }
+
+        _parseErrorDetails(
+            line: _lastRealLine,
+            column: sourceLine.indexOf("^") + 1,
+            length: match.group(1).length);
+        _advance();
+        continue;
+      }
+
+      match = _explicitLocationRegExp.firstMatch(sourceLine);
+      if (match != null) {
+        _parseErrorDetails(
+            line: int.parse(match.group(1)),
+            column: int.parse(match.group(2)),
+            length: int.parse(match.group(3)));
+        _advance();
+        continue;
+      }
+
+      match = _unspecifiedErrorRegExp.firstMatch(sourceLine);
+      if (match != null) {
+        _errors.add(ErrorExpectation(line: _lastRealLine));
+        _advance();
+        continue;
+      }
+
+      _lastRealLine = _currentLine + 1;
+      _advance();
+    }
+
+    return _errors;
+  }
+
+  /// Finishes parsing an error expectation after parsing the location.
+  void _parseErrorDetails({int line, int column, int length}) {
+    String code;
+    String message;
+
+    // Look for an error code line.
+    if (!_isAtEnd) {
+      var match = _analyzerErrorRegExp.firstMatch(_peek(1));
+      if (match != null) {
+        code = match.group(1);
+
+        if (!_errorCodeRegExp.hasMatch(code)) {
+          _fail("An analyzer error expectation should be a dotted identifier.");
+        }
+
+        _advance();
+      }
+    }
+
+    // Look for an error message.
+    if (!_isAtEnd) {
+      var match = _cfeErrorRegExp.firstMatch(_peek(1));
+      if (match != null) {
+        message = match.group(1);
+        _advance();
+
+        // Consume as many additional error message lines as we find.
+        while (!_isAtEnd) {
+          var nextLine = _peek(1);
+
+          // A location line shouldn't be treated as a message.
+          if (_caretLocationRegExp.hasMatch(nextLine)) break;
+          if (_explicitLocationRegExp.hasMatch(nextLine)) break;
+
+          // Don't let users arbitrarily order the error code and message.
+          if (_analyzerErrorRegExp.hasMatch(nextLine)) {
+            _fail("An analyzer expectation must come before a CFE "
+                "expectation.");
+          }
+
+          var messageMatch = _errorMessageRestRegExp.firstMatch(nextLine);
+          if (messageMatch == null) break;
+
+          message += "\n" + messageMatch.group(1);
+          _advance();
+        }
+      }
+    }
+
+    if (code == null && message == null) {
+      _fail("An error expectation must specify at least an analyzer or CFE "
+          "error.");
+    }
+
+    _errors.add(ErrorExpectation(
+        line: line,
+        column: column,
+        length: length,
+        code: code,
+        message: message));
+  }
+
+  bool get _isAtEnd => _currentLine >= _lines.length;
+
+  void _advance() {
+    _currentLine++;
+  }
+
+  String _peek(int offset) {
+    var line = _lines[_currentLine + offset];
+
+    // Strip off any multitest marker.
+    var multitestMatch = _stripMultitestRegExp.firstMatch(line);
+    if (multitestMatch != null) {
+      line = multitestMatch.group(1).trimRight();
+    }
+
+    return line;
+  }
+
+  void _fail(String message) {
+    throw FormatException("Test error on line ${_currentLine + 1}: $message");
+  }
 }

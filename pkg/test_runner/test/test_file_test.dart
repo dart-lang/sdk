@@ -12,7 +12,7 @@ import 'package:test_runner/src/test_file.dart';
 // test runner are parsed. But this test is also run *by* that same test
 // runner, and we don't want it to see the markers inside the string literals
 // here as significant, so we obfuscate them using seemingly-pointless string
-// interpolations here, like `{'//'}`.
+// escapes here like `\/`.
 
 void main() {
   testParseDill();
@@ -23,6 +23,7 @@ void main() {
   testParseMultitest();
   testParseMultiHtmltest();
   testParseErrorFlags();
+  testParseErrorExpectations();
   testName();
   testMultitest();
 }
@@ -67,14 +68,14 @@ void testParseVMOptions() {
   expectVMOptions("", [[]]);
 
   // Splits words.
-  expectVMOptions("${'//'} VMOptions=--verbose --async", [
+  expectVMOptions("/\/ VMOptions=--verbose --async", [
     ["--verbose", "--async"]
   ]);
 
   // Allows multiple.
   expectVMOptions("""
-  ${'//'} VMOptions=--first one
-  ${'//'} VMOptions=--second two
+  /\/ VMOptions=--first one
+  /\/ VMOptions=--second two
   """, [
     ["--first", "one"],
     ["--second", "two"]
@@ -93,12 +94,12 @@ void testParseOtherOptions() {
 
   // Single options split into words.
   file = parse("""
-  ${'//'} DartOptions=dart options
-  ${'//'} SharedOptions=shared options
-  ${'//'} dart2jsOptions=dart2js options
-  ${'//'} dartdevcOptions=ddc options
-  ${'//'} OtherResources=other resources
-  ${'//'} SharedObjects=shared objects
+  /\/ DartOptions=dart options
+  /\/ SharedOptions=shared options
+  /\/ dart2jsOptions=dart2js options
+  /\/ dartdevcOptions=ddc options
+  /\/ OtherResources=other resources
+  /\/ SharedObjects=shared objects
   """);
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
@@ -109,28 +110,28 @@ void testParseOtherOptions() {
 
   // Disallows multiple lines for some options.
   expectParseThrows("""
-  ${'//'} DartOptions=first
-  ${'//'} DartOptions=second
+  /\/ DartOptions=first
+  /\/ DartOptions=second
   """);
   expectParseThrows("""
-  ${'//'} SharedOptions=first
-  ${'//'} SharedOptions=second
+  /\/ SharedOptions=first
+  /\/ SharedOptions=second
   """);
   expectParseThrows("""
-  ${'//'} dart2jsOptions=first
-  ${'//'} dart2jsOptions=second
+  /\/ dart2jsOptions=first
+  /\/ dart2jsOptions=second
   """);
   expectParseThrows("""
-  ${'//'} dartdevcOptions=first
-  ${'//'} dartdevcOptions=second
+  /\/ dartdevcOptions=first
+  /\/ dartdevcOptions=second
   """);
 
   // Merges multiple lines for others.
   file = parse("""
-  ${'//'} OtherResources=other resources
-  ${'//'} OtherResources=even more
-  ${'//'} SharedObjects=shared objects
-  ${'//'} SharedObjects=many more
+  /\/ OtherResources=other resources
+  /\/ OtherResources=even more
+  /\/ SharedObjects=shared objects
+  /\/ SharedObjects=many more
   """);
   Expect.listEquals(
       ["other", "resources", "even", "more"], file.otherResources);
@@ -144,15 +145,15 @@ void testParseEnvironment() {
 
   // Without values.
   file = parse("""
-  ${'//'} Environment=some value
-  ${'//'} Environment=another one
+  /\/ Environment=some value
+  /\/ Environment=another one
   """);
   Expect.mapEquals({"some value": "", "another one": ""}, file.environment);
 
   // With values.
   file = parse("""
-  ${'//'} Environment=some value=its value
-  ${'//'} Environment=another one   =   also value
+  /\/ Environment=some value=its value
+  /\/ Environment=another one   =   also value
   """);
   Expect.mapEquals(
       {"some value": "its value", "another one   ": "   also value"},
@@ -166,21 +167,21 @@ void testParsePackages() {
 
   // Single option is converted to a path.
   file = parse("""
-  ${'//'} Packages=packages thing
+  /\/ Packages=packages thing
   """);
   Expect.isTrue(
       file.packages.endsWith("${Platform.pathSeparator}packages thing"));
 
   // "none" is left alone.
   file = parse("""
-  ${'//'} Packages=none
+  /\/ Packages=none
   """);
   Expect.equals("none", file.packages);
 
   // Cannot appear more than once.
   expectParseThrows("""
-  ${'//'} Packages=first
-  ${'//'} Packages=second
+  /\/ Packages=first
+  /\/ Packages=second
   """);
 }
 
@@ -191,7 +192,7 @@ void testParseMultitest() {
 
   // Present.
   file = parse("""
-  main() {} ${'//'}# 01: compile-time error
+  main() {} /\/# 01: compile-time error
   """);
   Expect.isTrue(file.isMultitest);
 }
@@ -207,7 +208,7 @@ void testParseMultiHtmltest() {
   // from parsing it as a multi-HTML test.
   file = parse("""
   main() {
-    useHtml${''}IndividualConfiguration();
+    useHtml\IndividualConfiguration();
     group('pixel_manipulation', () {
     });
     group('arc', () {
@@ -230,33 +231,199 @@ void testParseErrorFlags() {
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@syntax${'-'}error");
+  file = parse("@syntax\-error");
   Expect.isTrue(file.hasSyntaxError);
   Expect.isTrue(file.hasCompileError); // Note: true.
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@compile${'-'}error");
+  file = parse("@compile\-error");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isTrue(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@runtime${'-'}error");
+  file = parse("@runtime\-error");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isTrue(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
 
-  file = parse("@static${'-'}warning");
+  file = parse("@static\-warning");
   Expect.isFalse(file.hasSyntaxError);
   Expect.isFalse(file.hasCompileError);
   Expect.isFalse(file.hasRuntimeError);
   Expect.isTrue(file.hasStaticWarning);
   Expect.isFalse(file.hasCrash);
+}
+
+void testParseErrorExpectations() {
+  // No errors.
+  expectParseErrorExpectations("""
+main() {}
+""", []);
+
+  // Empty file
+  expectParseErrorExpectations("", []);
+
+  // Multiple errors.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
+/\/ [cfe] Error: Can't assign a string to an int.
+
+num j = "str";
+  /\/    ^^^^^
+/\/ [analyzer] CompileTimeErrorCode.ALSO_WRONG_TYPE
+    /\/ [cfe] Error: Can't assign a string to a num.
+""", [
+    ErrorExpectation(
+        line: 1,
+        column: 9,
+        length: 3,
+        code: "CompileTimeErrorCode.WRONG_TYPE",
+        message: "Error: Can't assign a string to an int."),
+    ErrorExpectation(
+        line: 6,
+        column: 9,
+        length: 5,
+        code: "CompileTimeErrorCode.ALSO_WRONG_TYPE",
+        message: "Error: Can't assign a string to a num.")
+  ]);
+
+  // Explicit error location.
+  expectParseErrorExpectations("""
+/\/ [error line 123, column 45, length 678]
+/\/ [analyzer] CompileTimeErrorCode.FIRST
+/\/ [cfe] First error.
+  /\/   [ error line   23  ,  column   5  ,  length   78  ]
+/\/ [analyzer] CompileTimeErrorCode.SECOND
+/\/ [cfe] Second error.
+/\/[error line 9,column 8,length 7]
+/\/ [cfe] Third.
+""", [
+    ErrorExpectation(
+        line: 123,
+        column: 45,
+        length: 678,
+        code: "CompileTimeErrorCode.FIRST",
+        message: "First error."),
+    ErrorExpectation(
+        line: 23,
+        column: 5,
+        length: 78,
+        code: "CompileTimeErrorCode.SECOND",
+        message: "Second error."),
+    ErrorExpectation(line: 9, column: 8, length: 7, message: "Third.")
+  ]);
+
+  // Multi-line error message.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^
+/\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
+/\/ [cfe] First line.
+/\/Second line.
+    /\/     Third line.
+
+/\/ The preceding blank line ends the message.
+""", [
+    ErrorExpectation(
+        line: 1,
+        column: 9,
+        length: 3,
+        code: "CompileTimeErrorCode.WRONG_TYPE",
+        message: "First line.\nSecond line.\nThird line.")
+  ]);
+
+  // Multiple errors attached to same line.
+  expectParseErrorExpectations("""
+main() {}
+int i = "s";
+/\/      ^^^
+/\/ [cfe] First error.
+/\/    ^
+/\/ [analyzer] ErrorCode.second
+/\/  ^^^^^^^
+/\/ [cfe] Third error.
+""", [
+    ErrorExpectation(line: 2, column: 9, length: 3, message: "First error."),
+    ErrorExpectation(line: 2, column: 7, length: 1, code: "ErrorCode.second"),
+    ErrorExpectation(line: 2, column: 5, length: 7, message: "Third error."),
+  ]);
+
+  // Unspecified errors.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/ [unspecified error]
+int j = "s";
+  /\/ [unspecified error] some additional info
+""", [
+    ErrorExpectation(
+        line: 1, column: null, length: null, code: null, message: null),
+    ErrorExpectation(
+        line: 3, column: null, length: null, code: null, message: null)
+  ]);
+
+  // Ignore multitest markers.
+  expectParseErrorExpectations("""
+int i = "s";
+/\/      ^^^ /\/# 0: ok
+/\/ [analyzer] ErrorCode.BAD_THING /\/# 123: continued
+/\/ [cfe] Message.  /\/# named: compile-time error
+/\/ More message.  /\/#   another: ok
+/\/ [error line 12, column 34, length 56]  /\/# 3: continued
+/\/ [cfe] Message.
+""", [
+    ErrorExpectation(
+        line: 1,
+        column: 9,
+        length: 3,
+        code: "ErrorCode.BAD_THING",
+        message: "Message.\nMore message."),
+    ErrorExpectation(line: 12, column: 34, length: 56, message: "Message."),
+  ]);
+
+  // Must have either a code or a message.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+
+var wrong;
+""");
+
+  // Location must follow some real code.
+  expectFormatError("""
+/\/ [error line 123, column 45, length 678]
+/\/ [analyzer] CompileTimeErrorCode.FIRST
+/\/ ^^^
+/\/ [cfe] This doesn't make sense.
+""");
+
+  // Location at end without code or message.
+  expectFormatError("""
+int i = "s";
+/\/ ^^^
+""");
+
+  // Code cannot follow message.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [cfe] Error message.
+/\/ [analyzer] ErrorCode.BAD_THING
+""");
+
+  // Analyzer error must look like an error code.
+  expectFormatError("""
+int i = "s";
+/\/      ^^^
+/\/ [analyzer] Not error code.
+""");
 }
 
 void testName() {
@@ -271,7 +438,7 @@ void testName() {
   Expect.equals("a/b/c_test", file.name);
 
   // Multitest.
-  file = file.split(Path("suite/a/b/c_test_00.dart").absolute, "00");
+  file = file.split(Path("suite/a/b/c_test_00.dart").absolute, "00", "");
   Expect.equals("a/b/c_test/00", file.name);
 }
 
@@ -282,7 +449,7 @@ void testMultitest() {
   Expect.isFalse(file.hasRuntimeError);
   Expect.isFalse(file.hasStaticWarning);
 
-  var a = file.split(Path("a.dart").absolute, "a", hasSyntaxError: true);
+  var a = file.split(Path("a.dart").absolute, "a", "", hasSyntaxError: true);
   Expect.isTrue(a.originPath.toNativePath().endsWith("origin.dart"));
   Expect.isTrue(a.path.toNativePath().endsWith("a.dart"));
   Expect.isTrue(a.hasSyntaxError);
@@ -293,6 +460,7 @@ void testMultitest() {
   var b = file.split(
     Path("b.dart").absolute,
     "b",
+    "",
     hasCompileError: true,
   );
   Expect.isTrue(b.originPath.toNativePath().endsWith("origin.dart"));
@@ -302,7 +470,7 @@ void testMultitest() {
   Expect.isFalse(b.hasRuntimeError);
   Expect.isFalse(b.hasStaticWarning);
 
-  var c = file.split(Path("c.dart").absolute, "c", hasRuntimeError: true);
+  var c = file.split(Path("c.dart").absolute, "c", "", hasRuntimeError: true);
   Expect.isTrue(c.originPath.toNativePath().endsWith("origin.dart"));
   Expect.isTrue(c.path.toNativePath().endsWith("c.dart"));
   Expect.isFalse(c.hasSyntaxError);
@@ -310,7 +478,7 @@ void testMultitest() {
   Expect.isTrue(c.hasRuntimeError);
   Expect.isFalse(c.hasStaticWarning);
 
-  var d = file.split(Path("d.dart").absolute, "d", hasStaticWarning: true);
+  var d = file.split(Path("d.dart").absolute, "d", "", hasStaticWarning: true);
   Expect.isTrue(d.originPath.toNativePath().endsWith("origin.dart"));
   Expect.isTrue(d.path.toNativePath().endsWith("d.dart"));
   Expect.isFalse(d.hasSyntaxError);
@@ -319,12 +487,23 @@ void testMultitest() {
   Expect.isTrue(d.hasStaticWarning);
 }
 
-TestFile parse(String source, {String path = "some_test.dart"}) {
-  path = Path(path).absolute.toNativePath();
-  var suiteDirectory = Path(path).directoryPath;
-  return TestFile.parse(suiteDirectory, path, source);
+void expectParseErrorExpectations(
+    String source, List<ErrorExpectation> errors) {
+  var file = parse(source);
+  Expect.listEquals(errors.map((error) => error.toString()).toList(),
+      file.expectedErrors.map((error) => error.toString()).toList());
+}
+
+void expectFormatError(String source) {
+  Expect.throwsFormatException(() => parse(source));
 }
 
 void expectParseThrows(String source) {
   Expect.throws(() => parse(source));
+}
+
+TestFile parse(String source, {String path = "some_test.dart"}) {
+  path = Path(path).absolute.toNativePath();
+  var suiteDirectory = Path(path).directoryPath;
+  return TestFile.parse(suiteDirectory, path, source);
 }

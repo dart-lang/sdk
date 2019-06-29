@@ -7,7 +7,7 @@
 // Error: 'D' can't implement both '#lib1::B<#lib1::D::X, #lib1::D::Y>' and
 // '#lib1::B<#lib1::D::X, #lib1::A>'
 // class D<X, Y> extends B<X, Y> with C<X> {}
-//       ^
+//       ~
 
 class A {}
 
