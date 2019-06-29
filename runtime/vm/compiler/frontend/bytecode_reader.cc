@@ -982,6 +982,10 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kTypedListLength:
     case MethodRecognizer::kTypedListViewLength:
     case MethodRecognizer::kByteDataViewLength:
+    case MethodRecognizer::kByteDataViewOffsetInBytes:
+    case MethodRecognizer::kTypedDataViewOffsetInBytes:
+    case MethodRecognizer::kByteDataViewTypedData:
+    case MethodRecognizer::kTypedDataViewTypedData:
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayCapacity:
     case MethodRecognizer::kListFactory:

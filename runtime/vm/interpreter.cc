@@ -2060,32 +2060,38 @@ SwitchDispatch:
         }
       } break;
       case MethodRecognizer::kGrowableArrayLength: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[GrowableObjectArray::length_offset() / kWordSize];
+        RawGrowableObjectArray* instance =
+            reinterpret_cast<RawGrowableObjectArray*>(SP[0]);
+        SP[0] = instance->ptr()->length_;
       } break;
       case MethodRecognizer::kObjectArrayLength:
       case MethodRecognizer::kImmutableArrayLength: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[Array::length_offset() / kWordSize];
+        RawArray* instance = reinterpret_cast<RawArray*>(SP[0]);
+        SP[0] = instance->ptr()->length_;
       } break;
       case MethodRecognizer::kTypedListLength:
       case MethodRecognizer::kTypedListViewLength:
       case MethodRecognizer::kByteDataViewLength: {
-        RawInstance* instance = reinterpret_cast<RawTypedDataBase*>(SP[0]);
-        SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[TypedDataBase::length_offset() / kWordSize];
+        RawTypedDataBase* instance = reinterpret_cast<RawTypedDataBase*>(SP[0]);
+        SP[0] = instance->ptr()->length_;
+      } break;
+      case MethodRecognizer::kByteDataViewOffsetInBytes:
+      case MethodRecognizer::kTypedDataViewOffsetInBytes: {
+        RawTypedDataView* instance = reinterpret_cast<RawTypedDataView*>(SP[0]);
+        SP[0] = instance->ptr()->offset_in_bytes_;
+      } break;
+      case MethodRecognizer::kByteDataViewTypedData:
+      case MethodRecognizer::kTypedDataViewTypedData: {
+        RawTypedDataView* instance = reinterpret_cast<RawTypedDataView*>(SP[0]);
+        SP[0] = instance->ptr()->typed_data_;
       } break;
       case MethodRecognizer::kClassIDgetID: {
         SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);
       } break;
       case MethodRecognizer::kGrowableArrayCapacity: {
-        RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-        instance = reinterpret_cast<RawInstance**>(
-            instance->ptr())[GrowableObjectArray::data_offset() / kWordSize];
-        SP[0] = reinterpret_cast<RawObject**>(
-            instance->ptr())[Array::length_offset() / kWordSize];
+        RawGrowableObjectArray* instance =
+            reinterpret_cast<RawGrowableObjectArray*>(SP[0]);
+        SP[0] = instance->ptr()->data_->ptr()->length_;
       } break;
       case MethodRecognizer::kListFactory: {
         // factory List<E>([int length]) {
