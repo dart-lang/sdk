@@ -60,7 +60,7 @@ const int KernelIsolate::kListDependenciesTag = 5;
 const int KernelIsolate::kNotifyIsolateShutdown = 6;
 
 const char* KernelIsolate::kName = DART_KERNEL_ISOLATE_NAME;
-Dart_IsolateCreateCallback KernelIsolate::create_callback_ = NULL;
+Dart_IsolateGroupCreateCallback KernelIsolate::create_group_callback_ = NULL;
 Monitor* KernelIsolate::monitor_ = new Monitor();
 KernelIsolate::State KernelIsolate::state_ = KernelIsolate::kStopped;
 Isolate* KernelIsolate::isolate_ = NULL;
@@ -76,9 +76,9 @@ class RunKernelTask : public ThreadPool::Task {
     char* error = NULL;
     Isolate* isolate = NULL;
 
-    Dart_IsolateCreateCallback create_callback =
-        KernelIsolate::create_callback();
-    ASSERT(create_callback != NULL);
+    Dart_IsolateGroupCreateCallback create_group_callback =
+        KernelIsolate::create_group_callback();
+    ASSERT(create_group_callback != NULL);
 
     // Note: these flags must match those passed to the VM during
     // the app-jit training run (see //utils/kernel-service/BUILD.gn).
@@ -94,8 +94,8 @@ class RunKernelTask : public ThreadPool::Task {
 #endif
 
     isolate = reinterpret_cast<Isolate*>(
-        create_callback(KernelIsolate::kName, KernelIsolate::kName, NULL, NULL,
-                        &api_flags, NULL, &error));
+        create_group_callback(KernelIsolate::kName, KernelIsolate::kName, NULL,
+                              NULL, &api_flags, NULL, &error));
     if (isolate == NULL) {
       if (FLAG_trace_kernel) {
         OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": Isolate creation error: %s\n",
@@ -227,8 +227,8 @@ void KernelIsolate::Run() {
   }
   // Grab the isolate create callback here to avoid race conditions with tests
   // that change this after Dart_Initialize returns.
-  create_callback_ = Isolate::CreateCallback();
-  if (create_callback_ == NULL) {
+  create_group_callback_ = Isolate::CreateGroupCallback();
+  if (create_group_callback_ == NULL) {
     KernelIsolate::InitializingFailed();
     return;
   }

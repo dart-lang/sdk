@@ -127,7 +127,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     return NULL;
   }
   Dart_Isolate isolate = NULL;
-  bin::IsolateData* isolate_data = NULL;
+  bin::IsolateGroupData* isolate_group_data = NULL;
   const uint8_t* kernel_service_buffer = NULL;
   intptr_t kernel_service_buffer_size = 0;
 
@@ -146,12 +146,13 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     app_snapshot->SetBuffers(
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
-    isolate_data = new bin::IsolateData(script_uri, package_root,
-                                        packages_config, app_snapshot);
-    isolate =
-        Dart_CreateIsolate(DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-                           isolate_snapshot_data, isolate_snapshot_instructions,
-                           NULL, NULL, flags, isolate_data, error);
+    isolate_group_data =
+        new bin::IsolateGroupData(script_uri, package_root, packages_config,
+                                  app_snapshot, app_snapshot != nullptr);
+    isolate = Dart_CreateIsolateGroup(
+        DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
+        isolate_snapshot_data, isolate_snapshot_instructions, NULL, NULL, flags,
+        isolate_group_data, /*isolate_data=*/nullptr, error);
     if (*error != NULL) {
       free(*error);
       *error = NULL;
@@ -161,29 +162,29 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     // This can cause the isolate to be killed early which will return `nullptr`
     // here.
     if (isolate == nullptr) {
-      delete isolate_data;
+      delete isolate_group_data;
       return NULL;
     }
   }
   if (isolate == NULL) {
-    delete isolate_data;
-    isolate_data = NULL;
+    delete isolate_group_data;
+    isolate_group_data = NULL;
 
     bin::dfe.Init();
     bin::dfe.LoadKernelService(&kernel_service_buffer,
                                &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != NULL);
-    isolate_data =
-        new bin::IsolateData(script_uri, package_root, packages_config, NULL);
-    isolate_data->SetKernelBufferUnowned(
+    isolate_group_data = new bin::IsolateGroupData(
+        script_uri, package_root, packages_config, nullptr, false);
+    isolate_group_data->SetKernelBufferUnowned(
         const_cast<uint8_t*>(kernel_service_buffer),
         kernel_service_buffer_size);
-    isolate = Dart_CreateIsolateFromKernel(
+    isolate = Dart_CreateIsolateGroupFromKernel(
         script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
-        flags, isolate_data, error);
+        flags, isolate_group_data, /*isolate_data=*/nullptr, error);
   }
   if (isolate == NULL) {
-    delete isolate_data;
+    delete isolate_group_data;
     return NULL;
   }
 
@@ -213,9 +214,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   return isolate;
 }
 
-static void CleanupIsolate(void* callback_data) {
-  bin::IsolateData* isolate_data =
-      reinterpret_cast<bin::IsolateData*>(callback_data);
+static void CleanupIsolateGroup(void* callback_data) {
+  bin::IsolateGroupData* isolate_data =
+      reinterpret_cast<bin::IsolateGroupData*>(callback_data);
   delete isolate_data;
 }
 
@@ -311,18 +312,22 @@ static int Main(int argc, const char** argv) {
 
   TesterState::vm_snapshot_data = dart::bin::vm_snapshot_data;
   TesterState::create_callback = CreateIsolateAndSetup;
-  TesterState::cleanup_callback = CleanupIsolate;
+  TesterState::group_cleanup_callback = CleanupIsolateGroup;
   TesterState::argv = dart_argv;
   TesterState::argc = dart_argc;
 
   error = Dart::Init(
       dart::bin::vm_snapshot_data, dart::bin::vm_snapshot_instructions,
-      CreateIsolateAndSetup /* create */, nullptr /* shutdown */,
-      CleanupIsolate /* cleanup */, nullptr /* thread_exit */,
-      dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
-      dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile,
-      nullptr /* entropy_source */, nullptr /* get_service_assets */,
-      start_kernel_isolate, nullptr /* observer */);
+      /*create_group=*/CreateIsolateAndSetup,
+      /*initialize_isolate=*/nullptr,
+      /*shutdown_isolate=*/nullptr,
+      /*cleanup_isolate=*/nullptr,
+      /*cleanup_group=*/CleanupIsolateGroup,
+      /*thread_exit=*/nullptr, dart::bin::DartUtils::OpenFile,
+      dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
+      dart::bin::DartUtils::CloseFile, nullptr /* entropy_source */,
+      nullptr /* get_service_assets */, start_kernel_isolate,
+      /*code_observer=*/nullptr);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);
     free(error);
