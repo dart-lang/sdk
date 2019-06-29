@@ -32,7 +32,7 @@ f1({a/*LINT*/: 1}) => null;
     await assertHasFix('''
 void f1({int a}) { }    
 
-f1({a/*LINT*/= 1}) => null;
+f1({a/*LINT*/ = 1}) => null;
 ''');
   }
 }
