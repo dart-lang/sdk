@@ -799,6 +799,18 @@ double f() {
     assertNoUpstreamNullability(decoratedTypeAnnotation('double').node);
   }
 
+  test_field_type_inferred() async {
+    await analyze('''
+int f() => 1;
+class C {
+  var x = f();
+}
+''');
+    var xType =
+        variables.decoratedElementType(findNode.simple('x').staticElement);
+    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
+  }
+
   test_functionDeclaration_expression_body() async {
     await analyze('''
 int/*1*/ f(int/*2*/ i) => i/*3*/;
@@ -1308,6 +1320,18 @@ List<String> f() {
 ''');
     assertNoUpstreamNullability(decoratedTypeAnnotation('List').node);
     assertEdge(always, decoratedTypeAnnotation('String>[').node, hard: false);
+  }
+
+  test_localVariable_type_inferred() async {
+    await analyze('''
+int f() => 1;
+main() {
+  var x = f();
+}
+''');
+    var xType =
+        variables.decoratedElementType(findNode.simple('x').staticElement);
+    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
   }
 
   test_method_parameterType_inferred() async {
@@ -2327,6 +2351,16 @@ double get myPi => pi;
 ''');
     var myPiType = decoratedTypeAnnotation('double get');
     assertEdge(never, myPiType.node, hard: false);
+  }
+
+  test_topLevelVariable_type_inferred() async {
+    await analyze('''
+int f() => 1;
+var x = f();
+''');
+    var xType =
+        variables.decoratedElementType(findNode.simple('x').staticElement);
+    assertUnion(xType.node, decoratedTypeAnnotation('int').node);
   }
 
   test_type_argument_explicit_bound() async {

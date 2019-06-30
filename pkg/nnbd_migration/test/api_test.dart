@@ -813,6 +813,31 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_type_inferred() async {
+    var content = '''
+int f() => null;
+class C {
+  var x = 1;
+  void g() {
+    x = f();
+  }
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+class C {
+  var x = 1;
+  void g() {
+    x = f()!;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_genericType_noTypeArguments() async {
     var content = '''
 void f(C c) {}
@@ -1037,6 +1062,27 @@ void main() {
 }
 class C {
   int get length => 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_localVariable_type_inferred() async {
+    var content = '''
+int f() => null;
+void main() {
+  var x = 1;
+  x = f();
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+void main() {
+  var x = 1;
+  x = f()!;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1609,6 +1655,27 @@ Object g() => f();
     var expected = '''
 f() {}
 Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_topLevelVariable_type_inferred() async {
+    var content = '''
+int f() => null;
+var x = 1;
+void main() {
+  x = f();
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+var x = 1;
+void main() {
+  x = f()!;
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

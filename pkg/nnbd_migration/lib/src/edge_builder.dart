@@ -849,14 +849,26 @@ $stackTrace''');
   }
 
   @override
-  DecoratedType visitVariableDeclaration(VariableDeclaration node) {
-    var destinationType = getOrComputeElementType(node.declaredElement);
-    var initializer = node.initializer;
-    if (initializer == null) {
-      // TODO(paulberry)
-      _unimplemented(node, 'Variable declaration with no initializer');
-    } else {
-      _handleAssignment(initializer, destinationType);
+  DecoratedType visitVariableDeclarationList(VariableDeclarationList node) {
+    node.metadata.accept(this);
+    var typeAnnotation = node.type;
+    for (var variable in node.variables) {
+      variable.metadata.accept(this);
+      var initializer = variable.initializer;
+      if (initializer != null) {
+        var destinationType = getOrComputeElementType(variable.declaredElement);
+        if (typeAnnotation == null) {
+          var initializerType = initializer.accept(this);
+          if (initializerType == null) {
+            throw StateError('No type computed for ${initializer.runtimeType} '
+                '(${initializer.toSource()}) offset=${initializer.offset}');
+          }
+          _unionDecoratedTypes(initializerType, destinationType,
+              InitializerInferenceOrigin(_source, variable.name.offset));
+        } else {
+          _handleAssignment(initializer, destinationType);
+        }
+      }
     }
     return null;
   }

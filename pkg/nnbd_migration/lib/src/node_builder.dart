@@ -344,10 +344,13 @@ $stackTrace''');
   @override
   DecoratedType visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept(this);
-    var type = decorateType(node.type, node);
+    var typeAnnotation = node.type;
+    var type = typeAnnotation?.accept(this);
     for (var variable in node.variables) {
       variable.metadata.accept(this);
-      _variables.recordDecoratedElementType(variable.declaredElement, type);
+      var declaredElement = variable.declaredElement;
+      _variables.recordDecoratedElementType(declaredElement,
+          type ?? DecoratedType.forImplicitType(declaredElement.type, _graph));
       variable.initializer?.accept(this);
     }
     return null;

@@ -62,6 +62,11 @@ class InheritanceOrigin extends EdgeOriginWithLocation {
   InheritanceOrigin(Source source, int offset) : super(source, offset);
 }
 
+/// Edge origin resulting from a type that is inferred from its initializer.
+class InitializerInferenceOrigin extends EdgeOriginWithLocation {
+  InitializerInferenceOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:
