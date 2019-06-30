@@ -332,6 +332,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
     _handleExecutableDeclaration(
+        node,
         node.declaredElement,
         node.metadata,
         null,
@@ -552,7 +553,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     if (node.typeParameters != null) {
       _unimplemented(node, 'Generic method');
     }
-    _handleExecutableDeclaration(node.declaredElement, node.metadata,
+    _handleExecutableDeclaration(node, node.declaredElement, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
     return null;
   }
@@ -861,16 +862,17 @@ $stackTrace''');
   }
 
   /// Creates the necessary constraint(s) for an assignment from [source] to
-  /// [destination].  [expressionChecks] tracks checks that might have to be
-  /// done on the type of an expression.  [hard] indicates whether a hard edge
-  /// should be created.
-  void _checkAssignment(ExpressionChecks expressionChecks,
+  /// [destination].  [origin] should be used as the origin for any edges
+  /// created.  [hard] indicates whether a hard edge should be created.
+  void _checkAssignment(EdgeOrigin origin,
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard}) {
-    var edge = _graph.connect(source.node, destination.node, expressionChecks,
+    var edge = _graph.connect(source.node, destination.node, origin,
         guards: _guards, hard: hard);
-    expressionChecks?.edges?.add(edge);
+    if (origin is ExpressionChecks) {
+      origin.edges.add(edge);
+    }
     // TODO(paulberry): generalize this.
     if ((_isSimple(source) || destination.type.isObject) &&
         _isSimple(destination)) {
@@ -880,14 +882,14 @@ $stackTrace''');
         source.type.element == destination.type.element) {
       assert(source.typeArguments.length == destination.typeArguments.length);
       for (int i = 0; i < source.typeArguments.length; i++) {
-        _checkAssignment(expressionChecks,
+        _checkAssignment(origin,
             source: source.typeArguments[i],
             destination: destination.typeArguments[i],
             hard: false);
       }
     } else if (source.type is FunctionType &&
         destination.type is FunctionType) {
-      _checkAssignment(expressionChecks,
+      _checkAssignment(origin,
           source: source.returnType,
           destination: destination.returnType,
           hard: hard);
@@ -900,14 +902,14 @@ $stackTrace''');
               i < destination.positionalParameters.length;
           i++) {
         // Note: source and destination are swapped due to contravariance.
-        _checkAssignment(expressionChecks,
+        _checkAssignment(origin,
             source: destination.positionalParameters[i],
             destination: source.positionalParameters[i],
             hard: hard);
       }
       for (var entry in destination.namedParameters.entries) {
         // Note: source and destination are swapped due to contravariance.
-        _checkAssignment(expressionChecks,
+        _checkAssignment(origin,
             source: entry.value,
             destination: source.namedParameters[entry.key],
             hard: hard);
@@ -971,6 +973,7 @@ $stackTrace''');
   }
 
   void _handleExecutableDeclaration(
+      AstNode node,
       ExecutableElement declaredElement,
       NodeList<Annotation> metadata,
       TypeAnnotation returnType,
@@ -992,6 +995,7 @@ $stackTrace''');
       }
       if (declaredElement is! ConstructorElement) {
         var classElement = declaredElement.enclosingElement as ClassElement;
+        var origin = InheritanceOrigin(_source, node.offset);
         for (var overridden in _inheritanceManager.getOverridden(
                 classElement.type,
                 Name(classElement.library.source.uri, declaredElement.name)) ??
@@ -1005,11 +1009,61 @@ $stackTrace''');
           var decoratedSupertype = _decoratedClassHierarchy
               .getDecoratedSupertype(classElement, overriddenClass);
           var substitution = decoratedSupertype.asSubstitution;
-          _checkAssignment(null,
-              source: _currentFunctionType,
-              destination:
-                  decoratedOverriddenFunctionType.substitute(substitution),
-              hard: true);
+          var overriddenFunctionType =
+              decoratedOverriddenFunctionType.substitute(substitution);
+          if (returnType == null) {
+            _unionDecoratedTypes(_currentFunctionType.returnType,
+                overriddenFunctionType.returnType, origin);
+          } else {
+            _checkAssignment(origin,
+                source: _currentFunctionType.returnType,
+                destination: overriddenFunctionType.returnType,
+                hard: true);
+          }
+          if (parameters != null) {
+            int positionalParameterCount = 0;
+            for (var parameter in parameters.parameters) {
+              NormalFormalParameter normalParameter;
+              if (parameter is NormalFormalParameter) {
+                normalParameter = parameter;
+              } else {
+                normalParameter =
+                    (parameter as DefaultFormalParameter).parameter;
+              }
+              DecoratedType currentParameterType;
+              DecoratedType overriddenParameterType;
+              if (parameter.isNamed) {
+                var name = normalParameter.identifier.name;
+                currentParameterType =
+                    _currentFunctionType.namedParameters[name];
+                overriddenParameterType =
+                    overriddenFunctionType.namedParameters[name];
+              } else {
+                if (positionalParameterCount <
+                    _currentFunctionType.positionalParameters.length) {
+                  currentParameterType = _currentFunctionType
+                      .positionalParameters[positionalParameterCount];
+                }
+                if (positionalParameterCount <
+                    overriddenFunctionType.positionalParameters.length) {
+                  overriddenParameterType = overriddenFunctionType
+                      .positionalParameters[positionalParameterCount];
+                }
+                positionalParameterCount++;
+              }
+              if (overriddenParameterType != null) {
+                if (_isUntypedParameter(normalParameter)) {
+                  _unionDecoratedTypes(
+                      overriddenParameterType, currentParameterType, origin);
+                } else {
+                  _checkAssignment(origin,
+                      source: overriddenParameterType,
+                      destination: currentParameterType,
+                      hard: true);
+                }
+              }
+            }
+          }
         }
       }
     } finally {
@@ -1155,6 +1209,16 @@ $stackTrace''');
     if (type.type is! InterfaceType) return false;
     if ((type.type as InterfaceType).typeParameters.isNotEmpty) return false;
     return true;
+  }
+
+  bool _isUntypedParameter(NormalFormalParameter parameter) {
+    if (parameter is SimpleFormalParameter) {
+      return parameter.type == null;
+    } else if (parameter is FieldFormalParameter) {
+      return parameter.type == null;
+    } else {
+      return false;
+    }
   }
 
   bool _isVariableOrParameterReference(Expression expression) {

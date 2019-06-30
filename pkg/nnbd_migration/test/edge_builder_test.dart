@@ -1310,6 +1310,48 @@ List<String> f() {
     assertEdge(always, decoratedTypeAnnotation('String>[').node, hard: false);
   }
 
+  test_method_parameterType_inferred() async {
+    await analyze('''
+class B {
+  void f/*B*/(int x) {}
+}
+class C extends B {
+  void f/*C*/(x) {}
+}
+''');
+    var bReturnType = decoratedMethodType('f/*B*/').positionalParameters[0];
+    var cReturnType = decoratedMethodType('f/*C*/').positionalParameters[0];
+    assertUnion(bReturnType.node, cReturnType.node);
+  }
+
+  test_method_parameterType_inferred_named() async {
+    await analyze('''
+class B {
+  void f/*B*/({int x = 0}) {}
+}
+class C extends B {
+  void f/*C*/({x = 0}) {}
+}
+''');
+    var bReturnType = decoratedMethodType('f/*B*/').namedParameters['x'];
+    var cReturnType = decoratedMethodType('f/*C*/').namedParameters['x'];
+    assertUnion(bReturnType.node, cReturnType.node);
+  }
+
+  test_method_returnType_inferred() async {
+    await analyze('''
+class B {
+  int f/*B*/() => 1;
+}
+class C extends B {
+  f/*C*/() => 1;
+}
+''');
+    var bReturnType = decoratedMethodType('f/*B*/').returnType;
+    var cReturnType = decoratedMethodType('f/*C*/').returnType;
+    assertUnion(bReturnType.node, cReturnType.node);
+  }
+
   test_methodDeclaration_resets_unconditional_control_flow() async {
     await analyze('''
 class C {

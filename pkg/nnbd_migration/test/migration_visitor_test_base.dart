@@ -151,6 +151,11 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
         testSource, findNode.genericFunctionType(text));
   }
 
+  /// Gets the [DecoratedType] associated with the method declaration whose
+  /// name matches [search].
+  DecoratedType decoratedMethodType(String search) => variables
+      .decoratedElementType(findNode.methodDeclaration(search).declaredElement);
+
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].
   DecoratedType decoratedTypeAnnotation(String text) {

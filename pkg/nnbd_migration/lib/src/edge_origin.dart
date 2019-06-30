@@ -57,6 +57,11 @@ class ImplicitMixinSuperCallOrigin extends EdgeOriginWithLocation {
       : super(source, offset);
 }
 
+/// Edge origin resulting from an inheritance relationship between two methods.
+class InheritanceOrigin extends EdgeOriginWithLocation {
+  InheritanceOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:

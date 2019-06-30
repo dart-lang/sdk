@@ -226,8 +226,10 @@ $stackTrace''');
 
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
-    var type = decorateType(node.type, node);
     var declaredElement = node.declaredElement;
+    var type = node.type != null
+        ? node.type.accept(this)
+        : DecoratedType.forImplicitType(declaredElement.type, _graph);
     _variables.recordDecoratedElementType(declaredElement, type);
     if (declaredElement.isNamed) {
       _namedParameters[declaredElement.name] = type;
@@ -376,25 +378,30 @@ $stackTrace''');
       FunctionBody body,
       ConstructorName redirectedConstructor,
       AstNode enclosingNode) {
+    var functionType = declaredElement.type;
     DecoratedType decoratedReturnType;
-    if (returnType == null && declaredElement is ConstructorElement) {
+    if (returnType != null) {
+      decoratedReturnType = returnType.accept(this);
+    } else if (declaredElement is ConstructorElement) {
       // Constructors have no explicit return type annotation, so use the
       // implicit return type.
       decoratedReturnType = _createDecoratedTypeForClass(
           declaredElement.enclosingElement, parameters.parent);
     } else {
-      decoratedReturnType = decorateType(returnType, enclosingNode);
+      // Inferred return type.
+      decoratedReturnType =
+          DecoratedType.forImplicitType(functionType.returnType, _graph);
     }
     var previousPositionalParameters = _positionalParameters;
     var previousNamedParameters = _namedParameters;
     _positionalParameters = [];
     _namedParameters = {};
-    DecoratedType functionType;
+    DecoratedType decoratedFunctionType;
     try {
       parameters?.accept(this);
       body?.accept(this);
       redirectedConstructor?.accept(this);
-      functionType = DecoratedType(declaredElement.type, _graph.never,
+      decoratedFunctionType = DecoratedType(functionType, _graph.never,
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,
           namedParameters: _namedParameters);
@@ -402,7 +409,8 @@ $stackTrace''');
       _positionalParameters = previousPositionalParameters;
       _namedParameters = previousNamedParameters;
     }
-    _variables.recordDecoratedElementType(declaredElement, functionType);
+    _variables.recordDecoratedElementType(
+        declaredElement, decoratedFunctionType);
   }
 
   void _handleSupertypeClauses(
