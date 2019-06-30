@@ -897,6 +897,32 @@ void g(int k) {
     assertEdge(decoratedTypeAnnotation('int k').node, never, hard: true);
   }
 
+  test_functionExpressionInvocation_parameterType() async {
+    await analyze('''
+abstract class C {
+  void Function(int) f();
+}
+void g(C c, int i) {
+  c.f()(i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int)').node,
+        hard: true);
+  }
+
+  test_functionExpressionInvocation_returnType() async {
+    await analyze('''
+abstract class C {
+  int Function() f();
+}
+int g(C c) => c.f()();
+''');
+    assertEdge(decoratedTypeAnnotation('int Function').node,
+        decoratedTypeAnnotation('int g').node,
+        hard: false);
+  }
+
   test_functionInvocation_parameter_fromLocalParameter() async {
     await analyze('''
 void f(int/*1*/ i) {}
@@ -2449,31 +2475,5 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int j').node,
         hard: true);
-  }
-
-  test_visitFunctionExpressionInvocation_parameterType() async {
-    await analyze('''
-abstract class C {
-  void Function(int) f();
-}
-void g(C c, int i) {
-  c.f()(i);
-}
-''');
-    assertEdge(decoratedTypeAnnotation('int i').node,
-        decoratedTypeAnnotation('int)').node,
-        hard: true);
-  }
-
-  test_visitFunctionExpressionInvocation_returnType() async {
-    await analyze('''
-abstract class C {
-  int Function() f();
-}
-int g(C c) => c.f()();
-''');
-    assertEdge(decoratedTypeAnnotation('int Function').node,
-        decoratedTypeAnnotation('int g').node,
-        hard: false);
   }
 }
