@@ -878,6 +878,26 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_instance_creation_generic() async {
+    var content = '''
+class C<T> {
+  C(T t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T t);
+}
+main() {
+  C<int?> c = C<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {

@@ -143,6 +143,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       DartType elementType;
       if (element is MethodElement) {
         elementType = element.type;
+      } else if (element is ConstructorElement) {
+        elementType = element.type;
       } else {
         throw element.runtimeType; // TODO(paulberry)
       }
@@ -472,17 +474,22 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   DecoratedType visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     var callee = node.staticElement;
-    var calleeType = getOrComputeElementType(callee);
     var typeParameters = callee.enclosingElement.typeParameters;
-    if (typeParameters.isNotEmpty) {
-      // If the class has type parameters then we might need to substitute the
-      // appropriate type arguments.
-      // TODO(brianwilkerson)
-      _unimplemented(node, 'Instance creation expression with type arguments');
+    List<DecoratedType> decoratedTypeArguments;
+    var typeArguments = node.constructorName.type.typeArguments;
+    if (typeArguments != null) {
+      decoratedTypeArguments = typeArguments.arguments
+          .map((t) => _variables.decoratedTypeAnnotation(_source, t))
+          .toList();
+    } else {
+      decoratedTypeArguments = const [];
     }
-    _handleInvocationArguments(node, node.argumentList.arguments,
-        node.constructorName.type.typeArguments, calleeType, typeParameters);
-    return calleeType.returnType;
+    var createdType = DecoratedType(node.staticType, _graph.never,
+        typeArguments: decoratedTypeArguments);
+    var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    _handleInvocationArguments(node, node.argumentList.arguments, typeArguments,
+        calleeType, typeParameters);
+    return createdType;
   }
 
   @override
