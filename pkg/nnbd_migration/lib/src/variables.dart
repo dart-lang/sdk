@@ -37,10 +37,8 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   @override
-  DecoratedType decoratedElementType(Element element, {bool create: false}) =>
-      _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element, _graph)
-          : throw StateError('No element found');
+  DecoratedType decoratedElementType(Element element) =>
+      _decoratedElementTypes[element] ??= _createDecoratedElementType(element);
 
   @override
   DecoratedType decoratedTypeAnnotation(
@@ -77,6 +75,7 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   void recordDecoratedElementType(Element element, DecoratedType type) {
+    assert(_graph.isBeingMigrated(element.library.source));
     _decoratedElementTypes[element] = type;
   }
 
@@ -153,6 +152,14 @@ class Variables implements VariableRecorder, VariableRepository {
   void _addPotentialModification(
       Source source, PotentialModification potentialModification) {
     (_potentialModifications[source] ??= []).add(potentialModification);
+  }
+
+  DecoratedType _createDecoratedElementType(Element element) {
+    if (_graph.isBeingMigrated(element.library.source)) {
+      throw StateError('A decorated type for $element should have been stored '
+          'by the NodeBuilder via recordDecoratedElementType');
+    }
+    return DecoratedType.forElement(element, _graph);
   }
 
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated

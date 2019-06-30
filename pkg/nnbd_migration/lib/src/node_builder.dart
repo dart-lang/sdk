@@ -499,9 +499,10 @@ abstract class VariableRepository {
   /// Retrieves the [DecoratedType] associated with the static type of the given
   /// [element].
   ///
-  /// If [create] is `true`, and no decorated type is found for the given
-  /// element, one is synthesized using [DecoratedType.forElement].
-  DecoratedType decoratedElementType(Element element, {bool create: false});
+  /// If no decorated type is found for the given element, and the element is in
+  /// a library that's not being migrated, a decorated type is synthesized using
+  /// [DecoratedType.forElement].
+  DecoratedType decoratedElementType(Element element);
 
   /// Gets the [DecoratedType] associated with the given [typeAnnotation].
   DecoratedType decoratedTypeAnnotation(

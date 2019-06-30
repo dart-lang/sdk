@@ -21,6 +21,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String testCode;
   String testFile;
+  Uri testUri;
   Source testSource;
   ResolvedUnitResult testAnalysisResult;
   CompilationUnit testUnit;
@@ -35,7 +36,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestUnit(String code) async {
-    addTestSource(code);
+    addTestSource(code, testUri);
     testAnalysisResult = await session.getResolvedUnit(testFile);
     testUnit = testAnalysisResult.unit;
     if (verifyNoTestUnitErrors) {
@@ -59,5 +60,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     testFile = convertPath('/home/test/lib/test.dart');
+    testUri = Uri.parse('package:test/test.dart');
   }
 }

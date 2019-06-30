@@ -125,8 +125,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
         baseElement.isSynthetic &&
         !baseElement.variable.isSynthetic) {
       var variable = baseElement.variable;
-      var decoratedElementType =
-          _variables.decoratedElementType(variable, create: true);
+      var decoratedElementType = _variables.decoratedElementType(variable);
       if (baseElement.isGetter) {
         decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
             returnType: decoratedElementType);
@@ -136,8 +135,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
             positionalParameters: [decoratedElementType]);
       }
     } else {
-      decoratedBaseType =
-          _variables.decoratedElementType(baseElement, create: true);
+      decoratedBaseType = _variables.decoratedElementType(baseElement);
     }
     if (substitution != null) {
       DartType elementType;
@@ -302,8 +300,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
           .substitute(_decoratedClassHierarchy
               .getDecoratedSupertype(classElement, superElement)
               .asSubstitution);
-      var superConstructorDecoratedType = _variables
-          .decoratedElementType(superConstructorElement, create: true);
+      var superConstructorDecoratedType =
+          _variables.decoratedElementType(superConstructorElement);
       var origin = ImplicitMixinSuperCallOrigin(_source, node.offset);
       _unionDecoratedTypeParameters(
           constructorDecoratedType, superConstructorDecoratedType, origin);
@@ -828,15 +826,13 @@ $stackTrace''');
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
           _unionDecoratedTypes(
               instantiatedType.typeArguments[i],
-              _variables.decoratedElementType(element.typeParameters[i],
-                  create: true),
+              _variables.decoratedElementType(element.typeParameters[i]),
               origin);
         }
       } else {
         for (int i = 0; i < typeArguments.length; i++) {
           DecoratedType bound;
-          bound = _variables.decoratedElementType(element.typeParameters[i],
-              create: true);
+          bound = _variables.decoratedElementType(element.typeParameters[i]);
           var argumentType =
               _variables.decoratedTypeAnnotation(_source, typeArguments[i]);
           if (argumentType == null) {
