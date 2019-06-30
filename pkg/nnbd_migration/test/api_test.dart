@@ -838,6 +838,30 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_function_expression_invocation() async {
+    var content = '''
+abstract class C {
+  void Function(int) f();
+  int/*?*/ Function() g();
+}
+int test(C c) {
+  c.f()(null);
+  return c.g()();
+}
+''';
+    var expected = '''
+abstract class C {
+  void Function(int?) f();
+  int?/*?*/ Function() g();
+}
+int? test(C c) {
+  c.f()(null);
+  return c.g()();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_genericType_noTypeArguments() async {
     var content = '''
 void f(C c) {}

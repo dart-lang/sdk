@@ -406,8 +406,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson)
-    _unimplemented(node, 'FunctionExpressionInvocation');
+    DecoratedType calleeType = node.function.accept(this);
+    return _handleInvocationArguments(node, node.argumentList.arguments,
+        node.typeArguments, calleeType, null);
   }
 
   @override
