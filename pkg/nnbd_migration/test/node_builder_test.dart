@@ -694,6 +694,17 @@ main() {
     expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
   }
 
+  test_variableDeclaration_visit_initializer() async {
+    await analyze('''
+class C<T> {}
+void f(C<dynamic> c) {
+  var x = c as C<int>;
+}
+''');
+    var decoratedType = decoratedTypeAnnotation('int');
+    expect(decoratedType.node, TypeMatcher<NullabilityNodeMutable>());
+  }
+
   test_void_type() async {
     await analyze('''
 void f() {}
