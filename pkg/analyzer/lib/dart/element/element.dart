@@ -1487,7 +1487,8 @@ abstract class ParameterElement
   bool get isRequiredPositional;
 
   /// Return the kind of this parameter.
-  @deprecated
+  @Deprecated('Use the getters isOptionalNamed, isOptionalPositional, '
+      'isRequiredNamed, and isRequiredPositional')
   ParameterKind get parameterKind;
 
   /// Return a list containing all of the parameters defined by this parameter.
