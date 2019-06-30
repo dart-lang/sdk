@@ -237,9 +237,12 @@ class DecoratedType {
       if (type.typeFormals.isNotEmpty) {
         formals = '<${type.typeFormals.join(', ')}>';
       }
-      assert(type.namedParameterTypes.isEmpty &&
-          namedParameters.isEmpty); // TODO(paulberry)
-      var args = positionalParameters.map((p) => p.toString()).join(', ');
+      List<Object> argStrings =
+          positionalParameters.map((p) => p.toString()).toList();
+      for (var entry in namedParameters.entries) {
+        argStrings.add('${entry.key}: ${entry.value}');
+      }
+      var args = argStrings.join(', ');
       return '$returnType Function$formals($args)$trailing';
     } else if (type is DynamicTypeImpl) {
       return 'dynamic';
