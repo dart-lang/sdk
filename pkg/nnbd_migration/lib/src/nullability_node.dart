@@ -167,7 +167,9 @@ class NullabilityGraph {
       var destinations =
           edges.where((edge) => edge.primarySource == source).map((edge) {
         var suffixes = <Object>[];
-        if (edge.hard) {
+        if (edge.isUnion) {
+          suffixes.add('union');
+        } else if (edge.hard) {
           suffixes.add('hard');
         }
         suffixes.addAll(edge.guards);
