@@ -34,6 +34,12 @@ abstract class EdgeOriginWithLocation extends EdgeOrigin {
   EdgeOriginWithLocation(this.source, this.offset);
 }
 
+/// Edge origin resulting from the relationship between a field formal parameter
+/// and the corresponding field.
+class FieldFormalParameterOrigin extends EdgeOriginWithLocation {
+  FieldFormalParameterOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from the presence of a `??` operator.
 class IfNullOrigin extends EdgeOriginWithLocation {
   IfNullOrigin(Source source, int offset) : super(source, offset);

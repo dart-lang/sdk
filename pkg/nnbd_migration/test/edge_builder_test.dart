@@ -811,6 +811,31 @@ class C {
     assertUnion(xType.node, decoratedTypeAnnotation('int').node);
   }
 
+  test_fieldFormalParameter_typed() async {
+    await analyze('''
+class C {
+  int i;
+  C(int this.i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int this').node,
+        decoratedTypeAnnotation('int i').node,
+        hard: true);
+  }
+
+  test_fieldFormalParameter_untyped() async {
+    await analyze('''
+class C {
+  int i;
+  C.named(this.i);
+}
+''');
+    var decoratedConstructorParamType =
+        decoratedConstructorDeclaration('named').positionalParameters[0];
+    assertUnion(decoratedConstructorParamType.node,
+        decoratedTypeAnnotation('int i').node);
+  }
+
   test_functionDeclaration_expression_body() async {
     await analyze('''
 int/*1*/ f(int/*2*/ i) => i/*3*/;

@@ -345,6 +345,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
+    node.parameter.accept(this);
     var defaultValue = node.defaultValue;
     if (defaultValue == null) {
       if (node.declaredElement.hasRequired) {
@@ -379,6 +380,21 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
           '(parent is ${node.parent.runtimeType})');
     }
     _handleAssignment(node.expression, _currentFunctionType.returnType);
+    return null;
+  }
+
+  @override
+  DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
+    var parameterElement = node.declaredElement as FieldFormalParameterElement;
+    var parameterType = _variables.decoratedElementType(parameterElement);
+    var fieldType = _variables.decoratedElementType(parameterElement.field);
+    var origin = FieldFormalParameterOrigin(_source, node.offset);
+    if (node.type == null) {
+      _unionDecoratedTypes(parameterType, fieldType, origin);
+    } else {
+      _checkAssignment(origin,
+          source: parameterType, destination: fieldType, hard: true);
+    }
     return null;
   }
 

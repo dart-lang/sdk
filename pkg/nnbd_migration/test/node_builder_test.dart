@@ -17,11 +17,6 @@ main() {
 
 @reflectiveTest
 class NodeBuilderTest extends MigrationVisitorTestBase {
-  /// Gets the [DecoratedType] associated with the constructor declaration whose
-  /// name matches [search].
-  DecoratedType decoratedConstructorDeclaration(String search) => variables
-      .decoratedElementType(findNode.constructor(search).declaredElement);
-
   /// Gets the [DecoratedType] associated with the function declaration whose
   /// name matches [search].
   DecoratedType decoratedFunctionType(String search) =>
@@ -413,6 +408,40 @@ class C {
         variables.decoratedElementType(
             findNode.fieldDeclaration('f').fields.variables[0].declaredElement),
         same(decoratedType));
+  }
+
+  test_fieldFormalParameter_typed() async {
+    await analyze('''
+class C {
+  int i;
+  C.named(int this.i);
+}
+''');
+    var decoratedConstructorParamType =
+        decoratedConstructorDeclaration('named').positionalParameters[0];
+    expect(decoratedTypeAnnotation('int this'),
+        same(decoratedConstructorParamType));
+    expect(decoratedConstructorParamType.type.toString(), 'int');
+    expect(decoratedConstructorParamType.node,
+        TypeMatcher<NullabilityNodeMutable>());
+    // Note: the edge builder will connect this node to the node for the type of
+    // the field.
+  }
+
+  test_fieldFormalParameter_untyped() async {
+    await analyze('''
+class C {
+  int i;
+  C.named(this.i);
+}
+''');
+    var decoratedConstructorParamType =
+        decoratedConstructorDeclaration('named').positionalParameters[0];
+    expect(decoratedConstructorParamType.type.toString(), 'int');
+    expect(decoratedConstructorParamType.node,
+        TypeMatcher<NullabilityNodeMutable>());
+    // Note: the edge builder will unify this implicit type with the type of the
+    // field.
   }
 
   test_generic_function_type_syntax_inferred_dynamic_return() async {
