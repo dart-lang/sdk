@@ -415,6 +415,19 @@ class C {
         same(decoratedType));
   }
 
+  test_generic_function_type_syntax_inferred_dynamic_return() async {
+    await analyze('''
+abstract class C {
+  Function() f();
+}
+''');
+    var decoratedFType = decoratedMethodType('f');
+    var decoratedFReturnType = decoratedFType.returnType;
+    var decoratedFReturnReturnType = decoratedFReturnType.returnType;
+    expect(decoratedFReturnReturnType.type.toString(), 'dynamic');
+    expect(decoratedFReturnReturnType.node, same(always));
+  }
+
   test_genericFunctionType_namedParameterType() async {
     await analyze('''
 void f(void Function({int y}) x) {}

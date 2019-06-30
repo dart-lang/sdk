@@ -57,20 +57,6 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       : _nonNullableObjectType =
             DecoratedType(_typeProvider.objectType, _graph.never);
 
-  /// Creates and stores a [DecoratedType] object corresponding to the given
-  /// [type] AST, and returns it.
-  DecoratedType decorateType(TypeAnnotation type, AstNode enclosingNode) {
-    return type == null
-        // TODO(danrubel): Return something other than this
-        // to indicate that we should insert a type for the declaration
-        // that is missing a type reference.
-        ? new DecoratedType(
-            DynamicTypeImpl.instance,
-            NullabilityNode.forInferredDynamicType(
-                _graph, _source, enclosingNode.offset))
-        : type.accept(this);
-  }
-
   @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
@@ -254,7 +240,7 @@ $stackTrace''');
       return decoratedType;
     }
     var typeArguments = const <DecoratedType>[];
-    DecoratedType returnType;
+    DecoratedType decoratedReturnType;
     var positionalParameters = const <DecoratedType>[];
     var namedParameters = const <String, DecoratedType>{};
     if (type is InterfaceType && type.typeParameters.isNotEmpty) {
@@ -272,7 +258,10 @@ $stackTrace''');
       }
     }
     if (node is GenericFunctionType) {
-      returnType = decorateType(node.returnType, node);
+      var returnType = node.returnType;
+      decoratedReturnType = returnType == null
+          ? DecoratedType.forImplicitType(DynamicTypeImpl.instance, _graph)
+          : returnType.accept(this);
       if (node.typeParameters != null) {
         // TODO(paulberry)
         _unimplemented(node, 'Generic function type with type parameters');
@@ -305,7 +294,7 @@ $stackTrace''');
     }
     var decoratedType = DecoratedTypeAnnotation(type, nullabilityNode, node.end,
         typeArguments: typeArguments,
-        returnType: returnType,
+        returnType: decoratedReturnType,
         positionalParameters: positionalParameters,
         namedParameters: namedParameters);
     _variables.recordDecoratedTypeAnnotation(_source, node, decoratedType);
