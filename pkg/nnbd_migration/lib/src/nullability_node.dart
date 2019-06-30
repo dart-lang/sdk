@@ -317,18 +317,6 @@ abstract class NullabilityNode {
       _NullabilityNodeSimple('?? operator');
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
-  /// whose type is `dynamic` due to type inference.
-  ///
-  /// TODO(paulberry): this should go away; we should decorate the actual
-  /// inferred type rather than assuming `dynamic`.
-  factory NullabilityNode.forInferredDynamicType(
-      NullabilityGraph graph, Source source, int offset) {
-    var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.union(node, graph.always, AlwaysNullableTypeOrigin(source, offset));
-    return node;
-  }
-
-  /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by type inference.
   factory NullabilityNode.forInferredType() =>
       _NullabilityNodeSimple('inferred');

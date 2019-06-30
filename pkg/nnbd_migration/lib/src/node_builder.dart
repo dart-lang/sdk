@@ -321,11 +321,16 @@ $stackTrace''');
   @override
   DecoratedType visitTypeParameter(TypeParameter node) {
     var element = node.declaredElement;
-    var decoratedBound = node.bound?.accept(this) ??
-        DecoratedType(
-            element.bound ?? _typeProvider.objectType,
-            NullabilityNode.forInferredDynamicType(
-                _graph, _source, node.offset));
+    var bound = node.bound;
+    DecoratedType decoratedBound;
+    if (bound != null) {
+      decoratedBound = bound.accept(this);
+    } else {
+      var nullabilityNode = NullabilityNode.forInferredType();
+      _graph.union(_graph.always, nullabilityNode,
+          AlwaysNullableTypeOrigin(_source, node.offset));
+      decoratedBound = DecoratedType(_typeProvider.objectType, nullabilityNode);
+    }
     _variables.recordDecoratedElementType(element, decoratedBound);
     return null;
   }
