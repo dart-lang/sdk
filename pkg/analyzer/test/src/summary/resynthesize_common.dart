@@ -9580,6 +9580,21 @@ int y;
 ''');
   }
 
+  test_type_inference_fieldFormal_depends_onField() async {
+    var library = await checkLibrary('''
+class A<T> {
+  var f = 0;
+  A(this.f);
+}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  int f;
+  A(int this.f);
+}
+''');
+  }
+
   test_type_inference_multiplyDefinedElement() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'class C {}');
@@ -9619,6 +9634,34 @@ var x = ([y: 0]) => y;
 ''');
     checkElementText(library, '''
 dynamic Function([dynamic]) x;
+''');
+  }
+
+  test_type_inference_topVariable_depends_onFieldFormal() async {
+    var library = await checkLibrary('''
+class A {}
+
+class B extends A {}
+
+class C<T extends A> {
+  final T f;
+  const C(this.f);
+}
+
+final b = B();
+final c = C(b);
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B extends A {
+}
+class C<T extends A> {
+  final T f;
+  const C(T this.f);
+}
+final B b;
+final C<B> c;
 ''');
   }
 
