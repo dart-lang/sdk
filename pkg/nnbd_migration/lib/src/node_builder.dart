@@ -247,8 +247,6 @@ $stackTrace''');
       }
       positionalParameters = <DecoratedType>[];
       namedParameters = <String, DecoratedType>{};
-    }
-    if (node is GenericFunctionType) {
       var previousPositionalParameters = _positionalParameters;
       var previousNamedParameters = _namedParameters;
       try {
