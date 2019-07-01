@@ -275,8 +275,9 @@ void CodeRelocator::ScanCallTargets(const Code& code,
 
     offset_into_target += (entry_point - destination_payload);
 
-    const intptr_t text_offset =
-        code_text_offset + Instructions::HeaderSize() + offset;
+    const intptr_t text_offset = code_text_offset +
+                                 compiler::target::Instructions::HeaderSize() +
+                                 offset;
     UnresolvedCall unresolved_call(code.raw(), offset, text_offset,
                                    destination_.raw(), offset_into_target);
     if (!TryResolveBackwardsCall(&unresolved_call)) {
@@ -502,7 +503,8 @@ intptr_t CodeRelocator::FindDestinationInText(
     const RawInstructions* destination,
     intptr_t offset_into_target) {
   auto destination_offset = text_offsets_.LookupValue(destination);
-  return destination_offset + Instructions::HeaderSize() + offset_into_target;
+  return destination_offset + compiler::target::Instructions::HeaderSize() +
+         offset_into_target;
 }
 
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_DBC) &&           \
