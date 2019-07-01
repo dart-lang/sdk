@@ -3749,6 +3749,12 @@ class AssistProcessor {
           selectedStatements.add(selectedNode);
         }
       }
+      // we want only statements in blocks
+      for (var statement in selectedStatements) {
+        if (statement.parent is! Block) {
+          return;
+        }
+      }
       // we want only statements
       if (selectedStatements.isEmpty ||
           selectedStatements.length != selectedNodes.length) {
