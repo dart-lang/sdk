@@ -77,7 +77,6 @@
 #include <sys/types.h>
 
 #if defined(_WIN32)
-#include "platform/c99_support_win.h"
 #include "platform/floating_point_win.h"
 #include "platform/inttypes_support_win.h"
 #endif  // defined(_WIN32)

@@ -15,7 +15,6 @@ platform_sources = [
   "atomic_linux.h",
   "atomic_macos.h",
   "atomic_win.h",
-  "c99_support_win.h",
   "floating_point.h",
   "floating_point_win.cc",
   "floating_point_win.h",
