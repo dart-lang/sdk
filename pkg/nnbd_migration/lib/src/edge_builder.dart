@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -132,7 +133,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       } else {
         assert(baseElement.isSetter);
         decoratedBaseType = DecoratedType(baseElement.type, _graph.never,
-            positionalParameters: [decoratedElementType]);
+            positionalParameters: [decoratedElementType],
+            returnType: DecoratedType(VoidTypeImpl.instance, _graph.always));
       }
     } else {
       decoratedBaseType = _variables.decoratedElementType(baseElement);
@@ -323,8 +325,19 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     assert(_isSimple(thenType)); // TODO(paulberry)
     var elseType = node.elseExpression.accept(this);
     assert(_isSimple(elseType)); // TODO(paulberry)
+
+    DartType staticType = node.staticType;
+    DecoratedType returnType;
+    if (staticType is FunctionType) {
+      DartType functReturnType = staticType.returnType;
+      returnType = functReturnType.isDynamic || functReturnType.isVoid
+          // TODO(danrubel): handle LUB for constituent types
+          ? DecoratedType(functReturnType, _graph.always)
+          : _variables.decoratedElementType(functReturnType.element);
+    }
     var overallType = DecoratedType(
-        node.staticType, NullabilityNode.forLUB(thenType.node, elseType.node));
+        staticType, NullabilityNode.forLUB(thenType.node, elseType.node),
+        returnType: returnType);
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }

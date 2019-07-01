@@ -836,6 +836,25 @@ class C {
         decoratedTypeAnnotation('int i').node);
   }
 
+  test_function_assignment() async {
+    await analyze('''
+class C {
+  void f1(String message) {}
+  void f2(String message) {}
+}
+foo(C c, bool flag) {
+  Function(String message) out = flag ? c.f1 : c.f2;
+  out('hello');
+}
+bar() {
+  foo(C(), true);
+  foo(C(), false);
+}
+''');
+    var type = decoratedTypeAnnotation('Function(String message)');
+    expect(type.returnType, isNotNull);
+  }
+
   test_functionDeclaration_expression_body() async {
     await analyze('''
 int/*1*/ f(int/*2*/ i) => i/*3*/;

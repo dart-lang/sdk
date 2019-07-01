@@ -41,6 +41,7 @@ class DecoratedType {
       this.namedParameters = const {},
       this.typeArguments = const []}) {
     assert(node != null);
+    assert(type is! FunctionType || returnType != null);
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
