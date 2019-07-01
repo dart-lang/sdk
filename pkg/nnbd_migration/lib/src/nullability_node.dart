@@ -403,6 +403,11 @@ abstract class NullabilityNode {
   void trackPossiblyOptional() {
     _isPossiblyOptional = true;
   }
+
+  @visibleForTesting
+  static void clearDebugNames() {
+    _debugNamesInUse.clear();
+  }
 }
 
 /// Derived class for nullability nodes that arise from the least-upper-bound
