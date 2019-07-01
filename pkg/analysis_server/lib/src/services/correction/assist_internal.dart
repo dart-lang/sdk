@@ -149,6 +149,7 @@ class AssistProcessor {
     await _addProposal_splitAndCondition();
     await _addProposal_splitVariableDeclaration();
     await _addProposal_surroundWith();
+    await _addProposal_useCurlyBraces();
 
     if (experimentStatus.control_flow_collections) {
       await _addProposal_convertConditionalExpressionToIfElement();
@@ -3944,6 +3945,132 @@ class AssistProcessor {
       });
       _addAssistFromBuilder(
           changeBuilder, DartAssistKind.SURROUND_WITH_TRY_FINALLY);
+    }
+  }
+
+  Future<void> _addProposal_useCurlyBraces() async {
+    Future<void> doStatement(DoStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.doKeyword, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleReplacement(
+          range.endStart(body, node.whileKeyword),
+          '$eol$prefix} ',
+        );
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> forStatement(ForStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.rightParenthesis, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> ifStatement(IfStatement node, Statement thenOrElse) async {
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        var thenStatement = node.thenStatement;
+        if (thenStatement is! Block &&
+            (thenOrElse == null || thenOrElse == thenStatement)) {
+          builder.addSimpleReplacement(
+            range.endStart(node.rightParenthesis, thenStatement),
+            ' {$eol$indent',
+          );
+          if (node.elseKeyword != null) {
+            builder.addSimpleReplacement(
+              range.endStart(thenStatement, node.elseKeyword),
+              '$eol$prefix} ',
+            );
+          } else {
+            builder.addSimpleInsertion(thenStatement.end, '$eol$prefix}');
+          }
+        }
+
+        var elseStatement = node.elseStatement;
+        if (elseStatement != null &&
+            elseStatement is! Block &&
+            (thenOrElse == null || thenOrElse == elseStatement)) {
+          builder.addSimpleReplacement(
+            range.endStart(node.elseKeyword, elseStatement),
+            ' {$eol$indent',
+          );
+          builder.addSimpleInsertion(elseStatement.end, '$eol$prefix}');
+        }
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    Future<void> whileStatement(WhileStatement node) async {
+      var body = node.body;
+      if (body is Block) return;
+
+      var prefix = utils.getLinePrefix(node.offset);
+      var indent = prefix + utils.getIndent(1);
+
+      var changeBuilder = _newDartChangeBuilder();
+      await changeBuilder.addFileEdit(file, (builder) {
+        builder.addSimpleReplacement(
+          range.endStart(node.rightParenthesis, body),
+          ' {$eol$indent',
+        );
+        builder.addSimpleInsertion(body.end, '$eol$prefix}');
+      });
+
+      _addAssistFromBuilder(changeBuilder, DartAssistKind.USE_CURLY_BRACES);
+    }
+
+    var statement = this.node.thisOrAncestorOfType<Statement>();
+    var parent = statement?.parent;
+
+    if (statement is DoStatement) {
+      return doStatement(statement);
+    } else if (parent is DoStatement) {
+      return doStatement(parent);
+    } else if (statement is ForStatement) {
+      return forStatement(statement);
+    } else if (parent is ForStatement) {
+      return forStatement(parent);
+    } else if (statement is IfStatement) {
+      if (statement.elseKeyword != null &&
+          range.token(statement.elseKeyword).contains(selectionOffset)) {
+        return ifStatement(statement, statement.elseStatement);
+      } else {
+        return ifStatement(statement, null);
+      }
+    } else if (parent is IfStatement) {
+      return ifStatement(parent, statement);
+    } else if (statement is WhileStatement) {
+      return whileStatement(statement);
+    } else if (parent is WhileStatement) {
+      return whileStatement(parent);
     }
   }
 

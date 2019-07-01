@@ -78,6 +78,7 @@ import 'surround_with_if_test.dart' as surround_with_if;
 import 'surround_with_try_catch_test.dart' as surround_with_try_catch;
 import 'surround_with_try_finally_test.dart' as surround_with_try_finally;
 import 'surround_with_while_test.dart' as surround_with_while;
+import 'use_curly_braces_test.dart' as use_curly_braces;
 
 main() {
   defineReflectiveSuite(() {
@@ -147,5 +148,6 @@ main() {
     surround_with_try_catch.main();
     surround_with_try_finally.main();
     surround_with_while.main();
+    use_curly_braces.main();
   }, name: 'assist');
 }
