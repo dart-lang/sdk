@@ -302,8 +302,9 @@ class Api : AllStatic {
 #if defined(TARGET_ARCH_DBC) && !defined(ARCH_IS_64_BIT)
     // TODO(36809): Support SimDBC32.
     return false;
-#elif defined(TARGET_ARCH_DBC) && !defined(HOST_ARCH_X64)
-    // TODO(35773): Support ia32, arm64, and arm.
+#elif defined(TARGET_ARCH_DBC) &&                                              \
+    !(defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
+    // TODO(36809): Support ia32 and arm.
     return false;
 #elif defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_X64) &&                    \
     defined(HOST_OS_WINDOWS)
