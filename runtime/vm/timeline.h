@@ -919,8 +919,7 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
 };
 
 #if defined(HOST_OS_FUCHSIA) && !defined(FUCHSIA_SDK)
-// A recorder that sends events to Fuchsia's tracing app. See:
-// https://fuchsia.googlesource.com/garnet/+/master/docs/tracing_usage_guide.md
+// A recorder that sends events to Fuchsia's tracing app.
 class TimelineEventFuchsiaRecorder : public TimelineEventPlatformRecorder {
  public:
   TimelineEventFuchsiaRecorder() {}

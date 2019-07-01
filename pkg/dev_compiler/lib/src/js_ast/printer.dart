@@ -1020,7 +1020,7 @@ class Printer implements NodeVisitor {
       spaceOut();
       // Object initializers require parenthesis to disambiguate
       // AssignmentExpression from FunctionBody. See:
-      // https://people.mozilla.org/~jorendorff/es6-draft.html#sec-arrow-function-definitions
+      // https://tc39.github.io/ecma262/#sec-arrow-function-definitions
       var needsParen = fun.body is ObjectInitializer;
       if (needsParen) out("(");
       visitNestedExpression(body, ASSIGNMENT,

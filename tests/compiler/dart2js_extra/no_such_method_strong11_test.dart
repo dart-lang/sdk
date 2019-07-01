@@ -5,7 +5,7 @@
 // dart2jsOptions=--strong
 
 // Regression test checking that nsm-forwarders do not get installed for private
-// members of other libraries. See  https://dartbug.com/33665
+// members of other libraries. See http://dartbug.com/33665
 
 import 'package:expect/expect.dart';
 import 'no_such_method_strong11_lib.dart';
