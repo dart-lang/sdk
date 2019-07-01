@@ -3203,6 +3203,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
+  test_isPotentiallyNonNullable_never() {
+    expect(typeSystem.isPotentiallyNonNullable(neverType), true);
+  }
+
   test_isPotentiallyNonNullable_none() {
     expect(typeSystem.isPotentiallyNonNullable(noneType), true);
   }
@@ -3252,6 +3256,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       ),
       false,
     );
+  }
+
+  test_isPotentiallyNullable_never() {
+    expect(typeSystem.isPotentiallyNullable(neverType), false);
   }
 
   test_isPotentiallyNullable_none() {
