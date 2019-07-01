@@ -43,10 +43,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
   final _ElementSet<Element> _emptySet;
   final _State<Element, Type> _identity;
 
-  /// The output list of variables that were read before they were written.
-  /// TODO(scheglov) use _ElementSet?
-  final List<Element> readBeforeWritten = [];
-
   /// The [NodeOperations], used to manipulate expressions.
   final NodeOperations<Expression> nodeOperations;
 
@@ -359,6 +355,11 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     _current = trueCondition;
   }
 
+  /// Return whether the [variable] is definitely assigned in the current state.
+  bool isAssigned(Element variable) {
+    return !_current.notAssigned.contains(variable);
+  }
+
   void isExpression_end(
       Expression isExpression, Element variable, bool isNot, Type type) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
@@ -457,20 +458,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
   /// is currently promoted.  Otherwise returns `null`.
   Type promotedType(Element variable) {
     return _current.promoted[variable];
-  }
-
-  /// Register read of the given [variable] in the current state.
-  void read(Element variable) {
-    if (_current.notAssigned.contains(variable)) {
-      // Add to the list of violating variables, if not there yet.
-      for (var i = 0; i < readBeforeWritten.length; ++i) {
-        var violatingVariable = readBeforeWritten[i];
-        if (identical(violatingVariable, variable)) {
-          return;
-        }
-      }
-      readBeforeWritten.add(variable);
-    }
   }
 
   /// The [notPromoted] set contains all variables that are potentially

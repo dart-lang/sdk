@@ -5004,6 +5004,17 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _flowAnalysis?.simpleIdentifier(node);
+
+    if (_flowAnalysis != null &&
+        _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode
+            .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+        node,
+        [node.name],
+      );
+    }
+
     super.visitSimpleIdentifier(node);
   }
 

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_ast_factory.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -23,7 +22,7 @@ class FlowAnalysisHelper {
   final NodeOperations<Expression> _nodeOperations;
 
   /// The reused instance for creating new [FlowAnalysis] instances.
-  final TypeOperations<VariableElement, DartType> _typeOperations;
+  final _TypeSystemTypeOperations _typeOperations;
 
   /// Precomputed sets of potentially assigned variables.
   final AssignedVariables<Statement, VariableElement> assignedVariables;
@@ -58,23 +57,14 @@ class FlowAnalysisHelper {
 
     var left = node.leftHandSide;
 
-    VariableElement localElement;
     if (left is SimpleIdentifier) {
       var element = left.staticElement;
       if (element is VariableElement) {
-        localElement = element;
+        return element;
       }
     }
 
-    // Not assignment to a local variable.
-    if (localElement == null) return null;
-
-    var isCompound = node.operator.type != TokenType.EQ;
-    if (isCompound) {
-      flow.read(localElement);
-    }
-
-    return localElement;
+    return null;
   }
 
   void assignmentExpression_afterRight(
@@ -165,11 +155,6 @@ class FlowAnalysisHelper {
       return;
     }
 
-    for (var variable in flow.readBeforeWritten) {
-      assert(variable is LocalVariableElement);
-      result.readBeforeWritten.add(variable);
-    }
-
     if (!flow.isReachable) {
       result.functionBodiesThatDontComplete.add(node);
     }
@@ -235,6 +220,25 @@ class FlowAnalysisHelper {
     }
   }
 
+  bool isPotentiallyNonNullableLocalReadBeforeWrite(SimpleIdentifier node) {
+    if (flow == null) return false;
+
+    if (node.inDeclarationContext()) return false;
+    if (!node.inGetterContext()) return false;
+
+    var element = node.staticElement;
+    if (element is LocalVariableElement) {
+      if (element.isLate) return false;
+
+      var typeSystem = _typeOperations.typeSystem;
+      if (typeSystem.isPotentiallyNonNullable(element.type)) {
+        return !flow.isAssigned(element);
+      }
+    }
+
+    return false;
+  }
+
   void simpleIdentifier(SimpleIdentifier node) {
     if (flow == null) return;
 
@@ -242,10 +246,6 @@ class FlowAnalysisHelper {
     var isLocalVariable = element is LocalVariableElement;
     if (isLocalVariable || element is ParameterElement) {
       if (node.inGetterContext() && !node.inDeclarationContext()) {
-        if (isLocalVariable) {
-          flow.read(element);
-        }
-
         if (flow.isNullable(element)) {
           result.nullableNodes.add(node);
         }
@@ -333,8 +333,6 @@ class FlowAnalysisHelper {
 /// The result of performing flow analysis on a unit.
 class FlowAnalysisResult {
   static const _astKey = 'FlowAnalysisResult';
-
-  final List<LocalVariableElement> readBeforeWritten = [];
 
   /// The list of identifiers, resolved to a local variable or a parameter,
   /// where the variable is known to be nullable.
