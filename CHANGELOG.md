@@ -1,3 +1,7 @@
+# 0.1.93
+
+* new lint: `avoid_print`
+
 # 0.1.92
 
 * improved `prefer_collection_literals` to better handle `LinkedHashSet`s and `LinkedHashMap`s
