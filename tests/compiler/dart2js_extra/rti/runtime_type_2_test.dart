@@ -14,9 +14,20 @@ Type grabList<T>() => grab<List<T>>();
 
 main() {
   Expect.equals('int', grab<int>().toString());
+
   Expect.identical(int, grab<int>());
+  Expect.identical(dynamic, grab<dynamic>());
+  Expect.identical(Object, grab<Object>());
+  Expect.identical(Null, grab<Null>());
 
   Expect.equals('List<int>', grabList<int>().toString());
+  Expect.equals('List<Null>', grabList<Null>().toString());
 
   Expect.equals('List<dynamic>', (List).toString());
+
+  Expect.equals('dynamic', (dynamic).toString());
+  Expect.equals('Object', (Object).toString());
+  Expect.equals('Null', (Null).toString());
+
+  Expect.equals(List, grabList<dynamic>());
 }

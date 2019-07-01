@@ -5302,6 +5302,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
+    if (options.experimentNewRti) {
+      HInstruction rti =
+          _typeBuilder.analyzeTypeArgumentNewRti(typeValue, sourceElement);
+      push(HIsTest(typeValue, expression, rti, _abstractValueDomain.boolType));
+      return;
+    }
+
     if (typeValue is FunctionType) {
       HInstruction representation =
           _typeBuilder.analyzeTypeArgument(typeValue, sourceElement);

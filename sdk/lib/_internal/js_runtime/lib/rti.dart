@@ -329,8 +329,8 @@ bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} is ${_rtiToString(testRti, null)}');
+  Rti objectRti = instanceType(object);
+  return isSubtype(_theUniverse(), objectRti, testRti);
 }
 
 /// Called from generated code.

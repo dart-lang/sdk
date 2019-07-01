@@ -3340,6 +3340,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTest(HIsTest node) {
+    _registry.registerTypeUse(new TypeUse.isCheck(node.dartType));
+
     use(node.typeInput);
     js.Expression first = pop();
     use(node.checkedInput);
