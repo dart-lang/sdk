@@ -484,6 +484,7 @@ abstract class CommonElements {
   FunctionEntity get findType;
   FunctionEntity get instanceType;
   FunctionEntity get typeLiteralMaker;
+  FunctionEntity get checkTypeBound;
   FieldEntity get rtiAsField;
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
@@ -1829,6 +1830,11 @@ class CommonElementsImpl
   @override
   FunctionEntity get typeLiteralMaker =>
       _typeLiteralMaker ??= _findRtiFunction('typeLiteral');
+
+  FunctionEntity _checkTypeBound;
+  @override
+  FunctionEntity get checkTypeBound =>
+      _checkTypeBound ??= _findRtiFunction('checkTypeBound');
 
   ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
   FieldEntity _findRtiClassField(String name) =>

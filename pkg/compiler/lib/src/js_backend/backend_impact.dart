@@ -165,7 +165,8 @@ class BackendImpacts {
   BackendImpact get typeVariableBoundCheck {
     return _typeVariableBoundCheck ??= new BackendImpact(staticUses: [
       _commonElements.throwTypeError,
-      _commonElements.assertIsSubtype
+      _commonElements.assertIsSubtype,
+      if (_newRti) _commonElements.checkTypeBound,
     ]);
   }
 

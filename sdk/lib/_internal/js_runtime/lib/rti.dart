@@ -352,6 +352,23 @@ _generalTypeCheckImplementation(object) {
       ' (TypeError)');
 }
 
+/// Called from generated code.
+checkTypeBound(Rti type, Rti bound, variable) {
+  if (isSubtype(_theUniverse(), type, bound)) return type;
+  var message = "Type '${_rtiToString(type, null)}'"
+      " is not a subtype of type '${_rtiToString(bound, null)}'"
+      " of '${_Utils.asString(variable)}'";
+  throw _TypeError.fromMessage('TypeError: $message');
+}
+
+class _TypeError extends Error implements TypeError {
+  final String message;
+  _TypeError.fromMessage(this.message);
+
+  @override
+  String toString() => message;
+}
+
 String _rtiToString(Rti rti, List<String> genericContext) {
   int kind = Rti._getKind(rti);
 
