@@ -1,0 +1,17 @@
+# A list of rules to which there are no reasonable auto-fix
+# semantics.
+#
+# Rules in this list will be excluded from scoring.
+
+- avoid_as
+- avoid_catching_errors
+- avoid_classes_with_only_static_members
+- avoid_implementing_value_types
+- avoid_positional_boolean_parameters
+- avoid_returning_null_for_future
+- avoid_returning_this
+- avoid_slow_async_io
+- avoid_types_as_parameter_names
+# todo: consider a wrap w/ future assist?
+- await_only_futures
+
