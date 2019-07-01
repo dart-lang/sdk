@@ -464,8 +464,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This increases the length of the list by one and shifts all objects
    * at or after the index towards the end of the list.
    *
-   * A `RangeError` occurs if the [index] is less than 0 or greater than length.
-   * An [UnsupportedError] occurs if the list is fixed-length.
+   * The list must be growable.
+   * The [index] value must be non-negative and no greater than [length].
    */
   void insert(int index, E element);
 
@@ -475,8 +475,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * This increases the length of the list by the length of [iterable] and
    * shifts all later objects towards the end of the list.
    *
-   * An error occurs if the [index] is less than 0 or greater than length.
-   * An [UnsupportedError] occurs if the list is fixed-length.
+   * The list must be growable.
+   * The [index] value must be non-negative and no greater than [length].
    */
   void insertAll(int index, Iterable<E> iterable);
 
@@ -675,21 +675,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * `len` is this list's `length`. The range starts at `start` and has length
    * `end - start`. An empty range (with `end == start`) is valid.
    *
-   *     List<int> list1 = new List(3);
-   *     list1.fillRange(0, 2, 1);
+   * Example:
+   * ```dart
+   *  List<int> list = new List(3);
+   *     list.fillRange(0, 2, 1);
    *     print(list); //  [1, 1, null]
+   * ```
    *
-   * Note: Usage on dynamic list throws RangeError: Invalid Value
-   *
-   *      List<int> list = new List();
-   *      list.fillRange(0, 2, 1); // throws `RangeError: Invalid Value` exception.
-   *
-   *
-   * However, works on dynamic list of fixed length:
-   *
-   *      List<int> list2 = new List()..length = 3;
-   *      list2.fillRange(0, 2, 1);
-   *      print(list2); // [1, 1, null]
    */
   void fillRange(int start, int end, [E fillValue]);
 
