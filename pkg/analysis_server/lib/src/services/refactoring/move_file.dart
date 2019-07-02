@@ -89,8 +89,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
               .where(
                   (po) => po.uri != null && _isRelativeUri(po.uri.stringValue));
           if (partOfs.isNotEmpty) {
-            await changeBuilder.addFileEdit(result.unit.element.source.fullName,
-                (builder) {
+            await changeBuilder.addFileEdit(
+                result.unit.declaredElement.source.fullName, (builder) {
               partOfs.forEach((po) {
                 final oldDir = pathContext.dirname(oldFile);
                 final newDir = pathContext.dirname(newFile);
