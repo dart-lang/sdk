@@ -58,6 +58,19 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
             DecoratedType(_typeProvider.objectType, _graph.never);
 
   @override
+  DecoratedType visitCatchClause(CatchClause node) {
+    DecoratedType exceptionType = node.exceptionType?.accept(this);
+    if (node.exceptionParameter != null) {
+      exceptionType ??= DecoratedType(_typeProvider.objectType, _graph.never);
+      _variables.recordDecoratedElementType(
+          node.exceptionParameter.staticElement, exceptionType);
+    }
+    node.stackTraceParameter?.accept(this);
+    node.body?.accept(this);
+    return null;
+  }
+
+  @override
   DecoratedType visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
     node.name.accept(this);
@@ -263,7 +276,8 @@ $stackTrace''');
         parent is ImplementsClause ||
         parent is WithClause ||
         parent is OnClause ||
-        parent is ClassTypeAlias) {
+        parent is ClassTypeAlias ||
+        parent is CatchClause) {
       nullabilityNode = _graph.never;
     } else {
       nullabilityNode = NullabilityNode.forTypeAnnotation(node.end);

@@ -541,6 +541,26 @@ C f(C c, int i) => c..x = i;
         hard: false);
   }
 
+  test_catch_clause() async {
+    await analyze('''
+foo() => 1;
+main() {
+  try { foo(); } on Exception catch (e) { print(e); }
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
+  test_catch_clause_no_type() async {
+    await analyze('''
+foo() => 1;
+main() {
+  try { foo(); } catch (e) { print(e); }
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
   test_class_alias_synthetic_constructor_with_parameters_complex() async {
     await analyze('''
 class MyList<T> {}
