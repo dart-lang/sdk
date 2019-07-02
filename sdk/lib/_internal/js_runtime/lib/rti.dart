@@ -335,21 +335,30 @@ bool _generalIsTestImplementation(object) {
 
 /// Called from generated code.
 _generalAsCheckImplementation(object) {
+  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}');
+  Rti objectRti = instanceType(object);
+  if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
+  var message = "${Error.safeToString(object)}:"
+      " type '${_rtiToString(objectRti, null)}'"
+      " is not a subtype of type '${_rtiToString(testRti, null)}'";
+  throw new _CastError.fromMessage('CastError: $message');
 }
 
 /// Called from generated code.
 _generalTypeCheckImplementation(object) {
+  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}'
-      ' (TypeError)');
+  Rti objectRti = instanceType(object);
+  if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
+  var message = "${Error.safeToString(object)}:"
+      " type '${_rtiToString(objectRti, null)}'"
+      " is not a subtype of type '${_rtiToString(testRti, null)}'";
+  throw new _TypeError.fromMessage('TypeError: $message');
 }
 
 /// Called from generated code.
@@ -359,6 +368,14 @@ checkTypeBound(Rti type, Rti bound, variable) {
       " is not a subtype of type '${_rtiToString(bound, null)}'"
       " of '${_Utils.asString(variable)}'";
   throw _TypeError.fromMessage('TypeError: $message');
+}
+
+class _CastError extends Error implements CastError {
+  final String message;
+  _CastError.fromMessage(this.message);
+
+  @override
+  String toString() => message;
 }
 
 class _TypeError extends Error implements TypeError {
