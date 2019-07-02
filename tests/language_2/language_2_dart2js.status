@@ -17,7 +17,6 @@ bit_operations_test: RuntimeError
 bit_operations_test/03: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/04: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_operations_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
-branch_canonicalization_test: RuntimeError
 call_method_as_cast_test/06: RuntimeError
 call_method_implicit_tear_off_implements_function_test/05: RuntimeError
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError
@@ -269,7 +268,6 @@ await_test: RuntimeError
 bit_operations_test/03: RuntimeError
 bit_operations_test/04: RuntimeError
 bit_operations_test/none: RuntimeError
-branch_canonicalization_test: RuntimeError
 canonical_const2_test: RuntimeError, OK # non JS number semantics
 checked_method_error_order_test: RuntimeError
 class_cycle_test/02: MissingCompileTimeError
