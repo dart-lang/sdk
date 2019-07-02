@@ -3554,7 +3554,11 @@ void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
 Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());
-  if (!target_function.is_debuggable()) {
+  // AsyncFunction is marked not debuggable. When target_function is an async
+  // function, it is actually referring the inner async_op. Allow the
+  // breakpoint to be set, it will get resolved correctly when inner async_op
+  // gets compiled.
+  if (!target_function.is_debuggable() && !target_function.IsAsyncFunction()) {
     return NULL;
   }
   const Script& script = Script::Handle(target_function.script());
