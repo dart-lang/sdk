@@ -5,22 +5,28 @@
 import "dart:_internal" show patch;
 
 @patch
-Pointer<T> allocate<T extends NativeType>({int count: 1}) native "Ffi_allocate";
-
-@patch
-T fromAddress<T extends Pointer>(int ptr) native "Ffi_fromAddress";
-
-@patch
 int sizeOf<T extends NativeType>() native "Ffi_sizeOf";
 
-@patch
-Pointer<NativeFunction<T>> fromFunction<T extends Function>(
-    @DartRepresentationOf("T") Function f,
-    Object exceptionalReturn) native "Ffi_fromFunction";
+Pointer<T> _allocate<T extends NativeType>(int count) native "Ffi_allocate";
+
+Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
 @patch
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
+  @patch
+  factory Pointer.allocate({int count: 1}) => _allocate<T>(count);
+
+  @patch
+  factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
+
+  @patch
+  static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
+      @DartRepresentationOf("T") Function f,
+      Object exceptionalReturn) native "Ffi_fromFunction";
+
+  // TODO(sjindel): When NNBD is available, we should change `value` to be
+  // non-null.
   @patch
   void store(Object value) native "Ffi_store";
 
@@ -46,7 +52,7 @@ class Pointer<T extends NativeType> {
   // fromAddress(address). This would be 2 native calls rather than one.
   // What would be better?
   @patch
-  U cast<U extends Pointer>() native "Ffi_cast";
+  Pointer<U> cast<U extends NativeType>() native "Ffi_cast";
 
   @patch
   R asFunction<R extends Function>() native "Ffi_asFunction";

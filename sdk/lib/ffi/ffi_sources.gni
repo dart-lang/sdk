@@ -8,5 +8,6 @@ ffi_sdk_sources = [
   # The above file needs to be first as it lists the parts below.
   "annotations.dart",
   "dynamic_library.dart",
-  "native_type.dart"
+  "native_type.dart",
+  "struct.dart"
 ]

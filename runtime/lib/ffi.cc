@@ -28,23 +28,7 @@ namespace dart {
 // throw ArgumentExceptions.
 
 static bool IsPointerType(const AbstractType& type) {
-  // Do a fast check for predefined types.
-  classid_t type_cid = type.type_class_id();
-  if (RawObject::IsFfiPointerClassId(type_cid)) {
-    return true;
-  }
-
-  // Do a slow check for subtyping.
-  const Class& pointer_class =
-      Class::Handle(Isolate::Current()->object_store()->ffi_pointer_class());
-  AbstractType& pointer_type =
-      AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                              Object::null_type_arguments(),
-                                              kNoneFree, NULL, Heap::kNew);
-  ASSERT(pointer_type.IsInstantiated());
-  ASSERT(type.IsInstantiated());
-  return type.IsSubtypeOf(pointer_type, Heap::kNew);
+  return RawObject::IsFfiPointerClassId(type.type_class_id());
 }
 
 static bool IsNativeFunction(const AbstractType& type_arg) {
@@ -86,7 +70,7 @@ enum class FfiVariance { kInvariant = 0, kCovariant = 1, kContravariant = 2 };
 // [Double]                             -> [double]
 // [Float]                              -> [double]
 // [Pointer]<T>                         -> [Pointer]<T>
-// T extends [Pointer]                  -> T
+// T extends [Struct]                   -> T
 // [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
 //    where DartRepresentationOf(Tn) -> Sn
 static bool DartAndCTypeCorrespond(const AbstractType& native_type,
@@ -197,22 +181,35 @@ static const Double& AsDouble(const Instance& instance) {
   return Double::Cast(instance);
 }
 
+// Calcuate the size of a native type.
+//
+// You must check [IsConcreteNativeType] and [CheckSized] first to verify that
+// this type has a defined size.
+static size_t SizeOf(const AbstractType& type) {
+  if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
+    return compiler::ffi::ElementSizeInBytes(type.type_class_id());
+  } else {
+    Class& struct_class = Class::Handle(type.type_class());
+    Object& result = Object::Handle(
+        struct_class.InvokeGetter(Symbols::SizeOfStructField(),
+                                  /*throw_nsm_if_absent=*/false,
+                                  /*respect_reflectable=*/false));
+    ASSERT(!result.IsNull() && result.IsInteger());
+    return Integer::Cast(result).AsInt64Value();
+  }
+}
+
 // The remainder of this file implements the dart:ffi native methods.
 
 DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
-  // TODO(dacoharkes): When we have a way of determining the size of structs in
-  // the VM, change the signature so we can allocate structs, subtype of
-  // Pointer. https://github.com/dart-lang/sdk/issues/35782
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
 
   CheckSized(type_arg);
+  size_t element_size = SizeOf(type_arg);
 
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, argCount, arguments->NativeArgAt(0));
   int64_t count = argCount.AsInt64Value();
-  classid_t type_cid = type_arg.type_class_id();
-
-  size_t size = compiler::ffi::ElementSizeInBytes(type_cid) *
-                count;  // Truncates overflow.
+  size_t size = element_size * count;  // Truncates overflow.
   size_t memory = reinterpret_cast<size_t>(malloc(size));
   if (memory == 0) {
     const String& error = String::Handle(String::NewFormatted(
@@ -220,24 +217,14 @@ DEFINE_NATIVE_ENTRY(Ffi_allocate, 1, 1) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  RawPointer* result = Pointer::New(
-      type_arg, Integer::Handle(zone, Integer::NewFromUint64(memory)));
+  RawPointer* result = Pointer::New(type_arg, memory);
   return result;
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_fromAddress, 1, 1) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  TypeArguments& type_args = TypeArguments::Handle(type_arg.arguments());
-  AbstractType& native_type = AbstractType::Handle(
-      type_args.TypeAtNullSafe(Pointer::kNativeTypeArgPos));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, arg_ptr, arguments->NativeArgAt(0));
-
-  // TODO(dacoharkes): should this return NULL if address is 0?
-  // https://github.com/dart-lang/sdk/issues/35756
-
-  RawPointer* result =
-      Pointer::New(native_type, arg_ptr, type_arg.type_class_id());
-  return result;
+  return Pointer::New(type_arg, arg_ptr.AsInt64Value());
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
@@ -246,14 +233,9 @@ DEFINE_NATIVE_ENTRY(Ffi_elementAt, 0, 2) {
   AbstractType& pointer_type_arg =
       AbstractType::Handle(zone, pointer.type_argument());
   CheckSized(pointer_type_arg);
-
-  classid_t class_id = pointer_type_arg.type_class_id();
-  Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
-  address = Integer::New(address.AsInt64Value() +
-                         index.AsInt64Value() *
-                             compiler::ffi::ElementSizeInBytes(class_id));
-  RawPointer* result = Pointer::New(pointer_type_arg, address);
-  return result;
+  return Pointer::New(pointer_type_arg,
+                      pointer.NativeAddress() +
+                          index.AsInt64Value() * SizeOf(pointer_type_arg));
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_offsetBy, 0, 2) {
@@ -262,63 +244,35 @@ DEFINE_NATIVE_ENTRY(Ffi_offsetBy, 0, 2) {
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
 
-  intptr_t address =
-      Integer::Handle(zone, pointer.GetCMemoryAddress()).AsInt64Value() +
-      offset.AsInt64Value();
-  RawPointer* result = Pointer::New(
-      pointer_type_arg, Integer::Handle(zone, Integer::New(address)));
-  return result;
+  return Pointer::New(pointer_type_arg,
+                      pointer.NativeAddress() + offset.AsInt64Value());
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_cast, 1, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  TypeArguments& type_args = TypeArguments::Handle(type_arg.arguments());
-  AbstractType& native_type = AbstractType::Handle(
-      type_args.TypeAtNullSafe(Pointer::kNativeTypeArgPos));
-
-  const Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
-  RawPointer* result =
-      Pointer::New(native_type, address, type_arg.type_class_id());
-  return result;
+  return Pointer::New(type_arg, pointer.NativeAddress());
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_free, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
 
-  const Integer& address = Integer::Handle(zone, pointer.GetCMemoryAddress());
-  free(reinterpret_cast<void*>(address.AsInt64Value()));
-  pointer.SetCMemoryAddress(Integer::Handle(zone, Integer::New(0)));
+  free(reinterpret_cast<void*>(pointer.NativeAddress()));
+  pointer.SetNativeAddress(0);
+
   return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_address, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  return pointer.GetCMemoryAddress();
+  return Integer::New(pointer.NativeAddress());
 }
 
-static RawInstance* BoxLoadPointer(Zone* zone,
-                                   uint8_t* address,
-                                   const AbstractType& instance_type_arg,
-                                   intptr_t type_cid) {
-  // TODO(dacoharkes): should this return NULL if addres is 0?
-  // https://github.com/dart-lang/sdk/issues/35756
-  if (address == nullptr) {
-    return Instance::null();
-  }
-  AbstractType& type_arg =
-      AbstractType::Handle(TypeArguments::Handle(instance_type_arg.arguments())
-                               .TypeAt(Pointer::kNativeTypeArgPos));
-  return Pointer::New(
-      type_arg,
-      Integer::Handle(zone, Integer::New(reinterpret_cast<intptr_t>(address))),
-      type_cid);
-}
-
-static RawInstance* LoadValue(Zone* zone,
-                              uint8_t* address,
-                              const AbstractType& instance_type_arg) {
+static RawObject* LoadValue(Zone* zone,
+                            const Pointer& target,
+                            const AbstractType& instance_type_arg) {
   classid_t type_cid = instance_type_arg.type_class_id();
+  size_t address = target.NativeAddress();
   switch (type_cid) {
     case kFfiInt8Cid:
       return Integer::New(*reinterpret_cast<int8_t*>(address));
@@ -342,11 +296,39 @@ static RawInstance* LoadValue(Zone* zone,
       return Double::New(*reinterpret_cast<float_t*>(address));
     case kFfiDoubleCid:
       return Double::New(*reinterpret_cast<double_t*>(address));
-    case kFfiPointerCid:
-    default:
-      ASSERT(IsPointerType(instance_type_arg));
-      return BoxLoadPointer(zone, *reinterpret_cast<uint8_t**>(address),
-                            instance_type_arg, type_cid);
+    default: {
+      if (IsPointerType(instance_type_arg)) {
+        const AbstractType& type_arg = AbstractType::Handle(
+            TypeArguments::Handle(instance_type_arg.arguments())
+                .TypeAt(Pointer::kNativeTypeArgPos));
+        return Pointer::New(type_arg, reinterpret_cast<size_t>(
+                                          *reinterpret_cast<void**>(address)));
+      } else {
+        // Result is a struct class -- find <class name>.#fromPointer
+        // constructor and call it.
+        Class& cls = Class::Handle(zone, instance_type_arg.type_class());
+        const Function& constructor =
+            Function::Handle(cls.LookupFunctionAllowPrivate(String::Handle(
+                String::Concat(String::Handle(String::Concat(
+                                   String::Handle(cls.Name()), Symbols::Dot())),
+                               Symbols::StructFromPointer()))));
+        ASSERT(!constructor.IsNull());
+        ASSERT(constructor.IsGenerativeConstructor());
+        ASSERT(!Object::Handle(constructor.VerifyCallEntryPoint()).IsError());
+        Instance& new_object = Instance::Handle(Instance::New(cls));
+        new_object.SetTypeArguments(
+            TypeArguments::Handle(instance_type_arg.arguments()));
+        ASSERT(cls.is_allocated() ||
+               Dart::vm_snapshot_kind() != Snapshot::kFullAOT);
+        const Array& args = Array::Handle(zone, Array::New(2));
+        args.SetAt(0, new_object);
+        args.SetAt(1, target);
+        Object& constructorResult =
+            Object::Handle(DartEntry::InvokeFunction(constructor, args));
+        ASSERT(!constructorResult.IsError());
+        return new_object.raw();
+      }
+    }
   }
 }
 
@@ -359,17 +341,14 @@ DEFINE_NATIVE_ENTRY(Ffi_load, 1, 1) {
   CheckDartAndCTypeCorrespond(pointer_type_arg, type_arg,
                               FfiVariance::kContravariant);
 
-  uint8_t* address = reinterpret_cast<uint8_t*>(
-      Integer::Handle(pointer.GetCMemoryAddress()).AsInt64Value());
-  return LoadValue(zone, address, pointer_type_arg);
+  return LoadValue(zone, pointer, pointer_type_arg);
 }
 
 static void StoreValue(Zone* zone,
                        const Pointer& pointer,
                        classid_t type_cid,
                        const Instance& new_value) {
-  uint8_t* address = reinterpret_cast<uint8_t*>(
-      Integer::Handle(pointer.GetCMemoryAddress()).AsInt64Value());
+  uint8_t* const address = reinterpret_cast<uint8_t*>(pointer.NativeAddress());
   AbstractType& pointer_type_arg =
       AbstractType::Handle(pointer.type_argument());
   switch (type_cid) {
@@ -414,20 +393,16 @@ static void StoreValue(Zone* zone,
     case kFfiDoubleCid:
       *reinterpret_cast<double*>(address) = AsDouble(new_value).value();
       break;
-    case kFfiPointerCid:
-    default: {
+    case kFfiPointerCid: {
       ASSERT(IsPointerType(pointer_type_arg));
-      intptr_t new_value_unwrapped = 0;
-      if (!new_value.IsNull()) {
-        ASSERT(new_value.IsPointer());
-        new_value_unwrapped =
-            Integer::Handle(AsPointer(new_value).GetCMemoryAddress())
-                .AsInt64Value();
-        // TODO(dacoharkes): should this return NULL if addres is 0?
-        // https://github.com/dart-lang/sdk/issues/35756
-      }
-      *reinterpret_cast<intptr_t*>(address) = new_value_unwrapped;
-    } break;
+      ASSERT(new_value.IsPointer());
+      const void* const stored =
+          reinterpret_cast<void*>(AsPointer(new_value).NativeAddress());
+      *reinterpret_cast<const void**>(address) = stored;
+      break;
+    }
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -441,6 +416,12 @@ DEFINE_NATIVE_ENTRY(Ffi_store, 0, 2) {
   CheckDartAndCTypeCorrespond(pointer_type_arg, arg_type,
                               FfiVariance::kCovariant);
 
+  if (new_value.IsNull()) {
+    const String& error = String::Handle(
+        String::NewFormatted("Argument to Pointer.store is null."));
+    Exceptions::ThrowArgumentError(error);
+  }
+
   classid_t type_cid = pointer_type_arg.type_class_id();
   StoreValue(zone, pointer, type_cid, new_value);
   return Object::null();
@@ -450,8 +431,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   CheckSized(type_arg);
 
-  classid_t type_cid = type_arg.type_class_id();
-  return Smi::New(compiler::ffi::ElementSizeInBytes(type_cid));
+  return Integer::New(SizeOf(type_arg));
 }
 
 // TODO(dacoharkes): Cache the trampolines.
@@ -518,7 +498,8 @@ DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
   // the function so that we can reuse the function for each c function with
   // the same signature.
   Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0, Integer::Handle(zone, pointer.GetCMemoryAddress()));
+  context.SetAt(0,
+                Integer::Handle(zone, Integer::New(pointer.NativeAddress())));
 
   RawClosure* raw_closure =
       Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
@@ -670,13 +651,9 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
     Exceptions::ThrowArgumentError(error);
   }
 
-  const uword address =
-      CompileNativeCallback(native_signature, func, exceptional_return);
-
-  const Pointer& result = Pointer::Handle(Pointer::New(
-      native_function_type, Integer::Handle(zone, Integer::New(address))));
-
-  return result.raw();
+  return Pointer::New(
+      native_function_type,
+      CompileNativeCallback(native_signature, func, exceptional_return));
 #endif
 }
 

@@ -34,5 +34,5 @@ class DynamicLibrary {
   }
 
   @patch
-  Pointer<Void> get handle => fromAddress(getHandle());
+  Pointer<Void> get handle => Pointer.fromAddress(getHandle());
 }

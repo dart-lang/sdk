@@ -16,6 +16,9 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
 /// Represents the (instantiated) ffi.NativeType.
 enum NativeType {
+  kNativeType,
+  kNativeInteger,
+  kNativeDouble,
   kPointer,
   kNativeFunction,
   kInt8,
@@ -29,7 +32,8 @@ enum NativeType {
   kIntptr,
   kFloat,
   kDouble,
-  kVoid
+  kVoid,
+  kStruct
 }
 
 const NativeType kNativeTypeIntStart = NativeType.kInt8;
@@ -37,6 +41,9 @@ const NativeType kNativeTypeIntEnd = NativeType.kIntptr;
 
 /// The [NativeType] class names, indexed by [NativeType].
 const List<String> nativeTypeClassNames = [
+  'NativeType',
+  '_NativeInteger',
+  '_NativeDouble',
   'Pointer',
   'NativeFunction',
   'Int8',
@@ -50,7 +57,8 @@ const List<String> nativeTypeClassNames = [
   'IntPtr',
   'Float',
   'Double',
-  'Void'
+  'Void',
+  'Struct'
 ];
 
 const int UNKNOWN = 0;
@@ -58,6 +66,9 @@ const int WORD_SIZE = -1;
 
 /// The [NativeType] sizes in bytes, indexed by [NativeType].
 const List<int> nativeTypeSizes = [
+  UNKNOWN, // NativeType
+  UNKNOWN, // NativeInteger
+  UNKNOWN, // NativeDouble
   WORD_SIZE, // Pointer
   UNKNOWN, // NativeFunction
   1, // Int8
@@ -72,6 +83,7 @@ const List<int> nativeTypeSizes = [
   4, // Float
   8, // Double
   UNKNOWN, // Void
+  UNKNOWN, // Struct
 ];
 
 /// [FfiTransformer] contains logic which is shared between
@@ -97,7 +109,8 @@ class FfiTransformer extends Transformer {
   final Procedure asFunctionMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
-  final Field structField;
+  final Field addressOfField;
+  final Constructor structFromPointer;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -116,15 +129,17 @@ class FfiTransformer extends Transformer {
         loadMethod = index.getMember('dart:ffi', 'Pointer', 'load'),
         storeMethod = index.getMember('dart:ffi', 'Pointer', 'store'),
         offsetByMethod = index.getMember('dart:ffi', 'Pointer', 'offsetBy'),
+        addressOfField = index.getMember('dart:ffi', 'Struct', 'addressOf'),
+        structFromPointer =
+            index.getMember('dart:ffi', 'Struct', 'fromPointer'),
         asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
         lookupFunctionMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
         fromFunctionMethod =
-            index.getTopLevelMember('dart:ffi', 'fromFunction'),
-        structField = index.getTopLevelMember('dart:ffi', 'struct'),
+            index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
-            .toList() {}
+            .toList();
 
   /// Computes the Dart type corresponding to a ffi.[NativeType], returns null
   /// if it is not a valid NativeType.
@@ -145,18 +160,22 @@ class FfiTransformer extends Transformer {
   /// T extends [Pointer]                  -> T
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
-  DartType convertNativeTypeToDartType(DartType nativeType) {
+  DartType convertNativeTypeToDartType(DartType nativeType, bool allowStructs) {
     if (nativeType is! InterfaceType) {
       return null;
     }
-    Class nativeClass = (nativeType as InterfaceType).classNode;
-    if (env.isSubtypeOf(
-        InterfaceType(nativeClass), InterfaceType(pointerClass))) {
-      return nativeType;
-    }
+    InterfaceType native = nativeType;
+    Class nativeClass = native.classNode;
     NativeType nativeType_ = getType(nativeClass);
+
+    if (hierarchy.isSubclassOf(nativeClass, structClass)) {
+      return allowStructs ? nativeType : null;
+    }
     if (nativeType_ == null) {
       return null;
+    }
+    if (nativeType_ == NativeType.kPointer) {
+      return nativeType;
     }
     if (kNativeTypeIntStart.index <= nativeType_.index &&
         nativeType_.index <= kNativeTypeIntEnd.index) {
@@ -168,23 +187,26 @@ class FfiTransformer extends Transformer {
     if (nativeType_ == NativeType.kVoid) {
       return VoidType();
     }
-    if (nativeType_ == NativeType.kNativeFunction) {
-      DartType fun = (nativeType as InterfaceType).typeArguments[0];
-      if (fun is FunctionType) {
-        if (fun.namedParameters.isNotEmpty) return null;
-        if (fun.positionalParameters.length != fun.requiredParameterCount)
-          return null;
-        if (fun.typeParameters.length != 0) return null;
-        DartType returnType = convertNativeTypeToDartType(fun.returnType);
-        if (returnType == null) return null;
-        List<DartType> argumentTypes = fun.positionalParameters
-            .map(this.convertNativeTypeToDartType)
-            .toList();
-        if (argumentTypes.contains(null)) return null;
-        return FunctionType(argumentTypes, returnType);
-      }
+    if (nativeType_ != NativeType.kNativeFunction ||
+        native.typeArguments[0] is! FunctionType) {
+      return null;
     }
-    return null;
+
+    FunctionType fun = native.typeArguments[0];
+    if (fun.namedParameters.isNotEmpty) return null;
+    if (fun.positionalParameters.length != fun.requiredParameterCount) {
+      return null;
+    }
+    if (fun.typeParameters.length != 0) return null;
+    // TODO(36730): Structs cannot appear in native function signatures.
+    DartType returnType =
+        convertNativeTypeToDartType(fun.returnType, /*allowStructs=*/ false);
+    if (returnType == null) return null;
+    List<DartType> argumentTypes = fun.positionalParameters
+        .map((t) => convertNativeTypeToDartType(t, /*allowStructs=*/ false))
+        .toList();
+    if (argumentTypes.contains(null)) return null;
+    return FunctionType(argumentTypes, returnType);
   }
 
   NativeType getType(Class c) {

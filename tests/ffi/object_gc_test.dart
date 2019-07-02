@@ -2,47 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Dart test program for testing dart:ffi Pointer subtypes.
+// Tests GC of Pointer objects.
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=--verbose-gc
 
 library FfiTest;
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
 import "package:expect/expect.dart";
 
 import 'cstring.dart';
 import 'dylib_utils.dart';
 
-ffi.DynamicLibrary ffiTestFunctions =
-    dlopenPlatformSpecific("ffi_test_functions");
+DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 final triggerGc = ffiTestFunctions
-    .lookupFunction<ffi.Void Function(), void Function()>("TriggerGC");
+    .lookupFunction<Void Function(), void Function()>("TriggerGC");
 
 void main() async {
-  testAllocate();
   testSizeOf();
   testGC();
 }
 
 dynamic bar;
 
-void testAllocate() {
-  CString cs = CString.toUtf8("hello world!");
-  Expect.equals("hello world!", cs.fromUtf8());
-  cs.free();
-}
-
 Future<void> testGC() async {
-  bar = ffi.fromAddress<CString>(11);
+  bar = Pointer<Int8>.fromAddress(11);
   // Verify that the objects manufactured by 'fromAddress' can be scanned by the
   // GC.
   triggerGc();
 }
 
 void testSizeOf() {
-  Expect.equals(true, 4 == ffi.sizeOf<CString>() || 8 == ffi.sizeOf<CString>());
+  Expect.equals(true, 4 == sizeOf<Pointer>() || 8 == sizeOf<Pointer>());
 }

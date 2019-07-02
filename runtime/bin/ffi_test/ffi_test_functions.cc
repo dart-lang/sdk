@@ -638,7 +638,7 @@ DART_EXPORT int TestReturnNull(int32_t (*fn)()) {
 }
 
 DART_EXPORT int TestNullPointers(int64_t* (*fn)(int64_t* ptr)) {
-  CHECK_EQ(fn(nullptr), nullptr);
+  CHECK_EQ(fn(nullptr), reinterpret_cast<void*>(sizeof(int64_t)));
   int64_t p[2] = {0};
   CHECK_EQ(fn(p), p + 1);
   return 0;

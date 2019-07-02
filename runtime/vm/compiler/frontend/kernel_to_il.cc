@@ -2483,38 +2483,6 @@ Fragment FlowGraphBuilder::UnboxTruncate(Representation to) {
   return Fragment(unbox);
 }
 
-Fragment FlowGraphBuilder::LoadAddressFromFfiPointer() {
-  Fragment test;
-  TargetEntryInstr* null_entry;
-  TargetEntryInstr* not_null_entry;
-  JoinEntryInstr* join = BuildJoinEntry();
-
-  LocalVariable* result = parsed_function_->expression_temp_var();
-
-  LocalVariable* pointer = MakeTemporary();
-  test += LoadLocal(pointer);
-  test += BranchIfNull(&null_entry, &not_null_entry);
-
-  Fragment load_0(null_entry);
-  load_0 += IntConstant(0);
-  load_0 += StoreLocal(TokenPosition::kNoSource, result);
-  load_0 += Drop();
-  load_0 += Goto(join);
-
-  Fragment unbox(not_null_entry);
-  unbox += LoadLocal(pointer);
-  unbox += LoadNativeField(Slot::Pointer_c_memory_address());
-  unbox += StoreLocal(TokenPosition::kNoSource, result);
-  unbox += Drop();
-  unbox += Goto(join);
-
-  Fragment done{test.entry, join};
-  done += Drop();
-  done += LoadLocal(result);
-
-  return done;
-}
-
 Fragment FlowGraphBuilder::Box(Representation from) {
   BoxInstr* box = BoxInstr::Create(from, Pop());
   Push(box);
@@ -2543,58 +2511,35 @@ Fragment FlowGraphBuilder::NativeReturn(Representation result) {
 #endif
 
 Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
-  Fragment test;
-  TargetEntryInstr* null_entry;
-  TargetEntryInstr* not_null_entry;
-  JoinEntryInstr* join = BuildJoinEntry();
-
   LocalVariable* address = MakeTemporary();
   LocalVariable* result = parsed_function_->expression_temp_var();
 
-  test += LoadLocal(address);
-  test += IntConstant(0);
-  test += BranchIfEqual(&null_entry, &not_null_entry);
+  Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+  // This class might only be instantiated as a return type of ffi calls.
+  result_class.EnsureIsFinalized(thread_);
 
-  // If the result is 0, we return null because "0 means null".
-  Fragment load_null(null_entry);
-  {
-    load_null += NullConstant();
-    load_null += StoreLocal(TokenPosition::kNoSource, result);
-    load_null += Drop();
-    load_null += Goto(join);
-  }
+  TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
 
-  Fragment box(not_null_entry);
-  {
-    Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
-    // This class might only be instantiated as a return type of ffi calls.
-    result_class.EnsureIsFinalized(thread_);
+  // A kernel transform for FFI in the front-end ensures that type parameters
+  // do not appear in the type arguments to a any Pointer classes in an FFI
+  // signature.
+  ASSERT(args.IsNull() || args.IsInstantiated());
 
-    TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
+  Fragment code;
+  code += Constant(args);
+  code += PushArgument();
+  code += AllocateObject(TokenPosition::kNoSource, result_class, 1);
+  LocalVariable* pointer = MakeTemporary();
+  code += LoadLocal(pointer);
+  code += LoadLocal(address);
+  code += StoreInstanceField(TokenPosition::kNoSource,
+                             Slot::Pointer_c_memory_address());
+  code += StoreLocal(TokenPosition::kNoSource, result);
+  code += Drop();  // StoreLocal^
+  code += Drop();  // address
+  code += LoadLocal(result);
 
-    // A kernel transform for FFI in the front-end ensures that type parameters
-    // do not appear in the type arguments to a any Pointer classes in an FFI
-    // signature.
-    ASSERT(args.IsNull() || args.IsInstantiated());
-
-    box += Constant(args);
-    box += PushArgument();
-    box += AllocateObject(TokenPosition::kNoSource, result_class, 1);
-    LocalVariable* pointer = MakeTemporary();
-    box += LoadLocal(pointer);
-    box += LoadLocal(address);
-    box += StoreInstanceField(TokenPosition::kNoSource,
-                              Slot::Pointer_c_memory_address());
-    box += StoreLocal(TokenPosition::kNoSource, result);
-    box += Drop();
-    box += Goto(join);
-  }
-
-  Fragment rest(test.entry, join);
-  rest += Drop();
-  rest += LoadLocal(result);
-
-  return rest;
+  return code;
 }
 
 Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
@@ -2640,16 +2585,13 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
     return body;
   }
 
-  // Check for 'null'. Only ffi.Pointers are allowed to be null.
-  if (!compiler::ffi::NativeTypeIsPointer(ffi_type)) {
-    body += LoadLocal(MakeTemporary());
-    body <<=
-        new (Z) CheckNullInstr(Pop(), String::ZoneHandle(Z, function.name()),
-                               GetNextDeoptId(), TokenPosition::kNoSource);
-  }
+  // Check for 'null'.
+  body += LoadLocal(MakeTemporary());
+  body <<= new (Z) CheckNullInstr(Pop(), String::ZoneHandle(Z, function.name()),
+                                  GetNextDeoptId(), TokenPosition::kNoSource);
 
   if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
-    body += LoadAddressFromFfiPointer();
+    body += LoadNativeField(Slot::Pointer_c_memory_address());
     body += UnboxTruncate(kUnboxedFfiIntPtr);
   } else {
     Representation from_rep = compiler::ffi::TypeRepresentation(ffi_type);

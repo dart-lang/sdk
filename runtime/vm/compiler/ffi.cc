@@ -71,8 +71,10 @@ Representation TypeRepresentation(const AbstractType& result_type) {
       return kUnboxedInt64;
     case kFfiIntPtrCid:
     case kFfiPointerCid:
-    default:  // Subtypes of Pointer.
+    case kFfiVoidCid:
       return kUnboxedFfiIntPtr;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -96,24 +98,7 @@ bool NativeTypeIsVoid(const AbstractType& result_type) {
 }
 
 bool NativeTypeIsPointer(const AbstractType& result_type) {
-  switch (result_type.type_class_id()) {
-    case kFfiVoidCid:
-    case kFfiFloatCid:
-    case kFfiDoubleCid:
-    case kFfiInt8Cid:
-    case kFfiInt16Cid:
-    case kFfiInt32Cid:
-    case kFfiUint8Cid:
-    case kFfiUint16Cid:
-    case kFfiUint32Cid:
-    case kFfiInt64Cid:
-    case kFfiUint64Cid:
-    case kFfiIntPtrCid:
-      return false;
-    case kFfiPointerCid:
-    default:
-      return true;
-  }
+  return result_type.type_class_id() == kFfiPointerCid;
 }
 
 // Converts a Ffi [signature] to a list of Representations.

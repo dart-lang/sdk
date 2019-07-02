@@ -37,14 +37,16 @@ export '../fasta/fasta_codes.dart'
         messageBytecodeLimitExceededTooManyArguments,
         noLength,
         templateFfiFieldAnnotation,
-        templateFfiStructAnnotation,
         templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,
         templateFfiTypeUnsized,
         templateFfiFieldInitializer,
         templateIllegalRecursiveType,
-        templateFfiDartTypeMismatch;
+        templateFfiDartTypeMismatch,
+        templateFfiExtendsOrImplementsSealedClass,
+        templateFfiStructGeneric,
+        templateFfiWrongStructInheritance;
 
 export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 

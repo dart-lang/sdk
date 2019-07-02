@@ -21393,24 +21393,24 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 RawPointer* Pointer::New(const AbstractType& type_arg,
-                         const Integer& c_memory_address,
-                         intptr_t cid,
+                         size_t native_address,
                          Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
   type_args = type_args.Canonicalize();
 
-  const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(cid));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
   cls.EnsureIsFinalized(Thread::Current());
 
   Pointer& result = Pointer::Handle(zone);
-  result ^= Object::Allocate(cid, Pointer::InstanceSize(), space);
-  NoSafepointScope no_safepoint;
+  result ^= Object::Allocate(kFfiPointerCid, Pointer::InstanceSize(), space);
   result.SetTypeArguments(type_args);
-  result.SetCMemoryAddress(c_memory_address);
+  result.SetNativeAddress(native_address);
 
   return result.raw();
 }
@@ -21419,9 +21419,7 @@ const char* Pointer::ToCString() const {
   TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   String& type_args_name = String::Handle(type_args.UserVisibleName());
   return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
-                     type_args_name.ToCString(),
-                     static_cast<intptr_t>(
-                         Integer::Handle(GetCMemoryAddress()).AsInt64Value()));
+                     type_args_name.ToCString(), NativeAddress());
 }
 
 RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
@@ -21435,23 +21433,7 @@ RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
 
 bool Pointer::IsPointer(const Instance& obj) {
   ASSERT(!obj.IsNull());
-
-  // fast path for predefined classes
-  intptr_t cid = obj.raw()->GetClassId();
-  if (RawObject::IsFfiPointerClassId(cid)) {
-    return true;
-  }
-
-  // slow check for subtyping
-  const Class& pointer_class = Class::ZoneHandle(
-      Isolate::Current()->object_store()->ffi_pointer_class());
-  AbstractType& pointer_type =
-      AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                              Object::null_type_arguments(),
-                                              kNoneFree, NULL, Heap::kNew);
-  AbstractType& type = AbstractType::Handle(obj.GetType(Heap::kNew));
-  return type.IsSubtypeOf(pointer_type, Heap::kNew);
+  return RawObject::IsFfiPointerClassId(obj.raw()->GetClassId());
 }
 
 bool Instance::IsPointer() const {

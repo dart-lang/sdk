@@ -3670,11 +3670,36 @@ Message _withArgumentsFfiDartTypeMismatch(DartType _type, DartType _type2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFfiExtendsOrImplementsSealedClass =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Class '#name' cannot be extended or implemented.""",
+        withArguments: _withArgumentsFfiExtendsOrImplementsSealedClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeFfiExtendsOrImplementsSealedClass =
+    const Code<Message Function(String name)>(
+  "FfiExtendsOrImplementsSealedClass",
+  templateFfiExtendsOrImplementsSealedClass,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExtendsOrImplementsSealedClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiExtendsOrImplementsSealedClass,
+      message: """Class '${name}' cannot be extended or implemented.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
         Message Function(String name)>(
     messageTemplate:
-        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+        r"""Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3690,7 +3715,7 @@ Message _withArgumentsFfiFieldAnnotation(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeFfiFieldAnnotation,
       message:
-          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi structs (Pointer<Void>) cannot have regular Dart fields.""",
+          """Field '${name}' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields.""",
       arguments: {'name': name});
 }
 
@@ -3745,27 +3770,24 @@ Message _withArgumentsFfiNotStatic(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(String name)> templateFfiStructAnnotation = const Template<
-        Message Function(String name)>(
-    messageTemplate:
-        r"""Class '#name' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
-    withArguments: _withArgumentsFfiStructAnnotation);
+const Template<Message Function(String name)> templateFfiStructGeneric =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Struct '#name' should not be generic.""",
+        withArguments: _withArgumentsFfiStructGeneric);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)> codeFfiStructAnnotation =
+const Code<Message Function(String name)> codeFfiStructGeneric =
     const Code<Message Function(String name)>(
-  "FfiStructAnnotation",
-  templateFfiStructAnnotation,
+  "FfiStructGeneric",
+  templateFfiStructGeneric,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFfiStructAnnotation(String name) {
+Message _withArgumentsFfiStructGeneric(String name) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  return new Message(codeFfiStructAnnotation,
-      message:
-          """Class '${name}' is a dart:ffi Pointer but has no struct annotation. Only struct Pointers can have fields.""",
+  return new Message(codeFfiStructGeneric,
+      message: """Struct '${name}' should not be generic.""",
       arguments: {'name': name});
 }
 
@@ -3863,6 +3885,30 @@ Message _withArgumentsFfiTypeUnsized(String name, DartType _type) {
           """Method '${name}' cannot be called on something of type '${type}' as this type is unsized.""" +
               labeler.originMessages,
       arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateFfiWrongStructInheritance =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Struct '#name' must inherit from 'Struct<#name>'.""",
+        withArguments: _withArgumentsFfiWrongStructInheritance);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiWrongStructInheritance =
+    const Code<Message Function(String name)>(
+  "FfiWrongStructInheritance",
+  templateFfiWrongStructInheritance,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiWrongStructInheritance(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiWrongStructInheritance,
+      message: """Struct '${name}' must inherit from 'Struct<${name}>'.""",
+      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

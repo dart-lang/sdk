@@ -235,6 +235,7 @@ class ObjectPointerVisitor;
   V(SetterPrefix, "set:")                                                      \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
+  V(SizeOfStructField, "#sizeOf")                                              \
   V(SpaceExtendsSpace, " extends ")                                            \
   V(SpaceIsFromSpace, " is from ")                                             \
   V(SpaceOfSpace, " of ")                                                      \
@@ -247,6 +248,8 @@ class ObjectPointerVisitor;
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
+  V(Struct, "Struct")                                                          \
+  V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \

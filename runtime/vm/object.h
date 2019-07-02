@@ -9085,8 +9085,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static RawPointer* New(const AbstractType& type_arg,
-                         const Integer& c_memory_address,
-                         intptr_t class_id = kFfiPointerCid,
+                         uword native_address,
                          Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -9095,10 +9094,12 @@ class Pointer : public Instance {
 
   static bool IsPointer(const Instance& obj);
 
-  RawInteger* GetCMemoryAddress() const { return raw_ptr()->c_memory_address_; }
+  size_t NativeAddress() const {
+    return Integer::Handle(raw_ptr()->c_memory_address_).AsInt64Value();
+  }
 
-  void SetCMemoryAddress(const Integer& value) const {
-    StorePointer(&raw_ptr()->c_memory_address_, value.raw());
+  void SetNativeAddress(size_t address) const {
+    StorePointer(&raw_ptr()->c_memory_address_, Integer::New(address));
   }
 
   static intptr_t type_arguments_offset() {

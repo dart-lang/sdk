@@ -10,7 +10,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiTypeMismatch,
         templateFfiDartTypeMismatch,
         templateFfiTypeUnsized,
-        templateFfiNotStatic;
+        templateFfiNotStatic,
+        templateFfiExtendsOrImplementsSealedClass;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -36,7 +37,7 @@ void transformLibraries(
     ReplacedMembers replacedFields) {
   final index = new LibraryIndex(component, ["dart:ffi"]);
   if (!index.containsLibrary("dart:ffi")) {
-    // if dart:ffi is not loaded, do not do the transformation
+    // If dart:ffi is not loaded, do not do the transformation.
     return;
   }
   final transformer = new _FfiUseSiteTransformer(
@@ -75,6 +76,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   visitClass(Class node) {
     env.thisType = InterfaceType(node);
     try {
+      _ensureNotExtendsOrImplementsSealedClass(node);
       return super.visitClass(node);
     } finally {
       env.thisType = null;
@@ -119,6 +121,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         DartType dartType = func.getStaticType(env);
 
         _ensureIsStatic(func);
+        // TODO(36730): Allow passing/returning structs by value.
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
 
@@ -170,16 +173,17 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
       } else if (target == loadMethod) {
-        // TODO(dacoharkes): should load and store permitted to be generic?
+        // TODO(dacoharkes): should load and store be generic?
         // https://github.com/dart-lang/sdk/issues/35902
         DartType dartType = node.arguments.types[0];
         DartType pointerType = node.receiver.getStaticType(env);
         DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
         _ensureNativeTypeValid(pointerType, node);
-        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeValid(nativeType, node, allowStructs: true);
         _ensureNativeTypeSized(nativeType, node, target.name);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node,
+            allowStructs: true);
       } else if (target == storeMethod) {
         // TODO(dacoharkes): should load and store permitted to be generic?
         // https://github.com/dart-lang/sdk/issues/35902
@@ -187,6 +191,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         DartType pointerType = node.receiver.getStaticType(env);
         DartType nativeType = _pointerTypeGetTypeArg(pointerType);
 
+        // TODO(36730): Allow storing an entire struct to memory.
+        // TODO(36780): Emit a better error message for the struct case.
         _ensureNativeTypeValid(pointerType, node);
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeSized(nativeType, node, target.name);
@@ -198,18 +204,14 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   }
 
   DartType _pointerTypeGetTypeArg(DartType pointerType) {
-    if (pointerType is InterfaceType) {
-      InterfaceType superType =
-          hierarchy.getTypeAsInstanceOf(pointerType, pointerClass);
-      return superType?.typeArguments[0];
-    }
-    return null;
+    return pointerType is InterfaceType ? pointerType.typeArguments[0] : null;
   }
 
   void _ensureNativeTypeToDartType(
-      DartType containerTypeArg, DartType elementType, Expression node) {
+      DartType containerTypeArg, DartType elementType, Expression node,
+      {bool allowStructs: false}) {
     final DartType shouldBeElementType =
-        convertNativeTypeToDartType(containerTypeArg);
+        convertNativeTypeToDartType(containerTypeArg, allowStructs);
     if (elementType == shouldBeElementType) return;
     // Both subtypes and implicit downcasts are allowed statically.
     if (env.isSubtypeOf(shouldBeElementType, elementType)) return;
@@ -223,8 +225,9 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     throw _FfiStaticTypeError();
   }
 
-  void _ensureNativeTypeValid(DartType nativeType, Expression node) {
-    if (!_nativeTypeValid(nativeType)) {
+  void _ensureNativeTypeValid(DartType nativeType, Expression node,
+      {bool allowStructs: false}) {
+    if (!_nativeTypeValid(nativeType, allowStructs: allowStructs)) {
       diagnosticReporter.report(
           templateFfiTypeInvalid.withArguments(nativeType),
           node.fileOffset,
@@ -236,8 +239,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
   /// The Dart type system does not enforce that NativeFunction return and
   /// parameter types are only NativeTypes, so we need to check this.
-  bool _nativeTypeValid(DartType nativeType) {
-    return convertNativeTypeToDartType(nativeType) != null;
+  bool _nativeTypeValid(DartType nativeType, {bool allowStructs: false}) {
+    return convertNativeTypeToDartType(nativeType, allowStructs) != null;
   }
 
   void _ensureNativeTypeSized(
@@ -256,12 +259,15 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   /// Consequently, [allocate], [Pointer.load], [Pointer.store], and
   /// [Pointer.elementAt] are not available.
   bool _nativeTypeSized(DartType nativeType) {
-    if (!(nativeType is InterfaceType)) {
+    if (nativeType is! InterfaceType) {
       return false;
     }
     Class nativeClass = (nativeType as InterfaceType).classNode;
     if (env.isSubtypeOf(
         InterfaceType(nativeClass), InterfaceType(pointerClass))) {
+      return true;
+    }
+    if (hierarchy.isSubclassOf(nativeClass, structClass)) {
       return true;
     }
     NativeType nativeType_ = getType(nativeClass);
@@ -297,6 +303,37 @@ class _FfiUseSiteTransformer extends FfiTransformer {
       return node.target is Procedure;
     }
     return node is ConstantExpression;
+  }
+
+  Class _extendsOrImplementsSealedClass(Class klass) {
+    final Class superClass = klass.supertype?.classNode;
+
+    // The Struct class can be extended, but subclasses of Struct cannot be (nor
+    // implemented).
+    if (klass != structClass && hierarchy.isSubtypeOf(klass, structClass)) {
+      return superClass != structClass ? superClass : null;
+    }
+
+    if (!nativeTypesClasses.contains(klass)) {
+      for (final parent in nativeTypesClasses) {
+        if (hierarchy.isSubtypeOf(klass, parent)) {
+          return parent;
+        }
+      }
+    }
+    return null;
+  }
+
+  void _ensureNotExtendsOrImplementsSealedClass(Class klass) {
+    Class extended = _extendsOrImplementsSealedClass(klass);
+    if (extended != null) {
+      diagnosticReporter.report(
+          templateFfiExtendsOrImplementsSealedClass
+              .withArguments(extended.name),
+          klass.fileOffset,
+          1,
+          klass.location.file);
+    }
   }
 }
 

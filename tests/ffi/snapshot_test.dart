@@ -14,7 +14,7 @@ import 'package:expect/expect.dart';
 
 main(args) async {
   try {
-    await Isolate.spawn(print, fromAddress<Pointer<Void>>(1));
+    await Isolate.spawn(print, Pointer<Void>.fromAddress(1));
   } catch (e) {
     Expect.type<ArgumentError>(e);
     return;

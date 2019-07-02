@@ -9,9 +9,10 @@ import 'dart:math' as math;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         templateFfiFieldAnnotation,
-        templateFfiStructAnnotation,
         templateFfiTypeMismatch,
-        templateFfiFieldInitializer;
+        templateFfiFieldInitializer,
+        templateFfiStructGeneric,
+        templateFfiWrongStructInheritance;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -27,40 +28,37 @@ import 'ffi.dart'
         nativeTypeSizes,
         WORD_SIZE;
 
-/// Checks and expands the dart:ffi @struct and field annotations.
+/// Checks and elaborates the dart:ffi structs and fields.
 ///
-/// Sample input:
-/// @ffi.struct
-/// class Coord extends ffi.Pointer<Void> {
-///   @ffi.Double()
+/// Input:
+/// class Coord extends Struct<Coord> {
+///   @Double()
 ///   double x;
 ///
-///   @ffi.Double()
+///   @Double()
 ///   double y;
 ///
-///   @ffi.Pointer()
+///   @Pointer()
 ///   Coord next;
-///
-///   external static int sizeOf();
 /// }
 ///
-/// Sample output:
-/// class Coordinate extends ffi.Pointer<ffi.Void> {
-///   ffi.Pointer<ffi.Double> get _xPtr => cast();
+/// Output:
+/// class Coord extends Struct<Coord> {
+///   Coord.#fromPointer(Pointer<Coord> coord) : super._(coord);
+///
+///   Pointer<Double> get _xPtr => addressOf.cast();
 ///   set x(double v) => _xPtr.store(v);
 ///   double get x => _xPtr.load();
 ///
-///   ffi.Pointer<ffi.Double> get _yPtr =>
-///       offsetBy(ffi.sizeOf<ffi.Double>() * 1).cast();
+///   Pointer<Double> get _yPtr => addressOf.offsetBy(...).cast();
 ///   set y(double v) => _yPtr.store(v);
 ///   double get y => _yPtr.load();
 ///
-///   ffi.Pointer<Coordinate> get _nextPtr =>
-///       offsetBy(ffi.sizeOf<ffi.Double>() * 2).cast();
+///   ffi.Pointer<Coordinate> get _nextPtr => addressof.offsetBy(...).cast();
 ///   set next(Coordinate v) => _nextPtr.store(v);
 ///   Coordinate get next => _nextPtr.load();
 ///
-///   static int sizeOf() => 24;
+///   static final int #sizeOf = 24;
 /// }
 ReplacedMembers transformLibraries(
     Component component,
@@ -71,7 +69,7 @@ ReplacedMembers transformLibraries(
   final LibraryIndex index = LibraryIndex(
       component, const ["dart:ffi", "dart:_internal", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
-    // if dart:ffi is not loaded, do not do the transformation
+    // If dart:ffi is not loaded, do not do the transformation.
     return ReplacedMembers({}, {});
   }
   final transformer = new _FfiDefinitionTransformer(
@@ -81,7 +79,7 @@ ReplacedMembers transformLibraries(
       transformer.replacedGetters, transformer.replacedSetters);
 }
 
-/// Checks and expands the dart:ffi @struct and field annotations.
+/// Checks and elaborates the dart:ffi structs and fields.
 class _FfiDefinitionTransformer extends FfiTransformer {
   final LibraryIndex index;
   final Field _internalIs64Bit;
@@ -108,20 +106,19 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
   @override
   visitClass(Class node) {
-    if (node == pointerClass || !hierarchy.isSubtypeOf(node, pointerClass)) {
+    if (!hierarchy.isSubclassOf(node, structClass) || node == structClass) {
       return node;
     }
 
-    // Because subtypes of Pointer are only allocated by allocate<Pointer<..>>()
-    // and fromAddress<Pointer<..>>() which are not recognized as constructor
-    // calls, we need to prevent these classes from being tree shaken out.
-    _preventTreeShaking(node);
+    _checkStructClass(node);
 
-    _checkFieldAnnotations(node);
+    // Struct objects are manufactured in the VM by 'allocate' and 'load'.
+    _makeEntryPoint(node);
+
     _checkConstructors(node);
+    final bool fieldsValid = _checkFieldAnnotations(node);
 
-    bool isStruct = _checkStructAnnotation(node);
-    if (isStruct) {
+    if (fieldsValid) {
       int size = _replaceFields(node);
       _replaceSizeOfMethod(node, size);
     }
@@ -129,19 +126,34 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return node;
   }
 
-  bool _checkStructAnnotation(Class node) {
-    bool isStruct = _hasAnnotation(node);
-    if (!isStruct && node.fields.isNotEmpty) {
+  void _checkStructClass(Class node) {
+    if (node.typeParameters.length > 0) {
       diagnosticReporter.report(
-          templateFfiStructAnnotation.withArguments(node.name),
+          templateFfiStructGeneric.withArguments(node.name),
           node.fileOffset,
           1,
-          node.fileUri);
+          node.location.file);
     }
-    return isStruct;
+
+    if (node.supertype?.classNode != structClass) {
+      // Not a struct, but extends a struct. The error will be emitted by
+      // _FfiUseSiteTransformer.
+      return;
+    }
+
+    // A struct classes "C" must extend "Struct<C>".
+    DartType structTypeArg = node.supertype.typeArguments[0];
+    if (structTypeArg != InterfaceType(node)) {
+      diagnosticReporter.report(
+          templateFfiWrongStructInheritance.withArguments(node.name),
+          node.fileOffset,
+          1,
+          node.location.file);
+    }
   }
 
-  void _checkFieldAnnotations(Class node) {
+  bool _checkFieldAnnotations(Class node) {
+    bool success = true;
     for (Field f in node.fields) {
       if (f.initializer is! NullLiteral) {
         diagnosticReporter.report(
@@ -161,21 +173,29 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         DartType dartType = f.type;
         DartType nativeType =
             InterfaceType(nativeTypesClasses[annos.first.index]);
-        DartType shouldBeDartType = convertNativeTypeToDartType(nativeType);
-        if (!env.isSubtypeOf(dartType, shouldBeDartType)) {
+        // TODO(36730): Support structs inside structs.
+        DartType shouldBeDartType =
+            convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
+        if (shouldBeDartType == null ||
+            !env.isSubtypeOf(dartType, shouldBeDartType)) {
           diagnosticReporter.report(
               templateFfiTypeMismatch.withArguments(
                   dartType, shouldBeDartType, nativeType),
               f.fileOffset,
               1,
               f.location.file);
+          success = false;
         }
       }
     }
+    return success;
   }
 
   void _checkConstructors(Class node) {
     List<Initializer> toRemove = [];
+
+    // Constructors cannot have initializers because initializers refer to
+    // fields, and the fields were replaced with getter/setter pairs.
     for (Constructor c in node.constructors) {
       for (Initializer i in c.initializers) {
         if (i is FieldInitializer) {
@@ -192,6 +212,18 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     for (Initializer i in toRemove) {
       i.remove();
     }
+
+    // Add a constructor which 'load' can use.
+    // C.#fromPointer(Pointer<Void> address) : super.fromPointer(address);
+    final VariableDeclaration pointer = new VariableDeclaration("#pointer");
+    final Constructor ctor = Constructor(
+        FunctionNode(EmptyStatement(), positionalParameters: [pointer]),
+        name: Name("#fromPointer"),
+        initializers: [
+          SuperInitializer(structFromPointer, Arguments([VariableGet(pointer)]))
+        ]);
+    _makeEntryPoint(ctor);
+    node.addMember(ctor);
   }
 
   /// Computes the field offsets in the struct and replaces the fields with
@@ -230,7 +262,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   /// Sample output:
-  /// ffi.Pointer<ffi.Double> get _xPtr => cast();
+  /// ffi.Pointer<ffi.Double> get _xPtr => addressOf.cast();
   /// double get x => _xPtr.load();
   /// set x(double v) => _xPtr.store(v);
   List<Procedure> _generateMethodsForField(
@@ -241,13 +273,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     DartType pointerType = InterfaceType(pointerClass, [nativeType]);
     Name pointerName = Name('#_ptr_${field.name.name}');
 
-    // Sample output for primitives:
-    // ffi.Pointer<ffi.Double> get _xPtr => cast<ffi.Pointer<ffi.Double>>();
-    // Sample output for structs:
-    // ffi.Pointer<Coordinate> get _xPtr => offsetBy(16).cast<...>();
-    Expression offsetExpression = ThisExpression();
+    // Sample output:
+    // ffi.Pointer<ffi.Double> get _xPtr => addressOf.offsetBy(...).cast<ffi.Pointer<ffi.Double>>();
+    Expression pointer =
+        PropertyGet(ThisExpression(), addressOfField.name, addressOfField);
     if (offset != 0) {
-      offsetExpression = MethodInvocation(offsetExpression, offsetByMethod.name,
+      pointer = MethodInvocation(pointer, offsetByMethod.name,
           Arguments([IntLiteral(offset)]), offsetByMethod);
     }
     Procedure pointerGetter = Procedure(
@@ -255,9 +286,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ProcedureKind.Getter,
         FunctionNode(
             guardOn32Bit(ReturnStatement(MethodInvocation(
-                offsetExpression,
+                pointer,
                 castMethod.name,
-                Arguments([], types: [pointerType]),
+                Arguments([], types: [nativeType]),
                 castMethod))),
             returnType: pointerType));
 
@@ -276,41 +307,40 @@ class _FfiDefinitionTransformer extends FfiTransformer {
 
     // Sample output:
     // set x(double v) => _xPtr.store(v);
-    VariableDeclaration argument = VariableDeclaration('#v', type: field.type);
-    Procedure setter = Procedure(
-        field.name,
-        ProcedureKind.Setter,
-        FunctionNode(
-            guardOn32Bit(ReturnStatement(MethodInvocation(
-                PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                storeMethod.name,
-                Arguments([VariableGet(argument)]),
-                storeMethod))),
-            returnType: VoidType(),
-            positionalParameters: [argument]));
+    Procedure setter = null;
+    if (!field.isFinal) {
+      VariableDeclaration argument =
+          VariableDeclaration('#v', type: field.type);
+      setter = Procedure(
+          field.name,
+          ProcedureKind.Setter,
+          FunctionNode(
+              guardOn32Bit(ReturnStatement(MethodInvocation(
+                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
+                  storeMethod.name,
+                  Arguments([VariableGet(argument)]),
+                  storeMethod))),
+              returnType: VoidType(),
+              positionalParameters: [argument]));
+    }
 
     replacedGetters[field] = getter;
     replacedSetters[field] = setter;
 
-    return [pointerGetter, getter, setter];
+    if (setter != null) {
+      return [pointerGetter, getter, setter];
+    } else {
+      return [pointerGetter, getter];
+    }
   }
 
-  /// Sample input:
-  /// external static int sizeOf();
-  ///
   /// Sample output:
-  /// static int sizeOf() => 24;
+  /// static int #sizeOf() => 24;
   void _replaceSizeOfMethod(Class struct, int size) {
-    Procedure sizeOf = _findProcedure(struct, 'sizeOf');
-    if (sizeOf == null || !sizeOf.isExternal || !sizeOf.isStatic) {
-      return;
-    }
-
-    // replace in place to avoid going over use sites
-    sizeOf.function = FunctionNode(
-        guardOn32Bit(ReturnStatement(IntLiteral(size))),
-        returnType: InterfaceType(intClass));
-    sizeOf.isExternal = false;
+    final Field sizeOf = Field(Name("#sizeOf"),
+        isStatic: true, isFinal: true, initializer: IntLiteral(size));
+    _makeEntryPoint(sizeOf);
+    struct.addMember(sizeOf);
   }
 
   // TODO(dacoharkes): move to VM, take into account architecture
@@ -359,25 +389,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return _align(highestOffset + highestOffsetSize, largestElement);
   }
 
-  bool _hasAnnotation(Class node) {
-    // Pre constant 2018 update.
-    // TODO(dacoharkes): Remove pre constant 2018 after constants change landed.
-    for (Expression e in node.annotations) {
-      if (e is StaticGet) {
-        if (e.target == structField) {
-          return true;
-        }
-      }
-    }
-    Iterable<Class> postConstant2018 = node.annotations
-        .whereType<ConstantExpression>()
-        .map((expr) => expr.constant)
-        .whereType<InstanceConstant>()
-        .map((constant) => constant.classNode);
-    return postConstant2018.contains(structClass);
-  }
-
-  void _preventTreeShaking(Class node) {
+  void _makeEntryPoint(Annotatable node) {
     node.addAnnotation(ConstructorInvocation(
         pragmaConstructor, Arguments([StringLiteral("vm:entry-point")])));
   }
@@ -409,7 +421,3 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return postConstant2018.followedBy(preConstant2018);
   }
 }
-
-/// Finds procedure with name, otherwise returns null.
-Procedure _findProcedure(Class c, String name) =>
-    c.procedures.firstWhere((p) => p.name.name == name, orElse: () => null);

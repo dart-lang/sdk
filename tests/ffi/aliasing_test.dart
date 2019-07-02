@@ -36,7 +36,7 @@ void main() {
 }
 
 void testNonAlias() {
-  final source = allocate<Int64>();
+  final source = Pointer<Int64>.allocate();
   source.store(42);
   final int a = source.load();
   source.store(1984);
@@ -46,8 +46,8 @@ void testNonAlias() {
 }
 
 void testAliasCast() {
-  final source = allocate<Int64>();
-  final alias = source.cast<Pointer<Int8>>().cast<Pointer<Int64>>();
+  final source = Pointer<Int64>.allocate();
+  final alias = source.cast<Int8>().cast<Int64>();
   source.store(42);
   final int a = source.load();
   alias.store(1984);
@@ -57,9 +57,9 @@ void testAliasCast() {
 }
 
 void testAliasCast2() {
-  final source = allocate<Int64>();
-  final alias = source.cast<Pointer<Int16>>().cast<Pointer<Int64>>();
-  final alias2 = source.cast<Pointer<Int8>>().cast<Pointer<Int64>>();
+  final source = Pointer<Int64>.allocate();
+  final alias = source.cast<Int16>().cast<Int64>();
+  final alias2 = source.cast<Int8>().cast<Int64>();
   alias.store(42);
   final int a = alias.load();
   alias2.store(1984);
@@ -69,7 +69,7 @@ void testAliasCast2() {
 }
 
 void testAliasOffsetBy() {
-  final source = allocate<Int64>(count: 2);
+  final source = Pointer<Int64>.allocate(count: 2);
   final alias = source.offsetBy(8).offsetBy(-8);
   source.store(42);
   final int a = source.load();
@@ -80,7 +80,7 @@ void testAliasOffsetBy() {
 }
 
 void testAliasOffsetBy2() {
-  final source = allocate<Int64>(count: 3);
+  final source = Pointer<Int64>.allocate(count: 3);
   final alias = source.offsetBy(16).offsetBy(-16);
   final alias2 = source.offsetBy(8).offsetBy(-8);
   alias.store(42);
@@ -92,7 +92,7 @@ void testAliasOffsetBy2() {
 }
 
 void testAliasElementAt() {
-  final source = allocate<Int64>(count: 2);
+  final source = Pointer<Int64>.allocate(count: 2);
   final alias = source.elementAt(1).elementAt(-1);
   source.store(42);
   final int a = source.load();
@@ -103,7 +103,7 @@ void testAliasElementAt() {
 }
 
 void testAliasElementAt2() {
-  final source = allocate<Int64>(count: 3);
+  final source = Pointer<Int64>.allocate(count: 3);
   final alias = source.elementAt(2).elementAt(-2);
   final alias2 = source.elementAt(1).elementAt(-1);
   alias.store(42);
@@ -115,8 +115,8 @@ void testAliasElementAt2() {
 }
 
 void testAliasFromAddress() {
-  final source = allocate<Int64>();
-  final alias = fromAddress<Pointer<Int64>>(source.address);
+  final source = Pointer<Int64>.allocate();
+  final alias = Pointer<Int64>.fromAddress(source.address);
   source.store(42);
   final int a = source.load();
   alias.store(1984);
@@ -126,9 +126,9 @@ void testAliasFromAddress() {
 }
 
 void testAliasFromAddress2() {
-  final source = allocate<Int64>();
-  final alias = fromAddress<Pointer<Int64>>(source.address);
-  final alias2 = fromAddress<Pointer<Int64>>(source.address);
+  final source = Pointer<Int64>.allocate();
+  final alias = Pointer<Int64>.fromAddress(source.address);
+  final alias2 = Pointer<Int64>.fromAddress(source.address);
   alias.store(42);
   final int a = alias.load();
   alias2.store(1984);
@@ -138,10 +138,10 @@ void testAliasFromAddress2() {
 }
 
 void testAliasFromAddressViaMemory() {
-  final helper = allocate<IntPtr>();
-  final source = allocate<Int64>();
+  final helper = Pointer<IntPtr>.allocate();
+  final source = Pointer<Int64>.allocate();
   helper.store(source.address);
-  final alias = fromAddress<Pointer<Int64>>(helper.load());
+  final alias = Pointer<Int64>.fromAddress(helper.load());
   source.store(42);
   final int a = source.load();
   alias.store(1984);
@@ -152,11 +152,11 @@ void testAliasFromAddressViaMemory() {
 }
 
 void testAliasFromAddressViaMemory2() {
-  final helper = allocate<IntPtr>();
-  final source = allocate<Int64>();
+  final helper = Pointer<IntPtr>.allocate();
+  final source = Pointer<Int64>.allocate();
   helper.store(source.address);
-  final alias = fromAddress<Pointer<Int64>>(helper.load());
-  final alias2 = fromAddress<Pointer<Int64>>(helper.load());
+  final alias = Pointer<Int64>.fromAddress(helper.load());
+  final alias2 = Pointer<Int64>.fromAddress(helper.load());
   alias.store(42);
   final int a = alias.load();
   alias2.store(1984);
@@ -175,9 +175,9 @@ QuadOp intComputation = ffiTestFunctions
     .lookupFunction<NativeQuadOpSigned, QuadOp>("IntComputation");
 
 void testAliasFromAddressViaNativeFunction() {
-  final source = allocate<Int64>();
+  final source = Pointer<Int64>.allocate();
   final alias =
-      fromAddress<Pointer<Int64>>(intComputation(0, 0, 0, source.address));
+      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   source.store(42);
   final int a = source.load();
   alias.store(1984);
@@ -187,11 +187,11 @@ void testAliasFromAddressViaNativeFunction() {
 }
 
 void testAliasFromAddressViaNativeFunction2() {
-  final source = allocate<Int64>();
+  final source = Pointer<Int64>.allocate();
   final alias =
-      fromAddress<Pointer<Int64>>(intComputation(0, 0, 0, source.address));
+      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   final alias2 =
-      fromAddress<Pointer<Int64>>(intComputation(0, 0, 0, source.address));
+      Pointer<Int64>.fromAddress(intComputation(0, 0, 0, source.address));
   alias.store(42);
   final int a = alias.load();
   alias2.store(1984);
@@ -205,10 +205,10 @@ const NeverInline = 'NeverInline';
 
 @NeverInline
 Pointer<Int8> makeDerived(Pointer<Int64> source) =>
-    source.offsetBy(7).cast<Pointer<Int8>>();
+    source.offsetBy(7).cast<Int8>();
 
 testPartialOverlap() {
-  final source = allocate<Int64>(count: 2);
+  final source = Pointer<Int64>.allocate(count: 2);
   final derived = makeDerived(source);
   source.store(0x1122334455667788);
   final int value = source.load();

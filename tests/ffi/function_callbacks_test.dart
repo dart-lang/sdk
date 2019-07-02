@@ -139,7 +139,7 @@ typedef StoreType = Pointer<Int64> Function(Pointer<Int64>);
 Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..store(1337);
 
 typedef NullPointersType = Pointer<Int64> Function(Pointer<Int64>);
-Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr?.elementAt(1);
+Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr.elementAt(1);
 
 typedef ReturnNullType = Int32 Function();
 int returnNull() {
@@ -173,39 +173,39 @@ void testGC() {
 }
 
 final List<Test> testcases = [
-  Test("SimpleAddition", fromFunction<SimpleAdditionType>(simpleAddition, 0)),
-  Test("IntComputation", fromFunction<IntComputationType>(intComputation, 0)),
+  Test("SimpleAddition", Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
+  Test("IntComputation", Pointer.fromFunction<IntComputationType>(intComputation, 0)),
   Test(
-      "UintComputation", fromFunction<UintComputationType>(uintComputation, 0)),
-  Test("SimpleMultiply", fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
+      "UintComputation", Pointer.fromFunction<UintComputationType>(uintComputation, 0)),
+  Test("SimpleMultiply", Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
   Test("SimpleMultiplyFloat",
-      fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat, 0.0)),
-  Test("ManyInts", fromFunction<ManyIntsType>(manyInts, 0)),
-  Test("ManyDoubles", fromFunction<ManyDoublesType>(manyDoubles, 0.0)),
-  Test("ManyArgs", fromFunction<ManyArgsType>(manyArgs, 0.0)),
-  Test("Store", fromFunction<StoreType>(store, null)),
-  Test("NullPointers", fromFunction<NullPointersType>(nullPointers, null)),
-  Test("ReturnNull", fromFunction<ReturnNullType>(returnNull, 42)),
-  Test("ReturnVoid", fromFunction<ReturnVoid>(returnVoid, null)),
+      Pointer.fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat, 0.0)),
+  Test("ManyInts", Pointer.fromFunction<ManyIntsType>(manyInts, 0)),
+  Test("ManyDoubles", Pointer.fromFunction<ManyDoublesType>(manyDoubles, 0.0)),
+  Test("ManyArgs", Pointer.fromFunction<ManyArgsType>(manyArgs, 0.0)),
+  Test("Store", Pointer.fromFunction<StoreType>(store, null)),
+  Test("NullPointers", Pointer.fromFunction<NullPointersType>(nullPointers, null)),
+  Test("ReturnNull", Pointer.fromFunction<ReturnNullType>(returnNull, 42)),
+  Test("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid, null)),
   Test("ThrowExceptionDouble",
-      fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
+      Pointer.fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
   Test(
       "ThrowExceptionPointer",
-      fromFunction<ThrowExceptionPointer>(
-          throwExceptionPointer, fromAddress<Pointer<Void>>(42))),
-  Test("ThrowException", fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
-  Test("GC", fromFunction<ReturnVoid>(testGC, null)),
+      Pointer.fromFunction<ThrowExceptionPointer>(
+          throwExceptionPointer, Pointer<Void>.fromAddress(42))),
+  Test("ThrowException", Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
+  Test("GC", Pointer.fromFunction<ReturnVoid>(testGC, null)),
 ];
 
 testCallbackWrongThread() =>
-    Test("CallbackWrongThread", fromFunction<ReturnVoid>(returnVoid, null)).run();
+    Test("CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid, null)).run();
 
 testCallbackOutsideIsolate() =>
-    Test("CallbackOutsideIsolate", fromFunction<ReturnVoid>(returnVoid, null))
+    Test("CallbackOutsideIsolate", Pointer.fromFunction<ReturnVoid>(returnVoid, null))
         .run();
 
 isolateHelper(int callbackPointer) {
-  final Pointer<Void> ptr = fromAddress(callbackPointer);
+  final Pointer<Void> ptr = Pointer.fromAddress(callbackPointer);
   final NativeCallbackTestFn tester =
       testLibrary.lookupFunction<NativeCallbackTest, NativeCallbackTestFn>(
           "TestCallbackWrongIsolate");
@@ -213,22 +213,22 @@ isolateHelper(int callbackPointer) {
 }
 
 testCallbackWrongIsolate() async {
-  final int callbackPointer = fromFunction<ReturnVoid>(returnVoid, null).address;
+  final int callbackPointer = Pointer.fromFunction<ReturnVoid>(returnVoid, null).address;
   final ReceivePort exitPort = ReceivePort();
   await Isolate.spawn(isolateHelper, callbackPointer,
       errorsAreFatal: true, onExit: exitPort.sendPort);
   await exitPort.first;
 }
 
-// Correct type of exceptionalReturn argument to fromFunction.
+// Correct type of exceptionalReturn argument to Pointer.fromFunction.
 double testExceptionalReturn() {
-  fromFunction<Double Function()>(testExceptionalReturn, 0.0);
-  Expect.throwsArgumentError(() => fromFunction<Void Function()>(returnVoid, 0));
-  fromFunction<Void Function()>(returnVoid, null);
-  Expect.throwsArgumentError(() => fromFunction<Double Function()>(returnVoid, null));
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0.0);
+  Expect.throwsArgumentError(() => Pointer.fromFunction<Void Function()>(returnVoid, 0));
+  Pointer.fromFunction<Void Function()>(returnVoid, null);
+  Expect.throwsArgumentError(() => Pointer.fromFunction<Double Function()>(returnVoid, null));
 
-  fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
-  fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");  //# 61: compile-time error
+  Pointer.fromFunction<Double Function()>(testExceptionalReturn, 0);  //# 62: compile-time error
 }
 
 void main() async {

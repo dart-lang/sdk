@@ -6,20 +6,17 @@
 
 library FfiTest;
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
 import "package:expect/expect.dart";
 
-@ffi.struct
-class C extends ffi.Pointer<ffi.Void> {
-  @ffi.IntPtr()
+class C extends Struct<C> {
+  @IntPtr()
   int x;
-  external static int sizeOf();
 }
 
 void main() {
-  final C c = ffi.fromAddress<C>(1);
+  final C c = nullptr.cast<C>().load();
   Expect.throws<UnimplementedError>(() => c.x);
   Expect.throws<UnimplementedError>(() => c.x = 0);
-  Expect.throws<UnimplementedError>(() => C.sizeOf());
 }
