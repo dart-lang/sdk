@@ -648,7 +648,7 @@ function fetchTimeline(vmAddress, isolateIds, mode) {
                    ':' +
                    parser.port +
                    parser.pathname.replace(/\/ws$/, "") +
-                   '/_getVMTimeline';
+                   '/getVMTimeline';
   fetchUri(requestUri, function(event) {
     // Grab the response.
     var xhr = event.target;
