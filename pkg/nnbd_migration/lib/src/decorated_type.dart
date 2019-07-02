@@ -60,14 +60,9 @@ class DecoratedType {
             assert(namedParameters[parameter.name].type == parameter.type);
             namedParameterCount++;
           } else {
-            if (positionalParameters.length <= positionalParameterCount) {
-              // TODO(danrubel): Track down why this happens
-              // and remove this if statement
-            } else {
-              assert(positionalParameters[positionalParameterCount].type ==
-                  parameter.type);
-              positionalParameterCount++;
-            }
+            assert(positionalParameters[positionalParameterCount].type ==
+                parameter.type);
+            positionalParameterCount++;
           }
         }
         assert(positionalParameters.length == positionalParameterCount);
