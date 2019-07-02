@@ -425,7 +425,7 @@ bool instanceOf(obj, type) {
 cast(obj, type, @notNull bool isImplicit) {
   if (obj == null) return obj;
   var actual = getReifiedType(obj);
-  if (_isSubtypeOrLegacySubtype(actual, type) == true) {
+  if (isSubtypeOf(actual, type)) {
     return obj;
   }
   return castError(obj, type, isImplicit);
