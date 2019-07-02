@@ -322,12 +322,7 @@ abstract class NullabilityNode {
       _NullabilityNodeSimple('inferred');
 
   /// Creates a [NullabilityNode] representing the nullability of an
-  /// expression which is nullable iff both [a] and [b] are nullable.
-  ///
-  /// The constraint variable contained in the new node is created using the
-  /// [joinNullabilities] callback.  TODO(paulberry): this should become
-  /// unnecessary once constraint solving is performed directly using
-  /// [NullabilityNode] objects.
+  /// expression which is nullable iff either [a] or [b] is nullable.
   factory NullabilityNode.forLUB(NullabilityNode left, NullabilityNode right) =
       NullabilityNodeForLUB._;
 
