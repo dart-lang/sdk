@@ -146,19 +146,7 @@ vars = {
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",
   "minichromium_rev": "8d641e30a8b12088649606b912c2bc4947419ccc",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
-
-  # An LLVM backend needs LLVM binaries and headers. To avoid build time
-  # increases we can use prebuilts. We don't want to download this on every
-  # CQ/CI bot nor do we want the average Dart developer to incur that cost.
-  # So by default we will not download prebuilts.
-  "checkout_llvm": False,
-  "llvm_revision": "fe8bd96ebd6c490ea0b5c1fb342db2d7c393a109"
 }
-
-gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
-gclient_gn_args = [
-  'checkout_llvm'
-]
 
 deps = {
   # Stuff needed for GN build.
@@ -414,17 +402,6 @@ deps = {
               "version": "git_revision:" + Var("gn_revision"),
           },
       ],
-      "dep_type": "cipd",
-  },
-
-  Var("dart_root") + "/third_party/llvm": {
-      "packages": [
-          {
-              "package": "fuchsia/lib/llvm/${{platform}}",
-              "version": "git_revision:" + Var("llvm_revision"),
-          },
-      ],
-      "condition": "checkout_llvm",
       "dep_type": "cipd",
   },
 }
