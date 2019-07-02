@@ -1582,6 +1582,21 @@ void g(C c, int j) {
         assertEdge(nullable_j.node, never, hard: true));
   }
 
+  test_methodInvocation_resolves_to_getter() async {
+    await analyze('''
+abstract class C {
+  int/*1*/ Function(int/*2*/ i) get f;
+}
+int/*3*/ g(C c, int/*4*/ i) => c.f(i);
+''');
+    assertEdge(decoratedTypeAnnotation('int/*4*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*3*/').node,
+        hard: false);
+  }
+
   test_methodInvocation_return_type() async {
     await analyze('''
 class C {

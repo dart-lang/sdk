@@ -938,6 +938,30 @@ int? test(C c) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_function_expression_invocation_via_getter() async {
+    var content = '''
+abstract class C {
+  void Function(int) get f;
+  int/*?*/ Function() get g;
+}
+int test(C c) {
+  c.f(null);
+  return c.g();
+}
+''';
+    var expected = '''
+abstract class C {
+  void Function(int?) get f;
+  int?/*?*/ Function() get g;
+}
+int? test(C c) {
+  c.f(null);
+  return c.g();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_generic_function_type_syntax_inferred_dynamic_return() async {
     var content = '''
 abstract class C {

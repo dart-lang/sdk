@@ -607,6 +607,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _unimplemented(node, 'Unresolved method name');
     }
     var calleeType = getOrComputeElementType(callee, targetType: targetType);
+    if (callee is PropertyAccessorElement) {
+      calleeType = calleeType.returnType;
+    }
     var expressionType = _handleInvocationArguments(node,
         node.argumentList.arguments, node.typeArguments, calleeType, null);
     if (isConditional) {
