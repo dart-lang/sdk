@@ -877,18 +877,6 @@ class AnalysisError implements Diagnostic {
   }
 
   /**
-   * Return `true` if this error can be shown to be a non-issue because of the
-   * result of type propagation.
-   */
-  @Deprecated(
-      'Type propagation is no longer performed, so this will never be true')
-  bool get isStaticOnly => false;
-
-  @Deprecated(
-      'Type propagation is no longer performed, so this can never be true')
-  void set isStaticOnly(bool value) {}
-
-  /**
    * The number of characters from the offset to the end of the source which
    * encompasses the compilation error.
    */
@@ -905,13 +893,6 @@ class AnalysisError implements Diagnostic {
    * the error occurred.
    */
   int get offset => _problemMessage.offset;
-
-  /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
-  @Deprecated('Set the offset when the error is created')
-  set offset(int offset) {}
 
   @override
   DiagnosticMessage get problemMessage => _problemMessage;

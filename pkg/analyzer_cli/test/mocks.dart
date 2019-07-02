@@ -23,9 +23,6 @@ class MockAnalysisError implements AnalysisError {
   String message;
 
   @override
-  bool isStaticOnly;
-
-  @override
   int length;
 
   MockAnalysisError(this.source, this.errorCode, this.offset, this.message);

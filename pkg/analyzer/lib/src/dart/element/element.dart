@@ -479,12 +479,6 @@ class ClassElementImpl extends AbstractClassElementImpl
       this._unlinkedClass, CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
-  /// Set whether this class is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors != null) return _accessors;
@@ -4036,12 +4030,6 @@ class EnumElementImpl extends AbstractClassElementImpl {
       this._unlinkedEnum, CompilationUnitElementImpl enclosingUnit)
       : super.forSerialized(enclosingUnit);
 
-  /// Set whether this class is abstract.
-  @Deprecated('This setter will be removed')
-  void set abstract(bool isAbstract) {
-    _assertNotResynthesized(_unlinkedEnum);
-  }
-
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
@@ -7232,12 +7220,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
-  /// Set whether this method is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
-  }
-
   @override
   String get displayName {
     String displayName = super.displayName;
@@ -8942,12 +8924,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     this.variable = variable;
     isStatic = variable.isStatic;
     isSynthetic = true;
-  }
-
-  /// Set whether this accessor is abstract.
-  @Deprecated('Use isAbstract instead')
-  void set abstract(bool isAbstract) {
-    this.isAbstract = isAbstract;
   }
 
   @override

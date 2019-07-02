@@ -258,9 +258,6 @@ class MockAnalysisError implements engine.AnalysisError {
   String correction = null;
 
   @override
-  bool isStaticOnly;
-
-  @override
   int length;
 
   MockAnalysisError(

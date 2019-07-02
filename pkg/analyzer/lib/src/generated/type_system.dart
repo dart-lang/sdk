@@ -109,10 +109,6 @@ class Dart2TypeSystem extends TypeSystem {
 
   Dart2TypeSystem(this.typeProvider, {this.implicitCasts: true});
 
-  @deprecated
-  @override
-  bool get isStrong => true;
-
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
   ///
@@ -1929,12 +1925,6 @@ class TypeComparison {
  */
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
 abstract class TypeSystem implements public.TypeSystem {
-  /**
-   * Whether the type system is strong or not.
-   */
-  @deprecated
-  bool get isStrong;
-
   /**
    * The provider of types for the system
    */

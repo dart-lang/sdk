@@ -17,7 +17,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/constant/constant_verifier.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -805,11 +804,6 @@ abstract class AstNodeImpl implements AstNode {
 
   Token findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ?? parent?.findPrevious(target);
-
-  @override
-  @deprecated
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate) =>
-      thisOrAncestorMatching(predicate);
 
   @override
   E getProperty<E>(String name) {
@@ -4646,12 +4640,20 @@ class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 }
 
-@Deprecated('Replaced by ForStatementImpl')
-class ForStatement2Impl extends ForStatementImpl implements ForStatement2 {
+class ForStatementImpl extends StatementImpl
+    with ForMixin
+    implements ForStatement {
+  /// The body of the loop.
+  StatementImpl _body;
+
   /// Initialize a newly created for statement.
-  ForStatement2Impl(Token awaitKeyword, Token forKeyword, Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts, Token rightParenthesis, StatementImpl body)
-      : super._() {
+  ForStatementImpl(
+      Token awaitKeyword,
+      Token forKeyword,
+      Token leftParenthesis,
+      ForLoopPartsImpl forLoopParts,
+      Token rightParenthesis,
+      StatementImpl body) {
     this.awaitKeyword = awaitKeyword;
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
@@ -4659,26 +4661,6 @@ class ForStatement2Impl extends ForStatementImpl implements ForStatement2 {
     this.rightParenthesis = rightParenthesis;
     _body = _becomeParentOf(body);
   }
-
-  @override
-  E accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement2(this);
-}
-
-abstract class ForStatementImpl extends StatementImpl
-    with ForMixin
-    implements ForStatement {
-  /// The body of the loop.
-  StatementImpl _body;
-
-  /// Initialize a newly created for statement.
-  factory ForStatementImpl(
-      Token awaitKeyword,
-      Token forKeyword,
-      Token leftParenthesis,
-      ForLoopPartsImpl forLoopParts,
-      Token rightParenthesis,
-      // ignore: deprecated_member_use_from_same_package
-      StatementImpl body) = ForStatement2Impl;
 
   ForStatementImpl._();
 
@@ -6110,88 +6092,6 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
   E accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
 
-  /// Return `true` if it would be valid for this instance creation expression
-  /// to have a keyword of `const`. It is valid if
-  ///
-  /// * the invoked constructor is a `const` constructor,
-  /// * all of the arguments are, or could be, constant expressions, and
-  /// * the evaluation of the constructor would not produce an exception.
-  ///
-  /// Note that this method will return `false` if the AST has not been resolved
-  /// because without resolution it cannot be determined whether the constructor
-  /// is a `const` constructor.
-  ///
-  /// Also note that this method can cause constant evaluation to occur, which
-  /// can be computationally expensive.
-  ///
-  /// Deprecated: Use `LinterContext.canBeConst` instead.
-  @deprecated
-  bool canBeConst() {
-    //
-    // Verify that the invoked constructor is a const constructor.
-    //
-    ConstructorElement element = staticElement;
-    if (element == null || !element.isConst) {
-      return false;
-    }
-    //
-    // Verify that all of the arguments are, or could be, constant expressions.
-    //
-    for (Expression argument in argumentList.arguments) {
-      argument = argument.unParenthesized;
-      if (argument is NamedExpression) {
-        argument = (argument as NamedExpression).expression.unParenthesized;
-      }
-      if (argument is InstanceCreationExpression) {
-        if (!argument.isConst) {
-          return false;
-        }
-      } else if (argument is TypedLiteral) {
-        if (!argument.isConst) {
-          return false;
-        }
-      } else if (argument is LiteralImpl) {
-        if (argument is StringInterpolation) {
-          return false;
-        } else if (argument is AdjacentStrings) {
-          for (StringLiteral string in (argument as AdjacentStrings).strings) {
-            if (string is StringInterpolation) {
-              return false;
-            }
-          }
-        }
-      } else if (argument is Identifier) {
-        Element element = argument.staticElement;
-        if (element is PropertyAccessorElement && !element.variable.isConst) {
-          return false;
-        } else if (element is VariableElement && !element.isConst) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-    //
-    // Verify that the evaluation of the constructor would not produce an
-    // exception.
-    //
-    Token oldKeyword = keyword;
-    ConstantAnalysisErrorListener listener =
-        new ConstantAnalysisErrorListener();
-    try {
-      keyword = new KeywordToken(Keyword.CONST, offset);
-      LibraryElement library = element.library;
-      AnalysisContext context = library.context;
-      ErrorReporter errorReporter = new ErrorReporter(listener, element.source);
-      accept(new ConstantVerifier(errorReporter, library, context.typeProvider,
-          context.declaredVariables,
-          featureSet: FeatureSet.fromEnableFlags([])));
-    } finally {
-      keyword = oldKeyword;
-    }
-    return !listener.hasConstError;
-  }
-
   @override
   void visitChildren(AstVisitor visitor) {
     _constructorName?.accept(visitor);
@@ -6825,10 +6725,6 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2 => _elements;
 
   @override
   Token get endToken => rightBracket;
@@ -8746,10 +8642,6 @@ class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
 
   @override
   NodeList<CollectionElement> get elements => _elements;
-
-  @override
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2 => _elements;
 
   @override
   Token get endToken => rightBracket;

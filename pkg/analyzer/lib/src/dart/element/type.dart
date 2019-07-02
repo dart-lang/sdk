@@ -2842,9 +2842,6 @@ abstract class TypeImpl implements DartType {
   bool get isObject => false;
 
   @override
-  bool get isUndefined => false;
-
-  @override
   bool get isVoid => false;
 
   /**

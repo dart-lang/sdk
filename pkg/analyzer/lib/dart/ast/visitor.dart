@@ -22,7 +22,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure, similar to [GeneralizingAstVisitor]. This visitor uses a
@@ -128,9 +127,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-class GeneralizingAstVisitor<R>
-    with UIAsCodeVisitorMixin<R>
-    implements AstVisitor<R> {
+class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
 
@@ -605,9 +602,7 @@ class GeneralizingAstVisitor<R>
 /// visited.
 ///
 /// Clients may extend this class.
-class RecursiveAstVisitor<R>
-    with UIAsCodeVisitorMixin<R>
-    implements AstVisitor<R> {
+class RecursiveAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) {
     node.visitChildren(this);
@@ -1336,9 +1331,7 @@ class RecursiveAstVisitor<R>
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
-class SimpleAstVisitor<R>
-    with UIAsCodeVisitorMixin<R>
-    implements AstVisitor<R> {
+class SimpleAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => null;
 
@@ -1713,9 +1706,7 @@ class SimpleAstVisitor<R>
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
-class ThrowingAstVisitor<R>
-    with UIAsCodeVisitorMixin<R>
-    implements AstVisitor<R> {
+class ThrowingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => _throw(node);
 
@@ -2097,7 +2088,7 @@ class ThrowingAstVisitor<R>
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
+class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
 
@@ -3082,9 +3073,7 @@ class TimedAstVisitor<T> with UIAsCodeVisitorMixin<T> implements AstVisitor<T> {
 /// visited.
 ///
 /// Clients may extend this class.
-class UnifyingAstVisitor<R>
-    with UIAsCodeVisitorMixin<R>
-    implements AstVisitor<R> {
+class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
 

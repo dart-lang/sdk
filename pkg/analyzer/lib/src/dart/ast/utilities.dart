@@ -30,9 +30,7 @@ typedef void ExceptionInDelegateHandler(
  * will only clone the structure, it will not preserve any resolution results or
  * properties associated with the nodes.
  */
-class AstCloner
-    with UIAsCodeVisitorMixin<AstNode>
-    implements AstVisitor<AstNode> {
+class AstCloner implements AstVisitor<AstNode> {
   /**
    * A flag indicating whether tokens should be cloned while cloning an AST
    * structure.
@@ -285,7 +283,7 @@ class AstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone = astFactory.compilationUnit2(
+    CompilationUnit clone = astFactory.compilationUnit(
         beginToken: cloneToken(node.beginToken),
         scriptTag: cloneNode(node.scriptTag),
         directives: cloneNodeList(node.directives),
@@ -1128,9 +1126,7 @@ class AstCloner
  * An AstVisitor that compares the structure of two AstNodes to see whether they
  * are equal.
  */
-class AstComparator
-    with UIAsCodeVisitorMixin<bool>
-    implements AstVisitor<bool> {
+class AstComparator implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -2477,9 +2473,7 @@ class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
  * results.
  */
 @deprecated
-class IncrementalAstCloner
-    with UIAsCodeVisitorMixin<AstNode>
-    implements AstVisitor<AstNode> {
+class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
    */
@@ -2674,7 +2668,7 @@ class IncrementalAstCloner
 
   @override
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnitImpl copy = astFactory.compilationUnit2(
+    CompilationUnitImpl copy = astFactory.compilationUnit(
         beginToken: _mapToken(node.beginToken),
         scriptTag: _cloneNode(node.scriptTag),
         directives: _cloneNodeList(node.directives),
@@ -3825,7 +3819,7 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
 /**
  * An object that will replace one child node in an AST node with another node.
  */
-class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
+class NodeReplacer implements AstVisitor<bool> {
   /**
    * The node being replaced.
    */
@@ -5187,9 +5181,7 @@ class NodeReplacer with UIAsCodeVisitorMixin<bool> implements AstVisitor<bool> {
  * another as long as the structures of the corresponding children of a pair of
  * nodes are the same.
  */
-class ResolutionCopier
-    with UIAsCodeVisitorMixin<bool>
-    implements AstVisitor<bool> {
+class ResolutionCopier implements AstVisitor<bool> {
   /**
    * The AST node with which the node being visited is to be compared. This is
    * only valid at the beginning of each visit method (until [isEqualNodes] is
@@ -6896,9 +6888,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void> {
  * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
 @deprecated
-class ToSourceVisitor
-    with UIAsCodeVisitorMixin<void>
-    implements AstVisitor<void> {
+class ToSourceVisitor implements AstVisitor<void> {
   /**
    * The writer to which the source is to be written.
    */
@@ -8057,9 +8047,7 @@ class ToSourceVisitor
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a sink.
  */
-class ToSourceVisitor2
-    with UIAsCodeVisitorMixin<void>
-    implements AstVisitor<void> {
+class ToSourceVisitor2 implements AstVisitor<void> {
   /**
    * The sink to which the source is to be written.
    */
@@ -9238,15 +9226,5 @@ class ToSourceVisitor2
         sink.write(')');
       }
     }
-  }
-}
-
-/// Mixin allowing visitor classes to forward the visit method for
-/// `ForStatement2` to `ForStatement`
-mixin UIAsCodeVisitorMixin<R> implements AstVisitor<R> {
-  @override
-  @deprecated
-  R visitForStatement2(ForStatement2 node) {
-    return visitForStatement(node);
   }
 }

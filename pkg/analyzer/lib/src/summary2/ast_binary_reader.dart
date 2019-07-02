@@ -344,7 +344,7 @@ class AstBinaryReader {
   }
 
   CompilationUnit _read_compilationUnit(LinkedNode data) {
-    return astFactory.compilationUnit2(
+    return astFactory.compilationUnit(
         beginToken: null,
         scriptTag: _readNode(data.compilationUnit_scriptTag),
         directives: _readNodeList(data.compilationUnit_directives),

@@ -29,7 +29,7 @@ class UtilitiesTest with ResourceProviderMixin {
 void main() => print('Hello, world!');
     ''';
     ParseStringResult result = _withTemporaryFile(content,
-        (path) => parseFile2(path: path, featureSet: defaultFeatureSet));
+        (path) => parseFile(path: path, featureSet: defaultFeatureSet));
     expect(result.content, content);
     expect(result.errors, isEmpty);
     expect(result.lineInfo, isNotNull);
@@ -43,7 +43,7 @@ void main() => print('Hello, world!')
 ''';
     ParseStringResult result = _withMemoryFile(
         content,
-        (resourceProvider, path) => parseFile2(
+        (resourceProvider, path) => parseFile(
             path: path,
             featureSet: defaultFeatureSet,
             resourceProvider: resourceProvider,
@@ -62,7 +62,7 @@ void main() => print('Hello, world!')
     expect(
         () => _withMemoryFile(
             content,
-            (resourceProvider, path) => parseFile2(
+            (resourceProvider, path) => parseFile(
                 path: path,
                 featureSet: defaultFeatureSet,
                 resourceProvider: resourceProvider)),
@@ -77,7 +77,7 @@ int? f() => 1;
     expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
     ParseStringResult result = _withMemoryFile(
         content,
-        (resourceProvider, path) => parseFile2(
+        (resourceProvider, path) => parseFile(
             path: path,
             resourceProvider: resourceProvider,
             throwIfDiagnostics: false,
@@ -96,7 +96,7 @@ int? f() => 1;
         FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
     ParseStringResult result = _withMemoryFile(
         content,
-        (resourceProvider, path) => parseFile2(
+        (resourceProvider, path) => parseFile(
             path: path,
             resourceProvider: resourceProvider,
             throwIfDiagnostics: false,
@@ -113,7 +113,7 @@ void main() => print('Hello, world!');
 ''';
     ParseStringResult result = _withMemoryFile(
         content,
-        (resourceProvider, path) => parseFile2(
+        (resourceProvider, path) => parseFile(
             path: path,
             featureSet: defaultFeatureSet,
             resourceProvider: resourceProvider));

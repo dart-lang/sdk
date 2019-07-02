@@ -277,7 +277,7 @@ class AstTestFactory {
           String scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations) =>
-      astFactory.compilationUnit2(
+      astFactory.compilationUnit(
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),

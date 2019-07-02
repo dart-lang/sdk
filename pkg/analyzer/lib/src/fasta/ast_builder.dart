@@ -109,25 +109,29 @@ class AstBuilder extends StackListener {
   bool parseFunctionBodies = true;
 
   /// `true` if non-nullable behavior is enabled.
-  ///
-  /// When setting this field, be sure to set `scanner.enableNonNullable`
-  /// to the same value.
-  bool enableNonNullable = false;
+  final bool enableNonNullable;
 
   /// `true` if spread-collections behavior is enabled
-  bool enableSpreadCollections = false;
+  final bool enableSpreadCollections;
 
   /// `true` if control-flow-collections behavior is enabled
-  bool enableControlFlowCollections = false;
+  final bool enableControlFlowCollections;
 
   /// `true` if triple-shift behavior is enabled
-  bool enableTripleShift = false;
+  final bool enableTripleShift;
 
-  FeatureSet _featureSet;
+  final FeatureSet _featureSet;
 
   AstBuilder(ErrorReporter errorReporter, this.fileUri, this.isFullAst,
+      this._featureSet,
       [Uri uri])
       : this.errorReporter = new FastaErrorReporter(errorReporter),
+        this.enableNonNullable = _featureSet.isEnabled(Feature.non_nullable),
+        this.enableSpreadCollections =
+            _featureSet.isEnabled(Feature.spread_collections),
+        this.enableControlFlowCollections =
+            _featureSet.isEnabled(Feature.control_flow_collections),
+        this.enableTripleShift = _featureSet.isEnabled(Feature.triple_shift),
         uri = uri ?? fileUri;
 
   NodeList<ClassMember> get currentDeclarationMembers {
@@ -449,21 +453,6 @@ class AstBuilder extends StackListener {
     }
   }
 
-  /// Configures the parser appropriately for the given [featureSet].
-  ///
-  /// TODO(paulberry): stop exposing `enableNonNullable`,
-  /// `enableSpreadCollections`, `enableControlFlowCollections`, and
-  /// `enableTripleShift` so that callers are forced to use this API.  Note that
-  /// this will not be a breaking change, because this code is in `lib/src`.
-  void configureFeatures(FeatureSet featureSet) {
-    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
-    enableSpreadCollections = featureSet.isEnabled(Feature.spread_collections);
-    enableControlFlowCollections =
-        featureSet.isEnabled(Feature.control_flow_collections);
-    enableTripleShift = featureSet.isEnabled(Feature.triple_shift);
-    _featureSet = featureSet;
-  }
-
   @override
   void debugEvent(String name) {
     // printEvent('AstBuilder: $name');
@@ -680,7 +669,7 @@ class AstBuilder extends StackListener {
     Token beginToken = pop();
     checkEmpty(endToken.charOffset);
 
-    CompilationUnitImpl unit = ast.compilationUnit2(
+    CompilationUnitImpl unit = ast.compilationUnit(
         beginToken: beginToken,
         scriptTag: scriptTag,
         directives: directives,

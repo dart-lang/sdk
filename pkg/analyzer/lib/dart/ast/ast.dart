@@ -378,12 +378,6 @@ abstract class AstNode implements SyntacticEntity {
   /// Return the token before [target] or `null` if it cannot be found.
   Token findPrevious(Token target);
 
-  /// Return the most immediate ancestor of this node for which the [predicate]
-  /// returns `true`, or `null` if there is no such ancestor. Note that this
-  /// node will never be returned.
-  @deprecated
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
-
   /// Return the value of the property with the given [name], or `null` if this
   /// node does not have a property with the given name.
   E getProperty<E>(String name);
@@ -519,9 +513,6 @@ abstract class AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
   R visitForStatement(ForStatement node);
-
-  @Deprecated('Replaced by visitForStatement')
-  R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
 
@@ -2569,26 +2560,6 @@ abstract class ForStatement implements Statement {
   Token get rightParenthesis;
 }
 
-/// A for or for-each statement.
-///
-///    forStatement ::=
-///        'for' '(' forLoopParts ')' [Statement]
-///
-///    forLoopParts ::=
-///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
-///     | [Expression]? ';' [Expression]? ';' expressionList?
-///     | [DeclaredIdentifier] 'in' [Expression]
-///     | [SimpleIdentifier] 'in' [Expression]
-///
-/// This is the class that is used to represent a for loop when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either `ForStatement` or
-/// `ForEachStatement` will be used.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Replaced by ForStatement')
-abstract class ForStatement2 extends ForStatement {}
-
 /// A node representing the body of a function or method.
 ///
 ///    functionBody ::=
@@ -3682,10 +3653,6 @@ abstract class ListLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
 
-  /// Return the syntactic elements used to compute the elements of the list.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
-
   /// Return the left square bracket.
   Token get leftBracket;
 
@@ -4557,11 +4524,6 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the set or
   /// map.
   NodeList<CollectionElement> get elements;
-
-  /// Return the syntactic elements used to compute the elements of the set or
-  /// map.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
 
   /// Return `true` if this literal represents a map literal.
   ///

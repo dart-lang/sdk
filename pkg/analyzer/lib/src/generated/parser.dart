@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/standard_ast_factory.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -31,6 +30,7 @@ import 'package:front_end/src/fasta/parser/member_kind.dart' as fasta;
 import 'package:front_end/src/fasta/parser/parser.dart' as fasta;
 import 'package:front_end/src/fasta/parser/type_info.dart' as fasta;
 import 'package:front_end/src/fasta/scanner.dart' as fasta;
+import 'package:meta/meta.dart';
 
 export 'package:analyzer/src/dart/ast/utilities.dart' show ResolutionCopier;
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -199,17 +199,12 @@ class Parser {
 
   /// Initialize a newly created parser to parse tokens in the given [_source]
   /// and to report any errors that are found to the given [_errorListener].
-  ///
-  /// In a future major version release of the analyzer, the [featureSet]
-  /// argument will be required.
   factory Parser(Source source, AnalysisErrorListener errorListener,
-      {bool useFasta, FeatureSet featureSet}) {
+      {bool useFasta, @required FeatureSet featureSet}) {
+    featureSet ??= FeatureSet.fromEnableFlags([]);
     if (useFasta ?? Parser.useFasta) {
-      var parser = new _Parser2(source, errorListener, allowNativeClause: true);
-      if (featureSet != null) {
-        parser.configureFeatures(featureSet);
-      }
-      return parser;
+      return new _Parser2(source, errorListener, featureSet,
+          allowNativeClause: true);
     } else {
       return new Parser.withoutFasta(source, errorListener,
           featureSet: featureSet);
@@ -245,24 +240,6 @@ class Parser {
   @deprecated
   void set enableAssertInitializer(bool enable) {}
 
-  /// Enables or disables parsing of control flow collections.
-  @Deprecated('Pass a FeatureSet to the constructor instead')
-  void set enableControlFlowCollections(bool value) {
-    if (value) {
-      throw new UnimplementedError('control_flow_collections experiment'
-          ' not supported by analyzer parser');
-    }
-  }
-
-  /// Enables or disables non-nullable by default.
-  @Deprecated('Pass a FeatureSet to the constructor instead')
-  void set enableNonNullable(bool value) {
-    if (value) {
-      throw new UnimplementedError(
-          'non-nullable experiment not supported by analyzer parser');
-    }
-  }
-
   /// Return `true` if the parser should parse instance creation expressions
   /// that lack either the `new` or `const` keyword.
   bool get enableOptionalNewAndConst => _enableOptionalNewAndConst;
@@ -277,24 +254,6 @@ class Parser {
   void set enableSetLiterals(bool value) {
     // TODO(danrubel): Remove this method once the reference to this flag
     // has been removed from dartfmt.
-  }
-
-  /// Enables or disables parsing of spread collections.
-  @Deprecated('Pass a FeatureSet to the constructor instead')
-  void set enableSpreadCollections(bool value) {
-    if (value) {
-      throw new UnimplementedError(
-          'spread_collections experiment not supported by analyzer parser');
-    }
-  }
-
-  /// Enables or disables parsing of the triple shift operators.
-  @Deprecated('Pass a FeatureSet to the constructor instead')
-  void set enableTripleShift(bool value) {
-    if (value) {
-      throw new UnimplementedError('triple_shift experiment'
-          ' not supported by analyzer parser');
-    }
   }
 
   /// Return `true` if the parser is to allow URI's in part-of directives.
@@ -361,12 +320,6 @@ class Parser {
       index = _translateCharacter(buffer, lexeme, index);
     }
     return buffer.toString();
-  }
-
-  /// Configures the parser appropriately for the given [featureSet].
-  @Deprecated('Pass a FeatureSet to the constructor instead')
-  void configureFeatures(FeatureSet featureSet) {
-    _configureFeatures(featureSet);
   }
 
   /// Return a synthetic identifier.
@@ -1937,7 +1890,7 @@ class Parser {
         } on _TooDeepTreeError {
           _reportErrorForToken(ParserErrorCode.STACK_OVERFLOW, _currentToken);
           Token eof = new Token.eof(0);
-          return astFactory.compilationUnit2(
+          return astFactory.compilationUnit(
               beginToken: eof, endToken: eof, featureSet: _featureSet);
         }
         if (member != null) {
@@ -1987,7 +1940,7 @@ class Parser {
 //        }
       }
     }
-    return astFactory.compilationUnit2(
+    return astFactory.compilationUnit(
         beginToken: firstToken,
         scriptTag: scriptTag,
         directives: directives,
@@ -2443,7 +2396,7 @@ class Parser {
         while (!_matches(TokenType.EOF)) {
           _advance();
         }
-        return astFactory.compilationUnit2(
+        return astFactory.compilationUnit(
             beginToken: firstToken,
             scriptTag: scriptTag,
             directives: directives,
@@ -2451,7 +2404,7 @@ class Parser {
             featureSet: _featureSet);
       }
     }
-    return astFactory.compilationUnit2(
+    return astFactory.compilationUnit(
         beginToken: firstToken,
         scriptTag: scriptTag,
         directives: directives,

@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -68,7 +67,6 @@ import 'type_utilities.dart';
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
     with
-        UIAsCodeVisitorMixin<js_ast.Node>,
         NullableTypeInference,
         SharedCompiler<LibraryElement, ClassElement, InterfaceType,
             FunctionBody>
