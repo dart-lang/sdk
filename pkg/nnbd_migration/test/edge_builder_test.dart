@@ -32,7 +32,15 @@ class EdgeBuilderTest extends MigrationVisitorTestBase {
     return unit;
   }
 
-  void assertConditional(
+  void assertGLB(
+      NullabilityNode node, NullabilityNode left, NullabilityNode right) {
+    expect(node, isNot(TypeMatcher<NullabilityNodeForLUB>()));
+    assertEdge(left, node, hard: false, guards: [right]);
+    assertEdge(node, left, hard: false);
+    assertEdge(node, right, hard: false);
+  }
+
+  void assertLUB(
       NullabilityNode node, NullabilityNode left, NullabilityNode right) {
     var conditionalNode = node as NullabilityNodeForLUB;
     expect(conditionalNode.left, same(left));
@@ -642,6 +650,97 @@ int f(bool b, int i, int j) {
     assertNullCheck(check_b, assertEdge(nullable_b, never, hard: true));
   }
 
+  test_conditionalExpression_functionTyped_namedParameter() async {
+    await analyze('''
+void f(bool b, void Function({int p}) x, void Function({int p}) y) {
+  (b ? x : y);
+}
+''');
+    var xType =
+        decoratedGenericFunctionTypeAnnotation('void Function({int p}) x');
+    var yType =
+        decoratedGenericFunctionTypeAnnotation('void Function({int p}) y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertGLB(resultType.namedParameters['p'].node,
+        xType.namedParameters['p'].node, yType.namedParameters['p'].node);
+  }
+
+  test_conditionalExpression_functionTyped_normalParameter() async {
+    await analyze('''
+void f(bool b, void Function(int) x, void Function(int) y) {
+  (b ? x : y);
+}
+''');
+    var xType = decoratedGenericFunctionTypeAnnotation('void Function(int) x');
+    var yType = decoratedGenericFunctionTypeAnnotation('void Function(int) y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertGLB(resultType.positionalParameters[0].node,
+        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+  }
+
+  test_conditionalExpression_functionTyped_normalParameters() async {
+    await analyze('''
+void f(bool b, void Function(int, int) x, void Function(int, int) y) {
+  (b ? x : y);
+}
+''');
+    var xType =
+        decoratedGenericFunctionTypeAnnotation('void Function(int, int) x');
+    var yType =
+        decoratedGenericFunctionTypeAnnotation('void Function(int, int) y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertGLB(resultType.positionalParameters[0].node,
+        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+    assertGLB(resultType.positionalParameters[1].node,
+        xType.positionalParameters[1].node, yType.positionalParameters[1].node);
+  }
+
+  test_conditionalExpression_functionTyped_optionalParameter() async {
+    await analyze('''
+void f(bool b, void Function([int]) x, void Function([int]) y) {
+  (b ? x : y);
+}
+''');
+    var xType =
+        decoratedGenericFunctionTypeAnnotation('void Function([int]) x');
+    var yType =
+        decoratedGenericFunctionTypeAnnotation('void Function([int]) y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertGLB(resultType.positionalParameters[0].node,
+        xType.positionalParameters[0].node, yType.positionalParameters[0].node);
+  }
+
+  test_conditionalExpression_functionTyped_returnType() async {
+    await analyze('''
+void f(bool b, int Function() x, int Function() y) {
+  (b ? x : y);
+}
+''');
+    var xType = decoratedGenericFunctionTypeAnnotation('int Function() x');
+    var yType = decoratedGenericFunctionTypeAnnotation('int Function() y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertLUB(resultType.returnType.node, xType.returnType.node,
+        yType.returnType.node);
+  }
+
+  test_conditionalExpression_functionTyped_returnType_void() async {
+    await analyze('''
+void f(bool b, void Function() x, void Function() y) {
+  (b ? x : y);
+}
+''');
+    var xType = decoratedGenericFunctionTypeAnnotation('void Function() x');
+    var yType = decoratedGenericFunctionTypeAnnotation('void Function() y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    expect(resultType.returnType.node, same(always));
+  }
+
   test_conditionalExpression_general() async {
     await analyze('''
 int f(bool b, int i, int j) {
@@ -652,10 +751,26 @@ int f(bool b, int i, int j) {
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_j = decoratedTypeAnnotation('int j').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertConditional(nullable_conditional, nullable_i, nullable_j);
+    assertLUB(nullable_conditional, nullable_i, nullable_j);
     var nullable_return = decoratedTypeAnnotation('int f').node;
     assertNullCheck(checkExpression('(b ? i : j)'),
         assertEdge(nullable_conditional, nullable_return, hard: false));
+  }
+
+  test_conditionalExpression_generic() async {
+    await analyze('''
+void f(bool b, Map<int, String> x, Map<int, String> y) {
+  (b ? x : y);
+}
+''');
+    var xType = decoratedTypeAnnotation('Map<int, String> x');
+    var yType = decoratedTypeAnnotation('Map<int, String> y');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, xType.node, yType.node);
+    assertLUB(resultType.typeArguments[0].node, xType.typeArguments[0].node,
+        yType.typeArguments[0].node);
+    assertLUB(resultType.typeArguments[1].node, xType.typeArguments[1].node,
+        yType.typeArguments[1].node);
   }
 
   test_conditionalExpression_left_non_null() async {
@@ -670,7 +785,7 @@ int f(bool b, int i) {
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.left;
     assertNoUpstreamNullability(nullable_throw);
-    assertConditional(nullable_conditional, nullable_throw, nullable_i);
+    assertLUB(nullable_conditional, nullable_throw, nullable_i);
   }
 
   test_conditionalExpression_left_null() async {
@@ -682,7 +797,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertConditional(nullable_conditional, always, nullable_i);
+    assertLUB(nullable_conditional, always, nullable_i);
   }
 
   test_conditionalExpression_right_non_null() async {
@@ -697,7 +812,7 @@ int f(bool b, int i) {
         decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
     var nullable_throw = nullable_conditional.right;
     assertNoUpstreamNullability(nullable_throw);
-    assertConditional(nullable_conditional, nullable_i, nullable_throw);
+    assertLUB(nullable_conditional, nullable_i, nullable_throw);
   }
 
   test_conditionalExpression_right_null() async {
@@ -709,7 +824,7 @@ int f(bool b, int i) {
 
     var nullable_i = decoratedTypeAnnotation('int i').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
-    assertConditional(nullable_conditional, nullable_i, always);
+    assertLUB(nullable_conditional, nullable_i, always);
   }
 
   test_constructor_named() async {
@@ -1964,6 +2079,22 @@ void test(C c) {
     assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true);
   }
 
+  test_prefixedIdentifier_tearoff() async {
+    await analyze('''
+abstract class C {
+  int f(int i);
+}
+int Function(int) g(C c) => c.f;
+''');
+    var fType = variables.decoratedElementType(findElement.method('f'));
+    var gReturnType =
+        variables.decoratedElementType(findElement.function('g')).returnType;
+    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(gReturnType.positionalParameters[0].node,
+        fType.positionalParameters[0].node,
+        hard: false);
+  }
+
   test_prefixExpression_bang() async {
     await analyze('''
 bool f(bool b) {
@@ -2366,6 +2497,36 @@ main() {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int j').node,
         hard: true);
+  }
+
+  test_simpleIdentifier_tearoff_function() async {
+    await analyze('''
+int f(int i) => 0;
+int Function(int) g() => f;
+''');
+    var fType = variables.decoratedElementType(findElement.function('f'));
+    var gReturnType =
+        variables.decoratedElementType(findElement.function('g')).returnType;
+    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(gReturnType.positionalParameters[0].node,
+        fType.positionalParameters[0].node,
+        hard: false);
+  }
+
+  test_simpleIdentifier_tearoff_method() async {
+    await analyze('''
+abstract class C {
+  int f(int i);
+  int Function(int) g() => f;
+}
+''');
+    var fType = variables.decoratedElementType(findElement.method('f'));
+    var gReturnType =
+        variables.decoratedElementType(findElement.method('g')).returnType;
+    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(gReturnType.positionalParameters[0].node,
+        fType.positionalParameters[0].node,
+        hard: false);
   }
 
   test_skipDirectives() async {

@@ -40,6 +40,19 @@ class FieldFormalParameterOrigin extends EdgeOriginWithLocation {
   FieldFormalParameterOrigin(Source source, int offset) : super(source, offset);
 }
 
+/// Edge origin resulting from the use of greatest lower bound.
+///
+/// For example, in the following code snippet:
+///   void Function(int) f(void Function(int) x, void Function(int) y)
+///       => x ?? y;
+///
+/// the `int` in the return type is nullable if both the `int`s in the types of
+/// `x` and `y` are nullable, due to the fact that the `int` in the return type
+/// is the greatest lower bound of the two other `int`s.
+class GreatestLowerBoundOrigin extends EdgeOriginWithLocation {
+  GreatestLowerBoundOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from the presence of a `??` operator.
 class IfNullOrigin extends EdgeOriginWithLocation {
   IfNullOrigin(Source source, int offset) : super(source, offset);

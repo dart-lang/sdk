@@ -311,6 +311,13 @@ abstract class NullabilityNode {
   /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
 
+  /// Creates a [NullabilityNode] representing the nullability of an expression
+  /// which is nullable iff two other nullability nodes are both nullable.
+  ///
+  /// The caller is required to create the appropriate graph edges to ensure
+  /// that the appropriate relationship between the nodes' nullabilities holds.
+  factory NullabilityNode.forGLB() => _NullabilityNodeSimple('GLB');
+
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by the `??` operator.
   factory NullabilityNode.forIfNotNull() =>

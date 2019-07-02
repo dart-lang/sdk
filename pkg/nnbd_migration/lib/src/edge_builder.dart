@@ -322,22 +322,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     _handleAssignment(node.condition, _notNullType);
     // TODO(paulberry): guard anything inside the true and false branches
     var thenType = node.thenExpression.accept(this);
-    assert(_isSimple(thenType)); // TODO(paulberry)
     var elseType = node.elseExpression.accept(this);
-    assert(_isSimple(elseType)); // TODO(paulberry)
 
-    DartType staticType = node.staticType;
-    DecoratedType returnType;
-    if (staticType is FunctionType) {
-      DartType functReturnType = staticType.returnType;
-      returnType = functReturnType.isDynamic || functReturnType.isVoid
-          // TODO(danrubel): handle LUB for constituent types
-          ? DecoratedType(functReturnType, _graph.always)
-          : _variables.decoratedElementType(functReturnType.element);
-    }
-    var overallType = DecoratedType(
-        staticType, NullabilityNode.forLUB(thenType.node, elseType.node),
-        returnType: returnType);
+    var overallType = _decorateUpperOrLowerBound(
+        node, node.staticType, thenType, elseType, true);
     _variables.recordDecoratedExpressionType(node, overallType);
     return overallType;
   }
@@ -800,7 +788,8 @@ $stackTrace''');
     var staticElement = node.staticElement;
     if (staticElement is ParameterElement ||
         staticElement is LocalVariableElement ||
-        staticElement is FunctionElement) {
+        staticElement is FunctionElement ||
+        staticElement is MethodElement) {
       return getOrComputeElementType(staticElement);
     } else if (staticElement is PropertyAccessorElement) {
       var elementType = getOrComputeElementType(staticElement);
@@ -976,6 +965,92 @@ $stackTrace''');
     assert(name != 'hashCode');
     assert(name != 'noSuchMethod');
     assert(name != 'runtimeType');
+  }
+
+  DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
+      DecoratedType left, DecoratedType right, bool isLUB,
+      {NullabilityNode node}) {
+    if (type.isDynamic || type.isVoid) {
+      if (type.isDynamic) {
+        _unimplemented(astNode, 'LUB/GLB with dynamic');
+      }
+      return DecoratedType(type, _graph.always);
+    }
+    node ??= isLUB
+        ? NullabilityNode.forLUB(left.node, right.node)
+        : _nullabilityNodeForGLB(astNode, left.node, right.node);
+    if (type is InterfaceType) {
+      if (type.typeArguments.isEmpty) {
+        return DecoratedType(type, node);
+      } else {
+        var leftType = left.type;
+        var rightType = right.type;
+        if (leftType is InterfaceType && rightType is InterfaceType) {
+          if (leftType.element != type.element ||
+              rightType.element != type.element) {
+            _unimplemented(astNode, 'LUB/GLB with substitution');
+          }
+          List<DecoratedType> newTypeArguments = [];
+          for (int i = 0; i < type.typeArguments.length; i++) {
+            newTypeArguments.add(_decorateUpperOrLowerBound(
+                astNode,
+                type.typeArguments[i],
+                left.typeArguments[i],
+                right.typeArguments[i],
+                isLUB));
+          }
+          return DecoratedType(type, node, typeArguments: newTypeArguments);
+        } else {
+          _unimplemented(
+              astNode,
+              'LUB/GLB with unexpected types: ${leftType.runtimeType}/'
+              '${rightType.runtimeType}');
+        }
+      }
+    } else if (type is FunctionType) {
+      var leftType = left.type;
+      var rightType = right.type;
+      if (leftType is FunctionType && rightType is FunctionType) {
+        var returnType = _decorateUpperOrLowerBound(
+            astNode, type.returnType, left.returnType, right.returnType, isLUB);
+        List<DecoratedType> positionalParameters = [];
+        Map<String, DecoratedType> namedParameters = {};
+        int positionalParameterCount = 0;
+        for (var parameter in type.parameters) {
+          DecoratedType leftParameterType;
+          DecoratedType rightParameterType;
+          if (parameter.isNamed) {
+            leftParameterType = left.namedParameters[parameter.name];
+            rightParameterType = right.namedParameters[parameter.name];
+          } else {
+            leftParameterType =
+                left.positionalParameters[positionalParameterCount];
+            rightParameterType =
+                right.positionalParameters[positionalParameterCount];
+            positionalParameterCount++;
+          }
+          var decoratedParameterType = _decorateUpperOrLowerBound(astNode,
+              parameter.type, leftParameterType, rightParameterType, !isLUB);
+          if (parameter.isNamed) {
+            namedParameters[parameter.name] = decoratedParameterType;
+          } else {
+            positionalParameters.add(decoratedParameterType);
+          }
+        }
+        return DecoratedType(type, node,
+            returnType: returnType,
+            positionalParameters: positionalParameters,
+            namedParameters: namedParameters);
+      } else {
+        _unimplemented(
+            astNode,
+            'LUB/GLB with unexpected types: ${leftType.runtimeType}/'
+            '${rightType.runtimeType}');
+      }
+    } else if (type is TypeParameterType) {
+      _unimplemented(astNode, 'LUB/GLB with type parameter types');
+    }
+    _unimplemented(astNode, '_decorateUpperOrLowerBound');
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given
@@ -1209,7 +1284,9 @@ $stackTrace''');
       }
       return calleeType.positionalParameters[0];
     } else {
-      var expressionType = calleeType.returnType;
+      var expressionType = callee is PropertyAccessorElement
+          ? calleeType.returnType
+          : calleeType;
       if (isConditional) {
         expressionType = expressionType.withNode(
             NullabilityNode.forLUB(targetType.node, expressionType.node));
@@ -1274,6 +1351,16 @@ $stackTrace''');
       if (element is ParameterElement) return true;
     }
     return false;
+  }
+
+  NullabilityNode _nullabilityNodeForGLB(
+      AstNode astNode, NullabilityNode leftNode, NullabilityNode rightNode) {
+    var node = NullabilityNode.forGLB();
+    var origin = GreatestLowerBoundOrigin(_source, astNode.offset);
+    _graph.connect(leftNode, node, origin, guards: [rightNode]);
+    _graph.connect(node, leftNode, origin);
+    _graph.connect(node, rightNode, origin);
+    return node;
   }
 
   @alwaysThrows
