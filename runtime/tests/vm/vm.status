@@ -58,10 +58,6 @@ cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
-[ $runtime == dart_precompiled ]
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
-dart/issue32950_test: SkipByDesign # uses spawnUri.
-
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
 cc/Read: Fail # TODO(zra): Investigate, ../../dart/runtime/bin/file_test.cc: 34: error: expected: !file->WriteByte(1)
@@ -110,7 +106,6 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
@@ -261,6 +256,14 @@ dart/entrypoints/aot/*: SkipByDesign # Only supported in the Dart 2 JIT and AOT,
 
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
+
+# It makes no sense to run any test that uses spawnURI under the simulator
+# as that would involve running CFE (the front end) in simulator mode
+# to compile the URI file specified in spawnURI code.
+# These Isolate tests that use spawnURI are hence skipped on purpose.
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime != dart_precompiled || $system == android ]
 dart/bare_instructions_trampolines_test: SkipByDesign # This test is for VM AOT only (android fails due to listing interfaces).
