@@ -811,6 +811,28 @@ class C {
     assertUnion(xType.node, decoratedTypeAnnotation('int').node);
   }
 
+  test_fieldFormalParameter_function_typed() async {
+    await analyze('''
+class C {
+  int Function(int, {int j}) f;
+  C(int this.f(int i, {int j}));
+}
+''');
+    var ctorParamType = variables
+        .decoratedElementType(findElement.unnamedConstructor('C'))
+        .positionalParameters[0];
+    var fieldType = variables.decoratedElementType(findElement.field('f'));
+    assertEdge(ctorParamType.node, fieldType.node, hard: true);
+    assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
+        hard: true);
+    assertEdge(fieldType.positionalParameters[0].node,
+        ctorParamType.positionalParameters[0].node,
+        hard: true);
+    assertEdge(fieldType.namedParameters['j'].node,
+        ctorParamType.namedParameters['j'].node,
+        hard: true);
+  }
+
   test_fieldFormalParameter_typed() async {
     await analyze('''
 class C {

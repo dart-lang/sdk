@@ -134,8 +134,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
-    return _handleFormalParameter(node.declaredElement, node.metadata,
-        node.type, node.typeParameters, node.parameters);
+    return _handleFormalParameter(
+        node, node.type, node.typeParameters, node.parameters);
   }
 
   @override
@@ -159,8 +159,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitFunctionTypedFormalParameter(
       FunctionTypedFormalParameter node) {
-    return _handleFormalParameter(node.declaredElement, node.metadata,
-        node.returnType, node.typeParameters, node.parameters);
+    return _handleFormalParameter(
+        node, node.returnType, node.typeParameters, node.parameters);
   }
 
   @override
@@ -200,8 +200,7 @@ $stackTrace''');
 
   @override
   DecoratedType visitSimpleFormalParameter(SimpleFormalParameter node) {
-    return _handleFormalParameter(
-        node.declaredElement, node.metadata, node.type, null, null);
+    return _handleFormalParameter(node, node.type, null, null);
   }
 
   @override
@@ -388,18 +387,44 @@ $stackTrace''');
   }
 
   DecoratedType _handleFormalParameter(
-      ParameterElement declaredElement,
-      NodeList<Annotation> metadata,
+      FormalParameter node,
       TypeAnnotation type,
       TypeParameterList typeParameters,
       FormalParameterList parameters) {
-    if (typeParameters != null || parameters != null) {
-      _unimplemented(parameters, 'FunctionTypedFormalParameter');
+    var declaredElement = node.declaredElement;
+    node.metadata?.accept(this);
+    DecoratedType decoratedType;
+    if (parameters == null) {
+      decoratedType = type != null
+          ? type.accept(this)
+          : DecoratedType.forImplicitType(declaredElement.type, _graph);
+    } else {
+      var decoratedReturnType = type == null
+          ? DecoratedType.forImplicitType(DynamicTypeImpl.instance, _graph)
+          : type.accept(this);
+      if (typeParameters != null) {
+        // TODO(paulberry)
+        _unimplemented(
+            typeParameters, 'Function-typed parameter with type parameters');
+      }
+      var positionalParameters = <DecoratedType>[];
+      var namedParameters = <String, DecoratedType>{};
+      var previousPositionalParameters = _positionalParameters;
+      var previousNamedParameters = _namedParameters;
+      try {
+        _positionalParameters = positionalParameters;
+        _namedParameters = namedParameters;
+        parameters.accept(this);
+      } finally {
+        _positionalParameters = previousPositionalParameters;
+        _namedParameters = previousNamedParameters;
+      }
+      decoratedType = DecoratedTypeAnnotation(declaredElement.type,
+          NullabilityNode.forTypeAnnotation(node.end), node.end,
+          returnType: decoratedReturnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters);
     }
-    metadata?.accept(this);
-    var decoratedType = type != null
-        ? type.accept(this)
-        : DecoratedType.forImplicitType(declaredElement.type, _graph);
     _variables.recordDecoratedElementType(declaredElement, decoratedType);
     if (declaredElement.isNamed) {
       _namedParameters[declaredElement.name] = decoratedType;
