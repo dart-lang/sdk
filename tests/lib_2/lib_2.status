@@ -154,11 +154,38 @@ isolate/vm_rehash_test: SkipByDesign
 [ !$preview_dart_2 && ($runtime == dart_precompiled || $runtime == vm) ]
 *: SkipByDesign # Deprecating all Dart1 modes of execution
 
+[ $arch == simarm || $arch == simarmv5te || $arch == simarmv6 ]
+convert/utf85_test: Skip # Pass, Slow Issue 12644.
+
+[ $arch != x64 || $compiler == dartkb || $runtime != vm ]
+isolate/int32_length_overflow_test: SkipSlow
+
+[ $compiler != none || $runtime != vm ]
+isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
+isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
+isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
+isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
+isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
+
+[ $mode == product || $runtime != vm ]
+isolate/checked_test: Skip # Unsupported.
+
+[ $runtime == chrome || $runtime == chromeOnAndroid ]
+html/webgl_1_test: Pass, Fail # Issue 8219
+
+[ $runtime == chrome || $runtime == ff ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+async/stream_timeout_test: SkipSlow # Times out. Issue 22050
+
+[ $runtime == dart_precompiled || $runtime == vm ]
+isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
+isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
+
 # It makes no sense to run any test that uses spawnURI under the simulator
 # as that would involve running CFE (the front end) in simulator mode
 # to compile the URI file specified in spawnURI code.
 # These Isolate tests that use spawnURI are hence skipped on purpose.
-[ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($runtime == dart_precompiled || $runtime == vm) ]
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
 isolate/count_test: Skip # Isolate.spawnUri
 isolate/cross_isolate_message_test: Skip # Isolate.spawnUri
 isolate/deferred_in_isolate2_test: Skip # Isolate.spawnUri
@@ -193,33 +220,6 @@ isolate/spawn_uri_vm_test: Skip # Isolate.spawnUri
 isolate/stacktrace_message_test: Skip # Isolate.spawnUri
 isolate/static_function_test: Skip # Isolate.spawnUri
 isolate/unresolved_ports_test: Skip # Isolate.spawnUri
-
-[ $arch == simarm || $arch == simarmv5te || $arch == simarmv6 ]
-convert/utf85_test: Skip # Pass, Slow Issue 12644.
-
-[ $arch != x64 || $compiler == dartkb || $runtime != vm ]
-isolate/int32_length_overflow_test: SkipSlow
-
-[ $compiler != none || $runtime != vm ]
-isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
-isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
-isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
-isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
-isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
-
-[ $mode == product || $runtime != vm ]
-isolate/checked_test: Skip # Unsupported.
-
-[ $runtime == chrome || $runtime == chromeOnAndroid ]
-html/webgl_1_test: Pass, Fail # Issue 8219
-
-[ $runtime == chrome || $runtime == ff ]
-async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
-async/stream_timeout_test: SkipSlow # Times out. Issue 22050
-
-[ $runtime == dart_precompiled || $runtime == vm ]
-isolate/isolate_stress_test: Skip # Issue 12588: Uses dart:html. This should be able to pass when we have wrapper-less tests.
-isolate/stacktrace_message_test: RuntimeError # Fails to send stacktrace object.
 
 [ $hot_reload || $hot_reload_rollback ]
 async/stream_transformer_test: Pass, Fail # Closure identity
