@@ -4,7 +4,7 @@
 
 #include "vm/bootstrap_natives.h"
 
-#include "platform/math.h"
+#include <math.h>
 
 #include "vm/dart_entry.h"
 #include "vm/double_conversion.h"

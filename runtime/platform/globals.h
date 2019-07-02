@@ -69,6 +69,7 @@
 
 #include <float.h>
 #include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -80,8 +81,6 @@
 #include "platform/floating_point_win.h"
 #include "platform/inttypes_support_win.h"
 #endif  // defined(_WIN32)
-
-#include "platform/math.h"
 
 #if !defined(_WIN32)
 #include "platform/floating_point.h"
