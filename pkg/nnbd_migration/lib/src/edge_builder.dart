@@ -690,8 +690,7 @@ $stackTrace''');
 
   @override
   DecoratedType visitPrefixExpression(PrefixExpression node) {
-    /* DecoratedType operandType = */
-    _handleAssignment(node.operand, _notNullType);
+    var targetType = _handleAssignment(node.operand, _notNullType);
     var operatorType = node.operator.type;
     if (operatorType == TokenType.BANG) {
       return _nonNullableBoolType;
@@ -711,10 +710,11 @@ $stackTrace''');
       var calleeType = getOrComputeElementType(callee);
       // TODO(paulberry): substitute if necessary
       return calleeType.returnType;
+    } else {
+      var callee = node.staticElement;
+      var calleeType = getOrComputeElementType(callee, targetType: targetType);
+      return _handleInvocationArguments(node, [], null, calleeType, null);
     }
-    // TODO(brianwilkerson) The remaining cases are invocations.
-    _unimplemented(
-        node, 'Prefix expression with operator ${node.operator.lexeme}');
   }
 
   @override

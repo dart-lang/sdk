@@ -1727,6 +1727,42 @@ int f(int x, int Function(int i) g) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_prefix_minus() async {
+    var content = '''
+class C {
+  D operator-() => null;
+}
+class D {}
+D test(C c) => -c;
+''';
+    var expected = '''
+class C {
+  D? operator-() => null;
+}
+class D {}
+D? test(C c) => -c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefix_minus_substitute() async {
+    var content = '''
+abstract class C<T> {
+  D<T> operator-();
+}
+class D<U> {}
+D<int> test(C<int/*?*/> c) => -c;
+''';
+    var expected = '''
+abstract class C<T> {
+  D<T> operator-();
+}
+class D<U> {}
+D<int?> test(C<int?/*?*/> c) => -c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_prefixExpression_bang() async {
     var content = '''
 bool f(bool b) => !b;

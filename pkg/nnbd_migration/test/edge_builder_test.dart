@@ -1979,6 +1979,20 @@ bool f(bool b) {
     assertEdge(never, return_f, hard: false);
   }
 
+  test_prefixExpression_minus() async {
+    await analyze('''
+abstract class C {
+  C operator-();
+}
+C test(C c) => -c/*check*/;
+''');
+    assertEdge(decoratedTypeAnnotation('C operator').node,
+        decoratedTypeAnnotation('C test').node,
+        hard: false);
+    assertNullCheck(checkExpression('c/*check*/'),
+        assertEdge(decoratedTypeAnnotation('C c').node, never, hard: true));
+  }
+
   test_prefixExpression_minusMinus() async {
     await analyze('''
 int f(int i) {
