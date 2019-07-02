@@ -955,6 +955,15 @@ class C extends B {
     expect(decoratedType.node, same(always));
   }
 
+  test_parameters() async {
+    await analyze('''
+void foo({List<int> values})  {
+  values.where((i) => true);
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
   test_topLevelFunction_parameterType_implicit_dynamic() async {
     await analyze('''
 void f(x) {}

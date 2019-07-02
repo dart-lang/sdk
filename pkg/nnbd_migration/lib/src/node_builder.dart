@@ -372,12 +372,12 @@ $stackTrace''');
     DecoratedType decoratedFunctionType;
     try {
       parameters?.accept(this);
-      body?.accept(this);
       redirectedConstructor?.accept(this);
       decoratedFunctionType = DecoratedType(functionType, _graph.never,
           returnType: decoratedReturnType,
           positionalParameters: _positionalParameters,
           namedParameters: _namedParameters);
+      body?.accept(this);
     } finally {
       _positionalParameters = previousPositionalParameters;
       _namedParameters = previousNamedParameters;
