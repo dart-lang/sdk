@@ -33,7 +33,6 @@ config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
@@ -590,7 +589,6 @@ config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
-const_map4_test: RuntimeError
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
@@ -915,7 +913,6 @@ config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
 constructor12_test: RuntimeError

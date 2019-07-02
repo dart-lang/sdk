@@ -13,11 +13,15 @@ main() {
   b = const {1: 'a', 2: 'b', 3: 'c'};
   Expect.equals(true, a == b);
 
+  a = const <int, String>{1: 'a', 2: 'b', 3: 'c'};
+  b = const {1: 'a', 2: 'b', 3: 'c'};
+  Expect.equals(true, a == b);
+
   a = const <num, String>{1: 'a', 2: 'b', 3: 'c'};
   b = const {1: 'a', 2: 'b', 3: 'c'};
   Expect.equals(false, a == b);
 
   a = const <dynamic, dynamic>{1: 'a', 2: 'b', 3: 'c'};
   b = const {1: 'a', 2: 'b', 3: 'c'};
-  Expect.equals(true, a == b);
+  Expect.equals(false, a == b);
 }

@@ -39,7 +39,6 @@ const_evaluation_test/01: RuntimeError
 const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
-const_map4_test: RuntimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
 constructor12_test: RuntimeError

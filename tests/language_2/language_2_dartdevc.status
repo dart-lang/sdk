@@ -306,7 +306,6 @@ compile_time_constant_e_test: RuntimeError # Issue 30876; Expect.identical(expec
 config_import_corelib_test: CompileTimeError
 const_evaluation_test/01: RuntimeError # dart:mirrors not supported in DDC
 const_list_test: RuntimeError # Expect.equals(expected: <false>, actual: <true>) fails.
-const_map4_test: RuntimeError # Expect.equals(expected: <true>, actual: <false>) fails.
 const_switch_test/02: RuntimeError # Issue 29920; Expect.equals(expected: <0>, actual: <0.0>) fails.
 const_switch_test/04: RuntimeError # Ints and doubles are unified.; Expect.equals(expected: <1>, actual: <1.0>) fails.
 constructor12_test: RuntimeError # Issue 29920; ReferenceError: JSArrayOfT is not defined
