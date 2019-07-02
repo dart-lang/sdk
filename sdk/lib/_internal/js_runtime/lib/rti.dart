@@ -1076,8 +1076,20 @@ class TypeRule {
 
 // Future entry point from compiled code.
 bool isSubtype(universe, Rti s, Rti t) {
+  // TODO(sra): When more tests are working, remove this rediculous hack.
+  // Temporary 'metering' of isSubtype calls to force tests that endlessly loop
+  // to fail.
+  int next = JS('int', '(#||0) + 1', _ticks);
+  _ticks = next;
+  if (next > 10 * 1000 * 1000) {
+    throw StateError('Too many isSubtype calls'
+        '  ${_rtiToString(s, null)}  <:  ${_rtiToString(t, null)}');
+  }
+
   return _isSubtype(universe, s, null, t, null);
 }
+
+int _ticks = 0;
 
 bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // TODO(fishythefish): Update for NNBD. See
