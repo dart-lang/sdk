@@ -53,14 +53,14 @@ main() {
 
     group('CamelCaseString', () {
       test('invalid creation', () {
-        expect(() => new CamelCaseString('invalid'),
-            throwsA(new TypeMatcher<ArgumentError>()));
+        expect(() => CamelCaseString('invalid'),
+            throwsA(TypeMatcher<ArgumentError>()));
       });
       test('toString', () {
-        expect(new CamelCaseString('CamelCase').toString(), 'CamelCase');
+        expect(CamelCaseString('CamelCase').toString(), 'CamelCase');
       });
       test('humanize', () {
-        expect(new CamelCaseString('CamelCase').humanized, 'Camel Case');
+        expect(CamelCaseString('CamelCase').humanized, 'Camel Case');
       });
     });
   });
@@ -172,7 +172,7 @@ main() {
   });
 
   group('isUpperCase', () {
-    var caps = new List<int>.generate(26, (i) => 'A'.codeUnitAt(0) + i);
+    var caps = List<int>.generate(26, (i) => 'A'.codeUnitAt(0) + i);
     testEach(caps, isUpperCase, isTrue);
 
     var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));

@@ -22,7 +22,7 @@ runtime.
 ```
 main() { }
 
-_bar() => new _Foo();
+_bar() => _Foo();
 
 class _Foo {
   _foo() => 42;
@@ -33,7 +33,7 @@ class _Foo {
 ```
 void main() { }
 
-_Foo _bar() => new _Foo();
+_Foo _bar() => _Foo();
 
 class _Foo {
   int _foo() => 42;
@@ -55,7 +55,7 @@ class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -63,13 +63,13 @@ class AlwaysDeclareReturnTypes extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode functionCode = const LintCode(
+  static const LintCode functionCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
       "The function {0} should have a return type but doesn't.",
       correction:
           "Try adding a return type to the function."); // ignore: prefer_single_quotes
 
-  static const LintCode methodCode = const LintCode(
+  static const LintCode methodCode = LintCode(
       "always_declare_return_types", // ignore: prefer_single_quotes
       "The method {0} should have a return type but doesn't.",
       correction:

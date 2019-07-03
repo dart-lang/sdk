@@ -9,7 +9,7 @@ const baseLinePath = 'tool/baseline/pana.json';
 
 main() async {
   print('Reading baseline...');
-  var contents = new File(baseLinePath).readAsStringSync();
+  var contents = File(baseLinePath).readAsStringSync();
   var baseline = jsonDecode(contents)['scores'];
   print(baseline);
 

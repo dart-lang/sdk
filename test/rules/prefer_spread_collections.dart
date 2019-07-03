@@ -28,7 +28,7 @@ class A {
 }
 
 g() {
-  new A()..addAll(['a']); // OK
+  A()..addAll(['a']); // OK
 }
 
 const thangs = [];

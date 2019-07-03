@@ -57,16 +57,16 @@ class HashAndEquals extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode hashMemberCode = const LintCode(
+  static const LintCode hashMemberCode = LintCode(
       'hash_and_equals', 'Override `==` if overriding `hashCode`.',
       correction: 'Implement `==`.');
-  static const LintCode equalsMemberCode = const LintCode(
+  static const LintCode equalsMemberCode = LintCode(
       'hash_and_equals', 'Override `hashCode` if overriding `==`.',
       correction: 'Implement `hashCode`.');
 

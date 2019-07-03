@@ -18,7 +18,7 @@ const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
 String getRoot(List<String> paths) =>
-    paths.length == 1 && new Directory(paths[0]).existsSync() ? paths[0] : null;
+    paths.length == 1 && Directory(paths[0]).existsSync() ? paths[0] : null;
 
 bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
@@ -39,14 +39,14 @@ For more information, see https://github.com/dart-lang/linter
 
 /// Start linting from the command-line.
 Future run(List<String> args) async {
-  await runLinter(args, new LinterOptions());
+  await runLinter(args, LinterOptions());
 }
 
 Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   // Force the rule registry to be populated.
   registerLintRules();
 
-  var parser = new ArgParser(allowTrailingOptions: true);
+  var parser = ArgParser(allowTrailingOptions: true);
 
   parser
     ..addFlag('help',
@@ -99,7 +99,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var configFile = options['config'];
   if (configFile != null) {
-    var config = new LintConfig.parse(readFile(configFile));
+    var config = LintConfig.parse(readFile(configFile));
     lintOptions.configure(config);
   }
 
@@ -159,15 +159,15 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     return;
   }
 
-  final linter = new DartLinter(lintOptions);
+  final linter = DartLinter(lintOptions);
 
   try {
-    final timer = new Stopwatch()..start();
+    final timer = Stopwatch()..start();
     List<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
     timer.stop();
 
     var commonRoot = getRoot(options.rest);
-    new ReportFormatter(errors, lintOptions.filter, outSink,
+    ReportFormatter(errors, lintOptions.filter, outSink,
         elapsedMs: timer.elapsedMilliseconds,
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,

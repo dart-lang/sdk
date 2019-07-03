@@ -20,18 +20,18 @@ inherently describes what the boolean value represents.
 
 **BAD:**
 ```
-new Task(true);
-new Task(false);
-new ListBox(false, true, true);
-new Button(false);
+Task(true);
+Task(false);
+ListBox(false, true, true);
+Button(false);
 ```
 
 **GOOD:**
 ```
-new Task.oneShot();
-new Task.repeating();
-new ListBox(scroll: true, showScrollbars: true);
-new Button(ButtonState.enabled);
+Task.oneShot();
+Task.repeating();
+ListBox(scroll: true, showScrollbars: true);
+Button(ButtonState.enabled);
 ```
 
 ''';
@@ -48,7 +48,7 @@ class AvoidPositionalBooleanParameters extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   InheritanceManager2 manager;
 
   _Visitor(this.rule, LinterContext context)
-      : manager = new InheritanceManager2(context.typeSystem);
+      : manager = InheritanceManager2(context.typeSystem);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     Uri libraryUri = classElement.library.source.uri;
     return manager.getInherited(
-            classElement.type, new Name(libraryUri, member.name)) !=
+            classElement.type, Name(libraryUri, member.name)) !=
         null;
   }
 }

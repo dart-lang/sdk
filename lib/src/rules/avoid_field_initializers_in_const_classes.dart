@@ -47,7 +47,7 @@ class AvoidFieldInitializersInConstClasses extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
     registry.addConstructorFieldInitializer(this, visitor);
   }
@@ -87,8 +87,8 @@ class _Visitor extends SimpleAstVisitor<void> {
         .length;
     if (constructorCount > 1) return;
 
-    final visitor = new HasParameterReferenceVisitor(
-        constructor.parameters.parameterElements);
+    final visitor =
+        HasParameterReferenceVisitor(constructor.parameters.parameterElements);
     node.expression.accept(visitor);
     if (!visitor.useParameter) {
       rule.reportLint(node);

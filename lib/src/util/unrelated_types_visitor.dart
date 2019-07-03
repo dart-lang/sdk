@@ -28,7 +28,7 @@ List<InterfaceType> _findImplementedInterfaces(InterfaceType type,
         ? accumulator
         : type.interfaces.fold(
             <InterfaceType>[type],
-            (List<InterfaceType> acc, InterfaceType e) => new List.from(acc)
+            (List<InterfaceType> acc, InterfaceType e) => List.from(acc)
               ..addAll(_findImplementedInterfaces(e, accumulator: acc)));
 
 /// Returns the first type argument on [definition], as implemented by [type].

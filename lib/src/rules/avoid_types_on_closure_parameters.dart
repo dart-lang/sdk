@@ -39,7 +39,7 @@ class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addFunctionExpression(this, visitor);
   }
 }
@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    final visitor = new AvoidTypesOnClosureParametersVisitor(rule);
+    final visitor = AvoidTypesOnClosureParametersVisitor(rule);
     visitor.visitFunctionExpression(node);
   }
 }

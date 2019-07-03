@@ -33,16 +33,16 @@ class FlutterStyleTodos extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static final _todoRegExp = new RegExp(r'//+(.* )?TODO\b');
+  static final _todoRegExp = RegExp(r'//+(.* )?TODO\b');
 
   static final _todoExpectedRegExp =
-      new RegExp(r'// TODO\([a-zA-Z][-a-zA-Z0-9]*\): ');
+      RegExp(r'// TODO\([a-zA-Z][-a-zA-Z0-9]*\): ');
 
   final LintRule rule;
 

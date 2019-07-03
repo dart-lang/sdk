@@ -24,7 +24,7 @@ main() async {
 **GOOD:**
 ```
 main() async {
-  print(await new Future.value(23));
+  print(await Future.value(23));
 }
 ```
 
@@ -41,7 +41,7 @@ class AwaitOnlyFutures extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addAwaitExpression(this, visitor);
   }
 }

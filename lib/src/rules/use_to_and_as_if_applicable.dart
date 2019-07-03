@@ -22,7 +22,7 @@ From the [design guide](https://www.dartlang.org/guides/language/effective-dart/
 ```
 class Bar {
   Foo myMethod() {
-    return new Foo.from(this);
+    return Foo.from(this);
   }
 }
 ```
@@ -31,7 +31,7 @@ class Bar {
 ```
 class Bar {
   Foo toFoo() {
-    return new Foo.from(this);
+    return Foo.from(this);
   }
 }
 ```
@@ -40,7 +40,7 @@ class Bar {
 ```
 class Bar {
   Foo asFoo() {
-    return new Foo.from(this);
+    return Foo.from(this);
   }
 }
 ```
@@ -48,7 +48,7 @@ class Bar {
 ''';
 
 bool _beginsWithAsOrTo(String name) {
-  final regExp = new RegExp(r'(to|as|_to|_as)[A-Z]', caseSensitive: true);
+  final regExp = RegExp(r'(to|as|_to|_as)[A-Z]', caseSensitive: true);
   return regExp.matchAsPrefix(name) != null;
 }
 
@@ -66,7 +66,7 @@ class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
 }

@@ -37,7 +37,7 @@ class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
   }
@@ -76,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   _countAndReport(String name, AstNode node) {
-    final visitor = new _CountVisitor(name);
+    final visitor = _CountVisitor(name);
     for (final unit in context.allUnits) {
       unit.unit.visitChildren(visitor);
     }

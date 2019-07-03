@@ -38,7 +38,7 @@ a given path.
 const _lf = '\n';
 
 /// String looks like URI if it contains a slash or backslash.
-final _uriRegExp = new RegExp(r'[/\\]');
+final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
 class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
@@ -52,7 +52,7 @@ class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
 }
@@ -134,7 +134,7 @@ class _AllowedLongLineVisitor extends RecursiveAstVisitor {
       final value = node.elements.map((e) {
         if (e is InterpolationString) return e.value;
         if (e is InterpolationExpression) return ' ' * e.length;
-        throw new ArgumentError(
+        throw ArgumentError(
             'Unhandled string interpolation element: ${node.runtimeType}');
       }).join();
       _handleSingleLine(node, value);
@@ -194,16 +194,16 @@ class _Visitor extends SimpleAstVisitor {
       }
       final length = end - start;
       if (length > 80) {
-        final line = new _LineInfo(index: i, offset: start, end: end);
+        final line = _LineInfo(index: i, offset: start, end: end);
         longLines.add(line);
       }
     }
 
     if (longLines.isEmpty) return;
 
-    final allowedLineVisitor = new _AllowedLongLineVisitor(lineInfo);
+    final allowedLineVisitor = _AllowedLongLineVisitor(lineInfo);
     node.accept(allowedLineVisitor);
-    final allowedCommentVisitor = new _AllowedCommentVisitor(lineInfo);
+    final allowedCommentVisitor = _AllowedCommentVisitor(lineInfo);
     node.accept(allowedCommentVisitor);
 
     final allowedLines = []

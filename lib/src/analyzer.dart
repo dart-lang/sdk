@@ -52,7 +52,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
     DartLinter linter, List<File> filesToLint) async {
   // Setup an error watcher to track whether an error was logged to stderr so
   // we can set the exit code accordingly.
-  ErrorWatchingSink errorWatcher = new ErrorWatchingSink(errorSink);
+  ErrorWatchingSink errorWatcher = ErrorWatchingSink(errorSink);
   errorSink = errorWatcher;
 
   final errors = await linter.lintFiles(filesToLint);
@@ -84,7 +84,7 @@ int _maxSeverity(List<AnalysisErrorInfo> errors, LintFilter filter) {
 /// Facade for managing access to `analyzer` package APIs.
 class Analyzer {
   /// Shared instance.
-  static Analyzer facade = new Analyzer();
+  static Analyzer facade = Analyzer();
 
   /// Returns currently registered lint rules.
   Iterable<LintRule> get registeredRules => Registry.ruleRegistry;

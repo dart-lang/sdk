@@ -16,7 +16,7 @@ import 'since.dart';
 
 /// Generates lint rule docs for publishing to https://dart-lang.github.io/
 void main([List<String> args]) async {
-  var parser = new ArgParser(allowTrailingOptions: true)
+  var parser = ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.');
 
   var options;
@@ -59,7 +59,7 @@ final pedanticRules = <String>[];
 
 /// Sorted list of contributed lint rules.
 final List<LintRule> rules =
-    new List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
+    List<LintRule>.from(Registry.ruleRegistry, growable: false)..sort();
 
 String get enumerateErrorRules => rules
     .where((r) => r.group == Group.errors)
@@ -84,7 +84,7 @@ String get enumerateStyleRules => rules
 Future<String> get pedanticLatestVersion async {
   var url =
       'https://raw.githubusercontent.com/dart-lang/pedantic/master/lib/analysis_options.yaml';
-  var client = new http.Client();
+  var client = http.Client();
   var req = await client.get(url);
   var parts = req.body.split('package:pedantic/analysis_options.');
   return parts[1].split('.yaml')[0];
@@ -111,7 +111,7 @@ Future<void> fetchSinceInfo() async {
 }
 
 Future<LintConfig> fetchConfig(String url) async {
-  var client = new http.Client();
+  var client = http.Client();
   var req = await client.get(url);
   return processAnalysisOptionsFile(req.body);
 }
@@ -121,13 +121,13 @@ Map<String, SinceInfo> sinceInfo;
 Future<void> generateDocs(String dir) async {
   String outDir = dir;
   if (outDir != null) {
-    Directory d = new Directory(outDir);
+    Directory d = Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
     }
-    if (!new File('$outDir/options').existsSync()) {
-      Directory lintsChildDir = new Directory('$outDir/lints');
+    if (!File('$outDir/options').existsSync()) {
+      Directory lintsChildDir = Directory('$outDir/lints');
       if (lintsChildDir.existsSync()) {
         outDir = lintsChildDir.path;
       }
@@ -137,7 +137,7 @@ Future<void> generateDocs(String dir) async {
   registerLintRules();
 
   // Generate lint count badge.
-  await new CountBadger(Registry.ruleRegistry).generate(outDir);
+  await CountBadger(Registry.ruleRegistry).generate(outDir);
 
   // Fetch info for lint group/style badge generation.
   await fetchBadgeInfo();
@@ -146,17 +146,17 @@ Future<void> generateDocs(String dir) async {
   await fetchSinceInfo();
 
   // Generate index.
-  new Indexer(Registry.ruleRegistry).generate(outDir);
+  Indexer(Registry.ruleRegistry).generate(outDir);
 
   // Generate rule files.
-  rules.forEach((l) => new Generator(l).generate(outDir));
+  rules.forEach((l) => Generator(l).generate(outDir));
 
   // Generate options samples.
-  new OptionsSample(rules).generate(outDir);
+  OptionsSample(rules).generate(outDir);
 }
 
 String getBadges(String rule) {
-  var sb = new StringBuffer();
+  var sb = StringBuffer();
   if (flutterRules.contains(rule)) {
     sb.write(
         '<a href="https://github.com/flutter/flutter/blob/master/packages/flutter/lib/analysis_options_user.yaml"><!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a> ');
@@ -195,11 +195,11 @@ class CountBadger {
   generate(String dirPath) async {
     var lintCount = rules.length;
 
-    var client = new http.Client();
+    var client = http.Client();
     var req = await client.get(
         Uri.parse('https://img.shields.io/badge/lints-$lintCount-blue.svg'));
     var bytes = req.bodyBytes;
-    await new File('$dirPath/count-badge.svg').writeAsBytes(bytes);
+    await File('$dirPath/count-badge.svg').writeAsBytes(bytes);
   }
 }
 
@@ -238,7 +238,7 @@ class Generator {
     if (filePath != null) {
       var outPath = '$filePath/$name.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
@@ -298,7 +298,7 @@ class Indexer {
     if (filePath != null) {
       var outPath = '$filePath/index.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
@@ -392,14 +392,14 @@ class OptionsSample {
     if (filePath != null) {
       var outPath = '$filePath/options/options.html';
       print('Writing to $outPath');
-      new File(outPath).writeAsStringSync(generated);
+      File(outPath).writeAsStringSync(generated);
     } else {
       print(generated);
     }
   }
 
   String generateOptions() {
-    StringBuffer sb = new StringBuffer('''
+    StringBuffer sb = StringBuffer('''
 ```
 linter:
   rules:

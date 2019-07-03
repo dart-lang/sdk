@@ -54,7 +54,7 @@ class PreferForeach extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addForStatement(this, visitor);
   }
 }
@@ -131,7 +131,7 @@ class _Visitor extends SimpleAstVisitor {
   visitForStatement(ForStatement node) {
     final loopParts = node.forLoopParts;
     if (loopParts is ForEachParts) {
-      final visitor = new _PreferForEachVisitor(rule);
+      final visitor = _PreferForEachVisitor(rule);
       node.accept(visitor);
     }
   }

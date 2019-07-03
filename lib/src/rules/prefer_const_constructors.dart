@@ -61,7 +61,7 @@ class PreferConstConstructors extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -87,7 +87,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (context.canBeConst(node)) {
         // A work-around to address: #1592; remove once fixed in analyzer.
-        final collector = new _Collector();
+        final collector = _Collector();
         node.accept(collector);
         if (collector.foundTypeParamElement) {
           return;

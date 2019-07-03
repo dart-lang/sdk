@@ -42,9 +42,9 @@ AstNode getNodeToAnnotate(Declaration node) {
 
 bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
   final cu = getCompilationUnit(node);
-  final listener = new HasConstErrorListener();
-  node.accept(new ConstantVerifier(
-      new ErrorReporter(listener, cu.declaredElement.source),
+  final listener = HasConstErrorListener();
+  node.accept(ConstantVerifier(
+      ErrorReporter(listener, cu.declaredElement.source),
       cu.declaredElement.library,
       context.typeProvider,
       context.declaredVariables));
@@ -53,11 +53,10 @@ bool hasErrorWithConstantVerifier(LinterContext context, AstNode node) {
 
 bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
   final cu = getCompilationUnit(node);
-  final listener = new HasConstErrorListener();
-  node.accept(new ConstantVisitor(
-      new ConstantEvaluationEngine(
-          context.typeProvider, context.declaredVariables),
-      new ErrorReporter(listener, cu.declaredElement.source)));
+  final listener = HasConstErrorListener();
+  node.accept(ConstantVisitor(
+      ConstantEvaluationEngine(context.typeProvider, context.declaredVariables),
+      ErrorReporter(listener, cu.declaredElement.source)));
   return listener.hasConstError;
 }
 
@@ -222,7 +221,7 @@ bool isVar(Token token) => isKeyword(token, Keyword.VAR);
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
 void visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren(new _ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 bool _checkForSimpleGetter(MethodDeclaration getter, Expression expression) {
@@ -319,7 +318,7 @@ AstNode _getNodeToAnnotate(Declaration node) {
 typedef bool ElementProcessor(Element element);
 
 class HasConstErrorListener extends AnalysisErrorListener {
-  static const List<CompileTimeErrorCode> errorCodes = const [
+  static const List<CompileTimeErrorCode> errorCodes = [
     CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
     CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
     CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,

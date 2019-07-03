@@ -43,7 +43,7 @@ class PreferIntLiterals extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    registry.addDoubleLiteral(this, new _Visitor(this));
+    registry.addDoubleLiteral(this, _Visitor(this));
   }
 }
 

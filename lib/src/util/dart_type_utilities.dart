@@ -289,7 +289,7 @@ class DartTypeUtilities {
   /// predicate returns true, if not provided, all is included.
   static Iterable<AstNode> traverseNodesInDFS(AstNode node,
       {AstNodePredicate excludeCriteria}) {
-    LinkedHashSet<AstNode> nodes = new LinkedHashSet();
+    LinkedHashSet<AstNode> nodes = LinkedHashSet();
     void recursiveCall(node) {
       if (node is AstNode &&
           (excludeCriteria == null || !excludeCriteria(node))) {

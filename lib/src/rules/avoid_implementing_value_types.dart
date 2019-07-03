@@ -57,7 +57,7 @@ class FakeSize implements Size {
 
 void main() {
   test('should not throw on a size >1Kb', () {
-    expect(() => someFunction(new FakeSize()..inBytes = 1001), returnsNormally);
+    expect(() => someFunction(FakeSize()..inBytes = 1001), returnsNormally);
   });
 }
 ```
@@ -96,7 +96,7 @@ class AvoidImplementingValueTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
 }

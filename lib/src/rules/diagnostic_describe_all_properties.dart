@@ -78,7 +78,7 @@ class DiagnosticsDescribeAllProperties extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addClassDeclaration(this, visitor);
   }
@@ -94,7 +94,7 @@ class _Visitor extends SimpleAstVisitor {
   final InheritanceManager2 inheritanceManager;
 
   _Visitor(this.rule, LinterContext context)
-      : inheritanceManager = new InheritanceManager2(context.typeSystem);
+      : inheritanceManager = InheritanceManager2(context.typeSystem);
 
   // todo (pq): for experiments and book-keeping; remove before landing
   LineInfo lineInfo;
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor {
     }
     Uri libraryUri = classElement.library.source.uri;
     return inheritanceManager.getInherited(
-            classElement.type, new Name(libraryUri, member.name)) !=
+            classElement.type, Name(libraryUri, member.name)) !=
         null;
   }
 

@@ -17,7 +17,7 @@ import 'version_test.dart' as version_test;
 
 main() {
   // Redirect output.
-  outSink = new MockIOSink();
+  outSink = MockIOSink();
 
   ast_test.main();
   engine_test.main();

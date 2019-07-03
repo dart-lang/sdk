@@ -43,7 +43,7 @@ class AvoidJsRoundedInts extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addIntegerLiteral(this, visitor);
   }
 }
