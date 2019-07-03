@@ -15,6 +15,16 @@
  * This reference is generated from the header include/dart_api.h.
  */
 
+/* __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
+ * enable platform independent printf format specifiers. */
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+#include <assert.h>
+#include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
@@ -24,32 +34,12 @@
 #if defined(__CYGWIN__)
 #error Tool chain and platform not supported.
 #elif defined(_WIN32)
-// Define bool if necessary.
-#ifndef __cplusplus
-typedef unsigned __int8 bool;
-#endif
-// Define integer types.
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT DART_EXTERN_C __declspec(dllexport)
 #else
 #define DART_EXPORT DART_EXTERN_C
 #endif
 #else
-/* __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
- * enable platform independent printf format specifiers. */
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
-#include <inttypes.h>
-#include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT                                                            \
@@ -69,8 +59,6 @@ typedef unsigned __int64 uint64_t;
 #else
 #define DART_WARN_UNUSED_RESULT
 #endif
-
-#include <assert.h>
 
 /*
  * =======
