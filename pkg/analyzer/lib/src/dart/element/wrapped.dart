@@ -40,6 +40,9 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   List<ClassElement> get enums => wrappedUnit.enums;
 
   @override
+  List<ExtensionElement> get extensions => wrappedUnit.extensions;
+
+  @override
   List<FunctionElement> get functions => wrappedUnit.functions;
 
   @override
@@ -187,11 +190,12 @@ class WrappedCompilationUnitElement implements CompilationUnitElement {
   int get uriOffset => wrappedUnit.uriOffset;
 
   @override
-  T accept<T>(ElementVisitor<T> visitor) => wrappedUnit.accept(visitor);
+  T accept<T>(ElementVisitor<T> visitor) => wrappedUnit
+      .accept(visitor); // ignore: deprecated_member_use_from_same_package
 
   @override
-  String computeDocumentationComment() => wrappedUnit
-      .computeDocumentationComment(); // ignore: deprecated_member_use_from_same_package
+  String computeDocumentationComment() =>
+      wrappedUnit.computeDocumentationComment();
 
   @deprecated
   @override
@@ -426,9 +430,6 @@ class WrappedLibraryElement implements LibraryElement {
   AnalysisContext get context => wrappedLib.context;
 
   @override
-  bool get isNonNullableByDefault => wrappedLib.isNonNullableByDefault;
-
-  @override
   CompilationUnitElement get definingCompilationUnit =>
       wrappedLib.definingCompilationUnit;
 
@@ -539,6 +540,9 @@ class WrappedLibraryElement implements LibraryElement {
 
   @override
   bool get isJS => hasJS;
+
+  @override
+  bool get isNonNullableByDefault => wrappedLib.isNonNullableByDefault;
 
   @override
   bool get isOverride => hasOverride;

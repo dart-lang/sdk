@@ -1612,6 +1612,10 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// A list containing all of the enums contained in this compilation unit.
   List<ClassElement> _enums;
 
+  /// A list containing all of the extensions contained in this compilation
+  /// unit.
+  List<ExtensionElement> _extensions;
+
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
   List<FunctionElement> _functions;
@@ -1765,6 +1769,30 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
     this._enums = enums;
+  }
+
+  @override
+  List<ExtensionElement> get extensions {
+    if (_extensions != null) {
+      return _extensions;
+    }
+
+    if (linkedNode != null) {
+      // TODO(brianwilkerson) Implement this.
+    } else if (_unlinkedUnit != null) {
+      // TODO(brianwilkerson) Implement this.
+    }
+
+    return _extensions ?? const <ExtensionElement>[];
+  }
+
+  /// Set the extensions contained in this compilation unit to the given
+  /// [extensions].
+  void set extensions(List<ExtensionElement> extensions) {
+    for (ExtensionElement extension in extensions) {
+      (extension as ExtensionElementImpl).enclosingElement = this;
+    }
+    this._extensions = extensions;
   }
 
   @override
@@ -4892,6 +4920,239 @@ class ExportElementImpl extends UriReferencedElementImpl
   void appendTo(StringBuffer buffer) {
     buffer.write("export ");
     LibraryElementImpl.getImpl(exportedLibrary).appendTo(buffer);
+  }
+}
+
+/// A concrete implementation of an [ExtensionElement].
+class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
+  /// The unlinked representation of the extension in the summary.
+  final /* UnlinkedExtension */ _unlinkedExtension;
+
+  /// A list containing all of the type parameters declared by this extension.
+  List<TypeParameterElement> _typeParameters;
+
+  /// The type being extended.
+  DartType _extendedType;
+
+  /// A list containing all of the accessors (getters and setters) contained in
+  /// this extension.
+  List<PropertyAccessorElement> _accessors;
+
+  /// A list containing all of the methods contained in this extension.
+  List<MethodElement> _methods;
+
+  /// Initialize a newly created extension element to have the given [name] at
+  /// the given [offset] in the file that contains the declaration of this
+  /// element.
+  ExtensionElementImpl(String name, int nameOffset)
+      : _unlinkedExtension = null,
+        super(name, nameOffset);
+
+  /// Initialize a newly created extension element to have the given [name].
+  ExtensionElementImpl.forNode(Identifier name)
+      : _unlinkedExtension = null,
+        super.forNode(name);
+
+  @override
+  List<PropertyAccessorElement> get accessors {
+    if (_accessors != null) {
+      return _accessors;
+    }
+
+    if (linkedNode != null) {
+      if (linkedNode is ExtensionDeclaration) {
+        // TODO(brianwilkerson) Implement this.
+//        _createPropertiesAndAccessors();
+//        assert(_accessors != null);
+//        return _accessors;
+      } else {
+        return _accessors = const [];
+      }
+    } else if (_unlinkedExtension != null) {
+      // TODO(brianwilkerson) Implement this.
+//      _resynthesizePropertyAccessors();
+    }
+
+    return _accessors ??= const <PropertyAccessorElement>[];
+  }
+
+  void set accessors(List<PropertyAccessorElement> accessors) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (PropertyAccessorElement accessor in accessors) {
+      (accessor as PropertyAccessorElementImpl).enclosingElement = this;
+    }
+    _accessors = accessors;
+  }
+
+  @override
+  DartType get extendedType {
+    if (_extendedType != null) {
+      return _extendedType;
+    }
+
+    if (linkedNode != null) {
+      // TODO(brianwilkerson) Implement this.
+//      var context = enclosingUnit.linkedContext;
+//      return _extendedType = context.getExtendedType(linkedNode)?.type;
+    } else if (_unlinkedExtension != null) {
+      return _extendedType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(this, _unlinkedExtension.extendedType);
+    }
+
+    return _extendedType;
+  }
+
+  void set extendedType(DartType extendedType) {
+    _assertNotResynthesized(_unlinkedExtension);
+    _extendedType = extendedType;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.EXTENSION;
+
+  @override
+  List<MethodElement> get methods {
+    if (_methods != null) {
+      return _methods;
+    }
+
+    if (linkedNode != null) {
+      // TODO(brianwilkerson) Implement this.
+//      var context = enclosingUnit.linkedContext;
+//      var containerRef = reference.getChild('@method');
+//      return _methods = context
+//          .getMethods(linkedNode)
+//          .where((node) => node.propertyKeyword == null)
+//          .map((node) {
+//        var name = node.name.name;
+//        var reference = containerRef.getChild(name);
+//        if (reference.hasElementFor(node)) {
+//          return reference.element as MethodElement;
+//        }
+//        return MethodElementImpl.forLinkedNode(this, reference, node);
+//      }).toList();
+    } else if (_unlinkedExtension != null) {
+      // TODO(brianwilkerson) Implement this.
+//      var unlinkedExecutables = _unlinkedExtension.executables;
+//
+//      var length = unlinkedExecutables.length;
+//      if (length == 0) {
+//        return _methods = const <MethodElement>[];
+//      }
+//
+//      var count = 0;
+//      for (var i = 0; i < length; i++) {
+//        var e = unlinkedExecutables[i];
+//        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+//          count++;
+//        }
+//      }
+//      if (count == 0) {
+//        return _methods = const <MethodElement>[];
+//      }
+//
+//      var methods = new List<MethodElement>(count);
+//      var index = 0;
+//      for (var i = 0; i < length; i++) {
+//        var e = unlinkedExecutables[i];
+//        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+//          methods[index++] = new MethodElementImpl.forSerialized(e, this);
+//        }
+//      }
+//      return _methods = methods;
+    }
+    return _methods = const <MethodElement>[];
+  }
+
+  /// Set the methods contained in this extension to the given [methods].
+  void set methods(List<MethodElement> methods) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (MethodElement method in methods) {
+      (method as MethodElementImpl).enclosingElement = this;
+    }
+    _methods = methods;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    if (_typeParameters != null) {
+      return _typeParameters;
+    }
+
+    if (linkedNode != null) {
+      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
+      if (typeParameters == null) {
+        return _typeParameters = const [];
+      }
+      var containerRef = reference.getChild('@typeParameter');
+      return _typeParameters =
+          typeParameters.typeParameters.map<TypeParameterElement>((node) {
+        var reference = containerRef.getChild(node.name.name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as TypeParameterElement;
+        }
+        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
+    } else if (_unlinkedExtension != null) {
+      // TODO(brianwilkerson) Implement this.
+//      List<UnlinkedTypeParam> unlinkedParams =
+//          _unlinkedExtension?.typeParameters;
+//      if (unlinkedParams != null) {
+//        int numTypeParameters = unlinkedParams.length;
+//        _typeParameters = new List<TypeParameterElement>(numTypeParameters);
+//        for (int i = 0; i < numTypeParameters; i++) {
+//          _typeParameters[i] = new TypeParameterElementImpl.forSerialized(
+//              unlinkedParams[i], this);
+//        }
+//      }
+    }
+
+    return _typeParameters ?? const <TypeParameterElement>[];
+  }
+
+  /// Set the type parameters defined by this extension to the given
+  /// [typeParameters].
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
+  }
+
+  @override
+  T accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitExtensionElement(this);
+  }
+
+  @override
+  PropertyAccessorElement getGetter(String getterName) {
+    int length = accessors.length;
+    for (int i = 0; i < length; i++) {
+      PropertyAccessorElement accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    int length = methods.length;
+    for (int i = 0; i < length; i++) {
+      MethodElement method = methods[i];
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement getSetter(String setterName) {
+    return AbstractClassElementImpl.getSetterFromAccessors(
+        setterName, accessors);
   }
 }
 

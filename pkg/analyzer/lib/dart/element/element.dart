@@ -373,6 +373,10 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   /// unit.
   List<ClassElement> get enums;
 
+  /// Return a list containing all of the extensions contained in this
+  /// compilation unit.
+  List<ExtensionElement> get extensions;
+
   /// Return a list containing all of the top-level functions contained in this
   /// compilation unit.
   List<FunctionElement> get functions;
@@ -818,6 +822,9 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind EXPORT =
       const ElementKind('EXPORT', 5, "export directive");
 
+  static const ElementKind EXTENSION =
+      const ElementKind('EXTENSION', 24, "extension");
+
   static const ElementKind FIELD = const ElementKind('FIELD', 6, "field");
 
   static const ElementKind FUNCTION =
@@ -956,6 +963,8 @@ abstract class ElementVisitor<R> {
   R visitConstructorElement(ConstructorElement element);
 
   R visitExportElement(ExportElement element);
+
+  R visitExtensionElement(ExtensionElement element);
 
   R visitFieldElement(FieldElement element);
 
