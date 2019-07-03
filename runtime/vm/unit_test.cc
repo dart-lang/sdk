@@ -37,9 +37,9 @@ const uint8_t* platform_strong_dill = kPlatformStrongDill;
 const intptr_t platform_strong_dill_size = kPlatformStrongDillSize;
 
 const uint8_t* TesterState::vm_snapshot_data = NULL;
-Dart_IsolateGroupCreateCallback TesterState::create_callback = NULL;
+Dart_IsolateCreateCallback TesterState::create_callback = NULL;
 Dart_IsolateShutdownCallback TesterState::shutdown_callback = NULL;
-Dart_IsolateGroupCleanupCallback TesterState::group_cleanup_callback = nullptr;
+Dart_IsolateCleanupCallback TesterState::cleanup_callback = NULL;
 const char** TesterState::argv = NULL;
 int TesterState::argc = 0;
 
@@ -107,20 +107,17 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
                                      intptr_t len,
                                      const uint8_t* instr_buffer,
                                      const char* name,
-                                     void* group_data,
-                                     void* isolate_data) {
+                                     void* data) {
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
   Dart_Isolate isolate = NULL;
   if (len == 0) {
-    isolate = Dart_CreateIsolateGroup(name, NULL, data_buffer, instr_buffer,
-                                      NULL, NULL, &api_flags, group_data,
-                                      isolate_data, &err);
+    isolate = Dart_CreateIsolate(name, NULL, data_buffer, instr_buffer, NULL,
+                                 NULL, &api_flags, data, &err);
   } else {
-    isolate = Dart_CreateIsolateGroupFromKernel(name, NULL, data_buffer, len,
-                                                &api_flags, group_data,
-                                                isolate_data, &err);
+    isolate = Dart_CreateIsolateFromKernel(name, NULL, data_buffer, len,
+                                           &api_flags, data, &err);
   }
   if (isolate == NULL) {
     OS::PrintErr("Creation of isolate failed '%s'\n", err);
@@ -130,13 +127,10 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   return isolate;
 }
 
-Dart_Isolate TestCase::CreateTestIsolate(const char* name,
-                                         void* group_data,
-                                         void* isolate_data) {
+Dart_Isolate TestCase::CreateTestIsolate(const char* name, void* data) {
   return CreateIsolate(bin::core_isolate_snapshot_data,
                        0 /* Snapshots have length encoded within them. */,
-                       bin::core_isolate_snapshot_instructions, name,
-                       group_data, isolate_data);
+                       bin::core_isolate_snapshot_instructions, name, data);
 }
 
 static const char* kPackageScheme = "package:";

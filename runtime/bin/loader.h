@@ -20,8 +20,7 @@ class Loader {
   explicit Loader(IsolateData* isolate_data);
   ~Loader();
 
-  static void InitForSnapshot(const char* snapshot_uri,
-                              IsolateData* isolate_data);
+  static void InitForSnapshot(const char* snapshot_uri);
 
   static Dart_Handle ReloadNativeExtensions();
 
@@ -36,8 +35,6 @@ class Loader {
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
-
-  IsolateGroupData* isolate_group_data();
 
   Dart_Handle error() const { return error_; }
 

@@ -129,66 +129,28 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    IsolateGroupSource* source = state_->source();
-
-    // The create isolate group call back is mandatory.  If not provided we
-    // cannot spawn isolates.
-    Dart_IsolateGroupCreateCallback create_group_callback =
-        Isolate::CreateGroupCallback();
-    if (create_group_callback == nullptr) {
-      FailedSpawn("Isolate spawn is not supported by this Dart embedder\n");
+    // Create a new isolate.
+    char* error = NULL;
+    Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+    if (callback == NULL) {
+      ReportError(
+          "Isolate spawn is not supported by this Dart implementation\n");
       return;
     }
 
-    // The initialize callback is optional atm, we fall back to creating isolate
-    // groups if it was not provided.
-    Dart_InitializeIsolateCallback initialize_callback =
-        Isolate::InitializeCallback();
-
+    // Make a copy of the state's isolate flags and hand it to the callback.
+    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
     const char* name = (state_->debug_name() == NULL) ? state_->function_name()
                                                       : state_->debug_name();
     ASSERT(name != NULL);
 
-    // Create a new isolate.
-    char* error = nullptr;
-    Isolate* isolate = nullptr;
-    if (source == nullptr || initialize_callback == nullptr) {
-      // Make a copy of the state's isolate flags and hand it to the callback.
-      Dart_IsolateFlags api_flags = *(state_->isolate_flags());
-      isolate = reinterpret_cast<Isolate*>((create_group_callback)(
-          state_->script_url(), name, nullptr, state_->package_config(),
-          &api_flags, parent_isolate_->init_callback_data(), &error));
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-    } else {
-      if (initialize_callback == nullptr) {
-        FailedSpawn("Isolate spawn is not supported by this embedder.");
-        return;
-      }
-
-      isolate = CreateIsolateFromExistingSource(source, name, &error);
-      parent_isolate_->DecrementSpawnCount();
-      parent_isolate_ = nullptr;
-      if (isolate == nullptr) {
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
-
-      void* child_isolate_data = nullptr;
-      bool success = initialize_callback(&child_isolate_data, &error);
-      isolate->set_init_callback_data(child_isolate_data);
-      if (!success) {
-        Dart_ShutdownIsolate();
-        FailedSpawn(error);
-        free(error);
-        return;
-      }
-      Dart_ExitIsolate();
-    }
-
-    if (isolate == nullptr) {
-      FailedSpawn(error);
+    Isolate* isolate = reinterpret_cast<Isolate*>((callback)(
+        state_->script_url(), name, nullptr, state_->package_config(),
+        &api_flags, parent_isolate_->init_callback_data(), &error));
+    parent_isolate_->DecrementSpawnCount();
+    parent_isolate_ = nullptr;
+    if (isolate == NULL) {
+      ReportError(error);
       free(error);
       return;
     }
@@ -207,13 +169,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
  private:
-  void FailedSpawn(const char* error) {
-    ReportError(error != nullptr
-                    ? error
-                    : "Unknown error occured during Isolate spawning.");
-    state_ = nullptr;
-  }
-
   void ReportError(const char* error) {
     Dart_CObject error_cobj;
     error_cobj.type = Dart_CObject_kString;
@@ -285,7 +240,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name, isolate->source()));
+          on_exit_port, on_error_port, utf8_debug_name));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
@@ -396,12 +351,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   const char* utf8_debug_name =
       debugName.IsNull() ? NULL : String2UTF8(debugName);
 
-  IsolateGroupSource* null_source = nullptr;
-
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
       &message_buffer, paused.value(), fatal_errors, on_exit_port,
-      on_error_port, utf8_debug_name, null_source));
+      on_error_port, utf8_debug_name));
 
   // If we were passed a value then override the default flags state for
   // checked mode.

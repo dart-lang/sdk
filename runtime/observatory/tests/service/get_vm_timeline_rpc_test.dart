@@ -89,7 +89,7 @@ void allEventsHaveIsolateNumber(List events) {
     }
     if (event['cat'] == 'Embedder' &&
         (event['name'] == 'DFE::ReadScript' ||
-            event['name'] == 'CreateIsolateGroupAndSetupHelper')) {
+            event['name'] == 'CreateIsolateAndSetupHelper')) {
       continue;
     }
     Map arguments = event['args'];

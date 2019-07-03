@@ -745,25 +745,23 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     isolate_flags.entry_points = no_entry_points;
   }
 
-  auto isolate_group_data =
-      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false);
+  IsolateData* isolate_data = new IsolateData(NULL, NULL, NULL, NULL);
   Dart_Isolate isolate;
   char* error = NULL;
   if (isolate_snapshot_data == NULL) {
     // We need to capture the vmservice library in the core snapshot, so load it
     // in the main isolate as well.
     isolate_flags.load_vmservice_library = true;
-    isolate = Dart_CreateIsolateGroupFromKernel(
-        NULL, NULL, kernel_buffer, kernel_buffer_size, &isolate_flags,
-        isolate_group_data, /*isolate_data=*/nullptr, &error);
+    isolate = Dart_CreateIsolateFromKernel(NULL, NULL, kernel_buffer,
+                                           kernel_buffer_size, &isolate_flags,
+                                           isolate_data, &error);
   } else {
-    isolate = Dart_CreateIsolateGroup(NULL, NULL, isolate_snapshot_data,
-                                      isolate_snapshot_instructions, NULL, NULL,
-                                      &isolate_flags, isolate_group_data,
-                                      /*isolate_data=*/nullptr, &error);
+    isolate = Dart_CreateIsolate(NULL, NULL, isolate_snapshot_data,
+                                 isolate_snapshot_instructions, NULL, NULL,
+                                 &isolate_flags, isolate_data, &error);
   }
   if (isolate == NULL) {
-    delete isolate_group_data;
+    delete isolate_data;
     Syslog::PrintErr("%s\n", error);
     free(error);
     return kErrorExitCode;
@@ -785,9 +783,9 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   // If the input dill file does not have a root library, then
   // Dart_LoadScript will error.
   //
-  // TODO(kernel): Dart_CreateIsolateGroupFromKernel should respect the root
-  // library in the kernel file, though this requires auditing the other
-  // loading paths in the embedders that had to work around this.
+  // TODO(kernel): Dart_CreateIsolateFromKernel should respect the root library
+  // in the kernel file, though this requires auditing the other loading paths
+  // in the embedders that had to work around this.
   result = Dart_SetRootLibrary(
       Dart_LoadLibraryFromKernel(kernel_buffer, kernel_buffer_size));
   CHECK_RESULT(result);

@@ -263,7 +263,7 @@ static bool PathContainsSeparator(const char* path) {
 
 void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
   MallocGrowableArray<char*>* dependencies =
-      loader->isolate_group_data()->dependencies();
+      loader->isolate_data_->dependencies();
   if (dependencies == NULL) {
     return;
   }
@@ -271,10 +271,10 @@ void Loader::AddDependencyLocked(Loader* loader, const char* resolved_uri) {
 }
 
 void Loader::ResolveDependenciesAsFilePaths() {
-  IsolateGroupData* isolate_group_data =
-      reinterpret_cast<IsolateGroupData*>(Dart_CurrentIsolateGroupData());
-  ASSERT(isolate_group_data != NULL);
-  MallocGrowableArray<char*>* dependencies = isolate_group_data->dependencies();
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  ASSERT(isolate_data != NULL);
+  MallocGrowableArray<char*>* dependencies = isolate_data->dependencies();
   if (dependencies == NULL) {
     return;
   }
@@ -454,15 +454,15 @@ bool Loader::ProcessQueueLocked(ProcessResult process_result) {
   return !hit_error;
 }
 
-void Loader::InitForSnapshot(const char* snapshot_uri,
-                             IsolateData* isolate_data) {
+void Loader::InitForSnapshot(const char* snapshot_uri) {
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
   ASSERT(!isolate_data->HasLoader());
   // Setup a loader. The constructor does a bunch of leg work.
   Loader* loader = new Loader(isolate_data);
   // Send the init message.
-  loader->Init(isolate_data->isolate_group_data()->package_root,
-               isolate_data->packages_file(),
+  loader->Init(isolate_data->package_root, isolate_data->packages_file,
                DartUtils::original_working_directory, snapshot_uri);
   // Destroy the loader. The destructor does a bunch of leg work.
   delete loader;
@@ -516,15 +516,15 @@ Dart_Handle Loader::SendAndProcessReply(intptr_t tag,
                                         Dart_Handle url,
                                         uint8_t** payload,
                                         intptr_t* payload_length) {
-  auto isolate_data = reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
   ASSERT(!isolate_data->HasLoader());
   Loader* loader = NULL;
 
   // Setup the loader. The constructor does a bunch of leg work.
   loader = new Loader(isolate_data);
-  loader->Init(isolate_data->isolate_group_data()->package_root,
-               isolate_data->packages_file(),
+  loader->Init(isolate_data->package_root, isolate_data->packages_file,
                DartUtils::original_working_directory, NULL);
   ASSERT(loader != NULL);
   ASSERT(isolate_data->HasLoader());
@@ -563,10 +563,6 @@ Dart_Handle Loader::ResolveAsFilePath(Dart_Handle url,
                                       intptr_t* payload_length) {
   return SendAndProcessReply(_Dart_kResolveAsFilePath, url, payload,
                              payload_length);
-}
-
-IsolateGroupData* Loader::isolate_group_data() {
-  return isolate_data_->isolate_group_data();
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -683,7 +679,8 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
 
-  auto isolate_data = reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
   ASSERT(isolate_data != NULL);
   if ((tag == Dart_kScriptTag) && Dart_IsString(library)) {
     // Update packages file for isolate.
@@ -710,8 +707,7 @@ Dart_Handle Loader::LibraryTagHandler(Dart_LibraryTag tag,
 
     // Setup the loader. The constructor does a bunch of leg work.
     loader = new Loader(isolate_data);
-    loader->Init(isolate_data->isolate_group_data()->package_root,
-                 isolate_data->packages_file(),
+    loader->Init(isolate_data->package_root, isolate_data->packages_file,
                  DartUtils::original_working_directory,
                  (tag == Dart_kScriptTag) ? url_string : NULL);
   } else {

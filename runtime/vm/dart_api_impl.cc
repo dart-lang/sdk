@@ -1007,13 +1007,11 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
   }
 
   return Dart::Init(params->vm_snapshot_data, params->vm_snapshot_instructions,
-                    params->create_group, params->initialize_isolate,
-                    params->shutdown_isolate, params->cleanup_isolate,
-                    params->cleanup_group, params->thread_exit,
-                    params->file_open, params->file_read, params->file_write,
-                    params->file_close, params->entropy_source,
-                    params->get_service_assets, params->start_kernel_isolate,
-                    params->code_observer);
+                    params->create, params->shutdown, params->cleanup,
+                    params->thread_exit, params->file_open, params->file_read,
+                    params->file_write, params->file_close,
+                    params->entropy_source, params->get_service_assets,
+                    params->start_kernel_isolate, params->code_observer);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -1062,13 +1060,26 @@ ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
 
 // --- Isolates ---
 
-static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
+static Dart_Isolate CreateIsolate(const char* script_uri,
                                   const char* name,
-                                  void* isolate_data,
+                                  const uint8_t* snapshot_data,
+                                  const uint8_t* snapshot_instructions,
+                                  const uint8_t* shared_data,
+                                  const uint8_t* shared_instructions,
+                                  const uint8_t* kernel_buffer,
+                                  intptr_t kernel_buffer_size,
+                                  Dart_IsolateFlags* flags,
+                                  void* callback_data,
                                   char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
 
-  Isolate* I = Dart::CreateIsolate(name, source->flags);
+  // Setup default flags in case none were passed.
+  Dart_IsolateFlags api_flags;
+  if (flags == NULL) {
+    Isolate::FlagsInitialize(&api_flags);
+    flags = &api_flags;
+  }
+  Isolate* I = Dart::CreateIsolate((name == NULL) ? "isolate" : name, *flags);
   if (I == NULL) {
     if (error != NULL) {
       *error = strdup("Isolate creation failed");
@@ -1085,15 +1096,14 @@ static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     T->EnterApiScope();
-    const Error& error_obj =
-        Error::Handle(Z, Dart::InitializeIsolate(
-                             source->snapshot_data,
-                             source->snapshot_instructions, source->shared_data,
-                             source->shared_instructions, source->kernel_buffer,
-                             source->kernel_buffer_size, isolate_data));
+    const Error& error_obj = Error::Handle(
+        Z,
+        Dart::InitializeIsolate(snapshot_data, snapshot_instructions,
+                                shared_data, shared_instructions, kernel_buffer,
+                                kernel_buffer_size, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
-      if (FLAG_check_function_fingerprints && source->kernel_buffer == NULL) {
+      if (FLAG_check_function_fingerprints && kernel_buffer == NULL) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
@@ -1104,8 +1114,6 @@ static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
     // We exit the API scope entered above.
     T->ExitApiScope();
   }
-
-  I->set_source(source);
 
   if (success) {
     // A Thread structure has been associated to the thread, we do the
@@ -1124,127 +1132,37 @@ static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
-Isolate* CreateIsolateFromExistingSource(IsolateGroupSource* source,
-                                         const char* name,
-                                         char** error) {
-  API_TIMELINE_DURATION(Thread::Current());
-  CHECK_NO_ISOLATE(Isolate::Current());
-
-  Isolate* isolate = reinterpret_cast<Isolate*>(
-      CreateIsolate(source, name, /*isolate_data=*/nullptr, error));
-  if (isolate == nullptr) return nullptr;
-
-  RELEASE_ASSERT(isolate->source() == source);
-
-  if (source->script_kernel_buffer != nullptr) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    Dart_EnterScope();
-    {
-      Thread* T = Thread::Current();
-      TransitionNativeToVM transition(T);
-      HANDLESCOPE(T);
-      StackZone zone(T);
-
-      // The kernel loader is about to allocate a bunch of new libraries,
-      // classes and functions into old space. Force growth, and use of the
-      // bump allocator instead of freelists.
-      BumpAllocateScope bump_allocate_scope(T);
-
-      // NOTE: We do not attach a finalizer for this object, because the
-      // embedder will free it once the isolate group has shutdown.
-      const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-          kExternalTypedDataUint8ArrayCid,
-          const_cast<uint8_t*>(source->script_kernel_buffer),
-          source->script_kernel_size, Heap::kOld));
-
-      std::unique_ptr<kernel::Program> program =
-          kernel::Program::ReadFromTypedData(td,
-                                             const_cast<const char**>(error));
-      if (program == nullptr) {
-        UNIMPLEMENTED();
-      }
-      const Object& tmp =
-          kernel::KernelLoader::LoadEntireProgram(program.get());
-
-      // If the existing isolate could spawn with a root library we should be
-      // able to do the same
-      RELEASE_ASSERT(!tmp.IsNull() && tmp.IsLibrary());
-      isolate->object_store()->set_root_library(Library::Cast(tmp));
-    }
-    Dart_ExitScope();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-  }
-
-  return isolate;
-}
-
 DART_EXPORT void Dart_IsolateFlagsInitialize(Dart_IsolateFlags* flags) {
   Isolate::FlagsInitialize(flags);
 }
 
 DART_EXPORT Dart_Isolate
-Dart_CreateIsolateGroup(const char* script_uri,
-                        const char* name,
-                        const uint8_t* snapshot_data,
-                        const uint8_t* snapshot_instructions,
-                        const uint8_t* shared_data,
-                        const uint8_t* shared_instructions,
-                        Dart_IsolateFlags* flags,
-                        void* isolate_group_data,
-                        void* isolate_data,
-                        char** error) {
+Dart_CreateIsolate(const char* script_uri,
+                   const char* name,
+                   const uint8_t* snapshot_data,
+                   const uint8_t* snapshot_instructions,
+                   const uint8_t* shared_data,
+                   const uint8_t* shared_instructions,
+                   Dart_IsolateFlags* flags,
+                   void* callback_data,
+                   char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-
-  Dart_IsolateFlags api_flags;
-  if (flags == nullptr) {
-    Isolate::FlagsInitialize(&api_flags);
-    flags = &api_flags;
-  }
-
-  const char* non_null_name = name == nullptr ? "isolate" : name;
-  auto source = new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
-                                       snapshot_instructions, shared_data,
-                                       shared_instructions, nullptr, -1, *flags,
-                                       isolate_group_data);
-  source->IncrementIsolateUsageCount();
-  Dart_Isolate isolate =
-      CreateIsolate(source, non_null_name, isolate_data, error);
-  if (source->DecrementIsolateUsageCount()) {
-    delete source;
-  }
-  return isolate;
+  return CreateIsolate(script_uri, name, snapshot_data, snapshot_instructions,
+                       shared_data, shared_instructions, NULL, 0, flags,
+                       callback_data, error);
 }
 
 DART_EXPORT Dart_Isolate
-Dart_CreateIsolateGroupFromKernel(const char* script_uri,
-                                  const char* name,
-                                  const uint8_t* kernel_buffer,
-                                  intptr_t kernel_buffer_size,
-                                  Dart_IsolateFlags* flags,
-                                  void* isolate_group_data,
-                                  void* isolate_data,
-                                  char** error) {
+Dart_CreateIsolateFromKernel(const char* script_uri,
+                             const char* name,
+                             const uint8_t* kernel_buffer,
+                             intptr_t kernel_buffer_size,
+                             Dart_IsolateFlags* flags,
+                             void* callback_data,
+                             char** error) {
   API_TIMELINE_DURATION(Thread::Current());
-
-  Dart_IsolateFlags api_flags;
-  if (flags == nullptr) {
-    Isolate::FlagsInitialize(&api_flags);
-    flags = &api_flags;
-  }
-
-  const char* non_null_name = name == nullptr ? "isolate" : name;
-  auto source = new IsolateGroupSource(
-      script_uri, non_null_name, nullptr, nullptr, nullptr, nullptr,
-      kernel_buffer, kernel_buffer_size, *flags, isolate_group_data);
-  source->IncrementIsolateUsageCount();
-  Dart_Isolate isolate =
-      CreateIsolate(source, non_null_name, isolate_data, error);
-  if (source->DecrementIsolateUsageCount()) {
-    delete source;
-  }
-  return isolate;
+  return CreateIsolate(script_uri, name, NULL, NULL, NULL, NULL, kernel_buffer,
+                       kernel_buffer_size, flags, callback_data, error);
 }
 
 DART_EXPORT void Dart_ShutdownIsolate() {
@@ -1255,7 +1173,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
   // The Thread structure is disassociated from the isolate, we do the
   // safepoint transition explicitly here instead of using the TransitionXXX
   // scope objects as the original transition happened outside this scope in
-  // Dart_EnterIsolate/Dart_CreateIsolateGroup.
+  // Dart_EnterIsolate/Dart_CreateIsolate.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
   T->ExitSafepoint();
   T->set_execution_state(Thread::kThreadInVM);
@@ -1294,23 +1212,9 @@ DART_EXPORT void* Dart_IsolateData(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
-  // TODO(http://dartbug.com/16615): Validate isolate parameter.
-  return reinterpret_cast<Isolate*>(isolate)->init_callback_data();
-}
-
-DART_EXPORT void* Dart_CurrentIsolateGroupData() {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  NoSafepointScope no_safepoint_scope;
-  return isolate->source()->callback_data;
-}
-
-DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
-  if (isolate == NULL) {
-    FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
-  }
-  // TODO(http://dartbug.com/16615): Validate isolate parameter.
-  return reinterpret_cast<Isolate*>(isolate)->source()->callback_data;
+  // TODO(16615): Validate isolate parameter.
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return iso->init_callback_data();
 }
 
 DART_EXPORT Dart_Handle Dart_DebugName() {
@@ -1325,7 +1229,6 @@ DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate) {
   if (isolate == NULL) {
     FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
-  // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* I = reinterpret_cast<Isolate*>(isolate);
   int64_t main_port = static_cast<int64_t>(I->main_port());
   return OS::SCreate(NULL, "isolates/%" Pd64, main_port);
@@ -1333,7 +1236,7 @@ DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate) {
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
-  // TODO(http://dartbug.com/16615): Validate isolate parameter.
+  // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
   if (!Thread::EnterIsolate(iso)) {
     FATAL(
@@ -1593,7 +1496,7 @@ DART_EXPORT void Dart_ExitIsolate() {
   // The Thread structure is disassociated from the isolate, we do the
   // safepoint transition explicitly here instead of using the TransitionXXX
   // scope objects as the original transition happened outside this scope in
-  // Dart_EnterIsolate/Dart_CreateIsolateGroup.
+  // Dart_EnterIsolate/Dart_CreateIsolate.
   ASSERT(T->execution_state() == Thread::kThreadInNative);
   T->ExitSafepoint();
   T->set_execution_state(Thread::kThreadInVM);
@@ -4658,7 +4561,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
   return Api::Success();
 }
 
-DART_EXPORT void* Dart_GetNativeIsolateGroupData(Dart_NativeArguments args) {
+DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
@@ -5140,15 +5043,9 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will free it once the isolate group has shutdown.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
   const char* error = nullptr;
   std::unique_ptr<kernel::Program> program =
-      kernel::Program::ReadFromTypedData(td, &error);
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
@@ -5158,10 +5055,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
-
-  I->source()->script_kernel_size = buffer_size;
-  I->source()->script_kernel_buffer = buffer;
-
   // TODO(32618): Setting root library based on whether it has 'main' or not
   // is not correct because main can be in the exported namespace of a library
   // or it could be a getter.
@@ -5398,16 +5291,9 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  // NOTE: We do not attach a finalizer for this object, because the embedder
-  // will/should free it once the isolate group has shutdown.
-  // See also http://dartbug.com/37030.
-  const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
-      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
-      buffer_size, Heap::kOld));
-
   const char* error = nullptr;
   std::unique_ptr<kernel::Program> program =
-      kernel::Program::ReadFromTypedData(td, &error);
+      kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }

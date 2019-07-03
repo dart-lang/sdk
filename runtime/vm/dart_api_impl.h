@@ -5,8 +5,6 @@
 #ifndef RUNTIME_VM_DART_API_IMPL_H_
 #define RUNTIME_VM_DART_API_IMPL_H_
 
-#include <memory>
-
 #include "vm/allocation.h"
 #include "vm/heap/safepoint.h"
 #include "vm/native_arguments.h"
@@ -34,7 +32,7 @@ const char* CanonicalFunction(const char* func);
     if ((isolate) == NULL) {                                                   \
       FATAL1(                                                                  \
           "%s expects there to be a current isolate. Did you "                 \
-          "forget to call Dart_CreateIsolateGroup or Dart_EnterIsolate?",      \
+          "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",           \
           CURRENT_FUNC);                                                       \
     }                                                                          \
   } while (0)
@@ -361,14 +359,6 @@ class Api : AllStatic {
 
 #define ASSERT_CALLBACK_STATE(thread)                                          \
   ASSERT(thread->no_callback_scope_depth() == 0)
-
-class IsolateGroupSource;
-
-// Creates a new isolate from [source] (which should come from an existing
-// isolate).
-Isolate* CreateIsolateFromExistingSource(IsolateGroupSource* source,
-                                         const char* name,
-                                         char** error);
 
 }  // namespace dart.
 
