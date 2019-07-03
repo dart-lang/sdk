@@ -799,6 +799,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
     FinalizeFailedLoad(Error::Cast(result));
+  } else {
+    ReportSuccess();
   }
 }
 

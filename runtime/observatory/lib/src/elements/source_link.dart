@@ -8,6 +8,7 @@ import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart'
     show IsolateRef, SourceLocation, Script, ScriptRepository;
+import 'package:observatory/service.dart' as S;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -48,6 +49,19 @@ class SourceLinkElement extends CustomElement implements Renderable {
     _repository.get(_isolate, _location.script.id).then((script) {
       _script = script;
       _r.dirty();
+    }, onError: (e) {
+      // The script object has expired, likely due to a hot reload.
+      (_isolate as S.Isolate).getScripts().then((scripts) {
+        for (final script in scripts) {
+          if (script.uri == _location.script.uri) {
+            _script = script;
+            _r.dirty();
+            return;
+          }
+        }
+        // Rethrow the original exception if we can't find a match.
+        throw e;
+      });
     });
     _r.enable();
   }
