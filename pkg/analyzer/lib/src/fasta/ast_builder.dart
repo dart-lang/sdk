@@ -207,7 +207,7 @@ class AstBuilder extends StackListener {
 
     SimpleIdentifier name;
     if (nameToken != null) {
-      name = ast.simpleIdentifier(nameToken);
+      name = ast.simpleIdentifier(nameToken, isDeclaration: true);
     }
 
     extensionDeclaration = ast.extensionDeclaration(
