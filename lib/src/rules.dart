@@ -221,7 +221,6 @@ void registerLintRules() {
     ..register(ListRemoveUnrelatedType())
     ..register(LiteralOnlyBooleanExpressions())
     ..register(NoAdjacentStringsInList())
-    ..register(NoDuplicatedRules())
     ..register(NoDuplicateCaseValues())
     ..register(NonConstantIdentifierNames())
     ..register(NullClosures())
