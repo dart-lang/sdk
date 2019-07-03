@@ -1125,6 +1125,14 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   /// Try to find the length given to a fixed array constructor call.
   int _findLength(ir.Arguments arguments) {
+    int finish(int length) {
+      // Filter out lengths that should not be tracked.
+      if (length < 0) return null;
+      // Serialization limit.
+      if (length >= (1 << 30)) return null;
+      return length;
+    }
+
     ir.Expression firstArgument = arguments.positional.first;
     if (firstArgument is ir.ConstantExpression &&
         firstArgument.constant is ir.DoubleConstant) {
@@ -1132,10 +1140,10 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
       double doubleValue = constant.value;
       int truncatedValue = doubleValue.truncate();
       if (doubleValue == truncatedValue) {
-        return truncatedValue;
+        return finish(truncatedValue);
       }
     } else if (firstArgument is ir.IntLiteral) {
-      return firstArgument.value;
+      return finish(firstArgument.value);
     } else if (firstArgument is ir.StaticGet) {
       MemberEntity member = _elementMap.getMember(firstArgument.target);
       if (member.isField) {
@@ -1143,7 +1151,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
             _closedWorld.fieldAnalysis.getFieldData(member);
         if (fieldData.isEffectivelyConstant && fieldData.constantValue.isInt) {
           IntConstantValue intValue = fieldData.constantValue;
-          return intValue.intValue.toInt();
+          if (intValue.intValue.isValidInt) {
+            return finish(intValue.intValue.toInt());
+          }
         }
       }
     }
