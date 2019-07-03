@@ -671,9 +671,10 @@ class KernelLibraryBuilder
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      String nativeMethodName) {
+      String nativeMethodName,
+      {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    ProcedureBuilder procedure = new KernelConstructorBuilder(
+    KernelConstructorBuilder procedure = new KernelConstructorBuilder(
         metadata,
         modifiers & ~abstractMask,
         returnType,
@@ -699,7 +700,12 @@ class KernelLibraryBuilder
     if (nativeMethodName != null) {
       addNativeMethod(procedure);
     }
-    if (procedure.isConst) currentDeclaration?.hasConstConstructor = true;
+    if (procedure.isConst) {
+      currentDeclaration?.hasConstConstructor = true;
+      // const constructors will have their initializers compiled and written
+      // into the outline.
+      procedure.beginInitializers = beginInitializers;
+    }
   }
 
   void addProcedure(

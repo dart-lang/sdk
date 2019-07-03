@@ -2516,7 +2516,7 @@ class Parser {
 
   Token parseInitializersOpt(Token token) {
     if (optional(':', token.next)) {
-      return parseInitializers(token);
+      return parseInitializers(token.next);
     } else {
       listener.handleNoInitializers();
       return token;
@@ -2529,7 +2529,7 @@ class Parser {
   /// ;
   /// ```
   Token parseInitializers(Token token) {
-    Token begin = token.next;
+    Token begin = token;
     assert(optional(':', begin));
     listener.beginInitializers(begin);
     int count = 0;
@@ -3241,8 +3241,10 @@ class Parser {
         ? MemberKind.StaticMethod
         : MemberKind.NonStaticMethod;
     Token beforeParam = token;
-    token = parseGetterOrFormalParameters(token, name, isGetter, kind);
-    token = parseInitializersOpt(token);
+    Token beforeInitializers =
+        parseGetterOrFormalParameters(token, name, isGetter, kind);
+    token = parseInitializersOpt(beforeInitializers);
+    if (token == beforeInitializers) beforeInitializers = null;
 
     AsyncModifier savedAsyncModifier = asyncState;
     Token asyncToken = token.next;
@@ -3264,7 +3266,8 @@ class Parser {
           (staticToken == null || externalToken != null) && inPlainSync);
     }
     asyncState = savedAsyncModifier;
-    listener.endMethod(getOrSet, beforeStart.next, beforeParam.next, token);
+    listener.endMethod(getOrSet, beforeStart.next, beforeParam.next,
+        beforeInitializers?.next, token);
     return token;
   }
 

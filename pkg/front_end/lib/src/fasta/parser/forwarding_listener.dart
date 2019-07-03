@@ -774,9 +774,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
-    listener?.endMethod(getOrSet, beginToken, beginParam, endToken);
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
+    listener?.endMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override

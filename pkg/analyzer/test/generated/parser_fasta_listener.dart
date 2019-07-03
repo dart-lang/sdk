@@ -908,10 +908,11 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
     end('Method');
-    super.endMethod(getOrSet, beginToken, beginParam, endToken);
+    super.endMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override

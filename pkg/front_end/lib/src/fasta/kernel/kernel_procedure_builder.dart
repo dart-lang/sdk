@@ -34,6 +34,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
+import '../../scanner/token.dart' show Token;
+
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
@@ -415,6 +417,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   RedirectingInitializer redirectingInitializer;
 
+  Token beginInitializers;
+
   @override
   KernelConstructorBuilder actualOrigin;
 
@@ -489,6 +493,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   void buildOutlineExpressions(LibraryBuilder library) {
     KernelMetadataBuilder.buildAnnotations(
         target, metadata, library, parent, this);
+    beginInitializers = null;
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {

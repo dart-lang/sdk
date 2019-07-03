@@ -431,7 +431,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset,
       int charOpenParenOffset,
       int charEndOffset,
-      String nativeMethodName);
+      String nativeMethodName,
+      {Token beginInitializers});
 
   void addProcedure(
       String documentationComment,
