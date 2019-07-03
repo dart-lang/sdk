@@ -1,4 +1,4 @@
-## 0.37.0-dev (not yet published - breaking changes)
+## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.
 * Removed deprecated class `SdkLibrariesReader`.
 * Removed deprecated method `InstanceCreationExpressionImpl.canBeConst`.
