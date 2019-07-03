@@ -722,13 +722,24 @@ $stackTrace''');
 
   @override
   DecoratedType visitReturnStatement(ReturnStatement node) {
-    if (node.expression == null) {
+    DecoratedType returnType = _currentFunctionType.returnType;
+    Expression returnValue = node.expression;
+    // TODO(danrubel): This does not handle situations where the returnType
+    // or the returnValue's type extends or implements dart:async Future.
+    if ((returnType.type.isDartAsyncFuture ||
+            returnType.type.isDartAsyncFutureOr) &&
+        node.thisOrAncestorOfType<FunctionBody>().isAsynchronous &&
+        !returnValue.staticType.isDartAsyncFuture) {
+      returnType = returnType.typeArguments?.first;
+      if (returnType == null) {
+        return null;
+      }
+    }
+    if (returnValue == null) {
       _checkAssignment(null,
-          source: _nullType,
-          destination: _currentFunctionType.returnType,
-          hard: false);
+          source: _nullType, destination: returnType, hard: false);
     } else {
-      _handleAssignment(node.expression, _currentFunctionType.returnType);
+      _handleAssignment(returnValue, returnType);
     }
     return null;
   }

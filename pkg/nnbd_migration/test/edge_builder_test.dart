@@ -2317,6 +2317,27 @@ class C {
         hard: true);
   }
 
+  test_return_from_async_future() async {
+    await analyze('''
+Future<int> f() async {
+  return g();
+}
+int g() => 1;
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
+  test_return_from_async_futureOr() async {
+    await analyze('''
+import 'dart:async';
+FutureOr<int> f() async {
+  return g();
+}
+int g() => 1;
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
   test_return_function_type_simple() async {
     await analyze('''
 int/*1*/ Function() f(int/*2*/ Function() x) => x;
