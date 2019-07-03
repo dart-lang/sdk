@@ -38,7 +38,6 @@ int_parse_radix_int64_test/01: CompileTimeError, OK # Error if web int literal c
 int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError
-int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
@@ -323,7 +322,6 @@ int_parse_radix_int64_test/02: CompileTimeError, OK # Error if web int literal c
 int_parse_radix_int64_test/none: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_parse_radix_test/01: RuntimeError # Issue 29921
 int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-int_round_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_round_to_double_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_to_int_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 int_truncate_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
