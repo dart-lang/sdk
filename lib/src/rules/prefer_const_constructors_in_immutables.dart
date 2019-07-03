@@ -60,7 +60,7 @@ class PreferConstConstructorsInImmutables extends LintRule
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
   }
 }

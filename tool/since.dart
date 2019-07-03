@@ -37,7 +37,7 @@ Future<Map<String, SinceInfo>> get sinceMap async =>
     _sinceMap ??= await _getSinceInfo();
 
 Future<Map<String, SinceInfo>> _getSinceInfo() async {
-  var linterCache = await new File('tool/since/linter.yaml').readAsString();
+  var linterCache = await File('tool/since/linter.yaml').readAsString();
   YamlMap linterVersionCache = loadYamlNode(linterCache);
 
   var sinceMap = <String, SinceInfo>{};
@@ -51,7 +51,7 @@ Future<Map<String, SinceInfo>> _getSinceInfo() async {
         print('(consider caching in tool/since/linter.yaml)');
       }
     }
-    sinceMap[lint] = new SinceInfo(
+    sinceMap[lint] = SinceInfo(
         sinceLinter: linterVersion ?? await findSinceLinter(lint),
         sinceDartSdk: await _sinceSdkForLinter(linterVersion));
   }
@@ -62,11 +62,9 @@ Map<String, String> _dartSdkMap;
 
 Future<Map<String, String>> get dartSdkMap async {
   if (_dartSdkMap == null) {
-    var dartSdkCache =
-        await new File('tool/since/dart_sdk.yaml').readAsString();
+    var dartSdkCache = await File('tool/since/dart_sdk.yaml').readAsString();
     YamlMap yamlMap = loadYamlNode(dartSdkCache);
-    _dartSdkMap =
-        yamlMap.map((k, v) => new MapEntry(k.toString(), v.toString()));
+    _dartSdkMap = yamlMap.map((k, v) => MapEntry(k.toString(), v.toString()));
 
     var sdks = await sdkTags;
     for (var sdk in sdks) {

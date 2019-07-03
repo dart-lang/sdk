@@ -6,11 +6,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
 var _collectionInterfaces = <InterfaceTypeDefinition>[
-  new InterfaceTypeDefinition('List', 'dart.core'),
-  new InterfaceTypeDefinition('Map', 'dart.core'),
-  new InterfaceTypeDefinition('LinkedHashMap', 'dart.collection'),
-  new InterfaceTypeDefinition('Set', 'dart.core'),
-  new InterfaceTypeDefinition('LinkedHashSet', 'dart.collection'),
+  InterfaceTypeDefinition('List', 'dart.core'),
+  InterfaceTypeDefinition('Map', 'dart.core'),
+  InterfaceTypeDefinition('LinkedHashMap', 'dart.collection'),
+  InterfaceTypeDefinition('Set', 'dart.core'),
+  InterfaceTypeDefinition('LinkedHashSet', 'dart.collection'),
 ];
 
 // todo (pq): consider caching lookups

@@ -53,7 +53,7 @@ class PreferDoubleQuotes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new QuoteVisitor(this, useSingle: false);
+    final visitor = QuoteVisitor(this, useSingle: false);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);
   }

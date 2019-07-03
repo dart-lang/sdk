@@ -44,11 +44,11 @@ defineRuleTests() {
       testRules(ruleDir, analysisOptions: null);
 
       // Rule tests run against specific configurations.
-      for (var entry in new Directory(testConfigDir).listSync()) {
+      for (var entry in Directory(testConfigDir).listSync()) {
         if (entry is! Directory) continue;
         group('(config: ${p.basename(entry.path)})', () {
           var analysisOptionsFile =
-              new File(p.join(entry.path, 'analysis_options.yaml'));
+              File(p.join(entry.path, 'analysis_options.yaml'));
           var analysisOptions = analysisOptionsFile.readAsStringSync();
           testRules(ruleDir, analysisOptions: analysisOptions);
         });
@@ -57,21 +57,20 @@ defineRuleTests() {
     group('experiments', () {
       registerLintRuleExperiments();
 
-      for (var entry
-          in new Directory(p.join(ruleDir, 'experiments')).listSync()) {
+      for (var entry in Directory(p.join(ruleDir, 'experiments')).listSync()) {
         if (entry is! Directory) continue;
         var analysisOptionsFile =
-            new File(p.join(entry.path, 'analysis_options.yaml'));
+            File(p.join(entry.path, 'analysis_options.yaml'));
         var analysisOptions = analysisOptionsFile.readAsStringSync();
         var ruleName = p.basename(entry.path);
-        var testFile = new File(p.join(entry.path, '$ruleName.dart'));
+        var testFile = File(p.join(entry.path, '$ruleName.dart'));
         testRule(p.basename(ruleName), testFile,
             analysisOptions: analysisOptions);
       }
     });
 
     group('pub', () {
-      for (var entry in new Directory(p.join(ruleDir, 'pub')).listSync()) {
+      for (var entry in Directory(p.join(ruleDir, 'pub')).listSync()) {
         if (entry is! Directory) continue;
         Directory pubTestDir = entry;
         for (var file in pubTestDir.listSync()) {
@@ -231,25 +230,24 @@ defineSanityTests() {
       });
     });
     test('equality', () {
-      expect(
-          new Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
+      expect(Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
           matchesAnnotation(null, ErrorType.LINT, 1));
-      expect(new Annotation('Message', ErrorType.LINT, 1),
+      expect(Annotation('Message', ErrorType.LINT, 1),
           matchesAnnotation('Message', ErrorType.LINT, 1));
     });
     test('inequality', () {
       expect(
-          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+          () => expect(Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.HINT, 1)),
-          throwsA(new TypeMatcher<TestFailure>()));
+          throwsA(TypeMatcher<TestFailure>()));
       expect(
-          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+          () => expect(Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message2', ErrorType.LINT, 1)),
-          throwsA(new TypeMatcher<TestFailure>()));
+          throwsA(TypeMatcher<TestFailure>()));
       expect(
-          () => expect(new Annotation('Message', ErrorType.LINT, 1),
+          () => expect(Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.LINT, 2)),
-          throwsA(new TypeMatcher<TestFailure>()));
+          throwsA(TypeMatcher<TestFailure>()));
     });
   });
 
@@ -257,7 +255,7 @@ defineSanityTests() {
     //https://github.com/dart-lang/linter/issues/193
     group('ignore synthetic nodes', () {
       String path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
-      File file = new File(path);
+      File file = File(path);
       testRule('non_constant_identifier_names', file);
     });
   });
@@ -270,7 +268,7 @@ defineSanityTests() {
 
 /// Handy for debugging.
 defineSoloRuleTest(String ruleToTest) {
-  for (var entry in new Directory(ruleDir).listSync()) {
+  for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
     if (ruleName == ruleToTest) {
@@ -280,7 +278,7 @@ defineSoloRuleTest(String ruleToTest) {
 }
 
 Annotation extractAnnotation(String line) {
-  int index = line.indexOf(new RegExp(r'(//|#)[ ]?LINT'));
+  int index = line.indexOf(RegExp(r'(//|#)[ ]?LINT'));
 
   // Grab the first comment to see if there's one preceding the annotation.
   // Check for '#' first to allow for lints on dartdocs.
@@ -312,14 +310,14 @@ Annotation extractAnnotation(String line) {
         msg = null;
       }
     }
-    return new Annotation.forLint(msg, column, length);
+    return Annotation.forLint(msg, column, length);
   }
   return null;
 }
 
 AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
-    new AnnotationMatcher(new Annotation(message, type, lineNumber));
+    AnnotationMatcher(Annotation(message, type, lineNumber));
 
 testEach(Iterable<Object> values, bool f(String s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
@@ -330,7 +328,7 @@ testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
 }
 
 testRules(String ruleDir, {String analysisOptions}) {
-  for (var entry in new Directory(ruleDir).listSync()) {
+  for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
     testRule(ruleName, entry, debug: true, analysisOptions: analysisOptions);
@@ -343,7 +341,7 @@ testRule(String ruleName, File file,
 
   test('$ruleName', () async {
     if (!file.existsSync()) {
-      throw new Exception('No rule found defined at: ${file.path}');
+      throw Exception('No rule found defined at: ${file.path}');
     }
 
     var expected = <AnnotationMatcher>[];
@@ -353,7 +351,7 @@ testRule(String ruleName, File file,
       var annotation = extractAnnotation(line);
       if (annotation != null) {
         annotation.lineNumber = lineNumber;
-        expected.add(new AnnotationMatcher(annotation));
+        expected.add(AnnotationMatcher(annotation));
       }
       ++lineNumber;
     }
@@ -364,10 +362,10 @@ testRule(String ruleName, File file,
       return;
     }
 
-    MemoryResourceProvider memoryResourceProvider = new MemoryResourceProvider(
+    MemoryResourceProvider memoryResourceProvider = MemoryResourceProvider(
         context: PhysicalResourceProvider.INSTANCE.pathContext);
     TestResourceProvider resourceProvider =
-        new TestResourceProvider(memoryResourceProvider);
+        TestResourceProvider(memoryResourceProvider);
 
     p.Context pathContext = memoryResourceProvider.pathContext;
     String packageConfigPath = memoryResourceProvider.convertPath(pathContext
@@ -376,12 +374,12 @@ testRule(String ruleName, File file,
       packageConfigPath = null;
     }
 
-    LinterOptions options = new LinterOptions([rule], analysisOptions)
-      ..mockSdk = new MockSdk(memoryResourceProvider)
+    LinterOptions options = LinterOptions([rule], analysisOptions)
+      ..mockSdk = MockSdk(memoryResourceProvider)
       ..resourceProvider = resourceProvider
       ..packageConfigPath = packageConfigPath;
 
-    DartLinter driver = new DartLinter(options);
+    DartLinter driver = DartLinter(options);
 
     Iterable<AnalysisErrorInfo> lints = await driver.lintFiles([file]);
 
@@ -389,7 +387,7 @@ testRule(String ruleName, File file,
     lints.forEach((AnalysisErrorInfo info) {
       info.errors.forEach((AnalysisError error) {
         if (error.errorCode.type == ErrorType.LINT) {
-          actual.add(new Annotation.forError(error, info.lineInfo));
+          actual.add(Annotation.forError(error, info.lineInfo));
         }
       });
     });
@@ -402,10 +400,10 @@ testRule(String ruleName, File file,
         // Dump results for debugging purposes.
 
         //AST.
-        new Spelunker(file.absolute.path).spelunk();
+        Spelunker(file.absolute.path).spelunk();
         print('');
         // Lints.
-        new ResultReporter(lints)..write();
+        ResultReporter(lints)..write();
       }
 
       // Rethrow and fail.
@@ -450,7 +448,7 @@ class Annotation implements Comparable<Annotation> {
   static Iterable<Annotation> fromErrors(AnalysisErrorInfo error) {
     List<Annotation> annotations = [];
     error.errors.forEach(
-        (e) => annotations.add(new Annotation.forError(e, error.lineInfo)));
+        (e) => annotations.add(Annotation.forError(e, error.lineInfo)));
     return annotations;
   }
 }
@@ -493,7 +491,7 @@ class NoFilter implements LintFilter {
 
 class ResultReporter extends DetailedReporter {
   ResultReporter(Iterable<AnalysisErrorInfo> errors)
-      : super(errors, new NoFilter(), stdout);
+      : super(errors, NoFilter(), stdout);
 }
 
 class TestResourceProvider extends PhysicalResourceProvider {

@@ -78,7 +78,7 @@ class PublicMemberApiDocs extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
     registry.addCompilationUnit(this, visitor);
@@ -119,7 +119,7 @@ class _Visitor extends SimpleAstVisitor {
     }
     Uri libraryUri = classElement.library.source.uri;
     return manager
-        .getInherited(classElement.type, new Name(libraryUri, member.name))
+        .getInherited(classElement.type, Name(libraryUri, member.name))
         ?.element;
   }
 
@@ -170,8 +170,8 @@ class _Visitor extends SimpleAstVisitor {
         Uri libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
         ExecutableElement getter = manager
-            .getMember(node.declaredElement.type,
-                new Name(libraryUri, setter.name.name))
+            .getMember(
+                node.declaredElement.type, Name(libraryUri, setter.name.name))
             ?.element;
         if (getter is PropertyAccessorElement) {
           if (getter.documentationComment != null) {
@@ -208,7 +208,7 @@ class _Visitor extends SimpleAstVisitor {
         : resolutionMap.elementDeclaredByCompilationUnit(node)?.library;
     manager = library == null
         ? null
-        : new InheritanceManager2(library.context.typeSystem);
+        : InheritanceManager2(library.context.typeSystem);
 
     Map<String, FunctionDeclaration> getters = <String, FunctionDeclaration>{};
     List<FunctionDeclaration> setters = <FunctionDeclaration>[];

@@ -22,21 +22,21 @@ class _ErrorListener implements AnalysisErrorListener {
 
   void throwIfErrors() {
     if (errors.isNotEmpty) {
-      throw new Exception(errors);
+      throw Exception(errors);
     }
   }
 }
 
 class CompilationUnitParser {
   CompilationUnit parse({@required String contents, @required String name}) {
-    var reader = new CharSequenceReader(contents);
-    var stringSource = new StringSource(contents, name);
-    var errorListener = new _ErrorListener();
-    var scanner = new Scanner(stringSource, reader, errorListener);
+    var reader = CharSequenceReader(contents);
+    var stringSource = StringSource(contents, name);
+    var errorListener = _ErrorListener();
+    var scanner = Scanner(stringSource, reader, errorListener);
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 
-    var parser = new Parser(stringSource, errorListener);
+    var parser = Parser(stringSource, errorListener);
     var cu = parser.parseCompilationUnit(startToken);
     errorListener.throwIfErrors();
 

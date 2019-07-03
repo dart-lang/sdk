@@ -25,7 +25,7 @@ implements `==` and `hashCode`.
 **GOOD:**
 ```
 int foo = 10;
-final Bar bar = new Bar();
+final Bar bar = Bar();
 String baz = 'hello';
 const int quux = 20;
 ```
@@ -33,7 +33,7 @@ const int quux = 20;
 **BAD:**
 ```
 var foo = 10;
-final bar = new Bar();
+final bar = Bar();
 const quux = 20;
 ```
 
@@ -52,7 +52,7 @@ class Key<T> {
 }
 
 main() {
-  Key s = new Key(); // OK!
+  Key s = Key(); // OK!
 }
 ```
 
@@ -90,7 +90,7 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);

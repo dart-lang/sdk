@@ -20,12 +20,12 @@ at runtime so should be avoided.
 
 **BAD:**
 ```
-print(new RegExp('(').hasMatch('foo()'));
+print(RegExp('(').hasMatch('foo()'));
 ```
 
 **GOOD:**
 ```
-print(new RegExp('[(]').hasMatch('foo()'));
+print(RegExp('[(]').hasMatch('foo()'));
 ```
 
 ''';
@@ -41,7 +41,7 @@ class ValidRegExps extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         String source = sourceExpression.stringValue;
         if (source != null) {
           try {
-            new RegExp(source);
+            RegExp(source);
           } on FormatException {
             rule.reportLint(sourceExpression);
           }

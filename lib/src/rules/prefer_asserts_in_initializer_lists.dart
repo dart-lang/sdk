@@ -43,7 +43,7 @@ class PreferAssertsInInitializerLists extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
 }
@@ -120,7 +120,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (final statement in body.block.statements) {
         if (statement is! AssertStatement) break;
 
-        final assertVisitor = new _AssertVisitor(node.declaredElement);
+        final assertVisitor = _AssertVisitor(node.declaredElement);
         statement.visitChildren(assertVisitor);
         if (!assertVisitor.needInstance) {
           rule.reportLintForToken(statement.beginToken);

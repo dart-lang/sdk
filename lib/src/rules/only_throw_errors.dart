@@ -45,9 +45,9 @@ const _exceptionClassName = 'Exception';
 
 const _library = 'dart.core';
 final LinkedHashSet<InterfaceTypeDefinition> _interfaceDefinitions =
-    new LinkedHashSet<InterfaceTypeDefinition>.from([
-  new InterfaceTypeDefinition(_exceptionClassName, _library),
-  new InterfaceTypeDefinition(_errorClassName, _library)
+    LinkedHashSet<InterfaceTypeDefinition>.from([
+  InterfaceTypeDefinition(_exceptionClassName, _library),
+  InterfaceTypeDefinition(_errorClassName, _library)
 ]);
 bool _isThrowable(DartType type) =>
     type == null ||
@@ -65,7 +65,7 @@ class OnlyThrowErrors extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }
 }

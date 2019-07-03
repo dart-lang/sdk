@@ -109,7 +109,7 @@ class LiteralOnlyBooleanExpressions extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addIfStatement(this, visitor);

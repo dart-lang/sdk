@@ -75,9 +75,9 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
     }
   }
 
-  var footer = new StringBuffer('\n_${scorecard.lintCount} lints');
+  var footer = StringBuffer('\n_${scorecard.lintCount} lints');
 
-  var breakdowns = new StringBuffer();
+  var breakdowns = StringBuffer();
   if (details.contains(Detail.pedantic)) {
     breakdowns.write('$pedanticLintCount pedantic');
   }
@@ -110,8 +110,8 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
 class Header {
   final String markdown;
   const Header(this.markdown);
-  static const Header left = const Header('| :--- ');
-  static const Header center = const Header('| :---: ');
+  static const Header left = Header('| :--- ');
+  static const Header center = Header('| :---: ');
 }
 
 class Detail {
@@ -119,15 +119,15 @@ class Detail {
   final Header header;
   const Detail(this.name, {this.header = Header.center});
 
-  static const Detail rule = const Detail('name', header: Header.left);
-  static const Detail linter = const Detail('linter', header: Header.left);
-  static const Detail sdk = const Detail('dart sdk', header: Header.left);
-  static const Detail fix = const Detail('fix');
-  static const Detail pedantic = const Detail('pedantic');
-  static const Detail flutterUser = const Detail('flutter user');
-  static const Detail flutterRepo = const Detail('flutter repo');
-  static const Detail status = const Detail('status');
-  static const Detail bugs = const Detail('bug refs', header: Header.left);
+  static const Detail rule = Detail('name', header: Header.left);
+  static const Detail linter = Detail('linter', header: Header.left);
+  static const Detail sdk = Detail('dart sdk', header: Header.left);
+  static const Detail fix = Detail('fix');
+  static const Detail pedantic = Detail('pedantic');
+  static const Detail flutterUser = Detail('flutter user');
+  static const Detail flutterRepo = Detail('flutter repo');
+  static const Detail status = Detail('status');
+  static const Detail bugs = Detail('bug refs', header: Header.left);
 }
 
 class _AssistCollector extends GeneralizingAstVisitor<void> {
@@ -178,7 +178,7 @@ class ScoreCard {
 
   String asMarkdown(List<Detail> details) {
     // Header.
-    var sb = new StringBuffer();
+    var sb = StringBuffer();
     details.forEach((detail) => sb.write('| ${detail.name} '));
     sb.write('|\n');
     details.forEach((detail) => sb.write(detail.header.markdown));
@@ -194,12 +194,12 @@ class ScoreCard {
     var req = await client.get(
         'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/fix_internal.dart');
 
-    var parser = new CompilationUnitParser();
+    var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
     var lintNamesClass = cu.declarations
         .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
 
-    var collector = new _FixCollector();
+    var collector = _FixCollector();
     lintNamesClass.accept(collector);
     return collector.lintNames;
   }
@@ -208,12 +208,12 @@ class ScoreCard {
     var client = http.Client();
     var req = await client.get(
         'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/assist.dart');
-    var parser = new CompilationUnitParser();
+    var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'assist.dart');
     var assistKindClass = cu.declarations.firstWhere(
         (m) => m is ClassDeclaration && m.name.name == 'DartAssistKind');
 
-    var collector = new _AssistCollector();
+    var collector = _AssistCollector();
     assistKindClass.accept(collector);
     return collector.lintNames;
   }

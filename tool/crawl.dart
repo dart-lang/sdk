@@ -46,7 +46,7 @@ Future<List<String>> get pedanticRules async =>
     _pedanticRules ??= await _fetchPedanticRules();
 
 Future<List<String>> _fetchPedanticRules() async {
-  var client = new http.Client();
+  var client = http.Client();
   var req = await client.get(_pedanticOptionsUrl);
   var includedOptions = req.body.split('include: package:pedantic/')[1].trim();
   return _fetchRules('$_pedanticOptionsRootUrl/$includedOptions');
@@ -63,7 +63,7 @@ List<String> _sdkTags;
 Future<List<String>> get sdkTags async => _sdkTags ??= await _fetchSdkTags();
 
 /// We don't care about SDKs previous to this bottom.
-final Version bottomDartSdk = new Version(2, 0, 0);
+final Version bottomDartSdk = Version(2, 0, 0);
 
 Future<List<String>> _fetchSdkTags() {
   var github = createGitHubClient();
@@ -71,7 +71,7 @@ Future<List<String>> _fetchSdkTags() {
 
   return github.repositories.listTags(slug).map((t) => t.name).where((t) {
     // Filter on numeric release tags.
-    if (!t.startsWith(new RegExp(r'\d+'))) {
+    if (!t.startsWith(RegExp(r'\d+'))) {
       return false;
     }
 
@@ -136,14 +136,14 @@ Future<String> findSinceLinter(String lint) async {
 }
 
 Future<int> _readLatestMinorVersion() async {
-  var contents = await new File('pubspec.yaml').readAsString();
+  var contents = await File('pubspec.yaml').readAsString();
   YamlMap pubspec = loadYamlNode(contents);
   // 0.1.79 or 0.1.79-dev
   return int.parse(pubspec['version'].split('.').last.split('-').first);
 }
 
 Future<String> _crawlForVersion(String lint) async {
-  var client = new http.Client();
+  var client = http.Client();
   for (int minor = 1; minor < 31; ++minor) {
     var version = '0.1.$minor';
     var req =
@@ -187,7 +187,7 @@ Future<String> _fetchLinterForVersion(String version) async {
 }
 
 Future<String> _fetchDEPSforVersion(String version) async {
-  var client = new http.Client();
+  var client = http.Client();
   //https://raw.githubusercontent.com/dart-lang/sdk/2.1.0-dev.1.0/DEPS
   var req = await client
       .get('https://raw.githubusercontent.com/dart-lang/sdk/$version/DEPS');
@@ -195,7 +195,7 @@ Future<String> _fetchDEPSforVersion(String version) async {
 }
 
 Future<LintConfig> _fetchConfig(String url) async {
-  var client = new http.Client();
+  var client = http.Client();
   var req = await client.get(url);
   return processAnalysisOptionsFile(req.body);
 }

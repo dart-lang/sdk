@@ -31,7 +31,7 @@ const Map<String, LibraryInfo> libraries = const {
 ''';
 
   static const _MockSdkLibrary LIB_CORE =
-      const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
+      _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
 library dart.core;
 
 import 'dart:async';
@@ -182,8 +182,8 @@ abstract class RegExp {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_ASYNC =
-      const _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
+  static _MockSdkLibrary LIB_ASYNC =
+      _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
 library dart.async;
 
 import 'dart:math';
@@ -198,14 +198,14 @@ class Future<T> {
 }
 
 class FutureOr<T> {}
-''', const <_MockSdkFile>[
-    const _MockSdkFile('/lib/async/stream.dart', r'''
+''', <_MockSdkFile>[
+    _MockSdkFile('/lib/async/stream.dart', r'''
 part of dart.async;
 ''')
   ]);
 
-  static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
-      'dart:collection', '/lib/collection/collection.dart', '''
+  static _MockSdkLibrary LIB_COLLECTION =
+      _MockSdkLibrary('dart:collection', '/lib/collection/collection.dart', '''
 library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {}
@@ -235,8 +235,8 @@ class LinkedHashSet<E> implements Set<E> {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_CONVERT =
-      const _MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
+  static _MockSdkLibrary LIB_CONVERT =
+      _MockSdkLibrary('dart:convert', '/lib/convert/convert.dart', '''
 library dart.convert;
 
 import 'dart:async';
@@ -245,8 +245,8 @@ abstract class Converter<S, T> implements StreamTransformer {}
 class JsonDecoder extends Converter<String, Object> {}
 ''');
 
-  static const _MockSdkLibrary LIB_IO =
-      const _MockSdkLibrary('dart:io', '/lib/io/io.dart', '''
+  static _MockSdkLibrary LIB_IO =
+      _MockSdkLibrary('dart:io', '/lib/io/io.dart', '''
 library dart.io;
 
 abstract class File implements FileSystemEntity {
@@ -279,8 +279,8 @@ abstract class FileSystemEntity {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_MATH =
-      const _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
+  static _MockSdkLibrary LIB_MATH =
+      _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
@@ -297,13 +297,13 @@ class Random {
 }
 ''');
 
-  static const _MockSdkLibrary LIB_HTML = const _MockSdkLibrary(
-      'dart:html', '/lib/html/dartium/html_dartium.dart', '''
+  static _MockSdkLibrary LIB_HTML =
+      _MockSdkLibrary('dart:html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
 export 'dart:_dom_html';
 class HtmlElement {}
 ''');
-  static const _MockSdkLibrary LIB_DOM_HTML = const _MockSdkLibrary(
+  static _MockSdkLibrary LIB_DOM_HTML = _MockSdkLibrary(
       'dart:_dom_html', '/lib/html/dartium/dom_html_dartium.dart', '''
 library dart.dom.html;
 class  ScriptElement {
@@ -311,7 +311,7 @@ class  ScriptElement {
 }
 ''');
 
-  static const List<SdkLibrary> LIBRARIES = const [
+  static List<SdkLibrary> LIBRARIES = [
     LIB_CORE,
     LIB_ASYNC,
     LIB_COLLECTION,
@@ -348,8 +348,8 @@ class  ScriptElement {
   @override
   AnalysisContextImpl get context {
     if (_analysisContext == null) {
-      _analysisContext = new _SdkAnalysisContext(this);
-      SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
+      _analysisContext = _SdkAnalysisContext(this);
+      SourceFactory factory = SourceFactory([DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
     }
     return _analysisContext;
@@ -361,7 +361,7 @@ class  ScriptElement {
   @override
   String get sdkVersion => throw unimplemented;
 
-  UnimplementedError get unimplemented => new UnimplementedError();
+  UnimplementedError get unimplemented => UnimplementedError();
 
   @override
   List<String> get uris =>
@@ -412,7 +412,7 @@ class  ScriptElement {
       } else {
         bytes = _computeLinkedBundleBytes();
       }
-      _bundle = new PackageBundle.fromBuffer(bytes);
+      _bundle = PackageBundle.fromBuffer(bytes);
     }
     return _bundle;
   }
@@ -429,7 +429,7 @@ class  ScriptElement {
 
   @override
   Source mapDartUri(String dartUri) {
-    const Map<String, String> uriToPath = const {
+    Map<String, String> uriToPath = {
       'dart:core': '/lib/core/core.dart',
       'dart:html': '/lib/html/dartium/html_dartium.dart',
       'dart:_dom_html': '/lib/html/dartium/dom_html_dartium.dart',
@@ -444,7 +444,7 @@ class  ScriptElement {
     String path = uriToPath[dartUri];
     if (path != null) {
       resource.File file = provider.getResource(provider.convertPath(path));
-      Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
+      Uri uri = Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
 
@@ -458,7 +458,7 @@ class  ScriptElement {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return new SummaryBuilder(librarySources, context).build();
+    return SummaryBuilder(librarySources, context).build();
   }
 }
 
@@ -466,7 +466,7 @@ class _MockSdkFile {
   final String path;
   final String content;
 
-  const _MockSdkFile(this.path, this.content);
+  _MockSdkFile(this.path, this.content);
 }
 
 class _MockSdkLibrary implements SdkLibrary {
@@ -481,25 +481,25 @@ class _MockSdkLibrary implements SdkLibrary {
       [this.parts = const <_MockSdkFile>[]]);
 
   @override
-  String get category => throw new UnimplementedError();
+  String get category => throw UnimplementedError();
 
   @override
-  bool get isDart2JsLibrary => throw new UnimplementedError();
+  bool get isDart2JsLibrary => throw UnimplementedError();
 
   @override
-  bool get isDocumented => throw new UnimplementedError();
+  bool get isDocumented => throw UnimplementedError();
 
   @override
-  bool get isImplementation => throw new UnimplementedError();
+  bool get isImplementation => throw UnimplementedError();
 
   @override
   bool get isInternal => shortName.startsWith('dart:_');
 
   @override
-  bool get isShared => throw new UnimplementedError();
+  bool get isShared => throw UnimplementedError();
 
   @override
-  bool get isVmLibrary => throw new UnimplementedError();
+  bool get isVmLibrary => throw UnimplementedError();
 }
 
 /// An [AnalysisContextImpl] that only contains sources for a Dart SDK.
@@ -513,7 +513,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
     if (factory == null) {
       return super.createCacheFromSourceFactory(factory);
     }
-    return new AnalysisCache(
+    return AnalysisCache(
         <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

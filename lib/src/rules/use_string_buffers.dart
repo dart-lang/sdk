@@ -32,7 +32,7 @@ String foo() {
 **GOOD:**
 ```
 String foo() {
-  final buffer = new StringBuffer();
+  final buffer = StringBuffer();
   for (int i = 0; i < 10; i++) {
     buffer.write('a');
   }
@@ -67,7 +67,7 @@ class UseStringBuffers extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this);
+    final visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addWhileStatement(this, visitor);
@@ -134,7 +134,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {
-        final visitor = new _IdentifierIsPrefixVisitor(rule, identifier);
+        final visitor = _IdentifierIsPrefixVisitor(rule, identifier);
         node.rightHandSide.accept(visitor);
       }
     }
@@ -170,19 +170,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDoStatement(DoStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
+    final visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
+    final visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    final visitor = new _UseStringBufferVisitor(rule);
+    final visitor = _UseStringBufferVisitor(rule);
     node.body.accept(visitor);
   }
 }

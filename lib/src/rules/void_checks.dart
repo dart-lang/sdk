@@ -22,7 +22,7 @@ class A<T> {
 }
 
 void main() {
-  A<void> a = new A<void>();
+  A<void> a = A<void>();
   a.value = 1; // LINT
   a.test(1); // LINT
 }
@@ -40,7 +40,7 @@ class VoidChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(NodeLintRegistry registry,
       [LinterContext context]) {
-    final visitor = new _Visitor(this, context);
+    final visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.addMethodInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
