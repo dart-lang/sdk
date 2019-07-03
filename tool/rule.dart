@@ -103,7 +103,6 @@ String _generateClass(String ruleName, String className) => """
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc = r' ';
 
