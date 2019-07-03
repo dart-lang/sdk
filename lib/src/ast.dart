@@ -164,16 +164,15 @@ bool isSimpleGetter(MethodDeclaration declaration) {
   if (!declaration.isGetter) {
     return false;
   }
-  if (declaration.body is ExpressionFunctionBody) {
-    ExpressionFunctionBody body = declaration.body;
+  var body = declaration.body;
+  if (body is ExpressionFunctionBody) {
     return _checkForSimpleGetter(declaration, body.expression);
-  } else if (declaration.body is BlockFunctionBody) {
-    BlockFunctionBody body = declaration.body;
+  } else if (body is BlockFunctionBody) {
     Block block = body.block;
     if (block.statements.length == 1) {
-      if (block.statements[0] is ReturnStatement) {
-        ReturnStatement returnStatement = block.statements[0];
-        return _checkForSimpleGetter(declaration, returnStatement.expression);
+      var statement = block.statements[0];
+      if (statement is ReturnStatement) {
+        return _checkForSimpleGetter(declaration, statement.expression);
       }
     }
   }
@@ -195,15 +194,14 @@ bool isSimpleGetter(MethodDeclaration declaration) {
 ///
 /// where the static type of the left and right hand sides must be the same.
 bool isSimpleSetter(MethodDeclaration setter) {
-  if (setter.body is ExpressionFunctionBody) {
-    ExpressionFunctionBody body = setter.body;
+  var body = setter.body;
+  if (body is ExpressionFunctionBody) {
     return _checkForSimpleSetter(setter, body.expression);
-  } else if (setter.body is BlockFunctionBody) {
-    BlockFunctionBody body = setter.body;
+  } else if (body is BlockFunctionBody) {
     Block block = body.block;
     if (block.statements.length == 1) {
-      if (block.statements[0] is ExpressionStatement) {
-        ExpressionStatement statement = block.statements[0];
+      var statement = block.statements[0];
+      if (statement is ExpressionStatement) {
         return _checkForSimpleSetter(setter, statement.expression);
       }
     }
@@ -244,7 +242,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   if (expression is! AssignmentExpression) {
     return false;
   }
-  AssignmentExpression assignment = expression;
+  AssignmentExpression assignment = expression as AssignmentExpression;
 
   var leftHandSide = assignment.leftHandSide;
   var rightHandSide = assignment.rightHandSide;
