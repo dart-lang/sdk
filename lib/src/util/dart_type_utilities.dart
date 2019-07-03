@@ -155,10 +155,11 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
+    InterfaceType interfaceType = type as InterfaceType;
     bool predicate(InterfaceType i) =>
         definitions.any((d) => isInterface(i, d.name, d.library));
-    ClassElement element = type.element;
-    return predicate(type) ||
+    ClassElement element = interfaceType.element;
+    return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
@@ -167,9 +168,10 @@ class DartTypeUtilities {
     if (type is! InterfaceType) {
       return false;
     }
+    InterfaceType interfaceType = type as InterfaceType;
     bool predicate(InterfaceType i) => isInterface(i, interface, library);
-    ClassElement element = type.element;
-    return predicate(type) ||
+    ClassElement element = interfaceType.element;
+    return predicate(interfaceType) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
 
@@ -272,7 +274,8 @@ class DartTypeUtilities {
 
   static bool overridesMethod(MethodDeclaration node) {
     final name = node.declaredElement.name;
-    final ClassOrMixinDeclaration clazz = node.parent;
+    final ClassOrMixinDeclaration clazz =
+        node.parent as ClassOrMixinDeclaration;
     final classElement = clazz.declaredElement;
     final library = classElement.library;
     return classElement.allSupertypes
