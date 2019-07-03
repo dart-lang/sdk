@@ -278,6 +278,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitCompilationUnitMember(node);
 
   @override
+  R visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
@@ -839,6 +842,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) {
     node.visitChildren(this);
     return null;
   }
@@ -1453,6 +1462,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitExtensionDeclaration(ExtensionDeclaration node) => null;
 
   @override
+  R visitExtensionOverride(ExtensionOverride node) => null;
+
+  @override
   R visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
@@ -1827,6 +1839,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitExtensionDeclaration(ExtensionDeclaration node) => _throw(node);
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => _throw(node);
 
   @override
   R visitFieldDeclaration(FieldDeclaration node) => _throw(node);
@@ -2416,6 +2431,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitExtensionDeclaration(ExtensionDeclaration node) {
     stopwatch.start();
     T result = _baseVisitor.visitExtensionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitExtensionOverride(ExtensionOverride node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitExtensionOverride(node);
     stopwatch.stop();
     return result;
   }
@@ -3195,6 +3218,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitExtensionDeclaration(ExtensionDeclaration node) => visitNode(node);
+
+  @override
+  R visitExtensionOverride(ExtensionOverride node) => visitNode(node);
 
   @override
   R visitFieldDeclaration(FieldDeclaration node) => visitNode(node);

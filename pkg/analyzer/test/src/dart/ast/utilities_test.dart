@@ -1755,6 +1755,46 @@ class ToSourceVisitor2Test extends EngineTestCase {
             ]));
   }
 
+  void test_visitExtensionOverride_prefixedName_noTypeArgs() {
+    _assertSource(
+        'p.E(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier5('p', 'E'),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_prefixedName_typeArgs() {
+    _assertSource(
+        'p.E<A>(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier5('p', 'E'),
+            typeArguments: AstTestFactory.typeArgumentList(
+                [AstTestFactory.typeName4('A')]),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_simpleName_noTypeArgs() {
+    _assertSource(
+        'E(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier3('E'),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_simpleName_typeArgs() {
+    _assertSource(
+        'E<A>(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier3('E'),
+            typeArguments: AstTestFactory.typeArgumentList(
+                [AstTestFactory.typeName4('A')]),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
   void test_visitFieldDeclaration_instance() {
     _assertSource(
         "var a;",
@@ -4519,6 +4559,46 @@ class ToSourceVisitorTest extends EngineTestCase {
               AstTestFactory.fieldDeclaration2(
                   false, Keyword.VAR, [AstTestFactory.variableDeclaration('a')])
             ]));
+  }
+
+  void test_visitExtensionOverride_prefixedName_noTypeArgs() {
+    _assertSource(
+        'p.E(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier5('p', 'E'),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_prefixedName_typeArgs() {
+    _assertSource(
+        'p.E<A>(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier5('p', 'E'),
+            typeArguments: AstTestFactory.typeArgumentList(
+                [AstTestFactory.typeName4('A')]),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_simpleName_noTypeArgs() {
+    _assertSource(
+        'E(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier3('E'),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
+  }
+
+  void test_visitExtensionOverride_simpleName_typeArgs() {
+    _assertSource(
+        'E<A>(o)',
+        AstTestFactory.extensionOverride(
+            extensionName: AstTestFactory.identifier3('E'),
+            typeArguments: AstTestFactory.typeArgumentList(
+                [AstTestFactory.typeName4('A')]),
+            argumentList: AstTestFactory.argumentList(
+                [AstTestFactory.identifier3('o')])));
   }
 
   void test_visitFieldDeclaration_instance() {

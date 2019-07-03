@@ -394,6 +394,13 @@ class AstFactoryImpl extends AstFactory {
           rightBracket);
 
   @override
+  ExtensionOverride extensionOverride(
+          {@required Identifier extensionName,
+          TypeArgumentList typeArguments,
+          @required ArgumentList argumentList}) =>
+      ExtensionOverrideImpl(extensionName, typeArguments, argumentList);
+
+  @override
   FieldDeclaration fieldDeclaration(
           Comment comment,
           List<Annotation> metadata,

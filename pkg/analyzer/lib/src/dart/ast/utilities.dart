@@ -462,6 +462,13 @@ class AstCloner implements AstVisitor<AstNode> {
           rightBracket: cloneToken(node.rightBracket));
 
   @override
+  ExtensionOverride visitExtensionOverride(ExtensionOverride node) =>
+      astFactory.extensionOverride(
+          extensionName: cloneNode(node.extensionName),
+          typeArguments: cloneNode(node.typeArguments),
+          argumentList: cloneNode(node.argumentList));
+
+  @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
       astFactory.fieldDeclaration2(
           comment: cloneNode(node.documentationComment),
@@ -1601,6 +1608,14 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.members, other.members) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    ExtensionOverride other = _other as ExtensionOverride;
+    return isEqualNodes(node.extensionName, other.extensionName) &&
+        isEqualNodes(node.typeArguments, other.typeArguments) &&
+        isEqualNodes(node.argumentList, other.argumentList);
   }
 
   @override
@@ -2854,6 +2869,13 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           leftBracket: _mapToken(node.leftBracket),
           members: _cloneNodeList(node.members),
           rightBracket: _mapToken(node.rightBracket));
+
+  @override
+  ExtensionOverride visitExtensionOverride(ExtensionOverride node) =>
+      astFactory.extensionOverride(
+          extensionName: _cloneNode(node.extensionName),
+          typeArguments: _cloneNode(node.typeArguments),
+          argumentList: _cloneNode(node.argumentList));
 
   @override
   FieldDeclaration visitFieldDeclaration(FieldDeclaration node) =>
@@ -4294,6 +4316,22 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    if (identical(node.extensionName, _oldNode)) {
+      (node as ExtensionOverrideImpl).extensionName = _newNode as Identifier;
+      return true;
+    } else if (identical(node.typeArguments, _oldNode)) {
+      (node as ExtensionOverrideImpl).typeArguments =
+          _newNode as TypeArgumentList;
+      return true;
+    } else if (identical(node.argumentList, _oldNode)) {
+      (node as ExtensionOverrideImpl).argumentList = _newNode as ArgumentList;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     if (identical(node.fields, _oldNode)) {
       node.fields = _newNode as VariableDeclarationList;
@@ -5662,6 +5700,15 @@ class ResolutionCopier implements AstVisitor<bool> {
       return true;
     }
     return false;
+  }
+
+  @override
+  bool visitExtensionOverride(ExtensionOverride node) {
+    ExtensionOverride toNode = this._toNode as ExtensionOverride;
+    return _and(
+        _isEqualNodes(node.extensionName, toNode.extensionName),
+        _isEqualNodes(node.typeArguments, toNode.typeArguments),
+        _isEqualNodes(node.argumentList, toNode.argumentList));
   }
 
   @override
@@ -7248,6 +7295,13 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _visitNode(node.extensionName);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.staticKeyword, " ");
@@ -8545,6 +8599,13 @@ class ToSourceVisitor2 implements AstVisitor<void> {
     safelyVisitToken(node.leftBracket);
     safelyVisitNodeListWithSeparator(node.members, ' ');
     safelyVisitToken(node.rightBracket);
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    safelyVisitNode(node.extensionName);
+    safelyVisitNode(node.typeArguments);
+    safelyVisitNode(node.argumentList);
   }
 
   @override

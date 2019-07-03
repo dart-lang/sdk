@@ -496,6 +496,8 @@ abstract class AstVisitor<R> {
 
   R visitExtensionDeclaration(ExtensionDeclaration node);
 
+  R visitExtensionOverride(ExtensionOverride node);
+
   R visitFieldDeclaration(FieldDeclaration node);
 
   R visitFieldFormalParameter(FieldFormalParameter node);

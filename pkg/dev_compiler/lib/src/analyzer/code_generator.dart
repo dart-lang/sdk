@@ -6746,6 +6746,9 @@ class CodeGenerator extends Object
 
   @override
   visitExtensionDeclaration(ExtensionDeclaration node) => _unreachable(node);
+
+  @override
+  visitExtensionOverride(ExtensionOverride node) => _unreachable(node);
 }
 
 // TODO(jacobr): we would like to do something like the following

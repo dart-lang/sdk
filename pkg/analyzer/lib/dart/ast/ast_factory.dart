@@ -342,7 +342,7 @@ abstract class AstFactory {
   /// Returns a newly created extends clause.
   ExtendsClause extendsClause(Token extendsKeyword, TypeName superclass);
 
-  /// Return a newly created extention declaration. The list of [typeParameters]
+  /// Return a newly created extension declaration. The list of [typeParameters]
   /// can be `null` if there are no type parameters.
   ExtensionDeclaration extensionDeclaration(
       {Comment comment,
@@ -355,6 +355,13 @@ abstract class AstFactory {
       Token leftBracket,
       List<ClassMember> members,
       Token rightBracket});
+
+  /// Return a newly created extension override. The list of [typeArguments]
+  /// can be `null` if there are no type arguments.
+  ExtensionOverride extensionOverride(
+      {@required Identifier extensionName,
+      TypeArgumentList typeArguments,
+      @required ArgumentList argumentList});
 
   /// Returns a newly created field declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the

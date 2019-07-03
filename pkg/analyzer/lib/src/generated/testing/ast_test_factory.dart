@@ -293,7 +293,7 @@ class AstTestFactory {
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
           FeatureSet featureSet}) =>
-      astFactory.compilationUnit2(
+      astFactory.compilationUnit(
           beginToken: TokenFactory.tokenFromType(TokenType.EOF),
           scriptTag:
               scriptTag == null ? null : AstTestFactory.scriptTag(scriptTag),
@@ -504,6 +504,15 @@ class AstTestFactory {
           members: members,
           rightBracket:
               TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static ExtensionOverride extensionOverride(
+          {@required Identifier extensionName,
+          TypeArgumentList typeArguments,
+          @required ArgumentList argumentList}) =>
+      astFactory.extensionOverride(
+          extensionName: extensionName,
+          typeArguments: typeArguments,
+          argumentList: argumentList);
 
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword,
           TypeAnnotation type, List<VariableDeclaration> variables) =>

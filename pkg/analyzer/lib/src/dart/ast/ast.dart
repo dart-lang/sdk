@@ -3929,6 +3929,85 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 }
 
+/// An override to force resolution to choose a member from a specific
+/// extension.
+///
+///    extensionOverride ::=
+///        [Identifier] [TypeArgumentList]? [ArgumentList]
+class ExtensionOverrideImpl extends ExpressionImpl
+    implements ExtensionOverride {
+  /// The list of arguments to the override. In valid code this will contain a
+  /// single argument, which evaluates to the object being extended.
+  ArgumentListImpl _argumentList;
+
+  /// The name of the extension being selected.
+  IdentifierImpl _extensionName;
+
+  /// The type arguments to be applied to the extension, or `null` if no type
+  /// arguments were provided.
+  TypeArgumentListImpl _typeArguments;
+
+  ExtensionOverrideImpl(IdentifierImpl extensionName,
+      TypeArgumentListImpl typeArguments, ArgumentListImpl argumentList) {
+    _extensionName = _becomeParentOf(extensionName);
+    _typeArguments = _becomeParentOf(typeArguments);
+    _argumentList = _becomeParentOf(argumentList);
+  }
+
+  @override
+  ArgumentList get argumentList => _argumentList;
+
+  void set argumentList(ArgumentList argumentList) {
+    _argumentList = _becomeParentOf(argumentList as ArgumentListImpl);
+  }
+
+  @override
+  Token get beginToken => _extensionName?.beginToken;
+
+  @override
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
+    ..add(_extensionName)
+    ..add(_typeArguments)
+    ..add(_argumentList);
+
+  @override
+  Token get endToken => _argumentList?.endToken;
+
+  @override
+  Identifier get extensionName => _extensionName;
+
+  void set extensionName(Identifier extensionName) {
+    _extensionName = _becomeParentOf(extensionName as IdentifierImpl);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
+  }
+
+  @override
+  // TODO(brianwilkerson) Either implement this getter or remove it if it isn't
+  //  needed.
+  List<DartType> get typeArgumentTypes => null;
+
+  @override
+  E accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitExtensionOverride(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _extensionName?.accept(visitor);
+    _typeArguments?.accept(visitor);
+    _argumentList?.accept(visitor);
+  }
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
