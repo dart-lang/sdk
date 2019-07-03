@@ -88,6 +88,10 @@
 
 ### Tools
 
+#### Pub
+
+ * Clean-up invalid git repositories in cache when fetching from git.
+
 #### Linter
 
 The Linter was updated to `0.1.93`, which includes the following changes:
