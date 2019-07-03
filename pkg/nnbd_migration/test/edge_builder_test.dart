@@ -1002,6 +1002,15 @@ main() {
     // No assertions; just checking that it doesn't crash.
   }
 
+  test_for_with_var() async {
+    await analyze('''
+main() {
+  for (var i in <int>[1, 2, 3]) { print(i); }
+}
+''');
+    // No assertions; just checking that it doesn't crash.
+  }
+
   test_function_assignment() async {
     await analyze('''
 class C {

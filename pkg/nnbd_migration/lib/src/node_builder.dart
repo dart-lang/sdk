@@ -136,7 +136,9 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
     DecoratedType type = node.type?.accept(this);
     if (node.identifier != null) {
       _variables.recordDecoratedElementType(
-          node.identifier.staticElement, type);
+          node.identifier.staticElement,
+          type ??
+              DecoratedType.forImplicitType(node.declaredElement.type, _graph));
     }
     return type;
   }
