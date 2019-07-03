@@ -2720,6 +2720,36 @@ table UnlinkedExpr {
   strings:[string] (id: 3);
 }
 
+/// Unlinked summary information about an extension declaration.
+table UnlinkedExtension {
+  /// Annotations for this extension.
+  annotations:[UnlinkedExpr] (id: 4);
+
+  /// Code range of the extension.
+  codeRange:CodeRange (id: 7);
+
+  /// Documentation comment for the extension, or `null` if there is no
+  /// documentation comment.
+  documentationComment:UnlinkedDocumentationComment (id: 5);
+
+  /// Executable objects (methods, getters, and setters) contained in the
+  /// extension.
+  executables:[UnlinkedExecutable] (id: 2);
+
+  /// The type being extended.
+  extendedType:EntityRef (id: 3);
+
+  /// Name of the extension, or an empty string if there is no name.
+  name:string (id: 0);
+
+  /// Offset of the extension name relative to the beginning of the file, or
+  /// zero if there is no name.
+  nameOffset:uint (id: 1);
+
+  /// Type parameters of the extension, if any.
+  typeParameters:[UnlinkedTypeParam] (id: 6);
+}
+
 /// Unlinked summary information about an import declaration.
 table UnlinkedImport {
   /// Annotations for this import declaration.
@@ -3039,6 +3069,9 @@ table UnlinkedUnit {
 
   /// Classes declared in the compilation unit.
   classes:[UnlinkedClass] (id: 2);
+
+  /// Extensions declared in the compilation unit.
+  extensions:[UnlinkedExtension] (id: 22);
 
   /// Code range of the unit.
   codeRange:CodeRange (id: 15);
