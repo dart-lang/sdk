@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 /// Generates rule and rule test stub files (into `src/rules` and `test/rules`
 /// respectively), as well as the rule index (`rules.dart`).
 void main([List<String> args]) {
-  final parser = new ArgParser(allowTrailingOptions: true)
+  final parser = ArgParser(allowTrailingOptions: true)
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
     ..addOption('name',
         abbr: 'n', help: 'Specifies lower_underscore rule name.');
@@ -25,7 +25,7 @@ void main([List<String> args]) {
   final outDir = options['out'];
 
   if (outDir != null) {
-    final d = new Directory(outDir);
+    final d = Directory(outDir);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
@@ -43,7 +43,7 @@ void main([List<String> args]) {
   generateRule(ruleName, outDir: outDir);
 }
 
-String get _thisYear => new DateTime.now().year.toString();
+String get _thisYear => DateTime.now().year.toString();
 
 String capitalize(String s) => s.substring(0, 1).toUpperCase() + s.substring(1);
 
@@ -63,7 +63,7 @@ void generateStub(String ruleName, String stubPath, _Generator generator,
   final generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
     final outPath = '$outDir/$stubPath/$ruleName.dart';
-    final outFile = new File(outPath);
+    final outFile = File(outPath);
     if (outFile.existsSync()) {
       print('Warning: stub already exists at $outPath; skipping');
       return;
