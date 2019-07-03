@@ -419,14 +419,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super('dart2js', configuration);
 
-  int get timeoutMultiplier {
-    var multiplier = 1;
-    if (_isDebug) multiplier *= 4;
-    if (_isChecked) multiplier *= 2;
-    if (_isHostChecked) multiplier *= 16;
-    return multiplier;
-  }
-
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
