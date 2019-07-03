@@ -1042,6 +1042,17 @@ int/*1*/ f(int/*2*/ i) => i/*3*/;
             hard: true));
   }
 
+  test_functionDeclaration_parameter_named_default_listConst() async {
+    await analyze('''
+void f({List<int/*1*/> i = const <int/*2*/>[]}) {}
+''');
+
+    assertNoUpstreamNullability(decoratedTypeAnnotation('List<int/*1*/>').node);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*1*/').node,
+        hard: false);
+  }
+
   test_functionDeclaration_parameter_named_default_notNull() async {
     await analyze('''
 void f({int i = 1}) {}

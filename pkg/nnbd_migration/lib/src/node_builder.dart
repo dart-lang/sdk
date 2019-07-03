@@ -146,7 +146,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     var decoratedType = node.parameter.accept(this);
-    if (node.declaredElement.hasRequired || node.defaultValue != null) {
+    if (node.defaultValue != null) {
+      node.defaultValue.accept(this);
+      return null;
+    } else if (node.declaredElement.hasRequired) {
       return null;
     }
     if (decoratedType == null) {

@@ -48,7 +48,13 @@ class Variables implements VariableRecorder, VariableRepository {
       throw StateError('No declarated type annotations in ${source.fullName}; '
           'expected one for ${typeAnnotation.toSource()}');
     }
-    return annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    DecoratedTypeAnnotation decoratedTypeAnnotation =
+        annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    if (decoratedTypeAnnotation == null) {
+      throw StateError('Missing declarated type annotation'
+          ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
+    }
+    return decoratedTypeAnnotation;
   }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
