@@ -3811,7 +3811,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   /// Return the object providing promoted or declared types of variables.
   LocalVariableTypeProvider get localVariableTypeProvider {
-    return _promoteManager.localVariableTypeProvider;
+    if (_flowAnalysis != null) {
+      return _flowAnalysis.localVariableTypeProvider;
+    } else {
+      return _promoteManager.localVariableTypeProvider;
+    }
   }
 
   /// Return the static element associated with the given expression whose type

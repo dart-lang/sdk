@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 /// The helper for performing flow analysis during resolution.
 ///
@@ -51,6 +52,10 @@ class FlowAnalysisHelper {
     this._typeOperations,
     this.assignedVariables,
   );
+
+  LocalVariableTypeProvider get localVariableTypeProvider {
+    return _LocalVariableTypeProvider(this);
+  }
 
   VariableElement assignmentExpression(AssignmentExpression node) {
     if (flow == null) return null;
@@ -253,11 +258,6 @@ class FlowAnalysisHelper {
         if (flow.isNonNullable(element)) {
           result.nonNullableNodes.add(node);
         }
-
-        var promotedType = flow.promotedType(element);
-        if (promotedType != null) {
-          result.promotedTypes[node] = promotedType;
-        }
       }
     }
   }
@@ -349,11 +349,6 @@ class FlowAnalysisResult {
   /// The list of [FunctionBody]s that don't complete, for example because
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
-
-  /// For each local variable or parameter, which type is promoted to a type
-  /// specific than its declaration type, this map included references where
-  /// the variable where it is read, and the type it has.
-  final Map<SimpleIdentifier, DartType> promotedTypes = {};
 
   void putIntoNode(AstNode node) {
     node.setProperty(_astKey, this);
@@ -472,6 +467,20 @@ class _FunctionBodyAccess implements FunctionBodyAccess<VariableElement> {
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
     return node.isPotentiallyMutatedInScope(variable);
+  }
+}
+
+/// The flow analysis based implementation of [LocalVariableTypeProvider].
+class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
+  final FlowAnalysisHelper _manager;
+
+  _LocalVariableTypeProvider(this._manager);
+
+  @override
+  DartType getType(SimpleIdentifier node) {
+    var variable = node.staticElement as VariableElement;
+    var promotedType = _manager.flow?.promotedType(variable);
+    return promotedType ?? variable.type;
   }
 }
 
