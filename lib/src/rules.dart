@@ -69,7 +69,6 @@ import 'package:linter/src/rules/list_remove_unrelated_type.dart';
 import 'package:linter/src/rules/literal_only_boolean_expressions.dart';
 import 'package:linter/src/rules/no_adjacent_strings_in_list.dart';
 import 'package:linter/src/rules/no_duplicate_case_values.dart';
-import 'package:linter/src/rules/no_duplicated_rules.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
 import 'package:linter/src/rules/null_closures.dart';
 import 'package:linter/src/rules/omit_local_variable_types.dart';
