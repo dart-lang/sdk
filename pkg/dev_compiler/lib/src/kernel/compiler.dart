@@ -4928,7 +4928,7 @@ class ProgramCompiler extends Object
   @override
   js_ast.Expression visitInstanceCreation(InstanceCreation node) {
     // Only occurs inside unevaluated constants.
-    throw new UnsupportedError("Instance creation");
+    throw UnsupportedError("Instance creation");
   }
 
   @override

@@ -23,8 +23,8 @@ Future main(List<String> args, [SendPort sendPort]) async {
 
   if (parsedArgs.isWorker) {
     var workerConnection = sendPort == null
-        ? new StdAsyncWorkerConnection()
-        : new SendPortAsyncWorkerConnection(sendPort);
+        ? StdAsyncWorkerConnection()
+        : SendPortAsyncWorkerConnection(sendPort);
     await _CompilerWorker(parsedArgs, workerConnection).run();
   } else if (parsedArgs.isBatch) {
     await runBatch(parsedArgs);

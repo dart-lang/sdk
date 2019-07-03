@@ -109,7 +109,7 @@ vars = {
   "package_config_tag": "1.0.5",
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
-  "pedantic_tag": "v1.7.0",
+  "pedantic_tag": "v1.8.0",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "1.3.6",
   "protobuf_rev": "7d34c9e4e552a4f66acce32e4344ae27756a1949",

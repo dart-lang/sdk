@@ -15,7 +15,7 @@ dependencies:
 dev_dependencies:
   sourcemap_testing:
     path: ../sourcemap_testing
-  pedantic: ^1.7.0
+  pedantic: ^1.8.0
   test: any
   testing:
     path: ../testing

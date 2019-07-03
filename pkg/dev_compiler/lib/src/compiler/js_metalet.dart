@@ -292,9 +292,8 @@ T _substitute<T extends Node>(
     T tree, Map<MetaLetVariable, Expression> substitutions) {
   var generator = InstantiatorGeneratorVisitor(/*forceCopy:*/ false);
   var instantiator = generator.compile(tree);
-  var nodes = List<MetaLetVariable>.from(generator
-      .analysis.containsInterpolatedNode
-      .where((n) => n is MetaLetVariable));
+  var nodes = List<MetaLetVariable>.from(
+      generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>());
   if (nodes.isEmpty) return tree;
 
   return instantiator(Map.fromIterable(nodes,

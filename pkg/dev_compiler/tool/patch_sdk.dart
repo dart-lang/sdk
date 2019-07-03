@@ -227,12 +227,12 @@ class PatchApplier extends GeneralizingAstVisitor {
     int importPos = unit.directives
         .lastWhere((d) => d is ImportDirective, orElse: () => libDir)
         .end;
-    for (var d in patch.unit.directives.where((d) => d is ImportDirective)) {
+    for (var d in patch.unit.directives.whereType<ImportDirective>()) {
       _merge(d, importPos);
     }
 
     int partPos = unit.directives.last.end;
-    for (var d in patch.unit.directives.where((d) => d is PartDirective)) {
+    for (var d in patch.unit.directives.whereType<PartDirective>()) {
       _merge(d, partPos);
     }
 

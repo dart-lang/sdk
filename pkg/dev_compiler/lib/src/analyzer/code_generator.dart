@@ -5498,7 +5498,7 @@ class CodeGenerator extends Object
       variable = forParts.loopVariable.identifier;
       init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     return js.statement(
         '{'
@@ -6516,7 +6516,7 @@ class CodeGenerator extends Object
     } else if (forParts is ForPartsWithDeclarations) {
       init = visitVariableDeclarationList(forParts.variables);
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     js_ast.Expression update;
     if (forParts.updaters != null && forParts.updaters.isNotEmpty) {
@@ -6548,7 +6548,7 @@ class CodeGenerator extends Object
         ]);
       }
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     return js_ast.ForOf(jsLeftExpression, jsIterable, jsBody);
   }
@@ -6618,7 +6618,7 @@ class CodeGenerator extends Object
       } else if (forParts is ForEachPartsWithDeclaration) {
         variable = forParts.loopVariable.identifier;
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
       var castType = getImplicitCast(variable);
       if (castType != null) {

@@ -23,16 +23,16 @@ main(List<String> args) async {
       sdkRoot.resolve('tests/modular/'),
       'tests/modular',
       _options,
-      new IOPipeline([
+      IOPipeline([
         SourceToSummaryDillStep(),
         DDKStep(),
         RunD8(),
       ], cacheSharedModules: true));
 }
 
-const dillId = const DataId("dill");
-const jsId = const DataId("js");
-const txtId = const DataId("txt");
+const dillId = DataId("dill");
+const jsId = DataId("js");
+const txtId = DataId("txt");
 
 class SourceToSummaryDillStep implements IOModularStep {
   @override
@@ -270,7 +270,7 @@ String get _d8executable {
   } else if (Platform.isMacOS) {
     return 'third_party/d8/macos/d8';
   }
-  throw new UnsupportedError('Unsupported platform.');
+  throw UnsupportedError('Unsupported platform.');
 }
 
 Future<void> _createPackagesFile(
@@ -287,7 +287,7 @@ Future<void> _createPackagesFile(
   // TODO(sigmund): follow up with the CFE to see if we can remove the need
   // for the .packages entry altogether if they won't need to read the
   // sources.
-  var packagesContents = new StringBuffer();
+  var packagesContents = StringBuffer();
   if (module.isPackage) {
     packagesContents.write('${module.name}:${module.packageBase}\n');
   }

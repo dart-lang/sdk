@@ -248,7 +248,7 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
-    doneInputSummaries = new List<Component>(summaryModules.length);
+    doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         doneInputSummaries,
@@ -292,7 +292,7 @@ Future<CompilerResult> _compile(List<String> args,
     Component incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
     hierarchy = incrementalCompiler.userCode.loader.hierarchy;
-    result = new fe.DdcResult(incrementalComponent, doneInputSummaries);
+    result = fe.DdcResult(incrementalComponent, doneInputSummaries);
 
     // Workaround for DDC relying on isExternal being set to true.
     for (var lib in cachedSdkInput.component.libraries) {
@@ -335,7 +335,7 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     kernel.Printer(sb, showExternal: false).writeComponentFile(component);
     outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }

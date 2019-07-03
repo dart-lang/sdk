@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: slash_for_doc_comments
+// ignore_for_file: slash_for_doc_comments, unnecessary_new
 
 // Utilities for building JS ASTs at runtime.  Contains a builder class
 // and a parser that parses part of the language.
