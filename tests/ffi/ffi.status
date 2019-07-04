@@ -24,7 +24,7 @@ function_callbacks_test/03: Skip
 [ $arch == arm && $system != android ]
 *: Skip # "hardfp" calling convention is not yet supported (iOS is also supported but not tested): dartbug.com/36309
 
-[ $arch == simdbc64 && $system != android && $system != linux && $system != macos ]
+[ $arch == simdbc64 && $system != linux && $system != macos ]
 *: Skip # FFI not yet supported outside x64 Linux: dartbug.com/36809
 
 [ $runtime != dart_precompiled && $runtime != vm ]

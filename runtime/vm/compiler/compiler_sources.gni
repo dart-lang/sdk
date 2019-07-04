@@ -152,12 +152,9 @@ compiler_sources = [
 #
 # Not that this diverges from our convention to build every file on every OS
 # but have ifdef guards which make the files empty on some configurations.
-if (!is_win) {
+if (is_linux || is_mac) {
   # MASM on Windows does not support c preproccesor style flags.
-  compiler_sources += [
-    "ffi_dbc_trampoline_arm64.S",
-    "ffi_dbc_trampoline_x64_linux_mac.S",
-  ]
+  compiler_sources += [ "ffi_dbc_trampoline_x64_linux_mac.S" ]
 }
 
 compiler_sources_tests = [
