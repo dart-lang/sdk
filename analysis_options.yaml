@@ -34,7 +34,7 @@ linter:
     - avoid_setters_without_getters
 #    - avoid_single_cascade_in_expression_statements # under review (see #1068)
     - avoid_slow_async_io
-#    - avoid_types_as_parameter_names # under review (see #1068)
+#    - avoid_types_as_parameter_names (included in pedantic)
 #    - avoid_types_on_closure_parameters
 #    - avoid_unused_constructor_parameters # under review (see #1068)
 #    - avoid_void_async # under review (see #1068)
@@ -85,7 +85,7 @@ linter:
 #    - prefer_generic_function_type_aliases # under review (see #1068)
     - prefer_initializing_formals
 #    - prefer_interpolation_to_compose_strings
-    - prefer_iterable_whereType
+#    - prefer_iterable_whereType (included in pedantic)
 #    - prefer_mixin
     - prefer_single_quotes
 #    - prefer_typing_uninitialized_variables # under review (see #1068)
@@ -98,10 +98,10 @@ linter:
     - throw_in_finally
 #    - type_annotate_public_apis
     - unnecessary_brace_in_string_interps
-#    - unnecessary_const # under review (see #1068)
+#    - unnecessary_const (included in pedantic)
     - unnecessary_getters_setters
     - unnecessary_lambdas
-#    - unnecessary_new # under review (see #1068)
+#    - unnecessary_new (included in pedantic)
     - unnecessary_null_aware_assignments
     - unnecessary_overrides
 #    - unnecessary_parenthesis # under review (see #1068)
