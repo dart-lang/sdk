@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   closurizedCallToString();
 }
@@ -11,13 +11,13 @@ main() {
 // Implicit/explicit .call on instance method tear-off.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class.:[exact=Class]*/
+/*member: Class.:[exact=Class]*/
 class Class {
-  /*element: Class.method:[exact=JSUInt31]*/
+  /*member: Class.method:[exact=JSUInt31]*/
   method() => 42;
 }
 
-/*element: closurizedCallToString:[exact=JSString]*/
+/*member: closurizedCallToString:[exact=JSString]*/
 closurizedCallToString() {
   var c = new Class();
   var local = c. /*[exact=Class]*/ method;

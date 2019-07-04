@@ -4,12 +4,12 @@
 
 /*class: E:OutputUnit(3, {lib3})*/
 class E<T> {
-  /*strong.element: E.:OutputUnit(3, {lib3})*/
+  /*strong.member: E.:OutputUnit(3, {lib3})*/
   const E();
 }
 
 /*class: F:OutputUnit(2, {lib1, lib3})*/
 class F {}
 
-/*strong.element: field:OutputUnit(3, {lib3})*/
+/*strong.member: field:OutputUnit(3, {lib3})*/
 const dynamic field = /*strong.OutputUnit(3, {lib3})*/ const E<F>();

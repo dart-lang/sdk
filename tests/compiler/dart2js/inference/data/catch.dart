@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   catchUntyped();
   catchTyped();
@@ -13,7 +13,7 @@ main() {
 /// Untyped catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchUntyped:[subclass=Object]*/
+/*member: catchUntyped:[subclass=Object]*/
 catchUntyped() {
   dynamic local = 0;
   try {} catch (e) {
@@ -26,7 +26,7 @@ catchUntyped() {
 /// Typed catch clause.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchTyped:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: catchTyped:Union([exact=JSString], [exact=JSUInt31])*/
 catchTyped() {
   dynamic local = 0;
   try {} on String catch (e) {
@@ -39,7 +39,7 @@ catchTyped() {
 /// Catch clause with stack trace.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: catchStackTrace:[null|subclass=Object]*/
+/*member: catchStackTrace:[null|subclass=Object]*/
 catchStackTrace() {
   dynamic local = 0;
   try {} catch (_, s) {

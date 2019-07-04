@@ -10,14 +10,14 @@
 import '../libs/mixin_constructor_default_parameter_values_lib.dart';
 
 class Mixin {
-  /*element: Mixin.foo:[exact=JSString]*/
+  /*member: Mixin.foo:[exact=JSString]*/
   String get foo => "Mixin:$this";
 }
 
 // ignore: MIXIN_HAS_NO_CONSTRUCTORS
 class D = C with Mixin;
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   // ignore: NEW_WITH_UNDEFINED_CONSTRUCTOR
   print(new D.a(42). /*[exact=D]*/ foo);

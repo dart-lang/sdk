@@ -5,42 +5,42 @@
 import 'package:expect/expect.dart';
 
 class Class1 {
-  /*element: Class1.method1:*/
+  /*member: Class1.method1:*/
   num method1<T>(num n) => null;
 
-  /*element: Class1.method2:*/
+  /*member: Class1.method2:*/
   num method2<T>(int n) => null;
 
-  /*element: Class1.method3:*/
+  /*member: Class1.method3:*/
   int method3<T>(num n) => null;
 }
 
 class Class2 {
-  /*strong.element: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>]*/
-  /*omit.element: Class2.method4:*/
+  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,needsInst=[<num>,<num>]*/
+  /*omit.member: Class2.method4:*/
   num method4<T>(T n) => null;
 }
 
 class Class3 {
-  /*element: Class3.method5:*/
+  /*member: Class3.method5:*/
   T method5<T>(num n) => null;
 }
 
 class Class4 {
-  /*strong.element: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>]*/
-  /*omit.element: Class4.method6:*/
+  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,needsInst=[<num>,<num>]*/
+  /*omit.member: Class4.method6:*/
   num method6<T>(num n, T t) => null;
 }
 
-/*strong.element: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>]*/
-/*omit.element: method7:*/
+/*strong.member: method7:direct,explicit=[method7.T],needsArgs,needsInst=[<num>,<num>]*/
+/*omit.member: method7:*/
 num method7<T>(T n) => null;
 
-/*element: method8:*/
+/*member: method8:*/
 T method8<T>(num n) => null;
 
-/*strong.element: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>]*/
-/*omit.element: method9:*/
+/*strong.member: method9:direct,explicit=[method9.T],needsArgs,needsInst=[<num>,<num>]*/
+/*omit.member: method9:*/
 num method9<T>(num n, T t) => null;
 
 @pragma('dart2js:noInline')

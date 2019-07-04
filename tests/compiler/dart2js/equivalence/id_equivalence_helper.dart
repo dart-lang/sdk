@@ -280,7 +280,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   }
 
   for (Id id in globalIds) {
-    if (id is ElementId) {
+    if (id is MemberId) {
       MemberEntity member;
       if (id.className != null) {
         ClassEntity cls = getGlobalClass(id.className);
@@ -949,7 +949,7 @@ Spannable computeSpannable(
     ElementEnvironment elementEnvironment, Uri mainUri, Id id) {
   if (id is NodeId) {
     return new SourceSpan(mainUri, id.value, id.value + 1);
-  } else if (id is ElementId) {
+  } else if (id is MemberId) {
     String memberName = id.memberName;
     bool isSetter = false;
     if (memberName != '[]=' && memberName != '==' && memberName.endsWith('=')) {

@@ -15,7 +15,7 @@ Id computeEntityId(Member node) {
   if (node is Procedure && node.kind == ProcedureKind.Setter) {
     memberName += '=';
   }
-  return new ElementId.internal(memberName, className: className);
+  return new MemberId.internal(memberName, className: className);
 }
 
 TreeNode computeTreeNodeWithOffset(TreeNode node) {
@@ -47,7 +47,7 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   DataExtractor(this.actualMap);
 
   void computeForMember(Member member) {
-    ElementId id = computeEntityId(member);
+    MemberId id = computeEntityId(member);
     if (id == null) return;
     T value = computeMemberValue(id, member);
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(member);

@@ -4,9 +4,9 @@
 
 /*class: C:OutputUnit(1, {s1, s2})*/
 class C {
-  /*strong.element: C.:OutputUnit(1, {s1, s2})*/
+  /*strong.member: C.:OutputUnit(1, {s1, s2})*/
   const C();
 
-  /*element: C.method:OutputUnit(1, {s1, s2})*/
+  /*member: C.method:OutputUnit(1, {s1, s2})*/
   method() => print("1");
 }

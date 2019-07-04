@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart';
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   trustParameters();
 }
@@ -13,7 +13,7 @@ main() {
 // Test that we trust the explicit type of a parameter.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _trustParameters:[exact=JSUInt31]*/
+/*member: _trustParameters:[exact=JSUInt31]*/
 _trustParameters(
     int
         /*strong.Union([exact=JSString], [exact=JSUInt31])*/
@@ -24,7 +24,7 @@ _trustParameters(
   return i;
 }
 
-/*element: trustParameters:[null]*/
+/*member: trustParameters:[null]*/
 trustParameters() {
   dynamic f = _trustParameters;
   Expect.equals(0, f(0));

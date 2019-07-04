@@ -2,97 +2,97 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: method1:params=0*/
+/*member: method1:params=0*/
 @pragma('dart2js:noInline')
 method1() {}
 
-/*element: method2a:params=0*/
+/*member: method2a:params=0*/
 @pragma('dart2js:noInline')
 method2a([a]) {}
 
-/*element: method2b:params=1*/
+/*member: method2b:params=1*/
 @pragma('dart2js:noInline')
 method2b([a]) {}
 
-/*element: method2c:params=1*/
+/*member: method2c:params=1*/
 @pragma('dart2js:noInline')
 method2c([a]) {}
 
-/*element: method3a:params=0*/
+/*member: method3a:params=0*/
 @pragma('dart2js:noInline')
 method3a([a, b]) {}
 
-/*element: method3b:params=1*/
+/*member: method3b:params=1*/
 @pragma('dart2js:noInline')
 method3b([a, b]) {}
 
-/*element: method3c:params=2*/
+/*member: method3c:params=2*/
 @pragma('dart2js:noInline')
 method3c([a, b]) {}
 
-/*element: method4a:params=0*/
+/*member: method4a:params=0*/
 @pragma('dart2js:noInline')
 method4a({a}) {}
 
-/*element: method4b:params=1*/
+/*member: method4b:params=1*/
 @pragma('dart2js:noInline')
 method4b({a}) {}
 
-/*element: method4c:params=1*/
+/*member: method4c:params=1*/
 @pragma('dart2js:noInline')
 method4c({a}) {}
 
-/*element: method5a:params=0*/
+/*member: method5a:params=0*/
 @pragma('dart2js:noInline')
 method5a({a, b}) {}
 
-/*element: method5b:params=1*/
+/*member: method5b:params=1*/
 @pragma('dart2js:noInline')
 method5b({a, b}) {}
 
-/*element: method5c:params=1*/
+/*member: method5c:params=1*/
 @pragma('dart2js:noInline')
 method5c({a, b}) {}
 
-/*element: method6a:params=0*/
+/*member: method6a:params=0*/
 @pragma('dart2js:noInline')
 method6a<T>() {}
 
-/*element: method7a:params=1*/
+/*member: method7a:params=1*/
 @pragma('dart2js:noInline')
 method7a(a, [b, c]) {}
 
-/*element: method7b:params=2*/
+/*member: method7b:params=2*/
 @pragma('dart2js:noInline')
 method7b(a, [b, c]) {}
 
-/*element: method7c:params=3*/
+/*member: method7c:params=3*/
 @pragma('dart2js:noInline')
 method7c(a, [b, c]) {}
 
-/*element: method8a:params=1*/
+/*member: method8a:params=1*/
 @pragma('dart2js:noInline')
 method8a(a, {b, c}) {}
 
-/*element: method8b:params=2*/
+/*member: method8b:params=2*/
 @pragma('dart2js:noInline')
 method8b(a, {b, c}) {}
 
-/*element: method8c:params=2*/
+/*member: method8c:params=2*/
 @pragma('dart2js:noInline')
 method8c(a, {b, c}) {}
 
-/*element: method9a:params=2*/
+/*member: method9a:params=2*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:noElision')
 method9a([a, b]) {}
 
-/*element: method9b:params=2*/
+/*member: method9b:params=2*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:noElision')
 method9b({a, b}) {}
 
-/*element: main:
+/*member: main:
  calls=[
   method1(0),
   method2a(0),

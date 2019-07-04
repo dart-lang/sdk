@@ -7,12 +7,12 @@
 /// type variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1a.:hasThis*/
+/*member: Class1a.:hasThis*/
 class Class1a<T> {}
 
-/*element: Class1b.:hasThis*/
+/*member: Class1b.:hasThis*/
 class Class1b<T> {
-  /*element: Class1b.method1:hasThis*/
+  /*member: Class1b.method1:hasThis*/
   method1() {
     /*fields=[this],free=[this],hasThis*/
     dynamic local() => new Class1a<T>();
@@ -25,12 +25,12 @@ class Class1b<T> {
 /// does _not_ capture the type variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class2a.:hasThis*/
+/*member: Class2a.:hasThis*/
 class Class2a<T> {}
 
-/*element: Class2b.:hasThis*/
+/*member: Class2b.:hasThis*/
 class Class2b<T> {
-  /*element: Class2b.method2:hasThis*/
+  /*member: Class2b.method2:hasThis*/
   method2() {
     /*hasThis*/
     dynamic local() => new Class2a<T>();
@@ -69,9 +69,9 @@ method4b<T>(o) {
 /// the type variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class5a.:hasThis*/
+/*member: Class5a.:hasThis*/
 class Class5a {
-  /*element: Class5a.method5a:hasThis*/
+  /*member: Class5a.method5a:hasThis*/
   method5a<T>(o) => o is T;
 }
 
@@ -86,9 +86,9 @@ method5b<T>(o) {
 /// arguments does _not_ capture the type variables.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class6a.:hasThis*/
+/*member: Class6a.:hasThis*/
 class Class6a {
-  /*element: Class6a.method6a:hasThis*/
+  /*member: Class6a.method6a:hasThis*/
   method6a<T>(o) => o;
 }
 

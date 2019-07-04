@@ -4,12 +4,12 @@
 
 /*strong.class: A:explicit=[A]*/
 class A {
-  /*element: A.instanceMethod:deps=[B.instanceMethod]*/
+  /*member: A.instanceMethod:deps=[B.instanceMethod]*/
   instanceMethod<T>(t) => t;
 }
 
 class B {
-  /*element: B.instanceMethod:*/
+  /*member: B.instanceMethod:*/
   instanceMethod<T>(A a, t) => a.instanceMethod<T>(t);
 }
 

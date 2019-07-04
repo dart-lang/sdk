@@ -25,8 +25,8 @@ class Class1 {
 }
 
 class Class2 {
-  /*strong.element: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
-  /*omit.element: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*strong.member: Class2.method4:direct,explicit=[method4.T],needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
+  /*omit.member: Class2.method4:needsArgs,selectors=[Selector(call, method4, arity=0, types=1)]*/
   method4<T>() {
     /*needsSignature*/
     num local(T n) => null;
@@ -35,7 +35,7 @@ class Class2 {
 }
 
 class Class3 {
-  /*element: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
+  /*member: Class3.method5:needsArgs,selectors=[Selector(call, method5, arity=0, types=1)]*/
   method5<T>() {
     /*needsSignature*/
     T local(num n) => null;
@@ -44,8 +44,8 @@ class Class3 {
 }
 
 class Class4 {
-  /*strong.element: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
-  /*omit.element: Class4.method6:*/
+  /*strong.member: Class4.method6:direct,explicit=[method6.T],needsArgs,selectors=[Selector(call, method6, arity=0, types=1)]*/
+  /*omit.member: Class4.method6:*/
   method6<T>() {
     /**/
     num local(num n, T t) => null;
@@ -53,23 +53,23 @@ class Class4 {
   }
 }
 
-/*strong.element: method7:direct,explicit=[method7.T],needsArgs*/
-/*omit.element: method7:needsArgs*/
+/*strong.member: method7:direct,explicit=[method7.T],needsArgs*/
+/*omit.member: method7:needsArgs*/
 method7<T>() {
   /*needsSignature*/
   num local(T n) => null;
   return local;
 }
 
-/*element: method8:needsArgs*/
+/*member: method8:needsArgs*/
 method8<T>() {
   /*needsSignature*/
   T local(num n) => null;
   return local;
 }
 
-/*strong.element: method9:direct,explicit=[method9.T],needsArgs*/
-/*omit.element: method9:*/
+/*strong.member: method9:direct,explicit=[method9.T],needsArgs*/
+/*omit.member: method9:*/
 method9<T>() {
   /**/
   num local(num n, T t) => null;

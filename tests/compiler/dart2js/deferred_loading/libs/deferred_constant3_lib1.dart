@@ -5,14 +5,14 @@
 import 'deferred_constant3_shared.dart';
 import 'deferred_constant3_lib2.dart' deferred as l2;
 
-/*strong.element: c2:OutputUnit(1, {l1})*/
+/*strong.member: c2:OutputUnit(1, {l1})*/
 const c2 = /*strong.OutputUnit(1, {l1})*/ const C(2);
 
-/*strong.element: c3:OutputUnit(1, {l1})*/
+/*strong.member: c3:OutputUnit(1, {l1})*/
 const c3 = /*strong.OutputUnit(1, {l1})*/ const C(3);
 
-/*strong.element: m1:OutputUnit(1, {l1})*/
-/*strongConst.element: m1:
+/*strong.member: m1:OutputUnit(1, {l1})*/
+/*strongConst.member: m1:
  OutputUnit(1, {l1}),
  constants=[
   ConstructedConstant(C(x=IntConstant(1)))=OutputUnit(main, {}),

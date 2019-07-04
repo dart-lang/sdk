@@ -2,22 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: method:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: method:Union([exact=JSDouble], [exact=JSUInt31])*/
 // Called via [foo] with integer then double.
 method(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) {
   return a;
 }
 
-/*strong.element: foo:[subclass=Closure]*/
-/*omit.element: foo:[subclass=Closure]*/
+/*strong.member: foo:[subclass=Closure]*/
+/*omit.member: foo:[subclass=Closure]*/
 const foo = method;
 
-/*element: returnNum:[null|subclass=Object]*/
+/*member: returnNum:[null|subclass=Object]*/
 returnNum(/*Union([exact=JSDouble], [exact=JSUInt31])*/ x) {
   return foo(x);
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnNum(10);
   returnNum(10.5);

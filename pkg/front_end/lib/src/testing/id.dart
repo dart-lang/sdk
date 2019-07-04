@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum IdKind {
-  element,
+  member,
   cls,
   node,
   invoke,
@@ -43,9 +43,9 @@ class IdValue {
 
   static String idToString(Id id, String value) {
     switch (id.kind) {
-      case IdKind.element:
-        ElementId elementId = id;
-        return '$elementPrefix${elementId.name}:$value';
+      case IdKind.member:
+        MemberId elementId = id;
+        return '$memberPrefix${elementId.name}:$value';
       case IdKind.cls:
         ClassId classId = id;
         return '$classPrefix${classId.name}:$value';
@@ -66,7 +66,7 @@ class IdValue {
   }
 
   static const String globalPrefix = "global#";
-  static const String elementPrefix = "element: ";
+  static const String memberPrefix = "member: ";
   static const String classPrefix = "class: ";
   static const String invokePrefix = "invoke: ";
   static const String updatePrefix = "update: ";
@@ -77,8 +77,8 @@ class IdValue {
   static IdValue decode(int offset, String text) {
     Id id;
     String expected;
-    if (text.startsWith(elementPrefix)) {
-      text = text.substring(elementPrefix.length);
+    if (text.startsWith(memberPrefix)) {
+      text = text.substring(memberPrefix.length);
       int colonPos = text.indexOf(':');
       if (colonPos == -1) throw "Invalid element id: '$text'";
       String name = text.substring(0, colonPos);
@@ -86,7 +86,7 @@ class IdValue {
       if (isGlobal) {
         name = name.substring(globalPrefix.length);
       }
-      id = new ElementId(name, isGlobal: isGlobal);
+      id = new MemberId(name, isGlobal: isGlobal);
       expected = text.substring(colonPos + 1);
     } else if (text.startsWith(classPrefix)) {
       text = text.substring(classPrefix.length);
@@ -125,23 +125,23 @@ class IdValue {
 }
 
 /// Id for an member element.
-class ElementId implements Id {
+class MemberId implements Id {
   final String className;
   final String memberName;
   @override
   final bool isGlobal;
 
-  factory ElementId(String text, {bool isGlobal: false}) {
+  factory MemberId(String text, {bool isGlobal: false}) {
     int dotPos = text.indexOf('.');
     if (dotPos != -1) {
-      return new ElementId.internal(text.substring(dotPos + 1),
+      return new MemberId.internal(text.substring(dotPos + 1),
           className: text.substring(0, dotPos), isGlobal: isGlobal);
     } else {
-      return new ElementId.internal(text, isGlobal: isGlobal);
+      return new MemberId.internal(text, isGlobal: isGlobal);
     }
   }
 
-  ElementId.internal(this.memberName, {this.className, this.isGlobal: false});
+  MemberId.internal(this.memberName, {this.className, this.isGlobal: false});
 
   @override
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
@@ -149,12 +149,12 @@ class ElementId implements Id {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    if (other is! ElementId) return false;
+    if (other is! MemberId) return false;
     return className == other.className && memberName == other.memberName;
   }
 
   @override
-  IdKind get kind => IdKind.element;
+  IdKind get kind => IdKind.member;
 
   String get name => className != null ? '$className.$memberName' : memberName;
 
@@ -162,7 +162,7 @@ class ElementId implements Id {
   String get descriptor => 'member $name';
 
   @override
-  String toString() => 'element:$name';
+  String toString() => 'member:$name';
 }
 
 /// Id for a class.

@@ -4,20 +4,20 @@
 
 /*class: Class1:*/
 class Class1 {
-  /*element: Class1.:*/
+  /*member: Class1.:*/
   Class1();
 
-  /*element: Class1.method:*/
+  /*member: Class1.method:*/
   T method<T>() => null;
 }
 
 /*class: Class2:*/
 class Class2<T> {
-  /*element: Class2.:*/
+  /*member: Class2.:*/
   Class2();
 }
 
-/*element: main:*/
+/*member: main:*/
 main() {
   Class1 cls1 = new Class1();
   print(cls1.method.runtimeType.toString());

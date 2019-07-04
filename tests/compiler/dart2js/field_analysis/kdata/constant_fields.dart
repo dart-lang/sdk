@@ -10,21 +10,21 @@ main() {
 }
 
 class Class1 {
-  /*element: Class1.field1:Class1.=field1:BoolConstant(false),initial=NullConstant*/
+  /*member: Class1.field1:Class1.=field1:BoolConstant(false),initial=NullConstant*/
   final bool field1;
 
   const Class1({this.field1: false});
 }
 
 class Class2 {
-  /*element: Class2.field2:Class2.=field2:BoolConstant(false),initial=NullConstant*/
+  /*member: Class2.field2:Class2.=field2:BoolConstant(false),initial=NullConstant*/
   final bool field2;
 
   const Class2({this.field2: false});
 }
 
 class Class3 {
-  /*element: Class3.field3:Class3.=field3:BoolConstant(false),initial=NullConstant*/
+  /*member: Class3.field3:Class3.=field3:BoolConstant(false),initial=NullConstant*/
   final bool field3;
 
   const Class3({this.field3: false});

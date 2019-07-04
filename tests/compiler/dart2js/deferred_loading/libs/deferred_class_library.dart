@@ -8,10 +8,10 @@ library deferred_class_library;
 
 /*class: MyClass:OutputUnit(1, {lib})*/
 class MyClass {
-  /*element: MyClass.:OutputUnit(1, {lib})*/
+  /*member: MyClass.:OutputUnit(1, {lib})*/
   const MyClass();
 
-  /*element: MyClass.foo:OutputUnit(1, {lib})*/
+  /*member: MyClass.foo:OutputUnit(1, {lib})*/
   foo(x) {
     print('MyClass.foo($x)');
     return (x - 3) ~/ 2;

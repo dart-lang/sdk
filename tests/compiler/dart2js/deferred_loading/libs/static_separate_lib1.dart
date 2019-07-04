@@ -6,15 +6,15 @@ library lib1;
 
 /*class: ConstClass:OutputUnit(2, {lib1, lib2})*/
 class ConstClass {
-  /*element: ConstClass.x:OutputUnit(2, {lib1, lib2})*/
+  /*member: ConstClass.x:OutputUnit(2, {lib1, lib2})*/
   final x;
 
-  /*strong.element: ConstClass.:OutputUnit(2, {lib1, lib2})*/
+  /*strong.member: ConstClass.:OutputUnit(2, {lib1, lib2})*/
   const ConstClass(this.x);
 }
 
-/*strong.element: x:OutputUnit(2, {lib1, lib2})*/
-/*strongConst.element: x:
+/*strong.member: x:OutputUnit(2, {lib1, lib2})*/
+/*strongConst.member: x:
  OutputUnit(2, {lib1, lib2}),
  constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
 */
@@ -22,16 +22,16 @@ var x = const ConstClass(const ConstClass(1));
 
 /*class: C:OutputUnit(1, {lib1})*/
 class C {
-  /*element: C.foo:OutputUnit(3, {lib2})*/
+  /*member: C.foo:OutputUnit(3, {lib2})*/
   static foo() {
     /*OutputUnit(3, {lib2})*/ () {}(); // Hack to avoid inlining.
     return 1;
   }
 
-  /*element: C.:OutputUnit(1, {lib1})*/
+  /*member: C.:OutputUnit(1, {lib1})*/
   C();
 
-  /*element: C.bar:OutputUnit(1, {lib1})*/
+  /*member: C.bar:OutputUnit(1, {lib1})*/
   bar() {
     /*OutputUnit(1, {lib1})*/ () {}(); // Hack to avoid inlining.
     return 1;
@@ -40,8 +40,8 @@ class C {
 
 /*class: C1:null*/
 class C1 {
-  /*strong.element: C1.foo:OutputUnit(3, {lib2})*/
-  /*strongConst.element: C1.foo:
+  /*strong.member: C1.foo:OutputUnit(3, {lib2})*/
+  /*strongConst.member: C1.foo:
    OutputUnit(3, {lib2}),
    constants=[MapConstant({})=OutputUnit(3, {lib2})]
   */
@@ -51,59 +51,59 @@ class C1 {
 
 /*class: C2:OutputUnit(1, {lib1})*/
 class C2 {
-  /*element: C2.foo:OutputUnit(3, {lib2})*/
+  /*member: C2.foo:OutputUnit(3, {lib2})*/
   static var foo = new Map<int, int>.from({1: 2});
 
-  /*element: C2.bar:OutputUnit(1, {lib1})*/
+  /*member: C2.bar:OutputUnit(1, {lib1})*/
   var bar = new Map<int, int>.from({1: 2});
 
-  /*element: C2.:OutputUnit(1, {lib1})*/
+  /*member: C2.:OutputUnit(1, {lib1})*/
   C2();
 }
 
 /*class: C3:OutputUnit(1, {lib1})*/
 class C3 {
-  /*strong.element: C3.foo:OutputUnit(3, {lib2})*/
-  /*strongConst.element: C3.foo:
+  /*strong.member: C3.foo:OutputUnit(3, {lib2})*/
+  /*strongConst.member: C3.foo:
    OutputUnit(3, {lib2}),
    constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
   */
   static final foo = const ConstClass(const ConstClass(1));
 
-  /*strong.element: C3.bar:OutputUnit(1, {lib1})*/
-  /*strongConst.element: C3.bar:
+  /*strong.member: C3.bar:OutputUnit(1, {lib1})*/
+  /*strongConst.member: C3.bar:
    OutputUnit(1, {lib1}),
    constants=[ConstructedConstant(ConstClass(x=ConstructedConstant(ConstClass(x=IntConstant(1)))))=OutputUnit(2, {lib1, lib2})]
   */
   final bar = const ConstClass(const ConstClass(1));
 
-  /*element: C3.:OutputUnit(1, {lib1})*/
+  /*member: C3.:OutputUnit(1, {lib1})*/
   C3();
 }
 
 /*class: C4:OutputUnit(1, {lib1})*/
 class C4 {
-  /*element: C4.foo:OutputUnit(3, {lib2})*/
+  /*member: C4.foo:OutputUnit(3, {lib2})*/
   static final foo = new Map<ConstClass, ConstClass>.from({x: x});
 
-  /*element: C4.bar:OutputUnit(1, {lib1})*/
+  /*member: C4.bar:OutputUnit(1, {lib1})*/
   final bar = new Map<ConstClass, ConstClass>.from({x: x});
 
-  /*element: C4.:OutputUnit(1, {lib1})*/
+  /*member: C4.:OutputUnit(1, {lib1})*/
   C4();
 }
 
 /*class: C5:OutputUnit(1, {lib1})*/
 class C5 {
-  /*strong.element: C5.foo:OutputUnit(3, {lib2})*/
+  /*strong.member: C5.foo:OutputUnit(3, {lib2})*/
   static const foo = /*strong.OutputUnit(3, {lib2})*/ const [
     const {1: 3}
   ];
 
-  /*element: C5.:OutputUnit(1, {lib1})*/
+  /*member: C5.:OutputUnit(1, {lib1})*/
   C5();
 
-  /*element: C5.bar:OutputUnit(1, {lib1})*/
+  /*member: C5.bar:OutputUnit(1, {lib1})*/
   bar() {
     /*OutputUnit(1, {lib1})*/ () {}(); // Hack to avoid inlining.
     return 1;

@@ -12,7 +12,7 @@ import "package:async_helper/async_helper.dart";
 import "../libs/static_separate_lib1.dart" deferred as lib1;
 import "../libs/static_separate_lib2.dart" deferred as lib2;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 void main() {
   asyncStart();
   Expect.throws(/*OutputUnit(main, {})*/ () {

@@ -9,7 +9,7 @@
 
 import '../libs/instantiation0_strong_lib1.dart' deferred as b;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await b.loadLibrary();
   print(b.m(3));

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   forInDirect();
   forInReturn();
@@ -14,7 +14,7 @@ main() {
 // For-in loop directly on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: forInDirect:[null]*/
+/*member: forInDirect:[null]*/
 forInDirect() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
@@ -28,7 +28,7 @@ forInDirect() {
 // Return element from a for-in loop on a list literal.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: forInReturn:[null|subclass=JSInt]*/
+/*member: forInReturn:[null|subclass=JSInt]*/
 forInReturn() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/
@@ -43,7 +43,7 @@ forInReturn() {
 // Return element from a for-in loop on known list type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _forInReturn:[null|subclass=Object]*/
+/*member: _forInReturn:[null|subclass=Object]*/
 _forInReturn(
     /*Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/ list) {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
@@ -55,7 +55,7 @@ _forInReturn(
   }
 }
 
-/*element: forInReturnMulti:[null]*/
+/*member: forInReturnMulti:[null]*/
 forInReturnMulti() {
   _forInReturn([1, 2]);
   _forInReturn([1, 2, 3]);
@@ -66,7 +66,7 @@ forInReturnMulti() {
 // loop on known list type.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: forInReturnNonNull:[subclass=JSInt]*/
+/*member: forInReturnNonNull:[subclass=JSInt]*/
 forInReturnNonNull() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 3)*/
   /*current: [exact=ArrayIterator]*/

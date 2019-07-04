@@ -4,41 +4,41 @@
 
 import 'dart:collection';
 
-/*element: dynamicIndex:Specializer=[!Index]*/
+/*member: dynamicIndex:Specializer=[!Index]*/
 @pragma('dart2js:noInline')
 dynamicIndex(var list) {
   return list[0]; // This not known to be an indexable primitive.
 }
 
-/*element: unknownListIndex:Specializer=[!Index]*/
+/*member: unknownListIndex:Specializer=[!Index]*/
 @pragma('dart2js:noInline')
 unknownListIndex(List list) {
   return list[0]; // This not known to be an indexable primitive.
 }
 
-/*element: possiblyNullMutableListIndex:Specializer=[Index]*/
+/*member: possiblyNullMutableListIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 possiblyNullMutableListIndex(bool b) {
   var list = b ? [0] : null;
   return list[0];
 }
 
-/*element: mutableListIndex:Specializer=[Index]*/
+/*member: mutableListIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 mutableListIndex() {
   var list = [0];
   return list[0];
 }
 
-/*element: mutableListDynamicIndex:Specializer=[Index]*/
+/*member: mutableListDynamicIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 mutableListDynamicIndex(dynamic index) {
   var list = [0];
   return list[index]; // CFE inserts an implicit cast of the index.
 }
 
-/*strong.element: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
-/*omit.element: mutableDynamicListDynamicIndex:Specializer=[Index]*/
+/*strong.member: mutableDynamicListDynamicIndex:Specializer=[!Index]*/
+/*omit.member: mutableDynamicListDynamicIndex:Specializer=[Index]*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:disableFinal')
 mutableDynamicListDynamicIndex(dynamic index) {

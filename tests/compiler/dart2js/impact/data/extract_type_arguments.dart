@@ -9,10 +9,10 @@ class A<T> {}
 
 class B<S, U> {}
 
-/*element: C.:static=[Object.(0)]*/
+/*member: C.:static=[Object.(0)]*/
 class C implements A<int>, B<String, bool> {}
 
-/*element: testA:
+/*member: testA:
  dynamic=[call<A.T>(0)],
  static=[
   checkSubtype(4),
@@ -34,7 +34,7 @@ class C implements A<int>, B<String, bool> {}
 */
 testA(c, f) => extractTypeArguments<A>(c, f);
 
-/*element: testB:
+/*member: testB:
  dynamic=[call<B.S,B.U>(0)],
  static=[
   checkSubtype(4),
@@ -57,7 +57,7 @@ testA(c, f) => extractTypeArguments<A>(c, f);
 */
 testB(c, f) => extractTypeArguments<B>(c, f);
 
-/*element: main:static=[C.(0),testA(2),testB(2)],type=[inst:JSNull]*/
+/*member: main:static=[C.(0),testA(2),testB(2)],type=[inst:JSNull]*/
 main() {
   var c = new C();
   testA(c, null);

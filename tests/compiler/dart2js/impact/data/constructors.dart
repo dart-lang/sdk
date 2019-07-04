@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:
+/*member: main:
  static=[
   testConstRedirectingFactoryInvoke(0),
   testConstRedirectingFactoryInvokeGeneric(0),
@@ -44,119 +44,119 @@ main() {
   testFactoryConstructor();
 }
 
-/*element: testConstructorInvoke:static=[Class.generative(0)]*/
+/*member: testConstructorInvoke:static=[Class.generative(0)]*/
 testConstructorInvoke() {
   new Class.generative();
 }
 
-/*element: testConstructorInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testConstructorInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
 testConstructorInvokeGeneric() {
   new GenericClass<int, String>.generative();
 }
 
-/*element: testConstructorInvokeGenericRaw:static=[GenericClass.generative(0)]*/
+/*member: testConstructorInvokeGenericRaw:static=[GenericClass.generative(0)]*/
 testConstructorInvokeGenericRaw() {
   new GenericClass.generative();
 }
 
-/*element: testConstructorInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
+/*member: testConstructorInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
 testConstructorInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.generative();
 }
 
-/*element: testFactoryInvoke:static=[Class.fact(0)]*/
+/*member: testFactoryInvoke:static=[Class.fact(0)]*/
 testFactoryInvoke() {
   new Class.fact();
 }
 
-/*element: testFactoryInvokeGeneric:static=[GenericClass.fact(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testFactoryInvokeGeneric:static=[GenericClass.fact(0),assertIsSubtype(5),throwTypeError(1)]*/
 testFactoryInvokeGeneric() {
   new GenericClass<int, String>.fact();
 }
 
-/*element: testFactoryInvokeGenericRaw:static=[GenericClass.fact(0)]*/
+/*member: testFactoryInvokeGenericRaw:static=[GenericClass.fact(0)]*/
 testFactoryInvokeGenericRaw() {
   new GenericClass.fact();
 }
 
-/*element: testFactoryInvokeGenericDynamic:static=[GenericClass.fact(0)]*/
+/*member: testFactoryInvokeGenericDynamic:static=[GenericClass.fact(0)]*/
 testFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.fact();
 }
 
-/*element: testRedirectingFactoryInvoke:static=[Class.generative(0)]*/
+/*member: testRedirectingFactoryInvoke:static=[Class.generative(0)]*/
 testRedirectingFactoryInvoke() {
   new Class.redirect();
 }
 
-/*element: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*member: testRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
 testRedirectingFactoryInvokeGeneric() {
   new GenericClass<int, String>.redirect();
 }
 
-/*element: testRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
+/*member: testRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
 testRedirectingFactoryInvokeGenericRaw() {
   new GenericClass.redirect();
 }
 
-/*element: testRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
+/*member: testRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
 testRedirectingFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.redirect();
 }
 
-/*strong.element: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvoke:type=[const:Class]*/
+/*strong.member: testConstRedirectingFactoryInvoke:static=[Class.generative(0)]*/
+/*strongConst.member: testConstRedirectingFactoryInvoke:type=[const:Class]*/
 testConstRedirectingFactoryInvoke() {
   const Class.redirect();
 }
 
-/*strong.element: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGeneric:static=[GenericClass.generative(0),assertIsSubtype(5),throwTypeError(1)]*/
+/*strongConst.member: testConstRedirectingFactoryInvokeGeneric:type=[const:GenericClass<int,String>]*/
 testConstRedirectingFactoryInvokeGeneric() {
   const GenericClass<int, String>.redirect();
 }
 
-/*strong.element: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGenericRaw:static=[GenericClass.generative(0)]*/
+/*strongConst.member: testConstRedirectingFactoryInvokeGenericRaw:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericRaw() {
   const GenericClass.redirect();
 }
 
-/*strong.element: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
-/*strongConst.element: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
+/*strong.member: testConstRedirectingFactoryInvokeGenericDynamic:static=[GenericClass.generative(0)]*/
+/*strongConst.member: testConstRedirectingFactoryInvokeGenericDynamic:type=[const:GenericClass<dynamic,dynamic>]*/
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }
 
-/*element: ClassImplicitConstructor.:static=[Object.(0)]*/
+/*member: ClassImplicitConstructor.:static=[Object.(0)]*/
 class ClassImplicitConstructor {}
 
-/*element: testImplicitConstructor:static=[ClassImplicitConstructor.(0)]*/
+/*member: testImplicitConstructor:static=[ClassImplicitConstructor.(0)]*/
 testImplicitConstructor() => new ClassImplicitConstructor();
 
 class ClassFactoryConstructor {
-  /*element: ClassFactoryConstructor.:type=[inst:JSNull]*/
+  /*member: ClassFactoryConstructor.:type=[inst:JSNull]*/
   factory ClassFactoryConstructor() => null;
 }
 
-/*element: testFactoryConstructor:static=[ClassFactoryConstructor.(0)]*/
+/*member: testFactoryConstructor:static=[ClassFactoryConstructor.(0)]*/
 testFactoryConstructor() => new ClassFactoryConstructor();
 
 class Class {
-  /*element: Class.generative:static=[Object.(0)]*/
+  /*member: Class.generative:static=[Object.(0)]*/
   const Class.generative();
 
-  /*element: Class.fact:type=[inst:JSNull]*/
+  /*member: Class.fact:type=[inst:JSNull]*/
   factory Class.fact() => null;
 
   const factory Class.redirect() = Class.generative;
 }
 
 class GenericClass<X, Y> {
-  /*element: GenericClass.generative:static=[Object.(0)]*/
+  /*member: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 
-  /*element: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
+  /*member: GenericClass.fact:type=[inst:JSBool,inst:JSNull,param:Object]*/
   factory GenericClass.fact() => null;
 
   const factory GenericClass.redirect() = GenericClass<X, Y>.generative;

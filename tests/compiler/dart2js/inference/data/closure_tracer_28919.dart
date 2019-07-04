@@ -4,7 +4,7 @@
 
 // Regression test for issue 28919.
 
-/*element: foo1:[null]*/
+/*member: foo1:[null]*/
 foo1() {
   final methods = [];
   var res, sum;
@@ -25,18 +25,18 @@ foo1() {
   probe1methods(methods);
 }
 
-/*element: probe1res:[null|exact=JSUInt31]*/
+/*member: probe1res:[null|exact=JSUInt31]*/
 probe1res(/*[null|exact=JSUInt31]*/ x) => x;
 
-/*element: probe1sum:[null|subclass=JSPositiveInt]*/
+/*member: probe1sum:[null|subclass=JSPositiveInt]*/
 probe1sum(/*[null|subclass=JSPositiveInt]*/ x) => x;
 
-/*element: probe1methods:Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/
+/*member: probe1methods:Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/
 probe1methods(
         /*Container([exact=JSExtendableArray], element: [subclass=Closure], length: null)*/ x) =>
     x;
 
-/*element: nonContainer:[exact=JSExtendableArray]*/
+/*member: nonContainer:[exact=JSExtendableArray]*/
 nonContainer(/*[exact=JSUInt31]*/ choice) {
   var m = choice /*invoke: [exact=JSUInt31]*/ == 0 ? [] : "<String>";
   if (m is! List) throw 123;
@@ -44,7 +44,7 @@ nonContainer(/*[exact=JSUInt31]*/ choice) {
   return m;
 }
 
-/*element: foo2:[null]*/
+/*member: foo2:[null]*/
 foo2(int /*[exact=JSUInt31]*/ choice) {
   final methods = nonContainer(choice);
 
@@ -69,17 +69,17 @@ foo2(int /*[exact=JSUInt31]*/ choice) {
   probe2methods(methods);
 }
 
-/*element: probe2res:[null|subclass=JSInt]*/
+/*member: probe2res:[null|subclass=JSInt]*/
 probe2res(
 
         /*[null|subclass=JSInt]*/
         x) =>
     x;
 
-/*element: probe2methods:[exact=JSExtendableArray]*/
+/*member: probe2methods:[exact=JSExtendableArray]*/
 probe2methods(/*[exact=JSExtendableArray]*/ x) => x;
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   foo1();
   foo2(0);

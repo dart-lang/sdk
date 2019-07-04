@@ -5,13 +5,13 @@
 /*strong.class: Class:*/
 /*omit.class: Class:*/
 class Class<T> {
-  /*strong.element: Class.:*/
-  /*omit.element: Class.:*/
+  /*strong.member: Class.:*/
+  /*omit.member: Class.:*/
   Class();
 }
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   /*strong.needsArgs,needsSignature*/
   /*omit.*/

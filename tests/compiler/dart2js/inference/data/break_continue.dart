@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   breakInWhile();
   noBreakInWhile();
@@ -16,7 +16,7 @@ main() {
 // A break statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _breakInWhile:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: _breakInWhile:Union([exact=JSString], [exact=JSUInt31])*/
 _breakInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
@@ -29,7 +29,7 @@ _breakInWhile(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: breakInWhile:[null]*/
+/*member: breakInWhile:[null]*/
 breakInWhile() {
   _breakInWhile(true);
   _breakInWhile(false);
@@ -39,7 +39,7 @@ breakInWhile() {
 // The while loop above _without_ the break statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _noBreakInWhile:[exact=JSUInt31]*/
+/*member: _noBreakInWhile:[exact=JSUInt31]*/
 _noBreakInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
@@ -51,7 +51,7 @@ _noBreakInWhile(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: noBreakInWhile:[null]*/
+/*member: noBreakInWhile:[null]*/
 noBreakInWhile() {
   _noBreakInWhile(true);
   _noBreakInWhile(false);
@@ -61,7 +61,7 @@ noBreakInWhile() {
 // A continue statement in a while loop.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _continueInWhile:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: _continueInWhile:Union([exact=JSString], [exact=JSUInt31])*/
 _continueInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
@@ -75,7 +75,7 @@ _continueInWhile(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: continueInWhile:[null]*/
+/*member: continueInWhile:[null]*/
 continueInWhile() {
   _continueInWhile(true);
   _continueInWhile(false);
@@ -85,7 +85,7 @@ continueInWhile() {
 // The while loop above _without_ the continue statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _noContinueInWhile:[exact=JSUInt31]*/
+/*member: _noContinueInWhile:[exact=JSUInt31]*/
 _noContinueInWhile(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   while (b) {
@@ -98,7 +98,7 @@ _noContinueInWhile(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: noContinueInWhile:[null]*/
+/*member: noContinueInWhile:[null]*/
 noContinueInWhile() {
   _noContinueInWhile(true);
   _noContinueInWhile(false);
@@ -108,7 +108,7 @@ noContinueInWhile() {
 // A break statement in a labeled statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _breakInIf:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: _breakInIf:Union([exact=JSString], [exact=JSUInt31])*/
 _breakInIf(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   label:
@@ -122,7 +122,7 @@ _breakInIf(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: breakInIf:[null]*/
+/*member: breakInIf:[null]*/
 breakInIf() {
   _breakInIf(true);
   _breakInIf(false);
@@ -132,7 +132,7 @@ breakInIf() {
 // The "labeled statement" above _without_ the break statement.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _noBreakInIf:[exact=JSUInt31]*/
+/*member: _noBreakInIf:[exact=JSUInt31]*/
 _noBreakInIf(/*[exact=JSBool]*/ b) {
   dynamic local = 42;
   {
@@ -143,7 +143,7 @@ _noBreakInIf(/*[exact=JSBool]*/ b) {
   return local;
 }
 
-/*element: noBreakInIf:[null]*/
+/*member: noBreakInIf:[null]*/
 noBreakInIf() {
   _noBreakInIf(true);
   _noBreakInIf(false);

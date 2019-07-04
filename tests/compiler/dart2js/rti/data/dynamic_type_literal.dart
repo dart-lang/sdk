@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  /*element: A.instanceMethod:exp,needsArgs,selectors=[Selector(call, instanceMethod, arity=0, types=1)]*/
+  /*member: A.instanceMethod:exp,needsArgs,selectors=[Selector(call, instanceMethod, arity=0, types=1)]*/
   instanceMethod<T>() => T;
 }
 

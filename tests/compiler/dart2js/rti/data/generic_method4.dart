@@ -24,13 +24,13 @@ class B<T> implements BB {
 }
 
 class C {
-  /*element: C.method1:implicit=[method1.T],indirect,needsArgs,selectors=[Selector(call, method1, arity=0, types=1)]*/
+  /*member: C.method1:implicit=[method1.T],indirect,needsArgs,selectors=[Selector(call, method1, arity=0, types=1)]*/
   @pragma('dart2js:noInline')
   method1<T>() {
     return new B<T>().foo(this);
   }
 
-  /*element: C.method2:deps=[B],implicit=[method2.T],indirect,needsArgs,selectors=[Selector(call, method2, arity=0, types=1)]*/
+  /*member: C.method2:deps=[B],implicit=[method2.T],indirect,needsArgs,selectors=[Selector(call, method2, arity=0, types=1)]*/
   @pragma('dart2js:noInline')
   method2<T>() => new A<T>();
 }

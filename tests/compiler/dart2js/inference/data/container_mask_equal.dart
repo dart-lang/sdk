@@ -7,25 +7,25 @@
 
 import 'dart:typed_data';
 
-/*element: method1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
+/*member: method1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
 method1() => [0];
 
-/*element: method2:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
+/*member: method2:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 2)*/
 method2() => [1, 2];
 
-/*element: method3:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 1)*/
+/*member: method3:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 1)*/
 method3() => new Uint8List(1);
 
-/*element: method4:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 2)*/
+/*member: method4:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: 2)*/
 method4() => new Uint8List(2);
 
-/*element: method1or2:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
+/*member: method1or2:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
 method1or2(/*[exact=JSBool]*/ c) => c ? method1() : method2();
 
-/*element: method3or4:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: null)*/
+/*member: method3or4:Container([exact=NativeUint8List], element: [exact=JSUInt31], length: null)*/
 method3or4(/*[exact=JSBool]*/ c) => c ? method3() : method4();
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   method1or2(true);
   method1or2(false);

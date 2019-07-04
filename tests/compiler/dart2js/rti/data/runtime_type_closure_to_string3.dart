@@ -5,25 +5,25 @@
 /*strong.class: Class1:needsArgs*/
 /*omit.class: Class1:*/
 class Class1<T> {
-  /*strong.element: Class1.:*/
-  /*omit.element: Class1.:*/
+  /*strong.member: Class1.:*/
+  /*omit.member: Class1.:*/
   Class1();
 
-  /*strong.element: Class1.method:needsSignature*/
-  /*omit.element: Class1.method:*/
+  /*strong.member: Class1.method:needsSignature*/
+  /*omit.member: Class1.method:*/
   T method() => null;
 }
 
 /*strong.class: Class2:*/
 /*omit.class: Class2:*/
 class Class2<T> {
-  /*strong.element: Class2.:*/
-  /*omit.element: Class2.:*/
+  /*strong.member: Class2.:*/
+  /*omit.member: Class2.:*/
   Class2();
 }
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   Class1<int> cls1 = new Class1<int>();
   print(cls1.method.runtimeType.toString());

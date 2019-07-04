@@ -7,18 +7,18 @@ var field;
 
 /// Read a static field. This adds dependency of static properties to the
 /// side effects of the method.
-/*element: readStaticField:SideEffects(reads static; writes nothing)*/
+/*member: readStaticField:SideEffects(reads static; writes nothing)*/
 readStaticField() => field;
 
 /// Read a static field. If not for the `@pragma('dart2js:noSideEffects')`
 /// annotation this would add dependency of static properties to the side
 /// effects of the method.
-/*element: readStaticFieldAnnotated:SideEffects(reads nothing; writes nothing)*/
+/*member: readStaticFieldAnnotated:SideEffects(reads nothing; writes nothing)*/
 @pragma('dart2js:noInline')
 @pragma('dart2js:noSideEffects')
 readStaticFieldAnnotated() => field;
 
-/*element: main:SideEffects(reads static; writes nothing)*/
+/*member: main:SideEffects(reads static; writes nothing)*/
 main() {
   readStaticField();
   readStaticFieldAnnotated();

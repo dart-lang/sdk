@@ -6,13 +6,13 @@
 /// file 'general7.dart' contains similar tests for when assertions are
 /// _disabled_.
 
-/*element: foo:Value([null|exact=JSBool], value: true)*/
+/*member: foo:Value([null|exact=JSBool], value: true)*/
 foo(
         /*Union([exact=JSBool], [exact=JSString], [exact=JSUInt31])*/ x,
         [/*Value([null|exact=JSBool], value: true)*/ y]) =>
     y;
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   assert(foo('Hi', true), foo(true));
   foo(1);

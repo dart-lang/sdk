@@ -69,37 +69,37 @@ class Class {
   const factory Class.fact() = Class.generative;
 }
 
-/*element: field1a:constant=IntConstant(0)*/
+/*member: field1a:constant=IntConstant(0)*/
 final field1a = 0;
 
-/*element: field1b:constant=IntConstant(0)*/
+/*member: field1b:constant=IntConstant(0)*/
 var field1b = 0;
 
-/*element: field1c:initial=IntConstant(0)*/
+/*member: field1c:initial=IntConstant(0)*/
 var field1c = 0;
 
-/*element: field2a:constant=ListConstant([])*/
+/*member: field2a:constant=ListConstant([])*/
 final field2a = const [];
 
-/*element: field2b:constant=ListConstant([])*/
+/*member: field2b:constant=ListConstant([])*/
 var field2b = const [];
 
-/*element: field2c:initial=ListConstant([])*/
+/*member: field2c:initial=ListConstant([])*/
 var field2c = const [];
 
-/*element: field3a:eager,final*/
+/*member: field3a:eager,final*/
 final field3a = [];
 
-/*element: field3b:eager,final*/
+/*member: field3b:eager,final*/
 var field3b = [];
 
-/*element: field3c:eager*/
+/*member: field3c:eager*/
 var field3c = [];
 
-/*element: field3d:eager,final*/
+/*member: field3d:eager,final*/
 var field3d = [1, 2, 3];
 
-/*element: field3e:eager,final*/
+/*member: field3e:eager,final*/
 var field3e = [
   1,
   2,
@@ -110,7 +110,7 @@ var field3e = [
   ]
 ];
 
-/*element: field3f:final,lazy*/
+/*member: field3f:final,lazy*/
 var field3f = [
   1,
   2,
@@ -121,99 +121,99 @@ var field3f = [
   ]
 ];
 
-/*element: field3g:final,lazy*/
+/*member: field3g:final,lazy*/
 var field3g = [method()];
 
 // TODO(johnniwinther): Recognize this as of eager complexity.
-/*element: field3h:final,lazy*/
+/*member: field3h:final,lazy*/
 var field3h = [1 + 3];
 
-/*element: field4a:constant=IntConstant(5)*/
+/*member: field4a:constant=IntConstant(5)*/
 final field4a = 2 + 3;
 
-/*element: field4b:constant=IntConstant(5)*/
+/*member: field4b:constant=IntConstant(5)*/
 var field4b = 2 + 3;
 
-/*strong.element: field4c:constant=IntConstant(5)*/
+/*strong.member: field4c:constant=IntConstant(5)*/
 const field4c = 2 + 3;
 
-/*element: field5a:constant=FunctionConstant(method)*/
+/*member: field5a:constant=FunctionConstant(method)*/
 final field5a = method;
 
-/*element: field5b:constant=FunctionConstant(method)*/
+/*member: field5b:constant=FunctionConstant(method)*/
 var field5b = method;
 
-/*strong.element: field5c:constant=FunctionConstant(method)*/
+/*strong.member: field5c:constant=FunctionConstant(method)*/
 const field5c = method;
 
-/*element: field6a:constant=ConstructedConstant(Class())*/
+/*member: field6a:constant=ConstructedConstant(Class())*/
 var field6a = const Class.generative();
 
-/*element: field6b:constant=ConstructedConstant(Class())*/
+/*member: field6b:constant=ConstructedConstant(Class())*/
 var field6b = const Class.fact();
 
-/*element: field6c:final,lazy*/
+/*member: field6c:final,lazy*/
 var field6c = method();
 
-/*element: field7a:eager,final*/
+/*member: field7a:eager,final*/
 var field7a = {};
 
-/*element: field7b:eager,final*/
+/*member: field7b:eager,final*/
 var field7b = {0: 1};
 
-/*element: field7c:eager,final*/
+/*member: field7c:eager,final*/
 var field7c = {0: method};
 
-/*element: field7d:final,lazy*/
+/*member: field7d:final,lazy*/
 var field7d = {0: method()};
 
-/*element: field7e:final,lazy*/
+/*member: field7e:final,lazy*/
 var field7e = {method(): 0};
 
-/*element: field8a:eager,final*/
+/*member: field8a:eager,final*/
 var field8a = {};
 
-/*element: field8b:eager,final*/
+/*member: field8b:eager,final*/
 var field8b = {0};
 
-/*element: field8c:eager,final*/
+/*member: field8c:eager,final*/
 var field8c = {method};
 
-/*element: field8d:final,lazy*/
+/*member: field8d:final,lazy*/
 var field8d = {method()};
 
-/*element: field9g:eager=[field9d],final,index=1*/
+/*member: field9g:eager=[field9d],final,index=1*/
 var field9g = field9d;
 
-/*element: field9a:eager,final*/
+/*member: field9a:eager,final*/
 var field9a = [];
 
-/*element: field9c:eager=[field9b],final,index=3*/
+/*member: field9c:eager=[field9b],final,index=3*/
 var field9c = [field9b];
 
-/*element: field9b:eager=[field9a],final,index=2*/
+/*member: field9b:eager=[field9a],final,index=2*/
 var field9b = field9a;
 
 // Because [field9g] is declared first and it depends upon [field9d], [field9d]
 // must be created before [field9g] and thus has a lower index than, say,
 // [field9b].
-/*element: field9d:eager=[field9a],final,index=0*/
+/*member: field9d:eager=[field9a],final,index=0*/
 var field9d = [field9a];
 
-/*element: field9e:eager*/
+/*member: field9e:eager*/
 var field9e = [];
 
-/*element: field9f:final,lazy*/
+/*member: field9f:final,lazy*/
 var field9f = field9e;
 
-/*element: field9h:constant=ListConstant([])*/
+/*member: field9h:constant=ListConstant([])*/
 var field9h = const [];
 
-/*element: field9i:eager,final*/
+/*member: field9i:eager,final*/
 var field9i = [field9h];
 
-/*element: field10a:final,lazy*/
+/*member: field10a:final,lazy*/
 int field10a = field10b;
 
-/*element: field10b:final,lazy*/
+/*member: field10b:final,lazy*/
 int field10b = field10a;

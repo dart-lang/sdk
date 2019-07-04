@@ -9,7 +9,7 @@ class A<T> {
     return /*needsSignature*/ (T t) {};
   }
 
-  /*element: A.f:*/
+  /*member: A.f:*/
   f() {
     // TODO(johnniwinther): Optimize local function type signature need.
     return

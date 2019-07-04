@@ -7,8 +7,8 @@ import 'package:expect/expect.dart';
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 /*omit.class: A:*/
 class A<T> {
-  /*strong.element: A.call:*/
-  /*omit.element: A.call:*/
+  /*strong.member: A.call:*/
+  /*omit.member: A.call:*/
   call(T t) {}
 }
 

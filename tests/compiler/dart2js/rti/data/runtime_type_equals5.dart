@@ -27,14 +27,14 @@ class Class2<T> {
   Class2();
 }
 
-/*strong.element: test:*/
-/*omit.element: test:*/
+/*strong.member: test:*/
+/*omit.member: test:*/
 test(Class1a c, Type type) {
   return c.runtimeType == type;
 }
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   Expect.isTrue(test(new Class1a(), Class1a));
   Expect.isFalse(test(new Class1b<int>(), Class1a));

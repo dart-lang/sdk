@@ -8,12 +8,12 @@
 /*class: global#Instantiation:OutputUnit(1, {b, c})*/
 /*class: global#Instantiation1:OutputUnit(1, {b, c})*/
 
-/*element: global#instantiate1:OutputUnit(1, {b, c})*/
+/*member: global#instantiate1:OutputUnit(1, {b, c})*/
 
 import '../libs/instantiation5_strong_lib1.dart' deferred as b;
 import '../libs/instantiation5_strong_lib2.dart' deferred as c;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await b.loadLibrary();
   await c.loadLibrary();

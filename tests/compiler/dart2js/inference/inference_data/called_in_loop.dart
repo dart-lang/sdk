@@ -11,13 +11,13 @@ main() {
   staticCalledIndirectlyInForLoop();
 }
 
-/*element: _staticCalledInForLoop:loop*/
+/*member: _staticCalledInForLoop:loop*/
 _staticCalledInForLoop() {}
 
-/*element: _staticNotCalledInForLoop:*/
+/*member: _staticNotCalledInForLoop:*/
 _staticNotCalledInForLoop() {}
 
-/*element: staticCalledInForLoop:*/
+/*member: staticCalledInForLoop:*/
 staticCalledInForLoop() {
   _staticNotCalledInForLoop();
   for (int i = 0; i < 10; i++) {
@@ -26,13 +26,13 @@ staticCalledInForLoop() {
   _staticNotCalledInForLoop();
 }
 
-/*element: _staticCalledInForInLoop:loop*/
+/*member: _staticCalledInForInLoop:loop*/
 _staticCalledInForInLoop() {}
 
-/*element: _staticNotCalledInForInLoop:*/
+/*member: _staticNotCalledInForInLoop:*/
 _staticNotCalledInForInLoop() {}
 
-/*element: staticCalledInForInLoop:*/
+/*member: staticCalledInForInLoop:*/
 staticCalledInForInLoop() {
   _staticNotCalledInForInLoop();
   // ignore: unused_local_variable
@@ -42,13 +42,13 @@ staticCalledInForInLoop() {
   _staticNotCalledInForInLoop();
 }
 
-/*element: _staticCalledInWhileLoop:loop*/
+/*member: _staticCalledInWhileLoop:loop*/
 _staticCalledInWhileLoop() {}
 
-/*element: _staticNotCalledInWhileLoop:*/
+/*member: _staticNotCalledInWhileLoop:*/
 _staticNotCalledInWhileLoop() {}
 
-/*element: staticCalledInWhileLoop:*/
+/*member: staticCalledInWhileLoop:*/
 staticCalledInWhileLoop() {
   int i = 0;
   _staticNotCalledInWhileLoop();
@@ -59,13 +59,13 @@ staticCalledInWhileLoop() {
   _staticNotCalledInWhileLoop();
 }
 
-/*element: _staticCalledInDoLoop:loop*/
+/*member: _staticCalledInDoLoop:loop*/
 _staticCalledInDoLoop() {}
 
-/*element: _staticNotCalledInDoLoop:*/
+/*member: _staticNotCalledInDoLoop:*/
 _staticNotCalledInDoLoop() {}
 
-/*element: staticCalledInDoLoop:*/
+/*member: staticCalledInDoLoop:*/
 staticCalledInDoLoop() {
   int i = 0;
   _staticNotCalledInDoLoop();
@@ -77,21 +77,21 @@ staticCalledInDoLoop() {
 }
 
 class Class {
-  /*element: Class.constructorCalledInForLoop:loop*/
+  /*member: Class.constructorCalledInForLoop:loop*/
   Class.constructorCalledInForLoop();
 
-  /*element: Class.constructorNotCalledInForLoop:*/
+  /*member: Class.constructorNotCalledInForLoop:*/
   Class.constructorNotCalledInForLoop();
 
   // TODO(johnniwinther): Should we track instance calls in loops?
-  /*element: Class.instanceCalledInForLoop:*/
+  /*member: Class.instanceCalledInForLoop:*/
   instanceCalledInForLoop() {}
 
-  /*element: Class.instanceNotCalledInForLoop:*/
+  /*member: Class.instanceNotCalledInForLoop:*/
   instanceNotCalledInForLoop() {}
 }
 
-/*element: instanceCalledInForLoop:*/
+/*member: instanceCalledInForLoop:*/
 instanceCalledInForLoop() {
   var c = new Class.constructorNotCalledInForLoop();
   c.instanceNotCalledInForLoop();
@@ -103,13 +103,13 @@ instanceCalledInForLoop() {
 }
 
 // TODO(johnniwinther): Should we track indirect calls in loops?
-/*element: _staticCalledIndirectlyInForLoop:*/
+/*member: _staticCalledIndirectlyInForLoop:*/
 _staticCalledIndirectlyInForLoop() {}
 
-/*element: _staticCalledIndirectlyInForLoopHelper:loop*/
+/*member: _staticCalledIndirectlyInForLoopHelper:loop*/
 _staticCalledIndirectlyInForLoopHelper() => _staticCalledIndirectlyInForLoop();
 
-/*element: staticCalledIndirectlyInForLoop:*/
+/*member: staticCalledIndirectlyInForLoop:*/
 staticCalledIndirectlyInForLoop() {
   for (int i = 0; i < 10; i++) {
     _staticCalledIndirectlyInForLoopHelper();

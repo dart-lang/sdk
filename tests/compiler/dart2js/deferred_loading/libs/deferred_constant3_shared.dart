@@ -4,9 +4,9 @@
 
 /*class: C:OutputUnit(main, {})*/
 class C {
-  /*strong.element: C.:OutputUnit(main, {})*/
+  /*strong.member: C.:OutputUnit(main, {})*/
   const C(this.x);
 
-  /*element: C.x:OutputUnit(main, {})*/
+  /*member: C.x:OutputUnit(main, {})*/
   final x;
 }

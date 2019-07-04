@@ -5,12 +5,12 @@
 /*omit.class: A:*/
 /*strong.class: A:explicit=[A]*/
 class A {
-  /*element: A.instanceMethod:deps=[B.instanceMethod],direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
+  /*member: A.instanceMethod:deps=[B.instanceMethod],direct,explicit=[instanceMethod.T],needsArgs,selectors=[Selector(call, instanceMethod, arity=1, types=1)]*/
   instanceMethod<T>(t) => t is T;
 }
 
 class B {
-  /*element: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
+  /*member: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
   instanceMethod<T>(A a, t) => a.instanceMethod<T>(t);
 }
 

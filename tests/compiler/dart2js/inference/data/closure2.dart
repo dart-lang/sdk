@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: returnInt1:[exact=JSUInt31]*/
+/*member: returnInt1:[exact=JSUInt31]*/
 returnInt1() {
   var a = 42;
   // ignore: unused_local_variable
@@ -12,7 +12,7 @@ returnInt1() {
   return a;
 }
 
-/*element: returnDyn1:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
+/*member: returnDyn1:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn1() {
   dynamic a = 42;
   // ignore: unused_local_variable
@@ -22,7 +22,7 @@ returnDyn1() {
   return a;
 }
 
-/*element: returnInt2:[exact=JSUInt31]*/
+/*member: returnInt2:[exact=JSUInt31]*/
 returnInt2() {
   var a = 42;
   // ignore: unused_local_variable
@@ -32,7 +32,7 @@ returnInt2() {
   return a;
 }
 
-/*element: returnDyn2:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
+/*member: returnDyn2:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn2() {
   dynamic a = 42;
   // ignore: unused_local_variable
@@ -46,7 +46,7 @@ returnDyn2() {
   return a;
 }
 
-/*element: returnInt3:[exact=JSUInt31]*/
+/*member: returnInt3:[exact=JSUInt31]*/
 returnInt3() {
   var a = 42;
   if (a /*invoke: [exact=JSUInt31]*/ == 53) {
@@ -58,7 +58,7 @@ returnInt3() {
   return a;
 }
 
-/*element: returnDyn3:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
+/*member: returnDyn3:Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/
 returnDyn3() {
   dynamic a = 42;
   if (a /*invoke: Union([exact=JSUInt31], [subclass=JsLinkedHashMap])*/ == 53) {
@@ -70,7 +70,7 @@ returnDyn3() {
   return a;
 }
 
-/*element: returnInt4:[exact=JSUInt31]*/
+/*member: returnInt4:[exact=JSUInt31]*/
 returnInt4() {
   var a = 42;
   /*[exact=JSUInt31]*/ g() {
@@ -80,7 +80,7 @@ returnInt4() {
   return g();
 }
 
-/*element: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
 returnNum1() {
   dynamic a = 42.5;
   try {
@@ -95,7 +95,7 @@ returnNum1() {
   return a;
 }
 
-/*element: returnIntOrNull:[null|exact=JSUInt31]*/
+/*member: returnIntOrNull:[null|exact=JSUInt31]*/
 returnIntOrNull() {
   /*iterator: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: 1)*/
   /*current: [exact=ArrayIterator]*/
@@ -111,16 +111,16 @@ returnIntOrNull() {
   return 42;
 }
 
-/*element: A.:[exact=A]*/
+/*member: A.:[exact=A]*/
 class A {
-  /*element: A.foo:[exact=A]*/
+  /*member: A.foo:[exact=A]*/
   foo() {
     /*[exact=A]*/ f() => this;
     return f();
   }
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnInt1();
   returnDyn1();

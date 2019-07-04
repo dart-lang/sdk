@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: foo:[null|exact=JSUInt31]*/
+/*member: foo:[null|exact=JSUInt31]*/
 foo(int /*[subclass=JSInt]*/ x) {
   var a;
   do {
@@ -20,7 +20,7 @@ foo(int /*[subclass=JSInt]*/ x) {
   return a;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   foo(new DateTime.now(). /*[exact=DateTime]*/ millisecondsSinceEpoch);
 }

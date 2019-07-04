@@ -8,7 +8,7 @@ import 'dart:_foreign_helper' as foreign show JS;
 import 'dart:_js_helper';
 import 'dart:html_common';
 
-/*element: main:static=[testJSCall(0),
+/*member: main:static=[testJSCall(0),
   testNativeField(1),
   testNativeMethod(0),
   testNativeMethodCreates(0),
@@ -22,7 +22,7 @@ main() {
   testNativeMethodReturns();
 }
 
-/*element: testJSCall:
+/*member: testJSCall:
  static=[JS<dynamic>(3)],
  type=[inst:JSNull,inst:JSString,native:bool,native:int]
 */
@@ -31,13 +31,13 @@ testJSCall() => foreign.JS(
     '#',
     null);
 
-/*element: testNativeMethod:*/
+/*member: testNativeMethod:*/
 @JSName('foo')
 @SupportedBrowser(SupportedBrowser.CHROME)
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 testNativeMethod() native;
 
-/*element: testNativeMethodCreates:
+/*member: testNativeMethodCreates:
  type=[native:JSArray<JSArray.E>,native:Null,native:int]
 */
 @Creates('int|Null|JSArray')
@@ -49,14 +49,14 @@ testNativeMethodCreates() native;
 // dependency on the particular types. If `testNativeMethodReturns` was not
 // called `testNativeMethodCreates` would instead trigger the native
 // instantiations, so the blame is a bit arbitrary.
-/*element: testNativeMethodReturns:type=[*]*/
+/*member: testNativeMethodReturns:type=[*]*/
 @Returns('String|Null|JSArray')
 // ignore: NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
 testNativeMethodReturns() native;
 
 @Native("NativeClass")
 class NativeClass {
-  /*element: NativeClass.field:
+  /*member: NativeClass.field:
    type=[
     inst:JSBool,
     inst:JSNull,
@@ -76,7 +76,7 @@ class NativeClass {
   }
 }
 
-/*element: testNativeField:
+/*member: testNativeField:
  dynamic=[NativeClass.field],
  static=[defineProperty(3)],
  type=[inst:JSBool,param:NativeClass]

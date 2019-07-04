@@ -5,7 +5,7 @@
 import '../libs/type_argument_dependency_lib1.dart';
 import '../libs/type_argument_dependency_lib2.dart' deferred as c;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await c.loadLibrary();
   c.createA();

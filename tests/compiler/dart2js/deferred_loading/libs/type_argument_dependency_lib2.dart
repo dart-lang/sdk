@@ -4,12 +4,12 @@
 
 /*class: A:OutputUnit(main, {})*/
 class A {
-  /*element: A.:OutputUnit(1, {c})*/
+  /*member: A.:OutputUnit(1, {c})*/
   A();
 }
 
 /*class: B:OutputUnit(main, {})*/
 class B extends A {}
 
-/*element: createA:OutputUnit(1, {c})*/
+/*member: createA:OutputUnit(1, {c})*/
 createA() => new A();

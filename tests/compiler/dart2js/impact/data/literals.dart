@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:static=[
+/*member: main:static=[
  testBoolFromEnvironment(0),
  testComplexConstSymbol(0),
  testConstSymbol(0),
@@ -59,74 +59,74 @@ main() {
   testNonEmptyMapLiteral();
 }
 
-/*element: testEmpty:*/
+/*member: testEmpty:*/
 testEmpty() {}
 
-/*element: testNull:type=[inst:JSNull]*/
+/*member: testNull:type=[inst:JSNull]*/
 testNull() => null;
 
-/*element: testTrue:type=[inst:JSBool]*/
+/*member: testTrue:type=[inst:JSBool]*/
 testTrue() => true;
 
-/*element: testFalse:type=[inst:JSBool]*/
+/*member: testFalse:type=[inst:JSBool]*/
 testFalse() => false;
 
-/*element: testInt:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: testInt:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 testInt() => 42;
 
-/*element: testDouble:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
+/*member: testDouble:type=[inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSUInt31,inst:JSUInt32]*/
 testDouble() => 37.5;
 
-/*element: testString:type=[inst:JSString]*/
+/*member: testString:type=[inst:JSString]*/
 testString() => 'foo';
 
-/*element: testStringInterpolation:
+/*member: testStringInterpolation:
  dynamic=[toString(0)],
  static=[S(1)],type=[inst:JSBool,inst:JSString]
 */
 testStringInterpolation() => '${true}';
 
-/*strong.element: testStringInterpolationConst:
+/*strong.member: testStringInterpolationConst:
  dynamic=[toString(0)],
  static=[S(1)],type=[inst:JSBool,inst:JSString]
 */
-/*strongConst.element: testStringInterpolationConst:type=[inst:JSString]*/
+/*strongConst.member: testStringInterpolationConst:type=[inst:JSString]*/
 testStringInterpolationConst() {
   const b = '${true}';
   return b;
 }
 
-/*element: testStringJuxtaposition:
+/*member: testStringJuxtaposition:
  dynamic=[toString(0)],
  static=[S(1)],
  type=[inst:JSString]
 */
 testStringJuxtaposition() => 'a' 'b';
 
-/*element: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*member: testSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testSymbol() => #main;
 
-/*strong.element: testConstSymbol:
+/*strong.member: testConstSymbol:
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strongConst.member: testConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testConstSymbol() => const Symbol('main');
 
-/*strong.element: complexSymbolField1:
+/*strong.member: complexSymbolField1:
  dynamic=[String.length,int.==],
  type=[inst:JSBool,inst:JSDouble,inst:JSInt,inst:JSNumber,inst:JSPositiveInt,inst:JSString,inst:JSUInt31,inst:JSUInt32,param:bool]
 */
 const complexSymbolField1 = "true".length == 4;
 
-/*strong.element: complexSymbolField2:
+/*strong.member: complexSymbolField2:
  dynamic=[toString(0)],
  static=[S(1)],
  type=[inst:JSBool,inst:JSNull,inst:JSString,param:String]
 */
 const complexSymbolField2 = "true" "false" "${true}${null}";
 
-/*strong.element: complexSymbolField3:
+/*strong.member: complexSymbolField3:
   dynamic=[int.+,int.unary-],
   static=[
    GenericClass.generative(0),
@@ -178,7 +178,7 @@ const complexSymbolField3 = const {
   override: const GenericClass<int, String>.generative(),
 };
 
-/*strong.element: complexSymbolField:
+/*strong.member: complexSymbolField:
  static=[
   complexSymbolField1,
   complexSymbolField2,
@@ -188,56 +188,56 @@ const complexSymbolField3 = const {
 const complexSymbolField =
     complexSymbolField1 ? complexSymbolField2 : complexSymbolField3;
 
-/*strong.element: testComplexConstSymbol:
+/*strong.member: testComplexConstSymbol:
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1),complexSymbolField],
  type=[impl:String,inst:JSBool,inst:Symbol]
 */
-/*strongConst.element: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strongConst.member: testComplexConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testComplexConstSymbol() => const Symbol(complexSymbolField);
 
-/*strong.element: testIfNullConstSymbol:
+/*strong.member: testIfNullConstSymbol:
  dynamic=[Null.==],
  static=[Symbol.(1),Symbol.(1),Symbol.validated(1)],
  type=[inst:JSNull,inst:JSString,inst:Symbol]
 */
-/*strongConst.element: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
+/*strongConst.member: testIfNullConstSymbol:static=[Symbol.(1)],type=[inst:Symbol]*/
 testIfNullConstSymbol() => const Symbol(null ?? 'foo');
 
-/*element: testTypeLiteral:
+/*member: testTypeLiteral:
  static=[createRuntimeType(1)],
  type=[inst:Type,inst:TypeImpl,lit:Object]
 */
 testTypeLiteral() => Object;
 
-/*strong.element: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
-/*strongConst.element: testBoolFromEnvironment:type=[inst:JSBool]*/
+/*strong.member: testBoolFromEnvironment:static=[bool.fromEnvironment(1)],type=[inst:JSString]*/
+/*strongConst.member: testBoolFromEnvironment:type=[inst:JSBool]*/
 testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 
-/*element: testEmptyListLiteral:type=[inst:List<dynamic>]*/
+/*member: testEmptyListLiteral:type=[inst:List<dynamic>]*/
 testEmptyListLiteral() => [];
 
-/*element: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
+/*member: testEmptyListLiteralDynamic:type=[inst:List<dynamic>]*/
 testEmptyListLiteralDynamic() => <dynamic>[];
 
-/*element: testEmptyListLiteralTyped:type=[inst:List<String>]*/
+/*member: testEmptyListLiteralTyped:type=[inst:List<String>]*/
 testEmptyListLiteralTyped() => <String>[];
 
-/*element: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
+/*member: testEmptyListLiteralConstant:type=[inst:List<dynamic>]*/
 testEmptyListLiteralConstant() => const [];
 
-/*element: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
+/*member: testNonEmptyListLiteral:type=[inst:JSBool,inst:List<bool>]*/
 testNonEmptyListLiteral() => [true];
 
-/*element: testEmptyMapLiteral:type=[inst:Map<dynamic,dynamic>]*/
+/*member: testEmptyMapLiteral:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteral() => {};
 
-/*element: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
+/*member: testEmptyMapLiteralDynamic:type=[inst:Map<dynamic,dynamic>]*/
 testEmptyMapLiteralDynamic() => <dynamic, dynamic>{};
 
-/*element: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
+/*member: testEmptyMapLiteralTyped:type=[inst:Map<String,int>]*/
 testEmptyMapLiteralTyped() => <String, int>{};
 
-/*element: testEmptyMapLiteralConstant:
+/*member: testEmptyMapLiteralConstant:
 type=[
  inst:ConstantMap<dynamic,dynamic>,
  inst:ConstantProtoMap<dynamic,dynamic>,
@@ -246,10 +246,10 @@ type=[
 */
 testEmptyMapLiteralConstant() => const {};
 
-/*element: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
+/*member: testNonEmptyMapLiteral:type=[inst:JSBool,inst:JSNull,inst:Map<Null,bool>]*/
 testNonEmptyMapLiteral() => {null: true};
 
 class GenericClass<X, Y> {
-  /*strong.element: GenericClass.generative:static=[Object.(0)]*/
+  /*strong.member: GenericClass.generative:static=[Object.(0)]*/
   const GenericClass.generative();
 }

@@ -5,13 +5,13 @@
 // We used to always nullify the element type of a list we are tracing in
 // the presence of a fixed length list constructor call.
 
-/*element: myList:Container([exact=JSExtendableArray], element: Union([exact=JSString], [subclass=JSNumber]), length: null)*/
+/*member: myList:Container([exact=JSExtendableArray], element: Union([exact=JSString], [subclass=JSNumber]), length: null)*/
 var myList = [];
 
-/*element: otherList:Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
+/*member: otherList:Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/
 var otherList = ['foo', 42];
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   dynamic a = otherList
       /*Container([exact=JSExtendableArray], element: Union([exact=JSString], [exact=JSUInt31]), length: 2)*/

@@ -6,7 +6,7 @@
 // Update to a singleton list.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexSetSingle:[exact=JSUInt31]*/
+/*member: listIndexSetSingle:[exact=JSUInt31]*/
 listIndexSetSingle() {
   var list = [0];
   return list
@@ -18,7 +18,7 @@ listIndexSetSingle() {
 // Update to a list with multiple elements.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexSetMultiple:[exact=JSUInt31]*/
+/*member: listIndexSetMultiple:[exact=JSUInt31]*/
 listIndexSetMultiple() {
   var list = [0, 1, 2, 3];
   return list
@@ -30,7 +30,7 @@ listIndexSetMultiple() {
 // Update to a list with an out-of-range index.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexSetBad:[exact=JSUInt31]*/
+/*member: listIndexSetBad:[exact=JSUInt31]*/
 listIndexSetBad() {
   var list = [0, 1];
   return list
@@ -42,7 +42,7 @@ listIndexSetBad() {
 // Update to a list with mixed element types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: listIndexSetMixed:[exact=JSUInt31]*/
+/*member: listIndexSetMixed:[exact=JSUInt31]*/
 listIndexSetMixed() {
   dynamic list = [''];
   return list
@@ -54,7 +54,7 @@ listIndexSetMixed() {
 // Update to a empty map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateEmpty:[exact=JSUInt31]*/
+/*member: mapUpdateEmpty:[exact=JSUInt31]*/
 mapUpdateEmpty() {
   var map = {};
   return map
@@ -66,7 +66,7 @@ mapUpdateEmpty() {
 // Update to a singleton map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateSingle:[exact=JSUInt31]*/
+/*member: mapUpdateSingle:[exact=JSUInt31]*/
 mapUpdateSingle() {
   var map = {0: 1};
   return map
@@ -78,7 +78,7 @@ mapUpdateSingle() {
 // Update to a map with multiple entries.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateMultiple:[exact=JSUInt31]*/
+/*member: mapUpdateMultiple:[exact=JSUInt31]*/
 mapUpdateMultiple() {
   var map = {0: 1, 2: 3, 4: 5};
   return map
@@ -90,7 +90,7 @@ mapUpdateMultiple() {
 // Update to a map with a missing key.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateMissing:[exact=JSUInt31]*/
+/*member: mapUpdateMissing:[exact=JSUInt31]*/
 mapUpdateMissing() {
   var map = {0: 1};
   return map
@@ -102,7 +102,7 @@ mapUpdateMissing() {
 // Update to a map with mixed key types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateMixedKeys:[exact=JSUInt31]*/
+/*member: mapUpdateMixedKeys:[exact=JSUInt31]*/
 mapUpdateMixedKeys() {
   dynamic map = {'': 2};
   return map
@@ -114,7 +114,7 @@ mapUpdateMixedKeys() {
 // Update to a map with mixed value types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: mapUpdateMixedValues:[exact=JSUInt31]*/
+/*member: mapUpdateMixedValues:[exact=JSUInt31]*/
 mapUpdateMixedValues() {
   dynamic map = {2: ''};
   return map
@@ -126,7 +126,7 @@ mapUpdateMixedValues() {
 // Update to an empty map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryUpdateEmpty:Value([exact=JSString], value: "bar")*/
+/*member: dictionaryUpdateEmpty:Value([exact=JSString], value: "bar")*/
 dictionaryUpdateEmpty() {
   var map = {};
   return map
@@ -138,7 +138,7 @@ dictionaryUpdateEmpty() {
 // Update to a singleton map with String keys with a new value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryUpdateSingle:Value([exact=JSString], value: "boz")*/
+/*member: dictionaryUpdateSingle:Value([exact=JSString], value: "boz")*/
 dictionaryUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
@@ -150,7 +150,7 @@ dictionaryUpdateSingle() {
 // Update to a singleton map with String keys with the same value.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryReUpdateSingle:Value([exact=JSString], value: "bar")*/
+/*member: dictionaryReUpdateSingle:Value([exact=JSString], value: "bar")*/
 dictionaryReUpdateSingle() {
   var map = {'foo': 'bar'};
   return map
@@ -162,7 +162,7 @@ dictionaryReUpdateSingle() {
 // Update to a map with String keys.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: dictionaryUpdateMultiple:Value([exact=JSString], value: "boz")*/
+/*member: dictionaryUpdateMultiple:Value([exact=JSString], value: "boz")*/
 dictionaryUpdateMultiple() {
   var map = {'foo': 'bar'};
   return map
@@ -174,7 +174,7 @@ dictionaryUpdateMultiple() {
 // Update to a string-to-int map.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: intDictionaryUpdateSingle:[exact=JSUInt31]*/
+/*member: intDictionaryUpdateSingle:[exact=JSUInt31]*/
 intDictionaryUpdateSingle() {
   var map = {};
   return map
@@ -182,7 +182,7 @@ intDictionaryUpdateSingle() {
       ['foo'] = 0;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   listIndexSetSingle();
   listIndexSetMultiple();

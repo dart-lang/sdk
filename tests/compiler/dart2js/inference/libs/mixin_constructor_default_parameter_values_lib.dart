@@ -3,33 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _SECRET {
-  /*element: _SECRET.:[exact=_SECRET]*/
+  /*member: _SECRET.:[exact=_SECRET]*/
   const _SECRET();
-  /*element: _SECRET.toString:Value([exact=JSString], value: "SECRET!")*/
+  /*member: _SECRET.toString:Value([exact=JSString], value: "SECRET!")*/
   @override
   String toString() => "SECRET!";
 }
 
 class C {
-  /*element: C.x:[exact=JSUInt31]*/
+  /*member: C.x:[exact=JSUInt31]*/
   final int x;
 
-  /*element: C.y:Union([exact=JSString], [exact=_SECRET])*/
+  /*member: C.y:Union([exact=JSString], [exact=_SECRET])*/
   final y;
 
-  /*element: C.a:[exact=C]*/
+  /*member: C.a:[exact=C]*/
   C.a(int /*[exact=JSUInt31]*/ x,
       [var /*Union([exact=JSString], [exact=_SECRET])*/ b = const _SECRET()])
       : this.x = x,
         this.y = b;
 
-  /*element: C.b:[exact=C]*/
+  /*member: C.b:[exact=C]*/
   C.b(int /*[exact=JSUInt31]*/ x,
       {var /*Union([exact=JSString], [exact=_SECRET])*/ b: const _SECRET()})
       : this.x = x,
         this.y = b;
 
-  /*element: C.toString:[exact=JSString]*/
+  /*member: C.toString:[exact=JSString]*/
   @override
   String toString() => "C(${/*[exact=D]*/ x},${/*[exact=D]*/ y})";
 }

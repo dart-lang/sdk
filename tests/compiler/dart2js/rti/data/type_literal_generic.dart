@@ -6,19 +6,19 @@
 class A<T> {
   instanceMethod() => T;
 
-  /*element: A.staticMethod:exp,needsArgs*/
+  /*member: A.staticMethod:exp,needsArgs*/
   static staticMethod<S>() => S;
 
-  /*element: A.staticMethodNested:exp,needsArgs*/
+  /*member: A.staticMethodNested:exp,needsArgs*/
   static staticMethodNested<S>() {
     var inner = () => S;
     return inner();
   }
 
-  /*element: A.genericMethod:exp,needsArgs,selectors=[Selector(call, genericMethod, arity=0, types=1)]*/
+  /*member: A.genericMethod:exp,needsArgs,selectors=[Selector(call, genericMethod, arity=0, types=1)]*/
   genericMethod<S>() => S;
 
-  /*element: A.genericMethodNested:exp,needsArgs,selectors=[Selector(call, genericMethodNested, arity=0, types=1)]*/
+  /*member: A.genericMethodNested:exp,needsArgs,selectors=[Selector(call, genericMethodNested, arity=0, types=1)]*/
   genericMethodNested<S>() {
     var inner = () => S;
     return inner();
@@ -42,10 +42,10 @@ class A<T> {
   }
 }
 
-/*element: topLevelMethod:exp,needsArgs*/
+/*member: topLevelMethod:exp,needsArgs*/
 topLevelMethod<S>() => S;
 
-/*element: topLevelMethodNested:exp,needsArgs*/
+/*member: topLevelMethodNested:exp,needsArgs*/
 topLevelMethodNested<S>() {
   var inner = () => S;
   return inner();

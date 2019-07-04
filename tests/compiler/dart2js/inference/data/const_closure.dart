@@ -2,36 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: method1:[exact=JSUInt31]*/
+/*member: method1:[exact=JSUInt31]*/
 method1() {
   return 42;
 }
 
-/*element: method2:[exact=JSUInt31]*/
+/*member: method2:[exact=JSUInt31]*/
 method2(/*[exact=JSUInt31]*/ a) {
   // Called only via [foo2] with a small integer.
   return a;
 }
 
-/*strong.element: foo1:[subclass=Closure]*/
-/*omit.element: foo1:[subclass=Closure]*/
+/*strong.member: foo1:[subclass=Closure]*/
+/*omit.member: foo1:[subclass=Closure]*/
 const foo1 = method1;
 
-/*strong.element: foo2:[subclass=Closure]*/
-/*omit.element: foo2:[subclass=Closure]*/
+/*strong.member: foo2:[subclass=Closure]*/
+/*omit.member: foo2:[subclass=Closure]*/
 const foo2 = method2;
 
-/*element: returnInt1:[null|subclass=Object]*/
+/*member: returnInt1:[null|subclass=Object]*/
 returnInt1() {
   return foo1();
 }
 
-/*element: returnInt2:[null|subclass=Object]*/
+/*member: returnInt2:[null|subclass=Object]*/
 returnInt2() {
   return foo2(54);
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnInt1();
   returnInt2();

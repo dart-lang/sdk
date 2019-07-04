@@ -6,8 +6,8 @@ import '../libs/type_arguments_lib1.dart' deferred as lib1;
 import '../libs/type_arguments_lib2.dart' as lib2;
 import '../libs/type_arguments_lib3.dart' deferred as lib3;
 
-/*strong.element: main:OutputUnit(main, {})*/
-/*strongConst.element: main:
+/*strong.member: main:OutputUnit(main, {})*/
+/*strongConst.member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(A<B>())=OutputUnit(1, {lib1}),

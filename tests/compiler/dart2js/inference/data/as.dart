@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   asIntWithString();
   asIntWithNegative();
@@ -15,10 +15,10 @@ main() {
 // As int of int and non-int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _asIntWithString:[exact=JSUInt31]*/
+/*member: _asIntWithString:[exact=JSUInt31]*/
 _asIntWithString(/*Union([exact=JSString], [exact=JSUInt31])*/ o) => o as int;
 
-/*element: asIntWithString:[null]*/
+/*member: asIntWithString:[null]*/
 asIntWithString() {
   _asIntWithString(0);
   _asIntWithString('');
@@ -28,10 +28,10 @@ asIntWithString() {
 // As int of known int and an unknown int types.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _asIntWithNegative:[subclass=JSInt]*/
+/*member: _asIntWithNegative:[subclass=JSInt]*/
 _asIntWithNegative(/*[subclass=JSInt]*/ o) => o as int;
 
-/*element: asIntWithNegative:[null]*/
+/*member: asIntWithNegative:[null]*/
 asIntWithNegative() {
   _asIntWithNegative(0);
   _asIntWithNegative(/*invoke: [exact=JSUInt31]*/ -1);
@@ -41,10 +41,10 @@ asIntWithNegative() {
 // As int of 0.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _asIntOfZero:[exact=JSUInt31]*/
+/*member: _asIntOfZero:[exact=JSUInt31]*/
 _asIntOfZero(/*[exact=JSUInt31]*/ o) => o as int;
 
-/*element: asIntOfZero:[null]*/
+/*member: asIntOfZero:[null]*/
 asIntOfZero() {
   _asIntOfZero(0);
 }
@@ -53,10 +53,10 @@ asIntOfZero() {
 // As int of -1.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _asIntOfMinusOne:[subclass=JSInt]*/
+/*member: _asIntOfMinusOne:[subclass=JSInt]*/
 _asIntOfMinusOne(/*[subclass=JSInt]*/ o) => o as int;
 
-/*element: asIntOfMinusOne:[null]*/
+/*member: asIntOfMinusOne:[null]*/
 asIntOfMinusOne() {
   _asIntOfMinusOne(/*invoke: [exact=JSUInt31]*/ -1);
 }
@@ -65,10 +65,10 @@ asIntOfMinusOne() {
 // As int of string.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: _asIntOfString:[empty]*/
+/*member: _asIntOfString:[empty]*/
 _asIntOfString(/*Value([exact=JSString], value: "")*/ o) => o as int;
 
-/*element: asIntOfString:[null]*/
+/*member: asIntOfString:[null]*/
 asIntOfString() {
   _asIntOfString('');
 }

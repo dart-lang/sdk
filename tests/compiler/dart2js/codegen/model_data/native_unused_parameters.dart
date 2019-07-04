@@ -5,28 +5,28 @@
 // ignore: import_internal_library
 import 'dart:_js_helper';
 
-/*element: Class.:access=[toString],params=1*/
+/*member: Class.:access=[toString],params=1*/
 @Native('Class')
 class Class {
-  /*element: Class.method1:calls=[method1()],params=1*/
+  /*member: Class.method1:calls=[method1()],params=1*/
   @pragma('dart2js:noInline')
   method1([a, b])
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method2:calls=[method2(a)],params=2*/
+  /*member: Class.method2:calls=[method2(a)],params=2*/
   @pragma('dart2js:noInline')
   method2([a, b])
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method3:calls=[method3(a,b)],params=3*/
+  /*member: Class.method3:calls=[method3(a,b)],params=3*/
   @pragma('dart2js:noInline')
   method3([a, b])
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method4:
+  /*member: Class.method4:
    calls=[method4(a,b)],
    params=3,
    stubs=[method4$0:method4()]
@@ -36,7 +36,7 @@ class Class {
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method5:
+  /*member: Class.method5:
    calls=[method5(a,b)],
    params=3,
    stubs=[method5$1:method5(a)]
@@ -46,7 +46,7 @@ class Class {
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method6:
+  /*member: Class.method6:
    calls=[method6(a,b,c)],
    params=4,
    stubs=[method6$1:method6(a)]
@@ -56,7 +56,7 @@ class Class {
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method7:
+  /*member: Class.method7:
    calls=[method7(a,b,c)],
    params=4,
    stubs=[method7$2$b:method7(a,b)]
@@ -66,7 +66,7 @@ class Class {
       // ignore: native_function_body_in_non_sdk_code
       native;
 
-  /*element: Class.method8:
+  /*member: Class.method8:
    calls=[method8(a,b,c)],
    params=4,
    stubs=[
@@ -79,7 +79,7 @@ class Class {
       native;
 }
 
-/*element: test:
+/*member: test:
  calls=[
   method1$0(1),
   method2$1(2),
@@ -113,7 +113,7 @@ test(Class c) {
   c.method8(null, c: null);
 }
 
-/*element: main:calls=*,params=0*/
+/*member: main:calls=*,params=0*/
 main() {
   test(new Class());
 }

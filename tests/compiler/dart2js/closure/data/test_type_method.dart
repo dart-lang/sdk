@@ -6,7 +6,7 @@
 /// Explicit is-test is always required.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: method1:*/
+/*member: method1:*/
 method1<T>(dynamic o) {
   /*fields=[T,o],free=[T,o]*/
   dynamic local() => o is T;
@@ -17,7 +17,7 @@ method1<T>(dynamic o) {
 /// Explicit as-cast is always required.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: method2:*/
+/*member: method2:*/
 method2<T>(dynamic o) {
   /*fields=[T,o],free=[T,o]*/
   dynamic local() => o as T;
@@ -28,7 +28,7 @@ method2<T>(dynamic o) {
 /// Implicit as-cast is only required in strong mode.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: method3:*/
+/*member: method3:*/
 method3<T>(dynamic o) {
   /*strong.fields=[T,o],free=[T,o]*/
   /*omit.fields=[o],free=[o]*/

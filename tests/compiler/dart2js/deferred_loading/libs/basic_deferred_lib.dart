@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: defaultArg:OutputUnit(1, {lib})*/
+/*member: defaultArg:OutputUnit(1, {lib})*/
 defaultArg() => "";
 
-/*strong.element: funky:OutputUnit(1, {lib})*/
-/*strongConst.element: funky:
+/*strong.member: funky:OutputUnit(1, {lib})*/
+/*strongConst.member: funky:
  OutputUnit(1, {lib}),
  constants=[FunctionConstant(defaultArg)=OutputUnit(1, {lib})]
 */
