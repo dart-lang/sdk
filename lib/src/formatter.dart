@@ -111,7 +111,7 @@ class DetailedReporter extends SimpleFormatter {
       String fileRoot,
       bool showStatistics = false,
       bool machineOutput = false,
-      quiet = false})
+      bool quiet = false})
       : super(errors, filter, out,
             fileCount: fileCount,
             fileRoot: fileRoot,
