@@ -12,7 +12,7 @@ void _addNodeComparisons(Expression node, Set<Expression> comparisons) {
   if (_isComparison(node)) {
     comparisons.add(node);
   } else if (_isBooleanOperation(node)) {
-    comparisons.addAll(_extractComparisons(node));
+    comparisons.addAll(_extractComparisons(node as BinaryExpression));
   }
 }
 
@@ -101,7 +101,7 @@ class TestedExpressions {
 
     if (_contradictions.isEmpty) {
       Set<Expression> set = (binaryExpression != null
-          ? _extractComparisons(testingExpression)
+          ? _extractComparisons(testingExpression as BinaryExpression)
           : {testingExpression})
         ..addAll(truths)
         ..addAll(negations);
@@ -127,11 +127,12 @@ class TestedExpressions {
         LinkedHashSet.identity();
 
     if (testingExpression is SimpleIdentifier) {
-      SimpleIdentifier identifier = testingExpression;
+      SimpleIdentifier identifier = testingExpression as SimpleIdentifier;
       bool sameIdentifier(n) =>
           n is SimpleIdentifier && identifier.staticElement == n.staticElement;
       if (negations.any(sameIdentifier)) {
-        SimpleIdentifier otherIdentifier = negations.firstWhere(sameIdentifier);
+        SimpleIdentifier otherIdentifier =
+            negations.firstWhere(sameIdentifier) as SimpleIdentifier;
         contradictions
             .add(ContradictoryComparisons(otherIdentifier, identifier));
       }
@@ -156,7 +157,7 @@ class TestedExpressions {
           return;
         }
 
-        final BinaryExpression otherExpression = c;
+        final BinaryExpression otherExpression = c as BinaryExpression;
 
         final String bcLeftOperand = otherExpression.leftOperand.toString();
         final String bcRightOperand = otherExpression.rightOperand.toString();
