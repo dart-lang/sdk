@@ -803,7 +803,7 @@ Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
         throw Exception('Bad options file format (expected Node value, '
             'got ${v.runtimeType}: `${v.toString()}`)');
       }
-      options[key] = v;
+      options[key as String] = v;
     });
   }
   return options;
