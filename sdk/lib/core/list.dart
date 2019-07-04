@@ -537,6 +537,8 @@ abstract class List<E> implements EfficientLengthIterable<E> {
   /**
    * Pops and returns the last object in this list.
    *
+   * The list must not be empty.
+   *
    * Throws an [UnsupportedError] if this is a fixed-length list.
    */
   E removeLast();
