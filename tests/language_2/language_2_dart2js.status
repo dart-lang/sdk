@@ -36,7 +36,6 @@ const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS
 const_constructor_nonconst_param_test/01: MissingCompileTimeError
 const_dynamic_type_literal_test/03: Pass # but it shouldn't until we fix issue 17207
 const_evaluation_test/01: RuntimeError
-const_list_test: RuntimeError
 const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
@@ -116,7 +115,6 @@ library_env_test/has_mirror_support: RuntimeError
 library_env_test/has_mirror_support: Fail # mirrors not supported on web
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_mirror_support: Pass # fails for the wrong reason.
-list_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 local_function2_test/none: RuntimeError
 local_function3_test/none: RuntimeError
 local_function_test/none: RuntimeError
