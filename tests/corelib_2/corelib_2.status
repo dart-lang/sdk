@@ -16,7 +16,6 @@ num_sign_test: Crash, Pass # Issue 31768
 
 [ $compiler == dart2js ]
 bigint_from_test: RuntimeError # Issue 32589
-bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 core_runtime_types_test: RuntimeError # Issue 34147
@@ -297,7 +296,8 @@ regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interp
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 bigint_from_test: RuntimeError # Issue 32589
-bigint_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
+bigint_test/03: SkipSlow # modPow is very slow
+bigint_test/15: SkipSlow # modPow is very slow
 bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 compare_to2_test: RuntimeError # Issue 30170
 compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
