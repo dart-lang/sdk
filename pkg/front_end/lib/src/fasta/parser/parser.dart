@@ -5744,12 +5744,15 @@ class Parser {
     Token awaitToken = token.next;
     assert(optional('await', awaitToken));
     listener.beginAwaitExpression(awaitToken);
-    if (!inAsync) {
-      reportRecoverableError(awaitToken, fasta.messageAwaitNotAsync);
-    }
     token = parsePrecedenceExpression(
         awaitToken, POSTFIX_PRECEDENCE, allowCascades);
-    listener.endAwaitExpression(awaitToken, token.next);
+    if (inAsync) {
+      listener.endAwaitExpression(awaitToken, token.next);
+    } else {
+      fasta.MessageCode errorCode = fasta.messageAwaitNotAsync;
+      reportRecoverableError(awaitToken, errorCode);
+      listener.endInvalidAwaitExpression(awaitToken, token.next, errorCode);
+    }
     return token;
   }
 

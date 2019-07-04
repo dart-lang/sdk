@@ -480,6 +480,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    listener?.endInvalidAwaitExpression(beginToken, endToken, errorCode);
+  }
+
+  @override
   void endBinaryExpression(Token token) {
     listener?.endBinaryExpression(token);
   }

@@ -112,6 +112,10 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "TransformVerificationError",
+    "group": "Fail"
+  },
+  {
     "name": "TextSerializationFailure",
     "group": "Fail"
   }
@@ -425,7 +429,11 @@ class Transform extends Step<Component, Component, FastaContext> {
     }
     List<String> errors = VerifyTransformed.verify(component);
     if (errors.isNotEmpty) {
-      return fail(component, errors.join('\n'));
+      return new Result<Component>(
+          component,
+          context.expectationSet["TransformVerificationError"],
+          errors.join('\n'),
+          null);
     }
     return pass(component);
   }

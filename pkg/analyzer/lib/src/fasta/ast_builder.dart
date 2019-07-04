@@ -21,6 +21,7 @@ import 'package:front_end/src/fasta/messages.dart'
     show
         LocatedMessage,
         Message,
+        MessageCode,
         messageConstConstructorWithBody,
         messageConstMethod,
         messageConstructorWithReturnType,
@@ -560,6 +561,12 @@ class AstBuilder extends StackListener {
     debugEvent("AwaitExpression");
 
     push(ast.awaitExpression(awaitKeyword, pop()));
+  }
+
+  void endInvalidAwaitExpression(
+      Token awaitKeyword, Token endToken, MessageCode errorCode) {
+    debugEvent("InvalidAwaitExpression");
+    endAwaitExpression(awaitKeyword, endToken);
   }
 
   @override

@@ -6,7 +6,8 @@ library fasta.parser.listener;
 
 import '../../scanner/token.dart' show Token;
 
-import '../fasta_codes.dart' show Message, templateExperimentNotEnabled;
+import '../fasta_codes.dart'
+    show Message, MessageCode, templateExperimentNotEnabled;
 
 import '../quote.dart' show UnescapeErrorListener;
 
@@ -55,6 +56,11 @@ class Listener implements UnescapeErrorListener {
 
   void endAwaitExpression(Token beginToken, Token endToken) {
     logEvent("AwaitExpression");
+  }
+
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    logEvent("InvalidAwaitExpression");
   }
 
   void beginBlock(Token token) {}

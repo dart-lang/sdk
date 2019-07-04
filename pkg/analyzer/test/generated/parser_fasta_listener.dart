@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/messages.dart' show MessageCode;
 import 'package:front_end/src/fasta/parser.dart';
 import 'package:front_end/src/fasta/parser/forwarding_listener.dart';
 import 'package:front_end/src/scanner/token.dart';
@@ -575,6 +576,13 @@ class ForwardingTestListener extends ForwardingListener {
   void endAwaitExpression(Token beginToken, Token endToken) {
     end('AwaitExpression');
     super.endAwaitExpression(beginToken, endToken);
+  }
+
+  @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    end('InvalidAwaitExpression');
+    super.endInvalidAwaitExpression(beginToken, endToken, errorCode);
   }
 
   @override
