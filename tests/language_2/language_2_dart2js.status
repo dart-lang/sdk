@@ -194,7 +194,7 @@ super_bound_closure_test/none: CompileTimeError
 super_call4_test/01: MissingCompileTimeError
 super_test: RuntimeError
 tearoff_dynamic_test: RuntimeError
-truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
+truncdiv_zero_test: RuntimeError # non JS number semantics - Issue 15246
 type_constants_test/none: RuntimeError # Issue 35052
 type_error_test: RuntimeError
 type_literal_canonicalization_test: RuntimeError
@@ -491,7 +491,7 @@ stacktrace_rethrow_nonerror_test: RuntimeError # Issue 12698
 stacktrace_test: RuntimeError # Issue 12698
 symbol_literal_test/01: MissingCompileTimeError
 tearoff_dynamic_test: RuntimeError
-truncdiv_test: RuntimeError # non JS number semantics - Issue 15246
+truncdiv_zero_test: RuntimeError # non JS number semantics - Issue 15246
 type_check_const_function_typedef2_test: MissingCompileTimeError
 type_literal_canonicalization_test: RuntimeError
 type_parameter_test/06: Crash # Internal Error: Unexpected type variable in static context.

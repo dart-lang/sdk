@@ -16,8 +16,11 @@ main() {
       Expect.equals(i ~/ i, foo2(i));
     }
   }
-  Expect.throws(() => foo(12, 0), (e) => e is IntegerDivisionByZeroException);
-  Expect.throws(() => foo2(0), (e) => e is IntegerDivisionByZeroException);
+  // We don't specify the exact exception type here, that is covered in
+  // truncdiv_zero_test. The correct answer is IntegerDivisionByZeroException,
+  // but the web platform has only one num type and can't distinguish between
+  // int and double, so it throws UnsupportedError (the behaviour for double).
+  Expect.throws(() => foo2(0));
 }
 
 foo(i, x) => i % x;
