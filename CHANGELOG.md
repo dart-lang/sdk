@@ -6,7 +6,8 @@
 
 ### Core libraries
 
-* **Breaking change:** As part of (Issue [36900][]), the following methods and
+* **Breaking change** [#36900](https://github.com/dart-lang/sdk/issues/36900):
+  The following methods and
   properties across various core libraries, which used to declare a return type
   of `List<int>`, were updated to declare a return type of `Uint8List`:
 
@@ -46,8 +47,7 @@
   * `Uint32List.sublist()` → `Uint32List`
   * `Uint64List.sublist()` → `Uint64List`
 
-  [36900]: https://github.com/dart-lang/sdk/issues/36900
-
+  
 #### `dart:core`
 
 * Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):
@@ -60,8 +60,9 @@
 
 #### `dart:io`
 
-* **Breaking Change:** The `Cookie` class's constructor's `name` and `value`
-  optional positional parameters are now mandatory (Issue [37192][]). The
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+  The `Cookie` class's constructor's `name` and `value`
+  optional positional parameters are now mandatory. The
   signature changes from:
 
       Cookie([String name, String value])
@@ -77,12 +78,11 @@
   Since code could not previously correctly omit the parameters, this is not
   really a breaking change.
 
-* **Breaking Change:** The `Cookie` class's `name` and `value` setters now
+* **Breaking change** [#37192](https://github.com/dart-lang/sdk/issues/37192): 
+  The `Cookie` class's `name` and `value` setters now
   validates that the strings are made from the allowed character set and are not
-  null (Issue [37192][]). The constructor already made these checks and this
+  null. The constructor already made these checks and this
   fixes the loophole where the setters didn't also validate.
-
-[37192]: https://github.com/dart-lang/sdk/issues/37192
 
 ### Dart VM
 
@@ -131,28 +131,29 @@ communication of `Uint8List` data.
   [33327]: https://github.com/dart-lang/sdk/issues/33327
   [35804]: https://github.com/dart-lang/sdk/issues/35804
 
-* The `HttpClientResponse` interface has been extended with the addition of a
+* **Breaking change** [#36971](https://github.com/dart-lang/sdk/issues/36971): 
+  The `HttpClientResponse` interface has been extended with the addition of a
   new `compressionState` getter, which specifies whether the body of a
   response was compressed when it was received and whether it has been
-  automatically uncompressed via `HttpClient.autoUncompress` (Issue [36971][]).
+  automatically uncompressed via `HttpClient.autoUncompress`.
 
   As part of this change, a corresponding new enum was added to `dart:io`:
   `HttpClientResponseCompressionState`.
 
-  [36971]: https://github.com/dart-lang/sdk/issues/36971
-
-  * **Breaking change**: For those implementing the `HttpClientResponse`
-    interface, this is a breaking change, as implementing classes will need to
-    implement the new getter.
+  For those implementing the `HttpClientResponse`
+  interface, this is a breaking change, as implementing classes will need to
+  implement the new getter.
 
 #### `dart:async`
 
-* **Breaking change:** The `await for` allowed `null` as a stream due to a bug
+* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382): 
+  The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
 #### `dart:core`
 
-* **Breaking change:** The `RegExp` interface has been extended with two new
+* **Breaking change** [#36171](https://github.com/dart-lang/sdk/issues/36171): 
+  The `RegExp` interface has been extended with two new
   constructor named parameters:
 
   * `unicode:` (`bool`, default: `false`), for Unicode patterns
@@ -175,8 +176,9 @@ communication of `Uint8List` data.
 
 ### Language
 
-*   **Breaking change:** Covariance of type variables used in super-interfaces
-    is now enforced (issue [35097][]).  For example, the following code was
+*   **Breaking change** [#35097](https://github.com/dart-lang/sdk/issues/35097):
+    Covariance of type variables used in super-interfaces
+    is now enforced. For example, the following code was
     previously accepted and will now be rejected:
 
 ```dart
@@ -186,8 +188,6 @@ class B<X> extends A<void Function(X)> {};
 
 * The identifier `async` can now be used in asynchronous and generator
   functions.
-
-[35097]: https://github.com/dart-lang/sdk/issues/35097
 
 ### Dart for the Web
 
