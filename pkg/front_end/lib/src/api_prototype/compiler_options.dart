@@ -233,6 +233,8 @@ Map<ExperimentalFlag, bool> parseExperimentalFlags(
       ExperimentalFlag flag = parseExperimentalFlag(experiment);
       if (flag == null) {
         onError("Unknown experiment: " + experiment);
+      } else if (flag == ExperimentalFlag.expiredFlag) {
+        print("Experiment flag no longer required: " + experiment);
       } else if (flags.containsKey(flag)) {
         if (flags[flag] != value) {
           onError(
