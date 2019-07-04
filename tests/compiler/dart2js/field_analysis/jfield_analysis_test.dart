@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/util/features.dart';
@@ -78,8 +77,9 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
         features.add(Tags.isEffectivelyFinal);
       }
       Id id = computeEntityId(node);
-      actualMap[id] = new ActualData<Features>(
-          id, features, computeSourceSpanFromTreeNode(node), member);
+      ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+      actualMap[id] = new ActualData<Features>(id, features,
+          nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);
     }
   }
 

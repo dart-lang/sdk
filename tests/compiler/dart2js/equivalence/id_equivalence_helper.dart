@@ -403,9 +403,7 @@ class IdData<T> {
   String actualCode(Uri uri) {
     Map<int, List<String>> annotations = <int, List<String>>{};
     actualMaps[uri].forEach((Id id, ActualData<T> data) {
-      annotations
-          .putIfAbsent(data.sourceSpan.begin, () => [])
-          .add('${data.value}');
+      annotations.putIfAbsent(data.offset, () => []).add('${data.value}');
     });
     return withAnnotations(code[uri].sourceCode, annotations);
   }
@@ -863,7 +861,7 @@ Future<bool> checkCode<T>(
         if (!dataValidator.isEmpty(actual)) {
           reportError(
               data.compiler.reporter,
-              actualData.sourceSpan,
+              computeSourceSpanFromUriOffset(actualData.uri, actualData.offset),
               'EXTRA $mode DATA for ${id.descriptor}:\n '
               'object   : ${actualData.objectText}\n '
               'actual   : ${colorizeActual('${IdValue.idToString(id, actualText)}')}\n '
@@ -879,7 +877,7 @@ Future<bool> checkCode<T>(
         if (unexpectedMessage != null) {
           reportError(
               data.compiler.reporter,
-              actualData.sourceSpan,
+              computeSourceSpanFromUriOffset(actualData.uri, actualData.offset),
               'UNEXPECTED $mode DATA for ${id.descriptor}:\n '
               'detail  : ${colorizeMessage(unexpectedMessage)}\n '
               'object  : ${actualData.objectText}\n '
