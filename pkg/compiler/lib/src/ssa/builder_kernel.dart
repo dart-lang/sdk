@@ -3059,10 +3059,15 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return object;
     }
     if (options.experimentNewRti) {
-      // TODO(sra): For new-rti, construct Rti object. [type] could be `List<T>`
-      // or `JSArray<T>`.
+      // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
+      InterfaceType arrayType =
+          InterfaceType(_commonElements.jsArrayClass, type.typeArguments);
+      HInstruction rti =
+          _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
-      // For now, fall through.
+      // TODO(15489): Register at codegen.
+      registry?.registerInstantiation(type);
+      return _callSetRuntimeTypeInfo(rti, object, sourceInformation);
     }
     List<HInstruction> arguments = <HInstruction>[];
     for (DartType argument in type.typeArguments) {
@@ -4046,6 +4051,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       _handleJsInterceptorConstant(invocation);
     } else if (name == 'getInterceptor') {
       _handleForeignGetInterceptor(invocation);
+    } else if (name == 'getJSArrayInteropRti') {
+      _handleForeignGetJSArrayInteropRti(invocation);
     } else if (name == 'JS_STRING_CONCAT') {
       _handleJsStringConcat(invocation);
     } else if (name == '_createInvocationMirror') {
@@ -4606,6 +4613,24 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     HInstruction instruction =
         _interceptorFor(argumentInstruction, sourceInformation);
     stack.add(instruction);
+  }
+
+  void _handleForeignGetJSArrayInteropRti(ir.StaticInvocation invocation) {
+    if (_unexpectedForeignArguments(invocation,
+            minPositional: 0, maxPositional: 0) ||
+        !options.experimentNewRti) {
+      // Result expected on stack.
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    // TODO(sra): Introduce 'any' type.
+    InterfaceType interopType =
+        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
+    SourceInformation sourceInformation =
+        _sourceInformationBuilder.buildCall(invocation, invocation);
+    HInstruction rti = HLoadType(interopType, _abstractValueDomain.dynamicType)
+      ..sourceInformation = sourceInformation;
+    push(rti);
   }
 
   void _handleForeignJs(ir.StaticInvocation invocation) {

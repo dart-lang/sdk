@@ -8,6 +8,7 @@ library rti;
 import 'dart:_foreign_helper'
     show
         getInterceptor,
+        getJSArrayInteropRti,
         JS,
         JS_BUILTIN,
         JS_EMBEDDED_GLOBAL,
@@ -271,8 +272,7 @@ Rti instanceType(object) {
     // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
     // program-local `symbol` for the type field.
     if (rti != null) return _castToRti(rti);
-    // TODO(sra): Use JS_GET_NAME to access the recipe.
-    throw UnimplementedError('return JSArray<any>');
+    return _castToRti(getJSArrayInteropRti());
   }
 
   var interceptor = getInterceptor(object);
