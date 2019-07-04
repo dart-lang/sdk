@@ -20,7 +20,6 @@ bit_twiddling_test/int64: CompileTimeError, OK # Error if web int literal cannot
 compare_to2_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 core_runtime_types_test: RuntimeError # Issue 34147
 date_time11_test: RuntimeError, Pass # Fails when US is on winter time, issue 31285.
-date_time_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_ceil_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_floor_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 double_round_test/int64: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
