@@ -433,6 +433,7 @@ void f() { // f
     await trackCode(r'''
 void f(bool b, int i) { // f
   return;
+  Object _;
   do {} while (b);
   for (;;) {}
   for (_ in []) {}
@@ -444,6 +445,7 @@ void f(bool b, int i) { // f
 ''');
     verify(
       unreachableStatements: [
+        'Object _',
         'do {}',
         'for (;;',
         'for (_',
@@ -489,6 +491,7 @@ void f() { // f
   test_forEach() async {
     await trackCode(r'''
 void f() {
+  Object _;
   for (_ in [0, 1, 2]) {
     1;
     return;

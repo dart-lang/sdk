@@ -261,6 +261,7 @@ void f(bool b, Object x) {
   test_forEach_outerIsType_loopAssigned() async {
     await resolveCode(r'''
 void f(Object x) {
+  Object v1;
   if (x is String) {
     for (var _ in (v1 = [0, 1, 2])) {
       x; // 1
