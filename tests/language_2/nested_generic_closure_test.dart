@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--reify-generic-functions
+// TODO(37452): Avoid using unspecified 'toString' behaviour in language test.
 
 import 'package:expect/expect.dart';
 
@@ -25,11 +25,34 @@ class C<T> {
 }
 
 main() {
-  Expect.equals("(<F>(F) => F) => void", foo.runtimeType.toString());
-  Expect.equals("<B>(<F>(F) => B) => B", bar.runtimeType.toString());
-  Expect.equals("<F>(F) => int", baz<int>().runtimeType.toString());
+  expectOne(
+    foo.runtimeType.toString(),
+    ["(<F>(F) => F) => void", "(<T1>(T1) => T1) => void"],
+  );
+  expectOne(
+    bar.runtimeType.toString(),
+    ["<B>(<F>(F) => B) => B", "<T1>(<T2>(T2) => T1) => T1"],
+  );
+  expectOne(
+    baz<int>().runtimeType.toString(),
+    ["<F>(F) => int", "<T1>(T1) => int"],
+  );
+
   var c = new C<bool>();
-  Expect.equals("(<F>(bool, F) => F) => void", c.foo.runtimeType.toString());
-  Expect.equals("<B>(<F>(bool, F) => B) => B", c.bar.runtimeType.toString());
-  Expect.equals("<F>(bool, F) => int", c.baz<int>().runtimeType.toString());
+  expectOne(
+    c.foo.runtimeType.toString(),
+    ["(<F>(bool, F) => F) => void", "(<T1>(bool, T1) => T1) => void"],
+  );
+  expectOne(
+    c.bar.runtimeType.toString(),
+    ["<B>(<F>(bool, F) => B) => B", "<T1>(<T2>(bool, T2) => T1) => T1"],
+  );
+  expectOne(
+    c.baz<int>().runtimeType.toString(),
+    ["<F>(bool, F) => int", "<T1>(bool, T1) => int"],
+  );
+}
+
+expectOne(String name, Iterable<String> names) {
+  Expect.isTrue(names.contains(name), '"$name" should be one of: ${names}');
 }

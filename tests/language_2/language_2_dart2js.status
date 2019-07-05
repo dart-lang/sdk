@@ -164,7 +164,6 @@ mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 named_parameters_default_eq_test/none: RuntimeError
 nan_identical_test: RuntimeError # Issue 11551
-nested_generic_closure_test: RuntimeError
 no_main_test/01: CompileTimeError
 no_such_method_mock_test: RuntimeError
 null_no_such_method_test: CompileTimeError
@@ -459,7 +458,6 @@ mock_writable_final_field_test: RuntimeError # Issue 30847
 mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 nan_identical_test: RuntimeError # Issue 11551
-nested_generic_closure_test: Crash # Unsupported operation: Unsupported type parameter type node F.
 no_main_test/01: CompileTimeError
 not_enough_positional_arguments_test/00: MissingCompileTimeError
 not_enough_positional_arguments_test/01: MissingCompileTimeError
