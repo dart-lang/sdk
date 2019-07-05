@@ -41,6 +41,9 @@ bool NativeTypeIsVoid(const AbstractType& result_type);
 // Location for the result of a C signature function.
 Location ResultLocation(Representation result_rep);
 
+RawFunction* TrampolineFunction(const Function& dart_signature,
+                                const Function& c_signature);
+
 #if !defined(TARGET_ARCH_DBC)
 
 // Unboxed representations of the arguments to a C signature function.
@@ -132,6 +135,8 @@ class CallbackArgumentTranslator : public ValueObject {
   intptr_t argument_slots_used_ = 0;
   intptr_t argument_slots_required_ = 0;
 };
+
+bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func);
 
 }  // namespace ffi
 

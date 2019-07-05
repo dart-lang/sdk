@@ -5,6 +5,7 @@
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/prologue_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -775,6 +776,11 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
 
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
+
+  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+    BuildFfiAsFunction();
+    return;
+  }
 
   // Recognize identical() call.
   // Note: similar optimization is performed in AST flow graph builder - see
@@ -1558,6 +1564,22 @@ void BytecodeFlowGraphBuilder::BuildAllocateClosure() {
 
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   code_ += B->AllocateClosure(position_, target);
+}
+
+// Builds graph for a call to 'dart:ffi::_asFunctionInternal'. The stack must
+// look like:
+//
+// <receiver> => pointer argument
+// <type arguments vector> => signatures
+// ...
+void BytecodeFlowGraphBuilder::BuildFfiAsFunction() {
+  // The bytecode FGB doesn't eagerly insert PushArguments, so the type
+  // arguments won't be wrapped in a PushArgumentsInstr.
+  const TypeArguments& type_args =
+      TypeArguments::Cast(B->Peek(/*depth=*/1)->AsConstant()->value());
+  // Drop type arguments, preserving pointer.
+  code_ += B->DropTempsPreserveTop(1);
+  code_ += B->BuildFfiAsFunctionInternalCall(type_args);
 }
 
 static bool IsICDataEntry(const ObjectPool& object_pool, intptr_t index) {

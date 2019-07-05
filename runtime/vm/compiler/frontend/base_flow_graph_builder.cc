@@ -601,9 +601,14 @@ void BaseFlowGraphBuilder::Push(Definition* definition) {
   Value::AddToList(new (Z) Value(definition), &stack_);
 }
 
-Definition* BaseFlowGraphBuilder::Peek() {
-  ASSERT(stack_ != NULL);
-  return stack_->definition();
+Definition* BaseFlowGraphBuilder::Peek(intptr_t depth) {
+  Value* head = stack_;
+  for (intptr_t i = 0; i < depth; ++i) {
+    ASSERT(head != nullptr);
+    head = head->next_use();
+  }
+  ASSERT(head != nullptr);
+  return head->definition();
 }
 
 Value* BaseFlowGraphBuilder::Pop() {
@@ -811,6 +816,62 @@ Fragment BaseFlowGraphBuilder::LoadClassId() {
   LoadClassIdInstr* load = new (Z) LoadClassIdInstr(Pop());
   Push(load);
   return Fragment(load);
+}
+
+Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
+                                              const Class& klass,
+                                              intptr_t argument_count) {
+  ArgumentArray arguments = GetArguments(argument_count);
+  AllocateObjectInstr* allocate =
+      new (Z) AllocateObjectInstr(position, klass, arguments);
+  Push(allocate);
+  return Fragment(allocate);
+}
+
+Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
+    const TypeArguments& signatures) {
+  ASSERT(signatures.IsInstantiated() && signatures.Length() == 2);
+
+  const AbstractType& dart_type = AbstractType::Handle(signatures.TypeAt(0));
+  const AbstractType& native_type = AbstractType::Handle(signatures.TypeAt(1));
+
+  ASSERT(dart_type.IsFunctionType() && native_type.IsFunctionType());
+  const Function& target =
+      Function::ZoneHandle(compiler::ffi::TrampolineFunction(
+          Function::Handle(Z, Type::Cast(dart_type).signature()),
+          Function::Handle(Z, Type::Cast(native_type).signature())));
+
+  Fragment code;
+  code += LoadNativeField(Slot::Pointer_c_memory_address());
+  LocalVariable* address = MakeTemporary();
+
+  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+      /*context_id=*/0, /*num_variables=*/1);
+  code += AllocateContext(context_variables);
+  LocalVariable* context = MakeTemporary();
+
+  code += LoadLocal(context);
+  code += LoadLocal(address);
+  code += StoreInstanceField(
+      TokenPosition::kNoSource,
+      Slot::GetContextVariableSlotFor(thread_, *context_variables[0]));
+
+  code += AllocateClosure(TokenPosition::kNoSource, target);
+  LocalVariable* closure = MakeTemporary();
+
+  code += LoadLocal(closure);
+  code += LoadLocal(context);
+  code += StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_context());
+
+  code += LoadLocal(closure);
+  code += Constant(target);
+  code +=
+      StoreInstanceField(TokenPosition::kNoSource, Slot::Closure_function());
+
+  // Drop address and context.
+  code += DropTempsPreserveTop(2);
+
+  return code;
 }
 
 }  // namespace kernel

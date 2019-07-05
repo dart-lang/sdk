@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(ApiError, "ApiError")                                                      \
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
+  V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
   V(AsyncCompleter, ":async_completer")                                        \

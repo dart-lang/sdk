@@ -144,12 +144,48 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     return node;
   }
 
+  // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
+  // Kernel, because we cannot have a generic call to 'asFunction' in its body.
+  //
+  // Below, in 'visitMethodInvocation', we ensure that the type arguments to
+  // 'lookupFunction' are constants, so by inlining the call to 'asFunction' at
+  // the call-site, we ensure that there are no generic calls to 'asFunction'.
+  //
+  // We will not detect dynamic invocations of 'asFunction' -- these are handled
+  // by the stub in 'dynamic_library_patch.dart'. Dynamic invocations of
+  // 'lookupFunction' (and 'asFunction') are not legal and throw a runtime
+  // exception.
+  Expression _replaceLookupFunction(MethodInvocation node) {
+    // The generated code looks like:
+    //
+    // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName))
+
+    final DartType nativeSignature = node.arguments.types[0];
+    final DartType dartSignature = node.arguments.types[1];
+
+    final Arguments args = Arguments([
+      node.arguments.positional.single
+    ], types: [
+      InterfaceType(nativeFunctionClass, [nativeSignature])
+    ]);
+
+    final Expression lookupResult = MethodInvocation(
+        node.receiver, Name("lookup"), args, libraryLookupMethod);
+
+    return StaticInvocation(asFunctionInternal,
+        Arguments([lookupResult], types: [dartSignature, nativeSignature]));
+  }
+
   @override
   visitMethodInvocation(MethodInvocation node) {
     super.visitMethodInvocation(node);
 
     Member target = node.interfaceTarget;
     try {
+      // We will not detect dynamic invocations of 'asFunction' and
+      // 'lookupFunction' -- these are handled by the 'asFunctionInternal' stub
+      // in 'dynamic_library_patch.dart'. Dynamic invocations of 'asFunction'
+      // and 'lookupFunction' are not legal and throw a runtime exception.
       if (target == lookupFunctionMethod) {
         DartType nativeType =
             InterfaceType(nativeFunctionClass, [node.arguments.types[0]]);
@@ -157,14 +193,8 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+        return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
-        if (isFfiLibrary) {
-          // Library code of dart:ffi uses asFunction to implement
-          // lookupFunction. Since we treat lookupFunction as well, this call
-          // can be generic and still support AOT.
-          return node;
-        }
-
         DartType dartType = node.arguments.types[0];
         DartType pointerType = node.receiver.getStaticType(env);
         DartType nativeType = _pointerTypeGetTypeArg(pointerType);
@@ -172,6 +202,11 @@ class _FfiUseSiteTransformer extends FfiTransformer {
         _ensureNativeTypeValid(pointerType, node);
         _ensureNativeTypeValid(nativeType, node);
         _ensureNativeTypeToDartType(nativeType, dartType, node);
+
+        final DartType nativeSignature =
+            (nativeType as InterfaceType).typeArguments[0];
+        return StaticInvocation(asFunctionInternal,
+            Arguments([node.receiver], types: [dartType, nativeSignature]));
       } else if (target == loadMethod) {
         // TODO(dacoharkes): should load and store be generic?
         // https://github.com/dart-lang/sdk/issues/35902

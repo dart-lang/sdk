@@ -369,11 +369,10 @@ class DartPrecompiledAdbRuntimeConfiguration
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    String precompiledRunner = dartPrecompiledBinaryFileName;
     String processTest = processTestBinaryFileName;
     return [
       Command.adbPrecompiled(
-          precompiledRunner, processTest, script, arguments, useBlobs, useElf)
+          buildDir, processTest, script, arguments, useBlobs, useElf, extraLibs)
     ];
   }
 }

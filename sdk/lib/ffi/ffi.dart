@@ -46,6 +46,9 @@ class Pointer<T extends NativeType> extends NativeType {
   /// The pointer returned will remain alive for the duration of the current
   /// isolate's lifetime. After the isolate it was created in is terminated,
   /// invoking it from native code will cause undefined behavior.
+  ///
+  /// Does not accept dynamic invocations -- where the type of the receiver is
+  /// [dynamic].
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf("T") Function f, Object exceptionalReturn);
 
@@ -81,7 +84,8 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Convert to Dart function, automatically marshalling the arguments
   /// and return value.
   ///
-  /// Can only be called on [Pointer]<[NativeFunction]>.
+  /// Can only be called on [Pointer]<[NativeFunction]>. Does not accept dynamic
+  /// invocations -- where the type of the receiver is [dynamic].
   external R asFunction<@DartRepresentationOf("T") R extends Function>();
 
   /// Free memory on the C heap pointed to by this pointer with free().

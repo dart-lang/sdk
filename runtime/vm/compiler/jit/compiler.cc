@@ -98,9 +98,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
-    // TODO(dacoharkes): Ffi support in AOT
-    // https://github.com/dart-lang/sdk/issues/35765
-    FLAG_enable_ffi = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;

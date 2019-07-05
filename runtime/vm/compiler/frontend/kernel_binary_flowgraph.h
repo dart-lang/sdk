@@ -350,6 +350,10 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFunctionNode(TokenPosition parent_position,
                              StringIndex name_index);
 
+  // Build build FG for '_asFunctionInternal'. Reads an Arguments from the
+  // Kernel buffer and pushes the resulting closure.
+  Fragment BuildFfiAsFunctionInternal();
+
   FlowGraphBuilder* flow_graph_builder_;
   ActiveClass* const active_class_;
   TypeTranslator type_translator_;

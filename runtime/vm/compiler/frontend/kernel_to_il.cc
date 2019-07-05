@@ -216,16 +216,6 @@ Fragment FlowGraphBuilder::TranslateInstantiatedTypeArguments(
   return instructions;
 }
 
-Fragment FlowGraphBuilder::AllocateObject(TokenPosition position,
-                                          const Class& klass,
-                                          intptr_t argument_count) {
-  ArgumentArray arguments = GetArguments(argument_count);
-  AllocateObjectInstr* allocate =
-      new (Z) AllocateObjectInstr(position, klass, arguments);
-  Push(allocate);
-  return Fragment(allocate);
-}
-
 Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
                                            intptr_t handler_index,
                                            bool needs_stacktrace,

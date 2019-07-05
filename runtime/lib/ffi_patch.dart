@@ -11,6 +11,12 @@ Pointer<T> _allocate<T extends NativeType>(int count) native "Ffi_allocate";
 
 Pointer<T> _fromAddress<T extends NativeType>(int ptr) native "Ffi_fromAddress";
 
+// The real implementation of this function (for interface calls) lives in
+// BuildFfiAsFunctionCall in the Kernel frontend. No calls can actually reach
+// this function.
+DS _asFunctionInternal<DS extends Function, NS extends Function>(
+    Pointer<NativeFunction<NS>> ptr) native "Ffi_asFunctionInternal";
+
 @patch
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> {
@@ -55,7 +61,9 @@ class Pointer<T extends NativeType> {
   Pointer<U> cast<U extends NativeType>() native "Ffi_cast";
 
   @patch
-  R asFunction<R extends Function>() native "Ffi_asFunction";
+  R asFunction<R extends Function>() {
+    throw UnsupportedError("Pointer.asFunction cannot be called dynamically.");
+  }
 
   @patch
   void free() native "Ffi_free";

@@ -90,6 +90,7 @@ const List<int> nativeTypeSizes = [
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
   final TypeEnvironment env;
+  final CoreTypes coreTypes;
   final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
@@ -107,16 +108,18 @@ class FfiTransformer extends Transformer {
   final Procedure storeMethod;
   final Procedure offsetByMethod;
   final Procedure asFunctionMethod;
+  final Procedure asFunctionInternal;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
   final Field addressOfField;
   final Constructor structFromPointer;
+  final Procedure libraryLookupMethod;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
   FfiTransformer(
-      this.index, CoreTypes coreTypes, this.hierarchy, this.diagnosticReporter)
+      this.index, this.coreTypes, this.hierarchy, this.diagnosticReporter)
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
@@ -133,10 +136,14 @@ class FfiTransformer extends Transformer {
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', 'fromPointer'),
         asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        asFunctionInternal =
+            index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
         lookupFunctionMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
         fromFunctionMethod =
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
+        libraryLookupMethod =
+            index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
             .toList();

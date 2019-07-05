@@ -6842,6 +6842,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the 'Pointer' type from "dart:ffi".
+  bool IsFfiPointerType() const;
+
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
 

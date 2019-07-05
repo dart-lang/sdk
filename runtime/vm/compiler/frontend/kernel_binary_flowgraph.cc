@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
@@ -3048,6 +3049,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
+  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+    return BuildFfiAsFunctionInternal();
+  }
+
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
@@ -4998,6 +5003,25 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       TokenPosition::kNoSource, Slot::Closure_context());
 
   return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
+  const intptr_t argc = ReadUInt();               // read argument count.
+  ASSERT(argc == 1);                              // pointer
+  const intptr_t list_length = ReadListLength();  // read types list length.
+  ASSERT(list_length == 2);  // dart signature, then native signature
+  const TypeArguments& type_arguments =
+      T.BuildTypeArguments(list_length);  // read types.
+  Fragment code;
+  const intptr_t positional_count =
+      ReadListLength();  // read positional argument count
+  ASSERT(positional_count == 1);
+  code += BuildExpression();  // build first positional argument (pointer)
+  const intptr_t named_args_len =
+      ReadListLength();  // skip (empty) named arguments list
+  ASSERT(named_args_len == 0);
+  code += B->BuildFfiAsFunctionInternalCall(type_arguments);
+  return code;
 }
 
 }  // namespace kernel

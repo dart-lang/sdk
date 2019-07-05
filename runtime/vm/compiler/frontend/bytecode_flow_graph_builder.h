@@ -150,6 +150,7 @@ class BytecodeFlowGraphBuilder {
   void BuildInterfaceCallCommon(bool is_unchecked_call);
 
   void BuildInstruction(KernelBytecode::Opcode opcode);
+  void BuildFfiAsFunction();
 
 #define DECLARE_BUILD_METHOD(name, encoding, kind, op1, op2, op3)              \
   void Build##name();

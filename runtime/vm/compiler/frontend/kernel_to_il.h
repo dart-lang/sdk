@@ -127,9 +127,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateObject(TokenPosition position,
-                          const Class& klass,
-                          intptr_t argument_count);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace,

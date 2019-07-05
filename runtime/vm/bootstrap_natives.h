@@ -383,7 +383,7 @@ namespace dart {
   V(Ffi_offsetBy, 2)                                                           \
   V(Ffi_cast, 1)                                                               \
   V(Ffi_sizeOf, 0)                                                             \
-  V(Ffi_asFunction, 1)                                                         \
+  V(Ffi_asFunctionInternal, 1)                                                 \
   V(Ffi_fromFunction, 2)                                                       \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \

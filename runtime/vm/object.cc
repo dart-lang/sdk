@@ -17273,6 +17273,10 @@ bool AbstractType::IsDartClosureType() const {
   return !IsFunctionType() && (type_class_id() == kClosureCid);
 }
 
+bool AbstractType::IsFfiPointerType() const {
+  return HasTypeClass() && type_class_id() == kFfiPointerCid;
+}
+
 bool AbstractType::IsSubtypeOf(const AbstractType& other,
                                Heap::Space space) const {
   ASSERT(IsFinalized());

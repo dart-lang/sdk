@@ -13,6 +13,7 @@
 #include "vm/compiler/ffi.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/log.h"
 #include "vm/native_arguments.h"
 #include "vm/native_entry.h"
@@ -31,11 +32,6 @@ static bool IsPointerType(const AbstractType& type) {
   return RawObject::IsFfiPointerClassId(type.type_class_id());
 }
 
-static bool IsNativeFunction(const AbstractType& type_arg) {
-  classid_t type_cid = type_arg.type_class_id();
-  return RawObject::IsFfiTypeNativeFunctionClassId(type_cid);
-}
-
 static void CheckSized(const AbstractType& type_arg) {
   const classid_t type_cid = type_arg.type_class_id();
   if (RawObject::IsFfiNativeTypeTypeClassId(type_cid) ||
@@ -52,7 +48,7 @@ static void CheckSized(const AbstractType& type_arg) {
   }
 }
 
-enum class FfiVariance { kInvariant = 0, kCovariant = 1, kContravariant = 2 };
+enum class FfiVariance { kCovariant = 0, kContravariant = 1 };
 
 // Checks that a dart type correspond to a [NativeType].
 // Because this is checked already in a kernel transformation, it does not throw
@@ -86,9 +82,7 @@ static bool DartAndCTypeCorrespond(const AbstractType& native_type,
                                  Heap::kNew);
   }
   if (RawObject::IsFfiPointerClassId(native_type_cid)) {
-    return (variance == FfiVariance::kInvariant &&
-            dart_type.Equals(native_type)) ||
-           (variance == FfiVariance::kCovariant &&
+    return (variance == FfiVariance::kCovariant &&
             dart_type.IsSubtypeOf(native_type, Heap::kNew)) ||
            (variance == FfiVariance::kContravariant &&
             native_type.IsSubtypeOf(dart_type, Heap::kNew)) ||
@@ -105,7 +99,8 @@ static bool DartAndCTypeCorrespond(const AbstractType& native_type,
     if (!nativefunction_type_arg.IsFunctionType()) {
       return false;
     }
-    Function& dart_function = Function::Handle(((Type&)dart_type).signature());
+    Function& dart_function =
+        Function::Handle((Type::Cast(dart_type)).signature());
     if (dart_function.NumTypeParameters() != 0 ||
         dart_function.HasOptionalPositionalParameters() ||
         dart_function.HasOptionalNamedParameters()) {
@@ -434,91 +429,12 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   return Integer::New(SizeOf(type_arg));
 }
 
-// TODO(dacoharkes): Cache the trampolines.
-// We can possibly address simultaniously with 'precaching' in AOT.
-static RawFunction* TrampolineFunction(const Function& dart_signature,
-                                       const Function& c_signature) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  String& name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), "FfiTrampoline"));
-  const Library& lib = Library::Handle(Library::FfiLibrary());
-  const Class& owner_class = Class::Handle(lib.toplevel_class());
-  Function& function =
-      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
-                                           /*is_static=*/true,
-                                           /*is_const=*/false,
-                                           /*is_abstract=*/false,
-                                           /*is_external=*/false,
-                                           /*is_native=*/false, owner_class,
-                                           TokenPosition::kMinSource));
-  function.set_is_debuggable(false);
-  function.set_num_fixed_parameters(dart_signature.num_fixed_parameters());
-  function.set_result_type(AbstractType::Handle(dart_signature.result_type()));
-  function.set_parameter_types(Array::Handle(dart_signature.parameter_types()));
-
-  // The signature function won't have any names for the parameters. We need to
-  // assign unique names for scope building and error messages.
-  const intptr_t num_params = dart_signature.num_fixed_parameters();
-  const Array& parameter_names = Array::Handle(Array::New(num_params));
-  for (intptr_t i = 0; i < num_params; ++i) {
-    if (i == 0) {
-      name = Symbols::ClosureParameter().raw();
-    } else {
-      name = Symbols::NewFormatted(thread, ":ffiParam%" Pd, i);
-    }
-    parameter_names.SetAt(i, name);
-  }
-  function.set_parameter_names(parameter_names);
-  function.SetFfiCSignature(c_signature);
-
-  return function.raw();
-}
-
-DEFINE_NATIVE_ENTRY(Ffi_asFunction, 1, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
-  AbstractType& pointer_type_arg =
-      AbstractType::Handle(pointer.type_argument());
-  ASSERT(IsNativeFunction(pointer_type_arg));
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  CheckDartAndCTypeCorrespond(pointer_type_arg, type_arg,
-                              FfiVariance::kInvariant);
-
-  Function& dart_signature = Function::Handle(Type::Cast(type_arg).signature());
-  TypeArguments& nativefunction_type_args =
-      TypeArguments::Handle(pointer_type_arg.arguments());
-  AbstractType& nativefunction_type_arg =
-      AbstractType::Handle(nativefunction_type_args.TypeAt(0));
-  Function& c_signature =
-      Function::Handle(Type::Cast(nativefunction_type_arg).signature());
-  Function& function =
-      Function::Handle(TrampolineFunction(dart_signature, c_signature));
-
-  // Set the c function pointer in the context of the closure rather than in
-  // the function so that we can reuse the function for each c function with
-  // the same signature.
-  Context& context = Context::Handle(Context::New(1));
-  context.SetAt(0,
-                Integer::Handle(zone, Integer::New(pointer.NativeAddress())));
-
-  RawClosure* raw_closure =
-      Closure::New(Object::null_type_arguments(), Object::null_type_arguments(),
-                   function, context, Heap::kOld);
-
-  return raw_closure;
-}
-
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER) &&        \
+    !defined(TARGET_ARCH_DBC)
 // Generates assembly to trampoline from native code into Dart.
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
 static uword CompileNativeCallback(const Function& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return) {
-#if defined(TARGET_ARCH_DBC)
-  // https://github.com/dart-lang/sdk/issues/35774
-  // FFI is supported, but callbacks are not.
-  Exceptions::ThrowUnsupportedError(
-      "FFI callbacks are not yet supported on DBC.");
-#else
   Thread* const thread = Thread::Current();
   const int32_t callback_id = thread->AllocateFfiCallbackId();
 
@@ -526,10 +442,9 @@ static uword CompileNativeCallback(const Function& c_signature,
   // library. Note that these functions will never be invoked by Dart, so it
   // doesn't matter that they all have the same name.
   Zone* const Z = thread->zone();
-  const String& name =
-      String::ZoneHandle(Symbols::New(Thread::Current(), "FfiCallback"));
-  const Library& lib = Library::Handle(Library::FfiLibrary());
-  const Class& owner_class = Class::Handle(lib.toplevel_class());
+  const String& name = String::Handle(Symbols::New(thread, "FfiCallback"));
+  const Library& lib = Library::Handle(Z, Library::FfiLibrary());
+  const Class& owner_class = Class::Handle(Z, lib.toplevel_class());
   const Function& function =
       Function::Handle(Z, Function::New(name, RawFunction::kFfiTrampoline,
                                         /*is_static=*/true,
@@ -587,13 +502,49 @@ static uword CompileNativeCallback(const Function& c_signature,
   thread->SetFfiCallbackCode(callback_id, code);
 
   return code.EntryPoint();
-#endif  // defined(TARGET_ARCH_DBC)
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+#endif
 
-DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
+// Static invocations to this method are translated directly in streaming FGB
+// and bytecode FGB. However, we can still reach this entrypoint in the bytecode
+// interpreter.
+DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 1) {
 #if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
   UNREACHABLE();
+#else
+  ASSERT(FLAG_enable_interpreter);
+
+  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
+  GET_NATIVE_TYPE_ARGUMENT(dart_type, arguments->NativeTypeArgAt(0));
+  GET_NATIVE_TYPE_ARGUMENT(native_type, arguments->NativeTypeArgAt(1));
+
+  const Function& dart_signature =
+      Function::Handle(zone, Type::Cast(dart_type).signature());
+  const Function& native_signature =
+      Function::Handle(zone, Type::Cast(native_type).signature());
+  const Function& function = Function::Handle(
+      compiler::ffi::TrampolineFunction(dart_signature, native_signature));
+
+  // Set the c function pointer in the context of the closure rather than in
+  // the function so that we can reuse the function for each c function with
+  // the same signature.
+  const Context& context = Context::Handle(Context::New(1));
+  context.SetAt(0,
+                Integer::Handle(zone, Integer::New(pointer.NativeAddress())));
+
+  return Closure::New(Object::null_type_arguments(),
+                      Object::null_type_arguments(), function, context,
+                      Heap::kOld);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER) ||          \
+    defined(TARGET_ARCH_DBC)
+  // https://github.com/dart-lang/sdk/issues/37295
+  // FFI is supported, but callbacks are not.
+  Exceptions::ThrowUnsupportedError(
+      "FFI callbacks are not yet supported in AOT or on DBC.");
 #else
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(0));

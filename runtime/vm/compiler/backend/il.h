@@ -5109,9 +5109,6 @@ class AllocateObjectInstr : public TemplateAllocation<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
 
-// TODO(vegorov) the name of the instruction is confusing. At some point
-// it used to allocate uninitialized storage, but this is no longer true.
-// These days it allocates null initialized storage.
 class AllocateUninitializedContextInstr
     : public TemplateAllocation<0, NoThrow> {
  public:
