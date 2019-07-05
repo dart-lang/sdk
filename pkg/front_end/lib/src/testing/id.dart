@@ -11,7 +11,7 @@ enum IdKind {
   iterator,
   current,
   moveNext,
-  statement,
+  stmt,
 }
 
 /// Id for a code point or element.
@@ -62,8 +62,8 @@ class IdValue {
         return '$currentPrefix$value';
       case IdKind.moveNext:
         return '$moveNextPrefix$value';
-      case IdKind.statement:
-        return '$statementPrefix$value';
+      case IdKind.stmt:
+        return '$stmtPrefix$value';
     }
     throw new UnsupportedError("Unexpected id kind: ${id.kind}");
   }
@@ -76,7 +76,7 @@ class IdValue {
   static const String iteratorPrefix = "iterator: ";
   static const String currentPrefix = "current: ";
   static const String moveNextPrefix = "moveNext: ";
-  static const String statementPrefix = "statement: ";
+  static const String stmtPrefix = "stmt: ";
 
   static IdValue decode(int offset, String text) {
     Id id;
@@ -118,9 +118,9 @@ class IdValue {
     } else if (text.startsWith(moveNextPrefix)) {
       id = new NodeId(offset, IdKind.moveNext);
       expected = text.substring(moveNextPrefix.length);
-    } else if (text.startsWith(statementPrefix)) {
-      id = new NodeId(offset, IdKind.statement);
-      expected = text.substring(statementPrefix.length);
+    } else if (text.startsWith(stmtPrefix)) {
+      id = new NodeId(offset, IdKind.stmt);
+      expected = text.substring(stmtPrefix.length);
     } else {
       id = new NodeId(offset, IdKind.node);
       expected = text;

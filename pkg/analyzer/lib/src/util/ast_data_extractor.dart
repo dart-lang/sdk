@@ -61,7 +61,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   NodeId createStatementId(Statement node) =>
-      NodeId(_nodeOffset(node), IdKind.statement);
+      NodeId(_nodeOffset(node), IdKind.stmt);
 
   @override
   void fail(String message) {

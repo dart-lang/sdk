@@ -357,7 +357,7 @@ void f() {
   do {
     1;
   } while (true);
-  /*statement: unreachable*/ 2;
+  /*stmt: unreachable*/ 2;
 }
 ''');
   }
@@ -367,14 +367,14 @@ void f() {
 /*member: f:doesNotComplete*/
 void f(bool b, int i) {
   return;
-  /*statement: unreachable*/ Object _;
-  /*statement: unreachable*/ do {} while (b);
-  /*statement: unreachable*/ for (;;) {}
-  /*statement: unreachable*/ for (_ in []) {}
-  /*statement: unreachable*/ if (b) {}
-  /*statement: unreachable*/ switch (i) {}
-  /*statement: unreachable*/ try {} finally {}
-  /*statement: unreachable*/ while (b) {}
+  /*stmt: unreachable*/ Object _;
+  /*stmt: unreachable*/ do {} while (b);
+  /*stmt: unreachable*/ for (;;) {}
+  /*stmt: unreachable*/ for (_ in []) {}
+  /*stmt: unreachable*/ if (b) {}
+  /*stmt: unreachable*/ switch (i) {}
+  /*stmt: unreachable*/ try {} finally {}
+  /*stmt: unreachable*/ while (b) {}
 }
 ''');
   }
@@ -386,7 +386,7 @@ void f() {
   for (; true;) {
     1;
   }
-  /*statement: unreachable*/ 2;
+  /*stmt: unreachable*/ 2;
 }
 ''');
   }
@@ -398,7 +398,7 @@ void f() {
   for (;;) {
     1;
   }
-  /*statement: unreachable*/ 2;
+  /*stmt: unreachable*/ 2;
 }
 ''');
   }
@@ -449,7 +449,7 @@ void f(bool b) {
   test_if_false_then_else() async {
     await trackCode(r'''
 void f() {
-  if (false) /*statement: unreachable*/ {
+  if (false) /*stmt: unreachable*/ {
     1;
   } else {
   }
@@ -466,7 +466,7 @@ void f() {
   if (true) {
     return;
   }
-  /*statement: unreachable*/ 2;
+  /*stmt: unreachable*/ 2;
 }
 ''');
   }
@@ -475,7 +475,7 @@ void f() {
     await trackCode(r'''
 void f() {
   if (true) {
-  } else /*statement: unreachable*/ {
+  } else /*stmt: unreachable*/ {
     2;
   }
   3;
@@ -510,7 +510,7 @@ void f(bool b, int i) {
       } else {
         return;
       }
-      /*statement: unreachable*/ 2;
+      /*stmt: unreachable*/ 2;
   }
   3;
 }
@@ -536,7 +536,7 @@ void f() {
   try {
     1;
     return;
-    /*statement: unreachable*/ 2;
+    /*stmt: unreachable*/ 2;
   } catch (_) {
     3;
   }
@@ -553,7 +553,7 @@ void f() {
   } catch (_) {
     2;
     return;
-    /*statement: unreachable*/ 3;
+    /*stmt: unreachable*/ 3;
   }
   4;
 }
@@ -589,7 +589,7 @@ void f() {
   } finally {
     3;
   }
-  /*statement: unreachable*/ 4;
+  /*stmt: unreachable*/ 4;
 }
 ''');
   }
@@ -620,7 +620,7 @@ void f() {
   } finally {
     2;
   }
-  /*statement: unreachable*/ 3;
+  /*stmt: unreachable*/ 3;
 }
 ''');
   }
@@ -628,7 +628,7 @@ void f() {
   test_while_false() async {
     await trackCode(r'''
 void f() {
-  while (false) /*statement: unreachable*/ {
+  while (false) /*stmt: unreachable*/ {
     1;
   }
   2;
@@ -643,8 +643,8 @@ void f() {
   while (true) {
     1;
   }
-  /*statement: unreachable*/ 2;
-  /*statement: unreachable*/ 3;
+  /*stmt: unreachable*/ 2;
+  /*stmt: unreachable*/ 3;
 }
 ''');
   }
@@ -655,7 +655,7 @@ void f() {
   while (true) {
     1;
     break;
-    /*statement: unreachable*/ 2;
+    /*stmt: unreachable*/ 2;
   }
   3;
 }
@@ -682,9 +682,9 @@ void f() {
   while (true) {
     1;
     continue;
-    /*statement: unreachable*/ 2;
+    /*stmt: unreachable*/ 2;
   }
-  /*statement: unreachable*/ 3;
+  /*stmt: unreachable*/ 3;
 }
 ''');
   }
