@@ -2,13 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/id_equivalence_helper.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -18,112 +22,90 @@ main() {
   });
 }
 
-@reflectiveTest
-class NullableFlowTest extends DriverResolutionTest {
+class FlowTestBase extends DriverResolutionTest {
   FlowAnalysisResult flowResult;
 
+  /// Resolve the given [code] and track nullability in the unit.
+  Future<void> trackCode(String code) async {
+    if (await checkTests(
+        code, _resultComputer, const _FlowAnalysisDataComputer())) {
+      fail('Failure(s)');
+    }
+  }
+
+  Future<ResolvedUnitResult> _resultComputer(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+    var unit = result.unit;
+    flowResult = FlowAnalysisResult.getFromNode(unit);
+    return result;
+  }
+}
+
+@reflectiveTest
+class NullableFlowTest extends FlowTestBase {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
-
-  void assertNonNullable([
-    String search1,
-    String search2,
-    String search3,
-    String search4,
-    String search5,
-  ]) {
-    var expected = [search1, search2, search3, search4, search5]
-        .where((i) => i != null)
-        .map((search) => findNode.simple(search))
-        .toList();
-    expect(flowResult.nonNullableNodes, unorderedEquals(expected));
-  }
-
-  void assertNullable([
-    String search1,
-    String search2,
-    String search3,
-    String search4,
-    String search5,
-  ]) {
-    var expected = [search1, search2, search3, search4, search5]
-        .where((i) => i != null)
-        .map((search) => findNode.simple(search))
-        .toList();
-    expect(flowResult.nullableNodes, unorderedEquals(expected));
-  }
 
   test_assign_toNonNull() async {
     await trackCode(r'''
 void f(int x) {
   if (x != null) return;
-  x; // 1
+  /*nullable*/ x;
   x = 0;
-  x; // 2
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
   }
 
   test_assign_toNull() async {
     await trackCode(r'''
 void f(int x) {
   if (x == null) return;
-  x; // 1
+  /*nonNullable*/ x;
   x = null;
-  x; // 2
+  /*nullable*/ x;
 }
 ''');
-    assertNullable('x; // 2');
-    assertNonNullable('x; // 1');
   }
 
   test_assign_toUnknown_fromNotNull() async {
     await trackCode(r'''
 void f(int a, int b) {
   if (a == null) return;
-  a; // 1
+  /*nonNullable*/ a;
   a = b;
-  a; // 2
+  a;
 }
 ''');
-    assertNullable();
-    assertNonNullable('a; // 1');
   }
 
   test_assign_toUnknown_fromNull() async {
     await trackCode(r'''
 void f(int a, int b) {
   if (a != null) return;
-  a; // 1
+  /*nullable*/ a;
   a = b;
-  a; // 2
+  a;
 }
 ''');
-    assertNullable('a; // 1');
-    assertNonNullable();
   }
 
   test_binaryExpression_logicalAnd() async {
     await trackCode(r'''
 void f(int x) {
-  x == null && x.isEven;
+  x == null && /*nullable*/ x.isEven;
 }
 ''');
-    assertNullable('x.isEven');
-    assertNonNullable();
   }
 
   test_binaryExpression_logicalOr() async {
     await trackCode(r'''
 void f(int x) {
-  x == null || x.isEven;
+  x == null || /*nonNullable*/ x.isEven;
 }
 ''');
-    assertNullable();
-    assertNonNullable('x.isEven');
   }
 
   test_constructor_if_then_else() async {
@@ -131,93 +113,79 @@ void f(int x) {
 class C {
   C(int x) {
     if (x == null) {
-      x; // 1
+      /*nullable*/ x;
     } else {
-      x; // 2
+      /*nonNullable*/ x;
     }
   }
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
   }
 
   test_if_joinThenElse_ifNull() async {
     await trackCode(r'''
 void f(int a, int b) {
   if (a == null) {
-    a; // 1
+    /*nullable*/ a;
     if (b == null) return;
-    b; // 2
+    /*nonNullable*/ b;
   } else {
-    a; // 3
+    /*nonNullable*/ a;
     if (b == null) return;
-    b; // 4
+    /*nonNullable*/ b;
   }
-  a; // 5
-  b; // 6
+  a;
+  /*nonNullable*/ b;
 }
 ''');
-    assertNullable('a; // 1');
-    assertNonNullable('b; // 2', 'a; // 3', 'b; // 4', 'b; // 6');
   }
 
   test_if_notNull_thenExit_left() async {
     await trackCode(r'''
 void f(int x) {
   if (null != x) return;
-  x; // 1
+  /*nullable*/ x;
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable();
   }
 
   test_if_notNull_thenExit_right() async {
     await trackCode(r'''
 void f(int x) {
   if (x != null) return;
-  x; // 1
+  /*nullable*/ x;
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable();
   }
 
   test_if_null_thenExit_left() async {
     await trackCode(r'''
 void f(int x) {
   if (null == x) return;
-  x; // 1
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable();
-    assertNonNullable('x; // 1');
   }
 
   test_if_null_thenExit_right() async {
     await trackCode(r'''
 void f(int x) {
   if (x == null) return;
-  x; // 1
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable();
-    assertNonNullable('x; // 1');
   }
 
   test_if_then_else() async {
     await trackCode(r'''
 void f(int x) {
   if (x == null) {
-    x; // 1
+    /*nullable*/ x;
   } else {
-    x; // 2
+    /*nonNullable*/ x;
   }
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
   }
 
   test_method_if_then_else() async {
@@ -225,15 +193,13 @@ void f(int x) {
 class C {
   void f(int x) {
     if (x == null) {
-      x; // 1
+      /*nullable*/ x;
     } else {
-      x; // 2
+      /*nonNullable*/ x;
     }
   }
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
   }
 
   test_potentiallyMutatedInClosure() async {
@@ -244,14 +210,12 @@ f(int a, int b) {
   }
 
   if (a == null) {
-    a; // 1
+    a;
     localFunction();
-    a; // 2
+    a;
   }
 }
 ''');
-    assertNullable();
-    assertNonNullable();
   }
 
   test_tryFinally_eqNullExit_body() async {
@@ -259,31 +223,27 @@ f(int a, int b) {
 void f(int x) {
   try {
     if (x == null) return;
-    x; // 1
+    /*nonNullable*/ x;
   } finally {
-    x; // 2
+    x;
   }
-  x; // 3
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable();
-    assertNonNullable('x; // 1', 'x; // 3');
   }
 
   test_tryFinally_eqNullExit_finally() async {
     await trackCode(r'''
 void f(int x) {
   try {
-    x; // 1
+    x;
   } finally {
     if (x == null) return;
-    x; // 2
+    /*nonNullable*/ x;
   }
-  x; // 3
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable();
-    assertNonNullable('x; // 2', 'x; // 3');
   }
 
   test_tryFinally_outerEqNotNullExit_assignUnknown_body() async {
@@ -291,17 +251,15 @@ void f(int x) {
 void f(int a, int b) {
   if (a != null) return;
   try {
-    a; // 1
+    /*nullable*/ a;
     a = b;
-    a; // 2
+    a;
   } finally {
-    a; // 3
+    a;
   }
-  a; // 4
+  a;
 }
 ''');
-    assertNullable('a; // 1');
-    assertNonNullable();
   }
 
   test_tryFinally_outerEqNullExit_assignUnknown_body() async {
@@ -309,17 +267,15 @@ void f(int a, int b) {
 void f(int a, int b) {
   if (a == null) return;
   try {
-    a; // 1
+    /*nonNullable*/ a;
     a = b;
-    a; // 2
+    a;
   } finally {
-    a; // 3
+    a;
   }
-  a; // 4
+  a;
 }
 ''');
-    assertNullable();
-    assertNonNullable('a; // 1');
   }
 
   test_tryFinally_outerEqNullExit_assignUnknown_finally() async {
@@ -327,59 +283,42 @@ void f(int a, int b) {
 void f(int a, int b) {
   if (a == null) return;
   try {
-    a; // 1
+    /*nonNullable*/ a;
   } finally {
-    a; // 2
+    /*nonNullable*/ a;
     a = b;
-    a; // 3
+    a;
   }
-  a; // 4
+  a;
 }
 ''');
-    assertNullable();
-    assertNonNullable('a; // 1', 'a; // 2');
   }
 
   test_while_eqNull() async {
     await trackCode(r'''
 void f(int x) {
   while (x == null) {
-    x; // 1
+    /*nullable*/ x;
   }
-  x; // 2
+  /*nonNullable*/ x;
 }
 ''');
-    assertNullable('x; // 1');
-    assertNonNullable('x; // 2');
   }
 
   test_while_notEqNull() async {
     await trackCode(r'''
 void f(int x) {
   while (x != null) {
-    x; // 1
+    /*nonNullable*/ x;
   }
-  x; // 2
+  /*nullable*/ x;
 }
 ''');
-    assertNullable('x; // 2');
-    assertNonNullable('x; // 1');
-  }
-
-  /// Resolve the given [code] and track nullability in the unit.
-  Future<void> trackCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
-
-    var unit = result.unit;
-    flowResult = FlowAnalysisResult.getFromNode(unit);
   }
 }
 
 @reflectiveTest
-class ReachableFlowTest extends DriverResolutionTest {
-  FlowAnalysisResult flowResult;
-
+class ReachableFlowTest extends FlowTestBase {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
@@ -387,19 +326,17 @@ class ReachableFlowTest extends DriverResolutionTest {
   test_conditional_false() async {
     await trackCode(r'''
 void f() {
-  false ? 1 : 2;
+  false ? /*unreachable*/ 1 : 2;
 }
 ''');
-    verify(unreachableExpressions: ['1']);
   }
 
   test_conditional_true() async {
     await trackCode(r'''
 void f() {
-  true ? 1 : 2;
+  true ? 1 : /*unreachable*/ 2;
 }
 ''');
-    verify(unreachableExpressions: ['2']);
   }
 
   test_do_false() async {
@@ -411,81 +348,55 @@ void f() {
   2;
 }
 ''');
-    verify();
   }
 
   test_do_true() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   do {
     1;
   } while (true);
-  2;
+  /*statement: unreachable*/ 2;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_exit_beforeSplitStatement() async {
     await trackCode(r'''
-void f(bool b, int i) { // f
+void f(bool b, int i) /*functionBody: doesNotComplete*/ {
   return;
-  Object _;
-  do {} while (b);
-  for (;;) {}
-  for (_ in []) {}
-  if (b) {}
-  switch (i) {}
-  try {} finally {}
-  while (b) {}
+  /*statement: unreachable*/ Object _;
+  /*statement: unreachable*/ do {} while (b);
+  /*statement: unreachable*/ for (;;) {}
+  /*statement: unreachable*/ for (_ in []) {}
+  /*statement: unreachable*/ if (b) {}
+  /*statement: unreachable*/ switch (i) {}
+  /*statement: unreachable*/ try {} finally {}
+  /*statement: unreachable*/ while (b) {}
 }
 ''');
-    verify(
-      unreachableStatements: [
-        'Object _',
-        'do {}',
-        'for (;;',
-        'for (_',
-        'if (b)',
-        'try {',
-        'switch (i)',
-        'while (b) {}'
-      ],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_for_condition_true() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   for (; true;) {
     1;
   }
-  2;
+  /*statement: unreachable*/ 2;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_for_condition_true_implicit() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   for (;;) {
     1;
   }
-  2;
+  /*statement: unreachable*/ 2;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_forEach() async {
@@ -499,16 +410,14 @@ void f() {
   2;
 }
 ''');
-    verify();
   }
 
   test_functionBody_hasReturn() async {
     await trackCode(r'''
-int f() { // f
+int f() /*functionBody: doesNotComplete*/ {
   return 42;
 }
 ''');
-    verify(functionBodiesThatDontComplete: ['{ // f']);
   }
 
   test_functionBody_noReturn() async {
@@ -517,7 +426,6 @@ void f() {
   1;
 }
 ''');
-    verify();
   }
 
   test_if_condition() async {
@@ -531,67 +439,58 @@ void f(bool b) {
   3;
 }
 ''');
-    verify();
   }
 
   test_if_false_then_else() async {
     await trackCode(r'''
 void f() {
-  if (false) { // 1
+  if (false) /*statement: unreachable*/ {
     1;
-  } else { // 2
+  } else {
   }
   3;
 }
 ''');
-    verify(unreachableStatements: ['{ // 1']);
   }
 
   test_if_true_return() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   1;
   if (true) {
     return;
   }
-  2;
+  /*statement: unreachable*/ 2;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_if_true_then_else() async {
     await trackCode(r'''
 void f() {
-  if (true) { // 1
-  } else { // 2
+  if (true) {
+  } else /*statement: unreachable*/ {
     2;
   }
   3;
 }
 ''');
-    verify(unreachableStatements: ['{ // 2']);
   }
 
   test_logicalAnd_leftFalse() async {
     await trackCode(r'''
 void f(int x) {
-  false && (x == 1);
+  false && /*unreachable*/ (x == 1);
 }
 ''');
-    verify(unreachableExpressions: ['(x == 1)']);
   }
 
   test_logicalOr_leftTrue() async {
     await trackCode(r'''
 void f(int x) {
-  true || (x == 1);
+  true || /*unreachable*/ (x == 1);
 }
 ''');
-    verify(unreachableExpressions: ['(x == 1)']);
   }
 
   test_switch_case_neverCompletes() async {
@@ -605,12 +504,11 @@ void f(bool b, int i) {
       } else {
         return;
       }
-      2;
+      /*statement: unreachable*/ 2;
   }
   3;
 }
 ''');
-    verify(unreachableStatements: ['2;']);
   }
 
   test_tryCatch() async {
@@ -624,7 +522,6 @@ void f() {
   3;
 }
 ''');
-    verify();
   }
 
   test_tryCatch_return_body() async {
@@ -633,14 +530,13 @@ void f() {
   try {
     1;
     return;
-    2;
+    /*statement: unreachable*/ 2;
   } catch (_) {
     3;
   }
   4;
 }
 ''');
-    verify(unreachableStatements: ['2;']);
   }
 
   test_tryCatch_return_catch() async {
@@ -651,12 +547,11 @@ void f() {
   } catch (_) {
     2;
     return;
-    3;
+    /*statement: unreachable*/ 3;
   }
   4;
 }
 ''');
-    verify(unreachableStatements: ['3;']);
   }
 
   test_tryCatchFinally_return_body() async {
@@ -673,12 +568,11 @@ void f() {
   4;
 }
 ''');
-    verify();
   }
 
   test_tryCatchFinally_return_bodyCatch() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   try {
     1;
     return;
@@ -688,13 +582,9 @@ void f() { // f
   } finally {
     3;
   }
-  4;
+  /*statement: unreachable*/ 4;
 }
 ''');
-    verify(
-      unreachableStatements: ['4;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_tryCatchFinally_return_catch() async {
@@ -711,53 +601,43 @@ void f() {
   4;
 }
 ''');
-    verify();
   }
 
   test_tryFinally_return_body() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   try {
     1;
     return;
   } finally {
     2;
   }
-  3;
+  /*statement: unreachable*/ 3;
 }
 ''');
-    verify(
-      unreachableStatements: ['3;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_while_false() async {
     await trackCode(r'''
 void f() {
-  while (false) { // 1
+  while (false) /*statement: unreachable*/ {
     1;
   }
   2;
 }
 ''');
-    verify(unreachableStatements: ['{ // 1']);
   }
 
   test_while_true() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   while (true) {
     1;
   }
-  2;
-  3;
+  /*statement: unreachable*/ 2;
+  /*statement: unreachable*/ 3;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;', '3;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
   }
 
   test_while_true_break() async {
@@ -766,12 +646,11 @@ void f() {
   while (true) {
     1;
     break;
-    2;
+    /*statement: unreachable*/ 2;
   }
   3;
 }
 ''');
-    verify(unreachableStatements: ['2;']);
   }
 
   test_while_true_breakIf() async {
@@ -785,59 +664,110 @@ void f(bool b) {
   3;
 }
 ''');
-    verify();
   }
 
   test_while_true_continue() async {
     await trackCode(r'''
-void f() { // f
+void f() /*functionBody: doesNotComplete*/ {
   while (true) {
     1;
     continue;
-    2;
+    /*statement: unreachable*/ 2;
   }
-  3;
+  /*statement: unreachable*/ 3;
 }
 ''');
-    verify(
-      unreachableStatements: ['2;', '3;'],
-      functionBodiesThatDontComplete: ['{ // f'],
-    );
+  }
+}
+
+class _FlowAnalysisDataComputer extends DataComputer<Set<_FlowAssertion>> {
+  const _FlowAnalysisDataComputer();
+
+  @override
+  DataInterpreter<Set<_FlowAssertion>> get dataValidator =>
+      const _FlowAnalysisDataInterpreter();
+
+  @override
+  void computeUnitData(CompilationUnit unit,
+      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap) {
+    var flowResult = FlowAnalysisResult.getFromNode(unit);
+    _FlowAnalysisDataExtractor(
+            unit.declaredElement.source.uri, actualMap, flowResult)
+        .run(unit);
+  }
+}
+
+class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
+  FlowAnalysisResult _flowResult;
+
+  _FlowAnalysisDataExtractor(Uri uri,
+      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap, this._flowResult)
+      : super(uri, actualMap);
+
+  @override
+  Set<_FlowAssertion> computeNodeValue(Id id, AstNode node) {
+    Set<_FlowAssertion> result = {};
+    if (_flowResult.nullableNodes.contains(node)) {
+      // We sometimes erroneously annotate a node as both nullable and
+      // non-nullable.  Ignore for now.  TODO(paulberry): fix this.
+      if (!_flowResult.nonNullableNodes.contains(node)) {
+        result.add(_FlowAssertion.nullable);
+      }
+    }
+    if (_flowResult.nonNullableNodes.contains(node)) {
+      // We sometimes erroneously annotate a node as both nullable and
+      // non-nullable.  Ignore for now.  TODO(paulberry): fix this.
+      if (!_flowResult.nullableNodes.contains(node)) {
+        result.add(_FlowAssertion.nonNullable);
+      }
+    }
+    if (_flowResult.unreachableNodes.contains(node)) {
+      result.add(_FlowAssertion.unreachable);
+    }
+    if (_flowResult.functionBodiesThatDontComplete.contains(node)) {
+      result.add(_FlowAssertion.doesNotComplete);
+    }
+    return result.isEmpty ? null : result;
+  }
+}
+
+class _FlowAnalysisDataInterpreter
+    implements DataInterpreter<Set<_FlowAssertion>> {
+  const _FlowAnalysisDataInterpreter();
+
+  @override
+  String getText(Set<_FlowAssertion> actualData) =>
+      _sortedRepresentation(_toStrings(actualData));
+
+  @override
+  String isAsExpected(Set<_FlowAssertion> actualData, String expectedData) {
+    var actualStrings = _toStrings(actualData);
+    var actualSorted = _sortedRepresentation(actualStrings);
+    var expectedSorted = _sortedRepresentation(expectedData?.split(','));
+    if (actualSorted == expectedSorted) {
+      return null;
+    } else {
+      return 'Expected $expectedData, got $actualSorted';
+    }
   }
 
-  /// Resolve the given [code] and track unreachable nodes in the unit.
-  Future<void> trackCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
+  @override
+  bool isEmpty(Set<_FlowAssertion> actualData) => actualData.isEmpty;
 
-    var unit = result.unit;
-    flowResult = FlowAnalysisResult.getFromNode(unit);
+  String _sortedRepresentation(Iterable<String> values) {
+    var list = values == null || values.isEmpty ? ['none'] : values.toList();
+    list.sort();
+    return list.join(',');
   }
 
-  void verify({
-    List<String> unreachableExpressions = const [],
-    List<String> unreachableStatements = const [],
-    List<String> functionBodiesThatDontComplete = const [],
-  }) {
-    var expectedUnreachableNodes = <AstNode>[];
-    expectedUnreachableNodes.addAll(
-      unreachableStatements.map((search) => findNode.statement(search)),
-    );
-    expectedUnreachableNodes.addAll(
-      unreachableExpressions.map((search) => findNode.expression(search)),
-    );
+  List<String> _toStrings(Set<_FlowAssertion> actualData) => actualData
+      .map((flowAssertion) => flowAssertion.toString().split('.')[1])
+      .toList();
+}
 
-    expect(
-      flowResult.unreachableNodes,
-      unorderedEquals(expectedUnreachableNodes),
-    );
-    expect(
-      flowResult.functionBodiesThatDontComplete,
-      unorderedEquals(
-        functionBodiesThatDontComplete
-            .map((search) => findNode.functionBody(search))
-            .toList(),
-      ),
-    );
-  }
+enum _FlowAssertion {
+  doesNotComplete,
+  nonNullable,
+  nullable,
+  unreachable,
 }

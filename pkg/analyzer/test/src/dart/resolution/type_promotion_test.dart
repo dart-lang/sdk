@@ -2,12 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/util/ast_data_extractor.dart';
+import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/id_equivalence_helper.dart';
 import 'driver_resolution.dart';
 
 main() {
@@ -22,24 +28,11 @@ class TypePromotionTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
-  /// Assert that the identifier at the [search] string is a local variable
-  /// or a formal parameter, and has its declared type, not promoted to a more
-  /// specific type.
-  void assertNotPromoted(String search) {
-    var node = findNode.simple(search);
-    var element = node.staticElement as VariableElement;
-    expect(node.staticType, element.type, reason: search);
-  }
-
-  /// Assert that the identifier at the [search] has the [expectedType].
-  void assertPromoted(String search, String expectedType) {
-    var node = findNode.simple(search);
-    assertElementTypeString(node.staticType, expectedType);
-  }
-
   Future<void> resolveCode(String code) async {
-    addTestFile(code);
-    await resolveTestFile();
+    if (await checkTests(
+        code, _resultComputer, const _TypePromotionDataComputer())) {
+      fail('Failure(s)');
+    }
   }
 
   test_assignment() async {
@@ -47,91 +40,80 @@ class TypePromotionTest extends DriverResolutionTest {
 f(Object x) {
   if (x is String) {
     x = 42;
-    x; // 1
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_binaryExpression_ifNull() async {
     await resolveCode(r'''
 void f(Object x) {
-  ((x is num) || (throw 1)) ?? ((x is int) || (throw 2));
-  x; // 1
+  ((x is num) || (throw 1)) ?? ((/*num*/ x is int) || (throw 2));
+  /*num*/ x;
 }
 ''');
-    assertPromoted('x; // 1', 'num');
   }
 
   test_binaryExpression_ifNull_rightUnPromote() async {
     await resolveCode(r'''
 void f(Object x, Object y, Object z) {
   if (x is int) {
-    x; // 1
+    /*int*/ x;
     y ?? (x = z);
-    x; // 2
+    x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'int');
-    assertNotPromoted('x; // 2');
   }
 
   test_conditional_both() async {
     await resolveCode(r'''
 void f(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : ((x is int) || (throw 2));
-  x; // 1
+  /*num*/ x;
 }
 ''');
-    assertPromoted('x; // 1', 'num');
   }
 
   test_conditional_else() async {
     await resolveCode(r'''
 void f(bool b, Object x) {
   b ? 0 : ((x is int) || (throw 2));
-  x; // 1
+  x;
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_conditional_then() async {
     await resolveCode(r'''
 void f(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : 0;
-  x; // 1
+  x;
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_do_condition_isNotType() async {
     await resolveCode(r'''
 void f(Object x) {
   do {
-    x; // 1
+    x;
   } while (x is! String);
-  x; // 2
+  /*String*/ x;
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertPromoted('x; // 2', 'String');
   }
 
   test_do_condition_isType() async {
     await resolveCode(r'''
 void f(Object x) {
   do {
-    x; // 1
+    x;
   } while (x is String);
-  x; // 2
+  x;
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_do_outerIsType() async {
@@ -139,14 +121,12 @@ void f(Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     do {
-      x; // 1
+      /*String*/ x;
     } while (b);
-    x; // 2
+    /*String*/ x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
   }
 
   test_do_outerIsType_loopAssigned_body() async {
@@ -154,15 +134,13 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     do {
-      x; // 1
+      x;
       x = x.length;
     } while (b);
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_do_outerIsType_loopAssigned_condition() async {
@@ -170,16 +148,13 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     do {
-      x; // 1
+      x;
       x = x.length;
     } while (x != 0);
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x != 0');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_do_outerIsType_loopAssigned_condition2() async {
@@ -187,14 +162,12 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     do {
-      x; // 1
+      x;
     } while ((x = 1) != 0);
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_for_outerIsType() async {
@@ -202,14 +175,12 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     for (; b;) {
-      x; // 1
+      /*String*/ x;
     }
-    x; // 2
+    /*String*/ x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
   }
 
   test_for_outerIsType_loopAssigned_body() async {
@@ -217,15 +188,13 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     for (; b;) {
-      x; // 1
+      x;
       x = 42;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_for_outerIsType_loopAssigned_condition() async {
@@ -233,14 +202,12 @@ void f(bool b, Object x) {
 void f(Object x) {
   if (x is String) {
     for (; (x = 42) > 0;) {
-      x; // 1
+      x;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_for_outerIsType_loopAssigned_updaters() async {
@@ -248,14 +215,12 @@ void f(Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     for (; b; x = 42) {
-      x; // 1
+      x;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_forEach_outerIsType_loopAssigned() async {
@@ -264,15 +229,13 @@ void f(Object x) {
   Object v1;
   if (x is String) {
     for (var _ in (v1 = [0, 1, 2])) {
-      x; // 1
+      x;
       x = 42;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_functionExpression_isType() async {
@@ -280,13 +243,12 @@ void f(Object x) {
 void f() {
   void g(Object x) {
     if (x is String) {
-      x; // 1
+      /*String*/ x;
     }
     x = 42;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
   }
 
   test_functionExpression_isType_mutatedInClosure2() async {
@@ -294,7 +256,7 @@ void f() {
 void f() {
   void g(Object x) {
     if (x is String) {
-      x; // 1
+      x;
     }
     
     void h() {
@@ -303,7 +265,6 @@ void f() {
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_functionExpression_outerIsType_assignedOutside() async {
@@ -312,21 +273,18 @@ void f(Object x) {
   void Function() g;
   
   if (x is String) {
-    x; // 1
+    /*String*/ x;
 
     g = () {
-      x; // 2
+      x;
     };
   }
 
   x = 42;
-  x; // 3
+  x;
   g();
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
-    assertNotPromoted('x; // 3');
   }
 
   test_if_combine_empty() async {
@@ -337,121 +295,102 @@ main(bool b, Object v) {
   } else {
     v is String || (throw 2);
   }
-  v; // 3
+  v;
 }
 ''');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_conditional_isNotType() async {
     await resolveCode(r'''
 f(bool b, Object v) {
   if (b ? (v is! int) : (v is! num)) {
-    v; // 1
+    v;
   } else {
-    v; // 2
+    /*num*/ v;
   }
-  v; // 3
+  v;
 }
 ''');
-    assertNotPromoted('v; // 1');
-    assertPromoted('v; // 2', 'num');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_conditional_isType() async {
     await resolveCode(r'''
 f(bool b, Object v) {
   if (b ? (v is int) : (v is num)) {
-    v; // 1
+    /*num*/ v;
   } else {
-    v; // 2
+    v;
   }
-  v; // 3
+  v;
 }
 ''');
-    assertPromoted('v; // 1', 'num');
-    assertNotPromoted('v; // 2');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_isNotType() async {
     await resolveCode(r'''
 main(v) {
   if (v is! String) {
-    v; // 1
+    v;
   } else {
-    v; // 2
+    /*String*/ v;
   }
-  v; // 3
+  v;
 }
 ''');
-    assertNotPromoted('v; // 1');
-    assertPromoted('v; // 2', 'String');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_isNotType_return() async {
     await resolveCode(r'''
 main(v) {
   if (v is! String) return;
-  v; // ref
+  /*String*/ v;
 }
 ''');
-    assertPromoted('v; // ref', 'String');
   }
 
   test_if_isNotType_throw() async {
     await resolveCode(r'''
 main(v) {
   if (v is! String) throw 42;
-  v; // ref
+  /*String*/ v;
 }
 ''');
-    assertPromoted('v; // ref', 'String');
   }
 
   test_if_isType() async {
     await resolveCode(r'''
 main(v) {
   if (v is String) {
-    v; // 1
+    /*String*/ v;
   } else {
-    v; // 2
+    v;
   }
-  v; // 3
+  v;
 }
 ''');
-    assertPromoted('v; // 1', 'String');
-    assertNotPromoted('v; // 2');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_isType_thenNonBoolean() async {
     await resolveCode(r'''
 f(Object x) {
   if ((x is String) != 3) {
-    x; // 1
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_if_logicalNot_isType() async {
     await resolveCode(r'''
 main(v) {
   if (!(v is String)) {
-    v; // 1
+    v;
   } else {
-    v; // 2
+    /*String*/ v;
   }
-  v; // 3
+  v;
 }
 ''');
-    assertNotPromoted('v; // 1');
-    assertPromoted('v; // 2', 'String');
-    assertNotPromoted('v; // 3');
   }
 
   test_if_then_isNotType_return() async {
@@ -460,20 +399,18 @@ void f(bool b, Object x) {
   if (b) {
     if (x is! String) return;
   }
-  x; // 1
+  x;
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_logicalOr_throw() async {
     await resolveCode(r'''
 main(v) {
   v is String || (throw 42);
-  v; // ref
+  /*String*/ v;
 }
 ''');
-    assertPromoted('v; // ref', 'String');
   }
 
   test_potentiallyMutatedInClosure() async {
@@ -485,24 +422,22 @@ f(Object x) {
 
   if (x is String) {
     localFunction();
-    x; // 1
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
   }
 
   test_potentiallyMutatedInScope() async {
     await resolveCode(r'''
 f(Object x) {
   if (x is String) {
-    x; // 1
+    /*String*/ x;
   }
 
   x = 42;
 }
 ''');
-    assertPromoted('x; // 1', 'String');
   }
 
   test_switch_outerIsType_assignedInCase() async {
@@ -511,43 +446,37 @@ void f(int e, Object x) {
   if (x is String) {
     switch (e) {
       L: case 1:
-        x; // 1
+        x;
         break;
       case 2: // no label
-        x; // 2
+        /*String*/ x;
         break;
       case 3:
         x = 42;
         continue L;
     }
-    x; // 3
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertPromoted('x; // 2', 'String');
-    assertNotPromoted('x; // 3');
   }
 
   test_tryCatch_assigned_body() async {
     await resolveCode(r'''
 void f(Object x) {
   if (x is! String) return;
-  x; // 1
+  /*String*/ x;
   try {
     x = 42;
     g(); // might throw
     if (x is! String) return;
-    x; // 2
+    /*String*/ x;
   } catch (_) {}
-  x; // 3
+  x;
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
-    assertNotPromoted('x; // 3');
   }
 
   test_tryCatch_isNotType_exit_body() async {
@@ -555,15 +484,13 @@ void g() {}
 void f(Object x) {
   try {
     if (x is! String) return;
-    x; // 1
+    /*String*/ x;
   } catch (_) {}
-  x; // 2
+  x;
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
   }
 
   test_tryCatch_isNotType_exit_body_catch() async {
@@ -571,19 +498,16 @@ void g() {}
 void f(Object x) {
   try {
     if (x is! String) return;
-    x; // 1
+    /*String*/ x;
   } catch (_) {
     if (x is! String) return;
-    x; // 2
+    /*String*/ x;
   }
-  x; // 3
+  /*String*/ x;
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
-    assertPromoted('x; // 3', 'String');
   }
 
   test_tryCatch_isNotType_exit_body_catchRethrow() async {
@@ -591,19 +515,16 @@ void g() {}
 void f(Object x) {
   try {
     if (x is! String) return;
-    x; // 1
+    /*String*/ x;
   } catch (_) {
-    x; // 2
+    x;
     rethrow;
   }
-  x; // 3
+  /*String*/ x;
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
-    assertPromoted('x; // 3', 'String');
   }
 
   test_tryCatch_isNotType_exit_catch() async {
@@ -612,15 +533,13 @@ void f(Object x) {
   try {
   } catch (_) {
     if (x is! String) return;
-    x; // 1
+    /*String*/ x;
   }
-  x; // 2
+  x;
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
   }
 
   test_tryCatchFinally_outerIsType() async {
@@ -628,22 +547,18 @@ void g() {}
 void f(Object x) {
   if (x is String) {
     try {
-      x; // 1
+      /*String*/ x;
     } catch (_) {
-      x; // 2
+      /*String*/ x;
     } finally {
-      x; // 3
+      /*String*/ x;
     }
-    x; // 4
+    /*String*/ x;
   }
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
-    assertPromoted('x; // 3', 'String');
-    assertPromoted('x; // 4', 'String');
   }
 
   test_tryCatchFinally_outerIsType_assigned_body() async {
@@ -651,24 +566,20 @@ void g() {}
 void f(Object x) {
   if (x is String) {
     try {
-      x; // 1
+      /*String*/ x;
       x = 42;
       g();
     } catch (_) {
-      x; // 2
+      x;
     } finally {
-      x; // 3
+      x;
     }
-    x; // 4
+    x;
   }
 }
 
 void g() {}
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
-    assertNotPromoted('x; // 3');
-    assertNotPromoted('x; // 4');
   }
 
   test_tryCatchFinally_outerIsType_assigned_catch() async {
@@ -676,21 +587,17 @@ void g() {}
 void f(Object x) {
   if (x is String) {
     try {
-      x; // 1
+      /*String*/ x;
     } catch (_) {
-      x; // 2
+      /*String*/ x;
       x = 42;
     } finally {
-      x; // 3
+      x;
     }
-    x; // 4
+    x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
-    assertNotPromoted('x; // 3');
-    assertNotPromoted('x; // 4');
   }
 
   test_tryFinally_outerIsType_assigned_body() async {
@@ -698,18 +605,15 @@ void f(Object x) {
 void f(Object x) {
   if (x is String) {
     try {
-      x; // 1
+      /*String*/ x;
       x = 42;
     } finally {
-      x; // 2
+      x;
     }
-    x; // 3
+    x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
-    assertNotPromoted('x; // 3');
   }
 
   test_tryFinally_outerIsType_assigned_finally() async {
@@ -717,44 +621,37 @@ void f(Object x) {
 void f(Object x) {
   if (x is String) {
     try {
-      x; // 1
+      /*String*/ x;
     } finally {
-      x; // 2
+      /*String*/ x;
       x = 42;
     }
-    x; // 3
+    x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
-    assertNotPromoted('x; // 3');
   }
 
   test_while_condition_false() async {
     await resolveCode(r'''
 void f(Object x) {
   while (x is! String) {
-    x; // 1
+    x;
   }
-  x; // 2
+  /*String*/ x;
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertPromoted('x; // 2', 'String');
   }
 
   test_while_condition_true() async {
     await resolveCode(r'''
 void f(Object x) {
   while (x is String) {
-    x; // 1
+    /*String*/ x;
   }
-  x; // 2
+  x;
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertNotPromoted('x; // 2');
   }
 
   test_while_outerIsType() async {
@@ -762,14 +659,12 @@ void f(Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     while (b) {
-      x; // 1
+      /*String*/ x;
     }
-    x; // 2
+    /*String*/ x;
   }
 }
 ''');
-    assertPromoted('x; // 1', 'String');
-    assertPromoted('x; // 2', 'String');
   }
 
   test_while_outerIsType_loopAssigned_body() async {
@@ -777,15 +672,13 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     while (b) {
-      x; // 1
+      x;
       x = x.length;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
 
   test_while_outerIsType_loopAssigned_condition() async {
@@ -793,15 +686,72 @@ void f(bool b, Object x) {
 void f(bool b, Object x) {
   if (x is String) {
     while (x != 0) {
-      x; // 1
+      x;
       x = x.length;
     }
-    x; // 2
+    x;
   }
 }
 ''');
-    assertNotPromoted('x != 0');
-    assertNotPromoted('x; // 1');
-    assertNotPromoted('x; // 2');
   }
+
+  Future<ResolvedUnitResult> _resultComputer(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+    return result;
+  }
+}
+
+class _TypePromotionDataComputer extends DataComputer<DartType> {
+  const _TypePromotionDataComputer();
+
+  @override
+  DataInterpreter<DartType> get dataValidator =>
+      const _TypePromotionDataInterpreter();
+
+  @override
+  void computeUnitData(
+      CompilationUnit unit, Map<Id, ActualData<DartType>> actualMap) {
+    _TypePromotionDataExtractor(unit.declaredElement.source.uri, actualMap)
+        .run(unit);
+  }
+}
+
+class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
+  _TypePromotionDataExtractor(Uri uri, Map<Id, ActualData<DartType>> actualMap)
+      : super(uri, actualMap);
+
+  @override
+  DartType computeNodeValue(Id id, AstNode node) {
+    if (node is SimpleIdentifier && node.inGetterContext()) {
+      var element = node.staticElement;
+      if (element is VariableElement &&
+          (element is LocalVariableElement || element is ParameterElement)) {
+        var promotedType = node.staticType;
+        if (promotedType != element.type) {
+          return promotedType;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
+  const _TypePromotionDataInterpreter();
+
+  @override
+  String getText(DartType actualData) => actualData.toString();
+
+  @override
+  String isAsExpected(DartType actualData, String expectedData) {
+    if (actualData.toString() == expectedData) {
+      return null;
+    } else {
+      return 'Expected $expectedData, got $actualData';
+    }
+  }
+
+  @override
+  bool isEmpty(DartType actualData) => actualData == null;
 }
