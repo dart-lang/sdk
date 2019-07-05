@@ -65,7 +65,7 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
 
 /// TODO create common MultiMessageLintCode class
 class _LintCode extends LintCode {
-  static final registry = <String, LintCode>{};
+  static final registry = <String, _LintCode>{};
 
   factory _LintCode(String name, String message) =>
       registry.putIfAbsent(name + message, () => _LintCode._(name, message));
@@ -94,10 +94,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     final AstNode parent = node.parent;
     if (parent is MethodInvocation && node == parent.methodName) {
       indexOfAccess = parent;
-      if (parent.target?.staticType is! InterfaceType) {
+      var parentType = parent.target?.staticType;
+      if (parentType is! InterfaceType) {
         return;
       }
-      type = parent.target?.staticType;
+      type = parentType as InterfaceType;
     } else {
       return;
     }

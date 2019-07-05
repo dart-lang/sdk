@@ -98,7 +98,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    SimpleIdentifier identifier = node.expression;
+    SimpleIdentifier identifier = node.expression as SimpleIdentifier;
     var parameters = declaration.parameters;
     String parameterName = parameters == null
         ? null
