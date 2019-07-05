@@ -14,7 +14,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/util/features.dart';
 import 'package:expect/expect.dart';
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';

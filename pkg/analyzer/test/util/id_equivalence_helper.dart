@@ -11,9 +11,9 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:front_end/src/testing/id.dart'
     show ActualData, Id, IdValue, MemberId, NodeId;
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
 /// Checks [compiledData] against the expected data in [expectedMap] derived
 /// from [code].

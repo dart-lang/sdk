@@ -11,7 +11,7 @@ import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 
 void main(List<String> args) {

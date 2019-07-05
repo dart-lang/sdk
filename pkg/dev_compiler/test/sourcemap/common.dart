@@ -7,7 +7,7 @@ import 'dart:async' show Future;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:testing/testing.dart';
 
