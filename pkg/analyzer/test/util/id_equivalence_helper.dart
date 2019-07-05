@@ -9,9 +9,10 @@
 // dart2js.
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
 import 'package:front_end/src/testing/id.dart'
-    show ActualData, Id, IdValue, NodeId;
+    show ActualData, Id, IdValue, MemberId, NodeId;
 import 'package:sourcemap_testing/src/annotated_code_helper.dart';
 
 /// Checks [compiledData] against the expected data in [expectedMap] derived
@@ -395,6 +396,22 @@ class IdData<T> {
   int getOffsetFromId(Id id, Uri uri) {
     if (id is NodeId) {
       return id.value;
+    } else if (id is MemberId) {
+      if (id.className != null) {
+        throw UnimplementedError('TODO(paulberry): handle class members');
+      }
+      var name = id.memberName;
+      var unit =
+          parseString(content: code[uri].sourceCode, throwIfDiagnostics: false)
+              .unit;
+      for (var declaration in unit.declarations) {
+        if (declaration is FunctionDeclaration) {
+          if (declaration.name.name == name) {
+            return declaration.offset;
+          }
+        }
+      }
+      throw StateError('Member not found: $name');
     } else {
       throw StateError('Unexpected id ${id.runtimeType}');
     }

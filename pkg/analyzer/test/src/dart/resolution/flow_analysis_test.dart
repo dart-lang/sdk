@@ -352,7 +352,8 @@ void f() {
 
   test_do_true() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   do {
     1;
   } while (true);
@@ -363,7 +364,8 @@ void f() /*functionBody: doesNotComplete*/ {
 
   test_exit_beforeSplitStatement() async {
     await trackCode(r'''
-void f(bool b, int i) /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f(bool b, int i) {
   return;
   /*statement: unreachable*/ Object _;
   /*statement: unreachable*/ do {} while (b);
@@ -379,7 +381,8 @@ void f(bool b, int i) /*functionBody: doesNotComplete*/ {
 
   test_for_condition_true() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   for (; true;) {
     1;
   }
@@ -390,7 +393,8 @@ void f() /*functionBody: doesNotComplete*/ {
 
   test_for_condition_true_implicit() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   for (;;) {
     1;
   }
@@ -414,7 +418,8 @@ void f() {
 
   test_functionBody_hasReturn() async {
     await trackCode(r'''
-int f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+int f() {
   return 42;
 }
 ''');
@@ -455,7 +460,8 @@ void f() {
 
   test_if_true_return() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   1;
   if (true) {
     return;
@@ -572,7 +578,8 @@ void f() {
 
   test_tryCatchFinally_return_bodyCatch() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   try {
     1;
     return;
@@ -605,7 +612,8 @@ void f() {
 
   test_tryFinally_return_body() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   try {
     1;
     return;
@@ -630,7 +638,8 @@ void f() {
 
   test_while_true() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   while (true) {
     1;
   }
@@ -668,7 +677,8 @@ void f(bool b) {
 
   test_while_true_continue() async {
     await trackCode(r'''
-void f() /*functionBody: doesNotComplete*/ {
+/*member: f:doesNotComplete*/
+void f() {
   while (true) {
     1;
     continue;
@@ -724,8 +734,12 @@ class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
     if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_FlowAssertion.unreachable);
     }
-    if (_flowResult.functionBodiesThatDontComplete.contains(node)) {
-      result.add(_FlowAssertion.doesNotComplete);
+    if (node is FunctionDeclaration) {
+      var body = node.functionExpression.body;
+      if (body != null &&
+          _flowResult.functionBodiesThatDontComplete.contains(body)) {
+        result.add(_FlowAssertion.doesNotComplete);
+      }
     }
     return result.isEmpty ? null : result;
   }

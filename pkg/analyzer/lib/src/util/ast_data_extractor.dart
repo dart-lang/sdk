@@ -4,8 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:front_end/src/testing/id.dart'
-    show ActualData, DataRegistry, Id, IdKind, NodeId;
+    show ActualData, DataRegistry, Id, IdKind, MemberId, NodeId;
 
 /// Abstract IR visitor for computing data corresponding to a node or element,
 /// and record it with a generic [Id]
@@ -29,7 +30,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
     registerValue(uri, node.offset, id, value, node);
   }
 
-  void computeForFunctionBody(FunctionBody node, NodeId id) {
+  void computeForMember(Declaration node, Id id) {
     if (id == null) return;
     T value = computeNodeValue(id, node);
     registerValue(uri, node.offset, id, value, node);
@@ -46,8 +47,18 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   /// If `null` is returned, [node] has no associated data.
   T computeNodeValue(Id id, AstNode node);
 
-  NodeId createFunctionBodyId(FunctionBody node) =>
-      NodeId(_nodeOffset(node), IdKind.functionBody);
+  Id createMemberId(Declaration node) {
+    var element = node.declaredElement;
+    if (element.enclosingElement is CompilationUnitElement) {
+      var memberName = element.name;
+      if (element is PropertyAccessorElement && element.isSetter) {
+        memberName += '=';
+      }
+      return MemberId.internal(memberName);
+    }
+    throw UnimplementedError(
+        'TODO(paulberry): $element (${element.runtimeType})');
+  }
 
   NodeId createStatementId(Statement node) =>
       NodeId(_nodeOffset(node), IdKind.statement);
@@ -74,9 +85,11 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<dynamic>
   }
 
   @override
-  visitFunctionBody(FunctionBody node) {
-    computeForFunctionBody(node, createFunctionBodyId(node));
-    super.visitFunctionBody(node);
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.parent is CompilationUnit) {
+      computeForMember(node, createMemberId(node));
+    }
+    return super.visitFunctionDeclaration(node);
   }
 
   @override
