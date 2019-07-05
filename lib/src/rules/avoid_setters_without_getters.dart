@@ -73,8 +73,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    final methods = node.members.where(isMethod);
-    for (MethodDeclaration method in methods) {
+    for (var member in node.members.where(isMethod)) {
+      var method = member as MethodDeclaration;
       if (method.isSetter &&
           !_hasInheritedSetter(method) &&
           !_hasGetter(method)) {
