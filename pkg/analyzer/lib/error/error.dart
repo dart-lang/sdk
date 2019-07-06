@@ -606,7 +606,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT,
   StaticTypeWarningCode.UNDEFINED_FUNCTION,

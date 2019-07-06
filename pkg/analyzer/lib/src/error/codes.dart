@@ -2973,8 +2973,6 @@ class CompileTimeErrorCode extends ErrorCode {
    * 0: the name of the type used in the instance creation that should be
    *    limited by the bound as specified in the class declaration
    * 1: the name of the bounding type
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
       const CompileTimeErrorCode(
@@ -3504,39 +3502,6 @@ class StaticTypeWarningCode extends ErrorCode {
           "The return type '{0}' isn't a '{1}', as defined by anonymous closure.");
 
   /**
-   * 12.11 Instance Creation: It is a static type warning if any of the type
-   * arguments to a constructor of a generic type <i>G</i> invoked by a new
-   * expression or a constant object expression are not subtypes of the bounds
-   * of the corresponding formal type parameters of <i>G</i>.
-   *
-   * 15.8 Parameterized Types: If <i>S</i> is the static type of a member
-   * <i>m</i> of <i>G</i>, then the static type of the member <i>m</i> of
-   * <i>G&lt;A<sub>1</sub>, &hellip;, A<sub>n</sub>&gt;</i> is <i>[A<sub>1</sub>,
-   * &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]S</i> where
-   * <i>T<sub>1</sub>, &hellip;, T<sub>n</sub></i> are the formal type
-   * parameters of <i>G</i>. Let <i>B<sub>i</sub></i> be the bounds of
-   * <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>. It is a static type warning if
-   * <i>A<sub>i</sub></i> is not a subtype of <i>[A<sub>1</sub>, &hellip;,
-   * A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]B<sub>i</sub>, 1 &lt;=
-   * i &lt;= n</i>.
-   *
-   * 7.6.2 Factories: It is a static type warning if any of the type arguments
-   * to <i>k'</i> are not subtypes of the bounds of the corresponding formal
-   * type parameters of type.
-   *
-   * Parameters:
-   * 0: the name of the type used in the instance creation that should be
-   *    limited by the bound as specified in the class declaration
-   * 1: the name of the bounding type
-   *
-   * See [TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
-   */
-  static const StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
-      const StaticTypeWarningCode(
-          'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' doesn't extend '{1}'.",
-          correction: "Try using a type that is or is a subclass of '{1}'.");
-
-  /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype
    * of its upper bound.
    *
@@ -3544,7 +3509,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 0: the name of the type parameter
    * 1: the name of the bounding type
    *
-   * See [TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   * See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
       const StaticTypeWarningCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',

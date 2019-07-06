@@ -5390,10 +5390,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Verify that the type arguments in the given [typeName] are all within
    * their bounds.
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
-   * [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
-   * [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_BOUND].
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
     // prepare Type
@@ -5453,14 +5449,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           }
 
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            ErrorCode errorCode;
-            if (_isInConstInstanceCreation) {
-              errorCode =
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            } else {
-              errorCode =
-                  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            }
             if (_shouldAllowSuperBoundedTypes(typeName)) {
               var replacedType =
                   (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
@@ -5471,7 +5459,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               }
             }
             _errorReporter.reportTypeErrorForNode(
-                errorCode, argumentNode, [argType, boundType]);
+                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                argumentNode,
+                [argType, boundType]);
           }
         }
       }
@@ -5981,8 +5971,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Verify that the given [typeArguments] are all within their bounds, as
    * defined by the given [element].
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   void _checkTypeArguments(InvocationExpression node) {
     NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
@@ -6027,7 +6015,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {
           _errorReporter.reportTypeErrorForNode(
-              StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
               [argType, bound]);
         }
