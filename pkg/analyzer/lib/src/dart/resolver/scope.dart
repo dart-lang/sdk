@@ -587,6 +587,9 @@ class LibraryScope extends EnclosedScope {
     for (ClassElement element in compilationUnit.enums) {
       define(element);
     }
+    for (ExtensionElement element in compilationUnit.extensions) {
+      define(element);
+    }
     for (FunctionElement element in compilationUnit.functions) {
       define(element);
     }

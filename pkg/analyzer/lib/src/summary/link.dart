@@ -1075,6 +1075,7 @@ abstract class CompilationUnitElementForLink
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
   List<ClassElementForLink_Enum> _enums;
+  List<ExtensionElementForLink> _extensions;
   List<TopLevelFunctionElementForLink> _functions;
   List<PropertyAccessorElementForLink> _accessors;
   List<FunctionTypeAliasElementForLink> _functionTypeAliases;
@@ -1150,6 +1151,17 @@ abstract class CompilationUnitElementForLink
       }
     }
     return _enums;
+  }
+
+  @override
+  List<ExtensionElementForLink> get extensions {
+    if (_extensions == null) {
+      _extensions = <ExtensionElementForLink>[];
+      for (UnlinkedExtension unlinkedExtension in _unlinkedUnit.extensions) {
+        _extensions.add(ExtensionElementForLink(this, unlinkedExtension));
+      }
+    }
+    return _extensions;
   }
 
   @override
@@ -2553,6 +2565,21 @@ class ExprTypeComputer {
   }
 }
 
+class ExtensionElementForLink
+    with ReferenceableElementForLink
+    implements ExtensionElementImpl {
+  @override
+  final CompilationUnitElementForLink enclosingElement;
+
+  // TODO(brianwilkerson) Remove this field if it remains unreferenced.
+  final UnlinkedExtension _unlinkedExtension;
+
+  ExtensionElementForLink(this.enclosingElement, this._unlinkedExtension);
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 /// Element representing a field resynthesized from a summary during
 /// linking.
 abstract class FieldElementForLink implements FieldElement {
@@ -3605,9 +3632,6 @@ abstract class LibraryElementForLink<
   }
 
   @override
-  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
-
-  @override
   ContextForLink get context => _linker.context;
 
   @override
@@ -3642,6 +3666,9 @@ abstract class LibraryElementForLink<
 
   @override
   bool get isInSdk => _absoluteUri.scheme == 'dart';
+
+  @override
+  bool get isNonNullableByDefault => _unlinkedDefiningUnit.isNNBD;
 
   @override
   bool get isSynthetic => _linkedLibrary == null;

@@ -238,6 +238,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// [UnlinkedClass.executables] or [UnlinkedExecutable.localFunctions].
   List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
 
+  /// List of objects which should be written to [UnlinkedUnit.extensions].
+  final List<UnlinkedExtensionBuilder> extensions =
+      <UnlinkedExtensionBuilder>[];
+
   /// List of objects which should be written to [UnlinkedUnit.exports].
   final List<UnlinkedExportNonPublicBuilder> exports =
       <UnlinkedExportNonPublicBuilder>[];
@@ -504,6 +508,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.classes = classes;
     b.enums = enums;
     b.executables = executables;
+    b.extensions = extensions;
     b.exports = exports;
     b.imports = unlinkedImports;
     b.mixins = mixins;
@@ -1181,6 +1186,41 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         uriOffset: node.uri.offset, uriEnd: node.uri.end, offset: node.offset);
     b.annotations = serializeAnnotations(node.metadata);
     exports.add(b);
+  }
+
+  @override
+  visitExtensionDeclaration(ExtensionDeclaration node) {
+    int oldScopesLength = scopes.length;
+    enclosingClassHasConstConstructor = false;
+    List<UnlinkedExecutableBuilder> oldExecutables = executables;
+    executables = <UnlinkedExecutableBuilder>[];
+    List<UnlinkedVariableBuilder> oldVariables = variables;
+    variables = <UnlinkedVariableBuilder>[];
+    _TypeParameterScope typeParameterScope = new _TypeParameterScope();
+    scopes.add(typeParameterScope);
+
+    UnlinkedExtensionBuilder b = UnlinkedExtensionBuilder();
+    b.name = node.name?.name;
+    b.nameOffset = node.name?.offset ?? 0;
+    b.typeParameters =
+        serializeTypeParameters(node.typeParameters, typeParameterScope);
+    if (node.members != null) {
+      scopes.add(buildClassMemberScope(node.name?.name, node.members));
+      for (ClassMember member in node.members) {
+        member.accept(this);
+      }
+      scopes.removeLast();
+    }
+    b.executables = executables;
+    b.documentationComment = serializeDocumentation(node.documentationComment);
+    b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
+    extensions.add(b);
+
+    scopes.removeLast();
+    assert(scopes.length == oldScopesLength);
+    executables = oldExecutables;
+    variables = oldVariables;
   }
 
   @override

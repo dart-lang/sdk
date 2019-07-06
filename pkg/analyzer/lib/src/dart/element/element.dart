@@ -1780,7 +1780,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     if (linkedNode != null) {
       // TODO(brianwilkerson) Implement this.
     } else if (_unlinkedUnit != null) {
-      // TODO(brianwilkerson) Implement this.
+      return _extensions = _unlinkedUnit.extensions
+          .map((e) => ExtensionElementImpl.forSerialized(e, this))
+          .toList(growable: false);
     }
 
     return _extensions ?? const <ExtensionElement>[];
@@ -4953,6 +4955,11 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
       : _unlinkedExtension = null,
         super.forNode(name);
 
+  /// Initialize using the given serialized information.
+  ExtensionElementImpl.forSerialized(
+      this._unlinkedExtension, CompilationUnitElementImpl enclosingUnit)
+      : super.forSerialized(enclosingUnit);
+
   @override
   List<PropertyAccessorElement> get accessors {
     if (_accessors != null) {
@@ -5074,6 +5081,30 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
   }
 
   @override
+  String get name {
+    if (linkedNode != null) {
+      return reference.name;
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.name;
+    }
+    return super.name;
+  }
+
+  @override
+  int get nameOffset {
+    if (linkedNode != null) {
+      return enclosingUnit.linkedContext.getNameOffset(linkedNode);
+    }
+
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedExtension != null) {
+      return _unlinkedExtension.nameOffset;
+    }
+    return offset;
+  }
+
+  @override
   List<TypeParameterElement> get typeParameters {
     if (_typeParameters != null) {
       return _typeParameters;
@@ -5094,17 +5125,16 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
         return TypeParameterElementImpl.forLinkedNode(this, reference, node);
       }).toList();
     } else if (_unlinkedExtension != null) {
-      // TODO(brianwilkerson) Implement this.
-//      List<UnlinkedTypeParam> unlinkedParams =
-//          _unlinkedExtension?.typeParameters;
-//      if (unlinkedParams != null) {
-//        int numTypeParameters = unlinkedParams.length;
-//        _typeParameters = new List<TypeParameterElement>(numTypeParameters);
-//        for (int i = 0; i < numTypeParameters; i++) {
-//          _typeParameters[i] = new TypeParameterElementImpl.forSerialized(
-//              unlinkedParams[i], this);
-//        }
-//      }
+      List<UnlinkedTypeParam> unlinkedParams =
+          _unlinkedExtension?.typeParameters;
+      if (unlinkedParams != null) {
+        int numTypeParameters = unlinkedParams.length;
+        _typeParameters = new List<TypeParameterElement>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          _typeParameters[i] = new TypeParameterElementImpl.forSerialized(
+              unlinkedParams[i], this);
+        }
+      }
     }
 
     return _typeParameters ?? const <TypeParameterElement>[];
@@ -9753,7 +9783,7 @@ class TypeParameterElementImpl extends ElementImpl
 
   /// Initialize using the given serialized information.
   TypeParameterElementImpl.forSerialized(
-      this._unlinkedTypeParam, TypeParameterizedElementMixin enclosingElement)
+      this._unlinkedTypeParam, ElementImpl enclosingElement)
       : super.forSerialized(enclosingElement);
 
   /// Initialize a newly created synthetic type parameter element to have the
