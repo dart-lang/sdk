@@ -76,29 +76,11 @@ Expect:
     Expect.throwsFormatException
   classSetters:
 
-Exception:
+ExpectException:
   superclasses:
     Object
   interfaces:
   classMembers:
-    Object.toString
-    Object.runtimeType
-    Object._simpleInstanceOf
-    Object._instanceOf
-    Object.noSuchMethod
-    Object._identityHashCode
-    Object.hashCode
-    Object._simpleInstanceOfFalse
-    Object._simpleInstanceOfTrue
-    Object.==
-  classSetters:
-
-ExpectException:
-  Longest path to Object: 2
-  superclasses:
-    Object
-  interfaces: Exception
-  classMembers:
     ExpectException.message
     ExpectException.toString
     Object.runtimeType
@@ -111,19 +93,6 @@ ExpectException:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-  interfaceMembers:
-    ExpectException.message
-    ExpectException.toString
-    Object.runtimeType
-    Object._simpleInstanceOf
-    Object._instanceOf
-    Object.noSuchMethod
-    Object._identityHashCode
-    Object.hashCode
-    Object._simpleInstanceOfFalse
-    Object._simpleInstanceOfTrue
-    Object.==
-  interfaceSetters:
 
 Immutable:
   superclasses:

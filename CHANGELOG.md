@@ -47,7 +47,11 @@
   * `Uint32List.sublist()` → `Uint32List`
   * `Uint64List.sublist()` → `Uint64List`
 
-  
+#### `dart:async`
+
+* Add `value` and `error` constructors on `Stream`
+  to allow easily creating single-value or single-error streams.
+
 #### `dart:core`
 
 * Update `Uri` class to support [RFC6874](https://tools.ietf.org/html/rfc6874):

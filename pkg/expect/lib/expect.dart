@@ -662,7 +662,7 @@ bool _identical(a, b) => identical(a, b);
 /// Exception thrown on a failed expectation check.
 ///
 /// Always recognized by [Expect.throws] as an unexpected error.
-class ExpectException implements Exception {
+class ExpectException {
   final String message;
   ExpectException(this.message);
   String toString() => message;
