@@ -439,6 +439,13 @@ void Heap::NotifyLowMemory() {
 
 void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
+  }
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     VMTagScope tagScope(thread, reason == kIdle ? VMTag::kGCIdleTagId
@@ -454,6 +461,13 @@ void Heap::EvacuateNewSpace(Thread* thread, GCReason reason) {
 
 void Heap::CollectNewSpaceGarbage(Thread* thread, GCReason reason) {
   ASSERT((reason != kOldSpace) && (reason != kPromotion));
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
+  }
   if (BeginNewSpaceGC(thread)) {
     RecordBeforeGC(kScavenge, reason);
     {
@@ -483,6 +497,13 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
   ASSERT(type != kScavenge);
   if (FLAG_use_compactor) {
     type = kMarkCompact;
+  }
+  if (thread->isolate() == Dart::vm_isolate()) {
+    // The vm isolate cannot safely collect garbage due to unvisited read-only
+    // handles and slots bootstrapped with RAW_NULL. Ignore GC requests to
+    // trigger a nice out-of-memory message instead of a crash in the middle of
+    // visiting pointers.
+    return;
   }
   if (BeginOldSpaceGC(thread)) {
     RecordBeforeGC(type, reason);
