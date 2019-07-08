@@ -914,7 +914,7 @@ class CompileTimeErrorCode extends ErrorCode {
           'DEFAULT_LIST_CONSTRUCTOR_MISMATCH',
           "A list whose values cannot be 'null' cannot be given an initial length "
               "because the initial values would all be 'null'.",
-          correction: "Try removing the argument.");
+          correction: "Try removing the argument or using 'List.filled'.");
 
   /**
    * 6.2.1 Required Formals: By means of a function signature that names the
@@ -1591,11 +1591,11 @@ class CompileTimeErrorCode extends ErrorCode {
       const CompileTimeErrorCode(
           'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
           "The integer literal is being used as a double, but can't be "
-              'represented as a 64 bit double without overflow and/or loss of '
-              'precision: {0}',
+              "represented as a 64 bit double without overflow and/or loss of "
+              "precision: {0}",
           correction:
-              'Try using the BigInt class, or switch to the closest valid '
-              'double: {1}');
+              "Try using the BigInt class, or switch to the closest valid "
+              "double: {1}");
 
   /**
    * 15 Metadata: Metadata consists of a series of annotations, each of which
@@ -1698,7 +1698,8 @@ class CompileTimeErrorCode extends ErrorCode {
           "The parameter '{0}' cannot have a value of 'null' because of its "
               "type, but no default value it valid, so it must be a required "
               "parameter.",
-          correction: "Try making this nullable (by adding a '?') or "
+          correction: "Try making this nullable (by adding a '?'), "
+              "adding a default value, or "
               "making this a required parameter.");
 
   /**
@@ -2985,9 +2986,9 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND =
       const CompileTimeErrorCode('GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-          'Generic function types may not be used as type parameter bounds',
-          correction: 'Try making the free variable in the function type part'
-              ' of the larger declaration signature');
+          "Generic function types may not be used as type parameter bounds",
+          correction: "Try making the free variable in the function type part"
+              " of the larger declaration signature");
 
   static const CompileTimeErrorCode FOR_IN_WITH_CONST_VARIABLE =
       const CompileTimeErrorCode('FOR_IN_WITH_CONST_VARIABLE',
@@ -4882,10 +4883,10 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode UNCHECKED_USE_OF_NULLABLE_VALUE =
       const StaticWarningCode(
           'UNCHECKED_USE_OF_NULLABLE_VALUE',
-          'The expression is nullable and must be null-checked before it can be'
-              ' used.',
+          "The expression is nullable and must be null-checked before it can be"
+              " used.",
           correction:
-              'Try casting or check the value is not null before using it.');
+              "Try casting or check the value is not null before using it.");
 
   /**
    * It is a static warning to assign void to any non-void type in dart.
@@ -4898,9 +4899,9 @@ class StaticWarningCode extends ErrorCode {
       'USE_OF_VOID_RESULT',
       "The expression here has a type of 'void', and therefore cannot be used.",
       correction:
-          'Check if you are using the correct API; there may be a function or'
+          "Check if you are using the correct API; there may be a function or"
           " call that returns void you didn't expect. Also check type parameters"
-          ' and variables which, in rare cases, may be void as well.');
+          " and variables which, in rare cases, may be void as well.");
 
   @override
   final ErrorSeverity errorSeverity;
