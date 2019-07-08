@@ -33,7 +33,7 @@ abstract class CompletionCollector {
    * Hence, this setter throws a [StateError] if the length has already been
    * set.
    */
-  void set length(int length);
+  set length(int length);
 
   /**
    * Set the offset of the region of text that should be replaced by the
@@ -43,7 +43,7 @@ abstract class CompletionCollector {
    * Hence, this setter throws a [StateError] if the offset has already been
    * set.
    */
-  void set offset(int offset);
+  set offset(int offset);
 
   /**
    * Indicates if the collector's offset has been set (and ultimately the

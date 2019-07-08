@@ -40,7 +40,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   int get length => _length;
 
   @override
-  void set length(int length) {
+  set length(int length) {
     if (_length != null) {
       throw new StateError('The length can only be set once');
     }
@@ -54,7 +54,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   int get offset => _offset;
 
   @override
-  void set offset(int length) {
+  set offset(int length) {
     if (_offset != null) {
       throw new StateError('The offset can only be set once');
     }

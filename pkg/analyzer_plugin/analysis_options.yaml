@@ -4,6 +4,7 @@ analyzer:
 linter:
   rules:
     - annotate_overrides
+    - avoid_return_types_on_setters
     - empty_constructor_bodies
     - empty_statements
     #- prefer_single_quotes
