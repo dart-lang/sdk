@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -170,8 +172,8 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
 
   TestedExpressions _findPreviousTestedExpressions(Expression node) {
     final elements = _getElementsInExpression(node);
-    Iterable<Expression> conjunctions = getTrueExpressions(elements).toSet();
-    Iterable<Expression> negations = getFalseExpressions(elements).toSet();
+    Set<Expression> conjunctions = getTrueExpressions(elements).toSet();
+    Set<Expression> negations = getFalseExpressions(elements).toSet();
     return TestedExpressions(node, conjunctions, negations);
   }
 }

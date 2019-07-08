@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    final BinaryExpression binaryExpression = search;
+    final BinaryExpression binaryExpression = search as BinaryExpression;
     final Token operator = binaryExpression.operator;
 
     final TypeProvider typeProvider = context.typeProvider;

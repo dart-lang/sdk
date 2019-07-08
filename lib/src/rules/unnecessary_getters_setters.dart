@@ -76,8 +76,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     Map<String, MethodDeclaration> setters = {};
 
     // Build getter/setter maps
-    var methods = node.members.where(isMethod);
-    for (MethodDeclaration method in methods) {
+    var members = node.members.where(isMethod);
+
+    for (var member in members) {
+      MethodDeclaration method = member as MethodDeclaration;
       if (method.isGetter) {
         getters[method.name.toString()] = method;
       } else if (method.isSetter) {

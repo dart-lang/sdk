@@ -76,8 +76,8 @@ class ContradictoryComparisons {
 
 class TestedExpressions {
   final Expression testingExpression;
-  final LinkedHashSet<Expression> truths;
-  final LinkedHashSet<Expression> negations;
+  final Set<Expression> truths;
+  final Set<Expression> negations;
   LinkedHashSet<ContradictoryComparisons> _contradictions;
 
   TestedExpressions(this.testingExpression, this.truths, this.negations);

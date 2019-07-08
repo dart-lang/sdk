@@ -25,7 +25,7 @@ void main([List<String> args]) {
   final outDir = options['out'];
 
   if (outDir != null) {
-    final d = Directory(outDir);
+    final d = Directory(outDir as String);
     if (!d.existsSync()) {
       print("Directory '${d.path}' does not exist");
       return;
@@ -40,7 +40,7 @@ void main([List<String> args]) {
   }
 
   // Generate rule stub.
-  generateRule(ruleName, outDir: outDir);
+  generateRule(ruleName as String, outDir: outDir as String);
 }
 
 String get _thisYear => DateTime.now().year.toString();

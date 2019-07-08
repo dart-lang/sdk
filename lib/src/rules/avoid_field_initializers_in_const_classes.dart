@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    final ConstructorDeclaration constructor = node.parent;
+    final constructor = node.parent as ConstructorDeclaration;
     if (constructor.constKeyword == null) return;
     // no lint if several constructors
     final constructorCount = constructor

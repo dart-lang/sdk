@@ -24,5 +24,5 @@ String readPackageVersion() {
     fail('Cannot find pubspec.yaml in ${Directory.current}');
   }
   var version = yamlDoc['version'];
-  return version;
+  return version as String;
 }

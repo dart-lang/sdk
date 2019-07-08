@@ -64,7 +64,7 @@ class PreferIsEmpty extends LintRule implements NodeLintRule {
 }
 
 class _LintCode extends LintCode {
-  static final registry = <String, LintCode>{};
+  static final registry = <String, _LintCode>{};
 
   factory _LintCode(String name, String message) =>
       registry.putIfAbsent(name + message, () => _LintCode._(name, message));
@@ -93,18 +93,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     AstNode parent = identifier.parent;
     if (parent is PropertyAccess && identifier == parent.propertyName) {
       lengthAccess = parent;
-      if (parent.target?.staticType is! InterfaceType) {
-        return;
+      var parentType = parent.target?.staticType;
+      if (parentType is InterfaceType) {
+        type = parentType;
       }
-      type = parent.target?.staticType;
     } else if (parent is PrefixedIdentifier &&
         identifier == parent.identifier) {
       lengthAccess = parent;
-      if (parent.prefix.staticType is! InterfaceType) {
-        return;
+      var parentType = parent.prefix.staticType;
+      if (parentType is InterfaceType) {
+        type = parentType;
       }
-      type = parent.prefix.staticType;
-    } else {
+    }
+
+    if (type == null) {
       return;
     }
 
@@ -129,7 +131,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (search is! BinaryExpression) {
       return;
     }
-    BinaryExpression binaryExpression = search;
+    BinaryExpression binaryExpression = search as BinaryExpression;
 
     Token operator = binaryExpression.operator;
 

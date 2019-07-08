@@ -98,7 +98,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       // that cannot be resolved.
       return false;
     }
-    final inheritedAndSelfTypes = _getSelfAndInheritedTypes(type);
+    final inheritedAndSelfTypes =
+        _getSelfAndInheritedTypes(type as InterfaceType);
     final inheritedAndSelfAnnotations = inheritedAndSelfTypes
         .map((type) => type.element)
         .expand((c) => c.metadata)
