@@ -237,8 +237,6 @@
     "Dynamic invocation of 'close'.": 1
   },
   "org-dartlang-sdk:///sdk/lib/_http/websocket_impl.dart": {
-    "Dynamic invocation of 'transform'.": 1,
-    "Dynamic invocation of 'listen'.": 1,
     "Dynamic access of 'address'.": 1,
     "Dynamic access of 'host'.": 1,
     "Dynamic access of 'port'.": 1,

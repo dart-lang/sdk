@@ -1128,7 +1128,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _deflate = deflate;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide, _deflate);
-    _subscription = _socket.transform(transformer).listen((data) {
+    _subscription = transformer.bind(_socket).listen((data) {
       if (data is _WebSocketPing) {
         if (!_writeClosed) _consumer.add(new _WebSocketPong(data.payload));
       } else if (data is _WebSocketPong) {

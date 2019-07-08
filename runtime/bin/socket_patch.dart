@@ -1606,10 +1606,10 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   }
 }
 
-class _Socket extends Stream<List<int>> implements Socket {
+class _Socket extends Stream<Uint8List> implements Socket {
   RawSocket _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  StreamController<List<int>> _controller;
+  StreamController<Uint8List> _controller;
   bool _controllerClosed = false;
   _SocketStreamConsumer _consumer;
   IOSink _sink;
@@ -1617,7 +1617,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   var _detachReady;
 
   _Socket(this._raw) {
-    _controller = new StreamController<List<int>>(
+    _controller = new StreamController<Uint8List>(
         sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -1647,7 +1647,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   // is Socket and not _NativeSocket.
   _NativeSocket get _nativeSocket => (_raw as _RawSocket)._socket;
 
-  StreamSubscription<List<int>> listen(void onData(List<int> event),
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
       {Function onError, void onDone(), bool cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);

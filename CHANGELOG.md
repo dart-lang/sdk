@@ -28,6 +28,28 @@
   * `File.openRead()`
   * `HttpRequest`
   * `HttpClientResponse`
+  * `Socket`
+
+  **Possible errors and how to fix them**
+
+    * > The argument type 'Utf8Decoder' can't be assigned to the parameter type 'StreamTransformer<Uint8List, dynamic>'
+
+      > type 'Utf8Decoder' is not a subtype of type 'StreamTransformer' of 'streamTransformer'"
+
+      You can fix these call sites by updating your code to use
+      `StreamTransformer.bind()` instead of `Stream.transform()`, like so:
+
+      *Before:* `stream.transform(utf8.decoder)`
+      *After:* `utf8.decoder.bind(stream)`
+
+    * > The argument type 'IOSink' can't be assigned to the parameter type 'StreamConsumer<Uint8List>'
+
+      > type '_IOSinkImpl' is not a subtype of type 'StreamConsumer<Uint8List>' of 'streamConsumer'
+
+      You can fix these call sites by casting your stream instance to a `Stream<List<int>>` before calling `.pipe()` on the stream, like so:
+
+      *Before:* `stream.pipe(consumer)`
+      *After:* `stream.cast<List<int>>().pipe(consumer)`
 
   Finally, the following typed lists were updated to have their `sublist()`
   methods declare a return type that is the same as the source list:

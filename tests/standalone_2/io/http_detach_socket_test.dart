@@ -151,7 +151,7 @@ void testUpgradedConnection() {
       if (request.headers.value('upgrade') == 'mine') {
         asyncStart();
         request.response.detachSocket().then((socket) {
-          socket.pipe(socket).then((_) {
+          socket.cast<List<int>>().pipe(socket).then((_) {
             asyncEnd();
           });
         });
