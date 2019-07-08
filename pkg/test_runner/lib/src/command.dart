@@ -632,14 +632,6 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
     extraLibraries.forEach(builder.add);
   }
 
-  static bool _listEquals(List<String> x, List<String> y) {
-    if (x.length != y.length) return false;
-    for (int i = 0; i < x.length; ++i) {
-      if (x[i] != y[i]) return false;
-    }
-    return true;
-  }
-
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
@@ -647,7 +639,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory &&
-      _listEquals(extraLibraries, other.extraLibraries);
+      deepJsonCompare(extraLibraries, other.extraLibraries);
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';

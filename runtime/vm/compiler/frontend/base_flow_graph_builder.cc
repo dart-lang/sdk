@@ -7,6 +7,7 @@
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
+#include "vm/growable_array.h"
 #include "vm/object_store.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -761,9 +762,9 @@ Fragment BaseFlowGraphBuilder::BooleanNegate() {
 }
 
 Fragment BaseFlowGraphBuilder::AllocateContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
+    const ZoneGrowableArray<const Slot*>& context_slots) {
   AllocateContextInstr* allocate =
-      new (Z) AllocateContextInstr(TokenPosition::kNoSource, context_variables);
+      new (Z) AllocateContextInstr(TokenPosition::kNoSource, context_slots);
   Push(allocate);
   return Fragment(allocate);
 }
@@ -845,16 +846,14 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   code += LoadNativeField(Slot::Pointer_c_memory_address());
   LocalVariable* address = MakeTemporary();
 
-  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       /*context_id=*/0, /*num_variables=*/1);
-  code += AllocateContext(context_variables);
+  code += AllocateContext(context_slots);
   LocalVariable* context = MakeTemporary();
 
   code += LoadLocal(context);
   code += LoadLocal(address);
-  code += StoreInstanceField(
-      TokenPosition::kNoSource,
-      Slot::GetContextVariableSlotFor(thread_, *context_variables[0]));
+  code += StoreInstanceField(TokenPosition::kNoSource, *context_slots[0]);
 
   code += AllocateClosure(TokenPosition::kNoSource, target);
   LocalVariable* closure = MakeTemporary();

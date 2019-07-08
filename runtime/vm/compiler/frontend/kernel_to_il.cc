@@ -113,7 +113,7 @@ Fragment FlowGraphBuilder::AdjustContextTo(int depth) {
 
 Fragment FlowGraphBuilder::PushContext(const LocalScope* scope) {
   ASSERT(scope->num_context_variables() > 0);
-  Fragment instructions = AllocateContext(scope->context_variables());
+  Fragment instructions = AllocateContext(scope->context_slots());
   LocalVariable* context = MakeTemporary();
   instructions += LoadLocal(context);
   instructions += LoadLocal(parsed_function_->current_context_var());
@@ -308,13 +308,13 @@ Fragment FlowGraphBuilder::CheckStackOverflowInPrologue(
 }
 
 Fragment FlowGraphBuilder::CloneContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
+    const ZoneGrowableArray<const Slot*>& context_slots) {
   LocalVariable* context_variable = parsed_function_->current_context_var();
 
   Fragment instructions = LoadLocal(context_variable);
 
   CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
-      TokenPosition::kNoSource, Pop(), context_variables, GetNextDeoptId());
+      TokenPosition::kNoSource, Pop(), context_slots, GetNextDeoptId());
   instructions <<= clone_instruction;
   Push(clone_instruction);
 
@@ -1162,7 +1162,7 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   // Note: this must be kept in sync with ScopeBuilder::BuildScopes.
   const LocalScope* implicit_closure_scope =
       MakeImplicitClosureScope(Z, Class::Handle(Z, target.Owner()));
-  fragment += AllocateContext(implicit_closure_scope->context_variables());
+  fragment += AllocateContext(implicit_closure_scope->context_slots());
   LocalVariable* context = MakeTemporary();
 
   // Store the function and the context in the closure.

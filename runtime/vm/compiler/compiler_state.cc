@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/compiler/compiler_state.h"
+#include "vm/growable_array.h"
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
@@ -52,27 +53,22 @@ LocalVariable* CompilerState::GetDummyCapturedVariable(intptr_t context_id,
       });
 }
 
-const GrowableArray<LocalVariable*>& CompilerState::GetDummyContextVariables(
+const ZoneGrowableArray<const Slot*>& CompilerState::GetDummyContextSlots(
     intptr_t context_id,
     intptr_t num_context_variables) {
-  return PutIfAbsent<LocalScope>(
-             thread(), &dummy_scopes_, num_context_variables,
-             [&]() {
-               Zone* const Z = thread()->zone();
+  return *PutIfAbsent<ZoneGrowableArray<const Slot*>>(
+      thread(), &dummy_slots_, num_context_variables, [&]() {
+        Zone* const Z = thread()->zone();
 
-               LocalScope* scope = new (Z) LocalScope(
-                   /*parent=*/NULL, /*function_level=*/0, /*loop_level=*/0);
-               scope->set_context_level(0);
+        auto slots =
+            new (Z) ZoneGrowableArray<const Slot*>(num_context_variables);
+        for (intptr_t i = 0; i < num_context_variables; i++) {
+          LocalVariable* var = GetDummyCapturedVariable(context_id, i);
+          slots->Add(&Slot::GetContextVariableSlotFor(thread(), *var));
+        }
 
-               for (intptr_t i = 0; i < num_context_variables; i++) {
-                 LocalVariable* var = GetDummyCapturedVariable(context_id, i);
-                 scope->AddVariable(var);
-                 scope->AddContextVariable(var);
-               }
-
-               return scope;
-             })
-      ->context_variables();
+        return slots;
+      });
 }
 
 }  // namespace dart

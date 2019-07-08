@@ -578,7 +578,7 @@ bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func) {
       Object::Handle(zone, isolate->object_store()->ffi_as_function_internal());
   if (asFunctionInternal.raw() == Object::null()) {
     // Cache the reference.
-    Library& ffi =
+    const Library& ffi =
         Library::Handle(zone, isolate->object_store()->ffi_library());
     asFunctionInternal =
         ffi.LookupFunctionAllowPrivate(Symbols::AsFunctionInternal());

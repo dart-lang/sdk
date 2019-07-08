@@ -777,7 +777,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
   const Function& target = Function::Cast(ConstantAt(DecodeOperandD()).value());
   const intptr_t argc = DecodeOperandF().value();
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+  if (compiler::ffi::IsAsFunctionInternal(Z, isolate(), target)) {
     BuildFfiAsFunction();
     return;
   }
@@ -965,9 +965,9 @@ void BytecodeFlowGraphBuilder::BuildAllocateContext() {
   const intptr_t context_id = DecodeOperandA().value();
   const intptr_t num_context_vars = DecodeOperandE().value();
 
-  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       context_id, num_context_vars);
-  code_ += B->AllocateContext(context_variables);
+  code_ += B->AllocateContext(context_slots);
 }
 
 void BytecodeFlowGraphBuilder::BuildCloneContext() {
@@ -979,10 +979,10 @@ void BytecodeFlowGraphBuilder::BuildCloneContext() {
   const intptr_t context_id = DecodeOperandA().value();
   const intptr_t num_context_vars = DecodeOperandE().value();
 
-  auto& context_variables = CompilerState::Current().GetDummyContextVariables(
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
       context_id, num_context_vars);
   CloneContextInstr* clone_instruction = new (Z) CloneContextInstr(
-      TokenPosition::kNoSource, Pop(), context_variables, B->GetNextDeoptId());
+      TokenPosition::kNoSource, Pop(), context_slots, B->GetNextDeoptId());
   code_ <<= clone_instruction;
   B->Push(clone_instruction);
 }

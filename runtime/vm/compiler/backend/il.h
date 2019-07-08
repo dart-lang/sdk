@@ -5562,27 +5562,25 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<2, Throws> {
 class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
  public:
   AllocateContextInstr(TokenPosition token_pos,
-                       const GrowableArray<LocalVariable*>& context_variables)
-      : token_pos_(token_pos), context_variables_(context_variables) {}
+                       const ZoneGrowableArray<const Slot*>& context_slots)
+      : token_pos_(token_pos), context_slots_(context_slots) {}
 
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
   virtual TokenPosition token_pos() const { return token_pos_; }
-  const GrowableArray<LocalVariable*>& context_variables() const {
-    return context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return context_slots_;
   }
 
-  intptr_t num_context_variables() const {
-    return context_variables().length();
-  }
+  intptr_t num_context_variables() const { return context_slots().length(); }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return WillAllocateNewOrRemembered(context_variables().length());
+    return WillAllocateNewOrRemembered(context_slots().length());
   }
 
   static bool WillAllocateNewOrRemembered(intptr_t num_context_variables) {
@@ -5595,7 +5593,7 @@ class AllocateContextInstr : public TemplateAllocation<0, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const GrowableArray<LocalVariable*>& context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
 };
@@ -5629,19 +5627,19 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
   CloneContextInstr(TokenPosition token_pos,
                     Value* context_value,
-                    const GrowableArray<LocalVariable*>& context_variables,
+                    const ZoneGrowableArray<const Slot*>& context_slots,
                     intptr_t deopt_id)
       : TemplateDefinition(deopt_id),
         token_pos_(token_pos),
-        context_variables_(context_variables) {
+        context_slots_(context_slots) {
     SetInputAt(0, context_value);
   }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* context_value() const { return inputs_[0]; }
 
-  const GrowableArray<LocalVariable*>& context_variables() const {
-    return context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots() const {
+    return context_slots_;
   }
 
   DECLARE_INSTRUCTION(CloneContext)
@@ -5653,7 +5651,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
 
  private:
   const TokenPosition token_pos_;
-  const GrowableArray<LocalVariable*>& context_variables_;
+  const ZoneGrowableArray<const Slot*>& context_slots_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };

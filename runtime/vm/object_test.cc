@@ -9,6 +9,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/compiler_state.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -2280,6 +2281,10 @@ ISOLATE_UNIT_TEST_CASE(Context) {
 }
 
 ISOLATE_UNIT_TEST_CASE(ContextScope) {
+  // We need an active compiler context to manipulate scopes, since local
+  // variables and slots can be canonicalized in the compiler state.
+  CompilerState compiler_state(Thread::Current());
+
   const intptr_t parent_scope_function_level = 0;
   LocalScope* parent_scope =
       new LocalScope(NULL, parent_scope_function_level, 0);

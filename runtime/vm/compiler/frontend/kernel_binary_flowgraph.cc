@@ -1633,8 +1633,8 @@ Fragment StreamingFlowGraphBuilder::AllocateObject(TokenPosition position,
 }
 
 Fragment StreamingFlowGraphBuilder::AllocateContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
-  return flow_graph_builder_->AllocateContext(context_variables);
+    const ZoneGrowableArray<const Slot*>& context_slots) {
+  return flow_graph_builder_->AllocateContext(context_slots);
 }
 
 Fragment StreamingFlowGraphBuilder::LoadNativeField(const Slot& field) {
@@ -1691,8 +1691,8 @@ Fragment StreamingFlowGraphBuilder::CheckStackOverflow(TokenPosition position) {
 }
 
 Fragment StreamingFlowGraphBuilder::CloneContext(
-    const GrowableArray<LocalVariable*>& context_variables) {
-  return flow_graph_builder_->CloneContext(context_variables);
+    const ZoneGrowableArray<const Slot*>& context_slots) {
+  return flow_graph_builder_->CloneContext(context_slots);
 }
 
 Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
@@ -3049,7 +3049,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
-  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+  if (compiler::ffi::IsAsFunctionInternal(Z, H.isolate(), target)) {
     return BuildFfiAsFunctionInternal();
   }
 
@@ -4137,7 +4137,7 @@ Fragment StreamingFlowGraphBuilder::BuildForStatement() {
     // the body gets a fresh set of [ForStatement] variables (with the old
     // (possibly updated) values).
     if (context_scope->num_context_variables() > 0) {
-      body += CloneContext(context_scope->context_variables());
+      body += CloneContext(context_scope->context_slots());
     }
 
     body += updates;
