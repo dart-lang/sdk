@@ -140,7 +140,7 @@ Future<int> _readLatestMinorVersion() async {
   YamlMap pubspec = loadYamlNode(contents) as YamlMap;
   // 0.1.79 or 0.1.79-dev
   return int.parse(
-      pubspec['version'].split('.').last.split('-').first as String);
+      (pubspec['version'] as String).split('.').last.split('-').first);
 }
 
 Future<String> _crawlForVersion(String lint) async {

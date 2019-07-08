@@ -172,9 +172,8 @@ class _InvariantBooleansVisitor extends ConditionScopeVisitor {
 
   TestedExpressions _findPreviousTestedExpressions(Expression node) {
     final elements = _getElementsInExpression(node);
-    Iterable<Expression> conjunctions = getTrueExpressions(elements).toSet();
-    Iterable<Expression> negations = getFalseExpressions(elements).toSet();
-    return TestedExpressions(
-        node, LinkedHashSet.from(conjunctions), LinkedHashSet.from(negations));
+    Set<Expression> conjunctions = getTrueExpressions(elements).toSet();
+    Set<Expression> negations = getFalseExpressions(elements).toSet();
+    return TestedExpressions(node, conjunctions, negations);
   }
 }

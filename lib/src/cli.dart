@@ -98,8 +98,8 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   var lintOptions = initialLintOptions;
 
   var configFile = options['config'];
-  if (configFile != null) {
-    var config = LintConfig.parse(readFile(configFile as String));
+  if (configFile is String) {
+    var config = LintConfig.parse(readFile(configFile));
     lintOptions.configure(config);
   }
 
