@@ -136,8 +136,8 @@ Future<CompilerResult> _compile(List<String> args,
   var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
       .map(Uri.base.resolve)
       .toList();
-  var multiRootOutputPath =
-      _longestPrefixingPath(path.absolute(output), multiRootPaths);
+  var multiRootOutputPath = _longestPrefixingPath(
+      sourcePathToUri(path.absolute(output)), multiRootPaths);
 
   var fileSystem = MultiRootFileSystem(
       multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
@@ -518,7 +518,8 @@ String _findPackagesFilePath() {
 }
 
 /// Inputs must be absolute paths. Returns null if no prefixing path is found.
-String _longestPrefixingPath(String basePath, List<Uri> prefixingPaths) {
+String _longestPrefixingPath(Uri baseUri, List<Uri> prefixingPaths) {
+  var basePath = baseUri.path;
   return prefixingPaths.fold(null, (String previousValue, Uri element) {
     if (basePath.startsWith(element.path) &&
         (previousValue == null || previousValue.length < element.path.length)) {

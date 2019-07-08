@@ -352,8 +352,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     {String multiRootOutputPath}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
-  sourceMapPath = path.fromUri(sourcePathToUri(sourceMapPath));
-  var sourceMapDir = path.dirname(path.absolute(sourceMapPath));
+  sourceMapPath = sourcePathToUri(path.absolute(path.fromUri(sourceMapPath))).path;
+  var sourceMapDir = path.url.dirname(sourceMapPath);
   var list = (map['sources'] as List).toList();
 
   String makeRelative(String sourcePath) {
