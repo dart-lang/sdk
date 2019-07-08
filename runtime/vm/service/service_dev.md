@@ -2469,7 +2469,7 @@ class MemoryUsage extends Response {
 }
 ```
 
-An _MemoryUsage_ object provides heap usage information for a specific
+A _MemoryUsage_ object provides heap usage information for a specific
 isolate at a given point in time.
 
 ### Message
