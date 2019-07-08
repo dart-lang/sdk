@@ -1112,7 +1112,7 @@ CompileType AssertAssignableInstr::ComputeType() const {
     return *value_type;
   }
 
-  return CompileType::Create(value_type->ToCid(), dst_type());
+  return CompileType::FromAbstractType(dst_type(), value_type->is_nullable());
 }
 
 bool AssertAssignableInstr::RecomputeType() {
