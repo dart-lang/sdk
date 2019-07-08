@@ -27,8 +27,11 @@ void main() async {
   String outputPath =
       pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
 
+  IOSink sink = File(outputPath).openWrite();
   DocumentationGenerator generator = DocumentationGenerator(docPaths);
-  generator.writeDocumentation(outputPath);
+  generator.writeDocumentation(sink);
+  await sink.flush();
+  await sink.close();
 }
 
 /// A class used to generate diagnostic documentation.
@@ -47,13 +50,10 @@ class DocumentationGenerator {
   }
 
   /// Write the documentation to the file at the given [outputPath].
-  void writeDocumentation(String outputPath) async {
-    IOSink sink = File(outputPath).openWrite();
+  void writeDocumentation(StringSink sink) {
     _writeHeader(sink);
 //    _writeGlossary(sink);
     _writeDiagnostics(sink);
-    await sink.flush();
-    await sink.close();
   }
 
   /// Return a version of the [text] in which characters that have special
@@ -163,7 +163,7 @@ class DocumentationGenerator {
   }
 
   /// Write the documentation for all of the diagnostics.
-  void _writeDiagnostics(IOSink sink) {
+  void _writeDiagnostics(StringSink sink) {
     sink.write('''
 
 ## Diagnostics
@@ -184,7 +184,7 @@ that might work in unexpected ways.
   }
 
 //  /// Write the glossary.
-//  void _writeGlossary(IOSink sink) {
+//  void _writeGlossary(StringSink sink) {
 //    sink.write('''
 //
 //## Glossary
@@ -200,7 +200,7 @@ that might work in unexpected ways.
 //  }
 
   /// Write the header of the file.
-  void _writeHeader(IOSink sink) {
+  void _writeHeader(StringSink sink) {
     sink.write('''
 ---
 title: Diagnostics

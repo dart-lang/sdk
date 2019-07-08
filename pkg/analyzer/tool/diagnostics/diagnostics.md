@@ -44,7 +44,7 @@ The following code produces this diagnostic:
 
 ```dart
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-    {...a, ...b, ...c};
+    !{...a, ...b, ...c}!;
 ```
 
 The list `b` can only be spread into a set, and the maps `a` and `c` can
