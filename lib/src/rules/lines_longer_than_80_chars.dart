@@ -73,17 +73,17 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
     }
   }
 
-  Iterable<CommentToken> _getPrecedingComments(Token token) sync* {
-    CommentToken comment = token.precedingComments;
+  Iterable<Token> _getPrecedingComments(Token token) sync* {
+    Token comment = token.precedingComments;
     while (comment != null) {
       yield comment;
       comment = comment.next;
     }
   }
 
-  void _visitComment(CommentToken comment) {
-    final content = comment.toString();
-    final lines = [];
+  void _visitComment(Token comment) {
+    final content = comment.lexeme;
+    final lines = <String>[];
     if (content.startsWith('///')) {
       lines.add(content.substring(3));
     } else if (content.startsWith('//')) {

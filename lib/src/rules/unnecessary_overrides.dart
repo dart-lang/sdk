@@ -71,7 +71,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor extends SimpleAstVisitor {
 
   _AbstractUnnecessaryOverrideVisitor(this.rule);
 
-  ExecutableElement getInheritedElement(node);
+  ExecutableElement getInheritedElement(MethodDeclaration node);
 
   @override
   visitBlock(Block node) {
@@ -162,7 +162,7 @@ class _UnnecessaryGetterOverrideVisitor
   _UnnecessaryGetterOverrideVisitor(LintRule rule) : super(rule);
 
   @override
-  ExecutableElement getInheritedElement(node) =>
+  ExecutableElement getInheritedElement(MethodDeclaration node) =>
       DartTypeUtilities.lookUpInheritedConcreteGetter(node);
 
   @override

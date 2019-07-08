@@ -147,7 +147,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
-    ClassElement classElement = member.enclosingElement;
+    final classElement = member.enclosingElement as ClassElement;
 
     Iterable<InterfaceType> interfaces;
     if (classElement.isMixin) {

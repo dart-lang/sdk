@@ -38,11 +38,11 @@ Future<Map<String, SinceInfo>> get sinceMap async =>
 
 Future<Map<String, SinceInfo>> _getSinceInfo() async {
   var linterCache = await File('tool/since/linter.yaml').readAsString();
-  YamlMap linterVersionCache = loadYamlNode(linterCache);
+  YamlMap linterVersionCache = loadYamlNode(linterCache) as YamlMap;
 
   var sinceMap = <String, SinceInfo>{};
   for (var lint in registeredLints.map((l) => l.name)) {
-    var linterVersion = linterVersionCache[lint];
+    var linterVersion = linterVersionCache[lint] as String;
     if (linterVersion == null) {
       linterVersion = await findSinceLinter(lint);
       if (linterVersion != null) {
@@ -63,7 +63,7 @@ Map<String, String> _dartSdkMap;
 Future<Map<String, String>> get dartSdkMap async {
   if (_dartSdkMap == null) {
     var dartSdkCache = await File('tool/since/dart_sdk.yaml').readAsString();
-    YamlMap yamlMap = loadYamlNode(dartSdkCache);
+    YamlMap yamlMap = loadYamlNode(dartSdkCache) as YamlMap;
     _dartSdkMap = yamlMap.map((k, v) => MapEntry(k.toString(), v.toString()));
 
     var sdks = await sdkTags;

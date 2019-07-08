@@ -99,12 +99,12 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var configFile = options['config'];
   if (configFile != null) {
-    var config = LintConfig.parse(readFile(configFile));
+    var config = LintConfig.parse(readFile(configFile as String));
     lintOptions.configure(config);
   }
 
   var lints = options['rules'];
-  if (lints != null && !lints.isEmpty) {
+  if (lints is Iterable<String> && lints.isNotEmpty) {
     var rules = <LintRule>[];
     for (var lint in lints) {
       var rule = Registry.ruleRegistry[lint];
@@ -119,19 +119,21 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   }
 
   var customSdk = options['dart-sdk'];
-  if (customSdk != null) {
+  if (customSdk is String) {
     lintOptions.dartSdkPath = customSdk;
   }
 
   var strongMode = options['strong'];
-  if (strongMode != null) lintOptions.strongMode = strongMode;
+  if (strongMode is bool) {
+    lintOptions.strongMode = strongMode;
+  }
 
   var customPackageRoot = options['package-root'];
-  if (customPackageRoot != null) {
+  if (customPackageRoot is String) {
     lintOptions.packageRootPath = customPackageRoot;
   }
 
-  var packageConfigFile = options['packages'];
+  var packageConfigFile = options['packages'] as String;
 
   if (customPackageRoot != null && packageConfigFile != null) {
     errorSink.write("Cannot specify both '--package-root' and '--packages'.");
@@ -163,7 +165,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   try {
     final timer = Stopwatch()..start();
-    List<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
+    Iterable<AnalysisErrorInfo> errors = await lintFiles(linter, filesToLint);
     timer.stop();
 
     var commonRoot = getRoot(options.rest);
@@ -172,8 +174,8 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
-        machineOutput: options['machine'],
-        quiet: options['quiet'])
+        machineOutput: options['machine'] as bool,
+        quiet: options['quiet'] as bool)
       ..write();
     // ignore: avoid_catches_without_on_clauses
   } catch (err, stack) {

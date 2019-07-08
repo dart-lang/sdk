@@ -102,13 +102,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     final clazz = node.declaredElement.enclosingElement;
     // construct with super
     final SuperConstructorInvocation superInvocation = node.initializers
-        .firstWhere((e) => e is SuperConstructorInvocation, orElse: () => null);
+        .firstWhere((e) => e is SuperConstructorInvocation,
+            orElse: () => null) as SuperConstructorInvocation;
     if (superInvocation != null) return superInvocation.staticElement.isConst;
     // construct with this
     final RedirectingConstructorInvocation redirectInvocation = node
         .initializers
         .firstWhere((e) => e is RedirectingConstructorInvocation,
-            orElse: () => null);
+            orElse: () => null) as RedirectingConstructorInvocation;
     if (redirectInvocation != null) {
       return redirectInvocation.staticElement.isConst;
     }

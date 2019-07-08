@@ -27,7 +27,7 @@ void main([List<String> args]) async {
     return;
   }
 
-  var outDir = options['out'];
+  var outDir = options['out'] as String;
   await generateDocs(outDir);
 }
 

@@ -58,16 +58,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  Iterable<CommentToken> _getPrecedingComments(Token token) sync* {
-    CommentToken comment = token.precedingComments;
+  Iterable<Token> _getPrecedingComments(Token token) sync* {
+    Token comment = token.precedingComments;
     while (comment != null) {
       yield comment;
       comment = comment.next;
     }
   }
 
-  void _visitComment(CommentToken node) {
-    final content = node.toString();
+  void _visitComment(Token node) {
+    final content = node.lexeme;
     if (content.startsWith(_todoRegExp) &&
         !content.startsWith(_todoExpectedRegExp)) {
       rule.reportLintForToken(node);

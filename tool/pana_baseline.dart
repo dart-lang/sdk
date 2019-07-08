@@ -32,17 +32,17 @@ main() async {
   expectOk(output);
   print(output.stdout);
 
-  var panaJson = jsonDecode(output.stdout);
+  var panaJson = jsonDecode(output.stdout as String);
   var health = panaJson['health'];
   print(health);
   var scores = panaJson['scores'];
   print(scores);
 
   var failureReport = '';
-  var baselineHealth = baseline['health'];
-  var currentHealth = scores['health'];
-  var baselineMaintenance = baseline['maintenance'];
-  var currentMaintenance = scores['maintenance'];
+  var baselineHealth = baseline['health'] as double;
+  var currentHealth = scores['health'] as double;
+  var baselineMaintenance = baseline['maintenance'] as double;
+  var currentMaintenance = scores['maintenance'] as double;
   if (currentHealth < baselineHealth) {
     failureReport = 'health dropped from $baselineHealth to $currentHealth';
   }

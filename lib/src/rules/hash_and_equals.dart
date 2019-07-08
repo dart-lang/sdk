@@ -80,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     ClassMember hash;
     for (ClassMember member in node.members) {
       if (isEquals(member)) {
-        eq = member;
+        eq = member as MethodDeclaration;
       } else if (isHashCode(member)) {
         hash = member;
       }

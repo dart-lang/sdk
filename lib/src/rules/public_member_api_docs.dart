@@ -107,7 +107,7 @@ class _Visitor extends SimpleAstVisitor {
     return false;
   }
 
-  ExecutableElement getOverriddenMember(Element member) {
+  Element getOverriddenMember(Element member) {
     if (member == null || manager == null) {
       return null;
     }
@@ -169,7 +169,7 @@ class _Visitor extends SimpleAstVisitor {
       if (getter == null) {
         Uri libraryUri = node.declaredElement.library.source.uri;
         // Look for an inherited getter.
-        ExecutableElement getter = manager
+        Element getter = manager
             .getMember(
                 node.declaredElement.type, Name(libraryUri, setter.name.name))
             ?.element;
@@ -221,7 +221,7 @@ class _Visitor extends SimpleAstVisitor {
     // Identify getter/setter pairs.
     for (CompilationUnitMember member in node.declarations) {
       if (member is FunctionDeclaration) {
-        Identifier name = member.name;
+        var name = member.name;
         if (!isPrivate(name) && name.name != 'main') {
           if (member.isGetter) {
             getters[member.name.name] = member;

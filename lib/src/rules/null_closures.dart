@@ -305,7 +305,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return method;
     }
 
-    ClassElement element = type.element;
+    ClassElement element = type.element as ClassElement;
     if (element.isSynthetic) {
       return null;
     }

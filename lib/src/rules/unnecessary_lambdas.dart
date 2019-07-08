@@ -90,14 +90,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       final statement = body.block.statements.single;
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
-        _visitInvocationExpression(statement.expression, node);
+        _visitInvocationExpression(
+            statement.expression as InvocationExpression, node);
       } else if (statement is ReturnStatement &&
           statement.expression is InvocationExpression) {
-        _visitInvocationExpression(statement.expression, node);
+        _visitInvocationExpression(
+            statement.expression as InvocationExpression, node);
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is InvocationExpression) {
-        _visitInvocationExpression(body.expression, node);
+        _visitInvocationExpression(
+            body.expression as InvocationExpression, node);
       }
     }
   }

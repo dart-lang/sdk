@@ -9,11 +9,11 @@ import 'package:grinder/grinder.dart';
 import 'doc.dart';
 import 'rule.dart';
 
-main(args) => grind(args);
+main(List<String> args) => grind(args);
 
-List<String> get sourcePaths => sources.map((dir) => dir.path);
+Iterable<String> get sourcePaths => sources.map((dir) => dir.path);
 
-List<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
+Iterable<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
       // Skip:
       //   'test/rules'
       //   'test/_data'
