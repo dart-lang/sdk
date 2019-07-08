@@ -26,6 +26,7 @@ import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'rules/experiments/experiments.dart';
+import 'util/test_utils.dart';
 
 main() {
   defineSanityTests();
@@ -71,12 +72,13 @@ defineRuleTests() {
 
     group('pub', () {
       for (var entry in Directory(p.join(ruleDir, 'pub')).listSync()) {
-        if (entry is! Directory) continue;
-        Directory pubTestDir = entry;
-        for (var file in pubTestDir.listSync()) {
-          if (file is! File || !isPubspecFile(file)) continue;
-          var ruleName = p.basename(pubTestDir.path);
-          testRule(ruleName, file);
+        if (entry is Directory) {
+          for (var child in entry.listSync()) {
+            if (child is File && isPubspecFile(child)) {
+              var ruleName = p.basename(child.path);
+              testRule(ruleName, child);
+            }
+          }
         }
       }
     });
@@ -272,7 +274,7 @@ defineSoloRuleTest(String ruleToTest) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
     if (ruleName == ruleToTest) {
-      testRule(ruleName, entry);
+      testRule(ruleName, entry as File);
     }
   }
 }
@@ -319,19 +321,12 @@ AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     AnnotationMatcher(Annotation(message, type, lineNumber));
 
-testEach(Iterable<Object> values, bool f(String s), Matcher m) {
-  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
-}
-
-testEachInt(Iterable<Object> values, bool f(int s), Matcher m) {
-  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
-}
-
 testRules(String ruleDir, {String analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
-    testRule(ruleName, entry, debug: true, analysisOptions: analysisOptions);
+    testRule(ruleName, entry as File,
+        debug: true, analysisOptions: analysisOptions);
   }
 }
 

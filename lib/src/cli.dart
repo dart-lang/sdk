@@ -83,7 +83,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     return;
   }
 
-  if (options['help']) {
+  if (options['help'] as bool) {
     printUsage(parser, outSink);
     return;
   }
@@ -139,8 +139,8 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     return;
   }
 
-  var stats = options['stats'];
-  var benchmark = options['benchmark'];
+  var stats = options['stats'] as bool;
+  var benchmark = options['benchmark'] as bool;
   if (stats || benchmark) {
     lintOptions.enableTiming = true;
   }

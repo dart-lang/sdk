@@ -5,6 +5,6 @@
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 
-void testEach<T>(Iterable<Object> values, bool f(T s), Matcher m) {
+void testEach<T>(Iterable<T> values, bool f(T s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }

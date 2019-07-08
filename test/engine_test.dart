@@ -218,25 +218,20 @@ void defineLinterEngineTests() {
 
 typedef NodeVisitor(node);
 
-typedef dynamic /* AstVisitor, PubSpecVisitor*/ VisitorCallback();
-
 class MockLinter extends LintRule {
-  VisitorCallback visitorCallback;
-
-  MockLinter([NodeVisitor v])
+  final NodeVisitor nodeVisitor;
+  MockLinter([this.nodeVisitor])
       : super(
             name: 'MockLint',
             group: Group.style,
             description: 'Desc',
-            details: 'And so on...') {
-    visitorCallback = () => MockVisitor(v);
-  }
+            details: 'And so on...');
 
   @override
-  PubspecVisitor getPubspecVisitor() => visitorCallback();
+  PubspecVisitor getPubspecVisitor() => MockVisitor(nodeVisitor);
 
   @override
-  AstVisitor getVisitor() => visitorCallback();
+  AstVisitor getVisitor() => MockVisitor(nodeVisitor);
 }
 
 class MockLintRule extends LintRule {

@@ -66,7 +66,7 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
 }
 
 class _LintCode extends LintCode {
-  static final registry = <String, LintCode>{};
+  static final registry = <String, _LintCode>{};
 
   factory _LintCode(String name, String message) =>
       registry.putIfAbsent(name + message, () => _LintCode._(name, message));

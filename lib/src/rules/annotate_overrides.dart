@@ -71,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, LinterContext context)
       : manager = InheritanceManager2(context.typeSystem);
 
-  ExecutableElement getOverriddenMember(Element member) {
+  Element getOverriddenMember(Element member) {
     if (member == null) {
       return null;
     }
@@ -95,7 +95,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           !resolutionMap
               .elementDeclaredByVariableDeclaration(field)
               .hasOverride) {
-        ExecutableElement member = getOverriddenMember(field.declaredElement);
+        Element member = getOverriddenMember(field.declaredElement);
         if (member != null) {
           rule.reportLint(field);
         }
@@ -107,7 +107,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node?.declaredElement != null &&
         !resolutionMap.elementDeclaredByMethodDeclaration(node).hasOverride) {
-      ExecutableElement member = getOverriddenMember(node.declaredElement);
+      Element member = getOverriddenMember(node.declaredElement);
       if (member != null) {
         rule.reportLint(node.name);
       }

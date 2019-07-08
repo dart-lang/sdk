@@ -59,7 +59,7 @@ Future<Iterable<AnalysisErrorInfo>> lintFiles(
   if (errorWatcher.encounteredError) {
     exitCode = loggedAnalyzerErrorExitCode;
   } else if (errors.isNotEmpty) {
-    exitCode = _maxSeverity(errors, linter.options.filter);
+    exitCode = _maxSeverity(errors.toList(), linter.options.filter);
   }
 
   return errors;
