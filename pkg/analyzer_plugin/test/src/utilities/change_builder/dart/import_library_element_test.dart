@@ -205,21 +205,34 @@ class C {
     );
   }
 
-  test_formalParameter() async {
-    newFile('/home/test/lib/a.dart', content: 'class A {}');
-    newFile('/home/test/lib/b.dart', content: r'''
-export 'a.dart';
-''');
+  test_formalParameter_end() async {
+    newFile('/home/test/lib/a.dart', content: 'class AAA {}');
     await _assertImportLibraryElement(
       initialCode: r'''
-f(A^) {}
+f(AAA^) {}
 ''',
       uriStr: 'package:test/a.dart',
-      name: 'A',
+      name: 'AAA',
       expectedCode: r'''
 import 'package:test/a.dart';
 
-f(A) {}
+f(AAA) {}
+''',
+    );
+  }
+
+  test_formalParameter_start() async {
+    newFile('/home/test/lib/a.dart', content: 'class AAA {}');
+    await _assertImportLibraryElement(
+      initialCode: r'''
+f(^AAA) {}
+''',
+      uriStr: 'package:test/a.dart',
+      name: 'AAA',
+      expectedCode: r'''
+import 'package:test/a.dart';
+
+f(AAA) {}
 ''',
     );
   }

@@ -300,7 +300,7 @@ class SyntacticScopeNamesCollector extends RecursiveAstVisitor<void> {
 
   void _addName(SimpleIdentifier node) {
     if (node == null) return;
-    if (node.end == offset) return;
+    if (node.offset <= offset && offset <= node.end) return;
 
     names.add(node.name);
   }
