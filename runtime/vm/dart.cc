@@ -130,9 +130,11 @@ static void CheckOffsets() {
 
 char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  const uint8_t* instructions_snapshot,
-                 Dart_IsolateCreateCallback create,
+                 Dart_IsolateGroupCreateCallback create_group,
+                 Dart_InitializeIsolateCallback initialize_isolate,
                  Dart_IsolateShutdownCallback shutdown,
-                 Dart_IsolateCleanupCallback cleanup,
+                 Dart_IsolateShutdownCallback cleanup,
+                 Dart_IsolateGroupCleanupCallback cleanup_group,
                  Dart_ThreadExitCallback thread_exit,
                  Dart_FileOpenCallback file_open,
                  Dart_FileReadCallback file_read,
@@ -355,9 +357,11 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Api::InitHandles();
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
-  Isolate::SetCreateCallback(create);
+  Isolate::SetCreateGroupCallback(create_group);
+  Isolate::SetInitializeCallback_(initialize_isolate);
   Isolate::SetShutdownCallback(shutdown);
   Isolate::SetCleanupCallback(cleanup);
+  Isolate::SetGroupCleanupCallback(cleanup_group);
 
   if (FLAG_support_service) {
     Service::SetGetServiceAssetsCallback(get_service_assets);
@@ -620,7 +624,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
                                   const uint8_t* shared_instructions,
                                   const uint8_t* kernel_buffer,
                                   intptr_t kernel_buffer_size,
-                                  void* data) {
+                                  void* isolate_data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
@@ -724,7 +728,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_data,
   }
 
   I->heap()->InitGrowthControl();
-  I->set_init_callback_data(data);
+  I->set_init_callback_data(isolate_data);
   Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {
     I->class_table()->Print();
@@ -850,11 +854,12 @@ void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
-  void* callback_data = isolate->init_callback_data();
+  void* isolate_group_data = isolate->source()->callback_data;
+  void* isolate_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {
     TransitionVMToNative transition(thread);
-    (callback)(callback_data);
+    (callback)(isolate_group_data, isolate_data);
   }
 }
 

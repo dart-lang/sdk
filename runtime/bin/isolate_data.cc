@@ -9,44 +9,53 @@
 namespace dart {
 namespace bin {
 
-IsolateData::IsolateData(const char* url,
-                         const char* package_root,
-                         const char* packages_file,
-                         AppSnapshot* app_snapshot)
+IsolateGroupData::IsolateGroupData(const char* url,
+                                   const char* package_root,
+                                   const char* packages_file,
+                                   AppSnapshot* app_snapshot,
+                                   bool isolate_run_app_snapshot)
     : script_url((url != NULL) ? strdup(url) : NULL),
       package_root(NULL),
-      packages_file(NULL),
-      loader_(NULL),
       app_snapshot_(app_snapshot),
       dependencies_(NULL),
       resolved_packages_config_(NULL),
       kernel_buffer_(NULL),
-      kernel_buffer_size_(0) {
+      kernel_buffer_size_(0),
+      isolate_run_app_snapshot_(isolate_run_app_snapshot) {
   if (package_root != NULL) {
     ASSERT(packages_file == NULL);
-    this->package_root = strdup(package_root);
+    package_root = strdup(package_root);
   } else if (packages_file != NULL) {
-    this->packages_file = strdup(packages_file);
+    packages_file_ = strdup(packages_file);
   }
 }
 
-void IsolateData::OnIsolateShutdown() {
-}
-
-IsolateData::~IsolateData() {
+IsolateGroupData::~IsolateGroupData() {
   free(script_url);
   script_url = NULL;
   free(package_root);
   package_root = NULL;
-  free(packages_file);
-  packages_file = NULL;
+  free(packages_file_);
+  packages_file_ = NULL;
   free(resolved_packages_config_);
   resolved_packages_config_ = NULL;
   kernel_buffer_ = NULL;
   kernel_buffer_size_ = 0;
-  delete app_snapshot_;
-  app_snapshot_ = NULL;
   delete dependencies_;
+}
+
+IsolateData::IsolateData(IsolateGroupData* isolate_group_data)
+    : isolate_group_data_(isolate_group_data),
+      loader_(nullptr),
+      packages_file_(nullptr) {
+  if (isolate_group_data->packages_file_ != nullptr) {
+    packages_file_ = strdup(isolate_group_data->packages_file_);
+  }
+}
+
+IsolateData::~IsolateData() {
+  free(packages_file_);
+  packages_file_ = nullptr;
 }
 
 }  // namespace bin

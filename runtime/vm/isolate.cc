@@ -1001,7 +1001,11 @@ Isolate::~Isolate() {
 }
 
 void Isolate::InitVM() {
-  create_callback_ = nullptr;
+  create_group_callback_ = nullptr;
+  initialize_callback_ = nullptr;
+  shutdown_callback_ = nullptr;
+  cleanup_callback_ = nullptr;
+  cleanup_group_callback_ = nullptr;
   if (isolates_list_monitor_ == nullptr) {
     isolates_list_monitor_ = new Monitor();
   }
@@ -1900,15 +1904,34 @@ void Isolate::Shutdown() {
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
 
-  Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
-  if (cleanup != nullptr) {
-    cleanup(init_callback_data());
+  // The source is null iff the isolate is the "vm-isolate".
+  ASSERT((source_ == nullptr) == (Dart::vm_isolate() == this));
+
+  if (source_ != nullptr) {
+    // Run isolate specific cleanup function.
+    Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
+    if (cleanup != nullptr) {
+      cleanup(source_->callback_data, init_callback_data());
+    }
+
+    // Run isolate group specific cleanup function if the last isolate in an
+    // isolate group died.
+    if (source_->DecrementIsolateUsageCount()) {
+      auto group_cleanup_callback = Isolate::GroupCleanupCallback();
+      if (group_cleanup_callback != nullptr) {
+        group_cleanup_callback(source_->callback_data);
+      }
+      delete source_;
+      source_ = nullptr;
+    }
   }
 }
 
-Dart_IsolateCreateCallback Isolate::create_callback_ = nullptr;
+Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
+Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
+Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
 Monitor* Isolate::isolates_list_monitor_ = nullptr;
 Isolate* Isolate::isolates_list_head_ = nullptr;
@@ -2930,7 +2953,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
-                                     const char* debug_name)
+                                     const char* debug_name,
+                                     IsolateGroupSource* source)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(origin_id),
@@ -2942,6 +2966,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
+      source_(source),
       serialized_args_(nullptr),
       serialized_message_(message_buffer->StealMessage()),
       paused_(paused),
@@ -2973,7 +2998,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      bool errors_are_fatal,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
-                                     const char* debug_name)
+                                     const char* debug_name,
+                                     IsolateGroupSource* source)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
@@ -2985,6 +3011,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
+      source_(source),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       isolate_flags_(),

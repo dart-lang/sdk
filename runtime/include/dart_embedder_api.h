@@ -5,8 +5,8 @@
 #ifndef RUNTIME_INCLUDE_DART_EMBEDDER_API_H_
 #define RUNTIME_INCLUDE_DART_EMBEDDER_API_H_
 
-#include "dart_api.h"
-#include "dart_tools_api.h"
+#include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 namespace dart {
 namespace embedder {
@@ -29,8 +29,11 @@ struct IsolateCreationData {
   // Isolate creation flags. Might be absent.
   Dart_IsolateFlags* flags;
 
+  // Isolate group callback data.
+  void* isolate_group_data;
+
   // Isolate callback data.
-  void* callback_data;
+  void* isolate_data;
 };
 
 // Create and initialize kernel-service isolate. This method should be used
