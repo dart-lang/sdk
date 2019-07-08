@@ -668,6 +668,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeObjectField(TypeObjectField typeObjectField) {
+    if (typeObjectField.experimental) {
+      return;
+    }
     dt('field', () {
       b(() {
         if (typeObjectField.deprecated) {
