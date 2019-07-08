@@ -116,4 +116,5 @@ void testTypeTest() {
   Coordinate c = Coordinate.allocate(10, 10, nullptr.cast<Coordinate>());
   Expect.isTrue(c is Struct);
   Expect.isTrue(c is Struct<Coordinate>);
+  c.addressOf.free();
 }
