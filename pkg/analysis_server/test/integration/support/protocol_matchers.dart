@@ -617,12 +617,6 @@ final Matcher isFilePath = isString;
  *   "parentAssociationLabel": optional String
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
- *   "id": optional int
- *   "isWidgetClass": optional bool
- *   "renderConstructor": optional String
- *   "stateClassName": optional String
- *   "stateOffset": optional int
- *   "stateLength": optional int
  * }
  */
 final Matcher isFlutterOutline =
@@ -639,13 +633,7 @@ final Matcher isFlutterOutline =
           "className": isString,
           "parentAssociationLabel": isString,
           "variableName": isString,
-          "children": isListOf(isFlutterOutline),
-          "id": isInt,
-          "isWidgetClass": isBool,
-          "renderConstructor": isString,
-          "stateClassName": isString,
-          "stateOffset": isInt,
-          "stateLength": isInt
+          "children": isListOf(isFlutterOutline)
         }));
 
 /**
@@ -3027,43 +3015,16 @@ final Matcher isExtractWidgetOptions = new LazyMatcher(
     () => new MatchesJsonObject("extractWidget options", {"name": isString}));
 
 /**
- * flutter.getChangeAddForDesignTimeConstructor params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- */
-final Matcher isFlutterGetChangeAddForDesignTimeConstructorParams =
-    new LazyMatcher(() => new MatchesJsonObject(
-        "flutter.getChangeAddForDesignTimeConstructor params",
-        {"file": isFilePath, "offset": isInt}));
-
-/**
- * flutter.getChangeAddForDesignTimeConstructor result
- *
- * {
- *   "change": SourceChange
- * }
- */
-final Matcher isFlutterGetChangeAddForDesignTimeConstructorResult =
-    new LazyMatcher(() => new MatchesJsonObject(
-        "flutter.getChangeAddForDesignTimeConstructor result",
-        {"change": isSourceChange}));
-
-/**
  * flutter.outline params
  *
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
- *   "instrumentedCode": optional String
  * }
  */
 final Matcher isFlutterOutlineParams = new LazyMatcher(() =>
     new MatchesJsonObject("flutter.outline params",
-        {"file": isFilePath, "outline": isFlutterOutline},
-        optionalFields: {"instrumentedCode": isString}));
+        {"file": isFilePath, "outline": isFlutterOutline}));
 
 /**
  * flutter.setSubscriptions params

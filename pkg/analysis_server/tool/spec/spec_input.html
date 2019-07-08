@@ -3141,39 +3141,10 @@
     </result>
   </request>
 </domain>
-<domain name="flutter" experimental="true">
+<domain name="flutter">
   <p>
     The analysis domain contains API’s related to Flutter support.
   </p>
-  <request method="getChangeAddForDesignTimeConstructor">
-    <p>
-      Return the change that adds the forDesignTime() constructor for the
-      widget class at the given offset.
-    </p>
-    <params>
-      <field name="file">
-        <ref>FilePath</ref>
-        <p>
-          The file containing the code of the class.
-        </p>
-      </field>
-      <field name="offset">
-        <ref>int</ref>
-        <p>
-          The offset of the class in the code.
-        </p>
-      </field>
-    </params>
-    <result>
-      <field name="change">
-        <ref>SourceChange</ref>
-        <p>
-          The change that adds the forDesignTime() constructor.
-          If the change cannot be produced, an error is returned.
-        </p>
-      </field>
-    </result>
-  </request>
   <request method="setSubscriptions">
     <p>
       Subscribe for services that are specific to individual files.
@@ -3227,7 +3198,7 @@
       </field>
     </params>
   </request>
-  <notification event="outline" experimental="true">
+  <notification event="outline">
     <p>
       Reports the Flutter outline associated with a single file.
     </p>
@@ -3248,15 +3219,6 @@
         <ref>FlutterOutline</ref>
         <p>
           The outline associated with the file.
-        </p>
-      </field>
-      <field name="instrumentedCode" optional="true">
-        <ref>String</ref>
-        <p>
-          If the file has Flutter widgets that can be rendered, this field
-          has the instrumented content of the file, that allows associating
-          widgets with corresponding outline nodes. If there are no widgets
-          to render, this field is absent.
         </p>
       </field>
     </params>
@@ -4080,7 +4042,7 @@
       <value><code>PART</code></value>
     </enum>
   </type>
-  <type name="FlutterService" experimental="true">
+  <type name="FlutterService">
     <p>
       An enumeration of the services provided by the flutter domain that
       are related to a specific list of files.
@@ -4089,7 +4051,7 @@
       <value><code>OUTLINE</code></value>
     </enum>
   </type>
-  <type name="FlutterOutline" experimental="true">
+  <type name="FlutterOutline">
     <p>
       An node in the Flutter specific outline structure of a file.
     </p>
@@ -4180,57 +4142,9 @@
           children.
         </p>
       </field>
-      <field name="id" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a widget, and it is instrumented, the unique identifier
-          of this widget, that can be used to associate rendering information
-          with this node.
-        </p>
-      </field>
-      <field name="isWidgetClass" optional="true">
-        <ref>bool</ref>
-        <p>
-          True if the node is a widget class, so it can potentially be
-          rendered, even if it does not yet have the rendering constructor.
-          This field is omitted if the node is not a widget class.
-        </p>
-      </field>
-      <field name="renderConstructor" optional="true">
-        <ref>String</ref>
-        <p>
-          If the node is a widget class that can be rendered for IDE, the name
-          of the constructor that should be used to instantiate the widget.
-          Empty string for default constructor. Absent if the node is not a
-          widget class that can be rendered.
-        </p>
-      </field>
-      <field name="stateClassName" optional="true">
-        <ref>String</ref>
-        <p>
-          If the node is a StatefulWidget, and its state class is defined in
-          the same file, the name of the state class.
-        </p>
-      </field>
-      <field name="stateOffset" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a StatefulWidget that can be rendered, and its state
-          class is defined in the same file, the offset of the state class code
-          in the file.
-        </p>
-      </field>
-      <field name="stateLength" optional="true">
-        <ref>int</ref>
-        <p>
-          If the node is a StatefulWidget that can be rendered, and its state
-          class is defined in the same file, the length of the state class code
-          in the file.
-        </p>
-      </field>
     </object>
   </type>
-  <type name="FlutterOutlineAttribute" experimental="true">
+  <type name="FlutterOutlineAttribute">
     <p>
       An attribute for a FlutterOutline.
     </p>
@@ -4271,7 +4185,7 @@
       </field>
     </object>
   </type>
-  <type name="FlutterOutlineKind" experimental="true">
+  <type name="FlutterOutlineKind">
     <p>
       An enumeration of the kinds of FlutterOutline elements. The list of kinds
       might be expanded with time, clients must be able to handle new kinds

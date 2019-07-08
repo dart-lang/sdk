@@ -14444,210 +14444,6 @@ class FileKind implements Enum {
 }
 
 /**
- * flutter.getChangeAddForDesignTimeConstructor params
- *
- * {
- *   "file": FilePath
- *   "offset": int
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class FlutterGetChangeAddForDesignTimeConstructorParams
-    implements RequestParams {
-  String _file;
-
-  int _offset;
-
-  /**
-   * The file containing the code of the class.
-   */
-  String get file => _file;
-
-  /**
-   * The file containing the code of the class.
-   */
-  void set file(String value) {
-    assert(value != null);
-    this._file = value;
-  }
-
-  /**
-   * The offset of the class in the code.
-   */
-  int get offset => _offset;
-
-  /**
-   * The offset of the class in the code.
-   */
-  void set offset(int value) {
-    assert(value != null);
-    this._offset = value;
-  }
-
-  FlutterGetChangeAddForDesignTimeConstructorParams(String file, int offset) {
-    this.file = file;
-    this.offset = offset;
-  }
-
-  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
-      }
-      int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
-      }
-      return new FlutterGetChangeAddForDesignTimeConstructorParams(
-          file, offset);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath,
-          "flutter.getChangeAddForDesignTimeConstructor params", json);
-    }
-  }
-
-  factory FlutterGetChangeAddForDesignTimeConstructorParams.fromRequest(
-      Request request) {
-    return new FlutterGetChangeAddForDesignTimeConstructorParams.fromJson(
-        new RequestDecoder(request), "params", request.params);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
-    return result;
-  }
-
-  @override
-  Request toRequest(String id) {
-    return new Request(
-        id, "flutter.getChangeAddForDesignTimeConstructor", toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is FlutterGetChangeAddForDesignTimeConstructorParams) {
-      return file == other.file && offset == other.offset;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * flutter.getChangeAddForDesignTimeConstructor result
- *
- * {
- *   "change": SourceChange
- * }
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class FlutterGetChangeAddForDesignTimeConstructorResult
-    implements ResponseResult {
-  SourceChange _change;
-
-  /**
-   * The change that adds the forDesignTime() constructor. If the change cannot
-   * be produced, an error is returned.
-   */
-  SourceChange get change => _change;
-
-  /**
-   * The change that adds the forDesignTime() constructor. If the change cannot
-   * be produced, an error is returned.
-   */
-  void set change(SourceChange value) {
-    assert(value != null);
-    this._change = value;
-  }
-
-  FlutterGetChangeAddForDesignTimeConstructorResult(SourceChange change) {
-    this.change = change;
-  }
-
-  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
-      JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      SourceChange change;
-      if (json.containsKey("change")) {
-        change = new SourceChange.fromJson(
-            jsonDecoder, jsonPath + ".change", json["change"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "change");
-      }
-      return new FlutterGetChangeAddForDesignTimeConstructorResult(change);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath,
-          "flutter.getChangeAddForDesignTimeConstructor result", json);
-    }
-  }
-
-  factory FlutterGetChangeAddForDesignTimeConstructorResult.fromResponse(
-      Response response) {
-    return new FlutterGetChangeAddForDesignTimeConstructorResult.fromJson(
-        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
-        "result",
-        response.result);
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["change"] = change.toJson();
-    return result;
-  }
-
-  @override
-  Response toResponse(String id) {
-    return new Response(id, result: toJson());
-  }
-
-  @override
-  String toString() => json.encode(toJson());
-
-  @override
-  bool operator ==(other) {
-    if (other is FlutterGetChangeAddForDesignTimeConstructorResult) {
-      return change == other.change;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, change.hashCode);
-    return JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
  * FlutterOutline
  *
  * {
@@ -14663,12 +14459,6 @@ class FlutterGetChangeAddForDesignTimeConstructorResult
  *   "parentAssociationLabel": optional String
  *   "variableName": optional String
  *   "children": optional List<FlutterOutline>
- *   "id": optional int
- *   "isWidgetClass": optional bool
- *   "renderConstructor": optional String
- *   "stateClassName": optional String
- *   "stateOffset": optional int
- *   "stateLength": optional int
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -14697,18 +14487,6 @@ class FlutterOutline implements HasToJson {
   String _variableName;
 
   List<FlutterOutline> _children;
-
-  int _id;
-
-  bool _isWidgetClass;
-
-  String _renderConstructor;
-
-  String _stateClassName;
-
-  int _stateOffset;
-
-  int _stateLength;
 
   /**
    * The kind of the node.
@@ -14881,102 +14659,6 @@ class FlutterOutline implements HasToJson {
     this._children = value;
   }
 
-  /**
-   * If the node is a widget, and it is instrumented, the unique identifier of
-   * this widget, that can be used to associate rendering information with this
-   * node.
-   */
-  int get id => _id;
-
-  /**
-   * If the node is a widget, and it is instrumented, the unique identifier of
-   * this widget, that can be used to associate rendering information with this
-   * node.
-   */
-  void set id(int value) {
-    this._id = value;
-  }
-
-  /**
-   * True if the node is a widget class, so it can potentially be rendered,
-   * even if it does not yet have the rendering constructor. This field is
-   * omitted if the node is not a widget class.
-   */
-  bool get isWidgetClass => _isWidgetClass;
-
-  /**
-   * True if the node is a widget class, so it can potentially be rendered,
-   * even if it does not yet have the rendering constructor. This field is
-   * omitted if the node is not a widget class.
-   */
-  void set isWidgetClass(bool value) {
-    this._isWidgetClass = value;
-  }
-
-  /**
-   * If the node is a widget class that can be rendered for IDE, the name of
-   * the constructor that should be used to instantiate the widget. Empty
-   * string for default constructor. Absent if the node is not a widget class
-   * that can be rendered.
-   */
-  String get renderConstructor => _renderConstructor;
-
-  /**
-   * If the node is a widget class that can be rendered for IDE, the name of
-   * the constructor that should be used to instantiate the widget. Empty
-   * string for default constructor. Absent if the node is not a widget class
-   * that can be rendered.
-   */
-  void set renderConstructor(String value) {
-    this._renderConstructor = value;
-  }
-
-  /**
-   * If the node is a StatefulWidget, and its state class is defined in the
-   * same file, the name of the state class.
-   */
-  String get stateClassName => _stateClassName;
-
-  /**
-   * If the node is a StatefulWidget, and its state class is defined in the
-   * same file, the name of the state class.
-   */
-  void set stateClassName(String value) {
-    this._stateClassName = value;
-  }
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class
-   * is defined in the same file, the offset of the state class code in the
-   * file.
-   */
-  int get stateOffset => _stateOffset;
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class
-   * is defined in the same file, the offset of the state class code in the
-   * file.
-   */
-  void set stateOffset(int value) {
-    this._stateOffset = value;
-  }
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class
-   * is defined in the same file, the length of the state class code in the
-   * file.
-   */
-  int get stateLength => _stateLength;
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class
-   * is defined in the same file, the length of the state class code in the
-   * file.
-   */
-  void set stateLength(int value) {
-    this._stateLength = value;
-  }
-
   FlutterOutline(FlutterOutlineKind kind, int offset, int length,
       int codeOffset, int codeLength,
       {String label,
@@ -14985,13 +14667,7 @@ class FlutterOutline implements HasToJson {
       String className,
       String parentAssociationLabel,
       String variableName,
-      List<FlutterOutline> children,
-      int id,
-      bool isWidgetClass,
-      String renderConstructor,
-      String stateClassName,
-      int stateOffset,
-      int stateLength}) {
+      List<FlutterOutline> children}) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
@@ -15004,12 +14680,6 @@ class FlutterOutline implements HasToJson {
     this.parentAssociationLabel = parentAssociationLabel;
     this.variableName = variableName;
     this.children = children;
-    this.id = id;
-    this.isWidgetClass = isWidgetClass;
-    this.renderConstructor = renderConstructor;
-    this.stateClassName = stateClassName;
-    this.stateOffset = stateOffset;
-    this.stateLength = stateLength;
   }
 
   factory FlutterOutline.fromJson(
@@ -15093,35 +14763,6 @@ class FlutterOutline implements HasToJson {
             (String jsonPath, Object json) =>
                 new FlutterOutline.fromJson(jsonDecoder, jsonPath, json));
       }
-      int id;
-      if (json.containsKey("id")) {
-        id = jsonDecoder.decodeInt(jsonPath + ".id", json["id"]);
-      }
-      bool isWidgetClass;
-      if (json.containsKey("isWidgetClass")) {
-        isWidgetClass = jsonDecoder.decodeBool(
-            jsonPath + ".isWidgetClass", json["isWidgetClass"]);
-      }
-      String renderConstructor;
-      if (json.containsKey("renderConstructor")) {
-        renderConstructor = jsonDecoder.decodeString(
-            jsonPath + ".renderConstructor", json["renderConstructor"]);
-      }
-      String stateClassName;
-      if (json.containsKey("stateClassName")) {
-        stateClassName = jsonDecoder.decodeString(
-            jsonPath + ".stateClassName", json["stateClassName"]);
-      }
-      int stateOffset;
-      if (json.containsKey("stateOffset")) {
-        stateOffset = jsonDecoder.decodeInt(
-            jsonPath + ".stateOffset", json["stateOffset"]);
-      }
-      int stateLength;
-      if (json.containsKey("stateLength")) {
-        stateLength = jsonDecoder.decodeInt(
-            jsonPath + ".stateLength", json["stateLength"]);
-      }
       return new FlutterOutline(kind, offset, length, codeOffset, codeLength,
           label: label,
           dartElement: dartElement,
@@ -15129,13 +14770,7 @@ class FlutterOutline implements HasToJson {
           className: className,
           parentAssociationLabel: parentAssociationLabel,
           variableName: variableName,
-          children: children,
-          id: id,
-          isWidgetClass: isWidgetClass,
-          renderConstructor: renderConstructor,
-          stateClassName: stateClassName,
-          stateOffset: stateOffset,
-          stateLength: stateLength);
+          children: children);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FlutterOutline", json);
     }
@@ -15173,24 +14808,6 @@ class FlutterOutline implements HasToJson {
       result["children"] =
           children.map((FlutterOutline value) => value.toJson()).toList();
     }
-    if (id != null) {
-      result["id"] = id;
-    }
-    if (isWidgetClass != null) {
-      result["isWidgetClass"] = isWidgetClass;
-    }
-    if (renderConstructor != null) {
-      result["renderConstructor"] = renderConstructor;
-    }
-    if (stateClassName != null) {
-      result["stateClassName"] = stateClassName;
-    }
-    if (stateOffset != null) {
-      result["stateOffset"] = stateOffset;
-    }
-    if (stateLength != null) {
-      result["stateLength"] = stateLength;
-    }
     return result;
   }
 
@@ -15216,13 +14833,7 @@ class FlutterOutline implements HasToJson {
           parentAssociationLabel == other.parentAssociationLabel &&
           variableName == other.variableName &&
           listEqual(children, other.children,
-              (FlutterOutline a, FlutterOutline b) => a == b) &&
-          id == other.id &&
-          isWidgetClass == other.isWidgetClass &&
-          renderConstructor == other.renderConstructor &&
-          stateClassName == other.stateClassName &&
-          stateOffset == other.stateOffset &&
-          stateLength == other.stateLength;
+              (FlutterOutline a, FlutterOutline b) => a == b);
     }
     return false;
   }
@@ -15242,12 +14853,6 @@ class FlutterOutline implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, parentAssociationLabel.hashCode);
     hash = JenkinsSmiHash.combine(hash, variableName.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isWidgetClass.hashCode);
-    hash = JenkinsSmiHash.combine(hash, renderConstructor.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stateClassName.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stateOffset.hashCode);
-    hash = JenkinsSmiHash.combine(hash, stateLength.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -15555,7 +15160,6 @@ class FlutterOutlineKind implements Enum {
  * {
  *   "file": FilePath
  *   "outline": FlutterOutline
- *   "instrumentedCode": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -15564,8 +15168,6 @@ class FlutterOutlineParams implements HasToJson {
   String _file;
 
   FlutterOutline _outline;
-
-  String _instrumentedCode;
 
   /**
    * The file with which the outline is associated.
@@ -15593,29 +15195,9 @@ class FlutterOutlineParams implements HasToJson {
     this._outline = value;
   }
 
-  /**
-   * If the file has Flutter widgets that can be rendered, this field has the
-   * instrumented content of the file, that allows associating widgets with
-   * corresponding outline nodes. If there are no widgets to render, this field
-   * is absent.
-   */
-  String get instrumentedCode => _instrumentedCode;
-
-  /**
-   * If the file has Flutter widgets that can be rendered, this field has the
-   * instrumented content of the file, that allows associating widgets with
-   * corresponding outline nodes. If there are no widgets to render, this field
-   * is absent.
-   */
-  void set instrumentedCode(String value) {
-    this._instrumentedCode = value;
-  }
-
-  FlutterOutlineParams(String file, FlutterOutline outline,
-      {String instrumentedCode}) {
+  FlutterOutlineParams(String file, FlutterOutline outline) {
     this.file = file;
     this.outline = outline;
-    this.instrumentedCode = instrumentedCode;
   }
 
   factory FlutterOutlineParams.fromJson(
@@ -15637,13 +15219,7 @@ class FlutterOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "outline");
       }
-      String instrumentedCode;
-      if (json.containsKey("instrumentedCode")) {
-        instrumentedCode = jsonDecoder.decodeString(
-            jsonPath + ".instrumentedCode", json["instrumentedCode"]);
-      }
-      return new FlutterOutlineParams(file, outline,
-          instrumentedCode: instrumentedCode);
+      return new FlutterOutlineParams(file, outline);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "flutter.outline params", json);
     }
@@ -15659,9 +15235,6 @@ class FlutterOutlineParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["outline"] = outline.toJson();
-    if (instrumentedCode != null) {
-      result["instrumentedCode"] = instrumentedCode;
-    }
     return result;
   }
 
@@ -15675,9 +15248,7 @@ class FlutterOutlineParams implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is FlutterOutlineParams) {
-      return file == other.file &&
-          outline == other.outline &&
-          instrumentedCode == other.instrumentedCode;
+      return file == other.file && outline == other.outline;
     }
     return false;
   }
@@ -15687,7 +15258,6 @@ class FlutterOutlineParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
-    hash = JenkinsSmiHash.combine(hash, instrumentedCode.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

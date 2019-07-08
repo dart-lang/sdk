@@ -4,43 +4,19 @@
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /// Computer for Flutter specific outlines.
 class FlutterOutlineComputer {
-  static const CONSTRUCTOR_NAME = 'forDesignTime';
-
-  /// Code to append to the instrumented library code.
-  static const RENDER_APPEND = r'''
-
-final flutterDesignerWidgets = <int, Widget>{};
-
-T _registerWidgetInstance<T extends Widget>(int id, T widget) {
-  flutterDesignerWidgets[id] = widget;
-  return widget;
-}
-''';
-
   final ResolvedUnitResult resolvedUnit;
   Flutter flutter;
 
   final List<protocol.FlutterOutline> _depthFirstOrder = [];
-
-  int nextWidgetId = 0;
-
-  /// This map is filled with information about widget classes that can be
-  /// rendered. Its keys are class name offsets.
-  final Map<int, _WidgetClass> widgets = {};
-
-  final List<protocol.SourceEdit> instrumentationEdits = [];
-  String instrumentedCode;
 
   FlutterOutlineComputer(this.resolvedUnit);
 
@@ -51,13 +27,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     ).compute();
 
     flutter = Flutter.of(resolvedUnit);
-
-    // Find widget classes.
-    // IDEA plugin only supports rendering widgets in libraries.
-    var unitElement = resolvedUnit.unit.declaredElement;
-    if (unitElement.source == unitElement.librarySource) {
-      _findWidgets();
-    }
 
     // Convert Dart outlines into Flutter outlines.
     var flutterDartOutline = _convert(dartOutline);
@@ -76,17 +45,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
           break;
         }
       }
-    }
-
-    // Compute instrumented code.
-    if (widgets.values.any((w) => w.hasDesignTimeConstructor)) {
-      _rewriteRelativeDirectives();
-      instrumentationEdits.sort((a, b) => b.offset - a.offset);
-      instrumentedCode = SourceEdit.applySequence(
-        resolvedUnit.content,
-        instrumentationEdits,
-      );
-      instrumentedCode += RENDER_APPEND;
     }
 
     return flutterDartOutline;
@@ -137,14 +95,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     }
   }
 
-  int _addInstrumentationEdits(Expression expression) {
-    int id = nextWidgetId++;
-    instrumentationEdits.add(new protocol.SourceEdit(
-        expression.offset, 0, '_registerWidgetInstance($id, '));
-    instrumentationEdits.add(new protocol.SourceEdit(expression.end, 0, ')'));
-    return id;
-  }
-
   protocol.FlutterOutline _convert(protocol.Outline dartOutline) {
     protocol.FlutterOutline flutterOutline = new protocol.FlutterOutline(
         protocol.FlutterOutlineKind.DART_ELEMENT,
@@ -155,20 +105,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         dartElement: dartOutline.element);
     if (dartOutline.children != null) {
       flutterOutline.children = dartOutline.children.map(_convert).toList();
-    }
-
-    // Fill rendering information for widget classes.
-    if (dartOutline.element.kind == protocol.ElementKind.CLASS) {
-      var widget = widgets[dartOutline.element.location.offset];
-      if (widget != null) {
-        flutterOutline.isWidgetClass = true;
-        if (widget.hasDesignTimeConstructor) {
-          flutterOutline.renderConstructor = CONSTRUCTOR_NAME;
-        }
-        flutterOutline.stateClassName = widget.state?.name?.name;
-        flutterOutline.stateOffset = widget.state?.offset;
-        flutterOutline.stateLength = widget.state?.length;
-      }
     }
 
     _depthFirstOrder.add(flutterOutline);
@@ -187,8 +123,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     String className = type.element.displayName;
 
     if (node is InstanceCreationExpression) {
-      int id = _addInstrumentationEdits(node);
-
       var attributes = <protocol.FlutterOutlineAttribute>[];
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
@@ -256,8 +190,7 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
           node.length,
           className: className,
           attributes: attributes,
-          children: children,
-          id: id);
+          children: children);
     }
 
     // A generic Widget typed expression.
@@ -275,89 +208,12 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
         label = _getShortLabel(node);
       }
 
-      int id = _addInstrumentationEdits(node);
       return new protocol.FlutterOutline(
           kind, node.offset, node.length, node.offset, node.length,
-          className: className,
-          variableName: variableName,
-          label: label,
-          id: id);
+          className: className, variableName: variableName, label: label);
     }
 
     return null;
-  }
-
-  /// Return the `State` declaration for the given `StatefulWidget` declaration.
-  /// Return `null` if cannot be found.
-  ClassDeclaration _findState(ClassDeclaration widget) {
-    MethodDeclaration createStateMethod = widget.members.firstWhere(
-        (method) =>
-            method is MethodDeclaration &&
-            method.name.name == 'createState' &&
-            method.body != null,
-        orElse: () => null);
-    if (createStateMethod == null) {
-      return null;
-    }
-
-    DartType stateType;
-    {
-      FunctionBody buildBody = createStateMethod.body;
-      if (buildBody is ExpressionFunctionBody) {
-        stateType = buildBody.expression.staticType;
-      } else if (buildBody is BlockFunctionBody) {
-        List<Statement> statements = buildBody.block.statements;
-        if (statements.isNotEmpty) {
-          Statement lastStatement = statements.last;
-          if (lastStatement is ReturnStatement) {
-            stateType = lastStatement.expression?.staticType;
-          }
-        }
-      }
-    }
-    if (stateType == null) {
-      return null;
-    }
-
-    ClassElement stateElement;
-    if (stateType is InterfaceType && flutter.isState(stateType.element)) {
-      stateElement = stateType.element;
-    } else {
-      return null;
-    }
-
-    for (var stateNode in resolvedUnit.unit.declarations) {
-      if (stateNode is ClassDeclaration &&
-          stateNode.declaredElement == stateElement) {
-        return stateNode;
-      }
-    }
-
-    return null;
-  }
-
-  /// Fill [widgets] with information about classes that can be rendered.
-  void _findWidgets() {
-    for (var widget in resolvedUnit.unit.declarations) {
-      if (widget is ClassDeclaration) {
-        int nameOffset = widget.name.offset;
-
-        var designTimeConstructor = widget.getConstructor(CONSTRUCTOR_NAME);
-        bool hasDesignTimeConstructor = designTimeConstructor != null;
-
-        InterfaceType superType = widget.declaredElement.supertype;
-        if (flutter.isExactlyStatelessWidgetType(superType)) {
-          widgets[nameOffset] =
-              new _WidgetClass(nameOffset, hasDesignTimeConstructor);
-        } else if (flutter.isExactlyStatefulWidgetType(superType)) {
-          ClassDeclaration state = _findState(widget);
-          if (state != null) {
-            widgets[nameOffset] =
-                new _WidgetClass(nameOffset, hasDesignTimeConstructor, state);
-          }
-        }
-      }
-    }
   }
 
   String _getShortLabel(AstNode node) {
@@ -381,25 +237,6 @@ T _registerWidgetInstance<T extends Widget>(int id, T widget) {
     }
     return node.toString();
   }
-
-  /// The instrumented code is put into a temporary directory for Dart VM to
-  /// run. So, any relative URIs must be changed to corresponding absolute URIs.
-  void _rewriteRelativeDirectives() {
-    for (var directive in resolvedUnit.unit.directives) {
-      if (directive is UriBasedDirective) {
-        String uriContent = directive.uriContent;
-        Source source = directive.uriSource;
-        if (uriContent != null && source != null) {
-          try {
-            if (!Uri.parse(uriContent).isAbsolute) {
-              instrumentationEdits.add(new SourceEdit(directive.uri.offset,
-                  directive.uri.length, "'${source.uri}'"));
-            }
-          } on FormatException {}
-        }
-      }
-    }
-  }
 }
 
 class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
@@ -417,17 +254,4 @@ class _FlutterOutlineBuilder extends GeneralizingAstVisitor<void> {
       super.visitExpression(node);
     }
   }
-}
-
-/// Information about a Widget class that can be rendered.
-class _WidgetClass {
-  final int nameOffset;
-
-  /// Is `true` if has `forDesignTime` constructor, so can be rendered.
-  final bool hasDesignTimeConstructor;
-
-  /// If a `StatefulWidget` with the `State` in the same file.
-  final ClassDeclaration state;
-
-  _WidgetClass(this.nameOffset, this.hasDesignTimeConstructor, [this.state]);
 }

@@ -104,46 +104,9 @@ public class FlutterOutline {
   private final List<FlutterOutline> children;
 
   /**
-   * If the node is a widget, and it is instrumented, the unique identifier of this widget, that can
-   * be used to associate rendering information with this node.
-   */
-  private final Integer id;
-
-  /**
-   * True if the node is a widget class, so it can potentially be rendered, even if it does not yet
-   * have the rendering constructor. This field is omitted if the node is not a widget class.
-   */
-  private final Boolean isWidgetClass;
-
-  /**
-   * If the node is a widget class that can be rendered for IDE, the name of the constructor that
-   * should be used to instantiate the widget. Empty string for default constructor. Absent if the
-   * node is not a widget class that can be rendered.
-   */
-  private final String renderConstructor;
-
-  /**
-   * If the node is a StatefulWidget, and its state class is defined in the same file, the name of
-   * the state class.
-   */
-  private final String stateClassName;
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class is defined in the same
-   * file, the offset of the state class code in the file.
-   */
-  private final Integer stateOffset;
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class is defined in the same
-   * file, the length of the state class code in the file.
-   */
-  private final Integer stateLength;
-
-  /**
    * Constructor for {@link FlutterOutline}.
    */
-  public FlutterOutline(String kind, int offset, int length, int codeOffset, int codeLength, String label, Element dartElement, List<FlutterOutlineAttribute> attributes, String className, String parentAssociationLabel, String variableName, List<FlutterOutline> children, Integer id, Boolean isWidgetClass, String renderConstructor, String stateClassName, Integer stateOffset, Integer stateLength) {
+  public FlutterOutline(String kind, int offset, int length, int codeOffset, int codeLength, String label, Element dartElement, List<FlutterOutlineAttribute> attributes, String className, String parentAssociationLabel, String variableName, List<FlutterOutline> children) {
     this.kind = kind;
     this.offset = offset;
     this.length = length;
@@ -156,12 +119,6 @@ public class FlutterOutline {
     this.parentAssociationLabel = parentAssociationLabel;
     this.variableName = variableName;
     this.children = children;
-    this.id = id;
-    this.isWidgetClass = isWidgetClass;
-    this.renderConstructor = renderConstructor;
-    this.stateClassName = stateClassName;
-    this.stateOffset = stateOffset;
-    this.stateLength = stateLength;
   }
 
   @Override
@@ -180,13 +137,7 @@ public class FlutterOutline {
         ObjectUtilities.equals(other.className, className) &&
         ObjectUtilities.equals(other.parentAssociationLabel, parentAssociationLabel) &&
         ObjectUtilities.equals(other.variableName, variableName) &&
-        ObjectUtilities.equals(other.children, children) &&
-        ObjectUtilities.equals(other.id, id) &&
-        ObjectUtilities.equals(other.isWidgetClass, isWidgetClass) &&
-        ObjectUtilities.equals(other.renderConstructor, renderConstructor) &&
-        ObjectUtilities.equals(other.stateClassName, stateClassName) &&
-        ObjectUtilities.equals(other.stateOffset, stateOffset) &&
-        ObjectUtilities.equals(other.stateLength, stateLength);
+        ObjectUtilities.equals(other.children, children);
     }
     return false;
   }
@@ -204,13 +155,7 @@ public class FlutterOutline {
     String parentAssociationLabel = jsonObject.get("parentAssociationLabel") == null ? null : jsonObject.get("parentAssociationLabel").getAsString();
     String variableName = jsonObject.get("variableName") == null ? null : jsonObject.get("variableName").getAsString();
     List<FlutterOutline> children = jsonObject.get("children") == null ? null : FlutterOutline.fromJsonArray(jsonObject.get("children").getAsJsonArray());
-    Integer id = jsonObject.get("id") == null ? null : jsonObject.get("id").getAsInt();
-    Boolean isWidgetClass = jsonObject.get("isWidgetClass") == null ? null : jsonObject.get("isWidgetClass").getAsBoolean();
-    String renderConstructor = jsonObject.get("renderConstructor") == null ? null : jsonObject.get("renderConstructor").getAsString();
-    String stateClassName = jsonObject.get("stateClassName") == null ? null : jsonObject.get("stateClassName").getAsString();
-    Integer stateOffset = jsonObject.get("stateOffset") == null ? null : jsonObject.get("stateOffset").getAsInt();
-    Integer stateLength = jsonObject.get("stateLength") == null ? null : jsonObject.get("stateLength").getAsInt();
-    return new FlutterOutline(kind, offset, length, codeOffset, codeLength, label, dartElement, attributes, className, parentAssociationLabel, variableName, children, id, isWidgetClass, renderConstructor, stateClassName, stateOffset, stateLength);
+    return new FlutterOutline(kind, offset, length, codeOffset, codeLength, label, dartElement, attributes, className, parentAssociationLabel, variableName, children);
   }
 
   public static List<FlutterOutline> fromJsonArray(JsonArray jsonArray) {
@@ -272,22 +217,6 @@ public class FlutterOutline {
   }
 
   /**
-   * If the node is a widget, and it is instrumented, the unique identifier of this widget, that can
-   * be used to associate rendering information with this node.
-   */
-  public Integer getId() {
-    return id;
-  }
-
-  /**
-   * True if the node is a widget class, so it can potentially be rendered, even if it does not yet
-   * have the rendering constructor. This field is omitted if the node is not a widget class.
-   */
-  public Boolean getIsWidgetClass() {
-    return isWidgetClass;
-  }
-
-  /**
    * The kind of the node.
    */
   public String getKind() {
@@ -327,39 +256,6 @@ public class FlutterOutline {
   }
 
   /**
-   * If the node is a widget class that can be rendered for IDE, the name of the constructor that
-   * should be used to instantiate the widget. Empty string for default constructor. Absent if the
-   * node is not a widget class that can be rendered.
-   */
-  public String getRenderConstructor() {
-    return renderConstructor;
-  }
-
-  /**
-   * If the node is a StatefulWidget, and its state class is defined in the same file, the name of
-   * the state class.
-   */
-  public String getStateClassName() {
-    return stateClassName;
-  }
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class is defined in the same
-   * file, the length of the state class code in the file.
-   */
-  public Integer getStateLength() {
-    return stateLength;
-  }
-
-  /**
-   * If the node is a StatefulWidget that can be rendered, and its state class is defined in the same
-   * file, the offset of the state class code in the file.
-   */
-  public Integer getStateOffset() {
-    return stateOffset;
-  }
-
-  /**
    * If FlutterOutlineKind.VARIABLE, the name of the variable.
    */
   public String getVariableName() {
@@ -381,12 +277,6 @@ public class FlutterOutline {
     builder.append(parentAssociationLabel);
     builder.append(variableName);
     builder.append(children);
-    builder.append(id);
-    builder.append(isWidgetClass);
-    builder.append(renderConstructor);
-    builder.append(stateClassName);
-    builder.append(stateOffset);
-    builder.append(stateLength);
     return builder.toHashCode();
   }
 
@@ -426,24 +316,6 @@ public class FlutterOutline {
       }
       jsonObject.add("children", jsonArrayChildren);
     }
-    if (id != null) {
-      jsonObject.addProperty("id", id);
-    }
-    if (isWidgetClass != null) {
-      jsonObject.addProperty("isWidgetClass", isWidgetClass);
-    }
-    if (renderConstructor != null) {
-      jsonObject.addProperty("renderConstructor", renderConstructor);
-    }
-    if (stateClassName != null) {
-      jsonObject.addProperty("stateClassName", stateClassName);
-    }
-    if (stateOffset != null) {
-      jsonObject.addProperty("stateOffset", stateOffset);
-    }
-    if (stateLength != null) {
-      jsonObject.addProperty("stateLength", stateLength);
-    }
     return jsonObject;
   }
 
@@ -474,19 +346,7 @@ public class FlutterOutline {
     builder.append("variableName=");
     builder.append(variableName + ", ");
     builder.append("children=");
-    builder.append(StringUtils.join(children, ", ") + ", ");
-    builder.append("id=");
-    builder.append(id + ", ");
-    builder.append("isWidgetClass=");
-    builder.append(isWidgetClass + ", ");
-    builder.append("renderConstructor=");
-    builder.append(renderConstructor + ", ");
-    builder.append("stateClassName=");
-    builder.append(stateClassName + ", ");
-    builder.append("stateOffset=");
-    builder.append(stateOffset + ", ");
-    builder.append("stateLength=");
-    builder.append(stateLength);
+    builder.append(StringUtils.join(children, ", "));
     builder.append("]");
     return builder.toString();
   }
