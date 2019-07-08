@@ -1175,6 +1175,22 @@ class CompileTimeErrorCode extends ErrorCode {
               "removing the extends clause.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode EXTENSION_DECLARES_CONSTRUCTOR =
+      const CompileTimeErrorCode('EXTENSION_DECLARES_CONSTRUCTOR',
+          "Extensions can't declare constructors.",
+          correction: "Try removing the constructor declaration.");
+
+  /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode EXTENSION_DECLARES_FIELD =
+      const CompileTimeErrorCode(
+          'EXTENSION_DECLARES_FIELD', "Extensions can't declare fields.",
+          correction: "Try removing the field declaration.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *

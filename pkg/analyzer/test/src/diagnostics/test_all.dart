@@ -33,6 +33,9 @@ import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
+import 'extension_declares_constructor_test.dart'
+    as extension_declares_constructor;
+import 'extension_declares_field_test.dart' as extension_declares_field;
 import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
@@ -197,6 +200,8 @@ main() {
     equal_keys_in_const_map.main();
     expression_in_map.main();
     extends_non_class.main();
+    extension_declares_constructor.main();
+    extension_declares_field.main();
     final_not_initialized.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
