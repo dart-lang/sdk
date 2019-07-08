@@ -1,3 +1,8 @@
+## 0.1.0
+
+- Support the latest `pkg:analyzer`.
+- remove the declared type of generated setters
+
 ## 0.0.1-alpha.8
 
 - Support the latest `pkg:analyzer`.
