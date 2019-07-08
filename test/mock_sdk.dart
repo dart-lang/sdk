@@ -377,7 +377,7 @@ class  ScriptElement {
       String libraryPath = provider.convertPath(library.path);
       if (filePath == libraryPath) {
         try {
-          resource.File file = provider.getResource(filePath) as resource.File;
+          resource.File file = provider.getFile(filePath);
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } on FormatException {
@@ -390,7 +390,7 @@ class  ScriptElement {
         String pathInLibrary = filePath.substring(libraryRootPath.length);
         String uriStr = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(filePath) as resource.File;
+          resource.File file = provider.getFile(filePath);
           Uri dartUri = Uri.parse(uriStr);
           return file.createSource(dartUri);
         } on FormatException {

@@ -26,6 +26,7 @@ import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'rules/experiments/experiments.dart';
+import 'util/test_utils.dart';
 
 main() {
   defineSanityTests();
@@ -71,12 +72,13 @@ defineRuleTests() {
 
     group('pub', () {
       for (var entry in Directory(p.join(ruleDir, 'pub')).listSync()) {
-        if (entry is! Directory) continue;
-        Directory pubTestDir = entry as Directory;
-        for (var file in pubTestDir.listSync()) {
-          if (file is! File || !isPubspecFile(file)) continue;
-          var ruleName = p.basename(pubTestDir.path);
-          testRule(ruleName, file as File);
+        if (entry is Directory) {
+          for (var child in entry.listSync()) {
+            if (child is File && isPubspecFile(child)) {
+              var ruleName = p.basename(child.path);
+              testRule(ruleName, child);
+            }
+          }
         }
       }
     });
@@ -319,9 +321,6 @@ AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     AnnotationMatcher(Annotation(message, type, lineNumber));
 
-testEach<T>(Iterable<T> values, bool f(T s), Matcher m) {
-  values.forEach((s) => test('"$s"', () => expect(f(s), m)));
-}
 
 testRules(String ruleDir, {String analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
