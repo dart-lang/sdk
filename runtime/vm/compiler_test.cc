@@ -6,6 +6,7 @@
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/dart_api_impl.h"
 #include "vm/heap/safepoint.h"
 #include "vm/kernel_isolate.h"
@@ -124,6 +125,9 @@ ISOLATE_UNIT_TEST_CASE(CompileFunctionOnHelperThread) {
     EXPECT(func.HasCode());
     return;
   }
+  // Bytecode loading must happen on the main thread. Ensure the bytecode is
+  // loaded before asking for an unoptimized compile on a background thread.
+  kernel::BytecodeReader::ReadFunctionBytecode(thread, func);
 #if !defined(PRODUCT)
   // Constant in product mode.
   FLAG_background_compilation = true;
