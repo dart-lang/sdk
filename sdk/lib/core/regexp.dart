@@ -12,7 +12,7 @@ part of dart.core;
  *
  * Dart regular expressions have the same syntax and semantics as
  * JavaScript regular expressions. See
- * <http://ecma-international.org/ecma-262/5.1/#sec-15.10>
+ * <https://ecma-international.org/ecma-262/9.0/#sec-regexp-regular-expression-objects>
  * for the specification of JavaScript regular expressions.
  *
  * [firstMatch] is the main implementation method that applies a regular
