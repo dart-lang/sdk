@@ -36,7 +36,7 @@ class CompilationUnitParser {
     var startToken = scanner.tokenize();
     errorListener.throwIfErrors();
 
-    var parser = Parser(stringSource, errorListener);
+    var parser = Parser(stringSource, errorListener, featureSet: null);
     var cu = parser.parseCompilationUnit(startToken);
     errorListener.throwIfErrors();
 
