@@ -10,7 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:front_end/src/testing/package_root.dart' as package_root;
-import 'package:path/src/context.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import '../tool/diagnostics/generate.dart';
@@ -36,19 +36,22 @@ void main() async {
   //
   // Validate that the generator has been run.
   //
-  String outputPath =
-      pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
-  String actualContent =
-      PhysicalResourceProvider.INSTANCE.getFile(outputPath).readAsStringSync();
+  if (pathContext != windows) {
+    String outputPath =
+        pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
+    String actualContent = PhysicalResourceProvider.INSTANCE
+        .getFile(outputPath)
+        .readAsStringSync();
 
-  StringBuffer sink = StringBuffer();
-  DocumentationGenerator generator = DocumentationGenerator(docPaths);
-  generator.writeDocumentation(sink);
-  String expectedContent = sink.toString();
+    StringBuffer sink = StringBuffer();
+    DocumentationGenerator generator = DocumentationGenerator(docPaths);
+    generator.writeDocumentation(sink);
+    String expectedContent = sink.toString();
 
-  if (actualContent != expectedContent) {
-    fail('The diagnostic documentation needs to be regenerated.\n'
-        'Please run tool/diagnostics/generate.dart.');
+    if (actualContent != expectedContent) {
+      fail('The diagnostic documentation needs to be regenerated.\n'
+          'Please run tool/diagnostics/generate.dart.');
+    }
   }
 }
 
