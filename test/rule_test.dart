@@ -321,7 +321,6 @@ AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     AnnotationMatcher(Annotation(message, type, lineNumber));
 
-
 testRules(String ruleDir, {String analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
