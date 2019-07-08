@@ -3149,48 +3149,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ b(&loop);
 }
 
-// Called from switchable IC calls.
-//  R0: receiver
-//  R9: ICData (preserved)
-// Passed to target:
-//  CODE_REG: target Code object
-//  R4: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  Label loop, found, miss;
-  __ ldr(ARGS_DESC_REG,
-         FieldAddress(R9, target::ICData::arguments_descriptor_offset()));
-  __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));
-  __ AddImmediate(R8, target::Array::data_offset() - kHeapObjectTag);
-  // R8: first IC entry
-  __ LoadTaggedClassIdMayBeSmi(R1, R0);
-  // R1: receiver cid as Smi
-
-  __ Bind(&loop);
-  __ ldr(R2, Address(R8, 0));
-  __ cmp(R1, Operand(R2));
-  __ b(&found, EQ);
-  __ CompareImmediate(R2, target::ToRawSmi(kIllegalCid));
-  __ b(&miss, EQ);
-
-  const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
-  __ AddImmediate(R8, entry_length);  // Next entry.
-  __ b(&loop);
-
-  __ Bind(&found);
-  const intptr_t target_offset =
-      target::ICData::TargetIndexFor(1) * target::kWordSize;
-  __ LoadFromOffset(kWord, R0, R8, target_offset);
-  __ ldr(CODE_REG, FieldAddress(R0, target::Function::code_offset()));
-  __ Branch(FieldAddress(R0, target::Function::entry_point_offset()));
-
-  __ Bind(&miss);
-  __ LoadIsolate(R2);
-  __ ldr(CODE_REG, Address(R2, target::Isolate::ic_miss_code_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R8, FieldAddress(R9, target::ICData::entries_offset()));

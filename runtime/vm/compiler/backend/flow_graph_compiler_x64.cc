@@ -1123,7 +1123,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::ICCallThroughFunction();
+  const Code& initial_stub = StubCode::UnlinkedCall();
+  const UnlinkedCall& data =
+      UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
   __ Comment("InstanceCallAOT");
   __ movq(RDX, Address(RSP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize));
@@ -1139,7 +1141,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
     __ LoadUniqueObject(CODE_REG, initial_stub);
     __ movq(RCX, FieldAddress(CODE_REG, entry_point_offset));
   }
-  __ LoadUniqueObject(RBX, ic_data);
+  __ LoadUniqueObject(RBX, data);
   __ call(RCX);
 
   EmitCallsiteMetadata(token_pos, deopt_id, RawPcDescriptors::kOther, locs);

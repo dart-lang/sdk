@@ -36,7 +36,6 @@ namespace dart {
   V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetCall)                                                          \
-  V(ICCallThroughFunction)                                                     \
   V(ICCallThroughCode)                                                         \
   V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \

@@ -1705,7 +1705,6 @@ class ICData : public Object {
 #endif
 
   void Reset(Zone* zone) const;
-  void ResetSwitchable(Zone* zone) const;
 
 // Note: only deopts with reasons before Unknown in this list are recorded in
 // the ICData. All other reasons are used purely for informational messages
@@ -1907,6 +1906,7 @@ class ICData : public Object {
   // Used for printing and optimizations.
   RawICData* AsUnaryClassChecksSortedByCount() const;
 
+  RawUnlinkedCall* AsUnlinkedCall() const;
   RawMegamorphicCache* AsMegamorphicCache() const;
 
   // Consider only used entries.

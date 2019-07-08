@@ -2674,15 +2674,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ jmp(&cid_loaded);
 }
 
-// Called from switchable IC calls.
-//  EBX: receiver
-//  ECX: ICData (preserved)
-// Passed to target:
-//  EDX: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  __ int3();  // AOT only.
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ int3();  // AOT only.
 }

@@ -1113,27 +1113,29 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             Code::EntryKind entry_kind) {
   // TODO(34162): Support multiple entry-points on ARM64.
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::ICCallThroughFunction();
+  const Code& initial_stub = StubCode::UnlinkedCall();
+  const UnlinkedCall& data =
+      UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
   ObjectPoolBuilder& op = __ object_pool_builder();
 
   __ Comment("InstanceCallAOT");
   __ LoadFromOffset(R0, SP, (ic_data.CountWithoutTypeArgs() - 1) * kWordSize);
 
-  const intptr_t ic_data_index =
-      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  const intptr_t data_index =
+      op.AddObject(data, ObjectPool::Patchability::kPatchable);
   const intptr_t initial_stub_index =
       op.AddObject(initial_stub, ObjectPool::Patchability::kPatchable);
-  ASSERT((ic_data_index + 1) == initial_stub_index);
+  ASSERT((data_index + 1) == initial_stub_index);
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     // The AOT runtime will replace the slot in the object pool with the
     // entrypoint address - see clustered_snapshot.cc.
     __ LoadDoubleWordFromPoolOffset(R5, LR,
-                                    ObjectPool::element_offset(ic_data_index));
+                                    ObjectPool::element_offset(data_index));
   } else {
     __ LoadDoubleWordFromPoolOffset(R5, CODE_REG,
-                                    ObjectPool::element_offset(ic_data_index));
+                                    ObjectPool::element_offset(data_index));
     __ ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset(
                                           Code::EntryKind::kMonomorphic)));
   }

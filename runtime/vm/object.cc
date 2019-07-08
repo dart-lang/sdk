@@ -13367,12 +13367,6 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 }
 #endif
 
-void ICData::ResetSwitchable(Zone* zone) const {
-  ASSERT(NumArgsTested() == 1);
-  ASSERT(!is_tracking_exactness());
-  set_entries(Array::Handle(zone, CachedEmptyICDataArray(1, false)));
-}
-
 const char* ICData::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   const String& name = String::Handle(zone, target_name());
@@ -14171,7 +14165,18 @@ RawICData* ICData::AsUnaryClassChecksSortedByCount() const {
   return result.raw();
 }
 
+RawUnlinkedCall* ICData::AsUnlinkedCall() const {
+  ASSERT(NumArgsTested() == 1);
+  ASSERT(!is_tracking_exactness());
+  const UnlinkedCall& result = UnlinkedCall::Handle(UnlinkedCall::New());
+  result.set_target_name(String::Handle(target_name()));
+  result.set_args_descriptor(Array::Handle(arguments_descriptor()));
+  return result.raw();
+}
+
 RawMegamorphicCache* ICData::AsMegamorphicCache() const {
+  ASSERT(NumArgsTested() == 1);
+  ASSERT(!is_tracking_exactness());
   const String& name = String::Handle(target_name());
   const Array& descriptor = Array::Handle(arguments_descriptor());
   return MegamorphicCacheTable::Lookup(Isolate::Current(), name, descriptor);

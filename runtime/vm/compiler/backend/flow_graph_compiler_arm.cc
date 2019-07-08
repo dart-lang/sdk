@@ -1147,7 +1147,9 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(ic_data.NumArgsTested() == 1);
-  const Code& initial_stub = StubCode::ICCallThroughFunction();
+  const Code& initial_stub = StubCode::UnlinkedCall();
+  const UnlinkedCall& data =
+      UnlinkedCall::ZoneHandle(zone(), ic_data.AsUnlinkedCall());
 
   __ Comment("InstanceCallAOT");
   __ LoadFromOffset(
@@ -1167,7 +1169,7 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                   Code::EntryKind::kMonomorphicUnchecked);
     __ ldr(LR, FieldAddress(CODE_REG, entry_point_offset));
   }
-  __ LoadUniqueObject(R9, ic_data);
+  __ LoadUniqueObject(R9, data);
   __ blx(LR);
 
   EmitCallsiteMetadata(token_pos, DeoptId::kNone, RawPcDescriptors::kOther,

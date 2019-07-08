@@ -3234,52 +3234,6 @@ void StubCodeCompiler::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ jmp(&cid_loaded);
 }
 
-// Called from switchable IC calls.
-//  RDX: receiver
-//  RBX: ICData (preserved)
-// Passed to target:
-//  CODE_REG: target Code object
-//  R10: arguments descriptor
-void StubCodeCompiler::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  Label loop, found, miss;
-  __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));
-  __ movq(R10,
-          FieldAddress(RBX, target::ICData::arguments_descriptor_offset()));
-  __ leaq(R13, FieldAddress(R13, target::Array::data_offset()));
-  // R13: first IC entry
-  __ LoadTaggedClassIdMayBeSmi(RAX, RDX);
-  // RAX: receiver cid as Smi
-
-  __ Bind(&loop);
-  __ movq(R9, Address(R13, 0));
-  __ cmpq(RAX, R9);
-  __ j(EQUAL, &found, Assembler::kNearJump);
-
-  ASSERT(target::ToRawSmi(kIllegalCid) == 0);
-  __ testq(R9, R9);
-  __ j(ZERO, &miss, Assembler::kNearJump);
-
-  const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
-      target::kWordSize;
-  __ addq(R13, Immediate(entry_length));  // Next entry.
-  __ jmp(&loop);
-
-  __ Bind(&found);
-  const intptr_t target_offset =
-      target::ICData::TargetIndexFor(1) * target::kWordSize;
-  __ movq(RAX, Address(R13, target_offset));
-  __ movq(RCX, FieldAddress(RAX, target::Function::entry_point_offset()));
-  __ movq(CODE_REG, FieldAddress(RAX, target::Function::code_offset()));
-  __ jmp(RCX);
-
-  __ Bind(&miss);
-  __ LoadIsolate(RAX);
-  __ movq(CODE_REG, Address(RAX, target::Isolate::ic_miss_code_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ jmp(RCX);
-}
-
 void StubCodeCompiler::GenerateICCallThroughCodeStub(Assembler* assembler) {
   Label loop, found, miss;
   __ movq(R13, FieldAddress(RBX, target::ICData::entries_offset()));

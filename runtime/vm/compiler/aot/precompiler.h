@@ -279,8 +279,13 @@ class Precompiler : public ValueObject {
   void DropClasses();
   void DropLibraries();
 
+  // Remove the indirection of the CallStaticFunction stub from all static call
+  // sites now that Code is available for all call targets. Allows for dropping
+  // the static call table from each Code object.
   void BindStaticCalls();
-  void SwitchICCalls();
+  // Deduplicate the UnlinkedCall objects in all ObjectPools to reduce snapshot
+  // size.
+  void DedupUnlinkedCalls();
 
   void Obfuscate();
 
