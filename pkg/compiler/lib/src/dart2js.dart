@@ -456,7 +456,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.omitAsCasts, passThrough),
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
-    new OptionHandler(Flags.golemExperiment, passThrough),
+    new OptionHandler(Flags.benchmarkingExperiment, passThrough),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly

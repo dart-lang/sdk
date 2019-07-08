@@ -100,8 +100,8 @@ class Flags {
   /// Flag for a combination of flags for 'production' mode.
   static const String benchmarkingProduction = '--benchmarking-production';
 
-  /// Flag for a combination of flags for golem experiment mode.
-  static const String golemExperiment = '--golem-x';
+  /// Flag for a combination of flags for benchmarking 'experiment' mode.
+  static const String benchmarkingExperiment = '--benchmarking-x';
 
   static const String conditionalDirectives = '--conditional-directives';
 
