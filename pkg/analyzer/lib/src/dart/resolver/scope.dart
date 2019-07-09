@@ -559,6 +559,8 @@ class LibraryImportScope extends Scope {
  * A scope containing all of the names defined in a given library.
  */
 class LibraryScope extends EnclosedScope {
+  List<ExtensionElement> _extensions = <ExtensionElement>[];
+
   /**
    * Initialize a newly created scope representing the names defined in the
    * [definingLibrary].
@@ -576,6 +578,9 @@ class LibraryScope extends EnclosedScope {
     }
   }
 
+  @override
+  List<ExtensionElement> get extensions => _extensions;
+
   /**
    * Add to this scope all of the public top-level names that are defined in the
    * given [compilationUnit].
@@ -589,6 +594,7 @@ class LibraryScope extends EnclosedScope {
     }
     for (ExtensionElement element in compilationUnit.extensions) {
       define(element);
+      _extensions.add(element);
     }
     for (FunctionElement element in compilationUnit.functions) {
       define(element);
@@ -981,6 +987,12 @@ abstract class Scope {
    * Return the scope in which this scope is lexically enclosed.
    */
   Scope get enclosingScope => null;
+
+  /**
+   * The list of extensions defined in this scope.
+   */
+  List<ExtensionElement> get extensions =>
+      enclosingScope == null ? <ExtensionElement>[] : enclosingScope.extensions;
 
   /**
    * Add the given [element] to this scope. If there is already an element with

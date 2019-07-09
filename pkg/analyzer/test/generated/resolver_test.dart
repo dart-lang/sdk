@@ -336,6 +336,22 @@ class LibraryScopeTest extends ResolverTestCase {
             AstTestFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
   }
+
+  void test_extensions() {
+    SimpleIdentifier identifier = AstTestFactory.identifier3('test_extension');
+    ExtensionElement extension = ExtensionElementImpl.forNode(identifier);
+
+    CompilationUnitElementImpl compilationUnit =
+        ElementFactory.compilationUnit('/test.dart');
+    compilationUnit.extensions = <ExtensionElement>[extension];
+
+    String libraryName = 'lib';
+    LibraryElementImpl library = new LibraryElementImpl(
+        null, null, libraryName, 0, libraryName.length, false);
+    library.definingCompilationUnit = compilationUnit;
+
+    expect(LibraryScope(library).extensions, contains(extension));
+  }
 }
 
 @reflectiveTest
