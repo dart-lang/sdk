@@ -37,18 +37,12 @@ List<String> _parseOption(String filePath, String contents, String name,
   return options;
 }
 
-/// A single error expectation comment from a [TestFile].
+/// Describes a static error.
 ///
-/// If a test contains any of these, then it is a "static error test" and
-/// exists to validate that a conforming front end produces the expected
-/// compile-time errors.
-///
-/// In order to make it easier to incrementally add error tests before a
-/// feature is fully implemented or specified, an error expectation can be in
-/// an "unspecified" state. That means all that's known is the line number. All
-/// other fields will be `null`. In that state, a front end is expected to
-/// report *some* error on that line, but it can be any location, error code, or
-/// message.
+/// These can be parsed from comments in [TestFile]s, in which case they
+/// represent *expected* errors. If a test contains any of these, then it is a
+/// "static error test" and exists to validate that a conforming front end
+/// produces the expected compile-time errors.
 ///
 /// Aside from location, there are two interesting attributes of an error that
 /// a test can verify: its error code and the error message. Currently, for
@@ -57,7 +51,10 @@ List<String> _parseOption(String filePath, String contents, String name,
 /// that by allowing you to set expectations for analyzer and CFE independently
 /// by assuming the [code] field is only used for the former and the [message]
 /// for the latter.
-class ErrorExpectation {
+///
+/// This same class is also used for *reported* errors when parsing the output
+/// of a front end.
+class StaticError implements Comparable<StaticError> {
   /// The one-based line number of the beginning of the error's location.
   final int line;
 
@@ -75,14 +72,112 @@ class ErrorExpectation {
   /// be reported by the CFE.
   final String message;
 
-  ErrorExpectation(
-      {this.line, this.column, this.length, this.code, this.message});
+  StaticError({this.line, this.column, this.length, this.code, this.message}) {
+    // Must have a location.
+    assert(line != null);
+    assert(column != null);
+    assert(length != null);
+
+    // Must have at least one piece of description.
+    assert(code != null || message != null);
+  }
+
+  /// In order to make it easier to incrementally add error tests before a
+  /// feature is fully implemented or specified, an error expectation can be in
+  /// an "unspecified" state. That means all that's known is the line number.
+  /// All other fields will be `null`. In that state, a front end is expected to
+  /// report *some* error on that line, but it can be any location, error code,
+  /// or message.
+  StaticError.unspecified(this.line)
+      : column = null,
+        length = null,
+        code = null,
+        message = null;
+
+  /// Whether this is an unspecified error that only tracks a line number and
+  /// no other information.
+  bool get isUnspecified => column == null;
+
+  /// A textual description of this error's location.
+  String get location {
+    if (isUnspecified) return "Unspecified error at line $line";
+
+    return "Error at line $line, column $column, length $length";
+  }
 
   String toString() {
-    var result = "Error at line $line, column $column, length $length";
-    if (code != null) result += "\n$code";
-    if (message != null) result += "\n$message";
+    var result = location;
+    if (!isUnspecified) {
+      if (code != null) result += "\n$code";
+      if (message != null) result += "\n$message";
+    }
     return result;
+  }
+
+  /// Orders errors primarily by location, then by other fields if needed.
+  @override
+  int compareTo(StaticError other) {
+    if (line != other.line) return line.compareTo(other.line);
+
+    var thisColumn = column ?? 0;
+    var otherColumn = other.column ?? 0;
+    if (thisColumn != otherColumn) return thisColumn.compareTo(otherColumn);
+
+    var thisLength = length ?? 0;
+    var otherLength = other.length ?? 0;
+    if (thisLength != otherLength) return thisLength.compareTo(otherLength);
+
+    var thisCode = code ?? "";
+    var otherCode = other.code ?? "";
+    if (thisCode != otherCode) return thisCode.compareTo(otherCode);
+
+    var thisMessage = message ?? "";
+    var otherMessage = other.message ?? "";
+    return thisMessage.compareTo(otherMessage);
+  }
+
+  /// Compares this error expectation to [actual].
+  ///
+  /// If this error correctly matches [actual], returns `null`. Otherwise
+  /// returns a list of strings describing the mismatch.
+  List<String> describeDifferences(StaticError actual) {
+    var differences = <String>[];
+
+    if (isUnspecified) {
+      if (line == actual.line) return null;
+
+      return [
+        "Expected unspecified error on line $line but was on "
+            "${actual.line}."
+      ];
+    }
+
+    if (line != actual.line) {
+      differences.add("Expected on line $line but was on ${actual.line}.");
+    }
+
+    if (column != actual.column) {
+      differences
+          .add("Expected on column $column but was on ${actual.column}.");
+    }
+
+    if (length != actual.length) {
+      differences.add("Expected length $length but was ${actual.length}.");
+    }
+
+    if (code != null && actual.code != null && code != actual.code) {
+      differences.add("Expected error code $code but was ${actual.code}.");
+    }
+
+    if (message != null &&
+        actual.message != null &&
+        message != actual.message) {
+      differences.add(
+          "Expected error message '$message' but was '${actual.message}'.");
+    }
+
+    if (differences.isNotEmpty) return differences;
+    return null;
   }
 }
 
@@ -100,11 +195,19 @@ abstract class _TestFileBase {
 
   /// The parsed error expectation markers in this test, if it is a static
   /// error test.
-  final List<ErrorExpectation> expectedErrors;
+  final List<StaticError> expectedErrors;
 
   /// The name of the multitest section this file corresponds to if it was
   /// generated from a multitest. Otherwise, returns an empty string.
   String get multitestKey;
+
+  /// If the text contains static error expectations, it's a "static error
+  /// test".
+  ///
+  /// These tests exist to validate that a front end reports the right static
+  /// errors. They are skipped on configurations that don't intend to test
+  /// static error reporting.
+  bool get isStaticErrorTest => expectedErrors.isNotEmpty;
 
   _TestFileBase(this._suiteDirectory, this.path, this.expectedErrors) {
     assert(path.isAbsolute);
@@ -312,7 +415,7 @@ class TestFile extends _TestFileBase {
     var hasSyntaxError = contents.contains("@syntax-error");
     var hasCompileError = hasSyntaxError || contents.contains("@compile-error");
 
-    List<ErrorExpectation> errorExpectations;
+    List<StaticError> errorExpectations;
     try {
       errorExpectations = _ErrorExpectationParser(contents).parse();
     } on FormatException catch (error) {
@@ -363,8 +466,7 @@ class TestFile extends _TestFileBase {
         otherResources = [],
         super(null, null, []);
 
-  TestFile._(
-      Path suiteDirectory, Path path, List<ErrorExpectation> expectedErrors,
+  TestFile._(Path suiteDirectory, Path path, List<StaticError> expectedErrors,
       {this.packageRoot,
       this.packages,
       this.environment,
@@ -466,7 +568,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   bool get hasCrash => _origin.hasCrash;
 
   _MultitestFile(this._origin, Path path, this.multitestKey,
-      List<ErrorExpectation> expectedErrors,
+      List<StaticError> expectedErrors,
       {this.hasCompileError,
       this.hasRuntimeError,
       this.hasStaticWarning,
@@ -539,15 +641,15 @@ class _ErrorExpectationParser {
   final _stripMultitestRegExp = RegExp(r"(.*)//#");
 
   final List<String> _lines;
-  final List<ErrorExpectation> _errors = [];
+  final List<StaticError> _errors = [];
   int _currentLine = 0;
 
-  /// One-based index of the last line that wasn't part of an error expectation.
+  // One-based index of the last line that wasn't part of an error expectation.
   int _lastRealLine = -1;
 
   _ErrorExpectationParser(String source) : _lines = source.split("\n");
 
-  List<ErrorExpectation> parse() {
+  List<StaticError> parse() {
     while (!_isAtEnd) {
       var sourceLine = _peek(0);
 
@@ -577,7 +679,7 @@ class _ErrorExpectationParser {
 
       match = _unspecifiedErrorRegExp.firstMatch(sourceLine);
       if (match != null) {
-        _errors.add(ErrorExpectation(line: _lastRealLine));
+        _errors.add(StaticError.unspecified(_lastRealLine));
         _advance();
         continue;
       }
@@ -643,7 +745,7 @@ class _ErrorExpectationParser {
           "error.");
     }
 
-    _errors.add(ErrorExpectation(
+    _errors.add(StaticError(
         line: line,
         column: column,
         length: length,

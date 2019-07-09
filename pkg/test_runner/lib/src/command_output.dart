@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
+import 'package:test_runner/src/test_file.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -128,7 +129,7 @@ class CommandOutput extends UniqueObject {
   }
 
   /// Called when producing output for a test failure to describe this output.
-  void describe(Progress progress, OutputWriter output) {
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
     output.subsection("exit code");
     output.write(exitCode.toString());
 
@@ -351,7 +352,7 @@ class BrowserCommandOutput extends CommandOutput
     return _rawOutcome;
   }
 
-  void describe(Progress progress, OutputWriter output) {
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
     if (_jsonResult != null) {
       _describeEvents(progress, output);
     } else {
@@ -360,7 +361,7 @@ class BrowserCommandOutput extends CommandOutput
       output.write(_result.lastKnownMessage);
     }
 
-    super.describe(progress, output);
+    super.describe(testCase, progress, output);
 
     if (_result.browserOutput.stdout.isNotEmpty) {
       output.subsection("Browser stdout");
@@ -434,10 +435,11 @@ class BrowserCommandOutput extends CommandOutput
 }
 
 class AnalysisCommandOutput extends CommandOutput {
-  // An error line has 8 fields that look like:
-  // ERROR|COMPILER|MISSING_SOURCE|file:/tmp/t.dart|15|1|24|Missing source.
-  static const int _errorLevel = 0;
-  static const int _formattedError = 7;
+  /// Reported static errors, parsed from [stderr].
+  final List<StaticError> _errors = [];
+
+  /// Reported static warnings, parsed from [stderr].
+  final List<StaticError> _warnings = [];
 
   AnalysisCommandOutput(
       Command command,
@@ -448,7 +450,20 @@ class AnalysisCommandOutput extends CommandOutput {
       Duration time,
       bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
+            compilationSkipped, 0) {
+    _parseOutput();
+  }
+
+  @override
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (testCase.testFile.isStaticErrorTest) {
+      _validateExpectedErrors(testCase, output);
+    }
+
+    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+      super.describe(testCase, progress, output);
+    }
+  }
 
   Expectation result(TestCase testCase) {
     // TODO(kustermann): If we run the analyzer not in batch mode, make sure
@@ -460,41 +475,41 @@ class AnalysisCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // Get the errors/warnings from the analyzer
-    var errors = <String>[];
-    var warnings = <String>[];
-    parseAnalyzerOutput(errors, warnings);
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
 
     // Handle negative
     if (testCase.isNegative) {
-      return errors.isNotEmpty
+      return _errors.isNotEmpty
           ? Expectation.pass
           : Expectation.missingCompileTimeError;
     }
 
     // Handle errors / missing errors
     if (testCase.hasCompileError) {
-      if (errors.isNotEmpty) {
+      if (_errors.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
     }
-    if (errors.isNotEmpty) {
+    if (_errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
 
     // Handle static warnings / missing static warnings
     if (testCase.hasStaticWarning) {
-      if (warnings.isNotEmpty) {
+      if (_warnings.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingStaticWarning;
     }
-    if (warnings.isNotEmpty) {
+    if (_warnings.isNotEmpty) {
       return Expectation.staticWarning;
     }
 
-    assert(errors.isEmpty && warnings.isEmpty);
+    assert(_errors.isEmpty && _warnings.isEmpty);
     assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
     return Expectation.pass;
   }
@@ -511,23 +526,32 @@ class AnalysisCommandOutput extends CommandOutput {
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
-    // Get the errors/warnings from the analyzer
-    var errors = <String>[];
-    var warnings = <String>[];
-    parseAnalyzerOutput(errors, warnings);
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
 
-    if (errors.isNotEmpty) {
+    if (_errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
-    if (warnings.isNotEmpty) {
+    if (_warnings.isNotEmpty) {
       return Expectation.staticWarning;
     }
     return Expectation.pass;
   }
 
-  void parseAnalyzerOutput(List<String> outErrors, List<String> outWarnings) {
-    // Parse a line delimited by the | character using \ as an escape character
-    // like:  FOO|BAR|FOO\|BAR|FOO\\BAZ as 4 fields: FOO BAR FOO|BAR FOO\BAZ
+  /// Parses the machine-readable output of analyzer, which looks like:
+  ///
+  ///     ERROR|STATIC_TYPE_WARNING|SOME_ERROR_CODE|/path/to/some_test.dart|9|26|1|Error message.
+  ///
+  /// Pipes can be escaped with backslashes:
+  ///
+  ///     FOO|BAR|FOO\|BAR|FOO\\BAZ
+  ///
+  /// Is parsed as:
+  ///
+  ///     FOO BAR FOO|BAR FOO\BAZ
+  void _parseOutput() {
     List<String> splitMachineError(String line) {
       var field = StringBuffer();
       var result = <String>[];
@@ -550,20 +574,82 @@ class AnalysisCommandOutput extends CommandOutput {
       return result;
     }
 
-    for (String line in decodeUtf8(super.stderr).split("\n")) {
+    for (var line in decodeUtf8(stderr).split("\n")) {
       if (line.isEmpty) continue;
 
-      List<String> fields = splitMachineError(line);
-      // We only consider errors/warnings for files of interest.
-      if (fields.length > _formattedError) {
-        if (fields[_errorLevel] == 'ERROR') {
-          outErrors.add(fields[_formattedError]);
-        } else if (fields[_errorLevel] == 'WARNING') {
-          outWarnings.add(fields[_formattedError]);
+      var fields = splitMachineError(line);
+
+      // Lines without enough fields are other output we don't care about.
+      if (fields.length >= 8) {
+        var severity = fields[0];
+        var errorCode = "${fields[1]}.${fields[2]}";
+        var line = int.parse(fields[4]);
+        var column = int.parse(fields[5]);
+        var length = int.parse(fields[6]);
+
+        var error = StaticError(
+            line: line, column: column, length: length, code: errorCode);
+
+        if (severity == 'ERROR') {
+          _errors.add(error);
+        } else if (severity == 'WARNING') {
+          _warnings.add(error);
         }
-        // OK to Skip error output that doesn't match the machine format.
       }
     }
+  }
+
+  // TODO(rnystrom): This will probably move up to CommandOutput once other
+  // front ends support static error tests.
+  /// Compare the actual errors produced to the expected static errors parsed
+  /// from the test file.
+  ///
+  /// Returns [Expectation.pass] if all expected errors were correctly
+  /// reported.
+  ///
+  /// If [writer] is given, outputs a description of any error mismatches.
+  Expectation _validateExpectedErrors(TestCase testCase,
+      [OutputWriter writer]) {
+    // Don't require the test or analyzer to output in any specific order.
+    var expected = testCase.testFile.expectedErrors.toList();
+    var actual = _errors.toList();
+    expected.sort();
+    actual.sort();
+
+    if (writer != null) writer.subsection("incorrect static errors");
+
+    var success = expected.length == actual.length;
+    for (var i = 0; i < expected.length && i < actual.length; i++) {
+      var differences = expected[i].describeDifferences(actual[i]);
+      if (differences == null) continue;
+
+      if (writer != null) {
+        writer.write(actual[i].location);
+        for (var difference in differences) {
+          writer.write("- $difference");
+        }
+        writer.separator();
+      }
+
+      success = false;
+    }
+
+    if (writer != null) {
+      writer.subsection("missing expected static errors");
+      for (var i = actual.length; i < expected.length; i++) {
+        writer.write(expected[i].toString());
+        writer.separator();
+      }
+
+      writer.subsection("reported unexpected static errors");
+      for (var i = expected.length; i < actual.length; i++) {
+        writer.write(actual[i].toString());
+        writer.separator();
+      }
+    }
+
+    // TODO(rnystrom): Is there a better expectation we can use?
+    return success ? Expectation.pass : Expectation.missingCompileTimeError;
   }
 }
 

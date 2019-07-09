@@ -318,7 +318,7 @@ class VMTestSuite extends TestSuite {
     }
   }
 
-  Future<Null> forEachTest(Function onTest, Map testCache,
+  Future<Null> forEachTest(TestCaseEvent onTest, Map testCache,
       [VoidFunction onDone]) async {
     doTest = onTest;
 
@@ -529,7 +529,8 @@ class StandardTestSuite extends TestSuite {
 
   List<String> additionalOptions(Path filePath) => [];
 
-  Future forEachTest(Function onTest, Map<String, List<TestFile>> testCache,
+  Future forEachTest(
+      TestCaseEvent onTest, Map<String, List<TestFile>> testCache,
       [VoidFunction onDone]) async {
     doTest = onTest;
     testExpectations = readExpectations();
@@ -618,8 +619,21 @@ class StandardTestSuite extends TestSuite {
   }
 
   void enqueueTestCaseFromTestFile(TestFile testFile) {
+    // Static error tests are currently skipped on every implementation except
+    // analyzer.
+    // TODO(rnystrom): Expand to support CFE.
+    // TODO(rnystrom): Skipping this here is a little unusual because most
+    // skips are handled in enqueueStandardTest(). However, if the configuration
+    // is running on browser, calling enqueueStandardTest() will try to create
+    // a set of commands which ultimately causes an exception in
+    // DummyRuntimeConfiguration. This avoids that.
+    if (testFile.isStaticErrorTest &&
+        configuration.compiler != Compiler.dart2analyzer) {
+      return;
+    }
+
     if (configuration.compilerConfiguration.hasCompiler &&
-        testFile.hasCompileError) {
+        (testFile.hasCompileError || testFile.isStaticErrorTest)) {
       // If a compile-time error is expected, and we're testing a
       // compiler, we never need to attempt to run the program (in a
       // browser or otherwise).
@@ -665,17 +679,18 @@ class StandardTestSuite extends TestSuite {
 
       var expectations = testExpectations.expectations(testFile.name);
       var isCrashExpected = expectations.contains(Expectation.crash);
-      var commands = makeCommands(testFile, vmOptionsVariant, allVmOptions,
+      var commands = _makeCommands(testFile, vmOptionsVariant, allVmOptions,
           commonArguments, isCrashExpected);
       var variantTestName = testFile.name;
       if (vmOptionsList.length > 1) {
         variantTestName = "${testFile.name}/$vmOptionsVariant";
       }
+
       enqueueNewTestCase(testFile, variantTestName, commands, expectations);
     }
   }
 
-  List<Command> makeCommands(TestFile testFile, int vmOptionsVariant,
+  List<Command> _makeCommands(TestFile testFile, int vmOptionsVariant,
       List<String> vmOptions, List<String> args, bool isCrashExpected) {
     var commands = <Command>[];
     var compilerConfiguration = configuration.compilerConfiguration;

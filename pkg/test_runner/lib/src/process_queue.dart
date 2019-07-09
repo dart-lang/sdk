@@ -362,7 +362,7 @@ class CommandEnqueuer {
 ///
 /// It provides a [done] future, which will complete once there are no more
 /// nodes left in the states Initialized/Waiting/Enqueing/Processing
-/// and the [executor] has cleaned up it's resources.
+/// and the [executor] has cleaned up its resources.
 class CommandQueue {
   final Graph<Command> graph;
   final CommandExecutor executor;

@@ -49,13 +49,6 @@ const _excludedEnvironmentVariables = [
 /// The TestCase has a callback function, [completedHandler], that is run when
 /// the test is completed.
 class TestCase extends UniqueObject {
-  /// Flags set in _expectations from the optional argument info.
-  static const _hasRuntimeError = 1 << 0;
-  static const _hasSyntaxError = 1 << 1;
-  static const _hasCompileError = 1 << 2;
-  static const _hasStaticWarning = 1 << 3;
-  static const _hasCrash = 1 << 4;
-
   /// A list of commands to execute. Most test cases have a single command.
   /// Dart2js tests have two commands, one to compile the source and another
   /// to execute it. Some isolate tests might even have three, if they require
@@ -65,47 +58,35 @@ class TestCase extends UniqueObject {
 
   TestConfiguration configuration;
   String displayName;
-  int _expectations = 0;
   int hash = 0;
   Set<Expectation> expectedOutcomes;
+  final TestFile testFile;
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {TestFile testFile}) {
+      {TestFile testFile})
+      : testFile = testFile {
     // A test case should do something.
     assert(commands.isNotEmpty);
 
     if (testFile != null) {
-      _setExpectations(testFile);
       hash = (testFile.originPath?.relativeTo(Repository.dir)?.toString())
           .hashCode;
     }
   }
 
-  void _setExpectations(TestFile testFile) {
-    // We don't want to keep the entire (large) TestInformation structure,
-    // so we copy the needed bools into flags set in a single integer.
-    if (testFile.hasRuntimeError) _expectations |= _hasRuntimeError;
-    if (testFile.hasSyntaxError) _expectations |= _hasSyntaxError;
-    if (testFile.hasCrash) _expectations |= _hasCrash;
-    if (testFile.hasCompileError || testFile.hasSyntaxError) {
-      _expectations |= _hasCompileError;
-    }
-    if (testFile.hasStaticWarning) _expectations |= _hasStaticWarning;
-  }
-
   TestCase indexedCopy(int index) {
     var newCommands = commands.map((c) => c.indexedCopy(index)).toList();
-    return TestCase(displayName, newCommands, configuration, expectedOutcomes)
-      .._expectations = _expectations
+    return TestCase(displayName, newCommands, configuration, expectedOutcomes,
+        testFile: testFile)
       ..hash = hash;
   }
 
-  bool get hasRuntimeError => _expectations & _hasRuntimeError != 0;
-  bool get hasStaticWarning => _expectations & _hasStaticWarning != 0;
-  bool get hasSyntaxError => _expectations & _hasSyntaxError != 0;
-  bool get hasCompileError => _expectations & _hasCompileError != 0;
-  bool get hasCrash => _expectations & _hasCrash != 0;
+  bool get hasRuntimeError => testFile?.hasRuntimeError ?? false;
+  bool get hasStaticWarning => testFile?.hasStaticWarning ?? false;
+  bool get hasSyntaxError => testFile?.hasSyntaxError ?? false;
+  bool get hasCompileError => testFile?.hasCompileError ?? false;
+  bool get hasCrash => testFile?.hasCrash ?? false;
   bool get isNegative =>
       hasCompileError ||
       hasRuntimeError && configuration.runtime != Runtime.none ||

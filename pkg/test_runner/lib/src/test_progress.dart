@@ -404,7 +404,7 @@ class PassingStdoutPrinter extends EventListener {
         var commandOutput = test.commandOutputs[command];
         if (commandOutput == null) continue;
 
-        commandOutput.describe(test.configuration.progress, output);
+        commandOutput.describe(test, test.configuration.progress, output);
       }
       for (var line in lines) {
         print(line);
@@ -562,31 +562,42 @@ class OutputWriter {
   final List<String> _lines;
   String _pendingSection;
   String _pendingSubsection;
+  bool _pendingLine = false;
 
   OutputWriter(this._formatter, this._lines);
 
   void section(String name) {
     _pendingSection = name;
     _pendingSubsection = null;
+    _pendingLine = false;
   }
 
   void subsection(String name) {
     _pendingSubsection = name;
+    _pendingLine = false;
   }
 
   void write(String line) {
-    _flushSection();
+    _writePending();
     _lines.add(line);
   }
 
   void writeAll(Iterable<String> lines) {
     if (lines.isEmpty) return;
-    _flushSection();
+    _writePending();
     _lines.addAll(lines);
   }
 
+  /// Writes a blank line that separates lines of output.
+  ///
+  /// If no output is written after this before the next section, subsection,
+  /// or end out output, doesn't write the line.
+  void separator() {
+    _pendingLine = true;
+  }
+
   /// Writes the current section header.
-  void _flushSection() {
+  void _writePending() {
     if (_pendingSection != null) {
       if (_lines.isNotEmpty) _lines.add("");
       _lines.add(_formatter.section("--- $_pendingSection:"));
@@ -597,6 +608,11 @@ class OutputWriter {
       _lines.add("");
       _lines.add(_formatter.section("$_pendingSubsection:"));
       _pendingSubsection = null;
+    }
+
+    if (_pendingLine) {
+      _lines.add("");
+      _pendingLine = false;
     }
   }
 }
@@ -654,7 +670,7 @@ void _writeFailureOutput(
     var time = niceTime(commandOutput.time);
     output.section('Command "${command.displayName}" (took $time)');
     output.write(command.toString());
-    commandOutput.describe(test.configuration.progress, output);
+    commandOutput.describe(test, test.configuration.progress, output);
   }
 }
 
