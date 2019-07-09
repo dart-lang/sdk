@@ -166,7 +166,7 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // ```dart
   // union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-  //     !{...a, ...b, ...c}!;
+  //     [!{...a, ...b, ...c}!];
   // ```
   //
   // The list `b` can only be spread into a set, and the maps `a` and `c` can
@@ -224,7 +224,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // union(a, b) => !{...a, ...b}!;
+  // union(a, b) => [!{...a, ...b}!];
   // ```
   //
   // The problem occurs because there are no type arguments, and there is no
@@ -954,7 +954,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // The following code generates this diagnostic:
   //
   // ```dart
-  // void log({required String !message! = 'no message'}) {}
+  // void log({required String [!message!] = 'no message'}) {}
   // ```
   //
   // #### Common fixes
@@ -1094,7 +1094,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // The following code generates this diagnostic:
   //
   // ```dart
-  // var map = <String, int>{'a': 0, 'b': 1, !'c'!};
+  // var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
   // ```
   //
   // #### Common fix
@@ -1915,7 +1915,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // The following code generates this diagnostic:
   //
   // ```dart
-  // void log({String !message!}) {}
+  // void log({String [!message!]}) {}
   // ```
   //
   // #### Common fixes
@@ -2528,7 +2528,7 @@ class CompileTimeErrorCode extends ErrorCode {
   //
   // ```dart
   // var m = <String, int>{'a': 0, 'b': 1};
-  // var s = <String>{...m};
+  // var s = <String>{...[!m!]};
   // ```
   //
   // #### Common fix
@@ -2598,7 +2598,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // The following code generates this diagnostic:
   //
   // ```dart
-  // class Invalid extends !Duration?! {}
+  // class Invalid extends [!Duration?!] {}
   // ```
   //
   // #### Common fixes

@@ -44,7 +44,7 @@ The following code produces this diagnostic:
 
 ```dart
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
-    !{...a, ...b, ...c}!;
+    [!{...a, ...b, ...c}!];
 ```
 
 The list `b` can only be spread into a set, and the maps `a` and `c` can
@@ -95,7 +95,7 @@ literal or a set literal.
 The following code produces this diagnostic:
 
 ```dart
-union(a, b) => !{...a, ...b}!;
+union(a, b) => [!{...a, ...b}!];
 ```
 
 The problem occurs because there are no type arguments, and there is no
@@ -161,7 +161,7 @@ the following code produces this diagnostic:
 
 ```dart
 void f(C c) {
-  c.!m!();
+  c.[!m!]();
 }
 ```
 
@@ -184,7 +184,7 @@ expression, rather than a map entry, in what appears to be a map literal.
 The following code generates this diagnostic:
 
 ```dart
-var map = <String, int>{'a': 0, 'b': 1, !'c'!};
+var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
 ```
 
 #### Common fix
@@ -211,7 +211,7 @@ to a const constructor.
 The following code produces this diagnostic:
 
 ```dart
-!@literal!
+[!@literal!]
 var x;
 ```
 
@@ -239,7 +239,7 @@ The following code generates this diagnostic:
 
 ```dart
 var m = <String, int>{'a': 0, 'b': 1};
-var s = <String>{...m};
+var s = <String>{...[!m!]};
 ```
 
 #### Common fix
@@ -277,7 +277,7 @@ environment:
 The following code generates this diagnostic:
 
 ```dart
-var s = !<int>{}!;
+var s = [!<int>{}!];
 ```
 
 #### Common fixes

@@ -72,7 +72,7 @@ class HintCode extends ErrorCode {
   //
   // ```dart
   // void f(C c) {
-  //   c.!m!();
+  //   c.[!m!]();
   // }
   // ```
   //
@@ -274,7 +274,7 @@ class HintCode extends ErrorCode {
   // The following code produces this diagnostic:
   //
   // ```dart
-  // !@literal!
+  // [!@literal!]
   // var x;
   // ```
   //
@@ -678,7 +678,7 @@ class HintCode extends ErrorCode {
   // The following code generates this diagnostic:
   //
   // ```dart
-  // var s = !<int>{}!;
+  // var s = [!<int>{}!];
   // ```
   //
   // #### Common fixes

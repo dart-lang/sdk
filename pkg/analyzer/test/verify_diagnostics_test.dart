@@ -78,6 +78,12 @@ class DocumentationValidator {
   /// buffer.
   bool hasWrittenCodeName = false;
 
+  /// The sequence used to mark the start of an error range.
+  static const errorRangeStart = '[!';
+
+  /// The sequence used to mark the end of an error range.
+  static const errorRangeEnd = '!]';
+
   /// Initialize a newly created documentation validator.
   DocumentationValidator(this.docPaths);
 
@@ -119,12 +125,18 @@ class DocumentationValidator {
   }
 
   _SnippetData _extractSnippetData(String snippet) {
-    int rangeStart = snippet.indexOf('!');
+    int rangeStart = snippet.indexOf(errorRangeStart);
     if (rangeStart < 0) {
       _reportProblem('No error range in example');
       return _SnippetData(snippet, -1, 0);
     }
-    int rangeEnd = snippet.indexOf('!', rangeStart + 1);
+    int rangeEnd = snippet.indexOf(errorRangeEnd, rangeStart + 1);
+    if (rangeEnd < 0) {
+      _reportProblem('No end of error range in example');
+      return _SnippetData(snippet, -1, 0);
+    } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
+      _reportProblem('More than one error range in example');
+    }
     return _SnippetData(
         snippet.substring(0, rangeStart) +
             snippet.substring(rangeStart + 1, rangeEnd) +
