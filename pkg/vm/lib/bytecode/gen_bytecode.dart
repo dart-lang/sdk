@@ -1534,6 +1534,12 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitEntry(locals.frameSize);
     }
+    // TODO(alexmarkov): Introduce a new bytecode triggering a debug check in
+    // the interpreter. Its token position should correspond to the declaration
+    // position of the last parameter, which the debugger can inspect at the
+    // point of the debug check.
+    // TODO(regis): Support the new bytecode in the interpreter and dissociate
+    // the debug check from the CheckStack bytecode.
     asm.emitCheckStack(0);
 
     if (isClosure) {
@@ -1667,8 +1673,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       _genPushContextForVariable(variable);
       asm.emitPush(locals.getOriginalParamSlotIndex(variable));
       _genStoreVar(variable);
-      // TODO(alexmarkov): Do we need to store null at the original parameter
-      // location?
+      // TODO(alexmarkov): We need to store null at the original parameter
+      // location, because the original value may need to be GC'ed.
     }
   }
 

@@ -247,7 +247,8 @@ ActivationFrame::ActivationFrame(uword pc,
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
-  ASSERT(!function_.IsNull());  // Frames with bytecode stubs should be skipped.
+  // The frame of a bytecode stub has a null function. It may be encountered
+  // when single stepping.
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -676,7 +677,8 @@ void ActivationFrame::GetVarDescriptors() {
 }
 
 bool ActivationFrame::IsDebuggable() const {
-  return Debugger::IsDebuggable(function());
+  // When stepping in bytecode stub, function is null.
+  return !function().IsNull() && Debugger::IsDebuggable(function());
 }
 
 void ActivationFrame::PrintDescriptorsError(const char* message) {
@@ -996,8 +998,9 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
         if (yield_point_index == await_jump_var) {
           token_pos_ = iter.TokenPos();
           token_pos_initialized_ = true;
-          try_index_ = bytecode.GetTryIndexAtPc(bytecode.PayloadStart() +
-                                                iter.PcOffset());
+          const uword return_address =
+              KernelBytecode::Next(bytecode.PayloadStart() + iter.PcOffset());
+          try_index_ = bytecode.GetTryIndexAtPc(return_address);
           return;
         }
         ++yield_point_index;
@@ -1561,7 +1564,7 @@ const char* ActivationFrame::ToCString() {
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
   return Thread::Current()->zone()->PrintToString(
-      "[ Frame pc(0x%" Px ") fp(0x%" Px ") sp(0x%" Px
+      "[ Frame pc(0x%" Px " offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
       ")\n"
       "\tfunction = %s\n"
       "\turl = %s\n"
@@ -1569,7 +1572,10 @@ const char* ActivationFrame::ToCString() {
       "\n"
       "\tcontext = %s\n"
       "\tcontext level = %" Pd " ]\n",
-      pc(), fp(), sp(), func_name, url.ToCString(), line, ctx_.ToCString(),
+      pc(),
+      pc() -
+          (IsInterpreted() ? bytecode().PayloadStart() : code().PayloadStart()),
+      fp(), sp(), func_name, url.ToCString(), line, ctx_.ToCString(),
       ContextLevel());
 }
 
@@ -2580,9 +2586,11 @@ ActivationFrame* Debugger::TopDartFrame() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     if (frame->is_interpreted()) {
       Bytecode& bytecode = Bytecode::Handle(frame->LookupDartBytecode());
-      if (bytecode.function() == Function::null()) {
-        continue;  // Skip bytecode stub frame.
-      }
+      // Note that we do not skip bytecode stub frame (with a null function),
+      // so that we can ignore a single stepping breakpoint in such a frame.
+      // A bytecode stub contains a VM internal bytecode followed by a
+      // ReturnTOS bytecode. The single step on the ReturnTOS bytecode
+      // needs to be skipped.
       ActivationFrame* activation =
           new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), bytecode);
       return activation;
@@ -3053,19 +3061,20 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 // Find a 'debug break checked' bytecode in the range [pc..end_pc[ and return
-// the pc after it or nullptr.
-static const KBCInstr* FindBreakpointCheckedInstr(const KBCInstr* pc,
-                                                  const KBCInstr* end_pc) {
-  while ((pc < end_pc) && !KernelBytecode::IsDebugBreakCheckedOpcode(pc)) {
+// the pc after it or 0 if not found.
+static uword FindBreakpointCheckedInstr(uword pc, uword end_pc) {
+  while ((pc < end_pc) && !KernelBytecode::IsDebugBreakCheckedOpcode(
+                              reinterpret_cast<const KBCInstr*>(pc))) {
     pc = KernelBytecode::Next(pc);
   }
   if (pc < end_pc) {
-    ASSERT(KernelBytecode::IsDebugBreakCheckedOpcode(pc));
+    ASSERT(KernelBytecode::IsDebugBreakCheckedOpcode(
+        reinterpret_cast<const KBCInstr*>(pc)));
     // The checked debug break pc must point to the next bytecode.
     return KernelBytecode::Next(pc);
   }
   // No 'debug break checked' bytecode in the range.
-  return nullptr;
+  return 0;
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -3079,45 +3088,40 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   if (func.HasBytecode()) {
     Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
-    const KBCInstr* pc = nullptr;
+    uword pc = 0;
     if (bytecode.HasSourcePositions()) {
       kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                    bytecode);
       bool check_range = false;
       while (iter.MoveNext()) {
         if (check_range) {
-          const KBCInstr* end_pc =
-              reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
-              iter.PcOffset();
+          uword end_pc = bytecode.PayloadStart() + iter.PcOffset();
           check_range = false;
           // Find a 'debug break checked' bytecode in the range [pc..end_pc[.
           pc = FindBreakpointCheckedInstr(pc, end_pc);
-          if (pc != nullptr) {
+          if (pc != 0) {
             // TODO(regis): We may want to find all PCs for a token position,
             // e.g. in the case of duplicated bytecode in finally clauses.
             break;
           }
         }
         if (iter.TokenPos() == loc->token_pos_) {
-          pc = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
-               iter.PcOffset();
+          pc = bytecode.PayloadStart() + iter.PcOffset();
           check_range = true;
         }
       }
       if (check_range) {
-        ASSERT(pc != nullptr);
+        ASSERT(pc != 0);
         // Use the end of the bytecode as the end of the range to check.
         pc = FindBreakpointCheckedInstr(
-            pc, reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart()) +
-                    bytecode.Size());
+            pc, bytecode.PayloadStart() + bytecode.Size());
       }
     }
-    if (pc != nullptr) {
-      CodeBreakpoint* code_bpt = GetCodeBreakpoint(reinterpret_cast<uword>(pc));
+    if (pc != 0) {
+      CodeBreakpoint* code_bpt = GetCodeBreakpoint(pc);
       if (code_bpt == NULL) {
         // No code breakpoint for this code exists; create one.
-        code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_,
-                                      reinterpret_cast<uword>(pc));
+        code_bpt = new CodeBreakpoint(bytecode, loc->token_pos_, pc);
         RegisterCodeBreakpoint(code_bpt);
       }
       code_bpt->set_bpt_location(loc);

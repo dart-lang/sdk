@@ -860,6 +860,11 @@ class KernelBytecode {
     return bc + kInstructionSize[DecodeOpcode(bc)];
   }
 
+  DART_FORCE_INLINE static uword Next(uword pc) {
+    return pc + kInstructionSize[DecodeOpcode(
+                    reinterpret_cast<const KBCInstr*>(pc))];
+  }
+
   DART_FORCE_INLINE static bool IsJumpOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kJump:
@@ -949,10 +954,15 @@ class KernelBytecode {
     }
   }
 
-  // The interpreter and this function must agree on the opcodes.
+  // The interpreter, the bytecode generator, and this function must agree on
+  // this list of opcodes.
+  // The interpreter checks for a debug break at each instruction with listed
+  // opcode and the bytecode generator emits a source position at each
+  // instruction with listed opcode.
   DART_FORCE_INLINE static bool IsDebugBreakCheckedOpcode(
       const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kAllocate:
       case KernelBytecode::kPopLocal:
       case KernelBytecode::kPopLocal_Wide:
       case KernelBytecode::kStoreLocal:
@@ -972,6 +982,33 @@ class KernelBytecode {
       case KernelBytecode::kThrow:
       case KernelBytecode::kJump:
       case KernelBytecode::kJump_Wide:
+      case KernelBytecode::kEqualsNull:
+      case KernelBytecode::kNegateInt:
+      case KernelBytecode::kNegateDouble:
+      case KernelBytecode::kAddInt:
+      case KernelBytecode::kSubInt:
+      case KernelBytecode::kMulInt:
+      case KernelBytecode::kTruncDivInt:
+      case KernelBytecode::kModInt:
+      case KernelBytecode::kBitAndInt:
+      case KernelBytecode::kBitOrInt:
+      case KernelBytecode::kBitXorInt:
+      case KernelBytecode::kShlInt:
+      case KernelBytecode::kShrInt:
+      case KernelBytecode::kCompareIntEq:
+      case KernelBytecode::kCompareIntGt:
+      case KernelBytecode::kCompareIntLt:
+      case KernelBytecode::kCompareIntGe:
+      case KernelBytecode::kCompareIntLe:
+      case KernelBytecode::kAddDouble:
+      case KernelBytecode::kSubDouble:
+      case KernelBytecode::kMulDouble:
+      case KernelBytecode::kDivDouble:
+      case KernelBytecode::kCompareDoubleEq:
+      case KernelBytecode::kCompareDoubleGt:
+      case KernelBytecode::kCompareDoubleLt:
+      case KernelBytecode::kCompareDoubleGe:
+      case KernelBytecode::kCompareDoubleLe:
         return true;
       default:
         return false;

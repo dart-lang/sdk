@@ -263,13 +263,11 @@ static void CollectKernelDataTokenPositions(
 static void CollectBytecodeTokenPositions(
     const Bytecode& bytecode,
     Zone* zone,
-    GrowableArray<intptr_t>* token_positions,
-    GrowableArray<intptr_t>* yield_positions) {
+    GrowableArray<intptr_t>* token_positions) {
   BytecodeSourcePositionsIterator iter(zone, bytecode);
   while (iter.MoveNext()) {
     const TokenPosition pos = iter.TokenPos();
     if (pos.IsReal()) {
-      // TODO(alexmarkov): collect yield positions from bytecode.
       token_positions->Add(pos.value());
     }
   }
@@ -277,8 +275,7 @@ static void CollectBytecodeTokenPositions(
 
 static void CollectBytecodeFunctionTokenPositions(
     const Function& function,
-    GrowableArray<intptr_t>* token_positions,
-    GrowableArray<intptr_t>* yield_positions) {
+    GrowableArray<intptr_t>* token_positions) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(function.is_declared_in_bytecode());
@@ -292,8 +289,7 @@ static void CollectBytecodeFunctionTokenPositions(
   Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
   ASSERT(!bytecode.IsNull());
   if (bytecode.HasSourcePositions() && !function.IsLocalFunction()) {
-    CollectBytecodeTokenPositions(bytecode, zone, token_positions,
-                                  yield_positions);
+    CollectBytecodeTokenPositions(bytecode, zone, token_positions);
     // Find closure functions in the object pool.
     const ObjectPool& pool = ObjectPool::Handle(zone, bytecode.object_pool());
     Object& object = Object::Handle(zone);
@@ -311,8 +307,7 @@ static void CollectBytecodeFunctionTokenPositions(
           bytecode = closure.bytecode();
           ASSERT(!bytecode.IsNull());
           if (bytecode.HasSourcePositions()) {
-            CollectBytecodeTokenPositions(bytecode, zone, token_positions,
-                                          yield_positions);
+            CollectBytecodeTokenPositions(bytecode, zone, token_positions);
           }
         }
       }
@@ -379,8 +374,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             if (temp_field.is_declared_in_bytecode()) {
               if (temp_field.is_static() && temp_field.has_initializer()) {
                 temp_function = temp_field.EnsureInitializerFunction();
-                CollectBytecodeFunctionTokenPositions(
-                    temp_function, &token_positions, &yield_positions);
+                CollectBytecodeFunctionTokenPositions(temp_function,
+                                                      &token_positions);
               }
             } else {
               data = temp_field.KernelData();
@@ -400,8 +395,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
               continue;
             }
             if (temp_function.is_declared_in_bytecode()) {
-              CollectBytecodeFunctionTokenPositions(
-                  temp_function, &token_positions, &yield_positions);
+              CollectBytecodeFunctionTokenPositions(temp_function,
+                                                    &token_positions);
             } else {
               data = temp_function.KernelData();
               CollectKernelDataTokenPositions(
@@ -438,8 +433,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           continue;
         }
         if (temp_function.is_declared_in_bytecode()) {
-          CollectBytecodeFunctionTokenPositions(temp_function, &token_positions,
-                                                &yield_positions);
+          CollectBytecodeFunctionTokenPositions(temp_function,
+                                                &token_positions);
         } else {
           data = temp_function.KernelData();
           CollectKernelDataTokenPositions(
@@ -462,8 +457,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         if (field.is_declared_in_bytecode()) {
           if (field.is_static() && field.has_initializer()) {
             temp_function = field.EnsureInitializerFunction();
-            CollectBytecodeFunctionTokenPositions(
-                temp_function, &token_positions, &yield_positions);
+            CollectBytecodeFunctionTokenPositions(temp_function,
+                                                  &token_positions);
           }
         } else {
           data = field.KernelData();
@@ -481,6 +476,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   array_object = AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
   array_object = AsSortedDuplicateFreeArray(&yield_positions);
+  // Note that yield positions in members declared in bytecode are not collected
+  // here, but on demand in the debugger.
   script.set_yield_positions(array_object);
 }
 

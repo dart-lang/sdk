@@ -297,7 +297,6 @@ class ActivationFrame : public ZoneAllocated {
   uword fp() const { return fp_; }
   uword sp() const { return sp_; }
   const Function& function() const {
-    ASSERT(!function_.IsNull());
     return function_;
   }
   const Code& code() const {

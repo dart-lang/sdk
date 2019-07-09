@@ -57,7 +57,11 @@ static void Fmttgt(char** buf,
                    intptr_t* size,
                    const KBCInstr* instr,
                    int32_t value) {
-  FormatOperand(buf, size, "-> %" Px, instr + value);
+  if (FLAG_disassemble_relative) {
+    FormatOperand(buf, size, "-> %" Pd, value);
+  } else {
+    FormatOperand(buf, size, "-> %" Px, instr + value);
+  }
 }
 
 static void Fmtlit(char** buf,
@@ -376,11 +380,16 @@ void KernelBytecodeDisassembler::Disassemble(const Function& function) {
     const int addr_width = (kBitsPerWord / 4) + 2;
     // "*" in a printf format specifier tells it to read the field width from
     // the printf argument list.
-    THR_Print("%-*s\tpos\n", addr_width, "pc");
+    THR_Print("%-*s\tpos\tline\tcolumn\tyield\n", addr_width, "pc");
+    const Script& script = Script::Handle(zone, function.script());
     kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      THR_Print("%#-*" Px "\t%s\n", addr_width, base + iter.PcOffset(),
-                iter.TokenPos().ToCString());
+      TokenPosition pos = iter.TokenPos();
+      intptr_t line = -1, column = -1;
+      script.GetTokenLocation(pos, &line, &column);
+      THR_Print("%#-*" Px "\t%s\t%" Pd "\t%" Pd "\t%s\n", addr_width,
+                base + iter.PcOffset(), pos.ToCString(), line, column,
+                iter.IsYieldPoint() ? "yield" : "");
     }
     THR_Print("}\n");
   }

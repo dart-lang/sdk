@@ -1144,6 +1144,8 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #ifdef PRODUCT
 #define DEBUG_CHECK
 #else
+// The DEBUG_CHECK macro must only be called from bytecodes listed in
+// KernelBytecode::IsDebugBreakCheckedOpcode.
 #define DEBUG_CHECK                                                            \
   if (is_debugging()) {                                                        \
     /* Check for debug breakpoint or if single stepping. */                    \
@@ -1152,7 +1154,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
       Exit(thread, FP, SP + 2, pc);                                            \
       NativeArguments args(thread, 0, NULL, SP + 1);                           \
       INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler, args)                       \
-    } else if (thread->isolate()->single_step()) {                             \
+    }                                                                          \
+    /* The debugger expects to see the same pc again when single-stepping */   \
+    if (thread->isolate()->single_step()) {                                    \
       Exit(thread, FP, SP + 1, pc);                                            \
       NativeArguments args(thread, 0, NULL, NULL);                             \
       INVOKE_RUNTIME(DRT_SingleStepHandler, args);                             \
@@ -2481,6 +2485,7 @@ SwitchDispatch:
 
   {
     BYTECODE(Allocate, D);
+    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
@@ -2510,6 +2515,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AllocateT, 0);
+    DEBUG_CHECK;
     RawClass* cls = Class::RawCast(SP[0]);
     RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
@@ -2716,12 +2722,14 @@ SwitchDispatch:
 
   {
     BYTECODE(EqualsNull, 0);
+    DEBUG_CHECK;
     SP[0] = (SP[0] == null_value) ? true_value : false_value;
     DISPATCH();
   }
 
   {
     BYTECODE(NegateInt, 0);
+    DEBUG_CHECK;
     UNBOX_INT64(value, SP[0], Symbols::UnaryMinus());
     int64_t result = Utils::SubWithWrapAround(0, value);
     BOX_INT64_RESULT(result);
@@ -2730,6 +2738,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AddInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Plus());
     UNBOX_INT64(b, SP[1], Symbols::Plus());
@@ -2740,6 +2749,7 @@ SwitchDispatch:
 
   {
     BYTECODE(SubInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Minus());
     UNBOX_INT64(b, SP[1], Symbols::Minus());
@@ -2750,6 +2760,7 @@ SwitchDispatch:
 
   {
     BYTECODE(MulInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Star());
     UNBOX_INT64(b, SP[1], Symbols::Star());
@@ -2760,6 +2771,7 @@ SwitchDispatch:
 
   {
     BYTECODE(TruncDivInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::TruncDivOperator());
     UNBOX_INT64(b, SP[1], Symbols::TruncDivOperator());
@@ -2778,6 +2790,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ModInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Percent());
     UNBOX_INT64(b, SP[1], Symbols::Percent());
@@ -2803,6 +2816,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitAndInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Ampersand());
     UNBOX_INT64(b, SP[1], Symbols::Ampersand());
@@ -2813,6 +2827,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitOrInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::BitOr());
     UNBOX_INT64(b, SP[1], Symbols::BitOr());
@@ -2823,6 +2838,7 @@ SwitchDispatch:
 
   {
     BYTECODE(BitXorInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::Caret());
     UNBOX_INT64(b, SP[1], Symbols::Caret());
@@ -2833,6 +2849,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ShlInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LeftShiftOperator());
     UNBOX_INT64(b, SP[1], Symbols::LeftShiftOperator());
@@ -2847,6 +2864,7 @@ SwitchDispatch:
 
   {
     BYTECODE(ShrInt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::RightShiftOperator());
     UNBOX_INT64(b, SP[1], Symbols::RightShiftOperator());
@@ -2861,6 +2879,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntEq, 0);
+    DEBUG_CHECK;
     SP -= 1;
     if (SP[0] == SP[1]) {
       SP[0] = true_value;
@@ -2877,6 +2896,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntGt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::RAngleBracket());
     UNBOX_INT64(b, SP[1], Symbols::RAngleBracket());
@@ -2886,6 +2906,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntLt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LAngleBracket());
     UNBOX_INT64(b, SP[1], Symbols::LAngleBracket());
@@ -2895,6 +2916,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntGe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::GreaterEqualOperator());
     UNBOX_INT64(b, SP[1], Symbols::GreaterEqualOperator());
@@ -2904,6 +2926,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareIntLe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_INT64(a, SP[0], Symbols::LessEqualOperator());
     UNBOX_INT64(b, SP[1], Symbols::LessEqualOperator());
@@ -2913,6 +2936,7 @@ SwitchDispatch:
 
   {
     BYTECODE(NegateDouble, 0);
+    DEBUG_CHECK;
     UNBOX_DOUBLE(value, SP[0], Symbols::UnaryMinus());
     double result = -value;
     BOX_DOUBLE_RESULT(result);
@@ -2921,6 +2945,7 @@ SwitchDispatch:
 
   {
     BYTECODE(AddDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Plus());
     UNBOX_DOUBLE(b, SP[1], Symbols::Plus());
@@ -2931,6 +2956,7 @@ SwitchDispatch:
 
   {
     BYTECODE(SubDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Minus());
     UNBOX_DOUBLE(b, SP[1], Symbols::Minus());
@@ -2941,6 +2967,7 @@ SwitchDispatch:
 
   {
     BYTECODE(MulDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Star());
     UNBOX_DOUBLE(b, SP[1], Symbols::Star());
@@ -2951,6 +2978,7 @@ SwitchDispatch:
 
   {
     BYTECODE(DivDouble, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::Slash());
     UNBOX_DOUBLE(b, SP[1], Symbols::Slash());
@@ -2961,6 +2989,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleEq, 0);
+    DEBUG_CHECK;
     SP -= 1;
     if ((SP[0] == null_value) || (SP[1] == null_value)) {
       SP[0] = (SP[0] == SP[1]) ? true_value : false_value;
@@ -2974,6 +3003,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleGt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::RAngleBracket());
     UNBOX_DOUBLE(b, SP[1], Symbols::RAngleBracket());
@@ -2983,6 +3013,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleLt, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::LAngleBracket());
     UNBOX_DOUBLE(b, SP[1], Symbols::LAngleBracket());
@@ -2992,6 +3023,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleGe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::GreaterEqualOperator());
     UNBOX_DOUBLE(b, SP[1], Symbols::GreaterEqualOperator());
@@ -3001,6 +3033,7 @@ SwitchDispatch:
 
   {
     BYTECODE(CompareDoubleLe, 0);
+    DEBUG_CHECK;
     SP -= 1;
     UNBOX_DOUBLE(a, SP[0], Symbols::LessEqualOperator());
     UNBOX_DOUBLE(b, SP[1], Symbols::LessEqualOperator());

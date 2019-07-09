@@ -390,7 +390,6 @@ class BytecodeAssembler {
   }
 
   void emitNativeCall(int rd) {
-    emitSourcePosition();
     _emitInstructionD(Opcode.kNativeCall, rd);
   }
 

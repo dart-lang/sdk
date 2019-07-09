@@ -15329,7 +15329,7 @@ TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
     return TokenPosition::kNoSource;
   }
   uword pc_offset = return_address - PayloadStart();
-  // PC could equal to bytecode size if the last instruction is Throw.
+  // pc_offset could equal to bytecode size if the last instruction is Throw.
   ASSERT(pc_offset <= static_cast<uword>(Size()));
   kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                *this);
