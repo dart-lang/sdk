@@ -246,7 +246,8 @@ Future<CompilerResult> _compile(List<String> args,
         DevCompilerTarget(
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
-        experiments: experiments);
+        experiments: experiments,
+        environmentDefines: declaredVariables);
   } else {
     doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
@@ -262,7 +263,8 @@ Future<CompilerResult> _compile(List<String> args,
         DevCompilerTarget(
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
-        experiments: experiments);
+        experiments: experiments,
+        environmentDefines: declaredVariables);
     incrementalCompiler = compilerState.incrementalCompiler;
     cachedSdkInput =
         compilerState.workerInputCache[sourcePathToUri(sdkSummaryPath)];

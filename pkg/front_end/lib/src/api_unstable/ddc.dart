@@ -81,7 +81,8 @@ Future<InitializedCompilerState> initializeCompiler(
     List<Uri> inputSummaries,
     Target target,
     {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experiments}) async {
+    Map<ExperimentalFlag, bool> experiments,
+    Map<String, String> environmentDefines}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
 
   if (oldState != null &&
@@ -90,7 +91,8 @@ Future<InitializedCompilerState> initializeCompiler(
       oldState.options.packagesFileUri == packagesFile &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.inputSummaries, inputSummaries) &&
-      equalMaps(oldState.options.experimentalFlags, experiments)) {
+      equalMaps(oldState.options.experimentalFlags, experiments) &&
+      equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // Reuse old state.
 
     // These libraries are marked external when compiling. If not un-marking
@@ -114,7 +116,8 @@ Future<InitializedCompilerState> initializeCompiler(
     ..inputSummaries = inputSummaries
     ..librariesSpecificationUri = librariesSpecificationUri
     ..target = target
-    ..fileSystem = fileSystem ?? StandardFileSystem.instance;
+    ..fileSystem = fileSystem ?? StandardFileSystem.instance
+    ..environmentDefines = environmentDefines;
   if (experiments != null) options.experimentalFlags = experiments;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
@@ -134,7 +137,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     Map<Uri, List<int>> workerInputDigests,
     Target target,
     {FileSystem fileSystem,
-    Map<ExperimentalFlag, bool> experiments}) async {
+    Map<ExperimentalFlag, bool> experiments,
+    Map<String, String> environmentDefines}) async {
   inputSummaries.sort((a, b) => a.toString().compareTo(b.toString()));
 
   IncrementalCompiler incrementalCompiler;
@@ -156,7 +160,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       oldState.options.compileSdk != compileSdk ||
       cachedSdkInput == null ||
       !digestsEqual(cachedSdkInput.digest, sdkDigest) ||
-      !equalMaps(oldState.options.experimentalFlags, experiments)) {
+      !equalMaps(oldState.options.experimentalFlags, experiments) ||
+      !equalMaps(oldState.options.environmentDefines, environmentDefines)) {
     // No previous state.
     options = new CompilerOptions()
       ..compileSdk = compileSdk
@@ -166,7 +171,8 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       ..inputSummaries = inputSummaries
       ..librariesSpecificationUri = librariesSpecificationUri
       ..target = target
-      ..fileSystem = fileSystem ?? StandardFileSystem.instance;
+      ..fileSystem = fileSystem ?? StandardFileSystem.instance
+      ..environmentDefines = environmentDefines;
     if (experiments != null) options.experimentalFlags = experiments;
 
     // We'll load a new sdk, anything loaded already will have a wrong root.
