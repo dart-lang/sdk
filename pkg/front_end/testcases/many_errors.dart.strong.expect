@@ -11,10 +11,6 @@ library;
 // external foo(String x) {
 // ^^^^^^^^
 //
-// pkg/front_end/testcases/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
-//   const A.named1() sync* {}
-//                          ^
-//
 // pkg/front_end/testcases/many_errors.dart:10:26: Error: New expression is not a constant expression.
 //   const A.named2() : x = new Object();
 //                          ^^^
@@ -30,6 +26,10 @@ library;
 // Try using a constructor or factory that is 'const'.
 //   const A.named2() : x = new Object();
 //                        ^
+//
+// pkg/front_end/testcases/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   const A.named1() sync* {}
+//                          ^
 //
 // pkg/front_end/testcases/many_errors.dart:13:24: Error: An external or native method can't have a body.
 // external foo(String x) {

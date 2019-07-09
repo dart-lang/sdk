@@ -633,6 +633,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     ProcedureBuilder<TypeBuilder> member = this.member;
     scope = member.computeFormalParameterInitializerScope(scope);
     if (member is KernelConstructorBuilder) {
+      member.prepareInitializers();
       if (member.formals != null) {
         for (KernelFormalParameterBuilder formal in member.formals) {
           if (formal.isInitializingFormal) {
@@ -1126,6 +1127,16 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         this, const DynamicType(), AsyncMarker.Sync, fakeReturn);
 
     return fakeReturn.expression;
+  }
+
+  void parseInitializers(Token token) {
+    Parser parser = new Parser(this);
+    if (!token.isEof) {
+      token = parser.parseInitializers(token);
+      checkEmpty(token.charOffset);
+    } else {
+      handleNoInitializers();
+    }
   }
 
   Expression parseFieldInitializer(Token token) {
@@ -2886,8 +2897,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void endFormalParameter(Token thisKeyword, Token periodAfterThis,
-      Token nameToken, FormalParameterKind kind, MemberKind memberKind) {
+  void endFormalParameter(
+      Token thisKeyword,
+      Token periodAfterThis,
+      Token nameToken,
+      Token initializerStart,
+      Token initializerEnd,
+      FormalParameterKind kind,
+      MemberKind memberKind) {
     debugEvent("FormalParameter");
     if (thisKeyword != null) {
       if (!inConstructor) {

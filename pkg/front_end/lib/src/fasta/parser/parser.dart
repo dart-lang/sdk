@@ -1495,10 +1495,12 @@ class Parser {
     next = token.next;
 
     String value = next.stringValue;
+    Token initializerStart, initializerEnd;
     if ((identical('=', value)) || (identical(':', value))) {
       Token equal = next;
+      initializerStart = equal.next;
       listener.beginFormalParameterDefaultValueExpression();
-      token = parseExpression(equal);
+      token = initializerEnd = parseExpression(equal);
       next = token.next;
       listener.endFormalParameterDefaultValueExpression();
       // TODO(danrubel): Consider removing the last parameter from the
@@ -1519,8 +1521,8 @@ class Parser {
     } else {
       listener.handleFormalParameterWithoutValue(next);
     }
-    listener.endFormalParameter(
-        thisKeyword, periodAfterThis, nameToken, parameterKind, memberKind);
+    listener.endFormalParameter(thisKeyword, periodAfterThis, nameToken,
+        initializerStart, initializerEnd, parameterKind, memberKind);
     return token;
   }
 

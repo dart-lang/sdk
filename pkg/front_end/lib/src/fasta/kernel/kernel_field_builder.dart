@@ -109,7 +109,16 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
         field, metadata, library, classBuilder, this);
-    if (constInitializerToken != null) {
+
+    // For modular compilation we need to include initializers of all const
+    // fields and all non-static final fields in classes with const constructors
+    // into the outline.
+    if ((isConst ||
+            (isFinal &&
+                !isStatic &&
+                isClassMember &&
+                classBuilder.hasConstConstructor)) &&
+        constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
       KernelBodyBuilder bodyBuilder =
           new KernelBodyBuilder.forOutlineExpression(
@@ -118,7 +127,6 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
           isConst ? ConstantContext.inferred : ConstantContext.none;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
         ..parent = field;
-      constInitializerToken = null;
       bodyBuilder.typeInferrer
           ?.inferFieldInitializer(bodyBuilder, field.type, field.initializer);
       if (library.loader is SourceLoader) {
@@ -128,6 +136,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
       }
       bodyBuilder.resolveRedirectingFactoryTargets();
     }
+    constInitializerToken = null;
   }
 
   Field get target => field;

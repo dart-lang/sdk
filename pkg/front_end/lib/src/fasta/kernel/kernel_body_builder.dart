@@ -59,8 +59,8 @@ class KernelBodyBuilder extends BodyBuilder {
             classBuilder,
             member?.isInstanceMember ?? false,
             fileUri,
-            library.loader.typeInferenceEngine
-                ?.createLocalTypeInferrer(fileUri, null, library));
+            library.loader.typeInferenceEngine?.createLocalTypeInferrer(
+                fileUri, classBuilder?.target?.thisType, library));
 
   @override
   void enterThenForTypePromotion(Expression condition) {

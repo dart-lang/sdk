@@ -50,4 +50,6 @@ abstract class FormalParameterBuilder<T extends TypeBuilder>
   String get fullNameForErrors => name;
 
   FormalParameterBuilder forFormalParameterInitializerScope();
+
+  void buildOutlineExpressions(LibraryBuilder library);
 }

@@ -71,7 +71,7 @@ import '../fasta_codes.dart'
 
 import '../import.dart' show Import;
 
-import '../modifier.dart' show constMask;
+import '../modifier.dart' show constMask, finalMask;
 
 import '../problems.dart' show unexpected, unhandled;
 
@@ -400,8 +400,11 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers, T type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
       bool isConst = modifiers & constMask != 0;
+      bool isFinal = modifiers & finalMask != 0;
+      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
       Token startToken;
-      if (isConst || (type == null && !legacyMode)) {
+      if (potentiallyNeedInitializerInOutline ||
+          (type == null && !legacyMode)) {
         startToken = info.initializerToken;
       }
       if (startToken != null) {
@@ -414,7 +417,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       bool hasInitializer = info.initializerToken != null;
       addField(documentationComment, metadata, modifiers, type, info.name,
           info.charOffset, info.charEndOffset, startToken, hasInitializer,
-          constInitializerToken: isConst ? startToken : null);
+          constInitializerToken:
+              potentiallyNeedInitializerInOutline ? startToken : null);
     }
   }
 
@@ -486,8 +490,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charEndOffset,
       String nativeMethodName);
 
-  FormalParameterBuilder addFormalParameter(List<MetadataBuilder> metadata,
-      int modifiers, T type, String name, bool hasThis, int charOffset);
+  FormalParameterBuilder addFormalParameter(
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      T type,
+      String name,
+      bool hasThis,
+      int charOffset,
+      Token initializerToken);
 
   TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
 

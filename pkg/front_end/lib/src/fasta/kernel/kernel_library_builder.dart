@@ -704,7 +704,7 @@ class KernelLibraryBuilder
       currentDeclaration?.hasConstConstructor = true;
       // const constructors will have their initializers compiled and written
       // into the outline.
-      procedure.beginInitializers = beginInitializers;
+      procedure.beginInitializers = beginInitializers ?? Token.eof(-1);
     }
   }
 
@@ -901,12 +901,14 @@ class KernelLibraryBuilder
       KernelTypeBuilder type,
       String name,
       bool hasThis,
-      int charOffset) {
+      int charOffset,
+      Token initializerToken) {
     if (hasThis) {
       modifiers |= initializingFormalMask;
     }
     KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset);
+    formal.initializerToken = initializerToken;
     if (legacyMode && hasThis && type == null) {
       (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
           .add(formal);

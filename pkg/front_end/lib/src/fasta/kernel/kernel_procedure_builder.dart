@@ -36,6 +36,8 @@ import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
 import '../../scanner/token.dart' show Token;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../loader.dart' show Loader;
 
 import '../messages.dart'
@@ -55,8 +57,12 @@ import '../problems.dart' show unexpected;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
+import '../source/source_loader.dart' show SourceLoader;
+
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersCovariantly;
+
+import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -238,6 +244,22 @@ abstract class KernelFunctionBuilder
 
   Member build(SourceLibraryBuilder library);
 
+  @override
+  void buildOutlineExpressions(LibraryBuilder library) {
+    KernelMetadataBuilder.buildAnnotations(
+        target, metadata, library, isClassMember ? parent : null, this);
+
+    if (formals != null) {
+      // For const constructors we need to include default parameter values
+      // into the outline. For all other formals we need to call
+      // buildOutlineExpressions to clear initializerToken to prevent
+      // consuming too much memory.
+      for (FormalParameterBuilder<KernelTypeBuilder> formal in formals) {
+        formal.buildOutlineExpressions(library);
+      }
+    }
+  }
+
   void becomeNative(Loader loader) {
     Declaration constructor = loader.getNativeAnnotation();
     Arguments arguments =
@@ -357,12 +379,6 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.name = new Name(name, library.target);
     }
     return procedure;
-  }
-
-  @override
-  void buildOutlineExpressions(LibraryBuilder library) {
-    KernelMetadataBuilder.buildAnnotations(
-        target, metadata, library, isClassMember ? parent : null, this);
   }
 
   Procedure get target => origin.procedure;
@@ -491,8 +507,24 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    KernelMetadataBuilder.buildAnnotations(
-        target, metadata, library, parent, this);
+    super.buildOutlineExpressions(library);
+
+    // For modular compilation purposes we need to include initializers
+    // for const constructors into the outline.
+    if (isConst && beginInitializers != null) {
+      ClassBuilder classBuilder = parent;
+      KernelBodyBuilder bodyBuilder =
+          new KernelBodyBuilder.forOutlineExpression(
+              library, classBuilder, this, classBuilder.scope, fileUri);
+      bodyBuilder.constantContext = ConstantContext.inferred;
+      bodyBuilder.parseInitializers(beginInitializers);
+      if (library.loader is SourceLoader) {
+        SourceLoader loader = library.loader;
+        loader.transformPostInference(target, bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections);
+      }
+      bodyBuilder.resolveRedirectingFactoryTargets();
+    }
     beginInitializers = null;
   }
 
@@ -599,6 +631,21 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       }
     } else {
       reportPatchMismatch(patch);
+    }
+  }
+
+  void prepareInitializers() {
+    // For const constructors we parse initializers already at the outlining
+    // stage, there is no easy way to make body building stage skip initializer
+    // parsing, so we simply clear parsed initializers and rebuild them
+    // again.
+    // Note: this method clears both initializers from the target Kernel node
+    // and internal state associated with parsing initializers.
+    if (target.isConst) {
+      target.initializers.length = 0;
+      redirectingInitializer = null;
+      superInitializer = null;
+      hasMovedSuperInitializer = false;
     }
   }
 }

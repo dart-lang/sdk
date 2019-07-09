@@ -12,6 +12,7 @@ class Strength extends core::Object {
   final field core::int value;
   final field core::String name;
   const constructor •(core::int value, core::String name) → self::Strength
+    : self::Strength::value = value, self::Strength::name = name
     ;
   method nextWeaker() → self::Strength
     ;
@@ -27,6 +28,7 @@ class Strength extends core::Object {
 abstract class Constraint extends core::Object {
   final field self::Strength strength;
   const constructor •(self::Strength strength) → self::Constraint
+    : self::Constraint::strength = strength
     ;
   abstract method isSatisfied() → core::bool;
   abstract method markUnsatisfied() → void;

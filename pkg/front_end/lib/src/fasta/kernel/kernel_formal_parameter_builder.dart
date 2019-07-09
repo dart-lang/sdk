@@ -6,16 +6,28 @@ library fasta.kernel_formal_parameter_builder;
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
+import '../constant_context.dart' show ConstantContext;
+
 import '../modifier.dart' show finalMask, initializingFormalMask;
+
+import '../scanner.dart' show Token;
+
+import '../scope.dart' show Scope;
+
+import '../source/source_loader.dart' show SourceLoader;
+
+import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
 import 'kernel_builder.dart'
     show
         ClassBuilder,
         Declaration,
         FormalParameterBuilder,
+        KernelConstructorBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
         KernelTypeBuilder,
+        LibraryBuilder,
         MetadataBuilder,
         TypeBuilder;
 
@@ -24,6 +36,8 @@ import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 class KernelFormalParameterBuilder
     extends FormalParameterBuilder<KernelTypeBuilder> {
   VariableDeclaration declaration;
+
+  Token initializerToken;
 
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
@@ -82,5 +96,32 @@ class KernelFormalParameterBuilder
         target.type = field.target.type;
       }
     }
+  }
+
+  @override
+  void buildOutlineExpressions(LibraryBuilder library) {
+    // For modular compilation we need to include initializers for all
+    // parameters of const constructors into the outline.
+    if (parent is KernelConstructorBuilder &&
+        parent.target.isConst &&
+        initializerToken != null) {
+      final ClassBuilder classBuilder = parent.parent;
+      Scope scope = classBuilder.scope;
+      KernelBodyBuilder bodyBuilder =
+          new KernelBodyBuilder.forOutlineExpression(
+              library, classBuilder, this, scope, fileUri);
+      bodyBuilder.constantContext = ConstantContext.required;
+      target.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
+        ..parent = target;
+      bodyBuilder.typeInferrer?.inferParameterInitializer(
+          bodyBuilder, target.initializer, target.type);
+      if (library.loader is SourceLoader) {
+        SourceLoader loader = library.loader;
+        loader.transformPostInference(target, bodyBuilder.transformSetLiterals,
+            bodyBuilder.transformCollections);
+      }
+      bodyBuilder.resolveRedirectingFactoryTargets();
+    }
+    initializerToken = null;
   }
 }

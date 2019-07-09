@@ -11,6 +11,7 @@ class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U ex
   constructor empty() → self::A<self::A::N, self::A::S, self::A::U>
     ;
   const constructor c(self::A::U u, self::A::S s) → self::A<self::A::N, self::A::S, self::A::U>
+    : self::A::field = const <dynamic>[null]
     ;
   static factory f<N extends core::Object = dynamic, S extends core::Object = dynamic, U extends core::Object = dynamic>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U>
     ;
