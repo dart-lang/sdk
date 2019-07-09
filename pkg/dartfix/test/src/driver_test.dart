@@ -25,9 +25,9 @@ main() {
   });
 
   test('fix example', () async {
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger(debug: _debug);
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
     await driver.start([
@@ -92,7 +92,7 @@ main() {
 }
 
 String replaceLeadingComment(String source) {
-  final out = new StringBuffer('''
+  final out = StringBuffer('''
 // This file contains code that has been modified by running dartfix.
 // See example.dart for the original unmodified code.
   '''

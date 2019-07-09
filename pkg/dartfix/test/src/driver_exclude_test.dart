@@ -19,9 +19,9 @@ main() {
     exampleFile = findFile('pkg/dartfix/example/example.dart');
     exampleDir = exampleFile.parent;
 
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger(debug: _debug);
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
     var args = ['-xuse-mixin', exampleDir.path];

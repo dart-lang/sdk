@@ -28,7 +28,7 @@ String findServerPath() {
     }
     String serverPath =
         path.join(parent, 'pkg', 'analysis_server', 'bin', 'server.dart');
-    if (new File(serverPath).existsSync()) {
+    if (File(serverPath).existsSync()) {
       return serverPath;
     }
     pathname = parent;

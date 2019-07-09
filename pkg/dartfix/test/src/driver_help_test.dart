@@ -10,9 +10,9 @@ import 'test_context.dart';
 
 main() {
   test('help explicit', () async {
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger();
     try {
       await driver.start(
         ['--help'], // display help and list fixes
@@ -32,9 +32,9 @@ main() {
   });
 
   test('help implicit', () async {
-    final driver = new Driver();
-    final testContext = new TestContext();
-    final testLogger = new TestLogger();
+    final driver = Driver();
+    final testContext = TestContext();
+    final testLogger = TestLogger();
     try {
       await driver.start(
         [], // no options or arguments should display help and list fixes

@@ -67,7 +67,7 @@ class Options {
   }
 
   static Options parse(List<String> args, Context context, Logger logger) {
-    final parser = new ArgParser(allowTrailingOptions: true)
+    final parser = ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
       ..addMultiOption(includeOption,
           abbr: 'i', help: 'Include a specific fix.', valueHelp: 'name-of-fix')
@@ -106,26 +106,26 @@ class Options {
           help: 'Use ansi colors when printing messages.',
           defaultsTo: Ansi.terminalSupportsAnsi);
 
-    context ??= new Context();
+    context ??= Context();
 
     ArgResults results;
     try {
       results = parser.parse(args);
     } on FormatException catch (e) {
-      logger ??= new Logger.standard(ansi: new Ansi(Ansi.terminalSupportsAnsi));
+      logger ??= Logger.standard(ansi: Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
       _showUsage(parser, logger);
       context.exit(15);
     }
 
-    Options options = new Options._fromArgs(context, results);
+    Options options = Options._fromArgs(context, results);
 
     if (logger == null) {
       if (options.verbose) {
-        logger = new Logger.verbose();
+        logger = Logger.verbose();
       } else {
-        logger = new Logger.standard(
-            ansi: new Ansi(
+        logger = Logger.standard(
+            ansi: Ansi(
           options.useColor != null
               ? options.useColor
               : Ansi.terminalSupportsAnsi,

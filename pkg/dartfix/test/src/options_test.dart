@@ -13,8 +13,8 @@ main() {
   TestLogger logger;
 
   setUp(() {
-    context = new TestContext();
-    logger = new TestLogger();
+    context = TestContext();
+    logger = TestLogger();
   });
 
   String p(String filePath) => context.convertPath(filePath);

@@ -25,7 +25,7 @@ mixin AnalysisCompleteHandler on NotificationHandler {
   }
 
   Future<void> analysisComplete() {
-    _analysisComplete ??= new Completer<void>();
+    _analysisComplete ??= Completer<void>();
     return _analysisComplete.future;
   }
 }

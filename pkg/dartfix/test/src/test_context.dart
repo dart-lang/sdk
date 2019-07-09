@@ -38,10 +38,10 @@ class TestExit {
 class TestLogger implements Logger {
   final bool debug;
   final Ansi ansi;
-  final stdoutBuffer = new StringBuffer();
-  final stderrBuffer = new StringBuffer();
+  final stdoutBuffer = StringBuffer();
+  final stderrBuffer = StringBuffer();
 
-  TestLogger({this.debug = false}) : this.ansi = new Ansi(false);
+  TestLogger({this.debug = false}) : this.ansi = Ansi(false);
 
   @override
   void flush() {}
@@ -51,7 +51,7 @@ class TestLogger implements Logger {
 
   @override
   Progress progress(String message) {
-    return new SimpleProgress(this, message);
+    return SimpleProgress(this, message);
   }
 
   @override
@@ -94,7 +94,7 @@ void expectDoesNotHaveSuggestion(
 File findFile(String relPath) {
   Directory dir = Directory.current;
   while (true) {
-    final file = new File.fromUri(dir.uri.resolve(relPath));
+    final file = File.fromUri(dir.uri.resolve(relPath));
     if (file.existsSync()) {
       return file;
     }
