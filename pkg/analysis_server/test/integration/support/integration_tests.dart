@@ -18,6 +18,8 @@ import 'protocol_matchers.dart';
 
 const Matcher isBool = const TypeMatcher<bool>();
 
+const Matcher isDouble = const TypeMatcher<double>();
+
 const Matcher isInt = const TypeMatcher<int>();
 
 const Matcher isNotification = const MatchesJsonObject(

@@ -6,8 +6,8 @@ import 'dart:collection';
 import 'dart:convert' hide JsonDecoder;
 
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
-import 'package:analysis_server_client/src/protocol/protocol_generated.dart';
 import 'package:analysis_server_client/src/protocol/protocol_common.dart';
+import 'package:analysis_server_client/src/protocol/protocol_generated.dart';
 
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     new HashMap<String, RefactoringKind>();
@@ -274,6 +274,25 @@ abstract class JsonDecoder {
       return false;
     }
     throw mismatch(jsonPath, 'bool', json);
+  }
+
+  /**
+   * Decode a JSON object that is expected to be a double.  A string
+   * representation of a double is also accepted.
+   */
+  double decodeDouble(String jsonPath, Object json) {
+    if (json is double) {
+      return json;
+    } else if (json is int) {
+      return json.toDouble();
+    } else if (json is String) {
+      double value = double.tryParse(json);
+      if (value == null) {
+        throw mismatch(jsonPath, 'double', json);
+      }
+      return value;
+    }
+    throw mismatch(jsonPath, 'double', json);
   }
 
   /**

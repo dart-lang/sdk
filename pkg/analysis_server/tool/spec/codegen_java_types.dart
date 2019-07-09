@@ -140,6 +140,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'getAsString';
     } else if (name == 'boolean' || name == 'Boolean') {
       return 'getAsBoolean';
+    } else if (name == 'double' || name == 'Double') {
+      return 'getAsDouble';
     } else if (name == 'int' || name == 'Integer') {
       return 'getAsInt';
     } else if (name == 'long' || name == 'Long') {

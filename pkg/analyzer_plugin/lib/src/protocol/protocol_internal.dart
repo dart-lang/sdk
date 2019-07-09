@@ -270,6 +270,25 @@ abstract class JsonDecoder {
   }
 
   /**
+   * Decode a JSON object that is expected to be a double.  A string
+   * representation of a double is also accepted.
+   */
+  double decodeDouble(String jsonPath, Object json) {
+    if (json is double) {
+      return json;
+    } else if (json is int) {
+      return json.toDouble();
+    } else if (json is String) {
+      double value = double.tryParse(json);
+      if (value == null) {
+        throw mismatch(jsonPath, 'double', json);
+      }
+      return value;
+    }
+    throw mismatch(jsonPath, 'double', json);
+  }
+
+  /**
    * Decode a JSON object that is expected to be an integer.  A string
    * representation of an integer is also accepted.
    */

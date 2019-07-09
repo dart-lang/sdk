@@ -1042,6 +1042,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             return new FromJsonFunction('jsonDecoder.decodeString');
           case 'bool':
             return new FromJsonFunction('jsonDecoder.decodeBool');
+          case 'double':
+            return new FromJsonFunction('jsonDecoder.decodeDouble');
           case 'int':
           case 'long':
             return new FromJsonFunction('jsonDecoder.decodeInt');
