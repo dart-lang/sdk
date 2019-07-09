@@ -13,6 +13,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolConditionTest);
     defineReflectiveTests(NonBoolConditionWithConstantsTest);
+    defineReflectiveTests(NonBoolConditionTest_NNBD);
   });
 }
 
@@ -31,6 +32,30 @@ const c = [if (3) 1];
                 error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 11, 8),
                 error(StaticTypeWarningCode.NON_BOOL_CONDITION, 15, 1),
               ]);
+  }
+}
+
+@reflectiveTest
+class NonBoolConditionTest_NNBD extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions =>
+      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  test_if_null() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  Null x;
+  if (x) {}
+}
+''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+  }
+
+  test_ternary_condition_null() async {
+    await assertErrorCodesInCode(r'''
+m() {
+  Null x;
+  x ? 0 : 1;
+}
+''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 }
 

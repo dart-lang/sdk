@@ -4914,6 +4914,24 @@ class StaticWarningCode extends ErrorCode {
           correction: "Replace the '...?' with a '...' in the spread.");
 
   /**
+   * For the purposes of experimenting with potential non-null type semantics.
+   *
+   * Whereas [UNCHECKED_USE_OF_NULLABLE] refers to using a value of type T? as
+   * if it were a T, this refers to using a value of type [Null] itself. These
+   * occur at many of the same times ([Null] is a potentially nullable type) but
+   * it indicates a different type of programmer error and has different
+   * corrections.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode INVALID_USE_OF_NULL_VALUE =
+      const StaticWarningCode('INVALID_USE_OF_NULL_VALUE',
+          "This expression is invalid as it will always be null.",
+          correction:
+              'Try changing the type, or casting, to a more useful type like'
+              ' dynamic');
+
+  /**
    * It is a static warning to assign void to any non-void type in dart.
    * compile-time error). Report that error specially for a better user
    * experience.

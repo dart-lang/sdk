@@ -4751,7 +4751,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    StaticWarningCode code = StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
+    StaticWarningCode code = expression.staticType == _typeProvider.nullType
+        ? StaticWarningCode.INVALID_USE_OF_NULL_VALUE
+        : StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE;
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
