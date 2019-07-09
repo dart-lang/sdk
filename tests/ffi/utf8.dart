@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library FfiTest;
+library Utf8;
 
 import 'dart:convert';
 import 'dart:ffi' as ffi;
@@ -10,7 +10,7 @@ import 'dart:ffi' show Pointer;
 
 /// Sample non-struct Pointer wrapper for dart:ffi library.
 class Utf8 extends ffi.Struct<Utf8> {
-  @ffi.Int8()
+  @ffi.Uint8()
   int char;
 
   static String fromUtf8(Pointer<Utf8> str) {
@@ -25,12 +25,13 @@ class Utf8 extends ffi.Struct<Utf8> {
   }
 
   static Pointer<Utf8> toUtf8(String s) {
-    Pointer<Utf8> result = Pointer<Utf8>.allocate(count: s.length + 1).cast();
     List<int> units = Utf8Encoder().convert(s);
-    for (int i = 0; i < s.length; i++) {
+    Pointer<Utf8> result =
+        Pointer<Utf8>.allocate(count: units.length + 1).cast();
+    for (int i = 0; i < units.length; i++) {
       result.elementAt(i).load<Utf8>().char = units[i];
     }
-    result.elementAt(s.length).load<Utf8>().char = 0;
+    result.elementAt(units.length).load<Utf8>().char = 0;
     return result;
   }
 }

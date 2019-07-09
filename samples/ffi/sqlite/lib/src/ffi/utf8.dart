@@ -9,7 +9,7 @@ import "arena.dart";
 
 /// Represents a String in C memory, managed by an [Arena].
 class Utf8 extends Struct<Utf8> {
-  @Int8()
+  @Uint8()
   int char;
 
   /// Allocates a [CString] in the current [Arena] and populates it with
