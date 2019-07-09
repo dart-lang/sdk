@@ -117,6 +117,9 @@
 #### Pub
 
  * Clean-up invalid git repositories in cache when fetching from git.
+ * **Breaking change**  [#36765](https://github.com/dart-lang/sdk/issues/36765):
+   Packages published to [pub.dev](https://pub.dev) can no longer contain git
+   dependencies. These packages will be rejected by the server.
 
 #### Linter
 
