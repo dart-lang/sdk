@@ -120,9 +120,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   static bool _overridesEquals(ClassElement element) =>
-      element
-          .lookUpConcreteMethod('==', element.library)
-          ?.enclosingElement
+      // ignore: unnecessary_cast
+      (element.lookUpConcreteMethod('==', element.library)?.enclosingElement
+              as ClassElement)
           ?.type
           ?.isObject ==
       false;
