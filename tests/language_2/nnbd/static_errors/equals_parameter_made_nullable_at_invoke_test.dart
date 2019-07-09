@@ -27,7 +27,7 @@ main() {
   // Caveat: it is NOT that the argument is promoted to non-null. Otherwise,
   // types which we can't cleanly promote, such as FutureOr<int?>, would not be
   // assignable in comparisons.
-  FutureOr<int?> foInt = Future.value(0);
+  FutureOr<int?> foInt;
 
   // Valid comparison.
   o == foInt;

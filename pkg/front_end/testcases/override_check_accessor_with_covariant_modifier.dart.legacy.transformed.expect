@@ -27,7 +27,7 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set x1(self::B value) → void {}
+  set x1(covariant self::B value) → void {}
   set x2(covariant self::B value) → void {}
   set x3(covariant self::B value) → void {}
   set x4(self::B value) → void {}

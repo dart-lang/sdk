@@ -5,23 +5,23 @@
 import 'dont_inline_deferred_constants_lib1.dart' deferred as lib1;
 import 'dont_inline_deferred_constants_lib2.dart' deferred as lib2;
 
-/*strong.element: c:OutputUnit(main, {})*/
+/*strong.member: c:OutputUnit(main, {})*/
 const c = "string3";
 
 /*class: C:OutputUnit(main, {})*/
 class C {
-  /*element: C.p:OutputUnit(main, {})*/
+  /*member: C.p:OutputUnit(main, {})*/
   final p;
 
-  /*strong.element: C.:OutputUnit(main, {})*/
+  /*strong.member: C.:OutputUnit(main, {})*/
   const C(this.p);
 }
 
-/*element: foo:OutputUnit(2, {lib1, lib2})*/
+/*member: foo:OutputUnit(2, {lib1, lib2})*/
 foo() => print("main");
 
-/*strong.element: main:OutputUnit(main, {})*/
-/*strongConst.element: main:
+/*strong.member: main:OutputUnit(main, {})*/
+/*strongConst.member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(C(p=IntConstant(1)))=OutputUnit(main, {}),

@@ -2,49 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: index:[empty]*/
+/*member: index:[empty]*/
 dynamic get index => throw '';
 
-/*element: A.:[exact=A]*/
+/*member: A.:[exact=A]*/
 class A {
-  /*element: A.foo:Value([exact=JSString], value: "string")*/
+  /*member: A.foo:Value([exact=JSString], value: "string")*/
   get foo => 'string';
 
   set foo(/*[subclass=JSNumber]*/ value) {}
 
-  /*element: A.[]:Value([exact=JSString], value: "string")*/
+  /*member: A.[]:Value([exact=JSString], value: "string")*/
   operator [](/*[empty]*/ index) => 'string';
 
-  /*element: A.[]=:[null]*/
+  /*member: A.[]=:[null]*/
   operator []=(/*[empty]*/ index, /*[subclass=JSNumber]*/ value) {}
 
-  /*element: A.returnDynamic1:Union([exact=JSString], [exact=JSUInt31])*/
+  /*member: A.returnDynamic1:Union([exact=JSString], [exact=JSUInt31])*/
   returnDynamic1() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
-  /*element: A.returnNum1:[subclass=JSNumber]*/
+  /*member: A.returnNum1:[subclass=JSNumber]*/
   returnNum1() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --
       /*[subclass=A]*/ /*update: [subclass=A]*/ foo;
 
-  /*element: A.returnNum2:[subclass=JSNumber]*/
+  /*member: A.returnNum2:[subclass=JSNumber]*/
   returnNum2() => /*[subclass=A]*/ /*update: [subclass=A]*/ foo
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
-  /*element: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
+  /*member: A.returnDynamic2:Union([exact=JSString], [exact=JSUInt31])*/
   returnDynamic2() => this
           /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --;
 
-  /*element: A.returnNum3:[subclass=JSNumber]*/
+  /*member: A.returnNum3:[subclass=JSNumber]*/
   returnNum3() => /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ --this
       /*[subclass=A]*/ /*update: [subclass=A]*/ [index];
 
-  /*element: A.returnNum4:[subclass=JSNumber]*/
+  /*member: A.returnNum4:[subclass=JSNumber]*/
   returnNum4() => this
           /*[subclass=A]*/ /*update: [subclass=A]*/ [index]
       /*invoke: Union([exact=JSString], [exact=JSUInt31])*/ -= 42;
 
-  /*element: A.returnEmpty3:[empty]*/
+  /*member: A.returnEmpty3:[empty]*/
   returnEmpty3() {
     dynamic a = this;
     return a. /*[subclass=A]*/ /*update: [subclass=A]*/
@@ -52,14 +52,14 @@ class A {
         /*invoke: [empty]*/ --;
   }
 
-  /*element: A.returnEmpty1:[empty]*/
+  /*member: A.returnEmpty1:[empty]*/
   returnEmpty1() {
     dynamic a = this;
     return /*invoke: [empty]*/ --a
         . /*[subclass=A]*/ /*update: [subclass=A]*/ bar;
   }
 
-  /*element: A.returnEmpty2:[empty]*/
+  /*member: A.returnEmpty2:[empty]*/
   returnEmpty2() {
     dynamic a = this;
     return a. /*[subclass=A]*/ /*update: [subclass=A]*/ bar
@@ -67,41 +67,41 @@ class A {
   }
 }
 
-/*element: B.:[exact=B]*/
+/*member: B.:[exact=B]*/
 class B extends A {
-  /*element: B.foo:[exact=JSUInt31]*/
+  /*member: B.foo:[exact=JSUInt31]*/
   get foo => 42;
-  /*element: B.[]:[exact=JSUInt31]*/
+  /*member: B.[]:[exact=JSUInt31]*/
   operator [](/*[empty]*/ index) => 42;
 
-  /*element: B.returnString1:Value([exact=JSString], value: "string")*/
+  /*member: B.returnString1:Value([exact=JSString], value: "string")*/
   returnString1() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ --;
 
-  /*element: B.returnDynamic1:[empty]*/
+  /*member: B.returnDynamic1:[empty]*/
   returnDynamic1() =>
       /*invoke: Value([exact=JSString], value: "string")*/
       --super.foo;
 
-  /*element: B.returnDynamic2:[empty]*/
+  /*member: B.returnDynamic2:[empty]*/
   returnDynamic2() =>
       super.foo /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
 
-  /*element: B.returnString2:Value([exact=JSString], value: "string")*/
+  /*member: B.returnString2:Value([exact=JSString], value: "string")*/
   returnString2() => super[index]
       /*invoke: Value([exact=JSString], value: "string")*/ --;
 
-  /*element: B.returnDynamic3:[empty]*/
+  /*member: B.returnDynamic3:[empty]*/
   returnDynamic3() =>
       /*invoke: Value([exact=JSString], value: "string")*/
       --super[index];
 
-  /*element: B.returnDynamic4:[empty]*/
+  /*member: B.returnDynamic4:[empty]*/
   returnDynamic4() => super[index]
       /*invoke: Value([exact=JSString], value: "string")*/ -= 42;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   new A()
     .. /*invoke: [exact=A]*/ returnNum1()

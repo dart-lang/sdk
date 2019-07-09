@@ -1,10 +1,9 @@
 import 'dart:io';
 
 import 'package:expect/minitest.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart';
-
-import 'annotated_code_helper.dart';
 
 /**
  * Runs D8 and steps as the AnnotatedCode dictates.

@@ -22,6 +22,15 @@ class DefaultListConstructorMismatch extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
+  test_inferredType() async {
+    await assertErrorsInCode('''
+class C {}
+List<C> v = List(5);
+''', [
+      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 23, 4),
+    ]);
+  }
+
   test_nonNullableType() async {
     await assertErrorsInCode('''
 var l = new List<int>(3);
@@ -36,13 +45,11 @@ var l = new List<String?>(3);
 ''');
   }
 
-  test_inferredType() async {
-    await assertErrorsInCode('''
-class C {}
-List<C> v = List(5);
-''', [
-      error(CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR_MISMATCH, 23, 4),
-    ]);
+  test_optOut() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.2
+var l = new List<int>(3);
+''');
   }
 
   test_typeParameter() async {

@@ -10,7 +10,8 @@ import 'dart:convert' show jsonDecode;
 
 import 'dart:io' show File, Platform;
 
-import 'package:kernel/ast.dart' show Library, Component;
+import 'package:kernel/ast.dart'
+    show AwaitExpression, Component, Library, Node, Visitor;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
@@ -108,6 +109,10 @@ const String EXPECTATIONS = '''
   },
   {
     "name": "VerificationError",
+    "group": "Fail"
+  },
+  {
+    "name": "TransformVerificationError",
     "group": "Fail"
   },
   {
@@ -368,7 +373,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       UriTranslator uriTranslator = new UriTranslator(
           const TargetLibrariesSpecification('vm'),
           context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTestingTarget(
+      KernelTarget sourceTarget = new KernelTarget(
           StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
       sourceTarget.setEntryPoints(<Uri>[description.uri]);
@@ -422,7 +427,38 @@ class Transform extends Step<Component, Component, FastaContext> {
     } finally {
       backendTarget.enabled = false;
     }
+    List<String> errors = VerifyTransformed.verify(component);
+    if (errors.isNotEmpty) {
+      return new Result<Component>(
+          component,
+          context.expectationSet["TransformVerificationError"],
+          errors.join('\n'),
+          null);
+    }
     return pass(component);
+  }
+}
+
+/// Visitor that checks that the component has been transformed properly.
+// TODO(johnniwinther): Add checks for all nodes that are unsupported after
+// transformation.
+class VerifyTransformed extends Visitor<void> {
+  List<String> errors = [];
+
+  @override
+  void defaultNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    errors.add("ERROR: Untransformed await expression: $node");
+  }
+
+  static List<String> verify(Component component) {
+    VerifyTransformed visitor = new VerifyTransformed();
+    component.accept(visitor);
+    return visitor.errors;
   }
 }
 
@@ -463,15 +499,6 @@ class EnsureNoErrors extends Step<Component, Component, FastaContext> {
   }
 }
 
-class KernelTestingTarget extends KernelTarget {
-  @override
-  ClassHierarchyBuilder builderHierarchy;
-
-  KernelTestingTarget(StandardFileSystem fileSystem, bool includeComments,
-      DillTarget dillTarget, UriTranslator uriTranslator)
-      : super(fileSystem, includeComments, dillTarget, uriTranslator);
-}
-
 class MatchHierarchy extends Step<Component, Component, FastaContext> {
   const MatchHierarchy();
 
@@ -481,8 +508,8 @@ class MatchHierarchy extends Step<Component, Component, FastaContext> {
       Component component, FastaContext context) async {
     Uri uri =
         component.uriToSource.keys.firstWhere((uri) => uri?.scheme == "file");
-    KernelTestingTarget target = context.componentToTarget[component];
-    ClassHierarchyBuilder hierarchy = target.builderHierarchy;
+    KernelTarget target = context.componentToTarget[component];
+    ClassHierarchyBuilder hierarchy = target.loader.builderHierarchy;
     StringBuffer sb = new StringBuffer();
     for (ClassHierarchyNode node in hierarchy.nodes.values) {
       node.toString(sb);

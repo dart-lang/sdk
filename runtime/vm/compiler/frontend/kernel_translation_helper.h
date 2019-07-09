@@ -41,25 +41,39 @@ class TranslationHelper {
   Heap::Space allocation_space() { return allocation_space_; }
 
   // Access to strings.
-  const TypedData& string_offsets() { return string_offsets_; }
+  const TypedData& string_offsets() const { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const ExternalTypedData& string_data() { return string_data_; }
+  const ExternalTypedData& string_data() const { return string_data_; }
   void SetStringData(const ExternalTypedData& string_data);
 
-  const TypedData& canonical_names() { return canonical_names_; }
+  const TypedData& canonical_names() const { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const ExternalTypedData& metadata_payloads() { return metadata_payloads_; }
+  const ExternalTypedData& metadata_payloads() const {
+    return metadata_payloads_;
+  }
   void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
 
-  const ExternalTypedData& metadata_mappings() { return metadata_mappings_; }
+  const ExternalTypedData& metadata_mappings() const {
+    return metadata_mappings_;
+  }
   void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
 
+  // Access to previously evaluated constants from the constants table.
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
+  // Access to the raw bytes of the constants table.
+  const ExternalTypedData& constants_table() const { return constants_table_; }
+  void SetConstantsTable(const ExternalTypedData& constants_table);
+
+  KernelProgramInfo& info() { return info_; }
+
   RawGrowableObjectArray* EnsurePotentialPragmaFunctions();
+
+  void AddPotentialExtensionLibrary(const Library& library);
+  RawGrowableObjectArray* GetPotentialExtensionLibraries();
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -206,8 +220,10 @@ class TranslationHelper {
   ExternalTypedData& metadata_payloads_;
   ExternalTypedData& metadata_mappings_;
   Array& constants_;
+  ExternalTypedData& constants_table_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
+  GrowableObjectArray* potential_extension_libraries_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

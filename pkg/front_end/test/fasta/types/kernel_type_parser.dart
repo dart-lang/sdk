@@ -161,14 +161,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       } else if (kernelArguments.length != typeVariables.length) {
         throw "Expected ${typeVariables.length} type arguments: $node";
       }
-      return new InterfaceType(declaration, kernelArguments);
+      return new InterfaceType(declaration, kernelArguments, node.nullability);
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";
       }
-      return new TypeParameterType(declaration);
+      return new TypeParameterType(declaration, null, node.nullability);
     } else if (declaration is Typedef) {
-      return new TypedefType(declaration, kernelArguments);
+      return new TypedefType(declaration, kernelArguments, node.nullability);
     } else {
       throw "Unhandled ${declaration.runtimeType}";
     }
@@ -263,7 +263,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     return new FunctionType(positionalParameters, returnType,
         namedParameters: namedParameters,
         requiredParameterCount: node.arguments.required.length,
-        typeParameters: parameterEnvironment.parameters);
+        typeParameters: parameterEnvironment.parameters,
+        nullability: node.nullability);
   }
 
   VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {
@@ -280,7 +281,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     TypeParameterType type =
         node.a.accept<Node, KernelEnvironment>(this, environment);
     DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
-    return new TypeParameterType(type.parameter, bound);
+    return new TypeParameterType(type.parameter, bound, type.nullability);
   }
 
   Supertype toSupertype(InterfaceType type) {

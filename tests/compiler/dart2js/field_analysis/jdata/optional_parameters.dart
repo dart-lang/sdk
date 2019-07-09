@@ -35,52 +35,52 @@ main() {
 }
 
 class Class1a {
-  /*element: Class1a.field1:*/
+  /*member: Class1a.field1:*/
   var field1;
 
-  /*element: Class1a.field2:*/
+  /*member: Class1a.field2:*/
   var field2;
 
-  /*element: Class1a.field3:allocator,initial=IntConstant(3)*/
+  /*member: Class1a.field3:allocator,initial=IntConstant(3)*/
   var field3;
 
   Class1a(this.field1, [this.field2 = 2, this.field3 = 3]);
 }
 
 class Class1b {
-  /*element: Class1b.field1:*/
+  /*member: Class1b.field1:*/
   var field1;
 
-  /*element: Class1b.field2:*/
+  /*member: Class1b.field2:*/
   var field2;
 
-  /*element: Class1b.field3:constant=IntConstant(3)*/
+  /*member: Class1b.field3:constant=IntConstant(3)*/
   var field3;
 
   Class1b(this.field1, [this.field2 = 2, this.field3 = 3]);
 }
 
 class Class2a {
-  /*element: Class2a.field1:*/
+  /*member: Class2a.field1:*/
   var field1;
 
-  /*element: Class2a.field2:*/
+  /*member: Class2a.field2:*/
   var field2;
 
-  /*element: Class2a.field3:allocator,initial=IntConstant(3)*/
+  /*member: Class2a.field3:allocator,initial=IntConstant(3)*/
   var field3;
 
   Class2a(this.field1, {this.field2 = 2, this.field3 = 3});
 }
 
 class Class2b {
-  /*element: Class2b.field1:*/
+  /*member: Class2b.field1:*/
   var field1;
 
-  /*element: Class2b.field2:*/
+  /*member: Class2b.field2:*/
   var field2;
 
-  /*element: Class2b.field3:constant=IntConstant(3)*/
+  /*member: Class2b.field3:constant=IntConstant(3)*/
   var field3;
 
   Class2b(this.field1, {this.field2 = 2, this.field3 = 3});

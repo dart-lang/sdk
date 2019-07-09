@@ -10,7 +10,6 @@
 # the parameter type 'dart.core::String'".
 
 type: newworld
-strong: true
 omitPlatform: false
 worlds:
   - entry: main.dart

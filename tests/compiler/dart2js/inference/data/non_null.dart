@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   nonNullStaticField();
   nonNullInstanceField1();
@@ -10,42 +10,42 @@ main() {
   nonNullLocal();
 }
 
-/*element: staticField:[null|exact=JSUInt31]*/
+/*member: staticField:[null|exact=JSUInt31]*/
 var staticField;
 
-/*element: nonNullStaticField:[exact=JSUInt31]*/
+/*member: nonNullStaticField:[exact=JSUInt31]*/
 nonNullStaticField() => staticField ??= 42;
 
-/*element: Class1.:[exact=Class1]*/
+/*member: Class1.:[exact=Class1]*/
 class Class1 {
-  /*element: Class1.field:[null|exact=JSUInt31]*/
+  /*member: Class1.field:[null|exact=JSUInt31]*/
   var field;
 }
 
-/*element: nonNullInstanceField1:[exact=JSUInt31]*/
+/*member: nonNullInstanceField1:[exact=JSUInt31]*/
 nonNullInstanceField1() {
   return new Class1(). /*[exact=Class1]*/ /*update: [exact=Class1]*/ field ??=
       42;
 }
 
-/*element: Class2.:[exact=Class2]*/
+/*member: Class2.:[exact=Class2]*/
 class Class2 {
-  /*element: Class2.field:[null|exact=JSUInt31]*/
+  /*member: Class2.field:[null|exact=JSUInt31]*/
   var field;
 
-  /*element: Class2.method:[exact=JSUInt31]*/
+  /*member: Class2.method:[exact=JSUInt31]*/
   method() {
     return /*[exact=Class2]*/ /*update: [exact=Class2]*/ field ??= 42;
   }
 }
 
-/*element: nonNullInstanceField2:[exact=JSUInt31]*/
+/*member: nonNullInstanceField2:[exact=JSUInt31]*/
 nonNullInstanceField2() {
   return new Class2(). /*invoke: [exact=Class2]*/ method();
 }
 
 // TODO(johnniwinther): We should infer that the returned value cannot be null.
-/*element: nonNullLocal:[null|exact=JSUInt31]*/
+/*member: nonNullLocal:[null|exact=JSUInt31]*/
 nonNullLocal() {
   var local = null;
   return local ??= 42;

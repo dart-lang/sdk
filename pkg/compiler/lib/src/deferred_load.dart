@@ -1336,7 +1336,8 @@ class OutputUnitData {
     Map<ClassEntity, OutputUnit> classToUnit = source.readClassMap(() {
       return outputUnits[source.readInt()];
     });
-    Map<MemberEntity, OutputUnit> memberToUnit = source.readMemberMap(() {
+    Map<MemberEntity, OutputUnit> memberToUnit =
+        source.readMemberMap((MemberEntity member) {
       return outputUnits[source.readInt()];
     });
     Map<ConstantValue, OutputUnit> constantToUnit = source.readConstantMap(() {
@@ -1387,7 +1388,8 @@ class OutputUnitData {
     sink.writeClassMap(_classToUnit, (OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]);
     });
-    sink.writeMemberMap(_memberToUnit, (OutputUnit outputUnit) {
+    sink.writeMemberMap(_memberToUnit,
+        (MemberEntity member, OutputUnit outputUnit) {
       sink.writeInt(outputUnitIndices[outputUnit]);
     });
     sink.writeConstantMap(_constantToUnit, (OutputUnit outputUnit) {

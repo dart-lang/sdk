@@ -6,8 +6,8 @@ import 'package:expect/expect.dart';
 
 import '../libs/deferred_constant2_lib.dart' deferred as lib;
 
-/*strong.element: main:OutputUnit(main, {})*/
-/*strongConst.element: main:
+/*strong.member: main:OutputUnit(main, {})*/
+/*strongConst.member: main:
  OutputUnit(main, {}),
  constants=[
   ConstructedConstant(Constant(value=IntConstant(499)))=OutputUnit(1, {lib})]

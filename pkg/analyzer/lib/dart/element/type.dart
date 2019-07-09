@@ -81,11 +81,6 @@ abstract class DartType {
   /// Return `true` if this type represents the type 'Object'.
   bool get isObject;
 
-  /// Return `true` if this type represents a typename that couldn't be
-  /// resolved.
-  @deprecated
-  bool get isUndefined;
-
   /// Return `true` if this type represents the type 'void'.
   bool get isVoid;
 

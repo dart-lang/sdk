@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -17,6 +18,9 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
+  final _decoratedDirectSupertypes =
+      <ClassElement, Map<ClassElement, DecoratedType>>{};
+
   final _decoratedTypeAnnotations =
       <Source, Map<int, DecoratedTypeAnnotation>>{};
 
@@ -25,16 +29,32 @@ class Variables implements VariableRecorder, VariableRepository {
   Variables(this._graph);
 
   @override
-  DecoratedType decoratedElementType(Element element, {bool create: false}) =>
-      _decoratedElementTypes[element] ??= create
-          ? DecoratedType.forElement(element, _graph)
-          : throw StateError('No element found');
+  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
+      ClassElement class_) {
+    assert(class_ is! ClassElementHandle);
+    return _decoratedDirectSupertypes[class_] ??
+        _decorateDirectSupertypes(class_);
+  }
+
+  @override
+  DecoratedType decoratedElementType(Element element) =>
+      _decoratedElementTypes[element] ??= _createDecoratedElementType(element);
 
   @override
   DecoratedType decoratedTypeAnnotation(
       Source source, TypeAnnotation typeAnnotation) {
-    return _decoratedTypeAnnotations[source]
-        [_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    var annotationsInSource = _decoratedTypeAnnotations[source];
+    if (annotationsInSource == null) {
+      throw StateError('No declarated type annotations in ${source.fullName}; '
+          'expected one for ${typeAnnotation.toSource()}');
+    }
+    DecoratedTypeAnnotation decoratedTypeAnnotation =
+        annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    if (decoratedTypeAnnotation == null) {
+      throw StateError('Missing declarated type annotation'
+          ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
+    }
+    return decoratedTypeAnnotation;
   }
 
   Map<Source, List<PotentialModification>> getPotentialModifications() =>
@@ -47,7 +67,30 @@ class Variables implements VariableRecorder, VariableRepository {
         source, ConditionalModification(node, conditionalDiscard));
   }
 
+  @override
+  void recordDecoratedDirectSupertypes(ClassElement class_,
+      Map<ClassElement, DecoratedType> decoratedDirectSupertypes) {
+    assert(() {
+      assert(class_ is! ClassElementHandle);
+      for (var key in decoratedDirectSupertypes.keys) {
+        assert(key is! ClassElementHandle);
+      }
+      return true;
+    }());
+    _decoratedDirectSupertypes[class_] = decoratedDirectSupertypes;
+  }
+
   void recordDecoratedElementType(Element element, DecoratedType type) {
+    assert(() {
+      var library = element.library;
+      if (library == null) {
+        // No problem; the element is probably a parameter of a function type
+        // expressed using new-style Function syntax.
+      } else {
+        assert(_graph.isBeingMigrated(library.source));
+      }
+      return true;
+    }());
     _decoratedElementTypes[element] = type;
   }
 
@@ -124,6 +167,28 @@ class Variables implements VariableRecorder, VariableRepository {
   void _addPotentialModification(
       Source source, PotentialModification potentialModification) {
     (_potentialModifications[source] ??= []).add(potentialModification);
+  }
+
+  DecoratedType _createDecoratedElementType(Element element) {
+    if (_graph.isBeingMigrated(element.library.source)) {
+      throw StateError('A decorated type for $element should have been stored '
+          'by the NodeBuilder via recordDecoratedElementType');
+    }
+    return DecoratedType.forElement(element, _graph);
+  }
+
+  /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
+  /// class.
+  Map<ClassElement, DecoratedType> _decorateDirectSupertypes(
+      ClassElement class_) {
+    if (class_.type.isObject) {
+      // TODO(paulberry): this special case is just to get the basic
+      // infrastructure working (necessary since all classes derive from
+      // Object).  Once we have the full implementation this case shouldn't be
+      // needed.
+      return const {};
+    }
+    throw UnimplementedError('TODO(paulberry)');
   }
 
   int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>

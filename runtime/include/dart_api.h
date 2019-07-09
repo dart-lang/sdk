@@ -15,6 +15,16 @@
  * This reference is generated from the header include/dart_api.h.
  */
 
+/* __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
+ * enable platform independent printf format specifiers. */
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+#include <assert.h>
+#include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
@@ -24,32 +34,12 @@
 #if defined(__CYGWIN__)
 #error Tool chain and platform not supported.
 #elif defined(_WIN32)
-// Define bool if necessary.
-#ifndef __cplusplus
-typedef unsigned __int8 bool;
-#endif
-// Define integer types.
-typedef signed __int8 int8_t;
-typedef signed __int16 int16_t;
-typedef signed __int32 int32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int8 uint8_t;
-typedef unsigned __int16 uint16_t;
-typedef unsigned __int32 uint32_t;
-typedef unsigned __int64 uint64_t;
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT DART_EXTERN_C __declspec(dllexport)
 #else
 #define DART_EXPORT DART_EXTERN_C
 #endif
 #else
-/* __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
- * enable platform independent printf format specifiers. */
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
-#include <inttypes.h>
-#include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
 #define DART_EXPORT                                                            \
@@ -69,8 +59,6 @@ typedef unsigned __int64 uint64_t;
 #else
 #define DART_WARN_UNUSED_RESULT
 #endif
-
-#include <assert.h>
 
 /*
  * =======
@@ -714,7 +702,31 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000003)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000004)
+
+/** Forward declaration */
+struct Dart_CodeObserver;
+
+/**
+ * Callback provided by the embedder that is used by the VM to notify on code
+ * object creation, *before* it is invoked the first time.
+ * This is useful for embedders wanting to e.g. keep track of PCs beyond
+ * the lifetime of the garbage collected code objects.
+ * Note that an address range may be used by more than one code object over the
+ * lifecycle of a process. Clients of this function should record timestamps for
+ * these compilation events and when collecting PCs to disambiguate reused
+ * address ranges.
+ */
+typedef void (*Dart_OnNewCodeCallback)(struct Dart_CodeObserver* observer,
+                                       const char* name,
+                                       uintptr_t base,
+                                       uintptr_t size);
+
+typedef struct Dart_CodeObserver {
+  void* data;
+
+  Dart_OnNewCodeCallback on_new_code;
+} Dart_CodeObserver;
 
 /**
  * Describes how to initialize the VM. Used with Dart_Initialize.
@@ -736,6 +748,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  * \param get_service_assets A function to be called by the service isolate when
  *    it requires the vmservice assets archive.
  *    See Dart_GetVMServiceAssetsArchive.
+ * \param code_observer An external code observer callback function.
+ *    The observer can be invoked as early as during the Dart_Initialize() call.
  */
 typedef struct {
   int32_t version;
@@ -752,6 +766,7 @@ typedef struct {
   Dart_EntropySource entropy_source;
   Dart_GetVMServiceAssetsArchive get_service_assets;
   bool start_kernel_isolate;
+  Dart_CodeObserver* code_observer;
 } Dart_InitializeParams;
 
 /**

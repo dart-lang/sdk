@@ -48,14 +48,8 @@ mirrors/metadata_allowed_values_test/14: MissingCompileTimeError
 mirrors/redirecting_factory_test/01: CompileTimeError # Issue 34714
 mirrors/redirecting_factory_test/none: CompileTimeError # Issue 34714
 
-[ $arch == simdbc64 && $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-isolate/isolate_complex_messages_test: Crash # http://dartbug.com/33128
-
 [ $arch == simdbc64 && $hot_reload_rollback ]
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Uses --verify_before_gc --verify_after_gc --old_gen_growth_rate=1 flags
-
-[ $arch == simdbc64 && ($compiler == dartk || $compiler == dartkb) ]
-isolate/issue_24243_parent_isolate_test: RuntimeError # dartbug.com/35373
 
 [ $arch == x64 && $builder_tag == asan && $compiler == dartk ]
 mirrors/dynamic_load_test: Fail # Memory leak (issue 34724)
@@ -207,8 +201,6 @@ isolate/pause_test: Skip # Timeout
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
-isolate/mandel_isolate_test: Pass, Timeout
-isolate/nested_spawn2_test: Pass, RuntimeError # RuntimeError caused by timeout
 mirrors/library_uri_io_test: RuntimeError # Please triage.
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]

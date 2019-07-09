@@ -7,13 +7,13 @@ import 'dart:typed_data';
 // TODO(johnniwinther): Fix inference for strong mode. List elements should not
 // be [empty].
 
-/*element: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
+/*member: myList:Container([null|exact=NativeFloat32List], element: [subclass=JSNumber], length: 42)*/
 var myList = new Float32List(42);
 
-/*element: myOtherList:Container([null|exact=NativeUint8List], element: [exact=JSUInt31], length: 32)*/
+/*member: myOtherList:Container([null|exact=NativeUint8List], element: [exact=JSUInt31], length: 32)*/
 var myOtherList = new Uint8List(32);
 
-/*element: main:[subclass=JSNumber]*/
+/*member: main:[subclass=JSNumber]*/
 main() {
   // ignore: unused_local_variable
   var a = new Float32List(9);

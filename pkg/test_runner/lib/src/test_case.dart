@@ -15,7 +15,7 @@ import 'configuration.dart';
 import 'output_log.dart';
 import 'process_queue.dart';
 import 'repository.dart';
-import 'test_suite.dart';
+import 'test_file.dart';
 import 'utils.dart';
 
 const _slowTimeoutMultiplier = 4;
@@ -71,27 +71,27 @@ class TestCase extends UniqueObject {
 
   TestCase(this.displayName, this.commands, this.configuration,
       this.expectedOutcomes,
-      {TestInformation info}) {
+      {TestFile testFile}) {
     // A test case should do something.
     assert(commands.isNotEmpty);
 
-    if (info != null) {
-      _setExpectations(info);
-      hash = (info?.originTestPath?.relativeTo(Repository.dir)?.toString())
+    if (testFile != null) {
+      _setExpectations(testFile);
+      hash = (testFile.originPath?.relativeTo(Repository.dir)?.toString())
           .hashCode;
     }
   }
 
-  void _setExpectations(TestInformation info) {
+  void _setExpectations(TestFile testFile) {
     // We don't want to keep the entire (large) TestInformation structure,
     // so we copy the needed bools into flags set in a single integer.
-    if (info.hasRuntimeError) _expectations |= _hasRuntimeError;
-    if (info.hasSyntaxError) _expectations |= _hasSyntaxError;
-    if (info.hasCrash) _expectations |= _hasCrash;
-    if (info.hasCompileError || info.hasSyntaxError) {
+    if (testFile.hasRuntimeError) _expectations |= _hasRuntimeError;
+    if (testFile.hasSyntaxError) _expectations |= _hasSyntaxError;
+    if (testFile.hasCrash) _expectations |= _hasCrash;
+    if (testFile.hasCompileError || testFile.hasSyntaxError) {
       _expectations |= _hasCompileError;
     }
-    if (info.hasStaticWarning) _expectations |= _hasStaticWarning;
+    if (testFile.hasStaticWarning) _expectations |= _hasStaticWarning;
   }
 
   TestCase indexedCopy(int index) {

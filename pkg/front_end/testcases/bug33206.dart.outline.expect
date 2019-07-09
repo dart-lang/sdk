@@ -10,7 +10,7 @@ class X extends core::Object {
   final field dynamic y;
   constructor •(dynamic x, dynamic y) → self::X
     ;
-  method toString() → dynamic
+  method toString() → core::String
     ;
 }
 class Y extends core::Object {

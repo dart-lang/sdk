@@ -34,6 +34,58 @@ abstract class EdgeOriginWithLocation extends EdgeOrigin {
   EdgeOriginWithLocation(this.source, this.offset);
 }
 
+/// Edge origin resulting from the relationship between a field formal parameter
+/// and the corresponding field.
+class FieldFormalParameterOrigin extends EdgeOriginWithLocation {
+  FieldFormalParameterOrigin(Source source, int offset) : super(source, offset);
+}
+
+/// Edge origin resulting from the use of greatest lower bound.
+///
+/// For example, in the following code snippet:
+///   void Function(int) f(void Function(int) x, void Function(int) y)
+///       => x ?? y;
+///
+/// the `int` in the return type is nullable if both the `int`s in the types of
+/// `x` and `y` are nullable, due to the fact that the `int` in the return type
+/// is the greatest lower bound of the two other `int`s.
+class GreatestLowerBoundOrigin extends EdgeOriginWithLocation {
+  GreatestLowerBoundOrigin(Source source, int offset) : super(source, offset);
+}
+
+/// Edge origin resulting from the presence of a `??` operator.
+class IfNullOrigin extends EdgeOriginWithLocation {
+  IfNullOrigin(Source source, int offset) : super(source, offset);
+}
+
+/// Edge origin resulting from the implicit call from a mixin application
+/// constructor to the corresponding super constructor.
+///
+/// For example, in the following code snippet:
+///   class C {
+///     C(int i);
+///   }
+///   mixin M {}
+///   class D = C with M;
+///
+/// this class is used for the edge connecting the types of the `i` parameters
+/// between the implicit constructor for `D` and the explicit constructor for
+/// `C`.
+class ImplicitMixinSuperCallOrigin extends EdgeOriginWithLocation {
+  ImplicitMixinSuperCallOrigin(Source source, int offset)
+      : super(source, offset);
+}
+
+/// Edge origin resulting from an inheritance relationship between two methods.
+class InheritanceOrigin extends EdgeOriginWithLocation {
+  InheritanceOrigin(Source source, int offset) : super(source, offset);
+}
+
+/// Edge origin resulting from a type that is inferred from its initializer.
+class InitializerInferenceOrigin extends EdgeOriginWithLocation {
+  InitializerInferenceOrigin(Source source, int offset) : super(source, offset);
+}
+
 /// Edge origin resulting from a class that is instantiated to bounds.
 ///
 /// For example, in the following code snippet:

@@ -345,6 +345,98 @@ part of '../../a.dart';
 ''');
   }
 
+  test_renaming_part_that_uses_uri_in_part_of_2() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
+    addSource(pathA, '''
+part of 'test.dart';
+''');
+    await resolveTestUnit('''
+part 'a.dart';
+''');
+    // perform refactoring
+    _createRefactoring('/home/test/000/1111/22/test.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+part of '22/test.dart';
+''');
+    assertFileChangeResult(testFile, '''
+part '../a.dart';
+''');
+  }
+
+  test_renaming_part_that_uses_uri_in_part_of_3() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
+    addSource(pathA, '''
+part of 'test.dart';
+''');
+    await resolveTestUnit('''
+part 'a.dart';
+''');
+    // perform refactoring
+    _createRefactoring('/home/test/000/1111/test2.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+part of 'test2.dart';
+''');
+    assertFileChangeResult(testFile, '''
+part 'a.dart';
+''');
+  }
+
+  test_renaming_part_that_uses_uri_in_part_of_4() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
+    addSource(pathA, '''
+part 'test.dart';
+''');
+    await resolveTestUnit('''
+part of 'a.dart';
+''');
+    // perform refactoring
+    _createRefactoring('/home/test/000/1111/22/test.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+part '22/test.dart';
+''');
+    assertFileChangeResult(testFile, '''
+part of '../a.dart';
+''');
+  }
+
+  test_renaming_part_that_uses_uri_in_part_of_5() async {
+    // If the file is a part in a library, and the part-of directive uses a URI
+    // rather than a library name, that will need updating too (if the relative
+    // path to the parent changes).
+    String pathA = convertPath('/home/test/000/1111/a.dart');
+    testFile = convertPath('/home/test/000/1111/test.dart');
+    addSource(pathA, '''
+part 'test.dart';
+''');
+    await resolveTestUnit('''
+part of 'a.dart';
+''');
+    // perform refactoring
+    _createRefactoring('/home/test/000/1111/test2.dart');
+    await _assertSuccessfulRefactoring();
+    assertFileChangeResult(pathA, '''
+part 'test2.dart';
+''');
+    assertFileChangeResult(testFile, '''
+part of 'a.dart';
+''');
+  }
+
   Future _assertFailedRefactoring(RefactoringProblemSeverity expectedSeverity,
       {String expectedMessage}) async {
     RefactoringStatus status = await refactoring.checkAllConditions();

@@ -7,7 +7,6 @@
 # should still be included in the output.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

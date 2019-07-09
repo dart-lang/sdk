@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-/*element: f:[subclass=JSInt]*/
+/*member: f:[subclass=JSInt]*/
 int f(
         int
             /*strong.[null|subclass=Object]*/
@@ -18,11 +18,11 @@ int f(
 
 typedef int IntToInt(int x);
 
-/*element: test:[null]*/
+/*member: test:[null]*/
 test(/*[null|subclass=Object]*/ a, /*[subclass=Closure]*/ b) =>
     Expect.identical(a, b);
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   // It is possible to use `.call` on a function-typed value (even though it is
   // redundant).  Similarly, it is possible to tear off `.call` on a

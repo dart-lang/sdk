@@ -216,6 +216,7 @@ void _registerValue<T>(Id id, T value, Object object, SourceSpan sourceSpan,
     Expect.fail("Duplicate id $id.");
   }
   if (value != null) {
-    actualMap[id] = new ActualData<T>(id, value, sourceSpan, object);
+    actualMap[id] =
+        new ActualData<T>(id, value, sourceSpan.uri, sourceSpan.begin, object);
   }
 }

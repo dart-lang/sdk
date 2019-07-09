@@ -117,6 +117,12 @@ JSModuleFile compileWithAnalyzer(
     }
   }
 
+  if (analyzerOptions.dependencyTracker != null) {
+    var file = File(analyzerOptions.dependencyTracker.outputPath);
+    file.writeAsStringSync(
+        (analyzerOptions.dependencyTracker.dependencies.toList()..sort()).join('\n'));
+  }
+
   var jsModule = JSModuleFile(
       errors.formattedErrors.toList(), options, jsProgram, driver.summaryBytes);
   return jsModule;
@@ -205,6 +211,9 @@ class CompilerOptions extends SharedCompilerOptions {
           hide: hide)
       ..addOption('summary-out',
           help: 'location to write the summary file', hide: hide)
+      ..addOption('summary-deps-output',
+          help: 'Path to a file to dump summary dependency info to.',
+          hide: hide)
       ..addOption('module-root',
           help: '(deprecated) used to determine the default module name and\n'
               'summary import name if those are not provided.',

@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -43,7 +44,7 @@ import 'package:meta/meta.dart';
 class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Properties on the object class which are safe to call on nullable types.
-   * 
+   *
    * Note that this must include tear-offs.
    *
    * TODO(mfairhurst): Calculate these fields rather than hard-code them.
@@ -293,6 +294,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
+  /// If running with [_isNonNullable], the result of the flow analysis of the
+  /// unit being verified by this visitor.
+  final FlowAnalysisResult flowAnalysisResult;
+
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
@@ -301,7 +306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    */
   ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
       this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false})
+      {this.disableConflictingGenericsCheck: false, this.flowAnalysisResult})
       : _errorReporter = errorReporter,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter) {
@@ -713,6 +718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     try {
+      _checkForNotInitializedNonNullableStaticField(node);
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -1440,7 +1446,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _checkForFinalNotInitialized(node.variables);
-    _checkForNotInitializedPotentiallyNonNullableLocalVariable(node.variables);
     super.visitVariableDeclarationStatement(node);
   }
 
@@ -3369,75 +3374,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForNotInitializedPotentiallyNonNullableLocalVariable(
-    VariableDeclarationList node,
-  ) {
-    // Const and final checked separately.
-    if (node.isConst || node.isFinal) {
-      return;
-    }
-
-    if (!_isNonNullable) {
-      return;
-    }
-
-    if (node.isLate) {
-      return;
-    }
-
-    if (node.type == null) {
-      return;
-    }
-    var type = node.type.type;
-
-    if (!_typeSystem.isPotentiallyNonNullable(type)) {
-      return;
-    }
-
-    for (var variable in node.variables) {
-      if (variable.initializer == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode
-              .NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
-          variable.name,
-          [variable.name.name],
-        );
-      }
-    }
-  }
-
-  void _checkForNotInitializedNonNullableTopLevelVariable(
-    VariableDeclarationList node,
-  ) {
-    // Const and final checked separately.
-    if (node.isConst || node.isFinal) {
-      return;
-    }
-
-    if (!_isNonNullable) {
-      return;
-    }
-
-    if (node.type == null) {
-      return;
-    }
-    var type = node.type.type;
-
-    if (!_typeSystem.isPotentiallyNonNullable(type)) {
-      return;
-    }
-
-    for (var variable in node.variables) {
-      if (variable.initializer == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
-          variable.name,
-          [variable.name.name],
-        );
-      }
-    }
-  }
-
   /**
    * If there are no constructors in the given [members], verify that all
    * final fields are initialized.  Cases in which there is at least one
@@ -4026,6 +3962,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   void _checkForListConstructor(
       InstanceCreationExpression node, InterfaceType type) {
+    if (!_isNonNullable) return;
+
     if (node.argumentList.arguments.length == 1 &&
         _isDartCoreList(type) &&
         _typeSystem.isPotentiallyNonNullable(type.typeArguments[0])) {
@@ -4741,6 +4679,62 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNotInitializedNonNullableStaticField(FieldDeclaration node) {
+    if (!_isNonNullable) return;
+
+    if (!node.isStatic) return;
+
+    var fields = node.fields;
+
+    // Const and final checked separately.
+    if (fields.isConst || fields.isFinal) return;
+
+    if (fields.type == null) return;
+    var type = fields.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) return;
+
+    for (var variable in fields.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
+  void _checkForNotInitializedNonNullableTopLevelVariable(
+    VariableDeclarationList node,
+  ) {
+    if (!_isNonNullable) return;
+
+    // Const and final checked separately.
+    if (node.isConst || node.isFinal) {
+      return;
+    }
+
+    if (node.type == null) {
+      return;
+    }
+    var type = node.type.type;
+
+    if (!_typeSystem.isPotentiallyNonNullable(type)) {
+      return;
+    }
+
+    for (var variable in node.variables) {
+      if (variable.initializer == null) {
+        _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
+          variable.name,
+          [variable.name.name],
+        );
+      }
+    }
+  }
+
   /**
    * Check for illegal derefences of nullables, ie, "unchecked" usages of
    * nullable values. Note that *any* usage of a null value is an "unchecked"
@@ -5396,10 +5390,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Verify that the type arguments in the given [typeName] are all within
    * their bounds.
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
-   * [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS],
-   * [CompileTimeErrorCode.GENERIC_FUNCTION_CANNOT_BE_BOUND].
    */
   void _checkForTypeArgumentNotMatchingBounds(TypeName typeName) {
     // prepare Type
@@ -5459,14 +5449,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           }
 
           if (!_typeSystem.isSubtypeOf(argType, boundType)) {
-            ErrorCode errorCode;
-            if (_isInConstInstanceCreation) {
-              errorCode =
-                  CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            } else {
-              errorCode =
-                  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS;
-            }
             if (_shouldAllowSuperBoundedTypes(typeName)) {
               var replacedType =
                   (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
@@ -5477,7 +5459,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               }
             }
             _errorReporter.reportTypeErrorForNode(
-                errorCode, argumentNode, [argType, boundType]);
+                CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                argumentNode,
+                [argType, boundType]);
           }
         }
       }
@@ -5987,8 +5971,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * Verify that the given [typeArguments] are all within their bounds, as
    * defined by the given [element].
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   void _checkTypeArguments(InvocationExpression node) {
     NodeList<TypeAnnotation> typeArgumentList = node.typeArguments?.arguments;
@@ -6033,7 +6015,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             fnTypeParams[i].bound.substitute2(typeArgs, fnTypeParams);
         if (!_typeSystem.isSubtypeOf(argType, bound)) {
           _errorReporter.reportTypeErrorForNode(
-              StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
               [argType, bound]);
         }
@@ -6059,6 +6041,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
+    if (!_isNonNullable) return;
+
     AstNode parent = node.parent;
     if (parent is FieldFormalParameter ||
         parent is FunctionTypeAlias ||

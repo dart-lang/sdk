@@ -45,7 +45,7 @@ class PipeServerGame {
     void connectHandler() {
       String srcFileName = getDataFilename("readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
-      fileInput.pipe(_socket).then((_) {
+      fileInput.cast<List<int>>().pipe(_socket).then((_) {
         var tempDir = Directory.systemTemp.createTempSync('dart_pipe_server');
         var dstFileName = tempDir.path + "/readline_test1.dat";
         var dstFile = new File(dstFileName);

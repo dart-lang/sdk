@@ -5,6 +5,8 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
+#include <memory>
+
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
@@ -1009,7 +1011,7 @@ DART_EXPORT char* Dart_Initialize(Dart_InitializeParams* params) {
                     params->thread_exit, params->file_open, params->file_read,
                     params->file_write, params->file_close,
                     params->entropy_source, params->get_service_assets,
-                    params->start_kernel_isolate);
+                    params->start_kernel_isolate, params->code_observer);
 }
 
 DART_EXPORT char* Dart_Cleanup() {
@@ -5042,13 +5044,13 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
-  kernel::Program* program =
+  std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
-  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-  delete program;
+  const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program.get());
+  program.reset();
 
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
@@ -5104,6 +5106,7 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
     return Api::NewError("Class '%s' not found in library '%s'.",
                          cls_name.ToCString(), lib_name.ToCString());
   }
+  cls.EnsureDeclarationLoaded();
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
   return Api::NewHandle(T, cls.RareType());
 }
@@ -5133,6 +5136,7 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());
   }
+  cls.EnsureDeclarationLoaded();
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
@@ -5288,14 +5292,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   BumpAllocateScope bump_allocate_scope(T);
 
   const char* error = nullptr;
-  kernel::Program* program =
+  std::unique_ptr<kernel::Program> program =
       kernel::Program::ReadFromBuffer(buffer, buffer_size, &error);
   if (program == nullptr) {
     return Api::NewError("Can't load Kernel binary: %s.", error);
   }
   const Object& result =
-      kernel::KernelLoader::LoadEntireProgram(program, false);
-  delete program;
+      kernel::KernelLoader::LoadEntireProgram(program.get(), false);
+  program.reset();
 
   return Api::NewHandle(T, result.raw());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

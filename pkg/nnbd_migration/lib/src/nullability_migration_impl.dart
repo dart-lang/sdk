@@ -7,8 +7,8 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
+import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
-import 'package:nnbd_migration/src/graph_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
@@ -59,8 +59,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   void processInput(ResolvedUnitResult result) {
     var unit = result.unit;
-    unit.accept(GraphBuilder(result.typeProvider, _variables, _graph,
-        unit.declaredElement.source, _permissive ? listener : null));
+    unit.accept(EdgeBuilder(result.typeProvider, result.typeSystem, _variables,
+        _graph, unit.declaredElement.source, _permissive ? listener : null));
   }
 }
 

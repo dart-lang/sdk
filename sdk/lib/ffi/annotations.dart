@@ -4,19 +4,6 @@
 
 part of dart.ffi;
 
-class Struct {
-  const Struct();
-}
-
-/// This Dart class represents a C struct.
-///
-/// Fields in this struct, annotated with a subtype of [NativeType], are
-/// automatically transformed into wrappers to access the fields of the struct
-/// in C memory.
-///
-/// Fields without a [NativeType] annotation are not supported.
-const struct = const Struct();
-
 class DartRepresentationOf {
   /// Represents the Dart type corresponding to a [NativeType].
   ///
@@ -32,9 +19,9 @@ class DartRepresentationOf {
   /// [Double]                             -> [double]
   /// [Float]                              -> [double]
   /// [Pointer]<T>                         -> [Pointer]<T>
-  /// T extends [Pointer]                  -> T
   /// [NativeFunction]<T1 Function(T2, T3) -> S1 Function(S2, S3)
   ///    where DartRepresentationOf(Tn) -> Sn
+  /// T extends Struct<T>                  -> T
   const DartRepresentationOf(String nativeType);
 }
 

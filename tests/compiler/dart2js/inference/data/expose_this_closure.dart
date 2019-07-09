@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   exposeThis1();
   exposeThis2();
@@ -17,18 +17,18 @@ main() {
 class Class1 {
   // The inferred type of the field does _not_ include `null` because `this`
   // is _not_ been exposed.
-  /*element: Class1.field1:[exact=JSUInt31]*/
+  /*member: Class1.field1:[exact=JSUInt31]*/
   var field1;
-  /*element: Class1.field2:[exact=JSUInt31]*/
+  /*member: Class1.field2:[exact=JSUInt31]*/
   var field2;
 
-  /*element: Class1.:[exact=Class1]*/
+  /*member: Class1.:[exact=Class1]*/
   Class1()
       : field1 = 42,
         field2 = 87;
 }
 
-/*element: exposeThis1:[exact=Class1]*/
+/*member: exposeThis1:[exact=Class1]*/
 exposeThis1() => new Class1();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,19 +36,19 @@ exposeThis1() => new Class1();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class2 {
-  /*element: Class2.field1:[exact=JSUInt31]*/
+  /*member: Class2.field1:[exact=JSUInt31]*/
   var field1;
-  /*element: Class2.field2:[exact=JSUInt31]*/
+  /*member: Class2.field2:[exact=JSUInt31]*/
   var field2;
 
-  /*element: Class2.:[exact=Class2]*/
+  /*member: Class2.:[exact=Class2]*/
   Class2() {
     /*update: [exact=Class2]*/ field1 = 42;
     /*update: [exact=Class2]*/ field2 = 87;
   }
 }
 
-/*element: exposeThis2:[exact=Class2]*/
+/*member: exposeThis2:[exact=Class2]*/
 exposeThis2() => new Class2();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,12 +56,12 @@ exposeThis2() => new Class2();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class4 {
-  /*element: Class4.field1:[exact=JSUInt31]*/
+  /*member: Class4.field1:[exact=JSUInt31]*/
   var field1;
-  /*element: Class4.field2:[exact=JSUInt31]*/
+  /*member: Class4.field2:[exact=JSUInt31]*/
   var field2;
 
-  /*element: Class4.:[exact=Class4]*/
+  /*member: Class4.:[exact=Class4]*/
   Class4()
       : field1 = 42,
         field2 = 87 {
@@ -71,7 +71,7 @@ class Class4 {
   }
 }
 
-/*element: exposeThis4:[exact=Class4]*/
+/*member: exposeThis4:[exact=Class4]*/
 exposeThis4() => new Class4();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -79,12 +79,12 @@ exposeThis4() => new Class4();
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class5 {
-  /*element: Class5.field1:[exact=JSUInt31]*/
+  /*member: Class5.field1:[exact=JSUInt31]*/
   var field1;
-  /*element: Class5.field2:[null|exact=JSUInt31]*/
+  /*member: Class5.field2:[null|exact=JSUInt31]*/
   var field2;
 
-  /*element: Class5.:[exact=Class5]*/
+  /*member: Class5.:[exact=Class5]*/
   Class5() {
     /*update: [exact=Class5]*/ field1 = 42;
     /*[exact=JSUInt31]*/ () {
@@ -94,5 +94,5 @@ class Class5 {
   }
 }
 
-/*element: exposeThis5:[exact=Class5]*/
+/*member: exposeThis5:[exact=Class5]*/
 exposeThis5() => new Class5();

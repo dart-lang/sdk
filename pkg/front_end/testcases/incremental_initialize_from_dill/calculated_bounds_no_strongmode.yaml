@@ -2,12 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
-# Test compiling in non-strong-mode from source and initializing from dill.
+# Test compiling from source and initializing from dill.
 # Make sure that any inference if done in the same way.
 
 type: basic
 entry: a.dart
-strong: false
 invalidate:
   - a.dart
 sources:

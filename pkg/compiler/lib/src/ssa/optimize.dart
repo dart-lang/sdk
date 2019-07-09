@@ -636,6 +636,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return splitInstruction;
     }
 
+    // TODO(sra): Implement tagging with `JSArray<String>` for new rti.
+
     node.block.addBefore(node, splitInstruction);
 
     HInstruction stringTypeInfo = new HTypeInfoExpression(
@@ -1639,20 +1641,50 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
       for (HInstruction argument in node.inputs) {
         if (argument is HTypeInfoReadVariable) {
+          ClassEntity context = DartTypes.getClassContext(argument.variable);
           HInstruction nextSource = argument.object;
+          if (nextSource is HRef) {
+            HRef ref = nextSource;
+            nextSource = ref.value;
+          }
           if (nextSource is HThis) {
             if (source == null) {
               source = nextSource;
-              ClassEntity contextClass =
-                  nextSource.sourceElement.enclosingClass;
-              if (node.inputs.length !=
-                  _closedWorld.elementEnvironment
-                      .getThisType(contextClass)
-                      .typeArguments
-                      .length) {
+              ClassEntity thisClass = nextSource.sourceElement.enclosingClass;
+              InterfaceType thisType =
+                  _closedWorld.elementEnvironment.getThisType(thisClass);
+              if (node.inputs.length != thisType.typeArguments.length) {
                 return null;
               }
-              if (needsSubstitutionForTypeVariableAccess(contextClass)) {
+              if (needsSubstitutionForTypeVariableAccess(thisClass)) {
+                return null;
+              }
+              if (context != null &&
+                  !_rtiSubstitutions.isTrivialSubstitution(
+                      thisClass, context)) {
+                // If inlining, the [context] is not the same as [thisClass].
+                // If this is the case, then the substitution must be trivial.
+                // Consider this:
+                //
+                //    class A {
+                //      final Object value;
+                //      A(this.value);
+                //    }
+                //    class B<T> extends A {
+                //      B(T value) : super(value);
+                //      T get value => super.value as T;
+                //    }
+                //    class C<S> extends B<List<S>> {
+                //      C(List<S> value) : super(value);
+                //      S get first => value.first;
+                //    }
+                //
+                // If `B.value` is inlined into `C.first` the type info
+                // expression is the list `[B.T]` on a `this` of type `C<S>`.
+                // Since the substitution from C to B is not trivial
+                // (S -> List<S>) this type info expression cannot be replaced
+                // with the type arguments `C<S>` (it would yield [S] instead of
+                // [List<S>]).
                 return null;
               }
             }

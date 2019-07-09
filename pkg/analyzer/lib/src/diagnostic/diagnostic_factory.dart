@@ -44,6 +44,6 @@ class DiagnosticFactory {
         identifier.length,
         CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
         [name],
-        contextMessages);
+        contextMessages ?? const []);
   }
 }

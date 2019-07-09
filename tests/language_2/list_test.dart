@@ -118,7 +118,7 @@ class ListTest {
     Expect.equals(9, element);
 
     Expect.throws(() => new List(-1));
-    Expect.throws(() => new List(0x7fffffffffffffff));
+    Expect.throws(() => new List(0x7ffffffffffff000));
 
     List list = new List();
     Expect.throwsRangeError(list.removeLast);

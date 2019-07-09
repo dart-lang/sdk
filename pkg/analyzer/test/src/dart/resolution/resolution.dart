@@ -419,8 +419,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  ExpectedError error(ErrorCode code, int offset, int length) =>
-      new ExpectedError(code, offset, length);
+  ExpectedError error(ErrorCode code, int offset, int length,
+          {List<ExpectedMessage> expectedMessages =
+              const <ExpectedMessage>[]}) =>
+      ExpectedError(code, offset, length, expectedMessages: expectedMessages);
 
   Element getNodeElement(AstNode node) {
     if (node is Annotation) {
@@ -449,6 +451,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }
   }
+
+  ExpectedMessage message(String filePath, int offset, int length) =>
+      ExpectedMessage(convertPath(filePath), offset, length);
 
   Future<ResolvedUnitResult> resolveFile(String path);
 

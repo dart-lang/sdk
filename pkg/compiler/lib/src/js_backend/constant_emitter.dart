@@ -13,9 +13,11 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
 import '../js_emitter/code_emitter_task.dart';
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
 import 'runtime_types.dart';
+import 'runtime_types_new.dart' show RecipeEncoder;
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 
@@ -205,6 +207,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   final JElementEnvironment _elementEnvironment;
   final RuntimeTypesNeed _rtiNeed;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final JFieldAnalysis _fieldAnalysis;
   final Emitter _emitter;
   final _ConstantReferenceGenerator _constantReferenceGenerator;
@@ -219,6 +222,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       this._elementEnvironment,
       this._rtiNeed,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._fieldAnalysis,
       this._emitter,
       this._constantReferenceGenerator,
@@ -354,19 +358,34 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
     DartType type = constant.representedType.unaliased;
 
-    jsAst.Expression unexpected(TypeVariableType _variable) {
-      TypeVariableType variable = _variable;
-      throw failedAt(
-          NO_LOCATION_SPANNABLE,
-          "Unexpected type variable '${variable}'"
-          " in constant '${constant.toDartText()}'");
+    if (_options.experimentNewRti) {
+      assert(!type.containsTypeVariables);
+
+      jsAst.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
+          _emitter, TypeExpressionRecipe(type));
+
+      // Generate  `typeLiteral(recipe)`.
+
+      // TODO(sra): `typeLiteral(r)` calls `createRuntimeType(findType(r))`.
+      // Find a way to share the `findType` call with methods that also use the
+      // type.
+      return js('#(#)',
+          [getHelperProperty(_commonElements.typeLiteralMaker), recipe]);
+    } else {
+      jsAst.Expression unexpected(TypeVariableType _variable) {
+        TypeVariableType variable = _variable;
+        throw failedAt(
+            NO_LOCATION_SPANNABLE,
+            "Unexpected type variable '${variable}'"
+            " in constant '${constant.toDartText()}'");
+      }
+
+      jsAst.Expression rti =
+          _rtiEncoder.getTypeRepresentation(_emitter, type, unexpected);
+
+      return new jsAst.Call(
+          getHelperProperty(_commonElements.createRuntimeType), [rti]);
     }
-
-    jsAst.Expression rti =
-        _rtiEncoder.getTypeRepresentation(_emitter, type, unexpected);
-
-    return new jsAst.Call(
-        getHelperProperty(_commonElements.createRuntimeType), [rti]);
   }
 
   @override

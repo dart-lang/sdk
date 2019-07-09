@@ -4,9 +4,9 @@
 
 /*class: A:OutputUnit(main, {})*/
 class A {
-  /*strong.element: A.:OutputUnit(1, {lib1})*/
+  /*strong.member: A.:OutputUnit(1, {lib1})*/
   const A();
 
-  /*element: A.method:OutputUnit(main, {})*/
+  /*member: A.method:OutputUnit(main, {})*/
   method() {}
 }

@@ -18416,7 +18416,7 @@ class InputElement extends HtmlElement
 
 // Interfaces representing the InputElement APIs which are supported
 // for the various types of InputElement. From:
-// http://www.w3.org/html/wg/drafts/html/master/forms.html#the-input-element.
+// https://w3c.github.io/html/sec-forms.html#the-input-element.
 
 /**
  * Exposes the functionality common between all InputElement types.
@@ -36425,7 +36425,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
 abstract class KeyCode {
   // These constant names were borrowed from Closure's Keycode enumeration
   // class.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keycodes.js.source.html
+  // https://github.com/google/closure-library/blob/master/closure/goog/events/keycodes.js
   static const int WIN_KEY_FF_LINUX = 0;
   static const int MAC_ENTER = 3;
   static const int BACKSPACE = 8;
@@ -37285,7 +37285,7 @@ abstract class _KeyName {
  */
 class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
-  // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
+  // https://github.com/google/closure-library/blob/master/closure/goog/events/keyhandler.js
 
   /**
    * The set of keys that have been pressed down without seeing their
@@ -37310,7 +37310,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
-   * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
+   * https://www.w3.org/TR/2003/NOTE-DOM-Level-3-Events-20031107/keyset.html#KeySet-Set
    */
   static const Map<String, int> _keyIdentifier = const {
     'Up': KeyCode.UP,

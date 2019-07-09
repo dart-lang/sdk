@@ -32,6 +32,7 @@ TranslationHelper::TranslationHelper(Thread* thread)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -46,6 +47,7 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       metadata_payloads_(ExternalTypedData::Handle(Z)),
       metadata_mappings_(ExternalTypedData::Handle(Z)),
       constants_(Array::Handle(Z)),
+      constants_table_(ExternalTypedData::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -79,6 +81,7 @@ void TranslationHelper::InitFromKernelProgramInfo(
   SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
   SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
+  SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
 }
 
@@ -90,6 +93,23 @@ RawGrowableObjectArray* TranslationHelper::EnsurePotentialPragmaFunctions() {
     info_.set_potential_pragma_functions(funcs);
   }
   return funcs.raw();
+}
+
+void TranslationHelper::AddPotentialExtensionLibrary(const Library& library) {
+  if (potential_extension_libraries_ == nullptr) {
+    potential_extension_libraries_ =
+        &GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  }
+  potential_extension_libraries_->Add(library);
+}
+
+RawGrowableObjectArray* TranslationHelper::GetPotentialExtensionLibraries() {
+  if (potential_extension_libraries_ != nullptr) {
+    GrowableObjectArray* result = potential_extension_libraries_;
+    potential_extension_libraries_ = nullptr;
+    return result->raw();
+  }
+  return GrowableObjectArray::null();
 }
 
 void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
@@ -124,6 +144,12 @@ void TranslationHelper::SetConstants(const Array& constants) {
   ASSERT(constants_.IsNull() ||
          (constants.IsNull() || constants.Length() == 0));
   constants_ = constants.raw();
+}
+
+void TranslationHelper::SetConstantsTable(
+    const ExternalTypedData& constants_table) {
+  ASSERT(constants_table_.IsNull());
+  constants_table_ = constants_table.raw();
 }
 
 void TranslationHelper::SetKernelProgramInfo(const KernelProgramInfo& info) {
@@ -2900,9 +2926,10 @@ void TypeTranslator::BuildTypeParameterType() {
       }
       parameter_index -= class_types.Length();
     }
-
+    // Factory function should not be considered as procedure.
     intptr_t procedure_type_parameter_count =
-        active_class_->MemberIsProcedure()
+        (active_class_->MemberIsProcedure() &&
+         !active_class_->MemberIsFactoryProcedure())
             ? active_class_->MemberTypeParameterCount(Z)
             : 0;
     if (procedure_type_parameter_count > 0) {

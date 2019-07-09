@@ -22,6 +22,7 @@ Future<String> getIsolateId(io.HttpClient httpClient, Uri serverUri) async {
   final requestUri = serverUri.replace(pathSegments: pathSegments);
   var request = await httpClient.getUrl(requestUri);
   Map response = await (await request.close())
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(json.decoder)
       .first;
@@ -55,6 +56,7 @@ Future<Null> testeeBefore() async {
   try {
     var request = await httpClient.getUrl(requestUri);
     Map response = await (await request.close())
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
         .first;

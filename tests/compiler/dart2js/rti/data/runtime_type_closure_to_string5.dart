@@ -5,21 +5,21 @@
 /*strong.class: Class:*/
 /*omit.class: Class:*/
 class Class<T> {
-  /*strong.element: Class.:*/
-  /*omit.element: Class.:*/
+  /*strong.member: Class.:*/
+  /*omit.member: Class.:*/
   Class();
 }
 
-/*strong.element: method1:*/
-/*omit.element: method1:*/
+/*strong.member: method1:*/
+/*omit.member: method1:*/
 method1() {}
 
-/*strong.element: method2:*/
-/*omit.element: method2:*/
+/*strong.member: method2:*/
+/*omit.member: method2:*/
 method2(int i, String s) => i;
 
-/*strong.element: main:*/
-/*omit.element: main:*/
+/*strong.member: main:*/
+/*omit.member: main:*/
 main() {
   print('${method1.runtimeType}');
   method2(0, '');

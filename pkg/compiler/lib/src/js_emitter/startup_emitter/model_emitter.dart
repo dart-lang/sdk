@@ -49,6 +49,7 @@ import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';
@@ -99,6 +100,7 @@ class ModelEmitter {
       this._emitter,
       this._sourceInformationStrategy,
       RuntimeTypesEncoder rtiEncoder,
+      RecipeEncoder rtiRecipeEncoder,
       this._shouldGenerateSourceMap)
       : _constantOrdering = new ConstantOrdering(_closedWorld.sorter) {
     this._constantEmitter = new ConstantEmitter(
@@ -107,6 +109,7 @@ class ModelEmitter {
         _closedWorld.elementEnvironment,
         _closedWorld.rtiNeed,
         rtiEncoder,
+        rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
         _emitter,
         this.generateConstantReference,

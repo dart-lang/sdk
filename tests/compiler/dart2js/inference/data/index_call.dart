@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   listIndexCall();
   listIndexExplicitCall();
@@ -13,7 +13,7 @@ main() {
   multiMapListIndexCall();
 }
 
-/*element: listIndexCall:[null|subclass=Object]*/
+/*member: listIndexCall:[null|subclass=Object]*/
 listIndexCall() {
   var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ a}) => a;
   var a = [closure];
@@ -21,7 +21,7 @@ listIndexCall() {
       [0](a: 0);
 }
 
-/*element: listIndexExplicitCall:[null|subclass=Object]*/
+/*member: listIndexExplicitCall:[null|subclass=Object]*/
 listIndexExplicitCall() {
   var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ b}) => b;
   var a = [closure];
@@ -30,7 +30,7 @@ listIndexExplicitCall() {
       .call(b: 0);
 }
 
-/*element: multiListIndex:[subclass=JSPositiveInt]*/
+/*member: multiListIndex:[subclass=JSPositiveInt]*/
 multiListIndex() {
   var a = [
     [0]
@@ -43,7 +43,7 @@ multiListIndex() {
       . /*invoke: [exact=JSUInt31]*/ abs();
 }
 
-/*element: multiListIndexCall:[null|subclass=Object]*/
+/*member: multiListIndexCall:[null|subclass=Object]*/
 multiListIndexCall() {
   var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ c}) => c;
   var a = [
@@ -56,7 +56,7 @@ multiListIndexCall() {
       [0](c: 0);
 }
 
-/*element: multiMapIndex:[subclass=JSPositiveInt]*/
+/*member: multiMapIndex:[subclass=JSPositiveInt]*/
 multiMapIndex() {
   var a = {
     'a': {'b': 0}
@@ -69,7 +69,7 @@ multiMapIndex() {
       abs();
 }
 
-/*element: multiMapIndexCall:[null|subclass=Object]*/
+/*member: multiMapIndexCall:[null|subclass=Object]*/
 multiMapIndexCall() {
   var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ d}) => d;
   var a = {
@@ -81,7 +81,7 @@ multiMapIndexCall() {
       ['b'](d: 0);
 }
 
-/*element: multiMapListIndexCall:[null|subclass=Object]*/
+/*member: multiMapListIndexCall:[null|subclass=Object]*/
 multiMapListIndexCall() {
   var closure = /*[exact=JSUInt31]*/ ({/*[exact=JSUInt31]*/ d}) => d;
   var a = {

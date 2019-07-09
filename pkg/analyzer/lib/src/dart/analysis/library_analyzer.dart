@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/inheritance_override.dart';
@@ -76,6 +77,7 @@ class LibraryAnalyzer {
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
+  final Map<FileState, FlowAnalysisResult> _fileToFlowAnalysisResult = {};
   final List<UsedImportedElements> _usedImportedElementsList = [];
   final List<UsedLocalElements> _usedLocalElementsList = [];
   final Map<FileState, List<PendingError>> _fileToPendingErrors = {};
@@ -411,7 +413,8 @@ class LibraryAnalyzer {
     // Use the ErrorVerifier to compute errors.
     //
     ErrorVerifier errorVerifier = new ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance, false);
+        errorReporter, _libraryElement, _typeProvider, _inheritance, false,
+        flowAnalysisResult: _fileToFlowAnalysisResult[file]);
     unit.accept(errorVerifier);
   }
 
@@ -698,9 +701,16 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
+    FlowAnalysisHelper flowAnalysisHelper;
+    if (unit.featureSet.isEnabled(Feature.non_nullable)) {
+      flowAnalysisHelper = FlowAnalysisHelper(_context.typeSystem, unit);
+      _fileToFlowAnalysisResult[file] = flowAnalysisHelper.result;
+      flowAnalysisHelper.result.putIntoNode(unit);
+    }
+
     unit.accept(new ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet));
+        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
   }
 
   /**

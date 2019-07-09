@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: returnInt1:[exact=JSUInt31]*/
+/*member: returnInt1:[exact=JSUInt31]*/
 returnInt1() {
   var a = 42;
   try {
@@ -11,7 +11,7 @@ returnInt1() {
   return a;
 }
 
-/*element: returnDyn1:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn1:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn1() {
   dynamic a = 42;
   try {
@@ -20,7 +20,7 @@ returnDyn1() {
   return a;
 }
 
-/*element: returnInt2:[exact=JSUInt31]*/
+/*member: returnInt2:[exact=JSUInt31]*/
 returnInt2() {
   var a = 42;
   try {
@@ -31,7 +31,7 @@ returnInt2() {
   return a;
 }
 
-/*element: returnDyn2:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn2:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn2() {
   dynamic a = 42;
   try {
@@ -42,7 +42,7 @@ returnDyn2() {
   return a;
 }
 
-/*element: returnInt3:[exact=JSUInt31]*/
+/*member: returnInt3:[exact=JSUInt31]*/
 returnInt3() {
   dynamic a = 42;
   try {
@@ -55,7 +55,7 @@ returnInt3() {
   return a;
 }
 
-/*element: returnDyn3:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn3:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn3() {
   dynamic a = 42;
   try {
@@ -70,7 +70,7 @@ returnDyn3() {
   return a;
 }
 
-/*element: returnInt4:[exact=JSUInt31]*/
+/*member: returnInt4:[exact=JSUInt31]*/
 returnInt4() {
   var a = 42;
   try {
@@ -85,7 +85,7 @@ returnInt4() {
   return a;
 }
 
-/*element: returnDyn4:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn4:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn4() {
   dynamic a = 42;
   if (a /*invoke: [exact=JSUInt31]*/ == 54) {
@@ -96,7 +96,7 @@ returnDyn4() {
   return a;
 }
 
-/*element: returnInt5:[exact=JSUInt31]*/
+/*member: returnInt5:[exact=JSUInt31]*/
 returnInt5() {
   var a = 42;
   if (a /*invoke: [exact=JSUInt31]*/ == 54) {
@@ -107,7 +107,7 @@ returnInt5() {
   return a;
 }
 
-/*element: returnDyn5:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn5:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn5() {
   dynamic a = 42;
   if (a /*invoke: [exact=JSUInt31]*/ == 54) {
@@ -120,7 +120,7 @@ returnDyn5() {
   return a;
 }
 
-/*element: returnInt6:[subclass=JSInt]*/
+/*member: returnInt6:[subclass=JSInt]*/
 returnInt6() {
   try {
     throw 42;
@@ -131,7 +131,7 @@ returnInt6() {
   return 42;
 }
 
-/*element: returnDyn6:[null|subclass=Object]*/
+/*member: returnDyn6:[null|subclass=Object]*/
 returnDyn6() {
   try {
     throw 42;
@@ -140,7 +140,7 @@ returnDyn6() {
   }
 }
 
-/*element: returnInt7:[exact=JSUInt31]*/
+/*member: returnInt7:[exact=JSUInt31]*/
 returnInt7() {
   dynamic a = 'foo';
   try {
@@ -150,7 +150,7 @@ returnInt7() {
   return 2;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnInt1();
   returnDyn1();

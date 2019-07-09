@@ -781,23 +781,6 @@ class Isolate : public BaseIsolate {
     return !unsafe_trust_strong_mode_types();
   }
 
-  static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
-                "Cleanup support for old bytecode format versions");
-  bool is_using_old_bytecode_instructions() const {
-    return UsingOldBytecodeInstructionsBit::decode(isolate_flags_);
-  }
-  void set_is_using_old_bytecode_instructions(bool value) {
-    isolate_flags_ =
-        UsingOldBytecodeInstructionsBit::update(value, isolate_flags_);
-  }
-  bool is_using_new_bytecode_instructions() const {
-    return UsingNewBytecodeInstructionsBit::decode(isolate_flags_);
-  }
-  void set_is_using_new_bytecode_instructions(bool value) {
-    isolate_flags_ =
-        UsingNewBytecodeInstructionsBit::update(value, isolate_flags_);
-  }
-
   bool has_attempted_stepping() const {
     return HasAttemptedSteppingBit::decode(isolate_flags_);
   }
@@ -930,13 +913,7 @@ class Isolate : public BaseIsolate {
   V(Obfuscate)                                                                 \
   V(CompactionInProgress)                                                      \
   V(ShouldLoadVmService)                                                       \
-  V(UnsafeTrustStrongModeTypes)                                                \
-  V(UsingOldBytecodeInstructions)                                              \
-  V(UsingNewBytecodeInstructions)
-
-  static_assert(
-      KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
-      "Cleanup UsingOldBytecodeInstructions and UsingNewBytecodeInstructions");
+  V(UnsafeTrustStrongModeTypes)
 
   // Isolate specific flags.
   enum FlagBits {

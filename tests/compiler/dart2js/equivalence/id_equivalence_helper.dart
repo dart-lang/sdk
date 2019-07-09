@@ -14,7 +14,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/util/features.dart';
 import 'package:expect/expect.dart';
-import 'package:sourcemap_testing/src/annotated_code_helper.dart';
+import 'package:front_end/src/testing/annotated_code_helper.dart';
 
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
@@ -280,7 +280,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   }
 
   for (Id id in globalIds) {
-    if (id is ElementId) {
+    if (id is MemberId) {
       MemberEntity member;
       if (id.className != null) {
         ClassEntity cls = getGlobalClass(id.className);
@@ -403,9 +403,7 @@ class IdData<T> {
   String actualCode(Uri uri) {
     Map<int, List<String>> annotations = <int, List<String>>{};
     actualMaps[uri].forEach((Id id, ActualData<T> data) {
-      annotations
-          .putIfAbsent(data.sourceSpan.begin, () => [])
-          .add('${data.value}');
+      annotations.putIfAbsent(data.offset, () => []).add('${data.value}');
     });
     return withAnnotations(code[uri].sourceCode, annotations);
   }
@@ -863,7 +861,7 @@ Future<bool> checkCode<T>(
         if (!dataValidator.isEmpty(actual)) {
           reportError(
               data.compiler.reporter,
-              actualData.sourceSpan,
+              computeSourceSpanFromUriOffset(actualData.uri, actualData.offset),
               'EXTRA $mode DATA for ${id.descriptor}:\n '
               'object   : ${actualData.objectText}\n '
               'actual   : ${colorizeActual('${IdValue.idToString(id, actualText)}')}\n '
@@ -879,7 +877,7 @@ Future<bool> checkCode<T>(
         if (unexpectedMessage != null) {
           reportError(
               data.compiler.reporter,
-              actualData.sourceSpan,
+              computeSourceSpanFromUriOffset(actualData.uri, actualData.offset),
               'UNEXPECTED $mode DATA for ${id.descriptor}:\n '
               'detail  : ${colorizeMessage(unexpectedMessage)}\n '
               'object  : ${actualData.objectText}\n '
@@ -951,7 +949,7 @@ Spannable computeSpannable(
     ElementEnvironment elementEnvironment, Uri mainUri, Id id) {
   if (id is NodeId) {
     return new SourceSpan(mainUri, id.value, id.value + 1);
-  } else if (id is ElementId) {
+  } else if (id is MemberId) {
     String memberName = id.memberName;
     bool isSetter = false;
     if (memberName != '[]=' && memberName != '==' && memberName.endsWith('=')) {

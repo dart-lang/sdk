@@ -378,12 +378,6 @@ abstract class AstNode implements SyntacticEntity {
   /// Return the token before [target] or `null` if it cannot be found.
   Token findPrevious(Token target);
 
-  /// Return the most immediate ancestor of this node for which the [predicate]
-  /// returns `true`, or `null` if there is no such ancestor. Note that this
-  /// node will never be returned.
-  @deprecated
-  E getAncestor<E extends AstNode>(Predicate<AstNode> predicate);
-
   /// Return the value of the property with the given [name], or `null` if this
   /// node does not have a property with the given name.
   E getProperty<E>(String name);
@@ -502,6 +496,8 @@ abstract class AstVisitor<R> {
 
   R visitExtensionDeclaration(ExtensionDeclaration node);
 
+  R visitExtensionOverride(ExtensionOverride node);
+
   R visitFieldDeclaration(FieldDeclaration node);
 
   R visitFieldFormalParameter(FieldFormalParameter node);
@@ -519,9 +515,6 @@ abstract class AstVisitor<R> {
   R visitForPartsWithExpression(ForPartsWithExpression node);
 
   R visitForStatement(ForStatement node);
-
-  @Deprecated('Replaced by visitForStatement')
-  R visitForStatement2(ForStatement2 node);
 
   R visitFunctionDeclaration(FunctionDeclaration node);
 
@@ -2148,6 +2141,35 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
   TypeParameterList get typeParameters;
 }
 
+/// An override to force resolution to choose a member from a specific
+/// extension.
+///
+///    extensionOverride ::=
+///        [Identifier] [TypeArgumentList]? [ArgumentList]
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class ExtensionOverride implements Expression {
+  /// Return the list of arguments to the override. In valid code this will
+  /// contain a single argument, which evaluates to the object being extended.
+  ArgumentList get argumentList;
+
+  /// Return the name of the extension being selected.
+  Identifier get extensionName;
+
+  /// Return the type arguments to be applied to the extension, or `null` if no
+  /// type arguments were provided.
+  TypeArgumentList get typeArguments;
+
+  /// Return the actual type arguments to be applied to the extension, either
+  /// explicitly specified in [typeArguments], or inferred.
+  ///
+  /// If the AST has been resolved, never returns `null`, returns an empty list
+  /// if the extension does not have type parameters.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get typeArgumentTypes;
+}
+
 /// The declaration of one or more fields of the same type.
 ///
 ///    fieldDeclaration ::=
@@ -2539,26 +2561,6 @@ abstract class ForStatement implements Statement {
   /// Return the right parenthesis.
   Token get rightParenthesis;
 }
-
-/// A for or for-each statement.
-///
-///    forStatement ::=
-///        'for' '(' forLoopParts ')' [Statement]
-///
-///    forLoopParts ::=
-///       [VariableDeclaration] ';' [Expression]? ';' expressionList?
-///     | [Expression]? ';' [Expression]? ';' expressionList?
-///     | [DeclaredIdentifier] 'in' [Expression]
-///     | [SimpleIdentifier] 'in' [Expression]
-///
-/// This is the class that is used to represent a for loop when either the
-/// 'control-flow-collections' or 'spread-collections' experiments are enabled.
-/// If neither of those experiments are enabled, then either `ForStatement` or
-/// `ForEachStatement` will be used.
-///
-/// Clients may not extend, implement or mix-in this class.
-@Deprecated('Replaced by ForStatement')
-abstract class ForStatement2 extends ForStatement {}
 
 /// A node representing the body of a function or method.
 ///
@@ -3653,10 +3655,6 @@ abstract class ListLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the list.
   NodeList<CollectionElement> get elements;
 
-  /// Return the syntactic elements used to compute the elements of the list.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
-
   /// Return the left square bracket.
   Token get leftBracket;
 
@@ -4528,11 +4526,6 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   /// Return the syntactic elements used to compute the elements of the set or
   /// map.
   NodeList<CollectionElement> get elements;
-
-  /// Return the syntactic elements used to compute the elements of the set or
-  /// map.
-  @Deprecated('Replaced by elements')
-  NodeList<CollectionElement> get elements2;
 
   /// Return `true` if this literal represents a map literal.
   ///

@@ -11,7 +11,7 @@ class A {
     return x + y;
   }
 
-  /*element: A.foo:constant=FunctionConstant(A.defaultFoo)*/
+  /*member: A.foo:constant=FunctionConstant(A.defaultFoo)*/
   final BinaryFunc foo;
 }
 

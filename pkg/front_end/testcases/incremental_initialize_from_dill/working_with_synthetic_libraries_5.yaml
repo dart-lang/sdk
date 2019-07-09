@@ -7,7 +7,6 @@
 # Loading from such a dill is ok too.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

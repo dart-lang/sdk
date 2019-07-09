@@ -82,6 +82,12 @@ class CommandLine {
     String configurationPath;
     if (configurationPaths.length == 1) {
       configurationPath = configurationPaths.single;
+      File file = new File(configurationPath);
+      if (await file.exists()) {
+        // If [configurationPath] exists as a file, use the absolute URI. This
+        // handles absolute paths on Windows.
+        configurationPath = file.absolute.uri.toString();
+      }
     } else {
       configurationPath = "testing.json";
       if (!await new File(configurationPath).exists()) {

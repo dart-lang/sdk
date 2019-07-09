@@ -6,10 +6,18 @@
 library rti;
 
 import 'dart:_foreign_helper'
-    show JS, JS_EMBEDDED_GLOBAL, RAW_DART_FUNCTION_REF;
+    show
+        getInterceptor,
+        getJSArrayInteropRti,
+        JS,
+        JS_BUILTIN,
+        JS_EMBEDDED_GLOBAL,
+        JS_GET_NAME,
+        RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
-import 'dart:_js_embedded_names' show RtiUniverseFieldNames, RTI_UNIVERSE;
+import 'dart:_js_embedded_names'
+    show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE;
 
 import 'dart:_recipe_syntax';
 
@@ -56,15 +64,15 @@ class Rti {
 
   /// Method called from generated code to evaluate a type environment recipe in
   /// `this` type environment.
-  Rti _eval(String recipe) {
+  Rti _eval(recipe) {
     // TODO(sra): Clone the fast-path of _Universe.evalInEnvironment to here.
-    return _rtiEval(this, recipe);
+    return _rtiEval(this, _Utils.asString(recipe));
   }
 
   /// Method called from generated code to extend `this` type environment (an
   /// interface or binding Rti) with function type arguments (a singleton
   /// argument or tuple of arguments).
-  Rti _bind(Rti typeOrTuple) => _rtiBind(this, typeOrTuple);
+  Rti _bind(typeOrTuple) => _rtiBind(this, _castToRti(typeOrTuple));
 
   /// Method called from generated code to extend `this` type (as a singleton
   /// type environment) with function type arguments (a singleton argument or
@@ -80,7 +88,12 @@ class Rti {
   dynamic _precomputed4;
 
   // The Type object corresponding to this Rti.
-  Type _typeCache;
+  Object _cachedRuntimeType;
+  static _Type _getCachedRuntimeType(Rti rti) =>
+      JS('_Type|Null', '#', rti._cachedRuntimeType);
+  static void _setCachedRuntimeType(Rti rti, _Type type) {
+    rti._cachedRuntimeType = type;
+  }
 
   /// The kind of Rti `this` is, one of the kindXXX constants below.
   ///
@@ -88,9 +101,9 @@ class Rti {
   ///
   /// The zero initializer ensures dart2js type analysis considers [_kind] is
   /// non-nullable.
-  int _kind = 0;
+  Object /*int*/ _kind = 0;
 
-  static int _getKind(Rti rti) => rti._kind;
+  static int _getKind(Rti rti) => _Utils.asInt(rti._kind);
   static void _setKind(Rti rti, int kind) {
     rti._kind = kind;
   }
@@ -143,7 +156,7 @@ class Rti {
     return _Utils.asString(_getPrimary(rti));
   }
 
-  static JSArray _getInterfaceTypeArguments(rti) {
+  static JSArray _getInterfaceTypeArguments(Rti rti) {
     // The array is a plain JavaScript Array, otherwise we would need the type
     // `JSArray<Rti>` to exist before we could create the type `JSArray<Rti>`.
     assert(_getKind(rti) == kindInterface);
@@ -155,7 +168,7 @@ class Rti {
     return _castToRti(_getPrimary(rti));
   }
 
-  static JSArray _getBindingArguments(rti) {
+  static JSArray _getBindingArguments(Rti rti) {
     assert(_getKind(rti) == kindBinding);
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
@@ -192,16 +205,16 @@ class Rti {
   /// (2)using `env._eval("@<0>")._bind(args)` in place of `env._bind1(args)`).
   Object _bindCache;
 
-  static Object _getBindCache(Rti rti) => rti._evalCache;
+  static Object _getBindCache(Rti rti) => rti._bindCache;
   static void _setBindCache(Rti rti, value) {
-    rti._evalCache = value;
+    rti._bindCache = value;
   }
 
   static Rti allocate() {
     return new Rti();
   }
 
-  String _canonicalRecipe;
+  Object _canonicalRecipe;
 
   static String _getCanonicalRecipe(Rti rti) {
     var s = rti._canonicalRecipe;
@@ -231,11 +244,84 @@ Rti _rtiBind(Rti environment, Rti types) {
 /// Evaluate a ground-term type.
 /// Called from generated code.
 Rti findType(String recipe) {
-  _Universe.eval(_theUniverse(), recipe);
+  return _Universe.eval(_theUniverse(), recipe);
+}
+
+/// Returns the Rti type of [object].
+/// Called from generated code.
+Rti instanceType(object) {
+  // TODO(sra): Add specializations of this method. One possible way is to
+  // arrange that the interceptor has a _getType method that is injected into
+  // DartObject, Interceptor and JSArray. Then this method can be replaced-by
+  // `getInterceptor(o)._getType(o)`, allowing interceptor optimizations to
+  // select the specialization.
+
+  if (_Utils.instanceOf(
+      object,
+      JS_BUILTIN(
+          'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
+    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+    if (rti != null) return _castToRti(rti);
+    return _instanceTypeFromConstructor(JS('', '#.constructor', object));
+  }
+
+  if (_Utils.isArray(object)) {
+    var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
+    // TODO(sra): Do we need to protect against an Array passed between two Dart
+    // programs loaded into the same JavaScript isolate (e.g. via JS-interop).
+    // FWIW, the legacy rti has this problem too. Perhaps JSArrays should use a
+    // program-local `symbol` for the type field.
+    if (rti != null) return _castToRti(rti);
+    return _castToRti(getJSArrayInteropRti());
+  }
+
+  var interceptor = getInterceptor(object);
+  return _instanceTypeFromConstructor(JS('', '#.constructor', interceptor));
+}
+
+Rti _instanceTypeFromConstructor(constructor) {
+  // TODO(sra): Cache Rti on constructor.
+  return findType(JS('String', '#.name', constructor));
 }
 
 Type getRuntimeType(object) {
-  throw UnimplementedError('getRuntimeType');
+  Rti rti = instanceType(object);
+  return _createRuntimeType(rti);
+}
+
+/// Called from generated code.
+Type _createRuntimeType(Rti rti) {
+  _Type type = Rti._getCachedRuntimeType(rti);
+  if (type != null) return type;
+  // TODO(https://github.com/dart-lang/language/issues/428) For NNBD transition,
+  // canonicalization may be needed. It might be possible to generate a
+  // star-free recipe from the canonical recipe and evaluate that.
+  type = _Type(rti);
+  Rti._setCachedRuntimeType(rti, type);
+  return type;
+}
+
+/// Called from generated code in the constant pool.
+Type typeLiteral(String recipe) {
+  return _createRuntimeType(findType(recipe));
+}
+
+/// Implementation of [Type] based on Rti.
+class _Type implements Type {
+  final Rti _rti;
+  int _hashCode;
+
+  _Type(this._rti);
+
+  int get hashCode => _hashCode ??= Rti._getCanonicalRecipe(_rti).hashCode;
+
+  @pragma('dart2js:noInline')
+  bool operator ==(other) {
+    return (other is _Type) && identical(_rti, other._rti);
+  }
+
+  @override
+  String toString() => _rtiToString(_rti, null);
 }
 
 /// Called from generated code.
@@ -243,27 +329,61 @@ bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} is ${_rtiToString(testRti, null)}');
+  Rti objectRti = instanceType(object);
+  return isSubtype(_theUniverse(), objectRti, testRti);
 }
 
 /// Called from generated code.
 _generalAsCheckImplementation(object) {
+  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}');
+  Rti objectRti = instanceType(object);
+  if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
+  var message = "${Error.safeToString(object)}:"
+      " type '${_rtiToString(objectRti, null)}'"
+      " is not a subtype of type '${_rtiToString(testRti, null)}'";
+  throw new _CastError.fromMessage('CastError: $message');
 }
 
 /// Called from generated code.
 _generalTypeCheckImplementation(object) {
+  if (object == null) return object;
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  throw UnimplementedError(
-      '${Error.safeToString(object)} as ${_rtiToString(testRti, null)}'
-      ' (TypeError)');
+  Rti objectRti = instanceType(object);
+  if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
+  var message = "${Error.safeToString(object)}:"
+      " type '${_rtiToString(objectRti, null)}'"
+      " is not a subtype of type '${_rtiToString(testRti, null)}'";
+  throw new _TypeError.fromMessage('TypeError: $message');
+}
+
+/// Called from generated code.
+checkTypeBound(Rti type, Rti bound, variable) {
+  if (isSubtype(_theUniverse(), type, bound)) return type;
+  var message = "Type '${_rtiToString(type, null)}'"
+      " is not a subtype of type '${_rtiToString(bound, null)}'"
+      " of '${_Utils.asString(variable)}'";
+  throw _TypeError.fromMessage('TypeError: $message');
+}
+
+class _CastError extends Error implements CastError {
+  final String message;
+  _CastError.fromMessage(this.message);
+
+  @override
+  String toString() => message;
+}
+
+class _TypeError extends Error implements TypeError {
+  final String message;
+  _TypeError.fromMessage(this.message);
+
+  @override
+  String toString() => message;
 }
 
 String _rtiToString(Rti rti, List<String> genericContext) {
@@ -359,12 +479,14 @@ class _Universe {
   static evalCache(universe) =>
       JS('', '#.#', universe, RtiUniverseFieldNames.evalCache);
 
-  static findRule(universe, String targetType) =>
-      JS('', '#.#.#', universe, RtiUniverseFieldNames.typeRules, targetType);
+  static Object typeRules(universe) =>
+      JS('', '#.#', universe, RtiUniverseFieldNames.typeRules);
 
-  static void addRule(universe, String targetType, rule) {
-    JS('', '#.#.# = #', universe, RtiUniverseFieldNames.typeRules, targetType,
-        rule);
+  static Object findRule(universe, String targetType) =>
+      JS('', '#.#', typeRules(universe), targetType);
+
+  static void addRules(universe, rules) {
+    JS('', 'Object.assign(#, #)', typeRules(universe), rules);
   }
 
   static Object sharedEmptyArray(universe) =>
@@ -407,8 +529,7 @@ class _Universe {
     if (Rti._getKind(argumentsRti) == Rti.kindBinding) {
       argumentsArray = Rti._getBindingArguments(argumentsRti);
     } else {
-      argumentsArray = JS('', '[]');
-      _Utils.arrayPush(argumentsArray, argumentsRti);
+      argumentsArray = JS('', '[#]', argumentsRti);
     }
     var rti = _lookupBindingRti(universe, environment, argumentsArray);
     _cacheSet(cache, argumentsRecipe, rti);
@@ -460,10 +581,15 @@ class _Universe {
   //   for the proposed type.
   // * `createXXX` to create the type if it does not exist.
 
-  static String _canonicalRecipeOfDynamic() => '@';
-  static String _canonicalRecipeOfVoid() => '~';
-  static String _canonicalRecipeOfNever() => '0&';
-  static String _canonicalRecipeOfAny() => '1&';
+  static String _canonicalRecipeOfDynamic() => Recipe.pushDynamicString;
+  static String _canonicalRecipeOfVoid() => Recipe.pushVoidString;
+  static String _canonicalRecipeOfNever() =>
+      Recipe.pushNeverExtensionString + Recipe.extensionOpString;
+  static String _canonicalRecipeOfAny() =>
+      Recipe.pushAnyExtensionString + Recipe.extensionOpString;
+
+  static String _canonicalRecipeOfFutureOr(Rti baseType) =>
+      Rti._getCanonicalRecipe(baseType) + Recipe.wrapFutureOrString;
 
   static Rti _lookupDynamicRti(universe) {
     return _lookupTerminalRti(
@@ -497,6 +623,23 @@ class _Universe {
     return _finishRti(universe, rti);
   }
 
+  static Rti _lookupFutureOrRti(universe, Rti baseType) {
+    String canonicalRecipe = _canonicalRecipeOfFutureOr(baseType);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, canonicalRecipe);
+    if (probe != null) return _castToRti(probe);
+    return _createFutureOrRti(universe, baseType, canonicalRecipe);
+  }
+
+  static Rti _createFutureOrRti(
+      universe, Rti baseType, String canonicalRecipe) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindFutureOr);
+    Rti._setPrimary(rti, baseType);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
+    return _finishRti(universe, rti);
+  }
+
   static String _canonicalRecipeJoin(Object arguments) {
     String s = '', sep = '';
     int length = _Utils.arrayLength(arguments);
@@ -504,7 +647,7 @@ class _Universe {
       Rti argument = _castToRti(_Utils.arrayAt(arguments, i));
       String subrecipe = Rti._getCanonicalRecipe(argument);
       s += sep + subrecipe;
-      sep = ',';
+      sep = Recipe.separatorString;
     }
     return s;
   }
@@ -514,7 +657,9 @@ class _Universe {
     String s = _Utils.asString(name);
     int length = _Utils.arrayLength(arguments);
     if (length != 0) {
-      s += '<' + _canonicalRecipeJoin(arguments) + '>';
+      s += Recipe.startTypeArgumentsString +
+          _canonicalRecipeJoin(arguments) +
+          Recipe.endTypeArgumentsString;
     }
     return s;
   }
@@ -540,14 +685,17 @@ class _Universe {
 
   static String _canonicalRecipeOfBinding(Rti base, Object arguments) {
     String s = Rti._getCanonicalRecipe(base);
-    s += ';'; // TODO(sra): Omit when base encoding is Rti without ToType.
-    s += '<' + _canonicalRecipeJoin(arguments) + '>';
+    s += Recipe
+        .toTypeString; // TODO(sra): Omit when base encoding is Rti without ToType.
+    s += Recipe.startTypeArgumentsString +
+        _canonicalRecipeJoin(arguments) +
+        Recipe.endTypeArgumentsString;
     return s;
   }
 
   /// [arguments] becomes owned by the created Rti.
   static Rti _lookupBindingRti(Object universe, Rti base, Object arguments) {
-    var newBase = base;
+    Rti newBase = base;
     var newArguments = arguments;
     if (Rti._getKind(base) == Rti.kindBinding) {
       newBase = Rti._getBindingBase(base);
@@ -708,11 +856,11 @@ class _Parser {
   }
 
   // Field accessors for the parser.
-  static Object universe(Object parser) => JS('String', '#.u', parser);
+  static Object universe(Object parser) => JS('', '#.u', parser);
   static Rti environment(Object parser) => JS('Rti', '#.e', parser);
   static String recipe(Object parser) => JS('String', '#.r', parser);
   static Object stack(Object parser) => JS('', '#.s', parser);
-  static Object position(Object parser) => JS('int', '#.p', parser);
+  static int position(Object parser) => JS('int', '#.p', parser);
   static void setPosition(Object parser, int p) {
     JS('', '#.p = #', parser, p);
   }
@@ -739,7 +887,7 @@ class _Parser {
       } else {
         i++;
         switch (ch) {
-          case Recipe.noOp:
+          case Recipe.separator:
             break;
 
           case Recipe.toType:
@@ -766,6 +914,14 @@ class _Parser {
 
           case Recipe.extensionOp:
             handleExtendedOperations(parser, stack);
+            break;
+
+          case Recipe.wrapFutureOr:
+            var u = universe(parser);
+            push(
+                stack,
+                _Universe._lookupFutureOrRti(
+                    u, toType(u, environment(parser), pop(stack))));
             break;
 
           default:
@@ -909,37 +1065,33 @@ class TypeRule {
     throw UnimplementedError("TypeRule is static methods only.");
   }
 
-  // TODO(fishythefish): Create whole rule at once rather than adding individual
-  // supertypes/type variables.
-
-  @pragma('dart2js:noInline')
-  static Object create() {
-    return JS('=Object', '{}');
-  }
-
-  static void addTypeVariable(rule, String typeVariable, String binding) {
-    JS('', '#.# = #', rule, typeVariable, binding);
-  }
-
   static String lookupTypeVariable(rule, String typeVariable) =>
-      JS('String|Null', '#.#', rule, typeVariable);
-
-  static void addSupertype(rule, String supertype, Object supertypeArgs) {
-    JS('', '#.# = #', rule, supertype, supertypeArgs);
-  }
+      JS('', '#.#', rule, typeVariable);
 
   static JSArray lookupSupertype(rule, String supertype) =>
-      JS('JSArray|Null', '#.#', rule, supertype);
+      JS('', '#.#', rule, supertype);
 }
 
 // -------- Subtype tests ------------------------------------------------------
 
 // Future entry point from compiled code.
 bool isSubtype(universe, Rti s, Rti t) {
+  // TODO(sra): When more tests are working, remove this rediculous hack.
+  // Temporary 'metering' of isSubtype calls to force tests that endlessly loop
+  // to fail.
+  int next = JS('int', '(#||0) + 1', _ticks);
+  _ticks = next;
+  if (next > 10 * 1000 * 1000) {
+    throw StateError('Too many isSubtype calls'
+        '  ${_rtiToString(s, null)}  <:  ${_rtiToString(t, null)}');
+  }
+
   return _isSubtype(universe, s, null, t, null);
 }
 
-bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
+int _ticks = 0;
+
+bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // TODO(fishythefish): Update for NNBD. See
   // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
 
@@ -969,14 +1121,13 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
 
   if (isNullType(s)) return true;
 
-  if (isFunctionType(t)) {
+  if (isFunctionKind(t)) {
     // TODO(fishythefish): Check if s is a function subtype of t.
-    throw UnimplementedError("isFunctionType(t)");
+    throw UnimplementedError("isFunctionKind(t)");
   }
 
-  if (isFunctionType(s)) {
-    // TODO(fishythefish): Check if t is Function.
-    throw UnimplementedError("isFunctionType(s)");
+  if (isFunctionKind(s)) {
+    return isFunctionType(t);
   }
 
   if (isFutureOrType(t)) {
@@ -990,28 +1141,50 @@ bool _isSubtype(universe, Rti s, var sEnv, Rti t, var tEnv) {
       // `true` because [s] <: T.
       return true;
     } else {
-      // TODO(fishythefish): Check [s] <: Future<T>.
+      // Check [s] <: Future<T>.
+      String futureClass = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
+      var argumentsArray = JS('', '[#]', tTypeArgument);
+      return _isSubtypeOfInterface(
+          universe, s, sEnv, futureClass, argumentsArray, tEnv);
     }
   }
 
-  assert(Rti._getKind(s) == Rti.kindInterface);
   assert(Rti._getKind(t) == Rti.kindInterface);
-  String sName = Rti._getInterfaceName(s);
   String tName = Rti._getInterfaceName(t);
-  // TODO(fishythefish): Handle identical names.
+  var tArgs = Rti._getInterfaceTypeArguments(t);
 
+  return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
+}
+
+bool _isSubtypeOfInterface(
+    universe, Rti s, sEnv, String tName, Object tArgs, tEnv) {
+  assert(Rti._getKind(s) == Rti.kindInterface);
+  String sName = Rti._getInterfaceName(s);
+
+  if (sName == tName) {
+    var sArgs = Rti._getInterfaceTypeArguments(s);
+    int length = _Utils.arrayLength(sArgs);
+    assert(length == _Utils.arrayLength(tArgs));
+    for (int i = 0; i < length; i++) {
+      Rti sArg = _castToRti(_Utils.arrayAt(sArgs, i));
+      Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
+      if (!_isSubtype(universe, sArg, sEnv, tArg, tEnv)) return false;
+    }
+    return true;
+  }
+
+  // TODO(fishythefish): Should we recursively attempt to find supertypes?
   var rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);
   if (supertypeArgs == null) return false;
-  var tArgs = Rti._getInterfaceTypeArguments(t);
   int length = _Utils.arrayLength(supertypeArgs);
   assert(length == _Utils.arrayLength(tArgs));
   for (int i = 0; i < length; i++) {
     String recipe = _Utils.arrayAt(supertypeArgs, i);
     Rti supertypeArg = _Universe.evalInEnvironment(universe, s, recipe);
     Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
-    if (!isSubtype(universe, supertypeArg, tArg)) return false;
+    if (!_isSubtype(universe, supertypeArg, sEnv, tArg, tEnv)) return false;
   }
 
   return true;
@@ -1024,19 +1197,23 @@ bool isDynamicType(Rti t) => Rti._getKind(t) == Rti.kindDynamic;
 bool isVoidType(Rti t) => Rti._getKind(t) == Rti.kindVoid;
 bool isJsInteropType(Rti t) => Rti._getKind(t) == Rti.kindAny;
 bool isFutureOrType(Rti t) => Rti._getKind(t) == Rti.kindFutureOr;
-bool isFunctionType(Rti t) => Rti._getKind(t) == Rti.kindFunction;
+bool isFunctionKind(Rti t) => Rti._getKind(t) == Rti.kindFunction;
 bool isGenericFunctionTypeParameter(Rti t) =>
     Rti._getKind(t) == Rti.kindGenericFunctionParameter;
 
-bool isObjectType(Rti t) {
-  // TODO(fishythefish): Look up Object in universe and compare.
-  return false;
-}
+bool isObjectType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
 
-bool isNullType(Rti t) {
-  // TODO(fishythefish): Look up Null in universe and compare.
-  return false;
-}
+// TODO(fishythefish): Which representation should we use for NNBD?
+// Do we also need to check for `Never?`, etc.?
+bool isNullType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
+
+bool isFunctionType(Rti t) =>
+    Rti._getKind(t) == Rti.kindInterface &&
+    Rti._getInterfaceName(t) == JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME);
 
 /// Unchecked cast to Rti.
 Rti _castToRti(s) => JS('Rti', '#', s);
@@ -1049,7 +1226,12 @@ class _Utils {
   static bool isString(Object o) => JS('bool', 'typeof # == "string"', o);
   static bool isNum(Object o) => JS('bool', 'typeof # == "number"', o);
 
+  static bool instanceOf(Object o, Object constructor) =>
+      JS('bool', '# instanceof #', o, constructor);
+
   static bool isIdentical(s, t) => JS('bool', '# === #', s, t);
+
+  static bool isArray(Object o) => JS('bool', 'Array.isArray(#)', o);
 
   static int arrayLength(Object array) => JS('int', '#.length', array);
 
@@ -1080,6 +1262,10 @@ class _Utils {
 }
 // -------- Entry points for testing -------------------------------------------
 
+String testingCanonicalRecipe(rti) {
+  return Rti._getCanonicalRecipe(rti);
+}
+
 String testingRtiToString(rti) {
   return _rtiToString(_castToRti(rti), null);
 }
@@ -1092,20 +1278,8 @@ Object testingCreateUniverse() {
   return _Universe.create();
 }
 
-Object testingCreateRule() {
-  return TypeRule.create();
-}
-
-void testingAddTypeVariable(rule, String typeVariable, String binding) {
-  TypeRule.addTypeVariable(rule, typeVariable, binding);
-}
-
-void testingAddSupertype(rule, String supertype, Object supertypeArgs) {
-  TypeRule.addSupertype(rule, supertype, supertypeArgs);
-}
-
-void testingAddRule(universe, String targetType, rule) {
-  _Universe.addRule(universe, targetType, rule);
+void testingAddRules(universe, rules) {
+  _Universe.addRules(universe, rules);
 }
 
 bool testingIsSubtype(universe, rti1, rti2) {

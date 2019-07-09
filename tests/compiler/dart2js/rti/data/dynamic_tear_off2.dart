@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: staticMethod:deps=[B.instanceMethod],direct,explicit=[staticMethod.T],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
+/*member: staticMethod:deps=[B.instanceMethod],direct,explicit=[staticMethod.T],needsArgs,selectors=[Selector(call, call, arity=1, types=1)]*/
 staticMethod<T>(t) => t is T;
 
 class B {
-  /*element: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
+  /*member: B.instanceMethod:implicit=[instanceMethod.T],indirect,needsArgs,selectors=[Selector(call, instanceMethod, arity=2, types=1)]*/
   instanceMethod<T>(a, t) => a<T>(t);
 }
 

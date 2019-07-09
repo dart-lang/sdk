@@ -4,6 +4,8 @@
 
 #include "vm/isolate_reload.h"
 
+#include <memory>
+
 #include "vm/bit_vector.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
@@ -171,10 +173,10 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->kernel_offset() > 0) {
-      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
+    if (field->is_declared_in_bytecode()) {
+      UNIMPLEMENTED();
     } else {
-      UNREACHABLE();
+      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
     }
 
     for (intptr_t j = 0; j < after_->length(); j++) {
@@ -526,17 +528,6 @@ static intptr_t CommonSuffixLength(const char* a, const char* b) {
   return (a_length - a_cursor);
 }
 
-template <class T>
-class ResourceHolder : ValueObject {
-  T* resource_;
-
- public:
-  ResourceHolder() : resource_(NULL) {}
-  void set(T* resource) { resource_ = resource; }
-  T* get() { return resource_; }
-  ~ResourceHolder() { delete (resource_); }
-};
-
 static void AcceptCompilation(Thread* thread) {
   TransitionVMToNative transition(thread);
   Dart_KernelCompilationResult result = KernelIsolate::AcceptCompilation();
@@ -582,7 +573,7 @@ void IsolateReloadContext::Reload(bool force_reload,
   }
 
   Object& result = Object::Handle(thread->zone());
-  ResourceHolder<kernel::Program> kernel_program;
+  std::unique_ptr<kernel::Program> kernel_program;
   String& packages_url = String::Handle();
   if (packages_url_ != NULL) {
     packages_url = String::New(packages_url_);
@@ -609,10 +600,10 @@ void IsolateReloadContext::Reload(bool force_reload,
     // root_script_url is a valid .dill file. If that's the case, a Program*
     // is returned. Otherwise, this is likely a source file that needs to be
     // compiled, so ReadKernelFromFile returns NULL.
-    kernel_program.set(kernel::Program::ReadFromFile(root_script_url));
-    if (kernel_program.get() != NULL) {
-      num_received_libs_ = kernel_program.get()->library_count();
-      bytes_received_libs_ = kernel_program.get()->kernel_data_size();
+    kernel_program = kernel::Program::ReadFromFile(root_script_url);
+    if (kernel_program != nullptr) {
+      num_received_libs_ = kernel_program->library_count();
+      bytes_received_libs_ = kernel_program->kernel_data_size();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -669,7 +660,7 @@ void IsolateReloadContext::Reload(bool force_reload,
       // into the middle of c-allocated buffer and don't have a finalizer).
       I->RetainKernelBlob(typed_data);
 
-      kernel_program.set(kernel::Program::ReadFromTypedData(typed_data));
+      kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     }
 
     kernel::KernelLoader::FindModifiedLibraries(
@@ -808,6 +799,8 @@ void IsolateReloadContext::Reload(bool force_reload,
   // Other errors (e.g. a parse error) are captured by the reload system.
   if (result.IsError()) {
     FinalizeFailedLoad(Error::Cast(result));
+  } else {
+    ReportSuccess();
   }
 }
 
@@ -933,7 +926,11 @@ void IsolateReloadContext::EnsuredUnoptimizedCodeForStack() {
     if (frame->IsDartFrame() && !frame->is_interpreted()) {
       func = frame->LookupDartFunction();
       ASSERT(!func.IsNull());
-      func.EnsureHasCompiledUnoptimizedCode();
+      // Force-optimized functions don't need unoptimized code because their
+      // optimized code cannot deopt.
+      if (!func.ForceOptimize()) {
+        func.EnsureHasCompiledUnoptimizedCode();
+      }
     }
   }
 }
@@ -1900,7 +1897,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
       bytecode.ResetICDatas(zone);
     } else {
       code = frame->LookupDartCode();
-      if (code.is_optimized()) {
+      if (code.is_optimized() && !code.is_force_optimized()) {
         // If this code is optimized, we need to reset the ICs in the
         // corresponding unoptimized code, which will be executed when the stack
         // unwinds to the optimized code.
@@ -2314,6 +2311,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Can't have any subclasses or implementors yet.
+      }
       subclasses = cls.direct_subclasses();
       if (!subclasses.IsNull()) {
         cls.ClearDirectSubclasses();
@@ -2337,6 +2337,9 @@ void IsolateReloadContext::RebuildDirectSubclasses() {
   for (intptr_t i = 1; i < num_cids; i++) {
     if (class_table->HasValidClassAt(i)) {
       cls = class_table->At(i);
+      if (!cls.is_declaration_loaded()) {
+        continue;  // Will register itself later when loaded.
+      }
       super_type = cls.super_type();
       if (!super_type.IsNull() && !super_type.IsObjectType()) {
         super_cls = cls.SuperClass();

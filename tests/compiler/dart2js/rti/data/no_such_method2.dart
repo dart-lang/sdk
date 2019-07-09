@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  /*element: C.noSuchMethod:needsArgs,selectors=[Selector(call, call, arity=0, types=2),Selector(call, foo, arity=0, types=2)]*/
+  /*member: C.noSuchMethod:needsArgs,selectors=[Selector(call, call, arity=0, types=2),Selector(call, foo, arity=0, types=2)]*/
   noSuchMethod(i) => i.typeArguments;
 }
 
 class D {
-  /*element: D.foo:exp,needsArgs,selectors=[Selector(call, foo, arity=0, types=2)]*/
+  /*member: D.foo:exp,needsArgs,selectors=[Selector(call, foo, arity=0, types=2)]*/
   foo<U, V>() => [U, V];
 }
 

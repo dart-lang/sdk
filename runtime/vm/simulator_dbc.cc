@@ -584,10 +584,12 @@ Simulator::~Simulator() {
 
 // Get the active Simulator for the current isolate.
 Simulator* Simulator::Current() {
-  Simulator* simulator = Isolate::Current()->simulator();
+  Isolate* isolate = Isolate::Current();
+  Simulator* simulator = isolate->simulator();
   if (simulator == NULL) {
+    NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    Isolate::Current()->set_simulator(simulator);
+    isolate->set_simulator(simulator);
   }
   return simulator;
 }
@@ -702,45 +704,12 @@ DART_FORCE_INLINE static bool SignedSubWithOverflow(intptr_t lhs,
 DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
                                                     intptr_t rhs,
                                                     intptr_t* out) {
-  intptr_t res = 1;
-#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
-  asm volatile(
-      "imul %2, %1\n"
-      "jo 1f;\n"
-      "xor %0, %0\n"
-      "mov %1, 0(%3)\n"
-      "1: "
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#elif defined(HOST_ARCH_ARM)
-  asm volatile(
-      "smull %1, ip, %1, %2;\n"
-      "cmp ip, %1, ASR #31;\n"
-      "bne 1f;\n"
-      "mov %0, $0;\n"
-      "str %1, [%3, #0]\n"
-      "1:"
-      : "+r"(res), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc", "r12");
-#elif defined(HOST_ARCH_ARM64)
-  int64_t prod_lo = 0;
-  asm volatile(
-      "mul %1, %2, %3\n"
-      "smulh %2, %2, %3\n"
-      "cmp %2, %1, ASR #63;\n"
-      "bne 1f;\n"
-      "mov %0, #0;\n"
-      "str %1, [%4, #0]\n"
-      "1:"
-      : "=r"(res), "+r"(prod_lo), "+r"(lhs)
-      : "r"(rhs), "r"(out)
-      : "cc");
-#else
-#error "Unsupported platform"
-#endif
-  return (res != 0);
+  const intptr_t kMaxBits = (sizeof(intptr_t) * 8) - 2;
+  if ((Utils::HighestBit(lhs) + Utils::HighestBit(rhs)) < kMaxBits) {
+    *out = lhs * rhs;
+    return false;
+  }
+  return true;
 }
 
 DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {

@@ -2,96 +2,96 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: method1:invoke*/
+/*member: method1:invoke*/
 method1() {}
 
-/*element: method2a:invoke=(0)*/
+/*member: method2a:invoke=(0)*/
 method2a([a]) {}
 
-/*element: method2b:invoke*/
+/*member: method2b:invoke*/
 method2b([a]) {}
 
-/*element: method2c:invoke*/
+/*member: method2c:invoke*/
 method2c([a]) {}
 
-/*element: method2d:invoke,read*/
+/*member: method2d:invoke,read*/
 method2d([a]) {}
 
-/*element: method3a:invoke=(0)*/
+/*member: method3a:invoke=(0)*/
 method3a([a, b]) {}
 
-/*element: method3b:invoke=(1)*/
+/*member: method3b:invoke=(1)*/
 method3b([a, b]) {}
 
-/*element: method3c:invoke*/
+/*member: method3c:invoke*/
 method3c([a, b]) {}
 
-/*element: method3d:invoke,read*/
+/*member: method3d:invoke,read*/
 method3d([a, b]) {}
 
-/*element: method4a:invoke=(0)*/
+/*member: method4a:invoke=(0)*/
 method4a({a}) {}
 
-/*element: method4b:invoke*/
+/*member: method4b:invoke*/
 method4b({a}) {}
 
-/*element: method4c:invoke*/
+/*member: method4c:invoke*/
 method4c({a}) {}
 
-/*element: method4d:invoke,read*/
+/*member: method4d:invoke,read*/
 method4d({a}) {}
 
-/*element: method5a:invoke=(0)*/
+/*member: method5a:invoke=(0)*/
 method5a({a, b}) {}
 
-/*element: method5b:invoke=(0,a)*/
+/*member: method5b:invoke=(0,a)*/
 method5b({a, b}) {}
 
-/*element: method5c:invoke=(0,b)*/
+/*member: method5c:invoke=(0,b)*/
 method5c({a, b}) {}
 
-/*element: method5d:invoke,read*/
+/*member: method5d:invoke,read*/
 method5d({a, b}) {}
 
-/*element: method6a:invoke*/
+/*member: method6a:invoke*/
 method6a<T>() {}
 
-/*element: method6b:invoke,read*/
+/*member: method6b:invoke,read*/
 method6b<T>() {}
 
-/*element: method7a:invoke=(1)*/
+/*member: method7a:invoke=(1)*/
 method7a(a, [b, c]) {}
 
-/*element: method7b:invoke=(2)*/
+/*member: method7b:invoke=(2)*/
 method7b(a, [b, c]) {}
 
-/*element: method7c:invoke*/
+/*member: method7c:invoke*/
 method7c(a, [b, c]) {}
 
-/*element: method7d:invoke,read*/
+/*member: method7d:invoke,read*/
 method7d(a, [b, c]) {}
 
-/*element: method8a:invoke=(1)*/
+/*member: method8a:invoke=(1)*/
 method8a(a, {b, c}) {}
 
-/*element: method8b:invoke=(1,b)*/
+/*member: method8b:invoke=(1,b)*/
 method8b(a, {b, c}) {}
 
-/*element: method8c:invoke=(1,c)*/
+/*member: method8c:invoke=(1,c)*/
 method8c(a, {b, c}) {}
 
-/*element: method8d:invoke,read*/
+/*member: method8d:invoke,read*/
 method8d(a, {b, c}) {}
 
-/*element: method9a:invoke=(0)*/
+/*member: method9a:invoke=(0)*/
 @pragma('dart2js:noElision')
 method9a([a, b]) {}
 
-/*element: method9b:invoke=(0)*/
+/*member: method9b:invoke=(0)*/
 @pragma('dart2js:noElision')
 method9b({a, b}) {}
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   method1();
 

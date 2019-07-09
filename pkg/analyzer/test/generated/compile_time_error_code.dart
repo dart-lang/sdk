@@ -2459,7 +2459,7 @@ class Bar<T extends Foo<T>> {}
 class Baz extends Bar {}
 void main() {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 3),
     ]);
     // Instantiate-to-bounds should have instantiated "Bar" to "Bar<Foo>".
     expect(result.unit.declaredElement.getType('Baz').supertype.toString(),
@@ -4723,7 +4723,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
+          expectedMessages: [message('/test/lib/test.dart', 34, 1)]),
     ]);
   }
 
@@ -4736,7 +4737,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 28, 1,
+          expectedMessages: [message('/test/lib/test.dart', 38, 1)]),
     ]);
   }
 
@@ -4751,7 +4753,8 @@ main() {
 }
 print(x) {}
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 34, 1,
+          expectedMessages: [message('/test/lib/test.dart', 48, 1)]),
     ]);
   }
 
@@ -4761,7 +4764,8 @@ main() {
   var v = () => v;
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 25, 1,
+          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -4771,7 +4775,8 @@ main() {
   var v = v;
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 19, 1,
+          expectedMessages: [message('/test/lib/test.dart', 15, 1)]),
     ]);
   }
 
@@ -4783,7 +4788,8 @@ void testTypeRef() {
   print(s + String);
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
+          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 
@@ -4795,7 +4801,8 @@ void testTypeRef() {
   print(s + String);
 }
 ''', [
-      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6),
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 23, 6,
+          expectedMessages: [message('/test/lib/test.dart', 44, 6)]),
     ]);
   }
 
@@ -5141,7 +5148,7 @@ typedef A B();
     ];
     if (!AnalysisDriver.useSummary2) {
       errors.add(
-        error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
+        error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
       );
     }
     await assertErrorsInCode('''

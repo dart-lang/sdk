@@ -2437,6 +2437,24 @@ class CompileTimeErrorCode extends ErrorCode {
           "Factory bodies can't use 'async', 'async*', or 'sync*'.");
 
   /**
+   * It is an error if a potentially non-nullable local variable which has no
+   * initializer expression and is not marked `late` is used before it is
+   * definitely assigned.
+   *
+   * Parameters:
+   * 0: the name of the variable that is invalid
+   */
+  static const CompileTimeErrorCode
+      NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
+      const CompileTimeErrorCode(
+          'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
+          "Non-nullable local variable '{0}' must be assigned before "
+              "it can be used.",
+          correction: "Try giving it an initializer expression, "
+              "or ensure that it is assigned on every execution path, "
+              "or mark it 'late'.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i>
    * or if <i>m > n</i>.
    *
@@ -2453,6 +2471,18 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try adding the missing arguments.");
 
   /**
+   * It is an error if a static variable with potentially non-nullable type has
+   * no initializer expression.
+   *
+   * Parameters:
+   * 0: the name of the field that is invalid
+   */
+  static const CompileTimeErrorCode NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD =
+      const CompileTimeErrorCode('NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD',
+          "Non-nullable static field '{0}' must be initialized.",
+          correction: "Try adding an initializer expression.");
+
+  /**
    * It is an error if a top level variable <cut> with potentially non-nullable
    * type has no initializer expression <cut>.
    *
@@ -2465,25 +2495,6 @@ class CompileTimeErrorCode extends ErrorCode {
           'NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE',
           "Non-nullable top-level variable '{0}' must be initialized.",
           correction: "Try adding an initializer expression.");
-
-  /**
-   * It is an error if a potentially non-nullable local variable which has no
-   * initializer expression and is not marked `late` is used before it is
-   * definitely assigned.
-   *
-   * TODO(scheglov) Update the code and the message when implement definite
-   * assignment analysis.
-   *
-   * Parameters:
-   * 0: the name of the variable that is invalid
-   */
-  static const CompileTimeErrorCode
-      NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE =
-      const CompileTimeErrorCode(
-          'NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
-          "Non-nullable local variable '{0}' must be initialized.",
-          correction:
-              "Try giving it an initializer expression, or mark it 'late'.");
 
   /**
    * No parameters.
@@ -2962,8 +2973,6 @@ class CompileTimeErrorCode extends ErrorCode {
    * 0: the name of the type used in the instance creation that should be
    *    limited by the bound as specified in the class declaration
    * 1: the name of the bounding type
-   *
-   * See [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const CompileTimeErrorCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
       const CompileTimeErrorCode(
@@ -3493,39 +3502,6 @@ class StaticTypeWarningCode extends ErrorCode {
           "The return type '{0}' isn't a '{1}', as defined by anonymous closure.");
 
   /**
-   * 12.11 Instance Creation: It is a static type warning if any of the type
-   * arguments to a constructor of a generic type <i>G</i> invoked by a new
-   * expression or a constant object expression are not subtypes of the bounds
-   * of the corresponding formal type parameters of <i>G</i>.
-   *
-   * 15.8 Parameterized Types: If <i>S</i> is the static type of a member
-   * <i>m</i> of <i>G</i>, then the static type of the member <i>m</i> of
-   * <i>G&lt;A<sub>1</sub>, &hellip;, A<sub>n</sub>&gt;</i> is <i>[A<sub>1</sub>,
-   * &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]S</i> where
-   * <i>T<sub>1</sub>, &hellip;, T<sub>n</sub></i> are the formal type
-   * parameters of <i>G</i>. Let <i>B<sub>i</sub></i> be the bounds of
-   * <i>T<sub>i</sub>, 1 &lt;= i &lt;= n</i>. It is a static type warning if
-   * <i>A<sub>i</sub></i> is not a subtype of <i>[A<sub>1</sub>, &hellip;,
-   * A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>]B<sub>i</sub>, 1 &lt;=
-   * i &lt;= n</i>.
-   *
-   * 7.6.2 Factories: It is a static type warning if any of the type arguments
-   * to <i>k'</i> are not subtypes of the bounds of the corresponding formal
-   * type parameters of type.
-   *
-   * Parameters:
-   * 0: the name of the type used in the instance creation that should be
-   *    limited by the bound as specified in the class declaration
-   * 1: the name of the bounding type
-   *
-   * See [TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND].
-   */
-  static const StaticTypeWarningCode TYPE_ARGUMENT_NOT_MATCHING_BOUNDS =
-      const StaticTypeWarningCode(
-          'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS', "'{0}' doesn't extend '{1}'.",
-          correction: "Try using a type that is or is a subclass of '{1}'.");
-
-  /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype
    * of its upper bound.
    *
@@ -3533,7 +3509,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 0: the name of the type parameter
    * 1: the name of the bounding type
    *
-   * See [TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+   * See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
    */
   static const StaticTypeWarningCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
       const StaticTypeWarningCode('TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',

@@ -493,7 +493,47 @@ class C2<T> {
         'const C2<A>(id)',
         'ConstructedConstant(C2<A>(a='
             'InstantiationConstant([A],FunctionConstant(id))))'),
-  ])
+  ]),
+  const TestData('unused-arguments', '''
+class A {
+  const A();
+
+  A operator -() => this;
+}
+class B implements A {
+  const B();
+
+  B operator -() => this;
+}
+class C implements A {
+  const C();
+
+  C operator -() => this;
+}
+class Class<T extends A> {
+  const Class(T t);
+  const Class.redirect(dynamic t) : this(t);
+  const Class.method(T t) : this(-t);
+}
+class Subclass<T extends A> extends Class<T> {
+  const Subclass(dynamic t) : super(t);
+}
+''', const <ConstantData>[
+    const ConstantData(
+        'const Class<A>(const A())', 'ConstructedConstant(Class<A>())'),
+    const ConstantData('const Class<B>.redirect(const B())',
+        'ConstructedConstant(Class<B>())'),
+    const ConstantData('const Class<B>.redirect(const C())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidType'),
+    const ConstantData('const Class<A>.method(const A())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
+    const ConstantData(
+        'const Subclass<A>(const A())', 'ConstructedConstant(Subclass<A>())'),
+    const ConstantData(
+        'const Subclass<B>(const B())', 'ConstructedConstant(Subclass<B>())'),
+    const ConstantData('const Subclass<B>(const C())', 'NonConstant',
+        expectedErrors: 'ConstEvalInvalidType'),
+  ]),
 ];
 
 main(List<String> args) {

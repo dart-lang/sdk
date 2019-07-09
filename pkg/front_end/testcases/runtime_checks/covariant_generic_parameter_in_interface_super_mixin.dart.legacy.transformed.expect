@@ -23,6 +23,8 @@ class C extends self::B implements self::I<core::int>, self::M {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
+  forwarding-stub method f(generic-covariant-impl core::int x) → void
+    return super.{self::B::f}(x);
 }
 static method g1(self::C c) → void {
   c.f(1);

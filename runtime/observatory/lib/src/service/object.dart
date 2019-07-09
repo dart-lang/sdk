@@ -1453,6 +1453,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return isolate.invokeRpc('getObject', params);
   }
 
+  Future<List<Script>> getScripts() async {
+    final response = await invokeRpc('getScripts', {}) as ServiceMap;
+    assert(response.type == 'ScriptList');
+    return response['scripts'].cast<Script>();
+  }
+
   Future<Map> _fetchDirect({int count: kDefaultFieldLimit}) async {
     return invokeRpcNoUpgrade('getIsolate', {});
   }

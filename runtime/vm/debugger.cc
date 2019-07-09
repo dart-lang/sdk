@@ -304,6 +304,8 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
   }
 #endif
   if (bytecode_.IsNull()) {
+    // Force-optimize functions should not be debuggable.
+    ASSERT(!function_.ForceOptimize());
     function_.EnsureHasCompiledUnoptimizedCode();
     code_ = function_.unoptimized_code();
   }
@@ -732,14 +734,17 @@ intptr_t ActivationFrame::ContextLevel() {
         PrintDescriptorsError("Missing local variables info");
       }
       intptr_t pc_offset = pc_ - bytecode.PayloadStart();
+      // Look for innermost scope, i.e. with the highest context level.
+      // Since scopes are ordered by StartPC(), the last scope which includes
+      // pc_offset will be the innermost one.
       kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
       while (local_vars.MoveNext()) {
         if (local_vars.Kind() ==
             kernel::BytecodeLocalVariablesIterator::kScope) {
           if (local_vars.StartPC() <= pc_offset &&
               pc_offset < local_vars.EndPC()) {
+            ASSERT(context_level_ <= local_vars.ContextLevel());
             context_level_ = local_vars.ContextLevel();
-            break;
           }
         }
       }
@@ -747,7 +752,6 @@ intptr_t ActivationFrame::ContextLevel() {
         // Obtain the context level from the parent function.
         // TODO(alexmarkov): Define scope which includes the whole closure body.
         Function& parent = Function::Handle(zone, function().parent_function());
-        intptr_t depth = 1;
         do {
           bytecode = parent.bytecode();
           kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
@@ -756,14 +760,13 @@ intptr_t ActivationFrame::ContextLevel() {
                 kernel::BytecodeLocalVariablesIterator::kScope) {
               if (local_vars.StartTokenPos() <= TokenPos() &&
                   TokenPos() <= local_vars.EndTokenPos()) {
-                context_level_ = local_vars.ContextLevel() + depth;
-                break;
+                ASSERT(context_level_ <= local_vars.ContextLevel());
+                context_level_ = local_vars.ContextLevel();
               }
             }
           }
           if (context_level_ >= 0) break;
           parent = parent.parent_function();
-          depth++;
         } while (!parent.IsNull());
       }
       if (context_level_ < 0) {
@@ -946,23 +949,7 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   return false;
 }
 
-void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
-  // Attempt to determine the token pos and try index from the async closure.
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, function().script());
-
-  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
-  // This should only be called on frames that aren't active on the stack.
-  ASSERT(fp() == 0);
-
-  ASSERT(script.kind() == RawScript::kKernelTag);
-  const Array& await_to_token_map =
-      Array::Handle(zone, script.yield_positions());
-  if (await_to_token_map.IsNull()) {
-    // No mapping.
-    return;
-  }
+intptr_t ActivationFrame::GetAwaitJumpVariable() {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   intptr_t await_jump_var = -1;
@@ -978,6 +965,59 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
       await_jump_var = Smi::Cast(await_jump_index).Value();
     }
   }
+  return await_jump_var;
+}
+
+void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
+  // Attempt to determine the token pos and try index from the async closure.
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& script = Script::Handle(zone, function().script());
+
+  ASSERT(function_.IsAsyncGenClosure() || function_.IsAsyncClosure());
+  // This should only be called on frames that aren't active on the stack.
+  ASSERT(fp() == 0);
+
+  if (function_.is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    const auto& bytecode = Bytecode::Handle(zone, function_.bytecode());
+    if (!bytecode.HasSourcePositions()) {
+      return;
+    }
+    const intptr_t await_jump_var = GetAwaitJumpVariable();
+    if (await_jump_var < 0) {
+      return;
+    }
+    // Yield points are counted from 1 (0 is reserved for normal entry).
+    intptr_t yield_point_index = 1;
+    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      if (iter.IsYieldPoint()) {
+        if (yield_point_index == await_jump_var) {
+          token_pos_ = iter.TokenPos();
+          token_pos_initialized_ = true;
+          try_index_ = bytecode.GetTryIndexAtPc(bytecode.PayloadStart() +
+                                                iter.PcOffset());
+          return;
+        }
+        ++yield_point_index;
+      }
+    }
+    return;
+#else
+    UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  ASSERT(!IsInterpreted());
+  ASSERT(script.kind() == RawScript::kKernelTag);
+  const Array& await_to_token_map =
+      Array::Handle(zone, script.yield_positions());
+  if (await_to_token_map.IsNull()) {
+    // No mapping.
+    return;
+  }
+  const intptr_t await_jump_var = GetAwaitJumpVariable();
   if (await_jump_var < 0) {
     return;
   }
@@ -1009,29 +1049,6 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
   ASSERT(token_pos.IsSmi());
   token_pos_ = TokenPosition(Smi::Cast(token_pos).Value());
   token_pos_initialized_ = true;
-  if (IsInterpreted()) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    // In order to determine the try index, we need to map the token position
-    // to a pc offset, and then a pc offset to the try index.
-    // TODO(regis): Should we set the token position fields in pc descriptors?
-    uword pc_offset = kUwordMax;
-    kernel::BytecodeSourcePositionsIterator iter(zone, bytecode());
-    while (iter.MoveNext()) {
-      // PcOffsets are monotonic in source positions, so we get the lowest one.
-      if (iter.TokenPos() == token_pos_) {
-        pc_offset = iter.PcOffset();
-        break;
-      }
-    }
-    if (pc_offset < kUwordMax) {
-      try_index_ =
-          bytecode().GetTryIndexAtPc(bytecode().PayloadStart() + pc_offset);
-    }
-#else
-    UNREACHABLE();
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-    return;
-  }
   GetPcDescriptors();
   PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -1985,6 +2002,12 @@ void Debugger::DeoptimizeWorld() {
         for (intptr_t pos = 0; pos < num_functions; pos++) {
           function ^= functions.At(pos);
           ASSERT(!function.IsNull());
+          // Force-optimized functions don't have unoptimized code and can't
+          // deoptimize. Their optimized codes are still valid.
+          if (function.ForceOptimize()) {
+            ASSERT(!function.HasImplicitClosureFunction());
+            continue;
+          }
           if (function.HasOptimizedCode()) {
             function.SwitchToUnoptimizedCode();
           }
@@ -2316,6 +2339,7 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
                               Thread::Current(),
                               StackFrameIterator::kNoCrossThreadIteration);
 
+  Object& code_object = Object::Handle(zone);
   Code& code = Code::Handle(zone);
   Bytecode& bytecode = Bytecode::Handle(zone);
   Smi& offset = Smi::Handle(zone);
@@ -2513,17 +2537,24 @@ DebuggerStackTrace* Debugger::CollectAwaiterReturnStackTrace() {
         // the readability of the trace.
         i++;
       } else {
-        code = Code::RawCast(async_stack_trace.CodeAtFrame(i));
+        code_object = async_stack_trace.CodeAtFrame(i);
         offset = Smi::RawCast(async_stack_trace.PcOffsetAtFrame(i));
-        uword pc = code.PayloadStart() + offset.Value();
-        if (code.is_optimized()) {
-          for (InlinedFunctionsIterator it(code, pc); !it.Done();
-               it.Advance()) {
-            inlined_code = it.code();
-            stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
-          }
+        if (code_object.IsBytecode()) {
+          bytecode ^= code_object.raw();
+          uword pc = bytecode.PayloadStart() + offset.Value();
+          stack_trace->AddAsyncCausalFrame(pc, bytecode);
         } else {
-          stack_trace->AddAsyncCausalFrame(pc, code);
+          code ^= code_object.raw();
+          uword pc = code.PayloadStart() + offset.Value();
+          if (code.is_optimized()) {
+            for (InlinedFunctionsIterator it(code, pc); !it.Done();
+                 it.Advance()) {
+              inlined_code = it.code();
+              stack_trace->AddAsyncCausalFrame(it.pc(), inlined_code);
+            }
+          } else {
+            stack_trace->AddAsyncCausalFrame(pc, code);
+          }
         }
       }
     }
@@ -3523,7 +3554,11 @@ void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
 Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
                                            bool single_shot) {
   ASSERT(!target_function.IsNull());
-  if (!target_function.is_debuggable()) {
+  // AsyncFunction is marked not debuggable. When target_function is an async
+  // function, it is actually referring the inner async_op. Allow the
+  // breakpoint to be set, it will get resolved correctly when inner async_op
+  // gets compiled.
+  if (!target_function.is_debuggable() && !target_function.IsAsyncFunction()) {
     return NULL;
   }
   const Script& script = Script::Handle(target_function.script());
@@ -4154,6 +4189,23 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   if (!closure_or_null.IsNull()) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
+    if (top_frame->function().is_declared_in_bytecode()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      const auto& bytecode =
+          Bytecode::Handle(zone, top_frame->function().bytecode());
+      const TokenPosition token_pos = top_frame->TokenPos();
+      kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
+      while (iter.MoveNext()) {
+        if (iter.IsYieldPoint() && (iter.TokenPos() == token_pos)) {
+          return true;
+        }
+      }
+      return false;
+#else
+      UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+    }
+    ASSERT(!top_frame->IsInterpreted());
     const Script& script = Script::Handle(zone, top_frame->SourceScript());
     ASSERT(script.kind() == RawScript::kKernelTag);
     // Are we at a yield point (previous await)?

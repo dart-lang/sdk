@@ -16,6 +16,7 @@ import 'inferrer/abstract_value_domain.dart';
 import 'js_backend/native_data.dart' show NativeBasicData;
 import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
+import 'options.dart';
 import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
@@ -481,6 +482,9 @@ abstract class CommonElements {
   // From dart:_rti
 
   FunctionEntity get findType;
+  FunctionEntity get instanceType;
+  FunctionEntity get typeLiteralMaker;
+  FunctionEntity get checkTypeBound;
   FieldEntity get rtiAsField;
   FieldEntity get rtiCheckField;
   FieldEntity get rtiIsField;
@@ -613,8 +617,9 @@ abstract class JCommonElements implements CommonElements {
 class CommonElementsImpl
     implements CommonElements, KCommonElements, JCommonElements {
   final ElementEnvironment _env;
+  final CompilerOptions _options;
 
-  CommonElementsImpl(this._env);
+  CommonElementsImpl(this._env, this._options);
 
   ClassEntity _objectClass;
   @override
@@ -1442,7 +1447,9 @@ class CommonElementsImpl
   ClassEntity _typeLiteralClass;
   @override
   ClassEntity get typeLiteralClass =>
-      _typeLiteralClass ??= _findHelperClass('TypeImpl');
+      _typeLiteralClass ??= _options.experimentNewRti
+          ? _findRtiClass('_Type')
+          : _findHelperClass('TypeImpl');
 
   ClassEntity _constMapLiteralClass;
   @override
@@ -1729,8 +1736,9 @@ class CommonElementsImpl
       _findHelperFunction('throwNoSuchMethod');
 
   @override
-  FunctionEntity get createRuntimeType =>
-      _findHelperFunction('createRuntimeType');
+  FunctionEntity get createRuntimeType => _options.experimentNewRti
+      ? _findRtiFunction('_createRuntimeType')
+      : _findHelperFunction('createRuntimeType');
 
   @override
   FunctionEntity get fallThroughError =>
@@ -1804,12 +1812,29 @@ class CommonElementsImpl
 
   // From dart:_rti
 
+  ClassEntity _findRtiClass(String name) => _findClass(rtiLibrary, name);
+
   FunctionEntity _findRtiFunction(String name) =>
       _findLibraryMember(rtiLibrary, name);
 
   FunctionEntity _findType;
   @override
   FunctionEntity get findType => _findType ??= _findRtiFunction('findType');
+
+  FunctionEntity _instanceType;
+  @override
+  FunctionEntity get instanceType =>
+      _instanceType ??= _findRtiFunction('instanceType');
+
+  FunctionEntity _typeLiteralMaker;
+  @override
+  FunctionEntity get typeLiteralMaker =>
+      _typeLiteralMaker ??= _findRtiFunction('typeLiteral');
+
+  FunctionEntity _checkTypeBound;
+  @override
+  FunctionEntity get checkTypeBound =>
+      _checkTypeBound ??= _findRtiFunction('checkTypeBound');
 
   ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
   FieldEntity _findRtiClassField(String name) =>

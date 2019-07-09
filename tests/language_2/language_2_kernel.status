@@ -33,7 +33,6 @@ config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
 constructor12_test: RuntimeError
@@ -135,7 +134,6 @@ vm/type_cast_vm_test: RuntimeError
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $compiler == dartdevk ]
-mixin_method_override_test/G5: Skip # Issue 34354
 private_method_tearoff_test: RuntimeError
 
 [ $compiler == dartkp ]
@@ -236,7 +234,6 @@ mixin_illegal_superclass_test/27: MissingCompileTimeError
 mixin_illegal_superclass_test/28: MissingCompileTimeError
 mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
-mixin_method_override_test/G4: Crash # Assertion error: mixin_full_resolution.dart': 'src.typeParameters.length == dst.typeParameters.length': is not true.
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError
@@ -275,21 +272,13 @@ f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification4_test: CompileTimeError # Issue 34583
 issue31596_super_test/02: MissingCompileTimeError # Issue 31596
 issue31596_super_test/04: MissingCompileTimeError # Issue 31596
-issue34488_test/01: MissingCompileTimeError # Issue 34488
-issue34488_test/02: MissingCompileTimeError # Issue 34488
-issue34488_test/03: MissingCompileTimeError # Issue 34488
-issue34488_test/04: MissingCompileTimeError # Issue 34488
-issue34488_test/05: MissingCompileTimeError # Issue 34488
-issue34488_test/06: MissingCompileTimeError # Issue 34488
 mixin_declaration/mixin_declaration_invalid_override_test/08: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/04: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/05: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/06: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/07: MissingCompileTimeError
 mixin_declaration/mixin_declaration_superinvocation_application_test/08: MissingCompileTimeError
-mixin_method_override_test/G5: Crash # Issue 34354
 nnbd/*: Skip
-override_inheritance_field_test/42: MissingCompileTimeError
 regress_22976_test/*: CompileTimeError # Issue 31935
 set_literals/invalid_set_literal_test/08: MissingCompileTimeError # Requires constant evaluation
 set_literals/invalid_set_literal_test/09: MissingCompileTimeError # Requires constant evaluation
@@ -600,7 +589,6 @@ config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
-const_map4_test: RuntimeError
 constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
@@ -925,7 +913,6 @@ config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_dynamic_type_literal_test/02: RuntimeError # KernelVM bug: Constant map duplicated key.
 const_list_test: RuntimeError
 const_locals_test: RuntimeError
-const_map4_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
 constructor12_test: RuntimeError

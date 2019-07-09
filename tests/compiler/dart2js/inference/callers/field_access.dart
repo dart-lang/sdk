@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: B.:[main]*/
+/*member: B.:[main]*/
 class A {
-  /*element: A.field:[main]*/
+  /*member: A.field:[main]*/
   var field;
 }
 
-/*element: A.:[main]*/
+/*member: A.:[main]*/
 class B {
-  /*element: B.field:[main]*/
+  /*member: B.field:[main]*/
   var field;
 }
 

@@ -10,19 +10,19 @@ main() {
 }
 
 class Class1 {
-  /*element: Class1.field1:
+  /*member: Class1.field1:
    Class1.=?,
    initial=NullConstant
   */
   var field1;
 
-  /*element: Class1.field2:
+  /*member: Class1.field2:
    Class1.=1:IntConstant(2),
    initial=NullConstant
   */
   var field2;
 
-  /*element: Class1.field3:
+  /*member: Class1.field3:
    Class1.=2:IntConstant(3),
    initial=NullConstant
   */
@@ -32,19 +32,19 @@ class Class1 {
 }
 
 class Class2 {
-  /*element: Class2.field1:
+  /*member: Class2.field1:
    Class2.=?,
    initial=NullConstant
   */
   var field1;
 
-  /*element: Class2.field2:
+  /*member: Class2.field2:
    Class2.=field2:IntConstant(2),
    initial=NullConstant
   */
   var field2;
 
-  /*element: Class2.field3:
+  /*member: Class2.field3:
    Class2.=field3:IntConstant(3),
    initial=NullConstant
   */

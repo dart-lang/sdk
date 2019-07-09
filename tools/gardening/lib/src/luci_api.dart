@@ -97,7 +97,7 @@ class LuciApi {
       response.drain();
       throw new HttpException(response.reasonPhrase, uri: uri);
     }
-    return response.transform(utf8.decoder).join();
+    return response.cast<List<int>>().transform(utf8.decoder).join();
   }
 
   /// [_makePostRequest] performs a post request to [uri], where the posted

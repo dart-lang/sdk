@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: testFunctionStatement:[null|exact=JSUInt31]*/
+/*member: testFunctionStatement:[null|exact=JSUInt31]*/
 testFunctionStatement() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -10,7 +10,7 @@ testFunctionStatement() {
   return res;
 }
 
-/*element: testFunctionExpression:[null|exact=JSUInt31]*/
+/*member: testFunctionExpression:[null|exact=JSUInt31]*/
 testFunctionExpression() {
   var res;
   var closure = /*[exact=JSUInt31]*/ (/*[exact=JSUInt31]*/ a) => res = a;
@@ -18,10 +18,10 @@ testFunctionExpression() {
   return res;
 }
 
-/*element: staticField:[null|subclass=Closure]*/
+/*member: staticField:[null|subclass=Closure]*/
 var staticField;
 
-/*element: testStoredInStatic:[null|exact=JSUInt31]*/
+/*member: testStoredInStatic:[null|exact=JSUInt31]*/
 testStoredInStatic() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -31,16 +31,16 @@ testStoredInStatic() {
 }
 
 class A {
-  /*element: A.field:[subclass=Closure]*/
+  /*member: A.field:[subclass=Closure]*/
   var field;
-  /*element: A.:[exact=A]*/
+  /*member: A.:[exact=A]*/
   A(this. /*[subclass=Closure]*/ field);
 
-  /*element: A.foo:[exact=JSUInt31]*/
+  /*member: A.foo:[exact=JSUInt31]*/
   static foo(/*[exact=JSUInt31]*/ a) => topLevel3 = a;
 }
 
-/*element: testStoredInInstance:[null|exact=JSUInt31]*/
+/*member: testStoredInInstance:[null|exact=JSUInt31]*/
 testStoredInInstance() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -49,7 +49,7 @@ testStoredInInstance() {
   return res;
 }
 
-/*element: testStoredInMapOfList:[null|subclass=Object]*/
+/*member: testStoredInMapOfList:[null|subclass=Object]*/
 testStoredInMapOfList() {
   var res;
   /*[null|subclass=Object]*/ closure(/*[null|subclass=Object]*/ a) => res = a;
@@ -69,7 +69,7 @@ testStoredInMapOfList() {
   return res;
 }
 
-/*element: testStoredInListOfList:[null|exact=JSUInt31]*/
+/*member: testStoredInListOfList:[null|exact=JSUInt31]*/
 testStoredInListOfList() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -88,7 +88,7 @@ testStoredInListOfList() {
   return res;
 }
 
-/*element: testStoredInListOfListUsingInsert:[null|exact=JSUInt31]*/
+/*member: testStoredInListOfListUsingInsert:[null|exact=JSUInt31]*/
 testStoredInListOfListUsingInsert() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -107,7 +107,7 @@ testStoredInListOfListUsingInsert() {
   return res;
 }
 
-/*element: testStoredInListOfListUsingAdd:[null|exact=JSUInt31]*/
+/*member: testStoredInListOfListUsingAdd:[null|exact=JSUInt31]*/
 testStoredInListOfListUsingAdd() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -127,12 +127,12 @@ testStoredInListOfListUsingAdd() {
   return res;
 }
 
-/*element: foo:[null]*/
+/*member: foo:[null]*/
 foo(/*[subclass=Closure]*/ closure) {
   closure(42);
 }
 
-/*element: testPassedInParameter:[null|exact=JSUInt31]*/
+/*member: testPassedInParameter:[null|exact=JSUInt31]*/
 testPassedInParameter() {
   var res;
   /*[exact=JSUInt31]*/ closure(/*[exact=JSUInt31]*/ a) => res = a;
@@ -140,25 +140,25 @@ testPassedInParameter() {
   return res;
 }
 
-/*element: topLevel1:[null|exact=JSUInt31]*/
+/*member: topLevel1:[null|exact=JSUInt31]*/
 var topLevel1;
-/*element: foo2:[exact=JSUInt31]*/
+/*member: foo2:[exact=JSUInt31]*/
 foo2(/*[exact=JSUInt31]*/ a) => topLevel1 = a;
 
-/*element: testStaticClosure1:[null|exact=JSUInt31]*/
+/*member: testStaticClosure1:[null|exact=JSUInt31]*/
 testStaticClosure1() {
   var a = foo2;
   a(42);
   return topLevel1;
 }
 
-/*element: topLevel2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: topLevel2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
 var topLevel2;
 
-/*element: bar:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: bar:Union([exact=JSDouble], [exact=JSUInt31])*/
 bar(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) => topLevel2 = a;
 
-/*element: testStaticClosure2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testStaticClosure2:Union([exact=JSUInt31], [null|exact=JSDouble])*/
 testStaticClosure2() {
   var a = bar;
   a(42);
@@ -167,23 +167,23 @@ testStaticClosure2() {
   return topLevel2;
 }
 
-/*element: topLevel3:[null|exact=JSUInt31]*/
+/*member: topLevel3:[null|exact=JSUInt31]*/
 var topLevel3;
 
-/*element: testStaticClosure3:[null|exact=JSUInt31]*/ testStaticClosure3() {
+/*member: testStaticClosure3:[null|exact=JSUInt31]*/ testStaticClosure3() {
   var a = A.foo;
   a(42);
   return topLevel3;
 }
 
-/*element: topLevel4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: topLevel4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
 var topLevel4;
 
-/*element: testStaticClosure4Helper:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: testStaticClosure4Helper:Union([exact=JSDouble], [exact=JSUInt31])*/
 testStaticClosure4Helper(/*Union([exact=JSDouble], [exact=JSUInt31])*/ a) =>
     topLevel4 = a;
 
-/*element: testStaticClosure4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testStaticClosure4:Union([exact=JSUInt31], [null|exact=JSDouble])*/
 testStaticClosure4() {
   var a = testStaticClosure4Helper;
   // Test calling the static after tearing it off.
@@ -192,7 +192,7 @@ testStaticClosure4() {
   return topLevel4;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   testFunctionStatement();
   testFunctionExpression();

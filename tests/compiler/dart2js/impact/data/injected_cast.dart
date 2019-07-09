@@ -12,13 +12,13 @@ class D {}
 
 class E {}
 
-/*element: Class1.:static=[Object.(0)]*/
+/*member: Class1.:static=[Object.(0)]*/
 class Class1 {
-  /*element: Class1.field1:type=[inst:JSBool,inst:JSNull,param:A]*/
+  /*member: Class1.field1:type=[inst:JSBool,inst:JSNull,param:A]*/
   A field1;
 }
 
-/*element: method1:
+/*member: method1:
  dynamic=[Class1.field1=],
  type=[
   impl:A,
@@ -30,16 +30,16 @@ method1(dynamic o, dynamic value) {
   o.field1 = value;
 }
 
-/*element: Class2.:static=[Object.(0)]*/
+/*member: Class2.:static=[Object.(0)]*/
 class Class2<T> {
-  /*element: Class2.field2:
+  /*member: Class2.field2:
    static=*,
    type=[inst:*,param:Class2.T]
    */
   T field2;
 }
 
-/*element: method2:
+/*member: method2:
  dynamic=[Class2.field2=],
  static=*,
  type=[
@@ -52,13 +52,13 @@ method2(dynamic o, dynamic value) {
   o.field2 = value;
 }
 
-/*element: Class3.:static=[Object.(0)]*/
+/*member: Class3.:static=[Object.(0)]*/
 class Class3 {
-  /*element: Class3.method3:type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]*/
+  /*member: Class3.method3:type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]*/
   method3(A a, [B b, C c]) {}
 }
 
-/*element: method3:
+/*member: method3:
  dynamic=[Class3.method3(3)],
  type=[
   impl:A,
@@ -72,15 +72,15 @@ method3(dynamic o, dynamic a, B b, dynamic c) {
   o.method3(a, b, c);
 }
 
-/*element: Class4.:static=[Object.(0)]*/
+/*member: Class4.:static=[Object.(0)]*/
 class Class4 {
-  /*element: Class4.method4:
+  /*member: Class4.method4:
    type=[inst:JSBool,inst:JSNull,param:A,param:B,param:C]
   */
   method4(A a, {B b, C c}) {}
 }
 
-/*element: method4:
+/*member: method4:
  dynamic=[Class4.method4(1,b,c)],
  type=[
   impl:A,
@@ -94,9 +94,9 @@ method4(dynamic o, dynamic a, B b, dynamic c) {
   o.method4(a, c: c, b: b);
 }
 
-/*element: Class5.:static=[Object.(0)]*/
+/*member: Class5.:static=[Object.(0)]*/
 class Class5<T1, T2> {
-  /*element: Class5.method5:
+  /*member: Class5.method5:
    static=*,
    type=[
     inst:*,
@@ -110,7 +110,7 @@ class Class5<T1, T2> {
   method5<S1, S2>(T1 a, [T2 b, C c, S1 d, S2 e]) {}
 }
 
-/*element: method5:
+/*member: method5:
  dynamic=[Class5.method5<D,E>(5)],
  static=*,
  type=[
@@ -127,9 +127,9 @@ method5(dynamic o, dynamic a, B b, C c, dynamic d, E e) {
   o.method5<D, E>(a, b, c, d, e);
 }
 
-/*element: Class6.:static=[Object.(0)]*/
+/*member: Class6.:static=[Object.(0)]*/
 class Class6<T1, T2> {
-  /*element: Class6.method6:
+  /*member: Class6.method6:
    static=*,
    type=[
     inst:*,
@@ -143,7 +143,7 @@ class Class6<T1, T2> {
   method6<S1, S2>(T1 a, {T2 b, C c, S1 d, S2 e}) {}
 }
 
-/*element: method6:
+/*member: method6:
  dynamic=[Class6.method6<D,E>(1,b,c,d,e)],
  static=*,
  type=[
@@ -160,13 +160,13 @@ method6(dynamic o, dynamic a, B b, C c, dynamic d, E e) {
   o.method6<D, E>(a, d: d, b: b, e: e, c: c);
 }
 
-/*element: Class7.:static=[Object.(0)]*/
+/*member: Class7.:static=[Object.(0)]*/
 class Class7 {
-  /*element: Class7.f:type=[inst:JSNull]*/
+  /*member: Class7.f:type=[inst:JSNull]*/
   A Function(A) get f => null;
 }
 
-/*element: method7:
+/*member: method7:
  dynamic=[Class7.f(1),call(1)],
  type=[impl:A,inst:JSBool,is:Class7]
 */
@@ -175,19 +175,19 @@ method7(dynamic o, dynamic a) {
   o.f(a);
 }
 
-/*element: F.:static=[Object.(0)]*/
+/*member: F.:static=[Object.(0)]*/
 class F<T> {
-  /*element: F.method:static=*,type=[inst:*,param:List<F.T>]*/
+  /*member: F.method:static=*,type=[inst:*,param:List<F.T>]*/
   T method(List<T> list) => null;
 
-  /*element: F.field:static=*,type=[inst:*,param:F.T]*/
+  /*member: F.field:static=*,type=[inst:*,param:F.T]*/
   T field;
 }
 
-/*element: G.:static=[F.(0)]*/
+/*member: G.:static=[F.(0)]*/
 class G extends F<int> {}
 
-/*element: method8:
+/*member: method8:
  dynamic=[G.method(1)],
  static=*,
  type=[impl:List<int>,inst:*,is:G,param:Iterable<int>]
@@ -197,7 +197,7 @@ method8(dynamic g, Iterable<int> iterable) {
   return g.method(iterable);
 }
 
-/*element: method9:
+/*member: method9:
  dynamic=[G.field=],
  type=[impl:int,inst:JSBool,inst:JSNull,is:G,param:num]
 */
@@ -206,7 +206,7 @@ method9(dynamic g, num value) {
   return g.field = value;
 }
 
-/*element: main:**/
+/*member: main:**/
 main() {
   method1(new Class1(), null);
   method2(new Class2<A>(), null);

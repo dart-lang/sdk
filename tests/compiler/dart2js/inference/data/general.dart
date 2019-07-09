@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum1:Union([exact=JSDouble], [exact=JSUInt31])*/
 returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1;
@@ -10,7 +10,7 @@ returnNum1(/*Value([exact=JSBool], value: true)*/ a) {
     return 2.5;
 }
 
-/*element: returnNum2:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: returnNum2:Union([exact=JSDouble], [exact=JSUInt31])*/
 returnNum2(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1.4;
@@ -18,7 +18,7 @@ returnNum2(/*Value([exact=JSBool], value: true)*/ a) {
     return 2;
 }
 
-/*element: returnInt1:[exact=JSUInt31]*/
+/*member: returnInt1:[exact=JSUInt31]*/
 returnInt1(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1;
@@ -26,7 +26,7 @@ returnInt1(/*Value([exact=JSBool], value: true)*/ a) {
     return 2;
 }
 
-/*element: returnDouble:[exact=JSDouble]*/
+/*member: returnDouble:[exact=JSDouble]*/
 returnDouble(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1.5;
@@ -34,7 +34,7 @@ returnDouble(/*Value([exact=JSBool], value: true)*/ a) {
     return 2.5;
 }
 
-/*element: returnGiveUp:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnGiveUp:Union([exact=JSString], [exact=JSUInt31])*/
 returnGiveUp(/*Value([exact=JSBool], value: true)*/ a) {
   if (a)
     return 1;
@@ -42,66 +42,66 @@ returnGiveUp(/*Value([exact=JSBool], value: true)*/ a) {
     return 'foo';
 }
 
-/*element: returnInt2:[exact=JSUInt31]*/
+/*member: returnInt2:[exact=JSUInt31]*/
 returnInt2() {
   var a = 42;
   return a /*invoke: [exact=JSUInt31]*/ ++;
 }
 
-/*element: returnInt5:[subclass=JSUInt32]*/
+/*member: returnInt5:[subclass=JSUInt32]*/
 returnInt5() {
   var a = 42;
   return /*invoke: [exact=JSUInt31]*/ ++a;
 }
 
-/*element: returnInt6:[subclass=JSUInt32]*/
+/*member: returnInt6:[subclass=JSUInt32]*/
 returnInt6() {
   var a = 42;
   a /*invoke: [exact=JSUInt31]*/ ++;
   return a;
 }
 
-/*element: returnIntOrNull:[null|exact=JSUInt31]*/
+/*member: returnIntOrNull:[null|exact=JSUInt31]*/
 returnIntOrNull(/*Value([exact=JSBool], value: true)*/ a) {
   if (a) return 42;
 }
 
-/*element: returnInt3:[exact=JSUInt31]*/
+/*member: returnInt3:[exact=JSUInt31]*/
 returnInt3(/*Value([exact=JSBool], value: true)*/ a) {
   if (a) return 42;
   throw 42;
 }
 
-/*element: returnInt4:[exact=JSUInt31]*/
+/*member: returnInt4:[exact=JSUInt31]*/
 returnInt4() {
   return (42);
 }
 
-/*element: returnInt7:[subclass=JSPositiveInt]*/
+/*member: returnInt7:[subclass=JSPositiveInt]*/
 returnInt7() {
   return 42. /*invoke: [exact=JSUInt31]*/ abs();
 }
 
-/*element: returnInt8:[subclass=JSPositiveInt]*/
+/*member: returnInt8:[subclass=JSPositiveInt]*/
 returnInt8() {
   return 42. /*invoke: [exact=JSUInt31]*/ remainder(54);
 }
 
-/*element: returnEmpty1:[empty]*/
+/*member: returnEmpty1:[empty]*/
 returnEmpty1() {
   // Ensure that we don't intrisify a wrong call to [int.remainder].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ remainder();
 }
 
-/*element: returnEmpty2:[empty]*/
+/*member: returnEmpty2:[empty]*/
 returnEmpty2() {
   // Ensure that we don't intrisify a wrong call to [int.abs].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ abs(42);
 }
 
-/*element: testIsCheck1:[subclass=JSInt]*/
+/*member: testIsCheck1:[subclass=JSInt]*/
 testIsCheck1(/*[null|subclass=Object]*/ a) {
   if (a is int) {
     return a;
@@ -110,7 +110,7 @@ testIsCheck1(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck2:[subclass=JSInt]*/
+/*member: testIsCheck2:[subclass=JSInt]*/
 testIsCheck2(/*[null|subclass=Object]*/ a) {
   if (a is! int) {
     return 0;
@@ -119,7 +119,7 @@ testIsCheck2(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck3:[null|subclass=JSInt]*/
+/*member: testIsCheck3:[null|subclass=JSInt]*/
 testIsCheck3(/*[null|subclass=Object]*/ a) {
   if (a is! int) {
     print('hello');
@@ -128,7 +128,7 @@ testIsCheck3(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck4:[subclass=JSInt]*/
+/*member: testIsCheck4:[subclass=JSInt]*/
 testIsCheck4(/*[null|subclass=Object]*/ a) {
   if (a is int) {
     return a;
@@ -137,7 +137,7 @@ testIsCheck4(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck5:[subclass=JSInt]*/
+/*member: testIsCheck5:[subclass=JSInt]*/
 testIsCheck5(/*[null|subclass=Object]*/ a) {
   if (a is! int) {
     return 42;
@@ -146,7 +146,7 @@ testIsCheck5(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck6:[null|subclass=Object]*/
+/*member: testIsCheck6:[null|subclass=Object]*/
 testIsCheck6(/*[null|subclass=Object]*/ a) {
   if (a is! int) {
     return a;
@@ -155,7 +155,7 @@ testIsCheck6(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck7:[subclass=JSInt]*/
+/*member: testIsCheck7:[subclass=JSInt]*/
 testIsCheck7(/*[null|subclass=Object]*/ a) {
   if (a == 'foo' && a is int) {
     return a;
@@ -164,7 +164,7 @@ testIsCheck7(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck8:[null|subclass=Object]*/
+/*member: testIsCheck8:[null|subclass=Object]*/
 testIsCheck8(/*[null|subclass=Object]*/ a) {
   if (a == 'foo' || a is int) {
     return a;
@@ -173,27 +173,27 @@ testIsCheck8(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck9:[subclass=JSInt]*/
+/*member: testIsCheck9:[subclass=JSInt]*/
 testIsCheck9(/*[null|subclass=Object]*/ a) {
   return a is int ? a : 42;
 }
 
-/*element: testIsCheck10:[null|subclass=Object]*/
+/*member: testIsCheck10:[null|subclass=Object]*/
 testIsCheck10(/*[null|subclass=Object]*/ a) {
   return a is! int ? a : 42;
 }
 
-/*element: testIsCheck11:[subclass=JSInt]*/
+/*member: testIsCheck11:[subclass=JSInt]*/
 testIsCheck11(/*[null|subclass=Object]*/ a) {
   return a is! int ? 42 : a;
 }
 
-/*element: testIsCheck12:[null|subclass=Object]*/
+/*member: testIsCheck12:[null|subclass=Object]*/
 testIsCheck12(/*[null|subclass=Object]*/ a) {
   return a is int ? 42 : a;
 }
 
-/*element: testIsCheck13:[subclass=JSInt]*/
+/*member: testIsCheck13:[subclass=JSInt]*/
 testIsCheck13(/*[null|subclass=Object]*/ a) {
   while (a is int) {
     return a;
@@ -201,7 +201,7 @@ testIsCheck13(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck14:[null|subclass=Object]*/
+/*member: testIsCheck14:[null|subclass=Object]*/
 testIsCheck14(/*[null|subclass=Object]*/ a) {
   while (a is! int) {
     return 42;
@@ -210,7 +210,7 @@ testIsCheck14(/*[null|subclass=Object]*/ a) {
 }
 
 // TODO(29309): Change to [subclass=JSInt] when 29309 is fixed.
-/*element: testIsCheck15:[null|subclass=Object]*/
+/*member: testIsCheck15:[null|subclass=Object]*/
 testIsCheck15(/*[null|subclass=Object]*/ a) {
   dynamic c = 42;
   do {
@@ -220,7 +220,7 @@ testIsCheck15(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck16:[null|subclass=Object]*/
+/*member: testIsCheck16:[null|subclass=Object]*/
 testIsCheck16(/*[null|subclass=Object]*/ a) {
   dynamic c = 42;
   do {
@@ -230,7 +230,7 @@ testIsCheck16(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck17:[subclass=JSInt]*/
+/*member: testIsCheck17:[subclass=JSInt]*/
 testIsCheck17(/*[null|subclass=Object]*/ a) {
   dynamic c = 42;
   for (; c is int;) {
@@ -240,7 +240,7 @@ testIsCheck17(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck18:[null|subclass=Object]*/
+/*member: testIsCheck18:[null|subclass=Object]*/
 testIsCheck18(/*[null|subclass=Object]*/ a) {
   dynamic c = 42;
   for (; c is int;) {
@@ -250,7 +250,7 @@ testIsCheck18(/*[null|subclass=Object]*/ a) {
   return c;
 }
 
-/*element: testIsCheck19:[null|subclass=Object]*/
+/*member: testIsCheck19:[null|subclass=Object]*/
 testIsCheck19(/*[null|subclass=Object]*/ a) {
   dynamic c = 42;
   for (; c is! int;) {
@@ -260,7 +260,7 @@ testIsCheck19(/*[null|subclass=Object]*/ a) {
   return 42;
 }
 
-/*element: testIsCheck20:[exact=JSUInt31]*/
+/*member: testIsCheck20:[exact=JSUInt31]*/
 testIsCheck20() {
   var c = topLevelGetter();
   if (c != null && c is! bool && c is! int) {
@@ -272,7 +272,7 @@ testIsCheck20() {
   }
 }
 
-/*element: testIsCheck21:Union([subclass=JSArray], [subclass=JSInt])*/
+/*member: testIsCheck21:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck21(/*[null|subclass=Object]*/ a) {
   if (a is int || a is List) {
     return a;
@@ -281,30 +281,30 @@ testIsCheck21(/*[null|subclass=Object]*/ a) {
   }
 }
 
-/*element: testIsCheck22:Union([subclass=JSArray], [subclass=JSInt])*/
+/*member: testIsCheck22:Union([subclass=JSArray], [subclass=JSInt])*/
 testIsCheck22(/*[null|subclass=Object]*/ a) {
   return (a is int || a is List) ? a : 42;
 }
 
-/*element: testIsCheck23:[subclass=JSInt]*/
+/*member: testIsCheck23:[subclass=JSInt]*/
 testIsCheck23(/*[null|subclass=Object]*/ a) {
   if (a is! int) throw 'foo';
   return a;
 }
 
-/*element: testIsCheck24:[subclass=JSInt]*/
+/*member: testIsCheck24:[subclass=JSInt]*/
 testIsCheck24(/*[null|subclass=Object]*/ a) {
   if (a is! int) return 42;
   return a;
 }
 
-/*element: testIsCheck25:[null|subclass=Object]*/
+/*member: testIsCheck25:[null|subclass=Object]*/
 testIsCheck25(/*[null|subclass=Object]*/ a) {
   if (a is int) throw 'foo';
   return a;
 }
 
-/*element: testIsCheck26:[subclass=JSInt]*/
+/*member: testIsCheck26:[subclass=JSInt]*/
 testIsCheck26(/*[null|subclass=Object]*/ a) {
   if (a is int) {
   } else {
@@ -313,7 +313,7 @@ testIsCheck26(/*[null|subclass=Object]*/ a) {
   return a;
 }
 
-/*element: testIsCheck27:[subclass=JSInt]*/
+/*member: testIsCheck27:[subclass=JSInt]*/
 testIsCheck27(/*[null|subclass=Object]*/ a) {
   if (a is int) {
   } else {
@@ -322,20 +322,20 @@ testIsCheck27(/*[null|subclass=Object]*/ a) {
   return a;
 }
 
-/*element: testIsCheck28:[null|subclass=Object]*/
+/*member: testIsCheck28:[null|subclass=Object]*/
 testIsCheck28(/*[null|subclass=Object]*/ a) {
   if (a is int) {
   } else {}
   return a;
 }
 
-/*element: testIsCheck29:[null|subclass=Object]*/
+/*member: testIsCheck29:[null|subclass=Object]*/
 testIsCheck29(/*[null|subclass=Object]*/ a) {
   if (a is int) {}
   return a;
 }
 
-/*element: testIf1:[null|exact=JSUInt31]*/
+/*member: testIf1:[null|exact=JSUInt31]*/
 testIf1(/*[null|subclass=Object]*/ a) {
   var c = null;
   if (a) {
@@ -344,7 +344,7 @@ testIf1(/*[null|subclass=Object]*/ a) {
   return c;
 }
 
-/*element: testIf2:[null|exact=JSUInt31]*/
+/*member: testIf2:[null|exact=JSUInt31]*/
 testIf2(/*[null|subclass=Object]*/ a) {
   var c = null;
   if (a) {
@@ -354,12 +354,12 @@ testIf2(/*[null|subclass=Object]*/ a) {
   return c;
 }
 
-/*element: returnAsString:[null|exact=JSString]*/
+/*member: returnAsString:[null|exact=JSString]*/
 returnAsString() {
   return topLevelGetter() as String;
 }
 
-/*element: returnIntAsNum:[exact=JSUInt31]*/
+/*member: returnIntAsNum:[exact=JSUInt31]*/
 returnIntAsNum() {
   dynamic a = 0;
   return a as num;
@@ -367,19 +367,19 @@ returnIntAsNum() {
 
 typedef int Foo();
 
-/*element: returnAsTypedef:[null|subclass=Closure]*/
+/*member: returnAsTypedef:[null|subclass=Closure]*/
 returnAsTypedef() {
   return topLevelGetter() as Foo;
 }
 
-/*element: testDeadCode:[exact=JSUInt31]*/
+/*member: testDeadCode:[exact=JSUInt31]*/
 testDeadCode() {
   return 42;
   // ignore: dead_code
   return 'foo';
 }
 
-/*element: testLabeledIf:[null|exact=JSUInt31]*/
+/*member: testLabeledIf:[null|exact=JSUInt31]*/
 testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   var c;
   L1:
@@ -394,7 +394,7 @@ testLabeledIf(/*Value([exact=JSBool], value: true)*/ a) {
   return c;
 }
 
-/*element: testSwitch1:Union([exact=JSUInt31], [null|exact=JSDouble])*/
+/*member: testSwitch1:Union([exact=JSUInt31], [null|exact=JSDouble])*/
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -408,7 +408,7 @@ testSwitch1() {
   return a;
 }
 
-/*element: testSwitch2:[exact=JSUInt31]*/
+/*member: testSwitch2:[exact=JSUInt31]*/
 testSwitch2() {
   var a = null;
   switch (topLevelGetter) {
@@ -424,7 +424,7 @@ testSwitch2() {
   return a;
 }
 
-/*element: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testSwitch3:Union([exact=JSString], [null|subclass=JSNumber])*/
 testSwitch3() {
   dynamic a = 42;
   var b;
@@ -440,7 +440,7 @@ testSwitch3() {
   return b;
 }
 
-/*element: testSwitch4:[exact=JSUInt31]*/
+/*member: testSwitch4:[exact=JSUInt31]*/
 testSwitch4() {
   switch (topLevelGetter) {
     case 1:
@@ -451,7 +451,7 @@ testSwitch4() {
   return 42;
 }
 
-/*element: testSwitch5:[exact=JSUInt31]*/
+/*member: testSwitch5:[exact=JSUInt31]*/
 testSwitch5() {
   switch (topLevelGetter) {
     case 1:
@@ -461,7 +461,7 @@ testSwitch5() {
   }
 }
 
-/*element: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
+/*member: testContinue1:Union([exact=JSString], [null|subclass=JSNumber])*/
 testContinue1() {
   dynamic a = 42;
   var b;
@@ -475,7 +475,7 @@ testContinue1() {
   return b;
 }
 
-/*element: testBreak1:Union([null|exact=JSString], [subclass=JSUInt32])*/
+/*member: testBreak1:Union([null|exact=JSString], [subclass=JSUInt32])*/
 testBreak1() {
   var a = 42;
   var b;
@@ -487,7 +487,7 @@ testBreak1() {
   return b;
 }
 
-/*element: testContinue2:Union([exact=JSString], [null|subclass=JSUInt32])*/
+/*member: testContinue2:Union([exact=JSString], [null|subclass=JSUInt32])*/
 testContinue2() {
   var a = 42;
   var b;
@@ -502,7 +502,7 @@ testContinue2() {
   return b;
 }
 
-/*element: testBreak2:[null|subclass=JSUInt32]*/
+/*member: testBreak2:[null|subclass=JSUInt32]*/
 testBreak2() {
   dynamic a = 42;
   var b;
@@ -516,7 +516,7 @@ testBreak2() {
   return b;
 }
 
-/*element: testReturnElementOfConstList1:[exact=JSUInt31]*/
+/*member: testReturnElementOfConstList1:[exact=JSUInt31]*/
 testReturnElementOfConstList1() {
   return const [
     42
@@ -524,19 +524,19 @@ testReturnElementOfConstList1() {
       0];
 }
 
-/*element: testReturnElementOfConstList2:[exact=JSUInt31]*/
+/*member: testReturnElementOfConstList2:[exact=JSUInt31]*/
 testReturnElementOfConstList2() {
   return topLevelConstList /*Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/ [
       0];
 }
 
-/*element: testReturnItselfOrInt:[exact=JSUInt31]*/
+/*member: testReturnItselfOrInt:[exact=JSUInt31]*/
 testReturnItselfOrInt(/*[null|subclass=Object]*/ a) {
   if (a) return 42;
   return testReturnItselfOrInt(a);
 }
 
-/*element: testDoWhile1:Value([exact=JSString], value: "foo")*/
+/*member: testDoWhile1:Value([exact=JSString], value: "foo")*/
 testDoWhile1() {
   dynamic a = 42;
   do {
@@ -546,7 +546,7 @@ testDoWhile1() {
   return a;
 }
 
-/*element: testDoWhile2:[null]*/
+/*member: testDoWhile2:[null]*/
 testDoWhile2() {
   dynamic a = 42;
   do {
@@ -558,7 +558,7 @@ testDoWhile2() {
   return a;
 }
 
-/*element: testDoWhile3:[exact=JSUInt31]*/
+/*member: testDoWhile3:[exact=JSUInt31]*/
 testDoWhile3() {
   dynamic a = 42;
   do {
@@ -570,7 +570,7 @@ testDoWhile3() {
   return a;
 }
 
-/*element: testDoWhile4:Union([exact=JSDouble], [exact=JSUInt31])*/
+/*member: testDoWhile4:Union([exact=JSDouble], [exact=JSUInt31])*/
 testDoWhile4() {
   dynamic a = 'foo';
   do {
@@ -581,14 +581,14 @@ testDoWhile4() {
   return a;
 }
 
-/*element: testSpecialization1:[subclass=Object]*/
+/*member: testSpecialization1:[subclass=Object]*/
 testSpecialization1() {
   var a = topLevelGetter();
   a - 42;
   return a;
 }
 
-/*element: testSpecialization2:[null|subclass=Object]*/
+/*member: testSpecialization2:[null|subclass=Object]*/
 testSpecialization2() {
   var a = topLevelGetter();
   // Make [a] a captured variable. This should disable receiver
@@ -600,7 +600,7 @@ testSpecialization2() {
   return a;
 }
 
-/*element: testSpecialization3:[null|exact=JSUInt31]*/
+/*member: testSpecialization3:[null|exact=JSUInt31]*/
 testSpecialization3() {
   var a = returnDynamic() ? null : 42;
   a. /*invoke: [null|exact=JSUInt31]*/ toString();
@@ -609,191 +609,191 @@ testSpecialization3() {
   return a;
 }
 
-/*element: testReturnNull1:[null]*/
+/*member: testReturnNull1:[null]*/
 testReturnNull1(/*[null|subclass=Object]*/ a) {
   if (a == null) return a;
   return null;
 }
 
-/*element: testReturnNull2:[null]*/
+/*member: testReturnNull2:[null]*/
 testReturnNull2(/*[null|subclass=Object]*/ a) {
   if (a != null) return null;
   return a;
 }
 
-/*element: testReturnNull3:[subclass=Object]*/
+/*member: testReturnNull3:[subclass=Object]*/
 testReturnNull3(/*[null|subclass=Object]*/ a) {
   if (a == null) return 42;
   return a;
 }
 
-/*element: testReturnNull4:[null]*/
+/*member: testReturnNull4:[null]*/
 testReturnNull4() {
   var a = topLevelGetter();
   if (a == null) return a;
   return null;
 }
 
-/*element: testReturnNull5:[null]*/
+/*member: testReturnNull5:[null]*/
 testReturnNull5() {
   var a = topLevelGetter();
   if (a != null) return null;
   return a;
 }
 
-/*element: testReturnNull6:[subclass=Object]*/
+/*member: testReturnNull6:[subclass=Object]*/
 testReturnNull6() {
   var a = topLevelGetter();
   if (a == null) return 42;
   return a;
 }
 
-/*element: testReturnNotEquals:[exact=JSBool]*/
+/*member: testReturnNotEquals:[exact=JSBool]*/
 testReturnNotEquals() {
   return new A() /*invoke: [exact=A]*/ != 54;
 }
 
-/*element: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
+/*member: testReturnInvokeDynamicGetter:[null|subclass=Object]*/
 testReturnInvokeDynamicGetter() => new A(). /*invoke: [exact=A]*/ myFactory();
 
-/*element: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
+/*member: topLevelConstList:Container([exact=JSUnmodifiableArray], element: [exact=JSUInt31], length: 1)*/
 var topLevelConstList = const [42];
 
-/*element: topLevelGetter:[exact=JSUInt31]*/
+/*member: topLevelGetter:[exact=JSUInt31]*/
 get topLevelGetter => 42;
 
-/*element: returnDynamic:[null|subclass=Object]*/
+/*member: returnDynamic:[null|subclass=Object]*/
 returnDynamic() => topLevelGetter(42);
 
-/*element: returnTopLevelGetter:[exact=JSUInt31]*/
+/*member: returnTopLevelGetter:[exact=JSUInt31]*/
 returnTopLevelGetter() => topLevelGetter;
 
 class A {
   factory A() = A.generative;
 
-  /*element: A.generative:[exact=A]*/
+  /*member: A.generative:[exact=A]*/
   A.generative();
 
-  /*element: A.==:[exact=JSBool]*/
+  /*member: A.==:[exact=JSBool]*/
   operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
       42 as dynamic;
 
-  /*element: A.myField:[exact=JSUInt31]*/
+  /*member: A.myField:[exact=JSUInt31]*/
   get myField => 42;
 
   set myField(/*[subclass=JSUInt32]*/ a) {}
 
-  /*element: A.returnInt1:[subclass=JSUInt32]*/
+  /*member: A.returnInt1:[subclass=JSUInt32]*/
   returnInt1() => /*invoke: [exact=JSUInt31]*/ ++ /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
 
-  /*element: A.returnInt2:[subclass=JSUInt32]*/
+  /*member: A.returnInt2:[subclass=JSUInt32]*/
   returnInt2() => /*invoke: [exact=JSUInt31]*/ ++this
       . /*[subclass=A]*/ /*update: [subclass=A]*/ myField;
 
-  /*element: A.returnInt3:[subclass=JSUInt32]*/
+  /*member: A.returnInt3:[subclass=JSUInt32]*/
   returnInt3() =>
       this. /*[subclass=A]*/ /*update: [subclass=A]*/ myField /*invoke: [exact=JSUInt31]*/ +=
           42;
 
-  /*element: A.returnInt4:[subclass=JSUInt32]*/
+  /*member: A.returnInt4:[subclass=JSUInt32]*/
   returnInt4() => /*[subclass=A]*/ /*update: [subclass=A]*/ myField /*invoke: [exact=JSUInt31]*/ +=
       42;
 
-  /*element: A.[]:[exact=JSUInt31]*/
+  /*member: A.[]:[exact=JSUInt31]*/
   operator [](/*[exact=JSUInt31]*/ index) => 42;
 
-  /*element: A.[]=:[null]*/
+  /*member: A.[]=:[null]*/
   operator []=(/*[exact=JSUInt31]*/ index, /*[subclass=JSUInt32]*/ value) {}
 
-  /*element: A.returnInt5:[subclass=JSUInt32]*/
+  /*member: A.returnInt5:[subclass=JSUInt32]*/
   returnInt5() => /*invoke: [exact=JSUInt31]*/ ++this /*[subclass=A]*/ /*update: [subclass=A]*/ [
       0];
 
-  /*element: A.returnInt6:[subclass=JSUInt32]*/
+  /*member: A.returnInt6:[subclass=JSUInt32]*/
   returnInt6() => this /*[subclass=A]*/ /*update: [subclass=A]*/ [
       0] /*invoke: [exact=JSUInt31]*/ += 1;
 
-  /*element: A.myFactory:[subclass=Closure]*/
+  /*member: A.myFactory:[subclass=Closure]*/
   get myFactory => /*[exact=JSUInt31]*/ () => 42;
 }
 
 class B extends A {
-  /*element: B.:[exact=B]*/
+  /*member: B.:[exact=B]*/
   B() : super.generative();
 
-  /*element: B.returnInt1:[subclass=JSUInt32]*/
+  /*member: B.returnInt1:[subclass=JSUInt32]*/
   returnInt1() => /*invoke: [exact=JSUInt31]*/ ++new A()
       . /*[exact=A]*/ /*update: [exact=A]*/ myField;
 
-  /*element: B.returnInt2:[subclass=JSUInt32]*/
+  /*member: B.returnInt2:[subclass=JSUInt32]*/
   returnInt2() => new A()
       . /*[exact=A]*/ /*update: [exact=A]*/ myField /*invoke: [exact=JSUInt31]*/ += 4;
 
-  /*element: B.returnInt3:[subclass=JSUInt32]*/
+  /*member: B.returnInt3:[subclass=JSUInt32]*/
   returnInt3() => /*invoke: [exact=JSUInt31]*/ ++new A() /*[exact=A]*/ /*update: [exact=A]*/ [
       0];
 
-  /*element: B.returnInt4:[subclass=JSUInt32]*/
+  /*member: B.returnInt4:[subclass=JSUInt32]*/
   returnInt4() => new A() /*[exact=A]*/ /*update: [exact=A]*/ [
       0] /*invoke: [exact=JSUInt31]*/ += 42;
 
-  /*element: B.returnInt5:[subclass=JSUInt32]*/
+  /*member: B.returnInt5:[subclass=JSUInt32]*/
   returnInt5() => /*invoke: [exact=JSUInt31]*/ ++super.myField;
 
-  /*element: B.returnInt6:[subclass=JSUInt32]*/
+  /*member: B.returnInt6:[subclass=JSUInt32]*/
   returnInt6() => super.myField /*invoke: [exact=JSUInt31]*/ += 4;
 
-  /*element: B.returnInt7:[subclass=JSUInt32]*/
+  /*member: B.returnInt7:[subclass=JSUInt32]*/
   returnInt7() => /*invoke: [exact=JSUInt31]*/ ++super[0];
 
-  /*element: B.returnInt8:[subclass=JSUInt32]*/
+  /*member: B.returnInt8:[subclass=JSUInt32]*/
   returnInt8() => super[0] /*invoke: [exact=JSUInt31]*/ += 54;
 
-  /*element: B.returnInt9:[exact=JSUInt31]*/
+  /*member: B.returnInt9:[exact=JSUInt31]*/
   returnInt9() => super.myField;
 }
 
 class C {
-  /*element: C.myField:[subclass=JSPositiveInt]*/
+  /*member: C.myField:[subclass=JSPositiveInt]*/
   var myField = 42;
 
-  /*element: C.:[exact=C]*/
+  /*member: C.:[exact=C]*/
   C();
 
-  /*element: C.returnInt1:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt1:[subclass=JSPositiveInt]*/
   returnInt1() => /*invoke: [subclass=JSPositiveInt]*/ ++ /*[exact=C]*/ /*update: [exact=C]*/ myField;
 
-  /*element: C.returnInt2:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt2:[subclass=JSPositiveInt]*/
   returnInt2() => /*invoke: [subclass=JSPositiveInt]*/ ++this
       . /*[exact=C]*/ /*update: [exact=C]*/ myField;
 
-  /*element: C.returnInt3:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt3:[subclass=JSPositiveInt]*/
   returnInt3() =>
       this. /*[exact=C]*/ /*update: [exact=C]*/ myField /*invoke: [subclass=JSPositiveInt]*/ +=
           42;
 
-  /*element: C.returnInt4:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt4:[subclass=JSPositiveInt]*/
   returnInt4() => /*[exact=C]*/ /*update: [exact=C]*/ myField /*invoke: [subclass=JSPositiveInt]*/ +=
       42;
 
-  /*element: C.[]:[subclass=JSPositiveInt]*/
+  /*member: C.[]:[subclass=JSPositiveInt]*/
   operator [](/*[exact=JSUInt31]*/ index) => /*[exact=C]*/ myField;
 
-  /*element: C.[]=:[null]*/
+  /*member: C.[]=:[null]*/
   operator []=(
       /*[exact=JSUInt31]*/ index,
       /*[subclass=JSPositiveInt]*/ value) {}
 
-  /*element: C.returnInt5:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt5:[subclass=JSPositiveInt]*/
   returnInt5() => /*invoke: [subclass=JSPositiveInt]*/ ++this /*[exact=C]*/ /*update: [exact=C]*/ [
       0];
 
-  /*element: C.returnInt6:[subclass=JSPositiveInt]*/
+  /*member: C.returnInt6:[subclass=JSPositiveInt]*/
   returnInt6() => this /*[exact=C]*/ /*update: [exact=C]*/ [
       0] /*invoke: [subclass=JSPositiveInt]*/ += 1;
 }
 
-/*element: testCascade1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
+/*member: testCascade1:Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
 testCascade1() {
   return [1, 2, 3]
     .. /*invoke: Container([exact=JSExtendableArray], element: [exact=JSUInt31], length: null)*/
@@ -802,7 +802,7 @@ testCascade1() {
         add(5);
 }
 
-/*element: testCascade2:[exact=CascadeHelper]*/
+/*member: testCascade2:[exact=CascadeHelper]*/
 testCascade2() {
   return new CascadeHelper()
     .. /*update: [exact=CascadeHelper]*/ a = "hello"
@@ -811,19 +811,19 @@ testCascade2() {
         /*invoke: [subclass=JSPositiveInt]*/ += 1;
 }
 
-/*element: CascadeHelper.:[exact=CascadeHelper]*/
+/*member: CascadeHelper.:[exact=CascadeHelper]*/
 class CascadeHelper {
-  /*element: CascadeHelper.a:Value([null|exact=JSString], value: "hello")*/
+  /*member: CascadeHelper.a:Value([null|exact=JSString], value: "hello")*/
   var a;
 
-  /*element: CascadeHelper.b:[null|exact=JSUInt31]*/
+  /*member: CascadeHelper.b:[null|exact=JSUInt31]*/
   var b;
 
-  /*element: CascadeHelper.i:[subclass=JSPositiveInt]*/
+  /*member: CascadeHelper.i:[subclass=JSPositiveInt]*/
   var i = 0;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   // Ensure a function class is being instantiated.
   /*[exact=JSUInt31]*/ () => 42;

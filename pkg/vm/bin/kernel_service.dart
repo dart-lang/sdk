@@ -34,6 +34,7 @@ import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 import 'package:vm/http_filesystem.dart';
@@ -147,11 +148,16 @@ abstract class Compiler {
         await runWithFrontEndCompilerContext(script, options, component, () {
           // TODO(alexmarkov): disable source positions, local variables info
           //  and source files in VM PRODUCT mode.
+          // TODO(alexmarkov): disable asserts if they are not enabled in VM.
+          // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
-              environmentDefines: options.environmentDefines,
-              emitSourcePositions: true,
-              emitLocalVarInfo: true,
-              emitSourceFiles: true);
+              options: new BytecodeOptions(
+                  enableAsserts: true,
+                  environmentDefines: options.environmentDefines,
+                  emitSourcePositions: true,
+                  emitLocalVarInfo: true,
+                  emitSourceFiles: true,
+                  emitAnnotations: true));
         });
       }
 
@@ -528,7 +534,12 @@ Future _processLoadRequest(request) async {
     assert(incremental,
         "Incremental compiler required for use of 'kUpdateSourcesTag'");
     compiler = lookupIncrementalCompiler(isolateId);
-    assert(compiler != null);
+    if (compiler == null) {
+      port.send(new CompilationResult.errors(
+              ["No incremental compiler available for this isolate."], null)
+          .toResponse());
+      return;
+    }
     updateSources(compiler, sourceFiles);
     port.send(new CompilationResult.ok(null).toResponse());
     return;

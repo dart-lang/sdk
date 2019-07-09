@@ -10,14 +10,14 @@ main() {
 }
 
 class Class1 {
-  /*element: Class1.field1:constant=BoolConstant(false)*/
+  /*member: Class1.field1:constant=BoolConstant(false)*/
   final bool field1;
 
   const Class1({this.field1: false});
 }
 
 class Class2 {
-  /*strongConst.element: Class2.field2:constant=BoolConstant(true)*/
+  /*strongConst.member: Class2.field2:constant=BoolConstant(true)*/
   final bool field2;
 
   const Class2({this.field2: false});

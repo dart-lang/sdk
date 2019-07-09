@@ -142,14 +142,14 @@ abstract class DataSourceMixin implements DataSource {
   }
 
   @override
-  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(),
+  Map<K, V> readMemberMap<K extends MemberEntity, V>(V f(MemberEntity member),
       {bool emptyAsNull: false}) {
     int count = readInt();
     if (count == 0 && emptyAsNull) return null;
     Map<K, V> map = {};
     for (int i = 0; i < count; i++) {
       MemberEntity member = readMember();
-      V value = f();
+      V value = f(member);
       map[member] = value;
     }
     return map;
@@ -516,7 +516,8 @@ abstract class DataSinkMixin implements DataSink {
   }
 
   @override
-  void writeMemberMap<V>(Map<MemberEntity, V> map, void f(V value),
+  void writeMemberMap<V>(
+      Map<MemberEntity, V> map, void f(MemberEntity member, V value),
       {bool allowNull: false}) {
     if (map == null) {
       assert(allowNull);
@@ -525,7 +526,7 @@ abstract class DataSinkMixin implements DataSink {
       writeInt(map.length);
       map.forEach((MemberEntity member, V value) {
         writeMember(member);
-        f(value);
+        f(member, value);
       });
     }
   }

@@ -11,7 +11,7 @@
 import '../libs/shared_constant_a.dart';
 import '../libs/shared_constant_b.dart';
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   (await doA()).method();
   await doB();

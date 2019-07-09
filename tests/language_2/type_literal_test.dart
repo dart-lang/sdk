@@ -69,18 +69,16 @@ main() {
       ["GenericTypedef2", "GenericTypedef2<dynamic>", "(dynamic) => int"]);
   testType(new Box<GenericTypedef<int>>().typeArg,
       ["GenericTypedef<int>", "(int) => int"]);
-  testType(GenericFunc, ["GenericFunc", "<T>(T) => int"]);
+  testType(GenericFunc, ["GenericFunc", "<T>(T) => int", "<T1>(T1) => int"]);
   testType(GenericTypedefAndFunc, [
     "GenericTypedefAndFunc",
     "GenericTypedefAndFunc<dynamic>",
-    "<T>(T) => dynamic"
+    "<T>(T) => dynamic",
+    "<T1>(T1) => dynamic",
   ]);
 
   // Literals are canonicalized.
-  Expect.identical(Foo, Foo);
-  Expect.identical(Box, Box);
-  Expect.identical(new Box<Foo>().typeArg, new Box<Foo>().typeArg);
-  Expect.identical(Func, Func);
+  // See type_literal_canonicalization_test.dart
 
   // Static member uses are not type literals.
   Foo.property = "value";
@@ -97,13 +95,18 @@ main() {
 }
 
 void testType(Type type, Object expectedToStringValues) {
+  Expect.isTrue(type is Type);
+  String text = type.toString();
+
+  // dart2js minified names should be tagged. We can still test types that don't
+  // contain minified names.
+  if (text.contains('minified:')) return;
+
   if (expectedToStringValues is List) {
-    var s = type.toString();
-    Expect.isTrue(expectedToStringValues.contains(s),
+    Expect.isTrue(expectedToStringValues.contains(text),
         'type `$type`.toString() should be one of: $expectedToStringValues.');
   } else {
     var string = expectedToStringValues as String;
-    Expect.equals(string, type.toString());
+    Expect.equals(string, text);
   }
-  Expect.isTrue(type is Type);
 }

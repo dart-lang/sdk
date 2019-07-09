@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show StringToken;
-import 'package:analyzer/src/dart/ast/utilities.dart' show UIAsCodeVisitorMixin;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -68,7 +67,6 @@ import 'type_utilities.dart';
 // (which result in (JS.Statement).
 class CodeGenerator extends Object
     with
-        UIAsCodeVisitorMixin<js_ast.Node>,
         NullableTypeInference,
         SharedCompiler<LibraryElement, ClassElement, InterfaceType,
             FunctionBody>
@@ -5500,7 +5498,7 @@ class CodeGenerator extends Object
       variable = forParts.loopVariable.identifier;
       init = js.call('let # = #.current', [_emitVariableDef(variable), iter]);
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     return js.statement(
         '{'
@@ -6518,7 +6516,7 @@ class CodeGenerator extends Object
     } else if (forParts is ForPartsWithDeclarations) {
       init = visitVariableDeclarationList(forParts.variables);
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     js_ast.Expression update;
     if (forParts.updaters != null && forParts.updaters.isNotEmpty) {
@@ -6550,7 +6548,7 @@ class CodeGenerator extends Object
         ]);
       }
     } else {
-      throw new StateError('Unrecognized for loop parts');
+      throw StateError('Unrecognized for loop parts');
     }
     return js_ast.ForOf(jsLeftExpression, jsIterable, jsBody);
   }
@@ -6620,7 +6618,7 @@ class CodeGenerator extends Object
       } else if (forParts is ForEachPartsWithDeclaration) {
         variable = forParts.loopVariable.identifier;
       } else {
-        throw new StateError('Unrecognized for loop parts');
+        throw StateError('Unrecognized for loop parts');
       }
       var castType = getImplicitCast(variable);
       if (castType != null) {
@@ -6748,6 +6746,9 @@ class CodeGenerator extends Object
 
   @override
   visitExtensionDeclaration(ExtensionDeclaration node) => _unreachable(node);
+
+  @override
+  visitExtensionOverride(ExtensionOverride node) => _unreachable(node);
 }
 
 // TODO(jacobr): we would like to do something like the following

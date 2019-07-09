@@ -4,8 +4,8 @@
 
 import '../libs/basic_deferred_lib.dart' deferred as lib;
 
-/*strong.element: main:OutputUnit(main, {})*/
-/*strongConst.element: main:
+/*strong.member: main:OutputUnit(main, {})*/
+/*strongConst.member: main:
  OutputUnit(main, {}),
  constants=[FunctionConstant(funky)=OutputUnit(1, {lib})]
 */

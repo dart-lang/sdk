@@ -10,6 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
 
 import '../common_test_utils.dart';
@@ -34,7 +35,9 @@ runTestCase(Uri source) async {
     // Need to omit source positions from bytecode as they are different on
     // Linux and Windows (due to differences in newline characters).
     generateBytecode(component,
-        omitAssertSourcePositions: true, libraries: [mainLibrary]);
+        options: new BytecodeOptions(
+            enableAsserts: true, omitAssertSourcePositions: true),
+        libraries: [mainLibrary]);
   });
 
   component.libraries.removeWhere((lib) => lib != mainLibrary);

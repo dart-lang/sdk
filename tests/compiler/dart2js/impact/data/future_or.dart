@@ -4,7 +4,7 @@
 
 import "dart:async";
 
-/*element: main:
+/*member: main:
  dynamic=[runtimeType],
  runtimeType=[unknown:FutureOr<int>],
  static=[Future.value(1),assertIsSubtype(5),print(1),throwTypeError(1)],

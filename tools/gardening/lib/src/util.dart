@@ -88,9 +88,13 @@ Future<String> readUriAsText(
     throw new HttpException(uri, response.statusCode);
   }
   if (timeout != null) {
-    return response.timeout(timeout).transform(utf8.decoder).join();
+    return response
+        .timeout(timeout)
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .join();
   } else {
-    return response.transform(utf8.decoder).join();
+    return response.cast<List<int>>().transform(utf8.decoder).join();
   }
 }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   nestedGenericInlining();
   nestedGenericFactoryInlining();
@@ -13,11 +13,11 @@ main() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class1<T> {
-  /*element: Class1.:[nestedGenericInlining:Class1<int>]*/
+  /*member: Class1.:[nestedGenericInlining:Class1<int>]*/
   @pragma('dart2js:tryInline')
   Class1();
 
-  /*element: Class1.method:[nestedGenericInlining]*/
+  /*member: Class1.method:[nestedGenericInlining]*/
   @pragma('dart2js:tryInline')
   method() {
     new Class2<List<T>>().method();
@@ -27,16 +27,16 @@ class Class1<T> {
 class Class2<T> {
   // TODO(johnniwinther): Should the type have been Class<List<int>>?
   // Similarly below.
-  /*element: Class2.:[nestedGenericInlining:Class2<List<Class1.T>>]*/
+  /*member: Class2.:[nestedGenericInlining:Class2<List<Class1.T>>]*/
   @pragma('dart2js:tryInline')
   Class2();
 
-  /*element: Class2.method:[nestedGenericInlining]*/
+  /*member: Class2.method:[nestedGenericInlining]*/
   @pragma('dart2js:tryInline')
   method() {}
 }
 
-/*element: nestedGenericInlining:[]*/
+/*member: nestedGenericInlining:[]*/
 @pragma('dart2js:noInline')
 nestedGenericInlining() {
   new Class1<int>().method();
@@ -47,11 +47,11 @@ nestedGenericInlining() {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Class3a<T> implements Class3b<T> {
-  /*element: Class3a.:[nestedGenericFactoryInlining:Class3a<int>]*/
+  /*member: Class3a.:[nestedGenericFactoryInlining:Class3a<int>]*/
   @pragma('dart2js:tryInline')
   Class3a();
 
-  /*element: Class3a.method:[nestedGenericFactoryInlining]*/
+  /*member: Class3a.method:[nestedGenericFactoryInlining]*/
   @pragma('dart2js:tryInline')
   method() {
     new Class4b<List<T>>().method();
@@ -59,7 +59,7 @@ class Class3a<T> implements Class3b<T> {
 }
 
 abstract class Class3b<T> {
-  /*element: Class3b.:[nestedGenericFactoryInlining:Class3b<int>]*/
+  /*member: Class3b.:[nestedGenericFactoryInlining:Class3b<int>]*/
   @pragma('dart2js:tryInline')
   factory Class3b() => new Class3a<T>();
 
@@ -67,24 +67,24 @@ abstract class Class3b<T> {
 }
 
 class Class4a<T> implements Class4b<T> {
-  /*element: Class4a.:[nestedGenericFactoryInlining:Class4a<Class4b.T>]*/
+  /*member: Class4a.:[nestedGenericFactoryInlining:Class4a<Class4b.T>]*/
   @pragma('dart2js:tryInline')
   Class4a();
 
-  /*element: Class4a.method:[nestedGenericFactoryInlining]*/
+  /*member: Class4a.method:[nestedGenericFactoryInlining]*/
   @pragma('dart2js:tryInline')
   method() {}
 }
 
 abstract class Class4b<T> {
-  /*element: Class4b.:[nestedGenericFactoryInlining:Class4b<List<Class3a.T>>]*/
+  /*member: Class4b.:[nestedGenericFactoryInlining:Class4b<List<Class3a.T>>]*/
   @pragma('dart2js:tryInline')
   factory Class4b() => new Class4a<T>();
 
   method();
 }
 
-/*element: nestedGenericFactoryInlining:[]*/
+/*member: nestedGenericFactoryInlining:[]*/
 @pragma('dart2js:noInline')
 nestedGenericFactoryInlining() {
   new Class3b<int>().method();

@@ -3,33 +3,33 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  /*element: A.generative:[exact=A]*/
+  /*member: A.generative:[exact=A]*/
   A.generative();
 
   factory A.redirect() = B;
 
-  /*element: A.fact:[exact=C]*/
+  /*member: A.fact:[exact=C]*/
   factory A.fact() => new C();
 }
 
-/*element: B.:[exact=B]*/
+/*member: B.:[exact=B]*/
 class B implements A {}
 
-/*element: C.:[exact=C]*/
+/*member: C.:[exact=C]*/
 class C implements A {}
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   createGenerative();
   createRedirecting();
   createFactory();
 }
 
-/*element: createGenerative:[exact=A]*/
+/*member: createGenerative:[exact=A]*/
 createGenerative() => new A.generative();
 
-/*element: createRedirecting:[exact=B]*/
+/*member: createRedirecting:[exact=B]*/
 createRedirecting() => new A.redirect();
 
-/*element: createFactory:[exact=C]*/
+/*member: createFactory:[exact=C]*/
 createFactory() => new A.fact();

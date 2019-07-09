@@ -4,9 +4,9 @@
 
 import 'package:expect/expect.dart';
 
-/*element: A.:hasThis*/
+/*member: A.:hasThis*/
 class A<T> {
-  /*element: A.method:hasThis*/
+  /*member: A.method:hasThis*/
   @pragma('dart2js:noInline')
   method() {
     /*omit.hasThis*/

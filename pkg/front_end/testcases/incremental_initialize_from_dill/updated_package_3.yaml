@@ -8,7 +8,6 @@
 # The output should not include the old package.
 
 type: newworld
-strong: false
 worlds:
   - entry: main.dart
     sources:

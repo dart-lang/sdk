@@ -169,7 +169,7 @@ class BaseFlowGraphBuilder {
   Fragment StoreIndexed(intptr_t class_id);
 
   void Push(Definition* definition);
-  Definition* Peek();
+  Definition* Peek(intptr_t depth = 0);
   Value* Pop();
   Fragment Drop();
   // Drop given number of temps from the stack but preserve top of the stack.
@@ -291,6 +291,15 @@ class BaseFlowGraphBuilder {
   intptr_t GetStackDepth() const {
     return stack_ == nullptr ? 0 : stack_->definition()->temp_index() + 1;
   }
+
+  // Builds the graph for an invocation of '_asFunctionInternal'.
+  //
+  // 'signatures' contains the pair [<dart signature>, <native signature>].
+  Fragment BuildFfiAsFunctionInternalCall(const TypeArguments& signatures);
+
+  Fragment AllocateObject(TokenPosition position,
+                          const Class& klass,
+                          intptr_t argument_count);
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

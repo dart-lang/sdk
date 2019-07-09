@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: foo:Value([exact=JSBool], value: false)*/
+/*member: foo:Value([exact=JSBool], value: false)*/
 foo(/*Value([exact=JSBool], value: false)*/ x) {
   return x;
 }
 
-/*element: bar:[null]*/
+/*member: bar:[null]*/
 bar(/*Value([exact=JSBool], value: false)*/ x) {
   if (x) {
     print("aaa");
@@ -16,7 +16,7 @@ bar(/*Value([exact=JSBool], value: false)*/ x) {
   }
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   bar(foo(false));
   bar(foo(foo(false)));

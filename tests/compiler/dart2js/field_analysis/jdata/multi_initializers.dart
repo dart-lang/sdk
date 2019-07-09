@@ -23,22 +23,22 @@ class Class1 {
   var field1 = 0;
   var field2;
 
-  /*element: Class1.field3a:allocator,initial=IntConstant(3)*/
+  /*member: Class1.field3a:allocator,initial=IntConstant(3)*/
   var field3a;
 
-  /*element: Class1.field3b:constant=IntConstant(3)*/
+  /*member: Class1.field3b:constant=IntConstant(3)*/
   var field3b;
 
-  /*element: Class1.field4a:allocator,initial=IntConstant(4)*/
+  /*member: Class1.field4a:allocator,initial=IntConstant(4)*/
   var field4a = 4;
 
-  /*element: Class1.field4b:constant=IntConstant(4)*/
+  /*member: Class1.field4b:constant=IntConstant(4)*/
   var field4b = 4;
 
-  /*element: Class1.field5a:allocator,initial=IntConstant(5)*/
+  /*member: Class1.field5a:allocator,initial=IntConstant(5)*/
   var field5a = 5;
 
-  /*element: Class1.field5b:constant=IntConstant(5)*/
+  /*member: Class1.field5b:constant=IntConstant(5)*/
   var field5b = 5;
 
   Class1.a()

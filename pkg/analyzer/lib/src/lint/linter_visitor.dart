@@ -1082,11 +1082,6 @@ class NodeLintRegistry {
     _forForStatement.add(new _Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  @Deprecated('Replaced by addForStatement')
-  void addForStatement2(LintRule linter, AstVisitor visitor) {
-    addForStatement(linter, visitor);
-  }
-
   void addFunctionDeclaration(LintRule linter, AstVisitor visitor) {
     _forFunctionDeclaration
         .add(new _Subscription(linter, visitor, _getTimer(linter)));

@@ -424,9 +424,7 @@ class TestUtils {
   }
 
   static void deleteTempSnapshotDirectory(TestConfiguration configuration) {
-    if (configuration.compiler == Compiler.appJit ||
-        configuration.compiler == Compiler.precompiler ||
-        configuration.compiler == Compiler.dartk ||
+    if (configuration.compiler == Compiler.dartk ||
         configuration.compiler == Compiler.dartkb ||
         configuration.compiler == Compiler.dartkp) {
       var checked = configuration.isChecked ? '-checked' : '';

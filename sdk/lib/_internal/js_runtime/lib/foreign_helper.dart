@@ -207,6 +207,11 @@ external JS_INTERCEPTOR_CONSTANT(Type type);
 /// Calls are replaced with the [HInterceptor] SSA instruction.
 external getInterceptor(object);
 
+/// Returns the Rti object for the type for JavaScript arrays via JS-interop.
+///
+/// Calls are replaced with a [HLoadType] SSA instruction.
+external Object getJSArrayInteropRti();
+
 /// Returns the object corresponding to Namer.staticStateHolder.
 external JS_GET_STATIC_STATE();
 

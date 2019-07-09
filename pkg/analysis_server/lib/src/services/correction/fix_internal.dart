@@ -3276,7 +3276,7 @@ class FixProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(
-            range.token((node as DefaultFormalParameter).separator), '=');
+            range.token((node as DefaultFormalParameter).separator), ' =');
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.REPLACE_COLON_WITH_EQUALS);
     }

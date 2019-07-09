@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum Enum {
-  /*strong.element: Enum.a:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.a"),index=IntConstant(0)))*/
+  /*strong.member: Enum.a:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.a"),index=IntConstant(0)))*/
   a,
 
-  /*strong.element: Enum.b:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.b"),index=IntConstant(1)))*/
+  /*strong.member: Enum.b:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.b"),index=IntConstant(1)))*/
   b,
 
-  /*strong.element: Enum.c:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
+  /*strong.member: Enum.c:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
   c,
 }
 
@@ -23,10 +23,10 @@ tester2() {}
 tester3() {}
 
 class Class {
-  /*element: Class.state1:constant=IntConstant(1)*/
+  /*member: Class.state1:constant=IntConstant(1)*/
   final int state1;
 
-  /*element: Class.state2:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
+  /*member: Class.state2:constant=ConstructedConstant(Enum(_name=StringConstant("Enum.c"),index=IntConstant(2)))*/
   final Enum state2;
 
   Class({this.state1: 1, this.state2: Enum.c});

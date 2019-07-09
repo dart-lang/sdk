@@ -65,11 +65,17 @@ bool _isLegacyBottom(DartType t, {@required bool orTrueBottom}) {
 }
 
 /// Is [t] the top of the legacy type hierarch.
-bool _isLegacyTop(DartType t, {@required bool orTrueTop}) =>
-// TODO(mfairhurst): handle FutureOr<LegacyTop> cases, with tests.
-    (t.isObject &&
-        (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) ||
-    (orTrueTop ? _isTop(t) : false);
+bool _isLegacyTop(DartType t, {@required bool orTrueTop}) {
+  if (t.isDartAsyncFutureOr) {
+    return _isLegacyTop((t as InterfaceType).typeArguments[0],
+        orTrueTop: orTrueTop);
+  }
+  if (t.isObject &&
+      (t as TypeImpl).nullabilitySuffix == NullabilitySuffix.none) {
+    return true;
+  }
+  return orTrueTop ? _isTop(t) : false;
+}
 
 bool _isTop(DartType t) {
   if (t.isDartAsyncFutureOr) {
@@ -102,10 +108,6 @@ class Dart2TypeSystem extends TypeSystem {
   final TypeProvider typeProvider;
 
   Dart2TypeSystem(this.typeProvider, {this.implicitCasts: true});
-
-  @deprecated
-  @override
-  bool get isStrong => true;
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -631,6 +633,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Legacy top case. Must be done now to find Object* <: Object.
+    // TODO: handle false positives like FutureOr<Object?>* and T* extends int?.
     if (t1.nullabilitySuffix == NullabilitySuffix.star &&
         _isLegacyTop(t2, orTrueTop: false)) {
       return true;
@@ -1923,12 +1926,6 @@ class TypeComparison {
 // TODO(brianwilkerson) Rename this class to TypeSystemImpl.
 abstract class TypeSystem implements public.TypeSystem {
   /**
-   * Whether the type system is strong or not.
-   */
-  @deprecated
-  bool get isStrong;
-
-  /**
    * The provider of types for the system
    */
   TypeProvider get typeProvider;
@@ -2105,11 +2102,11 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNonNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return false;
-    } else if (type.isDartAsyncFutureOr) {
-      isNonNullable((type as InterfaceType).typeArguments[0]);
     } else if ((type as TypeImpl).nullabilitySuffix ==
         NullabilitySuffix.question) {
       return false;
+    } else if (type.isDartAsyncFutureOr) {
+      return isNonNullable((type as InterfaceType).typeArguments[0]);
     } else if (type is TypeParameterType) {
       return isNonNullable(type.bound);
     }
@@ -2120,10 +2117,13 @@ abstract class TypeSystem implements public.TypeSystem {
   bool isNullable(DartType type) {
     if (type.isDynamic || type.isVoid || type.isDartCoreNull) {
       return true;
+    } else if ((type as TypeImpl).nullabilitySuffix ==
+        NullabilitySuffix.question) {
+      return true;
     } else if (type.isDartAsyncFutureOr) {
-      isNullable((type as InterfaceType).typeArguments[0]);
+      return isNullable((type as InterfaceType).typeArguments[0]);
     }
-    return (type as TypeImpl).nullabilitySuffix != NullabilitySuffix.none;
+    return false;
   }
 
   /// Check that [f1] is a subtype of [f2] for a member override.
@@ -2342,8 +2342,30 @@ abstract class TypeSystem implements public.TypeSystem {
    *   Return a function type with those types.
    */
   DartType _functionLeastUpperBound(FunctionType f, FunctionType g) {
-    // TODO(rnystrom): Right now, this assumes f and g do not have any type
-    // parameters. Revisit that in the presence of generic methods.
+    var fTypeFormals = f.typeFormals;
+    var gTypeFormals = g.typeFormals;
+
+    // If F and G differ in their number of type parameters, then the
+    // least upper bound of F and G is Function.
+    if (fTypeFormals.length != gTypeFormals.length) {
+      return typeProvider.functionType;
+    }
+
+    // If F and G differ in bounds of their of type parameters, then the
+    // least upper bound of F and G is Function.
+    var freshTypeFormalTypes =
+        FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) => t == s);
+    if (freshTypeFormalTypes == null) {
+      return typeProvider.functionType;
+    }
+
+    var typeFormals = freshTypeFormalTypes
+        .map<TypeParameterElement>((t) => t.element)
+        .toList();
+
+    f = f.instantiate(freshTypeFormalTypes);
+    g = g.instantiate(freshTypeFormalTypes);
+
     List<DartType> fRequired = f.normalParameterTypes;
     List<DartType> gRequired = g.normalParameterTypes;
 
@@ -2394,7 +2416,14 @@ abstract class TypeSystem implements public.TypeSystem {
 
     // Calculate the LUB of the return type.
     DartType returnType = getLeastUpperBound(f.returnType, g.returnType);
-    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+
+    if (AnalysisDriver.useSummary2) {
+      return FunctionTypeImpl.synthetic(returnType, typeFormals, parameters);
+    }
+
+    var element = FunctionElementImpl.synthetic(parameters, returnType);
+    element.typeParameters = typeFormals;
+    return element.type;
   }
 
   /**

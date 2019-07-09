@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Sets of variables that are potentially assigned in a statement.
+/// Sets of local variables that are potentially assigned in a statement.
+///
+/// These statements are loops, `switch`, and `try` statements.
 class AssignedVariables<Statement, Element> {
   final emptySet = Set<Element>();
 
-  /// Mapping from a [Statement] representing a loop to the set of variables
-  /// that are potentially assigned in that loop.
+  /// Mapping from a [Statement] to the set of local variables that are
+  /// potentially assigned in that statement.
   final Map<Statement, Set<Element>> _map = {};
 
-  /// The stack of nested nodes.
+  /// The stack of nested statements.
   final List<Set<Element>> _stack = [];
 
   AssignedVariables();
@@ -21,12 +23,12 @@ class AssignedVariables<Statement, Element> {
     return _map[statement] ?? emptySet;
   }
 
-  void beginLoop() {
+  void beginStatement() {
     var set = Set<Element>.identity();
     _stack.add(set);
   }
 
-  void endLoop(Statement node) {
+  void endStatement(Statement node) {
     _map[node] = _stack.removeLast();
   }
 
@@ -40,10 +42,6 @@ class AssignedVariables<Statement, Element> {
 class FlowAnalysis<Statement, Expression, Element, Type> {
   final _ElementSet<Element> _emptySet;
   final _State<Element, Type> _identity;
-
-  /// The output list of variables that were read before they were written.
-  /// TODO(scheglov) use _ElementSet?
-  final List<Element> readBeforeWritten = [];
 
   /// The [NodeOperations], used to manipulate expressions.
   final NodeOperations<Expression> nodeOperations;
@@ -124,6 +122,17 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
   void add(Element variable, {bool assigned: false}) {
     _variables.add(variable);
     _current = _current.add(variable, assigned: assigned);
+  }
+
+  void booleanLiteral(Expression expression, bool value) {
+    _condition = expression;
+    if (value) {
+      _conditionTrue = _current;
+      _conditionFalse = _identity;
+    } else {
+      _conditionTrue = _identity;
+      _conditionFalse = _current;
+    }
   }
 
   void conditional_elseBegin(Expression conditionalExpression,
@@ -221,12 +230,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     var breakState = _stack.removeLast();
 
     _current = _join(falseCondition, breakState);
-  }
-
-  void falseLiteral(Expression expression) {
-    _condition = expression;
-    _conditionTrue = _identity;
-    _conditionFalse = _current;
   }
 
   void forEachStatement_bodyBegin(Set<Element> loopAssigned) {
@@ -352,6 +355,11 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     _current = trueCondition;
   }
 
+  /// Return whether the [variable] is definitely assigned in the current state.
+  bool isAssigned(Element variable) {
+    return !_current.notAssigned.contains(variable);
+  }
+
   void isExpression_end(
       Expression isExpression, Element variable, bool isNot, Type type) {
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
@@ -368,12 +376,12 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     }
   }
 
-  /// Return `true` if the [variable] is known to be be nullable.
+  /// Return `true` if the [variable] is known to be be non-nullable.
   bool isNonNullable(Element variable) {
     return !_current.notNonNullable.contains(variable);
   }
 
-  /// Return `true` if the [variable] is known to be be non-nullable.
+  /// Return `true` if the [variable] is known to be be nullable.
   bool isNullable(Element variable) {
     return !_current.notNullable.contains(variable);
   }
@@ -452,20 +460,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     return _current.promoted[variable];
   }
 
-  /// Register read of the given [variable] in the current state.
-  void read(Element variable) {
-    if (_current.notAssigned.contains(variable)) {
-      // Add to the list of violating variables, if not there yet.
-      for (var i = 0; i < readBeforeWritten.length; ++i) {
-        var violatingVariable = readBeforeWritten[i];
-        if (identical(violatingVariable, variable)) {
-          return;
-        }
-      }
-      readBeforeWritten.add(variable);
-    }
-  }
-
   /// The [notPromoted] set contains all variables that are potentially
   /// assigned in other cases that might target this with `continue`, so
   /// these variables might have different types and are "un-promoted" from
@@ -492,12 +486,6 @@ class FlowAnalysis<Statement, Expression, Element, Type> {
     _stack.add(_identity); // break
     _stack.add(_identity); // continue
     _stack.add(_current); // afterExpression
-  }
-
-  void trueLiteral(Expression expression) {
-    _condition = expression;
-    _conditionTrue = _current;
-    _conditionFalse = _identity;
   }
 
   void tryCatchStatement_bodyBegin() {

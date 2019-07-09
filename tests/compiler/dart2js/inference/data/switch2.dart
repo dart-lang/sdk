@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: foo:Value([null|exact=JSString], value: "two")*/
+/*member: foo:Value([null|exact=JSString], value: "two")*/
 foo(int /*[subclass=JSInt]*/ x) {
   var a;
   switch (x) {
@@ -16,7 +16,7 @@ foo(int /*[subclass=JSInt]*/ x) {
   return a;
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   foo(new DateTime.now(). /*[exact=DateTime]*/ millisecondsSinceEpoch);
 }

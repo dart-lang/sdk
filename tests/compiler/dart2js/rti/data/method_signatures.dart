@@ -5,44 +5,44 @@
 import 'package:expect/expect.dart';
 
 class Class1 {
-  /*element: Class1.method1:*/
+  /*member: Class1.method1:*/
   num method1(num n) => null;
 
-  /*element: Class1.method2:*/
+  /*member: Class1.method2:*/
   num method2(int n) => null;
 
-  /*element: Class1.method3:*/
+  /*member: Class1.method3:*/
   Object method3(num n) => null;
 }
 
 /*strong.class: Class2:direct,explicit=[Class2.T],needsArgs*/
 /*omit.class: Class2:*/
 class Class2<T> {
-  /*strong.element: Class2.method4:*/
-  /*omit.element: Class2.method4:*/
+  /*strong.member: Class2.method4:*/
+  /*omit.member: Class2.method4:*/
   num method4(T n) => null;
 }
 
 /*class: Class3:needsArgs*/
 class Class3<T> {
-  /*element: Class3.method5:needsSignature*/
+  /*member: Class3.method5:needsSignature*/
   T method5(num n) => null;
 }
 
 /*omit.class: Class4:*/
 /*strong.class: Class4:direct,explicit=[Class4.T],needsArgs*/
 class Class4<T> {
-  /*element: Class4.method6:*/
+  /*member: Class4.method6:*/
   num method6(num n, T t) => null;
 }
 
-/*element: method7:*/
+/*member: method7:*/
 num method7(num n) => null;
 
-/*element: method8:*/
+/*member: method8:*/
 num method8(int n) => null;
 
-/*element: method9:*/
+/*member: method9:*/
 Object method9(num n) => null;
 
 @pragma('dart2js:noInline')

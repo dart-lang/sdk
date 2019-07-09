@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import("../../utils/compile_platform.gni")
-import("../../utils/generate_patch_sdk.gni")
 import("../create_timestamp.gni")
 import("../application_snapshot.gni")
 

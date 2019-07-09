@@ -250,11 +250,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
     for (var input in inputs) {
-      var uri = Uri.parse(input.path);
-      if (uri.scheme.isEmpty) {
-        uri = Uri.parse('file://${input.path}');
-      }
-      inputDigests[uri] = input.digest;
+      inputDigests[_toUri(input.path)] = input.digest;
     }
 
     // TODO(sigmund): add support for experiments with the incremental compiler.

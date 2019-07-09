@@ -1071,7 +1071,7 @@ class C {}
 class G<E extends A> {}
 class D = G<B> with C;
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 69, 1),
     ]);
   }
 
@@ -1082,7 +1082,7 @@ class B {}
 class G<E extends A> {}
 class C extends G<B>{}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
     ]);
   }
 
@@ -1092,7 +1092,7 @@ class C extends G<B>{}
 class X<T extends Type> {}
 class Y<U> extends X<U> {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
     ]);
   }
 
@@ -1106,7 +1106,7 @@ class C {
   C(G<B> this.f) {}
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 71, 1),
     ]);
   }
 
@@ -1117,7 +1117,7 @@ class B {}
 class G<E extends A> {}
 G<B> f() { return null; }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
     ]);
   }
 
@@ -1128,7 +1128,7 @@ class B {}
 class G<E extends A> {}
 typedef G<B> f();
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 56, 1),
     ]);
   }
 
@@ -1139,7 +1139,7 @@ class B {}
 class G<E extends A> {}
 f(G<B> h()) {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
     ]);
   }
 
@@ -1150,7 +1150,7 @@ class B {}
 class G<E extends A> {}
 class C implements G<B>{}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 67, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 67, 1),
     ]);
   }
 
@@ -1161,7 +1161,7 @@ class B {}
 class G<E extends A> {}
 var b = 1 is G<B>;
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 61, 1),
     ]);
   }
 
@@ -1178,7 +1178,7 @@ main() {
   print(f<String>('hello', 'world'));
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 145, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 145, 6),
     ]);
   }
 
@@ -1198,7 +1198,7 @@ f(PointFactory factory) {
   print(factory.point<String>('hello', 'world'));
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 202, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 202, 6),
     ]);
   }
 
@@ -1216,7 +1216,7 @@ main() {
   print(f<String>('hello', 'world'));
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 140, 6),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 140, 6),
     ]);
   }
 
@@ -1229,7 +1229,7 @@ class C {
   G<B> m() { return null; }
 }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 60, 1),
     ]);
   }
 
@@ -1240,7 +1240,7 @@ class B {}
 class G<E extends A> {}
 f() { return new G<B>(); }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 65, 1),
     ]);
   }
 
@@ -1252,7 +1252,7 @@ class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 96, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 96, 1),
     ]);
   }
 
@@ -1263,7 +1263,7 @@ class B {}
 typedef F<T extends A>();
 F<B> fff;
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
     ]);
   }
 
@@ -1274,7 +1274,7 @@ class B {}
 class G<E extends A> {}
 f(G<B> g) {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 50, 1),
     ]);
   }
 
@@ -1288,7 +1288,7 @@ class X<T extends A> {
 }
 ''', [
       error(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, 99, 4),
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 101, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 101, 1),
     ]);
   }
 
@@ -1300,7 +1300,7 @@ class C<E> {}
 class D<E extends A> {}
 C<D<B>> Var;
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 64, 1),
     ]);
   }
 
@@ -1312,7 +1312,7 @@ class C {}
 class G<E extends A> {}
 class D<F extends G<B>> {}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 77, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 77, 1),
     ]);
   }
 
@@ -1323,7 +1323,7 @@ class B {}
 class G<E extends A> {}
 G<B> g;
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 48, 1),
     ]);
   }
 
@@ -1334,7 +1334,7 @@ class B {}
 class G<E extends A> {}
 class C extends Object with G<B>{}
 ''', [
-      error(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 76, 1),
     ]);
   }
 

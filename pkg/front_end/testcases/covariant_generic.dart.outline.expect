@@ -12,7 +12,7 @@ class Foo<T extends core::Object = dynamic> extends core::Object {
     ;
   method method(generic-covariant-impl self::Foo::T x) → void
     ;
-  set setter(generic-covariant-impl self::Foo::T x) → dynamic
+  set setter(generic-covariant-impl self::Foo::T x) → void
     ;
   method withCallback((self::Foo::T) → void callback) → void
     ;

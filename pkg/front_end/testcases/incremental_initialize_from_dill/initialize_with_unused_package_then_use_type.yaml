@@ -10,7 +10,6 @@
 # hierarchy.
 
 type: newworld
-strong: true
 worlds:
   - entry: main.dart
     sources:

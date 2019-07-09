@@ -8,6 +8,7 @@ library front_end.tool.fasta_perf;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 import 'package:args/args.dart';
 
@@ -213,7 +214,8 @@ parseFull(Uri uri, List<int> source) {
 // Note: AstBuilder doesn't build compilation-units or classes, only method
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
-  _PartialAstBuilder(Uri uri) : super(null, null, true, uri);
+  _PartialAstBuilder(Uri uri)
+      : super(null, null, true, FeatureSet.fromEnableFlags([]), uri);
 
   // Note: this method converts the body to kernel, so we skip that here.
   @override

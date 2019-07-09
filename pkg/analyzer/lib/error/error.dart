@@ -235,9 +235,10 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
   CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
   CompileTimeErrorCode.NON_SYNC_FACTORY,
+  CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
   CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+  CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD,
   CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
-  CompileTimeErrorCode.NOT_INITIALIZED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
   CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
   CompileTimeErrorCode.NOT_MAP_SPREAD,
   CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
@@ -605,7 +606,6 @@ const List<ErrorCode> errorCodeValues = const [
   StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
   StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
-  StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
   StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT,
   StaticTypeWarningCode.UNDEFINED_FUNCTION,
@@ -796,8 +796,15 @@ class AnalysisError implements Diagnostic {
    */
   final ErrorCode errorCode;
 
+  /**
+   * The message describing the problem.
+   */
   DiagnosticMessage _problemMessage;
 
+  /**
+   * The context messages associated with the problem. This list will be empty
+   * if there are no context messages.
+   */
   List<DiagnosticMessage> _contextMessages;
 
   /**
@@ -819,7 +826,8 @@ class AnalysisError implements Diagnostic {
    * [contextMessages] are provided, they will be recorded with the error.
    */
   AnalysisError(this.source, int offset, int length, this.errorCode,
-      [List<Object> arguments, List<DiagnosticMessage> contextMessages]) {
+      [List<Object> arguments,
+      List<DiagnosticMessage> contextMessages = const []]) {
     String message = formatList(errorCode.message, arguments);
     String correctionTemplate = errorCode.correction;
     if (correctionTemplate != null) {
@@ -837,15 +845,17 @@ class AnalysisError implements Diagnostic {
    * Initialize a newly created analysis error with given values.
    */
   AnalysisError.forValues(this.source, int offset, int length, this.errorCode,
-      String message, this._correction) {
+      String message, this._correction,
+      {List<DiagnosticMessage> contextMessages = const []}) {
     _problemMessage = new DiagnosticMessageImpl(
         filePath: source?.fullName,
         length: length,
         message: message,
         offset: offset);
+    _contextMessages = contextMessages;
   }
 
-  List<DiagnosticMessage> get contextMessages => _contextMessages ?? const [];
+  List<DiagnosticMessage> get contextMessages => _contextMessages;
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -866,18 +876,6 @@ class AnalysisError implements Diagnostic {
   }
 
   /**
-   * Return `true` if this error can be shown to be a non-issue because of the
-   * result of type propagation.
-   */
-  @Deprecated(
-      'Type propagation is no longer performed, so this will never be true')
-  bool get isStaticOnly => false;
-
-  @Deprecated(
-      'Type propagation is no longer performed, so this can never be true')
-  void set isStaticOnly(bool value) {}
-
-  /**
    * The number of characters from the offset to the end of the source which
    * encompasses the compilation error.
    */
@@ -894,13 +892,6 @@ class AnalysisError implements Diagnostic {
    * the error occurred.
    */
   int get offset => _problemMessage.offset;
-
-  /**
-   * The character offset from the beginning of the source (zero based) where
-   * the error occurred.
-   */
-  @Deprecated('Set the offset when the error is created')
-  set offset(int offset) {}
 
   @override
   DiagnosticMessage get problemMessage => _problemMessage;

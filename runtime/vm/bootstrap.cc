@@ -4,6 +4,8 @@
 
 #include "vm/bootstrap.h"
 
+#include <memory>
+
 #include "include/dart_api.h"
 
 #include "vm/class_finalizer.h"
@@ -50,11 +52,18 @@ static void Finish(Thread* thread) {
   Class& cls = Class::Handle(zone, object_store->closure_class());
   ClassFinalizer::LoadClassMembers(cls);
 
+  // Make sure _Closure fields are not marked as unboxing candidates
+  // as they are accessed with plain loads.
+  const Array& fields = Array::Handle(zone, cls.fields());
+  Field& field = Field::Handle(zone);
+  for (intptr_t i = 0; i < fields.Length(); ++i) {
+    field ^= fields.At(i);
+    field.set_is_unboxing_candidate(false);
+  }
+
 #if defined(DEBUG)
   // Verify that closure field offsets are identical in Dart and C++.
-  const Array& fields = Array::Handle(zone, cls.fields());
   ASSERT(fields.Length() == 6);
-  Field& field = Field::Handle(zone);
   field ^= fields.At(0);
   ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
@@ -79,7 +88,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      intptr_t kernel_buffer_size) {
   Zone* zone = thread->zone();
   const char* error = nullptr;
-  kernel::Program* program = kernel::Program::ReadFromBuffer(
+  std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
       kernel_buffer, kernel_buffer_size, &error);
   if (program == nullptr) {
     const intptr_t kMessageBufferSize = 512;
@@ -89,7 +98,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
     const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
     return ApiError::New(msg, Heap::kOld);
   }
-  kernel::KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
+  kernel::KernelLoader loader(program.get(), /*uri_to_source_table=*/nullptr);
 
   Isolate* isolate = thread->isolate();
 
@@ -111,7 +120,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
   // The platform binary may contain other libraries (e.g., dart:_builtin or
   // dart:io) that will not be bundled with application.  Load them now.
   const Object& result = Object::Handle(zone, loader.LoadProgram());
-  delete program;
+  program.reset();
   if (result.IsError()) {
     return Error::Cast(result).raw();
   }

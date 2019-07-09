@@ -40,7 +40,47 @@ class DecoratedType {
       this.positionalParameters = const [],
       this.namedParameters = const {},
       this.typeArguments = const []}) {
-    assert(node != null);
+    assert(() {
+      assert(node != null);
+      var type = this.type;
+      if (type is InterfaceType) {
+        assert(returnType == null);
+        assert(positionalParameters.isEmpty);
+        assert(namedParameters.isEmpty);
+        assert(typeArguments.length == type.typeArguments.length);
+        for (int i = 0; i < typeArguments.length; i++) {
+          assert(typeArguments[i].type == type.typeArguments[i]);
+        }
+      } else if (type is FunctionType) {
+        assert(returnType.type == type.returnType);
+        int positionalParameterCount = 0;
+        int namedParameterCount = 0;
+        for (var parameter in type.parameters) {
+          if (parameter.isNamed) {
+            assert(namedParameters[parameter.name].type == parameter.type);
+            namedParameterCount++;
+          } else {
+            assert(positionalParameters[positionalParameterCount].type ==
+                parameter.type);
+            positionalParameterCount++;
+          }
+        }
+        assert(positionalParameters.length == positionalParameterCount);
+        assert(namedParameters.length == namedParameterCount);
+        assert(typeArguments.isEmpty);
+      } else if (node is TypeParameterType) {
+        assert(returnType == null);
+        assert(positionalParameters.isEmpty);
+        assert(namedParameters.isEmpty);
+        assert(typeArguments.isEmpty);
+      } else {
+        assert(returnType == null);
+        assert(positionalParameters.isEmpty);
+        assert(namedParameters.isEmpty);
+        assert(typeArguments.isEmpty);
+      }
+      return true;
+    }());
   }
 
   /// Creates a [DecoratedType] corresponding to the given [element], which is
@@ -72,14 +112,32 @@ class DecoratedType {
           throw UnimplementedError('Decorating ${type.displayName}');
         }
         return DecoratedType(type, graph.never);
+      } else if (type is TypeParameterType) {
+        return DecoratedType(type, graph.never);
       } else {
         throw type.runtimeType; // TODO(paulberry)
       }
     }
 
+    // Sanity check:
+    // Ensure the element is not from a library that is being migrated.
+    // If this assertion fires, it probably means that the NodeBuilder failed to
+    // generate the appropriate decorated type for the element when it was
+    // visiting the source file.
+    if (graph.isBeingMigrated(element.source)) {
+      throw 'Internal Error: DecorateType.forElement should not be called'
+          ' for elements being migrated: ${element.runtimeType} :: $element';
+    }
+
     DecoratedType decoratedType;
     if (element is ExecutableElement) {
       decoratedType = decorate(element.type);
+    } else if (element is TopLevelVariableElement) {
+      decoratedType = decorate(element.type);
+    } else if (element is TypeParameterElement) {
+      // By convention, type parameter elements are decorated with the type of
+      // their bounds.
+      decoratedType = decorate(element.bound ?? DynamicTypeImpl.instance);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');
@@ -87,14 +145,117 @@ class DecoratedType {
     return decoratedType;
   }
 
+  /// Creates a decorated type corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  factory DecoratedType.forImplicitFunction(
+      FunctionType type, NullabilityNode node, NullabilityGraph graph,
+      {DecoratedType returnType}) {
+    if (type.typeFormals.isNotEmpty) {
+      throw new UnimplementedError('Decorating a generic function type');
+    }
+    var positionalParameters = <DecoratedType>[];
+    var namedParameters = <String, DecoratedType>{};
+    for (var parameter in type.parameters) {
+      if (parameter.isPositional) {
+        positionalParameters
+            .add(DecoratedType.forImplicitType(parameter.type, graph));
+      } else {
+        namedParameters[parameter.name] =
+            DecoratedType.forImplicitType(parameter.type, graph);
+      }
+    }
+    return DecoratedType(type, node,
+        returnType:
+            returnType ?? DecoratedType.forImplicitType(type.returnType, graph),
+        namedParameters: namedParameters,
+        positionalParameters: positionalParameters);
+  }
+
+  /// Creates a DecoratedType corresponding to [type], with fresh nullability
+  /// nodes everywhere that don't correspond to any source location.  These
+  /// nodes can later be unioned with other nodes.
+  factory DecoratedType.forImplicitType(DartType type, NullabilityGraph graph) {
+    if (type.isDynamic || type.isVoid) {
+      return DecoratedType(type, graph.always);
+    } else if (type is InterfaceType) {
+      return DecoratedType(type, NullabilityNode.forInferredType(),
+          typeArguments: type.typeArguments
+              .map((t) => DecoratedType.forImplicitType(t, graph))
+              .toList());
+    } else if (type is FunctionType) {
+      return DecoratedType.forImplicitFunction(
+          type, NullabilityNode.forInferredType(), graph);
+    } else if (type is TypeParameterType) {
+      return DecoratedType(type, NullabilityNode.forInferredType());
+    }
+    // TODO(paulberry)
+    throw UnimplementedError(
+        'DecoratedType.forImplicitType(${type.runtimeType})');
+  }
+
+  /// If `this` represents an interface type, returns the substitution necessary
+  /// to produce this type using the class's type as a starting point.
+  /// Otherwise throws an exception.
+  ///
+  /// For instance, if `this` represents `List<int?1>`, returns the substitution
+  /// `{T: int?1}`, where `T` is the [TypeParameterElement] for `List`'s type
+  /// parameter.
+  Map<TypeParameterElement, DecoratedType> get asSubstitution {
+    var type = this.type;
+    if (type is InterfaceType) {
+      return Map<TypeParameterElement, DecoratedType>.fromIterables(
+          type.element.typeParameters, typeArguments);
+    } else {
+      throw StateError(
+          'Tried to convert a non-interface type to a substitution');
+    }
+  }
+
+  /// If this type is a function type, returns its generic formal parameters.
+  /// Otherwise returns `null`.
+  List<TypeParameterElement> get typeFormals {
+    var type = this.type;
+    if (type is FunctionType) {
+      return type.typeFormals;
+    } else {
+      return null;
+    }
+  }
+
+  /// Converts one function type into another by substituting the given
+  /// [argumentTypes] for the function's generic parameters.
+  DecoratedType instantiate(List<DecoratedType> argumentTypes) {
+    var type = this.type as FunctionType;
+    var typeFormals = type.typeFormals;
+    List<DartType> undecoratedArgumentTypes = [];
+    Map<TypeParameterElement, DecoratedType> substitution = {};
+    for (int i = 0; i < argumentTypes.length; i++) {
+      var argumentType = argumentTypes[i];
+      undecoratedArgumentTypes.add(argumentType.type);
+      substitution[typeFormals[i]] = argumentType;
+    }
+    return _substituteFunctionAfterFormals(
+        type.instantiate(undecoratedArgumentTypes), substitution);
+  }
+
   /// Apply the given [substitution] to this type.
   ///
   /// [undecoratedResult] is the result of the substitution, as determined by
-  /// the normal type system.
+  /// the normal type system.  If not supplied, it is inferred.
   DecoratedType substitute(
       Map<TypeParameterElement, DecoratedType> substitution,
-      DartType undecoratedResult) {
+      [DartType undecoratedResult]) {
     if (substitution.isEmpty) return this;
+    if (undecoratedResult == null) {
+      List<DartType> argumentTypes = [];
+      List<DartType> parameterTypes = [];
+      for (var entry in substitution.entries) {
+        argumentTypes.add(entry.value.type);
+        parameterTypes.add(entry.key.type);
+      }
+      undecoratedResult = type.substitute2(argumentTypes, parameterTypes);
+    }
     return _substitute(substitution, undecoratedResult);
   }
 
@@ -112,11 +273,31 @@ class DecoratedType {
       }
       return '$name$args$trailing';
     } else if (type is FunctionType) {
-      assert(type.typeFormals.isEmpty); // TODO(paulberry)
-      assert(type.namedParameterTypes.isEmpty &&
-          namedParameters.isEmpty); // TODO(paulberry)
-      var args = positionalParameters.map((p) => p.toString()).join(', ');
-      return '$returnType Function($args)$trailing';
+      String formals = '';
+      if (type.typeFormals.isNotEmpty) {
+        formals = '<${type.typeFormals.join(', ')}>';
+      }
+      List<String> paramStrings = [];
+      for (int i = 0; i < positionalParameters.length; i++) {
+        var prefix = '';
+        if (i == type.normalParameterTypes.length) {
+          prefix = '[';
+        }
+        paramStrings.add('$prefix${positionalParameters[i]}');
+      }
+      if (type.normalParameterTypes.length < positionalParameters.length) {
+        paramStrings.last += ']';
+      }
+      if (namedParameters.isNotEmpty) {
+        var prefix = '{';
+        for (var entry in namedParameters.entries) {
+          paramStrings.add('$prefix${entry.key}: ${entry.value}');
+          prefix = '';
+        }
+        paramStrings.last += '}';
+      }
+      var args = paramStrings.join(', ');
+      return '$returnType Function$formals($args)$trailing';
     } else if (type is DynamicTypeImpl) {
       return 'dynamic';
     } else {
@@ -138,29 +319,48 @@ class DecoratedType {
     var type = this.type;
     if (type is FunctionType && undecoratedResult is FunctionType) {
       assert(type.typeFormals.isEmpty); // TODO(paulberry)
-      var newPositionalParameters = <DecoratedType>[];
-      for (int i = 0; i < positionalParameters.length; i++) {
-        var numRequiredParameters =
-            undecoratedResult.normalParameterTypes.length;
-        var undecoratedParameterType = i < numRequiredParameters
-            ? undecoratedResult.normalParameterTypes[i]
-            : undecoratedResult
-                .optionalParameterTypes[i - numRequiredParameters];
-        newPositionalParameters.add(positionalParameters[i]
-            ._substitute(substitution, undecoratedParameterType));
+      return _substituteFunctionAfterFormals(undecoratedResult, substitution);
+    } else if (type is InterfaceType && undecoratedResult is InterfaceType) {
+      List<DecoratedType> newTypeArguments = [];
+      for (int i = 0; i < typeArguments.length; i++) {
+        newTypeArguments.add(typeArguments[i]
+            .substitute(substitution, undecoratedResult.typeArguments[i]));
       }
       return DecoratedType(undecoratedResult, node,
-          returnType: returnType._substitute(
-              substitution, undecoratedResult.returnType),
-          positionalParameters: newPositionalParameters);
+          typeArguments: newTypeArguments);
     } else if (type is TypeParameterType) {
       var inner = substitution[type.element];
-      return DecoratedType(undecoratedResult,
-          NullabilityNode.forSubstitution(inner?.node, node));
+      if (inner == null) {
+        return this;
+      } else {
+        return inner
+            .withNode(NullabilityNode.forSubstitution(inner.node, node));
+      }
     } else if (type is VoidType) {
       return this;
     }
     throw '$type.substitute($substitution)'; // TODO(paulberry)
+  }
+
+  /// Performs the logic that is common to substitution and function type
+  /// instantiation.  Namely, a decorated type is formed whose undecorated type
+  /// is [undecoratedResult], and whose return type, positional parameters, and
+  /// named parameters are formed by performing the given [substitution].
+  DecoratedType _substituteFunctionAfterFormals(FunctionType undecoratedResult,
+      Map<TypeParameterElement, DecoratedType> substitution) {
+    var newPositionalParameters = <DecoratedType>[];
+    for (int i = 0; i < positionalParameters.length; i++) {
+      var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
+      var undecoratedParameterType = i < numRequiredParameters
+          ? undecoratedResult.normalParameterTypes[i]
+          : undecoratedResult.optionalParameterTypes[i - numRequiredParameters];
+      newPositionalParameters.add(positionalParameters[i]
+          ._substitute(substitution, undecoratedParameterType));
+    }
+    return DecoratedType(undecoratedResult, node,
+        returnType:
+            returnType._substitute(substitution, undecoratedResult.returnType),
+        positionalParameters: newPositionalParameters);
   }
 }
 

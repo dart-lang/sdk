@@ -825,12 +825,12 @@ abstract class Socket implements Stream<List<int>>, IOSink {
 }
 
 /**
- * Datagram package. Data send to and received from datagram sockets
+ * Datagram package. Data sent to and received from datagram sockets
  * contains the internet address and port of the destination or source
  * togeter with the data.
  */
 class Datagram {
-  List<int> data;
+  Uint8List data;
   InternetAddress address;
   int port;
 

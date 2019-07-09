@@ -102,7 +102,8 @@ class JumpsIrChecker extends IrDataExtractor<String> {
         needsComma = true;
       }
       String value = sb.toString();
-      registerValue(data.sourceSpan, data.id, value, target);
+      registerValue(
+          data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, target);
     });
     gotos.forEach((GotoData data) {
       StringBuffer sb = new StringBuffer();
@@ -111,7 +112,8 @@ class JumpsIrChecker extends IrDataExtractor<String> {
       assert(targetData != null, "No TargetData for ${data.target}");
       sb.write(targetData.index);
       String value = sb.toString();
-      registerValue(data.sourceSpan, data.id, value, data);
+      registerValue(
+          data.sourceSpan.uri, data.sourceSpan.begin, data.id, value, data);
     });
   }
 

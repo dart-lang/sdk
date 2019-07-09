@@ -6,7 +6,6 @@
 
 type: basic
 entry: "package:example/main.dart"
-strong: false
 invalidate:
   - "package:example/b.dart"
 sources:

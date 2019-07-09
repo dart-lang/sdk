@@ -5051,7 +5051,7 @@ class D extends C {}
 ''';
     await resolveTestUnit(code, noErrors: false);
     assertErrors(
-        testSource, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+        testSource, [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
   test_instantiateToBounds_class_error_instantiation_malbounded() async {
@@ -5066,7 +5066,7 @@ void test() {
     await resolveTestUnit(code, noErrors: false);
     assertErrors(testSource, [
       StrongModeCode.COULD_NOT_INFER,
-      StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+      CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
     ]);
     expectIdentifierType('c =', 'C<List<dynamic>, List<List<dynamic>>>');
   }

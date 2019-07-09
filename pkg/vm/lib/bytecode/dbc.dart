@@ -10,135 +10,94 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 10;
-
-/// Version of experimental / bleeding edge bytecode format.
-/// Produced by bytecode generator when --use-future-bytecode-format
-/// option is enabled.
-const int futureBytecodeFormatVersion = currentBytecodeFormatVersion + 1;
+const int currentBytecodeFormatVersion = 12;
 
 enum Opcode {
-  // Old instructions, used before bytecode v7.
-  // TODO(alexmarkov): remove
-
-  kTrap_Old,
-
-  // Prologue and stack management.
-  kEntry_Old,
-  kEntryFixed_Old,
-  kEntryOptional_Old,
-  kLoadConstant_Old,
-  kFrame_Old,
-  kCheckFunctionTypeArgs_Old,
-  kCheckStack_Old,
-
-  // Object allocation.
-  kAllocate_Old,
-  kAllocateT_Old,
-  kCreateArrayTOS_Old,
-
-  // Context allocation and access.
-  kAllocateContext_Old,
-  kCloneContext_Old,
-  kLoadContextParent_Old,
-  kStoreContextParent_Old,
-  kLoadContextVar_Old,
-  kStoreContextVar_Old,
-
-  // Constants.
-  kPushConstant_Old,
-  kPushNull_Old,
-  kPushTrue_Old,
-  kPushFalse_Old,
-  kPushInt_Old,
-
-  // Locals and expression stack.
-  kDrop1_Old,
-  kPush_Old,
-  kPopLocal_Old,
-  kStoreLocal_Old,
-
-  // Instance fields and arrays.
-  kLoadFieldTOS_Old,
-  kStoreFieldTOS_Old,
-  kStoreIndexedTOS_Old,
-
-  // Static fields.
-  kPushStatic_Old,
-  kStoreStaticTOS_Old,
-
-  // Jumps.
-  kJump_Old,
-  kJumpIfNoAsserts_Old,
-  kJumpIfNotZeroTypeArgs_Old,
-  kJumpIfEqStrict_Old,
-  kJumpIfNeStrict_Old,
-  kJumpIfTrue_Old,
-  kJumpIfFalse_Old,
-  kJumpIfNull_Old,
-  kJumpIfNotNull_Old,
-
-  // Calls.
-  kUnused00_Old,
-  kInterfaceCall_Old,
-  kDynamicCall_Old,
-  kNativeCall_Old,
-  kReturnTOS_Old,
-
-  // Types and type checks.
-  kAssertAssignable_Old,
-  kAssertBoolean_Old,
-  kAssertSubtype_Old,
-  kLoadTypeArgumentsField_Old,
-  kInstantiateType_Old,
-  kInstantiateTypeArgumentsTOS_Old,
-
-  // Exception handling.
-  kThrow_Old,
-  kMoveSpecial_Old,
-  kSetFrame_Old,
-
-  // Bool operations.
-  kBooleanNegateTOS_Old,
-
-  // Null operations.
-  kEqualsNull_Old,
-
-  // Int operations.
-  kNegateInt_Old,
-  kAddInt_Old,
-  kSubInt_Old,
-  kMulInt_Old,
-  kTruncDivInt_Old,
-  kModInt_Old,
-  kBitAndInt_Old,
-  kBitOrInt_Old,
-  kBitXorInt_Old,
-  kShlInt_Old,
-  kShrInt_Old,
-  kCompareIntEq_Old,
-  kCompareIntGt_Old,
-  kCompareIntLt_Old,
-  kCompareIntGe_Old,
-  kCompareIntLe_Old,
-
-  kDirectCall_Old,
-
-  kAllocateClosure_Old,
-
-  kUncheckedInterfaceCall_Old,
-
-  // Double operations.
-  kNegateDouble_Old,
-  kAddDouble_Old,
-  kSubDouble_Old,
-  kMulDouble_Old,
-  kDivDouble_Old,
-  kCompareDoubleEq_Old,
-  kCompareDoubleGt_Old,
-  kCompareDoubleLt_Old,
-  kCompareDoubleGe_Old,
-  kCompareDoubleLe_Old,
+  kUnusedOpcode000,
+  kUnusedOpcode001,
+  kUnusedOpcode002,
+  kUnusedOpcode003,
+  kUnusedOpcode004,
+  kUnusedOpcode005,
+  kUnusedOpcode006,
+  kUnusedOpcode007,
+  kUnusedOpcode008,
+  kUnusedOpcode009,
+  kUnusedOpcode010,
+  kUnusedOpcode011,
+  kUnusedOpcode012,
+  kUnusedOpcode013,
+  kUnusedOpcode014,
+  kUnusedOpcode015,
+  kUnusedOpcode016,
+  kUnusedOpcode017,
+  kUnusedOpcode018,
+  kUnusedOpcode019,
+  kUnusedOpcode020,
+  kUnusedOpcode021,
+  kUnusedOpcode022,
+  kUnusedOpcode023,
+  kUnusedOpcode024,
+  kUnusedOpcode025,
+  kUnusedOpcode026,
+  kUnusedOpcode027,
+  kUnusedOpcode028,
+  kUnusedOpcode029,
+  kUnusedOpcode030,
+  kUnusedOpcode031,
+  kUnusedOpcode032,
+  kUnusedOpcode033,
+  kUnusedOpcode034,
+  kUnusedOpcode035,
+  kUnusedOpcode036,
+  kUnusedOpcode037,
+  kUnusedOpcode038,
+  kUnusedOpcode039,
+  kUnusedOpcode040,
+  kUnusedOpcode041,
+  kUnusedOpcode042,
+  kUnusedOpcode043,
+  kUnusedOpcode044,
+  kUnusedOpcode045,
+  kUnusedOpcode046,
+  kUnusedOpcode047,
+  kUnusedOpcode048,
+  kUnusedOpcode049,
+  kUnusedOpcode050,
+  kUnusedOpcode051,
+  kUnusedOpcode052,
+  kUnusedOpcode053,
+  kUnusedOpcode054,
+  kUnusedOpcode055,
+  kUnusedOpcode056,
+  kUnusedOpcode057,
+  kUnusedOpcode058,
+  kUnusedOpcode059,
+  kUnusedOpcode060,
+  kUnusedOpcode061,
+  kUnusedOpcode062,
+  kUnusedOpcode063,
+  kUnusedOpcode064,
+  kUnusedOpcode065,
+  kUnusedOpcode066,
+  kUnusedOpcode067,
+  kUnusedOpcode068,
+  kUnusedOpcode069,
+  kUnusedOpcode070,
+  kUnusedOpcode071,
+  kUnusedOpcode072,
+  kUnusedOpcode073,
+  kUnusedOpcode074,
+  kUnusedOpcode075,
+  kUnusedOpcode076,
+  kUnusedOpcode077,
+  kUnusedOpcode078,
+  kUnusedOpcode079,
+  kUnusedOpcode080,
+  kUnusedOpcode081,
+  kUnusedOpcode082,
+  kUnusedOpcode083,
+  kUnusedOpcode084,
 
   // Bytecode instructions since bytecode format v7:
 
@@ -685,6 +644,9 @@ const int capturedVariableIndexLimit = 1 << 32;
 
 // Context IDs are referenced using 8-bit unsigned operands.
 const int contextIdLimit = 1 << 8;
+
+// Number of arguments is encoded as 8-bit unsigned operand.
+const int argumentsLimit = 1 << 8;
 
 // Base class for exceptions thrown when certain limit of bytecode
 // format is exceeded.

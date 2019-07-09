@@ -30,10 +30,11 @@ import 'package:kernel/ast.dart'
         TypeParameter,
         TypeParameterType,
         VariableDeclaration,
-        VoidType,
         setParents;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
+
+import '../../scanner/token.dart' show Token;
 
 import '../loader.dart' show Loader;
 
@@ -74,8 +75,7 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         isRedirectingGenerativeConstructorImplementation;
 
-import 'kernel_shadow_ast.dart'
-    show ShadowProcedure, VariableDeclarationJudgment;
+import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -275,13 +275,15 @@ abstract class KernelFunctionBuilder
 }
 
 class KernelProcedureBuilder extends KernelFunctionBuilder {
-  final ShadowProcedure procedure;
+  final Procedure procedure;
   final int charOpenParenOffset;
 
   AsyncMarker actualAsyncModifier = AsyncMarker.Sync;
 
   @override
   KernelProcedureBuilder actualOrigin;
+
+  bool hadTypesInferred = false;
 
   KernelProcedureBuilder(
       List<MetadataBuilder> metadata,
@@ -297,11 +299,11 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       this.charOpenParenOffset,
       int charEndOffset,
       [String nativeMethodName])
-      : procedure = new ShadowProcedure(null, kind, null, returnType == null,
-            fileUri: compilationUnit?.fileUri)
-          ..startFileOffset = startCharOffset
-          ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+      : procedure =
+            new Procedure(null, kind, null, fileUri: compilationUnit?.fileUri)
+              ..startFileOffset = startCharOffset
+              ..fileOffset = charOffset
+              ..fileEndOffset = charEndOffset,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -354,24 +356,13 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
       procedure.isConst = isConst;
       procedure.name = new Name(name, library.target);
     }
-    if (!library.loader.target.legacyMode &&
-        (isSetter || (isOperator && name == '[]=')) &&
-        returnType == null) {
-      procedure.function.returnType = const VoidType();
-    }
     return procedure;
   }
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
-        target,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
+        target, metadata, library, isClassMember ? parent : null, this);
   }
 
   Procedure get target => origin.procedure;
@@ -425,6 +416,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   SuperInitializer superInitializer;
 
   RedirectingInitializer redirectingInitializer;
+
+  Token beginInitializers;
 
   @override
   KernelConstructorBuilder actualOrigin;
@@ -498,14 +491,9 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    ClassBuilder classBuilder = isClassMember ? parent : null;
     KernelMetadataBuilder.buildAnnotations(
-        target,
-        metadata,
-        library,
-        classBuilder,
-        this,
-        computeFormalParameterScope(classBuilder?.scope ?? library.scope));
+        target, metadata, library, parent, this);
+    beginInitializers = null;
   }
 
   FunctionNode buildFunction(LibraryBuilder library) {

@@ -93,8 +93,8 @@ class TopLevelInference {
     initializerInference.createNodes();
 
     _performOverrideInference();
-    initializerInference.perform();
     _inferConstructorFieldFormals();
+    initializerInference.perform();
   }
 
   void _inferConstructorFieldFormals() {
@@ -103,6 +103,7 @@ class TopLevelInference {
         for (var class_ in unit.types) {
           var fields = <String, DartType>{};
           for (var field in class_.fields) {
+            if (field.isStatic) continue;
             if (field.isSynthetic) continue;
 
             var name = field.name;

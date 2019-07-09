@@ -31,6 +31,7 @@ Future<Null> testeeBefore() async {
   try {
     var request = await httpClient.getUrl(requestUri);
     Map response = await (await request.close())
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(json.decoder)
         .first;

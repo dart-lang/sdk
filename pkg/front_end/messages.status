@@ -28,6 +28,8 @@ AwaitNotAsync/example: Fail
 BadTypeVariableInSupertype/analyzerCode: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
+BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
+BytecodeLimitExceededTooManyArguments/example: Fail
 CannotAssignToParenthesizedExpression/example: Fail
 CannotAssignToSuper/example: Fail
 CannotReadPackagesFile/analyzerCode: Fail
@@ -42,7 +44,6 @@ CantInferPackagesFromManyInputs/example: Fail
 CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
-CantInferTypeDueToInconsistentOverrides/example: Fail
 CantReadFile/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseDeferredPrefixAsConstant/part_wrapped_script: Fail # Importing file in the (now) part.
@@ -252,6 +253,10 @@ FfiStructAnnotation/analyzerCode: Fail
 FfiTypeInvalid/analyzerCode: Fail
 FfiTypeMismatch/analyzerCode: Fail
 FfiTypeUnsized/analyzerCode: Fail
+FfiDartTypeMismatch/analyzerCode: Fail
+FfiExtendsOrImplementsSealedClass/analyzerCode: Fail
+FfiStructGeneric/analyzerCode: Fail
+FfiWrongStructInheritance/analyzerCode: Fail
 FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail

@@ -116,14 +116,12 @@ class RunCompilations extends Step<TestData, TestData, Context> {
         await basicTest(
           map["sources"],
           map["entry"],
-          map["strong"],
           map["invalidate"],
           data.outDir,
         );
         break;
       case "newworld":
         await newWorldTest(
-          map["strong"],
           map["worlds"],
           map["modules"],
           map["omitPlatform"],
@@ -136,7 +134,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
   }
 }
 
-Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
+Future<Null> basicTest(YamlMap sourceFiles, String entryPoint,
     YamlList invalidate, Directory outDir) async {
   Uri entryPointUri = outDir.uri.resolve(entryPoint);
   Set<String> invalidateFilenames =
@@ -169,7 +167,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
   Uri initializedOutput = outDir.uri.resolve("full_from_initialized.dill");
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  CompilerOptions options = getOptions(strong);
+  CompilerOptions options = getOptions();
   if (packagesUri != null) {
     options.packagesFileUri = packagesUri;
   }
@@ -177,7 +175,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
   print("Normal compile took ${stopwatch.elapsedMilliseconds} ms");
 
   stopwatch.reset();
-  options = getOptions(strong);
+  options = getOptions();
   if (packagesUri != null) {
     options.packagesFileUri = packagesUri;
   }
@@ -196,7 +194,7 @@ Future<Null> basicTest(YamlMap sourceFiles, String entryPoint, bool strong,
 }
 
 Future<Map<String, List<int>>> createModules(
-    Map module, final List<int> sdkSummaryData, bool strong) async {
+    Map module, final List<int> sdkSummaryData) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
 
@@ -227,7 +225,7 @@ Future<Map<String, List<int>>> createModules(
         moduleSources.add(uri);
       }
     }
-    CompilerOptions options = getOptions(strong);
+    CompilerOptions options = getOptions();
     options.fileSystem = fs;
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
@@ -261,18 +259,12 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
-Future<Null> newWorldTest(
-    bool strong, List worlds, Map modules, bool omitPlatform) async {
+Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   final Uri base = Uri.parse("org-dartlang-test:///");
   final Uri sdkSummary = base.resolve("vm_platform.dill");
   final Uri initializeFrom = base.resolve("initializeFrom.dill");
-  Uri platformUri;
-  if (strong) {
-    platformUri = sdkRoot.resolve("vm_platform_strong.dill");
-  } else {
-    platformUri = sdkRoot.resolve("vm_platform.dill");
-  }
+  Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
   final List<int> sdkSummaryData =
       await new File.fromUri(platformUri).readAsBytes();
 
@@ -287,7 +279,7 @@ Future<Null> newWorldTest(
   Map<String, Component> moduleComponents;
   Component sdk;
   if (modules != null) {
-    moduleData = await createModules(modules, sdkSummaryData, strong);
+    moduleData = await createModules(modules, sdkSummaryData);
     sdk = newestWholeComponent = new Component();
     new BinaryBuilder(sdkSummaryData, filename: null, disableLazyReading: false)
         .readComponent(newestWholeComponent);
@@ -368,7 +360,7 @@ Future<Null> newWorldTest(
     }
 
     if (brandNewWorld) {
-      options = getOptions(strong);
+      options = getOptions();
       options.fileSystem = fs;
       options.sdkRoot = null;
       options.sdkSummary = sdkSummary;
@@ -745,11 +737,11 @@ void checkIsEqual(List<int> a, List<int> b) {
   Expect.equals(a.length, b.length);
 }
 
-CompilerOptions getOptions(bool strong) {
+CompilerOptions getOptions() {
   final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
-    ..target = new VmTarget(new TargetFlags(legacyMode: !strong))
+    ..target = new VmTarget(new TargetFlags())
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
     ..onDiagnostic = (DiagnosticMessage message) {
@@ -758,19 +750,14 @@ CompilerOptions getOptions(bool strong) {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
-    }
-    ..legacyMode = !strong;
-  if (strong) {
-    options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
-  } else {
-    options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
-  }
+    };
+  options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
   return options;
 }
 
 Future<bool> normalCompile(Uri input, Uri output,
     {CompilerOptions options}) async {
-  options ??= getOptions(false);
+  options ??= getOptions();
   TestIncrementalCompiler compiler =
       new TestIncrementalCompiler(options, input);
   Component component = await compiler.computeDelta();
@@ -783,7 +770,7 @@ Future<bool> normalCompile(Uri input, Uri output,
 Future<bool> initializedCompile(
     Uri input, Uri output, Uri initializeWith, List<Uri> invalidateUris,
     {CompilerOptions options}) async {
-  options ??= getOptions(false);
+  options ??= getOptions();
   TestIncrementalCompiler compiler =
       new TestIncrementalCompiler(options, input, initializeWith);
   for (Uri invalidateUri in invalidateUris) {

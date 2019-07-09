@@ -13,7 +13,7 @@ abstract class B extends self::A {
   abstract set x(core::int value) → void;
 }
 class C extends self::B {
-  field dynamic x;
+  field core::num x;
   synthetic constructor •() → self::C
     ;
 }

@@ -7,8 +7,8 @@ import 'package:expect/expect.dart';
 /*strong.class: global#JSArray:deps=[ArrayIterator,List],explicit=[JSArray,JSArray.E,JSArray<ArrayIterator.E>],implicit=[JSArray.E],indirect,needsArgs*/
 /*omit.class: global#JSArray:deps=[List],explicit=[JSArray],needsArgs*/
 
-/*strong.element: method:implicit=[method.T],indirect,needsArgs*/
-/*omit.element: method:needsArgs*/
+/*strong.member: method:implicit=[method.T],indirect,needsArgs*/
+/*omit.member: method:needsArgs*/
 @pragma('dart2js:noInline')
 method<T>() {
   return () => <T>[];

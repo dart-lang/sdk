@@ -120,6 +120,9 @@ class CompilerOptions implements DiagnosticOptions {
   /// Sets a combination of flags for benchmarking 'production' mode.
   bool benchmarkingProduction = false;
 
+  /// Sets a combination of flags for benchmarking 'experiment' mode.
+  bool benchmarkingExperiment = false;
+
   /// ID associated with this sdk build.
   String buildId = _UNDETERMINED_BUILD_ID;
 
@@ -359,6 +362,8 @@ class CompilerOptions implements DiagnosticOptions {
       ..allowMockCompilation = _hasOption(options, Flags.allowMockCompilation)
       ..benchmarkingProduction =
           _hasOption(options, Flags.benchmarkingProduction)
+      ..benchmarkingExperiment =
+          _hasOption(options, Flags.benchmarkingExperiment)
       ..buildId =
           _extractStringOption(options, '--build-id=', _UNDETERMINED_BUILD_ID)
       ..compileForServer = _hasOption(options, Flags.serverMode)
@@ -460,6 +465,11 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingProduction) {
       trustPrimitives = true;
       omitImplicitChecks = true;
+    }
+
+    if (benchmarkingExperiment) {
+      // TODO(sra): Set flags implied by '--benchmarking-x'. Initially this will
+      // be --experiment-new-rti, and later NNBD.
     }
 
     if (optimizationLevel != null) {

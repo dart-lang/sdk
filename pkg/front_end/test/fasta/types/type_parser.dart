@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:kernel/ast.dart" show Nullability;
+
 import "package:front_end/src/fasta/scanner.dart" show scanString, Token;
 
 import "package:front_end/src/fasta/parser/type_info_impl.dart"
@@ -16,7 +18,9 @@ class ParsedInterfaceType extends ParsedType {
 
   final List<ParsedType> arguments;
 
-  ParsedInterfaceType(this.name, this.arguments);
+  final Nullability nullability;
+
+  ParsedInterfaceType(this.name, this.arguments, this.nullability);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -116,7 +120,10 @@ class ParsedFunctionType extends ParsedType {
 
   final ParsedArguments arguments;
 
-  ParsedFunctionType(this.typeVariables, this.returnType, this.arguments);
+  final Nullability nullability;
+
+  ParsedFunctionType(
+      this.typeVariables, this.returnType, this.arguments, this.nullability);
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -260,6 +267,16 @@ class Parser {
     }
   }
 
+  Nullability parseNullability() {
+    Nullability result = Nullability.nonNullable;
+    if (optionalAdvance("?")) {
+      result = Nullability.nullable;
+    } else if (optionalAdvance("*")) {
+      result = Nullability.legacy;
+    }
+    return result;
+  }
+
   ParsedType parseType() {
     if (optional("class")) return parseClass();
     if (optional("typedef")) return parseTypedef();
@@ -269,7 +286,9 @@ class Parser {
       if (optional("(") || optional("<")) {
         type = parseFunctionType();
       } else if (optionalAdvance("void")) {
-        type = new ParsedInterfaceType("void", <ParsedType>[]);
+        type = new ParsedInterfaceType(
+            "void", <ParsedType>[], Nullability.nullable);
+        optionalAdvance("?");
       } else {
         String name = parseName();
         List<ParsedType> arguments = <ParsedType>[];
@@ -283,7 +302,8 @@ class Parser {
           peek = splitCloser(peek) ?? peek;
           expect(">");
         }
-        type = new ParsedInterfaceType(name, arguments);
+        Nullability nullability = parseNullability();
+        type = new ParsedInterfaceType(name, arguments, nullability);
       }
       if (result == null) {
         result = type;
@@ -304,8 +324,10 @@ class Parser {
     ParsedArguments arguments = parseArguments();
     expect("-");
     expect(">");
+    Nullability nullability = parseNullability();
     ParsedType returnType = parseReturnType();
-    return new ParsedFunctionType(typeVariables, returnType, arguments);
+    return new ParsedFunctionType(
+        typeVariables, returnType, arguments, nullability);
   }
 
   String parseName() {

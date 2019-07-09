@@ -118,6 +118,10 @@ abstract class AnalysisDriverSubtype extends base.SummaryClass {
 
 /// Information about an error in a resolved unit.
 abstract class AnalysisDriverUnitError extends base.SummaryClass {
+  /// The context messages associated with the error.
+  @Id(5)
+  List<DiagnosticMessage> get contextMessages;
+
   /// The optional correction hint for the error.
   @Id(4)
   String get correction;
@@ -441,6 +445,25 @@ abstract class CodeRange extends base.SummaryClass {
 
   /// Offset of the element code relative to the beginning of the file.
   @Id(0)
+  int get offset;
+}
+
+abstract class DiagnosticMessage extends base.SummaryClass {
+  /// The absolute and normalized path of the file associated with this message.
+  @Id(0)
+  String get filePath;
+
+  /// The length of the source range associated with this message.
+  @Id(1)
+  int get length;
+
+  /// The text of the message.
+  @Id(2)
+  String get message;
+
+  /// The zero-based offset from the start of the file to the beginning of the
+  /// source range associated with this message.
+  @Id(3)
   int get offset;
 }
 
@@ -3473,6 +3496,47 @@ enum UnlinkedExprOperation {
   bitShiftRightLogical,
 }
 
+/// Unlinked summary information about an extension declaration.
+abstract class UnlinkedExtension extends base.SummaryClass {
+  /// Annotations for this extension.
+  @Id(4)
+  List<UnlinkedExpr> get annotations;
+
+  /// Code range of the extension.
+  @informative
+  @Id(7)
+  CodeRange get codeRange;
+
+  /// Documentation comment for the extension, or `null` if there is no
+  /// documentation comment.
+  @informative
+  @Id(5)
+  UnlinkedDocumentationComment get documentationComment;
+
+  /// Executable objects (methods, getters, and setters) contained in the
+  /// extension.
+  @Id(2)
+  List<UnlinkedExecutable> get executables;
+
+  /// The type being extended.
+  @Id(3)
+  EntityRef get extendedType;
+
+  /// Name of the extension, or an empty string if there is no name.
+  @Id(0)
+  String get name;
+
+  /// Offset of the extension name relative to the beginning of the file, or
+  /// zero if there is no name.
+  @informative
+  @Id(1)
+  int get nameOffset;
+
+  /// Type parameters of the extension, if any.
+  @Id(6)
+  List<UnlinkedTypeParam> get typeParameters;
+}
+
 /// Unlinked summary information about an import declaration.
 abstract class UnlinkedImport extends base.SummaryClass {
   /// Annotations for this import declaration.
@@ -4127,6 +4191,10 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /// Classes declared in the compilation unit.
   @Id(2)
   List<UnlinkedClass> get classes;
+
+  /// Extensions declared in the compilation unit.
+  @Id(22)
+  List<UnlinkedExtension> get extensions;
 
   /// Code range of the unit.
   @informative

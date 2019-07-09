@@ -9,13 +9,13 @@
 /*class: global#Instantiation1:OutputUnit(1, {b})*/
 /*class: global#Instantiation2:OutputUnit(3, {c})*/
 
-/*element: global#instantiate1:OutputUnit(1, {b})*/
-/*element: global#instantiate2:OutputUnit(3, {c})*/
+/*member: global#instantiate1:OutputUnit(1, {b})*/
+/*member: global#instantiate2:OutputUnit(3, {c})*/
 
 import '../libs/instantiation4_strong_lib1.dart' deferred as b;
 import '../libs/instantiation4_strong_lib2.dart' deferred as c;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await b.loadLibrary();
   await c.loadLibrary();

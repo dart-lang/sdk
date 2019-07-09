@@ -64,25 +64,25 @@ main() {
 // Bitwise not
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: bitNot:Specializer=[BitNot]*/
+/*member: bitNot:Specializer=[BitNot]*/
 @pragma('dart2js:noInline')
 bitNot(o) {
   return ~o;
 }
 
-/*element: bitNotNum:Specializer=[BitNot]*/
+/*member: bitNotNum:Specializer=[BitNot]*/
 @pragma('dart2js:noInline')
 bitNotNum(o) {
   return ~o;
 }
 
-/*element: bitNotNull:Specializer=[BitNot]*/
+/*member: bitNotNull:Specializer=[BitNot]*/
 @pragma('dart2js:noInline')
 bitNotNull(o) {
   return ~o;
 }
 
-/*element: bitNotString:Specializer=[!BitNot]*/
+/*member: bitNotString:Specializer=[!BitNot]*/
 @pragma('dart2js:noInline')
 bitNotString(o) {
   return ~o;
@@ -92,49 +92,49 @@ bitNotString(o) {
 // Bitwise and
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: bitAnd:Specializer=[BitAnd],PrimitiveCheck=[]*/
+/*member: bitAnd:Specializer=[BitAnd],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitAnd(a, b) {
   return a & b;
 }
 
-/*element: bitAndNumInt:Specializer=[BitAnd],PrimitiveCheck=[]*/
+/*member: bitAndNumInt:Specializer=[BitAnd],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitAndNumInt(a, b) {
   return a & b;
 }
 
-/*element: bitAndIntNum:Specializer=[BitAnd],PrimitiveCheck=[]*/
+/*member: bitAndIntNum:Specializer=[BitAnd],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitAndIntNum(a, b) {
   return a & b;
 }
 
-/*element: bitAndNumNum:Specializer=[BitAnd],PrimitiveCheck=[]*/
+/*member: bitAndNumNum:Specializer=[BitAnd],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitAndNumNum(a, b) {
   return a & b;
 }
 
-/*element: bitAndNullInt:Specializer=[BitAnd],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitAndNullInt:Specializer=[BitAnd],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitAndNullInt(a, b) {
   return a & b;
 }
 
-/*element: bitAndIntNull:Specializer=[BitAnd],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitAndIntNull:Specializer=[BitAnd],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitAndIntNull(a, b) {
   return a & b;
 }
 
-/*element: bitAndStringInt:Specializer=[BitAnd],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitAndStringInt:Specializer=[BitAnd],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitAndStringInt(a, b) {
   return a & b;
 }
 
-/*element: bitAndIntString:Specializer=[BitAnd],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitAndIntString:Specializer=[BitAnd],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitAndIntString(a, b) {
   return a & b;
@@ -144,49 +144,49 @@ bitAndIntString(a, b) {
 // Bitwise or
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: bitOr:Specializer=[BitOr],PrimitiveCheck=[]*/
+/*member: bitOr:Specializer=[BitOr],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitOr(a, b) {
   return a | b;
 }
 
-/*element: bitOrNumInt:Specializer=[BitOr],PrimitiveCheck=[]*/
+/*member: bitOrNumInt:Specializer=[BitOr],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitOrNumInt(a, b) {
   return a | b;
 }
 
-/*element: bitOrIntNum:Specializer=[BitOr],PrimitiveCheck=[]*/
+/*member: bitOrIntNum:Specializer=[BitOr],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitOrIntNum(a, b) {
   return a | b;
 }
 
-/*element: bitOrNumNum:Specializer=[BitOr],PrimitiveCheck=[]*/
+/*member: bitOrNumNum:Specializer=[BitOr],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitOrNumNum(a, b) {
   return a | b;
 }
 
-/*element: bitOrNullInt:Specializer=[BitOr],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitOrNullInt:Specializer=[BitOr],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitOrNullInt(a, b) {
   return a | b;
 }
 
-/*element: bitOrIntNull:Specializer=[BitOr],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitOrIntNull:Specializer=[BitOr],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitOrIntNull(a, b) {
   return a | b;
 }
 
-/*element: bitOrStringInt:Specializer=[BitOr],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitOrStringInt:Specializer=[BitOr],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitOrStringInt(a, b) {
   return a | b;
 }
 
-/*element: bitOrIntString:Specializer=[BitOr],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitOrIntString:Specializer=[BitOr],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitOrIntString(a, b) {
   return a | b;
@@ -196,49 +196,49 @@ bitOrIntString(a, b) {
 // Bitwise xor
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: bitXor:Specializer=[BitXor],PrimitiveCheck=[]*/
+/*member: bitXor:Specializer=[BitXor],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitXor(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorNumInt:Specializer=[BitXor],PrimitiveCheck=[]*/
+/*member: bitXorNumInt:Specializer=[BitXor],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitXorNumInt(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorIntNum:Specializer=[BitXor],PrimitiveCheck=[]*/
+/*member: bitXorIntNum:Specializer=[BitXor],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitXorIntNum(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorNumNum:Specializer=[BitXor],PrimitiveCheck=[]*/
+/*member: bitXorNumNum:Specializer=[BitXor],PrimitiveCheck=[]*/
 @pragma('dart2js:noInline')
 bitXorNumNum(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorNullInt:Specializer=[BitXor],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitXorNullInt:Specializer=[BitXor],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitXorNullInt(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorIntNull:Specializer=[BitXor],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitXorIntNull:Specializer=[BitXor],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitXorIntNull(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorStringInt:Specializer=[BitXor],PrimitiveCheck=[kind=receiver&type=num]*/
+/*member: bitXorStringInt:Specializer=[BitXor],PrimitiveCheck=[kind=receiver&type=num]*/
 @pragma('dart2js:noInline')
 bitXorStringInt(a, b) {
   return a ^ b;
 }
 
-/*element: bitXorIntString:Specializer=[BitXor],PrimitiveCheck=[kind=argument&type=num]*/
+/*member: bitXorIntString:Specializer=[BitXor],PrimitiveCheck=[kind=argument&type=num]*/
 @pragma('dart2js:noInline')
 bitXorIntString(a, b) {
   return a ^ b;

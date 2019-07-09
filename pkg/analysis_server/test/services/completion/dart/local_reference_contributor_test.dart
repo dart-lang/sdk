@@ -2921,6 +2921,17 @@ main() {
     assertSuggestFunctionTypeAlias('F', 'void');
   }
 
+  test_functionTypeAlias_genericTypeAlias_incomplete() async {
+    addTestSource(r'''
+typedef F = int;
+main() {
+  ^
+}
+''');
+    await computeSuggestions();
+    assertSuggestFunctionTypeAlias('F', 'dynamic');
+  }
+
   test_functionTypeAlias_old() async {
     addTestSource(r'''
 typedef void F();

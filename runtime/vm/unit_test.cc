@@ -676,7 +676,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
             String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
             /* is_static= */ false);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
-      return Dart_NewApiError(compilation_result.error);
+      return Api::NewError("%s", compilation_result.error);
     }
 
     const uint8_t* kernel_bytes = compilation_result.kernel;

@@ -88,6 +88,9 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
     }
   }
 
+  // These don't have unoptimized code and are only used for synthetic stubs.
+  if (func.ForceOptimize()) return true;
+
   switch (func.kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
@@ -559,19 +562,20 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           script = cls.script();
           range.AddProperty("scriptIndex", GetScriptIndex(script));
           range.AddProperty("startPos", cls.token_pos());
-          range.AddProperty("endPos", cls.ComputeEndTokenPos());
+          range.AddProperty("endPos", cls.end_token_pos());
           range.AddProperty("compiled", false);
           range.AddProperty("error", err);
           continue;
         }
         ASSERT(cls.is_finalized());
       } else {
+        cls.EnsureDeclarationLoaded();
         // Emit one range for the whole uncompiled class.
         JSONObject range(jsarr);
         script = cls.script();
         range.AddProperty("scriptIndex", GetScriptIndex(script));
         range.AddProperty("startPos", cls.token_pos());
-        range.AddProperty("endPos", cls.ComputeEndTokenPos());
+        range.AddProperty("endPos", cls.end_token_pos());
         range.AddProperty("compiled", false);
         continue;
       }

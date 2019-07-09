@@ -734,6 +734,36 @@ main() {
     expect(refactoring.isAvailable(), isTrue);
   }
 
+  test_occurrences_differentName_samePrefix() async {
+    await indexTestUnit('''
+void main(A a) {
+  if (a.foo != 1) {
+  } else if (a.foo2 != 2) {
+  }
+}
+
+class A {
+  int foo;
+  int foo2;
+}
+''');
+    _createRefactoringWithSuffix('a.foo', ' != 1');
+    // apply refactoring
+    await _assertSuccessfulRefactoring('''
+void main(A a) {
+  var res = a.foo;
+  if (res != 1) {
+  } else if (a.foo2 != 2) {
+  }
+}
+
+class A {
+  int foo;
+  int foo2;
+}
+''');
+  }
+
   test_occurrences_differentVariable() async {
     await indexTestUnit('''
 main() {

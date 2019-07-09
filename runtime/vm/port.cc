@@ -4,6 +4,8 @@
 
 #include "vm/port.h"
 
+#include <utility>
+
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
@@ -82,14 +84,20 @@ const char* PortMap::PortStateString(PortState kind) {
 }
 
 Dart_Port PortMap::AllocatePort() {
-  const Dart_Port kMASK = 0x3fffffff;
-  Dart_Port result = prng_->NextUInt32() & kMASK;
+  Dart_Port result;
 
   // Keep getting new values while we have an illegal port number or the port
   // number is already in use.
-  while ((result == 0) || (FindPort(result) >= 0)) {
-    result = prng_->NextUInt32() & kMASK;
-  }
+  do {
+    // Ensure port ids are representable in JavaScript for the benefit of
+    // vm-service clients such as Observatory.
+    const Dart_Port kMask1 = 0xFFFFFFFFFFFFF;
+    // Ensure port ids are never valid object pointers so that reinterpreting
+    // an object pointer as a port id never produces a used port id.
+    const Dart_Port kMask2 = 0x3;
+    result = (prng_->NextUInt64() & kMask1) | kMask2;
+    ASSERT(!reinterpret_cast<RawObject*>(result)->IsWellFormed());
+  } while (FindPort(result) >= 0);
 
   ASSERT(result != 0);
   ASSERT(FindPort(result) < 0);

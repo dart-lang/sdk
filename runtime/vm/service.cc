@@ -3628,6 +3628,17 @@ static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
 #endif
 }
 
+static const MethodParameter* get_vm_timeline_micros_params[] = {
+    NO_ISOLATE_PARAMETER, NULL,
+};
+
+static bool GetVMTimelineMicros(Thread* thread, JSONStream* js) {
+  JSONObject obj(js);
+  obj.AddProperty("type", "Timestamp");
+  obj.AddPropertyTimeMicros("timestamp", OS::GetCurrentMonotonicMicros());
+  return true;
+}
+
 static const MethodParameter* clear_vm_timeline_params[] = {
     NO_ISOLATE_PARAMETER, NULL,
 };
@@ -4976,6 +4987,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_timeline_params },
   { "getVMTimelineFlags", GetVMTimelineFlags,
     get_vm_timeline_flags_params },
+  { "getVMTimelineMicros", GetVMTimelineMicros,
+    get_vm_timeline_micros_params },
   { "invoke", Invoke, invoke_params },
   { "kill", Kill, kill_params },
   { "pause", Pause,

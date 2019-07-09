@@ -19,8 +19,8 @@ class A<T> {
 class B {}
 
 class C {
-  /*omit.element: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
-  /*strong.element: C.bar:explicit=[A<bar.T>],implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*omit.member: C.bar:needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
+  /*strong.member: C.bar:explicit=[A<bar.T>],implicit=[bar.T],indirect,needsArgs,selectors=[Selector(call, bar, arity=1, types=1)]*/
   A<T> bar<T>(A<T> t) => new A<T>(t.field);
 }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
@@ -263,8 +262,8 @@ Map<String, String> _parseBazelMappings(List<String> argument) {
 List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   if (!args.contains('--ignore-unrecognized-flags')) return args;
 
-  var knownOptions = new HashSet<String>();
-  var knownAbbreviations = new HashSet<String>();
+  var knownOptions = <String>{};
+  var knownAbbreviations = <String>{};
   parser.options.forEach((String name, Option option) {
     knownOptions.add(name);
     var abbreviation = option.abbr;
@@ -400,7 +399,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
 /// The result may also contain a [previousResult], which can be passed back in
 /// for batch/worker executions to attempt to existing state.
 Future<CompilerResult> compile(ParsedArguments args,
-    {CompilerResult previousResult}) {
+    {CompilerResult previousResult, Map<Uri, List<int>> inputDigests}) {
   if (previousResult != null && !args.isBatchOrWorker) {
     throw ArgumentError(
         'previousResult requires --batch or --bazel_worker mode/');
@@ -408,7 +407,8 @@ Future<CompilerResult> compile(ParsedArguments args,
   if (args.isKernel) {
     return kernel_compiler.compile(args.rest,
         compilerState: previousResult?.kernelState,
-        useIncrementalCompiler: args.useIncrementalCompiler);
+        useIncrementalCompiler: args.useIncrementalCompiler,
+        inputDigests: inputDigests);
   } else {
     var result = analyzer_compiler.compile(args.rest,
         compilerState: previousResult?.analyzerState);

@@ -4,7 +4,7 @@
 
 import '../libs/dont_inline_deferred_global_lib.dart' deferred as lib;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 void main() {
   lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     print(lib.finalVar);

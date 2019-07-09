@@ -214,6 +214,9 @@ class CompilationUnitElementHandle extends ElementHandle
   List<ClassElement> get enums => actualElement.enums;
 
   @override
+  List<ExtensionElement> get extensions => actualElement.extensions;
+
+  @override
   List<FunctionElement> get functions => actualElement.functions;
 
   @override
@@ -894,9 +897,6 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
   LibraryElement get actualElement => super.actualElement as LibraryElement;
 
   @override
-  bool get isNonNullableByDefault => actualElement.isNonNullableByDefault;
-
-  @override
   CompilationUnitElement get definingCompilationUnit =>
       actualElement.definingCompilationUnit;
 
@@ -938,6 +938,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   bool get isInSdk => actualElement.isInSdk;
+
+  @override
+  bool get isNonNullableByDefault => actualElement.isNonNullableByDefault;
 
   @override
   ElementKind get kind => ElementKind.LIBRARY;

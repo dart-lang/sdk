@@ -4,6 +4,8 @@
 
 #include "vm/object.h"
 
+#include <memory>
+
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/unicode.h"
@@ -2274,6 +2276,7 @@ bool Class::IsInFullSnapshot() const {
 }
 
 RawAbstractType* Class::RareType() const {
+  ASSERT(is_declaration_loaded());
   const Type& type = Type::Handle(Type::New(
       *this, Object::null_type_arguments(), TokenPosition::kNoSource));
   return ClassFinalizer::FinalizeType(*this, type);
@@ -2292,6 +2295,7 @@ RawClass* Class::New() {
   FakeObject fake;
   result.set_handle_vtable(fake.vtable());
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeObject::NextFieldOffset());
@@ -3382,10 +3386,7 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  const Error& error = Error::Handle(zone, EnsureIsFinalized(thread));
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+  CHECK_ERROR(EnsureIsFinalized(thread));
 
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(zone, LookupStaticField(setter_name));
@@ -3542,6 +3543,21 @@ RawObject* Class::EvaluateCompiledExpression(
       arguments, type_arguments);
 }
 
+void Class::EnsureDeclarationLoaded() const {
+  if (!is_declaration_loaded()) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    // Loading of class declaration can be postponed until needed
+    // if class comes from bytecode.
+    ASSERT(is_declared_in_bytecode());
+    kernel::BytecodeReader::LoadClassDeclaration(*this);
+    ASSERT(is_declaration_loaded());
+    ASSERT(is_type_finalized());
+#endif
+  }
+}
+
 // Ensure that top level parsing of the class has been done.
 RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
@@ -3660,6 +3676,7 @@ RawClass* Class::NewCommon(intptr_t index) {
   ASSERT(fake.IsInstance());
   result.set_handle_vtable(fake.vtable());
   result.set_token_pos(TokenPosition::kNoSource);
+  result.set_end_token_pos(TokenPosition::kNoSource);
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
   result.set_next_field_offset(FakeInstance::NextFieldOffset());
@@ -3975,69 +3992,16 @@ void Class::set_token_pos(TokenPosition token_pos) const {
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
-TokenPosition Class::ComputeEndTokenPos() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  return TokenPosition::kNoSource;
-#else
-  // Return the begin token for synthetic classes.
-  if (is_synthesized_class() || IsTopLevel()) {
-    return token_pos();
-  }
-
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  const Script& scr = Script::Handle(zone, script());
-  ASSERT(!scr.IsNull());
-
-  if (scr.kind() == RawScript::kKernelTag) {
-    if (is_declared_in_bytecode()) {
-      // TODO(alexmarkov): keep end_token_pos in Class?
-      UNIMPLEMENTED();
-      return token_pos();
-    }
-    ASSERT(kernel_offset() > 0);
-    const Library& lib = Library::Handle(zone, library());
-    const ExternalTypedData& kernel_data =
-        ExternalTypedData::Handle(zone, lib.kernel_data());
-    ASSERT(!kernel_data.IsNull());
-    const intptr_t library_kernel_offset = lib.kernel_offset();
-    ASSERT(library_kernel_offset > 0);
-    const intptr_t class_offset = kernel_offset();
-
-    kernel::TranslationHelper translation_helper(thread);
-    translation_helper.InitFromScript(scr);
-
-    kernel::KernelReaderHelper kernel_reader_helper(zone, &translation_helper,
-                                                    scr, kernel_data, 0);
-    kernel_reader_helper.SetOffset(class_offset);
-    kernel::ClassHelper class_helper(&kernel_reader_helper);
-    class_helper.ReadUntilIncluding(kernel::ClassHelper::kEndPosition);
-    if (class_helper.end_position_.IsReal()) return class_helper.end_position_;
-
-    TokenPosition largest_seen = token_pos();
-
-    // Walk through all functions and get their end_tokens to find the classes
-    // "end token".
-    // TODO(jensj): Should probably walk though all fields as well.
-    Function& function = Function::Handle(zone);
-    const Array& arr = Array::Handle(functions());
-    for (int i = 0; i < arr.Length(); i++) {
-      function ^= arr.At(i);
-      if (function.script() == script()) {
-        if (largest_seen < function.end_token_pos()) {
-          largest_seen = function.end_token_pos();
-        }
-      }
-    }
-    return TokenPosition(largest_seen);
-  }
-
-  UNREACHABLE();
-#endif
+void Class::set_end_token_pos(TokenPosition token_pos) const {
+  ASSERT(!token_pos.IsClassifying());
+  StoreNonPointer(&raw_ptr()->end_token_pos_, token_pos);
 }
 
 int32_t Class::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateClassFingerprint(
       *this);
 #else
@@ -4186,6 +4150,7 @@ void Class::set_declaration_type(const Type& value) const {
 }
 
 RawType* Class::DeclarationType() const {
+  ASSERT(is_declaration_loaded());
   if (declaration_type() != Type::null()) {
     return declaration_type();
   }
@@ -5747,6 +5712,7 @@ void Function::ClearCode() const {
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
+  ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   ASSERT(thread->IsMutatorThread());
   DEBUG_ASSERT(thread->TopErrorHandlerIsExitFrame());
@@ -6073,6 +6039,20 @@ void Function::SetFfiCallbackTarget(const Function& target) const {
   const Object& obj = Object::Handle(raw_ptr()->data_);
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_target(target);
+}
+
+RawInstance* Function::FfiCallbackExceptionalReturn() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_exceptional_return();
+}
+
+void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
 RawType* Function::SignatureType() const {
@@ -7797,7 +7777,8 @@ RawExternalTypedData* Function::KernelData() const {
 
 intptr_t Function::KernelDataProgramOffset() const {
   ASSERT(!is_declared_in_bytecode());
-  if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
+  if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
+      IsFfiTrampoline()) {
     return 0;
   }
   Object& data = Object::Handle(raw_ptr()->data_);
@@ -7942,6 +7923,9 @@ RawString* Function::GetSource() const {
 // arguments.
 int32_t Function::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
       *this);
 #else
@@ -8095,7 +8079,7 @@ RawCode* Function::EnsureHasCode() const {
   }
   // Compiling in unoptimized mode should never fail if there are no errors.
   ASSERT(HasCode());
-  ASSERT(unoptimized_code() == result.raw());
+  ASSERT(ForceOptimize() || unoptimized_code() == result.raw());
   return CurrentCode();
 }
 
@@ -8286,6 +8270,11 @@ void FfiTrampolineData::set_callback_target(const Function& value) const {
 
 void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
   StoreNonPointer(&raw_ptr()->callback_id_, callback_id);
+}
+
+void FfiTrampolineData::set_callback_exceptional_return(
+    const Instance& value) const {
+  StorePointer(&raw_ptr()->callback_exceptional_return_, value.raw());
 }
 
 RawFfiTrampolineData* FfiTrampolineData::New() {
@@ -8587,6 +8576,9 @@ RawField* Field::Clone(const Field& original) const {
 
 int32_t Field::SourceFingerprint() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  if (is_declared_in_bytecode()) {
+    return 0;  // TODO(37353): Implement or remove.
+  }
   return kernel::KernelSourceFingerprintHelper::CalculateFieldFingerprint(
       *this);
 #else
@@ -11334,7 +11326,7 @@ static RawObject* EvaluateCompiledExpressionHelper(
       String::New("Expression evaluation not available in precompiled mode."));
   return ApiError::New(error_str);
 #else
-  kernel::Program* kernel_pgm =
+  std::unique_ptr<kernel::Program> kernel_pgm =
       kernel::Program::ReadFromBuffer(kernel_bytes, kernel_length);
 
   if (kernel_pgm == NULL) {
@@ -11342,12 +11334,11 @@ static RawObject* EvaluateCompiledExpressionHelper(
         String::New("Kernel isolate returned ill-formed kernel.")));
   }
 
-  kernel::KernelLoader loader(kernel_pgm, /*uri_to_source_table=*/nullptr);
+  kernel::KernelLoader loader(kernel_pgm.get(),
+                              /*uri_to_source_table=*/nullptr);
   const Object& result = Object::Handle(
       loader.LoadExpressionEvaluationFunction(library_url, klass));
-
-  delete kernel_pgm;
-  kernel_pgm = NULL;
+  kernel_pgm.reset();
 
   if (result.IsError()) return result.raw();
 
@@ -12147,6 +12138,11 @@ void KernelProgramInfo::set_constants(const Array& constants) const {
 void KernelProgramInfo::set_constants_table(
     const ExternalTypedData& value) const {
   StorePointer(&raw_ptr()->constants_table_, value.raw());
+}
+
+void KernelProgramInfo::set_evaluating(
+    const GrowableObjectArray& evaluating) const {
+  StorePointer(&raw_ptr()->evaluating_, evaluating.raw());
 }
 
 void KernelProgramInfo::set_potential_natives(
@@ -14476,6 +14472,10 @@ void Code::set_is_optimized(bool value) const {
   set_state_bits(OptimizedBit::update(value, raw_ptr()->state_bits_));
 }
 
+void Code::set_is_force_optimized(bool value) const {
+  set_state_bits(ForceOptimizedBit::update(value, raw_ptr()->state_bits_));
+}
+
 void Code::set_is_alive(bool value) const {
   set_state_bits(AliveBit::update(value, raw_ptr()->state_bits_));
 }
@@ -14749,6 +14749,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_is_force_optimized(false);
     result.set_is_alive(false);
     NOT_IN_PRODUCT(result.set_comments(Comments::New(0)));
     NOT_IN_PRODUCT(result.set_compile_timestamp(0));
@@ -14936,6 +14937,20 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
   }
 #endif
   return code.raw();
+}
+
+void Code::NotifyCodeObservers(const Code& code, bool optimized) {
+#if !defined(PRODUCT)
+  ASSERT(!Thread::Current()->IsAtSafepoint());
+  if (CodeObservers::AreActive()) {
+    const Object& owner = Object::Handle(code.owner());
+    if (owner.IsFunction()) {
+      NotifyCodeObservers(Function::Cast(owner), code, optimized);
+    } else {
+      NotifyCodeObservers(code.Name(), code, optimized);
+    }
+  }
+#endif
 }
 
 void Code::NotifyCodeObservers(const Function& function,
@@ -15296,21 +15311,21 @@ RawExternalTypedData* Bytecode::GetBinary(Zone* zone) const {
   return info.metadata_payloads();
 }
 
-TokenPosition Bytecode::GetTokenIndexOfPC(uword pc) const {
+TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   if (!HasSourcePositions()) {
     return TokenPosition::kNoSource;
   }
-  uword pc_offset = pc - PayloadStart();
+  uword pc_offset = return_address - PayloadStart();
   // PC could equal to bytecode size if the last instruction is Throw.
   ASSERT(pc_offset <= static_cast<uword>(Size()));
   kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                *this);
   TokenPosition token_pos = TokenPosition::kNoSource;
   while (iter.MoveNext()) {
-    if (pc_offset < iter.PcOffset()) {
+    if (pc_offset <= iter.PcOffset()) {
       break;
     }
     token_pos = iter.TokenPos();
@@ -16152,9 +16167,11 @@ const char* UnwindError::ToCString() const {
 RawObject* Instance::InvokeGetter(const String& getter_name,
                                   bool respect_reflectable,
                                   bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
     type_args = GetTypeArguments();
@@ -16210,9 +16227,11 @@ RawObject* Instance::InvokeSetter(const String& setter_name,
                                   const Instance& value,
                                   bool respect_reflectable,
                                   bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   const Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   TypeArguments& type_args = TypeArguments::Handle(zone);
   if (klass.NumTypeArguments() > 0) {
     type_args = GetTypeArguments();
@@ -16255,8 +16274,10 @@ RawObject* Instance::Invoke(const String& function_name,
                             const Array& arg_names,
                             bool respect_reflectable,
                             bool check_is_entrypoint) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   Class& klass = Class::Handle(zone, clazz());
+  CHECK_ERROR(klass.EnsureIsFinalized(thread));
   Function& function = Function::Handle(
       zone, Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
@@ -16382,7 +16403,7 @@ uint32_t Instance::CanonicalizeHash() const {
   NoSafepointScope no_safepoint;
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uint32_t hash = instance_size;
+  uint32_t hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -16455,6 +16476,10 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
   return true;
 }
 
+RawInstance* Instance::CopyShallowToOldSpace(Thread* thread) const {
+  return Instance::RawCast(Object::Clone(*this, Heap::kOld));
+}
+
 RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
                                             const char** error_str) const {
   ASSERT(error_str != NULL);
@@ -16506,6 +16531,12 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
     return Type::NullType();
   }
   const Class& cls = Class::Handle(clazz());
+  if (!cls.is_finalized()) {
+    // Various predefined classes can be instantiated by the VM or
+    // Dart_NewString/Integer/TypedData/... before the class is finalized.
+    ASSERT(cls.is_prefinalized());
+    cls.EnsureDeclarationLoaded();
+  }
   if (cls.IsClosureClass()) {
     Function& signature =
         Function::Handle(Closure::Cast(*this).GetInstantiatedSignature(
@@ -17242,6 +17273,10 @@ bool AbstractType::IsDartClosureType() const {
   return !IsFunctionType() && (type_class_id() == kClosureCid);
 }
 
+bool AbstractType::IsFfiPointerType() const {
+  return HasTypeClass() && type_class_id() == kFfiPointerCid;
+}
+
 bool AbstractType::IsSubtypeOf(const AbstractType& other,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
@@ -17712,14 +17747,7 @@ bool Type::IsEquivalent(const Instance& other, TrailPtr trail) const {
         for (intptr_t i = 0; i < from_index; i++) {
           type_arg = type_args.TypeAt(i);
           other_type_arg = other_type_args.TypeAt(i);
-          // Type arguments may not match if they are TypeRefs without
-          // underlying type (which will be set later).
-          ASSERT(
-              type_arg.IsEquivalent(other_type_arg, trail) ||
-              (type_arg.IsTypeRef() &&
-               TypeRef::Cast(type_arg).type() == AbstractType::null()) ||
-              (other_type_arg.IsTypeRef() &&
-               TypeRef::Cast(other_type_arg).type() == AbstractType::null()));
+          ASSERT(type_arg.IsEquivalent(other_type_arg, trail));
         }
       }
 #endif
@@ -18178,10 +18206,9 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   // TODO(regis): Try to reduce the number of nodes required to represent the
   // referenced recursive type.
   AbstractType& ref_type = AbstractType::Handle(type());
-  if (!ref_type.IsNull()) {
-    ref_type = ref_type.Canonicalize(trail);
-    set_type(ref_type);
-  }
+  ASSERT(!ref_type.IsNull());
+  ref_type = ref_type.Canonicalize(trail);
+  set_type(ref_type);
   return raw();
 }
 
@@ -18207,11 +18234,15 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
 }
 
 intptr_t TypeRef::Hash() const {
-  // Do not calculate the hash of the referenced type to avoid divergence.
-  // TypeRef can participate in type canonicalization even before referenced
-  // type is set, so its hash should not rely on referenced type.
-  const intptr_t kTypeRefHash = 37;
-  return kTypeRefHash;
+  // Do not use hash of the referenced type because
+  //  - we could be in process of calculating it (as TypeRef is used to
+  //    represent recursive references to types).
+  //  - referenced type might be incomplete (e.g. not all its
+  //    type arguments are set).
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsNull());
+  const uint32_t result = Class::Handle(ref_type.type_class()).id();
+  return FinalizeHash(result, kHashBits);
 }
 
 RawTypeRef* TypeRef::New() {
@@ -21366,24 +21397,24 @@ const char* ExternalTypedData::ToCString() const {
 }
 
 RawPointer* Pointer::New(const AbstractType& type_arg,
-                         const Integer& c_memory_address,
-                         intptr_t cid,
+                         size_t native_address,
                          Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+
   TypeArguments& type_args = TypeArguments::Handle(zone);
   type_args = TypeArguments::New(1);
   type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
   type_args = type_args.Canonicalize();
 
-  const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(cid));
+  const Class& cls =
+      Class::Handle(Isolate::Current()->class_table()->At(kFfiPointerCid));
   cls.EnsureIsFinalized(Thread::Current());
 
   Pointer& result = Pointer::Handle(zone);
-  result ^= Object::Allocate(cid, Pointer::InstanceSize(), space);
-  NoSafepointScope no_safepoint;
+  result ^= Object::Allocate(kFfiPointerCid, Pointer::InstanceSize(), space);
   result.SetTypeArguments(type_args);
-  result.SetCMemoryAddress(c_memory_address);
+  result.SetNativeAddress(native_address);
 
   return result.raw();
 }
@@ -21392,9 +21423,7 @@ const char* Pointer::ToCString() const {
   TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
   String& type_args_name = String::Handle(type_args.UserVisibleName());
   return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
-                     type_args_name.ToCString(),
-                     static_cast<intptr_t>(
-                         Integer::Handle(GetCMemoryAddress()).AsInt64Value()));
+                     type_args_name.ToCString(), NativeAddress());
 }
 
 RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
@@ -21408,23 +21437,7 @@ RawDynamicLibrary* DynamicLibrary::New(void* handle, Heap::Space space) {
 
 bool Pointer::IsPointer(const Instance& obj) {
   ASSERT(!obj.IsNull());
-
-  // fast path for predefined classes
-  intptr_t cid = obj.raw()->GetClassId();
-  if (RawObject::IsFfiPointerClassId(cid)) {
-    return true;
-  }
-
-  // slow check for subtyping
-  const Class& pointer_class = Class::ZoneHandle(
-      Isolate::Current()->object_store()->ffi_pointer_class());
-  AbstractType& pointer_type =
-      AbstractType::Handle(pointer_class.DeclarationType());
-  pointer_type = pointer_type.InstantiateFrom(Object::null_type_arguments(),
-                                              Object::null_type_arguments(),
-                                              kNoneFree, NULL, Heap::kNew);
-  AbstractType& type = AbstractType::Handle(obj.GetType(Heap::kNew));
-  return type.IsSubtypeOf(pointer_type, Heap::kNew);
+  return RawObject::IsFfiPointerClassId(obj.raw()->GetClassId());
 }
 
 bool Instance::IsPointer() const {

@@ -2,32 +2,106 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:_foreign_helper' show JS, JS_GET_NAME;
+import 'dart:_js_embedded_names' show JsGetName;
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
+final String objectName = JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME);
+final String futureName = JS_GET_NAME(JsGetName.FUTURE_CLASS_TYPE_NAME);
+final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
+
+const typeRulesJson = r'''
+{
+  "int": {"num": []},
+  "List": {"Iterable": ["1"]},
+  "CodeUnits": {
+    "List": ["int"],
+    "Iterable": ["int"]
+  }
+}
+''';
+final typeRules = JS('=Object', 'JSON.parse(#)', typeRulesJson);
+final universe = rti.testingCreateUniverse();
+
 main() {
-  testCodeUnits();
+  rti.testingAddRules(universe, typeRules);
+  runTests();
+  runTests(); // Ensure caching didn't change anything.
 }
 
-void testCodeUnits() {
-  var universe = rti.testingCreateUniverse();
+void runTests() {
+  testInterfaces();
+  testTopTypes();
+  testNull();
+  testFutureOr();
+}
 
-  var intRule = rti.testingCreateRule();
-  rti.testingAddSupertype(intRule, 'num', []);
+void testInterfaces() {
+  strictSubtype('List<CodeUnits>', 'Iterable<List<int>>');
+  strictSubtype('CodeUnits', 'Iterable<num>');
+  strictSubtype('Iterable<int>', 'Iterable<num>');
+  unrelated('int', 'CodeUnits');
+  equivalent('double', 'double');
+  equivalent('List<int>', 'List<int>');
+}
 
-  var listRule = rti.testingCreateRule();
-  rti.testingAddSupertype(listRule, 'Iterable', ['1']);
+void testTopTypes() {
+  strictSubtype('List<int>', objectName);
+  equivalent(objectName, objectName);
+  equivalent('@', '@');
+  equivalent('~', '~');
+  equivalent('1&', '1&');
+  equivalent(objectName, '@');
+  equivalent(objectName, '~');
+  equivalent(objectName, '1&');
+  equivalent('@', '~');
+  equivalent('@', '1&');
+  equivalent('~', '1&');
+  equivalent('List<$objectName>', 'List<@>');
+  equivalent('List<$objectName>', 'List<~>');
+  equivalent('List<$objectName>', 'List<1&>');
+  equivalent('List<@>', 'List<~>');
+  equivalent('List<@>', 'List<1&>');
+  equivalent('List<~>', 'List<1&>');
+}
 
-  var codeUnitsRule = rti.testingCreateRule();
-  rti.testingAddSupertype(codeUnitsRule, 'List', ['int']);
+void testNull() {
+  strictSubtype(nullName, 'int');
+  strictSubtype(nullName, 'Iterable<CodeUnits>');
+  strictSubtype(nullName, objectName);
+  equivalent(nullName, nullName);
+}
 
-  rti.testingAddRule(universe, 'int', intRule);
-  rti.testingAddRule(universe, 'List', listRule);
-  rti.testingAddRule(universe, 'CodeUnits', codeUnitsRule);
+void testFutureOr() {
+  strictSubtype('$futureName<int>', '$futureName<num>');
+  strictSubtype('int', 'int/');
+  strictSubtype('$futureName<int>', 'int/');
+  strictSubtype('int/', 'num/');
+  strictSubtype('int', 'num/');
+  strictSubtype('$futureName<int>', 'num/');
+  equivalent('@/', '~/');
+}
 
-  var rti1 = rti.testingUniverseEval(universe, 'List<CodeUnits>');
-  var rti2 = rti.testingUniverseEval(universe, 'Iterable<List<int>>');
+String reason(String s, String t) => "$s <: $t";
 
-  Expect.isTrue(rti.testingIsSubtype(universe, rti1, rti2));
-  Expect.isFalse(rti.testingIsSubtype(universe, rti2, rti1));
+void strictSubtype(String s, String t) {
+  var sRti = rti.testingUniverseEval(universe, s);
+  var tRti = rti.testingUniverseEval(universe, t);
+  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
+}
+
+void unrelated(String s, String t) {
+  var sRti = rti.testingUniverseEval(universe, s);
+  var tRti = rti.testingUniverseEval(universe, t);
+  Expect.isFalse(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isFalse(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
+}
+
+void equivalent(String s, String t) {
+  var sRti = rti.testingUniverseEval(universe, s);
+  var tRti = rti.testingUniverseEval(universe, t);
+  Expect.isTrue(rti.testingIsSubtype(universe, sRti, tRti), reason(s, t));
+  Expect.isTrue(rti.testingIsSubtype(universe, tRti, sRti), reason(t, s));
 }

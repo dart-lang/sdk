@@ -633,9 +633,7 @@ class BuildMode with HasContextMixin {
               severityProcessor: severityProcessor);
       for (Source source in explicitSources) {
         var result = await analysisDriver.getErrors(source.fullName);
-        var errorInfo =
-            new AnalysisErrorInfoImpl(result.errors, result.lineInfo);
-        formatter.formatErrors([errorInfo]);
+        formatter.formatErrors([result]);
       }
       formatter.flush();
       if (!options.machineFormat) {

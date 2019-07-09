@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:
+/*member: main:
  static=[
   testAssert(0),
   testAssertWithMessage(0),
@@ -31,7 +31,7 @@ main() {
   testAssertWithMessage();
 }
 
-/*element: testIfThen:
+/*member: testIfThen:
  type=[
   inst:JSBool,
   inst:JSDouble,
@@ -47,7 +47,7 @@ testIfThen() {
   return 1;
 }
 
-/*element: testIfThenElse:
+/*member: testIfThenElse:
  type=[
   inst:JSBool,
   inst:JSDouble,
@@ -65,7 +65,7 @@ testIfThenElse() {
     return 1;
 }
 
-/*element: testForIn:
+/*member: testForIn:
  dynamic=[
   Iterator.current,
   Iterator.iterator,
@@ -82,7 +82,7 @@ testForIn(o) {
   for (var e in o) {}
 }
 
-/*element: testForInTyped:
+/*member: testForInTyped:
  dynamic=[
   Iterator.current,
   Iterator.iterator,
@@ -100,7 +100,7 @@ testForInTyped(o) {
   for (int e in o) {}
 }
 
-/*element: testTryCatch:
+/*member: testTryCatch:
  static=[unwrapException(1)],
  type=[
   inst:PlainJavaScriptObject,
@@ -110,7 +110,7 @@ testTryCatch() {
   try {} catch (e) {}
 }
 
-/*element: testTryCatchOn:
+/*member: testTryCatchOn:
  static=[unwrapException(1)],
  type=[
   catch:String,
@@ -123,7 +123,7 @@ testTryCatchOn() {
   try {} on String catch (e) {}
 }
 
-/*element: testTryCatchStackTrace:
+/*member: testTryCatchStackTrace:
  static=[
   getTraceFromException(1),
   unwrapException(1)],
@@ -137,12 +137,12 @@ testTryCatchStackTrace() {
   try {} catch (e, s) {}
 }
 
-/*element: testTryFinally:*/
+/*member: testTryFinally:*/
 testTryFinally() {
   try {} finally {}
 }
 
-/*element: testSwitchWithoutFallthrough:
+/*member: testSwitchWithoutFallthrough:
  static=[
   throwExpression(1),
   wrapException(1)],
@@ -171,12 +171,12 @@ testSwitchWithoutFallthrough(o) {
   }
 }
 
-/*element: testAssert:static=[assertHelper(1)],type=[inst:JSBool]*/
+/*member: testAssert:static=[assertHelper(1)],type=[inst:JSBool]*/
 testAssert() {
   assert(true);
 }
 
-/*element: testAssertWithMessage:static=[assertTest(1),assertThrow(1)],type=[inst:JSBool,inst:JSString]*/
+/*member: testAssertWithMessage:static=[assertTest(1),assertThrow(1)],type=[inst:JSBool,inst:JSString]*/
 testAssertWithMessage() {
   assert(true, 'ok');
 }

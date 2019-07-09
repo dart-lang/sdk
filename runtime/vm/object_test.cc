@@ -168,7 +168,7 @@ ISOLATE_UNIT_TEST_CASE(TypeArguments) {
   EXPECT_EQ(type_arguments1.raw(), type_arguments3.raw());
 }
 
-TEST_CASE(Class_ComputeEndTokenPos) {
+TEST_CASE(Class_EndTokenPos) {
   const char* kScript =
       "\n"
       "class A {\n"
@@ -178,7 +178,6 @@ TEST_CASE(Class_ComputeEndTokenPos) {
       "  foo(a) { return '''\"}'''; }\n"
       "  // }\n"
       "  var bar = '\\'}';\n"
-      "  var baz = \"${foo('}')}\";\n"
       "}\n";
   Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib_h);
@@ -189,12 +188,15 @@ TEST_CASE(Class_ComputeEndTokenPos) {
   const Class& cls =
       Class::Handle(lib.LookupClass(String::Handle(String::New("A"))));
   EXPECT(!cls.IsNull());
-  const TokenPosition end_token_pos = cls.ComputeEndTokenPos();
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(thread));
+  EXPECT(error.IsNull());
+  const TokenPosition end_token_pos = cls.end_token_pos();
   const Script& scr = Script::Handle(cls.script());
   intptr_t line;
   intptr_t col;
   scr.GetTokenLocation(end_token_pos, &line, &col);
-  EXPECT(line == 10 && col == 1);
+  EXPECT_EQ(9, line);
+  EXPECT_EQ(1, col);
 }
 
 ISOLATE_UNIT_TEST_CASE(InstanceClass) {

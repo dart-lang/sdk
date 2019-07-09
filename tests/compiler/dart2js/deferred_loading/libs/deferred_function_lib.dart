@@ -6,7 +6,7 @@
 
 library deferred_function_library;
 
-/*element: foo:OutputUnit(1, {lib})*/
+/*member: foo:OutputUnit(1, {lib})*/
 foo(x) {
   print('foo($x)');
   return 42;

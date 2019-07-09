@@ -174,15 +174,11 @@ class RawObject {
         : public BitField<uint32_t, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
-      ASSERT(Utils::IsAligned(
-          size, compiler::target::ObjectAlignment::kObjectAlignment));
-      return (size > kMaxSizeTag)
-                 ? 0
-                 : (size >>
-                    compiler::target::ObjectAlignment::kObjectAlignmentLog2);
+      ASSERT(Utils::IsAligned(size, kObjectAlignment));
+      return (size > kMaxSizeTag) ? 0 : (size >> kObjectAlignmentLog2);
     }
     static intptr_t TagValueToSize(intptr_t value) {
-      return value << compiler::target::ObjectAlignment::kObjectAlignmentLog2;
+      return value << kObjectAlignmentLog2;
     }
   };
 
@@ -490,6 +486,10 @@ class RawObject {
 #if defined(HASH_IN_OBJECT_HEADER)
   // On 64 bit there is a hash field in the header for the identity hash.
   uint32_t hash_;
+#elif defined(IS_SIMARM_X64)
+  // On simarm_x64 the hash isn't used, but we need the padding anyway so that
+  // the object layout fits assumptions made about X64.
+  uint32_t padding_;
 #endif
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
@@ -800,6 +800,7 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
@@ -1038,7 +1039,10 @@ class RawFfiTrampolineData : public RawObject {
   // Target Dart method for callbacks, otherwise null.
   RawFunction* callback_target_;
 
-  VISIT_TO(RawObject*, callback_target_);
+  // For callbacks, value to return if Dart target throws an exception.
+  RawInstance* callback_exceptional_return_;
+
+  VISIT_TO(RawObject*, callback_exceptional_return_);
   RawObject** to_snapshot(Snapshot::Kind kind) { return to(); }
 
   // Callback id for callbacks.
@@ -1258,13 +1262,14 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
+  RawGrowableObjectArray* evaluating_;  // detects cycles
   RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;
   VISIT_TO(RawObject*, classes_cache_);
 
   RawObject** to_snapshot(Snapshot::Kind kind) {
-    return reinterpret_cast<RawObject**>(&ptr()->potential_natives_);
+    return reinterpret_cast<RawObject**>(&ptr()->constants_table_);
   }
 };
 
@@ -1457,6 +1462,7 @@ class RawInstructions : public RawObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class BlobImageWriter;
 };
 
 class RawPcDescriptors : public RawObject {
@@ -1518,6 +1524,7 @@ class RawPcDescriptors : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // CodeSourceMap encodes a mapping from code PC ranges to source token
@@ -1536,6 +1543,7 @@ class RawCodeSourceMap : public RawObject {
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
+  friend class ImageWriter;
 };
 
 // StackMap is an immutable representation of the layout of the stack at a
@@ -1559,6 +1567,8 @@ class RawStackMap : public RawObject {
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
+
+  friend class ImageWriter;
 };
 
 class RawLocalVarDescriptors : public RawObject {
@@ -2088,6 +2098,7 @@ class RawString : public RawInstance {
   friend class OneByteStringDeserializationCluster;
   friend class TwoByteStringDeserializationCluster;
   friend class RODataSerializationCluster;
+  friend class ImageWriter;
 };
 
 class RawOneByteString : public RawString {

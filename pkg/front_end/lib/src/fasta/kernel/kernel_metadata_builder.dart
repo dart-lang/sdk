@@ -31,15 +31,14 @@ class KernelMetadataBuilder extends MetadataBuilder {
       List<MetadataBuilder> metadata,
       KernelLibraryBuilder library,
       KernelClassBuilder classBuilder,
-      MemberBuilder member,
-      Scope parameterScope) {
+      MemberBuilder member) {
     if (metadata == null) return;
     Uri fileUri = member?.fileUri ?? classBuilder?.fileUri ?? library.fileUri;
     Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
         : classBuilder.scope;
     KernelBodyBuilder bodyBuilder = new KernelBodyBuilder.forOutlineExpression(
-        library, classBuilder, member, scope, parameterScope, fileUri);
+        library, classBuilder, member, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       KernelMetadataBuilder annotationBuilder = metadata[i];
       parent.addAnnotation(

@@ -9,7 +9,7 @@ import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
 import 'runtime_configuration.dart';
-import 'test_suite.dart';
+import 'test_file.dart';
 import 'utils.dart';
 
 List<String> _replaceDartFiles(List<String> list, String replacement) {
@@ -67,15 +67,8 @@ abstract class CompilerConfiguration {
       case Compiler.dartdevk:
         return DevCompilerConfiguration(configuration);
 
-      case Compiler.appJit:
-        return AppJitCompilerConfiguration(configuration, previewDart2: false);
-
       case Compiler.appJitk:
         return AppJitCompilerConfiguration(configuration);
-
-      case Compiler.precompiler:
-        return PrecompilerCompilerConfiguration(configuration,
-            previewDart2: false);
 
       case Compiler.dartk:
       case Compiler.dartkb:
@@ -141,17 +134,13 @@ abstract class CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    return sharedOptions.toList()
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(args);
+    return [...sharedOptions, ..._configuration.sharedOptions, ...args];
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     return [artifact.filename];
@@ -167,32 +156,26 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var args = <String>[];
-    if (_isDebug) {
-      // Temporarily disable background compilation to avoid flaky crashes
-      // (see http://dartbug.com/30016 for details).
-      args.add('--no-background-compilation');
-    }
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
-    if (_configuration.hotReload) {
-      args.add('--hot-reload-test-mode');
-    } else if (_configuration.hotReloadRollback) {
-      args.add('--hot-reload-rollback-test-mode');
-    }
-    return args
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments)
-      ..addAll(dartOptions);
+    return [
+      if (_isDebug)
+        // Temporarily disable background compilation to avoid flaky crashes
+        // (see http://dartbug.com/30016 for details).
+        '--no-background-compilation',
+      if (_useEnableAsserts) '--enable_asserts',
+      if (_configuration.hotReload)
+        '--hot-reload-test-mode'
+      else if (_configuration.hotReloadRollback)
+        '--hot-reload-rollback-test-mode',
+      ...vmOptions,
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ...originalArguments,
+      ...testFile.dartOptions
+    ];
   }
 }
 
@@ -233,41 +216,39 @@ class VMKernelCompilerConfiguration extends CompilerConfiguration
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    return sharedOptions.toList()
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(vmOptions)
-      ..addAll(args);
+    return [
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...vmOptions,
+      ...args
+    ];
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var args = <String>[];
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
-    if (_configuration.hotReload) {
-      args.add('--hot-reload-test-mode');
-    } else if (_configuration.hotReloadRollback) {
-      args.add('--hot-reload-rollback-test-mode');
-    }
     var filename = artifact.filename;
     if (runtimeConfiguration is DartkAdbRuntimeConfiguration) {
       // On Android the Dill file will be pushed to a different directory on the
       // device. Use that one instead.
       filename = "${DartkAdbRuntimeConfiguration.DeviceTestDir}/out.dill";
     }
-    return args
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, filename))
-      ..addAll(dartOptions);
+
+    return [
+      if (_useEnableAsserts) '--enable_asserts',
+      if (_configuration.hotReload)
+        '--hot-reload-test-mode'
+      else if (_configuration.hotReloadRollback)
+        '--hot-reload-rollback-test-mode',
+      ...vmOptions,
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._replaceDartFiles(originalArguments, filename),
+      ...testFile.dartOptions
+    ];
   }
 }
 
@@ -358,31 +339,24 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
       List<String> args) {
     // The result will be passed as an input to [extractArguments]
     // (i.e. the arguments to the [PipelineCommand]).
-    return <String>[]
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(args);
+    return [
+      ...vmOptions,
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...args
+    ];
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     CompilerConfiguration lastCompilerConfiguration =
         pipelineCommands.last.compilerConfiguration;
     return lastCompilerConfiguration.computeRuntimeArguments(
-        runtimeConfiguration,
-        info,
-        vmOptions,
-        sharedOptions,
-        dartOptions,
-        originalArguments,
-        artifact);
+        runtimeConfiguration, testFile, vmOptions, originalArguments, artifact);
   }
 }
 
@@ -445,14 +419,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   Dart2jsCompilerConfiguration(TestConfiguration configuration)
       : super('dart2js', configuration);
 
-  int get timeoutMultiplier {
-    var multiplier = 1;
-    if (_isDebug) multiplier *= 4;
-    if (_isChecked) multiplier *= 2;
-    if (_isHostChecked) multiplier *= 16;
-    return multiplier;
-  }
-
   List<String> computeCompilerArguments(
       List<String> vmOptions,
       List<String> sharedOptions,
@@ -460,19 +426,18 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    return <String>[]
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(dart2jsOptions)
-      ..addAll(args);
+    return [
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...dart2jsOptions,
+      ...args
+    ];
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    var compilerArguments = arguments.toList()
-      ..addAll(_configuration.dart2jsOptions);
+    var compilerArguments = [...arguments, ..._configuration.dart2jsOptions];
 
-    var commands = <Command>[];
     // TODO(athom): input filename extraction is copied from DDC. Maybe this
     // should be passed to computeCompilationArtifact, instead?
     var inputFile = arguments.last;
@@ -483,22 +448,19 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     if (babel != null && babel.isNotEmpty) {
       out = out.replaceAll('.js', '.raw.js');
     }
-    commands.add(computeCompilationCommand(
-        out, compilerArguments, environmentOverrides));
-
-    if (babel != null && babel.isNotEmpty) {
-      commands.add(computeBabelCommand(out, babelOut, babel));
-    }
+    var commands = [
+      computeCompilationCommand(out, compilerArguments, environmentOverrides),
+      if (babel != null && babel.isNotEmpty)
+        computeBabelCommand(out, babelOut, babel)
+    ];
 
     return CommandArtifact(commands, babelOut, 'application/javascript');
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     Uri sdk = _useSdk
@@ -545,13 +507,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    var result = sharedOptions.toList()
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(ddcOptions);
-    // The file being compiled is the last argument.
-    result.add(args.last);
-
-    return result;
+    return [
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...ddcOptions,
+      // The file being compiled is the last argument.
+      args.last
+    ];
   }
 
   Command _createCommand(String inputFile, String outputFile,
@@ -653,8 +615,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration
     with VMKernelCompilerMixin {
-  final bool previewDart2;
-
   bool get _isAndroid => _configuration.system == System.android;
 
   bool get _isArm => _configuration.architecture == Architecture.arm;
@@ -663,8 +623,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isAot => true;
 
-  PrecompilerCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2 = true})
+  PrecompilerCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -714,10 +673,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
     if (Platform.isWindows) {
       exec = 'cmd.exe';
-      args = <String>['/c', 'del', tempKernelFile(tempDir)];
+      args = ['/c', 'del', tempKernelFile(tempDir)];
     } else {
       exec = 'rm';
-      args = <String>[tempKernelFile(tempDir)];
+      args = [tempKernelFile(tempDir)];
     }
 
     return Command.compilation('remove_kernel_file', tempDir,
@@ -728,7 +687,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   Command computeDartBootstrapCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     var buildDir = _configuration.buildDirectory;
-    String exec = _configuration.genSnapshotPath;
+    var exec = _configuration.genSnapshotPath;
     if (exec == null) {
       if (_isAndroid) {
         if (_isArm) {
@@ -741,27 +700,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
     }
 
-    final args = <String>[];
-    if (_configuration.useBlobs) {
-      args.add("--snapshot-kind=app-aot-blobs");
-      args.add("--blobs_container_filename=$tempDir/out.aotsnapshot");
-    } else if (_configuration.useElf) {
-      args.add("--snapshot-kind=app-aot-elf");
-      args.add("--elf=$tempDir/out.aotsnapshot");
-    } else {
-      args.add("--snapshot-kind=app-aot-assembly");
-      args.add("--assembly=$tempDir/out.S");
-    }
-
-    if (_isAndroid && _isArm) {
-      args.add('--no-sim-use-hardfp');
-    }
-
-    if (_configuration.isMinified) {
-      args.add('--obfuscate');
-    }
-
-    args.addAll(_replaceDartFiles(arguments, tempKernelFile(tempDir)));
+    var args = [
+      if (_configuration.useBlobs) ...[
+        "--snapshot-kind=app-aot-blobs",
+        "--blobs_container_filename=$tempDir/out.aotsnapshot"
+      ] else if (_configuration.useElf) ...[
+        "--snapshot-kind=app-aot-elf",
+        "--elf=$tempDir/out.aotsnapshot"
+      ] else ...[
+        "--snapshot-kind=app-aot-assembly",
+        "--assembly=$tempDir/out.S"
+      ],
+      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_configuration.isMinified) '--obfuscate',
+      ..._replaceDartFiles(arguments, tempKernelFile(tempDir))
+    ];
 
     return Command.compilation('precompiler', tempDir, bootstrapDependencies(),
         exec, args, environmentOverrides,
@@ -815,18 +768,18 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         throw "Architecture not supported: ${_configuration.architecture.name}";
     }
 
-    var exec = cc;
-    var args = <String>[];
-    if (ccFlags != null) args.add(ccFlags);
-    if (ldFlags != null) args.add(ldFlags);
-    args.add(shared);
-    args.add('-nostdlib');
-    args.add('-o');
-    args.add('$tempDir/out.aotsnapshot');
-    args.add('$tempDir/out.S');
+    var args = [
+      if (ccFlags != null) ccFlags,
+      if (ldFlags != null) ldFlags,
+      shared,
+      '-nostdlib',
+      '-o',
+      '$tempDir/out.aotsnapshot',
+      '$tempDir/out.S'
+    ];
 
-    return Command.compilation('assemble', tempDir, bootstrapDependencies(),
-        exec, args, environmentOverrides,
+    return Command.compilation('assemble', tempDir, bootstrapDependencies(), cc,
+        args, environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -839,11 +792,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
   /// almost identical configurations are tested simultaneously.
   Command computeRemoveAssemblyCommand(String tempDir, List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = 'rm';
-    var args = ['$tempDir/out.S'];
-
     return Command.compilation('remove_assembly', tempDir,
-        bootstrapDependencies(), exec, args, environmentOverrides,
+        bootstrapDependencies(), 'rm', ['$tempDir/out.S'], environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -863,29 +813,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> originalArguments) {
-    List<String> args = [];
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
-    return args
-      ..addAll(filterVmOptions(vmOptions))
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments);
+    return [
+      if (_useEnableAsserts) '--enable_asserts',
+      ...filterVmOptions(vmOptions),
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...originalArguments
+    ];
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var args = <String>[];
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
     var dir = artifact.filename;
     if (runtimeConfiguration is DartPrecompiledAdbRuntimeConfiguration) {
       // On android the precompiled snapshot will be pushed to a different
@@ -895,20 +837,19 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     originalArguments =
         _replaceDartFiles(originalArguments, "$dir/out.aotsnapshot");
 
-    return args
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments)
-      ..addAll(dartOptions);
+    return [
+      if (_useEnableAsserts) '--enable_asserts',
+      ...vmOptions,
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ...originalArguments,
+      ...testFile.dartOptions
+    ];
   }
 }
 
 class AppJitCompilerConfiguration extends CompilerConfiguration {
-  final bool previewDart2;
-
-  AppJitCompilerConfiguration(TestConfiguration configuration,
-      {this.previewDart2 = true})
+  AppJitCompilerConfiguration(TestConfiguration configuration)
       : super._subclass(configuration);
 
   int get timeoutMultiplier {
@@ -929,13 +870,14 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
 
   Command computeCompilationCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
-    var exec = "${_configuration.buildDirectory}/dart";
     var snapshot = "$tempDir/out.jitsnapshot";
-    var args = ["--snapshot=$snapshot", "--snapshot-kind=app-jit"];
-    args.addAll(arguments);
-
-    return Command.compilation('app_jit', tempDir, bootstrapDependencies(),
-        exec, args, environmentOverrides,
+    return Command.compilation(
+        'app_jit',
+        tempDir,
+        bootstrapDependencies(),
+        "${_configuration.buildDirectory}/dart",
+        ["--snapshot=$snapshot", "--snapshot-kind=app-jit", ...arguments],
+        environmentOverrides,
         alwaysCompile: !_useSdk);
   }
 
@@ -946,36 +888,30 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> originalArguments) {
-    var args = <String>[];
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
-    return args
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(originalArguments)
-      ..addAll(dartOptions);
+    return [
+      if (_useEnableAsserts) '--enable_asserts',
+      ...vmOptions,
+      ...sharedOptions,
+      ..._configuration.sharedOptions,
+      ...originalArguments,
+      ...dartOptions
+    ];
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    var args = <String>[];
-    if (_useEnableAsserts) {
-      args.add('--enable_asserts');
-    }
-    return args
-      ..addAll(vmOptions)
-      ..addAll(sharedOptions)
-      ..addAll(_configuration.sharedOptions)
-      ..addAll(_replaceDartFiles(originalArguments, artifact.filename))
-      ..addAll(dartOptions);
+    return [
+      if (_useEnableAsserts) '--enable_asserts',
+      ...vmOptions,
+      ...testFile.sharedOptions,
+      ..._configuration.sharedOptions,
+      ..._replaceDartFiles(originalArguments, artifact.filename),
+      ...testFile.dartOptions
+    ];
   }
 }
 
@@ -988,7 +924,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    String suffix = executableScriptSuffix;
+    var suffix = executableScriptSuffix;
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -1006,32 +942,30 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
     if (!previewDart2) {
       throw ArgumentError('--no-preview-dart-2 not supported');
     }
-    if (_configuration.useAnalyzerCfe) {
-      arguments.add('--use-cfe');
-    }
-    if (_configuration.useAnalyzerFastaParser) {
-      arguments.add('--use-fasta-parser');
-    }
+
+    var args = [
+      ...arguments,
+      if (_configuration.useAnalyzerCfe) '--use-cfe',
+      if (_configuration.useAnalyzerFastaParser) '--use-fasta-parser',
+    ];
 
     // Since this is not a real compilation, no artifacts are produced.
-    return CommandArtifact([
-      Command.analysis(computeCompilerPath(), arguments, environmentOverrides)
-    ], null, null);
+    return CommandArtifact(
+        [Command.analysis(computeCompilerPath(), args, environmentOverrides)],
+        null,
+        null);
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    return <String>[];
+    return [];
   }
 }
 
@@ -1052,7 +986,6 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
 
   CommandArtifact computeCompilationArtifact(String tempDir,
       List<String> arguments, Map<String, String> environmentOverrides) {
-    arguments = arguments.toList();
     if (!previewDart2) {
       throw ArgumentError('--no-preview-dart-2 not supported');
     }
@@ -1060,19 +993,17 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
     // Since this is not a real compilation, no artifacts are produced.
     return CommandArtifact([
       Command.compareAnalyzerCfe(
-          computeCompilerPath(), arguments, environmentOverrides)
+          computeCompilerPath(), arguments.toList(), environmentOverrides)
     ], null, null);
   }
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    return <String>[];
+    return [];
   }
 }
 
@@ -1095,13 +1026,11 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
 
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
-    return <String>[];
+    return [];
   }
 }
 
@@ -1141,44 +1070,35 @@ abstract class VMKernelCompilerMixin {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
-    final vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
+    var vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
 
-    final dillFile = tempKernelFile(tempDir);
+    var dillFile = tempKernelFile(tempDir);
 
-    final args = [
+    var causalAsyncStacks = !arguments.any(noCausalAsyncStacksRegExp.hasMatch);
+
+    var args = [
       _isAot ? '--aot' : '--no-aot',
       '--platform=$vmPlatform',
       '-o',
       dillFile,
+      arguments.where((name) => name.endsWith('.dart')).single,
+      ...arguments.where((name) =>
+          name.startsWith('-D') ||
+          name.startsWith('--packages=') ||
+          name.startsWith('--enable-experiment=')),
+      '-Ddart.developer.causal_async_stacks=$causalAsyncStacks',
+      if (_useEnableAsserts ||
+          arguments.contains('--enable-asserts') ||
+          arguments.contains('--enable_asserts'))
+        '--enable-asserts',
+      if (_configuration.useKernelBytecode) ...[
+        '--gen-bytecode',
+        '--drop-ast',
+        '--bytecode-options=source-positions,local-var-info'
+      ]
     ];
 
-    final batchArgs = <String>[];
-    if (useAbiVersion != null) {
-      batchArgs.add(useAbiVersion);
-    }
-
-    args.add(arguments.where((name) => name.endsWith('.dart')).single);
-    args.addAll(arguments.where((name) =>
-        name.startsWith('-D') ||
-        name.startsWith('--packages=') ||
-        name.startsWith('--enable-experiment=')));
-
-    final bool causalAsyncStacks =
-        !arguments.any((String arg) => noCausalAsyncStacksRegExp.hasMatch(arg));
-    args.add('-Ddart.developer.causal_async_stacks=$causalAsyncStacks');
-
-    if (_useEnableAsserts ||
-        arguments.contains('--enable-asserts') ||
-        arguments.contains('--enable_asserts')) {
-      args.add('--enable-asserts');
-    }
-
-    if (_configuration.useKernelBytecode) {
-      args.add('--gen-bytecode');
-      args.add('--drop-ast');
-      args.add('--emit-bytecode-source-positions');
-      args.add('--emit-bytecode-local-var-info');
-    }
+    var batchArgs = [if (useAbiVersion != null) useAbiVersion];
 
     return Command.vmKernelCompilation(dillFile, true, bootstrapDependencies(),
         genKernel, args, environmentOverrides, batchArgs);
@@ -1230,14 +1150,15 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
         Uri.base.resolveUri(Uri.directory(tempDir)).resolve("out.dill");
     var outputFileName = output.toFilePath();
 
-    var compilerArguments = <String>['--verify'];
-    if (_isLegacy) {
-      compilerArguments.add("--legacy-mode");
-    }
-
-    compilerArguments.addAll(
-        ["-o", outputFileName, "--platform", _platformDill.toFilePath()]);
-    compilerArguments.addAll(arguments);
+    var compilerArguments = [
+      '--verify',
+      if (_isLegacy) "--legacy-mode",
+      "-o",
+      outputFileName,
+      "--platform",
+      _platformDill.toFilePath(),
+      ...arguments
+    ];
 
     return CommandArtifact([
       Command.fasta(
@@ -1259,9 +1180,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       List<String> dart2jsOptions,
       List<String> ddcOptions,
       List<String> args) {
-    List<String> arguments = List<String>.from(sharedOptions);
-    arguments.addAll(_configuration.sharedOptions);
-    for (String argument in args) {
+    var arguments = [...sharedOptions, ..._configuration.sharedOptions];
+    for (var argument in args) {
       if (argument == "--ignore-unrecognized-flags") continue;
       arguments.add(argument);
       if (!argument.startsWith("-")) {
@@ -1277,16 +1197,14 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   @override
   List<String> computeRuntimeArguments(
       RuntimeConfiguration runtimeConfiguration,
-      TestInformation info,
+      TestFile testFile,
       List<String> vmOptions,
-      List<String> sharedOptions,
-      List<String> dartOptions,
       List<String> originalArguments,
       CommandArtifact artifact) {
     if (runtimeConfiguration is! NoneRuntimeConfiguration) {
       throw "--compiler=fasta only supports --runtime=none";
     }
 
-    return <String>[];
+    return [];
   }
 }

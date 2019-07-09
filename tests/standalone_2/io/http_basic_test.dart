@@ -104,7 +104,7 @@ class TestServer {
     var response = request.response;
     Expect.equals("POST", request.method);
     response.contentLength = request.contentLength;
-    request.pipe(response);
+    request.cast<List<int>>().pipe(response);
   }
 
   // Echo the request content back to the response.

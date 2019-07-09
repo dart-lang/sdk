@@ -6,9 +6,9 @@ bool f<T>(T a) => a is T;
 
 typedef bool F<R>(R a);
 
-/*element: B.:hasThis*/
+/*member: B.:hasThis*/
 class B<S> {
-  /*element: B.method:hasThis*/
+  /*member: B.method:hasThis*/
   method() {
     return
         /*strong.fields=[this],free=[this],hasThis*/

@@ -8,8 +8,7 @@ import 'package:kernel/ast.dart';
 import 'bytecode_serialization.dart'
     show BufferedWriter, BufferedReader, BytecodeSizeStatistics, StringTable;
 import 'constant_pool.dart' show ConstantPool;
-import 'dbc.dart'
-    show currentBytecodeFormatVersion, futureBytecodeFormatVersion;
+import 'dbc.dart' show currentBytecodeFormatVersion;
 import 'disassembler.dart' show BytecodeDisassembler;
 import 'exceptions.dart' show ExceptionsTable;
 import 'local_variable_table.dart' show LocalVariableTable;
@@ -19,21 +18,26 @@ import 'source_positions.dart' show LineStarts, SourcePositions;
 class LibraryDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
+  static const hasExtensionsFlag = 1 << 2;
 
   ObjectHandle importUri;
   final int flags;
   final ObjectHandle name;
   final ObjectHandle script;
+  final List<ObjectHandle> extensionUris;
   final List<ClassDeclaration> classes;
 
-  LibraryDeclaration(
-      this.importUri, this.flags, this.name, this.script, this.classes);
+  LibraryDeclaration(this.importUri, this.flags, this.name, this.script,
+      this.extensionUris, this.classes);
 
   void write(BufferedWriter writer) {
     final start = writer.offset;
     writer.writePackedUInt30(flags);
     writer.writePackedObject(name);
     writer.writePackedObject(script);
+    if ((flags & hasExtensionsFlag) != 0) {
+      writer.writePackedList(extensionUris);
+    }
     writer.writePackedUInt30(classes.length);
     for (var cls in classes) {
       writer.writePackedObject(cls.name);
@@ -51,7 +55,11 @@ class LibraryDeclaration {
       final className = reader.readPackedObject();
       return reader.readLinkOffset<ClassDeclaration>()..name = className;
     });
-    return new LibraryDeclaration(null, flags, name, script, classes);
+    final extensionUris = ((flags & hasExtensionsFlag) != 0)
+        ? reader.readPackedList<ObjectHandle>()
+        : const <ObjectHandle>[];
+    return new LibraryDeclaration(
+        null, flags, name, script, extensionUris, classes);
   }
 
   @override
@@ -65,6 +73,9 @@ class LibraryDeclaration {
     }
     if ((flags & usesDartFfiFlag) != 0) {
       sb.writeln('    uses dart:ffi');
+    }
+    if ((flags & hasExtensionsFlag) != 0) {
+      sb.writeln('    extensions: $extensionUris');
     }
     sb.writeln();
     for (var cls in classes) {
@@ -749,7 +760,7 @@ class Code {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
   bool get hasNullableFields => nullableFields.isNotEmpty;
@@ -890,7 +901,11 @@ class ClosureDeclaration {
   static const int hasOptionalNamedParamsFlag = 1 << 1;
   static const int hasTypeParamsFlag = 1 << 2;
   static const int hasSourcePositionsFlag = 1 << 3;
+  static const int isAsyncFlag = 1 << 4;
+  static const int isAsyncStarFlag = 1 << 5;
+  static const int isSyncStarFlag = 1 << 6;
 
+  final int flags;
   final ObjectHandle parent;
   final ObjectHandle name;
   final int position;
@@ -903,6 +918,7 @@ class ClosureDeclaration {
   ClosureCode code;
 
   ClosureDeclaration(
+      this.flags,
       this.parent,
       this.name,
       this.position,
@@ -914,20 +930,6 @@ class ClosureDeclaration {
       this.returnType);
 
   void write(BufferedWriter writer) {
-    int flags = 0;
-    if (numRequiredParams != parameters.length) {
-      if (numNamedParams > 0) {
-        flags |= hasOptionalNamedParamsFlag;
-      } else {
-        flags |= hasOptionalPositionalParamsFlag;
-      }
-    }
-    if (typeParams.isNotEmpty) {
-      flags |= hasTypeParamsFlag;
-    }
-    if (position != TreeNode.noOffset) {
-      flags |= hasSourcePositionsFlag;
-    }
     writer.writePackedUInt30(flags);
     writer.writePackedObject(parent);
     writer.writePackedObject(name);
@@ -996,7 +998,7 @@ class ClosureDeclaration {
         (_) => new NameAndType(
             reader.readPackedObject(), reader.readPackedObject()));
     final returnType = reader.readPackedObject();
-    return new ClosureDeclaration(parent, name, position, endPosition,
+    return new ClosureDeclaration(flags, parent, name, position, endPosition,
         typeParams, numRequiredParams, numNamedParams, parameters, returnType);
   }
 
@@ -1004,6 +1006,15 @@ class ClosureDeclaration {
   String toString() {
     final StringBuffer sb = new StringBuffer();
     sb.write('Closure $parent::$name');
+    if ((flags & isAsyncFlag) != 0) {
+      sb.write(' async');
+    }
+    if ((flags & isAsyncStarFlag) != 0) {
+      sb.write(' async*');
+    }
+    if ((flags & isSyncStarFlag) != 0) {
+      sb.write(' sync*');
+    }
     if (position != TreeNode.noOffset) {
       sb.write(' pos = $position, end-pos = $endPosition');
     }
@@ -1045,7 +1056,7 @@ class ClosureCode {
 
   bool get hasExceptionsTable => exceptionsTable.blocks.isNotEmpty;
   bool get hasSourcePositions =>
-      sourcePositions != null && sourcePositions.mapping.isNotEmpty;
+      sourcePositions != null && sourcePositions.isNotEmpty;
   bool get hasLocalVariables =>
       localVariables != null && localVariables.isNotEmpty;
 
@@ -1440,8 +1451,6 @@ class Component {
     sb.write("Bytecode (version: ");
     if (version == currentBytecodeFormatVersion) {
       sb.write("stable");
-    } else if (version == futureBytecodeFormatVersion) {
-      sb.write("future");
     } else {
       sb.write("v$version");
     }

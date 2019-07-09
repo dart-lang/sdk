@@ -2,98 +2,98 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: Class.:invoke*/
+/*member: Class.:invoke*/
 class Class {
-  /*element: Class.method1:invoke*/
+  /*member: Class.method1:invoke*/
   method1() {}
 
-  /*element: Class.method2a:invoke=(0)*/
+  /*member: Class.method2a:invoke=(0)*/
   method2a([a]) {}
 
-  /*element: Class.method2b:invoke*/
+  /*member: Class.method2b:invoke*/
   method2b([a]) {}
 
-  /*element: Class.method2c:invoke*/
+  /*member: Class.method2c:invoke*/
   method2c([a]) {}
 
-  /*element: Class.method2d:invoke,read*/
+  /*member: Class.method2d:invoke,read*/
   method2d([a]) {}
 
-  /*element: Class.method3a:invoke=(0)*/
+  /*member: Class.method3a:invoke=(0)*/
   method3a([a, b]) {}
 
-  /*element: Class.method3b:invoke=(1)*/
+  /*member: Class.method3b:invoke=(1)*/
   method3b([a, b]) {}
 
-  /*element: Class.method3c:invoke*/
+  /*member: Class.method3c:invoke*/
   method3c([a, b]) {}
 
-  /*element: Class.method3d:invoke,read*/
+  /*member: Class.method3d:invoke,read*/
   method3d([a, b]) {}
 
-  /*element: Class.method4a:invoke=(0)*/
+  /*member: Class.method4a:invoke=(0)*/
   method4a({a}) {}
 
-  /*element: Class.method4b:invoke*/
+  /*member: Class.method4b:invoke*/
   method4b({a}) {}
 
-  /*element: Class.method4c:invoke*/
+  /*member: Class.method4c:invoke*/
   method4c({a}) {}
 
-  /*element: Class.method4d:invoke,read*/
+  /*member: Class.method4d:invoke,read*/
   method4d({a}) {}
 
-  /*element: Class.method5a:invoke=(0)*/
+  /*member: Class.method5a:invoke=(0)*/
   method5a({a, b}) {}
 
-  /*element: Class.method5b:invoke=(0,a)*/
+  /*member: Class.method5b:invoke=(0,a)*/
   method5b({a, b}) {}
 
-  /*element: Class.method5c:invoke=(0,b)*/
+  /*member: Class.method5c:invoke=(0,b)*/
   method5c({a, b}) {}
 
-  /*element: Class.method5d:invoke,read*/
+  /*member: Class.method5d:invoke,read*/
   method5d({a, b}) {}
 
-  /*element: Class.method6a:invoke*/
+  /*member: Class.method6a:invoke*/
   method6a<T>() {}
 
-  /*element: Class.method6b:invoke,read*/
+  /*member: Class.method6b:invoke,read*/
   method6b<T>() {}
 
-  /*element: Class.method7a:invoke=(1)*/
+  /*member: Class.method7a:invoke=(1)*/
   method7a(a, [b, c]) {}
 
-  /*element: Class.method7b:invoke=(2)*/
+  /*member: Class.method7b:invoke=(2)*/
   method7b(a, [b, c]) {}
 
-  /*element: Class.method7c:invoke*/
+  /*member: Class.method7c:invoke*/
   method7c(a, [b, c]) {}
 
-  /*element: Class.method7d:invoke,read*/
+  /*member: Class.method7d:invoke,read*/
   method7d(a, [b, c]) {}
 
-  /*element: Class.method8a:invoke=(1)*/
+  /*member: Class.method8a:invoke=(1)*/
   method8a(a, {b, c}) {}
 
-  /*element: Class.method8b:invoke=(1,b)*/
+  /*member: Class.method8b:invoke=(1,b)*/
   method8b(a, {b, c}) {}
 
-  /*element: Class.method8c:invoke=(1,c)*/
+  /*member: Class.method8c:invoke=(1,c)*/
   method8c(a, {b, c}) {}
 
-  /*element: Class.method8d:invoke,read*/
+  /*member: Class.method8d:invoke,read*/
   method8d(a, {b, c}) {}
 
-  /*element: Class.method9a:invoke=(0)*/
+  /*member: Class.method9a:invoke=(0)*/
   @pragma('dart2js:noElision')
   method9a([a, b]) {}
 
-  /*element: Class.method9b:invoke=(0)*/
+  /*member: Class.method9b:invoke=(0)*/
   @pragma('dart2js:noElision')
   method9b({a, b}) {}
 
-  /*element: Class.test:invoke*/
+  /*member: Class.test:invoke*/
   test() {
     method1();
 
@@ -139,7 +139,7 @@ class Class {
   }
 }
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   new Class().test();
 }

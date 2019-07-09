@@ -804,9 +804,6 @@ class LinkedUnitContext {
     if (node is VariableDeclaration) {
       return node.isLate;
     }
-    if (node is VariableDeclarationList) {
-      return node.isLate;
-    }
     if (node is EnumConstantDeclaration) {
       return false;
     }

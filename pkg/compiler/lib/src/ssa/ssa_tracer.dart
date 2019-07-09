@@ -675,38 +675,44 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
-  visitIsTest(HIsTest node) {
+  String visitIsTest(HIsTest node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "IsTest: $inputs";
   }
 
   @override
-  visitAsCheck(HAsCheck node) {
+  String visitAsCheck(HAsCheck node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     String error = node.isTypeError ? 'TypeError' : 'CastError';
     return "AsCheck: $error $inputs";
   }
 
   @override
-  visitSubtypeCheck(HSubtypeCheck node) {
+  String visitSubtypeCheck(HSubtypeCheck node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "SubtypeCheck: $inputs";
   }
 
   @override
-  visitLoadType(HLoadType node) {
+  String visitLoadType(HLoadType node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "LoadType: ${node.typeExpression}  $inputs";
   }
 
   @override
-  visitTypeEval(HTypeEval node) {
+  String visitInstanceEnvironment(HInstanceEnvironment node) {
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "InstanceEnvironment: $inputs";
+  }
+
+  @override
+  String visitTypeEval(HTypeEval node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "TypeEval: ${node.typeExpression}  $inputs";
   }
 
   @override
-  visitTypeBind(HTypeBind node) {
+  String visitTypeBind(HTypeBind node) {
     var inputs = node.inputs.map(temporaryId).join(', ');
     return "TypeBind: $inputs";
   }

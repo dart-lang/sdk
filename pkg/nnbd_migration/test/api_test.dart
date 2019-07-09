@@ -76,6 +76,44 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  test_class_alias_synthetic_constructor_with_parameters() async {
+    var content = '''
+void main() {
+  D d = D(null);
+}
+class C {
+  C(int i);
+}
+mixin M {}
+class D = C with M;
+''';
+    var expected = '''
+void main() {
+  D d = D(null);
+}
+class C {
+  C(int? i);
+}
+mixin M {}
+class D = C with M;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_class_with_default_constructor() async {
+    var content = '''
+void main() => f(Foo());
+f(Foo f) {}
+class Foo {}
+''';
+    var expected = '''
+void main() => f(Foo());
+f(Foo f) {}
+class Foo {}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_comment_bang_implies_non_null_intent() async {
     var content = '''
 void f(int/*!*/ i) {}
@@ -224,6 +262,72 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_constructorDeclaration_factory_non_null_return() async {
+    var content = '''
+class C {
+  C._();
+  factory C() {
+    C c = f();
+    return c;
+  }
+}
+C f() => null;
+''';
+    var expected = '''
+class C {
+  C._();
+  factory C() {
+    C c = f()!;
+    return c;
+  }
+}
+C? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_constructorDeclaration_factory_simple() async {
+    var content = '''
+class C {
+  C._();
+  factory C(int i) => C._();
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  C._();
+  factory C(int? i) => C._();
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_constructorDeclaration_named() async {
+    var content = '''
+class C {
+  C.named(int i);
+}
+main() {
+  C.named(null);
+}
+''';
+    var expected = '''
+class C {
+  C.named(int? i);
+}
+main() {
+  C.named(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_constructorDeclaration_namedParameter() async {
     var content = '''
 class C {
@@ -332,6 +436,24 @@ int? f(C c) => c.f;
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_data_flow_function_return_type() async {
+    var content = '''
+int Function() f(int Function() x) => x;
+int g() => null;
+main() {
+  f(g);
+}
+''';
+    var expected = '''
+int? Function() f(int? Function() x) => x;
+int? g() => null;
+main() {
+  f(g);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_data_flow_generic_contravariant_inward() async {
     var content = '''
 class C<T> {
@@ -365,6 +487,52 @@ void g(C<int?> c, int? i) {
 }
 void test(C<int> c) {
   g(c, null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_generic_contravariant_inward_function() async {
+    var content = '''
+T f<T>(T t) => t;
+int g(int x) => f<int>(x);
+void h() {
+  g(null);
+}
+''';
+
+    // As with the generic class case (see
+    // [test_data_flow_generic_contravariant_inward_function]), we favor adding
+    // nullability at the call site, so that other uses of `f` don't necessarily
+    // see a nullable return value.
+    var expected = '''
+T f<T>(T t) => t;
+int? g(int? x) => f<int?>(x);
+void h() {
+  g(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_data_flow_generic_contravariant_inward_using_core_class() async {
+    var content = '''
+void f(List<int> x, int i) {
+  x.add(i);
+}
+void test(List<int> x) {
+  f(x, null);
+}
+''';
+    // TODO(paulberry): possible improvement: detect that since add uses T in
+    // a contravariant way, and deduce that test should change to
+    // `void test(List<int?> x)`
+    var expected = '''
+void f(List<int?> x, int? i) {
+  x.add(i);
+}
+void test(List<int> x) {
+  f(x, null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -645,6 +813,217 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_formal_param_typed() async {
+    var content = '''
+class C {
+  int i;
+  C(int this.i);
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  C(int? this.i);
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_formal_param_typed_non_nullable() async {
+    var content = '''
+class C {
+  int/*!*/ i;
+  C(int this.i);
+}
+void f(int i, bool b) {
+  if (b) {
+    C(i);
+  }
+}
+main() {
+  f(null, false);
+}
+''';
+    var expected = '''
+class C {
+  int/*!*/ i;
+  C(int this.i);
+}
+void f(int? i, bool b) {
+  if (b) {
+    C(i!);
+  }
+}
+main() {
+  f(null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_formal_param_untyped() async {
+    var content = '''
+class C {
+  int i;
+  C(this.i);
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? i;
+  C(this.i);
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_field_type_inferred() async {
+    var content = '''
+int f() => null;
+class C {
+  var x = 1;
+  void g() {
+    x = f();
+  }
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+class C {
+  var x = 1;
+  void g() {
+    x = f()!;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_function_expression_invocation() async {
+    var content = '''
+abstract class C {
+  void Function(int) f();
+  int/*?*/ Function() g();
+}
+int test(C c) {
+  c.f()(null);
+  return c.g()();
+}
+''';
+    var expected = '''
+abstract class C {
+  void Function(int?) f();
+  int?/*?*/ Function() g();
+}
+int? test(C c) {
+  c.f()(null);
+  return c.g()();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_function_expression_invocation_via_getter() async {
+    var content = '''
+abstract class C {
+  void Function(int) get f;
+  int/*?*/ Function() get g;
+}
+int test(C c) {
+  c.f(null);
+  return c.g();
+}
+''';
+    var expected = '''
+abstract class C {
+  void Function(int?) get f;
+  int?/*?*/ Function() get g;
+}
+int? test(C c) {
+  c.f(null);
+  return c.g();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_function_typed_field_formal_param() async {
+    var content = '''
+class C {
+  int Function(int) f;
+  C(int this.f(int i));
+}
+int g(int i) => i;
+int test(int i) => C(g).f(i);
+main() {
+  test(null);
+}
+''';
+    var expected = '''
+class C {
+  int? Function(int?) f;
+  C(int? this.f(int? i));
+}
+int? g(int? i) => i;
+int? test(int? i) => C(g).f(i);
+main() {
+  test(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_function_typed_formal_param() async {
+    var content = '''
+int f(int callback(int i), int j) => callback(j);
+int g(int i) => i;
+int test(int i) => f(g, i);
+main() {
+  test(null);
+}
+''';
+    var expected = '''
+int? f(int? callback(int? i), int? j) => callback(j);
+int? g(int? i) => i;
+int? test(int? i) => f(g, i);
+main() {
+  test(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_generic_function_type_syntax_inferred_dynamic_return() async {
+    var content = '''
+abstract class C {
+  Function() f();
+}
+Object g(C c) => c.f()();
+''';
+    var expected = '''
+abstract class C {
+  Function() f();
+}
+Object? g(C c) => c.f()();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_genericType_noTypeArguments() async {
     var content = '''
 void f(C c) {}
@@ -710,6 +1089,148 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_inferred_method_parameter_type_non_nullable() async {
+    var content = '''
+class B {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+class C extends B {
+  void f(i) {}
+}
+void g(C c, int i, bool b) {
+  if (b) {
+    c.f(i);
+  }
+}
+void h(C c) {
+  g(c, null, false);
+}
+''';
+    // B.f's parameter type is `int`.  Since C.f's parameter type is inferred
+    // from B.f's, it has a parameter type of `int` too.  Therefore there must
+    // be a null check in g().
+    var expected = '''
+class B {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+class C extends B {
+  void f(i) {}
+}
+void g(C c, int? i, bool b) {
+  if (b) {
+    c.f(i!);
+  }
+}
+void h(C c) {
+  g(c, null, false);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_inferred_method_parameter_type_nullable() async {
+    var content = '''
+class B {
+  void f(int i) {}
+}
+class C extends B {
+  void f(i) {}
+}
+void g(C c) {
+  c.f(null);
+}
+''';
+    // The call to C.f from g forces C.f's parameter to be nullable.  Since
+    // C.f's parameter type is inferred from B.f's parameter type, B.f's
+    // parameter must be nullable too.
+    var expected = '''
+class B {
+  void f(int? i) {}
+}
+class C extends B {
+  void f(i) {}
+}
+void g(C c) {
+  c.f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_inferred_method_return_type_non_nullable() async {
+    var content = '''
+class B {
+  int f() => 1;
+}
+class C extends B {
+  f() => 1;
+}
+int g(C c) => c.f();
+''';
+    // B.f's return type is `int`.  Since C.f's return type is inferred from
+    // B.f's, it has a return type of `int` too.  Therefore g's return type
+    // must be `int`.
+    var expected = '''
+class B {
+  int f() => 1;
+}
+class C extends B {
+  f() => 1;
+}
+int g(C c) => c.f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_inferred_method_return_type_nullable() async {
+    var content = '''
+class B {
+  int f() => null;
+}
+class C extends B {
+  f() => 1;
+}
+int g(C c) => c.f();
+''';
+    // B.f's return type is `int?`.  Since C.f's return type is inferred from
+    // B.f's, it has a return type of `int?` too.  Therefore g's return type
+    // must be `int?`.
+    var expected = '''
+class B {
+  int? f() => null;
+}
+class C extends B {
+  f() => 1;
+}
+int? g(C c) => c.f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_instance_creation_generic() async {
+    var content = '''
+class C<T> {
+  C(T t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T t);
+}
+main() {
+  C<int?> c = C<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {
@@ -727,6 +1248,27 @@ void main() {
 }
 class C {
   int get length => 0;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_localVariable_type_inferred() async {
+    var content = '''
+int f() => null;
+void main() {
+  var x = 1;
+  x = f();
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+void main() {
+  var x = 1;
+  x = f()!;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1023,6 +1565,154 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_override_parameter_type_non_nullable() async {
+    var content = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+void g(int i, bool b, Base base) {
+  if (b) {
+    base.f(i);
+  }
+}
+void h(Base base) {
+  g(null, false, base);
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {
+    assert(i != null);
+  }
+}
+void g(int? i, bool b, Base base) {
+  if (b) {
+    base.f(i!);
+  }
+}
+void h(Base base) {
+  g(null, false, base);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_parameter_type_nullable() async {
+    var content = '''
+abstract class Base {
+  void f(int i);
+}
+class Derived extends Base {
+  void f(int i) {}
+}
+void g(int i, Base base) {
+  base.f(null);
+}
+''';
+    var expected = '''
+abstract class Base {
+  void f(int? i);
+}
+class Derived extends Base {
+  void f(int? i) {}
+}
+void g(int i, Base base) {
+  base.f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_non_nullable() async {
+    var content = '''
+abstract class Base {
+  int/*!*/ f();
+}
+class Derived extends Base {
+  int f() => g();
+}
+int g() => null;
+''';
+    var expected = '''
+abstract class Base {
+  int/*!*/ f();
+}
+class Derived extends Base {
+  int f() => g()!;
+}
+int? g() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable() async {
+    var content = '''
+abstract class Base {
+  int f();
+}
+class Derived extends Base {
+  int f() => null;
+}
+''';
+    var expected = '''
+abstract class Base {
+  int? f();
+}
+class Derived extends Base {
+  int? f() => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable_substitution_complex() async {
+    var content = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<List<int>> {
+  List<int> f() => <int>[null];
+}
+''';
+    var expected = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<List<int?>> {
+  List<int?> f() => <int?>[null];
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_override_return_type_nullable_substitution_simple() async {
+    var content = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<int> {
+  int f() => null;
+}
+''';
+    var expected = '''
+abstract class Base<T> {
+  T f();
+}
+class Derived extends Base<int?> {
+  int? f() => null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_parameter_genericFunctionType() async {
     var content = '''
 int f(int x, int Function(int i) g) {
@@ -1033,6 +1723,42 @@ int f(int x, int Function(int i) g) {
 int f(int x, int Function(int i) g) {
   return g(x);
 }
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefix_minus() async {
+    var content = '''
+class C {
+  D operator-() => null;
+}
+class D {}
+D test(C c) => -c;
+''';
+    var expected = '''
+class C {
+  D? operator-() => null;
+}
+class D {}
+D? test(C c) => -c;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_prefix_minus_substitute() async {
+    var content = '''
+abstract class C<T> {
+  D<T> operator-();
+}
+class D<U> {}
+D<int> test(C<int/*?*/> c) => -c;
+''';
+    var expected = '''
+abstract class C<T> {
+  D<T> operator-();
+}
+class D<U> {}
+D<int?> test(C<int?/*?*/> c) => -c;
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1063,6 +1789,54 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_redirecting_constructor_factory() async {
+    var content = '''
+class C {
+  factory C(int i, int j) = D;
+}
+class D implements C {
+  D(int i, int j);
+}
+main() {
+  C(null, 1);
+}
+''';
+    var expected = '''
+class C {
+  factory C(int? i, int j) = D;
+}
+class D implements C {
+  D(int? i, int j);
+}
+main() {
+  C(null, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_redirecting_constructor_ordinary() async {
+    var content = '''
+class C {
+  C(int i, int j) : this.named(j, i);
+  C.named(int j, int i);
+}
+main() {
+  C(null, 1);
+}
+''';
+    var expected = '''
+class C {
+  C(int? i, int j) : this.named(j, i);
+  C.named(int j, int? i);
+}
+main() {
+  C(null, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;
@@ -1081,6 +1855,49 @@ int f() => null;
 ''';
     var expected = '''
 int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_topLevelFunction_parameterType_implicit_dynamic() async {
+    var content = '''
+Object f(x) => x;
+''';
+    var expected = '''
+Object? f(x) => x;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_topLevelFunction_returnType_implicit_dynamic() async {
+    var content = '''
+f() {}
+Object g() => f();
+''';
+    var expected = '''
+f() {}
+Object? g() => f();
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_topLevelVariable_type_inferred() async {
+    var content = '''
+int f() => null;
+var x = 1;
+void main() {
+  x = f();
+}
+''';
+    // The type of x is inferred from its initializer, so it is non-nullable,
+    // even though we try to assign a nullable value to it.  So a null check
+    // must be added.
+    var expected = '''
+int? f() => null;
+var x = 1;
+void main() {
+  x = f()!;
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
@@ -1397,6 +2214,12 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
   bool get _usePermissiveMode => true;
+
+  // TODO(danrubel): Remove this once the superclass test has been fixed.
+  // This runs in permissive mode but not when permissive mode is disabled.
+  test_instanceCreation_noTypeArguments_noParameters() async {
+    super.test_instanceCreation_noTypeArguments_noParameters();
+  }
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

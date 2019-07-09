@@ -20,13 +20,15 @@ class DynamicLibrary {
   external Pointer<T> lookup<T extends NativeType>(String symbolName);
 
   /// Helper that combines lookup and cast to a Dart function.
-  F lookupFunction<T extends Function, F extends Function>(String symbolName) {
-    return lookup<NativeFunction<T>>(symbolName)?.asFunction<F>();
-  }
+  external F lookupFunction<T extends Function, F extends Function>(
+      String symbolName);
 
   /// Dynamic libraries are equal if they load the same library.
   external bool operator ==(other);
 
   /// The hash code for a DynamicLibrary only depends on the loaded library
   external int get hashCode;
+
+  /// The handle to the dynamic library.
+  external Pointer<Void> get handle;
 }

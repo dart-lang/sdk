@@ -4,9 +4,9 @@
 
 import 'package:expect/expect.dart';
 
-/*element: A.:hasThis*/
+/*member: A.:hasThis*/
 class A<T> {
-  /*element: A.method:hasThis*/
+  /*member: A.method:hasThis*/
   @pragma('dart2js:noInline')
   method() {
     /*fields=[this],free=[this],hasThis*/ dynamic local() => <T, int>{};

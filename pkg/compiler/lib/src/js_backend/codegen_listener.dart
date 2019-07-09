@@ -182,12 +182,10 @@ class CodegenEnqueuerListener extends EnqueuerListener {
             helper, helper.parameterStructure.callStructure));
       }
       if (type.element == _commonElements.typeLiteralClass) {
-        // If we use a type literal in a constant, the compile time
-        // constant emitter will generate a call to the createRuntimeType
-        // helper so we register a use of that.
-        FunctionEntity helper = _commonElements.createRuntimeType;
-        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
-            helper, helper.parameterStructure.callStructure));
+        // If we use a type literal in a constant, the compile time constant
+        // emitter will generate a call to a helper so we register the impact
+        // that contains that call.
+        _impacts.typeLiteral.registerImpact(impactBuilder, _elementEnvironment);
       }
     }
   }

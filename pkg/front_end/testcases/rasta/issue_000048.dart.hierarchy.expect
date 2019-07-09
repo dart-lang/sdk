@@ -67,7 +67,7 @@ C:
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
-    M1.v2
+    C.M1.v2%A.v2
     Object._instanceOf
     Object.noSuchMethod
     Object._identityHashCode
@@ -77,13 +77,13 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   classSetters:
-    M1.v2
+    C.M1.v2%A.v2
     A.v1
   interfaceMembers:
     Object.toString
     Object.runtimeType
     Object._simpleInstanceOf
-    M1.v2
+    C.M1.v2%A.v2
     Object._instanceOf
     Object.noSuchMethod
     Object._identityHashCode
@@ -93,5 +93,5 @@ C:
     Object._simpleInstanceOfTrue
     Object.==
   interfaceSetters:
-    M1.v2
+    C.M1.v2%A.v2
     A.v1

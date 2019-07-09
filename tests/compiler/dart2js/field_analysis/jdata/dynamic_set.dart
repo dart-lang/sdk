@@ -12,7 +12,7 @@ main() {
 }
 
 class Class1a {
-  /*element: Class1a.field1:elided*/
+  /*member: Class1a.field1:elided*/
   int field1;
 }
 
@@ -22,7 +22,7 @@ method1(dynamic c) {
 }
 
 class Class2a<T> {
-  /*element: Class2a.field2:elided*/
+  /*member: Class2a.field2:elided*/
   T field2;
 }
 
@@ -32,12 +32,12 @@ method2(dynamic c) {
 }
 
 class Class3a {
-  /*element: Class3a.field3:elided*/
+  /*member: Class3a.field3:elided*/
   int field3;
 }
 
 class Class3b {
-  /*element: Class3b.field3:elided*/
+  /*member: Class3b.field3:elided*/
   int field3;
 }
 
@@ -47,12 +47,12 @@ method3(dynamic c) {
 }
 
 class Class4a {
-  /*element: Class4a.field4:elided*/
+  /*member: Class4a.field4:elided*/
   int field4;
 }
 
 class Class4b implements Class4a {
-  /*element: Class4b.field4:elided*/
+  /*member: Class4b.field4:elided*/
   @override
   int field4;
 }

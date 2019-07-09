@@ -1,8 +1,8 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// The Great Computer Language Shootout
-// http://shootout.alioth.debian.org/
+// The Computer Language Benchmarks Game
+// https://benchmarksgame-team.pages.debian.net/benchmarksgame/
 // Ported from JavaScript contributed by Isaac Gouy.
 // Description: Repeatedly access a tiny integer-sequence.
 

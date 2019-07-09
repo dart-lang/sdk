@@ -5,7 +5,12 @@
 
 import "package:expect/expect.dart";
 
+noop() async => Future.value(null);
+
 baz() async {
+  // Throw exception after the first continuation, when there is no
+  // original stack trace.
+  await noop();
   throw "Bad!";
 }
 

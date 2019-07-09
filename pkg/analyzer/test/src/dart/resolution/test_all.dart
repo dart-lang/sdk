@@ -27,6 +27,7 @@ import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
+import 'local_variable_test.dart' as local_variable;
 import 'metadata_test.dart' as metadata;
 import 'method_invocation_test.dart' as method_invocation;
 import 'mixin_test.dart' as mixin_resolution;
@@ -36,6 +37,7 @@ import 'optional_const_test.dart' as optional_const;
 import 'property_access_test.dart' as property_access;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'type_inference/test_all.dart' as type_inference;
+import 'type_promotion_test.dart' as type_promotion;
 
 main() {
   defineReflectiveSuite(() {
@@ -59,6 +61,7 @@ main() {
     instance_creation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
+    local_variable.main();
     metadata.main();
     method_invocation.main();
     mixin_resolution.main();
@@ -67,6 +70,7 @@ main() {
     optional_const.main();
     property_access.main();
     top_type_inference.main();
+    type_promotion.main();
     type_inference.main();
   }, name: 'resolution');
 }

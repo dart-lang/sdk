@@ -2412,6 +2412,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
+  void endInvalidAwaitExpression(
+      Token keyword, Token endToken, fasta.MessageCode errorCode) {
+    debugEvent("AwaitExpression");
+    popForValue();
+    push(buildProblem(errorCode, keyword.offset, keyword.length));
+  }
+
+  @override
   void handleAsyncModifier(Token asyncToken, Token starToken) {
     debugEvent("AsyncModifier");
     push(asyncMarkerFromTokens(asyncToken, starToken));

@@ -23,7 +23,8 @@ void verify(String exePath, {String altPath}) {
     env['PATH'] = altPath;
   }
 
-  var processResult = Process.runSync(exePath, [scriptPath],
+  var processResult = Process.runSync(
+      exePath, [...Platform.executableArguments, scriptPath],
       includeParentEnvironment: false, runInShell: true, environment: env);
 
   if (processResult.exitCode != 0) {

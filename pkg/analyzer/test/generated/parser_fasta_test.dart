@@ -1845,8 +1845,8 @@ class FastaParserTestCase
     // Run parser
     ErrorReporter errorReporter = new ErrorReporter(listener, source);
     fasta.Parser parser = new fasta.Parser(null);
-    AstBuilder astBuilder = new AstBuilder(errorReporter, source.uri, true)
-      ..configureFeatures(featureSet);
+    AstBuilder astBuilder =
+        new AstBuilder(errorReporter, source.uri, true, featureSet);
     parser.listener = astBuilder;
     astBuilder.parser = parser;
     astBuilder.allowNativeClause = allowNativeClause;
@@ -2780,9 +2780,8 @@ class ParserProxy extends analyzer.ParserAdapter {
   ParserProxy._(analyzer.Token firstToken, ErrorReporter errorReporter,
       Uri fileUri, this._errorListener, FeatureSet featureSet,
       {bool allowNativeClause: false, this.expectedEndOffset})
-      : super(firstToken, errorReporter, fileUri,
+      : super(firstToken, errorReporter, fileUri, featureSet,
             allowNativeClause: allowNativeClause) {
-    configureFeatures(featureSet);
     _eventListener = new ForwardingTestListener(astBuilder);
     fastaParser.listener = _eventListener;
   }

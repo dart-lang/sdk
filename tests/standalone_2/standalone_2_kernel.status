@@ -26,15 +26,7 @@ io/zlib_test: RuntimeError
 
 [ $compiler == dartkb ]
 io/dart_std_io_pipe_test: Pass, Timeout # Please triage
-io/platform_resolved_executable_test/00: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/01: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/02: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
-io/platform_resolved_executable_test/03: RuntimeError
-io/platform_resolved_executable_test/04: RuntimeError
-io/platform_resolved_executable_test/05: RuntimeError # Reruns the same script (dill file without AST) without passing --enable-interpreter or --use-bytecode-compiler.
 io/platform_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_fail_test: RuntimeError # Platform.script points to dill file.
-io/test_extension_test: RuntimeError # Platform.script points to dill file.
 no_lazy_dispatchers_test: SkipByDesign # KBC interpreter doesn't support --no_lazy_dispatchers
 
 [ $compiler == dartkp ]

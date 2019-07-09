@@ -82,8 +82,11 @@ void ReadConfigurationInto(Path path, List<Section> sections, void onDone()) {
     throw new Exception('Cannot find test status file $path');
   }
   int lineNumber = 0;
-  Stream<String> lines =
-      file.openRead().transform(utf8.decoder).transform(new LineSplitter());
+  Stream<String> lines = file
+      .openRead()
+      .cast<List<int>>()
+      .transform(utf8.decoder)
+      .transform(new LineSplitter());
 
   Section currentSection = new Section.always(statusFile, -1);
   sections.add(currentSection);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:
+/*member: main:
  static=[
   effectivelyFinalList(0),
   effectivelyFinalPromoted(0),
@@ -16,7 +16,7 @@ main() {
   effectivelyFinalPromotedInvalid();
 }
 
-/*element: effectivelyFinalList:
+/*member: effectivelyFinalList:
  dynamic=[
   List.add(1),
   List.length,
@@ -39,7 +39,7 @@ effectivelyFinalList() {
   c.length = 1;
 }
 
-/*element: notEffectivelyFinalList:
+/*member: notEffectivelyFinalList:
  dynamic=[
   +,
   add(1),
@@ -64,10 +64,10 @@ notEffectivelyFinalList() {
   c = null;
 }
 
-/*element: _method1:type=[inst:JSNull]*/
+/*member: _method1:type=[inst:JSNull]*/
 num _method1() => null;
 
-/*element: effectivelyFinalPromoted:
+/*member: effectivelyFinalPromoted:
  dynamic=[int.+,num.+],
  static=[_method1(0)],
  type=[
@@ -88,10 +88,10 @@ effectivelyFinalPromoted() {
   }
 }
 
-/*element: _method2:type=[inst:JSNull]*/
+/*member: _method2:type=[inst:JSNull]*/
 String _method2() => null;
 
-/*element: effectivelyFinalPromotedInvalid:
+/*member: effectivelyFinalPromotedInvalid:
  dynamic=[String.+,int.+],
  static=[_method2(0)],
  type=[

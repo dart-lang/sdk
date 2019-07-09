@@ -140,6 +140,8 @@ class CompoundName extends _NamerName implements jsAst.AstContainer {
 
   CompoundName(this._parts);
 
+  CompoundName.from(List<jsAst.Name> parts) : this(<_NamerName>[...parts]);
+
   @override
   String get name {
     if (_cachedName == null) {

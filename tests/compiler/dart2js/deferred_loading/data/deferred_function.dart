@@ -7,8 +7,8 @@
 
 import '../libs/deferred_function_lib.dart' deferred as lib;
 
-/*strong.element: readFoo:OutputUnit(main, {})*/
-/*strongConst.element: readFoo:
+/*strong.member: readFoo:OutputUnit(main, {})*/
+/*strongConst.member: readFoo:
  OutputUnit(main, {}),
  constants=[FunctionConstant(foo)=OutputUnit(1, {lib})]
 */
@@ -16,7 +16,7 @@ readFoo() {
   return lib.foo;
 }
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() {
   lib.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     lib.foo('b');

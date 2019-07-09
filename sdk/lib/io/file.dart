@@ -483,7 +483,7 @@ abstract class File implements FileSystemEntity {
    * must be read to completion or the subscription on the stream must
    * be cancelled.
    */
-  Stream<List<int>> openRead([int start, int end]);
+  Stream<Uint8List> openRead([int start, int end]);
 
   /**
    * Creates a new independent [IOSink] for the file. The

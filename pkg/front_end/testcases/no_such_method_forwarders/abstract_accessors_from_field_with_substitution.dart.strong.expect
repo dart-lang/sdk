@@ -29,6 +29,6 @@ static method expectTypeError(() → dynamic callback) → void {
 }
 static method main() → dynamic {
   self::B b = new self::B::•();
-  self::expectTypeError(() → core::List<core::int> => b.{self::B::foo});
+  self::expectTypeError(() → core::List<core::int> => b.{self::A::foo});
   self::expectTypeError(() → core::List<dynamic> => (b as dynamic).foo = <dynamic>[]);
 }

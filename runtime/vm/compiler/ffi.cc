@@ -10,7 +10,9 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/growable_array.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -71,8 +73,10 @@ Representation TypeRepresentation(const AbstractType& result_type) {
       return kUnboxedInt64;
     case kFfiIntPtrCid:
     case kFfiPointerCid:
-    default:  // Subtypes of Pointer.
+    case kFfiVoidCid:
       return kUnboxedFfiIntPtr;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -96,24 +100,7 @@ bool NativeTypeIsVoid(const AbstractType& result_type) {
 }
 
 bool NativeTypeIsPointer(const AbstractType& result_type) {
-  switch (result_type.type_class_id()) {
-    case kFfiVoidCid:
-    case kFfiFloatCid:
-    case kFfiDoubleCid:
-    case kFfiInt8Cid:
-    case kFfiInt16Cid:
-    case kFfiInt32Cid:
-    case kFfiUint8Cid:
-    case kFfiUint16Cid:
-    case kFfiUint32Cid:
-    case kFfiInt64Cid:
-    case kFfiUint64Cid:
-    case kFfiIntPtrCid:
-      return false;
-    case kFfiPointerCid:
-    default:
-      return true;
-  }
+  return result_type.type_class_id() == kFfiPointerCid;
 }
 
 // Converts a Ffi [signature] to a list of Representations.
@@ -442,6 +429,45 @@ Location ResultLocation(Representation result_rep) {
 #endif
 }
 
+// TODO(36607): Cache the trampolines.
+RawFunction* TrampolineFunction(const Function& dart_signature,
+                                const Function& c_signature) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  String& name = String::Handle(zone, Symbols::New(thread, "FfiTrampoline"));
+  const Library& lib = Library::Handle(zone, Library::FfiLibrary());
+  const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
+  Function& function =
+      Function::Handle(zone, Function::New(name, RawFunction::kFfiTrampoline,
+                                           /*is_static=*/true,
+                                           /*is_const=*/false,
+                                           /*is_abstract=*/false,
+                                           /*is_external=*/false,
+                                           /*is_native=*/false, owner_class,
+                                           TokenPosition::kMinSource));
+  function.set_is_debuggable(false);
+  function.set_num_fixed_parameters(dart_signature.num_fixed_parameters());
+  function.set_result_type(AbstractType::Handle(dart_signature.result_type()));
+  function.set_parameter_types(Array::Handle(dart_signature.parameter_types()));
+
+  // The signature function won't have any names for the parameters. We need to
+  // assign unique names for scope building and error messages.
+  const intptr_t num_params = dart_signature.num_fixed_parameters();
+  const Array& parameter_names = Array::Handle(Array::New(num_params));
+  for (intptr_t i = 0; i < num_params; ++i) {
+    if (i == 0) {
+      name = Symbols::ClosureParameter().raw();
+    } else {
+      name = Symbols::NewFormatted(thread, ":ffi_param%" Pd, i);
+    }
+    parameter_names.SetAt(i, name);
+  }
+  function.set_parameter_names(parameter_names);
+  function.SetFfiCSignature(c_signature);
+
+  return function.raw();
+}
+
 // Accounts for alignment, where some stack slots are used as padding.
 template <class Location>
 intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
@@ -546,6 +572,27 @@ Representation FfiSignatureDescriptor::ResultRepresentation() const {
 }
 
 #endif  // defined(TARGET_ARCH_DBC)
+
+bool IsAsFunctionInternal(Zone* zone, Isolate* isolate, const Function& func) {
+  Object& asFunctionInternal =
+      Object::Handle(zone, isolate->object_store()->ffi_as_function_internal());
+  if (asFunctionInternal.raw() == Object::null()) {
+    // Cache the reference.
+    Library& ffi =
+        Library::Handle(zone, isolate->object_store()->ffi_library());
+    asFunctionInternal =
+        ffi.LookupFunctionAllowPrivate(Symbols::AsFunctionInternal());
+    // Cannot assert that 'asFunctionInternal' is found because it may have been
+    // tree-shaken.
+    if (asFunctionInternal.IsNull()) {
+      // Set the entry in the object store to a sentinel so we don't try to look
+      // it up again.
+      asFunctionInternal = Object::sentinel().raw();
+    }
+    isolate->object_store()->set_ffi_as_function_internal(asFunctionInternal);
+  }
+  return func.raw() == asFunctionInternal.raw();
+}
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 

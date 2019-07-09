@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: X.:[exact=X]*/
+/*member: X.:[exact=X]*/
 class X {}
 
-/*element: returnDyn1:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn1:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn1() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) ||
@@ -13,7 +13,7 @@ returnDyn1() {
   return a;
 }
 
-/*element: returnDyn2:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn2:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn2() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) &&
@@ -21,14 +21,14 @@ returnDyn2() {
   return a;
 }
 
-/*element: returnDyn3:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn3:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn3() {
   var a;
   a = a == 54 ? 'foo' : 31;
   return a;
 }
 
-/*element: returnDyn4:Union([exact=JSUInt31], [exact=X])*/
+/*member: returnDyn4:Union([exact=JSUInt31], [exact=X])*/
 returnDyn4() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) ||
@@ -36,7 +36,7 @@ returnDyn4() {
   return a;
 }
 
-/*element: returnDyn5:Union([exact=JSUInt31], [exact=X])*/
+/*member: returnDyn5:Union([exact=JSUInt31], [exact=X])*/
 returnDyn5() {
   var a;
   ((a = 52) /*invoke: [exact=JSUInt31]*/ == true) &&
@@ -44,20 +44,20 @@ returnDyn5() {
   return a;
 }
 
-/*element: returnDyn6:Union([exact=JSString], [exact=X])*/
+/*member: returnDyn6:Union([exact=JSString], [exact=X])*/
 returnDyn6() {
   var a;
   a = a == 54 ? 'foo' : new X();
   return a;
 }
 
-/*element: returnDyn7b:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn7b:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn7b(
     /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
-/*element: returnDyn7:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn7:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn7() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
@@ -69,13 +69,13 @@ returnDyn7() {
   return a;
 }
 
-/*element: returnDyn8:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn8:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn8(
     /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
-/*element: test8:Union([exact=JSUInt31], [null|exact=JSString])*/ test8() {
+/*member: test8:Union([exact=JSUInt31], [null|exact=JSString])*/ test8() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
       /*invoke: [subclass=JSInt]*/ ==
@@ -86,13 +86,13 @@ returnDyn8(
   if ((false && a is! String) || returnDyn8(a)) return a;
 }
 
-/*element: returnDyn9:Union([exact=JSString], [exact=JSUInt31])*/
+/*member: returnDyn9:Union([exact=JSString], [exact=JSUInt31])*/
 returnDyn9(
     /*Union([exact=JSString], [exact=JSUInt31])*/ x) {
   return x;
 }
 
-/*element: test9:[null]*/
+/*member: test9:[null]*/
 test9() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
@@ -103,11 +103,11 @@ test9() {
   if (!(a is bool && a is bool)) returnDyn9(a);
 }
 
-/*element: returnString:[exact=JSString]*/ returnString(
+/*member: returnString:[exact=JSString]*/ returnString(
         /*[exact=JSString]*/ x) =>
     x;
 
-/*element: test10:[null]*/
+/*member: test10:[null]*/
 test10() {
   dynamic a = "foo";
   if (a. /*Value([exact=JSString], value: "foo")*/ length
@@ -118,7 +118,7 @@ test10() {
   if (!(a is num) && a is String) returnString(a);
 }
 
-/*element: main:[null]*/
+/*member: main:[null]*/
 main() {
   returnDyn1();
   returnDyn2();

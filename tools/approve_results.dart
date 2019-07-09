@@ -141,6 +141,7 @@ Future<String> loadLog(String id, String step) async {
       throw new Exception("Failed to download $logUrl: ${response.statusCode}");
     }
     final contents = (await response
+            .cast<List<int>>()
             .transform(new Utf8Decoder())
             .timeout(const Duration(seconds: 60))
             .toList())
@@ -186,7 +187,7 @@ Future<List<Test>> loadResultsFromBot(String bot, ArgResults options,
             ? await todoFallbackLoadLog(
                 changelistBuild["id"],
                 "download_previous_results/0/steps/gsutil_find_latest_build/0/logs/"
-                "raw_io.output_text_latest_/0",
+                    "raw_io.output_text_latest_/0",
                 "gsutil_find_latest_build/0/logs/raw_io.output_text_latest_/0")
             : await readFile(bot, "latest"))
         .trim();
@@ -278,6 +279,7 @@ Future<Map<String, dynamic>> loadJsonPrefixedAPI(String url) async {
       throw new Exception("Failed to request $url: ${response.statusCode}");
     }
     final text = await response
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .join()
         .timeout(const Duration(seconds: 30));
@@ -368,9 +370,11 @@ ${parser.usage}""");
   final testMatrixBots = <String>[];
   for (final builderConfiguration in builderConfigurations) {
     final steps = builderConfiguration["steps"];
-    // Only consider bots that use tools/test.py.
+    // Only consider bots that use tools/test.py or custom test runners.
     if (!steps.any((step) =>
-        step["script"] == null || step["script"] == "tools/test.py")) {
+        step["script"] == null ||
+        step["script"] == "tools/test.py" ||
+        step["testRunner"] == true)) {
       continue;
     }
     final builders = builderConfiguration["builders"].cast<String>();
@@ -460,6 +464,7 @@ ${parser.usage}""");
       throw new Exception("Failed to request try runs for $gerrit");
     }
     final Map<String, dynamic> object = await response
+        .cast<List<int>>()
         .transform(new Utf8Decoder())
         .transform(new JsonDecoder())
         .first

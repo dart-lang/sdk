@@ -85,13 +85,7 @@ def WriteCCFile(output_file,
 ''' % date.today().year)
     out.write('''
 
-#if defined(_WIN32)
-typedef unsigned __int8 uint8_t;
-#else
-#include <inttypes.h>
 #include <stdint.h>
-#endif
-#include <stddef.h>
 
 ''')
     out.write('namespace %s {\n' % outer_namespace)

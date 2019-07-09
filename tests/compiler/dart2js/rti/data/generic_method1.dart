@@ -15,7 +15,7 @@ class A<T> {
 /*class: BB:implicit=[BB]*/
 class BB {}
 
-/*element: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/
+/*member: method2:deps=[B],implicit=[method2.T],indirect,needsArgs*/
 @pragma('dart2js:noInline')
 method2<T>() => new A<T>();
 
@@ -27,7 +27,7 @@ class B<T> implements BB {
   }
 }
 
-/*element: method1:implicit=[method1.T],indirect,needsArgs*/
+/*member: method1:implicit=[method1.T],indirect,needsArgs*/
 @pragma('dart2js:noInline')
 method1<T>() {
   return new B<T>().foo();

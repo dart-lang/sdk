@@ -5,5 +5,5 @@
 import "deferred_overlapping_lib3.dart";
 
 /*class: C2:OutputUnit(3, {lib2})*/
-/*element: C2.:OutputUnit(3, {lib2})*/
+/*member: C2.:OutputUnit(3, {lib2})*/
 class C2 extends C3 {}

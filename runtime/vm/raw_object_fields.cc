@@ -93,6 +93,7 @@ namespace dart {
   F(KernelProgramInfo, bytecode_component_)                                    \
   F(KernelProgramInfo, potential_natives_)                                     \
   F(KernelProgramInfo, potential_pragma_functions_)                            \
+  F(KernelProgramInfo, evaluating_)                                            \
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
@@ -199,6 +200,7 @@ namespace dart {
   F(FfiTrampolineData, signature_type_)                                        \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
+  F(FfiTrampolineData, callback_exceptional_return_)                           \
   F(TypedDataBase, data_)                                                      \
   F(TypedDataBase, length_)                                                    \
   F(TypedDataView, typed_data_)                                                \

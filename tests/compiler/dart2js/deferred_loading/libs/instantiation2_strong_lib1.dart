@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: getFoo:OutputUnit(2, {b})*/
+/*member: getFoo:OutputUnit(2, {b})*/
 T getFoo<T>(T v) => v;
 
 typedef dynamic G<T>(T v);
 
-/*strong.element: m:OutputUnit(2, {b})*/
-/*strongConst.element: m:
+/*strong.member: m:OutputUnit(2, {b})*/
+/*strongConst.member: m:
  OutputUnit(2, {b}),
  constants=[
   InstantiationConstant([int],FunctionConstant(getFoo))=OutputUnit(2, {b})]

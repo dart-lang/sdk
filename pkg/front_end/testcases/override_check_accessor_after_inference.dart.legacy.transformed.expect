@@ -24,8 +24,8 @@ class D extends self::C {
   synthetic constructor •() → self::D
     : super self::C::•()
     ;
-  set x(dynamic value) → void {}
-  get y() → dynamic
+  set x(self::A value) → void {}
+  get y() → self::B
     return null;
 }
 class E extends self::D {

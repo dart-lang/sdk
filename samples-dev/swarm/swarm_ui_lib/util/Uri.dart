@@ -6,7 +6,7 @@ part of utilslib;
 
 /**
  * A parsed URI, inspired by:
- * http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
+ * https://github.com/google/closure-library/blob/master/closure/goog/uri/uri.js
  */
 class SwarmUri {
   /**

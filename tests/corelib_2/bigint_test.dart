@@ -771,11 +771,13 @@ testShiftAmount() {
   Expect.equals(BigInt.zero, BigInt.zero >> 1234567890);
   Expect.equals(BigInt.two.pow(999), BigInt.one << 999);
   Expect.equals(BigInt.one, BigInt.two.pow(999) >> 999);
-  Expect.equals(BigInt.zero, new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
-  Expect.equals(-BigInt.one, -new BigInt.from(12) >> 0x7FFFFFFFFFFFFFFF);
+  // 0x7FFFFFFFFFFFFFFF on VM, slightly rounded up on web platform.
+  const int maxInt64 = 0x7FFFFFFFFFFFF000 + 0xFFF;
+  Expect.equals(BigInt.zero, new BigInt.from(12) >> maxInt64);
+  Expect.equals(-BigInt.one, -new BigInt.from(12) >> maxInt64);
   bool exceptionCaught = false;
   try {
-    var a = BigInt.one << 0x7FFFFFFFFFFFFFFF;
+    var a = BigInt.one << maxInt64;
   } on OutOfMemoryError catch (e) {
     exceptionCaught = true;
   } catch (e) {

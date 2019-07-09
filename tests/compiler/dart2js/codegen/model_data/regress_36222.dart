@@ -7,21 +7,21 @@ typedef int BinaryFunc(int x, int y);
 class A {
   const A({this.foo = A.defaultFoo});
 
-  /*element: A.defaultFoo:params=2*/
+  /*member: A.defaultFoo:params=2*/
   static int defaultFoo(int x, int y) {
     return x + y;
   }
 
-  /*element: A.foo:elided,stubCalls=[foo$2:call$2(arg0,arg1),foo$2:main_A_defaultFoo$closure(0)]*/
+  /*member: A.foo:elided,stubCalls=[foo$2:call$2(arg0,arg1),foo$2:main_A_defaultFoo$closure(0)]*/
   final BinaryFunc foo;
 }
 
-/*element: test:calls=[foo$2(2)],params=1*/
+/*member: test:calls=[foo$2(2)],params=1*/
 @pragma('dart2js:assumeDynamic')
 @pragma('dart2js:noInline')
 test(dynamic a) => a.foo(1, 2);
 
-/*element: main:calls=[test(1)],params=0*/
+/*member: main:calls=[test(1)],params=0*/
 main() {
   test(new A());
 }

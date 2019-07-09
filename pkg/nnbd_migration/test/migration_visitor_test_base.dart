@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -96,6 +97,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
 
   TypeProvider get typeProvider => testAnalysisResult.typeProvider;
 
+  TypeSystem get typeSystem => testAnalysisResult.typeSystem;
+
   Future<CompilationUnit> analyze(String code) async {
     await resolveTestUnit(code);
     testUnit
@@ -137,12 +140,26 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest {
     fail('Expected union between $x and $y, not found');
   }
 
+  /// Gets the [DecoratedType] associated with the constructor declaration whose
+  /// name matches [search].
+  DecoratedType decoratedConstructorDeclaration(String search) => variables
+      .decoratedElementType(findNode.constructor(search).declaredElement);
+
+  Map<ClassElement, DecoratedType> decoratedDirectSupertypes(String name) {
+    return variables.decoratedDirectSupertypes(findElement.classOrMixin(name));
+  }
+
   /// Gets the [DecoratedType] associated with the generic function type
   /// annotation whose text is [text].
   DecoratedType decoratedGenericFunctionTypeAnnotation(String text) {
     return variables.decoratedTypeAnnotation(
         testSource, findNode.genericFunctionType(text));
   }
+
+  /// Gets the [DecoratedType] associated with the method declaration whose
+  /// name matches [search].
+  DecoratedType decoratedMethodType(String search) => variables
+      .decoratedElementType(findNode.methodDeclaration(search).declaredElement);
 
   /// Gets the [DecoratedType] associated with the type annotation whose text
   /// is [text].

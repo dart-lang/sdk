@@ -6,7 +6,7 @@ library fasta.type_promotion_look_ahead_listener;
 
 import '../builder/builder.dart' show Declaration;
 
-import '../messages.dart' show LocatedMessage, Message;
+import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
 import '../parser.dart'
     show Assert, IdentifierContext, FormalParameterKind, Listener, MemberKind;
@@ -206,6 +206,13 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void endAwaitExpression(Token beginToken, Token endToken) {
     debugEvent("AwaitExpression", beginToken);
+    state.popPushNull(beginToken.lexeme, beginToken); // Expression.
+  }
+
+  @override
+  void endInvalidAwaitExpression(
+      Token beginToken, Token endToken, MessageCode errorCode) {
+    debugEvent("InvalidAwaitExpression", beginToken);
     state.popPushNull(beginToken.lexeme, beginToken); // Expression.
   }
 
@@ -962,8 +969,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endMethod(
-      Token getOrSet, Token beginToken, Token beginParam, Token endToken) {
+  void endMethod(Token getOrSet, Token beginToken, Token beginParam,
+      Token beginInitializers, Token endToken) {
     debugEvent("endMethod", endToken);
     state.pop(); // Method name.
     state.checkEmpty(endToken);

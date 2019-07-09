@@ -132,7 +132,7 @@ class Tester {
     errorMessages = <DiagnosticMessage>[];
     warningMessages = <DiagnosticMessage>[];
     fs = new MemoryFileSystem(base);
-    options = getOptions(true);
+    options = getOptions();
 
     options.fileSystem = fs;
     options.sdkRoot = null;

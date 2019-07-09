@@ -36,6 +36,7 @@ mainEntryPoint(List<String> arguments) async {
       Uri uri = Uri.base.resolve(argument.substring(1));
       await for (String file in new File.fromUri(uri)
           .openRead()
+          .cast<List<int>>()
           .transform(utf8.decoder)
           .transform(const LineSplitter())) {
         outLine(uri.resolve(file));

@@ -81,7 +81,7 @@ const char* kKernelInvalidBinaryFormatVersion =
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 
-Program* Program::ReadFrom(Reader* reader, const char** error) {
+std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 60) {
     // A kernel file currently contains at least the following:
     //   * Magic number (32)
@@ -120,7 +120,7 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
     return nullptr;
   }
 
-  Program* program = new Program();
+  std::unique_ptr<Program> program(new Program());
   program->binary_version_ = formatVersion;
   program->kernel_data_ = reader->buffer();
   program->kernel_data_size_ = reader->size();
@@ -136,7 +136,6 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
       if (error != nullptr) {
         *error = kKernelInvalidSizeIndicated;
       }
-      delete program;
       return nullptr;
     }
     ++subprogram_count;
@@ -164,13 +163,13 @@ Program* Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-Program* Program::ReadFromFile(const char* script_uri,
-                               const char** error /* = nullptr */) {
+std::unique_ptr<Program> Program::ReadFromFile(
+    const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
   if (script_uri == NULL) {
-    return NULL;
+    return nullptr;
   }
-  kernel::Program* kernel_program = NULL;
+  std::unique_ptr<kernel::Program> kernel_program;
 
   const String& uri = String::Handle(String::New(script_uri));
   const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
@@ -204,15 +203,15 @@ Program* Program::ReadFromFile(const char* script_uri,
   return kernel_program;
 }
 
-Program* Program::ReadFromBuffer(const uint8_t* buffer,
-                                 intptr_t buffer_length,
-                                 const char** error) {
+std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,
+                                                 intptr_t buffer_length,
+                                                 const char** error) {
   kernel::Reader reader(buffer, buffer_length);
   return kernel::Program::ReadFrom(&reader, error);
 }
 
-Program* Program::ReadFromTypedData(const ExternalTypedData& typed_data,
-                                    const char** error) {
+std::unique_ptr<Program> Program::ReadFromTypedData(
+    const ExternalTypedData& typed_data, const char** error) {
   kernel::Reader reader(typed_data);
   return kernel::Program::ReadFrom(&reader, error);
 }

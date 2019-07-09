@@ -6,27 +6,31 @@ library FfiTest;
 
 import 'dart:convert';
 import 'dart:ffi' as ffi;
+import 'dart:ffi' show Pointer;
 
-/// Sample non-struct subtype of Pointer for dart:ffi library.
-class CString extends ffi.Pointer<ffi.Uint8> {
-  CString elementAt(int index) => super.elementAt(index).cast();
+/// Sample non-struct Pointer wrapper for dart:ffi library.
+class Utf8 extends ffi.Struct<Utf8> {
+  @ffi.Int8()
+  int char;
 
-  String fromUtf8() {
+  static String fromUtf8(Pointer<Utf8> str) {
     List<int> units = [];
     int len = 0;
     while (true) {
-      int char = elementAt(len++).load<int>();
+      int char = str.elementAt(len++).load<Utf8>().char;
       if (char == 0) break;
       units.add(char);
     }
     return Utf8Decoder().convert(units);
   }
 
-  factory CString.toUtf8(String s) {
-    CString result = ffi.allocate<ffi.Uint8>(count: s.length + 1).cast();
+  static Pointer<Utf8> toUtf8(String s) {
+    Pointer<Utf8> result = Pointer<Utf8>.allocate(count: s.length + 1).cast();
     List<int> units = Utf8Encoder().convert(s);
-    for (int i = 0; i < s.length; i++) result.elementAt(i).store(units[i]);
-    result.elementAt(s.length).store(0);
+    for (int i = 0; i < s.length; i++) {
+      result.elementAt(i).load<Utf8>().char = units[i];
+    }
+    result.elementAt(s.length).load<Utf8>().char = 0;
     return result;
   }
 }

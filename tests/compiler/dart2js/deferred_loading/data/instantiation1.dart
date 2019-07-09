@@ -12,7 +12,7 @@
 import '../libs/instantiation1_strong_lib1.dart' deferred as b;
 import '../libs/instantiation1_strong_lib2.dart' deferred as c;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await b.loadLibrary();
   await c.loadLibrary();

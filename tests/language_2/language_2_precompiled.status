@@ -18,15 +18,6 @@ async_star/async_star_await_for_test: RuntimeError
 async_star/async_star_cancel_test: RuntimeError
 async_star/async_star_test: RuntimeError
 
-[ $compiler == precompiler && $runtime == dart_precompiled ]
-async_star/async_star_await_for_test: RuntimeError
-async_star/async_star_cancel_test: RuntimeError
-async_star/async_star_invalid_test/01: MissingCompileTimeError
-async_star/async_star_invalid_test/02: MissingCompileTimeError
-async_star/async_star_invalid_test/04: MissingCompileTimeError
-async_star/async_star_invalid_test/none: RuntimeError
-async_star/async_star_test: RuntimeError
-
 [ $runtime == dart_precompiled && $minified ]
 cyclic_type_test/*: Skip
 enum_duplicate_test/*: Skip # Uses Enum.toString()

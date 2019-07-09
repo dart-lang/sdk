@@ -18,6 +18,6 @@ class E extends self::D {
   synthetic constructor •() → self::E
     : super self::D::•()
     ;
-  set x(core::int value) → void {}
+  set x(covariant core::int value) → void {}
 }
 static method main() → dynamic {}

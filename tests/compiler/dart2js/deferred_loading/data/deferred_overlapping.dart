@@ -6,7 +6,7 @@ import "../libs/deferred_overlapping_lib1.dart" deferred as lib1;
 import "../libs/deferred_overlapping_lib2.dart" deferred as lib2;
 
 // lib1.C1 and lib2.C2 has a shared base class. It will go in its own hunk.
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 void main() {
   lib1.loadLibrary().then(/*OutputUnit(main, {})*/ (_) {
     new lib1.C1();

@@ -7,11 +7,11 @@
 /*class: global#Instantiation:OutputUnit(1, {b})*/
 /*class: global#Instantiation1:OutputUnit(1, {b})*/
 
-/*element: global#instantiate1:OutputUnit(1, {b})*/
+/*member: global#instantiate1:OutputUnit(1, {b})*/
 
 import '../libs/instantiation3_strong_lib1.dart' deferred as b;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() async {
   await b.loadLibrary();
   print(b.m(3));

@@ -97,6 +97,9 @@ class NullabilityGraph {
   /// node.
   final NullabilityNode never = _NullabilityNodeImmutable('never', false);
 
+  /// Set containing all sources being migrated.
+  final _sourcesBeingMigrated = <Source>{};
+
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
   /// Returns the edge created by the connection.
@@ -106,6 +109,16 @@ class NullabilityGraph {
     var sources = [sourceNode]..addAll(guards);
     var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
     return _connect(sources, destinationNode, kind, origin);
+  }
+
+  /// Determine if [source] is in the code being migrated.
+  bool isBeingMigrated(Source source) {
+    return _sourcesBeingMigrated.contains(source);
+  }
+
+  /// Record source as code that is being migrated.
+  void migrating(Source source) {
+    _sourcesBeingMigrated.add(source);
   }
 
   /// Determines the nullability of each node in the graph by propagating
@@ -154,7 +167,9 @@ class NullabilityGraph {
       var destinations =
           edges.where((edge) => edge.primarySource == source).map((edge) {
         var suffixes = <Object>[];
-        if (edge.hard) {
+        if (edge.isUnion) {
+          suffixes.add('union');
+        } else if (edge.hard) {
           suffixes.add('hard');
         }
         suffixes.addAll(edge.guards);
@@ -257,6 +272,14 @@ class NullabilityGraph {
 /// testing.
 @visibleForTesting
 class NullabilityGraphForTesting extends NullabilityGraph {
+  /// Iterates through all edges that have this node as one of their sources.
+  ///
+  /// There is no guarantee of uniqueness of the iterated edges.
+  @visibleForTesting
+  Iterable<NullabilityEdge> getDownstreamEdges(NullabilityNode node) {
+    return node._downstreamEdges;
+  }
+
   /// Iterates through all edges that have this node as their destination.
   ///
   /// There is no guarantee of uniqueness of the iterated nodes.
@@ -288,17 +311,17 @@ abstract class NullabilityNode {
   /// List of edges that have this node as their destination.
   final _upstreamEdges = <NullabilityEdge>[];
 
-  /// Creates a [NullabilityNode] representing the nullability of a variable
-  /// whose type is `dynamic` due to type inference.
+  /// Creates a [NullabilityNode] representing the nullability of an expression
+  /// which is nullable iff two other nullability nodes are both nullable.
   ///
-  /// TODO(paulberry): this should go away; we should decorate the actual
-  /// inferred type rather than assuming `dynamic`.
-  factory NullabilityNode.forInferredDynamicType(
-      NullabilityGraph graph, Source source, int offset) {
-    var node = _NullabilityNodeSimple('inferredDynamic($offset)');
-    graph.union(node, graph.always, AlwaysNullableTypeOrigin(source, offset));
-    return node;
-  }
+  /// The caller is required to create the appropriate graph edges to ensure
+  /// that the appropriate relationship between the nodes' nullabilities holds.
+  factory NullabilityNode.forGLB() => _NullabilityNodeSimple('GLB');
+
+  /// Creates a [NullabilityNode] representing the nullability of a variable
+  /// whose type is determined by the `??` operator.
+  factory NullabilityNode.forIfNotNull() =>
+      _NullabilityNodeSimple('?? operator');
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by type inference.
@@ -306,12 +329,7 @@ abstract class NullabilityNode {
       _NullabilityNodeSimple('inferred');
 
   /// Creates a [NullabilityNode] representing the nullability of an
-  /// expression which is nullable iff both [a] and [b] are nullable.
-  ///
-  /// The constraint variable contained in the new node is created using the
-  /// [joinNullabilities] callback.  TODO(paulberry): this should become
-  /// unnecessary once constraint solving is performed directly using
-  /// [NullabilityNode] objects.
+  /// expression which is nullable iff either [a] or [b] is nullable.
   factory NullabilityNode.forLUB(NullabilityNode left, NullabilityNode right) =
       NullabilityNodeForLUB._;
 
@@ -386,6 +404,11 @@ abstract class NullabilityNode {
   /// required.
   void trackPossiblyOptional() {
     _isPossiblyOptional = true;
+  }
+
+  @visibleForTesting
+  static void clearDebugNames() {
+    _debugNamesInUse.clear();
   }
 }
 

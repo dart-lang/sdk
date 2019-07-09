@@ -234,7 +234,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       _addLocalSuggestion_includeTypeNameSuggestions(
           declaration.documentationComment,
           declaration.name,
-          declaration.functionType.returnType,
+          declaration.functionType?.returnType,
           protocol.ElementKind.FUNCTION_TYPE_ALIAS,
           isAbstract: true,
           isDeprecated: isDeprecated(declaration));

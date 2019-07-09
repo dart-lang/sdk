@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +21,109 @@ void main() {
 
 @reflectiveTest
 class UtilitiesTest with ResourceProviderMixin {
+  FeatureSet get defaultFeatureSet =>
+      FeatureSet.forTesting(sdkVersion: '2.2.2');
+
+  test_parseFile_default_resource_provider() {
+    String content = '''
+void main() => print('Hello, world!');
+    ''';
+    ParseStringResult result = _withTemporaryFile(content,
+        (path) => parseFile(path: path, featureSet: defaultFeatureSet));
+    expect(result.content, content);
+    expect(result.errors, isEmpty);
+    expect(result.lineInfo, isNotNull);
+    expect(result.unit.toString(),
+        equals("void main() => print('Hello, world!');"));
+  }
+
+  test_parseFile_errors_noThrow() {
+    String content = '''
+void main() => print('Hello, world!')
+''';
+    ParseStringResult result = _withMemoryFile(
+        content,
+        (resourceProvider, path) => parseFile(
+            path: path,
+            featureSet: defaultFeatureSet,
+            resourceProvider: resourceProvider,
+            throwIfDiagnostics: false));
+    expect(result.content, content);
+    expect(result.errors, hasLength(1));
+    expect(result.lineInfo, isNotNull);
+    expect(result.unit.toString(),
+        equals("void main() => print('Hello, world!');"));
+  }
+
+  test_parseFile_errors_throw() {
+    String content = '''
+void main() => print('Hello, world!')
+''';
+    expect(
+        () => _withMemoryFile(
+            content,
+            (resourceProvider, path) => parseFile(
+                path: path,
+                featureSet: defaultFeatureSet,
+                resourceProvider: resourceProvider)),
+        throwsA(const TypeMatcher<ArgumentError>()));
+  }
+
+  test_parseFile_featureSet_nnbd_off() {
+    String content = '''
+int? f() => 1;
+''';
+    var featureSet = FeatureSet.forTesting(sdkVersion: '2.3.0');
+    expect(featureSet.isEnabled(Feature.non_nullable), isFalse);
+    ParseStringResult result = _withMemoryFile(
+        content,
+        (resourceProvider, path) => parseFile(
+            path: path,
+            resourceProvider: resourceProvider,
+            throwIfDiagnostics: false,
+            featureSet: featureSet));
+    expect(result.content, content);
+    expect(result.errors, hasLength(1));
+    expect(result.lineInfo, isNotNull);
+    expect(result.unit.toString(), equals('int? f() => 1;'));
+  }
+
+  test_parseFile_featureSet_nnbd_on() {
+    String content = '''
+int? f() => 1;
+''';
+    var featureSet =
+        FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
+    ParseStringResult result = _withMemoryFile(
+        content,
+        (resourceProvider, path) => parseFile(
+            path: path,
+            resourceProvider: resourceProvider,
+            throwIfDiagnostics: false,
+            featureSet: featureSet));
+    expect(result.content, content);
+    expect(result.errors, isEmpty);
+    expect(result.lineInfo, isNotNull);
+    expect(result.unit.toString(), equals('int? f() => 1;'));
+  }
+
+  test_parseFile_noErrors() {
+    String content = '''
+void main() => print('Hello, world!');
+''';
+    ParseStringResult result = _withMemoryFile(
+        content,
+        (resourceProvider, path) => parseFile(
+            path: path,
+            featureSet: defaultFeatureSet,
+            resourceProvider: resourceProvider));
+    expect(result.content, content);
+    expect(result.errors, isEmpty);
+    expect(result.lineInfo, isNotNull);
+    expect(result.unit.toString(),
+        equals("void main() => print('Hello, world!');"));
+  }
+
   test_parseString_errors_noThrow() {
     String content = '''
 void main() => print('Hello, world!')
@@ -87,5 +194,25 @@ void main() => print('Hello, world!');
     expect(result.lineInfo, isNotNull);
     expect(result.unit.toString(),
         equals("void main() => print('Hello, world!');"));
+  }
+
+  T _withMemoryFile<T>(String content,
+      T callback(MemoryResourceProvider resourceProvider, String path)) {
+    var resourceProvider = MemoryResourceProvider();
+    var path =
+        resourceProvider.pathContext.fromUri(Uri.parse('file:///test.dart'));
+    resourceProvider.newFile(path, content);
+    return callback(resourceProvider, path);
+  }
+
+  T _withTemporaryFile<T>(String content, T callback(String path)) {
+    var tempDir = Directory.systemTemp.createTempSync();
+    try {
+      var file = File(p.join(tempDir.path, 'test.dart'));
+      file.writeAsStringSync(content);
+      return callback(file.path);
+    } finally {
+      tempDir.deleteSync(recursive: true);
+    }
   }
 }

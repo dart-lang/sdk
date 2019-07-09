@@ -54,6 +54,7 @@ abstract class AbstractTypeSystemTest {
   InterfaceType get intType => typeProvider.intType;
   InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
+  DartType get neverType => typeProvider.neverType;
   DartType get nullType => typeProvider.nullType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
@@ -414,17 +415,66 @@ abstract class BoundTestBase {
    *
    * The return type defaults to `void` if omitted.
    */
-  FunctionType _functionType(List<DartType> required,
-      {List<DartType> optional,
-      Map<String, DartType> named,
-      DartType returns}) {
-    if (returns == null) {
-      returns = voidType;
+  FunctionType _functionType({
+    List<TypeParameterElement> typeFormals,
+    List<DartType> required,
+    List<DartType> optional,
+    Map<String, DartType> named,
+    DartType returns,
+  }) {
+    if (optional != null && named != null) {
+      throw ArgumentError(
+        'Cannot have both optional positional and named parameters.',
+      );
     }
 
-    return ElementFactory.functionElement8(required, returns,
-            optional: optional, named: named)
-        .type;
+    var parameters = <ParameterElement>[];
+    if (required != null) {
+      for (var i = 0; i < required.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'r$i',
+            required[i],
+            ParameterKind.REQUIRED,
+          ),
+        );
+      }
+    }
+    if (optional != null) {
+      for (var i = 0; i < optional.length; ++i) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            'p$i',
+            optional[i],
+            ParameterKind.POSITIONAL,
+          ),
+        );
+      }
+    }
+    if (named != null) {
+      for (var namedEntry in named.entries) {
+        parameters.add(
+          ParameterElementImpl.synthetic(
+            namedEntry.key,
+            namedEntry.value,
+            ParameterKind.NAMED,
+          ),
+        );
+      }
+    }
+
+    return FunctionTypeImpl.synthetic(
+      returns ?? voidType,
+      typeFormals ?? const <TypeParameterElement>[],
+      parameters,
+    );
+  }
+
+  TypeParameterElementImpl _typeParameterElement(String name,
+      {DartType bound}) {
+    var element = TypeParameterElementImpl.synthetic(name);
+    element.bound = bound ?? typeProvider.objectType;
+    return element;
   }
 }
 
@@ -1205,92 +1255,170 @@ class GreatestLowerBoundTest extends BoundTestBase {
   }
 
   void test_functionsDifferentNamedTakeUnion() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 =
-        _functionType([], named: {'b': doubleType, 'c': stringType});
-    FunctionType expected =
-        _functionType([], named: {'a': intType, 'b': numType, 'c': stringType});
+    var type1 = _functionType(
+      named: {'a': intType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'b': doubleType, 'c': stringType},
+    );
+    var expected = _functionType(
+      named: {'a': intType, 'b': numType, 'c': stringType},
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsDifferentOptionalArityTakeMax() {
-    FunctionType type1 = _functionType([], optional: [intType]);
-    FunctionType type2 =
-        _functionType([], optional: [doubleType, stringType, objectType]);
-    FunctionType expected =
-        _functionType([], optional: [numType, stringType, objectType]);
+    var type1 = _functionType(
+      optional: [intType],
+    );
+    var type2 = _functionType(
+      required: [],
+      optional: [doubleType, stringType, objectType],
+    );
+    var expected = _functionType(
+      optional: [numType, stringType, objectType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsDifferentRequiredArityBecomeOptional() {
-    FunctionType type1 = _functionType([intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
-    FunctionType expected =
-        _functionType([intType], optional: [intType, intType]);
+    var type1 = _functionType(
+      required: [intType],
+    );
+    var type2 = _functionType(
+      required: [intType, intType, intType],
+    );
+    var expected = _functionType(
+      required: [intType],
+      optional: [intType, intType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsFromDynamic() {
-    FunctionType type1 = _functionType([dynamicType]);
-    FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([dynamicType]);
+    var type1 = _functionType(required: [dynamicType]);
+    var type2 = _functionType(required: [intType]);
+    var expected = _functionType(required: [dynamicType]);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsGlbReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: numType);
-    FunctionType expected = _functionType([], returns: intType);
+    var type1 = _functionType(returns: intType);
+    var type2 = _functionType(returns: numType);
+    var expected = _functionType(returns: intType);
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': objectType, 'b': numType});
+    var type1 = _functionType(
+      named: {'a': stringType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'b': numType},
+    );
+    var expected = _functionType(
+      named: {'a': objectType, 'b': numType},
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [objectType, numType]);
+    var type1 = _functionType(
+      optional: [stringType, intType],
+    );
+    var type2 = _functionType(
+      optional: [intType, numType],
+    );
+    var expected = _functionType(
+      optional: [objectType, numType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsLubRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([objectType, numType, numType]);
+    var type1 = _functionType(
+      required: [stringType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType, doubleType, numType],
+    );
+    var expected = _functionType(
+      required: [objectType, numType, numType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsMixedOptionalAndRequiredBecomeOptional() {
-    FunctionType type1 = _functionType([intType, intType],
-        optional: [intType, intType, intType]);
-    FunctionType type2 = _functionType([intType], optional: [intType, intType]);
-    FunctionType expected = _functionType([intType],
-        optional: [intType, intType, intType, intType]);
+    var type1 = _functionType(
+      required: [intType, intType],
+      optional: [intType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType],
+      optional: [intType, intType],
+    );
+    var expected = _functionType(
+      required: [intType],
+      optional: [intType, intType, intType, intType],
+    );
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
   void test_functionsReturnBottomIfMixOptionalAndNamed() {
     // Dart doesn't allow a function to have both optional and named parameters,
     // so if we would have synthethized that, pick bottom instead.
-    FunctionType type1 = _functionType([intType], named: {'a': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType});
+    var type1 = _functionType(
+      required: [intType],
+      named: {'a': intType},
+    );
+    var type2 = _functionType(
+      required: [],
+      named: {'a': intType},
+    );
     _checkGreatestLowerBound(type1, type2, bottomType);
   }
 
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
+  void test_functionsSameType_withNamed() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsSameType_withOptional() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
     _checkGreatestLowerBound(type1, type2, expected);
   }
 
@@ -1386,8 +1514,11 @@ class GreatestLowerBoundTest extends BoundTestBase {
       ElementFactory.typeParameterElement('T').type
     ];
     for (DartType type in types) {
-      _checkGreatestLowerBound(_functionType([], returns: voidType),
-          _functionType([], returns: type), _functionType([], returns: type));
+      _checkGreatestLowerBound(
+        _functionType(required: [], returns: voidType),
+        _functionType(required: [], returns: type),
+        _functionType(required: [], returns: type),
+      );
     }
   }
 }
@@ -1399,71 +1530,164 @@ class LeastUpperBoundFunctionsTest extends BoundTestBase {
     typeSystem = new Dart2TypeSystem(typeProvider);
   }
 
-  void test_functionsDifferentRequiredArity() {
-    FunctionType type1 = _functionType([intType, intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
+  void test_differentRequiredArity() {
+    var type1 = _functionType(required: [intType, intType]);
+    var type2 = _functionType(required: [intType, intType, intType]);
     _checkLeastUpperBound(type1, type2, functionType);
   }
 
-  void test_functionsFuzzyArrows() {
-    FunctionType type1 = _functionType([dynamicType]);
-    FunctionType type2 = _functionType([intType]);
-    FunctionType expected = _functionType([intType]);
+  void test_fuzzyArrows() {
+    var type1 = _functionType(required: [dynamicType]);
+    var type2 = _functionType(required: [intType]);
+    var expected = _functionType(required: [intType]);
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': bottomType, 'b': intType});
+  void test_glbNamedParams() {
+    var type1 = _functionType(
+      named: {'a': stringType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'b': numType},
+    );
+    var expected = _functionType(
+      named: {'a': bottomType, 'b': intType},
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [bottomType, intType]);
+  void test_glbPositionalParams() {
+    var type1 = _functionType(
+      optional: [stringType, intType],
+    );
+    var type2 = _functionType(
+      optional: [intType, numType],
+    );
+    var expected = _functionType(
+      optional: [bottomType, intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsGlbRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([bottomType, bottomType, intType]);
+  void test_glbRequiredParams() {
+    var type1 = _functionType(
+      required: [stringType, intType, intType],
+    );
+    var type2 = _functionType(
+      required: [intType, doubleType, numType],
+    );
+    var expected = _functionType(
+      required: [bottomType, bottomType, intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsIgnoreExtraNamedParams() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'c': intType});
-    FunctionType expected = _functionType([], named: {'a': intType});
+  void test_ignoreExtraNamedParams() {
+    var type1 = _functionType(
+      named: {'a': intType, 'b': intType},
+    );
+    var type2 = _functionType(
+      named: {'a': intType, 'c': intType},
+    );
+    var expected = _functionType(
+      named: {'a': intType},
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsIgnoreExtraPositionalParams() {
-    FunctionType type1 =
-        _functionType([], optional: [intType, intType, stringType]);
-    FunctionType type2 = _functionType([], optional: [intType]);
-    FunctionType expected = _functionType([], optional: [intType]);
+  void test_ignoreExtraPositionalParams() {
+    var type1 = _functionType(
+      optional: [intType, intType, stringType],
+    );
+    var type2 = _functionType(
+      optional: [intType],
+    );
+    var expected = _functionType(
+      optional: [intType],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsLubReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: doubleType);
-    FunctionType expected = _functionType([], returns: numType);
+  void test_lubReturnType() {
+    var type1 = _functionType(returns: intType);
+    var type2 = _functionType(returns: doubleType);
+    var expected = _functionType(returns: numType);
     _checkLeastUpperBound(type1, type2, expected);
   }
 
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
+  void test_sameType_withNamed() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      named: {'n': numType},
+      returns: intType,
+    );
+
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_sameType_withOptional() {
+    var type1 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var type2 = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    var expected = _functionType(
+      required: [stringType, intType, numType],
+      optional: [doubleType],
+      returns: intType,
+    );
+
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_typeFormals_differentBounds() {
+    var T1 = _typeParameterElement('T1', bound: intType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var T2 = _typeParameterElement('T2', bound: doubleType);
+    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+
+    _checkLeastUpperBound(type1, type2, functionType);
+  }
+
+  void test_typeFormals_differentNumber() {
+    var T1 = _typeParameterElement('T1', bound: numType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var type2 = _functionType(returns: intType);
+
+    _checkLeastUpperBound(type1, type2, functionType);
+  }
+
+  void test_typeFormals_sameBounds() {
+    var T1 = _typeParameterElement('T1', bound: numType);
+    var type1 = _functionType(typeFormals: [T1], returns: T1.type);
+
+    var T2 = _typeParameterElement('T2', bound: numType);
+    var type2 = _functionType(typeFormals: [T2], returns: T2.type);
+
+    var TE = _typeParameterElement('T', bound: numType);
+    var expected = _functionType(typeFormals: [TE], returns: TE.type);
+
     _checkLeastUpperBound(type1, type2, expected);
   }
 }
@@ -1566,32 +1790,38 @@ class LeastUpperBoundTest extends BoundTestBase {
   }
 
   void test_nestedFunctionsLubInnerParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([stringType, intType, intType])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([intType, doubleType, numType])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([objectType, numType, numType])
-    ]);
+    var type1 = _functionType(
+      required: [
+        _functionType(required: [stringType, intType, intType])
+      ],
+    );
+    var type2 = _functionType(
+      required: [
+        _functionType(required: [intType, doubleType, numType])
+      ],
+    );
+    var expected = _functionType(
+      required: [
+        _functionType(required: [objectType, numType, numType])
+      ],
+    );
     _checkLeastUpperBound(type1, type2, expected);
   }
 
   void test_nestedNestedFunctionsGlbInnermostParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([
-        _functionType([stringType, intType, intType])
+    FunctionType type1 = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [stringType, intType, intType])
       ])
     ]);
-    FunctionType type2 = _functionType([
-      _functionType([
-        _functionType([intType, doubleType, numType])
+    FunctionType type2 = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [intType, doubleType, numType])
       ])
     ]);
-    FunctionType expected = _functionType([
-      _functionType([
-        _functionType([bottomType, bottomType, intType])
+    FunctionType expected = _functionType(required: [
+      _functionType(required: [
+        _functionType(required: [bottomType, bottomType, intType])
       ])
     ]);
     _checkLeastUpperBound(type1, type2, expected);
@@ -1840,9 +2070,10 @@ class LeastUpperBoundTest extends BoundTestBase {
     ];
     for (DartType type in types) {
       _checkLeastUpperBound(
-          _functionType([], returns: voidType),
-          _functionType([], returns: type),
-          _functionType([], returns: voidType));
+        _functionType(returns: voidType),
+        _functionType(returns: type),
+        _functionType(returns: voidType),
+      );
     }
   }
 }
@@ -1876,6 +2107,46 @@ class NonNullableSubtypingTest extends SubtypingTestBase {
     ];
     List<DartType> subtypes = <DartType>[bottomType, nullType, objectType];
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
+  }
+
+  @failingTest
+  void test_futureOr_topTypes() {
+    var objectStar =
+        (objectType as TypeImpl).withNullability(NullabilitySuffix.star);
+    var objectQuestion =
+        (objectType as TypeImpl).withNullability(NullabilitySuffix.question);
+    var futureOrObject = futureOrType.instantiate([objectType]);
+    var futureOrObjectStar = futureOrType.instantiate([objectStar]);
+    var futureOrObjectQuestion = futureOrType.instantiate([objectQuestion]);
+    var futureOrStarObject =
+        (futureOrObject as TypeImpl).withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObject = (futureOrObject as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+    var futureOrStarObjectStar = (futureOrObjectStar as TypeImpl)
+        .withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObjectStar = (futureOrObjectStar as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+    var futureOrStarObjectQuestion = (futureOrObjectQuestion as TypeImpl)
+        .withNullability(NullabilitySuffix.star);
+    var futureOrQuestionObjectQuestion = (futureOrObjectQuestion as TypeImpl)
+        .withNullability(NullabilitySuffix.question);
+
+    //FutureOr<Object> <: FutureOr*<Object?>
+    _checkGroups(futureOrObject, equivalents: [
+      objectStar,
+      futureOrObjectStar,
+      futureOrStarObject,
+      futureOrStarObjectStar,
+      objectType
+    ], subtypes: [], supertypes: [
+      objectQuestion,
+      futureOrQuestionObject,
+      futureOrObjectQuestion,
+      futureOrQuestionObject,
+      futureOrQuestionObjectStar,
+      futureOrStarObjectQuestion,
+      futureOrQuestionObjectQuestion
+    ]);
   }
 
   void test_int_nullableTypes() {
@@ -2458,17 +2729,59 @@ class TypeBuilder {
 
 @reflectiveTest
 class TypeSystemTest extends AbstractTypeSystemTest {
-  DartType get futureOrWithNoneType =>
-      typeProvider.futureOrType.instantiate([noneType]);
+  DartType get functionClassTypeNone {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.functionType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
 
-  DartType get futureOrWithQuestionType =>
-      typeProvider.futureOrType.instantiate([questionType]);
+  DartType get functionClassTypeQuestion {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.functionType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
 
-  DartType get futureOrWithStarType =>
-      typeProvider.futureOrType.instantiate([starType]);
+  DartType get functionClassTypeStar {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.functionType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
 
   DartType get noneType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.none);
+
+  FunctionType get nothingToVoidFunctionTypeNone {
+    return FunctionTypeImpl.synthetic(
+      voidType,
+      const <TypeParameterElement>[],
+      const <ParameterElement>[],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  FunctionType get nothingToVoidFunctionTypeQuestion {
+    return FunctionTypeImpl.synthetic(
+      voidType,
+      const <TypeParameterElement>[],
+      const <ParameterElement>[],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  FunctionType get nothingToVoidFunctionTypeStar {
+    return FunctionTypeImpl.synthetic(
+      voidType,
+      const <TypeParameterElement>[],
+      const <ParameterElement>[],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
 
   DartType get questionType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.question);
@@ -2476,36 +2789,160 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get starType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.star);
 
+  DartType futureOrTypeNone({@required DartType argument}) {
+    var element = typeProvider.futureOrType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  DartType futureOrTypeQuestion({@required DartType argument}) {
+    var element = typeProvider.futureOrType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  DartType futureOrTypeStar({@required DartType argument}) {
+    var element = typeProvider.futureOrType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
   test_isNonNullable_dynamic() {
     expect(typeSystem.isNonNullable(dynamicType), false);
   }
 
-  test_isNonNullable_futureOr_noneArg() {
-    expect(typeSystem.isNonNullable(futureOrWithNoneType), true);
+  test_isNonNullable_function_none() {
+    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeNone), true);
   }
 
-  test_isNonNullable_futureOr_questionArg() {
-    expect(typeSystem.isNonNullable(futureOrWithQuestionType), true);
+  test_isNonNullable_function_question() {
+    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeQuestion), false);
   }
 
-  test_isNonNullable_futureOr_starArg() {
-    expect(typeSystem.isNonNullable(futureOrWithStarType), true);
+  test_isNonNullable_function_star() {
+    expect(typeSystem.isNonNullable(nothingToVoidFunctionTypeStar), true);
   }
 
-  test_isNonNullable_none() {
+  test_isNonNullable_functionClass_none() {
+    expect(typeSystem.isNonNullable(functionClassTypeNone), true);
+  }
+
+  test_isNonNullable_functionClass_question() {
+    expect(typeSystem.isNonNullable(functionClassTypeQuestion), false);
+  }
+
+  test_isNonNullable_functionClass_star() {
+    expect(typeSystem.isNonNullable(functionClassTypeStar), true);
+  }
+
+  test_isNonNullable_futureOr_noneArgument_none() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeNone(argument: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_futureOr_noneArgument_question() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeQuestion(argument: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_futureOr_noneArgument_star() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeStar(argument: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_futureOr_questionArgument_none() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeNone(argument: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_futureOr_questionArgument_question() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeQuestion(argument: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_futureOr_questionArgument_star() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeStar(argument: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_futureOr_starArgument_none() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeNone(argument: starType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_futureOr_starArgument_question() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeStar(argument: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isNonNullable_futureOr_starArgument_star() {
+    expect(
+      typeSystem.isNonNullable(
+        futureOrTypeStar(argument: starType),
+      ),
+      true,
+    );
+  }
+
+  test_isNonNullable_interface_none() {
     expect(typeSystem.isNonNullable(noneType), true);
+  }
+
+  test_isNonNullable_interface_question() {
+    expect(typeSystem.isNonNullable(questionType), false);
+  }
+
+  test_isNonNullable_interface_star() {
+    expect(typeSystem.isNonNullable(starType), true);
+  }
+
+  test_isNonNullable_never() {
+    expect(typeSystem.isNonNullable(neverType), true);
   }
 
   test_isNonNullable_null() {
     expect(typeSystem.isNonNullable(nullType), false);
-  }
-
-  test_isNonNullable_question() {
-    expect(typeSystem.isNonNullable(questionType), false);
-  }
-
-  test_isNonNullable_star() {
-    expect(typeSystem.isNonNullable(starType), true);
   }
 
   test_isNonNullable_typeParameter_noneBound_none() {
@@ -2561,32 +2998,129 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isNullable(dynamicType), true);
   }
 
-  test_isNullable_futureOr_noneArg() {
-    expect(typeSystem.isNullable(futureOrWithNoneType), true);
+  test_isNullable_function_none() {
+    expect(typeSystem.isNullable(nothingToVoidFunctionTypeNone), false);
   }
 
-  test_isNullable_futureOr_questionArg() {
-    expect(typeSystem.isNullable(futureOrWithQuestionType), true);
+  test_isNullable_function_question() {
+    expect(typeSystem.isNullable(nothingToVoidFunctionTypeQuestion), true);
   }
 
-  test_isNullable_futureOr_starArg() {
-    expect(typeSystem.isNullable(futureOrWithStarType), true);
+  test_isNullable_function_star() {
+    expect(typeSystem.isNullable(nothingToVoidFunctionTypeStar), false);
   }
 
-  test_isNullable_none() {
+  test_isNullable_functionClass_none() {
+    expect(typeSystem.isNullable(functionClassTypeNone), false);
+  }
+
+  test_isNullable_functionClass_question() {
+    expect(typeSystem.isNullable(functionClassTypeQuestion), true);
+  }
+
+  test_isNullable_functionClass_star() {
+    expect(typeSystem.isNullable(functionClassTypeStar), false);
+  }
+
+  test_isNullable_futureOr_noneArgument_none() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeNone(argument: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_futureOr_noneArgument_question() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeQuestion(argument: noneType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_futureOr_noneArgument_star() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeStar(argument: noneType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_futureOr_questionArgument_none() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeNone(argument: questionType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_futureOr_questionArgument_question() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeQuestion(argument: questionType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_futureOr_questionArgument_star() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeStar(argument: questionType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_futureOr_starArgument_none() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeNone(argument: starType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_futureOr_starArgument_question() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeQuestion(argument: starType),
+      ),
+      true,
+    );
+  }
+
+  test_isNullable_futureOr_starArgument_star() {
+    expect(
+      typeSystem.isNullable(
+        futureOrTypeStar(argument: starType),
+      ),
+      false,
+    );
+  }
+
+  test_isNullable_interface_none() {
     expect(typeSystem.isNullable(noneType), false);
+  }
+
+  test_isNullable_interface_question() {
+    expect(typeSystem.isNullable(questionType), true);
+  }
+
+  test_isNullable_interface_star() {
+    expect(typeSystem.isNullable(starType), false);
+  }
+
+  test_isNullable_never() {
+    expect(typeSystem.isNullable(neverType), false);
   }
 
   test_isNullable_null() {
     expect(typeSystem.isNullable(nullType), true);
-  }
-
-  test_isNullable_question() {
-    expect(typeSystem.isNullable(questionType), true);
-  }
-
-  test_isNullable_star() {
-    expect(typeSystem.isNullable(starType), true);
   }
 
   test_isNullable_typeParameter_noneBound_none() {
@@ -2630,7 +3164,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
       typeSystem.isNullable(
         typeParameterTypeStar(bound: starType),
       ),
-      true,
+      false,
     );
   }
 
@@ -2642,17 +3176,35 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isPotentiallyNonNullable(dynamicType), false);
   }
 
-  test_isPotentiallyNonNullable_futureOr_noneArg() {
-    expect(typeSystem.isPotentiallyNonNullable(futureOrWithNoneType), false);
-  }
-
-  test_isPotentiallyNonNullable_futureOr_questionArg() {
+  test_isPotentiallyNonNullable_futureOr_noneArgument_none() {
     expect(
-        typeSystem.isPotentiallyNonNullable(futureOrWithQuestionType), false);
+      typeSystem.isPotentiallyNonNullable(
+        futureOrTypeNone(argument: noneType),
+      ),
+      true,
+    );
   }
 
-  test_isPotentiallyNonNullable_futureOr_starArg() {
-    expect(typeSystem.isPotentiallyNonNullable(futureOrWithStarType), false);
+  test_isPotentiallyNonNullable_futureOr_questionArgument_none() {
+    expect(
+      typeSystem.isPotentiallyNonNullable(
+        futureOrTypeNone(argument: questionType),
+      ),
+      false,
+    );
+  }
+
+  test_isPotentiallyNonNullable_futureOr_starArgument_none() {
+    expect(
+      typeSystem.isPotentiallyNonNullable(
+        futureOrTypeNone(argument: starType),
+      ),
+      true,
+    );
+  }
+
+  test_isPotentiallyNonNullable_never() {
+    expect(typeSystem.isPotentiallyNonNullable(neverType), true);
   }
 
   test_isPotentiallyNonNullable_none() {
@@ -2668,7 +3220,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   test_isPotentiallyNonNullable_star() {
-    expect(typeSystem.isPotentiallyNonNullable(starType), false);
+    expect(typeSystem.isPotentiallyNonNullable(starType), true);
   }
 
   test_isPotentiallyNonNullable_void() {
@@ -2679,16 +3231,35 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isPotentiallyNullable(dynamicType), true);
   }
 
-  test_isPotentiallyNullable_futureOr_noneArg() {
-    expect(typeSystem.isPotentiallyNullable(futureOrWithNoneType), false);
+  test_isPotentiallyNullable_futureOr_noneArgument_none() {
+    expect(
+      typeSystem.isPotentiallyNullable(
+        futureOrTypeNone(argument: noneType),
+      ),
+      false,
+    );
   }
 
-  test_isPotentiallyNullable_futureOr_questionArg() {
-    expect(typeSystem.isPotentiallyNullable(futureOrWithQuestionType), false);
+  test_isPotentiallyNullable_futureOr_questionArgument_none() {
+    expect(
+      typeSystem.isPotentiallyNullable(
+        futureOrTypeNone(argument: questionType),
+      ),
+      true,
+    );
   }
 
-  test_isPotentiallyNullable_futureOr_starArg() {
-    expect(typeSystem.isPotentiallyNullable(futureOrWithStarType), false);
+  test_isPotentiallyNullable_futureOr_starArgument_none() {
+    expect(
+      typeSystem.isPotentiallyNullable(
+        futureOrTypeNone(argument: starType),
+      ),
+      false,
+    );
+  }
+
+  test_isPotentiallyNullable_never() {
+    expect(typeSystem.isPotentiallyNullable(neverType), false);
   }
 
   test_isPotentiallyNullable_none() {
@@ -2715,23 +3286,29 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
-    return TypeParameterTypeImpl(element,
-        nullabilitySuffix: NullabilitySuffix.none);
+    return TypeParameterTypeImpl(
+      element,
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   DartType typeParameterTypeQuestion({@required DartType bound}) {
     expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
-    return TypeParameterTypeImpl(element,
-        nullabilitySuffix: NullabilitySuffix.question);
+    return TypeParameterTypeImpl(
+      element,
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
   }
 
   DartType typeParameterTypeStar({@required DartType bound}) {
     expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
-    return TypeParameterTypeImpl(element,
-        nullabilitySuffix: NullabilitySuffix.star);
+    return TypeParameterTypeImpl(
+      element,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 }

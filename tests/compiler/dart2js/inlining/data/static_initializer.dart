@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: main:[]*/
+/*member: main:[]*/
 main() {
   _var1;
   _var2;
@@ -12,11 +12,11 @@ main() {
 var _var1 = <String>[_shortString(), _longStringMany()];
 var _var2 = <String>[_shortString(), _longStringMany(), _longStringOnce()];
 
-/*element: _shortString:[_var1,_var2]*/
+/*member: _shortString:[_var1,_var2]*/
 String _shortString() => r"""
 hello""";
 
-/*element: _longStringMany:[]*/
+/*member: _longStringMany:[]*/
 String _longStringMany() => r"""
 I wandered lonely as a cloud
 That floats on high o'er vales and hills,
@@ -26,7 +26,7 @@ Beside the lake, beneath the trees,
 Fluttering and dancing in the breeze.
 """;
 
-/*element: _longStringOnce:[_var2]*/
+/*member: _longStringOnce:[_var2]*/
 String _longStringOnce() => r"""
 Continuous as the stars that shine
 And twinkle on the milky way,
@@ -38,13 +38,13 @@ Tossing their heads in sprightly dance.
 
 var _var3 = <int>[Foo().a, (Foo()..a).a];
 
-/*element: Foo.:[]*/
+/*member: Foo.:[]*/
 class Foo {
   int z = 99;
-  /*element: Foo.a:[_var3]*/
+  /*member: Foo.a:[_var3]*/
   get a => b;
-  /*element: Foo.b:[_var3]*/
+  /*member: Foo.b:[_var3]*/
   get b => c;
-  /*element: Foo.c:[]*/
+  /*member: Foo.c:[]*/
   get c => z++;
 }

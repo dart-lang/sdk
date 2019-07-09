@@ -277,6 +277,20 @@
       "options": {
         "host-checked": true
     }},
+    "dart2js-new-rti-(linux|mac|win)-x64-d8": {
+      "options": {
+        "builder-tag": "new_rti",
+        "dart2js-options": ["--experiment-new-rti"],
+        "host-checked": true
+    }},
+    "dart2js-new-rti-minified-csp-(linux|mac|win)-x64-d8": {
+      "options": {
+        "builder-tag": "new_rti",
+        "csp": true,
+        "dart2js-options": ["--experiment-new-rti"],
+        "minified": true,
+        "use-sdk": true
+    }},
     "dartkp-android-(debug|product|release)-(arm|arm64)": {
       "options": {
         "use-elf": true
@@ -1238,6 +1252,47 @@
     },
     {
       "builders": [
+        "dart2js-rti-linux-x64-d8"
+      ],
+      "meta": {
+        "description": "dart2js-d8 tests with new-RTI enabled"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": ["dart2js_bot"]
+        },
+        {
+          "name": "dart2js new-rti tests",
+          "arguments": [
+            "-ndart2js-new-rti-linux-x64-d8",
+            "--dart2js-batch",
+            "language_2",
+            "corelib_2",
+            "dart2js_native",
+            "dart2js_extra"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts"
+        },
+        {
+          "name": "dart2js new-rti minified+csp tests",
+          "arguments": [
+            "-ndart2js-new-rti-minified-csp-linux-x64-d8",
+            "--dart2js-batch",
+            "language_2",
+            "corelib_2",
+            "dart2js_native",
+            "dart2js_extra"
+          ],
+          "shards": 6,
+          "fileset": "dart2js"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2js-strong-linux-x64-chrome",
         "dart2js-strong-linux-x64-firefox",
         "dart2js-strong-mac-x64-chrome",
@@ -1518,14 +1573,14 @@
     {
       "builders": ["dart-sdk-win"],
       "meta": {
-        "description": "This configuration is used by the sdk-builders for Windows."
+        "description": "This configuration is used by the sdk-builders for Windows. It also adds CQ coverage for building on Windows."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": ["--arch=ia32,x64",
-                        "--mode=release", "create_sdk"]
+                        "--mode=release", "create_sdk", "runtime_kernel"]
         },
         {
           "name": "build gen_kernel.dart.snapshot and dart2aot",

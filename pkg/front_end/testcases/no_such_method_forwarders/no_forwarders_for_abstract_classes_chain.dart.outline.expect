@@ -5,7 +5,7 @@ import "dart:core" as core;
 abstract class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  method noSuchMethod(dynamic i) → dynamic
+  method noSuchMethod(core::Invocation i) → dynamic
     ;
   abstract method foo() → void;
 }

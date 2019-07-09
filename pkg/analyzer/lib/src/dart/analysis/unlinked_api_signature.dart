@@ -105,6 +105,7 @@ class _UnitApiSignatureComputer {
       signature.addInt(variableList.variables.length);
       for (var variable in variableList.variables) {
         addTokens(variable.beginToken, variable.name.endToken);
+        signature.addBool(variable.initializer != null);
         addToken(variable.endToken.next); // `,` or `;`
       }
     }

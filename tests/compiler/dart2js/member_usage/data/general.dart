@@ -2,49 +2,49 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*element: A.:invoke*/
+/*member: A.:invoke*/
 class A {
-  /*element: A.method1:invoke*/
+  /*member: A.method1:invoke*/
   method1() {}
 
   method2() {}
 
-  /*element: A.method4:invoke*/
+  /*member: A.method4:invoke*/
   method4() {}
 
-  /*element: A.getter:read*/
+  /*member: A.getter:read*/
   get getter => 42;
 
   set setter(_) {}
 }
 
-/*element: B.:invoke*/
+/*member: B.:invoke*/
 class B {
   method1() {}
   method2() {}
 
-  /*element: B.method5:invoke*/
+  /*member: B.method5:invoke*/
   method5() {}
   get getter => 42;
 
-  /*element: B.setter=:write*/
+  /*member: B.setter=:write*/
   set setter(_) {}
 }
 
-/*element: C.:invoke*/
+/*member: C.:invoke*/
 class C extends A {
-  /*element: C.method1:invoke*/
+  /*member: C.method1:invoke*/
   @override
   method1() {}
 
-  /*element: B.method2:invoke*/
+  /*member: B.method2:invoke*/
   @override
   method2() {}
 
   @override
   method4() {}
 
-  /*element: C.getter:read*/
+  /*member: C.getter:read*/
   @override
   get getter => 42;
 
@@ -52,12 +52,12 @@ class C extends A {
   set setter(_) {}
 }
 
-/*element: D.:invoke*/
+/*member: D.:invoke*/
 class D implements B {
   @override
   method1() {}
 
-  /*element: D.method2:invoke*/
+  /*member: D.method2:invoke*/
   @override
   method2() {}
 
@@ -67,7 +67,7 @@ class D implements B {
   @override
   get getter => 42;
 
-  /*element: D.setter=:write*/
+  /*member: D.setter=:write*/
   @override
   set setter(_) {}
 }
@@ -107,40 +107,40 @@ class F extends B {
 }
 
 class G {
-  /*element: G.method1:invoke*/
+  /*member: G.method1:invoke*/
   method1() {}
   method2() {}
   method4() {}
 
-  /*element: G.getter:read*/
+  /*member: G.getter:read*/
   get getter => 42;
   set setter(_) {}
 }
 
-/*element: H.:invoke*/
+/*member: H.:invoke*/
 class H extends Object with G implements A {}
 
-/*element: I.:invoke*/
+/*member: I.:invoke*/
 class I {
-  /*element: I.method1:invoke*/
+  /*member: I.method1:invoke*/
   method1() {}
   method2() {}
   method4() {}
 
-  /*element: I.getter:read*/
+  /*member: I.getter:read*/
   get getter => 42;
   set setter(_) {}
 }
 
-/*element: J.:invoke*/
+/*member: J.:invoke*/
 class J extends I implements A {}
 
 class K {
-  /*element: K.method1:invoke*/
+  /*member: K.method1:invoke*/
   method1() {}
   method2() {}
 
-  /*element: K.getter:read*/
+  /*member: K.getter:read*/
   get getter => 42;
   set setter(_) {}
 }
@@ -148,13 +148,13 @@ class K {
 class L = Object with K;
 class L2 = Object with L;
 
-/*element: M.:invoke*/
+/*member: M.:invoke*/
 class M extends L {}
 
-/*element: M2.:invoke*/
+/*member: M2.:invoke*/
 class M2 extends L2 {}
 
-/*element: N.:invoke*/
+/*member: N.:invoke*/
 class N {
   method1() {}
   get getter => 42;
@@ -163,54 +163,54 @@ class N {
 
 abstract class O extends N {}
 
-/*element: P.:invoke*/
+/*member: P.:invoke*/
 class P implements O {
-  /*element: P.method1:invoke*/
+  /*member: P.method1:invoke*/
   @override
   method1() {}
 
-  /*element: P.getter:read*/
+  /*member: P.getter:read*/
   @override
   get getter => 42;
 
-  /*element: P.setter=:write*/
+  /*member: P.setter=:write*/
   @override
   set setter(_) {}
 }
 
-/*element: Q.:invoke*/
+/*member: Q.:invoke*/
 class Q {
-  /*element: Q.method3:invoke*/
+  /*member: Q.method3:invoke*/
   method3() {}
 }
 
-/*element: R.:invoke*/
+/*member: R.:invoke*/
 class R extends Q {}
 
-/*element: Class1a.:invoke*/
+/*member: Class1a.:invoke*/
 class Class1a {
-  /*element: Class1a.call:invoke*/
+  /*member: Class1a.call:invoke*/
   call(a, b, c) {} // Call structure only used in Class1a and Class2b.
 }
 
-/*element: Class1b.:invoke*/
+/*member: Class1b.:invoke*/
 class Class1b {
   call(a, b, c) {}
 }
 
-/*element: Class2.:invoke*/
+/*member: Class2.:invoke*/
 class Class2 {
-  /*element: Class2.c:init,invoke,read=static*/
+  /*member: Class2.c:init,invoke,read=static*/
   Class1a c;
 }
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 main() {
   method1();
   method2();
 }
 
-/*element: method1:invoke*/
+/*member: method1:invoke*/
 @pragma('dart2js:disableFinal')
 method1() {
   A a = new A();
@@ -238,7 +238,7 @@ method1() {
   new Class2().c(0, 1, 2);
 }
 
-/*element: method2:invoke*/
+/*member: method2:invoke*/
 method2() {
   A a = new A();
   B b = new B();

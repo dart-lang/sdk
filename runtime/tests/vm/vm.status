@@ -24,6 +24,7 @@ dart/use_bare_instructions_flag_test: Pass, Slow # Spawns several subprocesses
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
 
 [ $builder_tag == optimization_counter_threshold ]
+cc/*: Skip # Many tests want see unoptimized code running
 dart/appjit*: SkipByDesign # Test needs to a particular opt-counter value
 dart/kernel_determinism_test: SkipSlow
 
@@ -35,16 +36,13 @@ dart/snapshot_version_test: RuntimeError
 dart/entrypoints/aot/*: SkipByDesign
 
 [ $compiler == dartkb ]
-cc/*: Skip # Bytecode modes are not properly hooked up in run_vm_tests.
+cc/*: Skip # Too many timeouts and crashes for infrastructure to handle.
 
 [ $compiler == dartkp ]
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
-
-[ $compiler == precompiler ]
-dart/byte_array_test: SkipByDesign # Incompatible flag --disable_alloc_stubs_after_gc
 
 [ $mode == debug ]
 cc/CorelibIsolateStartup: SkipByDesign # This is a benchmark that is not informative in debug mode.
@@ -54,9 +52,11 @@ cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
 
-[ $runtime == dart_precompiled ]
-dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
-dart/issue32950_test: SkipByDesign # uses spawnUri.
+[ $mode == product ]
+cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
+cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
+cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $system == fuchsia ]
 cc/CorelibIsolateStartup: Skip # OOM crash can bring down the OS.
@@ -106,7 +106,6 @@ dart/appjit*: SkipByDesign # Test needs to run from source
 dart/kernel_determinism_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
-dart/issue32950_test: SkipByDesign # uses spawnUri.
 dart/redirection_type_shuffling_test: SkipByDesign # Includes dart:mirrors.
 dart/spawn_shutdown_test: SkipSlow
 
@@ -140,7 +139,6 @@ cc/IsolateReload_LibraryLookup: Fail, Crash
 dart/redirection_type_shuffling_test/00: MissingCompileTimeError
 
 [ $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-cc/Class_ComputeEndTokenPos: Crash
 cc/DartAPI_LoadLibrary: Fail, Crash # Issue 33048.
 cc/DebuggerAPI_BreakpointStubPatching: Fail
 cc/DebuggerAPI_GetClosureInfo: Fail
@@ -174,7 +172,6 @@ cc/ScriptSnapshotsUpdateSubclasses: Fail, Crash, OK # Script snapshots not suppo
 
 [ ($arch == simarm || $arch == simarm64 || $arch == simdbc || $arch == simdbc64) && ($compiler == dartk || $compiler == dartkb) ]
 dart/appjit*: SkipSlow # DFE too slow
-dart/issue_31959_31960_test: SkipSlow
 
 # Enabling of dartk for sim{arm,arm64,dbc64} revelaed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
@@ -257,14 +254,16 @@ dart/entrypoints/jit/*: SkipByDesign # Only supported in the Dart 2 JIT and AOT,
 [ $compiler != dartkp || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 ]
 dart/entrypoints/aot/*: SkipByDesign # Only supported in the Dart 2 JIT and AOT, and test optimizations - hence disabled on hotreload bots.
 
-[ $compiler == precompiler || $mode == product ]
-cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
-cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
-cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
-dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
-
 [ $mode == debug || $runtime != dart_precompiled || $system == android ]
 dart/use_bare_instructions_flag_test: SkipByDesign # This test is for VM AOT only and is quite slow (so we don't run it in debug mode).
+
+# It makes no sense to run any test that uses spawnURI under the simulator
+# as that would involve running CFE (the front end) in simulator mode
+# to compile the URI file specified in spawnURI code.
+# These Isolate tests that use spawnURI are hence skipped on purpose.
+[ $runtime == dart_precompiled || $runtime == vm && ($arch == simarm || $arch == simarm64 || $arch == simdbc64) ]
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/issue32950_test: SkipByDesign # uses spawnUri.
 
 [ $runtime != dart_precompiled || $system == android ]
 dart/bare_instructions_trampolines_test: SkipByDesign # This test is for VM AOT only (android fails due to listing interfaces).

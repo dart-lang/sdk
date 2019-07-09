@@ -37,11 +37,13 @@ const _binaryName = 'dartdevc -k';
 /// Returns `true` if the program compiled without any fatal errors.
 Future<CompilerResult> compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler = false}) async {
+    bool useIncrementalCompiler = false,
+    Map<Uri, List<int>> inputDigests}) async {
   try {
     return await _compile(args,
         compilerState: compilerState,
-        useIncrementalCompiler: useIncrementalCompiler);
+        useIncrementalCompiler: useIncrementalCompiler,
+        inputDigests: inputDigests);
   } catch (error, stackTrace) {
     print('''
 We're sorry, you've found a bug in our compiler.
@@ -68,7 +70,8 @@ String _usageMessage(ArgParser ddcArgParser) =>
 
 Future<CompilerResult> _compile(List<String> args,
     {fe.InitializedCompilerState compilerState,
-    bool useIncrementalCompiler = false}) async {
+    bool useIncrementalCompiler = false,
+    Map<Uri, List<int>> inputDigests}) async {
   // TODO(jmesserly): refactor options to share code with dartdevc CLI.
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
@@ -214,7 +217,9 @@ Future<CompilerResult> _compile(List<String> args,
   var experiments = <fe.ExperimentalFlag, bool>{};
   for (var name in options.experiments.keys) {
     var flag = fe.parseExperimentalFlag(name);
-    if (flag != null) {
+    if (flag == fe.ExperimentalFlag.expiredFlag) {
+      stderr.writeln("Flag '$name' is no longer required.");
+    } else if (flag != null) {
       experiments[flag] = options.experiments[name];
     } else {
       stderr.writeln("Unknown experiment flag '$name'.");
@@ -243,7 +248,7 @@ Future<CompilerResult> _compile(List<String> args,
         fileSystem: fileSystem,
         experiments: experiments);
   } else {
-    doneInputSummaries = new List<Component>(summaryModules.length);
+    doneInputSummaries = List<Component>(summaryModules.length);
     compilerState = await fe.initializeIncrementalCompiler(
         oldCompilerState,
         doneInputSummaries,
@@ -253,6 +258,7 @@ Future<CompilerResult> _compile(List<String> args,
         sourcePathToUri(packageFile),
         sourcePathToUri(librarySpecPath),
         summaryModules.keys.toList(),
+        inputDigests,
         DevCompilerTarget(
             TargetFlags(trackWidgetCreation: trackWidgetCreation)),
         fileSystem: fileSystem,
@@ -286,7 +292,7 @@ Future<CompilerResult> _compile(List<String> args,
     Component incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
     hierarchy = incrementalCompiler.userCode.loader.hierarchy;
-    result = new fe.DdcResult(incrementalComponent, doneInputSummaries);
+    result = fe.DdcResult(incrementalComponent, doneInputSummaries);
 
     // Workaround for DDC relying on isExternal being set to true.
     for (var lib in cachedSdkInput.component.libraries) {
@@ -329,7 +335,7 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
-    StringBuffer sb = new StringBuffer();
+    StringBuffer sb = StringBuffer();
     kernel.Printer(sb, showExternal: false).writeComponentFile(component);
     outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
   }

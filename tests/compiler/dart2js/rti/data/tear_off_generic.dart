@@ -5,11 +5,11 @@
 /*strong.class: A:direct,explicit=[A.T],needsArgs*/
 /*omit.class: A:*/
 class A<T> {
-  /*strong.element: A.m:*/
-  /*omit.element: A.m:*/
+  /*strong.member: A.m:*/
+  /*omit.member: A.m:*/
   void m(T t) {}
 
-  /*element: A.f:*/
+  /*member: A.f:*/
   void f(int t) {}
 }
 

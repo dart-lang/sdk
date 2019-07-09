@@ -102,9 +102,18 @@ void Code::ResetSwitchableCalls(Zone* zone) const {
   if (!owner.IsFunction()) {
     return;  // No switchable calls in stub code.
   }
+  const Function& function = Function::Cast(owner);
 
-  const Array& ic_data_array =
-      Array::Handle(zone, Function::Cast(owner).ic_data_array());
+  if (function.kind() == RawFunction::kIrregexpFunction) {
+    // Regex matchers do not support breakpoints or stepping, and they only call
+    // core library functions that cannot change due to reload. As a performance
+    // optimization, avoid this matching of ICData to PCs for these functions'
+    // large number of instance calls.
+    ASSERT(!function.is_debuggable());
+    return;
+  }
+
+  const Array& ic_data_array = Array::Handle(zone, function.ic_data_array());
   if (ic_data_array.IsNull()) {
     // The megamorphic miss stub and some recognized function doesn't populate
     // their ic_data_array. Check this only happens for functions without IC

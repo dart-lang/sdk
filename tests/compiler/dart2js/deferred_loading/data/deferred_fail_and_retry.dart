@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import "dart:js" as js;
 
-/*element: main:OutputUnit(main, {})*/
+/*member: main:OutputUnit(main, {})*/
 main() {
   // We patch document.body.appendChild to change the script src on first
   // invocation.

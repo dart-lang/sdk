@@ -19,6 +19,7 @@ import 'dependency_graph.dart';
 import 'output_log.dart';
 import 'runtime_configuration.dart';
 import 'test_case.dart';
+import 'test_file.dart';
 import 'test_progress.dart';
 import 'test_suite.dart';
 import 'utils.dart';
@@ -236,7 +237,7 @@ class TestCaseEnqueuer {
     // Cache information about test cases per test suite. For multiple
     // configurations there is no need to repeatedly search the file
     // system, generate tests, and search test files for options.
-    var testCache = <String, List<TestInformation>>{};
+    var testCache = <String, List<TestFile>>{};
 
     var iterator = testSuites.iterator;
     void enqueueNextSuite() {
@@ -628,9 +629,23 @@ class CommandExecutorImpl implements CommandExecutor {
     }
   }
 
+  List<_StepFunction> _pushLibraries(AdbCommand command, AdbDevice device,
+      String deviceDir, String deviceTestDir) {
+    final List<_StepFunction> steps = [];
+    for (var lib in command.extraLibraries) {
+      var libName = "lib${lib}.so";
+      steps.add(() => device.runAdbCommand([
+            'push',
+            '${command.buildPath}/$libName',
+            '$deviceTestDir/$libName'
+          ]));
+    }
+    return steps;
+  }
+
   Future<CommandOutput> _runAdbPrecompilationCommand(
       AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
-    var runner = command.precompiledRunnerFilename;
+    final String buildPath = command.buildPath;
     var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
@@ -651,8 +666,8 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(() =>
-        device.pushCachedData(runner, '$devicedir/dart_precompiled_runtime'));
+    steps.add(() => device.pushCachedData('$buildPath/dart_precompiled_runtime',
+        '$devicedir/dart_precompiled_runtime'));
     steps.add(
         () => device.pushCachedData(processTest, '$devicedir/process_test'));
     steps.add(() => device.runAdbShellCommand([
@@ -661,6 +676,8 @@ class CommandExecutorImpl implements CommandExecutor {
           '$devicedir/dart_precompiled_runtime $devicedir/process_test'
         ]));
 
+    steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
+
     for (var file in files) {
       steps.add(() => device
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
@@ -668,7 +685,8 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(
         [
-          '$devicedir/dart_precompiled_runtime',
+          'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+              '$devicedir/dart_precompiled_runtime',
         ]..addAll(arguments),
         timeout: timeoutDuration));
 
@@ -722,11 +740,7 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device
         .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
 
-    for (var lib in command.extraLibraries) {
-      var libName = "lib${lib}.so";
-      steps.add(() => device.runAdbCommand(
-          ['push', '${buildPath}/$libName', '$deviceTestDir/$libName']));
-    }
+    steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
 
     steps.add(() => device.runAdbShellCommand(
         [

@@ -391,6 +391,21 @@ class WriteStream : public ValueObject {
     current_ += len;
   }
 
+  void WriteTargetWord(uword value) {
+#if defined(IS_SIMARM_X64)
+    RELEASE_ASSERT(Utils::IsInt(32, static_cast<word>(value)));
+    const intptr_t len = sizeof(uint32_t);
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    *reinterpret_cast<uint32_t*>(current_) = static_cast<uint32_t>(value);
+    current_ += len;
+#else   // defined(IS_SIMARM_X64)
+    WriteWord(value);
+#endif  // defined(IS_SIMARM_X64)
+  }
+
   void Print(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -428,6 +443,17 @@ class WriteStream : public ValueObject {
       v = v >> kDataBitsPerByte;
     }
     WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
+  }
+
+  template <typename T>
+  void WriteFixed(T value) {
+    const intptr_t len = sizeof(T);
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    *reinterpret_cast<T*>(current_) = static_cast<T>(value);
+    current_ += len;
   }
 
  private:

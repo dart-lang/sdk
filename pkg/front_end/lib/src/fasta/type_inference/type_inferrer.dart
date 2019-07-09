@@ -103,8 +103,6 @@ import '../kernel/kernel_expression_generator.dart' show buildIsNull;
 import '../kernel/kernel_shadow_ast.dart'
     show
         ExpressionJudgment,
-        ShadowClass,
-        ShadowField,
         ShadowTypeInferenceEngine,
         ShadowTypeInferrer,
         VariableDeclarationJudgment,
@@ -118,8 +116,6 @@ import '../names.dart' show callName, unaryMinusName;
 import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import 'inference_helper.dart' show InferenceHelper;
-
-import 'interface_resolver.dart' show ForwardingNode, SyntheticAccessor;
 
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
@@ -750,7 +746,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     Class classNode = receiverType is InterfaceType
         ? receiverType.classNode
         : coreTypes.objectClass;
-    Member interfaceMember = _getInterfaceMember(classNode, name, setter);
+    Member interfaceMember =
+        _getInterfaceMember(classNode, name, setter, fileOffset);
     if (instrumented &&
         receiverType != const DynamicType() &&
         interfaceMember != null) {
@@ -911,7 +908,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     if (calleeType is FunctionType) {
       return calleeType;
     } else if (followCall && calleeType is InterfaceType) {
-      var member = _getInterfaceMember(calleeType.classNode, callName, false);
+      var member =
+          _getInterfaceMember(calleeType.classNode, callName, false, -1);
       var callType = getCalleeType(member, calleeType);
       if (callType is FunctionType) {
         return callType;
@@ -969,7 +967,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
 
   /// Gets the initializer for the given [field], or `null` if there is no
   /// initializer.
-  Expression getFieldInitializer(ShadowField field);
+  Expression getFieldInitializer(Field field);
 
   /// If the [member] is a forwarding stub, return the target it forwards to.
   /// Otherwise return the given [member].
@@ -1159,12 +1157,6 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         isVoidAllowed: context is VoidType);
     this.helper = null;
   }
-
-  /// Performs type inference on the given [field]'s initializer expression.
-  ///
-  /// Derived classes should provide an implementation that calls
-  /// [inferExpression] for the given [field]'s initializer expression.
-  DartType inferFieldTopLevel(ShadowField field);
 
   @override
   void inferFunctionBody(InferenceHelper helper, DartType returnType,
@@ -1454,7 +1446,9 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
-    returnContext = substitution.substituteType(returnContext);
+    if (returnContext is! UnknownType) {
+      returnContext = substitution.substituteType(returnContext);
+    }
 
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
@@ -1830,25 +1824,16 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     }
   }
 
-  Member _getInterfaceMember(Class class_, Name name, bool setter) {
-    if (class_ is ShadowClass) {
-      var classInferenceInfo = ShadowClass.getClassInferenceInfo(class_);
-      if (classInferenceInfo != null) {
-        var member = ClassHierarchy.findMemberByName(
-            setter
-                ? classInferenceInfo.setters
-                : classInferenceInfo.gettersAndMethods,
-            name);
-        if (member == null) return null;
-        member = member is ForwardingNode ? member.resolve() : member;
-        member = member is SyntheticAccessor
-            ? SyntheticAccessor.getField(member)
-            : member;
-        TypeInferenceEngine.resolveInferenceNode(member);
-        return member;
-      }
+  Member _getInterfaceMember(
+      Class class_, Name name, bool setter, int charOffset) {
+    Member member = engine.hierarchyBuilder.getCombinedMemberSignatureKernel(
+        class_, name, setter, charOffset, library);
+    if (member == null && (library?.isPatch ?? false)) {
+      // TODO(dmitryas): Hack for parts.
+      member ??=
+          classHierarchy.getInterfaceMember(class_, name, setter: setter);
     }
-    return classHierarchy.getInterfaceMember(class_, name, setter: setter);
+    return TypeInferenceEngine.resolveInferenceNode(member);
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile

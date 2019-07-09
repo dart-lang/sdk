@@ -4,7 +4,7 @@
 
 // Test that captured variables are boxed regardless of where they are mutated.
 
-/*element: mutateUnused:*/
+/*member: mutateUnused:*/
 mutateUnused() {
   var localVar;
   /**/ () {
@@ -14,7 +14,7 @@ mutateUnused() {
   return localVar;
 }
 
-/*element: mutateInClosure:box=(box0 which holds [localVar])*/
+/*member: mutateInClosure:box=(box0 which holds [localVar])*/
 mutateInClosure() {
   var /*boxed*/ localVar;
   /*fields=[box0],free=[box0,localVar]*/ () {
@@ -23,7 +23,7 @@ mutateInClosure() {
   return localVar;
 }
 
-/*element: mutateOutsideClosure:box=(box0 which holds [localVar])*/
+/*member: mutateOutsideClosure:box=(box0 which holds [localVar])*/
 mutateOutsideClosure() {
   var /*boxed*/ localVar;
   /*fields=[box0],free=[box0,localVar]*/ () {
@@ -33,7 +33,7 @@ mutateOutsideClosure() {
   return localVar;
 }
 
-/*element: mutateInOtherClosure:box=(box0 which holds [localVar])*/
+/*member: mutateInOtherClosure:box=(box0 which holds [localVar])*/
 mutateInOtherClosure() {
   var /*boxed*/ localVar;
   /*fields=[box0],free=[box0,localVar]*/ () {
@@ -45,7 +45,7 @@ mutateInOtherClosure() {
   return localVar;
 }
 
-/*element: mutateInNestedClosure:box=(box0 which holds [localVar])*/
+/*member: mutateInNestedClosure:box=(box0 which holds [localVar])*/
 mutateInNestedClosure() {
   var /*boxed*/ localVar;
   /*fields=[box0],free=[box0,localVar]*/ () {

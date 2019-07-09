@@ -6,16 +6,16 @@ library deferred_constants2_lib;
 
 /*class: Constant:OutputUnit(1, {lib})*/
 class Constant {
-  /*element: Constant.value:OutputUnit(1, {lib})*/
+  /*member: Constant.value:OutputUnit(1, {lib})*/
   final value;
-  /*strong.element: Constant.:OutputUnit(1, {lib})*/
+  /*strong.member: Constant.:OutputUnit(1, {lib})*/
   const Constant(this.value);
 
-  /*element: Constant.==:OutputUnit(1, {lib})*/
+  /*member: Constant.==:OutputUnit(1, {lib})*/
   operator ==(other) => other is Constant && value == other.value;
-  /*element: Constant.hashCode:OutputUnit(1, {lib})*/
+  /*member: Constant.hashCode:OutputUnit(1, {lib})*/
   get hashCode => 0;
 }
 
-/*strong.element: C1:OutputUnit(1, {lib})*/
+/*strong.member: C1:OutputUnit(1, {lib})*/
 const C1 = /*strong.OutputUnit(1, {lib})*/ const Constant(499);

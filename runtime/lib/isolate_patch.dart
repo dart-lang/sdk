@@ -197,6 +197,10 @@ class _RawReceivePortImpl implements RawReceivePort {
 
 @pragma("vm:entry-point")
 class _SendPortImpl implements SendPort {
+  factory _SendPortImpl._uninstantiable() {
+    throw "Unreachable";
+  }
+
   /*--- public interface ---*/
   @pragma("vm:entry-point", "call")
   void send(var message) {

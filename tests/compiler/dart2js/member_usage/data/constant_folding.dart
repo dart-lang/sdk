@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-/*element: main:invoke*/
+/*member: main:invoke*/
 void main() {
   const BitNot(42, 4294967253).check();
   const BitNot(4294967253, 42).check();
@@ -17,7 +17,7 @@ void main() {
   const BitNot(0x12121212121212, 0xEDEDEDED).check();
 }
 
-/*element: jsEquals:invoke*/
+/*member: jsEquals:invoke*/
 void jsEquals(expected, actual, [String reason = null]) {
   if (expected is num && actual is num) {
     if (expected.isNaN && actual.isNaN) return;
@@ -36,16 +36,16 @@ void jsEquals(expected, actual, [String reason = null]) {
 }
 
 abstract class TestOp {
-  /*element: TestOp.expected:init,read*/
+  /*member: TestOp.expected:init,read*/
   final expected;
 
-  /*element: TestOp.result:init,read*/
+  /*member: TestOp.result:init,read*/
   final result;
 
-  /*strong.element: TestOp.:invoke*/
+  /*strong.member: TestOp.:invoke*/
   const TestOp(this.expected, this.result);
 
-  /*element: TestOp.checkAll:invoke*/
+  /*member: TestOp.checkAll:invoke*/
   @pragma('dart2js:noInline')
   checkAll(evalResult) {
     jsEquals(expected, result,
@@ -59,17 +59,17 @@ abstract class TestOp {
 }
 
 class BitNot extends TestOp {
-  /*element: BitNot.arg:init,read*/
+  /*member: BitNot.arg:init,read*/
   final arg;
 
-  /*strong.element: BitNot.:invoke*/
+  /*strong.member: BitNot.:invoke*/
   const BitNot(this.arg, expected) : super(expected, ~arg);
 
-  /*element: BitNot.check:invoke*/
+  /*member: BitNot.check:invoke*/
   @pragma('dart2js:tryInline')
   check() => checkAll(eval());
 
-  /*element: BitNot.eval:invoke*/
+  /*member: BitNot.eval:invoke*/
   @override
   @pragma('dart2js:tryInline')
   eval() => ~arg;

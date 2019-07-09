@@ -7,7 +7,7 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-static set foo(dynamic x) → dynamic {}
+static set foo(dynamic x) → void {}
 static method main() → dynamic {
   self::foo = new self::Foo::•();
 }

@@ -76,20 +76,21 @@ class Command {
   }
 
   static Command adbPrecompiled(
-      String precompiledRunner,
+      String buildPath,
       String processTest,
       String testDirectory,
       List<String> arguments,
       bool useBlobs,
-      bool useElf) {
-    return AdbPrecompilationCommand._(precompiledRunner, processTest,
-        testDirectory, arguments, useBlobs, useElf);
+      bool useElf,
+      List<String> extraLibs) {
+    return AdbPrecompilationCommand._(buildPath, processTest, testDirectory,
+        arguments, useBlobs, useElf, extraLibs);
   }
 
-  static Command adbDartk(String precompiledRunner, String processTest,
-      String script, List<String> arguments, List<String> extraLibraries) {
+  static Command adbDartk(String buildPath, String processTest, String script,
+      List<String> arguments, List<String> extraLibraries) {
     return AdbDartkCommand._(
-        precompiledRunner, processTest, script, arguments, extraLibraries);
+        buildPath, processTest, script, arguments, extraLibraries);
   }
 
   static Command jsCommandLine(
@@ -587,54 +588,72 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
   }
 }
 
-class AdbPrecompilationCommand extends Command {
-  final String precompiledRunnerFilename;
+abstract class AdbCommand {
+  String get buildPath;
+  List<String> get extraLibraries;
+}
+
+class AdbPrecompilationCommand extends Command implements AdbCommand {
+  final String buildPath; // Path to the output directory of the build.
   final String processTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
   final bool useBlobs;
   final bool useElf;
+  final List<String> extraLibraries;
 
   AdbPrecompilationCommand._(
-      this.precompiledRunnerFilename,
+      this.buildPath,
       this.processTestFilename,
       this.precompiledTestDirectory,
       this.arguments,
       this.useBlobs,
       this.useElf,
+      this.extraLibraries,
       {int index = 0})
       : super._("adb_precompilation", index: index);
 
   AdbPrecompilationCommand indexedCopy(int index) => AdbPrecompilationCommand._(
-      precompiledRunnerFilename,
+      buildPath,
       processTestFilename,
       precompiledTestDirectory,
       arguments,
       useBlobs,
       useElf,
+      extraLibraries,
       index: index);
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
-    builder.add(precompiledRunnerFilename);
+    builder.add(buildPath);
     builder.add(precompiledTestDirectory);
     builder.add(arguments);
     builder.add(useBlobs);
     builder.add(useElf);
+    extraLibraries.forEach(builder.add);
+  }
+
+  static bool _listEquals(List<String> x, List<String> y) {
+    if (x.length != y.length) return false;
+    for (int i = 0; i < x.length; ++i) {
+      if (x[i] != y[i]) return false;
+    }
+    return true;
   }
 
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
-      precompiledRunnerFilename == other.precompiledRunnerFilename &&
+      buildPath == other.buildPath &&
       useBlobs == other.useBlobs &&
       useElf == other.useElf &&
       arguments == other.arguments &&
-      precompiledTestDirectory == other.precompiledTestDirectory;
+      precompiledTestDirectory == other.precompiledTestDirectory &&
+      _listEquals(extraLibraries, other.extraLibraries);
 
   String toString() => 'Steps to push precompiled runner and precompiled code '
       'to an attached device. Uses (and requires) adb.';
 }
 
-class AdbDartkCommand extends Command {
+class AdbDartkCommand extends Command implements AdbCommand {
   final String buildPath;
   final String processTestFilename;
   final String kernelFile;

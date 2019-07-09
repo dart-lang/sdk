@@ -9,17 +9,17 @@ main() {
 }
 
 // We trust the annotation.
-/*element: noThrows:no-throw*/
+/*member: noThrows:no-throw*/
 @pragma('dart2js:noThrows')
 @pragma(
     'dart2js:noInline') // Required for the @pragma('dart2js:noThrows') annotation.
 noThrows() => throw '';
 
 // Check that the @pragma('dart2js:noInline') annotation has no impact on its own.
-/*element: noInline:*/
+/*member: noInline:*/
 @pragma('dart2js:noInline')
 noInline() {}
 
 // TODO(johnniwinther): Should we infer this?
-/*element: throws:*/
+/*member: throws:*/
 throws() => 0;

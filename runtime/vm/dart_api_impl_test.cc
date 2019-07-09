@@ -57,6 +57,37 @@ UNIT_TEST_CASE(DartAPI_DartInitializeAfterCleanup) {
   EXPECT(Dart_Cleanup() == NULL);
 }
 
+UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
+  EXPECT(Dart_SetVMFlags(TesterState::argc, TesterState::argv) == NULL);
+  Dart_InitializeParams params;
+  memset(&params, 0, sizeof(Dart_InitializeParams));
+  params.version = DART_INITIALIZE_PARAMS_CURRENT_VERSION;
+  params.vm_snapshot_data = TesterState::vm_snapshot_data;
+  params.create = TesterState::create_callback;
+  params.shutdown = TesterState::shutdown_callback;
+  params.cleanup = TesterState::cleanup_callback;
+  params.start_kernel_isolate = true;
+
+  bool was_called = false;
+  Dart_CodeObserver code_observer;
+  code_observer.data = &was_called;
+  code_observer.on_new_code = [](Dart_CodeObserver* observer, const char* name,
+                                 uintptr_t base, uintptr_t size) {
+    *static_cast<bool*>(observer->data) = true;
+  };
+  params.code_observer = &code_observer;
+
+  // Reinitialize and ensure we can execute Dart code.
+  EXPECT(Dart_Initialize(&params) == NULL);
+
+  // Wait for 5 seconds to let the kernel service load the snapshot,
+  // which should trigger calls to the code observer.
+  OS::Sleep(5);
+
+  EXPECT(was_called);
+  EXPECT(Dart_Cleanup() == NULL);
+}
+
 TEST_CASE(DartAPI_ErrorHandleBasics) {
   const char* kScriptChars =
       "void testMain() {\n"

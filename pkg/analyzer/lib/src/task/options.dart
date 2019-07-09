@@ -175,7 +175,7 @@ class AnalyzerOptions {
   ];
 
   // Supported 'analyzer' optional checks options.
-  static const List<String> optionalCecksOptions = const [
+  static const List<String> optionalChecksOptions = const [
     chromeOsManifestChecks,
   ];
 }
@@ -497,7 +497,8 @@ class StrongModeOptionValueValidator extends OptionsValidator {
 
 /// Validates `analyzer` optional-checks value configuration options.
 class OptionalChecksValueValidator extends OptionsValidator {
-  ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.optionalCecksOptions);
+  ErrorBuilder builder =
+      new ErrorBuilder(AnalyzerOptions.optionalChecksOptions);
   ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
 
   @override

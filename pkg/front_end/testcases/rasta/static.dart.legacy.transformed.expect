@@ -150,7 +150,7 @@ class Foo extends core::Object {
   static method staticFunction() → dynamic {}
   static get staticGetter() → dynamic
     return null;
-  static set staticSetter(dynamic _) → dynamic {}
+  static set staticSetter(dynamic _) → void {}
 }
 static method use(dynamic x) → dynamic {
   if(x.==(new core::DateTime::now().millisecondsSinceEpoch))

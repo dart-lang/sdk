@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart' hide CustomUriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
-    show InSummaryUriResolver, SummaryDataStore;
+    show InSummarySource, InSummaryUriResolver, SummaryDataStore;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:path/path.dart' as path;
@@ -40,10 +40,14 @@ class AnalyzerOptions {
   /// The default analysis root.
   String analysisRoot = path.current;
 
+  // May be null.
+  final DependencyTracker dependencyTracker;
+
   AnalyzerOptions._(
       {this.contextBuilderOptions,
       String dartSdkPath,
-      this.customUrlMappings = const {}})
+      this.customUrlMappings = const {},
+      this.dependencyTracker})
       : dartSdkPath = dartSdkPath ?? getSdkPath() {
     contextBuilderOptions.declaredVariables ??= const {};
   }
@@ -69,12 +73,16 @@ class AnalyzerOptions {
     // For building the SDK, we explicitly set the path to none.
     if (dartSdkSummaryPath == 'build') dartSdkSummaryPath = null;
     contextOpts.dartSdkSummaryPath = dartSdkSummaryPath;
+    var summaryDepsOutput = args['summary-deps-output'] as String;
+    var dependencyTracker =
+        summaryDepsOutput != null ? DependencyTracker(summaryDepsOutput) : null;
 
     return AnalyzerOptions._(
         contextBuilderOptions: contextOpts,
         dartSdkPath: dartSdkPath,
         customUrlMappings:
-            _parseUrlMappings(args['url-mapping'] as List<String>));
+            _parseUrlMappings(args['url-mapping'] as List<String>),
+        dependencyTracker: dependencyTracker);
   }
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
@@ -126,7 +134,14 @@ SourceFactory createSourceFactory(AnalyzerOptions options,
         .add(CustomUriResolver(resourceProvider, options.customUrlMappings));
   }
   if (summaryData != null) {
-    resolvers.add(InSummaryUriResolver(resourceProvider, summaryData));
+    UriResolver summaryResolver =
+        InSummaryUriResolver(resourceProvider, summaryData);
+    if (options.dependencyTracker != null) {
+      // Wrap summaryResolver.
+      summaryResolver = TrackingInSummaryUriResolver(
+          summaryResolver, options.dependencyTracker);
+    }
+    resolvers.add(summaryResolver);
   }
 
   var fileResolvers = options.fileResolvers ?? createFileResolvers(options);
@@ -159,4 +174,35 @@ Map<String, String> _parseUrlMappings(List<String> argument) {
     }
   }
   return mappings;
+}
+
+/// A set of path strings read during the build.
+class DependencyTracker {
+  final _dependencies = Set<String>();
+
+  /// The path to the file to create once tracking is done.
+  final String outputPath;
+
+  DependencyTracker(this.outputPath);
+
+  Iterable<String> get dependencies => _dependencies;
+
+  void record(String path) => _dependencies.add(path);
+}
+
+/// Wrapper for [UriResolver] that tracks accesses to summaries.
+class TrackingInSummaryUriResolver extends UriResolver {
+  final UriResolver _summaryResolver;
+  final DependencyTracker _dependencyTracker;
+
+  TrackingInSummaryUriResolver(this._summaryResolver, this._dependencyTracker);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    var source = _summaryResolver.resolveAbsolute(uri, actualUri);
+    if (source != null && source is InSummarySource) {
+      _dependencyTracker.record(source.summaryPath);
+    }
+    return source;
+  }
 }

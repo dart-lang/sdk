@@ -179,18 +179,18 @@ class AstFactoryImpl extends AstFactory {
       new CommentReferenceImpl(newKeyword, identifier);
 
   @override
-  @deprecated
   CompilationUnit compilationUnit(
-          Token beginToken,
+          {Token beginToken,
           ScriptTag scriptTag,
           List<Directive> directives,
           List<CompilationUnitMember> declarations,
           Token endToken,
-          [FeatureSet featureSet]) =>
+          FeatureSet featureSet}) =>
       new CompilationUnitImpl(beginToken, scriptTag, directives, declarations,
           endToken, featureSet);
 
   @override
+  @deprecated
   CompilationUnit compilationUnit2(
           {Token beginToken,
           ScriptTag scriptTag,
@@ -394,6 +394,13 @@ class AstFactoryImpl extends AstFactory {
           rightBracket);
 
   @override
+  ExtensionOverride extensionOverride(
+          {@required Identifier extensionName,
+          TypeArgumentList typeArguments,
+          @required ArgumentList argumentList}) =>
+      ExtensionOverrideImpl(extensionName, typeArguments, argumentList);
+
+  @override
   FieldDeclaration fieldDeclaration(
           Comment comment,
           List<Annotation> metadata,
@@ -520,23 +527,6 @@ class AstFactoryImpl extends AstFactory {
     return ForStatementImpl(awaitKeyword, forKeyword, leftParenthesis,
         forLoopParts, rightParenthesis, body);
   }
-
-  @override
-  @Deprecated('Replaced by forStatement')
-  ForStatement forStatement2(
-          {Token awaitKeyword,
-          Token forKeyword,
-          Token leftParenthesis,
-          ForLoopParts forLoopParts,
-          Token rightParenthesis,
-          Statement body}) =>
-      forStatement(
-          awaitKeyword: awaitKeyword,
-          forKeyword: forKeyword,
-          leftParenthesis: leftParenthesis,
-          forLoopParts: forLoopParts,
-          rightParenthesis: rightParenthesis,
-          body: body);
 
   @override
   FunctionDeclaration functionDeclaration(

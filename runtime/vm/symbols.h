@@ -25,6 +25,7 @@ class ObjectPointerVisitor;
   V(ApiError, "ApiError")                                                      \
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
+  V(AsFunctionInternal, "_asFunctionInternal")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
   V(AsyncCompleter, ":async_completer")                                        \
@@ -235,6 +236,7 @@ class ObjectPointerVisitor;
   V(SetterPrefix, "set:")                                                      \
   V(SignatureData, "SignatureData")                                            \
   V(SingleTargetCache, "SingleTargetCache")                                    \
+  V(SizeOfStructField, "#sizeOf")                                              \
   V(SpaceExtendsSpace, " extends ")                                            \
   V(SpaceIsFromSpace, " is from ")                                             \
   V(SpaceOfSpace, " of ")                                                      \
@@ -247,6 +249,8 @@ class ObjectPointerVisitor;
   V(StreamIterator, "StreamIterator")                                          \
   V(StreamIteratorConstructor, "StreamIterator.")                              \
   V(StringBase, "_StringBase")                                                 \
+  V(Struct, "Struct")                                                          \
+  V(StructFromPointer, "#fromPointer")                                         \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(Symbol, "Symbol")                                                          \

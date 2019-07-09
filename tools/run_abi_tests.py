@@ -15,6 +15,7 @@ import utils
 
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 outDir = os.path.join(scriptDir, '..', 'out', 'ReleaseX64')
+abiDir = os.path.join(outDir, 'dart-sdk', 'lib', '_internal', 'abiversions')
 
 
 # Info about a running test.
@@ -61,13 +62,19 @@ def buildTest(version):
   return Test(cmd, resultFile, logFile, version)
 
 
+# Returns whether the dill files exist for an ABI version.
+def abiVersionExists(version):
+  return os.path.isdir(os.path.join(abiDir, str(version)))
+
+
 # Build tests for every supported version, and return a list of Test objects.
 def buildAllTests():
   abi_version = int(utils.GetAbiVersion())
   oldest_abi_version = int(utils.GetOldestSupportedAbiVersion())
   tests = [buildTest(None)]
   for version in xrange(oldest_abi_version, abi_version + 1):
-    tests.append(buildTest(version))
+    if abiVersionExists(version):
+      tests.append(buildTest(version))
   return tests
 
 
@@ -150,7 +157,6 @@ def makeLog(diffs, results, logRecords):
 def diffAllResults(tests):
   allResults = readAllTestFiles(tests, lambda test: test.resultFile)
   allLogs = readAllTestFiles(tests, lambda test: test.logFile)
-  anyDiff = False
   logDir = os.path.join(outDir, 'logs')
   makeDirs(logDir)
   resultFileName = os.path.join(logDir, 'results.json')
@@ -163,14 +169,13 @@ def diffAllResults(tests):
         if diffs:
           logRecords = allLogs[name] if name in allLogs else []
           logFile.write(json.dumps(makeLog(diffs, results, logRecords)) + '\n')
-          anyDiff = True
-  return anyDiff
 
 
 def main():
   tests = buildAllTests()
   runAllTests(tests)
-  return 1 if diffAllResults(tests) else 0
+  diffAllResults(tests)
+  return 0
 
 
 if __name__ == '__main__':

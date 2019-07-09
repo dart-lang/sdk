@@ -7,8 +7,8 @@
 #include "platform/assert.h"
 #include "vm/bootstrap.h"
 #include "vm/class_id.h"
+#include "vm/code_observers.h"
 #include "vm/compiler/backend/code_statistics.h"
-#include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
 #include "vm/heap/heap.h"
@@ -186,6 +186,7 @@ class ClassSerializationCluster : public SerializationCluster {
     s->Write<int16_t>(cls->ptr()->num_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
+    s->WriteTokenPosition(cls->ptr()->end_token_pos_);
     s->Write<uint32_t>(cls->ptr()->state_bits_);
   }
 
@@ -247,6 +248,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
+      cls->ptr()->end_token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint32_t>();
     }
 
@@ -273,6 +275,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
+      cls->ptr()->end_token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint32_t>();
 
       table->AllocateIndex(class_id);
@@ -1358,14 +1361,6 @@ class KernelProgramInfoDeserializationCluster : public DeserializationCluster {
       info.set_libraries_cache(array);
       array = HashTables::New<UnorderedHashMap<SmiTraits>>(16, Heap::kOld);
       info.set_classes_cache(array);
-
-      static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 7,
-                    "Cleanup support for old bytecode format versions");
-      array = info.bytecode_component();
-      if (!array.IsNull()) {
-        kernel::BytecodeReader::UseBytecodeVersion(
-            kernel::BytecodeComponentData(&array).GetVersion());
-      }
     }
   }
 };
@@ -1581,6 +1576,17 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->ptr()->state_bits_ = d->Read<int32_t>();
     }
   }
+
+#if !(defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT))
+  void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {
+    if (!CodeObservers::AreActive()) return;
+    Code& code = Code::Handle(zone);
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      code ^= refs.At(id);
+      Code::NotifyCodeObservers(code, code.is_optimized());
+    }
+  }
+#endif  // !DART_PRECOMPILED_RUNTIME
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -1606,7 +1612,7 @@ class BytecodeSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
-    ASSERT(s->kind() == Snapshot::kFullJIT);
+    ASSERT(s->kind() != Snapshot::kFullAOT);
     intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       RawBytecode* bytecode = objects_[i];
@@ -1639,7 +1645,7 @@ class BytecodeDeserializationCluster : public DeserializationCluster {
   }
 
   void ReadFill(Deserializer* d) {
-    ASSERT(d->kind() == Snapshot::kFullJIT);
+    ASSERT(d->kind() != Snapshot::kFullAOT);
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawBytecode* bytecode = reinterpret_cast<RawBytecode*>(d->Ref(id));
@@ -1878,7 +1884,8 @@ class RODataSerializationCluster : public SerializationCluster {
       }
       uint32_t offset = s->GetDataOffset(object);
       s->TraceDataOffset(offset);
-      ASSERT(Utils::IsAligned(offset, kObjectAlignment));
+      ASSERT(Utils::IsAligned(
+          offset, compiler::target::ObjectAlignment::kObjectAlignment));
       ASSERT(offset > running_offset);
       s->WriteUnsigned((offset - running_offset) >>
                        compiler::target::ObjectAlignment::kObjectAlignmentLog2);

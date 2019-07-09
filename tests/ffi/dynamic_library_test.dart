@@ -8,7 +8,7 @@
 
 library FfiTest;
 
-import 'dart:ffi' as ffi;
+import 'dart:ffi';
 
 import 'dylib_utils.dart';
 
@@ -21,10 +21,11 @@ void main() {
   testLookupError();
   testToString();
   testEquality();
+  testHandle();
 }
 
 void testOpen() {
-  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.notEquals(null, l);
 }
 
@@ -33,35 +34,46 @@ void testOpenError() {
       () => dlopenPlatformSpecific("doesnotexistforsurelibrary123409876"));
 }
 
-typedef NativeDoubleUnOp = ffi.Double Function(ffi.Double);
+typedef NativeDoubleUnOp = Double Function(Double);
 
 typedef DoubleUnOp = double Function(double);
 
 void testLookup() {
-  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   var timesFour = l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>("timesFour");
   Expect.approxEquals(12.0, timesFour(3));
 }
 
 void testLookupError() {
-  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.throws(() => l.lookupFunction<NativeDoubleUnOp, DoubleUnOp>(
       "functionnamethatdoesnotexistforsure749237593845"));
 }
 
 void testToString() {
-  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.stringEquals(
       "DynamicLibrary: handle=0x", l.toString().substring(0, 25));
 }
 
 void testEquality() {
-  ffi.DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  ffi.DynamicLibrary l2 = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l2 = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.equals(l, l2);
   Expect.equals(l.hashCode, l2.hashCode);
   Expect.notEquals(l, null);
   Expect.notEquals(null, l);
-  ffi.DynamicLibrary l3 = dlopenPlatformSpecific("ffi_test_functions");
+  DynamicLibrary l3 = dlopenPlatformSpecific("ffi_test_functions");
   Expect.notEquals(l, l3);
+}
+
+void testHandle() {
+  DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  DynamicLibrary l2 = dlopenPlatformSpecific("ffi_test_dynamic_library");
+  Pointer<Void> h = l.handle;
+  Pointer<Void> h2 = l2.handle;
+  Expect.equals(h, h2);
+  DynamicLibrary l3 = dlopenPlatformSpecific("ffi_test_functions");
+  Pointer<Void> h3 = l3.handle;
+  Expect.notEquals(h, h3);
 }

@@ -2132,7 +2132,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
 #ifndef DART_PRECOMPILED_RUNTIME
-      if (!frame->IsInterpreted()) {
+      if (!frame->IsInterpreted() && !frame->function().ForceOptimize()) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
@@ -2219,6 +2219,13 @@ static void HandleOSRRequest(Thread* thread) {
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_sp();
+  // If simulator was never called (for example, in pure
+  // interpreted mode) it may return 0 as a value of SPREG.
+  if (stack_pos == 0) {
+    // Use any reasonable value which would not be treated
+    // as stack overflow.
+    stack_pos = thread->saved_stack_limit();
+  }
 #else
   uword stack_pos = OSThread::GetCurrentStackPointer();
 #endif
@@ -2296,7 +2303,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   // If running with interpreter, do the unoptimized compilation first.
   const bool optimizing_compilation = function.ShouldCompilerOptimize();
   ASSERT(FLAG_enable_interpreter || optimizing_compilation);
-  ASSERT((!optimizing_compilation) || function.HasCode());
+  ASSERT((!optimizing_compilation) || function.HasCode() ||
+         function.ForceOptimize());
 
 #if defined(PRODUCT)
   if (!optimizing_compilation ||
@@ -2510,6 +2518,11 @@ const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason) {
 
 void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
+
+  // Force-optimized code is optimized code which cannot deoptimize and doesn't
+  // have unoptimized code to fall back to.
+  ASSERT(!optimized_code.is_force_optimized());
+
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Function& function = Function::Handle(zone, optimized_code.function());
@@ -2590,7 +2603,8 @@ void DeoptimizeFunctionsOnStack() {
   while (frame != NULL) {
     if (!frame->is_interpreted()) {
       optimized_code = frame->LookupDartCode();
-      if (optimized_code.is_optimized()) {
+      if (optimized_code.is_optimized() &&
+          !optimized_code.is_force_optimized()) {
         DeoptimizeAt(optimized_code, frame);
       }
     }

@@ -43,13 +43,6 @@ io/socket_info_ipv6_test : Skip
 [ $system == windows && $compiler != dart2analyzer ]
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 
-[ $compiler == app_jit ]
-io/test_extension_test: Skip # Platform.executable
-io/test_extension_fail_test: Skip # Platform.executable
-io/platform_test: Skip # Platform.executable
-full_coverage_test: Skip # Platform.executable
-regress_26031_test: Skip # Platform.resolvedExecutable
-
 [ $system == android ]
 io/process_exit_test: Skip # Issue 29578
 io/process_path_test: Skip # Issue 26376

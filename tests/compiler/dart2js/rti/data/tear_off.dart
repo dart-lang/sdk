@@ -4,10 +4,10 @@
 
 /*class: A:*/
 class A<T> {
-  /*element: A.m:*/
+  /*member: A.m:*/
   void m(String t) {}
 
-  /*element: A.f:*/
+  /*member: A.f:*/
   void f(int t) {}
 }
 

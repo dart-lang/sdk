@@ -4,6 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
+#include "vm/compiler/ffi.h"
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
@@ -774,12 +775,6 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
     bool is_constructor) {
   const Function& dart_function = parsed_function()->function();
 
-  // The prologue builder needs the default parameter values.
-  SetupDefaultParameterValues();
-  // TypeArgumentsHandling / BuildDefaultTypeHandling needs
-  // default function type arguments.
-  ReadDefaultFunctionTypeArguments(dart_function);
-
   intptr_t type_parameters_offset = 0;
   LocalVariable* first_parameter = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
@@ -961,9 +956,16 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     }
 
     ASSERT(function.HasBytecode());
+
     BytecodeFlowGraphBuilder bytecode_compiler(
         flow_graph_builder_, parsed_function(),
         &(flow_graph_builder_->ic_data_array_));
+
+    if (B->IsRecognizedMethodForFlowGraph(function)) {
+      bytecode_compiler.CreateParameterVariables();
+      return B->BuildGraphOfRecognizedMethod(function);
+    }
+
     return bytecode_compiler.BuildGraph();
   }
 
@@ -983,13 +985,12 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
     case RawFunction::kRegularFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
-    case RawFunction::kClosureFunction: {
-      ReadUntilFunctionNode();
-      return BuildGraphOfFunction(false);
-    }
+    case RawFunction::kClosureFunction:
     case RawFunction::kConstructor: {
-      ReadUntilFunctionNode();
-      return BuildGraphOfFunction(!function.IsFactory());
+      if (B->IsRecognizedMethodForFlowGraph(function)) {
+        return B->BuildGraphOfRecognizedMethod(function);
+      }
+      return BuildGraphOfFunction(function.IsGenerativeConstructor());
     }
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
@@ -1053,6 +1054,11 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kSetterFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kConstructor:
+    case RawFunction::kImplicitClosureFunction:
+      ReadUntilFunctionNode();
+      SetupDefaultParameterValues();
+      ReadDefaultFunctionTypeArguments(function);
+      break;
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
@@ -1061,11 +1067,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:
     case RawFunction::kFfiTrampoline:
-      break;
-    case RawFunction::kImplicitClosureFunction:
-      ReadUntilFunctionNode();
-      SetupDefaultParameterValues();
-      ReadDefaultFunctionTypeArguments(function);
       break;
     case RawFunction::kDynamicInvocationForwarder:
       if (PeekTag() != kField) {
@@ -3048,6 +3049,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ++argument_count;
   }
 
+  if (compiler::ffi::IsAsFunctionInternal(Z, Isolate::Current(), target)) {
+    return BuildFfiAsFunctionInternal();
+  }
+
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
@@ -3776,10 +3781,8 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   }
   if (position != nullptr) *position = p;
   const intptr_t constant_offset = ReadUInt();
-  KernelConstantsMap constant_map(H.constants().raw());
-  Fragment result =
-      Constant(Object::ZoneHandle(Z, constant_map.GetOrDie(constant_offset)));
-  ASSERT(constant_map.Release().raw() == H.constants().raw());
+  Fragment result = Constant(Object::ZoneHandle(
+      Z, constant_evaluator_.EvaluateConstantExpression(constant_offset)));
   return result;
 }
 
@@ -5000,6 +5003,25 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       TokenPosition::kNoSource, Slot::Closure_context());
 
   return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
+  const intptr_t argc = ReadUInt();               // read argument count.
+  ASSERT(argc == 1);                              // pointer
+  const intptr_t list_length = ReadListLength();  // read types list length.
+  ASSERT(list_length == 2);  // dart signature, then native signature
+  const TypeArguments& type_arguments =
+      T.BuildTypeArguments(list_length);  // read types.
+  Fragment code;
+  const intptr_t positional_count =
+      ReadListLength();  // read positional argument count
+  ASSERT(positional_count == 1);
+  code += BuildExpression();  // build first positional argument (pointer)
+  const intptr_t named_args_len =
+      ReadListLength();  // skip (empty) named arguments list
+  ASSERT(named_args_len == 0);
+  code += B->BuildFfiAsFunctionInternalCall(type_arguments);
+  return code;
 }
 
 }  // namespace kernel

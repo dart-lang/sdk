@@ -79,6 +79,12 @@ class BytecodeAssembler {
     }
   }
 
+  void emitYieldPointSourcePosition() {
+    if (!isUnreachable) {
+      sourcePositions.addYieldPoint(offset, currentSourcePosition);
+    }
+  }
+
   void _emitByte(int abyte) {
     assert(_isUint8(abyte));
     bytecode.add(abyte);

@@ -98,9 +98,6 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_background_compilation = false;
     FLAG_enable_mirrors = false;
-    // TODO(dacoharkes): Ffi support in AOT
-    // https://github.com/dart-lang/sdk/issues/35765
-    FLAG_enable_ffi = false;
     FLAG_fields_may_be_reset = true;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
@@ -378,9 +375,7 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
   // CreateDeoptInfo uses the object pool and needs to be done before
   // FinalizeCode.
   Array& deopt_info_array = Array::Handle(zone, Object::empty_array().raw());
-  if (!function.ForceOptimize()) {
-    deopt_info_array = graph_compiler->CreateDeoptInfo(assembler);
-  }
+  deopt_info_array = graph_compiler->CreateDeoptInfo(assembler);
 
   // Allocates instruction object. Since this occurs only at safepoint,
   // there can be no concurrent access to the instruction page.
@@ -408,9 +403,8 @@ RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
 
   if (function.ForceOptimize()) {
     ASSERT(optimized() && thread()->IsMutatorThread());
-    code.set_is_optimized(false);
+    code.set_is_force_optimized(true);
     function.AttachCode(code);
-    function.set_unoptimized_code(code);
     function.SetWasCompiled(true);
   } else if (optimized()) {
     // Installs code while at safepoint.
@@ -947,6 +941,7 @@ RawObject* Compiler::CompileFunction(Thread* thread, const Function& function) {
 
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
+  ASSERT(!function.ForceOptimize());
   if (function.unoptimized_code() != Object::null()) {
     return Error::null();
   }

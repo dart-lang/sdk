@@ -6,9 +6,9 @@
 /// Explicit is-test is always required.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class1.:hasThis*/
+/*member: Class1.:hasThis*/
 class Class1<T> {
-  /*element: Class1.method1:hasThis*/
+  /*member: Class1.method1:hasThis*/
   method1(dynamic o) {
     /*fields=[o,this],free=[o,this],hasThis*/
     dynamic local() => o is T;
@@ -20,9 +20,9 @@ class Class1<T> {
 /// Explicit as-cast is always required.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class2.:hasThis*/
+/*member: Class2.:hasThis*/
 class Class2<T> {
-  /*element: Class2.method2:hasThis*/
+  /*member: Class2.method2:hasThis*/
   method2(dynamic o) {
     /*fields=[o,this],free=[o,this],hasThis*/
     dynamic local() => o as T;
@@ -34,9 +34,9 @@ class Class2<T> {
 /// Implicit as-cast is only required in strong mode.
 ////////////////////////////////////////////////////////////////////////////////
 
-/*element: Class3.:hasThis*/
+/*member: Class3.:hasThis*/
 class Class3<T> {
-  /*element: Class3.method3:hasThis*/
+  /*member: Class3.method3:hasThis*/
   method3(dynamic o) {
     /*omit.fields=[o],free=[o],hasThis*/
     /*strong.fields=[o,this],free=[o,this],hasThis*/

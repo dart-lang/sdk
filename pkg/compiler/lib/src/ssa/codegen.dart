@@ -26,8 +26,10 @@ import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../tracer.dart';
@@ -114,6 +116,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
           closedWorld,
@@ -143,6 +146,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
           codegen.checkedModeHelpers,
           codegen.rtiSubstitutions,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           namer,
           codegen.tracer,
           closedWorld,
@@ -180,6 +184,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   final CheckedModeHelpers _checkedModeHelpers;
   final RuntimeTypesSubstitutions _rtiSubstitutions;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final ModularNamer _namer;
   final Tracer _tracer;
   final JClosedWorld _closedWorld;
@@ -234,6 +239,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       this._checkedModeHelpers,
       this._rtiSubstitutions,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._namer,
       this._tracer,
       this._closedWorld,
@@ -3334,6 +3340,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitIsTest(HIsTest node) {
+    _registry.registerTypeUse(new TypeUse.isCheck(node.dartType));
+
     use(node.typeInput);
     js.Expression first = pop();
     use(node.checkedInput);
@@ -3372,10 +3380,26 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     FunctionEntity helperElement = _commonElements.findType;
     _registry.registerStaticUse(
         new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
-    // TODO(sra): Encode recipe.
-    js.Expression recipe = js.string('${node.typeExpression}');
+    js.Expression recipe = _rtiRecipeEncoder.encodeGroundRecipe(
+        _emitter, TypeExpressionRecipe(node.typeExpression));
     js.Expression helper = _emitter.staticFunctionAccess(helperElement);
     push(js.js(r'#(#)', [helper, recipe]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
+  visitInstanceEnvironment(HInstanceEnvironment node) {
+    use(node.inputs.single);
+    js.Expression receiver = pop();
+    // TODO(sra): Optimize to direct field access where possible.
+    //
+    //    push(js.js(r'#.#', [receiver, _namer.rtiFieldJsName]));
+
+    FunctionEntity helperElement = _commonElements.instanceType;
+    _registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
+    js.Expression helper = _emitter.staticFunctionAccess(helperElement);
+    push(js.js(r'#(#)', [helper, receiver]).withSourceInformation(
         node.sourceInformation));
   }
 
@@ -3384,8 +3408,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Call `env._eval("recipe")`.
     use(node.inputs[0]);
     js.Expression environment = pop();
-    // TODO(sra): Encode recipe.
-    js.Expression recipe = js.string('${node.typeExpression}');
+    js.Expression recipe = _rtiRecipeEncoder.encodeRecipe(
+        _emitter, node.envStructure, node.typeExpression);
 
     MemberEntity method = _commonElements.rtiEvalMethod;
     Selector selector = Selector.fromElement(method);
@@ -3409,7 +3433,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.inputs[1]);
     js.Expression extensions = pop();
 
-    MemberEntity method = _commonElements.rtiEvalMethod;
+    MemberEntity method = _commonElements.rtiBindMethod;
     Selector selector = Selector.fromElement(method);
     js.Name methodLiteral = _namer.invocationName(selector);
     push(js.js('#.#(#)', [

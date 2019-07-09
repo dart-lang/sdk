@@ -1,4 +1,32 @@
-## 0.36.4-dev (not yet published)
+## 0.37.0
+* Removed deprecated getter `DartType.isUndefined`.
+* Removed deprecated class `SdkLibrariesReader`.
+* Removed deprecated method `InstanceCreationExpressionImpl.canBeConst`.
+* The `AstFactory.compilationUnit` method now uses named parameters.  Clients
+  that prepared for this change by switching to `AstFactory.compilationUnit2`
+  should now switch back to `AstFactory.compilationUnit`.
+* Removed `AstNode.getAncestor`.  Please use `AstNode.thisOrAncestorMatching` or
+  `AstNode.thisOrAncestorOfType`.
+* Removed deprecated getter `TypeSystem.isStrong`, and its override
+  `Dart2TypeSystem.isStrong`.
+* Removed the deprecated getter `AnalysisError.isStaticOnly` and the deprecated
+  setters `AnalysisError.isStaticOnly` and `AnalysisError.offset`.
+* Removed the `abstract` setter in `ClassElementImpl`, `EnumElementImpl`,
+  `MethodElementImpl`, and `PropertyAccessorElementImpl`.  `isAbstract` should
+  be used instead.
+* Removed methods `AstVisitor.ForStatement2`, `ListLiteral.elements2`,
+  `SetOrMapLiteral.elements2`, `AstFactory.forStatement2`, and
+  `NodeLintRegistry.addForStatement2`, as well as class `ForStatement2`.  Use
+  the variants with out the "2" suffix instead.
+* Changed the signature and behavior of `parseFile` to match `parseFile2`.
+  Clients that switched to using `parseFile2` when `parseFile` was deprecated
+  should now switch back to `parseFile`.
+* Removed Parser setters `enableControlFlowCollections`, `enableNonNullable`,
+  `enableSpreadCollections`, and `enableTripleShift`, and the method
+  `configureFeatures`.  Made the `featureSet` parameter of the Parser
+  constructor a required parameter.
+
+## 0.36.4
 * Deprecated the `isNonNullableUnit` parameter of the `TypeResolverVisitor`
   constructor.  TypeResolverVisitor should now be configured using the
   `featureSet` parameter.
@@ -21,6 +49,16 @@
 * Changed the return type of `ClassTypeAlias.declaredElement` to `ClassElement`.
   There is no functional change; it has always returned an instance of
   `ClassElement`.
+* Deprecated `parseFile`.  Please use `parseFile2` instead--in addition to
+  supporting the same `featureSet` and `throwIfDiagnostics` parameters as
+  `parseString`, it is much more efficient than `parseFile`.
+* Added more specific deprecation notices to `package:analyzer/analyzer.dart` to
+  direct clients to suitable replacements.
+* Deprecated the enable flags `bogus-disabled` and `bogus-enabled`.  Clients
+  should not be relying on the presence of these flags.
+* Deprecated the constructor parameter
+  ConstantEvaluationEngine.forAnalysisDriver, which no longer has any effect.
+* Deprecated ElementImpl.RIGHT_ARROW.
 
 ## 0.36.3
 * Deprecated `AstFactory.compilationUnit`.  In a future analyzer release, this

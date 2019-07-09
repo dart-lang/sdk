@@ -107,6 +107,9 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
 
+  bool IsRecognizedMethodForFlowGraph(const Function& function);
+  FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
+
   Fragment BuildTypedDataViewFactoryConstructor(const Function& function,
                                                 classid_t cid);
 
@@ -124,9 +127,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment TranslateInstantiatedTypeArguments(
       const TypeArguments& type_arguments);
 
-  Fragment AllocateObject(TokenPosition position,
-                          const Class& klass,
-                          intptr_t argument_count);
   Fragment CatchBlockEntry(const Array& handler_types,
                            intptr_t handler_index,
                            bool needs_stacktrace,
@@ -226,16 +226,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiUnboxedExtend(Representation representation,
                             const AbstractType& ffi_type);
 
-  // Pops an 'ffi.Pointer' off the stack.
-  // If it's null, pushes 0.
-  // Otherwise pushes the address (in boxed representation).
-  Fragment LoadAddressFromFfiPointer();
-
-  // Reverse of 'LoadPointerFromFfiPointer':
-  // Pops an integer off the the stack.
-  // If it's zero, pushes null.
-  // If it's nonzero, creates an 'ffi.Pointer' holding the address and pushes
-  // the pointer.
+  // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);
 
   // Pushes an (unboxed) bogus value returned when a native -> Dart callback

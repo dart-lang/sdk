@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
@@ -21,6 +19,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart'
     show getExpressionType, getReadType;
 import 'package:meta/meta.dart';
@@ -72,9 +71,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   InterfaceType thisType;
 
   /**
-   * The object keeping track of which elements have had their types promoted.
+   * The object providing promoted or declared types of variables.
    */
-  TypePromotionManager _promoteManager;
+  LocalVariableTypeProvider _localVariableTypeProvider;
 
   /**
    * Initialize a newly created static type analyzer to analyze types for the
@@ -86,7 +85,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
-    _promoteManager = _resolver.promoteManager;
+    _localVariableTypeProvider = _resolver.localVariableTypeProvider;
     AnalysisOptionsImpl analysisOptions =
         _resolver.definingLibrary.context.analysisOptions;
     _strictInference = analysisOptions.strictInference;
@@ -1042,8 +1041,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else if (element is TypeParameterElement) {
       staticType = _nonNullable(_typeProvider.typeType);
     } else if (element is VariableElement) {
-      VariableElement variable = element;
-      staticType = _promoteManager.getStaticType(variable);
+      staticType = _localVariableTypeProvider.getType(node);
     } else if (element is PrefixElement) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier && parent.prefix == node ||
@@ -1296,9 +1294,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
     } else if (element is ExecutableElement) {
       return _computeInvokeReturnType(element.type, isNullableInvoke: false);
-    } else if (element is VariableElement) {
-      DartType variableType = _promoteManager.getStaticType(element);
-      return _computeInvokeReturnType(variableType, isNullableInvoke: false);
     }
     return _dynamicType;
   }
@@ -1318,48 +1313,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return _dynamicType;
     }
     return returnType.type;
-  }
-
-  DartType _findIteratedType(DartType type, DartType targetType) {
-    // TODO(vsm): Use leafp's matchType here?
-    // Set by _find if match is found
-    DartType result;
-    // Elements we've already visited on a given inheritance path.
-    HashSet<ClassElement> visitedClasses;
-
-    type = type.resolveToBound(_typeProvider.objectType);
-
-    bool _find(InterfaceType type) {
-      ClassElement element = type.element;
-      if (type == _typeProvider.objectType || element == null) {
-        return false;
-      }
-      if (element == targetType.element) {
-        List<DartType> typeArguments = type.typeArguments;
-        assert(typeArguments.length == 1);
-        result = typeArguments[0];
-        return true;
-      }
-      if (visitedClasses == null) {
-        visitedClasses = new HashSet<ClassElement>();
-      }
-      // Already visited this class along this path
-      if (!visitedClasses.add(element)) {
-        return false;
-      }
-      try {
-        return _find(type.superclass) ||
-            type.interfaces.any(_find) ||
-            type.mixins.any(_find);
-      } finally {
-        visitedClasses.remove(element);
-      }
-    }
-
-    if (type is InterfaceType) {
-      _find(type);
-    }
-    return result;
   }
 
   /**
@@ -1573,14 +1526,22 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       if (iterable != null) {
         LocalVariableElementImpl element = loopVariable.declaredElement;
-        DartType exprType = iterable.staticType;
-        DartType targetType = (awaitKeyword == null)
-            ? _typeProvider.iterableType
-            : _typeProvider.streamType;
-        DartType iteratedType = _findIteratedType(exprType, targetType);
+
+        DartType iterableType = iterable.staticType;
+        iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+
+        ClassElement iteratedElement = (awaitKeyword == null)
+            ? _typeProvider.iterableType.element
+            : _typeProvider.streamType.element;
+
+        InterfaceType iteratedType = iterableType is InterfaceTypeImpl
+            ? iterableType.asInstanceOf(iteratedElement)
+            : null;
+
         if (element != null && iteratedType != null) {
-          element.type = iteratedType;
-          loopVariable.identifier.staticType = iteratedType;
+          DartType elementType = iteratedType.typeArguments.single;
+          element.type = elementType;
+          loopVariable.identifier.staticType = elementType;
         }
       }
     }

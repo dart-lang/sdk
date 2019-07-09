@@ -403,6 +403,9 @@ class KClassEnvImpl implements KClassEnv {
         // `Mixin.method` is inherited by `Class`.
         return;
       }
+      if (member.isForwardingStub && cls.isAnonymousMixin) {
+        return;
+      }
       if (!includeStatic && member.isStatic) return;
       if (member.isNoSuchMethodForwarder) {
         // TODO(sigmund): remove once #33732 is fixed.

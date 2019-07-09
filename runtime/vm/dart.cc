@@ -87,6 +87,7 @@ class ReadOnlyHandles {
 };
 
 static void CheckOffsets() {
+#if !defined(IS_SIMARM_X64)
   // These offsets are embedded in precompiled instructions. We need the
   // compiler and the runtime to agree.
   bool ok = true;
@@ -124,6 +125,7 @@ static void CheckOffsets() {
 #undef CHECK_RANGE
 #undef CHECK_CONSTANT
 #undef CHECK_OFFSET
+#endif  // !defined(IS_SIMARM_X64)
 }
 
 char* Dart::Init(const uint8_t* vm_isolate_snapshot,
@@ -138,7 +140,8 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
                  Dart_FileCloseCallback file_close,
                  Dart_EntropySource entropy_source,
                  Dart_GetVMServiceAssetsArchive get_service_assets,
-                 bool start_kernel_isolate) {
+                 bool start_kernel_isolate,
+                 Dart_CodeObserver* observer) {
   CheckOffsets();
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
@@ -192,6 +195,7 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   set_entropy_source_callback(entropy_source);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
+  NOT_IN_PRODUCT(CodeObservers::RegisterExternal(observer));
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();

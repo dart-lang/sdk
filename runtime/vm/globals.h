@@ -96,7 +96,7 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 0;
 #define SUPPORT_TIMELINE 1
 #endif
 
-#if defined(ARCH_IS_64_BIT)
+#if defined(ARCH_IS_64_BIT) && !defined(IS_SIMARM_X64)
 #define HASH_IN_OBJECT_HEADER 1
 #endif
 

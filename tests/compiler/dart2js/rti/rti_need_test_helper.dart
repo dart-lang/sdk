@@ -11,7 +11,6 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/types.dart';
-import 'package:compiler/src/ir/util.dart';
 import 'package:compiler/src/js_backend/runtime_types.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_model/element_map.dart';
@@ -318,7 +317,7 @@ abstract class IrMixin implements ComputeValueMixin {
 }
 
 class RtiClassNeedIrComputer extends DataRegistry<String>
-    with ComputeValueMixin, IrMixin {
+    with ComputeValueMixin, IrMixin, IrDataRegistryMixin<String> {
   @override
   final Compiler compiler;
   final JsToElementMap _elementMap;
@@ -333,8 +332,9 @@ class RtiClassNeedIrComputer extends DataRegistry<String>
   void computeClassValue(ClassEntity cls) {
     Id id = new ClassId(cls.name);
     ir.TreeNode node = _elementMap.getClassDefinition(cls).node;
-    registerValue(
-        computeSourceSpanFromTreeNode(node), id, getClassValue(cls), cls);
+    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
+    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
+        id, getClassValue(cls), cls);
   }
 }
 

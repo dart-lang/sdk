@@ -225,6 +225,7 @@ class BytecodeReaderHelper : public ValueObject {
   Class& scoped_function_class_;
   Library* expression_evaluation_library_ = nullptr;
   bool loading_native_wrappers_library_ = false;
+  bool reading_type_arguments_of_recursive_type_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeReaderHelper);
 };
@@ -326,20 +327,19 @@ class BytecodeReader : public AllStatic {
       const Function& function,
       const Bytecode& bytecode);
 #endif
-
-  static void UseBytecodeVersion(intptr_t version);
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {
  public:
+  // This constant should match corresponding constant in class SourcePositions
+  // (pkg/vm/lib/bytecode/source_positions.dart).
+  static const intptr_t kYieldPointMarker = -2;
+
   BytecodeSourcePositionsIterator(Zone* zone, const Bytecode& bytecode)
       : reader_(ExternalTypedData::Handle(zone, bytecode.GetBinary(zone))) {
     if (bytecode.HasSourcePositions()) {
       reader_.set_offset(bytecode.source_positions_binary_offset());
       pairs_remaining_ = reader_.ReadUInt();
-      if (Isolate::Current()->is_using_old_bytecode_instructions()) {
-        pc_shifter_ = 2;
-      }
     }
   }
 
@@ -349,8 +349,14 @@ class BytecodeSourcePositionsIterator : ValueObject {
     }
     ASSERT(pairs_remaining_ > 0);
     --pairs_remaining_;
-    cur_bci_ += reader_.ReadUInt() << pc_shifter_;
+    cur_bci_ += reader_.ReadUInt();
     cur_token_pos_ += reader_.ReadSLEB128();
+    is_yield_point_ = false;
+    if (cur_token_pos_ == kYieldPointMarker) {
+      const bool result = MoveNext();
+      is_yield_point_ = true;
+      return result;
+    }
     return true;
   }
 
@@ -358,12 +364,14 @@ class BytecodeSourcePositionsIterator : ValueObject {
 
   TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
 
+  bool IsYieldPoint() const { return is_yield_point_; }
+
  private:
   Reader reader_;
   intptr_t pairs_remaining_ = 0;
-  intptr_t pc_shifter_ = 0;
   intptr_t cur_bci_ = 0;
   intptr_t cur_token_pos_ = 0;
+  bool is_yield_point_ = false;
 };
 
 #if !defined(PRODUCT)

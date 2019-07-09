@@ -866,8 +866,11 @@ class Class : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
-
-  TokenPosition ComputeEndTokenPos() const;
+  TokenPosition end_token_pos() const {
+    ASSERT(is_declaration_loaded());
+    return raw_ptr()->end_token_pos_;
+  }
+  void set_end_token_pos(TokenPosition value) const;
 
   int32_t SourceFingerprint() const;
 
@@ -1305,6 +1308,10 @@ class Class : public Object {
       const Array& type_definitions,
       const Array& param_values,
       const TypeArguments& type_param_values) const;
+
+  // Load class declaration (super type, interfaces, type parameters and
+  // number of type arguments) if it is not loaded yet.
+  void EnsureDeclarationLoaded() const;
 
   RawError* EnsureIsFinalized(Thread* thread) const;
 
@@ -2117,6 +2124,13 @@ class Function : public Object {
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
+
+  // Can only be called on FFI trampolines.
+  // Null for Dart -> native calls.
+  RawInstance* FfiCallbackExceptionalReturn() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Return a new function with instantiated result and parameter types.
   RawFunction* InstantiateSignatureFrom(
@@ -3256,6 +3270,11 @@ class FfiTrampolineData : public Object {
 
   RawFunction* callback_target() const { return raw_ptr()->callback_target_; }
   void set_callback_target(const Function& value) const;
+
+  RawInstance* callback_exceptional_return() const {
+    return raw_ptr()->callback_exceptional_return_;
+  }
+  void set_callback_exceptional_return(const Instance& value) const;
 
   int32_t callback_id() const { return raw_ptr()->callback_id_; }
   void set_callback_id(int32_t value) const;
@@ -4402,6 +4421,10 @@ class KernelProgramInfo : public Object {
   RawArray* constants() const { return raw_ptr()->constants_; }
   void set_constants(const Array& constants) const;
 
+  // Records libraries under evaluation to break evaluation cycles.
+  RawGrowableObjectArray* evaluating() const { return raw_ptr()->evaluating_; }
+  void set_evaluating(const GrowableObjectArray& evaluating) const;
+
   // If we load a kernel blob with evaluated constants, then we delay setting
   // the native names of [Function] objects until we've read the constant table
   // (since native names are encoded as constants).
@@ -4555,7 +4578,8 @@ class ObjectPool : public Object {
   // Returns the pool index from the offset relative to a tagged RawObjectPool*,
   // adjusting for the tag-bit.
   static intptr_t IndexFromOffset(intptr_t offset) {
-    ASSERT(Utils::IsAligned(offset + kHeapObjectTag, kWordSize));
+    ASSERT(
+        Utils::IsAligned(offset + kHeapObjectTag, compiler::target::kWordSize));
     return (offset + kHeapObjectTag - data_offset()) /
            sizeof(RawObjectPool::Entry);
   }
@@ -4712,7 +4736,9 @@ class Instructions : public Object {
   static intptr_t HeaderSize() {
     intptr_t alignment = OS::PreferredCodeAlignment();
     intptr_t aligned_size = Utils::RoundUp(sizeof(RawInstructions), alignment);
+#if !defined(IS_SIMARM_X64)
     ASSERT(aligned_size == alignment);
+#endif  // !defined(IS_SIMARM_X64)
     return aligned_size;
   }
 
@@ -5193,6 +5219,14 @@ class Code : public Object {
     return Code::OptimizedBit::decode(code->ptr()->state_bits_);
   }
 
+  bool is_force_optimized() const {
+    return ForceOptimizedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_force_optimized(bool value) const;
+  static bool IsForceOptimized(RawCode* code) {
+    return Code::ForceOptimizedBit::decode(code->ptr()->state_bits_);
+  }
+
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -5424,6 +5458,9 @@ class Code : public Object {
     StorePointer(&raw_ptr()->exception_handlers_, handlers.raw());
   }
 
+  // WARNING: function() returns the owner which is not guaranteed to be
+  // a Function. It is up to the caller to guarantee it isn't a stub, class,
+  // or something else.
   // TODO(turnidge): Consider dropping this function and making
   // everybody use owner().  Currently this function is misused - even
   // while generating the snapshot.
@@ -5470,6 +5507,7 @@ class Code : public Object {
                                CodeStatistics* stats);
 
   // Notifies all active [CodeObserver]s.
+  static void NotifyCodeObservers(const Code& code, bool optimized);
   static void NotifyCodeObservers(const Function& function,
                                   const Code& code,
                                   bool optimized);
@@ -5546,12 +5584,19 @@ class Code : public Object {
   friend class RawCode;
   enum {
     kOptimizedBit = 0,
-    kAliveBit = 1,
-    kPtrOffBit = 2,
-    kPtrOffSize = 30,
+    kForceOptimizedBit = 1,
+    kAliveBit = 2,
+    kPtrOffBit = 3,
+    kPtrOffSize = 29,
   };
 
   class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+
+  // Force-optimized is true if the Code was generated for a function with
+  // Function::ForceOptimize().
+  class ForceOptimizedBit
+      : public BitField<int32_t, bool, kForceOptimizedBit, 1> {};
+
   class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
   class PtrOffBits
       : public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
@@ -5681,7 +5726,7 @@ class Bytecode : public Object {
 
   RawExternalTypedData* GetBinary(Zone* zone) const;
 
-  TokenPosition GetTokenIndexOfPC(uword pc) const;
+  TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
@@ -6224,6 +6269,8 @@ class Instance : public Object {
   // Returns true if all fields are OK for canonicalization.
   virtual bool CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const;
+
+  RawInstance* CopyShallowToOldSpace(Thread* thread) const;
 
 #if defined(DEBUG)
   // Check if instance is canonical.
@@ -6795,6 +6842,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart '_Closure' type.
   bool IsDartClosureType() const;
 
+  // Check if this type represents the 'Pointer' type from "dart:ffi".
+  bool IsFfiPointerType() const;
+
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other, Heap::Space space) const;
 
@@ -7282,9 +7332,7 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  static bool IsValid(int64_t value) {
-    return (value >= kMinValue) && (value <= kMaxValue);
-  }
+  static bool IsValid(int64_t value) { return compiler::target::IsSmi(value); }
 
   void operator=(RawSmi* value) {
     raw_ = value;
@@ -9040,8 +9088,7 @@ class ByteBuffer : public AllStatic {
 class Pointer : public Instance {
  public:
   static RawPointer* New(const AbstractType& type_arg,
-                         const Integer& c_memory_address,
-                         intptr_t class_id = kFfiPointerCid,
+                         uword native_address,
                          Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
@@ -9050,10 +9097,12 @@ class Pointer : public Instance {
 
   static bool IsPointer(const Instance& obj);
 
-  RawInteger* GetCMemoryAddress() const { return raw_ptr()->c_memory_address_; }
+  size_t NativeAddress() const {
+    return Integer::Handle(raw_ptr()->c_memory_address_).AsInt64Value();
+  }
 
-  void SetCMemoryAddress(const Integer& value) const {
-    StorePointer(&raw_ptr()->c_memory_address_, value.raw());
+  void SetNativeAddress(size_t address) const {
+    StorePointer(&raw_ptr()->c_memory_address_, Integer::New(address));
   }
 
   static intptr_t type_arguments_offset() {

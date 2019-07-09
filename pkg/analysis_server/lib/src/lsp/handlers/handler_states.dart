@@ -122,6 +122,8 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   ErrorOr<void> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
+      server.instrumentationService
+          .logInfo('Ignoring ${message.method} message while initializing');
       return success();
     }
     return error(
@@ -142,6 +144,8 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
+      server.instrumentationService
+          .logInfo('Ignoring ${message.method} message while uninitialized');
       return success();
     }
     return error(ErrorCodes.ServerNotInitialized,
@@ -159,6 +163,8 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
+      server.instrumentationService
+          .logInfo('Ignoring ${message.method} message while shutting down');
       return success();
     }
     return error(ErrorCodes.InvalidRequest,

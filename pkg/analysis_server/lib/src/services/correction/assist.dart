@@ -232,4 +232,6 @@ class DartAssistKind {
       'dart.assist.surround.tryFinally', 29, "Surround with 'try-finally'");
   static const SURROUND_WITH_WHILE = const AssistKind(
       'dart.assist.surround.while', 24, "Surround with 'while'");
+  static const USE_CURLY_BRACES =
+      const AssistKind('USE_CURLY_BRACES', 30, "Use curly braces");
 }

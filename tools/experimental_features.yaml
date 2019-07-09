@@ -83,14 +83,13 @@ triple-shift:
   help: "Triple-shift operator"
 
 #
-# Flags below this line are either retired or rejected, cannot be specified
+# Flags below this line are shipped, retired, or rejected, cannot be specified
 # on the command line, and will eventually be removed.
 #
 
 control-flow-collections:
   help: "Control Flow Collections"
   enabledIn: '2.2.2'
-  expired: true
 
 set-literals:
   help: "Set Literals"
@@ -100,4 +99,3 @@ set-literals:
 spread-collections:
   help: "Spread Collections"
   enabledIn: '2.2.2'
-  expired: true

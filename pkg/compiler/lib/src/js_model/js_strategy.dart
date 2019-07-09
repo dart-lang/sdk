@@ -34,6 +34,8 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_new.dart'
+    show RecipeEncoder, RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js/js.dart' as js;
@@ -202,6 +204,7 @@ class JsBackendStrategy implements BackendStrategy {
         closedWorld.elementEnvironment,
         closedWorld.commonElements,
         closedWorld.rtiNeed);
+
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
       rtiSubstitutions = new TrivialRuntimeTypesSubstitutions(closedWorld);
@@ -213,8 +216,18 @@ class JsBackendStrategy implements BackendStrategy {
       rtiSubstitutions = runtimeTypesImpl;
     }
 
-    CodegenInputs codegen = new CodegenInputsImpl(
-        rtiSubstitutions, rtiEncoder, tracer, rtiTags, fixedNames);
+    RecipeEncoder rtiRecipeEncoder = _compiler.options.experimentNewRti
+        ? new RecipeEncoderImpl(
+            closedWorld,
+            rtiSubstitutions,
+            closedWorld.nativeData,
+            closedWorld.elementEnvironment,
+            closedWorld.commonElements,
+            closedWorld.rtiNeed)
+        : null;
+
+    CodegenInputs codegen = new CodegenInputsImpl(rtiSubstitutions, rtiEncoder,
+        rtiRecipeEncoder, tracer, rtiTags, fixedNames);
 
     functionCompiler.initialize(globalTypeInferenceResults, codegen);
     return codegen;
