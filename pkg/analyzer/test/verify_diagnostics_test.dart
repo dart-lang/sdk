@@ -36,7 +36,7 @@ void main() async {
   //
   // Validate that the generator has been run.
   //
-  if (pathContext != windows) {
+  if (pathContext.style != Style.windows) {
     String outputPath =
         pathContext.join(analyzerPath, 'tool', 'diagnostics', 'diagnostics.md');
     String actualContent = PhysicalResourceProvider.INSTANCE
