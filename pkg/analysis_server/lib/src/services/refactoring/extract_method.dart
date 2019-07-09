@@ -464,6 +464,15 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
    * location of this [DartExpression] in AST allows extracting.
    */
   RefactoringStatus _checkSelection() {
+    if (selectionOffset <= 0) {
+      return new RefactoringStatus.fatal(
+          'The selection offset must be greater than zero.');
+    }
+    if (selectionOffset + selectionLength >= resolveResult.content.length) {
+      return new RefactoringStatus.fatal(
+          'The selection end offset must be less then the length of the file.');
+    }
+
     // Check for implicitly selected closure.
     {
       FunctionExpression function = _findFunctionExpression();

@@ -296,7 +296,7 @@ main() {
 
   test_bad_namePartOfDeclaration_function() async {
     await indexTestUnit('''
-main() {
+void main() {
 }
 ''');
     _createRefactoringForString('main');
@@ -762,6 +762,28 @@ main() {
     expect(refactoring.createGetter, true);
   }
 
+  test_checkInitialCondition_false_outOfRange_length() async {
+    await indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    _createRefactoring(0, 1 << 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
+  test_checkInitialCondition_outOfRange_offset() async {
+    await indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    _createRefactoring(-10, 20);
+    RefactoringStatus status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
+  }
+
   test_checkName() async {
     await indexTestUnit('''
 main() {
@@ -1069,6 +1091,24 @@ class A {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Method');
+  }
+
+  test_isAvailable_false_functionName() async {
+    await indexTestUnit('''
+void main() {}
+''');
+    _createRefactoringForString('main');
+    expect(refactoring.isAvailable(), isFalse);
+  }
+
+  test_isAvailable_true() async {
+    await indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    expect(refactoring.isAvailable(), isTrue);
   }
 
   test_names_singleExpression() async {
