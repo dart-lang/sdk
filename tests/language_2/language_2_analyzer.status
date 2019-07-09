@@ -71,7 +71,6 @@ malformed2_test: Pass, MissingCompileTimeError # Flaky: issue 31056.
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError
 mixin_super_use_test: CompileTimeError
-mock_writable_final_private_field_test: CompileTimeError # failing-by-design, see Issue #34377
 nested_generic_closure_test: CompileTimeError # Issue #28515
 no_main_test/01: Fail # failing-by-design, the analyzer has no restriction that a library include a main function.
 no_such_constructor2_test: StaticWarning

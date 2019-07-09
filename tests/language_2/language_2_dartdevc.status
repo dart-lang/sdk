@@ -104,7 +104,6 @@ mixin_declaration/mixin_declaration_factory_test/02: Crash
 mixin_method_override_test/01: MissingCompileTimeError
 mixin_super_2_test: CompileTimeError # Issue 34806
 mixin_super_use_test: CompileTimeError # Issue 34806
-mock_writable_final_private_field_test: CompileTimeError # Issue 30848
 nested_generic_closure_test: CompileTimeError
 nnbd/*: Skip
 override_inheritance_field_test/42: CompileTimeError
@@ -245,7 +244,6 @@ mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_super_2_test: RuntimeError # Issue 34807
 mixin_super_use_test: RuntimeError # Issue 34808
-mock_writable_final_private_field_test: RuntimeError
 multiline_newline_test/04: MissingCompileTimeError
 multiline_newline_test/04r: MissingCompileTimeError
 multiline_newline_test/05: MissingCompileTimeError

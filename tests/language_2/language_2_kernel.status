@@ -1046,7 +1046,6 @@ redirecting_factory_reflection_test: RuntimeError
 generic_function_bounds_test: RuntimeError # Issue 32076
 
 [ $compiler == dartkb || $compiler == dartkp ]
-mock_writable_final_private_field_test: CompileTimeError # Test uses Symbol("_...") which is a compile-time error.
 set_literals/invalid_set_literal_test/29: Pass # Gen_kernel does does constant
 set_literals/invalid_set_literal_test/30: Pass # evalutation, so these tests
 set_literals/invalid_set_literal_test/31: Pass # throw the expected errors. The

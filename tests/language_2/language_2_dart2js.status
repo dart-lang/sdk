@@ -160,7 +160,6 @@ mixin_illegal_superclass_test/29: MissingCompileTimeError
 mixin_illegal_superclass_test/30: MissingCompileTimeError
 mixin_method_override_test/G5: Skip # Issue 34354
 mock_writable_final_field_test: RuntimeError # Issue 30847
-mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 named_parameters_default_eq_test/none: RuntimeError
 nan_identical_test: RuntimeError # Issue 11551
@@ -455,7 +454,6 @@ mixin_mixin_bound_test: RuntimeError
 mixin_mixin_test: RuntimeError
 mixin_type_parameters_super_test: RuntimeError
 mock_writable_final_field_test: RuntimeError # Issue 30847
-mock_writable_final_private_field_test: RuntimeError # Issue 17526, 30847
 modulo_test: RuntimeError # non JS number semantics
 nan_identical_test: RuntimeError # Issue 11551
 no_main_test/01: CompileTimeError
