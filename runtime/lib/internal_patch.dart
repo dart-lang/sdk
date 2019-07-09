@@ -74,10 +74,6 @@ bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
   return cid >= lowerLimit && cid <= upperLimit;
 }
 
-bool _classRangeCheckNegative(int cid, int lowerLimit, int upperLimit) {
-  return cid < lowerLimit || cid > upperLimit;
-}
-
 // Utility class now only used by the VM.
 class Lists {
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {

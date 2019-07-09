@@ -404,7 +404,6 @@ class ObjectPointerVisitor;
   V(_UserTag, "_UserTag")                                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
-  V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
   V(_get, "_get")                                                              \
