@@ -93,36 +93,6 @@ f(bool b) {
 ''');
   }
 
-  test_dartfix_convertClassToMixin() async {
-    addTestFile('''
-class A {}
-class B extends A {}
-class C with B {}
-    ''');
-    createProject();
-    EditDartfixResult result = await performFix();
-    expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
-    expectEdits(result.edits, '''
-class A {}
-mixin B implements A {}
-class C with B {}
-    ''');
-  }
-
-  test_dartfix_convertToIntLiteral() async {
-    addTestFile('''
-const double myDouble = 42.0;
-    ''');
-    createProject();
-    EditDartfixResult result = await performFix();
-    expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
-    expectEdits(result.edits, '''
-const double myDouble = 42;
-    ''');
-  }
-
   test_dartfix_excludedSource() async {
     // Add analysis options to exclude the lib directory then reanalyze
     newFile('/project/analysis_options.yaml', content: '''
@@ -140,6 +110,25 @@ const double myDouble = 42.0;
     final result = await performFix();
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
+  }
+
+  test_dartfix_fixNamedConstructorTypeArgs() async {
+    addTestFile('''
+class A<T> { A.from(Object obj) { } }
+main() {
+  print(new A.from<String>([]));
+}
+    ''');
+    createProject();
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
+    expectEdits(result.edits, '''
+class A<T> { A.from(Object obj) { } }
+main() {
+  print(new A<String>.from([]));
+}
+    ''');
   }
 
   test_dartfix_map_for_elements() async {
@@ -167,25 +156,6 @@ f(Iterable<int> i) {
   return { for (var e in i) e * 2 : k };
 }
 ''');
-  }
-
-  test_dartfix_moveTypeArgumentToClass() async {
-    addTestFile('''
-class A<T> { A.from(Object obj) { } }
-main() {
-  print(new A.from<String>([]));
-}
-    ''');
-    createProject();
-    EditDartfixResult result = await performFix();
-    expect(result.suggestions, hasLength(1));
-    expectSuggestion(result.suggestions[0], 'type arguments', 65, 8);
-    expectEdits(result.edits, '''
-class A<T> { A.from(Object obj) { } }
-main() {
-  print(new A<String>.from([]));
-}
-    ''');
   }
 
   test_dartfix_non_nullable() async {
@@ -326,7 +296,69 @@ const double myDouble = 42;
     ''');
   }
 
-  test_dartfix_spread_collections() async {
+  test_dartfix_preferForElementsToMapFromIterable() async {
+    addTestFile('''
+var m =
+  Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2);
+    ''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['map-for-elements']);
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(
+        result.suggestions[0], "Convert to a 'for' element", 10, 73);
+    expectEdits(result.edits, '''
+var m =
+  { for (var i in [1, 2, 3]) i : i * 2 };
+    ''');
+  }
+
+  test_dartfix_preferIfElementsToConditionalExpressions() async {
+    addTestFile('''
+f(bool b) => ['a', b ? 'c' : 'd', 'e'];
+    ''');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['collection-if-elements']);
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(
+        result.suggestions[0], "Convert to an 'if' element", 19, 13);
+    expectEdits(result.edits, '''
+f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
+    ''');
+  }
+
+  test_dartfix_preferIntLiterals() async {
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+    createProject();
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
+    expectEdits(result.edits, '''
+const double myDouble = 42;
+    ''');
+  }
+
+  test_dartfix_preferMixin() async {
+    addTestFile('''
+class A {}
+class B extends A {}
+class C with B {}
+    ''');
+    createProject();
+    EditDartfixResult result = await performFix();
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
+    expectEdits(result.edits, '''
+class A {}
+mixin B implements A {}
+class C with B {}
+    ''');
+  }
+
+  test_dartfix_preferSpreadCollections() async {
     // Add analysis options to enable ui as code
     newFile('/project/analysis_options.yaml', content: '''
 analyzer:

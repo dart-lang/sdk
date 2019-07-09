@@ -13,12 +13,13 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
-class PreferIfElementsToConditionalExpressionsFix extends FixLintTask {
-  final List<AstNode> nodes = <AstNode>[];
+class BasicFixLintTask extends FixLintTask {
+  final AssistKind assistKind;
+  final nodes = <AstNode>[];
 
-  PreferIfElementsToConditionalExpressionsFix(DartFixListener listener)
-      : super(listener);
+  BasicFixLintTask(this.assistKind, DartFixListener listener) : super(listener);
 
   @override
   Future<void> applyLocalFixes(ResolvedUnitResult result) async {
@@ -26,13 +27,13 @@ class PreferIfElementsToConditionalExpressionsFix extends FixLintTask {
       AstNode node = nodes.removeLast();
       AssistProcessor processor = new AssistProcessor(
         new DartAssistContextImpl(
-            DartChangeWorkspace(listener.server.currentSessions),
-            result,
-            node.offset,
-            node.length),
+          DartChangeWorkspace(listener.server.currentSessions),
+          result,
+          node.offset,
+          node.length,
+        ),
       );
-      List<Assist> assists =
-          await processor.computeAssist(DartAssistKind.CONVERT_TO_IF_ELEMENT);
+      List<Assist> assists = await processor.computeAssist(assistKind);
 
       final location = listener.locationFor(result, node.offset, node.length);
       if (assists.isNotEmpty) {
@@ -41,8 +42,10 @@ class PreferIfElementsToConditionalExpressionsFix extends FixLintTask {
               assist.kind.message, location, assist.change);
         }
       } else {
+        // TODO(danrubel): If assists is empty, then determine why
+        // assist could not be performed and report that in the description.
         listener.addRecommendation(
-            'Convert to if elements assist not found', location);
+            'Fix not found: ${assistKind.message}', location);
       }
     }
 
@@ -51,19 +54,47 @@ class PreferIfElementsToConditionalExpressionsFix extends FixLintTask {
 
   @override
   Future<void> applyRemainingFixes() {
+    // All fixes applied in [applyLocalFixes]
     return null;
   }
 
   @override
   void reportErrorForNode(ErrorCode errorCode, AstNode node,
       [List<Object> arguments]) {
-    nodes.add(node);
+    if (source.fullName != null) {
+      nodes.add(node);
+    }
   }
 
-  static void task(DartFixRegistrar registrar, DartFixListener listener) {
+  static void preferForElementsToMapFromIterable(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_for_elements_to_map_fromIterable'],
+      new BasicFixLintTask(DartAssistKind.CONVERT_TO_FOR_ELEMENT, listener),
+    );
+  }
+
+  static void preferIfElementsToConditionalExpressions(
+      DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_if_elements_to_conditional_expressions'],
-      new PreferIfElementsToConditionalExpressionsFix(listener),
+      new BasicFixLintTask(DartAssistKind.CONVERT_TO_IF_ELEMENT, listener),
+    );
+  }
+
+  static void preferIntLiterals(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_int_literals'],
+      new BasicFixLintTask(DartAssistKind.CONVERT_TO_INT_LITERAL, listener),
+    );
+  }
+
+  static void preferSpreadCollections(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_spread_collections'],
+      new BasicFixLintTask(DartAssistKind.CONVERT_TO_SPREAD, listener),
     );
   }
 }

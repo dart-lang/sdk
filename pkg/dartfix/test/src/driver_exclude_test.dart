@@ -43,6 +43,6 @@ main() {
     final suggestions = driver.result.suggestions;
     expect(suggestions, hasLength(1));
     expectDoesNotHaveSuggestion(suggestions, 'Convert MyMixin to a mixin');
-    expectHasSuggestion(suggestions, 'Replace a double literal');
+    expectHasSuggestion(suggestions, 'Convert to an int literal');
   });
 }

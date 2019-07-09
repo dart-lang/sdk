@@ -8,11 +8,8 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
 import 'package:analysis_server/src/edit/fix/non_nullable_fix.dart';
-import 'package:analysis_server/src/edit/fix/prefer_for_elements_to_map_fromIterable_fix.dart';
-import 'package:analysis_server/src/edit/fix/prefer_if_elements_to_conditional_expressions_fix.dart';
-import 'package:analysis_server/src/edit/fix/prefer_int_literals_fix.dart';
 import 'package:analysis_server/src/edit/fix/prefer_mixin_fix.dart';
-import 'package:analysis_server/src/edit/fix/prefer_spread_collections_fix.dart';
+import 'package:analysis_server/src/edit/fix/basic_fix_lint_task.dart';
 
 const allFixes = <DartFixInfo>[
   //
@@ -64,7 +61,7 @@ For example, this
 
 will be converted to
   const double myDouble = 8;''',
-    PreferIntLiteralsFix.task,
+    BasicFixLintTask.preferIntLiterals,
   ),
   const DartFixInfo(
     'use-spread-collections',
@@ -78,7 +75,7 @@ For example, this
 will be converted to
   var l1 = ['b'];
   var l2 = ['a', ...l1];''',
-    PreferSpreadCollectionsFix.task,
+    BasicFixLintTask.preferSpreadCollections,
     isDefault: false,
   ),
   const DartFixInfo(
@@ -91,7 +88,7 @@ For example, this
 
 will be converted to
   f(bool b) => ['a', if (b) 'c' else 'd', 'e'];''',
-    PreferIfElementsToConditionalExpressionsFix.task,
+    BasicFixLintTask.preferIfElementsToConditionalExpressions,
     isDefault: false,
   ),
   const DartFixInfo(
@@ -104,7 +101,7 @@ For example, this
 
 will be converted to
   <int, int>{ for(int i in [1, 2, 3]) i : i * 2, }''',
-    PreferForElementsToMapFromIterableFix.task,
+    BasicFixLintTask.preferForElementsToMapFromIterable,
     isDefault: false,
   ),
   //

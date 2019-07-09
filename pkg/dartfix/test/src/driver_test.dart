@@ -44,7 +44,7 @@ main() {
     final suggestions = driver.result.suggestions;
     expect(suggestions, hasLength(2));
     expectHasSuggestion(suggestions, 'Convert MyMixin to a mixin');
-    expectHasSuggestion(suggestions, 'Replace a double literal');
+    expectHasSuggestion(suggestions, 'Convert to an int literal');
 
     expect(driver.result.edits, hasLength(1));
     for (SourceEdit edit in driver.result.edits[0].edits) {
