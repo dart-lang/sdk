@@ -43,20 +43,19 @@ class MemorySourceFileProvider extends SourceFileProvider {
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
     Input<List<int>> input;
+    StringSourceFile stringFile;
+    if (source is String) {
+      stringFile = new StringSourceFile.fromUri(resourceUri, source);
+    }
     switch (inputKind) {
       case InputKind.UTF8:
-        if (source is String) {
-          input = new StringSourceFile.fromUri(resourceUri, source);
-        } else {
-          input = new Utf8BytesSourceFile(resourceUri, source);
-        }
+        input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
         utf8SourceFiles[resourceUri] = input;
         break;
       case InputKind.binary:
-        if (source is String) {
-          utf8SourceFiles[resourceUri] =
-              new StringSourceFile.fromUri(resourceUri, source);
-          source = source.codeUnits;
+        if (stringFile != null) {
+          utf8SourceFiles[resourceUri] = stringFile;
+          source = stringFile.data;
         }
         input =
             binarySourceFiles[resourceUri] = new Binary(resourceUri, source);
