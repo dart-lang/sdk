@@ -212,7 +212,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   bool NeedsDebugStepCheck(const Function& function, TokenPosition position);
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
-  Fragment DebugStepCheck(TokenPosition position);
 
   // Truncates (instead of deoptimizing) if the origin does not fit into the
   // target representation.

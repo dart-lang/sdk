@@ -1534,12 +1534,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       asm.emitEntry(locals.frameSize);
     }
-    // TODO(alexmarkov): Introduce a new bytecode triggering a debug check in
-    // the interpreter. Its token position should correspond to the declaration
-    // position of the last parameter, which the debugger can inspect at the
-    // point of the debug check.
-    // TODO(regis): Support the new bytecode in the interpreter and dissociate
-    // the debug check from the CheckStack bytecode.
     asm.emitCheckStack(0);
 
     if (isClosure) {
@@ -1665,6 +1659,23 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
       function.positionalParameters.forEach(_copyParamIfCaptured);
       locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
+    }
+
+    if (options.emitDebuggerStops) {
+      // DebugCheck instruction should be emitted after parameter variables
+      // are declared and copied into context.
+      // The debugger expects the source position to correspond to the
+      // declaration position of the last parameter, if any, or of the function.
+      if (options.emitSourcePositions && function != null) {
+        var pos = function.fileOffset;
+        if (function.namedParameters.isNotEmpty) {
+          pos = function.namedParameters.last.fileOffset;
+        } else if (function.positionalParameters.isNotEmpty) {
+          pos = function.positionalParameters.last.fileOffset;
+        }
+        _recordSourcePosition(pos);
+      }
+      asm.emitDebugCheck();
     }
   }
 

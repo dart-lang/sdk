@@ -1220,15 +1220,6 @@ bool FlowGraphBuilder::NeedsDebugStepCheck(Value* value,
   return definition->IsLoadLocal();
 }
 
-Fragment FlowGraphBuilder::DebugStepCheck(TokenPosition position) {
-#ifdef PRODUCT
-  return Fragment();
-#else
-  return Fragment(new (Z) DebugStepCheckInstr(
-      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
-#endif
-}
-
 Fragment FlowGraphBuilder::EvaluateAssertion() {
   const Class& klass =
       Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::AssertionError()));

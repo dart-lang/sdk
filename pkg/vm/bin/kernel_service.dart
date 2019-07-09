@@ -146,8 +146,8 @@ abstract class Compiler {
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
-          // TODO(alexmarkov): disable source positions, local variables info
-          //  and source files in VM PRODUCT mode.
+          // TODO(alexmarkov): disable source positions, local variables info,
+          //  debugger stops and source files in VM PRODUCT mode.
           // TODO(alexmarkov): disable asserts if they are not enabled in VM.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
@@ -156,6 +156,7 @@ abstract class Compiler {
                   environmentDefines: options.environmentDefines,
                   emitSourcePositions: true,
                   emitLocalVarInfo: true,
+                  emitDebuggerStops: true,
                   emitSourceFiles: true,
                   emitAnnotations: true));
         });

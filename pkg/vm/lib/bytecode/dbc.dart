@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 12;
+const int currentBytecodeFormatVersion = 13;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -99,8 +99,6 @@ enum Opcode {
   kUnusedOpcode083,
   kUnusedOpcode084,
 
-  // Bytecode instructions since bytecode format v7:
-
   kTrap,
 
   // Prologue and stack management.
@@ -117,7 +115,7 @@ enum Opcode {
   kCheckFunctionTypeArgs,
   kCheckFunctionTypeArgs_Wide,
   kCheckStack,
-  kUnused01,
+  kDebugCheck,
   kUnused02, // Reserved for CheckParameterTypes
   kUnused03, // Reserved for CheckParameterTypes_Wide
 
@@ -370,6 +368,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kAE, const [Operand.imm, Operand.reg, Operand.none]),
   Opcode.kCheckStack: const Format(
       Encoding.kA, const [Operand.imm, Operand.none, Operand.none]),
+  Opcode.kDebugCheck: const Format(
+      Encoding.k0, const [Operand.none, Operand.none, Operand.none]),
   Opcode.kAllocate: const Format(
       Encoding.kD, const [Operand.lit, Operand.none, Operand.none]),
   Opcode.kAllocateT: const Format(

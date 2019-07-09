@@ -513,6 +513,11 @@ class BytecodeAssembler {
     _emitInstructionA(Opcode.kCheckStack, ra);
   }
 
+  void emitDebugCheck() {
+    emitSourcePosition();
+    _emitInstruction0(Opcode.kDebugCheck);
+  }
+
   void emitCheckFunctionTypeArgs(int ra, int re) {
     emitSourcePosition();
     _emitInstructionAE(Opcode.kCheckFunctionTypeArgs, ra, re);

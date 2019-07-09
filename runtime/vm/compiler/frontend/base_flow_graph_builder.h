@@ -301,6 +301,8 @@ class BaseFlowGraphBuilder {
                           const Class& klass,
                           intptr_t argument_count);
 
+  Fragment DebugStepCheck(TokenPosition position);
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

@@ -1750,7 +1750,6 @@ SwitchDispatch:
 
   {
     BYTECODE(CheckStack, A);
-    DEBUG_CHECK;
     {
       // Check the interpreter's own stack limit for actual interpreter's stack
       // overflows, and also the thread's stack limit for scheduled interrupts.
@@ -1772,6 +1771,12 @@ SwitchDispatch:
       NativeArguments native_args(thread, 1, SP + 2, SP + 1);
       INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
     }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DebugCheck, 0);
+    DEBUG_CHECK;
     DISPATCH();
   }
 

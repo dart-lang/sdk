@@ -570,7 +570,7 @@ namespace dart {
   V(CheckFunctionTypeArgs,               A_E, ORDN, num, reg, ___)             \
   V(CheckFunctionTypeArgs_Wide,          A_E, WIDE, num, reg, ___)             \
   V(CheckStack,                            A, ORDN, num, ___, ___)             \
-  V(Unused01,                              0, RESV, ___, ___, ___)             \
+  V(DebugCheck,                            0, ORDN, ___, ___, ___)             \
   V(Unused02,                              0, RESV, ___, ___, ___)             \
   V(Unused03,                              0, RESV, ___, ___, ___)             \
   V(Allocate,                              D, ORDN, lit, ___, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 12;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 13;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -969,7 +969,7 @@ class KernelBytecode {
       case KernelBytecode::kStoreLocal_Wide:
       case KernelBytecode::kStoreStaticTOS:
       case KernelBytecode::kStoreStaticTOS_Wide:
-      case KernelBytecode::kCheckStack:
+      case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:

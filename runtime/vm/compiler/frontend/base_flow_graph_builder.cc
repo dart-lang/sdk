@@ -873,6 +873,15 @@ Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
   return code;
 }
 
+Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+#ifdef PRODUCT
+  return Fragment();
+#else
+  return Fragment(new (Z) DebugStepCheckInstr(
+      position, RawPcDescriptors::kRuntimeCall, GetNextDeoptId()));
+#endif
+}
+
 }  // namespace kernel
 }  // namespace dart
 

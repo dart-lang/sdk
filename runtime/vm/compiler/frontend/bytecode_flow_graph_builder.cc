@@ -730,6 +730,13 @@ void BytecodeFlowGraphBuilder::BuildCheckStack() {
   }
 }
 
+void BytecodeFlowGraphBuilder::BuildDebugCheck() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+  code_ += B->DebugStepCheck(position_);
+}
+
 void BytecodeFlowGraphBuilder::BuildPushConstant() {
   PushConstant(ConstantAt(DecodeOperandD()));
 }
