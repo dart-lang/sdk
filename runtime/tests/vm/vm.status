@@ -74,6 +74,7 @@ cc/GenKernelKernelLoadKernel: Skip # Issue 34542.
 cc/GenKernelKernelMaxRSS: Skip # Issue 34393.
 cc/GenKernelKernelReadAllBytecode: Skip # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip # Issue 34393.
+dart/disassemble_determinism_test: Slow # Times out on slower bots.
 
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
