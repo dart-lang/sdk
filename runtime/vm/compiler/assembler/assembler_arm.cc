@@ -15,8 +15,8 @@
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
 #if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) &&   \
-    !HOST_OS_IOS
-#error ARM cross-compile only supported on Linux
+    !defined(HOST_OS_IOS) && !defined(HOST_OS_MACOS)
+#error ARM cross-compile only supported on Linux, Android, iOS, and Mac
 #endif
 
 namespace dart {
