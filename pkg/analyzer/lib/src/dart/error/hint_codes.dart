@@ -802,6 +802,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
       'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration.",
       correction: "Try removing the declaration of 'noSuchMethod'.");
+
   /**
    * When the '?.' operator is used on a target that we know to be non-null,
    * it is unnecessary.

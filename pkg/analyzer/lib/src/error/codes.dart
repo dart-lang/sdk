@@ -4905,6 +4905,15 @@ class StaticWarningCode extends ErrorCode {
               "Try casting or check the value is not null before using it.");
 
   /**
+   * When the '...?' operator is used on a value that we know to be non-null,
+   * it is unnecessary.
+   */
+  static const StaticWarningCode UNNECESSARY_NULL_AWARE_SPREAD =
+      const StaticWarningCode('UNNECESSARY_NULL_AWARE_SPREAD',
+          "The target expression cannot be null, and so '?' is not necessary.",
+          correction: "Replace the '...?' with a '...' in the spread.");
+
+  /**
    * It is a static warning to assign void to any non-void type in dart.
    * compile-time error). Report that error specially for a better user
    * experience.

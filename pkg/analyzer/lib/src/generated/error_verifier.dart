@@ -1303,6 +1303,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitSpreadElement(SpreadElement node) {
     if (node.spreadOperator.type != TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       _checkForNullableDereference(node.expression);
+    } else {
+      _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);
     }
     super.visitSpreadElement(node);
   }
@@ -5570,15 +5572,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForUnnecessaryNullAware(Expression target, Token operator) {
-    if (operator.type != TokenType.QUESTION_PERIOD || !_isNonNullable) {
+    if (!_isNonNullable) {
+      return;
+    }
+
+    ErrorCode errorCode;
+    if (operator.type == TokenType.QUESTION_PERIOD) {
+      errorCode = HintCode.UNNECESSARY_NULL_AWARE_CALL;
+    } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
+      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
+    } else {
       return;
     }
 
     if (target.staticType != null &&
         (target.staticType as TypeImpl).nullabilitySuffix ==
             NullabilitySuffix.none) {
-      _errorReporter.reportErrorForToken(
-          HintCode.UNNECESSARY_NULL_AWARE_CALL, operator, []);
+      _errorReporter.reportErrorForToken(errorCode, operator, []);
     }
   }
 
