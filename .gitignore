@@ -55,6 +55,9 @@ compile_commands.json
 # GDB files
 .gdb_history
 
+# Clangd files
+.clangd
+
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
 
