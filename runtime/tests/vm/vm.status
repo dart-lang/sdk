@@ -90,6 +90,7 @@ dart/data_uri_import_test/wrongmime: Crash
 [ $builder_tag == obfuscated && $compiler == dartkp ]
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Looks for filenames in stacktrace output
 dart/optimized_stacktrace_line_test: SkipByDesign # Looks for filenames in stacktrace output
+dart/regress_37382_test: SkipByDesign # Matches the type arguments names
 
 [ $compiler == dartk && $mode == product && $runtime == vm ]
 cc/CorelibIsolateStartup: Timeout, Pass
