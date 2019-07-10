@@ -2362,21 +2362,22 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
   Object& new_subclass = Object::Handle();
   String& name = String::Handle();
 
-  // Lookup the Iterator class by name from the dart core library.
+  // Lookup the Stopwatch class by name from the dart core library.
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
-  name = String::New("Iterator");
-  const Class& iterator_cls = Class::Handle(core_lib.LookupClass(name));
+  name = String::New("Stopwatch");
+  const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
 
-  // Keep track of how many subclasses an Iterator has.
+  // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(iterator_cls.direct_subclasses());
-  intptr_t saved_subclass_count = subclasses.Length();
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+  intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
-      "abstract class AIterator extends Iterator {\n"
+      "class AStopwatch extends Stopwatch {\n"
       "}\n"
       "main() {\n"
+      "  new AStopwatch();\n"  // Force finalization.
       "  return 1;\n"
       "}\n";
 
@@ -2387,21 +2388,23 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
-  // Iterator has one non-core subclass.
-  subclasses = iterator_cls.direct_subclasses();
+  // Stopwatch has one non-core subclass.
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
-  // The new subclass is named AIterator.
+  // The new subclass is named AStopwatch.
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("AIterator", name.ToCString());
+  EXPECT_STREQ("AStopwatch", name.ToCString());
 
   const char* kReloadScript =
-      "class AIterator {\n"
+      "class AStopwatch {\n"
       "}\n"
-      "abstract class BIterator extends Iterator {\n"
+      "class BStopwatch extends Stopwatch {\n"
       "}\n"
       "main() {\n"
+      "  new AStopwatch();\n"  // Force finalization.
+      "  new BStopwatch();\n"  // Force finalization.
       "  return 2;\n"
       "}\n";
 
@@ -2412,35 +2415,36 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Success) {
     EXPECT_EQ(2, SimpleInvoke(lib, "main"));
   }
 
-  // Iterator still has only one non-core subclass (AIterator is gone).
-  subclasses = iterator_cls.direct_subclasses();
+  // Stopwatch still has only one non-core subclass (AStopwatch is gone).
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
-  // The new subclass is named BIterator.
+  // The new subclass is named BStopwatch.
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("BIterator", name.ToCString());
+  EXPECT_STREQ("BStopwatch", name.ToCString());
 }
 
 ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
   Object& new_subclass = Object::Handle();
   String& name = String::Handle();
 
-  // Lookup the Iterator class by name from the dart core library.
+  // Lookup the Stopwatch class by name from the dart core library.
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
-  name = String::New("Iterator");
-  const Class& iterator_cls = Class::Handle(core_lib.LookupClass(name));
+  name = String::New("Stopwatch");
+  const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
 
-  // Keep track of how many subclasses an Iterator has.
+  // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(iterator_cls.direct_subclasses());
-  intptr_t saved_subclass_count = subclasses.Length();
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+  intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
-      "abstract class AIterator extends Iterator {\n"
+      "class AStopwatch extends Stopwatch {\n"
       "}\n"
       "main() {\n"
+      "  new AStopwatch();\n"  // Force finalization.
       "  return 1;\n"
       "}\n";
 
@@ -2451,19 +2455,20 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
-  // Iterator has one new subclass.
-  subclasses = iterator_cls.direct_subclasses();
+  // Stopwatch has one new subclass.
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
-  // The new subclass is named AIterator.
+  // The new subclass is named AStopwatch.
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("AIterator", name.ToCString());
+  EXPECT_STREQ("AStopwatch", name.ToCString());
 
   const char* kReloadScript =
-      "abstract class BIterator extends Iterator {\n"
+      "class BStopwatch extends Stopwatch {\n"
       "}\n"
       "main() {\n"
+      "  new BStopwatch();\n"  // Force finalization.
       "  return 2;\n"
       "}\n";
 
@@ -2474,18 +2479,18 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_GhostSubclass) {
     EXPECT_EQ(2, SimpleInvoke(lib, "main"));
   }
 
-  // Iterator has two non-core subclasses.
-  subclasses = iterator_cls.direct_subclasses();
+  // Stopwatch has two non-core subclasses.
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 2, subclasses.Length());
 
-  // The non-core subclasses are AIterator and BIterator.
+  // The non-core subclasses are AStopwatch and BStopwatch.
   new_subclass = subclasses.At(subclasses.Length() - 2);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("AIterator", name.ToCString());
+  EXPECT_STREQ("AStopwatch", name.ToCString());
 
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("BIterator", name.ToCString());
+  EXPECT_STREQ("BStopwatch", name.ToCString());
 }
 
 // Make sure that we restore the direct subclass info when we revert.
@@ -2493,26 +2498,27 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
   Object& new_subclass = Object::Handle();
   String& name = String::Handle();
 
-  // Lookup the Iterator class by name from the dart core library.
+  // Lookup the Stopwatch class by name from the dart core library.
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Library& core_lib = Library::Handle(object_store->core_library());
-  name = String::New("Iterator");
-  const Class& iterator_cls = Class::Handle(core_lib.LookupClass(name));
+  name = String::New("Stopwatch");
+  const Class& stopwatch_cls = Class::Handle(core_lib.LookupClass(name));
 
-  // Keep track of how many subclasses an Iterator has.
+  // Keep track of how many subclasses an Stopwatch has.
   auto& subclasses =
-      GrowableObjectArray::Handle(iterator_cls.direct_subclasses());
-  intptr_t saved_subclass_count = subclasses.Length();
+      GrowableObjectArray::Handle(stopwatch_cls.direct_subclasses());
+  intptr_t saved_subclass_count = subclasses.IsNull() ? 0 : subclasses.Length();
 
   const char* kScript =
-      "abstract class AIterator extends Iterator {\n"
+      "class AStopwatch extends Stopwatch {\n"
       "}\n"
       "class Foo {\n"
       "  final a;\n"
       "  Foo(this.a);\n"
       "}\n"
       "main() {\n"
-      "  new Foo(5);\n"  // Force Foo to be finalized.
+      "  new AStopwatch();\n"  // Force finalization.
+      "  new Foo(5);\n"        // Force finalization.
       "  return 1;\n"
       "}\n";
 
@@ -2523,25 +2529,27 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
     EXPECT_EQ(1, SimpleInvoke(lib, "main"));
   }
 
-  // Iterator has one non-core subclass...
+  // Stopwatch has one non-core subclass...
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
-  // ... and the non-core subclass is named AIterator.
-  subclasses = iterator_cls.direct_subclasses();
+  // ... and the non-core subclass is named AStopwatch.
+  subclasses = stopwatch_cls.direct_subclasses();
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("AIterator", name.ToCString());
+  EXPECT_STREQ("AStopwatch", name.ToCString());
 
   // Attempt to reload with a bogus script.
   const char* kReloadScript =
-      "abstract class BIterator extends Iterator {\n"
+      "class BStopwatch extends Stopwatch {\n"
       "}\n"
       "class Foo {\n"
       "  final a kjsdf ksjdf ;\n"  // When we refinalize, we get an error.
       "  Foo(this.a);\n"
       "}\n"
       "main() {\n"
-      "  new Foo(5);\n"
+      "  new BStopwatch();\n"  // Force finalization.
+      "  new Foo(5);\n"        // Force finalization.
       "  return 2;\n"
       "}\n";
 
@@ -2551,16 +2559,16 @@ ISOLATE_UNIT_TEST_CASE(IsolateReload_DirectSubclasses_Failure) {
     EXPECT_ERROR(lib, "Expected ';' after this");
   }
 
-  // If we don't clean up the subclasses, we would find BIterator in
+  // If we don't clean up the subclasses, we would find BStopwatch in
   // the list of subclasses, which would be bad.  Make sure that
-  // Iterator still has only one non-core subclass...
-  subclasses = iterator_cls.direct_subclasses();
+  // Stopwatch still has only one non-core subclass...
+  subclasses = stopwatch_cls.direct_subclasses();
   EXPECT_EQ(saved_subclass_count + 1, subclasses.Length());
 
-  // ...and the non-core subclass is still named AIterator.
+  // ...and the non-core subclass is still named AStopwatch.
   new_subclass = subclasses.At(subclasses.Length() - 1);
   name = Class::Cast(new_subclass).Name();
-  EXPECT_STREQ("AIterator", name.ToCString());
+  EXPECT_STREQ("AStopwatch", name.ToCString());
 }
 
 // Tests reload succeeds when instance format changes.
