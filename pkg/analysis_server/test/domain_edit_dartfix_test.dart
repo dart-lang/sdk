@@ -296,6 +296,18 @@ const double myDouble = 42;
     ''');
   }
 
+  test_dartfix_preferEqualForDefaultValues() async {
+    // Add analysis options to enable ui as code
+    addTestFile('f({a: 1}) { }');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['prefer-equal-for-default-values']);
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, 'f({a = 1}) { }');
+  }
+
   test_dartfix_preferForElementsToMapFromIterable() async {
     addTestFile('''
 var m =

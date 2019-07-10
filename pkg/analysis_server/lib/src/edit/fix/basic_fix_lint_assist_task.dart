@@ -15,11 +15,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
-class BasicFixLintTask extends FixLintTask {
+class BasicFixLintAssistTask extends FixLintTask {
   final AssistKind assistKind;
   final nodes = <AstNode>[];
 
-  BasicFixLintTask(this.assistKind, DartFixListener listener) : super(listener);
+  BasicFixLintAssistTask(this.assistKind, DartFixListener listener)
+      : super(listener);
 
   @override
   Future<void> applyLocalFixes(ResolvedUnitResult result) async {
@@ -70,7 +71,8 @@ class BasicFixLintTask extends FixLintTask {
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_for_elements_to_map_fromIterable'],
-      new BasicFixLintTask(DartAssistKind.CONVERT_TO_FOR_ELEMENT, listener),
+      new BasicFixLintAssistTask(
+          DartAssistKind.CONVERT_TO_FOR_ELEMENT, listener),
     );
   }
 
@@ -78,7 +80,8 @@ class BasicFixLintTask extends FixLintTask {
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_if_elements_to_conditional_expressions'],
-      new BasicFixLintTask(DartAssistKind.CONVERT_TO_IF_ELEMENT, listener),
+      new BasicFixLintAssistTask(
+          DartAssistKind.CONVERT_TO_IF_ELEMENT, listener),
     );
   }
 
@@ -86,7 +89,8 @@ class BasicFixLintTask extends FixLintTask {
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_int_literals'],
-      new BasicFixLintTask(DartAssistKind.CONVERT_TO_INT_LITERAL, listener),
+      new BasicFixLintAssistTask(
+          DartAssistKind.CONVERT_TO_INT_LITERAL, listener),
     );
   }
 
@@ -94,7 +98,7 @@ class BasicFixLintTask extends FixLintTask {
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
       Registry.ruleRegistry['prefer_spread_collections'],
-      new BasicFixLintTask(DartAssistKind.CONVERT_TO_SPREAD, listener),
+      new BasicFixLintAssistTask(DartAssistKind.CONVERT_TO_SPREAD, listener),
     );
   }
 }
