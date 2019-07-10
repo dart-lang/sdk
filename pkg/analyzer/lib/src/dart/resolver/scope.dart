@@ -365,11 +365,32 @@ class LibraryImportScope extends Scope {
   Map<String, Map<String, Element>> _definedPrefixedNames;
 
   /**
+   * Cache of public extensions defined in this library's imported namespaces.
+   */
+  List<ExtensionElement> _extensions;
+
+  /**
    * Initialize a newly created scope representing the names imported into the
    * [_definingLibrary].
    */
   LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
+  }
+
+  @override
+  List<ExtensionElement> get extensions {
+    if (_extensions == null) {
+      _extensions = [];
+      for (var namespace in _importedNamespaces) {
+        for (var element in namespace.definedNames.values) {
+          if (element is ExtensionElement &&
+              element.name.isNotEmpty /* named */) {
+            _extensions.add(element);
+          }
+        }
+      }
+    }
+    return _extensions;
   }
 
   @override
@@ -579,7 +600,8 @@ class LibraryScope extends EnclosedScope {
   }
 
   @override
-  List<ExtensionElement> get extensions => _extensions;
+  List<ExtensionElement> get extensions =>
+      enclosingScope.extensions.toList()..addAll(_extensions);
 
   /**
    * Add to this scope all of the public top-level names that are defined in the
@@ -774,6 +796,9 @@ class NamespaceBuilder {
       _addIfPublic(definedNames, element);
     }
     for (ClassElement element in compilationUnit.enums) {
+      _addIfPublic(definedNames, element);
+    }
+    for (ExtensionElement element in compilationUnit.extensions) {
       _addIfPublic(definedNames, element);
     }
     for (FunctionElement element in compilationUnit.functions) {
