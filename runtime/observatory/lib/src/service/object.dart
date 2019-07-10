@@ -1907,7 +1907,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
 
   Future<ServiceObject> getInstances(Class cls, var limit) {
     Map params = {
-      'classId': cls.id,
+      'objectId': cls.id,
       'limit': limit.toString(),
     };
     return invokeRpc('getInstances', params);
