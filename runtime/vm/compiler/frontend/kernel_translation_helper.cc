@@ -3124,9 +3124,7 @@ void TypeTranslator::SetupFunctionParameters(
     function_node_helper->SetJustRead(FunctionNodeHelper::kTypeParameters);
   }
 
-  ActiveTypeParametersScope scope(
-      active_class_, &function,
-      TypeArguments::Handle(Z, function.type_parameters()), Z);
+  ActiveTypeParametersScope scope(active_class_, function, Z);
 
   function_node_helper->ReadUntilExcluding(
       FunctionNodeHelper::kPositionalParameters);
