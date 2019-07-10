@@ -466,7 +466,7 @@ class TypeObjectField extends ApiNode {
   final Object value;
 
   TypeObjectField(this.name, this.type, dom.Element html,
-      {this.optional: false, this.value, bool experimental, bool deprecated})
+      {this.optional = false, this.value, bool experimental, bool deprecated})
       : super(html, experimental, deprecated);
 }
 

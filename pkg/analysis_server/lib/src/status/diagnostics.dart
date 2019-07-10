@@ -1186,7 +1186,7 @@ class ProfilePage extends DiagnosticPageWithNav {
 ''');
 
     // write out a table
-    void _writeRow(List<String> data, {bool header: false}) {
+    void _writeRow(List<String> data, {bool header = false}) {
       buf.write('<tr>');
       if (header) {
         for (String d in data) {

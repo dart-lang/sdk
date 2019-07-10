@@ -79,8 +79,8 @@ protocol.Element createLocalElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
     {String parameters,
     TypeAnnotation returnType,
-    bool isAbstract: false,
-    bool isDeprecated: false}) {
+    bool isAbstract = false,
+    bool isDeprecated = false}) {
   String name;
   Location location;
   if (id != null) {

@@ -211,7 +211,7 @@ class EnumTester<EngineEnum, ApiEnum> {
    * the given key results in the given value.
    */
   void run(ApiEnum convert(EngineEnum value),
-      {Map<EngineEnum, ApiEnum> exceptions: const {}}) {
+      {Map<EngineEnum, ApiEnum> exceptions = const {}}) {
     ClassMirror engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
       if (symbol == #values) {
@@ -291,9 +291,9 @@ class MockErrorCode implements engine.ErrorCode {
   String url;
 
   MockErrorCode(
-      {this.type: engine.ErrorType.COMPILE_TIME_ERROR,
-      this.errorSeverity: engine.ErrorSeverity.ERROR,
-      this.name: 'TEST_ERROR',
+      {this.type = engine.ErrorType.COMPILE_TIME_ERROR,
+      this.errorSeverity = engine.ErrorSeverity.ERROR,
+      this.name = 'TEST_ERROR',
       this.url});
 
   @override

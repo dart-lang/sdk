@@ -53,7 +53,7 @@ void doSourceChange_addElementEdit(
  */
 void doSourceChange_addSourceEdit(
     SourceChange change, engine.Source source, SourceEdit edit,
-    {bool isNewFile: false}) {
+    {bool isNewFile = false}) {
   String file = source.fullName;
   change.addEdit(file, isNewFile ? -1 : 0, edit);
 }

@@ -148,7 +148,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider packageResolverProvider: null,
+    ResolverProvider packageResolverProvider = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     messageHandler = new UninitializedStateMessageHandler(this);
     // TODO(dantup): This code is almost identical to AnalysisServer, consider

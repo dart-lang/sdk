@@ -562,7 +562,7 @@ class _Parameter {
   /// constructor. If the [name] is already public, then the [name].
   String constructorName;
 
-  _Parameter(this.name, this.type, {this.isMethodParameter: false});
+  _Parameter(this.name, this.type, {this.isMethodParameter = false});
 }
 
 class _ParametersCollector extends RecursiveAstVisitor<void> {

@@ -331,7 +331,7 @@ class PostfixCompletionProcessor {
 
   Future<PostfixCompletion> expand(
       PostfixCompletionKind kind, Function contexter, Function sourcer,
-      {bool withBraces: true}) async {
+      {bool withBraces = true}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode expr = contexter();
@@ -368,7 +368,7 @@ class PostfixCompletionProcessor {
 
   Future<PostfixCompletion> expandTry(
       PostfixCompletionKind kind, Function contexter,
-      {bool withOn: false}) async {
+      {bool withOn = false}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     AstNode stmt = contexter();
@@ -563,7 +563,7 @@ class PostfixCompletionProcessor {
     return expr;
   }
 
-  AstNode _selectedNode({int at: null}) =>
+  AstNode _selectedNode({int at = null}) =>
       new NodeLocator(at == null ? selectionOffset : at)
           .searchWithin(completionContext.resolveResult.unit);
 

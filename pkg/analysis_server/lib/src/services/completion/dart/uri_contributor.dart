@@ -240,7 +240,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   void _addSuggestion(String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT}) {
+      {int relevance = DART_RELEVANCE_DEFAULT}) {
     suggestions.add(new CompletionSuggestion(CompletionSuggestionKind.IMPORT,
         relevance, completion, completion.length, 0, false, false));
   }

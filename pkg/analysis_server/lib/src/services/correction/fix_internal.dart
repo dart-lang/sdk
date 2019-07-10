@@ -4052,7 +4052,7 @@ class FixProcessor {
   }
 
   void _addFixFromBuilder(ChangeBuilder builder, FixKind kind,
-      {List args: null, bool importsOnly: false}) {
+      {List args = null, bool importsOnly = false}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty && !importsOnly) {
       return;

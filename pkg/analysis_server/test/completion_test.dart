@@ -2426,7 +2426,7 @@ class A<Z extends X> {
    * have not yet been fixed.
    */
   void buildTests(String baseName, String originalSource, List<String> results,
-      {Map<String, String> extraFiles, String failingTests: ''}) {
+      {Map<String, String> extraFiles, String failingTests = ''}) {
     List<LocationSpec> completionTests =
         LocationSpec.from(originalSource, results);
     completionTests.sort((LocationSpec first, LocationSpec second) {

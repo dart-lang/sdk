@@ -20,7 +20,7 @@ class DartUnitOutlineComputer {
   final bool withBasicFlutter;
   final Flutter flutter;
 
-  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter: false})
+  DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false})
       : flutter = Flutter.of(resolvedUnit);
 
   /**

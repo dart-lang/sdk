@@ -82,11 +82,11 @@ abstract class Page {
     buf.writeln('<h2>${escape(text)}</h2>');
   }
 
-  void h3(String text, {bool raw: false}) {
+  void h3(String text, {bool raw = false}) {
     buf.writeln('<h3>${raw ? text : escape(text)}</h3>');
   }
 
-  void h4(String text, {bool raw: false}) {
+  void h4(String text, {bool raw = false}) {
     buf.writeln('<h4>${raw ? text : escape(text)}</h4>');
   }
 
@@ -102,7 +102,7 @@ abstract class Page {
 
   bool isCurrentPage(String pathToTest) => path == pathToTest;
 
-  void p(String text, {String style, bool raw: false, String classes}) {
+  void p(String text, {String style, bool raw = false, String classes}) {
     String c = classes == null ? '' : ' class="$classes"';
 
     if (style != null) {

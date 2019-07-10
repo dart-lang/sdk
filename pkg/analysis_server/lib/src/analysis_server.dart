@@ -167,9 +167,9 @@ class AnalysisServer extends AbstractAnalysisServer {
     this.sdkManager,
     this.instrumentationService, {
     DiagnosticServer diagnosticServer,
-    ResolverProvider fileResolverProvider: null,
-    ResolverProvider packageResolverProvider: null,
-    this.detachableFileSystemManager: null,
+    ResolverProvider fileResolverProvider = null,
+    ResolverProvider packageResolverProvider = null,
+    this.detachableFileSystemManager = null,
   }) : super(options, diagnosticServer, baseResourceProvider) {
     notificationManager = new NotificationManager(channel, resourceProvider);
 
@@ -403,7 +403,7 @@ class AnalysisServer extends AbstractAnalysisServer {
     String message,
     dynamic exception,
     /*StackTrace*/ stackTrace, {
-    bool fatal: false,
+    bool fatal = false,
   }) {
     StringBuffer buffer = new StringBuffer();
     buffer.write(exception ?? 'null exception');

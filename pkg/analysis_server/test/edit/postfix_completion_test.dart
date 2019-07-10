@@ -89,7 +89,7 @@ main() {
   }
 
   _prepareCompletion(String key,
-      {bool atStart: false, bool atEnd: false, int delta: 0}) async {
+      {bool atStart = false, bool atEnd = false, int delta = 0}) async {
     int offset = findOffset(key);
     String src = testCode.replaceFirst(key, '', offset);
     modifyTestFile(src);

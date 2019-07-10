@@ -151,7 +151,8 @@ abstract class Benchmark {
   /// One of 'memory', 'cpu', or 'group'.
   final String kind;
 
-  Benchmark(this.id, this.description, {this.enabled: true, this.kind: 'cpu'});
+  Benchmark(this.id, this.description,
+      {this.enabled = true, this.kind = 'cpu'});
 
   bool get needsSetup => false;
 
@@ -160,8 +161,8 @@ abstract class Benchmark {
   Future oneTimeCleanup() => new Future.value();
 
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   });
 
   int get maxIterations => 0;
@@ -235,7 +236,7 @@ class CompoundBenchMarkResult extends BenchMarkResult {
   String toString() => '${toJson()}';
 }
 
-List<String> getProjectRoots({bool quick: false}) {
+List<String> getProjectRoots({bool quick = false}) {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = path.normalize(path.join(path.dirname(script), '..', '..'));
   return <String>[path.join(pkgPath, quick ? 'meta' : 'analysis_server')];

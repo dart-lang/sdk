@@ -24,7 +24,8 @@ const int _MAX_VALUE = 1 << 10;
  * by Dan Gusfield and Chas Emerick's implementation of the Levenshtein distance
  * algorithm.
  */
-int levenshtein(String s, String t, int threshold, {bool caseSensitive: true}) {
+int levenshtein(String s, String t, int threshold,
+    {bool caseSensitive = true}) {
   if (s == null || t == null) {
     throw new ArgumentError('Strings must not be null');
   }

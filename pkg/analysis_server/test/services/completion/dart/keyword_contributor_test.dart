@@ -236,8 +236,8 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       [Keyword.CONST, Keyword.COVARIANT, Keyword.FINAL];
 
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
-      {List<String> pseudoKeywords: NO_PSEUDO_KEYWORDS,
-      int relevance: DART_RELEVANCE_KEYWORD}) {
+      {List<String> pseudoKeywords = NO_PSEUDO_KEYWORDS,
+      int relevance = DART_RELEVANCE_KEYWORD}) {
     Set<String> expectedCompletions = new Set<String>();
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();

@@ -706,7 +706,7 @@ lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
 ErrorOr<int> toOffset(
   server.LineInfo lineInfo,
   lsp.Position pos, {
-  failureIsCritial: false,
+  failureIsCritial = false,
 }) {
   if (pos.line > lineInfo.lineCount) {
     return new ErrorOr<int>.error(new lsp.ResponseError(

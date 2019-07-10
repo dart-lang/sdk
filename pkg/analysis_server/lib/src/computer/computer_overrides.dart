@@ -181,7 +181,7 @@ class _OverriddenElementsFinder {
     _addInterfaceOverrides(type.superclass, checkType);
   }
 
-  void _addSuperOverrides(InterfaceType type, {bool withThisType: true}) {
+  void _addSuperOverrides(InterfaceType type, {bool withThisType = true}) {
     if (type == null) {
       return;
     }

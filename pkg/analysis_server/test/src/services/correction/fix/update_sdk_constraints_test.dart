@@ -88,7 +88,7 @@ var s = <int>{};
 ''', to: '^2.2.0');
   }
 
-  testUpdate({String content, String from: '^2.0.0', String to}) async {
+  testUpdate({String content, String from = '^2.0.0', String to}) async {
     updateTestPubspecFile('''
 environment:
   sdk: $from

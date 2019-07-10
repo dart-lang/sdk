@@ -18,8 +18,8 @@ import 'package:analyzer/src/util/comment.dart';
  */
 CompletionSuggestion createSuggestion(Element element,
     {String completion,
-    CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: DART_RELEVANCE_DEFAULT}) {
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    int relevance = DART_RELEVANCE_DEFAULT}) {
   if (element == null) {
     return null;
   }
@@ -111,7 +111,7 @@ mixin ElementSuggestionBuilder {
    */
   CompletionSuggestion addSuggestion(Element element,
       {String prefix,
-      int relevance: DART_RELEVANCE_DEFAULT,
+      int relevance = DART_RELEVANCE_DEFAULT,
       String elementCompletion}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {

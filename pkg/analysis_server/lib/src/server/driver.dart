@@ -58,10 +58,10 @@ class CommandLineParser {
   void addFlag(String name,
       {String abbr,
       String help,
-      bool defaultsTo: false,
-      bool negatable: true,
+      bool defaultsTo = false,
+      bool negatable = true,
       void callback(bool value),
-      bool hide: false}) {
+      bool hide = false}) {
     _knownFlags.add(name);
     _parser.addFlag(name,
         abbr: abbr,
@@ -765,7 +765,7 @@ class Driver implements ServerStarter {
    * Print information about how to use the server.
    */
   void _printUsage(ArgParser parser, telemetry.Analytics analytics,
-      {bool fromHelp: false}) {
+      {bool fromHelp = false}) {
     print('Usage: $BINARY_NAME [flags]');
     print('');
     print('Supported flags are:');

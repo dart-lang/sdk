@@ -20,9 +20,9 @@ main() {
 class LocalReferenceContributorTest extends DartCompletionContributorTest {
   CompletionSuggestion assertSuggestLocalVariable(
       String name, String returnType,
-      {int relevance: DART_RELEVANCE_LOCAL_VARIABLE,
-      bool hasTypeBoost: false,
-      bool hasSubtypeBoost: false}) {
+      {int relevance = DART_RELEVANCE_LOCAL_VARIABLE,
+      bool hasTypeBoost = false,
+      bool hasSubtypeBoost = false}) {
     if (hasTypeBoost) {
       relevance += DART_RELEVANCE_BOOST_TYPE;
     } else if (hasSubtypeBoost) {
@@ -43,7 +43,7 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   }
 
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
-      {int relevance: DART_RELEVANCE_PARAMETER}) {
+      {int relevance = DART_RELEVANCE_PARAMETER}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
@@ -58,7 +58,7 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
   }
 
   CompletionSuggestion assertSuggestTypeParameter(String name,
-      {int relevance: DART_RELEVANCE_TYPE_PARAMETER}) {
+      {int relevance = DART_RELEVANCE_TYPE_PARAMETER}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.IDENTIFIER, relevance: relevance);
     expect(cs.returnType, isNull);

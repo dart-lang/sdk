@@ -27,8 +27,8 @@ class ColdAnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   }) async {
     if (!quick) {
       deleteServerCache();
@@ -71,8 +71,8 @@ class AnalysisBenchmark extends Benchmark {
 
   @override
   Future<BenchMarkResult> run({
-    bool quick: false,
-    bool verbose: false,
+    bool quick = false,
+    bool verbose = false,
   }) async {
     Stopwatch stopwatch = new Stopwatch()..start();
 

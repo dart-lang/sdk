@@ -124,7 +124,7 @@ main() {
   }
 
   _prepareCompletion(String search,
-      {bool atStart: false, bool atEnd: false, int delta: 0}) async {
+      {bool atStart = false, bool atEnd = false, int delta = 0}) async {
     int offset = findOffset(search);
     if (atStart) {
       delta = 0;

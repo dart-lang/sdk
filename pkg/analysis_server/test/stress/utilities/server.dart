@@ -606,12 +606,12 @@ class Server {
    * APIs.
    */
   Future<void> start(
-      {bool checked: true,
+      {bool checked = true,
       int diagnosticPort,
-      bool profileServer: false,
+      bool profileServer = false,
       String sdkPath,
       int servicesPort,
-      bool useAnalysisHighlight2: false}) async {
+      bool useAnalysisHighlight2 = false}) async {
     if (_process != null) {
       throw new Exception('Process already started');
     }

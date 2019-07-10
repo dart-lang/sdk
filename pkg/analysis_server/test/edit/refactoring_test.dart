@@ -1336,7 +1336,7 @@ import 'bin/lib.dart';
 @reflectiveTest
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
-      {String id: '0', bool validateOnly: false}) {
+      {String id = '0', bool validateOnly = false}) {
     RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(RefactoringKind.RENAME,
             testFile, findOffset(search), 0, validateOnly,

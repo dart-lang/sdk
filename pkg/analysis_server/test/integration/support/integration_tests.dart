@@ -42,7 +42,7 @@ Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
  * Assert that [actual] matches [matcher].
  */
 void outOfTestExpect(actual, Matcher matcher,
-    {String reason, skip, bool verbose: false}) {
+    {String reason, skip, bool verbose = false}) {
   var matchState = {};
   try {
     if (matcher.matches(actual, matchState)) return;
@@ -244,7 +244,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * then also enable [SERVER_NOTIFICATION_STATUS] notifications so that
    * [analysisFinished] can be used.
    */
-  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+  Future standardAnalysisSetup({bool subscribeStatus = true}) {
     List<Future> futures = <Future>[];
     if (subscribeStatus) {
       futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
@@ -665,10 +665,10 @@ class Server {
   Future start({
     int diagnosticPort,
     String instrumentationLogFile,
-    bool profileServer: false,
+    bool profileServer = false,
     String sdkPath,
     int servicesPort,
-    bool useAnalysisHighlight2: false,
+    bool useAnalysisHighlight2 = false,
   }) async {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -747,7 +747,7 @@ class Server {
   /**
    * Deal with bad data received from the server.
    */
-  void _badDataFromServer(String details, {bool silent: false}) {
+  void _badDataFromServer(String details, {bool silent = false}) {
     if (!silent) {
       _recordStdio('BAD DATA FROM SERVER: $details');
     }

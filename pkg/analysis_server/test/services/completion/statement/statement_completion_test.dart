@@ -72,7 +72,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
   }
 
   _prepareCompletion(String search, String sourceCode,
-      {bool atEnd: false, int delta: 0}) async {
+      {bool atEnd = false, int delta = 0}) async {
     testCode = sourceCode.replaceAll('////', '');
     int offset = findOffset(search);
     if (atEnd) {

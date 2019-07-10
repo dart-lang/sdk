@@ -1257,7 +1257,7 @@ set propB(int v) {}
 
   void _expect(Outline outline,
       {ElementKind kind,
-      bool leaf: false,
+      bool leaf = false,
       int length,
       String name,
       int offset,

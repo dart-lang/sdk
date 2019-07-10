@@ -222,7 +222,7 @@ class AssistProcessor {
   }
 
   void _addAssistFromBuilder(DartChangeBuilder builder, AssistKind kind,
-      {List args: null}) {
+      {List args = null}) {
     SourceChange change = builder.sourceChange;
     if (change.edits.isEmpty) {
       _coverageMarker();
@@ -2317,9 +2317,9 @@ class AssistProcessor {
       /// Replace code between [replaceOffset] and [replaceEnd] with
       /// `createState()`, empty line, or nothing.
       void replaceInterval(int replaceEnd,
-          {bool replaceWithEmptyLine: false,
-          bool hasEmptyLineBeforeCreateState: false,
-          bool hasEmptyLineAfterCreateState: true}) {
+          {bool replaceWithEmptyLine = false,
+          bool hasEmptyLineBeforeCreateState = false,
+          bool hasEmptyLineAfterCreateState = true}) {
         int replaceLength = replaceEnd - replaceOffset;
         builder.addReplacement(
           new SourceRange(replaceOffset, replaceLength),
@@ -2663,11 +2663,11 @@ class AssistProcessor {
   }
 
   Future<void> _addProposal_flutterWrapWidgetImpl(
-      {AssistKind kind: DartAssistKind.FLUTTER_WRAP_GENERIC,
+      {AssistKind kind = DartAssistKind.FLUTTER_WRAP_GENERIC,
       bool Function(Expression widgetExpr) widgetValidator,
       String parentLibraryUri,
       String parentClassName,
-      List<String> leadingLines: const []}) async {
+      List<String> leadingLines = const []}) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
     Expression widgetExpr = flutter.identifyWidgetExpression(node);

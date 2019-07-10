@@ -240,7 +240,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * If [force] is true, then a section is inserted even if the payload is
    * null.
    */
-  void describePayload(TypeObject subType, String name, {bool force: false}) {
+  void describePayload(TypeObject subType, String name, {bool force = false}) {
     if (force || subType != null) {
       h4(() {
         write(name);
@@ -440,7 +440,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
    * Copy the contents of the given HTML element, translating the special
    * elements that define the API appropriately.
    */
-  void translateHtml(dom.Element html, {bool squashParagraphs: false}) {
+  void translateHtml(dom.Element html, {bool squashParagraphs = false}) {
     for (dom.Node node in html.nodes) {
       if (node is dom.Element) {
         if (squashParagraphs && node.localName == 'p') {
@@ -739,7 +739,7 @@ class TypeVisitor extends HierarchicalApiVisitor
    */
   final bool short;
 
-  TypeVisitor(Api api, {this.fieldsToBold, this.short: false}) : super(api);
+  TypeVisitor(Api api, {this.fieldsToBold, this.short = false}) : super(api);
 
   @override
   void visitTypeEnum(TypeEnum typeEnum) {
