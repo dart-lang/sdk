@@ -62,7 +62,7 @@ Future asynchronously<T>(T function()) {
 class FutureGroup {
   static const _finished = -1;
   int _pending = 0;
-  Completer<List> _completer = Completer();
+  final Completer<List> _completer = Completer();
   final List<Future> futures = [];
   bool wasCompleted = false;
 

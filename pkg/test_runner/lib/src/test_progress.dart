@@ -217,7 +217,7 @@ class SummaryPrinter extends EventListener {
 class TimingPrinter extends EventListener {
   final _commandToTestCases = <Command, List<TestCase>>{};
   final _commandOutputs = <CommandOutput>{};
-  DateTime _startTime;
+  final DateTime _startTime;
 
   TimingPrinter(this._startTime);
 
@@ -254,8 +254,8 @@ class TimingPrinter extends EventListener {
 }
 
 class StatusFileUpdatePrinter extends EventListener {
-  var statusToConfigs = <String, List<String>>{};
-  var _failureSummary = <String>[];
+  final Map<String, List<String>> statusToConfigs = {};
+  final List<String> _failureSummary = [];
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -415,6 +415,12 @@ class PassingStdoutPrinter extends EventListener {
 }
 
 class ProgressIndicator extends EventListener {
+  final DateTime _startTime;
+  int _foundTests = 0;
+  int _passedTests = 0;
+  int _failedTests = 0;
+  bool _allTestsKnown = false;
+
   ProgressIndicator(this._startTime);
 
   static EventListener fromProgress(
@@ -455,12 +461,6 @@ class ProgressIndicator extends EventListener {
   void _printDoneProgress(TestCase test) {}
 
   int _completedTests() => _passedTests + _failedTests;
-
-  int _foundTests = 0;
-  int _passedTests = 0;
-  int _failedTests = 0;
-  bool _allTestsKnown = false;
-  DateTime _startTime;
 }
 
 abstract class CompactIndicator extends ProgressIndicator {

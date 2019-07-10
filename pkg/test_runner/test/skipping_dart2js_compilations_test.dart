@@ -123,7 +123,7 @@ class FileUtils {
 
 class CommandCompletedHandler {
   FileUtils fileUtils;
-  bool _shouldHaveRun;
+  final bool _shouldHaveRun;
 
   CommandCompletedHandler(this.fileUtils, this._shouldHaveRun);
 

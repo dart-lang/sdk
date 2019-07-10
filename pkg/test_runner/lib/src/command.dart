@@ -750,8 +750,8 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
 
 /// Makes a symbolic link to another directory.
 class MakeSymlinkCommand extends ScriptCommand {
-  String _link;
-  String _target;
+  final String _link;
+  final String _target;
 
   MakeSymlinkCommand._(this._link, this._target, {int index = 0})
       : super._('make_symlink', index: index);

@@ -360,8 +360,9 @@ class ComposedCompilerConfiguration extends CompilerConfiguration {
 
 /// Common configuration for dart2js-based tools, such as dart2js.
 class Dart2xCompilerConfiguration extends CompilerConfiguration {
+  static final Map<String, List<Uri>> _bootstrapDependenciesCache = {};
+
   final String moniker;
-  static Map<String, List<Uri>> _bootstrapDependenciesCache = {};
 
   Dart2xCompilerConfiguration(this.moniker, TestConfiguration configuration)
       : super._subclass(configuration);

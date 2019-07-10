@@ -27,7 +27,8 @@ class BrowserOutput {
 
 /// Class describing the interface for communicating with browsers.
 abstract class Browser {
-  BrowserOutput _allBrowserOutput = BrowserOutput();
+  /// Get the output that was written so far to stdout/stderr/eventLog.
+  BrowserOutput get testBrowserOutput => _testBrowserOutput;
   BrowserOutput _testBrowserOutput = BrowserOutput();
 
   /// This is called after the process is closed, before the done future
@@ -116,21 +117,18 @@ abstract class Browser {
     if (debugPrint) print("usageLog: $toLog");
     if (logger != null) logger(toLog);
 
-    _allBrowserOutput.eventLog.write(toLog);
     _testBrowserOutput.eventLog.write(toLog);
   }
 
   void _addStdout(String output) {
     if (debugPrint) print("stdout: $output");
 
-    _allBrowserOutput.stdout.write(output);
     _testBrowserOutput.stdout.write(output);
   }
 
   void _addStderr(String output) {
     if (debugPrint) print("stderr: $output");
 
-    _allBrowserOutput.stderr.write(output);
     _testBrowserOutput.stderr.write(output);
   }
 
@@ -242,10 +240,6 @@ abstract class Browser {
       return false;
     });
   }
-
-  /// Get the output that was written so far to stdout/stderr/eventLog.
-  BrowserOutput get allBrowserOutput => _allBrowserOutput;
-  BrowserOutput get testBrowserOutput => _testBrowserOutput;
 
   void resetTestBrowserOutput() {
     _testBrowserOutput = BrowserOutput();
@@ -568,7 +562,7 @@ class AndroidChrome extends Browser {
   static const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
   static const String turnScreenOnActivity = '.Main';
 
-  AdbDevice _adbDevice;
+  final AdbDevice _adbDevice;
 
   AndroidChrome(this._adbDevice);
 

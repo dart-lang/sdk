@@ -33,11 +33,10 @@ const _failedToRunCommandMessage = 'Failed to run command. return code=1';
 typedef _StepFunction = Future<AdbCommandResult> Function();
 
 class ProcessQueue {
-  TestConfiguration _globalConfiguration;
-
-  Function _allDone;
+  final TestConfiguration _globalConfiguration;
+  final void Function() _allDone;
   final Graph<Command> _graph = Graph();
-  List<EventListener> _eventListener;
+  final List<EventListener> _eventListener;
 
   ProcessQueue(
       this._globalConfiguration,
@@ -370,11 +369,11 @@ class CommandQueue {
   final _completer = Completer<Null>();
 
   int _numProcesses = 0;
-  int _maxProcesses;
+  final int _maxProcesses;
   int _numBrowserProcesses = 0;
-  int _maxBrowserProcesses;
+  final int _maxBrowserProcesses;
   bool _finishing = false;
-  bool _verbose = false;
+  final bool _verbose;
 
   CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
       this._maxBrowserProcesses, this._verbose) {

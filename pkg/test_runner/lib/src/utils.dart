@@ -308,7 +308,7 @@ class UniqueObject {
 }
 
 class LastModifiedCache {
-  Map<String, DateTime> _cache = <String, DateTime>{};
+  final Map<String, DateTime> _cache = {};
 
   /// Returns the last modified date of the given [uri].
   ///
@@ -331,7 +331,7 @@ class LastModifiedCache {
 }
 
 class ExistsCache {
-  Map<String, bool> _cache = <String, bool>{};
+  final Map<String, bool> _cache = {};
 
   /// Returns true if the file in [path] exists, false otherwise.
   ///
@@ -375,7 +375,7 @@ class TestUtils {
   }
 
   /// Keep a map of files copied to avoid race conditions.
-  static Map<String, Future> _copyFilesMap = {};
+  static final Map<String, Future> _copyFilesMap = {};
 
   /// Copy a [source] file to a new place.
   /// Assumes that the directory for [dest] already exists.
