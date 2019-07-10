@@ -26,9 +26,16 @@ import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
 import 'default_value_on_required_parameter_test.dart'
     as default_value_on_required_paramter;
+import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
+import 'deprecated_function_class_declaration_test.dart'
+    as deprecated_function_class_declaration;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
+import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'division_optimization_test.dart' as division_optimization;
+import 'down_cast_composite_test.dart' as down_cast_composite;
+import 'duplicate_hidden_name_test.dart' as duplicate_hidden_name;
 import 'duplicate_import_test.dart' as duplicate_import;
+import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
 import 'expression_in_map_test.dart' as expression_in_map;
@@ -65,6 +72,10 @@ import 'invalid_use_of_visible_for_testing_member_test.dart'
     as invalid_use_of_visible_for_testing_member;
 import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
+import 'is_double_test.dart' as is_double;
+import 'is_int_test.dart' as is_int;
+import 'is_not_double_test.dart' as is_not_double;
+import 'is_not_int_test.dart' as is_not_int;
 import 'list_element_type_not_assignable_test.dart'
     as list_element_type_not_assignable;
 import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
@@ -73,6 +84,7 @@ import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
 import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_paramter;
+import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
@@ -198,9 +210,15 @@ main() {
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
+    deprecated_extends_function.main();
+    deprecated_function_class_declaration.main();
     deprecated_member_use.main();
+    deprecated_mixin_function.main();
     division_optimization.main();
+    down_cast_composite.main();
+    duplicate_hidden_name.main();
     duplicate_import.main();
+    duplicate_shown_name.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
     expression_in_map.main();
@@ -227,11 +245,16 @@ main() {
     invalid_use_of_visible_for_template_member.main();
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
+    is_double.main();
+    is_int.main();
+    is_not_double.main();
+    is_not_int.main();
     list_element_type_not_assignable.main();
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
     missing_default_value_for_paramter.main();
+    missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
     mixin_of_non_class.main();

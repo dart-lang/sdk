@@ -11,6 +11,17 @@ mixin PackageMixin implements ResourceProviderMixin {
   /// resolve 'package:' URIs.
   Map<String, List<Folder>> get packageMap;
 
+  /// Create a fake 'js' package that can be used by tests.
+  void addJsPackage() {
+    Folder lib = addPubPackage('js');
+    newFile(join(lib.path, 'js.dart'), content: r'''
+library js;
+class JS {
+  const JS([String js]);
+}
+''');
+  }
+
   /// Create a fake 'meta' package that can be used by tests.
   void addMetaPackage() {
     Folder lib = addPubPackage('meta');

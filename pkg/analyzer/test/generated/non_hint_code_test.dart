@@ -17,15 +17,6 @@ main() {
 
 @reflectiveTest
 class NonHintCodeTest extends DriverResolutionTest {
-  test_async_future_object_without_return() async {
-    await assertErrorsInCode('''
-import 'dart:async';
-Future<Object> f() async {}
-''', [
-      error(HintCode.MISSING_RETURN, 21, 14),
-    ]);
-  }
-
   test_issue20904BuggyTypePromotionAtIfJoin_1() async {
     // https://code.google.com/p/dart/issues/detail?id=20904
     await assertNoErrorsInCode(r'''
