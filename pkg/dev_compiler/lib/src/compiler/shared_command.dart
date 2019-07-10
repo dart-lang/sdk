@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'module_builder.dart';
 import '../analyzer/command.dart' as analyzer_compiler;
 import '../analyzer/driver.dart' show CompilerAnalysisDriver;
@@ -184,10 +184,9 @@ class SharedCompilerOptions {
       if (moduleRoot != null) {
         // TODO(jmesserly): remove this legacy support after a deprecation
         // period. (Mainly this is to give time for migrating build rules.)
-        moduleName =
-            path.withoutExtension(path.relative(outPath, from: moduleRoot));
+        moduleName = p.withoutExtension(p.relative(outPath, from: moduleRoot));
       } else {
-        moduleName = path.basenameWithoutExtension(outPath);
+        moduleName = p.basenameWithoutExtension(outPath);
       }
     }
     // TODO(jmesserly): this should probably use sourcePathToUri.
@@ -195,7 +194,7 @@ class SharedCompilerOptions {
     // Also we should not need this logic if the user passed in the module name
     // explicitly. It is here for backwards compatibility until we can confirm
     // that build systems do not depend on passing windows-style paths here.
-    return path.toUri(moduleName).toString();
+    return p.toUri(moduleName).toString();
   }
 }
 
@@ -217,16 +216,16 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
             0,
             // Strip off the extension, including the last `.`.
             summaryPath.length - (summaryExt.length + 1))
-        : path.withoutExtension(summaryPath);
+        : p.withoutExtension(summaryPath);
     if (equalSign != -1) {
       modulePath = summaryPath.substring(equalSign + 1);
       summaryPath = summaryPath.substring(0, equalSign);
-    } else if (moduleRoot != null && path.isWithin(moduleRoot, summaryPath)) {
+    } else if (moduleRoot != null && p.isWithin(moduleRoot, summaryPath)) {
       // TODO(jmesserly): remove this, it's legacy --module-root support.
-      modulePath = path.url.joinAll(
-          path.split(path.relative(summaryPathWithoutExt, from: moduleRoot)));
+      modulePath = p.url.joinAll(
+          p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)));
     } else {
-      modulePath = path.basename(summaryPathWithoutExt);
+      modulePath = p.basename(summaryPathWithoutExt);
     }
     pathToModule[summaryPath] = modulePath;
   }
@@ -252,7 +251,7 @@ Map<String, String> _parseBazelMappings(List<String> argument) {
   for (var mapping in argument) {
     var splitMapping = mapping.split(',');
     if (splitMapping.length >= 2) {
-      mappings[path.absolute(splitMapping[0])] = splitMapping[1];
+      mappings[p.absolute(splitMapping[0])] = splitMapping[1];
     }
   }
   return mappings;
@@ -335,7 +334,7 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
     var uriPath = uri.path;
     var root = Uri.base.path;
     if (uriPath.startsWith(root)) {
-      return path.toUri(uriPath.substring(root.length));
+      return p.toUri(uriPath.substring(root.length));
     }
   }
   return uri;
@@ -352,8 +351,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     {String multiRootOutputPath}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
-  sourceMapPath = sourcePathToUri(path.absolute(path.fromUri(sourceMapPath))).path;
-  var sourceMapDir = path.url.dirname(sourceMapPath);
+  sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
+  var sourceMapDir = p.url.dirname(sourceMapPath);
   var list = (map['sources'] as List).toList();
 
   String makeRelative(String sourcePath) {
@@ -362,24 +361,24 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     if (scheme == 'dart' || scheme == 'package' || scheme == multiRootScheme) {
       if (scheme == multiRootScheme) {
         var multiRootPath = '$multiRootOutputPath${uri.path}';
-        multiRootPath = path.relative(multiRootPath, from: sourceMapDir);
+        multiRootPath = p.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
       return sourcePath;
     }
 
     // Convert to a local file path if it's not.
-    sourcePath = sourcePathToUri(path.absolute(path.fromUri(uri))).path;
+    sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
 
     // Allow bazel mappings to override.
     var match = bazelMappings[sourcePath];
     if (match != null) return match;
 
     // Fall back to a relative path against the source map itself.
-    sourcePath = path.relative(sourcePath, from: sourceMapDir);
+    sourcePath = p.relative(sourcePath, from: sourceMapDir);
 
     // Convert from relative local path to relative URI.
-    return path.toUri(sourcePath).path;
+    return p.toUri(sourcePath).path;
   }
 
   for (int i = 0; i < list.length; i++) {

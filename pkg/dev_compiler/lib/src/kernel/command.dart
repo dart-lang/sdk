@@ -15,7 +15,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
 import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
 import '../compiler/js_names.dart' as js_ast;
@@ -137,7 +137,7 @@ Future<CompilerResult> _compile(List<String> args,
       .map(Uri.base.resolve)
       .toList();
   var multiRootOutputPath = _longestPrefixingPath(
-      sourcePathToUri(path.absolute(output)), multiRootPaths);
+      sourcePathToUri(p.absolute(output)), multiRootPaths);
 
   var fileSystem = MultiRootFileSystem(
       multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
@@ -181,10 +181,9 @@ Future<CompilerResult> _compile(List<String> args,
     //
     // Another option: we could make an in-memory file with the relevant info.
     librarySpecPath =
-        path.join(path.dirname(path.dirname(sdkSummaryPath)), "libraries.json");
+        p.join(p.dirname(p.dirname(sdkSummaryPath)), "libraries.json");
     if (!File(librarySpecPath).existsSync()) {
-      librarySpecPath =
-          path.join(path.dirname(sdkSummaryPath), "libraries.json");
+      librarySpecPath = p.join(p.dirname(sdkSummaryPath), "libraries.json");
     }
   }
 
@@ -330,7 +329,7 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       component.unbindCanonicalNames();
     }
-    var sink = File(path.withoutExtension(output) + '.dill').openWrite();
+    var sink = File(p.withoutExtension(output) + '.dill').openWrite();
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
@@ -360,8 +359,8 @@ Future<CompilerResult> _compile(List<String> args,
   var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
       buildSourceMap: options.sourceMap,
       inlineSourceMap: options.inlineSourceMap,
-      jsUrl: path.toUri(output).toString(),
-      mapUrl: path.toUri(output + '.map').toString(),
+      jsUrl: p.toUri(output).toString(),
+      mapUrl: p.toUri(output + '.map').toString(),
       bazelMapping: options.bazelMapping,
       customScheme: multiRootScheme,
       multiRootOutputPath: multiRootOutputPath);
@@ -423,10 +422,10 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
     builtMap = placeSourceMap(
         sourceMap.build(jsUrl), mapUrl, bazelMapping, customScheme,
         multiRootOutputPath: multiRootOutputPath);
-    var jsDir = path.dirname(path.fromUri(jsUrl));
-    var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
-    var relativeMapUrl = path.toUri(relative).toString();
-    assert(path.dirname(jsUrl) == path.dirname(mapUrl));
+    var jsDir = p.dirname(p.fromUri(jsUrl));
+    var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
+    var relativeMapUrl = p.toUri(relative).toString();
+    assert(p.dirname(jsUrl) == p.dirname(mapUrl));
     printer.emit('\n//# sourceMappingURL=');
     printer.emit(relativeMapUrl);
     printer.emit('\n');
@@ -471,12 +470,12 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 
 /// The default path of the kernel summary for the Dart SDK.
 final defaultSdkSummaryPath =
-    path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
 
-final defaultLibrarySpecPath = path.join(getSdkPath(), 'lib', 'libraries.json');
+final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
 final defaultAnalyzerSdkSummaryPath =
-    path.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');
+    p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.sum');
 
 bool _checkForDartMirrorsImport(Component component) {
   for (var library in component.libraries) {
@@ -508,7 +507,7 @@ String _findPackagesFilePath() {
 
   // Check for $cwd/.packages
   while (true) {
-    var file = File(path.join(dir.path, ".packages"));
+    var file = File(p.join(dir.path, ".packages"));
     if (file.existsSync()) return file.path;
 
     // If we didn't find it, search the parent directory.

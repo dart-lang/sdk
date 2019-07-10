@@ -6,7 +6,7 @@ import 'dart:async' show Future;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:front_end/src/testing/annotated_code_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:testing/testing.dart';
@@ -74,7 +74,7 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
 
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    var outWrapperPath = path.join(data.outDir.path, "wrapper.js");
+    var outWrapperPath = p.join(data.outDir.path, "wrapper.js");
     ProcessResult runResult =
         runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
     data.d8Output = (runResult.stdout as String).split("\n");
@@ -100,7 +100,7 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 File findInOutDir(String relative) {
   var outerDir = sdkRoot.path;
   for (var outDir in const ["out/ReleaseX64", "xcodebuild/ReleaseX64"]) {
-    var tryPath = path.join(outerDir, outDir, relative);
+    var tryPath = p.join(outerDir, outDir, relative);
     File file = File(tryPath);
     if (file.existsSync()) return file;
   }

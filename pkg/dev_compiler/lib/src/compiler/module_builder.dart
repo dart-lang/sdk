@@ -4,7 +4,7 @@
 
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 import '../js_ast/js_ast.dart';
 import 'js_names.dart';
@@ -340,7 +340,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
 
 /// Escape [name] to make it into a valid identifier.
 String pathToJSIdentifier(String name) {
-  return toJSIdentifier(path.basenameWithoutExtension(name));
+  return toJSIdentifier(p.basenameWithoutExtension(name));
 }
 
 /// Escape [name] to make it into a valid identifier.

@@ -11,16 +11,16 @@ import 'package:dev_compiler/src/analyzer/context.dart';
 import 'package:dev_compiler/src/analyzer/command.dart';
 import 'package:dev_compiler/src/analyzer/driver.dart';
 import 'package:dev_compiler/src/analyzer/module_compiler.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing.dart' show repoDirectory, testDirectory;
 
 /// The `test/options` directory.
-final optionsDir = path.join(testDirectory, 'options');
+final optionsDir = p.join(testDirectory, 'options');
 
 /// Summary file for testing.
-final sdkSummaryFile = path.join(repoDirectory, 'gen', 'sdk', 'ddc_sdk.sum');
+final sdkSummaryFile = p.join(repoDirectory, 'gen', 'sdk', 'ddc_sdk.sum');
 
 final sdkSummaryArgs = ['--$sdkSummaryPathOption', sdkSummaryFile];
 
@@ -59,7 +59,7 @@ void main() {
   });
 
   test('fromArgs options file 2', () {
-    var optionsFile2 = path.join(optionsDir, 'analysis_options_2.yaml');
+    var optionsFile2 = p.join(optionsDir, 'analysis_options_2.yaml');
     expect(File(optionsFile2).existsSync(), isTrue);
     var args = <String>['--$analysisOptionsFileOption', optionsFile2];
     //TODO(danrubel) remove sdkSummaryArgs once all SDKs have summary file

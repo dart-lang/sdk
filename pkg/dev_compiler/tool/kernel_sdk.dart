@@ -22,25 +22,25 @@ import 'package:front_end/src/api_unstable/ddc.dart'
         Severity;
 import 'package:kernel/kernel.dart';
 import 'package:kernel/target/targets.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 Future main(List<String> args) async {
-  var ddcPath = path.dirname(path.dirname(path.fromUri(Platform.script)));
+  var ddcPath = p.dirname(p.dirname(p.fromUri(Platform.script)));
 
   // Parse flags.
   var parser = ArgParser()
     ..addOption('output')
     ..addOption('libraries',
-        defaultsTo: path.join(ddcPath, '../../sdk/lib/libraries.json'))
-    ..addOption('packages', defaultsTo: path.join(ddcPath, '../../.packages'));
+        defaultsTo: p.join(ddcPath, '../../sdk/lib/libraries.json'))
+    ..addOption('packages', defaultsTo: p.join(ddcPath, '../../.packages'));
   var parserOptions = parser.parse(args);
 
   var outputPath = parserOptions['output'] as String;
   if (outputPath == null) {
-    var sdkRoot = path.absolute(path.dirname(path.dirname(ddcPath)));
-    var buildDir = path.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    var genDir = path.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
-    outputPath = path.join(genDir, 'kernel', 'ddc_sdk.dill');
+    var sdkRoot = p.absolute(p.dirname(p.dirname(ddcPath)));
+    var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
+    var genDir = p.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc');
+    outputPath = p.join(genDir, 'kernel', 'ddc_sdk.dill');
   }
 
   var librarySpecPath = parserOptions['libraries'] as String;
@@ -67,11 +67,11 @@ Future main(List<String> args) async {
   var inputs = target.extraRequiredLibraries.map(Uri.parse).toList();
   var component = await kernelForComponent(inputs, options);
 
-  var outputDir = path.dirname(outputPath);
+  var outputDir = p.dirname(outputPath);
   await Directory(outputDir).create(recursive: true);
   await writeComponentToBinary(component, outputPath);
-  File(librarySpecPath).copySync(
-      path.join(path.dirname(outputDir), path.basename(librarySpecPath)));
+  File(librarySpecPath)
+      .copySync(p.join(p.dirname(outputDir), p.basename(librarySpecPath)));
 
   var jsModule = ProgramCompiler(
       component,
@@ -87,8 +87,8 @@ Future main(List<String> args) async {
 
   for (var name in moduleFormats.keys) {
     var format = moduleFormats[name];
-    var jsDir = path.join(outputDir, name);
-    var jsPath = path.join(jsDir, 'dart_sdk.js');
+    var jsDir = p.join(outputDir, name);
+    var jsPath = p.join(jsDir, 'dart_sdk.js');
     await Directory(jsDir).create();
     var jsCode = jsProgramToCode(jsModule, format);
     await File(jsPath).writeAsString(jsCode.code);

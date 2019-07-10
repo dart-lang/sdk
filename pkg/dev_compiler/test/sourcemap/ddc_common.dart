@@ -9,7 +9,7 @@ import 'dart:mirrors' show currentMirrorSystem;
 
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
 import 'package:front_end/src/testing/annotated_code_helper.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 import 'package:testing/testing.dart';
@@ -163,7 +163,7 @@ String getWrapperContent(
 void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
-  var sdkFile = File(path.relative(sdkJsFile.path, from: sdkRoot.path));
+  var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRoot.path));
   String jsRootDart = "/root_dart/${sdkFile.uri}";
   File.fromUri(outputFile.resolve("$outputFilename.html.js")).writeAsStringSync(
       jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));

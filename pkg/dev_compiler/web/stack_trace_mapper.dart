@@ -23,7 +23,7 @@
 library stack_trace_mapper;
 
 import 'package:js/js.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'source_map_stack_trace.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
@@ -80,7 +80,7 @@ class LazyMapping extends Mapping {
         var mapping = parse(strMap) as SingleMapping;
         mapping
           ..targetUrl = uri
-          ..sourceRoot = '${path.dirname(uri)}/';
+          ..sourceRoot = '${p.dirname(uri)}/';
         _bundle.addMapping(mapping);
       }
     }

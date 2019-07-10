@@ -12,7 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 
 import '../compiler/js_names.dart' as js_ast;
@@ -120,7 +120,8 @@ JSModuleFile compileWithAnalyzer(
   if (analyzerOptions.dependencyTracker != null) {
     var file = File(analyzerOptions.dependencyTracker.outputPath);
     file.writeAsStringSync(
-        (analyzerOptions.dependencyTracker.dependencies.toList()..sort()).join('\n'));
+        (analyzerOptions.dependencyTracker.dependencies.toList()..sort())
+            .join('\n'));
   }
 
   var jsModule = JSModuleFile(
@@ -222,7 +223,7 @@ class CompilerOptions extends SharedCompilerOptions {
 
   static String _getLibraryRoot(ArgResults args) {
     var root = args['library-root'] as String;
-    return root != null ? path.absolute(root) : path.current;
+    return root != null ? p.absolute(root) : p.current;
   }
 }
 
@@ -286,10 +287,10 @@ class JSModuleFile {
       builtMap = placeSourceMap(
           sourceMap.build(jsUrl), mapUrl, options.bazelMapping, null);
       if (options.sourceMapComment) {
-        var jsDir = path.dirname(path.fromUri(jsUrl));
-        var relative = path.relative(path.fromUri(mapUrl), from: jsDir);
-        var relativeMapUrl = path.toUri(relative).toString();
-        assert(path.dirname(jsUrl) == path.dirname(mapUrl));
+        var jsDir = p.dirname(p.fromUri(jsUrl));
+        var relative = p.relative(p.fromUri(mapUrl), from: jsDir);
+        var relativeMapUrl = p.toUri(relative).toString();
+        assert(p.dirname(jsUrl) == p.dirname(mapUrl));
         printer.emit('\n//# sourceMappingURL=');
         printer.emit(relativeMapUrl);
         printer.emit('\n');
@@ -312,7 +313,7 @@ class JSModuleFile {
   void writeCodeSync(ModuleFormat format, String jsPath) {
     String mapPath = jsPath + '.map';
     var code = getCode(
-        format, path.toUri(jsPath).toString(), path.toUri(mapPath).toString());
+        format, p.toUri(jsPath).toString(), p.toUri(mapPath).toString());
     var c = code.code;
     if (format == ModuleFormat.amdConcat ||
         format == ModuleFormat.legacyConcat) {

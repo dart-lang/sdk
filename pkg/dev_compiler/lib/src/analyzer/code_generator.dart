@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/resolver.dart'
 import 'package:analyzer/src/generated/type_system.dart' show Dart2TypeSystem;
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/task/strong/ast_properties.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:source_span/source_span.dart' show SourceLocation;
 
 import '../compiler/js_metalet.dart' as js_ast;
@@ -262,8 +262,8 @@ class CodeGenerator extends Object
   /// errors, and computes the output module code and optionally the source map.
   js_ast.Program compile(List<CompilationUnit> compilationUnits) {
     _libraryRoot = options.libraryRoot;
-    if (!_libraryRoot.endsWith(path.separator)) {
-      _libraryRoot += path.separator;
+    if (!_libraryRoot.endsWith(p.separator)) {
+      _libraryRoot += p.separator;
     }
 
     if (moduleItems.isNotEmpty) {
@@ -437,9 +437,9 @@ class CodeGenerator extends Object
       // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
       qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
     } else {
-      qualifiedPath = path
+      qualifiedPath = p
           .relative(uri.toFilePath(), from: _libraryRoot)
-          .replaceAll(path.separator, encodedSeparator)
+          .replaceAll(p.separator, encodedSeparator)
           .replaceAll('..', encodedSeparator);
     }
     return pathToJSIdentifier(qualifiedPath);
@@ -454,7 +454,7 @@ class CodeGenerator extends Object
 
     var filePath = uri.toFilePath();
     // Relative path to the library.
-    return path.relative(filePath, from: _libraryRoot);
+    return p.relative(filePath, from: _libraryRoot);
   }
 
   /// Returns true if the library [l] is dart:_runtime.

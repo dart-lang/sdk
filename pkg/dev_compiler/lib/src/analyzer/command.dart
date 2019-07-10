@@ -9,7 +9,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show ConflictingSummaryException;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 import '../compiler/shared_command.dart' show CompilerResult;
 import 'context.dart' show AnalyzerOptions;
@@ -170,8 +170,8 @@ CompilerAnalysisDriver _compile(
   if (compilerOpts.summarizeApi) {
     var summaryPaths = compilerOpts.summaryOutPath != null
         ? [compilerOpts.summaryOutPath]
-        : outPaths.map((p) =>
-            '${path.withoutExtension(p)}.${compilerOpts.summaryExtension}');
+        : outPaths.map((path) =>
+            '${p.withoutExtension(path)}.${compilerOpts.summaryExtension}');
 
     // place next to every compiled module
     for (var summaryPath in summaryPaths) {
