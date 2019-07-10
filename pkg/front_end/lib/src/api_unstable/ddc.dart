@@ -150,7 +150,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       oldState?.workerInputCache ?? new Map<Uri, WorkerInputComponent>();
   var sdkDigest = workerInputDigests[sdkSummary];
   if (sdkDigest == null) {
-    throw new StateError("Expected to get sdk digest at $cachedSdkInput");
+    throw new StateError("Expected to get sdk digest at $sdkSummary");
   }
 
   cachedSdkInput = workerInputCache[sdkSummary];

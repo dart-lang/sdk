@@ -369,7 +369,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     }
 
     // Convert to a local file path if it's not.
-    sourcePath = path.absolute(path.fromUri(uri));
+    sourcePath = sourcePathToUri(path.absolute(path.fromUri(uri))).path;
 
     // Allow bazel mappings to override.
     var match = bazelMappings[sourcePath];

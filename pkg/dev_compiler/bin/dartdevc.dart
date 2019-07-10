@@ -56,7 +56,7 @@ class _CompilerWorker extends AsyncWorkerLoop {
     /// Build a map of uris to digests.
     final inputDigests = <Uri, List<int>>{};
     for (var input in request.inputs) {
-      inputDigests[Uri.base.resolve(input.path)] = input.digest;
+      inputDigests[sourcePathToUri(input.path)] = input.digest;
     }
 
     lastResult = await runZoned(
