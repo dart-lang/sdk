@@ -894,7 +894,7 @@ class BrowserTestRunner {
       if (status.currentTest.id != testId) {
         print("Expected test id ${status.currentTest.id} for"
             "${status.currentTest.url}");
-        print("Got test id ${testId}");
+        print("Got test id $testId");
         print("Last test id was ${status.lastTest.id} for "
             "${status.currentTest.url}");
         throw "This should never happen, wrong test id";
@@ -1492,11 +1492,11 @@ body div {
           current_id = next_id;
           test_started = true;
           contactBrowserController(
-            'POST', '$startedPath/${browserId}?id=' + current_id,
+            'POST', '$startedPath/$browserId?id=' + current_id,
             function () {}, msg, true);
         } else if (isStatusUpdate) {
             contactBrowserController(
-              'POST', '$statusUpdatePath/${browserId}?id=' + current_id,
+              'POST', '$statusUpdatePath/$browserId?id=' + current_id,
               function() {}, msg, true);
         } else {
           var is_double_report = test_completed;
@@ -1505,7 +1505,7 @@ body div {
 
           function reportDoneMessage() {
             contactBrowserController(
-                'POST', '$reportPath/${browserId}?id=' + current_id,
+                'POST', '$reportPath/$browserId?id=' + current_id,
                 handleReady, msg, true);
           }
 

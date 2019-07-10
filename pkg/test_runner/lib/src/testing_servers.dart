@@ -331,7 +331,7 @@ class TestingServers {
       if (headerOrigin != null) {
         var origin = Uri.parse(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.
-        allowedOrigin = '${origin.scheme}://${origin.host}:${allowedPort}';
+        allowedOrigin = '${origin.scheme}://${origin.host}:$allowedPort';
       } else {
         // IE10 appears to be bugged and is not sending the Origin header
         // when making CORS requests to the same domain but different port.

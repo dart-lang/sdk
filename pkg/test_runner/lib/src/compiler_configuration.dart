@@ -1054,7 +1054,7 @@ abstract class VMKernelCompilerMixin {
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '${pkgVmDir}/tool/gen_kernel${executableScriptSuffix}';
+    final genKernel = '$pkgVmDir/tool/gen_kernel$executableScriptSuffix';
 
     final String useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),

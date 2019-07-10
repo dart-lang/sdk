@@ -21,7 +21,6 @@ linter:
 #    - prefer_is_empty
 #    - prefer_is_not_empty
 #    - prefer_single_quotes
-#    - unnecessary_brace_in_string_interps
     - avoid_bool_literals_in_conditional_expressions
     - avoid_empty_else
     - avoid_function_literals_in_foreach_calls
@@ -72,6 +71,7 @@ linter:
     - slash_for_doc_comments
     - throw_in_finally
     - type_init_formals
+    - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
     - unnecessary_lambdas

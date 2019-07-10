@@ -629,7 +629,7 @@ class CommandExecutorImpl implements CommandExecutor {
       String deviceDir, String deviceTestDir) {
     final List<_StepFunction> steps = [];
     for (var lib in command.extraLibraries) {
-      var libName = "lib${lib}.so";
+      var libName = "lib$lib.so";
       steps.add(() => device.runAdbCommand([
             'push',
             '${command.buildPath}/$libName',
@@ -731,8 +731,8 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(
-        () => device.pushCachedData("${buildPath}/dart", '$devicedir/dart'));
+    steps
+        .add(() => device.pushCachedData("$buildPath/dart", '$devicedir/dart'));
     steps.add(() => device
         .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
 

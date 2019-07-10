@@ -159,10 +159,10 @@ class Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      var joined = Path._internal('$_path${further}', isWindowsShare);
+      var joined = Path._internal('$_path$further', isWindowsShare);
       return joined.canonicalize();
     }
-    var joined = Path._internal('$_path/${further}', isWindowsShare);
+    var joined = Path._internal('$_path/$further', isWindowsShare);
     return joined.canonicalize();
   }
 

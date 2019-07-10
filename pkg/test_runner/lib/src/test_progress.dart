@@ -146,7 +146,7 @@ class UnexpectedCrashLogger extends EventListener {
       final binFile = File(binName);
       final binBaseName = Path(binName).filename;
       if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
-        final archived = "binary.${mode}_${arch}_${binBaseName}";
+        final archived = "binary.${mode}_${arch}_$binBaseName";
         TestUtils.copyFile(Path(binName), Path(archived));
         // On Windows also copy PDB file for the binary.
         if (Platform.isWindows) {
@@ -163,7 +163,7 @@ class UnexpectedCrashLogger extends EventListener {
           File('${binFile.parent.path}/$kernelServiceBaseName');
       if (!archivedBinaries.containsKey(kernelService) &&
           kernelService.existsSync()) {
-        final archived = "binary.${mode}_${arch}_${kernelServiceBaseName}";
+        final archived = "binary.${mode}_${arch}_$kernelServiceBaseName";
         TestUtils.copyFile(Path(kernelService.path), Path(archived));
         archivedBinaries[kernelServiceBaseName] = archived;
       }
@@ -182,16 +182,16 @@ class UnexpectedCrashLogger extends EventListener {
           unexpectedCrashesFile =
               File('unexpected-crashes').openSync(mode: FileMode.append);
           unexpectedCrashesFile.writeStringSync(
-              "${test.displayName},${pid},${binaries.join(',')}\n");
+              "${test.displayName},$pid,${binaries.join(',')}\n");
         } catch (e) {
-          print('Failed to add crash to unexpected-crashes list: ${e}');
+          print('Failed to add crash to unexpected-crashes list: $e');
         } finally {
           try {
             if (unexpectedCrashesFile != null) {
               unexpectedCrashesFile.closeSync();
             }
           } catch (e) {
-            print('Failed to close unexpected-crashes file: ${e}');
+            print('Failed to close unexpected-crashes file: $e');
           }
         }
       }
@@ -701,7 +701,7 @@ String _buildSummaryEnd(Formatter formatter, int failedTests) {
   } else {
     var pluralSuffix = failedTests != 1 ? 's' : '';
     return formatter
-        .failed('\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n');
+        .failed('\n===\n=== $failedTests test$pluralSuffix failed\n===\n');
   }
 }
 

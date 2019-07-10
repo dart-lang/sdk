@@ -217,11 +217,11 @@ String niceTime(Duration duration) {
       digits(6, duration.inMilliseconds, Duration.millisecondsPerSecond);
 
   if (duration.inHours >= 1) {
-    return "${duration.inHours}:${minutes}:${seconds}s";
+    return "${duration.inHours}:$minutes:${seconds}s";
   } else if (duration.inMinutes >= 1) {
-    return "${minutes}:${seconds}.${millis}s";
+    return "$minutes:$seconds.${millis}s";
   } else if (duration.inSeconds >= 1) {
-    return "${seconds}.${millis}s";
+    return "$seconds.${millis}s";
   } else {
     return "${duration.inMilliseconds}ms";
   }
