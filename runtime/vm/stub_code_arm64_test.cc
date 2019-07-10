@@ -35,7 +35,8 @@ static Function* CreateFunction(const char* name) {
 }
 
 // Test calls to stub code which calls into the runtime.
-static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
+static void GenerateCallToCallRuntimeStub(compiler::Assembler* assembler,
+                                          int length) {
   const int argc = 2;
   const Smi& smi_length = Smi::ZoneHandle(Smi::New(length));
   __ EnterDartFrame(0);
@@ -44,7 +45,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   __ PushObject(Object::null_object());  // Push argument 2: type arguments.
   ASSERT(kAllocateArrayRuntimeEntry.argument_count() == argc);
   __ CallRuntime(kAllocateArrayRuntimeEntry, argc);
-  __ add(SP, SP, Operand(argc * kWordSize));
+  __ add(SP, SP, compiler::Operand(argc * kWordSize));
   __ Pop(R0);  // Pop return value from return slot.
   __ LeaveDartFrame();
   __ ret();
@@ -55,8 +56,8 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
                                               const Code& code);
   const int length = 10;
   const char* kName = "Test_CallRuntimeStubCode";
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder);
   GenerateCallToCallRuntimeStub(&assembler, length);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       *CreateFunction("Test_CallRuntimeStubCode"), nullptr, &assembler,
@@ -68,7 +69,7 @@ ISOLATE_UNIT_TEST_CASE(CallRuntimeStubCode) {
 }
 
 // Test calls to stub code which calls into a leaf runtime entry.
-static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
+static void GenerateCallToCallLeafRuntimeStub(compiler::Assembler* assembler,
                                               const char* str_value,
                                               intptr_t lhs_index_value,
                                               intptr_t rhs_index_value,
@@ -96,8 +97,8 @@ ISOLATE_UNIT_TEST_CASE(CallLeafRuntimeStubCode) {
   intptr_t rhs_index_value = 2;
   intptr_t length_value = 2;
   const char* kName = "Test_CallLeafRuntimeStubCode";
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder);
   GenerateCallToCallLeafRuntimeStub(&assembler, str_value, lhs_index_value,
                                     rhs_index_value, length_value);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(

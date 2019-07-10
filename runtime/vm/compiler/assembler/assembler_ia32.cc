@@ -21,14 +21,6 @@ DECLARE_FLAG(bool, use_slow_path);
 
 namespace compiler {
 
-using target::ClassTable;
-using target::Heap;
-using target::Instance;
-using target::Instructions;
-using target::Isolate;
-using target::RawObject;
-using target::Thread;
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 class DirectCallRelocation : public AssemblerFixup {
@@ -1780,7 +1772,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 }
 
 void Assembler::LoadIsolate(Register dst) {
-  movl(dst, Address(THR, Thread::isolate_offset()));
+  movl(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
 void Assembler::LoadObject(Register dst,
@@ -1902,7 +1894,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  call(Address(THR, Thread::write_barrier_entry_point_offset()));
+  call(Address(THR, target::Thread::write_barrier_entry_point_offset()));
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -1961,7 +1953,7 @@ void Assembler::StoreIntoArray(Register object,
   } else if (slot != kWriteBarrierSlotReg) {
     movl(kWriteBarrierSlotReg, slot);
   }
-  call(Address(THR, Thread::array_write_barrier_entry_point_offset()));
+  call(Address(THR, target::Thread::array_write_barrier_entry_point_offset()));
   if (value != kWriteBarrierSlotReg && slot != kWriteBarrierSlotReg) {
     popl(kWriteBarrierSlotReg);  // Restore kWriteBarrierSlotReg.
   }
@@ -2104,10 +2096,11 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
-  jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
+  jmp(Address(THR, target::Thread::monomorphic_miss_entry_offset()));
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -2127,7 +2120,8 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   nop(1);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kPolymorphicEntryOffsetJIT);
 }
 
 // EBX receiver, ECX guarded cid as Smi.
@@ -2138,11 +2132,11 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   has_single_entry_point_ = false;
-  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+  while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     int3();
   }
   jmp(label);
-  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+  while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     int3();
   }
 }
@@ -2151,31 +2145,31 @@ void Assembler::TransitionGeneratedToNative(Register destination_address,
                                             Register new_exit_frame,
                                             Register scratch) {
   // Save exit frame information to enable stack walking.
-  movl(Address(THR, Thread::top_exit_frame_info_offset()), new_exit_frame);
+  movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+       new_exit_frame);
 
   // Mark that the thread is executing native code.
   movl(VMTagAddress(), destination_address);
-  movl(Address(THR, Thread::execution_state_offset()),
-       Immediate(compiler::target::Thread::native_execution_state()));
+  movl(Address(THR, target::Thread::execution_state_offset()),
+       Immediate(target::Thread::native_execution_state()));
 
   // Compare and swap the value at Thread::safepoint_state from unacquired to
   // acquired. On success, jump to 'success'; otherwise, fallthrough.
   Label done;
   if (!FLAG_use_slow_path) {
     pushl(EAX);
-    movl(EAX, Immediate(Thread::safepoint_state_unacquired()));
-    movl(scratch, Immediate(Thread::safepoint_state_acquired()));
-    LockCmpxchgl(Address(THR, Thread::safepoint_state_offset()), scratch);
+    movl(EAX, Immediate(target::Thread::safepoint_state_unacquired()));
+    movl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
+    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
+                 scratch);
     movl(scratch, EAX);
     popl(EAX);
-    cmpl(scratch, Immediate(Thread::safepoint_state_unacquired()));
+    cmpl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
     j(EQUAL, &done);
   }
 
-  movl(scratch,
-       Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
-  movl(scratch,
-       FieldAddress(scratch, compiler::target::Code::entry_point_offset()));
+  movl(scratch, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
   Bind(&done);
@@ -2187,34 +2181,31 @@ void Assembler::TransitionNativeToGenerated(Register scratch) {
   Label done;
   if (!FLAG_use_slow_path) {
     pushl(EAX);
-    movl(EAX, Immediate(compiler::target::Thread::safepoint_state_acquired()));
-    movl(scratch,
-         Immediate(compiler::target::Thread::safepoint_state_unacquired()));
-    LockCmpxchgl(
-        Address(THR, compiler::target::Thread::safepoint_state_offset()),
-        scratch);
+    movl(EAX, Immediate(target::Thread::safepoint_state_acquired()));
+    movl(scratch, Immediate(target::Thread::safepoint_state_unacquired()));
+    LockCmpxchgl(Address(THR, target::Thread::safepoint_state_offset()),
+                 scratch);
     movl(scratch, EAX);
     popl(EAX);
-    cmpl(scratch, Immediate(Thread::safepoint_state_acquired()));
+    cmpl(scratch, Immediate(target::Thread::safepoint_state_acquired()));
     j(EQUAL, &done);
   }
 
-  movl(scratch,
-       Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
-  movl(scratch,
-       FieldAddress(scratch, compiler::target::Code::entry_point_offset()));
+  movl(scratch, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  movl(scratch, FieldAddress(scratch, target::Code::entry_point_offset()));
   call(scratch);
 
   Bind(&done);
 
   // Mark that the thread is executing Dart code.
   movl(Assembler::VMTagAddress(),
-       Immediate(compiler::target::Thread::vm_tag_compiled_id()));
-  movl(Address(THR, Thread::execution_state_offset()),
-       Immediate(compiler::target::Thread::generated_execution_state()));
+       Immediate(target::Thread::vm_tag_compiled_id()));
+  movl(Address(THR, target::Thread::execution_state_offset()),
+       Immediate(target::Thread::generated_execution_state()));
 
   // Reset exit frame information in Isolate structure.
-  movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
+  movl(Address(THR, target::Thread::top_exit_frame_info_offset()),
+       Immediate(0));
 }
 
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
@@ -2286,7 +2277,7 @@ void Assembler::Call(const Code& target, bool movable_target) {
 }
 
 void Assembler::CallToRuntime() {
-  call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
 }
 
 void Assembler::Jmp(const Code& target) {
@@ -2347,11 +2338,11 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      bool near_jump) {
   ASSERT(cid > 0);
   Address state_address(kNoRegister, 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = Isolate::class_table_offset() +
-                          ClassTable::class_heap_stats_table_offset();
+  intptr_t table_offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   state_address = Address(temp_reg, state_offset);
   testb(state_address,
@@ -2363,11 +2354,11 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 
 void Assembler::UpdateAllocationStats(intptr_t cid, Register temp_reg) {
   ASSERT(cid > 0);
-  intptr_t counter_offset = ClassTable::NewSpaceCounterOffsetFor(cid);
+  intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
   ASSERT(temp_reg != kNoRegister);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = Isolate::class_table_offset() +
-                          ClassTable::class_heap_stats_table_offset();
+  intptr_t table_offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::class_heap_stats_table_offset();
   movl(temp_reg, Address(temp_reg, table_offset));
   incl(Address(temp_reg, counter_offset));
 }
@@ -2378,7 +2369,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
+  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), size_reg);
 }
 
@@ -2388,7 +2379,7 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
   ASSERT(cid > 0);
   ASSERT(cid < kNumPredefinedCids);
   UpdateAllocationStats(cid, temp_reg);
-  intptr_t size_offset = ClassTable::NewSpaceSizeOffsetFor(cid);
+  intptr_t size_offset = target::ClassTable::NewSpaceSizeOffsetFor(cid);
   addl(Address(temp_reg, size_offset), Immediate(size_in_bytes));
 }
 #endif  // !PRODUCT
@@ -2401,20 +2392,21 @@ void Assembler::TryAllocate(const Class& cls,
   ASSERT(failure != NULL);
   ASSERT(temp_reg != kNoRegister);
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc &&
+      target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     const classid_t cid = target::Class::GetId(cls);
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
-    movl(instance_reg, Address(THR, Thread::top_offset()));
+    movl(instance_reg, Address(THR, target::Thread::top_offset()));
     addl(instance_reg, Immediate(instance_size));
     // instance_reg: potential next object start.
-    cmpl(instance_reg, Address(THR, Thread::end_offset()));
+    cmpl(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, near_jump);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    movl(Address(THR, Thread::top_offset()), instance_reg);
+    movl(Address(THR, target::Thread::top_offset()), instance_reg);
     NOT_IN_PRODUCT(UpdateAllocationStats(cid, temp_reg));
     ASSERT(instance_size >= kHeapObjectTag);
     subl(instance_reg, Immediate(instance_size - kHeapObjectTag));
@@ -2436,12 +2428,13 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp_reg) {
   ASSERT(failure != NULL);
   ASSERT(temp_reg != kNoRegister);
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc &&
+      target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp_reg, failure, near_jump));
-    movl(instance, Address(THR, Thread::top_offset()));
+    movl(instance, Address(THR, target::Thread::top_offset()));
     movl(end_address, instance);
 
     addl(end_address, Immediate(instance_size));
@@ -2450,12 +2443,12 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // Check if the allocation fits into the remaining space.
     // EAX: potential new object start.
     // EBX: potential next object start.
-    cmpl(end_address, Address(THR, Thread::end_offset()));
+    cmpl(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    movl(Address(THR, Thread::top_offset()), end_address);
+    movl(Address(THR, target::Thread::top_offset()), end_address);
     addl(instance, Immediate(kHeapObjectTag));
     NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, instance_size, temp_reg));
 
@@ -2590,20 +2583,21 @@ void Assembler::EmitGenericShift(int rm,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
-      target::Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
+      target::Object::tags_offset() +
+      target::RawObject::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   LoadIsolate(result);
-  const intptr_t offset =
-      Isolate::class_table_offset() + ClassTable::table_offset();
+  const intptr_t offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::table_offset();
   movl(result, Address(result, offset));
-  ASSERT(ClassTable::kSizeOfClassPairLog2 == 3);
+  ASSERT(target::ClassTable::kSizeOfClassPairLog2 == 3);
   movl(result, Address(result, class_id, TIMES_8, 0));
 }
 
@@ -2619,10 +2613,11 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      Register scratch,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
-      target::Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
+      target::Object::tags_offset() +
+      target::RawObject::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2648,7 +2643,8 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     ASSERT(result != object);
-    static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
+    static const intptr_t kSmiCidSource = kSmiCid
+                                          << target::RawObject::kClassIdTagPos;
 
     // Make a dummy "Object" whose cid is kSmiCid.
     movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
@@ -2693,7 +2689,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
     return Address(array, index * index_scale + extra_disp);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-                         Instance::DataOffsetFor(cid) + extra_disp;
+                         target::Instance::DataOffsetFor(cid) + extra_disp;
     ASSERT(Utils::IsInt(32, disp));
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
@@ -2731,7 +2727,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
     return Address(array, index, ToScaleFactor(index_scale), extra_disp);
   } else {
     return FieldAddress(array, index, ToScaleFactor(index_scale),
-                        Instance::DataOffsetFor(cid) + extra_disp);
+                        target::Instance::DataOffsetFor(cid) + extra_disp);
   }
 }
 

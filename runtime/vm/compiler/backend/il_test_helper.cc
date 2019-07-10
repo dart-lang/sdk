@@ -140,8 +140,8 @@ void TestPipeline::CompileGraphAndAttachFunction() {
 
   ASSERT(pass_state_->inline_id_to_function.length() ==
          pass_state_->caller_inline_id.length());
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder, use_far_branches);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder, use_far_branches);
   FlowGraphCompiler graph_compiler(
       &assembler, flow_graph_, *parsed_function_, optimized,
       &speculative_policy, pass_state_->inline_id_to_function,

@@ -936,11 +936,6 @@ inline void Assembler::EmitOperandSizeOverride() {
 }
 
 }  // namespace compiler
-
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Immediate;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_IA32_H_

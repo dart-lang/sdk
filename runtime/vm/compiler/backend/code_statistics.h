@@ -67,7 +67,7 @@ class CombinedCodeStatistics {
 
 class CodeStatistics {
  public:
-  explicit CodeStatistics(Assembler* assembler);
+  explicit CodeStatistics(compiler::Assembler* assembler);
 
   void Begin(Instruction* instruction);
   void End(Instruction* instruction);
@@ -82,7 +82,7 @@ class CodeStatistics {
  private:
   static const int kStackSize = 8;
 
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
 
   typedef struct {
     intptr_t bytes;

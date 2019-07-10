@@ -54,33 +54,34 @@ class TypeTestingStubGenerator {
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   RawCode* BuildCodeForType(const Type& type);
-  static void BuildOptimizedTypeTestStub(Assembler* assembler,
+  static void BuildOptimizedTypeTestStub(compiler::Assembler* assembler,
                                          HierarchyInfo* hi,
                                          const Type& type,
                                          const Class& type_class);
 
-  static void BuildOptimizedTypeTestStubFastCases(Assembler* assembler,
-                                                  HierarchyInfo* hi,
-                                                  const Type& type,
-                                                  const Class& type_class,
-                                                  Register instance_reg,
-                                                  Register class_id_reg);
+  static void BuildOptimizedTypeTestStubFastCases(
+      compiler::Assembler* assembler,
+      HierarchyInfo* hi,
+      const Type& type,
+      const Class& type_class,
+      Register instance_reg,
+      Register class_id_reg);
 
-  static void BuildOptimizedSubtypeRangeCheck(Assembler* assembler,
+  static void BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
                                               Register class_id_reg,
                                               Register instance_reg,
                                               bool smi_is_ok);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Class& type_class,
       const TypeArguments& type_parameters,
       const TypeArguments& type_arguments);
 
   static void BuildOptimizedSubclassRangeCheckWithTypeArguments(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const Class& type_class,
       const TypeArguments& type_parameters,
@@ -89,21 +90,21 @@ class TypeTestingStubGenerator {
       const Register instance_reg,
       const Register instance_type_args_reg);
 
-  static void BuildOptimizedSubclassRangeCheck(Assembler* assembler,
+  static void BuildOptimizedSubclassRangeCheck(compiler::Assembler* assembler,
                                                const CidRangeVector& ranges,
                                                Register class_id_reg,
                                                Register instance_reg,
-                                               Label* check_failed);
+                                               compiler::Label* check_failed);
 
   static void BuildOptimizedTypeArgumentValueCheck(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const AbstractType& type_arg,
       intptr_t type_param_value_offset_i,
-      Label* check_failed);
+      compiler::Label* check_failed);
 
   static void BuildOptimizedTypeArgumentValueCheck(
-      Assembler* assembler,
+      compiler::Assembler* assembler,
       HierarchyInfo* hi,
       const AbstractType& type_arg,
       intptr_t type_param_value_offset_i,
@@ -112,7 +113,7 @@ class TypeTestingStubGenerator {
       const Register instantiator_type_args_reg,
       const Register function_type_args_reg,
       const Register type_arg_reg,
-      Label* check_failed);
+      compiler::Label* check_failed);
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)

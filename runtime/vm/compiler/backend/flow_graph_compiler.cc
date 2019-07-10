@@ -103,7 +103,7 @@ void CompilerDeoptInfo::EmitMaterializations(Environment* env,
 }
 
 FlowGraphCompiler::FlowGraphCompiler(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     FlowGraph* flow_graph,
     const ParsedFunction& parsed_function,
     bool is_optimizing,
@@ -298,7 +298,7 @@ void FlowGraphCompiler::CompactBlocks() {
   // This algorithm does not garbage collect blocks in place, but merely
   // records forwarding label information.  In this way it avoids having to
   // change join and target entries.
-  Label* nonempty_label = NULL;
+  compiler::Label* nonempty_label = NULL;
   for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
     BlockEntryInstr* block = block_order()[i];
 
@@ -331,7 +331,7 @@ intptr_t FlowGraphCompiler::UncheckedEntryOffset() const {
     entry = flow_graph().graph_entry()->osr_entry();
   }
   ASSERT(entry != nullptr);
-  Label* target = GetJumpLabel(entry);
+  compiler::Label* target = GetJumpLabel(entry);
 
   if (target->IsBound()) {
     return target->Position();
@@ -353,7 +353,7 @@ static intptr_t LocationToStackIndex(const Location& src) {
       src.stack_index());
 }
 
-static CatchEntryMove CatchEntryMoveFor(Assembler* assembler,
+static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         Representation src_rep,
                                         const Location& src,
                                         intptr_t dst_index) {
@@ -545,7 +545,7 @@ bool FlowGraphCompiler::IsPeephole(Instruction* instr) const {
 
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
-  if (Assembler::EmittingComments()) {
+  if (compiler::Assembler::EmittingComments()) {
     // The loop_info fields were cleared, recompute.
     flow_graph().ComputeLoops();
   }
@@ -573,7 +573,7 @@ void FlowGraphCompiler::VisitBlocks() {
     }
 #endif
 
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       for (LoopInfo* l = entry->loop_info(); l != nullptr; l = l->outer()) {
         assembler()->Comment("  Loop %" Pd "", l->id());
       }
@@ -662,7 +662,8 @@ intptr_t FlowGraphCompiler::ExtraStackSlotsOnOsrEntry() const {
   return StackSize() - stack_depth - num_stack_locals;
 }
 
-Label* FlowGraphCompiler::GetJumpLabel(BlockEntryInstr* block_entry) const {
+compiler::Label* FlowGraphCompiler::GetJumpLabel(
+    BlockEntryInstr* block_entry) const {
   const intptr_t block_index = block_entry->postorder_number();
   return block_info_[block_index]->jump_label();
 }
@@ -672,7 +673,7 @@ bool FlowGraphCompiler::WasCompacted(BlockEntryInstr* block_entry) const {
   return block_info_[block_index]->WasCompacted();
 }
 
-Label* FlowGraphCompiler::NextNonEmptyLabel() const {
+compiler::Label* FlowGraphCompiler::NextNonEmptyLabel() const {
   const intptr_t current_index = current_block()->postorder_number();
   return block_info_[current_index]->next_nonempty_label();
 }
@@ -682,9 +683,9 @@ bool FlowGraphCompiler::CanFallThroughTo(BlockEntryInstr* block_entry) const {
 }
 
 BranchLabels FlowGraphCompiler::CreateBranchLabels(BranchInstr* branch) const {
-  Label* true_label = GetJumpLabel(branch->true_successor());
-  Label* false_label = GetJumpLabel(branch->false_successor());
-  Label* fall_through = NextNonEmptyLabel();
+  compiler::Label* true_label = GetJumpLabel(branch->true_successor());
+  compiler::Label* false_label = GetJumpLabel(branch->false_successor());
+  compiler::Label* fall_through = NextNonEmptyLabel();
   BranchLabels result = {true_label, false_label, fall_through};
   return result;
 }
@@ -1009,9 +1010,9 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
   return env;
 }
 
-Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       ICData::DeoptReasonId reason,
-                                       uint32_t flags) {
+compiler::Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
+                                                 ICData::DeoptReasonId reason,
+                                                 uint32_t flags) {
   if (intrinsic_mode()) {
     return intrinsic_slow_path_label_;
   }
@@ -1068,7 +1069,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
   code.set_pc_descriptors(descriptors);
 }
 
-RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
+RawArray* FlowGraphCompiler::CreateDeoptInfo(compiler::Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompiled_mode) {
     return Array::empty_array().raw();
@@ -1209,7 +1210,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 bool FlowGraphCompiler::TryIntrinsifyHelper() {
-  Label exit;
+  compiler::Label exit;
   set_intrinsic_slow_path_label(&exit);
 
   if (FLAG_intrinsify) {
@@ -1420,10 +1421,11 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   }
 }
 
-void FlowGraphCompiler::GenerateNumberTypeCheck(Register class_id_reg,
-                                                const AbstractType& type,
-                                                Label* is_instance_lbl,
-                                                Label* is_not_instance_lbl) {
+void FlowGraphCompiler::GenerateNumberTypeCheck(
+    Register class_id_reg,
+    const AbstractType& type,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   assembler()->Comment("NumberTypeCheck");
   GrowableArray<intptr_t> args;
   if (type.IsNumberType()) {
@@ -1437,9 +1439,10 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register class_id_reg,
   CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::GenerateStringTypeCheck(Register class_id_reg,
-                                                Label* is_instance_lbl,
-                                                Label* is_not_instance_lbl) {
+void FlowGraphCompiler::GenerateStringTypeCheck(
+    Register class_id_reg,
+    compiler::Label* is_instance_lbl,
+    compiler::Label* is_not_instance_lbl) {
   assembler()->Comment("StringTypeCheck");
   GrowableArray<intptr_t> args;
   args.Add(kOneByteStringCid);
@@ -1449,10 +1452,11 @@ void FlowGraphCompiler::GenerateStringTypeCheck(Register class_id_reg,
   CheckClassIds(class_id_reg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
-void FlowGraphCompiler::GenerateListTypeCheck(Register class_id_reg,
-                                              Label* is_instance_lbl) {
+void FlowGraphCompiler::GenerateListTypeCheck(
+    Register class_id_reg,
+    compiler::Label* is_instance_lbl) {
   assembler()->Comment("ListTypeCheck");
-  Label unknown;
+  compiler::Label unknown;
   GrowableArray<intptr_t> args;
   args.Add(kArrayCid);
   args.Add(kGrowableObjectArrayCid);
@@ -2065,9 +2069,9 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     bool complete,
     intptr_t total_ic_calls) {
   if (FLAG_polymorphic_with_deopt) {
-    Label* deopt =
+    compiler::Label* deopt =
         AddDeoptStub(deopt_id, ICData::kDeoptPolymorphicInstanceCallTestFail);
-    Label ok;
+    compiler::Label ok;
     EmitTestAndCall(targets, original_call.function_name(), args_info,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
@@ -2076,7 +2080,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     assembler()->Bind(&ok);
   } else {
     if (complete) {
-      Label ok;
+      compiler::Label ok;
       EmitTestAndCall(targets, original_call.function_name(), args_info,
                       NULL,  // No cid match.
                       &ok,   // Found cid.
@@ -2097,8 +2101,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
 void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
                                         const String& function_name,
                                         ArgumentsInfo args_info,
-                                        Label* failed,
-                                        Label* match_found,
+                                        compiler::Label* failed,
+                                        compiler::Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
                                         LocationSummary* locs,
@@ -2140,7 +2144,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
   }
 
   if (smi_case != kNoCase) {
-    Label after_smi_test;
+    compiler::Label after_smi_test;
     // If the call is complete and there are no other possible receiver
     // classes - then receiver can only be a smi value and we don't need
     // to check if it is a smi.
@@ -2192,7 +2196,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
       add_megamorphic_call = true;
       break;
     }
-    Label next_test;
+    compiler::Label next_test;
     if (!complete || !is_last_check) {
       bias = EmitTestAndCallCheckCid(assembler(),
                                      is_last_check ? failed : &next_test,
@@ -2219,7 +2223,7 @@ void FlowGraphCompiler::EmitTestAndCall(const CallTargets& targets,
 
 bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
                                                   const Class& type_class,
-                                                  Label* is_subtype) {
+                                                  compiler::Label* is_subtype) {
   HierarchyInfo* hi = Thread::Current()->hierarchy_info();
   if (hi != NULL) {
     const CidRangeVector& ranges =
@@ -2241,12 +2245,13 @@ bool FlowGraphCompiler::GenerateSubtypeRangeCheck(Register class_id_reg,
   return false;
 }
 
-void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
-                                               Register class_id_reg,
-                                               const CidRangeVector& cid_ranges,
-                                               Label* inside_range_lbl,
-                                               Label* outside_range_lbl,
-                                               bool fall_through_if_inside) {
+void FlowGraphCompiler::GenerateCidRangesCheck(
+    compiler::Assembler* assembler,
+    Register class_id_reg,
+    const CidRangeVector& cid_ranges,
+    compiler::Label* inside_range_lbl,
+    compiler::Label* outside_range_lbl,
+    bool fall_through_if_inside) {
   // If there are no valid class ranges, the check will fail.  If we are
   // supposed to fall-through in the positive case, we'll explicitly jump to
   // the [outside_range_lbl].
@@ -2263,8 +2268,9 @@ void FlowGraphCompiler::GenerateCidRangesCheck(Assembler* assembler,
     RELEASE_ASSERT(!range.IsIllegalRange());
     const bool last_round = i == (cid_ranges.length() - 1);
 
-    Label* jump_label = last_round && fall_through_if_inside ? outside_range_lbl
-                                                             : inside_range_lbl;
+    compiler::Label* jump_label = last_round && fall_through_if_inside
+                                      ? outside_range_lbl
+                                      : inside_range_lbl;
     const bool jump_on_miss = last_round && fall_through_if_inside;
 
     bias = EmitTestAndCallCheckCid(assembler, jump_label, class_id_reg, range,
@@ -2288,7 +2294,7 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     const Register subtype_cache_reg,
     const Register dst_type_reg,
     const Register scratch_reg,
-    Label* done) {
+    compiler::Label* done) {
   TypeUsageInfo* type_usage_info = thread()->type_usage_info();
 
   // If the int type is assignable to [dst_type] we special case it on the
@@ -2311,10 +2317,11 @@ void FlowGraphCompiler::GenerateAssertAssignableViaTypeTestingStub(
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
     __ CompareObject(kTypeArgumentsReg, Object::null_object());
     __ BranchIf(EQUAL, done);
-    __ LoadField(dst_type_reg,
-                 FieldAddress(kTypeArgumentsReg,
-                              compiler::target::TypeArguments::type_at_offset(
-                                  type_param.index())));
+    __ LoadField(
+        dst_type_reg,
+        compiler::FieldAddress(kTypeArgumentsReg,
+                               compiler::target::TypeArguments::type_at_offset(
+                                   type_param.index())));
     if (type_usage_info != NULL) {
       type_usage_info->UseTypeInAssertAssignable(dst_type);
     }
@@ -2443,7 +2450,7 @@ void FlowGraphCompiler::FrameStateClear() {
 #define __ compiler->assembler()->
 
 void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (Assembler::EmittingComments()) {
+  if (compiler::Assembler::EmittingComments()) {
     __ Comment("slow path %s operation", name());
   }
   const bool use_shared_stub =

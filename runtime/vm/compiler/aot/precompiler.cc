@@ -108,7 +108,7 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
 
-  void FinalizeCompilation(Assembler* assembler,
+  void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
                            FlowGraph* flow_graph,
                            CodeStatistics* stats);
@@ -2152,9 +2152,8 @@ void Precompiler::FinalizeAllClasses() {
   I->set_all_classes_finalized(true);
 }
 
-
 void PrecompileParsedFunctionHelper::FinalizeCompilation(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph,
     CodeStatistics* stats) {
@@ -2292,12 +2291,13 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(!FLAG_use_bare_instructions || precompiler_ != nullptr);
 
-      ObjectPoolBuilder object_pool;
-      ObjectPoolBuilder* active_object_pool_builder =
+      compiler::ObjectPoolBuilder object_pool;
+      compiler::ObjectPoolBuilder* active_object_pool_builder =
           FLAG_use_bare_instructions
               ? precompiler_->global_object_pool_builder()
               : &object_pool;
-      Assembler assembler(active_object_pool_builder, use_far_branches);
+      compiler::Assembler assembler(active_object_pool_builder,
+                                    use_far_branches);
 
       CodeStatistics* function_stats = NULL;
       if (FLAG_print_instruction_stats) {

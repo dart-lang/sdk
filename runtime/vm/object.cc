@@ -2087,7 +2087,7 @@ RawString* Object::DictionaryName() const {
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   uword initial_value = (class_id == kInstructionsCid)
-                            ? Assembler::GetBreakInstructionFiller()
+                            ? compiler::Assembler::GetBreakInstructionFiller()
                             : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
@@ -14832,7 +14832,7 @@ RawCode* Code::FinalizeCodeAndNotify(const char* name,
 }
 
 RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
-                            Assembler* assembler,
+                            compiler::Assembler* assembler,
                             PoolAttachment pool_attachment,
                             bool optimized,
                             CodeStatistics* stats /* = nullptr */) {

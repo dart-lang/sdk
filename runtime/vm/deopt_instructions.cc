@@ -1046,7 +1046,7 @@ class DeoptInfoBuilder::TrieNode : public ZoneAllocated {
 
 DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
                                    const intptr_t num_args,
-                                   Assembler* assembler)
+                                   compiler::Assembler* assembler)
     : zone_(zone),
       instructions_(),
       num_args_(num_args),

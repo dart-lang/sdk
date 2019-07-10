@@ -496,7 +496,7 @@ Location LocationRemapForSlowPath(Location loc,
 // DBC does not have an notion of 'address' in its instruction set.
 #if !defined(TARGET_ARCH_DBC)
 // Return a memory operand for stack slot locations.
-Address LocationToStackSlotAddress(Location loc);
+compiler::Address LocationToStackSlotAddress(Location loc);
 #endif
 
 template <class Location>

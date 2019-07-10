@@ -86,12 +86,12 @@
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.
 #define ASSEMBLER_TEST_GENERATE(name, assembler)                               \
-  void AssemblerTestGenerate##name(Assembler* assembler)
+  void AssemblerTestGenerate##name(compiler::Assembler* assembler)
 
 // The ASSEMBLER_TEST_EXTERN macro is used to declare a unit test
 // for the assembler.
 #define ASSEMBLER_TEST_EXTERN(name)                                            \
-  extern void AssemblerTestGenerate##name(Assembler* assembler);
+  extern void AssemblerTestGenerate##name(compiler::Assembler* assembler);
 
 // The ASSEMBLER_TEST_RUN macro is used to execute the assembler unit
 // test generated using the ASSEMBLER_TEST_GENERATE macro.
@@ -103,8 +103,8 @@
       bool use_far_branches = false;                                           \
       LongJumpScope jump;                                                      \
       if (setjmp(*jump.Set()) == 0) {                                          \
-        ObjectPoolBuilder object_pool_builder;                                 \
-        Assembler assembler(&object_pool_builder, use_far_branches);           \
+        compiler::ObjectPoolBuilder object_pool_builder;                       \
+        compiler::Assembler assembler(&object_pool_builder, use_far_branches); \
         AssemblerTest test("" #name, &assembler);                              \
         AssemblerTestGenerate##name(test.assembler());                         \
         test.Assemble();                                                       \
@@ -116,8 +116,8 @@
     const Error& error = Error::Handle(Thread::Current()->sticky_error());     \
     if (error.raw() == Object::branch_offset_error().raw()) {                  \
       bool use_far_branches = true;                                            \
-      ObjectPoolBuilder object_pool_builder;                                   \
-      Assembler assembler(&object_pool_builder, use_far_branches);             \
+      compiler::ObjectPoolBuilder object_pool_builder;                         \
+      compiler::Assembler assembler(&object_pool_builder, use_far_branches);   \
       AssemblerTest test("" #name, &assembler);                                \
       AssemblerTestGenerate##name(test.assembler());                           \
       test.Assemble();                                                         \
@@ -462,14 +462,14 @@ struct is_double<double> {
 
 class AssemblerTest {
  public:
-  AssemblerTest(const char* name, Assembler* assembler)
+  AssemblerTest(const char* name, compiler::Assembler* assembler)
       : name_(name), assembler_(assembler), code_(Code::ZoneHandle()) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
   ~AssemblerTest() {}
 
-  Assembler* assembler() const { return assembler_; }
+  compiler::Assembler* assembler() const { return assembler_; }
 
   const Code& code() const { return code_; }
 
@@ -590,7 +590,7 @@ class AssemblerTest {
 
  private:
   const char* name_;
-  Assembler* assembler_;
+  compiler::Assembler* assembler_;
   Code& code_;
   static const intptr_t DISASSEMBLY_SIZE = 10240;
   char disassembly_[DISASSEMBLY_SIZE];

@@ -188,7 +188,7 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
   ASSERT(!type_class.IsNull());
 
   // To use the already-defined __ Macro !
-  Assembler assembler(nullptr);
+  compiler::Assembler assembler(nullptr);
   BuildOptimizedTypeTestStub(&assembler, hi, type, type_class);
 
   const char* name = namer_.StubNameForType(type);
@@ -216,7 +216,7 @@ RawCode* TypeTestingStubGenerator::BuildCodeForType(const Type& type) {
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     HierarchyInfo* hi,
     const Type& type,
     const Class& type_class,
@@ -228,12 +228,12 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 
   // Fast case for 'int'.
   if (type.raw() == Type::IntType()) {
-    Label non_smi_value;
+    compiler::Label non_smi_value;
     __ BranchIfNotSmi(instance_reg, &non_smi_value);
     __ Ret();
     __ Bind(&non_smi_value);
   } else if (type.IsDartFunctionType()) {
-    Label continue_checking;
+    compiler::Label continue_checking;
     __ CompareImmediate(class_id_reg, kClosureCid);
     __ BranchIf(NOT_EQUAL, &continue_checking);
     __ Ret();
@@ -274,7 +274,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
   }
 
   // Fast case for 'null'.
-  Label non_null;
+  compiler::Label non_null;
   __ CompareObject(instance_reg, Object::null_object());
   __ BranchIf(NOT_EQUAL, &non_null);
   __ Ret();
@@ -282,12 +282,12 @@ void TypeTestingStubGenerator::BuildOptimizedTypeTestStubFastCases(
 }
 
 void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     const CidRangeVector& ranges,
     Register class_id_reg,
     Register instance_reg,
     bool smi_is_ok) {
-  Label cid_range_failed, is_subtype;
+  compiler::Label cid_range_failed, is_subtype;
 
   if (smi_is_ok) {
     __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
@@ -305,7 +305,7 @@ void TypeTestingStubGenerator::BuildOptimizedSubtypeRangeCheck(
 
 void TypeTestingStubGenerator::
     BuildOptimizedSubclassRangeCheckWithTypeArguments(
-        Assembler* assembler,
+        compiler::Assembler* assembler,
         HierarchyInfo* hi,
         const Class& type_class,
         const TypeArguments& tp,
@@ -314,7 +314,7 @@ void TypeTestingStubGenerator::
         const Register instance_reg,
         const Register instance_type_args_reg) {
   // a) First we make a quick sub*class* cid-range check.
-  Label check_failed;
+  compiler::Label check_failed;
   ASSERT(!type_class.is_implemented());
   const CidRangeVector& ranges = hi->SubclassRangesForClass(type_class);
   BuildOptimizedSubclassRangeCheck(assembler, ranges, class_id_reg,
@@ -322,10 +322,11 @@ void TypeTestingStubGenerator::
   // fall through to continue
 
   // b) Then we'll load the values for the type parameters.
-  __ LoadField(instance_type_args_reg,
-               FieldAddress(instance_reg,
-                            compiler::target::Class::TypeArgumentsFieldOffset(
-                                type_class)));
+  __ LoadField(
+      instance_type_args_reg,
+      compiler::FieldAddress(
+          instance_reg,
+          compiler::target::Class::TypeArgumentsFieldOffset(type_class)));
 
   // The kernel frontend should fill in any non-assigned type parameters on
   // construction with dynamic/Object, so we should never get the null type
@@ -334,7 +335,7 @@ void TypeTestingStubGenerator::
   // TODO(kustermann): We could consider not using "null" as type argument
   // vector representing all-dynamic to avoid this extra check (which will be
   // uncommon because most Dart code in 2.0 will be strongly typed)!
-  Label process_done;
+  compiler::Label process_done;
   __ CompareObject(instance_type_args_reg, Object::null_object());
   __ BranchIf(NOT_EQUAL, &process_done);
   __ Ret();
@@ -363,21 +364,21 @@ void TypeTestingStubGenerator::
 }
 
 void TypeTestingStubGenerator::BuildOptimizedSubclassRangeCheck(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     const CidRangeVector& ranges,
     Register class_id_reg,
     Register instance_reg,
-    Label* check_failed) {
+    compiler::Label* check_failed) {
   __ LoadClassIdMayBeSmi(class_id_reg, instance_reg);
 
-  Label is_subtype;
+  compiler::Label is_subtype;
   FlowGraphCompiler::GenerateCidRangesCheck(assembler, class_id_reg, ranges,
                                             &is_subtype, check_failed, true);
   __ Bind(&is_subtype);
 }
 
 void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     HierarchyInfo* hi,
     const AbstractType& type_arg,
     intptr_t type_param_value_offset_i,
@@ -386,19 +387,19 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     const Register instantiator_type_args_reg,
     const Register function_type_args_reg,
     const Register own_type_arg_reg,
-    Label* check_failed) {
+    compiler::Label* check_failed) {
   if (type_arg.raw() != Type::ObjectType() &&
       type_arg.raw() != Type::DynamicType()) {
     // TODO(kustermann): Even though it should be safe to use TMP here, we
     // should avoid using TMP outside the assembler.  Try to find a free
     // register to use here!
-    __ LoadField(TMP,
-                 FieldAddress(instance_type_args_reg,
-                              compiler::target::TypeArguments::type_at_offset(
-                                  type_param_value_offset_i)));
-    __ LoadField(
-        class_id_reg,
-        FieldAddress(TMP, compiler::target::Type::type_class_id_offset()));
+    __ LoadField(TMP, compiler::FieldAddress(
+                          instance_type_args_reg,
+                          compiler::target::TypeArguments::type_at_offset(
+                              type_param_value_offset_i)));
+    __ LoadField(class_id_reg,
+                 compiler::FieldAddress(
+                     TMP, compiler::target::Type::type_class_id_offset()));
 
     if (type_arg.IsTypeParameter()) {
       const TypeParameter& type_param = TypeParameter::Cast(type_arg);
@@ -406,13 +407,14 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
                                              ? instantiator_type_args_reg
                                              : function_type_args_reg;
       __ LoadField(own_type_arg_reg,
-                   FieldAddress(kTypeArgumentsReg,
-                                compiler::target::TypeArguments::type_at_offset(
-                                    type_param.index())));
+                   compiler::FieldAddress(
+                       kTypeArgumentsReg,
+                       compiler::target::TypeArguments::type_at_offset(
+                           type_param.index())));
       __ CompareWithFieldValue(
-          class_id_reg,
-          FieldAddress(own_type_arg_reg,
-                       compiler::target::Type::type_class_id_offset()));
+          class_id_reg, compiler::FieldAddress(
+                            own_type_arg_reg,
+                            compiler::target::Type::type_class_id_offset()));
       __ BranchIf(NOT_EQUAL, check_failed);
     } else {
       const Class& type_class = Class::Handle(type_arg.type_class());
@@ -421,7 +423,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
                                     /*include_abstract=*/true,
                                     /*exclude_null=*/false);
 
-      Label is_subtype;
+      compiler::Label is_subtype;
       __ SmiUntag(class_id_reg);
       FlowGraphCompiler::GenerateCidRangesCheck(
           assembler, class_id_reg, ranges, &is_subtype, check_failed, true);

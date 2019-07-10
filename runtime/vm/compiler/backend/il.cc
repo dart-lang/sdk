@@ -3932,7 +3932,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4005,7 +4005,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                    TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4042,7 +4042,7 @@ void OsrEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   if (HasParallelMove()) {
-    if (Assembler::EmittingComments()) {
+    if (compiler::Assembler::EmittingComments()) {
       compiler->EmitComment(parallel_move());
     }
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -4767,8 +4767,9 @@ void DeoptimizeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if !defined(TARGET_ARCH_DBC)
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
-                                        licm_hoisted_ ? ICData::kHoisted : 0);
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass,
+                             licm_hoisted_ ? ICData::kHoisted : 0);
   if (IsNullCheck()) {
     EmitNullCheck(compiler, deopt);
     return;
@@ -4777,7 +4778,7 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!cids_.IsMonomorphic() || !cids_.HasClassId(kSmiCid));
   Register value = locs()->in(0).reg();
   Register temp = locs()->temp(0).reg();
-  Label is_ok;
+  compiler::Label is_ok;
 
   __ BranchIfSmi(value, cids_.HasClassId(kSmiCid) ? &is_ok : deopt);
 
@@ -4880,8 +4881,9 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const Register box = locs()->in(0).reg();
   const Register temp =
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
-  Label* deopt = compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
-  Label is_smi;
+  compiler::Label* deopt =
+      compiler->AddDeoptStub(GetDeoptId(), ICData::kDeoptUnbox);
+  compiler::Label is_smi;
 
   if ((value()->Type()->ToNullableCid() == box_cid) &&
       value()->Type()->is_nullable()) {
@@ -4896,7 +4898,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   EmitLoadFromBox(compiler);
 
   if (is_smi.IsLinked()) {
-    Label done;
+    compiler::Label done;
     __ Jump(&done);
     __ Bind(&is_smi);
     EmitSmiConversion(compiler);

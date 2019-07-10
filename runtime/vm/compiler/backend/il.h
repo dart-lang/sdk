@@ -989,9 +989,9 @@ class Instruction : public ZoneAllocated {
 };
 
 struct BranchLabels {
-  Label* true_label;
-  Label* false_label;
-  Label* fall_through;
+  compiler::Label* true_label;
+  compiler::Label* false_label;
+  compiler::Label* fall_through;
 };
 
 class PureInstruction : public Instruction {
@@ -4502,12 +4502,12 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
 
   intptr_t OffsetInBytes() const { return slot().offset_in_bytes(); }
 
-  Assembler::CanBeSmi CanValueBeSmi() const {
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
-                              : Assembler::kValueIsNotSmi;
+    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
+                              : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Slot& slot_;
@@ -4667,12 +4667,12 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  Assembler::CanBeSmi CanValueBeSmi() const {
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
     // Write barrier is skipped for nullable and non-nullable smis.
     ASSERT(cid != kSmiCid);
-    return cid == kDynamicCid ? Assembler::kValueCanBeSmi
-                              : Assembler::kValueIsNotSmi;
+    return cid == kDynamicCid ? compiler::Assembler::kValueCanBeSmi
+                              : compiler::Assembler::kValueIsNotSmi;
   }
 
   const Field& field_;
@@ -4939,8 +4939,8 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
  private:
-  Assembler::CanBeSmi CanValueBeSmi() const {
-    return Assembler::kValueCanBeSmi;
+  compiler::Assembler::CanBeSmi CanValueBeSmi() const {
+    return compiler::Assembler::kValueCanBeSmi;
   }
 
   const StoreBarrierType emit_store_barrier_;
@@ -7490,15 +7490,15 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
                    intptr_t cid_start,
                    intptr_t cid_end,
                    bool is_last,
-                   Label* is_ok,
-                   Label* deopt,
+                   compiler::Label* is_ok,
+                   compiler::Label* deopt,
                    bool use_near_jump);
   void EmitBitTest(FlowGraphCompiler* compiler,
                    intptr_t min,
                    intptr_t max,
                    intptr_t mask,
-                   Label* deopt);
-  void EmitNullCheck(FlowGraphCompiler* compiler, Label* deopt);
+                   compiler::Label* deopt);
+  void EmitNullCheck(FlowGraphCompiler* compiler, compiler::Label* deopt);
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };

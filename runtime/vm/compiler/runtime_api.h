@@ -185,7 +185,7 @@ uword SymbolsPredefinedAddress();
 #endif
 
 typedef void (*RuntimeEntryCallInternal)(const dart::RuntimeEntry*,
-                                         compiler::Assembler*,
+                                         Assembler*,
                                          intptr_t);
 
 #if !defined(TARGET_ARCH_DBC)
@@ -198,7 +198,7 @@ class RuntimeEntry : public ValueObject {
  public:
   virtual ~RuntimeEntry() {}
 
-  void Call(compiler::Assembler* assembler, intptr_t argument_count) const {
+  void Call(Assembler* assembler, intptr_t argument_count) const {
     ASSERT(call_ != NULL);
     ASSERT(runtime_entry_ != NULL);
 

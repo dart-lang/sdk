@@ -184,10 +184,9 @@ class ArgumentAllocator : public ValueObject {
       case kUnboxedInt64:
       case kUnboxedUint32:
       case kUnboxedInt32: {
-        Location result =
-            rep == kUnboxedInt64 && compiler::target::kWordSize == 4
-                ? AllocateAlignedRegisterPair()
-                : AllocateCpuRegister();
+        Location result = rep == kUnboxedInt64 && target::kWordSize == 4
+                              ? AllocateAlignedRegisterPair()
+                              : AllocateCpuRegister();
         if (!result.IsUnallocated()) return result;
         break;
       }
@@ -196,7 +195,7 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // Argument must be spilled.
-    if (rep == kUnboxedInt64 && compiler::target::kWordSize == 4) {
+    if (rep == kUnboxedInt64 && target::kWordSize == 4) {
       return AllocateAlignedStackSlots(rep);
     } else if (rep == kUnboxedDouble) {
       // By convention, we always use DoubleStackSlot for doubles, even on
@@ -217,15 +216,14 @@ class ArgumentAllocator : public ValueObject {
   Location AllocateDoubleStackSlot() {
     const Location result = Location::DoubleStackSlot(
         stack_height_in_slots, CallingConventions::kStackPointerRegister);
-    stack_height_in_slots += 8 / compiler::target::kWordSize;
+    stack_height_in_slots += 8 / target::kWordSize;
     return result;
   }
 
   // Allocates a pair of stack slots where the first stack slot is aligned to an
   // 8-byte boundary, if necessary.
   Location AllocateAlignedStackSlots(Representation rep) {
-    if (CallingConventions::kAlignArguments &&
-        compiler::target::kWordSize == 4) {
+    if (CallingConventions::kAlignArguments && target::kWordSize == 4) {
       stack_height_in_slots += stack_height_in_slots % 2;
     }
 
@@ -314,7 +312,7 @@ void CallbackArgumentTranslator::AllocateArgument(Location arg) {
   if (arg.IsRegister()) {
     argument_slots_required_++;
   } else {
-    argument_slots_required_ += 8 / compiler::target::kWordSize;
+    argument_slots_required_ += 8 / target::kWordSize;
   }
 }
 
@@ -345,7 +343,7 @@ Location CallbackArgumentTranslator::TranslateArgument(Location arg) {
   ASSERT(arg.IsFpuRegister());
   const Location result =
       Location::DoubleStackSlot(argument_slots_used_, SPREG);
-  argument_slots_used_ += 8 / compiler::target::kWordSize;
+  argument_slots_used_ += 8 / target::kWordSize;
   return result;
 }
 
@@ -376,7 +374,7 @@ ZoneGrowableArray<Location>* ArgumentLocations(
   return ArgumentLocationsBase<dart::CallingConventions, Location,
                                dart::Register, dart::FpuRegister>(arg_reps);
 #else
-  intptr_t next_free_register = compiler::ffi::kFirstArgumentRegister;
+  intptr_t next_free_register = ffi::kFirstArgumentRegister;
   intptr_t num_arguments = arg_reps.length();
   auto result = new ZoneGrowableArray<Location>(num_arguments);
   for (intptr_t i = 0; i < num_arguments; i++) {
@@ -413,7 +411,7 @@ Location ResultLocation(Representation result_rep) {
     case kUnboxedUint32:
       return Location::RegisterLocation(CallingConventions::kReturnReg);
     case kUnboxedInt64:
-      if (compiler::target::kWordSize == 4) {
+      if (target::kWordSize == 4) {
         return Location::Pair(
             Location::RegisterLocation(CallingConventions::kReturnReg),
             Location::RegisterLocation(CallingConventions::kSecondReturnReg));
@@ -478,7 +476,7 @@ intptr_t TemplateNumStackSlots(const ZoneGrowableArray<Location>& locations) {
     if (locations.At(i).IsStackSlot()) {
       height = locations.At(i).stack_index() + 1;
     } else if (locations.At(i).IsDoubleStackSlot()) {
-      height = locations.At(i).stack_index() + 8 / compiler::target::kWordSize;
+      height = locations.At(i).stack_index() + 8 / target::kWordSize;
     } else if (locations.At(i).IsPairLocation()) {
       const Location first = locations.At(i).AsPairLocation()->At(0);
       const Location second = locations.At(i).AsPairLocation()->At(1);

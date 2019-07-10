@@ -14,8 +14,8 @@ namespace dart {
 #if !defined(PRODUCT) && !defined(TARGET_ARCH_DBC)
 
 ISOLATE_UNIT_TEST_CASE(Disassembler) {
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(&object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder);
 
   // The used instructions work on all platforms.
   Register reg = static_cast<Register>(0);

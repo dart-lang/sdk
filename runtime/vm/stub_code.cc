@@ -20,8 +20,6 @@
 
 namespace dart {
 
-using compiler::ObjectPoolBuilder;
-
 DEFINE_FLAG(bool, disassemble_stubs, false, "Disassemble generated stubs.");
 DECLARE_FLAG(bool, precompiled_mode);
 
@@ -51,7 +49,7 @@ void StubCode::Init() {
   entries_[k##name##Index]->set_object_pool(object_pool.raw());
 
 void StubCode::Init() {
-  ObjectPoolBuilder object_pool_builder;
+  compiler::ObjectPoolBuilder object_pool_builder;
 
   // Generate all the stubs.
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
@@ -65,10 +63,11 @@ void StubCode::Init() {
 #undef STUB_CODE_GENERATE
 #undef STUB_CODE_SET_OBJECT_POOL
 
-RawCode* StubCode::Generate(const char* name,
-                            ObjectPoolBuilder* object_pool_builder,
-                            void (*GenerateStub)(Assembler* assembler)) {
-  Assembler assembler(object_pool_builder);
+RawCode* StubCode::Generate(
+    const char* name,
+    compiler::ObjectPoolBuilder* object_pool_builder,
+    void (*GenerateStub)(compiler::Assembler* assembler)) {
+  compiler::Assembler assembler(object_pool_builder);
   GenerateStub(&assembler);
   const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
       name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
@@ -164,10 +163,10 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Code& stub = Code::Handle(zone, cls.allocation_stub());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (stub.IsNull()) {
-    ObjectPoolBuilder object_pool_builder;
+    compiler::ObjectPoolBuilder object_pool_builder;
     Precompiler* precompiler = Precompiler::Instance();
 
-    ObjectPoolBuilder* wrapper =
+    compiler::ObjectPoolBuilder* wrapper =
         FLAG_use_bare_instructions && precompiler != NULL
             ? precompiler->global_object_pool_builder()
             : &object_pool_builder;
@@ -177,7 +176,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
             ? Code::PoolAttachment::kNotAttachPool
             : Code::PoolAttachment::kAttachPool;
 
-    Assembler assembler(wrapper);
+    compiler::Assembler assembler(wrapper);
     const char* name = cls.ToCString();
     compiler::StubCodeCompiler::GenerateAllocationStubForClass(&assembler, cls);
 
@@ -245,7 +244,8 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 #if !defined(TARGET_ARCH_DBC) && !defined(TARGET_ARCH_IA32)
-RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolBuilder* pool) {
+RawCode* StubCode::GetBuildMethodExtractorStub(
+    compiler::ObjectPoolBuilder* pool) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   auto thread = Thread::Current();
   auto Z = thread->zone();
@@ -257,8 +257,8 @@ RawCode* StubCode::GetBuildMethodExtractorStub(ObjectPoolBuilder* pool) {
       Code::ZoneHandle(Z, StubCode::GetAllocationStubForClass(closure_class));
   const auto& context_allocation_stub = StubCode::AllocateContext();
 
-  ObjectPoolBuilder object_pool_builder;
-  Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
   compiler::StubCodeCompiler::GenerateBuildMethodExtractorStub(
       &assembler, closure_allocation_stub, context_allocation_stub);
 

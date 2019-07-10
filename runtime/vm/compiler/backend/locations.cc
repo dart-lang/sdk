@@ -96,50 +96,53 @@ TemplateLocation<Register, FpuRegister>::AsPairLocation() const {
 
 Location LocationRegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
 
 Location LocationRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RequiresRegister();
 }
 
 Location LocationWritableRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::WritableRegister();
 }
 
 Location LocationFixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
 
 Location LocationFixedRegisterOrSmiConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+  return ((constant != NULL) &&
+          compiler::Assembler::IsSafeSmi(constant->value()))
              ? Location::Constant(constant)
              : Location::RegisterLocation(reg);
 }
 
 Location LocationAnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
-  return ((constant != NULL) && Assembler::IsSafe(constant->value()))
+  return ((constant != NULL) && compiler::Assembler::IsSafe(constant->value()))
              ? Location::Constant(constant)
              : Location::Any();
 }
 
 // DBC does not have an notion of 'address' in its instruction set.
 #if !defined(TARGET_ARCH_DBC)
-Address LocationToStackSlotAddress(Location loc) {
-  return Address(loc.base_reg(), loc.ToStackSlotOffset());
+compiler::Address LocationToStackSlotAddress(Location loc) {
+  return compiler::Address(loc.base_reg(), loc.ToStackSlotOffset());
 }
 #endif
 

@@ -24,32 +24,19 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 namespace compiler {
 
-#ifndef PRODUCT
-using target::ClassHeapStats;
-#endif
-using target::ClassTable;
-using target::Double;
-using target::Float32x4;
-using target::Float64x2;
-using target::Heap;
-using target::Instance;
-using target::Instructions;
-using target::Isolate;
-using target::ObjectPool;
-using target::RawObject;
-using target::Thread;
-
 Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
                      bool use_far_branches)
     : AssemblerBase(object_pool_builder),
       use_far_branches_(use_far_branches),
       constant_pool_allowed_(false) {
   generate_invoke_write_barrier_wrapper_ = [&](Register reg) {
-    ldr(LR, Address(THR, Thread::write_barrier_wrappers_thread_offset(reg)));
+    ldr(LR, Address(THR,
+                    target::Thread::write_barrier_wrappers_thread_offset(reg)));
     blr(LR);
   };
   generate_invoke_array_write_barrier_ = [&]() {
-    ldr(LR, Address(THR, Thread::array_write_barrier_entry_point_offset()));
+    ldr(LR,
+        Address(THR, target::Thread::array_write_barrier_entry_point_offset()));
     blr(LR);
   };
 }
@@ -469,13 +456,13 @@ void Assembler::LoadNativeEntry(
     Register dst,
     const ExternalLabel* label,
     ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
+  const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindNativeFunction(label, patchable));
   LoadWordFromPoolOffset(dst, offset);
 }
 
 void Assembler::LoadIsolate(Register dst) {
-  ldr(dst, Address(THR, Thread::isolate_offset()));
+  ldr(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
 void Assembler::LoadObjectHelper(Register dst,
@@ -486,7 +473,7 @@ void Assembler::LoadObjectHelper(Register dst,
   if (target::CanLoadFromThread(object, &offset)) {
     ldr(dst, Address(THR, offset));
   } else if (CanLoadFromObjectPool(object)) {
-    const int32_t offset = ObjectPool::element_offset(
+    const int32_t offset = target::ObjectPool::element_offset(
         is_unique ? object_pool_builder().AddObject(object)
                   : object_pool_builder().FindObject(object));
     LoadWordFromPoolOffset(dst, offset);
@@ -569,7 +556,8 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
 
   // Use constant pool if allowed, unless we can load imm with 2 instructions.
   if ((w1 != 0) && constant_pool_allowed()) {
-    const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
+    const int32_t offset =
+        target::ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, offset);
     return;
   }
@@ -615,7 +603,7 @@ void Assembler::LoadDImmediate(VRegister vd, double immd) {
 void Assembler::Branch(const Code& target,
                        Register pp,
                        ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
+  const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), patchable));
   LoadWordFromPoolOffset(CODE_REG, offset, pp);
   ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
@@ -628,7 +616,7 @@ void Assembler::BranchPatchable(const Code& code) {
 
 void Assembler::BranchLink(const Code& target,
                            ObjectPoolBuilderEntry::Patchability patchable) {
-  const int32_t offset = ObjectPool::element_offset(
+  const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), patchable));
   LoadWordFromPoolOffset(CODE_REG, offset);
   ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
@@ -636,13 +624,13 @@ void Assembler::BranchLink(const Code& target,
 }
 
 void Assembler::BranchLinkToRuntime() {
-  ldr(LR, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  ldr(LR, Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
   blr(LR);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           const Object& equivalence) {
-  const int32_t offset = ObjectPool::element_offset(
+  const int32_t offset = target::ObjectPool::element_offset(
       object_pool_builder().FindObject(ToObject(target), equivalence));
   LoadWordFromPoolOffset(CODE_REG, offset);
   ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
@@ -652,8 +640,9 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
 void Assembler::CallNullErrorShared(bool save_fpu_registers) {
   uword entry_point_offset =
       save_fpu_registers
-          ? Thread::null_error_shared_with_fpu_regs_entry_point_offset()
-          : Thread::null_error_shared_without_fpu_regs_entry_point_offset();
+          ? target::Thread::null_error_shared_with_fpu_regs_entry_point_offset()
+          : target::Thread::
+                null_error_shared_without_fpu_regs_entry_point_offset();
   ldr(LR, Address(THR, entry_point_offset));
   blr(LR);
 }
@@ -976,7 +965,7 @@ void Assembler::StoreIntoObject(Register object,
   }
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  and_(TMP, TMP2, Operand(TMP, LSR, target::RawObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
 
@@ -1037,7 +1026,7 @@ void Assembler::StoreIntoArray(Register object,
   }
   ldr(TMP, FieldAddress(object, target::Object::tags_offset()), kUnsignedByte);
   ldr(TMP2, FieldAddress(value, target::Object::tags_offset()), kUnsignedByte);
-  and_(TMP, TMP2, Operand(TMP, LSR, RawObject::kBarrierOverlapShift));
+  and_(TMP, TMP2, Operand(TMP, LSR, target::RawObject::kBarrierOverlapShift));
   tst(TMP, Operand(BARRIER_MASK));
   b(&done, ZERO);
   if (!lr_reserved) Push(LR);
@@ -1111,10 +1100,11 @@ void Assembler::StoreInternalPointer(Register object,
 }
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(target::RawObject::kClassIdTagPos == 16);
+  ASSERT(target::RawObject::kClassIdTagSize == 16);
   const intptr_t class_id_offset =
-      target::Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
+      target::Object::tags_offset() +
+      target::RawObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
                  kUnsignedHalfword);
 }
@@ -1122,10 +1112,10 @@ void Assembler::LoadClassId(Register result, Register object) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
   LoadIsolate(result);
-  const intptr_t offset =
-      Isolate::class_table_offset() + ClassTable::table_offset();
+  const intptr_t offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::table_offset();
   LoadFromOffset(result, result, offset);
-  ASSERT(ClassTable::kSizeOfClassPairLog2 == 4);
+  ASSERT(target::ClassTable::kSizeOfClassPairLog2 == 4);
   add(class_id, class_id, Operand(class_id));
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
@@ -1169,9 +1159,8 @@ void Assembler::EmitEntryFrameVerification() {
 #if defined(DEBUG)
   Label done;
   ASSERT(!constant_pool_allowed());
-  LoadImmediate(TMP,
-                compiler::target::frame_layout.exit_link_slot_from_entry_fp *
-                    compiler::target::kWordSize);
+  LoadImmediate(TMP, target::frame_layout.exit_link_slot_from_entry_fp *
+                         target::kWordSize);
   add(TMP, TMP, Operand(FPREG));
   cmp(TMP, Operand(SPREG));
   b(&done, EQ);
@@ -1183,8 +1172,8 @@ void Assembler::EmitEntryFrameVerification() {
 }
 
 void Assembler::RestoreCodePointer() {
-  ldr(CODE_REG, Address(FP, compiler::target::frame_layout.code_from_fp *
-                                target::kWordSize));
+  ldr(CODE_REG,
+      Address(FP, target::frame_layout.code_from_fp * target::kWordSize));
   CheckCodePointer();
 }
 
@@ -1202,7 +1191,7 @@ void Assembler::CheckCodePointer() {
   Bind(&cid_ok);
 
   const intptr_t entry_offset =
-      CodeSize() + Instructions::HeaderSize() - kHeapObjectTag;
+      CodeSize() + target::Instructions::HeaderSize() - kHeapObjectTag;
   adr(R0, Immediate(-entry_offset));
   ldr(TMP, FieldAddress(CODE_REG, target::Code::saved_instructions_offset()));
   cmp(R0, Operand(TMP));
@@ -1302,9 +1291,9 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions)) {
     if (restore_pp == kRestoreCallerPP) {
       // Restore and untag PP.
-      LoadFromOffset(PP, FP,
-                     compiler::target::frame_layout.saved_caller_pp_from_fp *
-                         target::kWordSize);
+      LoadFromOffset(
+          PP, FP,
+          target::frame_layout.saved_caller_pp_from_fp * target::kWordSize);
       sub(PP, PP, Operand(kHeapObjectTag));
     }
   }
@@ -1320,33 +1309,31 @@ void Assembler::TransitionGeneratedToNative(Register destination,
 
   // Save exit frame information to enable stack walking.
   StoreToOffset(new_exit_frame, THR,
-                compiler::target::Thread::top_exit_frame_info_offset());
+                target::Thread::top_exit_frame_info_offset());
 
   // Mark that the thread is executing native code.
-  StoreToOffset(destination, THR, compiler::target::Thread::vm_tag_offset());
-  LoadImmediate(state, Thread::native_execution_state());
-  StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
+  StoreToOffset(destination, THR, target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::native_execution_state());
+  StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
   Label slow_path, done, retry;
   if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
-         0);
+    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
     add(addr, THR, Operand(addr));
     Bind(&retry);
     ldxr(state, addr);
-    cmp(state, Operand(Thread::safepoint_state_unacquired()));
+    cmp(state, Operand(target::Thread::safepoint_state_unacquired()));
     b(&slow_path, NE);
 
-    movz(state, Immediate(Thread::safepoint_state_acquired()), 0);
+    movz(state, Immediate(target::Thread::safepoint_state_acquired()), 0);
     stxr(TMP, state, addr);
     cbz(&done, TMP);  // 0 means stxr was successful.
     b(&retry);
   }
 
   Bind(&slow_path);
-  ldr(addr,
-      Address(THR, compiler::target::Thread::enter_safepoint_stub_offset()));
-  ldr(addr, FieldAddress(addr, compiler::target::Code::entry_point_offset()));
+  ldr(addr, Address(THR, target::Thread::enter_safepoint_stub_offset()));
+  ldr(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   blr(addr);
 
   Bind(&done);
@@ -1358,37 +1345,34 @@ void Assembler::TransitionNativeToGenerated(Register state) {
 
   Label slow_path, done, retry;
   if (!FLAG_use_slow_path) {
-    movz(addr, Immediate(compiler::target::Thread::safepoint_state_offset()),
-         0);
+    movz(addr, Immediate(target::Thread::safepoint_state_offset()), 0);
     add(addr, THR, Operand(addr));
     Bind(&retry);
     ldxr(state, addr);
-    cmp(state, Operand(Thread::safepoint_state_acquired()));
+    cmp(state, Operand(target::Thread::safepoint_state_acquired()));
     b(&slow_path, NE);
 
-    movz(state, Immediate(Thread::safepoint_state_unacquired()), 0);
+    movz(state, Immediate(target::Thread::safepoint_state_unacquired()), 0);
     stxr(TMP, state, addr);
     cbz(&done, TMP);  // 0 means stxr was successful.
     b(&retry);
   }
 
   Bind(&slow_path);
-  ldr(addr,
-      Address(THR, compiler::target::Thread::exit_safepoint_stub_offset()));
-  ldr(addr, FieldAddress(addr, compiler::target::Code::entry_point_offset()));
+  ldr(addr, Address(THR, target::Thread::exit_safepoint_stub_offset()));
+  ldr(addr, FieldAddress(addr, target::Code::entry_point_offset()));
   blr(addr);
 
   Bind(&done);
 
   // Mark that the thread is executing Dart code.
-  LoadImmediate(state, compiler::target::Thread::vm_tag_compiled_id());
-  StoreToOffset(state, THR, compiler::target::Thread::vm_tag_offset());
-  LoadImmediate(state, compiler::target::Thread::generated_execution_state());
-  StoreToOffset(state, THR, compiler::target::Thread::execution_state_offset());
+  LoadImmediate(state, target::Thread::vm_tag_compiled_id());
+  StoreToOffset(state, THR, target::Thread::vm_tag_offset());
+  LoadImmediate(state, target::Thread::generated_execution_state());
+  StoreToOffset(state, THR, target::Thread::execution_state_offset());
 
   // Reset exit frame information in Isolate structure.
-  StoreToOffset(ZR, THR,
-                compiler::target::Thread::top_exit_frame_info_offset());
+  StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
 }
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
@@ -1426,7 +1410,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * target::kWordSize +
       kDartVolatileFpuRegCount * target::kWordSize +
-      (compiler::target::frame_layout.dart_fixed_frame_size - 2) *
+      (target::frame_layout.dart_fixed_frame_size - 2) *
           target::kWordSize;  // From EnterStubFrame (excluding PC / FP)
   AddImmediate(SP, FP, -kPushedRegistersSize);
   for (int i = kDartLastVolatileCpuReg; i >= kDartFirstVolatileCpuReg; i--) {
@@ -1471,11 +1455,11 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() == Instructions::kMonomorphicEntryOffsetJIT);
+  ASSERT(CodeSize() == target::Instructions::kMonomorphicEntryOffsetJIT);
 
   const intptr_t cid_offset = target::Array::element_offset(0);
   const intptr_t count_offset = target::Array::element_offset(1);
@@ -1491,7 +1475,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
   LoadImmediate(R4, 0);  // GC-safe for OptimizeInvokedFunction.
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() == Instructions::kPolymorphicEntryOffsetJIT);
+  ASSERT(CodeSize() == target::Instructions::kPolymorphicEntryOffsetJIT);
 
   set_use_far_branches(saved_use_far_branches);
 }
@@ -1508,28 +1492,30 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 
   Label immediate, miss;
   Bind(&miss);
-  ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
+  ldr(IP0, Address(THR, target::Thread::monomorphic_miss_entry_offset()));
   br(IP0);
 
   Comment("MonomorphicCheckedEntry");
-  ASSERT(CodeSize() - start == Instructions::kMonomorphicEntryOffsetAOT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kMonomorphicEntryOffsetAOT);
   LoadClassIdMayBeSmi(IP0, R0);
   cmp(R5, Operand(IP0, LSL, 1));
   b(&miss, NE);
 
   // Fall through to unchecked entry.
-  ASSERT(CodeSize() - start == Instructions::kPolymorphicEntryOffsetAOT);
+  ASSERT(CodeSize() - start ==
+         target::Instructions::kPolymorphicEntryOffsetAOT);
 
   set_use_far_branches(saved_use_far_branches);
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
   has_single_entry_point_ = false;
-  while (CodeSize() < Instructions::kMonomorphicEntryOffsetJIT) {
+  while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     brk(0);
   }
   b(label);
-  while (CodeSize() < Instructions::kPolymorphicEntryOffsetJIT) {
+  while (CodeSize() < target::Instructions::kPolymorphicEntryOffsetJIT) {
     brk(0);
   }
 }
@@ -1539,14 +1525,14 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
                                      Register temp_reg,
                                      Label* trace) {
   ASSERT(cid > 0);
-  intptr_t state_offset = ClassTable::StateOffsetFor(cid);
+  intptr_t state_offset = target::ClassTable::StateOffsetFor(cid);
   LoadIsolate(temp_reg);
-  intptr_t table_offset = Isolate::class_table_offset() +
-                          ClassTable::class_heap_stats_table_offset();
+  intptr_t table_offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::class_heap_stats_table_offset();
   ldr(temp_reg, Address(temp_reg, table_offset));
   AddImmediate(temp_reg, state_offset);
   ldr(temp_reg, Address(temp_reg, 0));
-  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  tsti(temp_reg, Immediate(target::ClassHeapStats::TraceAllocationMask()));
   b(trace, NE);
 }
 
@@ -1554,8 +1540,8 @@ void Assembler::UpdateAllocationStats(intptr_t cid) {
   ASSERT(cid > 0);
   intptr_t counter_offset = target::ClassTable::NewSpaceCounterOffsetFor(cid);
   LoadIsolate(TMP2);
-  intptr_t table_offset = Isolate::class_table_offset() +
-                          ClassTable::class_heap_stats_table_offset();
+  intptr_t table_offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, counter_offset);
   ldr(TMP, Address(TMP2, 0));
@@ -1565,14 +1551,14 @@ void Assembler::UpdateAllocationStats(intptr_t cid) {
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid, Register size_reg) {
   ASSERT(cid > 0);
-  const uword class_offset = ClassTable::ClassOffsetFor(cid);
+  const uword class_offset = target::ClassTable::ClassOffsetFor(cid);
   const uword count_field_offset =
-      ClassHeapStats::allocated_since_gc_new_space_offset();
+      target::ClassHeapStats::allocated_since_gc_new_space_offset();
   const uword size_field_offset =
-      ClassHeapStats::allocated_size_since_gc_new_space_offset();
+      target::ClassHeapStats::allocated_size_since_gc_new_space_offset();
   LoadIsolate(TMP2);
-  intptr_t table_offset = Isolate::class_table_offset() +
-                          ClassTable::class_heap_stats_table_offset();
+  intptr_t table_offset = target::Isolate::class_table_offset() +
+                          target::ClassTable::class_heap_stats_table_offset();
   ldr(TMP, Address(TMP2, table_offset));
   AddImmediate(TMP2, TMP, class_offset);
   ldr(TMP, Address(TMP2, count_field_offset));
@@ -1591,7 +1577,8 @@ void Assembler::TryAllocate(const Class& cls,
                             bool tag_result) {
   ASSERT(failure != NULL);
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc &&
+      target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
@@ -1601,10 +1588,10 @@ void Assembler::TryAllocate(const Class& cls,
     const Register kEndReg = TMP;
 
     // instance_reg: potential next object start.
-    RELEASE_ASSERT((Thread::top_offset() + target::kWordSize) ==
-                   Thread::end_offset());
+    RELEASE_ASSERT((target::Thread::top_offset() + target::kWordSize) ==
+                   target::Thread::end_offset());
     ldp(instance_reg, kEndReg,
-        Address(THR, Thread::top_offset(), Address::PairOffset));
+        Address(THR, target::Thread::top_offset(), Address::PairOffset));
 
     // TODO(koda): Protect against unsigned overflow here.
     AddImmediate(top_reg, instance_reg, instance_size);
@@ -1613,7 +1600,7 @@ void Assembler::TryAllocate(const Class& cls,
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    str(top_reg, Address(THR, Thread::top_offset()));
+    str(top_reg, Address(THR, target::Thread::top_offset()));
 
     NOT_IN_PRODUCT(UpdateAllocationStats(cid));
 
@@ -1639,26 +1626,27 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register end_address,
                                  Register temp1,
                                  Register temp2) {
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc &&
+      target::Heap::IsAllocatableInNewSpace(instance_size)) {
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(MaybeTraceAllocation(cid, temp1, failure));
     // Potential new object start.
-    ldr(instance, Address(THR, Thread::top_offset()));
+    ldr(instance, Address(THR, target::Thread::top_offset()));
     AddImmediateSetFlags(end_address, instance, instance_size);
     b(failure, CS);  // Fail on unsigned overflow.
 
     // Check if the allocation fits into the remaining space.
     // instance: potential new object start.
     // end_address: potential next object start.
-    ldr(temp2, Address(THR, Thread::end_offset()));
+    ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
-    str(end_address, Address(THR, Thread::top_offset()));
+    str(end_address, Address(THR, target::Thread::top_offset()));
     add(instance, instance, Operand(kHeapObjectTag));
     LoadImmediate(temp2, instance_size);
     NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2));
@@ -1692,7 +1680,8 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index) const {
   const int64_t offset =
       index * index_scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
@@ -1707,7 +1696,8 @@ void Assembler::LoadElementAddressForIntIndex(Register address,
                                               intptr_t index) {
   const int64_t offset =
       index * index_scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
   AddImmediate(address, array, offset);
 }
 
@@ -1720,7 +1710,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
   const int32_t offset =
-      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   ASSERT(array != TMP);
   ASSERT(index != TMP);
   const Register base = is_load ? TMP : index;
@@ -1747,7 +1737,7 @@ void Assembler::LoadElementAddressForRegIndex(Register address,
   // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
   const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
   const int32_t offset =
-      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+      is_external ? 0 : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag);
   if (shift == 0) {
     add(address, array, Operand(index));
   } else if (shift < 0) {

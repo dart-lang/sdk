@@ -269,8 +269,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Object& closure_allocation_stub,
     const Object& context_allocation_stub) {
-  const intptr_t kReceiverOffset =
-      compiler::target::frame_layout.param_end_from_fp + 1;
+  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
 
@@ -762,13 +761,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R1);
   // Result in R0 is preserved as part of pushing all registers below.
 
@@ -837,16 +836,14 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
     __ LoadFromOffset(
-        R1, FP,
-        compiler::target::frame_layout.first_local_from_fp * target::kWordSize);
+        R1, FP, target::frame_layout.first_local_from_fp * target::kWordSize);
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into R1.
     __ LoadFromOffset(
-        R1, FP,
-        compiler::target::frame_layout.first_local_from_fp * target::kWordSize);
-    __ LoadFromOffset(R2, FP,
-                      (compiler::target::frame_layout.first_local_from_fp - 1) *
-                          target::kWordSize);
+        R1, FP, target::frame_layout.first_local_from_fp * target::kWordSize);
+    __ LoadFromOffset(
+        R2, FP,
+        (target::frame_layout.first_local_from_fp - 1) * target::kWordSize);
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -961,9 +958,8 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver.
   __ LoadFieldFromOffset(R2, R4, target::ArgumentsDescriptor::count_offset());
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
-  __ LoadFromOffset(
-      R6, TMP,
-      compiler::target::frame_layout.param_end_from_fp * target::kWordSize);
+  __ LoadFromOffset(R6, TMP,
+                    target::frame_layout.param_end_from_fp * target::kWordSize);
 
   // Preserve IC data and arguments descriptor.
   __ Push(R5);

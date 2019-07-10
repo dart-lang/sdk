@@ -198,8 +198,7 @@ void StubCodeCompiler::GenerateBuildMethodExtractorStub(
     Assembler* assembler,
     const Object& closure_allocation_stub,
     const Object& context_allocation_stub) {
-  const intptr_t kReceiverOffset =
-      compiler::target::frame_layout.param_end_from_fp + 1;
+  const intptr_t kReceiverOffset = target::frame_layout.param_end_from_fp + 1;
 
   __ EnterStubFrame();
 
@@ -710,13 +709,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_exception_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R0);
   const intptr_t saved_stacktrace_slot_from_fp =
-      compiler::target::frame_layout.first_local_from_fp + 1 -
+      target::frame_layout.first_local_from_fp + 1 -
       (kNumberOfCpuRegisters - R1);
   // Result in R0 is preserved as part of pushing all registers below.
 
@@ -784,14 +783,13 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in R0.
   if (kind == kLazyDeoptFromReturn) {
     // Restore result into R1.
-    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+    __ ldr(R1, Address(FP, target::frame_layout.first_local_from_fp *
                                target::kWordSize));
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into R1.
-    __ ldr(R1, Address(FP, compiler::target::frame_layout.first_local_from_fp *
+    __ ldr(R1, Address(FP, target::frame_layout.first_local_from_fp *
                                target::kWordSize));
-    __ ldr(R2, Address(FP, (compiler::target::frame_layout.first_local_from_fp -
-                            1) *
+    __ ldr(R2, Address(FP, (target::frame_layout.first_local_from_fp - 1) *
                                target::kWordSize));
   }
   // Code above cannot cause GC.
@@ -904,7 +902,7 @@ void StubCodeCompiler::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Load the receiver.
   __ ldr(R2, FieldAddress(R4, target::ArgumentsDescriptor::count_offset()));
   __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
-  __ ldr(R8, Address(IP, compiler::target::frame_layout.param_end_from_fp *
+  __ ldr(R8, Address(IP, target::frame_layout.param_end_from_fp *
                              target::kWordSize));
 
   // Preserve IC data and arguments descriptor.

@@ -1341,13 +1341,6 @@ class Assembler : public AssemblerBase {
 };
 
 }  // namespace compiler
-
-// TODO(vegorov) temporary export commonly used classes into dart namespace
-// to ease migration.
-using compiler::Address;
-using compiler::FieldAddress;
-using compiler::Operand;
-
 }  // namespace dart
 
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_ARM_H_

@@ -210,7 +210,8 @@ class PcRelativeCallPattern : public ValueObject {
 
   int32_t distance() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    return Assembler::DecodeImm26BranchOffset(*reinterpret_cast<int32_t*>(pc_));
+    return compiler::Assembler::DecodeImm26BranchOffset(
+        *reinterpret_cast<int32_t*>(pc_));
 #else
     UNREACHABLE();
     return 0;
@@ -220,7 +221,7 @@ class PcRelativeCallPattern : public ValueObject {
   void set_distance(int32_t distance) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     int32_t* word = reinterpret_cast<int32_t*>(pc_);
-    *word = Assembler::EncodeImm26BranchOffset(distance, *word);
+    *word = compiler::Assembler::EncodeImm26BranchOffset(distance, *word);
 #else
     UNREACHABLE();
 #endif

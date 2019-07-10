@@ -382,11 +382,4 @@ class AssemblerBase : public StackResource {
 #error Unknown architecture.
 #endif
 
-namespace dart {
-using compiler::Assembler;
-using compiler::ExternalLabel;
-using compiler::Label;
-using compiler::ObjectPoolBuilder;
-}  // namespace dart
-
 #endif  // RUNTIME_VM_COMPILER_ASSEMBLER_ASSEMBLER_H_

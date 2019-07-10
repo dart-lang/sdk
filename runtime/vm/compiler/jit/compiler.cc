@@ -350,7 +350,7 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t loading_invalidation_gen_at_start() const {
     return loading_invalidation_gen_at_start_;
   }
-  RawCode* FinalizeCompilation(Assembler* assembler,
+  RawCode* FinalizeCompilation(compiler::Assembler* assembler,
                                FlowGraphCompiler* graph_compiler,
                                FlowGraph* flow_graph);
   void CheckIfBackgroundCompilerIsBeingStopped(bool optimizing_compiler);
@@ -365,7 +365,7 @@ class CompileParsedFunctionHelper : public ValueObject {
 };
 
 RawCode* CompileParsedFunctionHelper::FinalizeCompilation(
-    Assembler* assembler,
+    compiler::Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
   ASSERT(!FLAG_precompiled_mode);
@@ -651,8 +651,8 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
       ASSERT(pass_state.inline_id_to_function.length() ==
              pass_state.caller_inline_id.length());
-      ObjectPoolBuilder object_pool_builder;
-      Assembler assembler(&object_pool_builder, use_far_branches);
+      compiler::ObjectPoolBuilder object_pool_builder;
+      compiler::Assembler assembler(&object_pool_builder, use_far_branches);
       FlowGraphCompiler graph_compiler(
           &assembler, flow_graph, *parsed_function(), optimized(),
           &speculative_policy, pass_state.inline_id_to_function,
