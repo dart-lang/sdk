@@ -123,9 +123,7 @@
 
 #### Linter
 
-The Linter was updated to `0.1.93`, which includes the following changes:
-
-* new lint: `avoid_print`
+The Linter was updated to `0.1.94`, which includes a number of internal fixes.
 
 ## 2.4.0 - 2019-06-27
 
