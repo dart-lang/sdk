@@ -19,7 +19,7 @@ import 'environment.dart';
 /// and the test is considered to pass if the outcome is any of those
 /// expectations.
 class ExpectationSet {
-  static final _passSet = [Expectation.pass].toSet();
+  static final _passSet = {Expectation.pass};
 
   /// A cache of path component glob strings (like "b*r") that we've previously
   /// converted to regexes. This ensures we collapse multiple globs from the

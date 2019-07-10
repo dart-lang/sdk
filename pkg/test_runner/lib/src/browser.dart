@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'utils.dart';
 import 'configuration.dart' show Compiler;
+import 'utils.dart';
 
 String dart2jsHtml(String title, String scriptPath) {
   return """
@@ -38,7 +38,7 @@ String _toJSIdentifier(String name) {
   if (name.length == 0) return r'$';
 
   // Escape any invalid characters
-  StringBuffer buffer = null;
+  StringBuffer buffer;
   for (int i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || _invalidCharInIdentifier.hasMatch(ch);
@@ -108,7 +108,6 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
     // http://www.ecma-international.org/ecma-262/6.0/#sec-identifiers-static-semantics-early-errors
     case "implements":
     case "interface":
-    case "let":
     case "package":
     case "private":
     case "protected":

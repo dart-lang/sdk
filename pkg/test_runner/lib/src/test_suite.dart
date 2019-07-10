@@ -173,7 +173,7 @@ abstract class TestSuite {
       if (expectations.isEmpty) expectations.add(Expectation.pass);
     }
 
-    var negative = testFile != null ? isNegative(testFile) : false;
+    var negative = testFile != null && isNegative(testFile);
     var testCase = TestCase(displayName, commands, configuration, expectations,
         testFile: testFile);
     if (negative &&
@@ -450,8 +450,8 @@ class StandardTestSuite extends TestSuite {
               .add(suiteDir.append('$s.dart').toNativePath());
           // If the test is a multitest, the filename doesn't include the label.
           // Also if it has multiple VMOptions.  If both, remove two labels.
-          for (var i in [1, 2]) {
-            // Twice
+          for (var i = 0; i < 2; i++) {
+            // Twice.
             if (s.lastIndexOf('/') != -1) {
               s = s.substring(0, s.lastIndexOf('/'));
               _testListPossibleFilenames

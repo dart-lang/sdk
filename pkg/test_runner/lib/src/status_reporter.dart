@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 final _combinations = {
   'linux': [
@@ -90,8 +90,7 @@ void ensureBuild(Iterable<String> modes, Iterable<String> archs) {
 }
 
 void sanityCheck(String output) {
-  var splitter = LineSplitter();
-  var lines = splitter.convert(output);
+  var lines = const LineSplitter().convert(output);
   // Looks like this:
   // Total: 15556 tests
   var total = int.parse(lines[0].split(' ')[1].trim());
@@ -115,8 +114,8 @@ void main(List<String> args) {
   var modes = <String>{};
 
   if (args.contains('--simple')) {
-    arches = ['ia32'].toSet();
-    modes = ['release'].toSet();
+    arches = {'ia32'};
+    modes = {'release'};
   } else {
     for (var combination in combinations) {
       arches.addAll(combination['archs'] as List<String>);

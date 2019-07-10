@@ -14,8 +14,8 @@ import 'browser_controller.dart';
 import 'command.dart';
 import 'configuration.dart';
 import 'process_queue.dart';
-import 'test_progress.dart';
 import 'test_case.dart';
+import 'test_progress.dart';
 import 'utils.dart';
 
 /// CommandOutput records the output of a completed command: the process's exit
@@ -181,8 +181,7 @@ class BrowserTestJsonResult {
       if (events != null) {
         validate("Message must be a List", events is List);
 
-        var messagesByType = <String, List<String>>{};
-        _allowedTypes.forEach((type) => messagesByType[type] = <String>[]);
+        var messagesByType = {for (var type in _allowedTypes) type: <String>[]};
 
         for (var entry in events) {
           validate("Entry must be a Map", entry is Map);
@@ -672,9 +671,9 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(this.stdout).split('\n')) {
-      if (line.indexOf('No differences found') != -1) return Expectation.pass;
-      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    for (var line in decodeUtf8(stdout).split('\n')) {
+      if (line.contains('No differences found')) return Expectation.pass;
+      if (line.contains('Differences found')) return Expectation.fail;
     }
     return Expectation.fail;
   }
@@ -688,9 +687,9 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
     if (hasNonUtf8) return Expectation.nonUtf8Error;
 
     if (exitCode != 0) return Expectation.fail;
-    for (var line in decodeUtf8(this.stdout).split('\n')) {
-      if (line.indexOf('No differences found') != -1) return Expectation.pass;
-      if (line.indexOf('Differences found') != -1) return Expectation.fail;
+    for (var line in decodeUtf8(stdout).split('\n')) {
+      if (line.contains('No differences found')) return Expectation.pass;
+      if (line.contains('Differences found')) return Expectation.fail;
     }
     return Expectation.fail;
   }

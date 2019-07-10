@@ -202,8 +202,7 @@ class UnexpectedCrashLogger extends EventListener {
 class SummaryPrinter extends EventListener {
   final bool jsonOnly;
 
-  SummaryPrinter({bool jsonOnly})
-      : jsonOnly = (jsonOnly == null) ? false : jsonOnly;
+  SummaryPrinter({bool jsonOnly}) : jsonOnly = jsonOnly ?? false;
 
   void allTestsKnown() {
     if (jsonOnly) {
@@ -491,7 +490,7 @@ class CompactProgressIndicator extends CompactIndicator {
     var progressPadded = (_allTestsKnown ? percent : '--').padLeft(3);
     var passedPadded = _passedTests.toString().padLeft(5);
     var failedPadded = _failedTests.toString().padLeft(5);
-    var elapsed = (DateTime.now()).difference(_startTime);
+    var elapsed = DateTime.now().difference(_startTime);
     var progressLine = '\r[${_timeString(elapsed)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';

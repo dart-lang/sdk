@@ -87,7 +87,7 @@ be increased, please contact dart-engprod or file an issue.
 
   @override
   Future addStream(Stream<List<int>> stream) {
-    _subscription = stream.listen(this.add);
+    _subscription = stream.listen(add);
     return _subscription.asFuture();
   }
 

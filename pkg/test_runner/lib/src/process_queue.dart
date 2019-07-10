@@ -43,7 +43,6 @@ class ProcessQueue {
       this._globalConfiguration,
       int maxProcesses,
       int maxBrowserProcesses,
-      DateTime startTime,
       List<TestSuite> testSuites,
       this._eventListener,
       this._allDone,
@@ -166,9 +165,7 @@ class ProcessQueue {
     }
 
     // Build up the dependency graph
-    testCaseEnqueuer = TestCaseEnqueuer(_graph, (TestCase newTestCase) {
-      eventTestAdded(newTestCase);
-    });
+    testCaseEnqueuer = TestCaseEnqueuer(_graph, eventTestAdded);
 
     // Either list or run the tests
     if (_globalConfiguration.listTests) {
@@ -392,7 +389,7 @@ class CommandQueue {
         } else {
           _runQueue.add(command);
         }
-        Timer.run(() => _tryRunNextCommand());
+        Timer.run(_tryRunNextCommand);
       } else if (event.to == NodeState.unableToRun) {
         _checkDone();
       }
@@ -422,7 +419,7 @@ class CommandQueue {
         // If there is no free browser runner, put it back into the queue.
         _runQueue.add(command);
         // Don't lose a process.
-        Timer(Duration(milliseconds: 100), _tryRunNextCommand);
+        Timer(const Duration(milliseconds: 100), _tryRunNextCommand);
         return;
       }
 
@@ -434,9 +431,8 @@ class CommandQueue {
       // If a command is part of many TestCases we set the timeout to be
       // the maximum over all [TestCase.timeout]s. At some point, we might
       // eliminate [TestCase.timeout] completely and move it to [Command].
-      int timeout = testCases
-          .map((TestCase test) => test.timeout)
-          .fold(0, (int a, b) => math.max(a, b));
+      int timeout =
+          testCases.map((TestCase test) => test.timeout).fold(0, math.max);
 
       if (_verbose) {
         print('Running "${command.displayName}" command: $command');
@@ -456,7 +452,7 @@ class CommandQueue {
         if (isBrowserCommand) _numBrowserProcesses--;
 
         // Don't lose a process
-        Timer.run(() => _tryRunNextCommand());
+        Timer.run(_tryRunNextCommand);
       });
     }
   }
@@ -607,7 +603,7 @@ class CommandExecutorImpl implements CommandExecutor {
                 device, command as AdbDartkCommand, timeout);
           }
         } finally {
-          await adbDevicePool.releaseDevice(device);
+          adbDevicePool.releaseDevice(device);
         }
       });
     } else if (command is VmBatchCommand) {
@@ -649,8 +645,8 @@ class CommandExecutorImpl implements CommandExecutor {
     var processTest = command.processTestFilename;
     var testdir = command.precompiledTestDirectory;
     var arguments = command.arguments;
-    var devicedir = DartPrecompiledAdbRuntimeConfiguration.DeviceDir;
-    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.DeviceTestDir;
+    var devicedir = DartPrecompiledAdbRuntimeConfiguration.deviceDir;
+    var deviceTestDir = DartPrecompiledAdbRuntimeConfiguration.deviceTestDir;
 
     // We copy all the files which the vm precompiler puts into the test
     // directory.
@@ -726,8 +722,8 @@ class CommandExecutorImpl implements CommandExecutor {
     final String buildPath = command.buildPath;
     final String hostKernelFile = command.kernelFile;
     final List<String> arguments = command.arguments;
-    final String devicedir = DartkAdbRuntimeConfiguration.DeviceDir;
-    final String deviceTestDir = DartkAdbRuntimeConfiguration.DeviceTestDir;
+    final String devicedir = DartkAdbRuntimeConfiguration.deviceDir;
+    final String deviceTestDir = DartkAdbRuntimeConfiguration.deviceTestDir;
 
     final timeoutDuration = Duration(seconds: timeout);
 
@@ -1087,7 +1083,7 @@ class BatchRunnerProcess {
     var output = createCommandOutput(
         _command,
         exitCode,
-        (outcome == "TIMEOUT"),
+        outcome == "TIMEOUT",
         _testStdout.toList(),
         _testStderr.toList(),
         DateTime.now().difference(_startTime),
@@ -1134,8 +1130,9 @@ class BatchRunnerProcess {
     processFuture.then((io.Process p) {
       _process = p;
 
-      Stream<String> _stdoutStream =
-          _process.stdout.transform(utf8.decoder).transform(LineSplitter());
+      Stream<String> _stdoutStream = _process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
       _stdoutSubscription = _stdoutStream.listen((String line) {
         if (line.startsWith('>>> TEST')) {
           _status = line;
@@ -1155,8 +1152,9 @@ class BatchRunnerProcess {
       });
       _stdoutSubscription.pause();
 
-      Stream<String> _stderrStream =
-          _process.stderr.transform(utf8.decoder).transform(LineSplitter());
+      Stream<String> _stderrStream = _process.stderr
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
       _stderrSubscription = _stderrStream.listen((String line) {
         if (line.startsWith('>>> EOF STDERR')) {
           _stderrSubscription.pause();

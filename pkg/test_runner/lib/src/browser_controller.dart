@@ -67,8 +67,7 @@ abstract class Browser {
 
   Browser();
 
-  factory Browser.byRuntime(Runtime runtime, String executablePath,
-      [bool checkedMode = false]) {
+  factory Browser.byRuntime(Runtime runtime, String executablePath) {
     Browser browser;
     switch (runtime) {
       case Runtime.firefox:
@@ -198,19 +197,17 @@ abstract class Browser {
         }
       }
 
-      stdoutSubscription =
-          process.stdout.transform(utf8.decoder).listen((data) {
-        _addStdout(data);
-      }, onError: (error) {
+      stdoutSubscription = process.stdout
+          .transform(utf8.decoder)
+          .listen(_addStdout, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stdout handling: $error");
       }, onDone: closeStdout);
 
-      stderrSubscription =
-          process.stderr.transform(utf8.decoder).listen((data) {
-        _addStderr(data);
-      }, onError: (error) {
+      stderrSubscription = process.stderr
+          .transform(utf8.decoder)
+          .listen(_addStderr, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stderr handling: $error");
@@ -460,7 +457,7 @@ class Chrome extends Browser {
             _logEvent(
                 "Error: failed to delete Chrome user-data-dir ${userDir.path}"
                 ", will try again in 40 seconds: $e");
-            Timer(Duration(seconds: 40), () {
+            Timer(const Duration(seconds: 40), () {
               try {
                 userDir.deleteSync(recursive: true);
               } catch (e) {
@@ -696,7 +693,7 @@ class BrowserStatus {
   Timer nextTestTimeout;
   Stopwatch timeSinceRestart = Stopwatch()..start();
 
-  BrowserStatus(Browser this.browser);
+  BrowserStatus(this.browser);
 }
 
 /// Describes a single test to be run in the browser.
@@ -866,8 +863,7 @@ class BrowserTestRunner {
       browser = AndroidChrome(device);
     } else {
       var path = configuration.browserLocation;
-      browser = Browser.byRuntime(
-          configuration.runtime, path, configuration.isChecked);
+      browser = Browser.byRuntime(configuration.runtime, path);
       browser.logger = logger;
     }
 
@@ -901,7 +897,7 @@ class BrowserTestRunner {
         print("Got test id ${testId}");
         print("Last test id was ${status.lastTest.id} for "
             "${status.currentTest.url}");
-        throw ("This should never happen, wrong test id");
+        throw "This should never happen, wrong test id";
       }
       testCache[testId] = status.currentTest.url;
 
@@ -1206,9 +1202,7 @@ class BrowserTestingServer {
         request.response.close();
         DebugLogger.error("Error from browser on : "
             "${request.uri.path}, data:  $back");
-      }, onError: (error) {
-        print(error);
-      });
+      }, onError: print);
     }
 
     void errorHandler(e) {

@@ -99,11 +99,7 @@ abstract class RuntimeConfiguration {
   /// Returns the path to the Dart VM executable.
   String get dartVmBinaryFileName {
     // Controlled by user with the option "--dart".
-    var dartExecutable = _configuration.dartPath;
-
-    if (dartExecutable == null) {
-      dartExecutable = dartVmExecutableFileName;
-    }
+    var dartExecutable = _configuration.dartPath ?? dartVmExecutableFileName;
 
     TestUtils.ensureExists(dartExecutable, _configuration);
     return dartExecutable;
@@ -322,8 +318,8 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 }
 
 class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
-  static const String DeviceDir = '/data/local/tmp/testing';
-  static const String DeviceTestDir = '/data/local/tmp/testing/test';
+  static const String deviceDir = '/data/local/tmp/testing';
+  static const String deviceTestDir = '/data/local/tmp/testing/test';
 
   List<Command> computeRuntimeCommands(
       CommandArtifact artifact,
@@ -347,8 +343,8 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
 class DartPrecompiledAdbRuntimeConfiguration
     extends DartVmRuntimeConfiguration {
-  static const String DeviceDir = '/data/local/tmp/precompilation-testing';
-  static const String DeviceTestDir =
+  static const String deviceDir = '/data/local/tmp/precompilation-testing';
+  static const String deviceTestDir =
       '/data/local/tmp/precompilation-testing/test';
 
   final bool useBlobs;

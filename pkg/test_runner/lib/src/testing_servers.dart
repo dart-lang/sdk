@@ -15,10 +15,9 @@ import 'package:test_runner/src/utils.dart';
 class DispatchingServer {
   HttpServer server;
   Map<String, Function> _handlers = {};
-  Function _notFound;
+  void Function(HttpRequest request) _notFound;
 
-  DispatchingServer(
-      this.server, void onError(e), void this._notFound(HttpRequest request)) {
+  DispatchingServer(this.server, void onError(e), this._notFound) {
     server.listen(_dispatchRequest, onError: onError);
   }
 

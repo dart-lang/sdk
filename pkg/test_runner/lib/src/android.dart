@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import "dart:async";
+import "dart:collection";
 import "dart:convert" show LineSplitter, utf8;
 import "dart:core";
-import "dart:collection";
 import "dart:io";
 
 import "path.dart";
@@ -121,7 +121,7 @@ class AndroidEmulator {
 
   AndroidEmulator._private(this._port, this._adbDevice, this._emulatorProcess) {
     Stream<String> getLines(Stream s) {
-      return s.transform(utf8.decoder).transform(LineSplitter());
+      return s.transform(utf8.decoder).transform(const LineSplitter());
     }
 
     getLines(_emulatorProcess.stdout).listen((line) {

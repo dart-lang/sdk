@@ -561,7 +561,7 @@ class VmBatchCommand extends ProcessCommand implements VmCommand {
   VmBatchCommand._(String executable, String dartFile, List<String> arguments,
       Map<String, String> environmentOverrides,
       {this.checked = true, int index = 0})
-      : this.dartFile = dartFile,
+      : dartFile = dartFile,
         super._('vm-batch', executable, arguments, environmentOverrides, null,
             index);
 
@@ -682,7 +682,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
 class JSCommandlineCommand extends ProcessCommand {
   JSCommandlineCommand._(
       String displayName, String executable, List<String> arguments,
-      [Map<String, String> environmentOverrides = null, int index = 0])
+      [Map<String, String> environmentOverrides, int index = 0])
       : super._(displayName, executable, arguments, environmentOverrides, null,
             index);
 

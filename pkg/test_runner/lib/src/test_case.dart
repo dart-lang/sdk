@@ -93,7 +93,7 @@ class TestCase extends UniqueObject {
       displayName.contains("negative_test");
 
   bool get unexpectedOutput {
-    var outcome = this.result;
+    var outcome = result;
     return !expectedOutcomes.any((expectation) {
       return outcome.canBeOutcomeOf(expectation);
     });
