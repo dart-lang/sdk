@@ -352,7 +352,7 @@ class InstrumentationService {
   void logVersion(String uuid, String clientId, String clientVersion,
       String serverVersion, String sdkVersion) {
     String normalize(String value) =>
-        value != null && value.length > 0 ? value : 'unknown';
+        value != null && value.isNotEmpty ? value : 'unknown';
 
     if (_instrumentationServer != null) {
       _instrumentationServer.logWithPriority(_join([

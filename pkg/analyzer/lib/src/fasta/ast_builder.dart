@@ -2137,7 +2137,7 @@ class AstBuilder extends StackListener {
     SimpleIdentifier stackTrace;
     if (catchParameterList != null) {
       List<FormalParameter> catchParameters = catchParameterList.parameters;
-      if (catchParameters.length > 0) {
+      if (catchParameters.isNotEmpty) {
         exception = catchParameters[0].identifier;
         localDeclarations[exception.offset] = exception;
       }

@@ -152,7 +152,7 @@ class StringUtilities {
   }
 
   static bool isTagName(String s) {
-    if (s == null || s.length == 0) {
+    if (s == null || s.isEmpty) {
       return false;
     }
     int sz = s.length;
@@ -243,7 +243,7 @@ class StringUtilities {
   }
 
   static startsWithChar(String str, int c) {
-    return str.length != 0 && str.codeUnitAt(0) == c;
+    return str.isNotEmpty && str.codeUnitAt(0) == c;
   }
 
   static String substringBefore(String str, String separator) {

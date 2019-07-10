@@ -1754,7 +1754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     String name = identifier.name;
     if (element is MethodElement && element.isOperator && name == '-') {
-      if (element.parameters.length == 0) {
+      if (element.parameters.isEmpty) {
         name = 'unary-';
       }
     }
@@ -3116,7 +3116,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     LibraryElement prevLibrary = _nameToExportElement[name];
     if (prevLibrary != null) {
       if (prevLibrary != exportedLibrary) {
-        if (!name.isEmpty) {
+        if (name.isNotEmpty) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED, directive, [
             prevLibrary.definingCompilationUnit.source.uri.toString(),
@@ -3699,7 +3699,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // check if there is another imported library with the same name
     LibraryElement prevLibrary = _nameToImportElement[name];
     if (prevLibrary != null) {
-      if (prevLibrary != nodeLibrary && !name.isEmpty) {
+      if (prevLibrary != nodeLibrary && name.isNotEmpty) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED, directive, [
           prevLibrary.definingCompilationUnit.source.uri,
@@ -5432,7 +5432,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       int loopThroughIndex =
           math.min(typeArguments.length, parameterElements.length);
       bool shouldSubstitute =
-          arguments.length != 0 && arguments.length == parameterTypes.length;
+          arguments.isNotEmpty && arguments.length == parameterTypes.length;
       for (int i = 0; i < loopThroughIndex; i++) {
         DartType argType = typeArguments[i];
         TypeAnnotation argumentNode =
@@ -6299,7 +6299,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Get the parameters for MethodDeclaration or FunctionDeclaration
     List<ParameterElement> setterParameters = setter.parameters;
     // If there are no setter parameters, return no type.
-    if (setterParameters.length == 0) {
+    if (setterParameters.isEmpty) {
       return null;
     }
     return setterParameters[0].type;

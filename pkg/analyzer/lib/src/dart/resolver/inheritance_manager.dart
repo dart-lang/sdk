@@ -681,7 +681,7 @@ class InheritanceManager {
             //
             resultMap[key] = elements[subtypesOfAllOtherTypesIndexes[0]];
           } else {
-            if (!subtypesOfAllOtherTypesIndexes.isEmpty) {
+            if (subtypesOfAllOtherTypesIndexes.isNotEmpty) {
               //
               // Example: class A inherits 2 methods named 'm'.
               // One has the function type '(int) -> dynamic' and one has the

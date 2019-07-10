@@ -1078,7 +1078,7 @@ class _ElementWriter {
 
     ElementLocation location = element.location;
     List<String> components = location.components.toList();
-    if (components.length >= 1) {
+    if (components.isNotEmpty) {
       components[0] = onlyName(components[0]);
     }
     if (components.length >= 2) {

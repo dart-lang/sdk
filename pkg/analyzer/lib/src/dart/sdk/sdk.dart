@@ -657,7 +657,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
     try {
       File file = libraryDirectory.getChildAssumingFile(library.path);
-      if (!relativePath.isEmpty) {
+      if (relativePath.isNotEmpty) {
         File relativeFile = file.parent.getChildAssumingFile(relativePath);
         if (relativeFile.path == file.path) {
           // The relative file is the library, so return a Source for the
@@ -694,7 +694,7 @@ class FolderBasedDartSdk extends AbstractDartSdk {
 
   static String getSdkProperty(ResourceProvider resourceProvider) {
     String exec = io.Platform.resolvedExecutable;
-    if (exec.length == 0) {
+    if (exec.isEmpty) {
       return null;
     }
     pathos.Context pathContext = resourceProvider.pathContext;

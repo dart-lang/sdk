@@ -225,7 +225,7 @@ class FolderBasedDartSdkTest with ResourceProviderMixin {
     FolderBasedDartSdk sdk = _createDartSdk();
     String version = sdk.sdkVersion;
     expect(version, isNotNull);
-    expect(version.length > 0, isTrue);
+    expect(version.isNotEmpty, isTrue);
   }
 
   /**

@@ -100,7 +100,7 @@ class AnalysisDeltaTest extends EngineTestCase {
     delta.setAnalysisLevel(new TestSource(), AnalysisLevel.ALL);
     String result = delta.toString();
     expect(result, isNotNull);
-    expect(result.length > 0, isTrue);
+    expect(result.isNotEmpty, isTrue);
   }
 }
 
@@ -561,7 +561,7 @@ class StaticTypeVerifier extends GeneralizingAstVisitor<void> {
    * Assert that all of the visited nodes have a static type associated with them.
    */
   void assertResolved() {
-    if (!_unresolvedExpressions.isEmpty || !_unresolvedTypes.isEmpty) {
+    if (_unresolvedExpressions.isNotEmpty || _unresolvedTypes.isNotEmpty) {
       StringBuffer buffer = new StringBuffer();
       int unresolvedTypeCount = _unresolvedTypes.length;
       if (unresolvedTypeCount > 0) {

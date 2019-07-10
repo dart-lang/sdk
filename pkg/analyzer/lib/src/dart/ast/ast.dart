@@ -737,7 +737,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -2567,7 +2567,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   Token get endToken {
     if (_body != null) {
       return _body.endToken;
-    } else if (!_initializers.isEmpty) {
+    } else if (_initializers.isNotEmpty) {
       return _initializers.endToken;
     }
     return _parameters.endToken;
@@ -4151,7 +4151,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get beginToken {
     NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
+    if (metadata.isNotEmpty) {
       return metadata.beginToken;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
@@ -6022,7 +6022,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -6540,7 +6540,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
 
   @override
   Token get beginToken {
-    if (!_labels.isEmpty) {
+    if (_labels.isNotEmpty) {
       return _labels.beginToken;
     }
     return _statement.beginToken;
@@ -7609,7 +7609,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   Token get beginToken {
-    if (_elements.length == 0) {
+    if (_elements.isEmpty) {
       return null;
     }
     return _elements[0].beginToken;
@@ -7670,7 +7670,7 @@ class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
 
   @override
   bool addAll(Iterable<E> nodes) {
-    if (nodes != null && !nodes.isEmpty) {
+    if (nodes != null && nodes.isNotEmpty) {
       if (nodes is List<E>) {
         int length = nodes.length;
         for (int i = 0; i < length; i++) {
@@ -8183,7 +8183,7 @@ class PostfixExpressionImpl extends ExpressionImpl
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -8366,7 +8366,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
       return null;
     }
     List<ParameterElement> parameters = staticElement.parameters;
-    if (parameters.length < 1) {
+    if (parameters.isEmpty) {
       return null;
     }
     return parameters[0];
@@ -8830,7 +8830,7 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @override
   Token get beginToken {
     NodeList<Annotation> metadata = this.metadata;
-    if (!metadata.isEmpty) {
+    if (metadata.isNotEmpty) {
       return metadata.beginToken;
     } else if (covariantKeyword != null) {
       return covariantKeyword;
@@ -9600,7 +9600,7 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   @override
   Token get beginToken {
-    if (!_labels.isEmpty) {
+    if (_labels.isNotEmpty) {
       return _labels.beginToken;
     }
     return keyword;
@@ -9608,7 +9608,7 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 
   @override
   Token get endToken {
-    if (!_statements.isEmpty) {
+    if (_statements.isNotEmpty) {
       return _statements.endToken;
     }
     return colon;
@@ -9946,7 +9946,7 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
       return _finallyBlock.endToken;
     } else if (finallyKeyword != null) {
       return finallyKeyword;
-    } else if (!_catchClauses.isEmpty) {
+    } else if (_catchClauses.isNotEmpty) {
       return _catchClauses.endToken;
     }
     return _body.endToken;

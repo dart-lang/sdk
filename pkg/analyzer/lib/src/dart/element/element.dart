@@ -690,7 +690,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     List<ClassElement> classesToVisit = new List<ClassElement>();
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
     classesToVisit.add(this);
-    while (!classesToVisit.isEmpty) {
+    while (classesToVisit.isNotEmpty) {
       ClassElement currentElement = classesToVisit.removeAt(0);
       if (visitedClasses.add(currentElement)) {
         // check fields
@@ -1534,7 +1534,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     List<InterfaceType> typesToVisit = new List<InterfaceType>();
     List<ClassElement> visitedClasses = new List<ClassElement>();
     typesToVisit.add(startingType);
-    while (!typesToVisit.isEmpty) {
+    while (typesToVisit.isNotEmpty) {
       InterfaceType currentType = typesToVisit.removeAt(0);
       ClassElement currentElement = currentType.element;
       if (!visitedClasses.contains(currentElement)) {
@@ -2598,7 +2598,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool get isDefaultConstructor {
     // unnamed
     String name = this.name;
-    if (name != null && name.length != 0) {
+    if (name != null && name.isNotEmpty) {
       return false;
     }
     // no required parameters
@@ -2752,7 +2752,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     String constructorName = displayName;
     if (enclosingElement == null) {
       String message;
-      if (constructorName != null && !constructorName.isEmpty) {
+      if (constructorName != null && constructorName.isNotEmpty) {
         message =
             'Found constructor element named $constructorName with no enclosing element';
       } else {
@@ -2763,7 +2763,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     } else {
       name = enclosingElement.displayName;
     }
-    if (constructorName != null && !constructorName.isEmpty) {
+    if (constructorName != null && constructorName.isNotEmpty) {
       name = '$name.$constructorName';
     }
     appendToWithName(buffer, name);

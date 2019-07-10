@@ -1364,7 +1364,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   String _getFirstArgumentAsString(ArgumentList argumentList) {
     NodeList<Expression> arguments = argumentList.arguments;
-    if (arguments.length > 0) {
+    if (arguments.isNotEmpty) {
       Expression argument = arguments[0];
       if (argument is SimpleStringLiteral) {
         return argument.value;
@@ -1421,7 +1421,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     }
     if (accessor.isSetter) {
       List<DartType> parameterTypes = functionType.normalParameterTypes;
-      if (parameterTypes != null && parameterTypes.length > 0) {
+      if (parameterTypes != null && parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
       PropertyAccessorElement getter = accessor.variable.getter;

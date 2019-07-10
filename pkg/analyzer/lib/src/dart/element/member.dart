@@ -81,7 +81,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     }
     buffer.write(baseElement.enclosingElement.displayName);
     String name = displayName;
-    if (name != null && !name.isEmpty) {
+    if (name != null && name.isNotEmpty) {
       buffer.write('.');
       buffer.write(name);
     }
@@ -106,7 +106,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
    */
   static ConstructorElement from(
       ConstructorElement constructor, InterfaceType definingType) {
-    if (constructor == null || definingType.typeArguments.length == 0) {
+    if (constructor == null || definingType.typeArguments.isEmpty) {
       return constructor;
     }
     FunctionType baseType = constructor.type;
@@ -354,7 +354,7 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
    */
   static MethodElement from(
       MethodElement method, ParameterizedType definingType) {
-    if (method == null || definingType.typeArguments.length == 0) {
+    if (method == null || definingType.typeArguments.isEmpty) {
       return method;
     }
     FunctionType baseType = method.type;
@@ -685,7 +685,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
    * was created.
    */
   static MethodElement from(MethodElement method, InterfaceType definingType) {
-    if (method == null || definingType.typeArguments.length == 0) {
+    if (method == null || definingType.typeArguments.isEmpty) {
       return method;
     }
     FunctionType baseType = method.type;

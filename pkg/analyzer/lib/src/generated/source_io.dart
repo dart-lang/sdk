@@ -305,7 +305,7 @@ class PackageUriResolver extends UriResolver {
    *          relative to
    */
   PackageUriResolver(this._packagesDirectories) {
-    if (_packagesDirectories.length < 1) {
+    if (_packagesDirectories.isEmpty) {
       throw new ArgumentError(
           "At least one package directory must be provided");
     }

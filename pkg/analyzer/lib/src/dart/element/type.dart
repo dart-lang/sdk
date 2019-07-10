@@ -588,7 +588,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
     // Function types have an empty name when they are defined implicitly by
     // either a closure or as part of a parameter declaration.
-    if (name == null || name.length == 0) {
+    if (name == null || name.isEmpty) {
       StringBuffer buffer = new StringBuffer();
       appendTo(buffer, new Set.identity());
       return buffer.toString();
@@ -1452,7 +1452,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> interfaces = classElement.interfaces;
     List<TypeParameterElement> typeParameters = classElement.typeParameters;
     List<DartType> parameterTypes = classElement.type.typeArguments;
-    if (typeParameters.length == 0) {
+    if (typeParameters.isEmpty) {
       return interfaces;
     }
     int count = interfaces.length;
@@ -1567,7 +1567,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
     List<DartType> typeParameters = classElement.type.typeArguments;
-    if (typeArguments.length == 0 ||
+    if (typeArguments.isEmpty ||
         typeArguments.length != typeParameters.length) {
       return supertype;
     }
@@ -2258,7 +2258,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
-    if (argumentTypes.length == 0 || typeArguments.length == 0) {
+    if (argumentTypes.isEmpty || typeArguments.isEmpty) {
       return this.pruned(prune);
     }
 
@@ -3567,7 +3567,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
     }
     // If there are no arguments to substitute, or if the arguments size doesn't
     // match the parameter size, return the base return type.
-    if (typeArguments.length == 0 ||
+    if (typeArguments.isEmpty ||
         typeArguments.length != typeParameters.length) {
       return (baseReturnType as TypeImpl).pruned(newPrune);
     }
@@ -3711,7 +3711,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       // Circularity found.  Prune the type declaration.
       return new CircularFunctionTypeImpl();
     }
-    if (argumentTypes.length == 0) {
+    if (argumentTypes.isEmpty) {
       return this.pruned(prune);
     }
     List<DartType> typeArgs =
@@ -3745,7 +3745,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
       // ignore: deprecated_member_use_from_same_package
       if (parameter.parameterKind == kind) {
         TypeImpl type = parameter.type ?? DynamicTypeImpl.instance;
-        if (typeArguments.length != 0 &&
+        if (typeArguments.isNotEmpty &&
             typeArguments.length == typeParameters.length) {
           type = type.substitute2(typeArguments, typeParameters, newPrune);
         } else {

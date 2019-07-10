@@ -1001,7 +1001,7 @@ abstract class Scope {
    */
   void define(Element element) {
     String name = _getName(element);
-    if (name != null && !name.isEmpty) {
+    if (name != null && name.isNotEmpty) {
       _definedNames ??= new HashMap<String, Element>();
       _definedNames.putIfAbsent(name, () => element);
     }
@@ -1100,7 +1100,7 @@ abstract class Scope {
   String _getName(Element element) {
     if (element is MethodElement) {
       MethodElement method = element;
-      if (method.name == "-" && method.parameters.length == 0) {
+      if (method.name == "-" && method.parameters.isEmpty) {
         return UNARY_MINUS;
       }
     }

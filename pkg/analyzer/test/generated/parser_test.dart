@@ -261,7 +261,7 @@ class AstValidator extends UnifyingAstVisitor<void> {
    * visited.
    */
   void assertValid() {
-    if (!_errors.isEmpty) {
+    if (_errors.isNotEmpty) {
       StringBuffer buffer = new StringBuffer();
       buffer.write("Invalid AST structure:");
       for (String message in _errors) {

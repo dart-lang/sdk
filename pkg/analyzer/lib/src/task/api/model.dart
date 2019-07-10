@@ -287,7 +287,7 @@ abstract class AnalysisTask {
       return false;
     }
 
-    if (cycle.length > 0) {
+    if (cycle.isNotEmpty) {
       traverse(cycle[0]);
     }
     return path;

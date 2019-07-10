@@ -728,7 +728,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // or have the logic centralized elsewhere, instead of doing this logic
         // here.
         displayName = element.enclosingElement.displayName;
-        if (!element.displayName.isEmpty) {
+        if (element.displayName.isNotEmpty) {
           displayName = "$displayName.${element.displayName}";
         }
       } else if (element is LibraryElement) {
@@ -8040,7 +8040,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         variable.declaredType = element.returnType;
       } else if (variable.type == null) {
         List<ParameterElement> parameters = element.parameters;
-        DartType type = parameters != null && parameters.length > 0
+        DartType type = parameters != null && parameters.isNotEmpty
             ? parameters[0].type
             : _dynamicType;
         variable.declaredType = type;

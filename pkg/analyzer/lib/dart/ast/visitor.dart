@@ -64,7 +64,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /// breadth-first order.
   void visitAllNodes(AstNode root) {
     _queue.add(root);
-    while (!_queue.isEmpty) {
+    while (_queue.isNotEmpty) {
       AstNode next = _queue.removeFirst();
       next.accept(this);
     }
