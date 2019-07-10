@@ -247,6 +247,7 @@ FastaUsageLong/example: Fail
 FastaUsageShort/analyzerCode: Fail
 FastaUsageShort/example: Fail
 FfiFieldAnnotation/analyzerCode: Fail
+FfiFieldNoAnnotation/analyzerCode: Fail
 FfiFieldInitializer/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail

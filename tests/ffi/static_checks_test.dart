@@ -357,13 +357,25 @@ class TestStruct9 extends ffi.Struct<TestStruct9> {
 class TestStruct10 extends ffi.Struct<ffi.Int8> {} //# 59: compile-time error
 
 // Struct classes may not be generic.
-class TestStruct11<T> extends ffi.Struct<TestStruct11<dynamic>> {} //# 60: compile-time error
+class TestStruct11<T> extends //# 60: compile-time error
+    ffi.Struct<TestStruct11<dynamic>> {} //# 60: compile-time error
 
 // Structs may not appear inside structs (currently, there is no suitable
 // annotation).
 class TestStruct12 extends ffi.Struct<TestStruct12> {
   @ffi.Pointer //# 61: compile-time error
   TestStruct9 struct; //# 61: compile-time error
+}
+
+class DummyAnnotation {
+  const DummyAnnotation();
+}
+
+// Structs fields may have other annotations.
+class TestStruct13 extends ffi.Struct<TestStruct13> {
+  @DummyAnnotation()
+  @ffi.Double()
+  double z;
 }
 
 // Cannot extend native types.
@@ -428,7 +440,9 @@ class IDouble implements ffi.Double {} //# 811: compile-time error
 
 class IVoid implements ffi.Void {} //# 812: compile-time error
 
-class INativeFunction implements ffi.NativeFunction {} //# 813: compile-time error
+class INativeFunction //# 813: compile-time error
+    implements //# 813: compile-time error
+        ffi.NativeFunction {} //# 813: compile-time error
 
 class IPointer implements ffi.Pointer {} //# 814: compile-time error
 

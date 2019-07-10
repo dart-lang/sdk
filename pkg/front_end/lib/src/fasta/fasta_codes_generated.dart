@@ -3746,6 +3746,33 @@ Message _withArgumentsFfiFieldInitializer(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+    Message Function(
+        String
+            name)> templateFfiFieldNoAnnotation = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+    withArguments: _withArgumentsFfiFieldNoAnnotation);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeFfiFieldNoAnnotation =
+    const Code<Message Function(String name)>(
+  "FfiFieldNoAnnotation",
+  templateFfiFieldNoAnnotation,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiFieldNoAnnotation(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeFfiFieldNoAnnotation,
+      message:
+          """Field '${name}' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
         Message Function(String name)>(
     messageTemplate:

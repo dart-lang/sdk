@@ -37,6 +37,7 @@ export '../fasta/fasta_codes.dart'
         messageBytecodeLimitExceededTooManyArguments,
         noLength,
         templateFfiFieldAnnotation,
+        templateFfiFieldNoAnnotation,
         templateFfiNotStatic,
         templateFfiTypeInvalid,
         templateFfiTypeMismatch,

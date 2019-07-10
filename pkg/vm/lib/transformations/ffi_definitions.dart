@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         templateFfiFieldAnnotation,
+        templateFfiFieldNoAnnotation,
         templateFfiTypeMismatch,
         templateFfiFieldInitializer,
         templateFfiStructGeneric,
@@ -38,7 +39,6 @@ import 'ffi.dart'
 ///   @Double()
 ///   double y;
 ///
-///   @Pointer()
 ///   Coord next;
 /// }
 ///
@@ -152,6 +152,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
   }
 
+  bool _isPointerType(Field field) {
+    return env.isSubtypeOf(
+        field.type,
+        InterfaceType(pointerClass,
+            [InterfaceType(nativeTypesClasses[NativeType.kNativeType.index])]));
+  }
+
   bool _checkFieldAnnotations(Class node) {
     bool success = true;
     for (Field f in node.fields) {
@@ -163,7 +170,15 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileUri);
       }
       List<NativeType> annos = _getAnnotations(f).toList();
-      if (annos.length != 1) {
+      if (_isPointerType(f)) {
+        if (annos.length != 0) {
+          diagnosticReporter.report(
+              templateFfiFieldNoAnnotation.withArguments(f.name.name),
+              f.fileOffset,
+              f.name.name.length,
+              f.fileUri);
+        }
+      } else if (annos.length != 1) {
         diagnosticReporter.report(
             templateFfiFieldAnnotation.withArguments(f.name.name),
             f.fileOffset,
@@ -235,11 +250,16 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     List<NativeType> types = [];
 
     for (Field f in node.fields) {
-      List<NativeType> annos = _getAnnotations(f).toList();
-      if (annos.length == 1) {
-        NativeType t = annos.first;
+      if (_isPointerType(f)) {
         fields.add(f);
-        types.add(t);
+        types.add(NativeType.kPointer);
+      } else {
+        List<NativeType> annos = _getAnnotations(f).toList();
+        if (annos.length == 1) {
+          NativeType t = annos.first;
+          fields.add(f);
+          types.add(t);
+        }
       }
     }
 

@@ -41,13 +41,11 @@ class VeryLargeStruct extends Struct<VeryLargeStruct> {
   @Double()
   double k;
 
-  @Pointer()
   Pointer<VeryLargeStruct> parent;
 
   @IntPtr()
   int numChidlren;
 
-  @Pointer()
   Pointer<VeryLargeStruct> children;
 
   @Int8()

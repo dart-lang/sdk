@@ -3462,6 +3462,11 @@ FfiFieldAnnotation:
   template: "Field '#name' requires exactly one annotation to declare its C++ type, which cannot be Void. dart:ffi Structs cannot have regular Dart fields."
   external: test/ffi_test.dart
 
+FfiFieldNoAnnotation:
+  # Used by dart:ffi
+  template: "Field '#name' requires no annotation to declare its C++ type, it is a Pointer which is represented by the same type in Dart and C++."
+  external: test/ffi_test.dart
+
 FfiNotStatic:
   # Used by dart:ffi
   template: "#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from c."

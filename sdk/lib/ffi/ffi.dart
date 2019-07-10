@@ -22,8 +22,6 @@ final Pointer<Void> nullptr = Pointer.fromAddress(0);
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
 class Pointer<T extends NativeType> extends NativeType {
-  const Pointer();
-
   /// Allocate [count] elements of type [T] on the native heap via malloc() and
   /// return a pointer to the newly allocated memory.
   ///

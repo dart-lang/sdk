@@ -14,7 +14,6 @@ class Coordinate extends Struct<Coordinate> {
   @Double()
   double y;
 
-  @Pointer()
   Pointer<Coordinate> next;
 
   factory Coordinate.allocate(double x, double y, Pointer<Coordinate> next) {

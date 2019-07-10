@@ -14,6 +14,5 @@ class Coordinate extends Struct<Coordinate> {
   @Double()
   double y;
 
-  @Pointer()
   Pointer<Coordinate> next;
 }
