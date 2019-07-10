@@ -17,6 +17,7 @@ args:third_party/pkg/args/lib
 async:third_party/pkg/async/lib
 async_helper:pkg/async_helper/lib
 bazel_worker:third_party/pkg/bazel_worker/lib
+benchmark_harness:third_party/pkg/benchmark_harness/lib
 boolean_selector:third_party/pkg/boolean_selector/lib
 build_integration:pkg/build_integration/lib
 charcode:third_party/pkg/charcode/lib

@@ -55,6 +55,7 @@ vars = {
   "args_tag": "1.4.4",
   "async_tag": "2.0.8",
   "bazel_worker_tag": "bazel_worker-v0.1.20",
+  "benchmark_harness_tag": "81641290dea44c34138a109a37e215482f405f81",
   "boolean_selector_tag" : "1.0.4",
   "boringssl_gen_rev": "bbf52f18f425e29b1185f2f6753bec02ed8c5880",
   "boringssl_rev" : "702e2b6d3831486535e958f262a05c75a5cb312e",
@@ -236,6 +237,9 @@ deps = {
       Var("dart_git") + "async.git" + "@" + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/bazel_worker":
       Var("dart_git") + "bazel_worker.git" + "@" + Var("bazel_worker_tag"),
+  Var("dart_root") + "/third_party/pkg/benchmark_harness":
+      Var("dart_git") + "benchmark_harness.git" + "@" +
+      Var("benchmark_harness_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       Var("dart_git") + "boolean_selector.git" +
       "@" + Var("boolean_selector_tag"),

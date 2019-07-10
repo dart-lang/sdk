@@ -105,6 +105,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-ia32_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -188,6 +189,7 @@ for command; do
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-ia32.tar.gz; exit 1)
   elif [ "$command" = linux-ia32-benchmark ]; then
     rm -rf tmp
@@ -219,6 +221,7 @@ EOF
     out/ReleaseIA32/run_vm_tests InitialRSS
     out/ReleaseIA32/run_vm_tests GenKernelKernelLoadKernel
     out/ReleaseIA32/run_vm_tests KernelServiceCompileAll
+    out/ReleaseIA32/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ] ||
@@ -264,6 +267,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-x64_profile.tar.gz; exit 1)
     strip -w \
       -K 'kDartVmSnapshotData' \
@@ -366,6 +370,7 @@ EOF
       pkg \
       runtime/bin \
       runtime/lib \
+      benchmarks \
       || (rm -f linux-x64.tar.gz; exit 1)
   elif [ "$command" = linux-x64-benchmark ] ||
        [ "$command" = linux-x64-bytecode-benchmark ]; then
@@ -403,6 +408,7 @@ EOF
     out/ReleaseX64/run_vm_tests InitialRSS
     out/ReleaseX64/run_vm_tests GenKernelKernelLoadKernel
     out/ReleaseX64/run_vm_tests KernelServiceCompileAll
+    out/ReleaseX64/dart --profile-period=10000 --packages=.packages benchmarks/Example/dart/Example.dart
     cd ..
     rm -rf tmp
   else
