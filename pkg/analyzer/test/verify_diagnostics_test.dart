@@ -57,6 +57,12 @@ void main() async {
 
 /// A class used to validate diagnostic documentation.
 class DocumentationValidator {
+  /// The sequence used to mark the start of an error range.
+  static const String errorRangeStart = '[!';
+
+  /// The sequence used to mark the end of an error range.
+  static const String errorRangeEnd = '!]';
+
   /// The absolute paths of the files containing the declarations of the error
   /// codes.
   final List<String> docPaths;
@@ -77,12 +83,6 @@ class DocumentationValidator {
   /// A flag indicating whether the [codeName] has already been written to the
   /// buffer.
   bool hasWrittenCodeName = false;
-
-  /// The sequence used to mark the start of an error range.
-  static const errorRangeStart = '[!';
-
-  /// The sequence used to mark the end of an error range.
-  static const errorRangeEnd = '!]';
 
   /// Initialize a newly created documentation validator.
   DocumentationValidator(this.docPaths);
