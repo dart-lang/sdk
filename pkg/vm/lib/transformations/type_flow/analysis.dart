@@ -98,9 +98,14 @@ abstract class _Invocation extends _DependencyTracker
   /// its result is saturated in order to guarantee convergence.
   static const int invalidationLimit = 1000;
 
+  _Invocation(this.selector, this.args);
+
   Type process(TypeFlowAnalysis typeFlowAnalysis);
 
-  _Invocation(this.selector, this.args);
+  /// Returns result of this invocation if its available without
+  /// further analysis, or `null` if it's not available.
+  /// Used for recursive calls while this invocation is being processed.
+  Type get resultForRecursiveInvocation => result;
 
   // Only take selector and args into account as _Invocation objects
   // are cached in _InvocationsCache using selector and args as a key.
@@ -232,9 +237,17 @@ class _DirectInvocation extends _Invocation {
     final Member member = selector.member;
     if (selector.memberAgreesToCallKind(member)) {
       if (_argumentsValid()) {
-        return typeFlowAnalysis
-            .getSummary(member)
-            .apply(args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
+        final summary = typeFlowAnalysis.getSummary(member);
+        // If result type is known upfront (doesn't depend on the flow),
+        // set it eagerly so recursive invocations are able to use it.
+        final summaryResult = summary.result;
+        if (summaryResult is Type &&
+            !typeFlowAnalysis.workList._isPending(this)) {
+          assertx(result == null || result == summaryResult);
+          result = summaryResult;
+        }
+        return summary.apply(
+            args, typeFlowAnalysis.hierarchyCache, typeFlowAnalysis);
       } else {
         assertx(selector.callKind == CallKind.Method);
         return _processNoSuchMethod(args.receiver, typeFlowAnalysis);
@@ -301,6 +314,7 @@ class _DispatchableInvocation extends _Invocation {
   bool _isPolymorphic = false;
   Set<Call> _callSites; // Populated only if not polymorphic.
   Member _monomorphicTarget;
+  _DirectInvocation _monomorphicDirectInvocation;
 
   @override
   set typeChecksNeeded(bool value) {
@@ -367,6 +381,11 @@ class _DispatchableInvocation extends _Invocation {
 
           final directInvocation = typeFlowAnalysis._invocationsCache
               .getInvocation(directSelector, directArgs);
+
+          if (!_isPolymorphic) {
+            assertx(target == _monomorphicTarget);
+            _monomorphicDirectInvocation = directInvocation;
+          }
 
           type = typeFlowAnalysis.workList.processInvocation(directInvocation);
           if (kPrintTrace) {
@@ -561,10 +580,6 @@ class _DispatchableInvocation extends _Invocation {
   }
 
   void addCallSite(Call callSite) {
-    if (selector is DirectSelector) {
-      return;
-    }
-
     _notifyCallSite(callSite);
     if (!callSite.isPolymorphic) {
       (_callSites ??= new Set<Call>()).add(callSite);
@@ -574,8 +589,6 @@ class _DispatchableInvocation extends _Invocation {
   /// Notify call site about changes in polymorphism or checkedness of this
   /// invocation.
   void _notifyCallSite(Call callSite) {
-    assert(selector is! DirectSelector);
-
     if (_isPolymorphic) {
       callSite.setPolymorphic();
     } else {
@@ -595,6 +608,17 @@ class _DispatchableInvocation extends _Invocation {
     if (_callSites != null) {
       _callSites.forEach(_notifyCallSite);
     }
+  }
+
+  @override
+  Type get resultForRecursiveInvocation {
+    if (result != null) {
+      return result;
+    }
+    if (_monomorphicDirectInvocation != null) {
+      return _monomorphicDirectInvocation.resultForRecursiveInvocation;
+    }
+    return null;
   }
 }
 
@@ -1313,7 +1337,16 @@ class _WorkList {
       }
       return result;
     } else {
-      // Recursive invocation, approximate with static type.
+      // Recursive invocation.
+      final result = invocation.resultForRecursiveInvocation;
+      if (result != null) {
+        if (kPrintTrace) {
+          tracePrint("Already known type for recursive invocation: $result");
+          tracePrint('END PROCESSING $invocation, RESULT $result');
+        }
+        return result;
+      }
+      // Fall back to static type.
       Statistics.recursiveInvocationsApproximated++;
       final staticType =
           new Type.fromStatic(invocation.selector.staticReturnType);

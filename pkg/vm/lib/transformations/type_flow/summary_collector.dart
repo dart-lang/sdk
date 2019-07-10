@@ -96,6 +96,20 @@ class _SummaryNormalizer extends StatementVisitor {
             return const EmptyType();
           } else if (n == 1) {
             return st.values.single;
+          } else {
+            final first = st.values.first;
+            if (first is Type) {
+              bool allMatch = true;
+              for (int i = 1; i < n; ++i) {
+                if (first != st.values[i]) {
+                  allMatch = false;
+                  break;
+                }
+              }
+              if (allMatch) {
+                return first;
+              }
+            }
           }
         }
 
