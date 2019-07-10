@@ -125,6 +125,11 @@
 
 The Linter was updated to `0.1.94`, which includes a number of internal fixes.
 
+#### Dartdoc
+
+Dartdoc was updated to `0.28.4`; this version includes several fixes and is based
+on a newer version of the analyzer package.
+
 ## 2.4.0 - 2019-06-27
 
 ### Core libraries
