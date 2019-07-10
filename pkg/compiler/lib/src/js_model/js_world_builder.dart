@@ -196,7 +196,7 @@ class JsClosedWorldBuilder {
         JFieldAnalysis.from(closedWorld, map, _options);
 
     AnnotationsDataImpl oldAnnotationsData = closedWorld.annotationsData;
-    AnnotationsData annotationsData = new AnnotationsDataImpl(
+    AnnotationsData annotationsData = new AnnotationsDataImpl(_options,
         map.toBackendMemberMap(oldAnnotationsData.pragmaAnnotations, identity));
 
     OutputUnitData outputUnitData =

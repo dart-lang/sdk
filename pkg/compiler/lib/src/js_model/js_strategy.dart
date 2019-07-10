@@ -169,7 +169,7 @@ class JsBackendStrategy implements BackendStrategy {
         closedWorld.annotationsData);
     GlobalLocalsMap _globalLocalsMap = new GlobalLocalsMap();
     ClosureDataBuilder closureDataBuilder = new ClosureDataBuilder(
-        _elementMap, _globalLocalsMap, _compiler.options);
+        _elementMap, _globalLocalsMap, closedWorld.annotationsData);
     JsClosedWorldBuilder closedWorldBuilder = new JsClosedWorldBuilder(
         _elementMap,
         _globalLocalsMap,
@@ -256,7 +256,6 @@ class JsBackendStrategy implements BackendStrategy {
         commonElements, elementEnvironment, closedWorld.nativeData);
     return new CodegenEnqueuer(
         task,
-        _compiler.options,
         new CodegenWorldBuilderImpl(
             closedWorld,
             _compiler.abstractValueStrategy.createSelectorStrategy(),
@@ -277,7 +276,8 @@ class JsBackendStrategy implements BackendStrategy {
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
             customElementsCodegenAnalysis,
-            nativeCodegenEnqueuer));
+            nativeCodegenEnqueuer),
+        closedWorld.annotationsData);
   }
 
   /// Called before the compiler starts running the codegen enqueuer.
@@ -308,7 +308,6 @@ class JsBackendStrategy implements BackendStrategy {
         closedWorld.commonElements, _compiler.options.experimentNewRti);
 
     _codegenImpactTransformer = new CodegenImpactTransformer(
-        _compiler.options,
         closedWorld,
         closedWorld.elementEnvironment,
         closedWorld.commonElements,

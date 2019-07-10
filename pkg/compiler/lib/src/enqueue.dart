@@ -13,10 +13,10 @@ import 'common.dart';
 import 'common_elements.dart' show ElementEnvironment;
 import 'constants/values.dart';
 import 'compiler.dart' show Compiler;
-import 'options.dart';
 import 'elements/entities.dart';
 import 'elements/types.dart';
 import 'inferrer/types.dart';
+import 'js_backend/annotations.dart';
 import 'js_backend/backend.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'universe/member_usage.dart';
@@ -184,8 +184,8 @@ abstract class EnqueuerListener {
 abstract class EnqueuerImpl extends Enqueuer {
   CompilerTask get task;
   void checkClass(ClassEntity cls);
-  void processStaticUse(StaticUse staticUse);
-  void processTypeUse(TypeUse typeUse);
+  void processStaticUse(MemberEntity member, StaticUse staticUse);
+  void processTypeUse(MemberEntity member, TypeUse typeUse);
   void processDynamicUse(DynamicUse dynamicUse);
   void processConstantUse(ConstantUse constantUse);
   EnqueuerListener get listener;
@@ -235,7 +235,6 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   @override
   final CompilerTask task;
   final String name;
-  final CompilerOptions _options;
   @override
   final EnqueuerListener listener;
 
@@ -244,6 +243,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   final ResolutionEnqueuerWorldBuilder _worldBuilder;
   final WorkItemBuilder _workItemBuilder;
   final DiagnosticReporter _reporter;
+  final AnnotationsData _annotationsData;
 
   @override
   bool queueIsClosed = false;
@@ -256,8 +256,8 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   // applying additional impacts before re-emptying the queue.
   void Function() onEmptyForTesting;
 
-  ResolutionEnqueuer(this.task, this._options, this._reporter, this.listener,
-      this._worldBuilder, this._workItemBuilder,
+  ResolutionEnqueuer(this.task, this._reporter, this.listener,
+      this._worldBuilder, this._workItemBuilder, this._annotationsData,
       [this.name = 'resolution enqueuer']) {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
@@ -365,7 +365,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   @override
-  void processStaticUse(StaticUse staticUse) {
+  void processStaticUse(MemberEntity member, StaticUse staticUse) {
     task.measureSubtask('resolution.staticUse', () {
       _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       // TODO(johnniwinther): Add `ResolutionWorldBuilder.registerConstructorUse`
@@ -383,7 +383,7 @@ class ResolutionEnqueuer extends EnqueuerImpl {
   }
 
   @override
-  void processTypeUse(TypeUse typeUse) {
+  void processTypeUse(MemberEntity member, TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -399,17 +399,17 @@ class ResolutionEnqueuer extends EnqueuerImpl {
         _registerIsCheck(type);
         break;
       case TypeUseKind.AS_CAST:
-        if (!_options.omitAsCasts) {
+        if (!_annotationsData.omitAsCasts(member)) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.IMPLICIT_CAST:
-        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+        if (_annotationsData.getImplicitDowncastCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.PARAMETER_CHECK:
-        if (_options.parameterCheckPolicy.isEmitted) {
+        if (_annotationsData.getParameterCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
@@ -525,22 +525,22 @@ class EnqueuerImplImpactVisitor implements WorldImpactVisitor {
   EnqueuerImplImpactVisitor(this.enqueuer);
 
   @override
-  void visitDynamicUse(DynamicUse dynamicUse) {
+  void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse) {
     enqueuer.processDynamicUse(dynamicUse);
   }
 
   @override
-  void visitStaticUse(StaticUse staticUse) {
-    enqueuer.processStaticUse(staticUse);
+  void visitStaticUse(MemberEntity member, StaticUse staticUse) {
+    enqueuer.processStaticUse(member, staticUse);
   }
 
   @override
-  void visitTypeUse(TypeUse typeUse) {
-    enqueuer.processTypeUse(typeUse);
+  void visitTypeUse(MemberEntity member, TypeUse typeUse) {
+    enqueuer.processTypeUse(member, typeUse);
   }
 
   @override
-  void visitConstantUse(ConstantUse constantUse) {
+  void visitConstantUse(MemberEntity member, ConstantUse constantUse) {
     enqueuer.processConstantUse(constantUse);
   }
 }

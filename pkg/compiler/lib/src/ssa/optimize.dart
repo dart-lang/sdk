@@ -83,7 +83,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaTypeConversionInserter(closedWorld),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // After type propagation, more instructions can be
         // simplified.
@@ -93,7 +93,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaInstructionSimplifier(globalInferenceResults, _options,
             codegen.rtiSubstitutions, closedWorld, registry, log),
         new SsaCheckInserter(trustPrimitives, closedWorld, boundsChecked),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -101,7 +101,7 @@ class SsaOptimizerTask extends CompilerTask {
         new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         codeMotion = new SsaCodeMotion(closedWorld.abstractValueDomain),
         loadElimination = new SsaLoadElimination(closedWorld),
@@ -111,7 +111,7 @@ class SsaOptimizerTask extends CompilerTask {
         // controlled by a test on the value, so redo 'conversion insertion' to
         // learn from the refined type.
         new SsaTypeConversionInserter(closedWorld),
-        new SsaTypePropagator(globalInferenceResults, _options,
+        new SsaTypePropagator(globalInferenceResults,
             closedWorld.commonElements, closedWorld, log),
         new SsaValueRangeAnalyzer(closedWorld, this),
         // Previous optimizations may have generated new
@@ -133,7 +133,7 @@ class SsaOptimizerTask extends CompilerTask {
           dce.eliminatedSideEffects ||
           loadElimination.newGvnCandidates) {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults, _options,
+          new SsaTypePropagator(globalInferenceResults,
               closedWorld.commonElements, closedWorld, log),
           new SsaGlobalValueNumberer(closedWorld.abstractValueDomain),
           new SsaCodeMotion(closedWorld.abstractValueDomain),
@@ -146,7 +146,7 @@ class SsaOptimizerTask extends CompilerTask {
         ];
       } else {
         phases = <OptimizationPhase>[
-          new SsaTypePropagator(globalInferenceResults, _options,
+          new SsaTypePropagator(globalInferenceResults,
               closedWorld.commonElements, closedWorld, log),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
@@ -519,14 +519,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     // Try converting the instruction to a builtin instruction.
-    HInstruction instruction = node.specializer.tryConvertToBuiltin(
-        node,
-        _graph,
-        _globalInferenceResults,
-        _options,
-        commonElements,
-        _closedWorld,
-        _log);
+    HInstruction instruction = node.specializer.tryConvertToBuiltin(node,
+        _graph, _globalInferenceResults, commonElements, _closedWorld, _log);
     if (instruction != null) {
       return instruction;
     }
@@ -551,7 +545,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (applies(commonElements.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
-          if (!_options.parameterCheckPolicy.isEmitted ||
+          if (!_closedWorld.annotationsData
+                  .getParameterCheckPolicy(commonElements.jsArrayAdd)
+                  .isEmitted ||
               input is HLiteralList) {
             target = commonElements.jsArrayAdd;
           }
@@ -799,7 +795,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
 
       // If the target has no checks don't let a bad type stop us inlining.
-      if (!_options.parameterCheckPolicy.isEmitted) return;
+      if (!_closedWorld.annotationsData
+          .getParameterCheckPolicy(method)
+          .isEmitted) {
+        return;
+      }
 
       AbstractValue parameterAbstractValue = _abstractValueDomain
           .getAbstractValueForNativeMethodParameterType(parameterType);
@@ -1323,7 +1323,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Use `node.inputs.last` in case the call follows the interceptor calling
     // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
-    if (_options.parameterCheckPolicy.isEmitted) {
+    if (_closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
       if (_options.experimentNewRti) {
         // TODO(sra): Implement inlining of setters with checks for new rti.
         node.needsCheck = true;

@@ -6,7 +6,7 @@ library dart2js.resolution.registry;
 
 import '../common/resolution.dart' show ResolutionImpact;
 import '../constants/expressions.dart';
-import '../elements/entities.dart' show ClassEntity;
+import '../elements/entities.dart' show ClassEntity, MemberEntity;
 import '../universe/feature.dart';
 import '../universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import '../util/enumset.dart' show EnumSet;
@@ -14,7 +14,8 @@ import '../util/util.dart' show Setlet;
 
 class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
     implements ResolutionImpact {
-  final String name;
+  @override
+  final MemberEntity member;
   EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<SetLiteralUse> _setLiterals;
@@ -26,7 +27,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   Set<RuntimeTypeUse> _runtimeTypeUses;
   Set<GenericInstantiation> _genericInstantiations;
 
-  ResolutionWorldImpactBuilder(this.name);
+  ResolutionWorldImpactBuilder(this.member);
 
   @override
   bool get isEmpty => false;
@@ -144,7 +145,7 @@ class ResolutionWorldImpactBuilder extends WorldImpactBuilderImpl
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('ResolutionWorldImpactBuilder($name)');
+    sb.write('ResolutionWorldImpactBuilder($member)');
     WorldImpact.printOn(sb, this);
     if (_features != null) {
       sb.write('\n features:');

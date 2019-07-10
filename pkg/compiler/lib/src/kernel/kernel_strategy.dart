@@ -158,8 +158,14 @@ class KernelFrontendStrategy extends FrontendStrategy {
     ClassQueries classQueries = new KernelClassQueries(elementMap);
     ClassHierarchyBuilder classHierarchyBuilder =
         new ClassHierarchyBuilder(commonElements, classQueries);
+    AnnotationsDataBuilder annotationsDataBuilder =
+        new AnnotationsDataBuilder();
+    // TODO(johnniwinther): This is a hack. The annotation data is built while
+    // using it. With CFE constants the annotations data can be built fully
+    // before creating the resolution enqueuer.
+    AnnotationsData annotationsData = new AnnotationsDataImpl(
+        compiler.options, annotationsDataBuilder.pragmaAnnotations);
     impactTransformer = new JavaScriptImpactTransformer(
-        compiler.options,
         elementEnvironment,
         commonElements,
         impacts,
@@ -168,15 +174,13 @@ class KernelFrontendStrategy extends FrontendStrategy {
         _backendUsageBuilder,
         _customElementsResolutionAnalysis,
         rtiNeedBuilder,
-        classHierarchyBuilder);
+        classHierarchyBuilder,
+        annotationsData);
     InterceptorDataBuilder interceptorDataBuilder =
         new InterceptorDataBuilderImpl(
             nativeBasicData, elementEnvironment, commonElements);
-    AnnotationsDataBuilder annotationsDataBuilder =
-        new AnnotationsDataBuilder();
     return new ResolutionEnqueuer(
         task,
-        compiler.options,
         compiler.reporter,
         new ResolutionEnqueuerListener(
             compiler.options,
@@ -220,7 +224,8 @@ class KernelFrontendStrategy extends FrontendStrategy {
             compiler.impactCache,
             _fieldAnalysis,
             _modularStrategy,
-            _irAnnotationData));
+            _irAnnotationData),
+        annotationsData);
   }
 
   @override

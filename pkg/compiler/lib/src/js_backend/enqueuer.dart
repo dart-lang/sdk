@@ -13,7 +13,7 @@ import '../common_elements.dart' show ElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
-import '../options.dart';
+import '../js_backend/annotations.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
@@ -43,7 +43,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   final CompilerTask task;
   @override
   final EnqueuerListener listener;
-  final CompilerOptions _options;
+  final AnnotationsData _annotationsData;
 
   WorldImpactVisitor _impactVisitor;
 
@@ -59,8 +59,8 @@ class CodegenEnqueuer extends EnqueuerImpl {
   static const ImpactUseCase IMPACT_USE =
       const ImpactUseCase('CodegenEnqueuer');
 
-  CodegenEnqueuer(this.task, this._options, this._worldBuilder,
-      this._workItemBuilder, this.listener)
+  CodegenEnqueuer(this.task, this._worldBuilder, this._workItemBuilder,
+      this.listener, this._annotationsData)
       : this.name = 'codegen enqueuer' {
     _impactVisitor = new EnqueuerImplImpactVisitor(this);
   }
@@ -166,13 +166,13 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   @override
-  void processStaticUse(StaticUse staticUse) {
+  void processStaticUse(MemberEntity member, StaticUse staticUse) {
     task.measureSubtask('codegen.staticUse', () {
       _worldBuilder.registerStaticUse(staticUse, _applyMemberUse);
       switch (staticUse.kind) {
         case StaticUseKind.CONSTRUCTOR_INVOKE:
         case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-          processTypeUse(new TypeUse.instantiation(staticUse.type));
+          processTypeUse(member, new TypeUse.instantiation(staticUse.type));
           break;
         case StaticUseKind.INLINING:
           // TODO(johnniwinther): Should this be tracked with _MemberUsage ?
@@ -185,7 +185,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
   }
 
   @override
-  void processTypeUse(TypeUse typeUse) {
+  void processTypeUse(MemberEntity member, TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -199,17 +199,17 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _registerIsCheck(type);
         break;
       case TypeUseKind.AS_CAST:
-        if (!_options.omitAsCasts) {
+        if (!_annotationsData.omitAsCasts(member)) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.IMPLICIT_CAST:
-        if (_options.implicitDowncastCheckPolicy.isEmitted) {
+        if (_annotationsData.getImplicitDowncastCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;
       case TypeUseKind.PARAMETER_CHECK:
-        if (_options.parameterCheckPolicy.isEmitted) {
+        if (_annotationsData.getParameterCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;

@@ -472,7 +472,9 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             }
             if (targetElement.isInstanceMember) {
               if (fieldData.isEffectivelyFinal ||
-                  !options.parameterCheckPolicy.isEmitted) {
+                  !closedWorld.annotationsData
+                      .getParameterCheckPolicy(targetElement)
+                      .isEmitted) {
                 // No need for a checked setter.
                 return null;
               }
@@ -581,7 +583,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     _inLazyInitializerExpression = node.isStatic;
     FieldEntity field = _elementMap.getMember(node);
     _openFunction(field, checks: TargetChecks.none);
-    if (node.isInstanceMember && options.parameterCheckPolicy.isEmitted) {
+    if (node.isInstanceMember &&
+        closedWorld.annotationsData.getParameterCheckPolicy(field).isEmitted) {
       HInstruction thisInstruction = localsHandler.readThis(
           sourceInformation: _sourceInformationBuilder.buildGet(node));
       // Use dynamic type because the type computed by the inferrer is
@@ -593,7 +596,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // to be the first parameter.
       graph.entry.addBefore(graph.entry.last, parameter);
       HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-          parameter, _getDartTypeIfValid(node.type));
+          field, parameter, _getDartTypeIfValid(node.type));
       if (!_fieldAnalysis.getFieldData(field).isElided) {
         add(new HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
@@ -603,7 +606,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         HInstruction fieldValue = pop();
         HInstruction checkInstruction =
             _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-                fieldValue, _getDartTypeIfValid(node.type));
+                field, fieldValue, _getDartTypeIfValid(node.type));
         stack.add(checkInstruction);
       } else {
         stack.add(graph.addConstantNull(closedWorld));
@@ -624,7 +627,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// non-null bool.
   HInstruction popBoolified() {
     HInstruction value = pop();
-    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(value);
+    return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(
+        _currentFrame.member, value);
   }
 
   /// Extend current method parameters with parameters for the class type
@@ -761,7 +765,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           DartType type = _elementEnvironment.getFieldType(member);
           type = localsHandler.substInContext(type);
           constructorArguments.add(_typeBuilder
-              .potentiallyCheckOrTrustTypeOfAssignment(value, type));
+              .potentiallyCheckOrTrustTypeOfAssignment(member, value, type));
         }
       }
     });
@@ -1436,7 +1440,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
           (targetChecks.checkCovariantParameters &&
               (variable.isGenericCovariantImpl || variable.isCovariant))) {
         newParameter = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
-            newParameter, type);
+            targetElement, newParameter, type);
       } else {
         newParameter = _typeBuilder.trustTypeOfParameter(newParameter, type);
       }
@@ -1450,7 +1454,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   void _checkTypeVariableBounds(FunctionEntity method) {
     if (_rtiNeed.methodNeedsTypeArguments(method) &&
-        options.parameterCheckPolicy.isEmitted) {
+        closedWorld.annotationsData.getParameterCheckPolicy(method).isEmitted) {
       ir.FunctionNode function = getFunctionNode(_elementMap, method);
       for (ir.TypeParameter typeParameter in function.typeParameters) {
         Local local = _localsMap.getLocalTypeVariable(
@@ -1791,7 +1795,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         }*/
       } else {
         value = _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-            value, _returnType);
+            _currentFrame.member, value, _returnType);
       }
     }
     _handleInTryStatement();
@@ -2058,7 +2062,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       Local loopVariableLocal = _localsMap.getLocalVariable(node.variable);
       HInstruction value = _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-          pop(), _getDartTypeIfValid(node.variable.type));
+          _currentFrame.member, pop(), _getDartTypeIfValid(node.variable.type));
       localsHandler.updateLocal(loopVariableLocal, value,
           sourceInformation: sourceInformation);
       // Hint to name loop value after name of loop variable.
@@ -2413,8 +2417,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    if ((!node.isTypeError && !options.omitAsCasts) ||
-        options.implicitDowncastCheckPolicy.isEmitted) {
+    if ((!node.isTypeError &&
+            !closedWorld.annotationsData.omitAsCasts(_currentFrame.member)) ||
+        closedWorld.annotationsData
+            .getImplicitDowncastCheckPolicy(_currentFrame.member)
+            .isEmitted) {
       HInstruction converted = _typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),
@@ -3384,7 +3391,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             _abstractValueDomain,
             target,
             _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-                value, _getDartTypeIfValid(staticTarget.setterType))));
+                target, value, _getDartTypeIfValid(staticTarget.setterType))));
       }
     }
     stack.add(value);
@@ -3535,7 +3542,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     localsHandler.updateLocal(
         local,
         _typeBuilder.potentiallyCheckOrTrustTypeOfAssignment(
-            value, _getDartTypeIfValid(variable.type)),
+            _currentFrame.member, value, _getDartTypeIfValid(variable.type)),
         sourceInformation: sourceInformation);
   }
 
@@ -6208,8 +6215,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       if (trusted) {
         checkedOrTrusted = _typeBuilder.trustTypeOfParameter(argument, type);
       } else {
-        checkedOrTrusted =
-            _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(argument, type);
+        checkedOrTrusted = _typeBuilder.potentiallyCheckOrTrustTypeOfParameter(
+            function, argument, type);
       }
       localsHandler.updateLocal(parameter, checkedOrTrusted);
     });

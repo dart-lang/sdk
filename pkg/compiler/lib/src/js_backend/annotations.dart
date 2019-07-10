@@ -74,6 +74,38 @@ class PragmaAnnotation {
       6, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
+  static const PragmaAnnotation omitAsCasts = const PragmaAnnotation(
+      7, 'omitAsCasts',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation emitAsCasts = const PragmaAnnotation(
+      8, 'emitAsCasts',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation omitImplicitChecks = const PragmaAnnotation(
+      9, 'omitImplicitChecks',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation emitImplicitChecks = const PragmaAnnotation(
+      10, 'emitImplicitChecks',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation omitParameterChecks = const PragmaAnnotation(
+      11, 'omitParameterChecks',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation emitParameterChecks = const PragmaAnnotation(
+      12, 'emitParameterChecks',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation omitImplicitDowncasts = const PragmaAnnotation(
+      13, 'omitImplicitDowncasts',
+      forFunctionsOnly: false, internalOnly: false);
+
+  static const PragmaAnnotation emitImplicitDowncasts = const PragmaAnnotation(
+      14, 'emitImplicitDowncasts',
+      forFunctionsOnly: false, internalOnly: false);
+
   static const List<PragmaAnnotation> values = [
     noInline,
     tryInline,
@@ -82,7 +114,42 @@ class PragmaAnnotation {
     noThrows,
     noSideEffects,
     assumeDynamic,
+    omitAsCasts,
+    emitAsCasts,
+    omitImplicitChecks,
+    emitImplicitChecks,
+    omitParameterChecks,
+    emitParameterChecks,
+    omitImplicitDowncasts,
+    emitImplicitDowncasts,
   ];
+
+  static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
+    omitImplicitChecks: {omitParameterChecks, omitImplicitDowncasts},
+    emitImplicitChecks: {emitParameterChecks, emitImplicitDowncasts},
+  };
+  static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
+    noInline: {tryInline},
+    tryInline: {noInline},
+    omitImplicitChecks: {
+      emitImplicitChecks,
+      emitParameterChecks,
+      emitImplicitDowncasts
+    },
+    emitImplicitChecks: {
+      omitImplicitChecks,
+      omitParameterChecks,
+      omitImplicitDowncasts
+    },
+    omitParameterChecks: {emitParameterChecks},
+    emitParameterChecks: {omitParameterChecks},
+    omitImplicitDowncasts: {emitImplicitDowncasts},
+    emitImplicitDowncasts: {omitImplicitDowncasts},
+  };
+  static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
+    noThrows: {noInline},
+    noSideEffects: {noInline},
+  };
 }
 
 List<PragmaAnnotationData> computePragmaAnnotationData(
@@ -124,7 +191,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     DiagnosticReporter reporter,
     ir.Member member,
     List<PragmaAnnotationData> pragmaAnnotationData) {
-  EnumSet<PragmaAnnotation> values = new EnumSet<PragmaAnnotation>();
+  EnumSet<PragmaAnnotation> annotations = new EnumSet<PragmaAnnotation>();
 
   Uri uri = member.enclosingLibrary.importUri;
   bool platformAnnotationsAllowed =
@@ -137,7 +204,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     for (PragmaAnnotation annotation in PragmaAnnotation.values) {
       if (annotation.name == suffix) {
         found = true;
-        values.add(annotation);
+        annotations.add(annotation);
 
         if (data.hasOptions) {
           reporter.reportErrorMessage(
@@ -179,36 +246,52 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
           {'text': "Unknown dart2js pragma @pragma('$name')"});
     }
   }
-
-  if (values.contains(PragmaAnnotation.tryInline) &&
-      values.contains(PragmaAnnotation.noInline)) {
-    reporter.reportErrorMessage(
-        computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
-      'text': "@pragma('dart2js:tryInline') must not be used with "
-          "@pragma('dart2js:noInline')."
-    });
-    values.remove(PragmaAnnotation.tryInline);
+  for (PragmaAnnotation annotation
+      in annotations.iterable(PragmaAnnotation.values)) {
+    Set<PragmaAnnotation> implies = PragmaAnnotation.implies[annotation];
+    if (implies != null) {
+      for (PragmaAnnotation other in implies) {
+        if (annotations.contains(other)) {
+          reporter.reportHintMessage(
+              computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
+            'text': "@pragma('dart2js:${annotation.name}') implies "
+                "@pragma('dart2js:${annotation.name}')."
+          });
+        }
+      }
+    }
+    Set<PragmaAnnotation> excludes = PragmaAnnotation.excludes[annotation];
+    if (excludes != null) {
+      for (PragmaAnnotation other in excludes) {
+        if (annotations.contains(other)) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
+            'text': "@pragma('dart2js:${annotation.name}') must not be used "
+                "with @pragma('dart2js:${annotation.name}')."
+          });
+        }
+      }
+    }
+    Set<PragmaAnnotation> requires = PragmaAnnotation.requires[annotation];
+    if (requires != null) {
+      for (PragmaAnnotation other in requires) {
+        if (!annotations.contains(other)) {
+          reporter.reportErrorMessage(
+              computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
+            'text': "@pragma('dart2js:${annotation.name}') should always be "
+                "combined with @pragma('dart2js:${annotation.name}')."
+          });
+        }
+      }
+    }
   }
-  if (values.contains(PragmaAnnotation.noThrows) &&
-      !values.contains(PragmaAnnotation.noInline)) {
-    reporter.internalError(
-        computeSourceSpanFromTreeNode(member),
-        "@pragma('dart2js:noThrows') should always be combined with "
-        "@pragma('dart2js:noInline').");
-  }
-  if (values.contains(PragmaAnnotation.noSideEffects) &&
-      !values.contains(PragmaAnnotation.noInline)) {
-    reporter.internalError(
-        computeSourceSpanFromTreeNode(member),
-        "@pragma('dart2js:noSideEffects') should always be combined with "
-        "@pragma('dart2js:noInline').");
-  }
-  return values;
+  return annotations;
 }
 
 abstract class AnnotationsData {
   /// Deserializes a [AnnotationsData] object from [source].
-  factory AnnotationsData.readFromDataSource(DataSource source) =
+  factory AnnotationsData.readFromDataSource(
+          CompilerOptions options, DataSource source) =
       AnnotationsDataImpl.readFromDataSource;
 
   /// Serializes this [AnnotationsData] to [sink].
@@ -254,6 +337,28 @@ abstract class AnnotationsData {
   /// Calls [f] for all functions with a `@pragma('dart2js:noSideEffects')`
   /// annotation.
   void forEachNoSideEffects(void f(FunctionEntity function));
+
+  /// What should the compiler do with parameter type assertions in [member].
+  ///
+  /// If [member] is `null`, the default policy is returned.
+  CheckPolicy getParameterCheckPolicy(MemberEntity member);
+
+  /// What should the compiler do with implicit downcasts in [member].
+  ///
+  /// If [member] is `null`, the default policy is returned.
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member);
+
+  /// What the compiler should do with a boolean value in a condition context
+  /// in [member] when the language specification says it is a runtime error for
+  /// it to be null.
+  ///
+  /// If [member] is `null`, the default policy is returned.
+  CheckPolicy getConditionCheckPolicy(MemberEntity member);
+
+  /// Whether to omit as casts.
+  ///
+  /// If [member] is `null`, the default policy is returned.
+  bool omitAsCasts(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -261,17 +366,27 @@ class AnnotationsDataImpl implements AnnotationsData {
   /// debugging data stream.
   static const String tag = 'annotations-data';
 
+  final CheckPolicy _defaultParameterCheckPolicy;
+  final CheckPolicy _defaultImplicitDowncastCheckPolicy;
+  final CheckPolicy _defaultConditionCheckPolicy;
+  final bool _defaultOmitAsCasts;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
-  AnnotationsDataImpl(this.pragmaAnnotations);
+  AnnotationsDataImpl(CompilerOptions options, this.pragmaAnnotations)
+      : this._defaultParameterCheckPolicy = options.defaultParameterCheckPolicy,
+        this._defaultImplicitDowncastCheckPolicy =
+            options.defaultImplicitDowncastCheckPolicy,
+        this._defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
+        this._defaultOmitAsCasts = options.defaultOmitAsCasts;
 
-  factory AnnotationsDataImpl.readFromDataSource(DataSource source) {
+  factory AnnotationsDataImpl.readFromDataSource(
+      CompilerOptions options, DataSource source) {
     source.begin(tag);
     Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations =
         source.readMemberMap(
             (MemberEntity member) => new EnumSet.fromValue(source.readInt()));
     source.end(tag);
-    return new AnnotationsDataImpl(pragmaAnnotations);
+    return new AnnotationsDataImpl(options, pragmaAnnotations);
   }
 
   @override
@@ -356,6 +471,82 @@ class AnnotationsDataImpl implements AnnotationsData {
       }
     });
   }
+
+  @override
+  CheckPolicy getParameterCheckPolicy(MemberEntity member) {
+    if (member != null) {
+      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      if (annotations != null) {
+        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+          return CheckPolicy.trusted;
+        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+          return CheckPolicy.checked;
+        } else if (annotations.contains(PragmaAnnotation.omitParameterChecks)) {
+          return CheckPolicy.trusted;
+        } else if (annotations.contains(PragmaAnnotation.emitParameterChecks)) {
+          return CheckPolicy.checked;
+        }
+      }
+    }
+    return _defaultParameterCheckPolicy;
+  }
+
+  @override
+  CheckPolicy getImplicitDowncastCheckPolicy(MemberEntity member) {
+    if (member != null) {
+      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      if (annotations != null) {
+        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+          return CheckPolicy.trusted;
+        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+          return CheckPolicy.checked;
+        } else if (annotations
+            .contains(PragmaAnnotation.omitImplicitDowncasts)) {
+          return CheckPolicy.trusted;
+        } else if (annotations
+            .contains(PragmaAnnotation.emitImplicitDowncasts)) {
+          return CheckPolicy.checked;
+        }
+      }
+    }
+    return _defaultImplicitDowncastCheckPolicy;
+  }
+
+  @override
+  CheckPolicy getConditionCheckPolicy(MemberEntity member) {
+    if (member != null) {
+      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      if (annotations != null) {
+        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+          return CheckPolicy.trusted;
+        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+          return CheckPolicy.checked;
+        } else if (annotations
+            .contains(PragmaAnnotation.omitImplicitDowncasts)) {
+          return CheckPolicy.trusted;
+        } else if (annotations
+            .contains(PragmaAnnotation.emitImplicitDowncasts)) {
+          return CheckPolicy.checked;
+        }
+      }
+    }
+    return _defaultConditionCheckPolicy;
+  }
+
+  @override
+  bool omitAsCasts(MemberEntity member) {
+    if (member != null) {
+      EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
+      if (annotations != null) {
+        if (annotations.contains(PragmaAnnotation.omitAsCasts)) {
+          return true;
+        } else if (annotations.contains(PragmaAnnotation.emitAsCasts)) {
+          return false;
+        }
+      }
+    }
+    return _defaultOmitAsCasts;
+  }
 }
 
 class AnnotationsDataBuilder {
@@ -368,7 +559,7 @@ class AnnotationsDataBuilder {
     }
   }
 
-  AnnotationsData close() {
-    return new AnnotationsDataImpl(pragmaAnnotations);
+  AnnotationsData close(CompilerOptions options) {
+    return new AnnotationsDataImpl(options, pragmaAnnotations);
   }
 }

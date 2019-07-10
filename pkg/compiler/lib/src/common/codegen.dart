@@ -68,6 +68,8 @@ class CodegenImpact extends WorldImpact {
 class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   static const String tag = 'codegen-impact';
 
+  @override
+  final MemberEntity member;
   Set<Pair<DartType, DartType>> _typeVariableBoundsSubtypeChecks;
   Set<String> _constSymbols;
   List<Set<ClassEntity>> _specializedGetInterceptors;
@@ -78,9 +80,10 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   Set<FunctionEntity> _nativeMethods;
   Set<Selector> _oneShotInterceptors;
 
-  _CodegenImpact();
+  _CodegenImpact(this.member);
 
   _CodegenImpact.internal(
+      this.member,
       Set<DynamicUse> dynamicUses,
       Set<StaticUse> staticUses,
       Set<TypeUse> typeUses,
@@ -98,6 +101,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   factory _CodegenImpact.readFromDataSource(DataSource source) {
     source.begin(tag);
+    MemberEntity member = source.readMember();
     Set<DynamicUse> dynamicUses = source
         .readList(() => DynamicUse.readFromDataSource(source),
             emptyAsNull: true)
@@ -139,6 +143,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
         ?.toSet();
     source.end(tag);
     return new _CodegenImpact.internal(
+        member,
         dynamicUses,
         staticUses,
         typeUses,
@@ -157,6 +162,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   @override
   void writeToDataSink(DataSink sink) {
     sink.begin(tag);
+    sink.writeMember(member);
     sink.writeList(dynamicUses, (DynamicUse use) => use.writeToDataSink(sink),
         allowNull: true);
     sink.writeList(staticUses, (StaticUse use) => use.writeToDataSink(sink),
@@ -192,9 +198,11 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
   @override
   void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach(visitor.visitStaticUse);
-    dynamicUses.forEach(visitor.visitDynamicUse);
-    typeUses.forEach(visitor.visitTypeUse);
+    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
+    dynamicUses.forEach((DynamicUse use) => visitor.visitDynamicUse);
+    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
+    constantUses
+        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
@@ -331,7 +339,7 @@ class CodegenRegistry {
   List<ModularExpression> _expressions;
 
   CodegenRegistry(this._elementEnvironment, this._currentElement)
-      : this._worldImpact = new _CodegenImpact();
+      : this._worldImpact = new _CodegenImpact(_currentElement);
 
   @override
   String toString() => 'CodegenRegistry for $_currentElement';

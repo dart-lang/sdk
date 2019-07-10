@@ -7,7 +7,6 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
 import 'logging.dart';
@@ -37,15 +36,14 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       new Map<HInstruction, Function>();
 
   final GlobalTypeInferenceResults results;
-  final CompilerOptions options;
   final CommonElements commonElements;
   final JClosedWorld closedWorld;
   final OptimizationTestLog _log;
   @override
   String get name => 'SsaTypePropagator';
 
-  SsaTypePropagator(this.results, this.options, this.commonElements,
-      this.closedWorld, this._log);
+  SsaTypePropagator(
+      this.results, this.commonElements, this.closedWorld, this._log);
 
   AbstractValueDomain get abstractValueDomain =>
       closedWorld.abstractValueDomain;
@@ -499,6 +497,6 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     }
 
     return instruction.specializer
-        .computeTypeFromInputTypes(instruction, results, options, closedWorld);
+        .computeTypeFromInputTypes(instruction, results, closedWorld);
   }
 }

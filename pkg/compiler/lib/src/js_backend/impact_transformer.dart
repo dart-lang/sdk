@@ -19,13 +19,13 @@ import '../elements/types.dart';
 import '../js_emitter/native_emitter.dart';
 import '../native/enqueue.dart';
 import '../native/behavior.dart';
-import '../options.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show TransformedWorldImpact, WorldImpact;
 import '../util/util.dart';
 import '../world.dart';
+import 'annotations.dart';
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
@@ -35,7 +35,6 @@ import 'native_data.dart';
 import 'runtime_types.dart';
 
 class JavaScriptImpactTransformer extends ImpactTransformer {
-  final CompilerOptions _options;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
   final BackendImpacts _impacts;
@@ -45,9 +44,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   final CustomElementsResolutionAnalysis _customElementsResolutionAnalysis;
   final RuntimeTypesNeedBuilder _rtiNeedBuilder;
   final ClassHierarchyBuilder _classHierarchyBuilder;
+  final AnnotationsData _annotationsData;
 
   JavaScriptImpactTransformer(
-      this._options,
       this._elementEnvironment,
       this._commonElements,
       this._impacts,
@@ -56,7 +55,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._backendUsageBuilder,
       this._customElementsResolutionAnalysis,
       this._rtiNeedBuilder,
-      this._classHierarchyBuilder);
+      this._classHierarchyBuilder,
+      this._annotationsData);
 
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
@@ -158,18 +158,22 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
-          if (!_options.omitAsCasts) {
+          if (!_annotationsData.omitAsCasts(worldImpact.member)) {
             onIsCheck(type, transformed);
             hasAsCast = true;
           }
           break;
         case TypeUseKind.IMPLICIT_CAST:
-          if (_options.implicitDowncastCheckPolicy.isEmitted) {
+          if (_annotationsData
+              .getImplicitDowncastCheckPolicy(worldImpact.member)
+              .isEmitted) {
             onIsCheck(type, transformed);
           }
           break;
         case TypeUseKind.PARAMETER_CHECK:
-          if (_options.parameterCheckPolicy.isEmitted) {
+          if (_annotationsData
+              .getParameterCheckPolicy(worldImpact.member)
+              .isEmitted) {
             onIsCheck(type, transformed);
           }
           break;
@@ -343,7 +347,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 }
 
 class CodegenImpactTransformer {
-  final CompilerOptions _options;
   final JClosedWorld _closedWorld;
   final ElementEnvironment _elementEnvironment;
   final CommonElements _commonElements;
@@ -358,7 +361,6 @@ class CodegenImpactTransformer {
   final NativeEmitter _nativeEmitter;
 
   CodegenImpactTransformer(
-      this._options,
       this._closedWorld,
       this._elementEnvironment,
       this._commonElements,

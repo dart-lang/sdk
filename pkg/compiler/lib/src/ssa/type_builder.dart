@@ -9,6 +9,7 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../js_model/type_recipe.dart';
 import '../io/source_information.dart';
+import '../options.dart';
 import '../universe/use.dart' show TypeUse;
 import '../world.dart';
 
@@ -112,12 +113,14 @@ abstract class TypeBuilder {
   }
 
   HInstruction potentiallyCheckOrTrustTypeOfParameter(
-      HInstruction original, DartType type) {
+      MemberEntity memberContext, HInstruction original, DartType type) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
-    if (builder.options.parameterCheckPolicy.isTrusted) {
+    CheckPolicy parameterCheckPolicy = builder.closedWorld.annotationsData
+        .getParameterCheckPolicy(memberContext);
+    if (parameterCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (builder.options.parameterCheckPolicy.isEmitted) {
+    } else if (parameterCheckPolicy.isEmitted) {
       checkedOrTrusted = _checkType(original, type);
     }
     if (checkedOrTrusted == original) return original;
@@ -129,25 +132,23 @@ abstract class TypeBuilder {
   /// instruction that checks the type is what we expect or automatically
   /// trusts the written type.
   HInstruction potentiallyCheckOrTrustTypeOfAssignment(
-      HInstruction original, DartType type) {
+      MemberEntity memberContext, HInstruction original, DartType type) {
     if (type == null) return original;
-    HInstruction checkedOrTrusted = original;
-    if (builder.options.assignmentCheckPolicy.isTrusted) {
-      checkedOrTrusted = _trustType(original, type);
-    } else if (builder.options.assignmentCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkType(original, type);
-    }
+    HInstruction checkedOrTrusted = _trustType(original, type);
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);
     return checkedOrTrusted;
   }
 
-  HInstruction potentiallyCheckOrTrustTypeOfCondition(HInstruction original) {
+  HInstruction potentiallyCheckOrTrustTypeOfCondition(
+      MemberEntity memberContext, HInstruction original) {
     DartType boolType = _closedWorld.commonElements.boolType;
     HInstruction checkedOrTrusted = original;
-    if (builder.options.conditionCheckPolicy.isTrusted) {
+    CheckPolicy conditionCheckPolicy = builder.closedWorld.annotationsData
+        .getConditionCheckPolicy(memberContext);
+    if (conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
-    } else if (builder.options.conditionCheckPolicy.isEmitted) {
+    } else if (conditionCheckPolicy.isEmitted) {
       checkedOrTrusted = _checkBoolConverion(original);
     }
     if (checkedOrTrusted == original) return original;

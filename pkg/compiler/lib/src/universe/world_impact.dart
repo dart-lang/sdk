@@ -4,6 +4,7 @@
 
 library dart2js.universe.world_impact;
 
+import '../elements/entities.dart';
 import '../util/util.dart' show Setlet;
 import 'use.dart';
 
@@ -21,6 +22,8 @@ import 'use.dart';
 class WorldImpact {
   const WorldImpact();
 
+  MemberEntity get member => null;
+
   Iterable<DynamicUse> get dynamicUses => const <DynamicUse>[];
 
   Iterable<StaticUse> get staticUses => const <StaticUse>[];
@@ -37,10 +40,12 @@ class WorldImpact {
   bool get isEmpty => true;
 
   void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach(visitor.visitStaticUse);
-    dynamicUses.forEach(visitor.visitDynamicUse);
-    typeUses.forEach(visitor.visitTypeUse);
-    constantUses.forEach(visitor.visitConstantUse);
+    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
+    dynamicUses
+        .forEach((DynamicUse use) => visitor.visitDynamicUse(member, use));
+    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
+    constantUses
+        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   @override
@@ -53,6 +58,8 @@ class WorldImpact {
   }
 
   static void printOn(StringBuffer sb, WorldImpact worldImpact) {
+    sb.write('member: ${worldImpact.member}');
+
     void add(String title, Iterable iterable) {
       if (iterable.isNotEmpty) {
         sb.write('\n $title:');
@@ -222,6 +229,9 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   TransformedWorldImpact(this.worldImpact);
 
   @override
+  MemberEntity get member => worldImpact.member;
+
+  @override
   bool get isEmpty {
     return worldImpact.isEmpty &&
         _staticUses == null &&
@@ -288,10 +298,12 @@ class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
 
   @override
   void apply(WorldImpactVisitor visitor) {
-    staticUses.forEach(visitor.visitStaticUse);
-    dynamicUses.forEach(visitor.visitDynamicUse);
-    typeUses.forEach(visitor.visitTypeUse);
-    constantUses.forEach(visitor.visitConstantUse);
+    staticUses.forEach((StaticUse use) => visitor.visitStaticUse(member, use));
+    dynamicUses
+        .forEach((DynamicUse use) => visitor.visitDynamicUse(member, use));
+    typeUses.forEach((TypeUse use) => visitor.visitTypeUse(member, use));
+    constantUses
+        .forEach((ConstantUse use) => visitor.visitConstantUse(member, use));
   }
 
   @override
@@ -333,14 +345,14 @@ class ImpactStrategy {
 
 /// Visitor used to process the uses of a [WorldImpact].
 abstract class WorldImpactVisitor {
-  void visitStaticUse(StaticUse staticUse);
-  void visitDynamicUse(DynamicUse dynamicUse);
-  void visitTypeUse(TypeUse typeUse);
-  void visitConstantUse(ConstantUse typeUse);
+  void visitStaticUse(MemberEntity member, StaticUse staticUse);
+  void visitDynamicUse(MemberEntity member, DynamicUse dynamicUse);
+  void visitTypeUse(MemberEntity member, TypeUse typeUse);
+  void visitConstantUse(MemberEntity member, ConstantUse typeUse);
 }
 
 // TODO(johnniwinther): Remove these when we get anonymous local classes.
-typedef void VisitUse<U>(U use);
+typedef void VisitUse<U>(MemberEntity member, U use);
 
 class WorldImpactVisitorImpl implements WorldImpactVisitor {
   final VisitUse<StaticUse> _visitStaticUse;
@@ -359,30 +371,30 @@ class WorldImpactVisitorImpl implements WorldImpactVisitor {
         _visitConstantUse = visitConstantUse;
 
   @override
-  void visitStaticUse(StaticUse use) {
+  void visitStaticUse(MemberEntity member, StaticUse use) {
     if (_visitStaticUse != null) {
-      _visitStaticUse(use);
+      _visitStaticUse(member, use);
     }
   }
 
   @override
-  void visitDynamicUse(DynamicUse use) {
+  void visitDynamicUse(MemberEntity member, DynamicUse use) {
     if (_visitDynamicUse != null) {
-      _visitDynamicUse(use);
+      _visitDynamicUse(member, use);
     }
   }
 
   @override
-  void visitTypeUse(TypeUse use) {
+  void visitTypeUse(MemberEntity member, TypeUse use) {
     if (_visitTypeUse != null) {
-      _visitTypeUse(use);
+      _visitTypeUse(member, use);
     }
   }
 
   @override
-  void visitConstantUse(ConstantUse use) {
+  void visitConstantUse(MemberEntity member, ConstantUse use) {
     if (_visitConstantUse != null) {
-      _visitConstantUse(use);
+      _visitConstantUse(member, use);
     }
   }
 }

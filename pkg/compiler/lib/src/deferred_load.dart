@@ -179,14 +179,14 @@ abstract class DeferredLoadTask extends CompilerTask {
   ///
   /// The collected dependent elements and constants are are added to
   /// [elements] and [constants] respectively.
-  void _collectDirectMemberDependencies(
+  void _collectDirectMemberDependencies(KClosedWorld closedWorld,
       MemberEntity element, Dependencies dependencies) {
     // TODO(sigurdm): We want to be more specific about this - need a better
     // way to query "liveness".
     if (!compiler.resolutionWorldBuilder.isMemberUsed(element)) {
       return;
     }
-    _collectDependenciesFromImpact(element, dependencies);
+    _collectDependenciesFromImpact(closedWorld, element, dependencies);
     collectConstantsInBody(element, dependencies);
   }
 
@@ -195,7 +195,9 @@ abstract class DeferredLoadTask extends CompilerTask {
   ///
   /// Adds the results to [elements] and [constants].
   void _collectAllElementsAndConstantsResolvedFromClass(
-      ClassEntity element, Dependencies dependencies) {
+      KClosedWorld closedWorld,
+      ClassEntity element,
+      Dependencies dependencies) {
     // If we see a class, add everything its live instance members refer
     // to.  Static members are not relevant, unless we are processing
     // extra dependencies due to mirrors.
@@ -203,7 +205,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       if (!compiler.resolutionWorldBuilder.isMemberUsed(member)) return;
       if (!member.isInstanceMember) return;
       dependencies.addMember(member);
-      _collectDirectMemberDependencies(member, dependencies);
+      _collectDirectMemberDependencies(closedWorld, member, dependencies);
     }
 
     ClassEntity cls = element;
@@ -219,21 +221,24 @@ abstract class DeferredLoadTask extends CompilerTask {
   ///
   /// Adds the results to [elements] and [constants].
   void _collectAllElementsAndConstantsResolvedFromMember(
-      MemberEntity element, Dependencies dependencies) {
+      KClosedWorld closedWorld,
+      MemberEntity element,
+      Dependencies dependencies) {
     if (element is FunctionEntity) {
       _collectTypeDependencies(
           elementEnvironment.getFunctionType(element), dependencies);
     }
     if (element.isStatic || element.isTopLevel || element.isConstructor) {
       dependencies.addMember(element);
-      _collectDirectMemberDependencies(element, dependencies);
+      _collectDirectMemberDependencies(closedWorld, element, dependencies);
     }
     if (element is ConstructorEntity && element.isGenerativeConstructor) {
       // When instantiating a class, we record a reference to the
       // constructor, not the class itself.  We must add all the
       // instance members of the constructor's class.
       ClassEntity cls = element.enclosingClass;
-      _collectAllElementsAndConstantsResolvedFromClass(cls, dependencies);
+      _collectAllElementsAndConstantsResolvedFromClass(
+          closedWorld, cls, dependencies);
     }
 
     // Other elements, in particular instance members, are ignored as
@@ -265,13 +270,14 @@ abstract class DeferredLoadTask extends CompilerTask {
   }
 
   /// Extract any dependencies that are known from the impact of [element].
-  void _collectDependenciesFromImpact(
+  void _collectDependenciesFromImpact(KClosedWorld closedWorld,
       MemberEntity element, Dependencies dependencies) {
     WorldImpact worldImpact = compiler.impactCache[element];
     compiler.impactStrategy.visitImpact(
         element,
         worldImpact,
-        new WorldImpactVisitorImpl(visitStaticUse: (StaticUse staticUse) {
+        new WorldImpactVisitorImpl(
+            visitStaticUse: (MemberEntity member, StaticUse staticUse) {
           Entity usedEntity = staticUse.element;
           if (usedEntity is MemberEntity) {
             dependencies.addMember(usedEntity, staticUse.deferredImport);
@@ -306,7 +312,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               break;
             default:
           }
-        }, visitTypeUse: (TypeUse typeUse) {
+        }, visitTypeUse: (MemberEntity member, TypeUse typeUse) {
           DartType type = typeUse.type;
           switch (typeUse.kind) {
             case TypeUseKind.TYPE_LITERAL:
@@ -327,17 +333,21 @@ abstract class DeferredLoadTask extends CompilerTask {
               _collectTypeDependencies(type, dependencies);
               break;
             case TypeUseKind.AS_CAST:
-              if (!compiler.options.omitAsCasts) {
+              if (!closedWorld.annotationsData.omitAsCasts(element)) {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
             case TypeUseKind.IMPLICIT_CAST:
-              if (compiler.options.implicitDowncastCheckPolicy.isEmitted) {
+              if (closedWorld.annotationsData
+                  .getImplicitDowncastCheckPolicy(element)
+                  .isEmitted) {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
             case TypeUseKind.PARAMETER_CHECK:
-              if (compiler.options.parameterCheckPolicy.isEmitted) {
+              if (closedWorld.annotationsData
+                  .getParameterCheckPolicy(element)
+                  .isEmitted) {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
@@ -346,7 +356,7 @@ abstract class DeferredLoadTask extends CompilerTask {
               failedAt(element, "Unexpected type use: $typeUse.");
               break;
           }
-        }, visitDynamicUse: (DynamicUse dynamicUse) {
+        }, visitDynamicUse: (MemberEntity member, DynamicUse dynamicUse) {
           // TODO(johnniwinther): Use rti need data to skip unneeded type
           // arguments.
           _collectTypeArgumentDependencies(
@@ -360,8 +370,12 @@ abstract class DeferredLoadTask extends CompilerTask {
   /// import set, we stop and enqueue a new recursive update in [queue].
   ///
   /// Invariants: oldSet is either null or a subset of newSet.
-  void _updateConstantRecursive(ConstantValue constant, ImportSet oldSet,
-      ImportSet newSet, WorkQueue queue) {
+  void _updateConstantRecursive(
+      KClosedWorld closedWorld,
+      ConstantValue constant,
+      ImportSet oldSet,
+      ImportSet newSet,
+      WorkQueue queue) {
     if (constant == null) return;
     var currentSet = _constantToSet[constant];
 
@@ -375,19 +389,21 @@ abstract class DeferredLoadTask extends CompilerTask {
       _constantToSet[constant] = newSet;
       if (constant is ConstructedConstantValue) {
         ClassEntity cls = constant.type.element;
-        _updateClassRecursive(cls, oldSet, newSet, queue);
+        _updateClassRecursive(closedWorld, cls, oldSet, newSet, queue);
       }
       if (constant is InstantiationConstantValue) {
         for (DartType type in constant.typeArguments) {
           if (type is InterfaceType) {
-            _updateClassRecursive(type.element, oldSet, newSet, queue);
+            _updateClassRecursive(
+                closedWorld, type.element, oldSet, newSet, queue);
           }
         }
       }
       constant.getDependencies().forEach((ConstantValue dependency) {
         // Constants are not allowed to refer to deferred constants, so
         // no need to check for a deferred type literal here.
-        _updateConstantRecursive(dependency, oldSet, newSet, queue);
+        _updateConstantRecursive(
+            closedWorld, dependency, oldSet, newSet, queue);
       });
     } else {
       assert(
@@ -401,8 +417,8 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
   }
 
-  void _updateClassRecursive(ClassEntity element, ImportSet oldSet,
-      ImportSet newSet, WorkQueue queue) {
+  void _updateClassRecursive(KClosedWorld closedWorld, ClassEntity element,
+      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
     if (element == null) return;
 
     ImportSet currentSet = _classToSet[element];
@@ -419,17 +435,18 @@ abstract class DeferredLoadTask extends CompilerTask {
       _classToSet[element] = newSet;
 
       Dependencies dependencies = new Dependencies();
-      _collectAllElementsAndConstantsResolvedFromClass(element, dependencies);
+      _collectAllElementsAndConstantsResolvedFromClass(
+          closedWorld, element, dependencies);
       LibraryEntity library = element.library;
       _processDependencies(
-          library, dependencies, oldSet, newSet, queue, element);
+          closedWorld, library, dependencies, oldSet, newSet, queue, element);
     } else {
       queue.addClass(element, newSet);
     }
   }
 
-  void _updateMemberRecursive(MemberEntity element, ImportSet oldSet,
-      ImportSet newSet, WorkQueue queue) {
+  void _updateMemberRecursive(KClosedWorld closedWorld, MemberEntity element,
+      ImportSet oldSet, ImportSet newSet, WorkQueue queue) {
     if (element == null) return;
 
     ImportSet currentSet = _memberToSet[element];
@@ -446,11 +463,12 @@ abstract class DeferredLoadTask extends CompilerTask {
       _memberToSet[element] = newSet;
 
       Dependencies dependencies = new Dependencies();
-      _collectAllElementsAndConstantsResolvedFromMember(element, dependencies);
+      _collectAllElementsAndConstantsResolvedFromMember(
+          closedWorld, element, dependencies);
 
       LibraryEntity library = element.library;
       _processDependencies(
-          library, dependencies, oldSet, newSet, queue, element);
+          closedWorld, library, dependencies, oldSet, newSet, queue, element);
     } else {
       queue.addMember(element, newSet);
     }
@@ -542,8 +560,14 @@ abstract class DeferredLoadTask extends CompilerTask {
     }
   }
 
-  void _processDependencies(LibraryEntity library, Dependencies dependencies,
-      ImportSet oldSet, ImportSet newSet, WorkQueue queue, Spannable context) {
+  void _processDependencies(
+      KClosedWorld closedWorld,
+      LibraryEntity library,
+      Dependencies dependencies,
+      ImportSet oldSet,
+      ImportSet newSet,
+      WorkQueue queue,
+      Spannable context) {
     dependencies.classes.forEach((ClassEntity cls, DependencyInfo info) {
       _fixClassDependencyInfo(info, cls, library, context);
       if (info.isDeferred) {
@@ -553,7 +577,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           }
         }
       } else {
-        _updateClassRecursive(cls, oldSet, newSet, queue);
+        _updateClassRecursive(closedWorld, cls, oldSet, newSet, queue);
       }
     });
 
@@ -566,7 +590,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           }
         }
       } else {
-        _updateMemberRecursive(member, oldSet, newSet, queue);
+        _updateMemberRecursive(closedWorld, member, oldSet, newSet, queue);
       }
     });
 
@@ -584,7 +608,7 @@ abstract class DeferredLoadTask extends CompilerTask {
           }
         }
       } else {
-        _updateConstantRecursive(constant, oldSet, newSet, queue);
+        _updateConstantRecursive(closedWorld, constant, oldSet, newSet, queue);
       }
     });
   }
@@ -773,7 +797,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       void emptyQueue() {
         while (queue.isNotEmpty) {
           WorkItem item = queue.nextItem();
-          item.update(this, queue);
+          item.update(this, closedWorld, queue);
         }
       }
 
@@ -1167,7 +1191,7 @@ abstract class WorkItem {
 
   WorkItem(this.importsToAdd);
 
-  void update(DeferredLoadTask task, WorkQueue queue);
+  void update(DeferredLoadTask task, KClosedWorld closedWorld, WorkQueue queue);
 }
 
 /// Summary of the work that needs to be done on a class.
@@ -1178,11 +1202,12 @@ class ClassWorkItem extends WorkItem {
   ClassWorkItem(this.cls, ImportSet newSet) : super(newSet);
 
   @override
-  void update(DeferredLoadTask task, WorkQueue queue) {
+  void update(
+      DeferredLoadTask task, KClosedWorld closedWorld, WorkQueue queue) {
     queue.pendingClasses.remove(cls);
     ImportSet oldSet = task._classToSet[cls];
     ImportSet newSet = task.importSets.union(oldSet, importsToAdd);
-    task._updateClassRecursive(cls, oldSet, newSet, queue);
+    task._updateClassRecursive(closedWorld, cls, oldSet, newSet, queue);
   }
 }
 
@@ -1194,11 +1219,12 @@ class MemberWorkItem extends WorkItem {
   MemberWorkItem(this.member, ImportSet newSet) : super(newSet);
 
   @override
-  void update(DeferredLoadTask task, WorkQueue queue) {
+  void update(
+      DeferredLoadTask task, KClosedWorld closedWorld, WorkQueue queue) {
     queue.pendingMembers.remove(member);
     ImportSet oldSet = task._memberToSet[member];
     ImportSet newSet = task.importSets.union(oldSet, importsToAdd);
-    task._updateMemberRecursive(member, oldSet, newSet, queue);
+    task._updateMemberRecursive(closedWorld, member, oldSet, newSet, queue);
   }
 }
 
@@ -1210,11 +1236,12 @@ class ConstantWorkItem extends WorkItem {
   ConstantWorkItem(this.constant, ImportSet newSet) : super(newSet);
 
   @override
-  void update(DeferredLoadTask task, WorkQueue queue) {
+  void update(
+      DeferredLoadTask task, KClosedWorld closedWorld, WorkQueue queue) {
     queue.pendingConstants.remove(constant);
     ImportSet oldSet = task._constantToSet[constant];
     ImportSet newSet = task.importSets.union(oldSet, importsToAdd);
-    task._updateConstantRecursive(constant, oldSet, newSet, queue);
+    task._updateConstantRecursive(closedWorld, constant, oldSet, newSet, queue);
   }
 }
 

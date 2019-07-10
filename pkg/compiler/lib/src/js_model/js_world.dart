@@ -163,7 +163,7 @@ class JsClosedWorld implements JClosedWorld {
         source.readClassMap(() => source.readClasses().toSet());
 
     AnnotationsData annotationsData =
-        new AnnotationsData.readFromDataSource(source);
+        new AnnotationsData.readFromDataSource(options, source);
 
     ClosureData closureData =
         new ClosureData.readFromDataSource(elementMap, source);

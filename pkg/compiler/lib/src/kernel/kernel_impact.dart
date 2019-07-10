@@ -58,8 +58,7 @@ class KernelImpactBuilder extends ImpactBuilderBase
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
-      : this.impactBuilder =
-            new ResolutionWorldImpactBuilder('${currentMember}'),
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember),
         super(elementMap.typeEnvironment, elementMap.classHierarchy,
             variableScopeModel);
 
@@ -95,8 +94,7 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
       this._options, this._constantValuefier)
-      : this.impactBuilder =
-            new ResolutionWorldImpactBuilder('${currentMember}');
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember);
 
   @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;

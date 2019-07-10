@@ -337,7 +337,6 @@ class ProgramBuilder {
 
   js.Expression _buildTypeToInterceptorMap() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1010,7 +1009,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateGetInterceptorMethods() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,
@@ -1115,7 +1113,6 @@ class ProgramBuilder {
 
   Iterable<StaticStubMethod> _generateOneShotInterceptors() {
     InterceptorStubGenerator stubGenerator = new InterceptorStubGenerator(
-        _options,
         _commonElements,
         _task.emitter,
         _nativeCodegenEnqueuer,

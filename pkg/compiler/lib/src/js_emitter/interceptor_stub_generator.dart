@@ -18,7 +18,6 @@ import '../js_backend/custom_elements_analysis.dart'
 import '../js_backend/native_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../native/enqueue.dart';
-import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../world.dart' show JClosedWorld;
@@ -26,7 +25,6 @@ import '../world.dart' show JClosedWorld;
 import 'code_emitter_task.dart' show Emitter;
 
 class InterceptorStubGenerator {
-  final CompilerOptions _options;
   final CommonElements _commonElements;
   final Emitter _emitter;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -36,7 +34,6 @@ class InterceptorStubGenerator {
   final JClosedWorld _closedWorld;
 
   InterceptorStubGenerator(
-      this._options,
       this._commonElements,
       this._emitter,
       this._nativeCodegenEnqueuer,
@@ -304,7 +301,12 @@ class InterceptorStubGenerator {
       // checked mode, so we don't optimize the interceptor if the
       // _compiler has type assertions enabled.
       if (selector.isIndexSet &&
-          (_options.parameterCheckPolicy.isEmitted || !containsArray)) {
+          // TODO(johnniwinther): Support annotations on the possible targets
+          // and used their parameter check policy here.
+          (_closedWorld.annotationsData
+                  .getParameterCheckPolicy(null)
+                  .isEmitted ||
+              !containsArray)) {
         return null;
       }
       if (!containsArray && !containsString) {

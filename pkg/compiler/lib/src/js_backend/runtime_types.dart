@@ -19,6 +19,7 @@ import '../ir/runtime_type_analysis.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
+import '../kernel/kelements.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
@@ -1643,24 +1644,31 @@ class RuntimeTypesNeedBuilderImpl extends _RuntimeTypesBase
       }
     }
 
-    if (options.parameterCheckPolicy.isEmitted) {
-      void checkFunction(Entity function, FunctionType type) {
-        for (FunctionTypeVariable typeVariable in type.typeVariables) {
-          DartType bound = typeVariable.bound;
-          if (!bound.isDynamic &&
-              !bound.isVoid &&
-              bound != closedWorld.commonElements.objectType) {
-            potentiallyNeedTypeArguments(function);
-            break;
-          }
+    void checkFunction(Entity function, FunctionType type) {
+      for (FunctionTypeVariable typeVariable in type.typeVariables) {
+        DartType bound = typeVariable.bound;
+        if (!bound.isDynamic &&
+            !bound.isVoid &&
+            bound != closedWorld.commonElements.objectType) {
+          potentiallyNeedTypeArguments(function);
+          break;
         }
       }
+    }
 
-      closedWorld.forEachGenericMethod((FunctionEntity method) {
+    closedWorld.forEachGenericMethod((FunctionEntity method) {
+      if (closedWorld.annotationsData
+          .getParameterCheckPolicy(method)
+          .isEmitted) {
         checkFunction(method, _elementEnvironment.getFunctionType(method));
-      });
-
-      for (Local function in closedWorld.genericLocalFunctions) {
+      }
+    });
+    for (KLocalFunction function in closedWorld.genericLocalFunctions) {
+      if (closedWorld.annotationsData
+          // TODO(johnniwinther): Support @pragma on local functions and use
+          // this here instead of the enclosing member.
+          .getParameterCheckPolicy(function.memberContext)
+          .isEmitted) {
         checkFunction(
             function, _elementEnvironment.getLocalFunctionType(function));
       }
@@ -2149,8 +2157,10 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
     });
     liveClasses.forEach(processClass);
 
-    if (options.parameterCheckPolicy.isEmitted) {
-      codegenWorld.forEachGenericMethod((FunctionEntity method) {
+    codegenWorld.forEachGenericMethod((FunctionEntity method) {
+      if (_closedWorld.annotationsData
+          .getParameterCheckPolicy(method)
+          .isEmitted) {
         if (_rtiNeed.methodNeedsTypeArguments(method)) {
           for (TypeVariableType typeVariable
               in _elementEnvironment.getFunctionTypeVariables(method)) {
@@ -2161,8 +2171,8 @@ class RuntimeTypesImpl extends _RuntimeTypesBase
                 bound, TypeVisitorState.covariantTypeArgument);
           }
         }
-      });
-    }
+      }
+    });
 
     cachedRequiredChecks = _computeChecks(classUseMap);
     rtiChecksBuilderClosed = true;
