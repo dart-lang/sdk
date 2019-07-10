@@ -264,7 +264,7 @@ class CompletionRunner {
    * Print information about the given [suggestions].
    */
   void _printSuggestions(List<CompletionSuggestion> suggestions) {
-    if (suggestions.length == 0) {
+    if (suggestions.isEmpty) {
       output.writeln('  No suggestions');
       return;
     }

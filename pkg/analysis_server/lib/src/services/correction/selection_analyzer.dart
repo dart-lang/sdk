@@ -39,7 +39,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<void> {
    * selection [SourceRange].
    */
   bool get hasSelectedNodes =>
-      _selectedNodes != null && !_selectedNodes.isEmpty;
+      _selectedNodes != null && _selectedNodes.isNotEmpty;
 
   /**
    * Returns `true` if there was no selected nodes yet.

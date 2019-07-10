@@ -119,14 +119,14 @@ mixin ElementSuggestionBuilder {
       }
     }
     String completion = elementCompletion ?? element.displayName;
-    if (prefix != null && prefix.length > 0) {
-      if (completion == null || completion.length <= 0) {
+    if (prefix != null && prefix.isNotEmpty) {
+      if (completion == null || completion.isEmpty) {
         completion = prefix;
       } else {
         completion = '$prefix.$completion';
       }
     }
-    if (completion == null || completion.length <= 0) {
+    if (completion == null || completion.isEmpty) {
       return null;
     }
     CompletionSuggestion suggestion = createSuggestion(element,
@@ -203,7 +203,7 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
       ClassElement classElem = element.enclosingElement;
       if (classElem != null) {
         String prefix = classElem.name;
-        if (prefix != null && prefix.length > 0) {
+        if (prefix != null && prefix.isNotEmpty) {
           addSuggestion(element, prefix: prefix);
         }
       }

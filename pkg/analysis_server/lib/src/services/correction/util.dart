@@ -711,7 +711,7 @@ class CorrectionUtils {
     // determine if empty line is required after
     int nextLineOffset = getLineNext(offset);
     String insertLine = source.substring(offset, nextLineOffset);
-    if (!insertLine.trim().isEmpty) {
+    if (insertLine.trim().isNotEmpty) {
       insertEmptyLineAfter = true;
     }
     // fill InsertDesc

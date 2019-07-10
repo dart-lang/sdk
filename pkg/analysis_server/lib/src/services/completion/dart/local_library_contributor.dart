@@ -169,8 +169,8 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
           createSuggestion(constructor, relevance: relevance);
       if (suggestion != null) {
         String name = suggestion.completion;
-        name = name.length > 0 ? '$className.$name' : className;
-        if (prefix != null && prefix.length > 0) {
+        name = name.isNotEmpty ? '$className.$name' : className;
+        if (prefix != null && prefix.isNotEmpty) {
           name = '$prefix.$name';
         }
         suggestion.completion = name;

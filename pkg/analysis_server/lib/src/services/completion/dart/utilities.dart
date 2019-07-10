@@ -114,7 +114,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     return null;
   }
   String completion = id.name;
-  if (completion == null || completion.length <= 0 || completion == '_') {
+  if (completion == null || completion.isEmpty || completion == '_') {
     return null;
   }
   CompletionSuggestion suggestion = new CompletionSuggestion(
@@ -131,7 +131,7 @@ CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     SimpleIdentifier classId = classDecl.name;
     if (classId != null) {
       String className = classId.name;
-      if (className != null && className.length > 0) {
+      if (className != null && className.isNotEmpty) {
         suggestion.declaringType = className;
       }
     }

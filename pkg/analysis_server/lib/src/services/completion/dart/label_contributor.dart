@@ -145,7 +145,7 @@ class _LabelVisitor extends LocalDeclarationVisitor {
   CompletionSuggestion _addSuggestion(SimpleIdentifier id) {
     if (id != null) {
       String completion = id.name;
-      if (completion != null && completion.length > 0 && completion != '_') {
+      if (completion != null && completion.isNotEmpty && completion != '_') {
         CompletionSuggestion suggestion = new CompletionSuggestion(
             CompletionSuggestionKind.IDENTIFIER,
             DART_RELEVANCE_DEFAULT,

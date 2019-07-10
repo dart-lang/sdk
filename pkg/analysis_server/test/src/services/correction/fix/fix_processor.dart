@@ -268,7 +268,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
       }
       errors = errors.where(errorFilter).toList();
     }
-    if (errors.length == 0) {
+    if (errors.isEmpty) {
       fail('Expected one error, found: none');
     } else if (errors.length > 1) {
       StringBuffer buffer = new StringBuffer();

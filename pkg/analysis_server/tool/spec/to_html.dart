@@ -262,14 +262,14 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       link('domain_${domain.name}', () => write('\u2191'));
       write(')');
     });
-    if (domain.requests.length > 0) {
+    if (domain.requests.isNotEmpty) {
       element('div', {'class': 'subindex'}, () {
         generateRequestsIndex(domain.requests);
-        if (domain.notifications.length > 0) {
+        if (domain.notifications.isNotEmpty) {
           generateNotificationsIndex(domain.notifications);
         }
       });
-    } else if (domain.notifications.length > 0) {
+    } else if (domain.notifications.isNotEmpty) {
       element('div', {'class': 'subindex'}, () {
         generateNotificationsIndex(domain.notifications);
       });
@@ -286,7 +286,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     h3(() => write('Domains'));
     for (var domain in api.domains) {
       if (domain.experimental ||
-          (domain.requests.length == 0 && domain.notifications == 0)) {
+          (domain.requests.isEmpty && domain.notifications == 0)) {
         continue;
       }
       generateDomainIndex(domain);

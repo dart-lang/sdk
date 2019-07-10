@@ -116,7 +116,7 @@ class MemberSorter {
       if (member is FieldDeclaration) {
         FieldDeclaration fieldDeclaration = member;
         List<VariableDeclaration> fields = fieldDeclaration.fields.variables;
-        if (!fields.isEmpty) {
+        if (fields.isNotEmpty) {
           kind = _MemberKind.CLASS_FIELD;
           isStatic = fieldDeclaration.isStatic;
           name = fields[0].name.name;
@@ -314,7 +314,7 @@ class MemberSorter {
         TopLevelVariableDeclaration variableDeclaration = member;
         List<VariableDeclaration> variables =
             variableDeclaration.variables.variables;
-        if (!variables.isEmpty) {
+        if (variables.isNotEmpty) {
           if (variableDeclaration.variables.isConst) {
             kind = _MemberKind.UNIT_VARIABLE_CONST;
           } else {

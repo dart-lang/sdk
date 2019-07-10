@@ -1776,14 +1776,14 @@ class FixProcessor {
 
           builder.write(targetLocation.prefix);
           builder.write(targetClassName);
-          if (!constructorName.isEmpty) {
+          if (constructorName.isNotEmpty) {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
           builder.write('(');
           writeParameters(true);
           builder.write(') : super');
-          if (!constructorName.isEmpty) {
+          if (constructorName.isNotEmpty) {
             builder.write('.');
             builder.addSimpleLinkedEdit('NAME', constructorName);
           }
@@ -2305,7 +2305,7 @@ class FixProcessor {
       builder.addInsertion(insertOffset, (DartEditBuilder builder) {
         builder.selectHere();
         // insert empty line before existing member
-        if (!targetClass.members.isEmpty) {
+        if (targetClass.members.isNotEmpty) {
           builder.write(eol);
         }
         // append method
@@ -4220,7 +4220,7 @@ class FixProcessor {
     StringBuffer buffer = new StringBuffer();
     buffer.write('super');
     String constructorName = constructor.displayName;
-    if (!constructorName.isEmpty) {
+    if (constructorName.isNotEmpty) {
       buffer.write('.');
       buffer.write(constructorName);
     }

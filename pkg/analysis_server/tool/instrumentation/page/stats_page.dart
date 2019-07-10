@@ -110,7 +110,7 @@ class StatsPage extends PageWriter {
             String id = response.result('id');
             if (id != null) {
               List<NotificationEntry> events = log.completionEventsWithId(id);
-              if (events != null && events.length > 0) {
+              if (events != null && events.isNotEmpty) {
                 completionResponseTimes
                     .add(events[0].timeStamp - entry.timeStamp);
               }

@@ -32,7 +32,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
 
   void _assertHasChange(String message, String expectedCode, [Function cmp]) {
     if (change.message == message) {
-      if (!change.edits.isEmpty) {
+      if (change.edits.isNotEmpty) {
         String resultCode =
             SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode.replaceAll('/*caret*/', ''));

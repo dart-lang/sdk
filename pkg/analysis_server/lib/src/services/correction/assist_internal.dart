@@ -848,7 +848,7 @@ class AssistProcessor {
         node.offset > creation.argumentList.offset ||
         creation.staticType.element != typeProvider.listType.element ||
         creation.constructorName.name != null ||
-        creation.argumentList.arguments.length > 0) {
+        creation.argumentList.arguments.isNotEmpty) {
       _coverageMarker();
       return;
     }
@@ -4299,7 +4299,7 @@ class AssistProcessor {
   /// placed inside curly braces, would lexically make the resulting literal a
   /// set literal rather than a map literal.
   bool _listHasUnambiguousElement(AstNode node) {
-    if (node is ListLiteral && node.elements.length > 0) {
+    if (node is ListLiteral && node.elements.isNotEmpty) {
       for (CollectionElement element in node.elements) {
         if (_isUnambiguousElement(element)) {
           return true;

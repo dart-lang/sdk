@@ -41,7 +41,7 @@ bool _isAppendingToArgList(DartCompletionRequest request) {
     if (entity == node.rightParenthesis) {
       return true;
     }
-    if (node.arguments.length > 0 && node.arguments.last == entity) {
+    if (node.arguments.isNotEmpty && node.arguments.last == entity) {
       return entity is SimpleIdentifier;
     }
   }
@@ -172,7 +172,7 @@ class ArgListContributor extends DartCompletionContributor {
       ParameterElement parameter, bool appendColon, bool appendComma) {
     String name = parameter.name;
     String type = parameter.type?.displayName;
-    if (name != null && name.length > 0 && !namedArgs.contains(name)) {
+    if (name != null && name.isNotEmpty && !namedArgs.contains(name)) {
       String completion = name;
       if (appendColon) {
         completion += ': ';
@@ -220,7 +220,7 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addSuggestions(Iterable<ParameterElement> parameters) {
-    if (parameters == null || parameters.length == 0) {
+    if (parameters == null || parameters.isEmpty) {
       return;
     }
     Iterable<ParameterElement> requiredParam =

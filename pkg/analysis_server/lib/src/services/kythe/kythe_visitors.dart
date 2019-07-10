@@ -30,7 +30,7 @@ String _computeConstructorElementName(ConstructorElement element) {
   assert(element != null);
   var name = element.enclosingElement.name;
   var constructorName = element.name;
-  if (!constructorName.isEmpty) {
+  if (constructorName.isNotEmpty) {
     name = name + '.' + constructorName;
   }
   return name;

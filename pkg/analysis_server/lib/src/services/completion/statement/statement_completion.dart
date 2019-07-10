@@ -894,7 +894,7 @@ class StatementCompletionProcessor {
 
   bool _complete_simpleEnter() {
     int offset;
-    if (!errors.isEmpty) {
+    if (errors.isNotEmpty) {
       offset = selectionOffset;
     } else {
       String indent = utils.getLinePrefix(selectionOffset);

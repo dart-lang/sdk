@@ -96,7 +96,7 @@ class OverrideContributor implements DartCompletionContributor {
         completion.startsWith(overrideAnnotation)) {
       completion = completion.substring(overrideAnnotation.length).trim();
     }
-    if (completion.length == 0) {
+    if (completion.isEmpty) {
       return null;
     }
 

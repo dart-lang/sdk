@@ -219,7 +219,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _prepareExcludedNames();
     _prepareNames();
     // closure cannot have parameters
-    if (_selectionFunctionExpression != null && !_parameters.isEmpty) {
+    if (_selectionFunctionExpression != null && _parameters.isNotEmpty) {
       String message = format(
           'Cannot extract closure as method, it references {0} external variable(s).',
           _parameters.length);
@@ -510,7 +510,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
 
     // Check selected nodes.
-    if (!selectedNodes.isEmpty) {
+    if (selectedNodes.isNotEmpty) {
       AstNode selectedNode = selectedNodes.first;
       _parentMember = getEnclosingClassOrUnitMember(selectedNode);
       // single expression selected
@@ -558,7 +558,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       return false;
     }
     // has parameters
-    if (!parameters.isEmpty) {
+    if (parameters.isNotEmpty) {
       return false;
     }
     // is assignment
