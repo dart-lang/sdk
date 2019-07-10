@@ -1,3 +1,8 @@
+# 0.1.94
+
+* (internal): analyzer API call updates
+* (internal): implicit cast cleanup
+
 # 0.1.93
 
 * new lint: `avoid_print`
