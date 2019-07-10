@@ -887,7 +887,9 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
-          ]
+          ],
+          "shards": 1,
+          "fileset": "dart2js"
         },
         {
           "name": "ddc kernel tests",
@@ -995,7 +997,9 @@
             "corelib_2",
             "lib_2",
             "dartdevc_native"
-          ]
+          ],
+          "shards": 1,
+          "fileset": "dart2js"
         },
         {
           "name": "ddc kernel tests",
