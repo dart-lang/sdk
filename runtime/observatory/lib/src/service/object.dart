@@ -929,7 +929,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
   static const kStdoutStream = 'Stdout';
   static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
-  static const kServiceStream = '_Service';
+  static const kServiceStream = 'Service';
 
   /// Returns a single-subscription Stream object for a VM event stream.
   Future<Stream<ServiceEvent>> getEventStream(String streamId) async {

@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.21
+# Dart VM Service Protocol 3.22
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.21_ of the Dart VM Service Protocol. This
+This document describes of _version 3.22_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -47,6 +47,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [invoke](#invoke)
   - [pause](#pause)
   - [kill](#kill)
+  - [registerService](#registerService)
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
   - [resume](#resume)
@@ -878,6 +879,21 @@ The isolate is killed regardless of whether it is paused or running.
 
 See [Success](#success).
 
+### registerService
+
+```
+Success registerService(string service, string alias)
+```
+
+Registers a service that can be invoked by other VM service clients, where
+`service` is the name of the service to advertise and `alias` is an alternative
+name for the registered service.
+
+Requests made to the new service will be forwarded to the client which originally
+registered the service.
+
+See [Success](#success).
+
 ### reloadSources
 
 ```
@@ -1071,6 +1087,7 @@ GC | GC
 Extension | Extension
 Timeline | TimelineEvents
 Logging | Logging
+Service | ServiceRegistered, ServiceUnregistered
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1598,6 +1615,26 @@ class Event extends Response {
   //
   // This is provided for the Logging event.
   LogRecord logRecord [optional];
+
+  // The service identifier.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  //   ServiceUnregistered
+  String service [optional];
+
+  // The RPC method that should be used to invoke the service.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  //   ServiceUnregistered
+  String method [optional];
+
+  // The alias of the registered service.
+  //
+  // This is provided for the event kinds:
+  //   ServiceRegistered
+  String alias [optional];
 }
 ```
 
@@ -1683,6 +1720,14 @@ enum EventKind {
 
   // Event from dart:developer.log.
   Logging
+
+   // Notification that a Service has been registered into the Service Protocol
+  // from another client.
+  ServiceRegistered,
+
+  // Notification that a Service has been removed from the Service Protocol
+  // from another client.
+  ServiceUnregistered
 }
 ```
 
@@ -3081,5 +3126,6 @@ version | comments
 3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
 3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
 3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
+3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

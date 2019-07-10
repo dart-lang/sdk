@@ -228,12 +228,12 @@ class VMService extends MessageRouter {
     }
     for (var service in client.services.keys) {
       _eventMessageHandler(
-          '_Service',
+          'Service',
           new Response.json({
             'jsonrpc': '2.0',
             'method': 'streamNotify',
             'params': {
-              'streamId': '_Service',
+              'streamId': 'Service',
               'event': {
                 "type": "Event",
                 "kind": "ServiceUnregistered",
@@ -420,7 +420,7 @@ class VMService extends MessageRouter {
     return null;
   }
 
-  static const kServiceStream = '_Service';
+  static const kServiceStream = 'Service';
   static const serviceStreams = const [kServiceStream];
 
   Future<String> _streamListen(Message message) async {
@@ -611,7 +611,7 @@ class VMService extends MessageRouter {
       if (message.method == 'streamCancel') {
         return await _streamCancel(message);
       }
-      if (message.method == '_registerService') {
+      if (message.method == 'registerService') {
         return await _registerService(message);
       }
       if (message.method == '_spawnUri') {
