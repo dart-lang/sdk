@@ -341,26 +341,28 @@ class _OverlayFolder extends _OverlayResource implements Folder {
 
   @override
   List<Resource> getChildren() {
-    List<Resource> children;
+    Map<String, Resource> children = {};
     try {
-      children = _folder
-          .getChildren()
-          .map((child) => new _OverlayResource._from(_provider, child))
-          .toList();
+      for (final child in _folder.getChildren()) {
+        children[child.path] = new _OverlayResource._from(_provider, child);
+      }
     } on FileSystemException {
-      children = [];
+      // We don't want to throw if we're a folder that only exists in the overlay
+      // and not on disk.
     }
+
     for (String overlayPath in _provider._overlaysInFolder(path)) {
       pathos.Context context = _provider.pathContext;
       if (context.dirname(overlayPath) == path) {
-        children.add(_provider.getFile(overlayPath));
+        children.putIfAbsent(overlayPath, () => _provider.getFile(overlayPath));
       } else {
         String relativePath = context.relative(overlayPath, from: path);
         String folderName = context.split(relativePath)[0];
-        children.add(_provider.getFolder(context.join(path, folderName)));
+        String folderPath = context.join(path, folderName);
+        children.putIfAbsent(folderPath, () => _provider.getFolder(folderPath));
       }
     }
-    return children;
+    return children.values.toList();
   }
 }
 
