@@ -720,12 +720,11 @@ class A {
 }
 
 const num a = 0;
-const _ = a == const A();
+const b = a == const A();
 ''',
         IsEnabledByDefault.constant_update_2018
             ? []
             : [
-                error(HintCode.UNUSED_ELEMENT, 49, 1),
                 error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 53,
                     14),
               ]);
