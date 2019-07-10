@@ -100,10 +100,14 @@ class KernelFormalParameterBuilder
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    // For modular compilation we need to include initializers for all
-    // parameters of const constructors into the outline.
-    if (parent is KernelConstructorBuilder &&
-        parent.target.isConst &&
+    // For modular compilation we need to include initializers for optional
+    // and named parameters of const constructors into the outline - to enable
+    // constant evaluation. Similarly we need to include initializers for
+    // optional and named parameters of instance methods because these might be
+    // needed to generated noSuchMethod forwarders.
+    final bool isConstConstructorParameter =
+        (parent is KernelConstructorBuilder && parent.target.isConst);
+    if ((isConstConstructorParameter || parent.isInstanceMember) &&
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;

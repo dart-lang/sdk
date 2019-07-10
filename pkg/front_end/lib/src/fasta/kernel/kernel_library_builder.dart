@@ -687,11 +687,6 @@ class KernelLibraryBuilder
         charOpenParenOffset,
         charEndOffset,
         nativeMethodName);
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        formals[i].parent = procedure;
-      }
-    }
     metadataCollector?.setDocumentationComment(
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);

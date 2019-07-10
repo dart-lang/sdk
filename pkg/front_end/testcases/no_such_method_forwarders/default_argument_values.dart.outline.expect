@@ -7,8 +7,8 @@ abstract class A extends core::Object {
     ;
   method noSuchMethod(core::Invocation i) → dynamic
     ;
-  abstract method foo({core::String bar}) → core::String;
-  abstract method hest([core::int fisk]) → core::int;
+  abstract method foo({core::String bar = "baz"}) → core::String;
+  abstract method hest([core::int fisk = 42]) → core::int;
 }
 class B extends self::A {
   synthetic constructor •() → self::B

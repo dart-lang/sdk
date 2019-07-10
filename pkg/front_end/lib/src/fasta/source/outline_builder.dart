@@ -103,7 +103,6 @@ class OutlineBuilder extends StackListener {
   final bool stringExpectedAfterNative;
   bool inConstructor = false;
   bool inConstructorName = false;
-  bool inConstConstructor = false;
   int importIndex = 0;
 
   String nativeMethodName;
@@ -747,9 +746,6 @@ class OutlineBuilder extends StackListener {
       } else {
         modifiers ??= <Modifier>[];
         modifiers.add(Const);
-        if (inConstructor) {
-          inConstConstructor = true;
-        }
       }
     }
     push(varFinalOrConst?.charOffset ?? -1);
@@ -842,7 +838,7 @@ class OutlineBuilder extends StackListener {
         .resolveTypes(typeVariables, library);
     if (name is ParserRecovery) {
       nativeMethodName = null;
-      inConstructor = inConstConstructor = false;
+      inConstructor = false;
       return;
     }
     String constructorName =
@@ -901,7 +897,7 @@ class OutlineBuilder extends StackListener {
           isTopLevel: false);
     }
     nativeMethodName = null;
-    inConstructor = inConstConstructor = false;
+    inConstructor = false;
   }
 
   @override
@@ -1036,14 +1032,8 @@ class OutlineBuilder extends StackListener {
     if (name is ParserRecovery) {
       push(name);
     } else {
-      push(library.addFormalParameter(
-          metadata,
-          modifiers,
-          type,
-          name,
-          thisKeyword != null,
-          charOffset,
-          inConstConstructor ? initializerStart : null));
+      push(library.addFormalParameter(metadata, modifiers, type, name,
+          thisKeyword != null, charOffset, initializerStart));
     }
   }
 
@@ -1536,7 +1526,7 @@ class OutlineBuilder extends StackListener {
         endToken.charOffset,
         nativeMethodName);
     nativeMethodName = null;
-    inConstructor = inConstConstructor = false;
+    inConstructor = false;
   }
 
   @override

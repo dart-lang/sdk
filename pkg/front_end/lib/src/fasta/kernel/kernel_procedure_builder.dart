@@ -106,7 +106,13 @@ abstract class KernelFunctionBuilder
       int charOffset,
       this.nativeMethodName)
       : super(metadata, modifiers, returnType, name, typeVariables, formals,
-            compilationUnit, charOffset);
+            compilationUnit, charOffset) {
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        formals[i].parent = this;
+      }
+    }
+  }
 
   KernelFunctionBuilder get actualOrigin;
 

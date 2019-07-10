@@ -6,9 +6,9 @@ class B extends core::Object {
   field core::Object _x;
   synthetic constructor •() → self::B
     ;
-  method f([core::num x]) → void
+  method f([core::num x = 10]) → void
     ;
-  method g({core::num x}) → void
+  method g({core::num x = 20}) → void
     ;
   method check(core::Object expectedValue) → void
     ;
