@@ -74,7 +74,6 @@ function_propagation_test: RuntimeError
 function_subtype_inline2_test: RuntimeError
 generic_function_bounds_test: RuntimeError
 generic_function_dcall_test/01: RuntimeError
-generic_instanceof2_test: RuntimeError
 generic_is_check_test: RuntimeError
 generic_methods_bounds_test/02: MissingRuntimeError
 generic_no_such_method_dispatcher_simple_test: CompileTimeError
