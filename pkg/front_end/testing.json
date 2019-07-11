@@ -80,8 +80,8 @@
       "exclude": [
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
-	"/testcases/bug33099",
-	"/testcases/covariant_generic",
+	"/testcases/general/bug33099",
+	"/testcases/general/covariant_generic",
 	"/testcases/inference/bug32291",
 	"/testcases/inference/downward_inference_miscellaneous",
 	"/testcases/inference/generic_methods_correctly_recognize_generic_upper_bound",

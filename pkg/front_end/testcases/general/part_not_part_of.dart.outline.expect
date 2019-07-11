@@ -1,0 +1,29 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_not_part_of.dart:8:6: Error: Can't use 'pkg/front_end/testcases/general/part_not_part_of_lib1.dart' as a part, because it has no 'part of' declaration.
+// part 'part_not_part_of_lib1.dart';
+//      ^
+//
+import self as self;
+
+import "org-dartlang-testcase:///part_not_part_of_lib2.dart";
+
+part part_not_part_of_lib1.dart;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+
+import "org-dartlang-testcase:///part_not_part_of_lib1.dart";
+
+static method methodFromLib2() → dynamic
+  ;
+
+library;
+import self as self3;
+
+static method methodFromLib1() → dynamic
+  ;

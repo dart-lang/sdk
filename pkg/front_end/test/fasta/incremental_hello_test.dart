@@ -49,7 +49,8 @@ test({bool sdkFromSource}) async {
             .resolve("vm_platform.dill");
   }
 
-  final Uri helloDart = Uri.base.resolve("pkg/front_end/testcases/hello.dart");
+  final Uri helloDart =
+      Uri.base.resolve("pkg/front_end/testcases/general/hello.dart");
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [helloDart]);
