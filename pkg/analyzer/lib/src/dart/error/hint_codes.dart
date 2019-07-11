@@ -804,15 +804,6 @@ class HintCode extends ErrorCode {
       correction: "Try removing the declaration of 'noSuchMethod'.");
 
   /**
-   * When the '?.' operator is used on a target that we know to be non-null,
-   * it is unnecessary.
-   */
-  static const HintCode UNNECESSARY_NULL_AWARE_CALL = const HintCode(
-      'UNNECESSARY_NULL_AWARE_CALL',
-      "The target expression cannot be null, and so '?.' is not necessary.",
-      correction: "Replace the '?.' with a '.' in the invocation.");
-
-  /**
    * Unnecessary type checks, the result is always false.
    */
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode(

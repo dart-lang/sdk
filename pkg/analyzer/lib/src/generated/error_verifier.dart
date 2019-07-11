@@ -5580,7 +5580,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     ErrorCode errorCode;
     if (operator.type == TokenType.QUESTION_PERIOD) {
-      errorCode = HintCode.UNNECESSARY_NULL_AWARE_CALL;
+      errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL;
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
     } else {
@@ -5588,8 +5588,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (target.staticType != null &&
-        (target.staticType as TypeImpl).nullabilitySuffix ==
-            NullabilitySuffix.none) {
+        _typeSystem.isNonNullable(target.staticType)) {
       _errorReporter.reportErrorForToken(errorCode, operator, []);
     }
   }

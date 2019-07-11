@@ -14,7 +14,7 @@ void main() {
   Function? nf2;
   C c1 = new C();
   C? nc1;
-  var nf3 = c1?.call;
+  var nf3 = nc1?.call;
   Object? object;
 
 
