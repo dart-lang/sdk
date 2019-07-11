@@ -18,7 +18,7 @@ import '../fasta/fasta_codes.dart' show messageMissingMain, noLength;
 import '../fasta/severity.dart' show Severity;
 
 import '../kernel_generator_impl.dart'
-    show generateKernel, generateKernelInternal;
+    show CompilerResult, generateKernel, generateKernelInternal;
 
 import 'compiler_options.dart' show CompilerOptions;
 
@@ -43,9 +43,17 @@ import 'compiler_options.dart' show CompilerOptions;
 /// an error is reported.
 // TODO(sigmund): rename to kernelForScript?
 Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
+  return (await kernelForProgramInternal(source, options))?.component;
+}
+
+Future<CompilerResult> kernelForProgramInternal(
+    Uri source, CompilerOptions options,
+    {bool retainDataForTesting: false}) async {
   var pOptions = new ProcessedOptions(options: options, inputs: [source]);
   return await CompilerContext.runWithOptions(pOptions, (context) async {
-    var component = (await generateKernelInternal())?.component;
+    CompilerResult result = await generateKernelInternal(
+        retainDataForTesting: retainDataForTesting);
+    var component = result?.component;
     if (component == null) return null;
 
     if (component.mainMethod == null) {
@@ -54,7 +62,7 @@ Future<Component> kernelForProgram(Uri source, CompilerOptions options) async {
           Severity.error);
       return null;
     }
-    return component;
+    return result;
   });
 }
 

@@ -50,7 +50,8 @@ Future<CompilerResult> generateKernelInternal(
     {bool buildSummary: false,
     bool buildComponent: true,
     bool truncateSummary: false,
-    bool includeOffsets: true}) async {
+    bool includeOffsets: true,
+    bool retainDataForTesting: false}) async {
   var options = CompilerContext.current.options;
   var fs = options.fileSystem;
 
@@ -159,7 +160,8 @@ Future<CompilerResult> generateKernelInternal(
     return new CompilerResult(
         summary: summary,
         component: component,
-        deps: new List<Uri>.from(CompilerContext.current.dependencies));
+        deps: new List<Uri>.from(CompilerContext.current.dependencies),
+        kernelTargetForTesting: retainDataForTesting ? kernelTarget : null);
   }, () => sourceLoader?.currentUriForCrashReporting ?? options.inputs.first);
 }
 
@@ -177,5 +179,11 @@ class CompilerResult {
   /// using the compiler itself.
   final List<Uri> deps;
 
-  CompilerResult({this.summary, this.component, this.deps});
+  /// The [KernelTarget] used to generated the component.
+  ///
+  /// This is only provided for use in testing.
+  final KernelTarget kernelTargetForTesting;
+
+  CompilerResult(
+      {this.summary, this.component, this.deps, this.kernelTargetForTesting});
 }

@@ -10,7 +10,11 @@ import 'dart:async' show Future;
 import 'package:kernel/ast.dart' show Library, Component;
 
 import '../api_prototype/front_end.dart'
-    show CompilerOptions, kernelForComponent, kernelForProgram, summaryFor;
+    show
+        CompilerOptions,
+        kernelForComponent,
+        kernelForProgramInternal,
+        summaryFor;
 
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
@@ -19,6 +23,8 @@ import '../compute_platform_binaries_location.dart'
 
 import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 
+import '../kernel_generator_impl.dart' show CompilerResult;
+
 /// Generate kernel for a script.
 ///
 /// [scriptOrSources] can be a String, in which case it is the script to be
@@ -26,11 +32,12 @@ import '../fasta/hybrid_file_system.dart' show HybridFileSystem;
 /// compiles the entry whose name is [fileName].
 ///
 /// Wraps [kernelForProgram] with some default testing options (see [setup]).
-Future<Component> compileScript(dynamic scriptOrSources,
+Future<CompilerResult> compileScript(dynamic scriptOrSources,
     {fileName: 'main.dart',
     List<String> inputSummaries: const [],
     List<String> linkedDependencies: const [],
-    CompilerOptions options}) async {
+    CompilerOptions options,
+    bool retainDataForTesting: false}) async {
   options ??= new CompilerOptions();
   Map<String, dynamic> sources;
   if (scriptOrSources is String) {
@@ -41,10 +48,11 @@ Future<Component> compileScript(dynamic scriptOrSources,
   }
   await setup(options, sources,
       inputSummaries: inputSummaries, linkedDependencies: linkedDependencies);
-  return await kernelForProgram(toTestUri(fileName), options);
+  return await kernelForProgramInternal(toTestUri(fileName), options,
+      retainDataForTesting: retainDataForTesting);
 }
 
-/// Generate a component for a modular complation unit.
+/// Generate a component for a modular compilation unit.
 ///
 /// Wraps [kernelForComponent] with some default testing options (see [setup]).
 Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,

@@ -137,8 +137,9 @@ void main() {
         Expect.fail(
             "Unexpected message: ${message.plainTextFormatted.join('\n')}");
       };
-    Component p = await compileScript(test.source,
-        options: options, fileName: 'synthetic-test.dart');
+    Component p = (await compileScript(test.source,
+            options: options, fileName: 'synthetic-test.dart'))
+        ?.component;
     Expect.isNotNull(p);
     VerifyingVisitor visitor = new VerifyingVisitor(test);
     p.mainMethod.enclosingLibrary.accept(visitor);
