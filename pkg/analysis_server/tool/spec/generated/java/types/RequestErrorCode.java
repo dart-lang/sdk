@@ -33,6 +33,18 @@ public class RequestErrorCode {
   public static final String FILE_NOT_ANALYZED = "FILE_NOT_ANALYZED";
 
   /**
+   * The given property identifier is not valid. It might have never been valid, or a change to code
+   * invalidated it, or its TTL was exceeded.
+   */
+  public static final String FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID = "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID";
+
+  /**
+   * The value of the property cannot be removed, for example because the corresponding constructor
+   * argument is required, and the server does not know what default value to use.
+   */
+  public static final String FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED = "FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED";
+
+  /**
    * An "edit.format" request specified a FilePath which does not match a Dart file in an analysis
    * root.
    */

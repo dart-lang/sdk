@@ -3145,6 +3145,84 @@
   <p>
     The analysis domain contains API’s related to Flutter support.
   </p>
+  <request method="getWidgetDescription" experimental="true">
+    <p>
+      Return the description of the widget instance at the given location.
+    </p>
+    <params>
+      <field name="file">
+        <ref>FilePath</ref>
+        <p>
+          The file where the widget instance is created.
+        </p>
+      </field>
+      <field name="offset">
+        <ref>int</ref>
+        <p>
+          The offset in the file where the widget instance is created.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="properties">
+        <list>
+          <ref>FlutterWidgetProperty</ref>
+        </list>
+        <p>
+          The list of properties of the widget. Some of the properties might be
+          read only, when their <tt>editor</tt> is not set. This might be
+          because they have type that we don't know how to edit, or for
+          compound properties that work as containers for sub-properties.
+        </p>
+      </field>
+    </result>
+  </request>
+  <request method="setWidgetPropertyValue" experimental="true">
+    <p>
+      Set the value of a property, or remove it.
+    </p>
+    <p>
+      The server will generate a change that the client should apply to the
+      project to get the value of the property set to the new value.
+      The complexity of the change might be from updating a single literal
+      value in the code, to updating multiple files to get libraries imported,
+      and new intermediate widgets instantiated.
+    </p>
+    <params>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The identifier of the property, previously returned as a part of
+          a <tt>FlutterWidgetProperty</tt>.
+        </p>
+        <p>
+          An error of type <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</tt>
+          is generated if the identifier is not valid.
+        </p>
+      </field>
+      <field name="value" optional="true">
+        <ref>FlutterWidgetPropertyValue</ref>
+        <p>
+          The new value to set for the property.
+        </p>
+        <p>
+          If absent, indicates that the property should be removed. If the
+          property corresponds to an optional parameter, the corresponding
+          named argument is removed. If the property <tt>isRequired</tt> is
+          true, <tt>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</tt> error
+          is generated.
+        </p>
+      </field>
+    </params>
+    <result>
+      <field name="change">
+        <ref>SourceChange</ref>
+        <p>
+          The change that should be applied.
+        </p>
+      </field>
+    </result>
+  </request>
   <request method="setSubscriptions">
     <p>
       Subscribe for services that are specific to individual files.
@@ -4042,6 +4120,194 @@
       <value><code>PART</code></value>
     </enum>
   </type>
+  <type name="FlutterWidgetProperty">
+    <p>
+      A property of a Flutter widget.
+    </p>
+    <object>
+      <field name="id">
+        <ref>int</ref>
+        <p>
+          The unique identifier of the property, must be passed back to the
+          server when updating the property value. Identifiers become invalid
+          on any source code change.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>The name of the property to display to the user.</p>
+      </field>
+      <field name="documentation" optional="true">
+        <ref>String</ref>
+        <p>
+          The documentation of the property to show to the user. Omitted if
+          the server does not know the documentation, e.g. because the
+          corresponding field is not documented.
+        </p>
+      </field>
+      <field name="expression" optional="true">
+        <ref>String</ref>
+        <p>
+          If the value of this property is set, the Dart code of the expression
+          of this property.
+        </p>
+      </field>
+      <field name="isRequired">
+        <ref>bool</ref>
+        <p>
+          True if the property is required, e.g. because it corresponds to
+          a required parameter of a constructor.
+        </p>
+      </field>
+      <field name="isSafeToUpdate">
+        <ref>bool</ref>
+        <p>
+          If the property expression is a concrete value (e.g. a literal, or
+          an enum constant), then it is safe to replace the expression with
+          another concrete value. In this case this field is true. Otherwise,
+          for example when the expression is a reference to a field, so that
+          its value is provided from outside, this field is false.
+        </p>
+      </field>
+      <field name="editor" optional="true">
+        <ref>FlutterWidgetPropertyEditor</ref>
+        <p>
+          The editor that should be used by the client. This field is omitted
+          if the server does not know the editor for this property, for example
+          because it does not have one of the supported types.
+        </p>
+      </field>
+      <field name="children" optional="true">
+        <list>
+          <ref>FlutterWidgetProperty</ref>
+        </list>
+        <p>
+          The list of children properties, if any. For example any property of
+          type <tt>EdgeInsets</tt> will have four children properties of type
+          <tt>double</tt> - left / top / right / bottom.
+        </p>
+      </field>
+      <field name="value" optional="true">
+        <ref>FlutterWidgetPropertyValue</ref>
+        <p>
+          If the expression is set, and the server knows the value of the
+          expression, this field is set.
+        </p>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyEditor">
+    <p>
+      An editor for a property of a Flutter widget.
+    </p>
+    <object>
+      <field name="kind">
+        <ref>FlutterWidgetPropertyEditorKind</ref>
+      </field>
+      <field name="enumItems" optional="true">
+        <list>
+          <ref>FlutterWidgetPropertyValueEnumItem</ref>
+        </list>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyEditorKind">
+    <p>
+      An enumeration of the kinds of property editors.
+    </p>
+    <enum>
+      <value>
+        <code>BOOL</code>
+        <p>
+          The editor for a property of type <tt>bool</tt>.
+        </p>
+      </value>
+      <value>
+        <code>DOUBLE</code>
+        <p>
+          The editor for a property of the type <tt>double</tt>.
+        </p>
+      </value>
+      <value>
+        <code>ENUM</code>
+        <p>
+          The editor for choosing an items of an enumeration, see the
+          <tt>enumItems</tt> field of <tt>FlutterWidgetPropertyEditor</tt>.
+        </p>
+      </value>
+      <value>
+        <code>INT</code>
+        <p>
+          The editor for a property of type <tt>int</tt>.
+        </p>
+      </value>
+      <value>
+        <code>STRING</code>
+        <p>
+          The editor for a property of the type <tt>String</tt>.
+        </p>
+      </value>
+    </enum>
+  </type>
+  <type name="FlutterWidgetPropertyValue">
+    <p>
+      A value of a property of a Flutter widget.
+    </p>
+    <object>
+      <field name="boolValue" optional="true">
+        <ref>bool</ref>
+      </field>
+      <field name="doubleValue" optional="true">
+        <ref>double</ref>
+      </field>
+      <field name="intValue" optional="true">
+        <ref>int</ref>
+      </field>
+      <field name="stringValue" optional="true">
+        <ref>String</ref>
+      </field>
+      <field name="enumValue" optional="true">
+        <ref>FlutterWidgetPropertyValueEnumItem</ref>
+      </field>
+    </object>
+  </type>
+  <type name="FlutterWidgetPropertyValueEnumItem">
+    <p>
+      An item of an enumeration in a general sense - actual <tt>enum</tt>
+      value, or a static field in a class.
+    </p>
+    <object>
+      <field name="libraryUri">
+        <ref>String</ref>
+        <p>
+          The URI of the library containing the <tt>className</tt>. When the
+          enum item is passed back, this will allow the server to import the
+          corresponding library if necessary.
+        </p>
+      </field>
+      <field name="className">
+        <ref>String</ref>
+        <p>
+          The name of the class or enum.
+        </p>
+      </field>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the field in the enumeration, or the static field in the
+          class.
+        </p>
+      </field>
+      <field name="documentation" optional="true">
+        <ref>String</ref>
+        <p>
+          The documentation to show to the user. Omitted if the server does not
+          know the documentation, e.g. because the corresponding field is not
+          documented.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="FlutterService">
     <p>
       An enumeration of the services provided by the flutter domain that
@@ -4569,6 +4835,21 @@
           A request specified a FilePath which does not match a file in
           an analysis root, or the requested operation is not available
           for the file.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID</code>
+        <p>
+          The given property identifier is not valid. It might have never been
+          valid, or a change to code invalidated it, or its TTL was exceeded.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED</code>
+        <p>
+          The value of the property cannot be removed, for example because
+          the corresponding constructor argument is required, and the server
+          does not know what default value to use.
         </p>
       </value>
       <value>
