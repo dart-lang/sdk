@@ -8,6 +8,9 @@ export '../api_prototype/compiler_options.dart'
 export '../api_prototype/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
 
+export '../api_prototype/experimental_flags.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
+
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 

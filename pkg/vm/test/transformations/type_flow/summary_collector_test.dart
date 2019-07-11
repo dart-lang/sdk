@@ -4,15 +4,19 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_unstable/vm.dart'
+    show defaultExperimentalFlags, ExperimentalFlag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
+import 'package:vm/transformations/pragma.dart'
+    show ConstantPragmaAnnotationParser;
 import 'package:vm/transformations/type_flow/native_code.dart';
 import 'package:vm/transformations/type_flow/summary_collector.dart';
 import 'package:vm/transformations/type_flow/analysis.dart';
-import 'annotation_matcher.dart';
+import 'annotation_matcher.dart' show ExpressionPragmaAnnotationParser;
 import 'package:kernel/target/targets.dart';
 
 import '../../common_test_utils.dart';
@@ -31,7 +35,10 @@ class PrintSummaries extends RecursiveVisitor<Null> {
             hierarchy,
             new EmptyEntryPointsListener(),
             new NativeCodeOracle(
-                null, new ExpressionPragmaAnnotationParser(coreTypes)),
+                null,
+                defaultExperimentalFlags[ExperimentalFlag.constantUpdate2018]
+                    ? new ConstantPragmaAnnotationParser(coreTypes)
+                    : new ExpressionPragmaAnnotationParser(coreTypes)),
             new GenericInterfacesInfoImpl(hierarchy));
 
   String print(TreeNode node) {
