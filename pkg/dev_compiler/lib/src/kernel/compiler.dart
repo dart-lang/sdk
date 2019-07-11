@@ -5295,6 +5295,15 @@ class ProgramCompiler extends Object
         return js.number(intValue);
       }
     }
+    if (value.isInfinite) {
+      if (value.isNegative) {
+        return js.call('-1 / 0');
+      }
+      return js.call('1 / 0');
+    }
+    if (value.isNaN) {
+      return js.call('0 / 0');
+    }
     return js.number(value);
   }
 
