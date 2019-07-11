@@ -215,6 +215,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..linkedDependencies = linkedDependencies
     ..packagesFileUri = packagesUri
     ..experimentalFlags = parseExperimentalFlags(experimentalFlags, print)
+    ..enableAsserts = enableAsserts
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }

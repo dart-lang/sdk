@@ -485,23 +485,6 @@ class KernelCompilationRequest : public ValueObject {
     isolate_id.value.as_int64 =
         isolate != NULL ? static_cast<int64_t>(isolate->main_port()) : 0;
 
-    Dart_CObject suppress_warnings;
-    suppress_warnings.type = Dart_CObject_kBool;
-    suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
-
-    intptr_t num_experimental_flags = experimental_flags->length();
-    Dart_CObject** experimental_flags_array =
-        new Dart_CObject*[num_experimental_flags];
-    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
-      experimental_flags_array[i] = new Dart_CObject;
-      experimental_flags_array[i]->type = Dart_CObject_kString;
-      experimental_flags_array[i]->value.as_string = (*experimental_flags)[i];
-    }
-    Dart_CObject experimental_flags_object;
-    experimental_flags_object.type = Dart_CObject_kArray;
-    experimental_flags_object.value.as_array.values = experimental_flags_array;
-    experimental_flags_object.value.as_array.length = num_experimental_flags;
-
     Dart_CObject message;
     message.type = Dart_CObject_kArray;
     Dart_CObject* message_arr[] = {&tag,
@@ -512,9 +495,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &type_definitions_object,
                                    &library_uri_object,
                                    &class_object,
-                                   &is_static_object,
-                                   &suppress_warnings,
-                                   &experimental_flags_object};
+                                   &is_static_object};
     message.value.as_array.values = message_arr;
     message.value.as_array.length = ARRAY_SIZE(message_arr);
 
@@ -542,11 +523,6 @@ class KernelCompilationRequest : public ValueObject {
     }
     delete[] type_definitions_array;
 
-    for (intptr_t i = 0; i < num_experimental_flags; ++i) {
-      delete experimental_flags_array[i];
-    }
-    delete[] experimental_flags_array;
-
     return result_;
   }
 
@@ -563,8 +539,7 @@ class KernelCompilationRequest : public ValueObject {
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
       const MallocGrowableArray<char*>* experimental_flags) {
-    // Build the [null, send_port, script_uri, platform_kernel,
-    // incremental_compile, isolate_id, [files]] message for the Kernel isolate.
+    // Build the message for the Kernel isolate.
     // tag is used to specify which operation the frontend should perform.
     Dart_CObject tag;
     tag.type = Dart_CObject_kInt32;
@@ -631,6 +606,11 @@ class KernelCompilationRequest : public ValueObject {
     Dart_CObject suppress_warnings;
     suppress_warnings.type = Dart_CObject_kBool;
     suppress_warnings.value.as_bool = FLAG_suppress_fe_warnings;
+
+    Dart_CObject enable_asserts;
+    enable_asserts.type = Dart_CObject_kBool;
+    enable_asserts.value.as_bool =
+        isolate != NULL ? isolate->asserts() : FLAG_enable_asserts;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -700,6 +680,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &isolate_id,
                                    &files,
                                    &suppress_warnings,
+                                   &enable_asserts,
                                    &experimental_flags_object,
                                    &bytecode,
                                    &package_config_uri,

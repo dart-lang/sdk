@@ -70,10 +70,11 @@ bool allowDartInternalImport = false;
 abstract class Compiler {
   final FileSystem fileSystem;
   final Uri platformKernelPath;
-  bool suppressWarnings;
-  List<String> experimentalFlags;
-  bool bytecode;
-  String packageConfig;
+  final bool suppressWarnings;
+  final bool enableAsserts;
+  final List<String> experimentalFlags;
+  final bool bytecode;
+  final String packageConfig;
 
   final List<String> errors = new List<String>();
 
@@ -81,6 +82,7 @@ abstract class Compiler {
 
   Compiler(this.fileSystem, this.platformKernelPath,
       {this.suppressWarnings: false,
+      this.enableAsserts: false,
       this.experimentalFlags: null,
       this.bytecode: false,
       this.packageConfig: null}) {
@@ -116,6 +118,7 @@ abstract class Compiler {
       ..experimentalFlags =
           parseExperimentalFlags(expFlags, (msg) => errors.add(msg))
       ..environmentDefines = new EnvironmentMap()
+      ..enableAsserts = enableAsserts
       ..onDiagnostic = (DiagnosticMessage message) {
         bool printMessage;
         switch (message.severity) {
@@ -148,11 +151,10 @@ abstract class Compiler {
         await runWithFrontEndCompilerContext(script, options, component, () {
           // TODO(alexmarkov): disable source positions, local variables info,
           //  debugger stops and source files in VM PRODUCT mode.
-          // TODO(alexmarkov): disable asserts if they are not enabled in VM.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
               options: new BytecodeOptions(
-                  enableAsserts: true,
+                  enableAsserts: enableAsserts,
                   environmentDefines: options.environmentDefines,
                   emitSourcePositions: true,
                   emitLocalVarInfo: true,
@@ -210,11 +212,13 @@ class IncrementalCompilerWrapper extends Compiler {
 
   IncrementalCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {bool suppressWarnings: false,
+      bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
@@ -235,6 +239,7 @@ class IncrementalCompilerWrapper extends Compiler {
     IncrementalCompilerWrapper clone = IncrementalCompilerWrapper(
         fileSystem, platformKernelPath,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -263,11 +268,13 @@ class SingleShotCompilerWrapper extends Compiler {
   SingleShotCompilerWrapper(FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain: false,
       bool suppressWarnings: false,
+      bool enableAsserts: false,
       List<String> experimentalFlags: null,
       bool bytecode: false,
       String packageConfig: null})
       : super(fileSystem, platformKernelPath,
             suppressWarnings: suppressWarnings,
+            enableAsserts: enableAsserts,
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
@@ -292,6 +299,7 @@ IncrementalCompilerWrapper lookupIncrementalCompiler(int isolateId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
     List sourceFiles, Uri platformKernelPath, List<int> platformKernel,
     {bool suppressWarnings: false,
+    bool enableAsserts: false,
     List<String> experimentalFlags: null,
     bool bytecode: false,
     String packageConfig: null,
@@ -321,6 +329,7 @@ Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateId,
       // isolate was shut down. Message should be handled here in this script.
       compiler = new IncrementalCompilerWrapper(fileSystem, platformKernelPath,
           suppressWarnings: suppressWarnings,
+          enableAsserts: enableAsserts,
           experimentalFlags: experimentalFlags,
           bytecode: bytecode,
           packageConfig: packageConfig);
@@ -499,12 +508,13 @@ Future _processLoadRequest(request) async {
   final int isolateId = request[6];
   final List sourceFiles = request[7];
   final bool suppressWarnings = request[8];
+  final bool enableAsserts = request[9];
   final List<String> experimentalFlags =
-      request[9] != null ? request[9].cast<String>() : null;
-  final bool bytecode = request[10];
-  final String packageConfig = request[11];
-  final String multirootFilepaths = request[12];
-  final String multirootScheme = request[13];
+      request[10] != null ? request[10].cast<String>() : null;
+  final bool bytecode = request[11];
+  final String packageConfig = request[12];
+  final String multirootFilepaths = request[13];
+  final String multirootScheme = request[14];
 
   if (bytecode) {
     // Bytecode generator is hooked into kernel service after kernel component
@@ -568,6 +578,7 @@ Future _processLoadRequest(request) async {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateId, sourceFiles, platformKernelPath, platformKernel,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig,
@@ -579,6 +590,7 @@ Future _processLoadRequest(request) async {
     compiler = new SingleShotCompilerWrapper(fileSystem, platformKernelPath,
         requireMain: false,
         suppressWarnings: suppressWarnings,
+        enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
         bytecode: bytecode,
         packageConfig: packageConfig);
@@ -704,6 +716,7 @@ train(String scriptUri, String platformKernelPath) {
     1 /* isolateId chosen randomly */,
     [] /* source files */,
     false /* suppress warnings */,
+    false /* enable asserts */,
     null /* experimental_flags */,
     false /* generate bytecode */,
     null /* package_config */,
