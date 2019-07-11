@@ -368,7 +368,6 @@ null_test/mirrors: RuntimeError # Uses mirrors.; ReferenceError: GenericOfT is n
 number_identity2_test: RuntimeError # Issue 29920; Expect.isTrue(false) fails.
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError # Issue 29920; Expect.equals(expected: <false>, actual: <true>) fails.
-parser_quirks_test: CompileTimeError
 regress_16640_test: RuntimeError # Issue 29920; Uncaught Error: type arguments should not be null: E => {
 regress_22443_test: RuntimeError # Uncaught Expect.isTrue(false) fails.
 stack_overflow_stacktrace_test: RuntimeError # Issue 29920; RangeError: Maximum call stack size exceeded

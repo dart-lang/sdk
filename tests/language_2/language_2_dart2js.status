@@ -169,7 +169,6 @@ null_no_such_method_test: CompileTimeError
 number_identity2_test: RuntimeError
 number_identity_test: CompileTimeError, OK # Error if web int literal cannot be represented exactly, see http://dartbug.com/33351
 numbers_test: RuntimeError, OK # non JS number semantics
-parser_quirks_test: CompileTimeError
 partial_instantiation_eager_bounds_check_test: RuntimeError # Issue #34295
 partial_tearoff_instantiation_test/05: Pass # for the wrong reason.
 partial_tearoff_instantiation_test/06: Pass # for the wrong reason.
