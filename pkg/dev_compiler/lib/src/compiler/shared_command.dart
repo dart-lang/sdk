@@ -371,7 +371,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
 
     // Allow bazel mappings to override.
-    var match = bazelMappings[sourcePath];
+    var match = bazelMappings != null ? bazelMappings[sourcePath] : null;
     if (match != null) return match;
 
     // Fall back to a relative path against the source map itself.
@@ -385,7 +385,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath,
     list[i] = makeRelative(list[i] as String);
   }
   map['sources'] = list;
-  map['file'] = makeRelative(map['file'] as String);
+  map['file'] =
+      map['file'] != null ? makeRelative(map['file'] as String) : null;
   return map;
 }
 

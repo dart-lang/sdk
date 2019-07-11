@@ -26,10 +26,11 @@ application_snapshot("dartdevc") {
   ]
 
   deps = [
-    ":dartdevc_sdk",
+    ":dartdevc_kernel_sdk",
+    ":dartdevc_kernel_sdk_outline",
   ]
 
-  inputs = [ sdk_summary ]
+  inputs = [ sdk_dill ]
 }
 
 sdk_lib_files = exec_script("../../tools/list_dart_files.py",
@@ -245,6 +246,8 @@ prebuilt_dart_action("dartdevc_test_pkg") {
     ":dartdevc_files_stamp",
     ":dartdevc_sdk",
     ":dartdevc_kernel_sdk",
+    ":dartdevc_kernel_sdk_outline",
+    ":dartdevc_kernel_sdk_libraries_json",
     "../../pkg:pkg_files_stamp",
   ]
 
@@ -314,6 +317,51 @@ prebuilt_dart_action("dartdevc_test_pkg") {
   ]
 }
 
+prebuilt_dart_action("dartdevc_kernel_sdk_outline") {
+  deps = [
+    "../../pkg:pkg_files_stamp",
+    ":dartdevc_files_stamp",
+    ":dartdevc_sdk_patch_stamp",
+  ]
+
+  inputs = [
+    "../../utils/bazel/kernel_worker.dart",
+    "$target_gen_dir/dartdevc_files.stamp",
+    "$root_gen_dir/pkg_files.stamp",
+  ]
+
+  outputs = [
+    sdk_dill,
+  ]
+
+  script = "../../utils/bazel/kernel_worker.dart"
+
+  args = [
+    "--summary-only",
+    "--target",
+    "ddc",
+    "--multi-root-scheme",
+    "org-dartlang-sdk",
+    "--multi-root",
+    rebase_path("../../sdk"),
+    "--libraries-file",
+    "file:///" + rebase_path("../../sdk/lib/libraries.json"),
+    "--output",
+    rebase_path(sdk_dill),
+    "--source",
+    "dart:core"
+  ]
+}
+
+copy("dartdevc_kernel_sdk_libraries_json") {
+  sources = [
+    rebase_path("../../sdk/lib/libraries.json"),
+  ]
+  outputs = [
+    sdk_libraries_json,
+  ]
+}
+
 # Compiles the DDC SDK's kernel summary and JS code.
 prebuilt_dart_action("dartdevc_kernel_sdk") {
   deps = [
@@ -323,14 +371,11 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
   ]
 
   inputs = [
-    "../../pkg/dev_compiler/tool/kernel_sdk.dart",
     "$target_gen_dir/dartdevc_files.stamp",
     "$root_gen_dir/pkg_files.stamp",
   ]
 
   outputs = [
-    sdk_dill,
-    sdk_libraries_json,
     "$target_gen_dir/kernel/amd/dart_sdk.js",
     "$target_gen_dir/kernel/amd/dart_sdk.js.map",
     "$target_gen_dir/kernel/common/dart_sdk.js",
@@ -341,12 +386,36 @@ prebuilt_dart_action("dartdevc_kernel_sdk") {
     "$target_gen_dir/kernel/legacy/dart_sdk.js.map",
   ]
 
-  script = "../../pkg/dev_compiler/tool/kernel_sdk.dart"
+  script = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   args = [
-    "--output",
-    rebase_path(sdk_dill),
-    "--libraries",
-    rebase_path("../../sdk/lib/libraries.json"),
+    "-k",
+    "--compile-sdk",
+    "dart:core",
+    "--no-summarize",
+    "--multi-root-scheme",
+    "org-dartlang-sdk",
+    "--multi-root",
+    rebase_path("../../sdk"),
+    "--multi-root-output-path",
+    rebase_path("$target_gen_dir/../../"),
+    "--libraries-file",
+    "file:///" + rebase_path("../../sdk/lib/libraries.json"),
+    "--modules",
+    "amd",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/amd/dart_sdk.js"),
+    "--modules",
+    "common",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/common/dart_sdk.js"),
+    "--modules",
+    "es6",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/es6/dart_sdk.js"),
+    "--modules",
+    "legacy",
+    "-o",
+    rebase_path("$target_gen_dir/kernel/legacy/dart_sdk.js"),
   ]
 }

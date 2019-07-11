@@ -645,6 +645,9 @@ class OutlineBuilder extends StackListener {
     if (isAbstract) {
       modifiers |= abstractMask;
     }
+    if (nativeMethodName != null) {
+      modifiers |= externalMask;
+    }
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     library
@@ -826,6 +829,9 @@ class OutlineBuilder extends StackListener {
       }
     }
     int modifiers = Modifier.validate(pop(), isAbstract: isAbstract);
+    if (nativeMethodName != null) {
+      modifiers |= externalMask;
+    }
     if ((modifiers & externalMask) != 0) {
       modifiers &= ~abstractMask;
     }
@@ -1507,6 +1513,9 @@ class OutlineBuilder extends StackListener {
     int charOffset = pop();
     Object name = pop();
     int modifiers = pop();
+    if (nativeMethodName != null) {
+      modifiers |= externalMask;
+    }
     List<MetadataBuilder> metadata = pop();
     if (name is ParserRecovery) {
       library.endNestedDeclaration("<syntax-error>");

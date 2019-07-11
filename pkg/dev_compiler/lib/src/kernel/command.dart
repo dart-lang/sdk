@@ -76,7 +76,7 @@ Future<CompilerResult> _compile(List<String> args,
   var argParser = ArgParser(allowTrailingOptions: true)
     ..addFlag('help',
         abbr: 'h', help: 'Display this message.', negatable: false)
-    ..addOption('out', abbr: 'o', help: 'Output file (required).')
+    ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
     ..addOption('packages', help: 'The package spec file to use.')
     // TODO(jmesserly): is this still useful for us, or can we remove it now?
     ..addFlag('summarize-text',
@@ -95,6 +95,8 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
+    ..addOption('multi-root-output-path',
+        help: 'Path to set multi-root files relative to.', hide: true)
     ..addOption('dart-sdk',
         help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
@@ -113,12 +115,15 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(64);
   }
 
-  var output = argResults['out'] as String;
-  if (output == null) {
+  var outPaths = argResults['out'] as List<String>;
+  var moduleFormats = parseModuleFormatOption(argResults);
+  if (outPaths.isEmpty) {
     print('Please specify the output file location. For example:\n'
-        '    -o PATH/TO/OUTPUT_FILE.js'
-        '');
-    print(_usageMessage(argParser));
+        '    -o PATH/TO/OUTPUT_FILE.js');
+    return CompilerResult(64);
+  } else if (outPaths.length != moduleFormats.length) {
+    print('Number of output files (${outPaths.length}) must match '
+        'number of module formats (${moduleFormats.length}).');
     return CompilerResult(64);
   }
 
@@ -136,8 +141,17 @@ Future<CompilerResult> _compile(List<String> args,
   var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
       .map(Uri.base.resolve)
       .toList();
-  var multiRootOutputPath = _longestPrefixingPath(
-      sourcePathToUri(p.absolute(output)), multiRootPaths);
+  var multiRootOutputPath = argResults['multi-root-output-path'] as String;
+  if (multiRootOutputPath == null) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'then --multi-root-output-path must be explicitly provided.');
+      return CompilerResult(64);
+    }
+    multiRootOutputPath = _longestPrefixingPath(
+        sourcePathToUri(p.absolute(outPaths.first)), multiRootPaths);
+  }
 
   var fileSystem = MultiRootFileSystem(
       multiRootScheme, multiRootPaths, fe.StandardFileSystem.instance);
@@ -314,12 +328,15 @@ Future<CompilerResult> _compile(List<String> args,
     return CompilerResult(1, kernelState: compilerState);
   }
 
-  var file = File(output);
-  await file.parent.create(recursive: true);
-
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];
   if (argResults['summarize'] as bool) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'the --summarize option is not supported.');
+      return CompilerResult(64);
+    }
     // TODO(jmesserly): CFE mutates the Kernel tree, so we can't save the dill
     // file if we successfully reused a cached library. If compiler state is
     // unchanged, it means we used the cache.
@@ -329,16 +346,22 @@ Future<CompilerResult> _compile(List<String> args,
     if (identical(compilerState, oldCompilerState)) {
       component.unbindCanonicalNames();
     }
-    var sink = File(p.withoutExtension(output) + '.dill').openWrite();
+    var sink = File(p.withoutExtension(outPaths.first) + '.dill').openWrite();
     // TODO(jmesserly): this appears to save external libraries.
     // Do we need to run them through an outlining step so they can be saved?
     kernel.BinaryPrinter(sink).writeComponentFile(component);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   if (argResults['summarize-text'] as bool) {
+    if (outPaths.length > 1) {
+      print(
+          'If multiple output files (found ${outPaths.length}) are specified, '
+          'the --summarize-text option is not supported.');
+      return CompilerResult(64);
+    }
     StringBuffer sb = StringBuffer();
     kernel.Printer(sb, showExternal: false).writeComponentFile(component);
-    outFiles.add(File(output + '.txt').writeAsString(sb.toString()));
+    outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
   if (hierarchy == null) {
     var target = compilerState.options.target as DevCompilerTarget;
@@ -351,24 +374,28 @@ Future<CompilerResult> _compile(List<String> args,
   var jsModule = compiler.emitModule(
       component, result.inputSummaries, inputSummaries, summaryModules);
 
-  // TODO(jmesserly): support for multiple output formats?
-  //
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
   // any of our build systems.
-  var jsCode = jsProgramToCode(jsModule, options.moduleFormats.first,
-      buildSourceMap: options.sourceMap,
-      inlineSourceMap: options.inlineSourceMap,
-      jsUrl: p.toUri(output).toString(),
-      mapUrl: p.toUri(output + '.map').toString(),
-      bazelMapping: options.bazelMapping,
-      customScheme: multiRootScheme,
-      multiRootOutputPath: multiRootOutputPath);
+  for (var i = 0; i < outPaths.length; ++i) {
+    var output = outPaths[i];
+    var moduleFormat = moduleFormats[i];
+    var file = File(output);
+    await file.parent.create(recursive: true);
+    var jsCode = jsProgramToCode(jsModule, moduleFormat,
+        buildSourceMap: options.sourceMap,
+        inlineSourceMap: options.inlineSourceMap,
+        jsUrl: p.toUri(output).toString(),
+        mapUrl: p.toUri(output + '.map').toString(),
+        bazelMapping: options.bazelMapping,
+        customScheme: multiRootScheme,
+        multiRootOutputPath: multiRootOutputPath);
 
-  outFiles.add(file.writeAsString(jsCode.code));
-  if (jsCode.sourceMap != null) {
-    outFiles.add(
-        File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+    outFiles.add(file.writeAsString(jsCode.code));
+    if (jsCode.sourceMap != null) {
+      outFiles.add(
+          File(output + '.map').writeAsString(json.encode(jsCode.sourceMap)));
+    }
   }
 
   await Future.wait(outFiles);

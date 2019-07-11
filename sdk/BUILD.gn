@@ -602,7 +602,7 @@ copy("copy_dev_compiler_summary") {
   deps = [
     ":copy_libraries",
     "../utils/dartdevc:dartdevc_sdk",
-    "../utils/dartdevc:dartdevc_kernel_sdk",
+    "../utils/dartdevc:dartdevc_kernel_sdk_outline",
   ]
   gen_dir = get_label_info("../utils/dartdevc:dartdevc_sdk", "target_gen_dir")
   sources = [

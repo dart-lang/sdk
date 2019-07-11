@@ -92,8 +92,8 @@ void main(List<String> args) async {
   ProcessResult runDdc(String command, List<String> args) {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
-      args.insertAll(0,
-          ['--enable-asserts', p.join(ddcPath, 'bin', '${command}.dart')]);
+      args.insertAll(
+          0, ['--enable-asserts', p.join(ddcPath, 'bin', '${command}.dart')]);
       command = dartBinary;
     } else {
       // Use built snapshot.
@@ -138,18 +138,14 @@ void main(List<String> args) async {
   if (debug) {
     var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
-    sdkJsPath = p.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
-        kernel ? 'kernel' : 'js', mod);
-    requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
-    ddcSdk = p.join(buildDir, 'ReleaseX64', 'gen', 'utils', 'dartdevc',
-        kernel ? p.join('kernel', 'ddc_sdk.dill') : 'ddc_sdk.sum');
-  } else {
-    var suffix = kernel ? p.join('kernel', mod) : mod;
-    sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
-    requirePath = sdkJsPath;
-    ddcSdk = p.join(
-        dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
+    dartSdk = p.join(buildDir, 'ReleaseX64', 'dart-sdk');
   }
+  var suffix = kernel ? p.join('kernel', mod) : mod;
+  sdkJsPath = p.join(dartSdk, 'lib', 'dev_compiler', suffix);
+  requirePath = sdkJsPath;
+  ddcSdk = p.join(
+      dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
+
   ProcessResult result;
   var ddcArgs = [
     if (kernel) '--kernel',

@@ -1497,7 +1497,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     Name kernelName = new Name(name, library.library);
     List<LocatedMessage> context;
-    if (candidate != null) {
+    if (candidate != null && candidate.location != null) {
       Uri uri = candidate.location.file;
       int offset = candidate.fileOffset;
       Message contextMessage;

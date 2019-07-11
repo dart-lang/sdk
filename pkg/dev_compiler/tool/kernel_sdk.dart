@@ -89,9 +89,11 @@ Future main(List<String> args) async {
     var format = moduleFormats[name];
     var jsDir = p.join(outputDir, name);
     var jsPath = p.join(jsDir, 'dart_sdk.js');
+    var mapPath = '$jsPath.map';
     await Directory(jsDir).create();
-    var jsCode = jsProgramToCode(jsModule, format);
+    var jsCode = jsProgramToCode(jsModule, format,
+        jsUrl: jsPath, mapUrl: mapPath, buildSourceMap: true);
     await File(jsPath).writeAsString(jsCode.code);
-    await File('$jsPath.map').writeAsString(json.encode(jsCode.sourceMap));
+    await File(mapPath).writeAsString(json.encode(jsCode.sourceMap));
   }
 }
