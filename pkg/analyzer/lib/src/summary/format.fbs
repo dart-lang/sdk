@@ -2742,6 +2742,9 @@ table UnlinkedExtension {
   /// Name of the extension, or an empty string if there is no name.
   name:string (id: 0);
 
+  /// Field declarations contained in the extension.
+  fields:[UnlinkedVariable] (id: 8);
+
   /// Offset of the extension name relative to the beginning of the file, or
   /// zero if there is no name.
   nameOffset:uint (id: 1);

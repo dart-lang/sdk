@@ -921,13 +921,14 @@ class AstBuilder extends StackListener {
     Token covariantKeyword = covariantToken;
     List<Annotation> metadata = pop();
     Comment comment = _findComment(metadata, beginToken);
-    if (extensionDeclaration != null) {
+    if (extensionDeclaration != null && staticToken == null) {
       // TODO(brianwilkerson) Decide how to handle constructor and field
       //  declarations within extensions. They are invalid, but we might want to
       //  resolve them in order to get navigation, search, etc.
       for (VariableDeclaration variable in variables) {
         errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_FIELD, variable.name);
+            CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
+            variable.name);
       }
       return;
     }

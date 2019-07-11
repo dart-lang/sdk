@@ -184,6 +184,15 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionElement element = _match(node.name, _walker.getExtension());
+    _walk(new ElementWalker.forExtension(element), () {
+      super.visitExtensionDeclaration(node);
+    });
+    resolveMetadata(node, node.metadata, element);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     super.visitFieldDeclaration(node);
     FieldElement firstFieldElement = node.fields.variables[0].declaredElement;
@@ -799,6 +808,8 @@ class ElementWalker {
   int _constructorIndex = 0;
   List<ClassElement> _enums;
   int _enumIndex = 0;
+  List<ExtensionElement> _extensions;
+  int _extensionIndex = 0;
   List<ExecutableElement> _functions;
   int _functionIndex = 0;
   List<ClassElement> _mixins;
@@ -831,6 +842,7 @@ class ElementWalker {
         _accessors = compilationUnit.accessors.where(_isNotSynthetic).toList(),
         _classes = compilationUnit.types,
         _enums = compilationUnit.enums,
+        _extensions = compilationUnit.extensions,
         _functions = compilationUnit.functions,
         _mixins = compilationUnit.mixins,
         _typedefs = compilationUnit.functionTypeAliases,
@@ -842,6 +854,15 @@ class ElementWalker {
   ElementWalker.forExecutable(
       ExecutableElement element, CompilationUnitElement compilationUnit)
       : this._forExecutable(element, compilationUnit, new ElementHolder());
+
+  /// Creates an [ElementWalker] which walks the child elements of an extension
+  /// element.
+  ElementWalker.forExtension(ExtensionElement element)
+      : element = element,
+        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+        _functions = element.methods,
+        _typeParameters = element.typeParameters,
+        _variables = element.fields.where(_isNotSynthetic).toList();
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
@@ -903,6 +924,8 @@ class ElementWalker {
   /// Returns the next non-synthetic child of [element] which is an enum; throws
   /// an [IndexError] if there are no more.
   ClassElement getEnum() => _enums[_enumIndex++];
+
+  ExtensionElement getExtension() => _extensions[_extensionIndex];
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are

@@ -22465,6 +22465,7 @@ class UnlinkedExtensionBuilder extends Object
   List<UnlinkedExecutableBuilder> _executables;
   EntityRefBuilder _extendedType;
   String _name;
+  List<UnlinkedVariableBuilder> _fields;
   int _nameOffset;
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
@@ -22522,6 +22523,15 @@ class UnlinkedExtensionBuilder extends Object
   }
 
   @override
+  List<UnlinkedVariableBuilder> get fields =>
+      _fields ??= <UnlinkedVariableBuilder>[];
+
+  /// Field declarations contained in the extension.
+  set fields(List<UnlinkedVariableBuilder> value) {
+    this._fields = value;
+  }
+
+  @override
   int get nameOffset => _nameOffset ??= 0;
 
   /// Offset of the extension name relative to the beginning of the file, or
@@ -22547,6 +22557,7 @@ class UnlinkedExtensionBuilder extends Object
       List<UnlinkedExecutableBuilder> executables,
       EntityRefBuilder extendedType,
       String name,
+      List<UnlinkedVariableBuilder> fields,
       int nameOffset,
       List<UnlinkedTypeParamBuilder> typeParameters})
       : _annotations = annotations,
@@ -22555,6 +22566,7 @@ class UnlinkedExtensionBuilder extends Object
         _executables = executables,
         _extendedType = extendedType,
         _name = name,
+        _fields = fields,
         _nameOffset = nameOffset,
         _typeParameters = typeParameters;
 
@@ -22565,6 +22577,7 @@ class UnlinkedExtensionBuilder extends Object
     _documentationComment = null;
     _executables?.forEach((b) => b.flushInformative());
     _extendedType?.flushInformative();
+    _fields?.forEach((b) => b.flushInformative());
     _nameOffset = null;
     _typeParameters?.forEach((b) => b.flushInformative());
   }
@@ -22598,6 +22611,14 @@ class UnlinkedExtensionBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    if (this._fields == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._fields.length);
+      for (var x in this._fields) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -22607,6 +22628,7 @@ class UnlinkedExtensionBuilder extends Object
     fb.Offset offset_executables;
     fb.Offset offset_extendedType;
     fb.Offset offset_name;
+    fb.Offset offset_fields;
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder
@@ -22627,6 +22649,10 @@ class UnlinkedExtensionBuilder extends Object
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
+    }
+    if (!(_fields == null || _fields.isEmpty)) {
+      offset_fields =
+          fbBuilder.writeList(_fields.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_typeParameters == null || _typeParameters.isEmpty)) {
       offset_typeParameters = fbBuilder
@@ -22650,6 +22676,9 @@ class UnlinkedExtensionBuilder extends Object
     }
     if (offset_name != null) {
       fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_fields != null) {
+      fbBuilder.addOffset(8, offset_fields);
     }
     if (_nameOffset != null && _nameOffset != 0) {
       fbBuilder.addUint32(1, _nameOffset);
@@ -22683,6 +22712,7 @@ class _UnlinkedExtensionImpl extends Object
   List<idl.UnlinkedExecutable> _executables;
   idl.EntityRef _extendedType;
   String _name;
+  List<idl.UnlinkedVariable> _fields;
   int _nameOffset;
   List<idl.UnlinkedTypeParam> _typeParameters;
 
@@ -22729,6 +22759,14 @@ class _UnlinkedExtensionImpl extends Object
   }
 
   @override
+  List<idl.UnlinkedVariable> get fields {
+    _fields ??= const fb.ListReader<idl.UnlinkedVariable>(
+            const _UnlinkedVariableReader())
+        .vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedVariable>[]);
+    return _fields;
+  }
+
+  @override
   int get nameOffset {
     _nameOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
     return _nameOffset;
@@ -22758,6 +22796,8 @@ abstract class _UnlinkedExtensionMixin implements idl.UnlinkedExtension {
           executables.map((_value) => _value.toJson()).toList();
     if (extendedType != null) _result["extendedType"] = extendedType.toJson();
     if (name != '') _result["name"] = name;
+    if (fields.isNotEmpty)
+      _result["fields"] = fields.map((_value) => _value.toJson()).toList();
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     if (typeParameters.isNotEmpty)
       _result["typeParameters"] =
@@ -22773,6 +22813,7 @@ abstract class _UnlinkedExtensionMixin implements idl.UnlinkedExtension {
         "executables": executables,
         "extendedType": extendedType,
         "name": name,
+        "fields": fields,
         "nameOffset": nameOffset,
         "typeParameters": typeParameters,
       };

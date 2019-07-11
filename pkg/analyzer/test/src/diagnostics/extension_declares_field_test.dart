@@ -28,9 +28,9 @@ extension E on String {
   String one, two, three;
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_FIELD, 33, 3),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_FIELD, 38, 3),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_FIELD, 43, 5)
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 33, 3),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 38, 3),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 43, 5)
     ]);
   }
 
@@ -45,6 +45,14 @@ extension E on String {}
 extension E on String {
   String s;
 }
-''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_FIELD, 33, 1)]);
+''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 33, 1)]);
+  }
+
+  test_static() {
+    assertNoErrorsInCode('''
+extension E on String {
+  static String EMPTY = '';
+}
+''');
   }
 }

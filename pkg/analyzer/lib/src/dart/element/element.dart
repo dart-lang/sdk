@@ -4939,6 +4939,9 @@ class ExtensionElementImpl extends ElementImpl
   /// this extension.
   List<PropertyAccessorElement> _accessors;
 
+  /// A list containing all of the fields contained in this extension.
+  List<FieldElement> _fields;
+
   /// A list containing all of the methods contained in this extension.
   List<MethodElement> _methods;
 
@@ -4967,16 +4970,14 @@ class ExtensionElementImpl extends ElementImpl
 
     if (linkedNode != null) {
       if (linkedNode is ExtensionDeclaration) {
-        // TODO(brianwilkerson) Implement this.
-//        _createPropertiesAndAccessors();
-//        assert(_accessors != null);
-//        return _accessors;
+        _createPropertiesAndAccessors();
+        assert(_accessors != null);
+        return _accessors;
       } else {
         return _accessors = const [];
       }
     } else if (_unlinkedExtension != null) {
-      // TODO(brianwilkerson) Implement this.
-//      _resynthesizePropertyAccessors();
+      _resynthesizeFieldsAndPropertyAccessors();
     }
 
     return _accessors ??= const <PropertyAccessorElement>[];
@@ -5014,6 +5015,36 @@ class ExtensionElementImpl extends ElementImpl
   void set extendedType(DartType extendedType) {
     _assertNotResynthesized(_unlinkedExtension);
     _extendedType = extendedType;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    if (_fields != null) {
+      return _fields;
+    }
+
+    if (linkedNode != null) {
+      if (linkedNode is ExtensionDeclaration) {
+        _createPropertiesAndAccessors();
+        assert(_fields != null);
+        return _fields;
+      } else {
+        return _fields = const [];
+      }
+    } else if (_unlinkedExtension != null) {
+      _resynthesizeFieldsAndPropertyAccessors();
+    }
+
+    return _fields ?? const <FieldElement>[];
+  }
+
+  @override
+  void set fields(List<FieldElement> fields) {
+    _assertNotResynthesized(_unlinkedExtension);
+    for (FieldElement field in fields) {
+      (field as FieldElementImpl).enclosingElement = this;
+    }
+    _fields = fields;
   }
 
   @override
@@ -5155,6 +5186,183 @@ class ExtensionElementImpl extends ElementImpl
     return AbstractClassElementImpl.getSetterFromAccessors(
         setterName, accessors);
   }
+
+  /// Create the accessors and fields when [linkedNode] is not `null`.
+  void _createPropertiesAndAccessors() {
+    assert(_accessors == null);
+    assert(_fields == null);
+
+    var context = enclosingUnit.linkedContext;
+    var accessorList = <PropertyAccessorElement>[];
+    var fieldList = <FieldElement>[];
+
+    var fields = context.getFields(linkedNode);
+    for (var field in fields) {
+      var name = field.name.name;
+      var fieldElement = FieldElementImpl.forLinkedNodeFactory(
+        this,
+        reference.getChild('@field').getChild(name),
+        field,
+      );
+      fieldList.add(fieldElement);
+
+      accessorList.add(fieldElement.getter);
+      if (fieldElement.setter != null) {
+        accessorList.add(fieldElement.setter);
+      }
+    }
+
+    var methods = context.getMethods(linkedNode);
+    for (var method in methods) {
+      var isGetter = method.isGetter;
+      var isSetter = method.isSetter;
+      if (!isGetter && !isSetter) continue;
+
+      var name = method.name.name;
+      var containerRef = isGetter
+          ? reference.getChild('@getter')
+          : reference.getChild('@setter');
+
+      var accessorElement = PropertyAccessorElementImpl.forLinkedNode(
+        this,
+        containerRef.getChild(name),
+        method,
+      );
+      accessorList.add(accessorElement);
+
+      var fieldRef = reference.getChild('@field').getChild(name);
+      FieldElementImpl field = fieldRef.element;
+      if (field == null) {
+        field = new FieldElementImpl(name, -1);
+        fieldRef.element = field;
+        field.enclosingElement = this;
+        field.isSynthetic = true;
+        field.isFinal = isGetter;
+        field.isStatic = accessorElement.isStatic;
+        fieldList.add(field);
+      } else {
+        // TODO(brianwilkerson) Shouldn't this depend on whether there is a
+        //  setter?
+        field.isFinal = false;
+      }
+
+      accessorElement.variable = field;
+      if (isGetter) {
+        field.getter = accessorElement;
+      } else {
+        field.setter = accessorElement;
+      }
+    }
+
+    _accessors = accessorList;
+    _fields = fieldList;
+  }
+
+  /// Resynthesize explicit fields and property accessors and fill [_fields] and
+  /// [_accessors] with explicit and implicit elements.
+  void _resynthesizeFieldsAndPropertyAccessors() {
+    assert(_fields == null);
+    assert(_accessors == null);
+
+    var unlinkedFields = _unlinkedExtension.fields;
+    var unlinkedExecutables = _unlinkedExtension.executables;
+
+    // Build explicit fields and implicit property accessors.
+    List<FieldElement> explicitFields;
+    List<PropertyAccessorElement> implicitAccessors;
+    var unlinkedFieldsLength = unlinkedFields.length;
+    if (unlinkedFieldsLength != 0) {
+      explicitFields = new List<FieldElement>(unlinkedFieldsLength);
+      implicitAccessors = <PropertyAccessorElement>[];
+      for (var i = 0; i < unlinkedFieldsLength; i++) {
+        var v = unlinkedFields[i];
+        FieldElementImpl field =
+            new FieldElementImpl.forSerializedFactory(v, this);
+        explicitFields[i] = field;
+        implicitAccessors.add(
+            new PropertyAccessorElementImpl_ImplicitGetter(field)
+              ..enclosingElement = this);
+        if (!field.isConst && !field.isFinal) {
+          implicitAccessors.add(
+              new PropertyAccessorElementImpl_ImplicitSetter(field)
+                ..enclosingElement = this);
+        }
+      }
+    } else {
+      explicitFields = const <FieldElement>[];
+      implicitAccessors = const <PropertyAccessorElement>[];
+    }
+
+    var unlinkedExecutablesLength = unlinkedExecutables.length;
+    var getterSetterCount = 0;
+    for (var i = 0; i < unlinkedExecutablesLength; i++) {
+      var e = unlinkedExecutables[i];
+      if (e.kind == UnlinkedExecutableKind.getter ||
+          e.kind == UnlinkedExecutableKind.setter) {
+        getterSetterCount++;
+      }
+    }
+
+    // Build explicit property accessors and implicit fields.
+    List<PropertyAccessorElement> explicitAccessors;
+    Map<String, FieldElementImpl> implicitFields;
+    if (getterSetterCount != 0) {
+      explicitAccessors = new List<PropertyAccessorElement>(getterSetterCount);
+      implicitFields = <String, FieldElementImpl>{};
+      var index = 0;
+      for (var i = 0; i < unlinkedExecutablesLength; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.getter ||
+            e.kind == UnlinkedExecutableKind.setter) {
+          PropertyAccessorElementImpl accessor =
+              new PropertyAccessorElementImpl.forSerialized(e, this);
+          explicitAccessors[index++] = accessor;
+          // Create or update the implicit field.
+          String fieldName = accessor.displayName;
+          FieldElementImpl field = implicitFields[fieldName];
+          if (field == null) {
+            field = new FieldElementImpl(fieldName, -1);
+            implicitFields[fieldName] = field;
+            field.enclosingElement = this;
+            field.isSynthetic = true;
+            field.isFinal = e.kind == UnlinkedExecutableKind.getter;
+            field.isStatic = e.isStatic;
+          } else {
+            field.isFinal = false;
+          }
+          accessor.variable = field;
+          if (e.kind == UnlinkedExecutableKind.getter) {
+            field.getter = accessor;
+          } else {
+            field.setter = accessor;
+          }
+        }
+      }
+    } else {
+      explicitAccessors = const <PropertyAccessorElement>[];
+      implicitFields = const <String, FieldElementImpl>{};
+    }
+
+    // Combine explicit and implicit fields and property accessors.
+    if (implicitFields.isEmpty) {
+      _fields = explicitFields;
+    } else if (explicitFields.isEmpty) {
+      _fields = implicitFields.values.toList(growable: false);
+    } else {
+      _fields = <FieldElement>[]
+        ..addAll(explicitFields)
+        ..addAll(implicitFields.values);
+    }
+    if (explicitAccessors.isEmpty) {
+      _accessors = implicitAccessors;
+    } else if (implicitAccessors.isEmpty) {
+      _accessors = explicitAccessors;
+    } else {
+      _accessors = <PropertyAccessorElement>[]
+        ..addAll(explicitAccessors)
+        ..addAll(implicitAccessors);
+    }
+  }
 }
 
 /// A concrete implementation of a [FieldElement].
@@ -5185,7 +5393,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   factory FieldElementImpl.forLinkedNodeFactory(
-      ClassElementImpl enclosing, Reference reference, AstNode linkedNode) {
+      ElementImpl enclosing, Reference reference, AstNode linkedNode) {
     var context = enclosing.enclosingUnit.linkedContext;
     if (context.shouldBeConstFieldElement(linkedNode)) {
       return ConstFieldElementImpl.forLinkedNode(
@@ -5207,22 +5415,20 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   /// Initialize using the given serialized information.
   factory FieldElementImpl.forSerializedFactory(
-      UnlinkedVariable unlinkedVariable, ClassElementImpl enclosingClass) {
+      UnlinkedVariable unlinkedVariable, ElementImpl enclosingElement) {
     if (unlinkedVariable.initializer?.bodyExpr != null &&
         (unlinkedVariable.isConst ||
             unlinkedVariable.isFinal &&
                 !unlinkedVariable.isStatic &&
-                enclosingClass._hasConstConstructor)) {
+                enclosingElement is ClassElementImpl &&
+                enclosingElement._hasConstConstructor)) {
       return new ConstFieldElementImpl.forSerialized(
-          unlinkedVariable, enclosingClass);
+          unlinkedVariable, enclosingElement);
     } else {
       return new FieldElementImpl.forSerialized(
-          unlinkedVariable, enclosingClass);
+          unlinkedVariable, enclosingElement);
     }
   }
-
-  @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
 
   @override
   bool get isCovariant {
@@ -5245,7 +5451,9 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   bool get isEnumConstant =>
-      enclosingElement != null && enclosingElement.isEnum && !isSynthetic;
+      enclosingElement is ClassElement &&
+      (enclosingElement as ClassElement).isEnum &&
+      !isSynthetic;
 
   @override
   bool get isStatic {

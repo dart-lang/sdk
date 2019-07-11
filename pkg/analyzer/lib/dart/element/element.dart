@@ -1068,6 +1068,9 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// Return the type that is extended by this extension.
   DartType get extendedType;
 
+  /// Return a list containing all of the fields declared in this extension.
+  List<FieldElement> get fields;
+
   /// Return a list containing all of the methods declared in this extension.
   List<MethodElement> get methods;
 

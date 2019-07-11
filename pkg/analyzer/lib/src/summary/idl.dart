@@ -3522,6 +3522,10 @@ abstract class UnlinkedExtension extends base.SummaryClass {
   @Id(3)
   EntityRef get extendedType;
 
+  /// Field declarations contained in the extension.
+  @Id(8)
+  List<UnlinkedVariable> get fields;
+
   /// Name of the extension, or an empty string if there is no name.
   @Id(0)
   String get name;
@@ -4192,10 +4196,6 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   @Id(2)
   List<UnlinkedClass> get classes;
 
-  /// Extensions declared in the compilation unit.
-  @Id(22)
-  List<UnlinkedExtension> get extensions;
-
   /// Code range of the unit.
   @informative
   @Id(15)
@@ -4213,6 +4213,10 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /// Export declarations in the compilation unit.
   @Id(13)
   List<UnlinkedExportNonPublic> get exports;
+
+  /// Extensions declared in the compilation unit.
+  @Id(22)
+  List<UnlinkedExtension> get extensions;
 
   /// If this compilation unit was summarized in fallback mode, the path where
   /// the compilation unit may be found on disk.  Otherwise empty.

@@ -1212,6 +1212,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       scopes.removeLast();
     }
     b.executables = executables;
+    b.fields = variables;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
