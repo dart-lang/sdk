@@ -1177,6 +1177,14 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode EXTENSION_DECLARES_ABSTRACT_METHOD =
+      const CompileTimeErrorCode('EXTENSION_DECLARES_ABSTRACT_METHOD',
+          "Extensions can't declare abstract methods.",
+          correction: "Try providing an implementation for the method.");
+
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode EXTENSION_DECLARES_CONSTRUCTOR =
       const CompileTimeErrorCode('EXTENSION_DECLARES_CONSTRUCTOR',
           "Extensions can't declare constructors.",

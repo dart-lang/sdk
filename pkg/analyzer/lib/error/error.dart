@@ -135,6 +135,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
   CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
   CompileTimeErrorCode.EXTENDS_NON_CLASS,
+  CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD,
   CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR,
   CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD,
   CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,

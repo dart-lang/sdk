@@ -1571,6 +1571,11 @@ class AstBuilder extends StackListener {
             messageConstMethod, modifiers.constKeyword, modifiers.constKeyword);
       }
       checkFieldFormalParameters(parameters);
+      if (extensionDeclaration != null && body is EmptyFunctionBody) {
+        errorReporter.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, name);
+        return;
+      }
       currentDeclarationMembers.add(ast.methodDeclaration(
           comment,
           metadata,
