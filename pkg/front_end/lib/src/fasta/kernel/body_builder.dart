@@ -496,14 +496,14 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         expression = new UnresolvedNameGenerator(
             this,
             deprecated_extractToken(identifier),
-            new Name(identifier.name, library.library));
+            new Name(identifier.name, library.nameOrigin));
       }
       if (name?.isNotEmpty ?? false) {
         Token period = periodBeforeName ?? beginToken.next.next;
         Generator generator = expression;
         expression = generator.buildPropertyAccess(
             new IncompletePropertyAccessGenerator(
-                this, period.next, new Name(name, library.library)),
+                this, period.next, new Name(name, library.nameOrigin)),
             period.next.offset,
             false);
       }
@@ -1297,7 +1297,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       assert(typeArguments == null);
     }
     if (receiver is Identifier) {
-      Name name = new Name(receiver.name, library.library);
+      Name name = new Name(receiver.name, library.nameOrigin);
       if (arguments == null) {
         push(new IncompletePropertyAccessGenerator(this, beginToken, name));
       } else {
@@ -1495,7 +1495,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     if (periodIndex != -1) {
       length -= periodIndex + 1;
     }
-    Name kernelName = new Name(name, library.library);
+    Name kernelName = new Name(name, library.nameOrigin);
     List<LocatedMessage> context;
     if (candidate != null && candidate.location != null) {
       Uri uri = candidate.location.file;
@@ -1765,7 +1765,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     }
     if (declaration == null ||
         (!isInstanceContext && declaration.isInstanceMember)) {
-      Name n = new Name(name, library.library);
+      Name n = new Name(name, library.nameOrigin);
       if (!isQualified && isInstanceContext) {
         assert(declaration == null);
         if (constantContext != ConstantContext.none || member.isField) {
@@ -1817,7 +1817,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         addProblem(
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
-      Name n = new Name(name, library.library);
+      Name n = new Name(name, library.nameOrigin);
       Member getter;
       Member setter;
       if (declaration is AccessErrorBuilder) {

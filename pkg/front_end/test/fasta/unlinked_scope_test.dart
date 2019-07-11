@@ -53,7 +53,6 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
                         new NoneTarget(new TargetFlags(legacyMode: true))),
                     null)
                 .loader,
-            null,
             null);
 
   KernelProcedureBuilder mockProcedure(String name) {

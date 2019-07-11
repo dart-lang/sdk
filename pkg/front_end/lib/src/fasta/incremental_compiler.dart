@@ -743,11 +743,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
 
       KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
-          libraryUri,
-          debugExprUri,
-          userCode.loader,
-          null,
-          library.scope.createNestedScope("expression"));
+        libraryUri,
+        debugExprUri,
+        userCode.loader,
+        null,
+        scope: library.scope.createNestedScope("expression"),
+        nameOrigin: library.target,
+      );
 
       if (library is DillLibraryBuilder) {
         for (LibraryDependency dependency in library.target.dependencies) {

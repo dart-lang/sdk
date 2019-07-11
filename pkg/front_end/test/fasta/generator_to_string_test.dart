@@ -104,7 +104,6 @@ main() {
                     new NoneTarget(new TargetFlags(legacyMode: true))),
                 null)
             .loader,
-        null,
         null);
     LoadLibraryBuilder loadLibraryBuilder =
         new LoadLibraryBuilder(libraryBuilder, null, -1);
