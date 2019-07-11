@@ -230,6 +230,7 @@ class MatchExpectation extends Step<Component, Component, MatchContext> {
       printer.writeLibraryFile(library);
       printer.endLine();
     });
+    printer.writeConstantTable(component);
     String actual = "$buffer";
     String binariesPath = relativizeUri(platformBinariesLocation);
     if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {

@@ -262,6 +262,7 @@ class FastaContext extends ChainContext with MatchContext {
           }
           ..sdkRoot = sdk
           ..packagesFileUri = packages
+          ..environmentDefines = {}
           ..experimentalFlags = <ExperimentalFlag, bool>{
             ExperimentalFlag.controlFlowCollections:
                 enableControlFlowCollections,
@@ -353,6 +354,7 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
             }
             errors.writeAll(message.plainTextFormatted, "\n");
           }
+          ..environmentDefines = {}
           ..experimentalFlags = <ExperimentalFlag, bool>{
             ExperimentalFlag.controlFlowCollections:
                 context.enableControlFlowCollections,
