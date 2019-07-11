@@ -72,6 +72,9 @@ const List<TestConfig> allStrongConfigs = const [
   strongConstConfig,
 ];
 
+const TestConfig sharedConfig = const TestConfig(dart2jsMarker, 'dart2js',
+    ['${Flags.enableLanguageExperiments}=constant-update-2018']);
+
 abstract class DataComputer<T> {
   const DataComputer();
 

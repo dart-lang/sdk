@@ -444,11 +444,12 @@ class ConstantsTransformer extends Transformer {
     }
   }
 
-  evaluateAndTransformWithContext(TreeNode treeContext, Expression node) {
+  Expression evaluateAndTransformWithContext(
+      TreeNode treeContext, Expression node) {
     return makeConstantExpression(evaluateWithContext(treeContext, node), node);
   }
 
-  evaluateWithContext(TreeNode treeContext, Expression node) {
+  Constant evaluateWithContext(TreeNode treeContext, Expression node) {
     if (treeContext == node) {
       return constantEvaluator.evaluate(node);
     }
