@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Dart test program for testing dart:ffi struct pointers.
+//
+// VMOptions=--deterministic --optimization-counter-threshold=50 --enable-inlining-annotations
 
 library FfiTest;
 
@@ -15,12 +17,14 @@ import 'coordinate.dart';
 import 'utf8.dart';
 
 void main() {
-  testStructAllocate();
-  testStructFromAddress();
-  testStructWithNulls();
-  testBareStruct();
-  testTypeTest();
-  testUtf8();
+  for (int i = 0; i < 100; i++) {
+    testStructAllocate();
+    testStructFromAddress();
+    testStructWithNulls();
+    testBareStruct();
+    testTypeTest();
+    testUtf8();
+  }
 }
 
 /// allocates each coordinate separately in c memory
