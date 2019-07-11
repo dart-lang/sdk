@@ -470,8 +470,14 @@ Future expectNotNull(String code, String expectedNotNull) async {
   var component = await kernelCompile(code);
   var collector = NotNullCollector();
   component.accept(collector);
-  var actualNotNull =
-      collector.notNullExpressions.map((e) => e.toString()).join(', ');
+  var actualNotNull = collector.notNullExpressions
+      // ConstantExpressions print the table offset - we want to compare
+      // against the underlying constant value instead.
+      .map((e) => (e is ConstantExpression ? e.constant : e).toString())
+      // Filter out our own NotNull annotations.  The library prefix changes
+      // per test, so just filter on the suffix.
+      .where((s) => !s.endsWith('::_NotNull {}'))
+      .join(', ');
   expect(actualNotNull, equals(expectedNotNull));
 }
 
