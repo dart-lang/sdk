@@ -938,7 +938,7 @@ class Thread : public ThreadState {
 
   Thread* next_;  // Used to chain the thread structures in an isolate.
 
-  explicit Thread(Isolate* isolate);
+  explicit Thread(bool is_vm_isolate);
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);

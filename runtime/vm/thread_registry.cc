@@ -4,7 +4,6 @@
 
 #include "vm/thread_registry.h"
 
-#include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
 
@@ -17,12 +16,6 @@ ThreadRegistry::~ThreadRegistry() {
     // At this point the active list should be empty.
     ASSERT(active_list_ == NULL);
 
-    // The [mutator_thread_] is kept alive until the destruction of the isolate.
-    mutator_thread_->isolate_ = nullptr;
-
-    // We have cached the mutator thread, delete it.
-    delete mutator_thread_;
-    mutator_thread_ = NULL;
     // Now delete all the threads in the free list.
     while (free_list_ != NULL) {
       Thread* thread = free_list_;
@@ -32,50 +25,33 @@ ThreadRegistry::~ThreadRegistry() {
   }
 }
 
-// Gets a free Thread structure, we special case the mutator thread
-// by reusing the cached structure, see comment in 'thread_registry.h'.
-Thread* ThreadRegistry::GetFreeThreadLocked(Isolate* isolate, bool is_mutator) {
+Thread* ThreadRegistry::GetFreeThreadLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
-  Thread* thread;
-  if (is_mutator) {
-    if (mutator_thread_ == NULL) {
-      mutator_thread_ = GetFromFreelistLocked(isolate);
-    }
-    thread = mutator_thread_;
-  } else {
-    thread = GetFromFreelistLocked(isolate);
-    ASSERT(thread->api_top_scope() == NULL);
-  }
+  Thread* thread = GetFromFreelistLocked(is_vm_isolate);
+  ASSERT(thread->api_top_scope() == NULL);
   // Now add this Thread to the active list for the isolate.
   AddToActiveListLocked(thread);
   return thread;
 }
 
-void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
+void ThreadRegistry::ReturnThreadLocked(Thread* thread) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   // Remove thread from the active list for the isolate.
   RemoveFromActiveListLocked(thread);
-  if (!is_mutator) {
-    ReturnToFreelistLocked(thread);
-  }
+  ReturnToFreelistLocked(thread);
 }
 
 void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                          ValidationPolicy validate_frames) {
   MonitorLocker ml(threads_lock());
-  bool mutator_thread_visited = false;
   Thread* thread = active_list_;
   while (thread != NULL) {
-    thread->VisitObjectPointers(visitor, validate_frames);
-    if (mutator_thread_ == thread) {
-      mutator_thread_visited = true;
+    // The mutator thread is visited by the isolate itself (see
+    // [Isolate::VisitStackPointers]).
+    if (!thread->IsMutatorThread()) {
+      thread->VisitObjectPointers(visitor, validate_frames);
     }
     thread = thread->next_;
-  }
-  // Visit mutator thread even if it is not in the active list because of
-  // api handles.
-  if (!mutator_thread_visited && (mutator_thread_ != NULL)) {
-    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
   }
 }
 
@@ -174,12 +150,12 @@ void ThreadRegistry::RemoveFromActiveListLocked(Thread* thread) {
   }
 }
 
-Thread* ThreadRegistry::GetFromFreelistLocked(Isolate* isolate) {
+Thread* ThreadRegistry::GetFromFreelistLocked(bool is_vm_isolate) {
   ASSERT(threads_lock()->IsOwnedByCurrentThread());
   Thread* thread = NULL;
   // Get thread structure from free list or create a new one.
   if (free_list_ == NULL) {
-    thread = new Thread(isolate);
+    thread = new Thread(is_vm_isolate);
   } else {
     thread = free_list_;
     free_list_ = thread->next_;

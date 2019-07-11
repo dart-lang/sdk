@@ -56,7 +56,7 @@ Thread::~Thread() {
 
 #define REUSABLE_HANDLE_INITIALIZERS(object) object##_handle_(NULL),
 
-Thread::Thread(Isolate* isolate)
+Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
       stack_limit_(0),
       stack_overflow_flags_(0),
@@ -133,7 +133,7 @@ Thread::Thread(Isolate* isolate)
 
   // We cannot initialize the VM constants here for the vm isolate thread
   // due to boot strapping issues.
-  if ((Dart::vm_isolate() != NULL) && (isolate != Dart::vm_isolate())) {
+  if (!is_vm_isolate) {
     InitVMConstants();
   }
 }

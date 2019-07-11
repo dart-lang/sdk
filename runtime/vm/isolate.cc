@@ -1021,6 +1021,13 @@ Isolate::~Isolate() {
          nullptr);  // No deopt in progress when isolate deleted.
   ASSERT(spawn_count_ == 0);
   delete safepoint_handler_;
+
+  // We have cached the mutator thread, delete it.
+  ASSERT(scheduled_mutator_thread_ == nullptr);
+  mutator_thread_->isolate_ = nullptr;
+  delete mutator_thread_;
+  mutator_thread_ = nullptr;
+
   delete thread_registry_;
 
   if (obfuscation_map_ != nullptr) {
@@ -1177,7 +1184,7 @@ void Isolate::RetainKernelBlob(const ExternalTypedData& kernel_blob) {
 
 Thread* Isolate::mutator_thread() const {
   ASSERT(thread_registry() != nullptr);
-  return thread_registry()->mutator_thread();
+  return mutator_thread_;
 }
 
 RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
@@ -2051,6 +2058,12 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validate_frames) {
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(visitor, validate_frames);
+
+  // Visit mutator thread, even if the isolate isn't entered/scheduled (there
+  // might be live API handles to visit).
+  if (mutator_thread_ != nullptr) {
+    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
+  }
 }
 
 void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
@@ -2887,8 +2900,25 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
       ml.Wait();
     }
 
-    // Now get a free Thread structure.
-    thread = thread_registry()->GetFreeThreadLocked(this, is_mutator);
+    // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
+    // VM startup it might not have been set at this point.
+    const bool is_vm_isolate =
+        Dart::vm_isolate() == nullptr || Dart::vm_isolate() == this;
+
+    if (is_mutator) {
+      if (mutator_thread_ == nullptr) {
+        // Allocate a new [Thread] structure for the mutator thread.
+        thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+        mutator_thread_ = thread;
+      } else {
+        // Reuse the existing cached [Thread] structure for the mutator thread.,
+        // see comment in 'base_isolate.h'.
+        thread_registry()->AddToActiveListLocked(mutator_thread_);
+        thread = mutator_thread_;
+      }
+    } else {
+      thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+    }
     ASSERT(thread != nullptr);
 
     thread->ResetHighWatermark();
@@ -2945,9 +2975,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   os_thread->DisableThreadInterrupts();
   os_thread->set_thread(nullptr);
   OSThread::SetCurrent(os_thread);
-  if (is_mutator) {
-    scheduled_mutator_thread_ = nullptr;
-  }
+
   // Even if we unschedule the mutator thread, e.g. via calling
   // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
   // stacks active, which e.g. GC marker threads want to visit.  So we don't
@@ -2967,8 +2995,16 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
   thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
-  // Return thread structure.
-  thread_registry()->ReturnThreadLocked(is_mutator, thread);
+
+  if (is_mutator) {
+    ASSERT(mutator_thread_ == thread);
+    ASSERT(mutator_thread_ == scheduled_mutator_thread_);
+    thread_registry()->RemoveFromActiveListLocked(thread);
+    scheduled_mutator_thread_ = nullptr;
+  } else {
+    // Return thread structure.
+    thread_registry()->ReturnThreadLocked(thread);
+  }
 }
 
 static const char* NewConstChar(const char* chars) {
