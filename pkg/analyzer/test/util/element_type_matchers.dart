@@ -7,8 +7,6 @@ import 'package:test/test.dart';
 
 const isClassElement = const TypeMatcher<ClassElement>();
 
-const isClassMemberElement = const TypeMatcher<ClassMemberElement>();
-
 const isCompilationUnitElement = const TypeMatcher<CompilationUnitElement>();
 
 const isConstructorElement = const TypeMatcher<ConstructorElement>();

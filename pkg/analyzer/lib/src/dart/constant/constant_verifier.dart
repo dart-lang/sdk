@@ -348,7 +348,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // lookup for ==
       MethodElement method =
           element.lookUpConcreteMethod("==", _currentLibrary);
-      if (method == null || method.enclosingElement.type.isObject) {
+      if (method == null ||
+          (method.enclosingElement as ClassElement).type.isObject) {
         return false;
       }
       // there is == that we don't like

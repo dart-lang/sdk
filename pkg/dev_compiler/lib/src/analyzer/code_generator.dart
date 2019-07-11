@@ -3105,7 +3105,7 @@ class CodeGenerator extends Object
   js_ast.Expression _emitClassMemberElement(
       ClassMemberElement element, Element accessor, Expression node) {
     bool isStatic = element.isStatic;
-    var classElem = element.enclosingElement;
+    var classElem = element.enclosingElement as ClassElement;
     var type = classElem.type;
     var member = _emitMemberName(element.name,
         isStatic: isStatic, type: type, element: accessor);
@@ -3300,7 +3300,7 @@ class CodeGenerator extends Object
   /// [_emitTopLevelName] on the class, but if the member is external, then the
   /// native class name will be used, for direct access to the native member.
   js_ast.Expression _emitStaticClassName(ClassMemberElement member) {
-    var c = member.enclosingElement;
+    var c = member.enclosingElement as ClassElement;
     _declareBeforeUse(c);
 
     // A static native element should just forward directly to the JS type's
@@ -3593,7 +3593,7 @@ class CodeGenerator extends Object
   /// Emits assignment to a static field element or property.
   js_ast.Expression _emitSetField(Expression right, FieldElement field,
       js_ast.Expression jsTarget, SimpleIdentifier id) {
-    var classElem = field.enclosingElement;
+    var classElem = field.enclosingElement as ClassElement;
     var isStatic = field.isStatic;
     var member = _emitMemberName(field.name,
         isStatic: isStatic, type: classElem.type, element: field.setter);
@@ -4577,7 +4577,10 @@ class CodeGenerator extends Object
     DartType getType(TypeAnnotation typeNode) {
       if (typeNode is NamedType && typeNode.typeArguments != null) {
         var e = typeNode.name.staticElement;
-        if (e is TypeParameterizedElement) {
+        if (e is ClassElement) {
+          return e.type.instantiate(
+              typeNode.typeArguments.arguments.map(getType).toList());
+        } else if (e is FunctionTypedElement) {
           return e.type.instantiate(
               typeNode.typeArguments.arguments.map(getType).toList());
         }

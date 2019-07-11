@@ -108,7 +108,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       var targetTypeType = targetType.type;
       if (targetTypeType is InterfaceType &&
           baseElement is ClassMemberElement) {
-        var enclosingClass = baseElement.enclosingElement;
+        var enclosingClass = baseElement.enclosingElement as ClassElement;
         assert(targetTypeType.element == enclosingClass); // TODO(paulberry)
         substitution = <TypeParameterElement, DecoratedType>{};
         assert(enclosingClass.typeParameters.length ==
@@ -250,8 +250,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
       _handleAssignment(node.leftOperand, _notNullType);
       var callee = node.staticElement;
       assert(!(callee is ClassMemberElement &&
-          callee
-              .enclosingElement.typeParameters.isNotEmpty)); // TODO(paulberry)
+          (callee.enclosingElement as ClassElement)
+              .typeParameters
+              .isNotEmpty)); // TODO(paulberry)
       assert(callee != null); // TODO(paulberry)
       var calleeType = getOrComputeElementType(callee);
       // TODO(paulberry): substitute if necessary
@@ -649,7 +650,7 @@ $stackTrace''');
       _handleAssignment(node.operand, _notNullType);
       var callee = node.staticElement;
       if (callee is ClassMemberElement &&
-          callee.enclosingElement.typeParameters.isNotEmpty) {
+          (callee.enclosingElement as ClassElement).typeParameters.isNotEmpty) {
         // TODO(paulberry)
         _unimplemented(node,
             'Operator ${operatorType.lexeme} defined on a class with type parameters');
@@ -686,7 +687,7 @@ $stackTrace''');
         operatorType == TokenType.MINUS_MINUS) {
       var callee = node.staticElement;
       if (callee is ClassMemberElement &&
-          callee.enclosingElement.typeParameters.isNotEmpty) {
+          (callee.enclosingElement as ClassElement).typeParameters.isNotEmpty) {
         // TODO(paulberry)
         _unimplemented(node,
             'Operator ${operatorType.lexeme} defined on a class with type parameters');

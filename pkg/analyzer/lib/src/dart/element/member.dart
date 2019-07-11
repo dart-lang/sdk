@@ -215,7 +215,7 @@ class FieldFormalParameterMember extends ParameterMember
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
       return FieldMember.from(
-          field, substituteFor(field.enclosingElement.type));
+          field, substituteFor((field.enclosingElement as ClassElement).type));
     }
     return field;
   }

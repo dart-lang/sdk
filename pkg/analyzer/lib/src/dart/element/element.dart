@@ -4926,12 +4926,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 }
 
 /// A concrete implementation of an [ExtensionElement].
-class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
+class ExtensionElementImpl extends ElementImpl
+    with TypeParameterizedElementMixin
+    implements ExtensionElement {
   /// The unlinked representation of the extension in the summary.
-  final /* UnlinkedExtension */ _unlinkedExtension;
-
-  /// A list containing all of the type parameters declared by this extension.
-  List<TypeParameterElement> _typeParameters;
+  final UnlinkedExtension _unlinkedExtension;
 
   /// The type being extended.
   DartType _extendedType;
@@ -4992,6 +4991,9 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
   }
 
   @override
+  TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
+
+  @override
   DartType get extendedType {
     if (_extendedType != null) {
       return _extendedType;
@@ -5015,6 +5017,9 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
   }
 
   @override
+  bool get isSimplyBounded => true;
+
+  @override
   ElementKind get kind => ElementKind.EXTENSION;
 
   @override
@@ -5024,49 +5029,47 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
     }
 
     if (linkedNode != null) {
-      // TODO(brianwilkerson) Implement this.
-//      var context = enclosingUnit.linkedContext;
-//      var containerRef = reference.getChild('@method');
-//      return _methods = context
-//          .getMethods(linkedNode)
-//          .where((node) => node.propertyKeyword == null)
-//          .map((node) {
-//        var name = node.name.name;
-//        var reference = containerRef.getChild(name);
-//        if (reference.hasElementFor(node)) {
-//          return reference.element as MethodElement;
-//        }
-//        return MethodElementImpl.forLinkedNode(this, reference, node);
-//      }).toList();
+      var context = enclosingUnit.linkedContext;
+      var containerRef = reference.getChild('@method');
+      return _methods = context
+          .getMethods(linkedNode)
+          .where((node) => node.propertyKeyword == null)
+          .map((node) {
+        var name = node.name.name;
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          return reference.element as MethodElement;
+        }
+        return MethodElementImpl.forLinkedNode(this, reference, node);
+      }).toList();
     } else if (_unlinkedExtension != null) {
-      // TODO(brianwilkerson) Implement this.
-//      var unlinkedExecutables = _unlinkedExtension.executables;
-//
-//      var length = unlinkedExecutables.length;
-//      if (length == 0) {
-//        return _methods = const <MethodElement>[];
-//      }
-//
-//      var count = 0;
-//      for (var i = 0; i < length; i++) {
-//        var e = unlinkedExecutables[i];
-//        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
-//          count++;
-//        }
-//      }
-//      if (count == 0) {
-//        return _methods = const <MethodElement>[];
-//      }
-//
-//      var methods = new List<MethodElement>(count);
-//      var index = 0;
-//      for (var i = 0; i < length; i++) {
-//        var e = unlinkedExecutables[i];
-//        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
-//          methods[index++] = new MethodElementImpl.forSerialized(e, this);
-//        }
-//      }
-//      return _methods = methods;
+      var unlinkedExecutables = _unlinkedExtension.executables;
+
+      var length = unlinkedExecutables.length;
+      if (length == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var count = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          count++;
+        }
+      }
+      if (count == 0) {
+        return _methods = const <MethodElement>[];
+      }
+
+      var methods = new List<MethodElement>(count);
+      var index = 0;
+      for (var i = 0; i < length; i++) {
+        var e = unlinkedExecutables[i];
+        if (e.kind == UnlinkedExecutableKind.functionOrMethod) {
+          methods[index++] = new MethodElementImpl.forSerialized(e, this);
+        }
+      }
+      return _methods = methods;
     }
     return _methods = const <MethodElement>[];
   }
@@ -5104,42 +5107,6 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
     return offset;
   }
 
-  @override
-  List<TypeParameterElement> get typeParameters {
-    if (_typeParameters != null) {
-      return _typeParameters;
-    }
-
-    if (linkedNode != null) {
-      var typeParameters = linkedContext.getTypeParameters2(linkedNode);
-      if (typeParameters == null) {
-        return _typeParameters = const [];
-      }
-      var containerRef = reference.getChild('@typeParameter');
-      return _typeParameters =
-          typeParameters.typeParameters.map<TypeParameterElement>((node) {
-        var reference = containerRef.getChild(node.name.name);
-        if (reference.hasElementFor(node)) {
-          return reference.element as TypeParameterElement;
-        }
-        return TypeParameterElementImpl.forLinkedNode(this, reference, node);
-      }).toList();
-    } else if (_unlinkedExtension != null) {
-      List<UnlinkedTypeParam> unlinkedParams =
-          _unlinkedExtension?.typeParameters;
-      if (unlinkedParams != null) {
-        int numTypeParameters = unlinkedParams.length;
-        _typeParameters = new List<TypeParameterElement>(numTypeParameters);
-        for (int i = 0; i < numTypeParameters; i++) {
-          _typeParameters[i] = new TypeParameterElementImpl.forSerialized(
-              unlinkedParams[i], this);
-        }
-      }
-    }
-
-    return _typeParameters ?? const <TypeParameterElement>[];
-  }
-
   /// Set the type parameters defined by this extension to the given
   /// [typeParameters].
   void set typeParameters(List<TypeParameterElement> typeParameters) {
@@ -5147,8 +5114,12 @@ class ExtensionElementImpl extends ElementImpl implements ExtensionElement {
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
-    this._typeParameters = typeParameters;
+    this._typeParameterElements = typeParameters;
   }
+
+  @override
+  List<UnlinkedTypeParam> get unlinkedTypeParams =>
+      _unlinkedExtension?.typeParameters;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) {
@@ -7499,7 +7470,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// given [offset].
   MethodElementImpl(String name, int offset) : super(name, offset);
 
-  MethodElementImpl.forLinkedNode(ClassElementImpl enclosingClass,
+  MethodElementImpl.forLinkedNode(TypeParameterizedElementMixin enclosingClass,
       Reference reference, MethodDeclaration linkedNode)
       : super.forLinkedNode(enclosingClass, reference, linkedNode);
 
@@ -7507,8 +7478,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   MethodElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /// Initialize using the given serialized information.
-  MethodElementImpl.forSerialized(
-      UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
+  MethodElementImpl.forSerialized(UnlinkedExecutable serializedExecutable,
+      TypeParameterizedElementMixin enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
   @override
@@ -7521,11 +7492,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   }
 
   @override
-  ClassElement get enclosingElement => super.enclosingElement as ClassElement;
-
-  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext =>
-      super.enclosingElement as ClassElementImpl;
+      super.enclosingElement as TypeParameterizedElementMixin;
 
   /// Set whether this class is abstract.
   void set isAbstract(bool isAbstract) {
