@@ -694,6 +694,12 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
   return Api::IsError(handle);
 }
 
+DART_EXPORT void Dart_KillIsolate(Dart_Isolate handle) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(handle);
+  CHECK_ISOLATE(isolate);
+  Isolate::KillIfExists(isolate, Isolate::kKillMsg);
+}
+
 DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
   Thread* thread = Thread::Current();
   TransitionNativeToVM transition(thread);

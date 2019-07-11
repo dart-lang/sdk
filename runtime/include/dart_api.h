@@ -1018,6 +1018,20 @@ DART_EXPORT const char* Dart_IsolateServiceId(Dart_Isolate isolate);
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 
 /**
+ * Kills the given isolate.
+ *
+ * This function has the same effect as dart:isolate's
+ * Isolate.kill(priority:immediate).
+ * It can interrupt ordinary Dart code but not native code. If the isolate is
+ * in the middle of a long running native function, the isolate will not be
+ * killed until control returns to Dart.
+ *
+ * Does not require a current isolate. It is safe to kill the current isolate if
+ * there is one.
+ */
+DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
+
+/**
  * Notifies the VM that the embedder expects to be idle until |deadline|. The VM
  * may use this time to perform garbage collection or other tasks to avoid
  * delays during execution of Dart code in the future.

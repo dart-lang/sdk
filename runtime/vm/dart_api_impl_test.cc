@@ -88,6 +88,80 @@ UNIT_TEST_CASE(DartAPI_DartInitializeCallsCodeObserver) {
   EXPECT(Dart_Cleanup() == NULL);
 }
 
+TEST_CASE(Dart_KillIsolate) {
+  const char* kScriptChars =
+      "int testMain() {\n"
+      "  return 42;\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(result);
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(42, value);
+  Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+  Dart_KillIsolate(isolate);
+  result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT_STREQ("isolate terminated by Isolate.kill", Dart_GetError(result));
+}
+
+class InfiniteLoopTask : public ThreadPool::Task {
+ public:
+  InfiniteLoopTask(Dart_Isolate* isolate, Monitor* monitor, bool* interrupted)
+      : isolate_(isolate), monitor_(monitor), interrupted_(interrupted) {}
+  virtual void Run() {
+    TestIsolateScope scope;
+    const char* kScriptChars =
+        "testMain() {\n"
+        "  while(true) {};"
+        "}\n";
+    Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+    EXPECT_VALID(lib);
+    *isolate_ = reinterpret_cast<Dart_Isolate>(Isolate::Current());
+    {
+      MonitorLocker ml(monitor_);
+      ml.Notify();
+    }
+    Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
+    // Test should run an inifinite loop and expect that to be killed.
+    EXPECT(Dart_IsError(result));
+    EXPECT_STREQ("isolate terminated by Isolate.kill", Dart_GetError(result));
+    {
+      MonitorLocker ml(monitor_);
+      *interrupted_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Dart_Isolate* isolate_;
+  Monitor* monitor_;
+  bool* interrupted_;
+};
+
+TEST_CASE(Dart_KillIsolatePriority) {
+  Monitor monitor;
+  bool interrupted = false;
+  Dart_Isolate isolate;
+  Dart::thread_pool()->Run<InfiniteLoopTask>(&isolate, &monitor, &interrupted);
+  {
+    MonitorLocker ml(&monitor);
+    ml.Wait();
+  }
+
+  Dart_KillIsolate(isolate);
+
+  {
+    MonitorLocker ml(&monitor);
+    while (!interrupted) {
+      ml.Wait();
+    }
+  }
+  EXPECT(interrupted);
+}
+
 TEST_CASE(DartAPI_ErrorHandleBasics) {
   const char* kScriptChars =
       "void testMain() {\n"
