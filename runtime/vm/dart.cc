@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+#include <utility>
+
 #include "vm/dart.h"
 
 #include "vm/clustered_snapshot.h"
@@ -234,7 +237,18 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // Setup default flags for the VM isolate.
     Dart_IsolateFlags api_flags;
     Isolate::FlagsInitialize(&api_flags);
-    vm_isolate_ = Isolate::InitIsolate("vm-isolate", api_flags, is_vm_isolate);
+
+    // We make a fake [IsolateGroupSource] here, since the "vm-isolate" is not
+    // really an isolate itself - it acts more as a container for VM-global
+    // objects.
+    std::unique_ptr<IsolateGroupSource> source(
+        new IsolateGroupSource(nullptr, "vm-isolate", nullptr, nullptr, nullptr,
+                               nullptr, nullptr, -1, api_flags));
+    auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
+    vm_isolate_ =
+        Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
+    group->set_initial_spawn_successful();
+
     // Verify assumptions about executing in the VM isolate.
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
@@ -604,9 +618,11 @@ char* Dart::Cleanup() {
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,
-                             const Dart_IsolateFlags& api_flags) {
+                             const Dart_IsolateFlags& api_flags,
+                             IsolateGroup* isolate_group) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::InitIsolate(name_prefix, api_flags);
+  Isolate* isolate =
+      Isolate::InitIsolate(name_prefix, isolate_group, api_flags);
   return isolate;
 }
 
@@ -854,7 +870,7 @@ void Dart::RunShutdownCallback() {
   Thread* thread = Thread::Current();
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
   Isolate* isolate = thread->isolate();
-  void* isolate_group_data = isolate->source()->callback_data;
+  void* isolate_group_data = isolate->group()->embedder_data();
   void* isolate_data = isolate->init_callback_data();
   Dart_IsolateShutdownCallback callback = Isolate::ShutdownCallback();
   if (callback != NULL) {

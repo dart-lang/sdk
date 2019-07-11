@@ -23,6 +23,7 @@
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/heap/verifier.h"
+#include "vm/intrusive_dlist.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/os_thread.h"
@@ -181,8 +182,7 @@ class IsolateGroupSource {
                      const uint8_t* shared_instructions,
                      const uint8_t* kernel_buffer,
                      intptr_t kernel_buffer_size,
-                     Dart_IsolateFlags flags,
-                     void* callback_data)
+                     Dart_IsolateFlags flags)
       : script_uri(script_uri),
         name(strdup(name)),
         snapshot_data(snapshot_data),
@@ -192,7 +192,6 @@ class IsolateGroupSource {
         kernel_buffer(kernel_buffer),
         kernel_buffer_size(kernel_buffer_size),
         flags(flags),
-        callback_data(callback_data),
         script_kernel_buffer(nullptr),
         script_kernel_size(-1) {}
   ~IsolateGroupSource() { free(name); }
@@ -208,26 +207,36 @@ class IsolateGroupSource {
   const uint8_t* kernel_buffer;
   const intptr_t kernel_buffer_size;
   Dart_IsolateFlags flags;
-  void* callback_data;
 
   // The kernel buffer used in `Dart_LoadScriptFromKernel`.
   const uint8_t* script_kernel_buffer;
   intptr_t script_kernel_size;
-
-  void IncrementIsolateUsageCount() {
-    AtomicOperations::IncrementBy(&isolate_count_, 1);
-  }
-
-  // Returns true if this was the last reference.
-  bool DecrementIsolateUsageCount() {
-    return AtomicOperations::FetchAndDecrement(&isolate_count_) == 1;
-  }
-
- private:
-  intptr_t isolate_count_ = 0;
 };
 
-class Isolate : public BaseIsolate {
+// Represents an isolate group and is shared among all isolates within a group.
+class IsolateGroup {
+ public:
+  IsolateGroup(std::unique_ptr<IsolateGroupSource> source, void* embedder_data);
+  ~IsolateGroup();
+
+  IsolateGroupSource* source() const { return source_.get(); }
+  void* embedder_data() const { return embedder_data_; }
+
+  void set_initial_spawn_successful() { initial_spawn_successful_ = true; }
+
+  void RegisterIsolate(Isolate* isolate);
+  void UnregisterIsolate(Isolate* isolate);
+
+ private:
+  std::unique_ptr<IsolateGroupSource> source_;
+  void* embedder_data_ = nullptr;
+  std::unique_ptr<Monitor> isolates_monitor_;
+  IntrusiveDList<Isolate> isolates_;
+  intptr_t isolate_count_ = 0;
+  bool initial_spawn_successful_ = false;
+};
+
+class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
  public:
   // Keep both these enums in sync with isolate_patch.dart.
   // The different Isolate API message types.
@@ -311,12 +320,8 @@ class Isolate : public BaseIsolate {
     message_notify_callback_ = value;
   }
 
-  IsolateGroupSource* source() const { return source_; }
-
-  void set_source(IsolateGroupSource* source) {
-    source->IncrementIsolateUsageCount();
-    source_ = source;
-  }
+  IsolateGroupSource* source() const { return isolate_group_->source(); }
+  IsolateGroup* group() const { return isolate_group_; }
 
   bool HasPendingMessages();
 
@@ -913,10 +918,11 @@ class Isolate : public BaseIsolate {
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
 
-  explicit Isolate(const Dart_IsolateFlags& api_flags);
+  Isolate(IsolateGroup* group, const Dart_IsolateFlags& api_flags);
 
   static void InitVM();
   static Isolate* InitIsolate(const char* name_prefix,
+                              IsolateGroup* isolate_group,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate = false);
 
@@ -984,6 +990,7 @@ class Isolate : public BaseIsolate {
   MarkingStack* marking_stack_ = nullptr;
   MarkingStack* deferred_marking_stack_ = nullptr;
   Heap* heap_ = nullptr;
+  IsolateGroup* isolate_group_ = nullptr;
 
 #define ISOLATE_FLAG_BITS(V)                                                   \
   V(ErrorsFatal)                                                               \
@@ -1167,7 +1174,6 @@ class Isolate : public BaseIsolate {
   static Monitor* isolates_list_monitor_;
   static Isolate* isolates_list_head_;
   static bool creation_enabled_;
-  IsolateGroupSource* source_ = nullptr;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -1242,7 +1248,7 @@ class IsolateSpawnState {
                     Dart_Port onExit,
                     Dart_Port onError,
                     const char* debug_name,
-                    IsolateGroupSource* source);
+                    IsolateGroup* group);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_config,
@@ -1253,7 +1259,7 @@ class IsolateSpawnState {
                     Dart_Port onExit,
                     Dart_Port onError,
                     const char* debug_name,
-                    IsolateGroupSource* source);
+                    IsolateGroup* group);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -1278,7 +1284,7 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
-  IsolateGroupSource* source() const { return source_; }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
 
  private:
   Isolate* isolate_;
@@ -1292,7 +1298,7 @@ class IsolateSpawnState {
   const char* class_name_;
   const char* function_name_;
   const char* debug_name_;
-  IsolateGroupSource* source_;
+  IsolateGroup* isolate_group_;
   std::unique_ptr<Message> serialized_args_;
   std::unique_ptr<Message> serialized_message_;
 

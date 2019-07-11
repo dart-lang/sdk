@@ -48,7 +48,8 @@ class Dart : public AllStatic {
   static char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
-                                const Dart_IsolateFlags& api_flags);
+                                const Dart_IsolateFlags& api_flags,
+                                IsolateGroup* isolate_group);
 
   // Initialize an isolate, either from a snapshot, from a Kernel binary, or
   // from SDK library sources.  If the snapshot_buffer is non-NULL,

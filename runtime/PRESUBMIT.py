@@ -20,9 +20,13 @@ def CheckMemcpy(filename):
   content = fh.read()
   match = re.search('\\bmemcpy\\b', content)
   if match:
-    line_number = content[0:match.start()].count('\n') + 1
-    print("%s:%d: use of memcpy is forbidden" % (filename, line_number))
-    return 1
+      offset = match.start()
+      end_of_line = content.index('\n', offset)
+      # We allow explicit use of memcpy with an opt-in via NOLINT
+      if 'NOLINT' not in content[offset:end_of_line]:
+        line_number = content[0:match.start()].count('\n') + 1
+        print("%s:%d: use of memcpy is forbidden" % (filename, line_number))
+        return 1
   return 0
 
 

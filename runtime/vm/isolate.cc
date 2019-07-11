@@ -130,6 +130,43 @@ static RawInstance* DeserializeMessage(Thread* thread, Message* message) {
   }
 }
 
+IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
+                           void* embedder_data)
+    : source_(std::move(source)),
+      embedder_data_(embedder_data),
+      isolates_monitor_(new Monitor()),
+      isolates_() {}
+
+IsolateGroup::~IsolateGroup() {}
+
+void IsolateGroup::RegisterIsolate(Isolate* isolate) {
+  MonitorLocker ml(isolates_monitor_.get());
+  isolates_.Append(isolate);
+  isolate_count_++;
+}
+
+void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
+  bool is_last_isolate = false;
+  {
+    MonitorLocker ml(isolates_monitor_.get());
+    isolates_.Remove(isolate);
+    isolate_count_--;
+    is_last_isolate = isolate_count_ == 0;
+  }
+  if (is_last_isolate) {
+    // If the creation of the isolate group (or the first isolate within the
+    // isolate group) failed, we do not invoke the cleanup callback (the
+    // embedder is responsible for handling the creation error).
+    if (initial_spawn_successful_) {
+      auto group_shutdown_callback = Isolate::GroupCleanupCallback();
+      if (group_shutdown_callback != nullptr) {
+        group_shutdown_callback(embedder_data());
+      }
+    }
+    delete this;
+  }
+}
+
 bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
   return Isolate::IsVMInternalIsolate(isolate);
 }
@@ -863,7 +900,8 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
-Isolate::Isolate(const Dart_IsolateFlags& api_flags)
+Isolate::Isolate(IsolateGroup* isolate_group,
+                 const Dart_IsolateFlags& api_flags)
     : BaseIsolate(),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
@@ -929,6 +967,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   }
   NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
                          new BackgroundCompiler(this));
+
+  isolate_group->RegisterIsolate(this);
+  isolate_group_ = isolate_group;
 }
 
 #undef REUSABLE_HANDLE_SCOPE_INIT
@@ -998,6 +1039,11 @@ Isolate::~Isolate() {
     }
     delete[] embedder_entry_points_;
   }
+
+  // Run isolate group specific cleanup function if the last isolate in an
+  // isolate group died.
+  isolate_group_->UnregisterIsolate(this);
+  isolate_group_ = nullptr;
 }
 
 void Isolate::InitVM() {
@@ -1014,9 +1060,10 @@ void Isolate::InitVM() {
 }
 
 Isolate* Isolate::InitIsolate(const char* name_prefix,
+                              IsolateGroup* isolate_group,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate) {
-  Isolate* result = new Isolate(api_flags);
+  Isolate* result = new Isolate(isolate_group, api_flags);
   ASSERT(result != nullptr);
 
 #if !defined(PRODUCT)
@@ -1112,6 +1159,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
     if (ServiceIsolate::IsServiceIsolate(result)) {
       ServiceIsolate::SetServiceIsolate(nullptr);
     }
+
     delete result;
     return nullptr;
   }
@@ -1904,25 +1952,11 @@ void Isolate::Shutdown() {
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
 
-  // The source is null iff the isolate is the "vm-isolate".
-  ASSERT((source_ == nullptr) == (Dart::vm_isolate() == this));
-
-  if (source_ != nullptr) {
-    // Run isolate specific cleanup function.
+  // Run isolate specific cleanup function for all non "vm-isolate's.
+  if (Dart::vm_isolate() != this) {
     Dart_IsolateCleanupCallback cleanup = Isolate::CleanupCallback();
     if (cleanup != nullptr) {
-      cleanup(source_->callback_data, init_callback_data());
-    }
-
-    // Run isolate group specific cleanup function if the last isolate in an
-    // isolate group died.
-    if (source_->DecrementIsolateUsageCount()) {
-      auto group_cleanup_callback = Isolate::GroupCleanupCallback();
-      if (group_cleanup_callback != nullptr) {
-        group_cleanup_callback(source_->callback_data);
-      }
-      delete source_;
-      source_ = nullptr;
+      cleanup(isolate_group_->embedder_data(), init_callback_data());
     }
   }
 }
@@ -2891,6 +2925,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   // so we create a MonitorLocker object which does not do any
   // no_safepoint_scope_depth increments/decrements.
   MonitorLocker ml(threads_lock(), false);
+
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
@@ -2954,7 +2989,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
                                      const char* debug_name,
-                                     IsolateGroupSource* source)
+                                     IsolateGroup* isolate_group)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(origin_id),
@@ -2966,7 +3001,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
-      source_(source),
+      isolate_group_(isolate_group),
       serialized_args_(nullptr),
       serialized_message_(message_buffer->StealMessage()),
       paused_(paused),
@@ -2999,7 +3034,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_exit_port,
                                      Dart_Port on_error_port,
                                      const char* debug_name,
-                                     IsolateGroupSource* source)
+                                     IsolateGroup* group)
     : isolate_(nullptr),
       parent_port_(parent_port),
       origin_id_(ILLEGAL_PORT),
@@ -3011,7 +3046,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       class_name_(nullptr),
       function_name_(nullptr),
       debug_name_(debug_name),
-      source_(source),
+      isolate_group_(group),
       serialized_args_(args_buffer->StealMessage()),
       serialized_message_(message_buffer->StealMessage()),
       isolate_flags_(),

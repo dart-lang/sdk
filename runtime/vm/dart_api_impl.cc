@@ -6,6 +6,7 @@
 #include "include/dart_native_api.h"
 
 #include <memory>
+#include <utility>
 
 #include "lib/stacktrace.h"
 #include "platform/assert.h"
@@ -1068,13 +1069,14 @@ ISOLATE_METRIC_LIST(ISOLATE_METRIC_API);
 
 // --- Isolates ---
 
-static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
+static Dart_Isolate CreateIsolate(IsolateGroup* group,
                                   const char* name,
                                   void* isolate_data,
                                   char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
 
-  Isolate* I = Dart::CreateIsolate(name, source->flags);
+  auto source = group->source();
+  Isolate* I = Dart::CreateIsolate(name, source->flags, group);
   if (I == NULL) {
     if (error != NULL) {
       *error = strdup("Isolate creation failed");
@@ -1111,8 +1113,6 @@ static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
     T->ExitApiScope();
   }
 
-  I->set_source(source);
-
   if (success) {
     // A Thread structure has been associated to the thread, we do the
     // safepoint transition explicitly here instead of using the
@@ -1130,17 +1130,18 @@ static Dart_Isolate CreateIsolate(IsolateGroupSource* source,
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
 
-Isolate* CreateIsolateFromExistingSource(IsolateGroupSource* source,
-                                         const char* name,
-                                         char** error) {
+Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
+                                          const char* name,
+                                          char** error) {
   API_TIMELINE_DURATION(Thread::Current());
   CHECK_NO_ISOLATE(Isolate::Current());
 
   Isolate* isolate = reinterpret_cast<Isolate*>(
-      CreateIsolate(source, name, /*isolate_data=*/nullptr, error));
+      CreateIsolate(group, name, /*isolate_data=*/nullptr, error));
   if (isolate == nullptr) return nullptr;
 
-  RELEASE_ASSERT(isolate->source() == source);
+  auto source = group->source();
+  ASSERT(isolate->source() == source);
 
   if (source->script_kernel_buffer != nullptr) {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1210,15 +1211,14 @@ Dart_CreateIsolateGroup(const char* script_uri,
   }
 
   const char* non_null_name = name == nullptr ? "isolate" : name;
-  auto source = new IsolateGroupSource(script_uri, non_null_name, snapshot_data,
-                                       snapshot_instructions, shared_data,
-                                       shared_instructions, nullptr, -1, *flags,
-                                       isolate_group_data);
-  source->IncrementIsolateUsageCount();
+  std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
+      script_uri, non_null_name, snapshot_data, snapshot_instructions,
+      shared_data, shared_instructions, nullptr, -1, *flags));
+  auto group = new IsolateGroup(std::move(source), isolate_group_data);
   Dart_Isolate isolate =
-      CreateIsolate(source, non_null_name, isolate_data, error);
-  if (source->DecrementIsolateUsageCount()) {
-    delete source;
+      CreateIsolate(group, non_null_name, isolate_data, error);
+  if (isolate != nullptr) {
+    group->set_initial_spawn_successful();
   }
   return isolate;
 }
@@ -1241,14 +1241,14 @@ Dart_CreateIsolateGroupFromKernel(const char* script_uri,
   }
 
   const char* non_null_name = name == nullptr ? "isolate" : name;
-  auto source = new IsolateGroupSource(
+  std::unique_ptr<IsolateGroupSource> source(new IsolateGroupSource(
       script_uri, non_null_name, nullptr, nullptr, nullptr, nullptr,
-      kernel_buffer, kernel_buffer_size, *flags, isolate_group_data);
-  source->IncrementIsolateUsageCount();
+      kernel_buffer, kernel_buffer_size, *flags));
+  auto group = new IsolateGroup(std::move(source), isolate_group_data);
   Dart_Isolate isolate =
-      CreateIsolate(source, non_null_name, isolate_data, error);
-  if (source->DecrementIsolateUsageCount()) {
-    delete source;
+      CreateIsolate(group, non_null_name, isolate_data, error);
+  if (isolate != nullptr) {
+    group->set_initial_spawn_successful();
   }
   return isolate;
 }
@@ -1308,7 +1308,7 @@ DART_EXPORT void* Dart_CurrentIsolateGroupData() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   NoSafepointScope no_safepoint_scope;
-  return isolate->source()->callback_data;
+  return isolate->group()->embedder_data();
 }
 
 DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
@@ -1316,7 +1316,7 @@ DART_EXPORT void* Dart_IsolateGroupData(Dart_Isolate isolate) {
     FATAL1("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
-  return reinterpret_cast<Isolate*>(isolate)->source()->callback_data;
+  return reinterpret_cast<Isolate*>(isolate)->group()->embedder_data();
 }
 
 DART_EXPORT Dart_Handle Dart_DebugName() {

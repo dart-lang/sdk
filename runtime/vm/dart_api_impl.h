@@ -365,9 +365,9 @@ class IsolateGroupSource;
 
 // Creates a new isolate from [source] (which should come from an existing
 // isolate).
-Isolate* CreateIsolateFromExistingSource(IsolateGroupSource* source,
-                                         const char* name,
-                                         char** error);
+Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
+                                          const char* name,
+                                          char** error);
 
 }  // namespace dart.
 

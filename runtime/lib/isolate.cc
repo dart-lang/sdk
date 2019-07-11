@@ -129,7 +129,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
   }
 
   void Run() override {
-    IsolateGroupSource* source = state_->source();
+    auto group = state_->isolate_group();
 
     // The create isolate group call back is mandatory.  If not provided we
     // cannot spawn isolates.
@@ -152,7 +152,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
     // Create a new isolate.
     char* error = nullptr;
     Isolate* isolate = nullptr;
-    if (source == nullptr || initialize_callback == nullptr) {
+    if (group == nullptr || initialize_callback == nullptr) {
       // Make a copy of the state's isolate flags and hand it to the callback.
       Dart_IsolateFlags api_flags = *(state_->isolate_flags());
       isolate = reinterpret_cast<Isolate*>((create_group_callback)(
@@ -166,7 +166,7 @@ class SpawnIsolateTask : public ThreadPool::Task {
         return;
       }
 
-      isolate = CreateIsolateFromExistingSource(source, name, &error);
+      isolate = CreateWithinExistingIsolateGroup(group, name, &error);
       parent_isolate_->DecrementSpawnCount();
       parent_isolate_ = nullptr;
       if (isolate == nullptr) {
@@ -285,7 +285,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 11) {
       std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
           port.Id(), isolate->origin_id(), String2UTF8(script_uri), func,
           &message_buffer, utf8_package_config, paused.value(), fatal_errors,
-          on_exit_port, on_error_port, utf8_debug_name, isolate->source()));
+          on_exit_port, on_error_port, utf8_debug_name, isolate->group()));
 
       // Since this is a call to Isolate.spawn, copy the parent isolate's code.
       state->isolate_flags()->copy_parent_code = true;
@@ -396,12 +396,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
   const char* utf8_debug_name =
       debugName.IsNull() ? NULL : String2UTF8(debugName);
 
-  IsolateGroupSource* null_source = nullptr;
-
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), canonical_uri, utf8_package_config, &arguments_buffer,
       &message_buffer, paused.value(), fatal_errors, on_exit_port,
-      on_error_port, utf8_debug_name, null_source));
+      on_error_port, utf8_debug_name, /*group=*/nullptr));
 
   // If we were passed a value then override the default flags state for
   // checked mode.
@@ -470,7 +468,7 @@ static void ExternalTypedDataFinalizer(void* isolate_callback_data,
   free(peer);
 }
 
-static intptr_t GetUint8SizeOrThrow(const Instance& instance) {
+static intptr_t GetTypedDataSizeOrThrow(const Instance& instance) {
   // From the Dart side we are guaranteed that the type of [instance] is a
   // subtype of TypedData.
   if (instance.IsTypedDataBase()) {
@@ -503,19 +501,18 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
     UNREACHABLE();
   }
   Instance& instance = Instance::Handle();
-  unsigned long long total_bytes = 0;
-  const unsigned long kMaxBytes =
-      TypedData::MaxElements(kTypedDataUint8ArrayCid);
+  uint64_t total_bytes = 0;
+  const uint64_t kMaxBytes = TypedData::MaxElements(kTypedDataUint8ArrayCid);
   for (intptr_t i = 0; i < array_length; i++) {
     instance ^= array.At(i);
-    total_bytes += GetUint8SizeOrThrow(instance);
+    total_bytes += static_cast<uintptr_t>(GetTypedDataSizeOrThrow(instance));
     if (total_bytes > kMaxBytes) {
       const Array& error_args = Array::Handle(Array::New(3));
       error_args.SetAt(0, array);
       error_args.SetAt(1, String::Handle(String::New("data")));
-      error_args.SetAt(2,
-                       String::Handle(String::NewFormatted(
-                           "Aggregated list exceeds max size %ld", kMaxBytes)));
+      error_args.SetAt(
+          2, String::Handle(String::NewFormatted(
+                 "Aggregated list exceeds max size %" Pu64 "", kMaxBytes)));
       Exceptions::ThrowByType(Exceptions::kArgumentValue, error_args);
       UNREACHABLE();
     }
@@ -539,11 +536,11 @@ DEFINE_NATIVE_ENTRY(TransferableTypedData_factory, 0, 2) {
 
       void* source = typed_data.DataAddr(0);
       // The memory does not overlap.
-      memcpy(data + offset, source, length_in_bytes);
+      memcpy(data + offset, source, length_in_bytes);  // NOLINT
       offset += length_in_bytes;
     }
   }
-  ASSERT(static_cast<unsigned long>(offset) == total_bytes);
+  ASSERT(static_cast<uintptr_t>(offset) == total_bytes);
   return TransferableTypedData::New(data, total_bytes);
 }
 
