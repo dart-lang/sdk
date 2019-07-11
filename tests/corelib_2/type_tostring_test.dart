@@ -14,7 +14,7 @@ import "package:expect/expect.dart";
 
 void expectType(Type type, Pattern text) {
   var typeString = "$type";
-  if (typeString.contains("minimized:")) {
+  if (typeString.contains("minified:")) {
     return; // No checks for minimized types.
   }
   if (text is String) {

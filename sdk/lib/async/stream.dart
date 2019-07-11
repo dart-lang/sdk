@@ -118,6 +118,7 @@ abstract class Stream<T> {
    * The returned stream is effectively equivalent to one created by
    * `(() async* { yield value; } ())` or `Future<T>.value(value).asStream()`.
    */
+  @Since("2.5")
   factory Stream.value(T value) =>
       (_AsyncStreamController<T>(null, null, null, null)
             .._add(value)
@@ -148,6 +149,7 @@ abstract class Stream<T> {
    * `(() async* { throw error; } ())`, except that you can control the
    * stack trace as well.
    */
+  @Since("2.5")
   factory Stream.error(Object error, [StackTrace stackTrace]) =>
       (_AsyncStreamController<T>(null, null, null, null)
             .._addError(error, stackTrace)
