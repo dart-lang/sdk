@@ -175,6 +175,15 @@ RawInstance* ConstantEvaluator::EvaluateExpression(intptr_t offset,
       case kDeprecated_ConstantExpression:
         result_ = EvaluateConstantExpression(helper_->ReadUInt());
         break;
+      case kInvalidExpression: {
+        helper_->ReadPosition();  // Skip position.
+        const String& message = H.DartString(helper_->ReadStringReference());
+        // Invalid expression message has pointer to the source code, no need to
+        // report it twice.
+        H.ReportError(helper_->script(), TokenPosition::kNoSource, "%s",
+                      message.ToCString());
+        break;
+      }
       default:
         H.ReportError(
             script_, TokenPosition::kNoSource,
