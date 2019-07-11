@@ -130,7 +130,7 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler {
  public:
-  explicit BackgroundCompiler(Isolate* isolate);
+  explicit BackgroundCompiler(Isolate* isolate, bool optimizing);
   virtual ~BackgroundCompiler();
 
   static void Start(Isolate* isolate) {
@@ -191,6 +191,7 @@ class BackgroundCompiler {
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
   bool is_running() const { return running_; }
+  bool is_optimizing() const { return optimizing_; }
 
   void Run();
 
@@ -210,6 +211,7 @@ class BackgroundCompiler {
   Monitor done_monitor_;    // Notify/wait that the thread is done.
   bool running_;            // While true, will try to read queue and compile.
   bool done_;               // True if the thread is done.
+  bool optimizing_;
 
   int16_t disabled_depth_;
 

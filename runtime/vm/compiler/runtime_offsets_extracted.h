@@ -193,9 +193,9 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 4;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 280;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    612;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     616;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    620;
 static constexpr dart::compiler::target::word
     Thread_array_write_barrier_code_offset = 112;
 static constexpr dart::compiler::target::word
@@ -210,7 +210,7 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 196;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 132;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 644;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 648;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     224;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 156;
@@ -226,7 +226,7 @@ static constexpr dart::compiler::target::word Thread_end_offset = 60;
 static constexpr dart::compiler::target::word
     Thread_enter_safepoint_stub_offset = 180;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    628;
+    632;
 static constexpr dart::compiler::target::word
     Thread_exit_safepoint_stub_offset = 184;
 static constexpr dart::compiler::target::word
@@ -242,7 +242,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 276;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    620;
+    624;
 static constexpr dart::compiler::target::word
     Thread_interpret_call_entry_point_offset = 244;
 static constexpr dart::compiler::target::word
@@ -277,9 +277,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 96;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 248;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 624;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 628;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    632;
+    636;
 static constexpr dart::compiler::target::word
     Thread_slow_type_test_stub_offset = 172;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 36;
@@ -310,7 +310,7 @@ static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
     44;
 static constexpr dart::compiler::target::word
     Thread_verify_callback_entry_offset = 232;
-static constexpr dart::compiler::target::word Thread_callback_code_offset = 636;
+static constexpr dart::compiler::target::word Thread_callback_code_offset = 640;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset = 8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Type_arguments_offset = 16;
@@ -343,8 +343,8 @@ static dart::compiler::target::word Code_entry_point_offset[] = {4, 12, 8, 16};
 static dart::compiler::target::word Code_function_entry_point_offset[] = {4, 8};
 static dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        576, 580, 584, 588, 592, -1, 596, 600,
-        604, 608, -1,  -1,  -1,  -1, -1,  -1};
+        580, 584, 588, 592, 596, -1, 600, 604,
+        608, 612, -1,  -1,  -1,  -1, -1,  -1};
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -546,9 +546,9 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 8;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 552;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    1232;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     1240;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    1248;
 static constexpr dart::compiler::target::word
     Thread_array_write_barrier_code_offset = 216;
 static constexpr dart::compiler::target::word
@@ -563,7 +563,7 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 384;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1296;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1304;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     440;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 304;
@@ -579,7 +579,7 @@ static constexpr dart::compiler::target::word Thread_end_offset = 120;
 static constexpr dart::compiler::target::word
     Thread_enter_safepoint_stub_offset = 352;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    1264;
+    1272;
 static constexpr dart::compiler::target::word
     Thread_exit_safepoint_stub_offset = 360;
 static constexpr dart::compiler::target::word
@@ -595,7 +595,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 544;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    1248;
+    1256;
 static constexpr dart::compiler::target::word
     Thread_interpret_call_entry_point_offset = 480;
 static constexpr dart::compiler::target::word
@@ -630,9 +630,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 184;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 488;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 1256;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 1264;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    1272;
+    1280;
 static constexpr dart::compiler::target::word
     Thread_slow_type_test_stub_offset = 336;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 72;
@@ -664,7 +664,7 @@ static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
 static constexpr dart::compiler::target::word
     Thread_verify_callback_entry_offset = 456;
 static constexpr dart::compiler::target::word Thread_callback_code_offset =
-    1280;
+    1288;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     16;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 16;
@@ -699,8 +699,8 @@ static dart::compiler::target::word Code_function_entry_point_offset[] = {8,
                                                                           16};
 static dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        1144, 1152, 1160, 1168, -1,   -1,   1176, 1184,
-        1192, 1200, 1208, -1,   1216, 1224, -1,   -1};
+        1152, 1160, 1168, 1176, -1,   -1,   1184, 1192,
+        1200, 1208, 1216, -1,   1224, 1232, -1,   -1};
 static constexpr dart::compiler::target::word Array_header_size = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -900,9 +900,9 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 4;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 280;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    576;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     580;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    584;
 static constexpr dart::compiler::target::word
     Thread_array_write_barrier_code_offset = 112;
 static constexpr dart::compiler::target::word
@@ -917,7 +917,7 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 196;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 132;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 608;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 612;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     224;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 156;
@@ -933,7 +933,7 @@ static constexpr dart::compiler::target::word Thread_end_offset = 60;
 static constexpr dart::compiler::target::word
     Thread_enter_safepoint_stub_offset = 180;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    592;
+    596;
 static constexpr dart::compiler::target::word
     Thread_exit_safepoint_stub_offset = 184;
 static constexpr dart::compiler::target::word
@@ -949,7 +949,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 276;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    584;
+    588;
 static constexpr dart::compiler::target::word
     Thread_interpret_call_entry_point_offset = 244;
 static constexpr dart::compiler::target::word
@@ -984,9 +984,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 96;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 248;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 588;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 592;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    596;
+    600;
 static constexpr dart::compiler::target::word
     Thread_slow_type_test_stub_offset = 172;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 36;
@@ -1017,7 +1017,7 @@ static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
     44;
 static constexpr dart::compiler::target::word
     Thread_verify_callback_entry_offset = 232;
-static constexpr dart::compiler::target::word Thread_callback_code_offset = 600;
+static constexpr dart::compiler::target::word Thread_callback_code_offset = 604;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset = 8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Type_arguments_offset = 16;
@@ -1249,9 +1249,9 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 8;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 552;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    1320;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     1328;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    1336;
 static constexpr dart::compiler::target::word
     Thread_array_write_barrier_code_offset = 216;
 static constexpr dart::compiler::target::word
@@ -1266,7 +1266,7 @@ static constexpr dart::compiler::target::word
     Thread_call_to_runtime_entry_point_offset = 384;
 static constexpr dart::compiler::target::word
     Thread_call_to_runtime_stub_offset = 256;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1384;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 1392;
 static constexpr dart::compiler::target::word Thread_optimize_entry_offset =
     440;
 static constexpr dart::compiler::target::word Thread_optimize_stub_offset = 304;
@@ -1282,7 +1282,7 @@ static constexpr dart::compiler::target::word Thread_end_offset = 120;
 static constexpr dart::compiler::target::word
     Thread_enter_safepoint_stub_offset = 352;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    1352;
+    1360;
 static constexpr dart::compiler::target::word
     Thread_exit_safepoint_stub_offset = 360;
 static constexpr dart::compiler::target::word
@@ -1298,7 +1298,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 544;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    1336;
+    1344;
 static constexpr dart::compiler::target::word
     Thread_interpret_call_entry_point_offset = 480;
 static constexpr dart::compiler::target::word
@@ -1333,9 +1333,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 184;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 488;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 1344;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 1352;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    1360;
+    1368;
 static constexpr dart::compiler::target::word
     Thread_slow_type_test_stub_offset = 336;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 72;
@@ -1367,7 +1367,7 @@ static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
 static constexpr dart::compiler::target::word
     Thread_verify_callback_entry_offset = 456;
 static constexpr dart::compiler::target::word Thread_callback_code_offset =
-    1368;
+    1376;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     16;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 16;
@@ -1402,9 +1402,9 @@ static dart::compiler::target::word Code_function_entry_point_offset[] = {8,
                                                                           16};
 static dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        1144, 1152, 1160, 1168, 1176, 1184, 1192, 1200, 1208, 1216, 1224,
-        1232, 1240, 1248, 1256, -1,   -1,   -1,   -1,   1264, 1272, 1280,
-        1288, 1296, 1304, 1312, -1,   -1,   -1,   -1,   -1,   -1};
+        1152, 1160, 1168, 1176, 1184, 1192, 1200, 1208, 1216, 1224, 1232,
+        1240, 1248, 1256, 1264, -1,   -1,   -1,   -1,   1272, 1280, 1288,
+        1296, 1304, 1312, 1320, -1,   -1,   -1,   -1,   -1,   -1};
 static constexpr dart::compiler::target::word Array_header_size = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -1606,23 +1606,23 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 8;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 296;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    888;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     896;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    904;
 static constexpr dart::compiler::target::word Thread_async_stack_trace_offset =
     168;
 static constexpr dart::compiler::target::word
     Thread_auto_scope_native_wrapper_entry_point_offset = 216;
 static constexpr dart::compiler::target::word Thread_bool_false_offset = 200;
 static constexpr dart::compiler::target::word Thread_bool_true_offset = 192;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 952;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 960;
 static constexpr dart::compiler::target::word Thread_double_abs_address_offset =
     256;
 static constexpr dart::compiler::target::word
     Thread_double_negate_address_offset = 248;
 static constexpr dart::compiler::target::word Thread_end_offset = 120;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    920;
+    928;
 static constexpr dart::compiler::target::word
     Thread_float_absolute_address_offset = 280;
 static constexpr dart::compiler::target::word
@@ -1632,7 +1632,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 288;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    904;
+    912;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 96;
 static constexpr dart::compiler::target::word
     Thread_marking_stack_block_offset = 144;
@@ -1641,9 +1641,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 184;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 232;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 912;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 920;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    928;
+    936;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 72;
 static constexpr dart::compiler::target::word
     Thread_stack_overflow_flags_offset = 80;
@@ -1658,7 +1658,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_vm_tag_offset = 160;
 static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
     88;
-static constexpr dart::compiler::target::word Thread_callback_code_offset = 936;
+static constexpr dart::compiler::target::word Thread_callback_code_offset = 944;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset =
     16;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 16;
@@ -1890,23 +1890,23 @@ static constexpr dart::compiler::target::word SubtypeTestCache_cache_offset = 4;
 static constexpr dart::compiler::target::word
     Thread_AllocateArray_entry_point_offset = 152;
 static constexpr dart::compiler::target::word Thread_active_exception_offset =
-    448;
-static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
     452;
+static constexpr dart::compiler::target::word Thread_active_stacktrace_offset =
+    456;
 static constexpr dart::compiler::target::word Thread_async_stack_trace_offset =
     84;
 static constexpr dart::compiler::target::word
     Thread_auto_scope_native_wrapper_entry_point_offset = 112;
 static constexpr dart::compiler::target::word Thread_bool_false_offset = 104;
 static constexpr dart::compiler::target::word Thread_bool_true_offset = 100;
-static constexpr dart::compiler::target::word Thread_dart_stream_offset = 480;
+static constexpr dart::compiler::target::word Thread_dart_stream_offset = 484;
 static constexpr dart::compiler::target::word Thread_double_abs_address_offset =
     132;
 static constexpr dart::compiler::target::word
     Thread_double_negate_address_offset = 128;
 static constexpr dart::compiler::target::word Thread_end_offset = 60;
 static constexpr dart::compiler::target::word Thread_execution_state_offset =
-    464;
+    468;
 static constexpr dart::compiler::target::word
     Thread_float_absolute_address_offset = 144;
 static constexpr dart::compiler::target::word
@@ -1916,7 +1916,7 @@ static constexpr dart::compiler::target::word Thread_float_not_address_offset =
 static constexpr dart::compiler::target::word
     Thread_float_zerow_address_offset = 148;
 static constexpr dart::compiler::target::word Thread_global_object_pool_offset =
-    456;
+    460;
 static constexpr dart::compiler::target::word Thread_isolate_offset = 48;
 static constexpr dart::compiler::target::word
     Thread_marking_stack_block_offset = 72;
@@ -1925,9 +1925,9 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_object_null_offset = 96;
 static constexpr dart::compiler::target::word
     Thread_predefined_symbols_address_offset = 120;
-static constexpr dart::compiler::target::word Thread_resume_pc_offset = 460;
+static constexpr dart::compiler::target::word Thread_resume_pc_offset = 464;
 static constexpr dart::compiler::target::word Thread_safepoint_state_offset =
-    468;
+    472;
 static constexpr dart::compiler::target::word Thread_stack_limit_offset = 36;
 static constexpr dart::compiler::target::word
     Thread_stack_overflow_flags_offset = 40;
@@ -1942,7 +1942,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Thread_vm_tag_offset = 80;
 static constexpr dart::compiler::target::word Thread_write_barrier_mask_offset =
     44;
-static constexpr dart::compiler::target::word Thread_callback_code_offset = 472;
+static constexpr dart::compiler::target::word Thread_callback_code_offset = 476;
 static constexpr dart::compiler::target::word TimelineStream_enabled_offset = 8;
 static constexpr dart::compiler::target::word TwoByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Type_arguments_offset = 16;

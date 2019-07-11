@@ -54,6 +54,7 @@ namespace dart {
   V(UpdateFieldCid)                                                            \
   V(InitStaticField)                                                           \
   V(CompileFunction)                                                           \
+  V(CompileInterpretedFunction)                                                \
   V(MonomorphicMiss)                                                           \
   V(SingleTargetMiss)                                                          \
   V(UnlinkedCall)

@@ -1133,11 +1133,11 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&                    \
                  counter >= FLAG_compilation_counter_threshold &&              \
                  !Function::HasCode(function))) {                              \
-      SP[1] = 0; /* Unused code result. */                                     \
+      SP[1] = 0; /* Unused result. */                                          \
       SP[2] = function;                                                        \
       Exit(thread, FP, SP + 3, pc);                                            \
       NativeArguments native_args(thread, 1, SP + 2, SP + 1);                  \
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);                \
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);             \
       function = FrameFunction(FP);                                            \
     }                                                                          \
   }
@@ -1766,11 +1766,11 @@ SwitchDispatch:
     if (UNLIKELY(FLAG_compilation_counter_threshold >= 0 &&
                  counter >= FLAG_compilation_counter_threshold &&
                  !Function::HasCode(function))) {
-      SP[1] = 0;  // Unused code result.
+      SP[1] = 0;  // Unused result.
       SP[2] = function;
       Exit(thread, FP, SP + 3, pc);
       NativeArguments native_args(thread, 1, SP + 2, SP + 1);
-      INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, native_args);
+      INVOKE_RUNTIME(DRT_CompileInterpretedFunction, native_args);
     }
     DISPATCH();
   }

@@ -963,10 +963,11 @@ Isolate::Isolate(IsolateGroup* isolate_group,
   }
 
   if (FLAG_enable_interpreter) {
-    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(this));
+    NOT_IN_PRECOMPILED(background_compiler_ = new BackgroundCompiler(
+                           this, /* optimizing = */ false));
   }
   NOT_IN_PRECOMPILED(optimizing_background_compiler_ =
-                         new BackgroundCompiler(this));
+                         new BackgroundCompiler(this, /* optimizing = */ true));
 
   isolate_group->RegisterIsolate(this);
   isolate_group_ = isolate_group;

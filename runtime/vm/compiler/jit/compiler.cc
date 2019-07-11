@@ -235,7 +235,7 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
       // If interpreter is enabled and there is bytecode, LazyCompile stub
       // (which calls CompileFunction) should proceed to InterpretCall in order
       // to enter interpreter. In such case, compilation is postponed and
-      // triggered by interpreter later via OptimizeInvokedFunction.
+      // triggered by interpreter later via CompileInterpretedFunction.
       return;
     }
     // No bytecode, fall back to compilation.
@@ -1226,13 +1226,14 @@ class BackgroundCompilationQueue {
   DISALLOW_COPY_AND_ASSIGN(BackgroundCompilationQueue);
 };
 
-BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
+BackgroundCompiler::BackgroundCompiler(Isolate* isolate, bool optimizing)
     : isolate_(isolate),
       queue_monitor_(),
       function_queue_(new BackgroundCompilationQueue()),
       done_monitor_(),
       running_(false),
       done_(true),
+      optimizing_(optimizing),
       disabled_depth_(0) {}
 
 // Fields all deleted in ::Stop; here clear them.
@@ -1257,14 +1258,11 @@ void BackgroundCompiler::Run() {
         function = function_queue()->PeekFunction();
       }
       while (running_ && !function.IsNull()) {
-        // This is false if we are compiling bytecode -> unoptimized code.
-        const bool optimizing = function.ShouldCompilerOptimize();
-        ASSERT(FLAG_enable_interpreter || optimizing);
-
-        if (optimizing) {
+        if (is_optimizing()) {
           Compiler::CompileOptimizedFunction(thread, function,
                                              Compiler::kNoOSRDeoptId);
         } else {
+          ASSERT(FLAG_enable_interpreter);
           Compiler::CompileFunction(thread, function);
         }
 
@@ -1279,7 +1277,7 @@ void BackgroundCompiler::Run() {
             const Function& old = Function::Handle(qelem->Function());
             // If an optimizable method is not optimized, put it back on
             // the background queue (unless it was passed to foreground).
-            if ((optimizing && !old.HasOptimizedCode() &&
+            if ((is_optimizing() && !old.HasOptimizedCode() &&
                  old.IsOptimizable()) ||
                 FLAG_stress_test_background_compilation) {
               if (old.is_background_optimizable() &&
