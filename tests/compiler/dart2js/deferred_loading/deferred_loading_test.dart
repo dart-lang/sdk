@@ -36,7 +36,7 @@ main(List<String> args) {
         options: compilerOptions,
         args: args, setUpFunction: () {
       importPrefixes.clear();
-    }, testOmit: false, testCFEConstants: true);
+    }, testedConfigs: allStrongConfigs);
   });
 }
 
@@ -91,32 +91,21 @@ class OutputUnitDataComputer extends DataComputer<String> {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap, member,
+    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
             closedWorld.outputUnitData, closedWorld.closureDataLookup)
         .run(definition.node);
   }
-
-  @override
-  bool get computesClassData => true;
 
   @override
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
-    OutputUnitData data = closedWorld.outputUnitData;
-    String value = outputUnitString(data.outputUnitForClassForTesting(cls));
-
     JsToElementMap elementMap = closedWorld.elementMap;
     ClassDefinition definition = elementMap.getClassDefinition(cls);
-
-    _registerValue(
-        new ClassId(cls.name),
-        value,
-        cls,
-        computeSourceSpanFromTreeNode(definition.node),
-        actualMap,
-        compiler.reporter);
+    new OutputUnitIrComputer(compiler.reporter, actualMap, elementMap,
+            closedWorld.outputUnitData, closedWorld.closureDataLookup)
+        .computeForClass(definition.node);
   }
 
   @override
@@ -134,7 +123,6 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
       DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap,
       this._elementMap,
-      MemberEntity member,
       this._data,
       this._closureDataLookup)
       : super(reporter, actualMap);
@@ -147,6 +135,12 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
       sb.write(',constants=[${text.join(',')}]');
     }
     return sb.toString();
+  }
+
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return outputUnitString(
+        _data.outputUnitForClassForTesting(_elementMap.getClass(cls)));
   }
 
   @override

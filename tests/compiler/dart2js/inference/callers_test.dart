@@ -84,6 +84,11 @@ class CallersIrComputer extends IrDataExtractor<String> {
   }
 
   @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return null;
+  }
+
+  @override
   String computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }

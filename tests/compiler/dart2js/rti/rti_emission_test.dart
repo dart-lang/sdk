@@ -97,17 +97,14 @@ class RtiEmissionDataComputer extends DataComputer<String> {
   const RtiEmissionDataComputer();
 
   @override
-  bool get computesClassData => true;
-
-  @override
   void computeMemberData(Compiler compiler, MemberEntity member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiMemberEmissionIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, closedWorld.closureDataLookup)
+    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            compiler, closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -117,51 +114,34 @@ class RtiEmissionDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiClassEmissionIrComputer(compiler, elementMap, actualMap)
-        .computeClassValue(cls);
+    new RtiEmissionIrComputer(compiler.reporter, actualMap, elementMap,
+            compiler, closedWorld.closureDataLookup)
+        .computeForClass(elementMap.getClassDefinition(cls).node);
   }
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-class RtiClassEmissionIrComputer extends DataRegistry<String>
-    with ComputeValueMixin, IrDataRegistryMixin<String> {
-  @override
-  final Compiler compiler;
-  final JsToElementMap _elementMap;
-  @override
-  final Map<Id, ActualData<String>> actualMap;
-
-  RtiClassEmissionIrComputer(this.compiler, this._elementMap, this.actualMap);
-
-  @override
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  void computeClassValue(ClassEntity cls) {
-    Id id = new ClassId(cls.name);
-    ir.TreeNode node = _elementMap.getClassDefinition(cls).node;
-    ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
-    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
-        id, getClassValue(cls), cls);
-  }
-}
-
-class RtiMemberEmissionIrComputer extends IrDataExtractor<String>
+class RtiEmissionIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
   @override
   final Compiler compiler;
 
-  RtiMemberEmissionIrComputer(
+  RtiEmissionIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap,
       this._elementMap,
-      MemberEntity member,
       this.compiler,
       this._closureDataLookup)
       : super(reporter, actualMap);
+
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return getClassValue(_elementMap.getClass(cls));
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

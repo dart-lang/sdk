@@ -233,9 +233,6 @@ class FindTypeVisitor extends BaseDartTypeVisitor<bool, Null> {
 class RtiNeedDataComputer extends DataComputer<String> {
   const RtiNeedDataComputer();
 
-  @override
-  bool get computesClassData => true;
-
   /// Compute RTI need data for [member] from the new frontend.
   ///
   /// Fills [actualMap] with the data.
@@ -246,8 +243,8 @@ class RtiNeedDataComputer extends DataComputer<String> {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
     MemberDefinition definition = elementMap.getMemberDefinition(member);
-    new RtiMemberNeedIrComputer(compiler.reporter, actualMap, elementMap,
-            member, compiler, closedWorld.closureDataLookup)
+    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
         .run(definition.node);
   }
 
@@ -260,8 +257,9 @@ class RtiNeedDataComputer extends DataComputer<String> {
       {bool verbose: false}) {
     JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
     JsToElementMap elementMap = closedWorld.elementMap;
-    new RtiClassNeedIrComputer(compiler, elementMap, actualMap)
-        .computeClassValue(cls);
+    new RtiNeedIrComputer(compiler.reporter, actualMap, elementMap, compiler,
+            closedWorld.closureDataLookup)
+        .computeForClass(elementMap.getClassDefinition(cls).node);
   }
 
   @override
@@ -339,21 +337,25 @@ class RtiClassNeedIrComputer extends DataRegistry<String>
 }
 
 /// AST visitor for computing inference data for a member.
-class RtiMemberNeedIrComputer extends IrDataExtractor<String>
+class RtiNeedIrComputer extends IrDataExtractor<String>
     with ComputeValueMixin, IrMixin {
   final JsToElementMap _elementMap;
   final ClosureData _closureDataLookup;
   @override
   final Compiler compiler;
 
-  RtiMemberNeedIrComputer(
+  RtiNeedIrComputer(
       DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap,
       this._elementMap,
-      MemberEntity member,
       this.compiler,
       this._closureDataLookup)
       : super(reporter, actualMap);
+
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return getClassValue(_elementMap.getClass(cls));
+  }
 
   @override
   String computeMemberValue(Id id, ir.Member node) {

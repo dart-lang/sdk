@@ -150,6 +150,11 @@ class ClosureIrChecker extends IrDataExtractor<String> {
     return computeObjectValue(member);
   }
 
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return null;
+  }
+
   void pushMember(MemberEntity member) {
     scopeInfoStack =
         scopeInfoStack.prepend(closureDataLookup.getScopeInfo(member));

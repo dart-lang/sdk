@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'id.dart';
 
 /// Compute a canonical [Id] for kernel-based nodes.
-Id computeEntityId(Member node) {
+Id computeMemberId(Member node) {
   String className;
   if (node.enclosingClass != null) {
     className = node.enclosingClass.name;
@@ -34,6 +34,11 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;
 
+  /// Implement this to compute the data corresponding to [cls].
+  ///
+  /// If `null` is returned, [cls] has no associated data.
+  T computeClassValue(Id id, Class cls);
+
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
@@ -46,8 +51,16 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
 
   DataExtractor(this.actualMap);
 
+  void computeForClass(Class cls) {
+    ClassId id = new ClassId(cls.name);
+    T value = computeClassValue(id, cls);
+    TreeNode nodeWithOffset = computeTreeNodeWithOffset(cls);
+    registerValue(nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset,
+        id, value, cls);
+  }
+
   void computeForMember(Member member) {
-    MemberId id = computeEntityId(member);
+    MemberId id = computeMemberId(member);
     if (id == null) return;
     T value = computeMemberValue(id, member);
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(member);
@@ -260,5 +273,17 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   visitContinueSwitchStatement(ContinueSwitchStatement node) {
     computeForNode(node, createGotoId(node));
     super.visitContinueSwitchStatement(node);
+  }
+
+  @override
+  visitConstantExpression(ConstantExpression node) {
+    if (node.fileOffset == TreeNode.noOffset) {
+      // Implicit constants (for instance omitted field initializers, implicit
+      // default values) and synthetic constants (for instance in noSuchMethod
+      // forwarders) have no offset.
+    } else {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitConstantExpression(node);
   }
 }

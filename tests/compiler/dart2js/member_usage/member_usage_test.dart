@@ -23,12 +23,12 @@ main(List<String> args) {
     print(' Test with enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(false),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
     print('------------------------------------------------------------------');
     print(' Test without enqueuer checks');
     print('------------------------------------------------------------------');
     await checkTests(dataDir, const ClosedWorldDataComputer(true),
-        args: args, testOmit: false, testCFEConstants: true);
+        args: args, testedConfigs: allStrongConfigs);
   });
 }
 
@@ -106,7 +106,7 @@ class ClosedWorldDataComputer extends DataComputer<Features> {
         }
       }
     }
-    Id id = computeEntityId(node);
+    Id id = computeMemberId(node);
     ir.TreeNode nodeWithOffset = computeTreeNodeWithOffset(node);
     actualMap[id] = new ActualData<Features>(id, features,
         nodeWithOffset?.location?.file, nodeWithOffset?.fileOffset, member);

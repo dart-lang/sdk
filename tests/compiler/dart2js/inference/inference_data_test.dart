@@ -22,7 +22,9 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('inference_data'));
     await checkTests(dataDir, const InferenceDataComputer(),
-        args: args, testOmit: false, options: [stopAfterTypeInference]);
+        args: args,
+        testedConfigs: [strongConfig],
+        options: [stopAfterTypeInference]);
   });
 }
 
@@ -84,6 +86,11 @@ class InferredDataIrComputer extends IrDataExtractor<String> {
       features.add(Tags.calledInLoop);
     }
     return features.getText();
+  }
+
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return null;
   }
 
   @override

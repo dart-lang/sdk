@@ -27,7 +27,7 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('model_data'));
     await checkTests(dataDir, const ModelDataComputer(),
-        args: args, testCFEConstants: true);
+        args: args, testedConfigs: allInternalConfigs);
   });
 }
 
@@ -256,6 +256,11 @@ class ModelIrComputer extends IrDataExtractor<Features> {
         return features;
       }
     }
+    return null;
+  }
+
+  @override
+  Features computeClassValue(Id id, ir.Class cls) {
     return null;
   }
 

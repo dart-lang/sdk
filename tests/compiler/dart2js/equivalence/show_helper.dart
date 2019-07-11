@@ -10,6 +10,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/source_file_provider.dart';
+import 'package:front_end/src/testing/id_testing.dart';
 import 'id_equivalence_helper.dart';
 
 ArgParser createArgParser() {
@@ -48,7 +49,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  CompiledData<T> data = await computeData<T>(
+  Dart2jsCompiledData<T> data = await computeData<T>(
       entryPoint, const {}, dataComputer,
       options: options,
       testFrontend: dataComputer.testFrontend,

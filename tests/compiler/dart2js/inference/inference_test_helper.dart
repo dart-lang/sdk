@@ -35,7 +35,7 @@ runTests(List<String> args, [int shardIndex]) {
         forUserLibrariesOnly: true,
         args: args,
         options: [stopAfterTypeInference],
-        testCFEConstants: true,
+        testedConfigs: allInternalConfigs,
         skipForStrong: skipForStrong,
         shardIndex: shardIndex ?? 0,
         shards: shardIndex != null ? 4 : 1);
@@ -130,6 +130,11 @@ class TypeMaskIrComputer extends IrDataExtractor<String> {
     result = results.resultOfMember(info.callMethod);
     super.visitFunctionDeclaration(node);
     result = oldResult;
+  }
+
+  @override
+  String computeClassValue(Id id, ir.Class cls) {
+    return null;
   }
 
   @override
