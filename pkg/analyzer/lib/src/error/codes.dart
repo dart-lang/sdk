@@ -4978,8 +4978,6 @@ class StaticWarningCode extends ErrorCode {
  *
  * These error codes tend to use the same message across different severity
  * levels, so they are grouped for clarity.
- *
- * All of these error codes also use the "STRONG_MODE_" prefix in their name.
  */
 class StrongModeCode extends ErrorCode {
   static const String _implicitCastMessage =
@@ -5233,7 +5231,7 @@ class StrongModeCode extends ErrorCode {
   const StrongModeCode(ErrorType type, String name, String message,
       {String correction, bool hasPublishedDocs})
       : type = type,
-        super.temporary('STRONG_MODE_$name', message,
+        super.temporary(name, message,
             correction: correction, hasPublishedDocs: hasPublishedDocs);
 
   @override

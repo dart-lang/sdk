@@ -1278,7 +1278,7 @@ class CodeChecker extends RecursiveAstVisitor {
       _failure = true;
     }
     if (errorCode.type == ErrorType.HINT &&
-        errorCode.name.startsWith('STRONG_MODE_TOP_LEVEL_')) {
+        errorCode.name.startsWith('TOP_LEVEL_')) {
       severity = ErrorSeverity.ERROR;
     }
     if (severity != ErrorSeverity.INFO || _options.strongModeHints) {
