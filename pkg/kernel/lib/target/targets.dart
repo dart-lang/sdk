@@ -197,7 +197,7 @@ abstract class Target {
   /// literals are not supported by the target, they will be desugared into
   /// explicit `Set` creation (for non-const set literals) or wrapped map
   /// literals (for const set literals).
-  bool get supportsSetLiterals => false;
+  bool get supportsSetLiterals => true;
 
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
