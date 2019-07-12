@@ -83,6 +83,15 @@ class DynamicType extends DartType {
 @notNull
 bool _isJsObject(obj) => JS('!', '# === #', getReifiedType(obj), jsobject);
 
+/// Asserts that [f] is a native JS functions and returns it if so.
+/// This function should be used to ensure that a function is a native
+/// JS functions in contexts that expect that.
+F assertInterop<F extends Function>(F f) {
+  // TODO(vsm): Throw a more specific error if this fails.
+  assert(_isJsObject(f));
+  return f;
+}
+
 /// The Dart type that represents a JavaScript class(/constructor) type.
 ///
 /// The JavaScript type may not exist, either because it's not loaded yet, or
