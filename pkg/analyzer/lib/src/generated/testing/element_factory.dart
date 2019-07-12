@@ -190,6 +190,11 @@ class ElementFactory {
     return spec;
   }
 
+  static ExtensionElementImpl extensionElement(
+          [String name, DartType extendedType]) =>
+      ExtensionElementImpl.forNode(AstTestFactory.identifier3(name))
+        ..extendedType = extendedType;
+
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type,
       {Expression initializer}) {

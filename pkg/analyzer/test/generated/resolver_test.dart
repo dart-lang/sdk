@@ -279,8 +279,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
     var context = AnalysisContextFactory.contextWithCore(
         resourceProvider: resourceProvider);
 
-    var extension = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3('test_extension'));
+    var extension = ElementFactory.extensionElement('test_extension');
 
     var importedUnit1 = ElementFactory.compilationUnit('/imported1.dart');
     importedUnit1.extensions = <ExtensionElement>[extension];
@@ -367,8 +366,8 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_extensions() {
-    SimpleIdentifier identifier = AstTestFactory.identifier3('test_extension');
-    ExtensionElement extension = ExtensionElementImpl.forNode(identifier);
+    ExtensionElement extension =
+        ElementFactory.extensionElement('test_extension');
 
     CompilationUnitElementImpl compilationUnit =
         ElementFactory.compilationUnit('/test.dart');
@@ -387,9 +386,8 @@ class LibraryScopeTest extends ResolverTestCase {
         resourceProvider: resourceProvider);
 
     var importedUnit1 = ElementFactory.compilationUnit('/imported1.dart');
-    var importedExtension = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3('test_extension'));
-    var unnamedImportedExtension = ExtensionElementImpl.forNode(null);
+    var importedExtension = ElementFactory.extensionElement('test_extension');
+    var unnamedImportedExtension = ElementFactory.extensionElement();
     importedUnit1.extensions = [importedExtension, unnamedImportedExtension];
 
     var importedLibraryName = 'imported_lib';
@@ -401,8 +399,7 @@ class LibraryScopeTest extends ResolverTestCase {
     var importingLibrary = LibraryElementImpl(context, null,
         importingLibraryName, 0, importingLibraryName.length, false);
 
-    var localExtension = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3('test_extension'));
+    var localExtension = ElementFactory.extensionElement('test_extension');
 
     var importingUnit = ElementFactory.compilationUnit('/importing.dart');
     importingUnit.extensions = [localExtension];
@@ -426,7 +423,7 @@ class LibraryScopeTest extends ResolverTestCase {
         resourceProvider: resourceProvider);
 
     var unit1 = ElementFactory.compilationUnit('/unit1.dart');
-    var ext1 = ExtensionElementImpl.forNode(AstTestFactory.identifier3('ext1'));
+    var ext1 = ElementFactory.extensionElement('ext1');
     unit1.extensions = [ext1];
 
     var lib1Name = 'lib1';
@@ -471,8 +468,7 @@ class LibraryScopeTest extends ResolverTestCase {
     var sharedExtensionName = 'test_ext';
 
     var unit1 = ElementFactory.compilationUnit('/unit1.dart');
-    var ext1 = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3(sharedExtensionName));
+    var ext1 = ElementFactory.extensionElement(sharedExtensionName);
     unit1.extensions = [ext1];
 
     var lib1Name = 'lib1';
@@ -481,8 +477,7 @@ class LibraryScopeTest extends ResolverTestCase {
     lib1.definingCompilationUnit = unit1;
 
     var unit2 = ElementFactory.compilationUnit('/unit2.dart');
-    var ext2 = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3(sharedExtensionName));
+    var ext2 = ElementFactory.extensionElement(sharedExtensionName);
     unit2.extensions = [ext2];
 
     var lib2Name = 'lib2';
@@ -518,8 +513,7 @@ class LibraryScopeTest extends ResolverTestCase {
     var sharedExtensionName = 'test_ext';
 
     var unit1 = ElementFactory.compilationUnit('/unit1.dart');
-    var ext1 = ExtensionElementImpl.forNode(
-        AstTestFactory.identifier3(sharedExtensionName));
+    var ext1 = ElementFactory.extensionElement(sharedExtensionName);
     unit1.extensions = [ext1];
 
     var lib1Name = 'lib1';
