@@ -304,6 +304,7 @@ Future<CompilerResult> _compile(List<String> args,
   if (useAnalyzer || !useIncrementalCompiler) {
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
+    compilerState.options.onDiagnostic = diagnosticMessageHandler;
     Component incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
     hierarchy = incrementalCompiler.userCode.loader.hierarchy;
@@ -319,6 +320,8 @@ Future<CompilerResult> _compile(List<String> args,
       }
     }
   }
+  compilerState.options.onDiagnostic = null; // See http://dartbug.com/36983.
+
   if (result == null || !succeeded) {
     return CompilerResult(1, kernelState: compilerState);
   }
