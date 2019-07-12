@@ -31,6 +31,8 @@ import 'package:build_integration/file_system/multi_root.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
@@ -153,6 +155,8 @@ abstract class Compiler {
           //  debugger stops and source files in VM PRODUCT mode.
           // TODO(rmacnak): disable annotations if mirrors are not enabled.
           generateBytecode(component,
+              coreTypes: getCoreTypes(component),
+              hierarchy: getClassHierarchy(component),
               options: new BytecodeOptions(
                   enableAsserts: enableAsserts,
                   environmentDefines: options.environmentDefines,
@@ -167,6 +171,9 @@ abstract class Compiler {
       return component;
     });
   }
+
+  CoreTypes getCoreTypes(Component component);
+  ClassHierarchy getClassHierarchy(Component component);
 
   Future<Component> compileInternal(Uri script);
 }
@@ -224,6 +231,13 @@ class IncrementalCompilerWrapper extends Compiler {
             packageConfig: packageConfig);
 
   @override
+  CoreTypes getCoreTypes(Component component) => generator.getCoreTypes();
+
+  @override
+  ClassHierarchy getClassHierarchy(Component component) =>
+      generator.getClassHierarchy();
+
+  @override
   Future<Component> compileInternal(Uri script) async {
     if (generator == null) {
       generator = new IncrementalCompiler(options, script);
@@ -278,6 +292,15 @@ class SingleShotCompilerWrapper extends Compiler {
             experimentalFlags: experimentalFlags,
             bytecode: bytecode,
             packageConfig: packageConfig);
+
+  @override
+  CoreTypes getCoreTypes(Component component) => new CoreTypes(component);
+
+  // TODO(alexmarkov): creating class hierarchy is an expensive operation.
+  // Reuse class hierarchy from CFE.
+  @override
+  ClassHierarchy getClassHierarchy(Component component) =>
+      new ClassHierarchy(component);
 
   @override
   Future<Component> compileInternal(Uri script) async {
@@ -515,14 +538,6 @@ Future _processLoadRequest(request) async {
   final String packageConfig = request[12];
   final String multirootFilepaths = request[13];
   final String multirootScheme = request[14];
-
-  if (bytecode) {
-    // Bytecode generator is hooked into kernel service after kernel component
-    // is produced. In case of incremental compilation resulting component
-    // doesn't have core libraries which are needed for bytecode generation.
-    // TODO(alexmarkov): Support bytecode generation in incremental compiler.
-    incremental = false;
-  }
 
   Uri platformKernelPath = null;
   List<int> platformKernel = null;

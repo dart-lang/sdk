@@ -66,13 +66,13 @@ const String symbolForTypeCast = ' in type cast';
 void generateBytecode(
   ast.Component component, {
   BytecodeOptions options,
-  ErrorReporter errorReporter,
   List<Library> libraries,
+  CoreTypes coreTypes,
   ClassHierarchy hierarchy,
 }) {
   options ??= new BytecodeOptions();
   verifyBytecodeInstructionDeclarations();
-  final coreTypes = new CoreTypes(component);
+  coreTypes ??= new CoreTypes(component);
   void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
   hierarchy ??= new ClassHierarchy(component,
       onAmbiguousSupertypes: ignoreAmbiguousSupertypes);
