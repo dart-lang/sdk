@@ -135,7 +135,7 @@
 ///     var results = parser.parse(['--mode', 'on', '--mode', 'off']);
 ///     print(results['mode']); // prints 'off'
 ///
-/// If you need multiple values, set the [allowMultiple] flag. In that
+/// If you need multiple values, set the `allowMultiple` flag. In that
 /// case the option can occur multiple times and when parsing arguments a
 /// List of values will be returned:
 ///
@@ -380,6 +380,5 @@ class ArgResults {
     return _options[name];
   }
 
-  /// Get the names of the options as a [Collection].
   List<String> get options => _options.keys.toList();
 }

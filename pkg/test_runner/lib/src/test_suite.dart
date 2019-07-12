@@ -820,7 +820,7 @@ class StandardTestSuite extends TestSuite {
   ///
   /// In order to handle browser multitests, [expectations] is a map of subtest
   /// names to expectation sets. If the test is not a multitest, the map has
-  /// a single key, [testFile.name].
+  /// a single key, `testFile.name`.
   void _enqueueBrowserTest(
       TestFile testFile, Map<String, Set<Expectation>> expectations) {
     var tempDir = createOutputDirectory(testFile.path);

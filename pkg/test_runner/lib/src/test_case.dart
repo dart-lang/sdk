@@ -45,9 +45,6 @@ const _excludedEnvironmentVariables = [
 /// for evaluating if the test has passed, failed, crashed, or timed out, and
 /// the TestCase has information about what the expected result of the test
 /// should be.
-///
-/// The TestCase has a callback function, [completedHandler], that is run when
-/// the test is completed.
 class TestCase extends UniqueObject {
   /// A list of commands to execute. Most test cases have a single command.
   /// Dart2js tests have two commands, one to compile the source and another
@@ -231,12 +228,12 @@ Future<List<int>> _getPidList(int parentId, List<String> diagnostics) async {
 
 /// A RunningProcess actually runs a test, getting the command lines from
 /// its [TestCase], starting the test process (and first, a compilation
-/// process if the TestCase is a [BrowserTestCase]), creating a timeout
-/// timer, and recording the results in a new [CommandOutput] object, which it
-/// attaches to the TestCase.  The lifetime of the RunningProcess is limited
-/// to the time it takes to start the process, run the process, and record
-/// the result; there are no pointers to it, so it should be available to
-/// be garbage collected as soon as it is done.
+/// process if the TestCase needs compilation), creating a timeout timer, and
+/// recording the results in a new [CommandOutput] object, which it attaches to
+/// the TestCase. The lifetime of the RunningProcess is limited to the time it
+/// takes to start the process, run the process, and record the result. There
+/// are no pointers to it, so it should be available to be garbage collected as
+/// soon as it is done.
 class RunningProcess {
   ProcessCommand command;
   int timeout;

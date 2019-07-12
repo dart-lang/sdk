@@ -32,7 +32,7 @@ const _defaultTestSelectors = [
 /// Specifies a single command line option.
 ///
 /// The name of the specification is used as the key for the option in the Map
-/// returned from the [TestOptionParser] parse method.
+/// returned from [OptionsParser.parse].
 class _Option {
   // TODO(rnystrom): Some string options use "" to mean "no value" and others
   // use null. Clean that up.

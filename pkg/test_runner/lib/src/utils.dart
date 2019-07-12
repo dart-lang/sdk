@@ -131,13 +131,11 @@ String prettifyJson(Object json,
   return buffer.toString();
 }
 
-/// [areByteArraysEqual] compares a range of bytes from [buffer1] with a
-/// range of bytes from [buffer2].
+/// Compares a range of bytes from [buffer1] with a range of bytes from
+/// [buffer2].
 ///
-/// Returns [true] if the [count] bytes in [buffer1] (starting at
-/// [offset1]) match the [count] bytes in [buffer2] (starting at
-/// [offset2]).
-/// Otherwise [false] is returned.
+/// Returns `true` if the [count] bytes in [buffer1] (starting at [offset1])
+/// match the [count] bytes in [buffer2] (starting at [offset2]).
 bool areByteArraysEqual(
     List<int> buffer1, int offset1, List<int> buffer2, int offset2, int count) {
   if ((offset1 + count) > buffer1.length ||
@@ -153,10 +151,9 @@ bool areByteArraysEqual(
   return true;
 }
 
-/// [findBytes] searches for [pattern] in [data] beginning at [startPos].
+/// Searches for [pattern] in [data] beginning at [startPos].
 ///
-/// Returns [true] if [pattern] was found in [data].
-/// Otherwise [false] is returned.
+/// Returns `true` if [pattern] was found in [data].
 int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
   for (int i = startPos; i < (data.length - pattern.length); i++) {
@@ -313,8 +310,9 @@ class LastModifiedCache {
   /// Returns the last modified date of the given [uri].
   ///
   /// The return value will be cached for future queries. If [uri] is a local
-  /// file, it's last modified [Date] will be returned. If the file does not
+  /// file, its last modified [DateTime] will be returned. If the file does not
   /// exist, null will be returned instead.
+  ///
   /// In case [uri] is not a local file, this method will always return
   /// the current date.
   DateTime getLastModified(Uri uri) {

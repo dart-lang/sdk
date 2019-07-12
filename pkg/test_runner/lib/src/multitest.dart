@@ -17,7 +17,7 @@
 /// untagged lines of the file, with key "none", which is expected to pass. This
 /// library extracts these tests, writes them into a temporary directory, and
 /// passes them to the test runner. These tests may be referred to in the status
-/// files with the pattern [test name]/[key].
+/// files with the pattern `[test name]/[key]`.
 ///
 /// For example, file i_am_a_multitest.dart:
 ///

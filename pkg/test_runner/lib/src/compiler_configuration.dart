@@ -22,7 +22,7 @@ List<String> _replaceDartFiles(List<String> list, String replacement) {
 class CommandArtifact {
   final List<Command> commands;
 
-  /// Expected result of running [command].
+  /// Expected result of running [commands].
   final String filename;
 
   /// MIME type of [filename].

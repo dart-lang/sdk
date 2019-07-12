@@ -633,13 +633,13 @@ class _ErrorExpectationParser {
   static final _unspecifiedErrorRegExp =
       RegExp(r"^\s*// \[unspecified error\]");
 
-  /// An analyzer error expectation starts with "// [analyzer]".
+  /// An analyzer error expectation starts with `// [analyzer]`.
   static final _analyzerErrorRegExp = RegExp(r"^\s*// \[analyzer\]\s*(.*)");
 
   /// An analyzer error code is a dotted identifier.
   static final _errorCodeRegExp = RegExp(r"^\w+\.\w+$");
 
-  /// The first line of a CFE error expectation starts with "// [cfe]".
+  /// The first line of a CFE error expectation starts with `// [cfe]`.
   static final _cfeErrorRegExp = RegExp(r"^\s*// \[cfe\]\s*(.*)");
 
   /// Any line-comment-only lines after the first line of a CFE error message are

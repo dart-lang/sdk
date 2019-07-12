@@ -354,7 +354,7 @@ class CommandEnqueuer {
 /// to a state of NodeState.Successful or NodeState.failed.
 ///
 /// It provides a synchronous stream [completedCommands] which provides the
-/// [CommandOutputs] for the finished commands.
+/// [CommandOutput]s for the finished commands.
 ///
 /// It provides a [done] future, which will complete once there are no more
 /// nodes left in the states Initialized/Waiting/Enqueing/Processing
