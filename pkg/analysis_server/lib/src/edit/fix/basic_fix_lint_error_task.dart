@@ -75,4 +75,21 @@ class BasicFixLintErrorTask extends FixLintTask {
           DartFixKind.REPLACE_COLON_WITH_EQUALS, listener),
     );
   }
+
+  static void preferIsEmpty(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_is_empty'],
+      new BasicFixLintErrorTask(DartFixKind.REPLACE_WITH_IS_EMPTY, listener),
+    );
+  }
+
+  static void preferIsNotEmpty(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['prefer_is_not_empty'],
+      new BasicFixLintErrorTask(
+          DartFixKind.REPLACE_WITH_IS_NOT_EMPTY, listener),
+    );
+  }
 }

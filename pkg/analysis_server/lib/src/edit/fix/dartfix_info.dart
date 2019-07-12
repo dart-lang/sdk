@@ -76,6 +76,32 @@ will be converted to
   f({a = 1}) { }''',
     BasicFixLintErrorTask.preferEqualForDefaultValues,
   ),
+  const DartFixInfo(
+    'prefer-is-empty',
+    '''
+Convert to using 'isEmpty' when checking if a collection or iterable is empty.
+
+For example, this
+  if (lunchBox.length == 0) return 'so hungry...';
+
+will be converted to
+  if (lunchBox.isEmpty) return 'so hungry...';''',
+    BasicFixLintErrorTask.preferIsEmpty,
+    isDefault: false,
+  ),
+  const DartFixInfo(
+    'prefer-is-not-empty',
+    '''
+Convert to using 'isNotEmpty' when checking if a collection or iterable is not empty.
+
+For example, this
+  if (words.length != 0) return words.join(' ');
+
+will be converted to
+  if (words.isNotEmpty) return words.join(' ');''',
+    BasicFixLintErrorTask.preferIsNotEmpty,
+    isDefault: false,
+  ),
   //
   // Fixes that may be explicitly enabled
   //
