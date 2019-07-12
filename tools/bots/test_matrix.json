@@ -95,6 +95,39 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "front-end": [
+      ".packages",
+      "out/ReleaseIA32/",
+      "out/ReleaseX64/",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "tests/angular/",
+      "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-dart2js.status",
+      "tests/co19_2/co19_2-kernel.status",
+      "tests/co19_2/co19_2-runtime.status",
+      "tests/compiler/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/kernel/",
+      "tests/language_2/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone/",
+      "tests/standalone_2/",
+      "tests/ffi/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseIA32/",
+      "xcodebuild/ReleaseX64/"
+    ],
     "fuzzer": [
       "runtime/tools/dartfuzz/",
       "out/DebugIA32/",
@@ -408,22 +441,26 @@
           ]
         },
         {
+          "name": "fasta co19_2 tests",
+          "arguments": [
+            "-nfasta-${system}",
+            "co19_2"
+          ],
+          "fileset": "front-end",
+          "shards": 10
+        },
+        {
+          "name": "fasta sdk tests",
+          "arguments": ["-nfasta-${system}"],
+          "fileset": "front-end",
+          "shards": 5
+        },
+        {
           "name": "unit tests",
           "script": "tools/disguised_test.py",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
              "pkg/(kernel|front_end|fasta)"
-          ]
-        },
-        {
-          "name": "fasta sdk tests",
-          "arguments": ["-nfasta-${system}"]
-        },
-        {
-          "name": "fasta co19_2 tests",
-          "arguments": [
-            "-nfasta-${system}",
-            "co19_2"
           ]
         }
       ]
