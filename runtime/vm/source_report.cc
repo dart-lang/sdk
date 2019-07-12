@@ -340,13 +340,29 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
     const Bytecode& bytecode = Bytecode::Handle(func.bytecode());
     ASSERT(!bytecode.IsNull());
     kernel::BytecodeSourcePositionsIterator iter(zone(), bytecode);
+    intptr_t token_offset = -1;
+    uword pc_offset = kUwordMax;
+    // TODO(regis): We should ignore all possible breakpoint positions until
+    // the first DebugCheck opcode of the function.
     while (iter.MoveNext()) {
+      if (pc_offset != kUwordMax) {
+        // Check that there is at least one 'debug checked' opcode in the last
+        // source position range.
+        if (bytecode.GetDebugCheckedOpcodePc(pc_offset, iter.PcOffset()) != 0) {
+          possible[token_offset] = true;
+        }
+        pc_offset = kUwordMax;
+      }
       const TokenPosition token_pos = iter.TokenPos();
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         // Does not correspond to a valid source position.
         continue;
       }
-      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      pc_offset = iter.PcOffset();
+      token_offset = token_pos.Pos() - begin_pos.Pos();
+    }
+    if (pc_offset != kUwordMax &&
+        bytecode.GetDebugCheckedOpcodePc(pc_offset, bytecode.Size()) != 0) {
       possible[token_offset] = true;
     }
   } else {

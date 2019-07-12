@@ -309,6 +309,14 @@ class ActivationFrame : public ZoneAllocated {
   }
   bool IsInterpreted() const { return !bytecode_.IsNull(); }
 
+  enum Relation {
+    kCallee,
+    kSelf,
+    kCaller,
+  };
+
+  Relation CompareTo(uword other_fp, bool other_is_interpreted) const;
+
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
@@ -821,8 +829,10 @@ class Debugger {
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+  bool interpreted_stepping_;
   // Used to track the current async/async* function.
   uword async_stepping_fp_;
+  bool interpreted_async_stepping_;
   RawObject* top_frame_awaiter_;
 
   // If we step while at a breakpoint, we would hit the same pc twice.

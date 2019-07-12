@@ -959,8 +959,7 @@ class KernelBytecode {
   // The interpreter checks for a debug break at each instruction with listed
   // opcode and the bytecode generator emits a source position at each
   // instruction with listed opcode.
-  DART_FORCE_INLINE static bool IsDebugBreakCheckedOpcode(
-      const KBCInstr* instr) {
+  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kAllocate:
       case KernelBytecode::kPopLocal:

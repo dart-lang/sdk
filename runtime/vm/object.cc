@@ -15395,6 +15395,26 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
 #endif
 }
 
+uword Bytecode::GetDebugCheckedOpcodePc(uword from_offset,
+                                        uword to_offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  uword pc = PayloadStart() + from_offset;
+  uword end_pc = pc + (to_offset - from_offset);
+  while (pc < end_pc) {
+    uword next_pc = KernelBytecode::Next(pc);
+    if (KernelBytecode::IsDebugCheckedOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      // Return the pc after the opcode, i.e. its 'return address'.
+      return next_pc;
+    }
+    pc = next_pc;
+  }
+  return 0;
+#endif
+}
+
 const char* Bytecode::ToCString() const {
   return Thread::Current()->zone()->PrintToString("Bytecode(%s)",
                                                   QualifiedName());
@@ -15437,6 +15457,16 @@ const char* Bytecode::QualifiedName() const {
   }
   const char* function_name =
       String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+const char* Bytecode::FullyQualifiedName() const {
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
+  if (fun.IsNull()) {
+    return BytecodeStubName(*this);
+  }
+  const char* function_name = fun.ToFullyQualifiedCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 

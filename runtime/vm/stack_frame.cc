@@ -184,7 +184,7 @@ const char* StackFrame::ToCString() const {
                                  " offset:0x%" Px ") %s ]",
                                  GetName(), sp(), fp(), pc(),
                                  pc() - bytecode.PayloadStart(),
-                                 bytecode.Name());
+                                 bytecode.FullyQualifiedName());
     }
     const Code& code = Code::Handle(zone, LookupDartCode());
     ASSERT(!code.IsNull());

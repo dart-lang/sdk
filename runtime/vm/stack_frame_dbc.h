@@ -74,6 +74,12 @@ DART_FORCE_INLINE static bool IsCalleeFrameOf(uword fp, uword other_fp) {
   return other_fp > fp;
 }
 
+DART_FORCE_INLINE static bool IsBytecodeCalleeFrameOf(uword fp,
+                                                      uword other_fp) {
+  UNREACHABLE();
+  return false;
+}
+
 static const int kExitLinkSlotFromEntryFp = 0;
 
 // Value for stack limit that is used to cause an interrupt.

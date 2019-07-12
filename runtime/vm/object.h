@@ -5729,6 +5729,9 @@ class Bytecode : public Object {
   TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
+  // Return the pc after the first 'debug checked' opcode in the range.
+  uword GetDebugCheckedOpcodePc(uword from_offset, uword to_offset) const;
+
   intptr_t instructions_binary_offset() const {
     return raw_ptr()->instructions_binary_offset_;
   }
@@ -5780,6 +5783,7 @@ class Bytecode : public Object {
 
   const char* Name() const;
   const char* QualifiedName() const;
+  const char* FullyQualifiedName() const;
 
   class SlowFindRawBytecodeVisitor : public FindObjectVisitor {
    public:

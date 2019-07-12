@@ -1146,7 +1146,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall2(Thread* thread,
 #define DEBUG_CHECK
 #else
 // The DEBUG_CHECK macro must only be called from bytecodes listed in
-// KernelBytecode::IsDebugBreakCheckedOpcode.
+// KernelBytecode::IsDebugCheckedOpcode.
 #define DEBUG_CHECK                                                            \
   if (is_debugging()) {                                                        \
     /* Check for debug breakpoint or if single stepping. */                    \
