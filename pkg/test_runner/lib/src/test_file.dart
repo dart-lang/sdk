@@ -62,6 +62,8 @@ class StaticError implements Comparable<StaticError> {
   final int column;
 
   /// The number of characters in the error location.
+  ///
+  /// This is optional. The CFE only reports error location, but not length.
   final int length;
 
   /// The expected analyzer error code for the error or `null` if this error
@@ -76,7 +78,6 @@ class StaticError implements Comparable<StaticError> {
     // Must have a location.
     assert(line != null);
     assert(column != null);
-    assert(length != null);
 
     // Must have at least one piece of description.
     assert(code != null || message != null);
@@ -98,11 +99,19 @@ class StaticError implements Comparable<StaticError> {
   /// no other information.
   bool get isUnspecified => column == null;
 
+  /// Whether this error should be reported by analyzer.
+  bool get isAnalyzer => isUnspecified || code != null;
+
+  /// Whether this error should be reported by the CFE.
+  bool get isCfe => isUnspecified || message != null;
+
   /// A textual description of this error's location.
   String get location {
     if (isUnspecified) return "Unspecified error at line $line";
 
-    return "Error at line $line, column $column, length $length";
+    var result = "Error at line $line, column $column";
+    if (length != null) result += ", length $length";
+    return result;
   }
 
   String toString() {
@@ -161,7 +170,7 @@ class StaticError implements Comparable<StaticError> {
           .add("Expected on column $column but was on ${actual.column}.");
     }
 
-    if (length != actual.length) {
+    if (length != null && actual.length != null && length != actual.length) {
       differences.add("Expected length $length but was ${actual.length}.");
     }
 

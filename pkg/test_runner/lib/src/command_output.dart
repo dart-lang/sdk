@@ -279,7 +279,7 @@ class BrowserTestJsonResult {
 }
 
 class BrowserCommandOutput extends CommandOutput
-    with UnittestSuiteMessagesMixin {
+    with _UnittestSuiteMessagesMixin {
   final BrowserTestJsonResult _jsonResult;
   final BrowserTestOutput _result;
   final Expectation _rawOutcome;
@@ -433,13 +433,7 @@ class BrowserCommandOutput extends CommandOutput
   }
 }
 
-class AnalysisCommandOutput extends CommandOutput {
-  /// Reported static errors, parsed from [stderr].
-  final List<StaticError> _errors = [];
-
-  /// Reported static warnings, parsed from [stderr].
-  final List<StaticError> _warnings = [];
-
+class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   AnalysisCommandOutput(
       Command command,
       int exitCode,
@@ -449,9 +443,7 @@ class AnalysisCommandOutput extends CommandOutput {
       Duration time,
       bool compilationSkipped)
       : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0) {
-    _parseOutput();
-  }
+            compilationSkipped, 0);
 
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
@@ -469,7 +461,7 @@ class AnalysisCommandOutput extends CommandOutput {
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
     // no errors)
 
-    // Handle crashes and timeouts first
+    // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
@@ -479,36 +471,36 @@ class AnalysisCommandOutput extends CommandOutput {
       return _validateExpectedErrors(testCase);
     }
 
-    // Handle negative
+    // Handle negative.
     if (testCase.isNegative) {
-      return _errors.isNotEmpty
+      return errors.isNotEmpty
           ? Expectation.pass
           : Expectation.missingCompileTimeError;
     }
 
-    // Handle errors / missing errors
+    // Handle errors / missing errors.
     if (testCase.hasCompileError) {
-      if (_errors.isNotEmpty) {
+      if (errors.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingCompileTimeError;
     }
-    if (_errors.isNotEmpty) {
+    if (errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
 
-    // Handle static warnings / missing static warnings
+    // Handle static warnings / missing static warnings.
     if (testCase.hasStaticWarning) {
-      if (_warnings.isNotEmpty) {
+      if (warnings.isNotEmpty) {
         return Expectation.pass;
       }
       return Expectation.missingStaticWarning;
     }
-    if (_warnings.isNotEmpty) {
+    if (warnings.isNotEmpty) {
       return Expectation.staticWarning;
     }
 
-    assert(_errors.isEmpty && _warnings.isEmpty);
+    assert(errors.isEmpty && warnings.isEmpty);
     assert(!testCase.hasCompileError && !testCase.hasStaticWarning);
     return Expectation.pass;
   }
@@ -520,7 +512,7 @@ class AnalysisCommandOutput extends CommandOutput {
     // that command.exitCodes matches 2 (errors), 1 (warnings), 0 (no warnings,
     // no errors)
 
-    // Handle crashes and timeouts first
+    // Handle crashes and timeouts first.
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) return Expectation.timeout;
     if (hasNonUtf8) return Expectation.nonUtf8Error;
@@ -530,10 +522,10 @@ class AnalysisCommandOutput extends CommandOutput {
       return _validateExpectedErrors(testCase);
     }
 
-    if (_errors.isNotEmpty) {
+    if (errors.isNotEmpty) {
       return Expectation.compileTimeError;
     }
-    if (_warnings.isNotEmpty) {
+    if (warnings.isNotEmpty) {
       return Expectation.staticWarning;
     }
     return Expectation.pass;
@@ -550,7 +542,8 @@ class AnalysisCommandOutput extends CommandOutput {
   /// Is parsed as:
   ///
   ///     FOO BAR FOO|BAR FOO\BAZ
-  void _parseOutput() {
+  @override
+  void _parseErrors() {
     List<String> splitMachineError(String line) {
       var field = StringBuffer();
       var result = <String>[];
@@ -590,65 +583,12 @@ class AnalysisCommandOutput extends CommandOutput {
             line: line, column: column, length: length, code: errorCode);
 
         if (severity == 'ERROR') {
-          _errors.add(error);
+          addError(error);
         } else if (severity == 'WARNING') {
-          _warnings.add(error);
+          addWarning(error);
         }
       }
     }
-  }
-
-  // TODO(rnystrom): This will probably move up to CommandOutput once other
-  // front ends support static error tests.
-  /// Compare the actual errors produced to the expected static errors parsed
-  /// from the test file.
-  ///
-  /// Returns [Expectation.pass] if all expected errors were correctly
-  /// reported.
-  ///
-  /// If [writer] is given, outputs a description of any error mismatches.
-  Expectation _validateExpectedErrors(TestCase testCase,
-      [OutputWriter writer]) {
-    // Don't require the test or analyzer to output in any specific order.
-    var expected = testCase.testFile.expectedErrors.toList();
-    var actual = _errors.toList();
-    expected.sort();
-    actual.sort();
-
-    if (writer != null) writer.subsection("incorrect static errors");
-
-    var success = expected.length == actual.length;
-    for (var i = 0; i < expected.length && i < actual.length; i++) {
-      var differences = expected[i].describeDifferences(actual[i]);
-      if (differences == null) continue;
-
-      if (writer != null) {
-        writer.write(actual[i].location);
-        for (var difference in differences) {
-          writer.write("- $difference");
-        }
-        writer.separator();
-      }
-
-      success = false;
-    }
-
-    if (writer != null) {
-      writer.subsection("missing expected static errors");
-      for (var i = actual.length; i < expected.length; i++) {
-        writer.write(expected[i].toString());
-        writer.separator();
-      }
-
-      writer.subsection("reported unexpected static errors");
-      for (var i = expected.length; i < actual.length; i++) {
-        writer.write(actual[i].toString());
-        writer.separator();
-      }
-    }
-
-    // TODO(rnystrom): Is there a better expectation we can use?
-    return success ? Expectation.pass : Expectation.missingCompileTimeError;
   }
 }
 
@@ -745,7 +685,7 @@ class SpecParseCommandOutput extends CommandOutput {
   }
 }
 
-class VMCommandOutput extends CommandOutput with UnittestSuiteMessagesMixin {
+class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _dfeErrorExitCode = 252;
   static const _compileErrorExitCode = 254;
   static const _uncaughtExceptionExitCode = 255;
@@ -1048,7 +988,7 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 }
 
 class JSCommandLineOutput extends CommandOutput
-    with UnittestSuiteMessagesMixin {
+    with _UnittestSuiteMessagesMixin {
   JSCommandLineOutput(Command command, int exitCode, bool timedOut,
       List<int> stdout, List<int> stderr, Duration time)
       : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
@@ -1104,6 +1044,43 @@ class ScriptCommandOutput extends CommandOutput {
   bool get successful => _result == Expectation.pass;
 }
 
+class FastaCommandOutput extends CompilationCommandOutput
+    with _StaticErrorOutput {
+  /// Matches the first line of a Fasta error message. Fasta prints errors to
+  /// stdout that look like:
+  ///
+  ///     tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     Try fixing the code to be less bad.
+  ///       var _ = <int>[if (1) 2];
+  ///                    ^
+  ///
+  /// The test runner only validates the main error message, and not the
+  /// suggested fixes, so we only parse the first line.
+  static final _errorRegexp =
+      RegExp(r"^([^:]+):(\d+):(\d+): Error: (.*)$", multiLine: true);
+
+  FastaCommandOutput(
+      Command command,
+      int exitCode,
+      bool hasTimedOut,
+      List<int> stdout,
+      List<int> stderr,
+      Duration time,
+      bool compilationSkipped)
+      : super(command, exitCode, hasTimedOut, stdout, stderr, time,
+            compilationSkipped);
+
+  @override
+  void _parseErrors() {
+    for (var match in _errorRegexp.allMatches(decodeUtf8(stdout))) {
+      var line = int.parse(match.group(2));
+      var column = int.parse(match.group(3));
+      var message = match.group(4);
+      addError(StaticError(line: line, column: column, message: message));
+    }
+  }
+}
+
 CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
     List<int> stdout, List<int> stderr, Duration time, bool compilationSkipped,
     [int pid = 0]) {
@@ -1125,6 +1102,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is AdbPrecompilationCommand) {
     return VMCommandOutput(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is FastaCompilationCommand) {
+    return FastaCommandOutput(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is CompilationCommand) {
     if (command.displayName == 'precompiler' ||
         command.displayName == 'app_jit') {
@@ -1145,7 +1125,140 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
       compilationSkipped, pid);
 }
 
-class UnittestSuiteMessagesMixin {
+/// Mixin for outputs from a command that implement a Dart front end which
+/// reports static errors.
+mixin _StaticErrorOutput on CommandOutput {
+  /// Reported static errors, parsed from [stderr].
+  List<StaticError> get errors {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+    return _errors;
+  }
+
+  /// Don't access this from outside of the mixin. It gets populated lazily by
+  /// going through the [errors] getter.
+  final List<StaticError> _errors = [];
+
+  /// Reported static warnings, parsed from [stderr].
+  List<StaticError> get warnings {
+    if (!_parsedErrors) {
+      _parseErrors();
+      _parsedErrors = true;
+    }
+    return _warnings;
+  }
+
+  /// Don't access this from outside of the mixin. It gets populated lazily by
+  /// going through the [warnings] getter.
+  final List<StaticError> _warnings = [];
+
+  bool _parsedErrors = false;
+
+  @override
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    if (testCase.testFile.isStaticErrorTest) {
+      _validateExpectedErrors(testCase, output);
+    }
+
+    if (!testCase.testFile.isStaticErrorTest || progress == Progress.verbose) {
+      super.describe(testCase, progress, output);
+    }
+  }
+
+  Expectation result(TestCase testCase) {
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    return super.result(testCase);
+  }
+
+  Expectation realResult(TestCase testCase) {
+    // If it's a static error test, validate the exact errors.
+    if (testCase.testFile.isStaticErrorTest) {
+      return _validateExpectedErrors(testCase);
+    }
+
+    return super.realResult(testCase);
+  }
+
+  /// A subclass should override this to parse the command's output for any
+  /// reported errors and warnings.
+  ///
+  /// It should read [stderr] and [stdout] and call [addError] and [addWarning].
+  void _parseErrors();
+
+  void addError(StaticError error) {
+    _errors.add(error);
+  }
+
+  void addWarning(StaticError error) {
+    _warnings.add(error);
+  }
+
+  /// Compare the actual errors produced to the expected static errors parsed
+  /// from the test file.
+  ///
+  /// Returns [Expectation.pass] if all expected errors were correctly
+  /// reported.
+  ///
+  /// If [writer] is given, outputs a description of any error mismatches.
+  Expectation _validateExpectedErrors(TestCase testCase,
+      [OutputWriter writer]) {
+    // Filter out errors that aren't for this configuration.
+    var expected = testCase.testFile.expectedErrors
+        .where((error) =>
+            testCase.configuration.compiler == Compiler.dart2analyzer
+                ? error.isAnalyzer
+                : error.isCfe)
+        .toList();
+    var actual = errors.toList();
+
+    // Don't require the test or analyzer to output in any specific order.
+    expected.sort();
+    actual.sort();
+
+    writer?.subsection("incorrect static errors");
+
+    var success = expected.length == actual.length;
+    for (var i = 0; i < expected.length && i < actual.length; i++) {
+      var differences = expected[i].describeDifferences(actual[i]);
+      if (differences == null) continue;
+
+      if (writer != null) {
+        writer.write(actual[i].location);
+        for (var difference in differences) {
+          writer.write("- $difference");
+        }
+        writer.separator();
+      }
+
+      success = false;
+    }
+
+    if (writer != null) {
+      writer.subsection("missing expected static errors");
+      for (var i = actual.length; i < expected.length; i++) {
+        writer.write(expected[i].toString());
+        writer.separator();
+      }
+
+      writer.subsection("reported unexpected static errors");
+      for (var i = expected.length; i < actual.length; i++) {
+        writer.write(actual[i].toString());
+        writer.separator();
+      }
+    }
+
+    // TODO(rnystrom): Is there a better expectation we can use?
+    return success ? Expectation.pass : Expectation.missingCompileTimeError;
+  }
+}
+
+mixin _UnittestSuiteMessagesMixin {
   bool _isAsyncTest(String testOutput) {
     return testOutput.contains("unittest-suite-wait-for-done");
   }

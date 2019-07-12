@@ -7,8 +7,39 @@ import 'package:expect/expect.dart';
 import 'package:test_runner/src/test_file.dart';
 
 void main() {
+  testFlags();
   testCompareTo();
   testDescribeDifferences();
+}
+
+void testFlags() {
+  var unspecified = StaticError.unspecified(1);
+  var noLength = StaticError(line: 1, column: 2, code: "E.CODE");
+  var analyzer = StaticError(line: 1, column: 2, length: 3, code: "E.CODE");
+  var cfe = StaticError(line: 1, column: 2, length: 3, message: "E.");
+  var both =
+      StaticError(line: 1, column: 2, length: 3, code: "E.CODE", message: "E.");
+
+  // isUnspecified.
+  Expect.isTrue(unspecified.isUnspecified);
+  Expect.isFalse(noLength.isUnspecified);
+  Expect.isFalse(analyzer.isUnspecified);
+  Expect.isFalse(cfe.isUnspecified);
+  Expect.isFalse(both.isUnspecified);
+
+  // isAnalyzer.
+  Expect.isTrue(unspecified.isAnalyzer);
+  Expect.isTrue(noLength.isAnalyzer);
+  Expect.isTrue(analyzer.isAnalyzer);
+  Expect.isFalse(cfe.isAnalyzer);
+  Expect.isTrue(both.isAnalyzer);
+
+  // isCfe.
+  Expect.isTrue(unspecified.isCfe);
+  Expect.isFalse(noLength.isCfe);
+  Expect.isFalse(analyzer.isCfe);
+  Expect.isTrue(cfe.isCfe);
+  Expect.isTrue(both.isCfe);
 }
 
 void testCompareTo() {
