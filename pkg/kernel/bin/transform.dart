@@ -102,8 +102,7 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
-          component, backend, defines, const constants.SimpleErrorReporter(),
-          enableAsserts: true);
+          component, backend, defines, const constants.SimpleErrorReporter());
       break;
     case 'methodcall':
       component =

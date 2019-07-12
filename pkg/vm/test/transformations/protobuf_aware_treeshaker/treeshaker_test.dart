@@ -32,7 +32,7 @@ runTestCase(Uri source) async {
       .toList();
 
   treeshaker.transformComponent(component, {}, TestingVmTarget(TargetFlags()),
-      collectInfo: true, enableAsserts: false);
+      collectInfo: true);
 
   for (Class messageClass in messageClasses) {
     expect(messageClass.enclosingLibrary.classes.contains(messageClass),

@@ -138,8 +138,6 @@ class KernelTarget extends TargetImplementation {
   final bool errorOnUnevaluatedConstant =
       CompilerContext.current.options.errorOnUnevaluatedConstant;
 
-  final bool enableAsserts = CompilerContext.current.options.enableAsserts;
-
   final List<Object> clonedFormals = <Object>[];
 
   KernelTarget(this.fileSystem, this.includeComments, DillTarget dillTarget,
@@ -786,7 +784,6 @@ class KernelTarget extends TargetImplementation {
           environmentDefines,
           environment,
           new KernelConstantErrorReporter(loader),
-          enableAsserts: enableAsserts,
           desugarSets: !backendTarget.supportsSetLiterals,
           errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
       ticker.logMs("Evaluated constants");

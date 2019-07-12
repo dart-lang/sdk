@@ -604,10 +604,7 @@ Future testData(TestData data) async {
             // all unevaluated constants have no uri.
             errors.add(message.code.name);
             reportLocatedMessage(elementMap.reporter, message, context);
-          },
-                  enableAsserts: true,
-                  environment: environment,
-                  supportReevaluationForTesting: true);
+          }, environment: environment, supportReevaluationForTesting: true);
           ir.Constant evaluatedConstant = evaluator.evaluate(initializer);
 
           ConstantValue value = evaluatedConstant is! ir.UnevaluatedConstant

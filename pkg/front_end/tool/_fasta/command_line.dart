@@ -313,8 +313,6 @@ ProcessedOptions analyzeCommandLine(
 
   final bool noDefines = options["--no-defines"];
 
-  final bool enableAsserts = options["--enable-asserts"];
-
   final bool verify = options["--verify"];
 
   final bool dumpIr = options["--dump-ir"];
@@ -378,7 +376,6 @@ ProcessedOptions analyzeCommandLine(
           ..packagesFileUri = packages
           ..legacyMode = legacyMode
           ..target = target
-          ..enableAsserts = enableAsserts
           ..throwOnErrorsForDebugging = errorsAreFatal
           ..throwOnWarningsForDebugging = warningsAreFatal
           ..embedSourceText = !excludeSource
@@ -415,7 +412,6 @@ ProcessedOptions analyzeCommandLine(
     ..packagesFileUri = packages
     ..legacyMode = legacyMode
     ..target = target
-    ..enableAsserts = enableAsserts
     ..throwOnErrorsForDebugging = errorsAreFatal
     ..throwOnWarningsForDebugging = warningsAreFatal
     ..embedSourceText = !excludeSource

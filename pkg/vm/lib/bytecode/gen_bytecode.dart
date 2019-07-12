@@ -379,12 +379,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     }
     final savedConstantEvaluator = constantEvaluator;
     if (constantEvaluator == null) {
-      constantEvaluator = new ConstantEvaluator(
-          constantsBackend,
-          options.environmentDefines,
-          typeEnvironment,
-          options.enableAsserts,
-          errorReporter)
+      constantEvaluator = new ConstantEvaluator(constantsBackend,
+          options.environmentDefines, typeEnvironment, errorReporter)
         ..env = new EvaluationEnvironment();
     }
     List<Constant> constants = nodes.map(_evaluateConstantExpression).toList();
@@ -1342,12 +1338,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
     // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(
-        constantsBackend,
-        options.environmentDefines,
-        typeEnvironment,
-        options.enableAsserts,
-        errorReporter)
+    constantEvaluator = new ConstantEvaluator(constantsBackend,
+        options.environmentDefines, typeEnvironment, errorReporter)
       ..env = new EvaluationEnvironment();
 
     if (node.isAbstract || node is Field && !hasInitializerCode(node)) {

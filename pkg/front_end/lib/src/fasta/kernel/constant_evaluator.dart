@@ -69,7 +69,6 @@ part 'constant_collection_builders.dart';
 Component transformComponent(Component component, ConstantsBackend backend,
     Map<String, String> environmentDefines, ErrorReporter errorReporter,
     {bool keepFields: true,
-    bool enableAsserts: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
     bool errorOnUnevaluatedConstant: false,
@@ -83,7 +82,6 @@ Component transformComponent(Component component, ConstantsBackend backend,
   transformLibraries(component.libraries, backend, environmentDefines,
       typeEnvironment, errorReporter,
       keepFields: keepFields,
-      enableAsserts: enableAsserts,
       desugarSets: desugarSets,
       errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
       evaluateAnnotations: evaluateAnnotations);
@@ -100,8 +98,7 @@ void transformLibraries(
     bool keepVariables: false,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
-    bool errorOnUnevaluatedConstant: false,
-    bool enableAsserts: false}) {
+    bool errorOnUnevaluatedConstant: false}) {
   final ConstantsTransformer constantsTransformer = new ConstantsTransformer(
       backend,
       environmentDefines,
@@ -111,7 +108,6 @@ void transformLibraries(
       desugarSets,
       errorOnUnevaluatedConstant,
       typeEnvironment,
-      enableAsserts,
       errorReporter);
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
@@ -155,10 +151,9 @@ class ConstantsTransformer extends Transformer {
       this.desugarSets,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
-      bool enableAsserts,
       ErrorReporter errorReporter)
-      : constantEvaluator = new ConstantEvaluator(backend, environmentDefines,
-            typeEnvironment, enableAsserts, errorReporter,
+      : constantEvaluator = new ConstantEvaluator(
+            backend, environmentDefines, typeEnvironment, errorReporter,
             desugarSets: desugarSets,
             errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
 
@@ -483,7 +478,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final bool errorOnUnevaluatedConstant;
   final CoreTypes coreTypes;
   final TypeEnvironment typeEnvironment;
-  final bool enableAsserts;
   final ErrorReporter errorReporter;
 
   final bool desugarSets;
@@ -516,7 +510,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   bool get targetingJavaScript => numberSemantics == NumberSemantics.js;
 
   ConstantEvaluator(this.backend, this.environmentDefines, this.typeEnvironment,
-      this.enableAsserts, this.errorReporter,
+      this.errorReporter,
       {this.desugarSets = false, this.errorOnUnevaluatedConstant = false})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
@@ -1154,51 +1148,49 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   void checkAssert(AssertStatement statement) {
-    if (enableAsserts) {
-      final Constant condition = _evaluateSubexpression(statement.condition);
+    final Constant condition = _evaluateSubexpression(statement.condition);
 
-      if (shouldBeUnevaluated) {
-        Expression message = null;
-        if (statement.message != null) {
-          enterLazy();
-          message = extract(_evaluateSubexpression(statement.message));
-          leaveLazy();
-        }
-        instanceBuilder.asserts.add(new AssertStatement(extract(condition),
-            message: message,
-            conditionStartOffset: statement.conditionStartOffset,
-            conditionEndOffset: statement.conditionEndOffset));
-      } else if (condition is BoolConstant) {
-        if (!condition.value) {
-          if (statement.message == null) {
-            report(statement.condition, messageConstEvalFailedAssertion);
-          }
-          final Constant message = _evaluateSubexpression(statement.message);
-          if (shouldBeUnevaluated) {
-            instanceBuilder.asserts.add(new AssertStatement(extract(condition),
-                message: extract(message),
-                conditionStartOffset: statement.conditionStartOffset,
-                conditionEndOffset: statement.conditionEndOffset));
-          } else if (message is StringConstant) {
-            report(
-                statement.condition,
-                templateConstEvalFailedAssertionWithMessage
-                    .withArguments(message.value));
-          } else {
-            report(
-                statement.message,
-                templateConstEvalInvalidType.withArguments(
-                    message,
-                    typeEnvironment.stringType,
-                    message.getType(typeEnvironment)));
-          }
-        }
-      } else {
-        report(
-            statement.condition,
-            templateConstEvalInvalidType.withArguments(condition,
-                typeEnvironment.boolType, condition.getType(typeEnvironment)));
+    if (shouldBeUnevaluated) {
+      Expression message = null;
+      if (statement.message != null) {
+        enterLazy();
+        message = extract(_evaluateSubexpression(statement.message));
+        leaveLazy();
       }
+      instanceBuilder.asserts.add(new AssertStatement(extract(condition),
+          message: message,
+          conditionStartOffset: statement.conditionStartOffset,
+          conditionEndOffset: statement.conditionEndOffset));
+    } else if (condition is BoolConstant) {
+      if (!condition.value) {
+        if (statement.message == null) {
+          report(statement.condition, messageConstEvalFailedAssertion);
+        }
+        final Constant message = _evaluateSubexpression(statement.message);
+        if (shouldBeUnevaluated) {
+          instanceBuilder.asserts.add(new AssertStatement(extract(condition),
+              message: extract(message),
+              conditionStartOffset: statement.conditionStartOffset,
+              conditionEndOffset: statement.conditionEndOffset));
+        } else if (message is StringConstant) {
+          report(
+              statement.condition,
+              templateConstEvalFailedAssertionWithMessage
+                  .withArguments(message.value));
+        } else {
+          report(
+              statement.message,
+              templateConstEvalInvalidType.withArguments(
+                  message,
+                  typeEnvironment.stringType,
+                  message.getType(typeEnvironment)));
+        }
+      }
+    } else {
+      report(
+          statement.condition,
+          templateConstEvalInvalidType.withArguments(condition,
+              typeEnvironment.boolType, condition.getType(typeEnvironment)));
     }
   }
 

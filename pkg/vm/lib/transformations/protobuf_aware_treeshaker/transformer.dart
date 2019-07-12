@@ -21,7 +21,7 @@ class TransformationInfo {
 
 TransformationInfo transformComponent(
     Component component, Map<String, String> environment, Target target,
-    {@required bool collectInfo, @required bool enableAsserts}) {
+    {@required bool collectInfo}) {
   final coreTypes = new CoreTypes(component);
   component.computeCanonicalNames();
 
@@ -31,7 +31,6 @@ TransformationInfo transformComponent(
   constants.transformComponent(component, vmConstants, environment, null,
       keepFields: true,
       evaluateAnnotations: true,
-      enableAsserts: enableAsserts,
       desugarSets: !target.supportsSetLiterals);
 
   TransformationInfo info = collectInfo ? TransformationInfo() : null;

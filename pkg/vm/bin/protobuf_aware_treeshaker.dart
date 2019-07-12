@@ -60,8 +60,6 @@ ArgResults parseArgs(List<String> args) {
         valueHelp: 'variable=value')
     ..addFlag('remove-source',
         help: 'Removes source code from the emitted dill', defaultsTo: false)
-    ..addFlag('enable-asserts',
-        help: 'Enables asserts in the emitted dill', defaultsTo: false)
     ..addFlag('verbose',
         help: 'Write to stdout about what classes and fields where remeoved')
     ..addFlag('help', help: 'Prints this help', negatable: false);
@@ -107,8 +105,7 @@ Future main(List<String> args) async {
 
   treeshaker.TransformationInfo info = treeshaker.transformComponent(
       component, environment, getTarget(argResults['target'], TargetFlags()),
-      collectInfo: argResults['verbose'],
-      enableAsserts: argResults['enable-asserts']);
+      collectInfo: argResults['verbose']);
 
   if (argResults['verbose']) {
     for (String fieldName in info.removedMessageFields) {

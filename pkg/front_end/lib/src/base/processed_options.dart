@@ -158,8 +158,6 @@ class ProcessedOptions {
 
   Uri get packagesUriRaw => _raw.packagesFileUri;
 
-  bool get enableAsserts => _raw.enableAsserts;
-
   bool get verbose => _raw.verbose;
 
   bool get verify => _raw.verify;

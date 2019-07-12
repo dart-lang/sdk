@@ -153,8 +153,8 @@ class CompilerOptions {
   /// If not specified, the default target is the VM.
   Target target;
 
-  /// Whether asserts in initializers in const constructors are checked during
-  /// constant evaluation.
+  /// Deprecated. Has no affect on front-end.
+  // TODO(dartbug.com/37514) Remove this field once DDK removes its uses of it.
   bool enableAsserts = false;
 
   /// Whether to show verbose messages (mainly for debugging and performance

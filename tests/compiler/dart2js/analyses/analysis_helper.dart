@@ -85,7 +85,6 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
         const Dart2jsConstantsBackend(),
         const {},
         typeEnvironment,
-        false,
         const ir.SimpleErrorReporter());
   }
 
