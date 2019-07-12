@@ -384,7 +384,8 @@ class LibraryImportScope extends Scope {
       for (var namespace in _importedNamespaces) {
         for (var element in namespace.definedNames.values) {
           if (element is ExtensionElement &&
-              element.name.isNotEmpty /* named */) {
+              element.name.isNotEmpty /* named */ &&
+              !_extensions.contains(element)) {
             _extensions.add(element);
           }
         }

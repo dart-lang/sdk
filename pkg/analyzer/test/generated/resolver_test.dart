@@ -418,6 +418,131 @@ class LibraryScopeTest extends ResolverTestCase {
     expect(libraryExtensions, contains(importedExtension));
     expect(libraryExtensions, isNot(contains(unnamedImportedExtension)));
   }
+
+  /// Ensure that if a library L1 defines an extension E, L2 exports L1, and L3
+  /// imports L2, then E is included in the list.
+  void test_extensions_imported_chain() {
+    var context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+
+    var unit1 = ElementFactory.compilationUnit('/unit1.dart');
+    var ext1 = ExtensionElementImpl.forNode(AstTestFactory.identifier3('ext1'));
+    unit1.extensions = [ext1];
+
+    var lib1Name = 'lib1';
+    var lib1 =
+        LibraryElementImpl(context, null, lib1Name, 0, lib1Name.length, false);
+    lib1.definingCompilationUnit = unit1;
+
+    var unit2 = ElementFactory.compilationUnit('/unit2.dart');
+
+    var lib2Name = 'lib2';
+    var lib2 =
+        LibraryElementImpl(context, null, lib2Name, 0, lib2Name.length, false);
+    lib2.definingCompilationUnit = unit2;
+
+    var lib1Export = ExportElementImpl(0);
+    lib1Export.exportedLibrary = lib1;
+    lib2.exports = [lib1Export];
+
+    var importingLibraryName = 'importing_lib';
+    var importingLibrary = LibraryElementImpl(context, null,
+        importingLibraryName, 0, importingLibraryName.length, false);
+
+    var importingUnit = ElementFactory.compilationUnit('/importing.dart');
+    importingLibrary.definingCompilationUnit = importingUnit;
+
+    var lib2Import = ImportElementImpl(0);
+    lib2Import.importedLibrary = lib2;
+    importingLibrary.imports = [lib2Import];
+
+    var libraryExtensions = LibraryScope(importingLibrary).extensions;
+
+    expect(libraryExtensions, orderedEquals([ext1]));
+  }
+
+  /// Ensure that if there are two extensions with the same name that are
+  /// imported from different libraries that they are both in the list of
+  /// extensions.
+  void test_extensions_imported_same_name() {
+    var context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+
+    var sharedExtensionName = 'test_ext';
+
+    var unit1 = ElementFactory.compilationUnit('/unit1.dart');
+    var ext1 = ExtensionElementImpl.forNode(
+        AstTestFactory.identifier3(sharedExtensionName));
+    unit1.extensions = [ext1];
+
+    var lib1Name = 'lib1';
+    var lib1 =
+        LibraryElementImpl(context, null, lib1Name, 0, lib1Name.length, false);
+    lib1.definingCompilationUnit = unit1;
+
+    var unit2 = ElementFactory.compilationUnit('/unit2.dart');
+    var ext2 = ExtensionElementImpl.forNode(
+        AstTestFactory.identifier3(sharedExtensionName));
+    unit2.extensions = [ext2];
+
+    var lib2Name = 'lib2';
+    var lib2 =
+        LibraryElementImpl(context, null, lib2Name, 0, lib2Name.length, false);
+    lib2.definingCompilationUnit = unit2;
+
+    var importingLibraryName = 'importing_lib';
+    var importingLibrary = LibraryElementImpl(context, null,
+        importingLibraryName, 0, importingLibraryName.length, false);
+
+    var importingUnit = ElementFactory.compilationUnit('/importing.dart');
+    importingLibrary.definingCompilationUnit = importingUnit;
+
+    var importElement1 = ImportElementImpl(0);
+    importElement1.importedLibrary = lib1;
+    var importElement2 = ImportElementImpl(0);
+    importElement2.importedLibrary = lib2;
+    importingLibrary.imports = [importElement1, importElement2];
+
+    var libraryExtensions = LibraryScope(importingLibrary).extensions;
+
+    expect(libraryExtensions, contains(ext1));
+    expect(libraryExtensions, contains(ext2));
+  }
+
+  /// Ensure that if there are two imports for the same library that the
+  /// imported extension is only in the list one time.
+  void test_extensions_imported_twice() {
+    var context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+
+    var sharedExtensionName = 'test_ext';
+
+    var unit1 = ElementFactory.compilationUnit('/unit1.dart');
+    var ext1 = ExtensionElementImpl.forNode(
+        AstTestFactory.identifier3(sharedExtensionName));
+    unit1.extensions = [ext1];
+
+    var lib1Name = 'lib1';
+    var lib1 =
+        LibraryElementImpl(context, null, lib1Name, 0, lib1Name.length, false);
+    lib1.definingCompilationUnit = unit1;
+
+    var importingLibraryName = 'importing_lib';
+    var importingLibrary = LibraryElementImpl(context, null,
+        importingLibraryName, 0, importingLibraryName.length, false);
+
+    var importingUnit = ElementFactory.compilationUnit('/importing.dart');
+    importingLibrary.definingCompilationUnit = importingUnit;
+
+    var importElement1 = ImportElementImpl(0);
+    importElement1.importedLibrary = lib1;
+    var importElement2 = ImportElementImpl(0);
+    importElement2.importedLibrary = lib1;
+    importingLibrary.imports = [importElement1, importElement2];
+
+    var libraryExtensions = LibraryScope(importingLibrary).extensions;
+    expect(libraryExtensions, orderedEquals([ext1]));
+  }
 }
 
 @reflectiveTest
