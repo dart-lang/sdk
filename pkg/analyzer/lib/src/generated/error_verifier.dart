@@ -6163,6 +6163,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// [1] https://pub.dartlang.org/documentation/meta/latest/meta/mustCallSuper-constant.html
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     Element member = node.declaredElement;
+    if (member.enclosingElement is! ClassElement) {
+      return null;
+    }
     ClassElement classElement = member.enclosingElement;
     String name = member.name;
 

@@ -178,6 +178,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       _nodeExits(node.expression);
 
   @override
+  bool visitExtensionOverride(ExtensionOverride node) => false;
+
+  @override
   bool visitForElement(ForElement node) {
     bool outerBreakValue = _enclosingBlockContainsBreak;
     _enclosingBlockContainsBreak = false;

@@ -96,6 +96,13 @@ class AstRewriteVisitor extends ScopedVisitor {
             astFactory.instanceCreationExpression(
                 _getKeyword(node), constructorName, node.argumentList);
         NodeReplacer.replace(node, instanceCreationExpression);
+      } else if (element is ExtensionElement) {
+        AstFactory astFactory = new AstFactoryImpl();
+        ExtensionOverride extensionOverride = astFactory.extensionOverride(
+            extensionName: methodName,
+            typeArguments: node.typeArguments,
+            argumentList: node.argumentList);
+        NodeReplacer.replace(node, extensionOverride);
       }
     } else if (target is SimpleIdentifier) {
       // Possible cases: C.n(), p.C() or p.C<>()
@@ -144,6 +151,15 @@ class AstRewriteVisitor extends ScopedVisitor {
               astFactory.instanceCreationExpression(
                   _getKeyword(node), constructorName, node.argumentList);
           NodeReplacer.replace(node, instanceCreationExpression);
+        } else if (prefixedElement is ExtensionElement) {
+          AstFactory astFactory = new AstFactoryImpl();
+          PrefixedIdentifier extensionName =
+              astFactory.prefixedIdentifier(target, node.operator, methodName);
+          ExtensionOverride extensionOverride = astFactory.extensionOverride(
+              extensionName: extensionName,
+              typeArguments: node.typeArguments,
+              argumentList: node.argumentList);
+          NodeReplacer.replace(node, extensionOverride);
         }
       }
     } else if (target is PrefixedIdentifier) {
@@ -4188,23 +4204,6 @@ class ResolverVisitor extends ScopedVisitor {
       enclosingClass = outerType;
       _enclosingClassDeclaration = null;
     }
-  }
-
-  /// Implementation of this method should be synchronized with
-  /// [visitClassDeclaration].
-  void visitClassDeclarationIncrementally(ClassDeclaration node) {
-    //
-    // Resolve the metadata in the library scope.
-    //
-    node.metadata?.accept(this);
-    _enclosingClassDeclaration = node;
-    //
-    // Continue the class resolution.
-    //
-    enclosingClass = node.declaredElement;
-    typeAnalyzer.thisType = enclosingClass?.type;
-    node.accept(elementResolver);
-    node.accept(typeAnalyzer);
   }
 
   @override

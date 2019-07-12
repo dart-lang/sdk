@@ -1778,7 +1778,26 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     }
 
     if (linkedNode != null) {
-      // TODO(brianwilkerson) Implement this.
+      CompilationUnit linkedNode = this.linkedNode;
+      var containerRef = reference.getChild('@extension');
+      _extensions = <ExtensionElement>[];
+      for (var node in linkedNode.declarations) {
+        String name;
+        if (node is ExtensionDeclaration) {
+          name = node.name.name;
+        } else {
+          continue;
+        }
+        var reference = containerRef.getChild(name);
+        if (reference.hasElementFor(node)) {
+          _extensions.add(reference.element);
+        } else {
+          _extensions.add(
+            ExtensionElementImpl.forLinkedNode(this, reference, node),
+          );
+        }
+      }
+      return _extensions;
     } else if (_unlinkedUnit != null) {
       return _extensions = _unlinkedUnit.extensions
           .map((e) => ExtensionElementImpl.forSerialized(e, this))
@@ -4952,6 +4971,12 @@ class ExtensionElementImpl extends ElementImpl
       : _unlinkedExtension = null,
         super(name, nameOffset);
 
+  /// Initialize using the given linked information.
+  ExtensionElementImpl.forLinkedNode(CompilationUnitElementImpl enclosing,
+      Reference reference, AstNode linkedNode)
+      : _unlinkedExtension = null,
+        super.forLinkedNode(enclosing, reference, linkedNode);
+
   /// Initialize a newly created extension element to have the given [name].
   ExtensionElementImpl.forNode(Identifier name)
       : _unlinkedExtension = null,
@@ -5038,7 +5063,6 @@ class ExtensionElementImpl extends ElementImpl
     return _fields ?? const <FieldElement>[];
   }
 
-  @override
   void set fields(List<FieldElement> fields) {
     _assertNotResynthesized(_unlinkedExtension);
     for (FieldElement field in fields) {
