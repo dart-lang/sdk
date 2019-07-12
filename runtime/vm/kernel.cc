@@ -287,7 +287,9 @@ static void CollectBytecodeFunctionTokenPositions(
     }
   }
   Bytecode& bytecode = Bytecode::Handle(zone, function.bytecode());
-  ASSERT(!bytecode.IsNull());
+  if (bytecode.IsNull()) {
+    return;
+  }
   if (bytecode.HasSourcePositions() && !function.IsLocalFunction()) {
     CollectBytecodeTokenPositions(bytecode, zone, token_positions);
     // Find closure functions in the object pool.
