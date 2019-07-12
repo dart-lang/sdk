@@ -20,8 +20,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-import 'src/utilities/flutter_util.dart';
-import 'src/utilities/meta_util.dart';
+import 'src/utilities/mock_packages.dart';
 
 /**
  * Finds an [Element] with the given [name].
@@ -64,12 +63,12 @@ class AbstractContextTest with ResourceProviderMixin {
 
   void addFlutterPackage() {
     addMetaPackage();
-    Folder libFolder = configureFlutterPackage(resourceProvider);
+    Folder libFolder = MockPackages.instance.addFlutter(resourceProvider);
     addTestPackageDependency('flutter', libFolder.parent.path);
   }
 
   void addMetaPackage() {
-    Folder libFolder = configureMetaPackage(resourceProvider);
+    Folder libFolder = MockPackages.instance.addMeta(resourceProvider);
     addTestPackageDependency('meta', libFolder.parent.path);
   }
 

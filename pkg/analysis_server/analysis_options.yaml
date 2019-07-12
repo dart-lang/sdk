@@ -1,3 +1,7 @@
+analyzer:
+  exclude:
+    - test/mock_packages/**
+
 linter:
   rules:
     - empty_constructor_bodies # pedantic

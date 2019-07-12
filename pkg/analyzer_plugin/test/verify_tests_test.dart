@@ -17,7 +17,7 @@ main() {
   PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
   String packageRoot = provider.pathContext.normalize(package_root.packageRoot);
   String analysisServerPath =
-      provider.pathContext.join(packageRoot, 'analysis_server');
+      provider.pathContext.join(packageRoot, 'analyzer_plugin');
   String testDirPath = provider.pathContext.join(analysisServerPath, 'test');
 
   AnalysisContextCollection collection = new AnalysisContextCollection(

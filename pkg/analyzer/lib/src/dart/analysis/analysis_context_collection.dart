@@ -26,6 +26,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
       @deprecated ByteStore byteStore,
       @deprecated FileContentOverlay fileContentOverlay,
       @required List<String> includedPaths,
+      List<String> excludedPaths,
       ResourceProvider resourceProvider,
       String sdkPath})
       : resourceProvider =
@@ -38,7 +39,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     var contextLocator = new ContextLocator(
       resourceProvider: this.resourceProvider,
     );
-    var roots = contextLocator.locateRoots(includedPaths: includedPaths);
+    var roots = contextLocator.locateRoots(
+      includedPaths: includedPaths,
+      excludedPaths: excludedPaths,
+    );
     for (var root in roots) {
       var contextBuilder = new ContextBuilderImpl(
         resourceProvider: this.resourceProvider,
