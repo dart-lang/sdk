@@ -4511,6 +4511,10 @@ class CodeGenerator extends Object
         return _emitConstList(type.typeArguments[0],
             value.toListValue().map(_emitDartObject).toList());
       }
+      if (type.element == types.setType.element) {
+        return _emitConstSet(type.typeArguments[0],
+            value.toSetValue().map(_emitDartObject).toList());
+      }
       if (type.element == types.mapType.element) {
         var entries = <js_ast.Expression>[];
         value.toMapValue().forEach((key, value) {
@@ -5809,6 +5813,12 @@ class CodeGenerator extends Object
     identity ??= jsTypeRep.isPrimitive(typeArgs[0]);
     type = identity ? identityHashMapImplType : linkedHashMapImplType;
     return _emitType(type.instantiate(typeArgs));
+  }
+
+  js_ast.Expression _emitConstSet(
+      DartType elementType, List<js_ast.Expression> elements) {
+    return cacheConst(
+        runtimeCall('constSet([#], #)', [elements, _emitType(elementType)]));
   }
 
   js_ast.Expression _emitSetImplType(InterfaceType type, {bool identity}) {
