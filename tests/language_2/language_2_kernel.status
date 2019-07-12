@@ -35,7 +35,6 @@ const_list_test: RuntimeError
 const_locals_test: RuntimeError
 const_nested_test: RuntimeError
 const_string_test: RuntimeError
-constructor12_test: RuntimeError
 covariant_subtyping_test: RuntimeError
 ct_const_test: RuntimeError
 cyclic_type2_test: CompileTimeError
@@ -586,7 +585,6 @@ config_import_corelib_test: CompileTimeError # Issue 31533
 config_import_test: RuntimeError # KernelVM bug: Configurable imports.
 const_evaluation_test: SkipByDesign
 const_list_test: RuntimeError
-constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 ct_const2_test: Skip # Incompatible flag: --compile_all
 ct_const_test: RuntimeError
@@ -910,7 +908,6 @@ const_list_test: RuntimeError
 const_locals_test: RuntimeError
 const_nested_test: RuntimeError # KernelVM bug: Constant evaluation.
 const_string_test: RuntimeError
-constructor12_test: RuntimeError
 constructor3_test: Fail, OK, Pass
 covariant_subtyping_test: RuntimeError
 ct_const2_test: Pass, Crash # Flaky

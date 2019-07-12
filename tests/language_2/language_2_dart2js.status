@@ -40,7 +40,6 @@ const_map2_test/00: MissingCompileTimeError
 const_map3_test/00: MissingCompileTimeError
 const_switch_test/02: RuntimeError, OK # constant identity based on JS constants
 const_switch_test/04: RuntimeError, OK # constant identity based on JS constants
-constructor12_test: RuntimeError
 constructor_named_arguments_test/none: RuntimeError
 covariant_subtyping_test: Crash # Unsupported operation: Unsupported type parameter type node E.
 ct_const_test: RuntimeError
