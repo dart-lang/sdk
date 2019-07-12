@@ -42,7 +42,7 @@ static method callerA1([@vm.inferred-type.metadata=!] self::A aa) → void {
 static method callerA2([@vm.inferred-type.metadata=#lib::B] self::A aa) → void {
   [@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
-static method callerA3({[@vm.inferred-type.metadata=#lib::C] self::A aa = null}) → void {
+static method callerA3({[@vm.inferred-type.metadata=#lib::C] self::A aa = #C1}) → void {
   [@vm.direct-call.metadata=#lib::C::foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}();
 }
 static method callerA4([@vm.inferred-type.metadata=#lib::D?] self::A aa) → void {

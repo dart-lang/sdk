@@ -6,12 +6,16 @@ abstract class A<X extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::X>
     : super core::Object::•()
     ;
-  abstract method foo({generic-covariant-impl core::Iterable<self::A::X> x = null}) → void;
+  abstract method foo({generic-covariant-impl core::Iterable<self::A::X> x = #C1}) → void;
 }
 class B<Y extends core::Object = dynamic> extends core::Object implements self::A<self::B::Y> {
   synthetic constructor •() → self::B<self::B::Y>
     : super core::Object::•()
     ;
-  method foo({generic-covariant-impl core::Iterable<self::B::Y> x = null}) → void {}
+  method foo({generic-covariant-impl core::Iterable<self::B::Y> x = #C1}) → void {}
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

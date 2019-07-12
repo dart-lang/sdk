@@ -22,6 +22,7 @@ general/incomplete_field_formal_parameter: Fail # Fasta doesn't recover well
 general/invocations: Fail
 general/micro: Fail # External method marked abstract.
 general/minimum_int: Crash # Min int literal not supported in non-strong mode.
+general/mixin_constructors_with_default_values: RuntimeError # Expected
 general/named_parameters: Fail # Missing types and unnecessary default values.
 general/operator_method_not_found: RuntimeError # Expected
 general/optional: Fail # Unnecessary default values.

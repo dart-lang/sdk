@@ -8,15 +8,22 @@ class C<T extends core::Object = dynamic> extends core::Object {
   constructor named(({x: self::C::T}) → void func) → self::C<self::C::T>
     : super core::Object::•() {}
 }
-static method optional_toplevel([dynamic x = const <core::int>[0]]) → void {}
-static method named_toplevel({dynamic x = const <core::int>[0]}) → void {}
+static method optional_toplevel([dynamic x = #C2]) → void {}
+static method named_toplevel({dynamic x = #C2}) → void {}
 static method main() → dynamic {
-  function optional_local([dynamic x = const <core::int>[0]]) → void {}
-  function named_local({dynamic x = const <core::int>[0]}) → void {}
-  self::C<dynamic> c_optional_toplevel = new self::C::optional<dynamic>(self::optional_toplevel);
-  self::C<dynamic> c_named_toplevel = new self::C::named<dynamic>(self::named_toplevel);
+  function optional_local([dynamic x = #C2]) → void {}
+  function named_local({dynamic x = #C2}) → void {}
+  self::C<dynamic> c_optional_toplevel = new self::C::optional<dynamic>(#C3);
+  self::C<dynamic> c_named_toplevel = new self::C::named<dynamic>(#C4);
   self::C<dynamic> c_optional_local = new self::C::optional<dynamic>(optional_local);
   self::C<dynamic> c_named_local = new self::C::named<dynamic>(named_local);
-  self::C<dynamic> c_optional_closure = new self::C::optional<dynamic>(([dynamic x = const <core::int>[0]]) → core::Null {});
-  self::C<dynamic> c_named_closure = new self::C::named<dynamic>(({dynamic x = const <core::int>[0]}) → core::Null {});
+  self::C<dynamic> c_optional_closure = new self::C::optional<dynamic>(([dynamic x = #C2]) → core::Null {});
+  self::C<dynamic> c_named_closure = new self::C::named<dynamic>(({dynamic x = #C2}) → core::Null {});
+}
+
+constants  {
+  #C1 = 0
+  #C2 = <core::int>[#C1]
+  #C3 = tearoff self::optional_toplevel
+  #C4 = tearoff self::named_toplevel
 }

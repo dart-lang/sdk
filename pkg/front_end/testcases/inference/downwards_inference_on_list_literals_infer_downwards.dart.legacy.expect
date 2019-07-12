@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method foo([core::List<core::String> list1 = const <dynamic>[], core::List<core::String> list2 = const <dynamic>[42]]) → void {}
+static method foo([core::List<core::String> list1 = #C1, core::List<core::String> list2 = #C3]) → void {}
 static method main() → void {
   {
     core::List<core::int> l0 = <dynamic>[];
@@ -28,10 +28,11 @@ static method main() → void {
     core::Iterable<core::int> i2 = <dynamic>["hello"];
     core::Iterable<core::int> i3 = <dynamic>["hello", 3];
   }
-  {
-    const core::List<core::int> c0 = const <dynamic>[];
-    const core::List<core::int> c1 = const <dynamic>[3];
-    const core::List<core::int> c2 = const <dynamic>["hello"];
-    const core::List<core::int> c3 = const <dynamic>["hello", 3];
-  }
+  {}
+}
+
+constants  {
+  #C1 = <dynamic>[]
+  #C2 = 42
+  #C3 = <dynamic>[#C2]
 }

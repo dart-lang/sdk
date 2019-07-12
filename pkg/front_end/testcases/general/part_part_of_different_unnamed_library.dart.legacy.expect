@@ -11,7 +11,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///part_part_of_different_unnamed_library_lib2.dart";
 
-@core::override
+@#C1
 part part_part_of_different_unnamed_library_lib1.dart;
 static method main() → dynamic {}
 
@@ -22,4 +22,8 @@ part part_part_of_different_unnamed_library_lib1.dart;
 static method /* from org-dartlang-testcase:///part_part_of_different_unnamed_library_lib1.dart */ methodFromLib1() → dynamic {}
 static method methodFromLib2() → dynamic {
   self2::methodFromLib1();
+}
+
+constants  {
+  #C1 = core::_Override {}
 }

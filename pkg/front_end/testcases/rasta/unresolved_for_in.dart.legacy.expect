@@ -90,7 +90,7 @@ class Fisk extends core::Object {
       core::print(this.key);
     }
     for (final dynamic #t2 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t2]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t2]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
       core::print(self::Fisk);
     }
     for (final dynamic #t3 in x) {
@@ -102,7 +102,7 @@ class Fisk extends core::Object {
             ^^^^^^^^^^");
     }
     for (final dynamic #t4 in x) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t4]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
       core::print(() → void);
     }
     {
@@ -122,11 +122,11 @@ class Fisk extends core::Object {
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   for (final dynamic #t6 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t6]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))));
   }
   for (final dynamic #t7 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Fisk, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t7]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t7]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
     core::print(self::Fisk);
   }
   for (final dynamic #t8 in arguments) {
@@ -138,7 +138,7 @@ static method main(dynamic arguments) → dynamic {
           ^^^^^^^^^^");
   }
   for (final dynamic #t9 in arguments) {
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#VoidFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t9]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
     core::print(() → void);
   }
   {
@@ -150,7 +150,16 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
       1;
-      core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#key, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+      core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))));
     }
   }
+}
+
+constants  {
+  #C1 = #Fisk
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
+  #C5 = #VoidFunction
+  #C6 = #key
 }

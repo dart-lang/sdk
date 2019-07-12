@@ -19,6 +19,10 @@ static method h(core::int i) → void {
   core::print("${i}");
 }
 static method test() → void {
-  dynamic x = self::g(new self::C::•<core::int>(self::h));
+  dynamic x = self::g(new self::C::•<core::int>(#C1));
 }
 static method main() → void {}
+
+constants  {
+  #C1 = tearoff self::h
+}

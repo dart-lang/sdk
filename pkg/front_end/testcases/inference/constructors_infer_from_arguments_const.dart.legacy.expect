@@ -9,5 +9,10 @@ class C<T extends core::Object = dynamic> extends core::Object {
     ;
 }
 static method main() → dynamic {
-  dynamic x = const self::C::•<dynamic>(42);
+  dynamic x = #C2;
+}
+
+constants  {
+  #C1 = 42
+  #C2 = self::C<dynamic> {t:#C1}
 }

@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-@self::Foo::•(const <dynamic>[])
+@#C1
 typedef F = () → void;
 class Foo extends core::Object {
   const constructor •(core::List<core::String> l) → self::Foo
@@ -10,3 +10,7 @@ class Foo extends core::Object {
     ;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Foo {}
+}

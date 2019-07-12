@@ -92,11 +92,15 @@ a b(c) = d;
          ^" as{TypeError} invalid-type;
 static method main() → dynamic {
   self::C c = null;
-  core::print(const self::C::constant());
+  core::print(#C1);
   core::print(invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:27:15: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   print(const C.missingFactoryKeyword());
               ^");
-  core::print(const self::C::constant());
+  core::print(#C1);
   core::print(new self::C::constant().{self::C::notEvenAConstructor}(null));
+}
+
+constants  {
+  #C1 = self::C {}
 }

@@ -14,7 +14,10 @@ class D<T extends core::num = core::num> extends core::Object {
     ;
 }
 static method main() → void {
-  const self::C<core::int> c = const self::C::•<core::int>(0);
-  self::C<core::int> c2 = c;
-  const self::D<core::int> d = const self::D::•<core::int>();
+  self::C<core::int> c2 = #C2;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = self::C<core::int> {x:#C1}
 }

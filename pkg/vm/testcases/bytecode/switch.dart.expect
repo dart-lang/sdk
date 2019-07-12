@@ -192,19 +192,19 @@ ConstantPool {
     #L1:
     switch(x) {
       #L2:
-      case 1:
+      case #C1:
         {
           y = 11;
           break #L1;
         }
       #L3:
-      case 2:
+      case #C2:
         {
           y = 22;
           break #L1;
         }
       #L4:
-      case 3:
+      case #C3:
         {
           y = 33;
           break #L1;
@@ -217,17 +217,17 @@ ConstantPool {
     #L5:
     switch(x) {
       #L6:
-      case 1:
-      case 2:
-      case 3:
+      case #C1:
+      case #C2:
+      case #C3:
         {
           y = 11;
           break #L5;
         }
       #L7:
-      case 4:
-      case 5:
-      case 6:
+      case #C4:
+      case #C5:
+      case #C6:
         {
           y = 22;
           break #L5;
@@ -244,17 +244,17 @@ ConstantPool {
     dart.core::int y;
     switch(x) {
       #L9:
-      case 1:
-      case 2:
-      case 3:
+      case #C1:
+      case #C2:
+      case #C3:
         {
           y = 11;
           continue #L10;
         }
       #L10:
-      case 4:
-      case 5:
-      case 6:
+      case #C4:
+      case #C5:
+      case #C6:
         {
           y = 22;
           return 42;
@@ -268,4 +268,12 @@ ConstantPool {
     return y;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 6
 }

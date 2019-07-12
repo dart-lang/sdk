@@ -6,8 +6,8 @@ abstract class C<E extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::E>
     : super core::Object::•()
     ;
-  method sort([(self::C::E, self::C::E) → core::int compare = null]) → void {
-    self::C::sort2<dynamic>(this, let final dynamic #t1 = compare in #t1.==(null) ? self::C::_compareAny : #t1);
+  method sort([(self::C::E, self::C::E) → core::int compare = #C1]) → void {
+    self::C::sort2<dynamic>(this, let final dynamic #t1 = compare in #t1.==(null) ? #C2 : #t1);
   }
   static method _compareAny(dynamic a, dynamic b) → core::int {
     throw "unimplemented";
@@ -17,3 +17,8 @@ abstract class C<E extends core::Object = dynamic> extends core::Object {
   }
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+  #C2 = tearoff self::C::_compareAny
+}

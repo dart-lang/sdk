@@ -27,5 +27,12 @@ class C extends core::Object {
     : super core::Object::•() {}
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+}
+
+constants  {
+  #C1 = #C
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
 }

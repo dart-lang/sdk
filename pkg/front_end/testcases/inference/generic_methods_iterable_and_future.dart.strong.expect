@@ -23,7 +23,7 @@ import "dart:async";
 static method make(core::int x) → asy::Future<core::int>
   return asy::Future::•<core::int>(() → core::int => x);
 static method test() → dynamic {
-  core::Iterable<asy::Future<core::int>> list = <core::int>[1, 2, 3].{core::Iterable::map}<asy::Future<core::int>>(self::make);
+  core::Iterable<asy::Future<core::int>> list = <core::int>[1, 2, 3].{core::Iterable::map}<asy::Future<core::int>>(#C1);
   asy::Future<core::List<core::int>> results = asy::Future::wait<core::int>(list);
   asy::Future<core::String> results2 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → asy::FutureOr<core::String> => list.{core::Iterable::fold}<asy::FutureOr<core::String>>("", (asy::FutureOr<core::String> x, core::int y) → asy::FutureOr<core::String> => invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The method '+' isn't defined for the class 'FutureOr<String>'.
  - 'FutureOr' is from 'dart:async'.
@@ -38,3 +38,7 @@ Try changing the type of the parameter, or casting the argument to 'FutureOr<Str
   asy::Future<core::String> results4 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → core::String => list.{core::Iterable::fold}<core::String>("", (core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}())));
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = tearoff self::make
+}

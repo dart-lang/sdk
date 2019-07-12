@@ -698,11 +698,11 @@ ConstantPool {
     constructor _() → #lib::_NamespaceImpl
       : super dart.core::Object::•()
       ;
-    @dart._internal::ExternalName::•("Namespace_Create")
+    @#C2
     external static method _create(#lib::_NamespaceImpl namespace, dynamic n) → #lib::_NamespaceImpl;
-    @dart._internal::ExternalName::•("Namespace_GetPointer")
+    @#C4
     external static method _getPointer(#lib::_NamespaceImpl namespace) → dart.core::int;
-    @dart._internal::ExternalName::•("Namespace_GetDefault")
+    @#C6
     external static method _getDefault() → dart.core::int;
     static method _setupNamespace(dynamic namespace) → void {
       #lib::_NamespaceImpl::_cachedNamespace = #lib::_NamespaceImpl::_create(new #lib::_NamespaceImpl::_(), namespace);
@@ -771,13 +771,13 @@ ConstantPool {
   static field dart.core::int _stderrFD = 2;
   static field dart.core::String _rawScript;
   static field #lib::Stdin _stdin;
-  @dart._internal::ExternalName::•("Builtin_PrintString")
+  @#C8
   external static method _printString(dart.core::String s) → void;
   static method _print(dynamic arg) → void {
     #lib::_printString(arg.{dart.core::Object::toString}());
   }
   static method _getPrintClosure() → dynamic
-    return #lib::_print;
+    return #C9;
   static method _setScheduleImmediateClosure((() → void) → void closure) → void {
     #lib::_ScheduleImmediate::_closure = closure;
   }
@@ -795,11 +795,23 @@ ConstantPool {
     }
   }
   static method _setupHooks() → dynamic {
-    #lib::VMLibraryHooks::platformScript = #lib::_scriptUri;
+    #lib::VMLibraryHooks::platformScript = #C10;
   }
   static get stdin() → #lib::Stdin {
     #lib::_stdin.{dart.core::Object::==}(null) ?{#lib::Stdin} #lib::_stdin = #lib::_StdIOUtils::_getStdioInputStream(#lib::_stdinFD) : null;
     return #lib::_stdin;
   }
   static method main() → dynamic {}
+}
+constants  {
+  #C1 = "Namespace_Create"
+  #C2 = dart._internal::ExternalName {name:#C1}
+  #C3 = "Namespace_GetPointer"
+  #C4 = dart._internal::ExternalName {name:#C3}
+  #C5 = "Namespace_GetDefault"
+  #C6 = dart._internal::ExternalName {name:#C5}
+  #C7 = "Builtin_PrintString"
+  #C8 = dart._internal::ExternalName {name:#C7}
+  #C9 = tearoff #lib::_print
+  #C10 = tearoff #lib::_scriptUri
 }
