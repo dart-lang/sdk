@@ -74,36 +74,34 @@ class PragmaAnnotation {
       6, 'assumeDynamic',
       forFunctionsOnly: true, internalOnly: true);
 
-  static const PragmaAnnotation omitAsCasts = const PragmaAnnotation(
-      7, 'omitAsCasts',
+  static const PragmaAnnotation asTrust = const PragmaAnnotation(7, 'as:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation emitAsCasts = const PragmaAnnotation(
-      8, 'emitAsCasts',
+  static const PragmaAnnotation asCheck = const PragmaAnnotation(8, 'as:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation omitImplicitChecks = const PragmaAnnotation(
-      9, 'omitImplicitChecks',
+  static const PragmaAnnotation typesTrust = const PragmaAnnotation(
+      9, 'types:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation emitImplicitChecks = const PragmaAnnotation(
-      10, 'emitImplicitChecks',
+  static const PragmaAnnotation typesCheck = const PragmaAnnotation(
+      10, 'types:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation omitParameterChecks = const PragmaAnnotation(
-      11, 'omitParameterChecks',
+  static const PragmaAnnotation parameterTrust = const PragmaAnnotation(
+      11, 'parameter:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation emitParameterChecks = const PragmaAnnotation(
-      12, 'emitParameterChecks',
+  static const PragmaAnnotation parameterCheck = const PragmaAnnotation(
+      12, 'parameter:check',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation omitImplicitDowncasts = const PragmaAnnotation(
-      13, 'omitImplicitDowncasts',
+  static const PragmaAnnotation downcastTrust = const PragmaAnnotation(
+      13, 'downcast:trust',
       forFunctionsOnly: false, internalOnly: false);
 
-  static const PragmaAnnotation emitImplicitDowncasts = const PragmaAnnotation(
-      14, 'emitImplicitDowncasts',
+  static const PragmaAnnotation downcastCheck = const PragmaAnnotation(
+      14, 'downcast:check',
       forFunctionsOnly: false, internalOnly: false);
 
   static const List<PragmaAnnotation> values = [
@@ -114,37 +112,29 @@ class PragmaAnnotation {
     noThrows,
     noSideEffects,
     assumeDynamic,
-    omitAsCasts,
-    emitAsCasts,
-    omitImplicitChecks,
-    emitImplicitChecks,
-    omitParameterChecks,
-    emitParameterChecks,
-    omitImplicitDowncasts,
-    emitImplicitDowncasts,
+    asTrust,
+    asCheck,
+    typesTrust,
+    typesCheck,
+    parameterTrust,
+    parameterCheck,
+    downcastTrust,
+    downcastCheck,
   ];
 
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> implies = {
-    omitImplicitChecks: {omitParameterChecks, omitImplicitDowncasts},
-    emitImplicitChecks: {emitParameterChecks, emitImplicitDowncasts},
+    typesTrust: {parameterTrust, downcastTrust},
+    typesCheck: {parameterCheck, downcastCheck},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> excludes = {
     noInline: {tryInline},
     tryInline: {noInline},
-    omitImplicitChecks: {
-      emitImplicitChecks,
-      emitParameterChecks,
-      emitImplicitDowncasts
-    },
-    emitImplicitChecks: {
-      omitImplicitChecks,
-      omitParameterChecks,
-      omitImplicitDowncasts
-    },
-    omitParameterChecks: {emitParameterChecks},
-    emitParameterChecks: {omitParameterChecks},
-    omitImplicitDowncasts: {emitImplicitDowncasts},
-    emitImplicitDowncasts: {omitImplicitDowncasts},
+    typesTrust: {typesCheck, parameterCheck, downcastCheck},
+    typesCheck: {typesTrust, parameterTrust, downcastTrust},
+    parameterTrust: {parameterCheck},
+    parameterCheck: {parameterTrust},
+    downcastTrust: {downcastCheck},
+    downcastCheck: {downcastTrust},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -279,7 +269,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
           reporter.reportErrorMessage(
               computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
             'text': "@pragma('dart2js:${annotation.name}') should always be "
-                "combined with @pragma('dart2js:${annotation.name}')."
+                "combined with @pragma('dart2js:${other.name}')."
           });
         }
       }
@@ -477,13 +467,13 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+        if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
           return CheckPolicy.checked;
-        } else if (annotations.contains(PragmaAnnotation.omitParameterChecks)) {
+        } else if (annotations.contains(PragmaAnnotation.parameterTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.emitParameterChecks)) {
+        } else if (annotations.contains(PragmaAnnotation.parameterCheck)) {
           return CheckPolicy.checked;
         }
       }
@@ -496,15 +486,13 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+        if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
           return CheckPolicy.checked;
-        } else if (annotations
-            .contains(PragmaAnnotation.omitImplicitDowncasts)) {
+        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations
-            .contains(PragmaAnnotation.emitImplicitDowncasts)) {
+        } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
         }
       }
@@ -517,15 +505,13 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.omitImplicitChecks)) {
+        if (annotations.contains(PragmaAnnotation.typesTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations.contains(PragmaAnnotation.emitImplicitChecks)) {
+        } else if (annotations.contains(PragmaAnnotation.typesCheck)) {
           return CheckPolicy.checked;
-        } else if (annotations
-            .contains(PragmaAnnotation.omitImplicitDowncasts)) {
+        } else if (annotations.contains(PragmaAnnotation.downcastTrust)) {
           return CheckPolicy.trusted;
-        } else if (annotations
-            .contains(PragmaAnnotation.emitImplicitDowncasts)) {
+        } else if (annotations.contains(PragmaAnnotation.downcastCheck)) {
           return CheckPolicy.checked;
         }
       }
@@ -538,9 +524,9 @@ class AnnotationsDataImpl implements AnnotationsData {
     if (member != null) {
       EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
       if (annotations != null) {
-        if (annotations.contains(PragmaAnnotation.omitAsCasts)) {
+        if (annotations.contains(PragmaAnnotation.asTrust)) {
           return true;
-        } else if (annotations.contains(PragmaAnnotation.emitAsCasts)) {
+        } else if (annotations.contains(PragmaAnnotation.asCheck)) {
           return false;
         }
       }
