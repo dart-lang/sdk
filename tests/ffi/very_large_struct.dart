@@ -35,10 +35,10 @@ class VeryLargeStruct extends Struct<VeryLargeStruct> {
   @IntPtr()
   int i;
 
-  @Double()
+  @Float()
   double j;
 
-  @Float()
+  @Double()
   double k;
 
   Pointer<VeryLargeStruct> parent;
