@@ -1199,6 +1199,23 @@ class ActiveMemberScope {
   DISALLOW_COPY_AND_ASSIGN(ActiveMemberScope);
 };
 
+class ActiveEnclosingFunctionScope {
+ public:
+  ActiveEnclosingFunctionScope(ActiveClass* active_class,
+                               const Function* enclosing)
+      : active_class_(active_class), saved_(*active_class) {
+    active_class_->enclosing = enclosing;
+  }
+
+  ~ActiveEnclosingFunctionScope() { *active_class_ = saved_; }
+
+ private:
+  ActiveClass* active_class_;
+  ActiveClass saved_;
+
+  DISALLOW_COPY_AND_ASSIGN(ActiveEnclosingFunctionScope);
+};
+
 class ActiveTypeParametersScope {
  public:
   // Set the local type parameters of the ActiveClass to be exactly all type

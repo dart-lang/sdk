@@ -4957,6 +4957,26 @@ RawTypeArguments* TypeArguments::Prepend(Zone* zone,
   return result.Canonicalize();
 }
 
+RawTypeArguments* TypeArguments::ConcatenateTypeParameters(
+    Zone* zone,
+    const TypeArguments& other) const {
+  ASSERT(!IsNull() && !other.IsNull());
+  const intptr_t this_len = Length();
+  const intptr_t other_len = other.Length();
+  const auto& result = TypeArguments::Handle(
+      zone, TypeArguments::New(this_len + other_len, Heap::kNew));
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < this_len; ++i) {
+    type = TypeAt(i);
+    result.SetTypeAt(i, type);
+  }
+  for (intptr_t i = 0; i < other_len; ++i) {
+    type = other.TypeAt(i);
+    result.SetTypeAt(this_len + i, type);
+  }
+  return result.raw();
+}
+
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         intptr_t len,
                                         NameVisibility name_visibility) const {

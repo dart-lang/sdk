@@ -2012,11 +2012,10 @@ class _NodeVisitor extends Visitor<ObjectHandle> {
 
   @override
   ObjectHandle visitFunctionType(FunctionType node) {
-    final typeParameters = new List<_TypeParameterHandle>.generate(
-        node.typeParameters.length,
-        (i) => objectTable.getOrAddObject(new _TypeParameterHandle(null, i)));
+    final int numEnclosingTypeParameters = _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
-      _typeParameters[node.typeParameters[i]] = typeParameters[i];
+      _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
+          new _TypeParameterHandle(null, numEnclosingTypeParameters + i));
     }
 
     final positionalParams = new List<_TypeHandle>();

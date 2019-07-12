@@ -183,7 +183,13 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadTypeParametersDeclaration(const Class& parameterized_class,
                                      const Function& parameterized_function);
 
-  void ReadConstantPool(const Function& function, const ObjectPool& pool);
+  // Read portion of constant pool corresponding to one function/closure.
+  // Start with [start_index], and stop when reaching EndClosureFunctionScope.
+  // Return index of the last read constant pool entry.
+  intptr_t ReadConstantPool(const Function& function,
+                            const ObjectPool& pool,
+                            intptr_t start_index);
+
   RawBytecode* ReadBytecode(const ObjectPool& pool);
   void ReadExceptionsTable(const Bytecode& bytecode, bool has_exceptions_table);
   void ReadSourcePositions(const Bytecode& bytecode, bool has_source_positions);

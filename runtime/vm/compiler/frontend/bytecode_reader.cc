@@ -201,6 +201,10 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
   ASSERT(code_offset > 0);
 
   AlternativeReadingScope alt(&reader_, code_offset);
+  // This scope is needed to set active_class_->enclosing_ which is used to
+  // assign parent function for function types.
+  ActiveEnclosingFunctionScope active_enclosing_function(active_class_,
+                                                         &function);
 
   const intptr_t flags = reader_.ReadUInt();
   const bool has_exceptions_table =
@@ -251,7 +255,7 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
     // TODO(alexmarkov): allocate deopt_ids for closures separately
     DeoptIdScope deopt_id_scope(thread_, 0);
 
-    ReadConstantPool(function, pool);
+    ReadConstantPool(function, pool, 0);
   }
 
   // Read bytecode and attach to function.
@@ -653,7 +657,17 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
     // Do not set type parameters for factories, as VM uses class type
     // parameters instead.
     parameterized_function.set_type_parameters(type_parameters);
-    function_type_type_parameters_ = &type_parameters;
+    if (parameterized_function.IsSignatureFunction()) {
+      if (function_type_type_parameters_ == nullptr) {
+        function_type_type_parameters_ = &type_parameters;
+      } else {
+        function_type_type_parameters_ = &TypeArguments::Handle(
+            Z, function_type_type_parameters_->ConcatenateTypeParameters(
+                   Z, type_parameters));
+      }
+    } else {
+      ASSERT(function_type_type_parameters_ == nullptr);
+    }
   }
 
   // Step b) Fill in the bounds of all [TypeParameter]s.
@@ -664,8 +678,9 @@ void BytecodeReaderHelper::ReadTypeParametersDeclaration(
   }
 }
 
-void BytecodeReaderHelper::ReadConstantPool(const Function& function,
-                                            const ObjectPool& pool) {
+intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
+                                                const ObjectPool& pool,
+                                                intptr_t start_index) {
   TIMELINE_DURATION(Thread::Current(), CompilerVerbose,
                     "BytecodeReaderHelper::ReadConstantPool");
 
@@ -721,7 +736,7 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
   String& name = String::Handle(Z);
   const String* simpleInstanceOf = nullptr;
   const intptr_t obj_count = pool.Length();
-  for (intptr_t i = 0; i < obj_count; ++i) {
+  for (intptr_t i = start_index; i < obj_count; ++i) {
     const intptr_t tag = reader_.ReadTag();
     switch (tag) {
       case ConstantPoolTag::kInvalid:
@@ -799,11 +814,30 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
         intptr_t closure_index = reader_.ReadUInt();
         obj = closures_->At(closure_index);
         ASSERT(obj.IsFunction());
-      } break;
+        // Set current entry.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, obj);
+
+        // This scope is needed to set active_class_->enclosing_ which is used
+        // to assign parent function for function types.
+        ActiveEnclosingFunctionScope active_enclosing_function(
+            active_class_, &Function::Cast(obj));
+
+        // Read constant pool until corresponding EndClosureFunctionScope.
+        i = ReadConstantPool(function, pool, i + 1);
+
+        // Proceed with the rest of entries.
+        continue;
+      }
       case ConstantPoolTag::kEndClosureFunctionScope: {
-        // Entry is not used and set to null.
+        // EndClosureFunctionScope entry is not used and set to null.
         obj = Object::null();
-      } break;
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, obj);
+        return i;
+      }
       case ConstantPoolTag::kNativeEntry: {
         name = ReadString();
         obj = NativeEntry(function, name);
@@ -854,6 +888,8 @@ void BytecodeReaderHelper::ReadConstantPool(const Function& function,
                    ObjectPool::Patchability::kNotPatchable);
     pool.SetObjectAt(i, obj);
   }
+
+  return obj_count - 1;
 }
 
 RawBytecode* BytecodeReaderHelper::ReadBytecode(const ObjectPool& pool) {
@@ -1405,6 +1441,11 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
                                                 : Function::null_function(),
                                             TokenPosition::kNoSource));
 
+      // This scope is needed to set active_class_->enclosing_ which is used
+      // to assign parent function for function types.
+      ActiveEnclosingFunctionScope active_enclosing_function(
+          active_class_, &signature_function);
+
       return ReadFunctionSignature(
           signature_function, (flags & kFlagHasOptionalPositionalParams) != 0,
           (flags & kFlagHasOptionalNamedParams) != 0,
@@ -1710,6 +1751,12 @@ RawObject* BytecodeReaderHelper::ReadType(intptr_t tag) {
                                                 ? *active_class_->enclosing
                                                 : Function::null_function(),
                                             TokenPosition::kNoSource));
+
+      // This scope is needed to set active_class_->enclosing_ which is used to
+      // assign parent function for function types.
+      ActiveEnclosingFunctionScope active_enclosing_function(
+          active_class_, &signature_function);
+
       // TODO(alexmarkov): skip type finalization
       return ReadFunctionSignature(
           signature_function, (flags & kFlagHasOptionalPositionalParams) != 0,
@@ -3014,8 +3061,6 @@ RawError* BytecodeReader::ReadFunctionBytecode(Thread* thread,
 
         ActiveClassScope active_class_scope(&active_class, &klass);
         ActiveMemberScope active_member(&active_class, &outermost_function);
-        ActiveTypeParametersScope active_type_params(&active_class, function,
-                                                     zone);
 
         BytecodeComponentData bytecode_component(
             &Array::Handle(zone, translation_helper.GetBytecodeComponent()));

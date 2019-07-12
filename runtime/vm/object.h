@@ -6536,6 +6536,10 @@ class TypeArguments : public Instance {
                             intptr_t other_length,
                             intptr_t total_length) const;
 
+  // Concatenate [this] and [other] vectors of type parameters.
+  RawTypeArguments* ConcatenateTypeParameters(Zone* zone,
+                                              const TypeArguments& other) const;
+
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, ObjectType, or
   // VoidType.
