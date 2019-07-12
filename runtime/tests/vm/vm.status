@@ -79,6 +79,9 @@ dart/disassemble_determinism_test: Slow # Times out on slower bots.
 [ !$strong ]
 dart/callee_side_type_checks_test: SkipByDesign
 
+[ $arch == ia32 && $mode == debug && $system == windows ]
+dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable
+
 [ $arch != simarm && $arch != simarm64 && $arch != simdbc64 && $hot_reload && ($compiler == dartk || $compiler == dartkb) ]
 dart/data_uri_import_test/base64: Crash
 dart/data_uri_import_test/nocharset: Crash
