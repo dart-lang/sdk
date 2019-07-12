@@ -4,11 +4,24 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'ambiguous_import_test.dart' as ambiguous_import;
 import 'ambiguous_set_or_map_literal_test.dart' as ambiguous_set_or_map_literal;
 import 'argument_type_not_assignable_test.dart' as argument_type_not_assignable;
+import 'assignment_to_const_test.dart' as assignment_to_const;
+import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
+import 'assignment_to_final_no_setter_test.dart'
+    as assignment_to_final_no_setter;
+import 'assignment_to_final_test.dart' as assignment_to_final;
+import 'assignment_to_function_test.dart' as assignment_to_function;
+import 'assignment_to_method_test.dart' as assignment_to_method;
+import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
+import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
+import 'cast_to_non_type_test.dart' as cast_to_non_type;
+import 'concrete_class_with_abstract_member_test.dart'
+    as concrete_class_with_abstract_member;
 import 'const_constructor_param_type_mismatch_test.dart'
     as const_constructor_param_type_mismatch;
 import 'const_constructor_with_mixin_with_field_test.dart'
@@ -21,6 +34,7 @@ import 'const_set_element_type_implements_equals_test.dart'
 import 'const_spread_expected_list_or_set_test.dart'
     as const_spread_expected_list_or_set;
 import 'const_spread_expected_map_test.dart' as const_spread_expected_map;
+import 'const_with_abstract_class_test.dart' as const_with_abstract_class;
 import 'dead_code_test.dart' as dead_code;
 import 'default_list_constructor_mismatch_test.dart'
     as default_list_constructor_mismatch;
@@ -198,10 +212,22 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
 
 main() {
   defineReflectiveSuite(() {
+    ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
+
+    assignment_to_const.main();
+    assignment_to_final_local.main();
+    assignment_to_final_no_setter.main();
+    assignment_to_final.main();
+    assignment_to_function.main();
+    assignment_to_method.main();
+    assignment_to_type.main();
     async_keyword_used_as_identifier.main();
     can_be_null_after_null_aware.main();
+    case_block_not_terminated.main();
+    cast_to_non_type.main();
+    concrete_class_with_abstract_member.main();
     const_constructor_param_type_mismatch.main();
     const_constructor_with_mixin_with_field.main();
     const_eval_throws_exception.main();
@@ -209,6 +235,7 @@ main() {
     const_set_element_type_implements_equals.main();
     const_spread_expected_list_or_set.main();
     const_spread_expected_map.main();
+    const_with_abstract_class.main();
     dead_code.main();
     default_list_constructor_mismatch.main();
     default_value_on_required_paramter.main();
