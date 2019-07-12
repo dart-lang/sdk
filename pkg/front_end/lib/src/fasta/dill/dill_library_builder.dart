@@ -51,6 +51,31 @@ import 'dill_loader.dart' show DillLoader;
 
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 
+class LazyLibraryScope extends Scope {
+  DillLibraryBuilder libraryBuilder;
+
+  LazyLibraryScope(Map<String, Declaration> local,
+      Map<String, Declaration> setters, Scope parent, String debugName,
+      {bool isModifiable: true})
+      : super(local, setters, parent, debugName, isModifiable: isModifiable);
+
+  LazyLibraryScope.top({bool isModifiable: false})
+      : this(<String, Declaration>{}, <String, Declaration>{}, null, "top",
+            isModifiable: isModifiable);
+
+  Map<String, Declaration> get local {
+    if (libraryBuilder == null) throw new StateError("No library builder.");
+    libraryBuilder.ensureLoaded();
+    return super.local;
+  }
+
+  Map<String, Declaration> get setters {
+    if (libraryBuilder == null) throw new StateError("No library builder.");
+    libraryBuilder.ensureLoaded();
+    return super.setters;
+  }
+}
+
 class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   final Library library;
 
@@ -64,8 +89,38 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
 
   bool exportsAlreadyFinalized = false;
 
+  // TODO(jensj): These 4 booleans could potentially be merged into a single
+  // state field.
+  bool isReadyToBuild = false;
+  bool isReadyToFinalizeExports = false;
+  bool isBuilt = false;
+  bool isBuiltAndMarked = false;
+
   DillLibraryBuilder(this.library, this.loader)
-      : super(library.fileUri, new Scope.top(), new Scope.top());
+      : super(library.fileUri, new LazyLibraryScope.top(),
+            new LazyLibraryScope.top()) {
+    LazyLibraryScope lazyScope = scope;
+    lazyScope.libraryBuilder = this;
+    LazyLibraryScope lazyExportScope = exportScope;
+    lazyExportScope.libraryBuilder = this;
+  }
+
+  void ensureLoaded() {
+    if (!isReadyToBuild) throw new StateError("Not ready to build.");
+    isBuiltAndMarked = true;
+    if (isBuilt) return;
+    isBuilt = true;
+    library.classes.forEach(addClass);
+    library.procedures.forEach(addMember);
+    library.typedefs.forEach(addTypedef);
+    library.fields.forEach(addMember);
+
+    if (isReadyToFinalizeExports) {
+      finalizeExports();
+    } else {
+      throw new StateError("Not ready to finalize exports.");
+    }
+  }
 
   @override
   bool get isSynthetic => library.isSynthetic;
@@ -172,6 +227,14 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   @override
   String get fullNameForErrors {
     return library.name ?? "<library '${library.fileUri}'>";
+  }
+
+  void markAsReadyToBuild() {
+    isReadyToBuild = true;
+  }
+
+  void markAsReadyToFinalizeExports() {
+    isReadyToFinalizeExports = true;
   }
 
   void finalizeExports() {

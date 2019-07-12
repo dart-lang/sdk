@@ -39,6 +39,8 @@ worlds:
       package:foo/foo.dart:
         - Field foo
         - Field lalala_SimulateTransformer
+    neededDillLibraries:
+      - package:foo/foo.dart
   - entry: main.dart
     worldType: updated
     expectInitializeFromDill: false
@@ -54,6 +56,8 @@ worlds:
     modules:
       - foo2
     expectedLibraryCount: 2
+    neededDillLibraries:
+      - package:foo/foo.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main

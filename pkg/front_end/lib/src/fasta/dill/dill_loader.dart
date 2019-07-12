@@ -61,10 +61,7 @@ class DillLoader extends Loader<Library> {
     if (builder.library == null) {
       unhandled("null", "builder.library", 0, builder.fileUri);
     }
-    builder.library.classes.forEach(builder.addClass);
-    builder.library.procedures.forEach(builder.addMember);
-    builder.library.typedefs.forEach(builder.addTypedef);
-    builder.library.fields.forEach(builder.addMember);
+    builder.markAsReadyToBuild();
   }
 
   Future<Null> buildBody(DillLibraryBuilder builder) {
@@ -74,7 +71,7 @@ class DillLoader extends Loader<Library> {
   void finalizeExports() {
     builders.forEach((Uri uri, LibraryBuilder builder) {
       DillLibraryBuilder library = builder;
-      library.finalizeExports();
+      library.markAsReadyToFinalizeExports();
     });
   }
 

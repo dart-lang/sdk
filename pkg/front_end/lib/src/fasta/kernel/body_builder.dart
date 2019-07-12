@@ -8,6 +8,8 @@ import 'dart:core' hide MapEntry;
 
 import '../constant_context.dart' show ConstantContext;
 
+import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
+
 import '../fasta_codes.dart' as fasta;
 
 import '../fasta_codes.dart' show LocatedMessage, Message, noLength, Template;
@@ -133,7 +135,7 @@ const noLocation = null;
 const invalidCollectionElement = const Object();
 
 abstract class BodyBuilder extends ScopeListener<JumpTarget>
-    implements ExpressionGeneratorHelper {
+    implements ExpressionGeneratorHelper, EnsureLoaded {
   // TODO(ahe): Rename [library] to 'part'.
   @override
   final KernelLibraryBuilder library;
@@ -903,6 +905,44 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     finishVariableMetadata();
   }
 
+  /// Ensure that the containing library of the [member] has been loaded.
+  ///
+  /// This is for instance important for lazy dill library builders where this
+  /// method has to be called to ensure that
+  /// a) The library has been fully loaded (and for instance any internal
+  ///    transformation needed has been performed); and
+  /// b) The library is correctly marked as being used to allow for proper
+  ///    'dependency pruning'.
+  void ensureLoaded(Member member) {
+    if (member == null) return;
+    Library ensureLibraryLoaded = member.enclosingLibrary;
+    LibraryBuilder<dynamic, dynamic> builder =
+        library.loader.builders[ensureLibraryLoaded.importUri] ??
+            library.loader.target.dillTarget.loader
+                .builders[ensureLibraryLoaded.importUri];
+    if (builder is DillLibraryBuilder) {
+      builder.ensureLoaded();
+    }
+  }
+
+  /// Check if the containing library of the [member] has been loaded.
+  ///
+  /// This is designed for use with asserts.
+  /// See [ensureLoaded] for a description of what 'loaded' means and the ideas
+  /// behind that.
+  bool isLoaded(Member member) {
+    if (member == null) return true;
+    Library ensureLibraryLoaded = member.enclosingLibrary;
+    LibraryBuilder<dynamic, dynamic> builder =
+        library.loader.builders[ensureLibraryLoaded.importUri] ??
+            library.loader.target.dillTarget.loader
+                .builders[ensureLibraryLoaded.importUri];
+    if (builder is DillLibraryBuilder) {
+      return builder.isBuiltAndMarked;
+    }
+    return true;
+  }
+
   void resolveRedirectingFactoryTargets() {
     for (StaticInvocation invocation in redirectingFactoryInvocations) {
       // If the invocation was invalid, it or its parent has already been
@@ -927,7 +967,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Expression replacementNode;
 
       RedirectionTarget redirectionTarget =
-          getRedirectionTarget(initialTarget, legacyMode: legacyMode);
+          getRedirectionTarget(initialTarget, this, legacyMode: legacyMode);
       Member resolvedTarget = redirectionTarget?.target;
 
       if (resolvedTarget == null) {
@@ -3355,7 +3395,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       int charLength: noLength}) {
     // The argument checks for the initial target of redirecting factories
     // invocations are skipped in Dart 1.
-    if (!legacyMode || !isRedirectingFactory(target)) {
+    if (!legacyMode || !isRedirectingFactory(target, helper: this)) {
       List<TypeParameter> typeParameters = target.function.typeParameters;
       if (target is Constructor) {
         assert(!target.enclosingClass.isAbstract);
@@ -3664,7 +3704,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           (target is Procedure && target.kind == ProcedureKind.Factory)) {
         Expression invocation;
 
-        if (legacyMode && isRedirectingFactory(target)) {
+        if (legacyMode && isRedirectingFactory(target, helper: this)) {
           // In legacy mode the checks that are done in [buildStaticInvocation]
           // on the initial target of a redirecting factory invocation should
           // be skipped. So we build the invocation nodes directly here without
@@ -3690,7 +3730,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
               charLength: nameToken.length);
         }
 
-        if (invocation is StaticInvocation && isRedirectingFactory(target)) {
+        if (invocation is StaticInvocation &&
+            isRedirectingFactory(target, helper: this)) {
           redirectingFactoryInvocations.add(invocation);
         }
 
@@ -5406,6 +5447,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         desugared, isCompound, rhs)
       ..fileOffset = charOffset;
   }
+}
+
+abstract class EnsureLoaded {
+  void ensureLoaded(Member member);
+  bool isLoaded(Member member);
 }
 
 class Operator {

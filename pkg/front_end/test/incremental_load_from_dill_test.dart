@@ -405,6 +405,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
       }
     }
     bool outlineOnly = world["outlineOnly"] == true;
+    bool skipOutlineBodyCheck = world["skipOutlineBodyCheck"] == true;
     if (brandNewWorld) {
       if (world["fromComponent"] == true) {
         compiler = new TestIncrementalCompiler.fromComponent(
@@ -427,6 +428,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
     if (modulesToUse != null) {
       compiler.setModulesToLoadOnNextComputeDelta(modulesToUse);
       compiler.invalidateAllSources();
+      compiler.trackNeededDillLibraries = true;
     }
 
     Stopwatch stopwatch = new Stopwatch()..start();
@@ -434,7 +436,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
         entryPoints: entries,
         fullComponent: brandNewWorld ? false : (noFullComponent ? false : true),
         simulateTransformer: world["simulateTransformer"]);
-    if (outlineOnly) {
+    if (outlineOnly && !skipOutlineBodyCheck) {
       for (Library lib in component.libraries) {
         for (Class c in lib.classes) {
           for (Procedure p in c.procedures) {
@@ -457,6 +459,7 @@ Future<Null> newWorldTest(List worlds, Map modules, bool omitPlatform) async {
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
 
     checkExpectedContent(world, component);
+    checkNeededDillLibraries(world, compiler.neededDillLibraries, base);
 
     if (!noFullComponent) {
       Set<Library> allLibraries = new Set<Library>();
@@ -654,6 +657,36 @@ void checkExpectedContent(YamlMap world, Component component) {
       actual.removeAll(expected);
       if (actual.isNotEmpty) doThrow();
     }
+  }
+}
+
+void checkNeededDillLibraries(
+    YamlMap world, Set<Library> neededDillLibraries, Uri base) {
+  if (world["neededDillLibraries"] != null) {
+    List<Uri> actualContent = new List<Uri>();
+    for (Library lib in neededDillLibraries) {
+      if (lib.importUri.scheme == "dart") continue;
+      actualContent.add(lib.importUri);
+    }
+
+    List<Uri> expectedContent = new List<Uri>();
+    for (String entry in world["neededDillLibraries"]) {
+      expectedContent.add(base.resolve(entry));
+    }
+
+    doThrow() {
+      throw "Expected and actual content not the same.\n"
+          "Expected $expectedContent.\n"
+          "Got $actualContent";
+    }
+
+    if (actualContent.length != expectedContent.length) doThrow();
+    Set<Uri> notInExpected =
+        actualContent.toSet().difference(expectedContent.toSet());
+    Set<Uri> notInActual =
+        expectedContent.toSet().difference(actualContent.toSet());
+    if (notInExpected.isNotEmpty) doThrow();
+    if (notInActual.isNotEmpty) doThrow();
   }
 }
 

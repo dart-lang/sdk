@@ -43,6 +43,9 @@ worlds:
       - foo
       - example_1
     expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main
@@ -62,6 +65,9 @@ worlds:
       - foo
       - example_2
     expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
     expectedContent:
       org-dartlang-test:///main.dart:
         - Procedure main

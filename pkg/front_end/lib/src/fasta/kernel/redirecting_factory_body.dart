@@ -23,6 +23,8 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/type_algebra.dart' show Substitution;
 
+import 'body_builder.dart' show EnsureLoaded;
+
 const String letName = "#redirecting_factory";
 
 class RedirectingFactoryBody extends ExpressionStatement {
@@ -114,7 +116,8 @@ class RedirectingFactoryBody extends ExpressionStatement {
   }
 }
 
-bool isRedirectingFactory(Member member) {
+bool isRedirectingFactory(Member member, {EnsureLoaded helper}) {
+  assert(helper == null || helper.isLoaded(member));
   return member is Procedure && member.function.body is RedirectingFactoryBody;
 }
 
@@ -129,7 +132,8 @@ class RedirectionTarget {
   RedirectionTarget(this.target, this.typeArguments);
 }
 
-RedirectionTarget getRedirectionTarget(Procedure member, {bool legacyMode}) {
+RedirectionTarget getRedirectionTarget(Procedure member, EnsureLoaded helper,
+    {bool legacyMode}) {
   List<DartType> typeArguments = <DartType>[]..length =
       member.function.typeParameters.length;
   for (int i = 0; i < typeArguments.length; i++) {
@@ -142,11 +146,14 @@ RedirectionTarget getRedirectionTarget(Procedure member, {bool legacyMode}) {
   Member tortoise = member;
   RedirectingFactoryBody tortoiseBody = getRedirectingFactoryBody(tortoise);
   Member hare = tortoiseBody?.target;
+  helper.ensureLoaded(hare);
   RedirectingFactoryBody hareBody = getRedirectingFactoryBody(hare);
   while (tortoise != hare) {
-    if (tortoiseBody?.isUnresolved ?? true)
+    if (tortoiseBody?.isUnresolved ?? true) {
       return new RedirectionTarget(tortoise, typeArguments);
+    }
     Member nextTortoise = tortoiseBody.target;
+    helper.ensureLoaded(nextTortoise);
     List<DartType> nextTypeArguments = tortoiseBody.typeArguments;
     if (!legacyMode && nextTypeArguments == null) {
       nextTypeArguments = <DartType>[];
@@ -173,7 +180,9 @@ RedirectionTarget getRedirectionTarget(Procedure member, {bool legacyMode}) {
 
     tortoise = nextTortoise;
     tortoiseBody = getRedirectingFactoryBody(tortoise);
+    helper.ensureLoaded(hareBody?.target);
     hare = getRedirectingFactoryBody(hareBody?.target)?.target;
+    helper.ensureLoaded(hare);
     hareBody = getRedirectingFactoryBody(hare);
   }
   return null;
