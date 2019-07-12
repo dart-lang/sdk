@@ -2020,33 +2020,31 @@ class Printer extends Visitor<Null> {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeWord('ListConstant');
     writeSymbol('<');
     writeType(node.typeArgument);
-    writeSymbol('>(');
+    writeSymbol('>[');
     writeList(node.entries, writeConstantReference);
-    endLine(')');
+    endLine(']');
   }
 
   visitSetConstant(SetConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    write('SetConstant<');
     writeSymbol('<');
     writeType(node.typeArgument);
-    writeSymbol('>(');
+    writeSymbol('>{');
     writeList(node.entries, writeConstantReference);
-    endLine(')');
+    endLine('}');
   }
 
   visitMapConstant(MapConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    write('MapConstant<');
+    writeSymbol('<');
     writeList([node.keyType, node.valueType], writeType);
-    writeSymbol('>(');
+    writeSymbol('>{');
     writeList(node.entries, (entry) {
       writeConstantReference(entry.key);
       writeSymbol(':');
@@ -2074,6 +2072,20 @@ class Printer extends Visitor<Null> {
     endLine('}');
   }
 
+  visitPartialInstantiationConstant(PartialInstantiationConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('partial-instantiation');
+    writeSpace();
+    writeMemberReferenceFromReference(node.tearOffConstant.procedureReference);
+    writeSpace();
+    writeSymbol('<');
+    writeList(node.types, writeType);
+    writeSymbol('>');
+    endLine();
+  }
+
   visitStringConstant(StringConstant node) {
     writeIndentation();
     writeConstantReference(node);
@@ -2081,13 +2093,24 @@ class Printer extends Visitor<Null> {
     endLine('"${escapeString(node.value)}"');
   }
 
+  visitTearOffConstant(TearOffConstant node) {
+    writeIndentation();
+    writeConstantReference(node);
+    writeSpaced('=');
+    writeWord('tearoff');
+    writeSpace();
+    writeMemberReferenceFromReference(node.procedureReference);
+    endLine();
+  }
+
   visitUnevaluatedConstant(UnevaluatedConstant node) {
     writeIndentation();
     writeConstantReference(node);
     writeSpaced('=');
-    writeSymbol('(');
+    writeSymbol('eval');
+    writeSpace();
     writeExpression(node.expression);
-    endLine(')');
+    endLine();
   }
 
   defaultNode(Node node) {
