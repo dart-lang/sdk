@@ -30,7 +30,7 @@ class TypePromotionTest extends DriverResolutionTest {
 
   Future<void> resolveCode(String code) async {
     if (await checkTests(
-        code, _resultComputer, const _TypePromotionDataComputer())) {
+        code, _computeResult, const _TypePromotionDataComputer())) {
       fail('Failure(s)');
     }
   }
@@ -695,7 +695,7 @@ void f(bool b, Object x) {
 ''');
   }
 
-  Future<ResolvedUnitResult> _resultComputer(String code) async {
+  Future<ResolvedUnitResult> _computeResult(String code) async {
     addTestFile(code);
     await resolveTestFile();
     return result;
@@ -725,10 +725,9 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   DartType computeNodeValue(Id id, AstNode node) {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.staticElement;
-      if (element is VariableElement &&
-          (element is LocalVariableElement || element is ParameterElement)) {
+      if (element is LocalVariableElement || element is ParameterElement) {
         var promotedType = node.staticType;
-        if (promotedType != element.type) {
+        if (promotedType != (element as VariableElement).type) {
           return promotedType;
         }
       }

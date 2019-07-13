@@ -259,19 +259,26 @@ void _expectFalse(bool b, String message) {
 
 class CompiledData<T> {
   final Uri mainUri;
+
+  /// For each Uri, a map associating an element id with the instrumentation
+  /// data we've collected for it.
   final Map<Uri, Map<Id, ActualData<T>>> actualMaps;
+
+  /// Collected instrumentation data that doesn't refer to any of the user
+  /// files.  (E.g. information the test has collected about files in
+  /// `dart:core`).
   final Map<Id, ActualData<T>> globalData;
 
   CompiledData(this.mainUri, this.actualMaps, this.globalData);
 
   Map<int, List<String>> computeAnnotations(Uri uri) {
-    Map<Id, ActualData<T>> thisMap = actualMaps[uri];
+    Map<Id, ActualData<T>> actualMap = actualMaps[uri];
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData<T> data1) {
-      String value1 = '${data1.value}';
+    actualMap.forEach((Id id, ActualData<T> actualData) {
+      String actualValue = '${actualData.value}';
       annotations
-          .putIfAbsent(data1.offset, () => [])
-          .add(colorizeActual(value1));
+          .putIfAbsent(actualData.offset, () => [])
+          .add(colorizeActual(actualValue));
     });
     return annotations;
   }
@@ -280,27 +287,27 @@ class CompiledData<T> {
       Map<Id, ActualData<T>> thisMap, Map<Id, ActualData<T>> otherMap, Uri uri,
       {bool includeMatches: false}) {
     Map<int, List<String>> annotations = <int, List<String>>{};
-    thisMap.forEach((Id id, ActualData<T> data1) {
-      ActualData<T> data2 = otherMap[id];
-      String value1 = '${data1.value}';
-      if (data1.value != data2?.value) {
-        String value2 = '${data2?.value ?? '---'}';
+    thisMap.forEach((Id id, ActualData<T> thisData) {
+      ActualData<T> otherData = otherMap[id];
+      String thisValue = '${thisData.value}';
+      if (thisData.value != otherData?.value) {
+        String otherValue = '${otherData?.value ?? '---'}';
         annotations
-            .putIfAbsent(data1.offset, () => [])
-            .add(colorizeDiff(value1, ' | ', value2));
+            .putIfAbsent(thisData.offset, () => [])
+            .add(colorizeDiff(thisValue, ' | ', otherValue));
       } else if (includeMatches) {
         annotations
-            .putIfAbsent(data1.offset, () => [])
-            .add(colorizeMatch(value1));
+            .putIfAbsent(thisData.offset, () => [])
+            .add(colorizeMatch(thisValue));
       }
     });
-    otherMap.forEach((Id id, ActualData<T> data2) {
+    otherMap.forEach((Id id, ActualData<T> otherData) {
       if (!thisMap.containsKey(id)) {
-        String value1 = '---';
-        String value2 = '${data2.value}';
+        String thisValue = '---';
+        String otherValue = '${otherData.value}';
         annotations
-            .putIfAbsent(data2.offset, () => [])
-            .add(colorizeDiff(value1, ' | ', value2));
+            .putIfAbsent(otherData.offset, () => [])
+            .add(colorizeDiff(thisValue, ' | ', otherValue));
       }
     });
     return annotations;

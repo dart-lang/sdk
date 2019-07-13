@@ -28,12 +28,12 @@ class FlowTestBase extends DriverResolutionTest {
   /// Resolve the given [code] and track nullability in the unit.
   Future<void> trackCode(String code) async {
     if (await checkTests(
-        code, _resultComputer, const _FlowAnalysisDataComputer())) {
+        code, _computeResult, const _FlowAnalysisDataComputer())) {
       fail('Failure(s)');
     }
   }
 
-  Future<ResolvedUnitResult> _resultComputer(String code) async {
+  Future<ResolvedUnitResult> _computeResult(String code) async {
     addTestFile(code);
     await resolveTestFile();
     var unit = result.unit;
