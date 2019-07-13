@@ -2739,11 +2739,11 @@ table UnlinkedExtension {
   /// The type being extended.
   extendedType:EntityRef (id: 3);
 
-  /// Name of the extension, or an empty string if there is no name.
-  name:string (id: 0);
-
   /// Field declarations contained in the extension.
   fields:[UnlinkedVariable] (id: 8);
+
+  /// Name of the extension, or an empty string if there is no name.
+  name:string (id: 0);
 
   /// Offset of the extension name relative to the beginning of the file, or
   /// zero if there is no name.
@@ -3073,9 +3073,6 @@ table UnlinkedUnit {
   /// Classes declared in the compilation unit.
   classes:[UnlinkedClass] (id: 2);
 
-  /// Extensions declared in the compilation unit.
-  extensions:[UnlinkedExtension] (id: 22);
-
   /// Code range of the unit.
   codeRange:CodeRange (id: 15);
 
@@ -3088,6 +3085,9 @@ table UnlinkedUnit {
 
   /// Export declarations in the compilation unit.
   exports:[UnlinkedExportNonPublic] (id: 13);
+
+  /// Extensions declared in the compilation unit.
+  extensions:[UnlinkedExtension] (id: 22);
 
   /// If this compilation unit was summarized in fallback mode, the path where
   /// the compilation unit may be found on disk.  Otherwise empty.

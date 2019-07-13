@@ -35,7 +35,8 @@ class MockPackages {
     for (var relativePath in _cachedFiles.keys) {
       if (relativePath.startsWith('$packageName/')) {
         var content = _cachedFiles[relativePath];
-        var path = provider.pathContext.join(packagesPath, relativePath);
+        var path = provider.pathContext
+            .normalize(provider.pathContext.join(packagesPath, relativePath));
         provider.newFile(path, content);
       }
     }
