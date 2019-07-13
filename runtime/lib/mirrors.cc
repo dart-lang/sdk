@@ -603,6 +603,10 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   AbstractType& result = AbstractType::Handle(type.InstantiateFrom(
       instantiator_type_args, Object::null_type_arguments(), kAllFree, NULL,
       Heap::kOld));
+  if (result.IsNull()) {
+    // TODO(https://github.com/dart-lang/sdk/issues/37360): Remove this.
+    return type.raw();
+  }
   ASSERT(result.IsFinalized());
   return result.Canonicalize();
 }
