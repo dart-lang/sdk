@@ -367,10 +367,9 @@ void f() {
 /*member: f:doesNotComplete*/
 void f(bool b, int i) {
   return;
-  /*stmt: unreachable*/ Object _;
   /*stmt: unreachable*/ do {} while (b);
   /*stmt: unreachable*/ for (;;) {}
-  /*stmt: unreachable*/ for (_ in []) {}
+  /*stmt: unreachable*/ for (var _ in []) {}
   /*stmt: unreachable*/ if (b) {}
   /*stmt: unreachable*/ switch (i) {}
   /*stmt: unreachable*/ try {} finally {}
@@ -406,8 +405,7 @@ void f() {
   test_forEach() async {
     await trackCode(r'''
 void f() {
-  Object _;
-  for (_ in [0, 1, 2]) {
+  for (var _ in [0, 1, 2]) {
     1;
     return;
   }
