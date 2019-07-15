@@ -1204,6 +1204,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.nameOffset = node.name?.offset ?? 0;
     b.typeParameters =
         serializeTypeParameters(node.typeParameters, typeParameterScope);
+    b.extendedType = serializeType(node.extendedType);
     if (node.members != null) {
       scopes.add(buildClassMemberScope(node.name?.name, node.members));
       for (ClassMember member in node.members) {

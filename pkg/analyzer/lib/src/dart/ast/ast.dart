@@ -3854,7 +3854,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
       CommentImpl comment,
       List<Annotation> metadata,
       this.extensionKeyword,
-      this._name,
+      SimpleIdentifierImpl name,
       TypeParameterListImpl typeParameters,
       this.onKeyword,
       TypeAnnotationImpl extendedType,
@@ -3862,6 +3862,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
       List<ClassMember> members,
       this.rightBracket)
       : super(comment, metadata) {
+    _name = _becomeParentOf(name);
     _typeParameters = _becomeParentOf(typeParameters);
     _extendedType = _becomeParentOf(extendedType);
     _members = new NodeListImpl<ClassMember>(this, members);

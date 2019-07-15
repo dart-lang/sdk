@@ -215,6 +215,7 @@ class AstBuilder extends StackListener {
     extensionDeclaration = ast.extensionDeclaration(
       comment: comment,
       metadata: metadata,
+      extensionKeyword: extensionKeyword,
       name: name,
       typeParameters: typeParameters,
       extendedType: null, // extendedType is set in [endExtensionDeclaration]

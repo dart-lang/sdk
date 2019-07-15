@@ -94,6 +94,10 @@ class MethodInvocationResolver {
       return;
     }
 
+    if (receiver is ExtensionOverride) {
+      _resolveExtensionOverride(node, receiver, nameNode, name);
+    }
+
     ClassElement typeReference = getTypeReference(receiver);
     if (typeReference != null) {
       _resolveReceiverTypeLiteral(node, typeReference, nameNode, name);
@@ -301,6 +305,20 @@ class MethodInvocationResolver {
       return element;
     }
     return null;
+  }
+
+  void _resolveExtensionOverride(MethodInvocation node,
+      ExtensionOverride override, SimpleIdentifier nameNode, String name) {
+    ExtensionElement element = override.extensionName.staticElement;
+    Element member = element.getMethod(name) ??
+        element.getGetter(name) ??
+        element.getSetter(name);
+    if (member == null) {
+      // TODO(brianwilkerson) Report this error.
+    } else if (member is ExecutableElement && member.isStatic) {
+      // TODO(brianwilkerson) Report this error.
+    }
+    nameNode.staticElement = member;
   }
 
   void _resolveReceiverDynamic(MethodInvocation node, String name) {

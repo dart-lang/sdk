@@ -5017,6 +5017,9 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
+  String get displayName => name;
+
+  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override
@@ -5179,6 +5182,32 @@ class ExtensionElementImpl extends ElementImpl
   @override
   T accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitExtensionElement(this);
+  }
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('extension ');
+    String name = displayName;
+    if (name == null) {
+      buffer.write("(unnamed)");
+    } else {
+      buffer.write(name);
+    }
+    int variableCount = typeParameters.length;
+    if (variableCount > 0) {
+      buffer.write("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          buffer.write(", ");
+        }
+        (typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+      }
+      buffer.write(">");
+    }
+    if (extendedType != null && !extendedType.isObject) {
+      buffer.write(' on ');
+      buffer.write(extendedType.displayName);
+    }
   }
 
   @override

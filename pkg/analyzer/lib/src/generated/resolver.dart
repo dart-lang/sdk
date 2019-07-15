@@ -5973,6 +5973,46 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    ExtensionElement extensionElement = node.declaredElement;
+    Scope outerScope = nameScope;
+    try {
+      if (extensionElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for extension declaration ${node.name.name} "
+            "in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+        super.visitExtensionDeclaration(node);
+      } else {
+        nameScope = new TypeParameterScope(nameScope, extensionElement);
+        visitExtensionDeclarationInScope(node);
+        DartType extendedType = extensionElement.extendedType;
+        if (extendedType is InterfaceType) {
+          nameScope = new ClassScope(nameScope, extendedType.element);
+        } else if (extendedType is FunctionType) {
+          // TODO(brianwilkerson) Figure out what, if anything, to do here.
+          throw UnsupportedError('Extension of function type');
+        }
+        visitExtensionMembersInScope(node);
+      }
+    } finally {
+      nameScope = outerScope;
+    }
+  }
+
+  void visitExtensionDeclarationInScope(ExtensionDeclaration node) {
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.extendedType?.accept(this);
+  }
+
+  void visitExtensionMembersInScope(ExtensionDeclaration node) {
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     //
     // We visit the iterator before the loop variable because the loop variable
