@@ -13,6 +13,7 @@ import 'constructor_test.dart' as constructor;
 import 'definite_assignment_test.dart' as definite_assignment;
 import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
+import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
 import 'flow_analysis_test.dart' as flow_analysis;
 import 'for_element_test.dart' as for_element;
@@ -51,6 +52,7 @@ main() {
     definite_assignment.main();
     enum_resolution.main();
     export_.main();
+    extension_method.main();
     extension_override.main();
     flow_analysis.main();
     for_element.main();

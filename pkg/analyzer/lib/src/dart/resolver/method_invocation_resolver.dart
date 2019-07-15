@@ -55,6 +55,32 @@ class MethodInvocationResolver {
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
 
+  /**
+   * Return extensions for this [type] that match the given [name] in the current
+   * [scope].
+   */
+  List<ExtensionElement> getApplicableExtensions(DartType type, String name) {
+    final List<ExtensionElement> extensions = [];
+    void checkElement(Element element, ExtensionElement extension) {
+      if (element.name == name && extension.extendedType.isSupertypeOf(type)) {
+        extensions.add(extension);
+      }
+    }
+
+    for (var extension in _resolver.nameScope.extensions) {
+      for (var accessor in extension.accessors) {
+        checkElement(accessor, extension);
+      }
+      for (var field in extension.fields) {
+        checkElement(field, extension);
+      }
+      for (var method in extension.methods) {
+        checkElement(method, extension);
+      }
+    }
+    return extensions;
+  }
+
   void resolve(MethodInvocation node) {
     _invocation = node;
 
@@ -377,6 +403,20 @@ class MethodInvocationResolver {
       nameNode.staticElement = element;
 
       return _setResolution(node, calleeType);
+    }
+
+    // Look for an applicable extension.
+    List<ExtensionElement> extensions =
+        getApplicableExtensions(receiverType, name);
+    if (extensions.length == 1) {
+      var element = extensions[0];
+      Element member = element.getMethod(name) ??
+          element.getGetter(name) ??
+          element.getSetter(name);
+      nameNode.staticElement = member;
+      return;
+    } else if (extensions.length > 1) {
+      // todo(pq): find extension w/ most specific type.
     }
 
     // The interface of the receiver does not have an instance member.
