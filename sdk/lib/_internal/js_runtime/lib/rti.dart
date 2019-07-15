@@ -131,6 +131,7 @@ class Rti {
   /// - Underlying type for unary terms.
   /// - Class part of a type environment inside a generic class, or `null` for
   ///   type tuple.
+  /// - Return type of a function type.
   dynamic _primary;
 
   static Object _getPrimary(Rti rti) => rti._primary;
@@ -143,7 +144,8 @@ class Rti {
   /// - The type arguments of an interface type.
   /// - The type arguments from enclosing functions and closures for a
   ///   kindBinding.
-  /// - TBD for kindFunction and kindGenericFunction.
+  /// - The [_FunctionParameters] of a function type.
+  /// - TBD for kindGenericFunction.
   dynamic _rest;
 
   static Object _getRest(Rti rti) => rti._rest;
@@ -176,6 +178,16 @@ class Rti {
   static Rti _getFutureOrArgument(Rti rti) {
     assert(_getKind(rti) == kindFutureOr);
     return _castToRti(_getPrimary(rti));
+  }
+
+  static Rti _getReturnType(Rti rti) {
+    assert(_getKind(rti) == kindFunction);
+    return _castToRti(_getPrimary(rti));
+  }
+
+  static _FunctionParameters _getFunctionParameters(Rti rti) {
+    assert(_getKind(rti) == kindFunction);
+    return JS('_FunctionParameters', '#', _getRest(rti));
   }
 
   /// On [Rti]s that are type environments*, derived types are cached on the
@@ -224,6 +236,20 @@ class Rti {
 
   static void _setCanonicalRecipe(Rti rti, String s) {
     rti._canonicalRecipe = s;
+  }
+}
+
+class _FunctionParameters {
+  // TODO(fishythefish): Support optional and named parameters.
+
+  static _FunctionParameters allocate() => _FunctionParameters();
+
+  Object _requiredPositional;
+  static JSArray _getRequiredPositional(_FunctionParameters parameters) =>
+      JS('JSArray', '#', parameters._requiredPositional);
+  static void _setRequiredPositional(
+      _FunctionParameters parameters, Object requiredPositional) {
+    parameters._requiredPositional = requiredPositional;
   }
 }
 
@@ -408,6 +434,24 @@ String _rtiToString(Rti rti, List<String> genericContext) {
     return name;
   }
 
+  if (kind == Rti.kindFunction) {
+    // TODO(fishythefish): Support optional and named parameters.
+    Rti returnType = Rti._getReturnType(rti);
+    var parameters = Rti._getFunctionParameters(rti);
+    var requiredPositional =
+        _FunctionParameters._getRequiredPositional(parameters);
+    var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+    String s = _rtiToString(returnType, genericContext);
+    s += '(';
+    for (int i = 0; i < requiredPositionalLength; i++) {
+      if (i > 0) s += ', ';
+      s += _rtiToString(
+          _castToRti(_Utils.arrayAt(requiredPositional, i)), genericContext);
+    }
+    s += ')';
+    return s;
+  }
+
   return '?';
 }
 
@@ -419,6 +463,20 @@ String _rtiToDebugString(Rti rti) {
       sep = ', ';
     }
     return s + ']';
+  }
+
+  String functionParametersToString(_FunctionParameters parameters) {
+    // TODO(fishythefish): Support optional and named parameters.
+    String s = '(', sep = '';
+    var requiredPositional =
+        _FunctionParameters._getRequiredPositional(parameters);
+    var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+    for (int i = 0; i < requiredPositionalLength; i++) {
+      s += sep +
+          _rtiToDebugString(_castToRti(_Utils.arrayAt(requiredPositional, i)));
+      sep = ', ';
+    }
+    return s + ')';
   }
 
   int kind = Rti._getKind(rti);
@@ -442,6 +500,12 @@ String _rtiToDebugString(Rti rti) {
     var base = Rti._getBindingBase(rti);
     var arguments = Rti._getBindingArguments(rti);
     return 'binding(${_rtiToDebugString(base)}, ${arrayToString(arguments)})';
+  }
+
+  if (kind == Rti.kindFunction) {
+    var returnType = Rti._getReturnType(rti);
+    var parameters = Rti._getFunctionParameters(rti);
+    return 'function(${_rtiToDebugString(returnType)}, ${functionParametersToString(parameters)})';
   }
 
   return 'other(kind=$kind)';
@@ -718,6 +782,38 @@ class _Universe {
     Rti._setCanonicalRecipe(rti, key);
     return _finishRti(universe, rti);
   }
+
+  static String _canonicalRecipeOfFunction(
+          Rti returnType, _FunctionParameters parameters) =>
+      Rti._getCanonicalRecipe(returnType) +
+      _canonicalRecipeOfFunctionParameters(parameters);
+
+  // TODO(fishythefish): Support optional and named parameters.
+  static String _canonicalRecipeOfFunctionParameters(
+          _FunctionParameters parameters) =>
+      Recipe.startFunctionArgumentsString +
+      _canonicalRecipeJoin(
+          _FunctionParameters._getRequiredPositional(parameters)) +
+      Recipe.endFunctionArgumentsString;
+
+  static Rti _lookupFunctionRti(
+      Object universe, Rti returnType, _FunctionParameters parameters) {
+    String key = _canonicalRecipeOfFunction(returnType, parameters);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, key);
+    if (probe != null) return _castToRti(probe);
+    return _createFunctionRti(universe, returnType, parameters, key);
+  }
+
+  static Rti _createFunctionRti(Object universe, Rti returnType,
+      _FunctionParameters parameters, String canonicalRecipe) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindFunction);
+    Rti._setPrimary(rti, returnType);
+    Rti._setRest(rti, parameters);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
+    return _finishRti(universe, rti);
+  }
 }
 
 /// Class of static methods implementing recipe parser.
@@ -890,6 +986,9 @@ class _Parser {
           case Recipe.separator:
             break;
 
+          case Recipe.nameSeparator:
+            break;
+
           case Recipe.toType:
             push(stack,
                 toType(universe(parser), environment(parser), pop(stack)));
@@ -904,8 +1003,7 @@ class _Parser {
             break;
 
           case Recipe.startTypeArguments:
-            push(stack, position(parser));
-            setPosition(parser, _Utils.arrayLength(stack));
+            pushStackFrame(parser, stack);
             break;
 
           case Recipe.endTypeArguments:
@@ -924,6 +1022,30 @@ class _Parser {
                     u, toType(u, environment(parser), pop(stack))));
             break;
 
+          case Recipe.startFunctionArguments:
+            pushStackFrame(parser, stack);
+            break;
+
+          case Recipe.endFunctionArguments:
+            handleFunctionArguments(parser, stack);
+            break;
+
+          case Recipe.startOptionalGroup:
+            pushStackFrame(parser, stack);
+            break;
+
+          case Recipe.endOptionalGroup:
+            handleOptionalGroup(parser, stack);
+            break;
+
+          case Recipe.startNamedGroup:
+            pushStackFrame(parser, stack);
+            break;
+
+          case Recipe.endNamedGroup:
+            handleNamedGroup(parser, stack);
+            break;
+
           default:
             JS('', 'throw "Bad character " + #', ch);
         }
@@ -931,6 +1053,11 @@ class _Parser {
     }
     Object item = pop(stack);
     return toType(universe(parser), environment(parser), item);
+  }
+
+  static void pushStackFrame(Object parser, Object stack) {
+    push(stack, position(parser));
+    setPosition(parser, _Utils.arrayLength(stack));
   }
 
   static int handleDigit(int i, int digit, String source, Object stack) {
@@ -981,6 +1108,25 @@ class _Parser {
       Rti base = toType(universe, environment(parser), head);
       push(stack, _Universe._lookupBindingRti(universe, base, arguments));
     }
+  }
+
+  static void handleFunctionArguments(Object parser, Object stack) {
+    var universe = _Parser.universe(parser);
+    var parameters = _FunctionParameters.allocate();
+    _FunctionParameters._setRequiredPositional(
+        parameters, collectArray(parser, stack));
+    Rti returnType = toType(universe, environment(parser), pop(stack));
+    push(stack, _Universe._lookupFunctionRti(universe, returnType, parameters));
+  }
+
+  static void handleOptionalGroup(Object parser, Object stack) {
+    // TODO(fishythefish)
+    throw UnimplementedError('handleOptionalGroup');
+  }
+
+  static void handleNamedGroup(Object parser, Object stack) {
+    // TODO(fishythefish)
+    throw UnimplementedError('handleNamedGroup');
   }
 
   static void handleExtendedOperations(Object parser, Object stack) {
@@ -1122,8 +1268,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   if (isNullType(s)) return true;
 
   if (isFunctionKind(t)) {
-    // TODO(fishythefish): Check if s is a function subtype of t.
-    throw UnimplementedError("isFunctionKind(t)");
+    return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
   }
 
   if (isFunctionKind(s)) {
@@ -1154,6 +1299,41 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   var tArgs = Rti._getInterfaceTypeArguments(t);
 
   return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
+}
+
+// TODO(fishythefish): Support optional and named parameters.
+bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
+  assert(isFunctionKind(t));
+  if (!isFunctionKind(s)) return false;
+
+  var sReturnType = Rti._getReturnType(s);
+  var tReturnType = Rti._getReturnType(t);
+  if (!_isSubtype(universe, sReturnType, sEnv, tReturnType, tEnv)) return false;
+
+  var sParameters = Rti._getFunctionParameters(s);
+  var tParameters = Rti._getFunctionParameters(t);
+
+  var sRequiredPositional =
+      _FunctionParameters._getRequiredPositional(sParameters);
+  var tRequiredPositional =
+      _FunctionParameters._getRequiredPositional(tParameters);
+  var sRequiredPositionalLength = _Utils.arrayLength(sRequiredPositional);
+  var tRequiredPositionalLength = _Utils.arrayLength(tRequiredPositional);
+  if (sRequiredPositionalLength > tRequiredPositionalLength) return false;
+
+  // TODO(fishythefish): Update to support optional parameters.
+  var sOptionalPositionalLength = 0;
+  var tOptionalPositionalLength = 0;
+  if (sRequiredPositionalLength + sOptionalPositionalLength <
+      tRequiredPositionalLength + tOptionalPositionalLength) return false;
+
+  for (int i = 0; i < sRequiredPositionalLength; i++) {
+    var sParam = _Utils.arrayAt(sRequiredPositional, i);
+    var tParam = _Utils.arrayAt(tRequiredPositional, i);
+    if (!_isSubtype(universe, tParam, tEnv, sParam, sEnv)) return false;
+  }
+
+  return true;
 }
 
 bool _isSubtypeOfInterface(

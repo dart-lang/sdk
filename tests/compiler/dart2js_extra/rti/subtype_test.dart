@@ -14,6 +14,7 @@ final String nullName = JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME);
 const typeRulesJson = r'''
 {
   "int": {"num": []},
+  "double": {"num": []},
   "List": {"Iterable": ["1"]},
   "CodeUnits": {
     "List": ["int"],
@@ -35,6 +36,7 @@ void runTests() {
   testTopTypes();
   testNull();
   testFutureOr();
+  testFunctions();
 }
 
 void testInterfaces() {
@@ -81,6 +83,29 @@ void testFutureOr() {
   strictSubtype('int', 'num/');
   strictSubtype('$futureName<int>', 'num/');
   equivalent('@/', '~/');
+}
+
+void testFunctions() {
+  equivalent('~()', '~()');
+  equivalent('@()', '~()');
+  unrelated('int()', 'int(int)');
+  strictSubtype('int()', 'num()');
+  strictSubtype('~(num)', '~(int)');
+  strictSubtype('int(Iterable<num>)', 'num(CodeUnits)');
+
+  equivalent('~(int,@,num)', '~(int,@,num)');
+  equivalent('@(int,~,num)', '~(int,@,num)');
+  unrelated('int(int,double)', 'void(String)');
+  unrelated('int(int,double)', 'int(int)');
+  unrelated('int(int,double)', 'int(double)');
+  unrelated('int(int,double)', 'int(int,int)');
+  unrelated('int(int,double)', 'int(String,double)');
+  strictSubtype('int(int,double)', '~(int,double)');
+  strictSubtype('int(int,double)', 'num(int,double)');
+  strictSubtype('int(num,double)', 'int(int,double)');
+  strictSubtype('int(int,num)', 'int(int,double)');
+  strictSubtype('int(num,num)', 'int(int,double)');
+  strictSubtype('double(num,Iterable<num>,int/)', 'num(int,CodeUnits,int)');
 }
 
 String reason(String s, String t) => "$s <: $t";
