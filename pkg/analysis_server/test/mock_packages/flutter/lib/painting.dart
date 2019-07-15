@@ -2,4 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+export 'src/painting/basic_types.dart';
 export 'src/painting/edge_insets.dart';
+export 'src/painting/text_painter.dart';
+export 'src/painting/text_style.dart';

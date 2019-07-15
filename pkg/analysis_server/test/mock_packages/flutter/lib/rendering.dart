@@ -4,3 +4,4 @@
 
 export 'painting.dart';
 export 'src/rendering/flex.dart';
+export 'src/rendering/paragraph.dart';

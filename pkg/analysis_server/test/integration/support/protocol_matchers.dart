@@ -695,28 +695,28 @@ final Matcher isFlutterService = new MatchesEnum("FlutterService", ["OUTLINE"]);
  * FlutterWidgetProperty
  *
  * {
- *   "id": int
- *   "name": String
  *   "documentation": optional String
  *   "expression": optional String
+ *   "id": int
  *   "isRequired": bool
  *   "isSafeToUpdate": bool
- *   "editor": optional FlutterWidgetPropertyEditor
+ *   "name": String
  *   "children": optional List<FlutterWidgetProperty>
+ *   "editor": optional FlutterWidgetPropertyEditor
  *   "value": optional FlutterWidgetPropertyValue
  * }
  */
 final Matcher isFlutterWidgetProperty =
     new LazyMatcher(() => new MatchesJsonObject("FlutterWidgetProperty", {
           "id": isInt,
-          "name": isString,
           "isRequired": isBool,
-          "isSafeToUpdate": isBool
+          "isSafeToUpdate": isBool,
+          "name": isString
         }, optionalFields: {
           "documentation": isString,
           "expression": isString,
-          "editor": isFlutterWidgetPropertyEditor,
           "children": isListOf(isFlutterWidgetProperty),
+          "editor": isFlutterWidgetPropertyEditor,
           "value": isFlutterWidgetPropertyValue
         }));
 

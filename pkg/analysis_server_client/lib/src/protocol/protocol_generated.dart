@@ -15927,67 +15927,37 @@ class FlutterSetWidgetPropertyValueResult implements ResponseResult {
  * FlutterWidgetProperty
  *
  * {
- *   "id": int
- *   "name": String
  *   "documentation": optional String
  *   "expression": optional String
+ *   "id": int
  *   "isRequired": bool
  *   "isSafeToUpdate": bool
- *   "editor": optional FlutterWidgetPropertyEditor
+ *   "name": String
  *   "children": optional List<FlutterWidgetProperty>
+ *   "editor": optional FlutterWidgetPropertyEditor
  *   "value": optional FlutterWidgetPropertyValue
  * }
  *
  * Clients may not extend, implement or mix-in this class.
  */
 class FlutterWidgetProperty implements HasToJson {
-  int _id;
-
-  String _name;
-
   String _documentation;
 
   String _expression;
+
+  int _id;
 
   bool _isRequired;
 
   bool _isSafeToUpdate;
 
-  FlutterWidgetPropertyEditor _editor;
+  String _name;
 
   List<FlutterWidgetProperty> _children;
 
+  FlutterWidgetPropertyEditor _editor;
+
   FlutterWidgetPropertyValue _value;
-
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
-  int get id => _id;
-
-  /**
-   * The unique identifier of the property, must be passed back to the server
-   * when updating the property value. Identifiers become invalid on any source
-   * code change.
-   */
-  void set id(int value) {
-    assert(value != null);
-    this._id = value;
-  }
-
-  /**
-   * The name of the property to display to the user.
-   */
-  String get name => _name;
-
-  /**
-   * The name of the property to display to the user.
-   */
-  void set name(String value) {
-    assert(value != null);
-    this._name = value;
-  }
 
   /**
    * The documentation of the property to show to the user. Omitted if the
@@ -16017,6 +15987,23 @@ class FlutterWidgetProperty implements HasToJson {
    */
   void set expression(String value) {
     this._expression = value;
+  }
+
+  /**
+   * The unique identifier of the property, must be passed back to the server
+   * when updating the property value. Identifiers become invalid on any source
+   * code change.
+   */
+  int get id => _id;
+
+  /**
+   * The unique identifier of the property, must be passed back to the server
+   * when updating the property value. Identifiers become invalid on any source
+   * code change.
+   */
+  void set id(int value) {
+    assert(value != null);
+    this._id = value;
   }
 
   /**
@@ -16056,19 +16043,16 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
+   * The name of the property to display to the user.
    */
-  FlutterWidgetPropertyEditor get editor => _editor;
+  String get name => _name;
 
   /**
-   * The editor that should be used by the client. This field is omitted if the
-   * server does not know the editor for this property, for example because it
-   * does not have one of the supported types.
+   * The name of the property to display to the user.
    */
-  void set editor(FlutterWidgetPropertyEditor value) {
-    this._editor = value;
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
   }
 
   /**
@@ -16088,6 +16072,22 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   /**
+   * The editor that should be used by the client. This field is omitted if the
+   * server does not know the editor for this property, for example because it
+   * does not have one of the supported types.
+   */
+  FlutterWidgetPropertyEditor get editor => _editor;
+
+  /**
+   * The editor that should be used by the client. This field is omitted if the
+   * server does not know the editor for this property, for example because it
+   * does not have one of the supported types.
+   */
+  void set editor(FlutterWidgetPropertyEditor value) {
+    this._editor = value;
+  }
+
+  /**
    * If the expression is set, and the server knows the value of the
    * expression, this field is set.
    */
@@ -16102,20 +16102,20 @@ class FlutterWidgetProperty implements HasToJson {
   }
 
   FlutterWidgetProperty(
-      int id, String name, bool isRequired, bool isSafeToUpdate,
+      int id, bool isRequired, bool isSafeToUpdate, String name,
       {String documentation,
       String expression,
-      FlutterWidgetPropertyEditor editor,
       List<FlutterWidgetProperty> children,
+      FlutterWidgetPropertyEditor editor,
       FlutterWidgetPropertyValue value}) {
-    this.id = id;
-    this.name = name;
     this.documentation = documentation;
     this.expression = expression;
+    this.id = id;
     this.isRequired = isRequired;
     this.isSafeToUpdate = isSafeToUpdate;
-    this.editor = editor;
+    this.name = name;
     this.children = children;
+    this.editor = editor;
     this.value = value;
   }
 
@@ -16125,18 +16125,6 @@ class FlutterWidgetProperty implements HasToJson {
       json = {};
     }
     if (json is Map) {
-      int id;
-      if (json.containsKey("id")) {
-        id = jsonDecoder.decodeInt(jsonPath + ".id", json["id"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "id");
-      }
-      String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
-      } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
-      }
       String documentation;
       if (json.containsKey("documentation")) {
         documentation = jsonDecoder.decodeString(
@@ -16146,6 +16134,12 @@ class FlutterWidgetProperty implements HasToJson {
       if (json.containsKey("expression")) {
         expression = jsonDecoder.decodeString(
             jsonPath + ".expression", json["expression"]);
+      }
+      int id;
+      if (json.containsKey("id")) {
+        id = jsonDecoder.decodeInt(jsonPath + ".id", json["id"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "id");
       }
       bool isRequired;
       if (json.containsKey("isRequired")) {
@@ -16161,10 +16155,11 @@ class FlutterWidgetProperty implements HasToJson {
       } else {
         throw jsonDecoder.mismatch(jsonPath, "isSafeToUpdate");
       }
-      FlutterWidgetPropertyEditor editor;
-      if (json.containsKey("editor")) {
-        editor = new FlutterWidgetPropertyEditor.fromJson(
-            jsonDecoder, jsonPath + ".editor", json["editor"]);
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, "name");
       }
       List<FlutterWidgetProperty> children;
       if (json.containsKey("children")) {
@@ -16175,16 +16170,21 @@ class FlutterWidgetProperty implements HasToJson {
                 new FlutterWidgetProperty.fromJson(
                     jsonDecoder, jsonPath, json));
       }
+      FlutterWidgetPropertyEditor editor;
+      if (json.containsKey("editor")) {
+        editor = new FlutterWidgetPropertyEditor.fromJson(
+            jsonDecoder, jsonPath + ".editor", json["editor"]);
+      }
       FlutterWidgetPropertyValue value;
       if (json.containsKey("value")) {
         value = new FlutterWidgetPropertyValue.fromJson(
             jsonDecoder, jsonPath + ".value", json["value"]);
       }
-      return new FlutterWidgetProperty(id, name, isRequired, isSafeToUpdate,
+      return new FlutterWidgetProperty(id, isRequired, isSafeToUpdate, name,
           documentation: documentation,
           expression: expression,
-          editor: editor,
           children: children,
+          editor: editor,
           value: value);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FlutterWidgetProperty", json);
@@ -16194,23 +16194,23 @@ class FlutterWidgetProperty implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["id"] = id;
-    result["name"] = name;
     if (documentation != null) {
       result["documentation"] = documentation;
     }
     if (expression != null) {
       result["expression"] = expression;
     }
+    result["id"] = id;
     result["isRequired"] = isRequired;
     result["isSafeToUpdate"] = isSafeToUpdate;
-    if (editor != null) {
-      result["editor"] = editor.toJson();
-    }
+    result["name"] = name;
     if (children != null) {
       result["children"] = children
           .map((FlutterWidgetProperty value) => value.toJson())
           .toList();
+    }
+    if (editor != null) {
+      result["editor"] = editor.toJson();
     }
     if (value != null) {
       result["value"] = value.toJson();
@@ -16224,15 +16224,15 @@ class FlutterWidgetProperty implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is FlutterWidgetProperty) {
-      return id == other.id &&
-          name == other.name &&
-          documentation == other.documentation &&
+      return documentation == other.documentation &&
           expression == other.expression &&
+          id == other.id &&
           isRequired == other.isRequired &&
           isSafeToUpdate == other.isSafeToUpdate &&
-          editor == other.editor &&
+          name == other.name &&
           listEqual(children, other.children,
               (FlutterWidgetProperty a, FlutterWidgetProperty b) => a == b) &&
+          editor == other.editor &&
           value == other.value;
     }
     return false;
@@ -16241,14 +16241,14 @@ class FlutterWidgetProperty implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, documentation.hashCode);
     hash = JenkinsSmiHash.combine(hash, expression.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
     hash = JenkinsSmiHash.combine(hash, isRequired.hashCode);
     hash = JenkinsSmiHash.combine(hash, isSafeToUpdate.hashCode);
-    hash = JenkinsSmiHash.combine(hash, editor.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    hash = JenkinsSmiHash.combine(hash, editor.hashCode);
     hash = JenkinsSmiHash.combine(hash, value.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
