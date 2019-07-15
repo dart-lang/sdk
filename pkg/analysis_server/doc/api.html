@@ -3901,6 +3901,21 @@ a:focus, a:hover {
           The string literal value of the attribute.
           This field is absent if the value is not a string literal.
         </p>
+      </dd><dt class="field"><b>nameLocation: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the attribute is a named argument, the location of the name,
+          without the colon.
+        </p>
+      </dd><dt class="field"><b>valueLocation: <a href="#type_Location">Location</a><span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The location of the value.
+        </p>
+        <p>
+          This field is always available, but marked optional for backward
+          compatibility between new clients with older servers.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterOutlineKind">FlutterOutlineKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of FlutterOutline elements. The list of kinds

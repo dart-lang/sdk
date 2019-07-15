@@ -53,6 +53,8 @@ class WidgetA extends StatelessWidget {
     var attribute = widget.attributes[0];
     expect(attribute.name, 'value');
     expect(attribute.label, '42');
+    _assertLocation(attribute.nameLocation, 75, 5);
+    _assertLocation(attribute.valueLocation, 82, 2);
   }
 
   test_attributes_bool() async {
@@ -451,6 +453,12 @@ class MyWidget extends StatelessWidget {
     expect(textRef.variableName, 'text');
   }
 
+  void _assertLocation(
+      Location actual, int expectedOffset, int expectedLength) {
+    expect(actual.offset, expectedOffset);
+    expect(actual.length, expectedLength);
+  }
+
   Future<FlutterOutline> _computeOutline(String code) async {
     testCode = code;
     newFile(testPath, content: code);
@@ -484,6 +492,9 @@ class MyWidget extends StatelessWidget {
 
     var attribute = newMyWidget.attributes[0];
     expect(attribute.name, name);
+    expect(attribute.nameLocation, isNull);
+    _assertLocation(attribute.valueLocation, 64, value.length);
+
     return attribute;
   }
 

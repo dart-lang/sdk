@@ -57,9 +57,15 @@ class FlutterOutlineComputer {
     if (parameter == null) {
       return;
     }
+
+    protocol.Location nameLocation;
     if (argument is NamedExpression) {
-      argument = (argument as NamedExpression).expression;
+      NamedExpression namedExpression = argument;
+      nameLocation = protocol.newLocation_fromNode(namedExpression.name.label);
+      argument = namedExpression.expression;
     }
+
+    var valueLocation = protocol.newLocation_fromNode(argument);
 
     String name = parameter.displayName;
 
@@ -68,15 +74,15 @@ class FlutterOutlineComputer {
       label = '…';
     }
 
+    bool literalValueBoolean;
+    int literalValueInteger;
+    String literalValueString;
     if (argument is BooleanLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
-          literalValueBoolean: argument.value));
+      literalValueBoolean = argument.value;
     } else if (argument is IntegerLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
-          literalValueInteger: argument.value));
+      literalValueInteger = argument.value;
     } else if (argument is StringLiteral) {
-      attributes.add(new protocol.FlutterOutlineAttribute(name, label,
-          literalValueString: argument.stringValue));
+      literalValueString = argument.stringValue;
     } else {
       if (argument is FunctionExpression) {
         bool hasParameters = argument.parameters != null &&
@@ -91,8 +97,17 @@ class FlutterOutlineComputer {
       } else if (argument is SetOrMapLiteral) {
         label = '{…}';
       }
-      attributes.add(new protocol.FlutterOutlineAttribute(name, label));
     }
+
+    attributes.add(new protocol.FlutterOutlineAttribute(
+      name,
+      label,
+      literalValueBoolean: literalValueBoolean,
+      literalValueInteger: literalValueInteger,
+      literalValueString: literalValueString,
+      nameLocation: nameLocation,
+      valueLocation: valueLocation,
+    ));
   }
 
   protocol.FlutterOutline _convert(protocol.Outline dartOutline) {

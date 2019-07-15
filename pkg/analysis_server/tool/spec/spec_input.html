@@ -4449,6 +4449,23 @@
           This field is absent if the value is not a string literal.
         </p>
       </field>
+      <field name="nameLocation" optional="true">
+        <ref>Location</ref>
+        <p>
+          If the attribute is a named argument, the location of the name,
+          without the colon.
+        </p>
+      </field>
+      <field name="valueLocation" optional="true">
+        <ref>Location</ref>
+        <p>
+          The location of the value.
+        </p>
+        <p>
+          This field is always available, but marked optional for backward
+          compatibility between new clients with older servers.
+        </p>
+      </field>
     </object>
   </type>
   <type name="FlutterOutlineKind">

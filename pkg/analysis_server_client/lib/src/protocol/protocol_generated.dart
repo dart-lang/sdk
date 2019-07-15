@@ -15075,6 +15075,8 @@ class FlutterOutline implements HasToJson {
  *   "literalValueBoolean": optional bool
  *   "literalValueInteger": optional int
  *   "literalValueString": optional String
+ *   "nameLocation": optional Location
+ *   "valueLocation": optional Location
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -15089,6 +15091,10 @@ class FlutterOutlineAttribute implements HasToJson {
   int _literalValueInteger;
 
   String _literalValueString;
+
+  Location _nameLocation;
+
+  Location _valueLocation;
 
   /**
    * The name of the attribute.
@@ -15160,15 +15166,51 @@ class FlutterOutlineAttribute implements HasToJson {
     this._literalValueString = value;
   }
 
+  /**
+   * If the attribute is a named argument, the location of the name, without
+   * the colon.
+   */
+  Location get nameLocation => _nameLocation;
+
+  /**
+   * If the attribute is a named argument, the location of the name, without
+   * the colon.
+   */
+  void set nameLocation(Location value) {
+    this._nameLocation = value;
+  }
+
+  /**
+   * The location of the value.
+   *
+   * This field is always available, but marked optional for backward
+   * compatibility between new clients with older servers.
+   */
+  Location get valueLocation => _valueLocation;
+
+  /**
+   * The location of the value.
+   *
+   * This field is always available, but marked optional for backward
+   * compatibility between new clients with older servers.
+   */
+  void set valueLocation(Location value) {
+    this._valueLocation = value;
+  }
+
   FlutterOutlineAttribute(String name, String label,
       {bool literalValueBoolean,
       int literalValueInteger,
-      String literalValueString}) {
+      String literalValueString,
+      Location nameLocation,
+      Location valueLocation}) {
     this.name = name;
     this.label = label;
     this.literalValueBoolean = literalValueBoolean;
     this.literalValueInteger = literalValueInteger;
     this.literalValueString = literalValueString;
+    this.nameLocation = nameLocation;
+    this.valueLocation = valueLocation;
   }
 
   factory FlutterOutlineAttribute.fromJson(
@@ -15204,10 +15246,22 @@ class FlutterOutlineAttribute implements HasToJson {
         literalValueString = jsonDecoder.decodeString(
             jsonPath + ".literalValueString", json["literalValueString"]);
       }
+      Location nameLocation;
+      if (json.containsKey("nameLocation")) {
+        nameLocation = new Location.fromJson(
+            jsonDecoder, jsonPath + ".nameLocation", json["nameLocation"]);
+      }
+      Location valueLocation;
+      if (json.containsKey("valueLocation")) {
+        valueLocation = new Location.fromJson(
+            jsonDecoder, jsonPath + ".valueLocation", json["valueLocation"]);
+      }
       return new FlutterOutlineAttribute(name, label,
           literalValueBoolean: literalValueBoolean,
           literalValueInteger: literalValueInteger,
-          literalValueString: literalValueString);
+          literalValueString: literalValueString,
+          nameLocation: nameLocation,
+          valueLocation: valueLocation);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "FlutterOutlineAttribute", json);
     }
@@ -15227,6 +15281,12 @@ class FlutterOutlineAttribute implements HasToJson {
     if (literalValueString != null) {
       result["literalValueString"] = literalValueString;
     }
+    if (nameLocation != null) {
+      result["nameLocation"] = nameLocation.toJson();
+    }
+    if (valueLocation != null) {
+      result["valueLocation"] = valueLocation.toJson();
+    }
     return result;
   }
 
@@ -15240,7 +15300,9 @@ class FlutterOutlineAttribute implements HasToJson {
           label == other.label &&
           literalValueBoolean == other.literalValueBoolean &&
           literalValueInteger == other.literalValueInteger &&
-          literalValueString == other.literalValueString;
+          literalValueString == other.literalValueString &&
+          nameLocation == other.nameLocation &&
+          valueLocation == other.valueLocation;
     }
     return false;
   }
@@ -15253,6 +15315,8 @@ class FlutterOutlineAttribute implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, literalValueBoolean.hashCode);
     hash = JenkinsSmiHash.combine(hash, literalValueInteger.hashCode);
     hash = JenkinsSmiHash.combine(hash, literalValueString.hashCode);
+    hash = JenkinsSmiHash.combine(hash, nameLocation.hashCode);
+    hash = JenkinsSmiHash.combine(hash, valueLocation.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }

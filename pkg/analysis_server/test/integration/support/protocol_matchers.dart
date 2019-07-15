@@ -645,6 +645,8 @@ final Matcher isFlutterOutline =
  *   "literalValueBoolean": optional bool
  *   "literalValueInteger": optional int
  *   "literalValueString": optional String
+ *   "nameLocation": optional Location
+ *   "valueLocation": optional Location
  * }
  */
 final Matcher isFlutterOutlineAttribute =
@@ -654,7 +656,9 @@ final Matcher isFlutterOutlineAttribute =
         }, optionalFields: {
           "literalValueBoolean": isBool,
           "literalValueInteger": isInt,
-          "literalValueString": isString
+          "literalValueString": isString,
+          "nameLocation": isLocation,
+          "valueLocation": isLocation
         }));
 
 /**
