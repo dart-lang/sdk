@@ -32,11 +32,12 @@ class MockPackages {
   Folder _addFiles(MemoryResourceProvider provider, String packageName) {
     var packagesPath = provider.convertPath('/packages');
 
-    for (var relativePath in _cachedFiles.keys) {
-      if (relativePath.startsWith('$packageName/')) {
-        var content = _cachedFiles[relativePath];
-        var path = provider.pathContext
-            .normalize(provider.pathContext.join(packagesPath, relativePath));
+    for (var relativePosixPath in _cachedFiles.keys) {
+      var relativePathComponents = relativePosixPath.split('/');
+      if (relativePathComponents[0] == packageName) {
+        var relativePath = provider.pathContext.joinAll(relativePathComponents);
+        var path = provider.pathContext.join(packagesPath, relativePath);
+        var content = _cachedFiles[relativePosixPath];
         provider.newFile(path, content);
       }
     }
@@ -64,7 +65,8 @@ class MockPackages {
           resource.path,
           from: mockPath,
         );
-        var relativePosixPath = pathContext.split(relativePath).join('/');
+        var relativePathComponents = pathContext.split(relativePath);
+        var relativePosixPath = relativePathComponents.join('/');
         _cachedFiles[relativePosixPath] = resource.readAsStringSync();
       }
     }
