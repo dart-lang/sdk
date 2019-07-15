@@ -1036,6 +1036,7 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kLinkedHashMap_setUsedData:
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+    case MethodRecognizer::kFfiAbi:
       break;
     default:
       kind = MethodRecognizer::kUnknown;

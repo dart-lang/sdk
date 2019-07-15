@@ -15,19 +15,13 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiStructGeneric,
         templateFfiWrongStructInheritance;
 
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 
-import 'ffi.dart'
-    show
-        ReplacedMembers,
-        NativeType,
-        FfiTransformer,
-        nativeTypeSizes,
-        WORD_SIZE;
+import 'ffi.dart';
 
 /// Checks and elaborates the dart:ffi structs and fields.
 ///
@@ -66,8 +60,8 @@ ReplacedMembers transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter) {
-  final LibraryIndex index = LibraryIndex(
-      component, const ["dart:ffi", "dart:_internal", "dart:core"]);
+  final LibraryIndex index =
+      LibraryIndex(component, const ["dart:ffi", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
     // If dart:ffi is not loaded, do not do the transformation.
     return ReplacedMembers({}, {});
@@ -82,27 +76,13 @@ ReplacedMembers transformLibraries(
 /// Checks and elaborates the dart:ffi structs and fields.
 class _FfiDefinitionTransformer extends FfiTransformer {
   final LibraryIndex index;
-  final Field _internalIs64Bit;
-  final Constructor _unimplementedErrorCtor;
-  static const String _errorOn32BitMessage =
-      "Code-gen for FFI structs is not supported on 32-bit platforms.";
 
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
   _FfiDefinitionTransformer(this.index, CoreTypes coreTypes,
       ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter)
-      : _internalIs64Bit = index.getTopLevelMember('dart:_internal', 'is64Bit'),
-        _unimplementedErrorCtor =
-            index.getMember('dart:core', 'UnimplementedError', ''),
-        super(index, coreTypes, hierarchy, diagnosticReporter) {}
-
-  Statement guardOn32Bit(Statement body) {
-    final Throw error = Throw(ConstructorInvocation(_unimplementedErrorCtor,
-        Arguments([StringLiteral(_errorOn32BitMessage)])));
-    return IfStatement(
-        StaticGet(_internalIs64Bit), body, ExpressionStatement(error));
-  }
+      : super(index, coreTypes, hierarchy, diagnosticReporter) {}
 
   @override
   visitClass(Class node) {
@@ -119,8 +99,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final bool fieldsValid = _checkFieldAnnotations(node);
 
     if (fieldsValid) {
-      int size = _replaceFields(node);
-      _replaceSizeOfMethod(node, size);
+      final structSize = _replaceFields(node);
+      _replaceSizeOfMethod(node, structSize);
     }
 
     return node;
@@ -169,27 +149,27 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.name.name.length,
             f.fileUri);
       }
-      List<NativeType> annos = _getAnnotations(f).toList();
+      final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
       if (_isPointerType(f)) {
-        if (annos.length != 0) {
+        if (nativeTypeAnnos.length != 0) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.name),
               f.fileOffset,
               f.name.name.length,
               f.fileUri);
         }
-      } else if (annos.length != 1) {
+      } else if (nativeTypeAnnos.length != 1) {
         diagnosticReporter.report(
             templateFfiFieldAnnotation.withArguments(f.name.name),
             f.fileOffset,
             f.name.name.length,
             f.fileUri);
       } else {
-        DartType dartType = f.type;
-        DartType nativeType =
-            InterfaceType(nativeTypesClasses[annos.first.index]);
+        final DartType dartType = f.type;
+        final DartType nativeType =
+            InterfaceType(nativeTypesClasses[nativeTypeAnnos.first.index]);
         // TODO(36730): Support structs inside structs.
-        DartType shouldBeDartType =
+        final DartType shouldBeDartType =
             convertNativeTypeToDartType(nativeType, /*allowStructs=*/ false);
         if (shouldBeDartType == null ||
             !env.isSubtypeOf(dartType, shouldBeDartType)) {
@@ -207,7 +187,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   void _checkConstructors(Class node) {
-    List<Initializer> toRemove = [];
+    final toRemove = <Initializer>[];
 
     // Constructors cannot have initializers because initializers refer to
     // fields, and the fields were replaced with getter/setter pairs.
@@ -241,44 +221,62 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     node.addMember(ctor);
   }
 
-  /// Computes the field offsets in the struct and replaces the fields with
-  /// getters and setters using these offsets.
+  /// Computes the field offsets (for all ABIs) in the struct and replaces the
+  /// fields with getters and setters using these offsets.
   ///
-  /// Returns the total size of the struct.
-  int _replaceFields(Class node) {
-    List<Field> fields = [];
-    List<NativeType> types = [];
+  /// Returns the total size of the struct (for all ABIs).
+  Map<Abi, int> _replaceFields(Class node) {
+    final fields = <Field>[];
+    final types = <NativeType>[];
 
     for (Field f in node.fields) {
       if (_isPointerType(f)) {
         fields.add(f);
         types.add(NativeType.kPointer);
       } else {
-        List<NativeType> annos = _getAnnotations(f).toList();
-        if (annos.length == 1) {
-          NativeType t = annos.first;
+        final nativeTypeAnnos = _getNativeTypeAnnotations(f).toList();
+        if (nativeTypeAnnos.length == 1) {
+          NativeType t = nativeTypeAnnos.first;
           fields.add(f);
           types.add(t);
         }
       }
     }
 
-    List<int> offsets = _calculateOffsets(types);
-    int size = _calculateSize(offsets, types);
+    final sizeAndOffsets = <Abi, SizeAndOffsets>{};
+    for (Abi abi in Abi.values) {
+      sizeAndOffsets[abi] = _calculateSizeAndOffsets(types, abi);
+    }
 
     for (int i = 0; i < fields.length; i++) {
-      List<Procedure> methods =
-          _generateMethodsForField(fields[i], types[i], offsets[i]);
-      for (Procedure p in methods) {
-        node.addMember(p);
-      }
+      final fieldOffsets = sizeAndOffsets
+          .map((Abi abi, SizeAndOffsets v) => MapEntry(abi, v.offsets[i]));
+      final methods =
+          _generateMethodsForField(fields[i], types[i], fieldOffsets);
+      methods.forEach((p) => node.addMember(p));
     }
 
     for (Field f in fields) {
       f.remove();
     }
 
-    return size;
+    return sizeAndOffsets.map((k, v) => MapEntry(k, v.size));
+  }
+
+  /// Expression that queries VM internals at runtime to figure out on which ABI
+  /// we are.
+  Expression _runtimeBranchOnLayout(Map<Abi, int> values) {
+    return MethodInvocation(
+        ConstantExpression(
+            ListConstant(InterfaceType(intClass), [
+              IntConstant(values[Abi.wordSize64]),
+              IntConstant(values[Abi.wordSize32Align32]),
+              IntConstant(values[Abi.wordSize32Align64])
+            ]),
+            InterfaceType(intClass)),
+        Name("[]"),
+        Arguments([StaticInvocation(abiMethod, Arguments([]))]),
+        listElementAt);
   }
 
   /// Sample output:
@@ -286,60 +284,58 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   /// double get x => _xPtr.load();
   /// set x(double v) => _xPtr.store(v);
   List<Procedure> _generateMethodsForField(
-      Field field, NativeType type, int offset) {
-    DartType nativeType = type == NativeType.kPointer
+      Field field, NativeType type, Map<Abi, int> offsets) {
+    final DartType nativeType = type == NativeType.kPointer
         ? field.type
         : InterfaceType(nativeTypesClasses[type.index]);
-    DartType pointerType = InterfaceType(pointerClass, [nativeType]);
-    Name pointerName = Name('#_ptr_${field.name.name}');
+    final DartType pointerType = InterfaceType(pointerClass, [nativeType]);
+    final Name pointerName = Name('#_ptr_${field.name.name}');
 
     // Sample output:
     // ffi.Pointer<ffi.Double> get _xPtr => addressOf.offsetBy(...).cast<ffi.Pointer<ffi.Double>>();
     Expression pointer =
         PropertyGet(ThisExpression(), addressOfField.name, addressOfField);
-    if (offset != 0) {
+    final hasNonZero = offsets.values.skipWhile((i) => i == 0).isNotEmpty;
+    if (hasNonZero) {
       pointer = MethodInvocation(pointer, offsetByMethod.name,
-          Arguments([IntLiteral(offset)]), offsetByMethod);
+          Arguments([_runtimeBranchOnLayout(offsets)]), offsetByMethod);
     }
-    Procedure pointerGetter = Procedure(
+    final Procedure pointerGetter = Procedure(
         pointerName,
         ProcedureKind.Getter,
         FunctionNode(
-            guardOn32Bit(ReturnStatement(MethodInvocation(
-                pointer,
-                castMethod.name,
-                Arguments([], types: [nativeType]),
-                castMethod))),
+            ReturnStatement(MethodInvocation(pointer, castMethod.name,
+                Arguments([], types: [nativeType]), castMethod)),
             returnType: pointerType));
 
     // Sample output:
     // double get x => _xPtr.load<double>();
-    Procedure getter = Procedure(
+    final Procedure getter = Procedure(
         field.name,
         ProcedureKind.Getter,
         FunctionNode(
-            guardOn32Bit(ReturnStatement(MethodInvocation(
+            ReturnStatement(MethodInvocation(
                 PropertyGet(ThisExpression(), pointerName, pointerGetter),
                 loadMethod.name,
                 Arguments([], types: [field.type]),
-                loadMethod))),
+                loadMethod)),
             returnType: field.type));
 
     // Sample output:
     // set x(double v) => _xPtr.store(v);
     Procedure setter = null;
     if (!field.isFinal) {
-      VariableDeclaration argument =
+      final VariableDeclaration argument =
           VariableDeclaration('#v', type: field.type);
       setter = Procedure(
           field.name,
           ProcedureKind.Setter,
           FunctionNode(
-              guardOn32Bit(ReturnStatement(MethodInvocation(
+              ReturnStatement(MethodInvocation(
                   PropertyGet(ThisExpression(), pointerName, pointerGetter),
                   storeMethod.name,
                   Arguments([VariableGet(argument)]),
-                  storeMethod))),
+                  storeMethod)),
               returnType: VoidType(),
               positionalParameters: [argument]));
     }
@@ -347,66 +343,61 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     replacedGetters[field] = getter;
     replacedSetters[field] = setter;
 
-    if (setter != null) {
-      return [pointerGetter, getter, setter];
-    } else {
-      return [pointerGetter, getter];
-    }
+    return [pointerGetter, getter, if (setter != null) setter];
   }
 
   /// Sample output:
   /// static int #sizeOf() => 24;
-  void _replaceSizeOfMethod(Class struct, int size) {
+  void _replaceSizeOfMethod(Class struct, Map<Abi, int> sizes) {
     final Field sizeOf = Field(Name("#sizeOf"),
-        isStatic: true, isFinal: true, initializer: IntLiteral(size));
+        isStatic: true,
+        isFinal: true,
+        initializer: _runtimeBranchOnLayout(sizes),
+        type: InterfaceType(intClass));
     _makeEntryPoint(sizeOf);
     struct.addMember(sizeOf);
   }
 
-  // TODO(dacoharkes): move to VM, take into account architecture
-  // https://github.com/dart-lang/sdk/issues/35768
-  int _sizeInBytes(NativeType t) {
-    int size = nativeTypeSizes[t.index];
+  int _sizeInBytes(NativeType type, Abi abi) {
+    final int size = nativeTypeSizes[type.index];
     if (size == WORD_SIZE) {
-      size = 8;
+      return wordSize[abi];
     }
     return size;
   }
 
-  int _align(int offset, int size) {
-    int remainder = offset % size;
+  int _alignmentOf(NativeType type, Abi abi) {
+    final int alignment = nonSizeAlignment[abi][type];
+    if (alignment != null) return alignment;
+    return _sizeInBytes(type, abi);
+  }
+
+  int _alignOffset(int offset, int alignment) {
+    final int remainder = offset % alignment;
     if (remainder != 0) {
       offset -= remainder;
-      offset += size;
+      offset += alignment;
     }
     return offset;
   }
 
-  // TODO(dacoharkes): move to VM, take into account architecture
-  // https://github.com/dart-lang/sdk/issues/35768
-  List<int> _calculateOffsets(List<NativeType> types) {
+  // TODO(37271): Support nested structs.
+  SizeAndOffsets _calculateSizeAndOffsets(List<NativeType> types, Abi abi) {
     int offset = 0;
-    List<int> offsets = [];
+    final offsets = <int>[];
     for (NativeType t in types) {
-      int size = _sizeInBytes(t);
-      offset = _align(offset, size);
+      final int size = _sizeInBytes(t, abi);
+      final int alignment = _alignmentOf(t, abi);
+      offset = _alignOffset(offset, alignment);
       offsets.add(offset);
       offset += size;
     }
-    return offsets;
-  }
-
-  // TODO(dacoharkes): move to VM, take into account architecture
-  // https://github.com/dart-lang/sdk/issues/35768
-  int _calculateSize(List<int> offsets, List<NativeType> types) {
-    if (offsets.isEmpty) {
-      return 0;
-    }
-    int largestElement = types.map((e) => _sizeInBytes(e)).reduce(math.max);
-    int highestOffsetIndex = types.length - 1;
-    int highestOffset = offsets[highestOffsetIndex];
-    int highestOffsetSize = _sizeInBytes(types[highestOffsetIndex]);
-    return _align(highestOffset + highestOffsetSize, largestElement);
+    final int minimumAlignment = 1;
+    final sizeAlignment = types
+        .map((t) => _alignmentOf(t, abi))
+        .followedBy([minimumAlignment]).reduce(math.max);
+    final int size = _alignOffset(offset, sizeAlignment);
+    return SizeAndOffsets(size, offsets);
   }
 
   void _makeEntryPoint(Annotatable node) {
@@ -415,7 +406,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   NativeType _getFieldType(Class c) {
-    NativeType fieldType = getType(c);
+    final fieldType = getType(c);
 
     if (fieldType == NativeType.kVoid) {
       // Fields cannot have Void types.
@@ -424,13 +415,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     return fieldType;
   }
 
-  Iterable<NativeType> _getAnnotations(Field node) {
-    Iterable<NativeType> preConstant2018 = node.annotations
+  Iterable<NativeType> _getNativeTypeAnnotations(Field node) {
+    final Iterable<NativeType> preConstant2018 = node.annotations
         .whereType<ConstructorInvocation>()
         .map((expr) => expr.target.parent)
         .map((klass) => _getFieldType(klass))
         .where((type) => type != null);
-    Iterable<NativeType> postConstant2018 = node.annotations
+    final Iterable<NativeType> postConstant2018 = node.annotations
         .whereType<ConstantExpression>()
         .map((expr) => expr.constant)
         .whereType<InstanceConstant>()
@@ -440,4 +431,14 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     // TODO(dacoharkes): Remove preConstant2018 after constants change landed.
     return postConstant2018.followedBy(preConstant2018);
   }
+}
+
+class SizeAndOffsets {
+  /// Size of the entire struct.
+  final int size;
+
+  /// Offset in bytes for each field, indexed by field number.
+  final List<int> offsets;
+
+  SizeAndOffsets(this.size, this.offsets);
 }

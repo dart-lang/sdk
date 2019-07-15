@@ -68,3 +68,8 @@ class Pointer<T extends NativeType> {
   @patch
   void free() native "Ffi_free";
 }
+
+// Returns the ABI used for size and alignment calculations.
+// See pkg/vm/lib/transformations/ffi.dart.
+int _abi()
+    native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";

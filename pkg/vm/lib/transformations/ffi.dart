@@ -86,6 +86,74 @@ const List<int> nativeTypeSizes = [
   UNKNOWN, // Struct
 ];
 
+/// The struct layout in various ABIs.
+///
+/// ABIs differ per architectures and with different compilers.
+/// We pick the default struct layout based on the architecture and OS.
+///
+/// Compilers _can_ deviate from the default layout, but this prevents
+/// executables from making system calls. So this seems rather uncommon.
+///
+/// In the future, we might support custom struct layouts. For more info see
+/// https://github.com/dart-lang/sdk/issues/35768.
+enum Abi {
+  /// Layout in all 64bit ABIs (x64 and arm64).
+  wordSize64,
+
+  /// Layout in System V ABI for x386 (ia32 on Linux) and in iOS Arm 32 bit.
+  wordSize32Align32,
+
+  /// Layout in both the Arm 32 bit ABI and the Windows ia32 ABI.
+  wordSize32Align64,
+}
+
+/// WORD_SIZE in bytes.
+const wordSize = <Abi, int>{
+  Abi.wordSize64: 8,
+  Abi.wordSize32Align32: 4,
+  Abi.wordSize32Align64: 4,
+};
+
+/// Elements that are not aligned to their size.
+///
+/// Has an entry for all Abis. Empty entries document that every native
+/// type is aligned to it's own size in this ABI.
+///
+/// See runtime/vm/compiler/ffi.cc for asserts in the VM that verify these
+/// alignments.
+///
+/// TODO(37470): Add uncommon primitive data types when we want to support them.
+const nonSizeAlignment = <Abi, Map<NativeType, int>>{
+  Abi.wordSize64: {},
+
+  // x86 System V ABI:
+  // > uint64_t | size 8 | alignment 4
+  // > double   | size 8 | alignment 4
+  // https://github.com/hjl-tools/x86-psABI/wiki/intel386-psABI-1.1.pdf page 8.
+  //
+  // iOS 32 bit alignment:
+  // https://developer.apple.com/documentation/uikit/app_and_environment/updating_your_app_from_32-bit_to_64-bit_architecture/updating_data_structures
+  Abi.wordSize32Align32: {NativeType.kDouble: 4, NativeType.kInt64: 4},
+
+  // The default for MSVC x86:
+  // > The alignment-requirement for all data except structures, unions, and
+  // > arrays is either the size of the object or the current packing size
+  // > (specified with either /Zp or the pack pragma, whichever is less).
+  // https://docs.microsoft.com/en-us/cpp/c-language/padding-and-alignment-of-structure-members?view=vs-2019
+  //
+  // GCC _can_ compile on Linux to this alignment with -malign-double, but does
+  // not do so by default:
+  // > Warning: if you use the -malign-double switch, structures containing the
+  // > above types are aligned differently than the published application
+  // > binary interface specifications for the x86-32 and are not binary
+  // > compatible with structures in code compiled without that switch.
+  // https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html
+  //
+  // Arm always requires 8 byte alignment for 8 byte values:
+  // http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042d/IHI0042D_aapcs.pdf 4.1 Fundamental Data Types
+  Abi.wordSize32Align64: {},
+};
+
 /// [FfiTransformer] contains logic which is shared between
 /// _FfiUseSiteTransformer and _FfiDefinitionTransformer.
 class FfiTransformer extends Transformer {
@@ -98,6 +166,7 @@ class FfiTransformer extends Transformer {
   final Class intClass;
   final Class doubleClass;
   final Constructor pragmaConstructor;
+  final Procedure listElementAt;
 
   final Library ffiLibrary;
   final Class nativeFunctionClass;
@@ -114,6 +183,7 @@ class FfiTransformer extends Transformer {
   final Field addressOfField;
   final Constructor structFromPointer;
   final Procedure libraryLookupMethod;
+  final Procedure abiMethod;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
@@ -124,6 +194,7 @@ class FfiTransformer extends Transformer {
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
         pragmaConstructor = coreTypes.pragmaConstructor,
+        listElementAt = coreTypes.index.getMember('dart:core', 'List', '[]'),
         ffiLibrary = index.getLibrary('dart:ffi'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),
@@ -144,6 +215,7 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =
             index.getMember('dart:ffi', 'DynamicLibrary', 'lookup'),
+        abiMethod = index.getTopLevelMember('dart:ffi', '_abi'),
         nativeTypesClasses = nativeTypeClassNames
             .map((name) => index.getClass('dart:ffi', name))
             .toList();

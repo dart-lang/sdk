@@ -52,6 +52,60 @@ size_t ElementSizeInBytes(intptr_t class_id) {
   return element_size_table[index];
 }
 
+// See pkg/vm/lib/transformations/ffi.dart, which makes these assumptions.
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
+static_assert(alignof(double) == 8, "FFI transformation alignment");
+static_assert(alignof(uint64_t) == 8, "FFI transformation alignment");
+#elif defined(HOST_ARCH_IA32) &&                                               \
+        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                   \
+         defined(HOST_OS_ANDROID)) ||                                          \
+    defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS)
+static_assert(alignof(double) == 4, "FFI transformation alignment");
+static_assert(alignof(uint64_t) == 4, "FFI transformation alignment");
+#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
+    defined(HOST_ARCH_ARM)
+static_assert(alignof(double) == 8, "FFI transformation alignment");
+static_assert(alignof(uint64_t) == 8, "FFI transformation alignment");
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+
+#if defined(TARGET_ARCH_DBC)
+static Abi HostAbi() {
+#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64)
+  return Abi::kWordSize64;
+#elif defined(HOST_ARCH_IA32) &&                                               \
+        (defined(HOST_OS_LINUX) || defined(HOST_OS_MACOS) ||                   \
+         defined(HOST_OS_ANDROID)) ||                                          \
+    defined(HOST_ARCH_ARM) && defined(HOST_OS_IOS)
+  return Abi::kWordSize32Align32;
+#elif defined(HOST_ARCH_IA32) && defined(HOST_OS_WINDOWS) ||                   \
+    defined(HOST_ARCH_ARM)
+  return Abi::kWordSize32Align64;
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+}
+#endif  // defined(TARGET_ARCH_DBC)
+
+Abi TargetAbi() {
+#if defined(TARGET_ARCH_DBC)
+  return HostAbi();
+#elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  return Abi::kWordSize64;
+#elif defined(TARGET_ARCH_IA32) &&                                             \
+        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||               \
+         defined(TARGET_OS_ANDROID)) ||                                        \
+    defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS)
+  return Abi::kWordSize32Align32;
+#elif defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS) ||               \
+    defined(TARGET_ARCH_ARM)
+  return Abi::kWordSize32Align64;
+#else
+#error "Unknown platform. Please add alignment requirements for ABI."
+#endif
+}
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 Representation TypeRepresentation(const AbstractType& result_type) {
