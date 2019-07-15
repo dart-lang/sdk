@@ -28,7 +28,6 @@ compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
 conditional_import_string_test: CompileTimeError
 conditional_import_test: CompileTimeError
-conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError
 config_import_test: RuntimeError
 const_list_test: RuntimeError
@@ -808,7 +807,6 @@ regress_22728_test: RuntimeError
 [ $compiler == dartkp && $runtime == dart_precompiled && !$checked ]
 assertion_initializer_const_error_test/01: MissingCompileTimeError
 assertion_initializer_const_function_error_test/01: MissingCompileTimeError
-conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 implicit_downcast_during_combiner_test: RuntimeError
 implicit_downcast_during_compound_assignment_test: RuntimeError
 implicit_downcast_during_conditional_expression_test: RuntimeError
@@ -879,7 +877,6 @@ malbounded_type_test_test/04: Fail
 regress_30339_test: RuntimeError
 
 [ $runtime == vm && !$checked && ($compiler == dartk || $compiler == dartkb) ]
-conditional_rewrite_test: RuntimeError # Issue 31402 (Not)
 type_error_test: RuntimeError # Issue 31402 (Variable declaration)
 
 # ===== dartk + vm status lines =====

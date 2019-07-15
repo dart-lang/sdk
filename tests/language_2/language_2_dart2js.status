@@ -29,7 +29,6 @@ compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError
 compile_time_constant_static5_test/21: CompileTimeError
 compile_time_constant_static5_test/23: CompileTimeError
-conditional_rewrite_test: RuntimeError
 config_import_corelib_test: CompileTimeError # we need a special platform.dill file for categories=all. Once we fix that, all dart:* are supported when using '--categories=all' so this will become a RuntimeError, OK.
 config_import_test: RuntimeError # Test flag is not passed to the compiler.
 const_constructor3_test/04: MissingCompileTimeError # OK - Subtype check uses JS number semantics.

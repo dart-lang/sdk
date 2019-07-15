@@ -13,9 +13,6 @@ posNull(x, y) => x != null ? y : null;
 negNull(x, y) => x != null ? !y : null;
 
 main() {
-  bool isCheckedMode = false;
-  assert((isCheckedMode = true));
-
   Expect.equals(false, posFalse(null, false));
   Expect.equals(false, negFalse(null, false));
   Expect.equals(null, posNull(null, false));
@@ -36,7 +33,7 @@ main() {
   Expect.equals(true, posNull([], true));
   Expect.equals(false, negNull([], true));
 
-  if (!isCheckedMode) {
+  if (isConditionCheckDisabled) {
     Expect.equals(null, posFalse([], null));
     Expect.equals(true, negFalse([], null));
     Expect.equals(null, posNull([], null));
@@ -48,4 +45,16 @@ main() {
     Expect.identical(y, posNull([], y));
     Expect.equals(true, negNull([], y));
   }
+}
+
+bool get isConditionCheckDisabled {
+  bool b = null;
+  for (int i = 0; i < 3; i++) {
+    try {
+      b = !b;
+    } catch (e) {
+      return false;
+    }
+  }
+  return true;
 }
