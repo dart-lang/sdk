@@ -861,25 +861,29 @@ class RawPatchClass : public RawObject {
 class RawFunction : public RawObject {
  public:
   enum Kind {
-    kRegularFunction,
-    kClosureFunction,
-    kImplicitClosureFunction,
-    kSignatureFunction,  // represents a signature only without actual code.
-    kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
-    kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
-    kConstructor,
-    kImplicitGetter,        // represents an implicit getter for fields.
-    kImplicitSetter,        // represents an implicit setter for fields.
-    kImplicitStaticGetter,  // represents an implicit getter for static
-                            // fields with initializers
-    kStaticFieldInitializer,
-    kMethodExtractor,  // converts method into implicit closure on the receiver.
-    kNoSuchMethodDispatcher,  // invokes noSuchMethod.
-    kInvokeFieldDispatcher,   // invokes a field as a closure.
-    kIrregexpFunction,  // represents a generated irregexp matcher function.
-    kDynamicInvocationForwarder,  // represents forwarder which performs type
-                                  // checks for arguments of a dynamic
-                                  // invocation.
+    kRegularFunction,          // an ordinary or operator method
+    kClosureFunction,          // a user-declared closure function
+    kImplicitClosureFunction,  // an implicit closure (i.e., tear-off)
+    kSignatureFunction,        // a signature only without actual code
+    kGetterFunction,           // getter functions e.g: get foo() { .. }
+    kSetterFunction,           // setter functions e.g: set foo(..) { .. }
+    kConstructor,              // a generative (is_static=false) or
+                               // factory (is_static=true) constructor
+    kImplicitGetter,           // an implicit getter for instance fields
+    kImplicitSetter,           // an implicit setter for instance fields
+    kImplicitStaticGetter,     // represents an implicit getter for static
+                               // fields with initializers
+    kFieldInitializer,         // the initialization expression for a static
+                               // or instance field
+    kMethodExtractor,          // return a closure on the receiver for tear-offs
+    kNoSuchMethodDispatcher,   // builds an Invocation and invokes noSuchMethod
+    kInvokeFieldDispatcher,    // invokes a field as a closure (i.e.,
+                               // call-through-getter)
+    kIrregexpFunction,         // a generated irregexp matcher function.
+    kDynamicInvocationForwarder,  // a forwarder which performs type checks for
+                                  // arguments of a dynamic call (i.e., those
+                                  // checks omitted by the caller for interface
+                                  // calls).
     kFfiTrampoline,
   };
 

@@ -2290,13 +2290,23 @@ RawFunction* CreateFieldInitializerFunction(Thread* thread,
 
   // Create a static initializer.
   const Function& initializer_fun = Function::Handle(
-      zone, Function::New(init_name, RawFunction::kStaticFieldInitializer,
-                          true,   // is_static
-                          false,  // is_const
-                          false,  // is_abstract
-                          false,  // is_external
-                          false,  // is_native
+      zone, Function::New(init_name, RawFunction::kFieldInitializer,
+                          field.is_static(),  // is_static
+                          false,              // is_const
+                          false,              // is_abstract
+                          false,              // is_external
+                          false,              // is_native
                           initializer_owner, TokenPosition::kNoSource));
+  if (!field.is_static()) {
+    initializer_fun.set_num_fixed_parameters(1);
+    initializer_fun.set_parameter_types(
+        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    initializer_fun.set_parameter_names(
+        Array::Handle(zone, Array::New(1, Heap::kOld)));
+    initializer_fun.SetParameterTypeAt(
+        0, AbstractType::Handle(zone, field_owner.DeclarationType()));
+    initializer_fun.SetParameterNameAt(0, Symbols::This());
+  }
   initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
   initializer_fun.set_is_reflectable(false);
   initializer_fun.set_is_inlinable(false);

@@ -12,6 +12,7 @@ class BytecodeOptions {
     'debugger-stops': 'Emit bytecode instructions for stopping in the debugger',
     'show-bytecode-size-stat': 'Show bytecode size breakdown',
     'source-positions': 'Emit source positions',
+    'instance-field-initializers': 'Emit separate instance field initializers',
   };
 
   bool enableAsserts;
@@ -21,6 +22,7 @@ class BytecodeOptions {
   bool emitLocalVarInfo;
   bool emitDebuggerStops;
   bool emitAnnotations;
+  bool emitInstanceFieldInitializers;
   bool omitAssertSourcePositions;
   bool showBytecodeSizeStatistics;
   Map<String, String> environmentDefines;
@@ -33,6 +35,7 @@ class BytecodeOptions {
       this.emitLocalVarInfo = false,
       this.emitDebuggerStops = false,
       this.emitAnnotations = false,
+      this.emitInstanceFieldInitializers = false,
       this.omitAssertSourcePositions = false,
       this.showBytecodeSizeStatistics = false,
       this.environmentDefines = const <String, String>{}}) {
@@ -57,6 +60,9 @@ class BytecodeOptions {
           break;
         case 'annotations':
           emitAnnotations = true;
+          break;
+        case 'instance-field-initializers':
+          emitInstanceFieldInitializers = true;
           break;
         case 'show-bytecode-size-stat':
           showBytecodeSizeStatistics = true;

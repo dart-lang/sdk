@@ -409,6 +409,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     } else {
       flags |= FieldDeclaration.hasInitializerFlag;
     }
+    if (initializer != null) {
+      flags |= FieldDeclaration.hasInitializerCodeFlag;
+    }
     final name = objectTable.getNameHandle(
         field.name.library, objectTable.mangleMemberName(field, false, false));
     ObjectHandle getterName;
@@ -724,7 +727,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   }
 
   bool hasInitializerCode(Field field) =>
-      field.isStatic && !_hasTrivialInitializer(field);
+      (field.isStatic || options.emitInstanceFieldInitializers) &&
+      !_hasTrivialInitializer(field);
 
   void _genNativeCall(String nativeName) {
     final function = enclosingMember.function;

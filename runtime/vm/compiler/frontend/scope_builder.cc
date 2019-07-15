@@ -316,9 +316,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       }
       break;
     }
-    case RawFunction::kStaticFieldInitializer: {
+    case RawFunction::kFieldInitializer: {
       ASSERT(helper_.PeekTag() == kField);
-      ASSERT(function.IsStaticFunction());
+      if (!function.is_static()) {
+        Class& klass = Class::Handle(Z, function.Owner());
+        Type& klass_type = H.GetDeclarationType(klass);
+        LocalVariable* variable =
+            MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                         Symbols::This(), klass_type);
+        scope_->InsertParameterAt(0, variable);
+        parsed_function_->set_receiver_var(variable);
+      }
       VisitNode();
       break;
     }

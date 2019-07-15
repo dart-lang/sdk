@@ -1292,7 +1292,7 @@ bool ConstantEvaluator::GetCachedConstant(intptr_t kernel_offset,
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
   if ((function.kind() == RawFunction::kImplicitStaticGetter ||
-       function.kind() == RawFunction::kStaticFieldInitializer) &&
+       function.kind() == RawFunction::kFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.
@@ -1325,7 +1325,7 @@ void ConstantEvaluator::CacheConstantValue(intptr_t kernel_offset,
 
   const Function& function = flow_graph_builder_->parsed_function_->function();
   if ((function.kind() == RawFunction::kImplicitStaticGetter ||
-       function.kind() == RawFunction::kStaticFieldInitializer) &&
+       function.kind() == RawFunction::kFieldInitializer) &&
       !I->CanOptimizeImmediately()) {
     // Don't cache constants in initializer expressions. They get
     // evaluated only once.

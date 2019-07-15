@@ -331,6 +331,7 @@ class FieldDeclaration {
   static const hasAnnotationsFlag = 1 << 10;
   static const hasPragmaFlag = 1 << 11;
   static const hasCustomScriptFlag = 1 << 12;
+  static const hasInitializerCodeFlag = 1 << 13;
 
   final int flags;
   final ObjectHandle name;
@@ -369,7 +370,7 @@ class FieldDeclaration {
       writer.writePackedUInt30(position + 1);
       writer.writePackedUInt30(endPosition + 1);
     }
-    if ((flags & hasInitializerFlag) != 0 && (flags & isStaticFlag) != 0) {
+    if ((flags & hasInitializerCodeFlag) != 0) {
       writer.writeLinkOffset(initializerCode);
     }
     if ((flags & hasInitializerFlag) == 0) {
@@ -398,10 +399,9 @@ class FieldDeclaration {
     final endPosition = ((flags & hasSourcePositionsFlag) != 0)
         ? reader.readPackedUInt30() - 1
         : TreeNode.noOffset;
-    final initializerCode =
-        ((flags & hasInitializerFlag) != 0 && (flags & isStaticFlag) != 0)
-            ? reader.readLinkOffset<Code>()
-            : null;
+    final initializerCode = ((flags & hasInitializerCodeFlag) != 0)
+        ? reader.readLinkOffset<Code>()
+        : null;
     final value =
         ((flags & hasInitializerFlag) == 0) ? reader.readPackedObject() : null;
     final getterName =
@@ -447,9 +447,10 @@ class FieldDeclaration {
       sb.write(', pos = $position, end-pos = $endPosition');
     }
     sb.writeln();
-    if ((flags & hasInitializerFlag) != 0) {
+    if ((flags & hasInitializerCodeFlag) != 0) {
       sb.write('    initializer\n$initializerCode\n');
-    } else {
+    }
+    if ((flags & hasInitializerFlag) == 0) {
       sb.write('    value = $value\n');
     }
     if ((flags & hasAnnotationsFlag) != 0) {

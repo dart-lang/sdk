@@ -1001,7 +1001,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraph() {
       }
       return B->BuildGraphOfFieldAccessor(function);
     }
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
       return BuildGraphOfFieldInitializer();
     case RawFunction::kDynamicInvocationForwarder:
       return B->BuildGraphOfDynamicInvocationForwarder(function);
@@ -1062,7 +1062,7 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case RawFunction::kImplicitGetter:
     case RawFunction::kImplicitStaticGetter:
     case RawFunction::kImplicitSetter:
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
     case RawFunction::kMethodExtractor:
     case RawFunction::kNoSuchMethodDispatcher:
     case RawFunction::kInvokeFieldDispatcher:

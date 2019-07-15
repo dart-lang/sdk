@@ -135,11 +135,8 @@ void InstanceMorpher::ComputeMapping() {
     }
 
     if (new_field) {
-      if (to_field.has_initializer()) {
-        // This is a new field with an initializer.
-        const Field& field = Field::Handle(to_field.raw());
-        new_fields_->Add(&field);
-      }
+      const Field& field = Field::Handle(to_field.raw());
+      new_fields_->Add(&field);
     }
   }
 }
@@ -167,33 +164,46 @@ void InstanceMorpher::RunNewFieldInitializers() const {
   TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Function& eval_func = Function::Handle(zone);
+  Function& init_func = Function::Handle(zone);
   Object& result = Object::Handle(zone);
   // For each new field.
   for (intptr_t i = 0; i < new_fields_->length(); i++) {
     // Create a function that returns the expression.
     const Field* field = new_fields_->At(i);
-    if (field->is_declared_in_bytecode()) {
-      UNIMPLEMENTED();
-    } else {
-      eval_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
-    }
-
-    for (intptr_t j = 0; j < after_->length(); j++) {
-      const Instance* instance = after_->At(j);
-      TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
-                after_->length());
-      // Run the function and assign the field.
-      result = DartEntry::InvokeFunction(eval_func, Array::empty_array());
-      if (result.IsError()) {
-        // TODO(johnmccutchan): Report this error in the reload response?
-        OS::PrintErr(
-            "RELOAD: Running initializer for new field `%s` resulted in "
-            "an error: %s\n",
-            field->ToCString(), Error::Cast(result).ToErrorCString());
-        continue;
+    if (field->has_initializer()) {
+      if (field->is_declared_in_bytecode() && (field->bytecode_offset() == 0)) {
+        FATAL1(
+            "Missing field initializer for '%s'. Reload requires bytecode "
+            "to be generated with 'instance-field-initializers'",
+            field->ToCString());
       }
-      instance->RawSetFieldAtOffset(field->Offset(), result);
+      init_func = kernel::CreateFieldInitializerFunction(thread, zone, *field);
+      const Array& args = Array::Handle(zone, Array::New(1));
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        // Run the function and assign the field.
+        args.SetAt(0, *instance);
+        result = DartEntry::InvokeFunction(init_func, args);
+        if (result.IsError()) {
+          // TODO(johnmccutchan): Report this error in the reload response?
+          OS::PrintErr(
+              "RELOAD: Running initializer for new field `%s` resulted in "
+              "an error: %s\n",
+              field->ToCString(), Error::Cast(result).ToErrorCString());
+          continue;
+        }
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
+    } else {
+      result = field->saved_initial_value();
+      for (intptr_t j = 0; j < after_->length(); j++) {
+        const Instance* instance = after_->At(j);
+        TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                  after_->length());
+        instance->RawSetFieldAtOffset(field->Offset(), result);
+      }
     }
   }
 }

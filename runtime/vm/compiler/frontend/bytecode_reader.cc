@@ -485,7 +485,7 @@ void BytecodeReaderHelper::ReadClosureDeclaration(const Function& function,
   Object& parent = Object::Handle(Z, ReadObject());
   if (!parent.IsFunction()) {
     ASSERT(parent.IsField());
-    ASSERT(function.kind() == RawFunction::kStaticFieldInitializer);
+    ASSERT(function.kind() == RawFunction::kFieldInitializer);
     // Closure in a static field initializer, so use current function as parent.
     parent = function.raw();
   }
@@ -1909,6 +1909,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasAnnotationsFlag = 1 << 10;
   const int kHasPragmaFlag = 1 << 11;
   const int kHasCustomScriptFlag = 1 << 12;
+  const int kHasInitializerCodeFlag = 1 << 13;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1965,6 +1966,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         field.SetStaticValue(value, true);
       } else {
+        field.set_saved_initial_value(value);
         // Null-initialized instance fields are tracked separately for each
         // constructor (see handling of kHasNullableFieldsFlag).
         if (!value.IsNull()) {
@@ -1979,11 +1981,19 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       }
     }
 
-    if (has_initializer && is_static) {
+    static_assert(KernelBytecode::kMinSupportedBytecodeFormatVersion < 14,
+                  "Cleanup support for old bytecode format versions");
+    const bool has_initializer_code =
+        bytecode_component_->GetVersion() >= 14
+            ? (flags & kHasInitializerCodeFlag) != 0
+            : has_initializer && is_static;
+    if (has_initializer_code) {
       const intptr_t code_offset = reader_.ReadUInt();
       field.set_bytecode_offset(code_offset +
                                 bytecode_component_->GetCodesOffset());
-      field.SetStaticValue(Object::sentinel(), true);
+      if (is_static) {
+        field.SetStaticValue(Object::sentinel(), true);
+      }
     }
 
     if ((flags & kHasGetterFlag) != 0) {
@@ -2648,7 +2658,7 @@ void BytecodeReaderHelper::ParseBytecodeFunction(
       }
       break;
     }
-    case RawFunction::kStaticFieldInitializer:
+    case RawFunction::kFieldInitializer:
       ReadCode(function, function.bytecode_offset());
       break;
     case RawFunction::kMethodExtractor:

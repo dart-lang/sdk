@@ -5907,7 +5907,7 @@ RawField* Function::accessor_field() const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticGetter ||
-         kind() == RawFunction::kStaticFieldInitializer);
+         kind() == RawFunction::kFieldInitializer);
   return Field::RawCast(raw_ptr()->data_);
 }
 
@@ -5915,7 +5915,7 @@ void Function::set_accessor_field(const Field& value) const {
   ASSERT(kind() == RawFunction::kImplicitGetter ||
          kind() == RawFunction::kImplicitSetter ||
          kind() == RawFunction::kImplicitStaticGetter ||
-         kind() == RawFunction::kStaticFieldInitializer);
+         kind() == RawFunction::kFieldInitializer);
   // Top level classes may be finalized multiple times.
   ASSERT(raw_ptr()->data_ == Object::null() || raw_ptr()->data_ == value.raw());
   set_data(value);
@@ -5977,7 +5977,7 @@ bool Function::HasGenericParent() const {
 
 RawFunction* Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsSignatureFunction() || IsFactory() ||
-      IsDispatcherOrImplicitAccessor() || IsImplicitStaticFieldInitializer()) {
+      IsDispatcherOrImplicitAccessor() || IsFieldInitializer()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -6185,8 +6185,8 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
     case RawFunction::kImplicitStaticGetter:
       return "ImplicitStaticGetter";
       break;
-    case RawFunction::kStaticFieldInitializer:
-      return "StaticFieldInitializer";
+    case RawFunction::kFieldInitializer:
+      return "FieldInitializer";
       break;
     case RawFunction::kMethodExtractor:
       return "MethodExtractor";
@@ -8152,8 +8152,8 @@ const char* Function::ToCString() const {
     case RawFunction::kImplicitStaticGetter:
       kind_str = " static-getter";
       break;
-    case RawFunction::kStaticFieldInitializer:
-      kind_str = " static-field-initializer";
+    case RawFunction::kFieldInitializer:
+      kind_str = " field-initializer";
       break;
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";

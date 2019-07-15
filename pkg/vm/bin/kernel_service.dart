@@ -160,10 +160,17 @@ abstract class Compiler {
               options: new BytecodeOptions(
                   enableAsserts: enableAsserts,
                   environmentDefines: options.environmentDefines,
+                  // Needed both for stack traces and the debugger.
                   emitSourcePositions: true,
+                  // Only needed when the debugger is available.
                   emitLocalVarInfo: true,
+                  // Only needed when the debugger is available.
                   emitDebuggerStops: true,
+                  // Only needed when the VM service is available.
                   emitSourceFiles: true,
+                  // Only needed when reload is available.
+                  emitInstanceFieldInitializers: true,
+                  // Only needed when mirrors are available.
                   emitAnnotations: true));
         });
       }

@@ -11,7 +11,6 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
-cc/IsolateReload_RunNewFieldInitializersWithGenerics: Fail # Issue 32299
 cc/Profiler_StringInterpolation: Fail # Issue 37208
 dart/data_uri_import_test/none: SkipByDesign
 dart/entrypoints/jit: Skip # Tests with brittle dependencies on usage counters - Issue 37144

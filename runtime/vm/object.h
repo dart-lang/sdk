@@ -2430,7 +2430,7 @@ class Function : public Object {
       case RawFunction::kSignatureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return false;
       default:
@@ -2449,7 +2449,7 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticGetter:
-      case RawFunction::kStaticFieldInitializer:
+      case RawFunction::kFieldInitializer:
       case RawFunction::kIrregexpFunction:
         return true;
       case RawFunction::kClosureFunction:
@@ -2762,10 +2762,11 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
-  // Returns true if this function represents an implicit static field
-  // initializer function.
-  bool IsImplicitStaticFieldInitializer() const {
-    return kind() == RawFunction::kStaticFieldInitializer;
+  // Returns true if this function represents an the initializer for a static or
+  // instance field. The function returns the initial value and the caller is
+  // responsible for setting the field.
+  bool IsFieldInitializer() const {
+    return kind() == RawFunction::kFieldInitializer;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -3446,6 +3447,13 @@ class Field : public Object {
   inline RawInstance* StaticValue() const;
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
+
+#ifndef DART_PRECOMPILED_RUNTIME
+  RawInstance* saved_initial_value() const {
+    return raw_ptr()->saved_initial_value_;
+  }
+  inline void set_saved_initial_value(const Instance& value) const;
+#endif
 
   RawClass* Owner() const;
   RawClass* Origin() const;  // Either mixin class, or same as owner().
@@ -9900,6 +9908,12 @@ void Field::SetStaticValue(const Instance& value,
 #endif
   }
 }
+
+#ifndef DART_PRECOMPILED_RUNTIME
+void Field::set_saved_initial_value(const Instance& value) const {
+  StorePointer(&raw_ptr()->saved_initial_value_, value.raw());
+}
+#endif
 
 void Context::SetAt(intptr_t index, const Object& value) const {
   StorePointer(ObjectAddr(index), value.raw());

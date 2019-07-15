@@ -281,6 +281,12 @@ class Scope {
   bool get hasContext => contextSize > 0;
 }
 
+bool _hasReceiverParameter(TreeNode node) {
+  return node is Constructor ||
+      (node is Procedure && !node.isStatic) ||
+      (node is Field && !node.isStatic);
+}
+
 class _ScopeBuilder extends RecursiveVisitor<Null> {
   final LocalVariables locals;
 
@@ -310,6 +316,10 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
     _enterFrame(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.receiverVar = new VariableDeclaration('this');
+        _declareVariable(_currentFrame.receiverVar);
+      }
       node.initializer?.accept(this);
     } else {
       assert(node is Procedure ||
@@ -348,7 +358,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
         }
       }
 
-      if (node is Constructor || (node is Procedure && !node.isStatic)) {
+      if (_hasReceiverParameter(node)) {
         _currentFrame.receiverVar = new VariableDeclaration('this');
         _declareVariable(_currentFrame.receiverVar);
       } else if (_currentFrame.parent?.receiverVar != null) {
@@ -403,7 +413,7 @@ class _ScopeBuilder extends RecursiveVisitor<Null> {
       _declareVariable(_currentFrame.scratchVar);
     }
 
-    if (node is Constructor || (node is Procedure && !node.isStatic)) {
+    if (_hasReceiverParameter(node)) {
       if (locals.isCaptured(_currentFrame.receiverVar)) {
         // Duplicate receiver variable for local use.
         _currentFrame.capturedReceiverVar = _currentFrame.receiverVar;
@@ -939,8 +949,7 @@ class _Allocator extends RecursiveVisitor<Null> {
 
   void _allocateParameters(TreeNode node, FunctionNode function) {
     final bool isFactory = node is Procedure && node.isFactory;
-    final bool hasReceiver =
-        node is Constructor || (node is Procedure && !node.isStatic);
+    final bool hasReceiver = _hasReceiverParameter(node);
     final bool hasClosureArg =
         node is FunctionDeclaration || node is FunctionExpression;
 
@@ -1001,6 +1010,13 @@ class _Allocator extends RecursiveVisitor<Null> {
     _enterScope(node);
 
     if (node is Field) {
+      if (_hasReceiverParameter(node)) {
+        _currentFrame.numParameters = 1;
+        _allocateParameter(_currentFrame.receiverVar, 0);
+        if (_currentFrame.capturedReceiverVar != null) {
+          _allocateVariable(_currentFrame.capturedReceiverVar);
+        }
+      }
       _allocateSpecialVariables();
       node.initializer?.accept(this);
     } else {

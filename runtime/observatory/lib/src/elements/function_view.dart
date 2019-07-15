@@ -437,7 +437,7 @@ class FunctionViewElement extends CustomElement implements Renderable {
         return 'implicit setter';
       case M.FunctionKind.implicitStaticGetter:
         return 'implicit static getter';
-      case M.FunctionKind.staticFieldInitializer:
+      case M.FunctionKind.fieldInitializer:
         return 'field initializer';
       case M.FunctionKind.irregexpFunction:
         return 'irregexp function';

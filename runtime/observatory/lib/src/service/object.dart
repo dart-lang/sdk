@@ -3028,8 +3028,8 @@ M.FunctionKind stringToFunctionKind(String value) {
       return M.FunctionKind.implicitSetter;
     case 'ImplicitStaticGetter':
       return M.FunctionKind.implicitStaticGetter;
-    case 'StaticFieldInitializer':
-      return M.FunctionKind.staticFieldInitializer;
+    case 'FieldInitializer':
+      return M.FunctionKind.fieldInitializer;
     case 'IrregexpFunction':
       return M.FunctionKind.irregexpFunction;
     case 'MethodExtractor':
