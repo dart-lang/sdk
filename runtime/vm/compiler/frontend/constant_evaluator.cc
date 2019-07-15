@@ -442,6 +442,12 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
     case kInstanceConstant: {
       const NameIndex index = reader.ReadCanonicalNameReference();
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
+      if (!klass.is_declaration_loaded()) {
+        FATAL1(
+            "Trying to evaluate an instance constant which references class "
+            "%s, which is not loaded yet.",
+            klass.ToCString());
+      }
       const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
       ASSERT(obj.IsNull());
       instance = Instance::New(klass, Heap::kOld);

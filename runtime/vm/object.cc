@@ -3555,7 +3555,9 @@ void Class::EnsureDeclarationLoaded() const {
 #else
     // Loading of class declaration can be postponed until needed
     // if class comes from bytecode.
-    ASSERT(is_declared_in_bytecode());
+    if (!is_declared_in_bytecode()) {
+      FATAL1("Unable to use class %s which is not loaded yet.", ToCString());
+    }
     kernel::BytecodeReader::LoadClassDeclaration(*this);
     ASSERT(is_declaration_loaded());
     ASSERT(is_type_finalized());
