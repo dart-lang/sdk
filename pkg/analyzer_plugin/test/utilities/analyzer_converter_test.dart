@@ -9,6 +9,7 @@ import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/src/error/codes.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
 import 'package:analyzer/src/generated/source.dart' as analyzer;
@@ -57,14 +58,48 @@ class AnalyzerConverterTest extends AbstractContextTest {
     expect(pluginError.type, converter.convertErrorType(errorCode.type));
   }
 
-  analyzer.AnalysisError createError(int offset) => new analyzer.AnalysisError(
-      source, offset, 5, analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT);
+  analyzer.AnalysisError createError(int offset, {String contextMessage}) {
+    List<analyzer.DiagnosticMessageImpl> contextMessages = [];
+    if (contextMessage != null) {
+      contextMessages.add(analyzer.DiagnosticMessageImpl(
+          filePath: source.fullName,
+          offset: 53,
+          length: 7,
+          message: contextMessage));
+    }
+    return new analyzer.AnalysisError(
+        source,
+        offset,
+        5,
+        analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+        null,
+        contextMessages);
+  }
 
   @override
   void setUp() {
     super.setUp();
     source = newFile('/foo/bar.dart').createSource();
     testFile = convertPath('/test.dart');
+  }
+
+  test_convertAnalysisError_contextMessages() {
+    analyzer.AnalysisError analyzerError =
+        createError(13, contextMessage: 'here');
+    analyzer.LineInfo lineInfo = new analyzer.LineInfo([0, 10, 20]);
+    analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
+
+    plugin.AnalysisError pluginError = converter.convertAnalysisError(
+        analyzerError,
+        lineInfo: lineInfo,
+        severity: severity);
+    assertError(pluginError, analyzerError,
+        startColumn: 4, startLine: 2, severity: severity);
+    expect(pluginError.contextMessages, hasLength(1));
+    plugin.DiagnosticMessage message = pluginError.contextMessages[0];
+    expect(message.message, 'here');
+    expect(message.location.offset, 53);
+    expect(message.location.length, 7);
   }
 
   test_convertAnalysisError_lineInfo_noSeverity() {

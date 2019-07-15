@@ -7,10 +7,12 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analyzer/dart/analysis/results.dart' as engine;
 import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
@@ -32,11 +34,8 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
  * errors.
  */
 List<AnalysisError> doAnalysisError_listFromEngine(
-    engine.AnalysisOptions analysisOptions,
-    engine.LineInfo lineInfo,
-    List<engine.AnalysisError> errors) {
-  return mapEngineErrors(
-      analysisOptions, lineInfo, errors, newAnalysisError_fromEngine);
+    engine.ResolvedUnitResult result) {
+  return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
 /**
@@ -79,12 +78,13 @@ String getReturnTypeString(engine.Element element) {
  * Translates engine errors through the ErrorProcessor.
  */
 List<T> mapEngineErrors<T>(
-    engine.AnalysisOptions analysisOptions,
-    engine.LineInfo lineInfo,
+    engine.ResolvedUnitResult result,
     List<engine.AnalysisError> errors,
-    T Function(engine.LineInfo lineInfo, engine.AnalysisError error,
+    T Function(engine.ResolvedUnitResult result, engine.AnalysisError error,
             [engine.ErrorSeverity errorSeverity])
         constructor) {
+  engine.AnalysisOptions analysisOptions =
+      result.session.analysisContext.analysisOptions;
   List<T> serverErrors = <T>[];
   for (engine.AnalysisError error in errors) {
     ErrorProcessor processor =
@@ -94,10 +94,10 @@ List<T> mapEngineErrors<T>(
       // Errors with null severity are filtered out.
       if (severity != null) {
         // Specified severities override.
-        serverErrors.add(constructor(lineInfo, error, severity));
+        serverErrors.add(constructor(result, error, severity));
       }
     } else {
-      serverErrors.add(constructor(lineInfo, error));
+      serverErrors.add(constructor(result, error));
     }
   }
   return serverErrors;
@@ -109,7 +109,7 @@ List<T> mapEngineErrors<T>(
  * If an [errorSeverity] is specified, it will override the one in [error].
  */
 AnalysisError newAnalysisError_fromEngine(
-    engine.LineInfo lineInfo, engine.AnalysisError error,
+    engine.ResolvedUnitResult result, engine.AnalysisError error,
     [engine.ErrorSeverity errorSeverity]) {
   engine.ErrorCode errorCode = error.errorCode;
   // prepare location
@@ -120,6 +120,7 @@ AnalysisError newAnalysisError_fromEngine(
     int length = error.length;
     int startLine = -1;
     int startColumn = -1;
+    engine.LineInfo lineInfo = result.lineInfo;
     if (lineInfo != null) {
       CharacterLocation lineLocation = lineInfo.getLocation(offset);
       if (lineLocation != null) {
@@ -138,11 +139,42 @@ AnalysisError newAnalysisError_fromEngine(
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String code = errorCode.name.toLowerCase();
+  List<DiagnosticMessage> contextMessages;
+  if (error.contextMessages.isNotEmpty) {
+    contextMessages = error.contextMessages
+        .map((message) => newDiagnosticMessage(result, message))
+        .toList();
+  }
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
   String url = errorCode.url;
   return new AnalysisError(severity, type, location, message, code,
-      correction: correction, hasFix: fix, url: url);
+      contextMessages: contextMessages,
+      correction: correction,
+      hasFix: fix,
+      url: url);
+}
+
+/**
+ * Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
+ */
+DiagnosticMessage newDiagnosticMessage(
+    engine.ResolvedUnitResult result, engine.DiagnosticMessage message) {
+  String file = message.filePath;
+  int offset = message.offset;
+  int length = message.length;
+  int startLine = -1;
+  int startColumn = -1;
+  engine.LineInfo lineInfo = result.session.getFile(file).lineInfo;
+  if (lineInfo != null) {
+    CharacterLocation lineLocation = lineInfo.getLocation(offset);
+    if (lineLocation != null) {
+      startLine = lineLocation.lineNumber;
+      startColumn = lineLocation.columnNumber;
+    }
+  }
+  return DiagnosticMessage(
+      message.message, Location(file, offset, length, startLine, startColumn));
 }
 
 /**

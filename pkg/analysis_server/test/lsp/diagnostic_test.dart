@@ -33,6 +33,23 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     expect(updatedDiagnostics, hasLength(1));
   }
 
+  test_contextMessage() async {
+    newFile(mainFilePath, content: '''
+void f() {
+  x = 0;
+  int x;
+  print(x);
+}
+''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.relatedInformation, hasLength(1));
+  }
+
   test_deletedFile() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
@@ -46,21 +63,6 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     await deleteFile(mainFilePath);
     final updatedDiagnostics = await secondDiagnosticsUpdate;
     expect(updatedDiagnostics, hasLength(0));
-  }
-
-  test_initialAnalysis() async {
-    newFile(mainFilePath, content: 'String a = 1;');
-
-    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await initialize();
-    final diagnostics = await diagnosticsUpdate;
-    expect(diagnostics, hasLength(1));
-    final diagnostic = diagnostics.first;
-    expect(diagnostic.code, equals('invalid_assignment'));
-    expect(diagnostic.range.start.line, equals(0));
-    expect(diagnostic.range.start.character, equals(11));
-    expect(diagnostic.range.end.line, equals(0));
-    expect(diagnostic.range.end.character, equals(12));
   }
 
   test_dotFilesExcluded() async {
@@ -80,6 +82,21 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
     // Ensure that as part of responding to getHover, diagnostics were not
     // transmitted.
     expect(diagnostics, isNull);
+  }
+
+  test_initialAnalysis() async {
+    newFile(mainFilePath, content: 'String a = 1;');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.code, equals('invalid_assignment'));
+    expect(diagnostic.range.start.line, equals(0));
+    expect(diagnostic.range.start.character, equals(11));
+    expect(diagnostic.range.end.line, equals(0));
+    expect(diagnostic.range.end.character, equals(12));
   }
 
   test_todos() async {

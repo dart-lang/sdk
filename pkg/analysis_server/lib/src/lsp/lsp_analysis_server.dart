@@ -600,8 +600,7 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
       String path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         final serverErrors = protocol.mapEngineErrors(
-            result.session.analysisContext.analysisOptions,
-            result.lineInfo,
+            result,
             result.errors
                 .where((e) => e.errorCode.type != ErrorType.TODO)
                 .toList(),

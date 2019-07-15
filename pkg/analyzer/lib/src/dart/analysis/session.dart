@@ -89,6 +89,12 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  FileResult getFile(String path) {
+    _checkConsistency();
+    return _driver.getFileSync(path);
+  }
+
+  @override
   Future<LibraryElement> getLibraryByUri(String uri) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

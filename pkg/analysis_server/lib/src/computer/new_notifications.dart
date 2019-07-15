@@ -39,11 +39,7 @@ void new_sendDartNotificationOccurrences(
 
 void new_sendErrorNotification(
     AnalysisServer analysisServer, ResolvedUnitResult result) {
-  var serverErrors = protocol.doAnalysisError_listFromEngine(
-    result.session.analysisContext.analysisOptions,
-    result.lineInfo,
-    result.errors,
-  );
+  var serverErrors = protocol.doAnalysisError_listFromEngine(result);
   var params = new protocol.AnalysisErrorsParams(result.path, serverErrors);
   analysisServer.sendNotification(params.toNotification());
 }

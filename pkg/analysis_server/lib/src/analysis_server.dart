@@ -770,13 +770,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       String path = result.path;
       if (analysisServer.shouldSendErrorsNotificationFor(path)) {
         if (notificationManager != null) {
-          notificationManager.recordAnalysisErrors(
-              NotificationManager.serverId,
-              path,
-              server.doAnalysisError_listFromEngine(
-                  result.session.analysisContext.analysisOptions,
-                  result.lineInfo,
-                  result.errors));
+          notificationManager.recordAnalysisErrors(NotificationManager.serverId,
+              path, server.doAnalysisError_listFromEngine(result));
         } else {
           new_sendErrorNotification(analysisServer, result);
         }

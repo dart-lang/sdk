@@ -90,6 +90,10 @@ abstract class AnalysisSession {
   /// absolute, normalized [path].
   ParsedUnitResult getParsedUnit(String path);
 
+  /// Return information about the file at the given absolute, normalized
+  /// [path].
+  FileResult getFile(String path);
+
   /// Return a future that will complete with information about the results of
   /// resolving the file with the given absolute, normalized [path].
   ///

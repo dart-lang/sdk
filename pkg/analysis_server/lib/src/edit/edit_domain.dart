@@ -40,6 +40,8 @@ import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
@@ -593,7 +595,9 @@ class EditDomainHandler extends AbstractRequestHandler {
     if (content == null) {
       return errorFixesList;
     }
-    SourceFactory sourceFactory = server.getAnalysisDriver(file).sourceFactory;
+    AnalysisDriver driver = server.getAnalysisDriver(file);
+    var session = driver.currentSession;
+    SourceFactory sourceFactory = driver.sourceFactory;
     List<engine.AnalysisError> errors = analyzeAnalysisOptions(
         optionsFile.createSource(), content, sourceFactory);
     YamlMap options = _getOptions(sourceFactory, content);
@@ -607,8 +611,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         LineInfo lineInfo = new LineInfo.fromContent(content);
-        AnalysisError serverError =
-            newAnalysisError_fromEngine(lineInfo, error);
+        ResolvedUnitResult result = new engine.ResolvedUnitResultImpl(
+            session, file, null, true, content, lineInfo, false, null, errors);
+        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
         AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {
@@ -640,7 +645,7 @@ class EditDomainHandler extends AbstractRequestHandler {
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
             AnalysisError serverError =
-                newAnalysisError_fromEngine(lineInfo, error);
+                newAnalysisError_fromEngine(result, error);
             AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             fixes.forEach((fix) {
@@ -672,6 +677,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     ManifestValidator validator =
         new ManifestValidator(manifestFile.createSource());
+    AnalysisSession session = server.getAnalysisDriver(file).currentSession;
     List<engine.AnalysisError> errors = validator.validate(content, true);
     for (engine.AnalysisError error in errors) {
       ManifestFixGenerator generator =
@@ -680,8 +686,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         LineInfo lineInfo = new LineInfo.fromContent(content);
-        AnalysisError serverError =
-            newAnalysisError_fromEngine(lineInfo, error);
+        ResolvedUnitResult result = new engine.ResolvedUnitResultImpl(
+            session, file, null, true, content, lineInfo, false, null, errors);
+        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
         AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {
@@ -711,6 +718,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     }
     PubspecValidator validator = new PubspecValidator(
         server.resourceProvider, pubspecFile.createSource());
+    AnalysisSession session = server.getAnalysisDriver(file).currentSession;
     List<engine.AnalysisError> errors = validator.validate(pubspec.nodes);
     for (engine.AnalysisError error in errors) {
       PubspecFixGenerator generator =
@@ -719,8 +727,9 @@ class EditDomainHandler extends AbstractRequestHandler {
       if (fixes.isNotEmpty) {
         fixes.sort(Fix.SORT_BY_RELEVANCE);
         LineInfo lineInfo = new LineInfo.fromContent(content);
-        AnalysisError serverError =
-            newAnalysisError_fromEngine(lineInfo, error);
+        ResolvedUnitResult result = new engine.ResolvedUnitResultImpl(
+            session, file, null, true, content, lineInfo, false, null, errors);
+        AnalysisError serverError = newAnalysisError_fromEngine(result, error);
         AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
         errorFixesList.add(errorFixes);
         fixes.forEach((fix) {

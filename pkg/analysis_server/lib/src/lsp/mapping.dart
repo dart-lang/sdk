@@ -23,6 +23,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analyzer/dart/analysis/results.dart' as server;
+import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
@@ -629,21 +630,44 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
-    server.LineInfo lineInfo, server.AnalysisError error,
+    server.ResolvedUnitResult result, server.AnalysisError error,
     [server.ErrorSeverity errorSeverity]) {
   server.ErrorCode errorCode = error.errorCode;
 
   // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
+  List<DiagnosticRelatedInformation> relatedInformation;
+  if (error.contextMessages.isNotEmpty) {
+    relatedInformation = error.contextMessages
+        .map((message) => toDiagnosticRelatedInformation(result, message))
+        .toList();
+  }
+
   return new lsp.Diagnostic(
-    toRange(lineInfo, error.offset, error.length),
+    toRange(result.lineInfo, error.offset, error.length),
     toDiagnosticSeverity(errorSeverity),
     errorCode.name.toLowerCase(),
     languageSourceName,
     error.message,
-    null,
+    relatedInformation,
   );
+}
+
+lsp.DiagnosticRelatedInformation toDiagnosticRelatedInformation(
+    server.ResolvedUnitResult result, analyzer.DiagnosticMessage message) {
+  String file = message.filePath;
+  server.LineInfo lineInfo = result.session.getFile(file).lineInfo;
+  return lsp.DiagnosticRelatedInformation(
+      lsp.Location(
+        Uri.file(file).toString(),
+        toRange(
+          lineInfo,
+          message.offset,
+          message.length,
+        ),
+      ),
+      message.message);
 }
 
 lsp.DiagnosticSeverity toDiagnosticSeverity(server.ErrorSeverity severity) {

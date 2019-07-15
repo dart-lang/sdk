@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/dart/element/type.dart' as analyzer;
+import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
@@ -43,6 +44,13 @@ class AnalyzerConverter {
         startColumn = lineLocation.columnNumber;
       }
     }
+    List<plugin.DiagnosticMessage> contextMessages;
+    if (error.contextMessages.isNotEmpty) {
+      contextMessages = error.contextMessages
+          .map((message) =>
+              convertDiagnosticMessage(message, lineInfo: lineInfo))
+          .toList();
+    }
     return new plugin.AnalysisError(
         convertErrorSeverity(severity),
         convertErrorType(errorCode.type),
@@ -50,6 +58,7 @@ class AnalyzerConverter {
             startLine, startColumn),
         error.message,
         errorCode.name.toLowerCase(),
+        contextMessages: contextMessages,
         correction: error.correction,
         hasFix: true);
   }
@@ -82,6 +91,31 @@ class AnalyzerConverter {
       }
     }
     return serverErrors;
+  }
+
+  /**
+   * Convert the diagnostic [message] from the 'analyzer' package to an analysis
+   * error defined by the plugin API. If a [lineInfo] is provided then the
+   * error's location will have a start line and start column.
+   */
+  plugin.DiagnosticMessage convertDiagnosticMessage(
+      analyzer.DiagnosticMessage message,
+      {analyzer.LineInfo lineInfo}) {
+    String file = message.filePath;
+    int offset = message.offset;
+    int length = message.length;
+    int startLine = -1;
+    int startColumn = -1;
+    if (lineInfo != null) {
+      analyzer.CharacterLocation lineLocation =
+          lineInfo.getLocation(offset) as analyzer.CharacterLocation;
+      if (lineLocation != null) {
+        startLine = lineLocation.lineNumber;
+        startColumn = lineLocation.columnNumber;
+      }
+    }
+    return plugin.DiagnosticMessage(message.message,
+        plugin.Location(file, offset, length, startLine, startColumn));
   }
 
   /**

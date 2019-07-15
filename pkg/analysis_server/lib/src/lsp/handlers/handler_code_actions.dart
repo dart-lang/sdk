@@ -199,7 +199,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
           if (fixes.isNotEmpty) {
             fixes.sort(Fix.SORT_BY_RELEVANCE);
 
-            final diagnostic = toDiagnostic(lineInfo, error);
+            final diagnostic = toDiagnostic(unit, error);
             codeActions.addAll(
               fixes.map((fix) => _createFixAction(fix, diagnostic)),
             );
