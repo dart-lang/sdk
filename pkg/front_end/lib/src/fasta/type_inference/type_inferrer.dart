@@ -120,7 +120,7 @@ import 'inference_helper.dart' show InferenceHelper;
 import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 
 import 'type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine, Variance;
 
 import 'type_promotion.dart' show TypePromoter;
 
@@ -1091,11 +1091,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
         interfaceMember != null &&
         receiver is! ThisExpression) {
       if (interfaceMember is Procedure) {
-        checkReturn = typeParametersOccurNegatively(
+        checkReturn = returnedTypeParametersOccurNonCovariantly(
             interfaceMember.enclosingClass,
             interfaceMember.function.returnType);
       } else if (interfaceMember is Field) {
-        checkReturn = typeParametersOccurNegatively(
+        checkReturn = returnedTypeParametersOccurNonCovariantly(
             interfaceMember.enclosingClass, interfaceMember.type);
       }
     }
@@ -1708,16 +1708,27 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     return tearoffType;
   }
 
-  /// True if [type] has negative occurrences of any of [class_]'s type
-  /// parameters.
+  /// True if the returned [type] has non-covariant occurrences of any of
+  /// [class_]'s type parameters.
   ///
-  /// A negative occurrence of a type parameter is one that is to the left of
-  /// an odd number of arrows.  For example, T occurs negatively in T -> T0,
-  /// T0 -> (T -> T1), (T0 -> T) -> T1 but not in (T -> T0) -> T1.
-  static bool typeParametersOccurNegatively(Class class_, DartType type) {
+  /// A non-covariant occurrence of a type parameter is either a contravariant
+  /// or an invariant position.
+  ///
+  /// A contravariant position is to the left of an odd number of arrows. For
+  /// example, T occurs contravariantly in T -> T0, T0 -> (T -> T1),
+  /// (T0 -> T) -> T1 but not in (T -> T0) -> T1.
+  ///
+  /// An invariant position is without a bound of a type parameter. For example,
+  /// T occurs invariantly in `S Function<S extends T>()` and
+  /// `void Function<S extends C<T>>(S)`.
+  static bool returnedTypeParametersOccurNonCovariantly(
+      Class class_, DartType type) {
     if (class_.typeParameters.isEmpty) return false;
-    var checker = new IncludesTypeParametersCovariantly(class_.typeParameters)
-      ..inCovariantContext = false;
+    IncludesTypeParametersNonCovariantly checker =
+        new IncludesTypeParametersNonCovariantly(class_.typeParameters,
+            // We are checking the returned type (field/getter type or return
+            // type of a method) and this is a covariant position.
+            initialVariance: Variance.covariant);
     return type.accept(checker);
   }
 
@@ -1740,10 +1751,11 @@ abstract class TypeInferrerImpl extends TypeInferrer {
       }
       if (receiver != null && receiver is! ThisExpression) {
         if ((interfaceMember is Field &&
-                typeParametersOccurNegatively(
+                returnedTypeParametersOccurNonCovariantly(
                     interfaceMember.enclosingClass, interfaceMember.type)) ||
             (interfaceMember is Procedure &&
-                typeParametersOccurNegatively(interfaceMember.enclosingClass,
+                returnedTypeParametersOccurNonCovariantly(
+                    interfaceMember.enclosingClass,
                     interfaceMember.function.returnType))) {
           return MethodContravarianceCheckKind.checkGetterReturn;
         }
@@ -1751,7 +1763,8 @@ abstract class TypeInferrerImpl extends TypeInferrer {
     } else if (receiver != null &&
         receiver is! ThisExpression &&
         interfaceMember is Procedure &&
-        typeParametersOccurNegatively(interfaceMember.enclosingClass,
+        returnedTypeParametersOccurNonCovariantly(
+            interfaceMember.enclosingClass,
             interfaceMember.function.returnType)) {
       return MethodContravarianceCheckKind.checkMethodReturn;
     }

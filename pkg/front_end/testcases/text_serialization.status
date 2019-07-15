@@ -44,6 +44,7 @@ general/bug33206: TextSerializationFailure # Was: Pass
 general/bug33298: TextSerializationFailure # Was: Pass
 general/bug34511: TextSerializationFailure # Was: Pass
 general/bug35470: TextSerializationFailure # Was: Pass
+general/bug37476: TextSerializationFailure
 general/call: TypeCheckError
 general/cascade: TextSerializationFailure # Was: RuntimeError
 general/casts: TextSerializationFailure # Was: Pass
@@ -156,6 +157,7 @@ general/native_as_name: TextSerializationFailure # Was: Pass
 general/nested_implicit_const_with_env_var: TextSerializationFailure # Was: Pass
 general/no_such_method_private_setter: TextSerializationFailure # Was: Pass
 general/no_such_method_private_setter_lib: TextSerializationFailure # Was: Pass
+general/non_covariant_checks: TextSerializationFailure
 general/null_aware: TextSerializationFailure # Was: Pass
 general/operator_method_not_found: TextSerializationFailure
 general/operators: TextSerializationFailure # Was: Pass

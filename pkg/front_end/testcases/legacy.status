@@ -9,6 +9,7 @@ general/DeltaBlue: Fail # Fasta and dartk disagree on static initializers
 general/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.
 general/await_in_non_async: RuntimeError # Expected.
 general/bug31124: RuntimeError # Test has no main method (and we shouldn't add one).
+general/bug37476: RuntimeError # Expected.
 general/call: Fail # Test can't run.
 general/constructor_const_inference: RuntimeError # Test exercises strong mode semantics.  See also Issue #33813.
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
@@ -24,6 +25,7 @@ general/micro: Fail # External method marked abstract.
 general/minimum_int: Crash # Min int literal not supported in non-strong mode.
 general/mixin_constructors_with_default_values: RuntimeError # Expected
 general/named_parameters: Fail # Missing types and unnecessary default values.
+general/non_covariant_checks: RuntimeError # Expected
 general/operator_method_not_found: RuntimeError # Expected
 general/optional: Fail # Unnecessary default values.
 general/redirecting_factory: Fail # Missing types on constructor parameters.

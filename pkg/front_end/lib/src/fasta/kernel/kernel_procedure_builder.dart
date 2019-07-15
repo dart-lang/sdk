@@ -60,7 +60,7 @@ import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly;
+    show IncludesTypeParametersNonCovariantly, Variance;
 
 import 'kernel_body_builder.dart' show KernelBodyBuilder;
 
@@ -159,12 +159,14 @@ abstract class KernelFunctionBuilder
   FunctionNode buildFunction(LibraryBuilder library) {
     assert(function == null);
     FunctionNode result = new FunctionNode(body, asyncMarker: asyncModifier);
-    IncludesTypeParametersCovariantly needsCheckVisitor;
+    IncludesTypeParametersNonCovariantly needsCheckVisitor;
     if (!isConstructor && !isFactory && parent is ClassBuilder) {
       Class enclosingClass = parent.target;
       if (enclosingClass.typeParameters.isNotEmpty) {
-        needsCheckVisitor = new IncludesTypeParametersCovariantly(
-            enclosingClass.typeParameters);
+        needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+            enclosingClass.typeParameters,
+            // We are checking the parameter types which are in a contravariant position.
+            initialVariance: Variance.contravariant);
       }
     }
     if (typeVariables != null) {

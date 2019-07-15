@@ -34,14 +34,33 @@ import 'type_inferrer.dart' show TypeInferrer;
 
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
+enum Variance {
+  covariant,
+  contravariant,
+  invariant,
+}
+
+Variance invertVariance(Variance variance) {
+  switch (variance) {
+    case Variance.covariant:
+      return Variance.contravariant;
+    case Variance.contravariant:
+      return Variance.covariant;
+    case Variance.invariant:
+  }
+  return variance;
+}
+
 /// Visitor to check whether a given type mentions any of a class's type
-/// parameters in a covariant fashion.
-class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
-  bool inCovariantContext = true;
+/// parameters in a non-covariant fashion.
+class IncludesTypeParametersNonCovariantly extends DartTypeVisitor<bool> {
+  Variance _variance;
 
   final List<TypeParameter> _typeParametersToSearchFor;
 
-  IncludesTypeParametersCovariantly(this._typeParametersToSearchFor);
+  IncludesTypeParametersNonCovariantly(this._typeParametersToSearchFor,
+      {Variance initialVariance})
+      : _variance = initialVariance;
 
   @override
   bool defaultDartType(DartType node) => false;
@@ -49,18 +68,20 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
   @override
   bool visitFunctionType(FunctionType node) {
     if (node.returnType.accept(this)) return true;
-    try {
-      inCovariantContext = !inCovariantContext;
-      for (var parameter in node.positionalParameters) {
-        if (parameter.accept(this)) return true;
-      }
-      for (var parameter in node.namedParameters) {
-        if (parameter.type.accept(this)) return true;
-      }
-      return false;
-    } finally {
-      inCovariantContext = !inCovariantContext;
+    Variance oldVariance = _variance;
+    _variance = Variance.invariant;
+    for (var parameter in node.typeParameters) {
+      if (parameter.bound.accept(this)) return true;
     }
+    _variance = invertVariance(oldVariance);
+    for (var parameter in node.positionalParameters) {
+      if (parameter.accept(this)) return true;
+    }
+    for (var parameter in node.namedParameters) {
+      if (parameter.type.accept(this)) return true;
+    }
+    _variance = oldVariance;
+    return false;
   }
 
   @override
@@ -78,7 +99,7 @@ class IncludesTypeParametersCovariantly extends DartTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType node) {
-    return inCovariantContext &&
+    return _variance != Variance.covariant &&
         _typeParametersToSearchFor.contains(node.parameter);
   }
 }

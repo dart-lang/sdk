@@ -60,7 +60,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import '../type_inference/type_inference_engine.dart'
-    show IncludesTypeParametersCovariantly, TypeInferenceEngine;
+    show IncludesTypeParametersNonCovariantly, TypeInferenceEngine;
 
 import '../type_inference/type_inferrer.dart'
     show ExpressionInferenceResult, TypeInferrer, TypeInferrerImpl;
@@ -126,7 +126,7 @@ class ClassInferenceInfo {
 
   /// The visitor for determining if a given type makes covariant use of one of
   /// the class's generic parameters, and therefore requires covariant checks.
-  IncludesTypeParametersCovariantly needsCheckVisitor;
+  IncludesTypeParametersNonCovariantly needsCheckVisitor;
 
   /// Getters and methods in the class's API.  May include forwarding nodes.
   final gettersAndMethods = <Member>[];

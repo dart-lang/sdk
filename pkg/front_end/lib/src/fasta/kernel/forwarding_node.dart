@@ -32,7 +32,7 @@ import "package:kernel/type_algebra.dart" show Substitution;
 import "../problems.dart" show unhandled;
 
 import "../type_inference/type_inference_engine.dart"
-    show IncludesTypeParametersCovariantly;
+    show IncludesTypeParametersNonCovariantly, Variance;
 
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
@@ -111,11 +111,15 @@ class ForwardingNode {
       isImplCreated = true;
     }
 
-    IncludesTypeParametersCovariantly needsCheckVisitor = enclosingClass
-            .typeParameters.isEmpty
-        ? null
-        // TODO(ahe): It may be necessary to cache this object.
-        : new IncludesTypeParametersCovariantly(enclosingClass.typeParameters);
+    IncludesTypeParametersNonCovariantly needsCheckVisitor =
+        enclosingClass.typeParameters.isEmpty
+            ? null
+            // TODO(ahe): It may be necessary to cache this object.
+            : new IncludesTypeParametersNonCovariantly(
+                enclosingClass.typeParameters,
+                // We are checking the parameter types and these are in a
+                // contravariant position.
+                initialVariance: Variance.contravariant);
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
