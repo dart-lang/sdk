@@ -597,7 +597,13 @@ class VMService extends MessageRouter {
   }
 
   Future<Response> routeRequest(VMService _, Message message) async {
-    return new Response.from(await _routeRequestImpl(message));
+    final response = await _routeRequestImpl(message);
+    if (response == null) {
+      // We should only have a null response for Notifications.
+      assert(message.type == MessageType.Notification);
+      return null;
+    }
+    return new Response.from(response);
   }
 
   Future _routeRequestImpl(Message message) async {
