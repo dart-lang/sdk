@@ -12,7 +12,7 @@ import '../fasta_codes.dart'
     show SummaryTemplate, Template, templateDillOutlineSummary;
 
 import '../kernel/kernel_builder.dart'
-    show KernelClassBuilder, KernelTypeBuilder, LibraryBuilder;
+    show KernelClassBuilder, TypeBuilder, LibraryBuilder;
 
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 
@@ -83,7 +83,7 @@ class DillLoader extends Loader<Library> {
   }
 
   @override
-  KernelTypeBuilder computeTypeBuilder(DartType type) {
+  TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
   }
 }

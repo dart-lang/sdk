@@ -79,7 +79,7 @@ import 'kernel_builder.dart'
         Declaration,
         KernelInvalidTypeBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         UnresolvedType;
 
 import 'kernel_expression_generator.dart'
@@ -211,8 +211,8 @@ abstract class Generator implements ExpressionGenerator {
     }
   }
 
-  KernelTypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<TypeBuilder>> arguments) {
     KernelNamedTypeBuilder result =
         new KernelNamedTypeBuilder(token.lexeme, null);
     Message message = templateNotAType.withArguments(token.lexeme);
@@ -228,7 +228,7 @@ abstract class Generator implements ExpressionGenerator {
   }
 
   Expression invokeConstructor(
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -521,11 +521,11 @@ abstract class DeferredAccessGenerator implements Generator {
   String get debugName => "DeferredAccessGenerator";
 
   @override
-  KernelTypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<TypeBuilder>> arguments) {
     String name =
         "${prefixGenerator.plainNameForRead}.${suffixGenerator.plainNameForRead}";
-    KernelTypeBuilder type =
+    TypeBuilder type =
         suffixGenerator.buildTypeWithResolvedArguments(arguments);
     LocatedMessage message;
     if (type is KernelNamedTypeBuilder &&
@@ -537,7 +537,7 @@ abstract class DeferredAccessGenerator implements Generator {
       message = templateDeferredTypeAnnotation
           .withArguments(
               helper.buildDartType(
-                  new UnresolvedType<KernelTypeBuilder>(type, charOffset, uri)),
+                  new UnresolvedType<TypeBuilder>(type, charOffset, uri)),
               prefixGenerator.plainNameForRead)
           .withLocation(
               uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
@@ -559,7 +559,7 @@ abstract class DeferredAccessGenerator implements Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -594,8 +594,8 @@ abstract class TypeUseGenerator implements Generator {
   String get debugName => "TypeUseGenerator";
 
   @override
-  KernelTypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<TypeBuilder>> arguments) {
     if (arguments != null) {
       int expected = declaration.typeVariablesCount;
       if (arguments.length != expected) {
@@ -617,9 +617,9 @@ abstract class TypeUseGenerator implements Generator {
           lengthForToken(token));
     }
 
-    List<KernelTypeBuilder> argumentBuilders;
+    List<TypeBuilder> argumentBuilders;
     if (arguments != null) {
-      argumentBuilders = new List<KernelTypeBuilder>(arguments.length);
+      argumentBuilders = new List<TypeBuilder>(arguments.length);
       for (int i = 0; i < argumentBuilders.length; i++) {
         argumentBuilders[i] =
             helper.validateTypeUse(arguments[i], false).builder;
@@ -631,7 +631,7 @@ abstract class TypeUseGenerator implements Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -765,7 +765,7 @@ abstract class ErroneousExpressionGenerator implements Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -1158,8 +1158,8 @@ abstract class UnexpectedQualifiedUseGenerator implements Generator {
   }
 
   @override
-  KernelTypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<TypeBuilder>> arguments) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
@@ -1254,8 +1254,8 @@ abstract class ParserErrorGenerator implements Generator {
     return buildProblem();
   }
 
-  KernelTypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<KernelTypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(
+      List<UnresolvedType<TypeBuilder>> arguments) {
     KernelNamedTypeBuilder result =
         new KernelNamedTypeBuilder(token.lexeme, null);
     helper.library.addProblem(message, offsetForToken(token), noLength, uri);
@@ -1269,7 +1269,7 @@ abstract class ParserErrorGenerator implements Generator {
   }
 
   Expression invokeConstructor(
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,

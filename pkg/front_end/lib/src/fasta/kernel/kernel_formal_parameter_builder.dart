@@ -26,15 +26,13 @@ import 'kernel_builder.dart'
         KernelConstructorBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
-        KernelTypeBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder;
 
 import 'kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
-class KernelFormalParameterBuilder
-    extends FormalParameterBuilder<KernelTypeBuilder> {
+class KernelFormalParameterBuilder extends FormalParameterBuilder<TypeBuilder> {
   VariableDeclaration declaration;
 
   Token initializerToken;
@@ -42,7 +40,7 @@ class KernelFormalParameterBuilder
   KernelFormalParameterBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder type,
+      TypeBuilder type,
       String name,
       KernelLibraryBuilder compilationUnit,
       int charOffset)

@@ -39,14 +39,14 @@ import 'kernel_builder.dart'
         ImplicitFieldType,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         LibraryBuilder,
         MetadataBuilder;
 
 class KernelFieldBuilder extends FieldBuilder<Expression> {
   final Field field;
   final List<MetadataBuilder> metadata;
-  final KernelTypeBuilder type;
+  final TypeBuilder type;
   Token constInitializerToken;
 
   bool hadTypesInferred = false;

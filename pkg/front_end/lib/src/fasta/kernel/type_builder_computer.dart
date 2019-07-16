@@ -24,55 +24,55 @@ import 'package:kernel/ast.dart'
 import '../kernel/kernel_builder.dart'
     show
         DynamicTypeBuilder,
+        FunctionTypeBuilder,
         KernelClassBuilder,
         KernelFormalParameterBuilder,
-        KernelFunctionTypeBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
+        TypeBuilder,
         VoidTypeBuilder;
 
 import '../loader.dart' show Loader;
 
 import '../parser.dart' show FormalParameterKind;
 
-class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
+class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   final Loader<Library> loader;
 
   const TypeBuilderComputer(this.loader);
 
-  KernelTypeBuilder defaultDartType(DartType node) {
+  TypeBuilder defaultDartType(DartType node) {
     throw "Unsupported";
   }
 
-  KernelTypeBuilder visitInvalidType(InvalidType node) {
+  TypeBuilder visitInvalidType(InvalidType node) {
     throw "Not implemented";
   }
 
-  KernelTypeBuilder visitDynamicType(DynamicType node) {
+  TypeBuilder visitDynamicType(DynamicType node) {
     return new KernelNamedTypeBuilder("dynamic", null)
-      ..bind(new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+      ..bind(new DynamicTypeBuilder<TypeBuilder, DartType>(
           const DynamicType(), loader.coreLibrary, -1));
   }
 
-  KernelTypeBuilder visitVoidType(VoidType node) {
+  TypeBuilder visitVoidType(VoidType node) {
     return new KernelNamedTypeBuilder("void", null)
-      ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
+      ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
           const VoidType(), loader.coreLibrary, -1));
   }
 
-  KernelTypeBuilder visitBottomType(BottomType node) {
+  TypeBuilder visitBottomType(BottomType node) {
     throw "Not implemented";
   }
 
-  KernelTypeBuilder visitInterfaceType(InterfaceType node) {
+  TypeBuilder visitInterfaceType(InterfaceType node) {
     KernelClassBuilder cls =
         loader.computeClassBuilderFromTargetClass(node.classNode);
-    List<KernelTypeBuilder> arguments;
+    List<TypeBuilder> arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<KernelTypeBuilder>(kernelArguments.length);
+      arguments = new List<TypeBuilder>(kernelArguments.length);
       for (int i = 0; i < kernelArguments.length; i++) {
         arguments[i] = kernelArguments[i].accept(this);
       }
@@ -81,8 +81,8 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
   }
 
   @override
-  KernelTypeBuilder visitFunctionType(FunctionType node) {
-    KernelTypeBuilder returnType = node.returnType.accept(this);
+  TypeBuilder visitFunctionType(FunctionType node) {
+    TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is suffient.
     List<KernelTypeVariableBuilder> typeVariables = null;
@@ -92,7 +92,7 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
         new List<KernelFormalParameterBuilder>(
             positionalParameters.length + namedParameters.length);
     for (int i = 0; i < positionalParameters.length; i++) {
-      KernelTypeBuilder type = positionalParameters[i].accept(this);
+      TypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
@@ -103,27 +103,27 @@ class TypeBuilderComputer implements DartTypeVisitor<KernelTypeBuilder> {
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
-      KernelTypeBuilder type = positionalParameters[i].accept(this);
+      TypeBuilder type = positionalParameters[i].accept(this);
       formals[i + positionalParameters.length] =
           new KernelFormalParameterBuilder(
               null, 0, type, parameter.name, null, -1)
             ..kind = FormalParameterKind.optionalNamed;
     }
 
-    return new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    return new FunctionTypeBuilder(returnType, typeVariables, formals);
   }
 
-  KernelTypeBuilder visitTypeParameterType(TypeParameterType node) {
+  TypeBuilder visitTypeParameterType(TypeParameterType node) {
     TypeParameter parameter = node.parameter;
     Class kernelClass = parameter.parent;
     Library kernelLibrary = kernelClass.enclosingLibrary;
-    LibraryBuilder<KernelTypeBuilder, Library> library =
+    LibraryBuilder<TypeBuilder, Library> library =
         loader.builders[kernelLibrary.importUri];
     return new KernelNamedTypeBuilder(parameter.name, null)
       ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
   }
 
-  KernelTypeBuilder visitTypedefType(TypedefType node) {
+  TypeBuilder visitTypedefType(TypedefType node) {
     throw "Not implemented";
   }
 }

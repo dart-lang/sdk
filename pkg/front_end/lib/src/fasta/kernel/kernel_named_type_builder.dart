@@ -17,7 +17,6 @@ import 'kernel_builder.dart'
     show
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
-        KernelTypeBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
         TypeBuilder,
@@ -25,10 +24,9 @@ import 'kernel_builder.dart'
         TypeVariableBuilder,
         flattenName;
 
-class KernelNamedTypeBuilder
-    extends NamedTypeBuilder<KernelTypeBuilder, DartType>
-    implements KernelTypeBuilder {
-  KernelNamedTypeBuilder(Object name, List<KernelTypeBuilder> arguments)
+class KernelNamedTypeBuilder extends NamedTypeBuilder<TypeBuilder, DartType>
+    implements TypeBuilder {
+  KernelNamedTypeBuilder(Object name, List<TypeBuilder> arguments)
       : super(name, arguments);
 
   KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message,
@@ -99,10 +97,10 @@ class KernelNamedTypeBuilder
       assert(declaration is TypeVariableBuilder);
       return result;
     } else if (arguments != null) {
-      List<KernelTypeBuilder> arguments;
+      List<TypeBuilder> arguments;
       int i = 0;
-      for (KernelTypeBuilder argument in this.arguments) {
-        KernelTypeBuilder type = argument.subst(substitution);
+      for (TypeBuilder argument in this.arguments) {
+        TypeBuilder type = argument.subst(substitution);
         if (type != argument) {
           arguments ??= this.arguments.toList();
           arguments[i] = type;
@@ -117,9 +115,9 @@ class KernelNamedTypeBuilder
   }
 
   KernelNamedTypeBuilder clone(List<TypeBuilder> newTypes) {
-    List<KernelTypeBuilder> clonedArguments;
+    List<TypeBuilder> clonedArguments;
     if (arguments != null) {
-      clonedArguments = new List<KernelTypeBuilder>(arguments.length);
+      clonedArguments = new List<TypeBuilder>(arguments.length);
       for (int i = 0; i < clonedArguments.length; i++) {
         clonedArguments[i] = arguments[i].clone(newTypes);
       }

@@ -73,7 +73,7 @@ import 'kernel_builder.dart'
         KernelFormalParameterBuilder,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
@@ -87,8 +87,7 @@ import 'redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
-abstract class KernelFunctionBuilder
-    extends ProcedureBuilder<KernelTypeBuilder> {
+abstract class KernelFunctionBuilder extends ProcedureBuilder<TypeBuilder> {
   final String nativeMethodName;
 
   FunctionNode function;
@@ -98,7 +97,7 @@ abstract class KernelFunctionBuilder
   KernelFunctionBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
@@ -262,7 +261,7 @@ abstract class KernelFunctionBuilder
       // into the outline. For all other formals we need to call
       // buildOutlineExpressions to clear initializerToken to prevent
       // consuming too much memory.
-      for (FormalParameterBuilder<KernelTypeBuilder> formal in formals) {
+      for (FormalParameterBuilder<TypeBuilder> formal in formals) {
         formal.buildOutlineExpressions(library);
       }
     }
@@ -318,7 +317,7 @@ class KernelProcedureBuilder extends KernelFunctionBuilder {
   KernelProcedureBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
@@ -449,7 +448,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
   KernelConstructorBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
@@ -665,7 +664,7 @@ class KernelRedirectingFactoryBuilder extends KernelProcedureBuilder {
   KernelRedirectingFactoryBuilder(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,

@@ -72,7 +72,7 @@ import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart'
     show
-        KernelTypeBuilder,
+        TypeBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
         UnlinkedDeclaration,
@@ -1286,7 +1286,7 @@ class KernelTypeUseGenerator extends KernelReadOnlyAccessGenerator
       } else {
         super.expression = forest.literalType(
             helper.buildDartType(
-                new UnresolvedType<KernelTypeBuilder>(
+                new UnresolvedType<TypeBuilder>(
                     buildTypeWithResolvedArguments(null), offset, uri),
                 nonInstanceAccessIsError: true),
             token);

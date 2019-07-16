@@ -31,10 +31,8 @@ import 'kernel_builder.dart'
         FunctionTypeBuilder,
         KernelClassBuilder,
         KernelFormalParameterBuilder,
-        KernelFunctionTypeBuilder,
         KernelNamedTypeBuilder,
         KernelTypeAliasBuilder,
-        KernelTypeBuilder,
         KernelTypeVariableBuilder,
         NamedTypeBuilder,
         TypeBuilder,
@@ -61,8 +59,7 @@ export 'package:kernel/src/bounds_checks.dart' show Variance;
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeVariance(
-    KernelTypeVariableBuilder variable, KernelTypeBuilder type) {
+int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
   if (type is KernelNamedTypeBuilder) {
     TypeDeclarationBuilder declaration = type.declaration;
     if (declaration == null || declaration is KernelTypeVariableBuilder) {
@@ -75,7 +72,7 @@ int computeVariance(
       if (declaration is KernelClassBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
-          for (KernelTypeBuilder argument in type.arguments) {
+          for (TypeBuilder argument in type.arguments) {
             result = Variance.meet(result, computeVariance(variable, argument));
           }
         }
@@ -95,7 +92,7 @@ int computeVariance(
         return result;
       }
     }
-  } else if (type is KernelFunctionTypeBuilder) {
+  } else if (type is FunctionTypeBuilder) {
     int result = Variance.unrelated;
     if (type.returnType != null) {
       result =
@@ -127,10 +124,10 @@ int computeVariance(
   return Variance.unrelated;
 }
 
-KernelTypeBuilder substituteRange(
-    KernelTypeBuilder type,
-    Map<TypeVariableBuilder, KernelTypeBuilder> upperSubstitution,
-    Map<TypeVariableBuilder, KernelTypeBuilder> lowerSubstitution,
+TypeBuilder substituteRange(
+    TypeBuilder type,
+    Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
     {bool isCovariant = true}) {
   if (type is KernelNamedTypeBuilder) {
     if (type.declaration is KernelTypeVariableBuilder) {
@@ -159,7 +156,7 @@ KernelTypeBuilder substituteRange(
     return type;
   }
 
-  if (type is KernelFunctionTypeBuilder) {
+  if (type is FunctionTypeBuilder) {
     List<KernelTypeVariableBuilder> variables;
     if (type.typeVariables != null) {
       variables =
@@ -169,13 +166,13 @@ KernelTypeBuilder substituteRange(
     if (type.formals != null) {
       formals = new List<KernelFormalParameterBuilder>(type.formals.length);
     }
-    KernelTypeBuilder returnType;
+    TypeBuilder returnType;
     bool changed = false;
 
     if (type.typeVariables != null) {
       for (int i = 0; i < variables.length; i++) {
         KernelTypeVariableBuilder variable = type.typeVariables[i];
-        KernelTypeBuilder bound = substituteRange(
+        TypeBuilder bound = substituteRange(
             variable.bound, upperSubstitution, lowerSubstitution,
             isCovariant: isCovariant);
         if (bound != variable.bound) {
@@ -191,7 +188,7 @@ KernelTypeBuilder substituteRange(
     if (type.formals != null) {
       for (int i = 0; i < formals.length; i++) {
         KernelFormalParameterBuilder formal = type.formals[i];
-        KernelTypeBuilder parameterType = substituteRange(
+        TypeBuilder parameterType = substituteRange(
             formal.type, upperSubstitution, lowerSubstitution,
             isCovariant: !isCovariant);
         if (parameterType != formal.type) {
@@ -217,7 +214,7 @@ KernelTypeBuilder substituteRange(
     }
 
     if (changed) {
-      return new KernelFunctionTypeBuilder(returnType, variables, formals);
+      return new FunctionTypeBuilder(returnType, variables, formals);
     }
 
     return type;
@@ -225,8 +222,8 @@ KernelTypeBuilder substituteRange(
   return type;
 }
 
-KernelTypeBuilder substitute(KernelTypeBuilder type,
-    Map<TypeVariableBuilder, KernelTypeBuilder> substitution) {
+TypeBuilder substitute(
+    TypeBuilder type, Map<TypeVariableBuilder, TypeBuilder> substitution) {
   return substituteRange(type, substitution, substitution, isCovariant: true);
 }
 
@@ -236,13 +233,12 @@ KernelTypeBuilder substitute(KernelTypeBuilder type,
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<KernelTypeBuilder> calculateBounds(
+List<TypeBuilder> calculateBounds(
     List<TypeVariableBuilder> variables,
-    KernelTypeBuilder dynamicType,
-    KernelTypeBuilder bottomType,
+    TypeBuilder dynamicType,
+    TypeBuilder bottomType,
     KernelClassBuilder objectClass) {
-  List<KernelTypeBuilder> bounds =
-      new List<KernelTypeBuilder>(variables.length);
+  List<TypeBuilder> bounds = new List<TypeBuilder>(variables.length);
 
   for (int i = 0; i < variables.length; i++) {
     bounds[i] = variables[i].bound ?? dynamicType;
@@ -251,10 +247,10 @@ List<KernelTypeBuilder> calculateBounds(
   TypeVariablesGraph graph = new TypeVariablesGraph(variables, bounds);
   List<List<int>> stronglyConnected = computeStrongComponents(graph);
   for (List<int> component in stronglyConnected) {
-    Map<TypeVariableBuilder, KernelTypeBuilder> dynamicSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
-    Map<TypeVariableBuilder, KernelTypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> dynamicSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     for (int variableIndex in component) {
       dynamicSubstitution[variables[variableIndex]] = dynamicType;
       nullSubstitution[variables[variableIndex]] = bottomType;
@@ -267,10 +263,10 @@ List<KernelTypeBuilder> calculateBounds(
   }
 
   for (int i = 0; i < variables.length; i++) {
-    Map<TypeVariableBuilder, KernelTypeBuilder> substitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
-    Map<TypeVariableBuilder, KernelTypeBuilder> nullSubstitution =
-        <TypeVariableBuilder, KernelTypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> nullSubstitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     substitution[variables[i]] = bounds[i];
     nullSubstitution[variables[i]] = bottomType;
     for (int j = 0; j < variables.length; j++) {

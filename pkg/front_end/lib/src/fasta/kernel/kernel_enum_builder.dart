@@ -57,7 +57,7 @@ import 'kernel_builder.dart'
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -66,7 +66,7 @@ import 'kernel_builder.dart'
 import 'metadata_collector.dart';
 
 class KernelEnumBuilder extends SourceClassBuilder
-    implements EnumBuilder<KernelTypeBuilder, InterfaceType> {
+    implements EnumBuilder<TypeBuilder, InterfaceType> {
   @override
   final List<EnumConstantInfo> enumConstantInfos;
 
@@ -109,16 +109,16 @@ class KernelEnumBuilder extends SourceClassBuilder
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    KernelTypeBuilder intType = new KernelNamedTypeBuilder("int", null);
-    KernelTypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
+    TypeBuilder intType = new KernelNamedTypeBuilder("int", null);
+    TypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
     KernelNamedTypeBuilder objectType =
         new KernelNamedTypeBuilder("Object", null);
     Class cls = new Class(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(name, null);
-    KernelTypeBuilder listType =
-        new KernelNamedTypeBuilder("List", <KernelTypeBuilder>[selfType]);
+    TypeBuilder listType =
+        new KernelNamedTypeBuilder("List", <TypeBuilder>[selfType]);
 
     /// metadata class E {
     ///   final int index;
@@ -256,10 +256,9 @@ class KernelEnumBuilder extends SourceClassBuilder
     return enumBuilder;
   }
 
-  KernelTypeBuilder get mixedInType => null;
+  TypeBuilder get mixedInType => null;
 
-  InterfaceType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+  InterfaceType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     return cls.rawType;
   }
 

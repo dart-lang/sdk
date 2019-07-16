@@ -33,7 +33,7 @@ import '../kernel/kernel_builder.dart'
         KernelInvalidTypeBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
@@ -79,7 +79,7 @@ class SourceClassBuilder extends KernelClassBuilder
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  KernelTypeBuilder mixedInType;
+  TypeBuilder mixedInType;
 
   bool isMixinDeclaration;
 
@@ -88,8 +88,8 @@ class SourceClassBuilder extends KernelClassBuilder
       int modifiers,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> interfaces,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
       Scope scope,
       Scope constructors,
       LibraryBuilder parent,
@@ -245,7 +245,7 @@ class SourceClassBuilder extends KernelClassBuilder
     return cls;
   }
 
-  KernelTypeBuilder checkSupertype(KernelTypeBuilder supertype) {
+  TypeBuilder checkSupertype(TypeBuilder supertype) {
     if (typeVariables == null || supertype == null) return supertype;
     Message message;
     for (int i = 0; i < typeVariables.length; ++i) {
@@ -294,20 +294,20 @@ class SourceClassBuilder extends KernelClassBuilder
 
   List<Declaration> computeDirectSupertypes(ClassBuilder objectClass) {
     final List<Declaration> result = <Declaration>[];
-    final KernelTypeBuilder supertype = this.supertype;
+    final TypeBuilder supertype = this.supertype;
     if (supertype != null) {
       result.add(supertype.declaration);
     } else if (objectClass != this) {
       result.add(objectClass);
     }
-    final List<KernelTypeBuilder> interfaces = this.interfaces;
+    final List<TypeBuilder> interfaces = this.interfaces;
     if (interfaces != null) {
       for (int i = 0; i < interfaces.length; i++) {
-        KernelTypeBuilder interface = interfaces[i];
+        TypeBuilder interface = interfaces[i];
         result.add(interface.declaration);
       }
     }
-    final KernelTypeBuilder mixedInType = this.mixedInType;
+    final TypeBuilder mixedInType = this.mixedInType;
     if (mixedInType != null) {
       result.add(mixedInType.declaration);
     }

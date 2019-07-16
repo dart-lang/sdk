@@ -9,10 +9,10 @@ import 'package:kernel/ast.dart' show DartType, InvalidType;
 import '../fasta_codes.dart' show LocatedMessage;
 
 import 'kernel_builder.dart'
-    show InvalidTypeBuilder, KernelTypeBuilder, LibraryBuilder;
+    show InvalidTypeBuilder, TypeBuilder, LibraryBuilder;
 
 class KernelInvalidTypeBuilder
-    extends InvalidTypeBuilder<KernelTypeBuilder, DartType> {
+    extends InvalidTypeBuilder<TypeBuilder, DartType> {
   @override
   final LocatedMessage message;
 
@@ -27,8 +27,7 @@ class KernelInvalidTypeBuilder
   @override
   InvalidType get target => const InvalidType();
 
-  DartType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(library, null);
   }
 

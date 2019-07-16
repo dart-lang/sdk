@@ -83,7 +83,6 @@ import 'kernel_builder.dart'
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
-        KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -108,8 +107,7 @@ ProcedureKind memberKind(Member member) {
   return member is Procedure ? member.kind : null;
 }
 
-bool isNameVisibleIn(
-    Name name, LibraryBuilder<KernelTypeBuilder, Library> library) {
+bool isNameVisibleIn(Name name, LibraryBuilder<TypeBuilder, Library> library) {
   return !name.isPrivate || name.library == library.target;
 }
 
@@ -236,7 +234,7 @@ class ClassHierarchyBuilder {
         new ClassHierarchyNodeBuilder(this, cls).build();
   }
 
-  ClassHierarchyNode getNodeFromType(KernelTypeBuilder type) {
+  ClassHierarchyNode getNodeFromType(TypeBuilder type) {
     KernelClassBuilder cls = getClass(type);
     return cls == null ? null : getNodeFromClass(cls);
   }
@@ -246,24 +244,24 @@ class ClassHierarchyBuilder {
         getNodeFromClass(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  KernelTypeBuilder asSupertypeOf(Class cls, Class supertype) {
+  TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
       return new KernelNamedTypeBuilder(clsNode.cls.name, null)
         ..bind(clsNode.cls);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
-    List<KernelTypeBuilder> supertypes = clsNode.superclasses;
+    List<TypeBuilder> supertypes = clsNode.superclasses;
     int depth = supertypeNode.depth;
     Declaration supertypeDeclaration = supertypeNode.cls;
     if (depth < supertypes.length) {
-      KernelTypeBuilder asSupertypeOf = supertypes[depth];
+      TypeBuilder asSupertypeOf = supertypes[depth];
       if (asSupertypeOf.declaration == supertypeDeclaration)
         return asSupertypeOf;
     }
     supertypes = clsNode.interfaces;
     for (int i = 0; i < supertypes.length; i++) {
-      KernelTypeBuilder type = supertypes[i];
+      TypeBuilder type = supertypes[i];
       if (type.declaration == supertypeDeclaration) return type;
     }
     return null;
@@ -748,7 +746,7 @@ class ClassHierarchyNodeBuilder {
           bType = substitution.substituteType(bType);
         }
         if (aType != bType) {
-          FormalParameterBuilder<KernelTypeBuilder> parameter;
+          FormalParameterBuilder<TypeBuilder> parameter;
           for (int i = aPositional.length; i < a.formals.length; ++i) {
             if (a.formals[i].name == name) {
               parameter = a.formals[i];
@@ -1194,9 +1192,9 @@ class ClassHierarchyNodeBuilder {
     /// superclasses.
     List<Declaration> interfaceSetters;
 
-    List<KernelTypeBuilder> superclasses;
+    List<TypeBuilder> superclasses;
 
-    List<KernelTypeBuilder> interfaces;
+    List<TypeBuilder> interfaces;
 
     int maxInheritancePath;
 
@@ -1204,23 +1202,22 @@ class ClassHierarchyNodeBuilder {
       // This should be Object.
       classMembers = localMembers;
       classSetters = localSetters;
-      superclasses = new List<KernelTypeBuilder>(0);
-      interfaces = new List<KernelTypeBuilder>(0);
+      superclasses = new List<TypeBuilder>(0);
+      interfaces = new List<TypeBuilder>(0);
       maxInheritancePath = 0;
     } else {
       maxInheritancePath = supernode.maxInheritancePath + 1;
-      superclasses =
-          new List<KernelTypeBuilder>(supernode.superclasses.length + 1);
+      superclasses = new List<TypeBuilder>(supernode.superclasses.length + 1);
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(cls.supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = recordSupertype(cls.supertype);
 
-      List<KernelTypeBuilder> directInterfaces = ignoreFunction(cls.interfaces);
+      List<TypeBuilder> directInterfaces = ignoreFunction(cls.interfaces);
       if (cls.isMixinApplication) {
         if (directInterfaces == null) {
-          directInterfaces = <KernelTypeBuilder>[cls.mixedInType];
+          directInterfaces = <TypeBuilder>[cls.mixedInType];
         } else {
-          directInterfaces = <KernelTypeBuilder>[cls.mixedInType]
+          directInterfaces = <TypeBuilder>[cls.mixedInType]
             ..addAll(directInterfaces);
         }
       }
@@ -1229,7 +1226,7 @@ class ClassHierarchyNodeBuilder {
           recordSupertype(directInterfaces[i]);
         }
       }
-      List<KernelTypeBuilder> superclassInterfaces = supernode.interfaces;
+      List<TypeBuilder> superclassInterfaces = supernode.interfaces;
       if (superclassInterfaces != null) {
         superclassInterfaces =
             substSupertypes(cls.supertype, superclassInterfaces);
@@ -1244,14 +1241,14 @@ class ClassHierarchyNodeBuilder {
         MergeResult result = mergeInterfaces(supernode, directInterfaces);
         interfaceMembers = result.mergedMembers;
         interfaceSetters = result.mergedSetters;
-        interfaces = <KernelTypeBuilder>[];
+        interfaces = <TypeBuilder>[];
         if (superclassInterfaces != null) {
           for (int i = 0; i < superclassInterfaces.length; i++) {
             addInterface(interfaces, superclasses, superclassInterfaces[i]);
           }
         }
         for (int i = 0; i < directInterfaces.length; i++) {
-          KernelTypeBuilder directInterface = directInterfaces[i];
+          TypeBuilder directInterface = directInterfaces[i];
           addInterface(interfaces, superclasses, directInterface);
           ClassHierarchyNode interfaceNode =
               hierarchy.getNodeFromType(directInterface);
@@ -1259,14 +1256,14 @@ class ClassHierarchyNodeBuilder {
             if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
               maxInheritancePath = interfaceNode.maxInheritancePath + 1;
             }
-            List<KernelTypeBuilder> types =
+            List<TypeBuilder> types =
                 substSupertypes(directInterface, interfaceNode.superclasses);
             for (int i = 0; i < types.length; i++) {
               addInterface(interfaces, superclasses, types[i]);
             }
 
             if (interfaceNode.interfaces != null) {
-              List<KernelTypeBuilder> types =
+              List<TypeBuilder> types =
                   substSupertypes(directInterface, interfaceNode.interfaces);
               for (int i = 0; i < types.length; i++) {
                 addInterface(interfaces, superclasses, types[i]);
@@ -1327,7 +1324,7 @@ class ClassHierarchyNodeBuilder {
     );
   }
 
-  KernelTypeBuilder recordSupertype(KernelTypeBuilder supertype) {
+  TypeBuilder recordSupertype(TypeBuilder supertype) {
     if (supertype is KernelNamedTypeBuilder) {
       debug?.log(
           "In ${this.cls.fullNameForErrors} recordSupertype(${supertype.fullNameForErrors})");
@@ -1343,7 +1340,7 @@ class ClassHierarchyNodeBuilder {
         substitutions[cls.target] = Substitution.empty;
         assert(cls.target.typeParameters.isEmpty);
       } else {
-        List<KernelTypeBuilder> arguments =
+        List<TypeBuilder> arguments =
             supertype.arguments ?? computeDefaultTypeArguments(supertype);
         if (arguments.length != typeVariables.length) {
           arguments = computeDefaultTypeArguments(supertype);
@@ -1362,8 +1359,8 @@ class ClassHierarchyNodeBuilder {
     return supertype;
   }
 
-  List<KernelTypeBuilder> substSupertypes(
-      KernelNamedTypeBuilder supertype, List<KernelTypeBuilder> supertypes) {
+  List<TypeBuilder> substSupertypes(
+      KernelNamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
     Declaration declaration = supertype.declaration;
     if (declaration is! KernelClassBuilder) return supertypes;
     KernelClassBuilder cls = declaration;
@@ -1378,16 +1375,15 @@ class ClassHierarchyNodeBuilder {
     }
     Map<TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder> substitution =
         <TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder>{};
-    List<KernelTypeBuilder> arguments =
+    List<TypeBuilder> arguments =
         supertype.arguments ?? computeDefaultTypeArguments(supertype);
     for (int i = 0; i < typeVariables.length; i++) {
       substitution[typeVariables[i]] = arguments[i];
     }
-    List<KernelTypeBuilder> result;
+    List<TypeBuilder> result;
     for (int i = 0; i < supertypes.length; i++) {
-      KernelTypeBuilder supertype = supertypes[i];
-      KernelTypeBuilder substed =
-          recordSupertype(supertype.subst(substitution));
+      TypeBuilder supertype = supertypes[i];
+      TypeBuilder substed = recordSupertype(supertype.subst(substitution));
       if (supertype != substed) {
         debug?.log("In ${this.cls.fullNameForErrors} $supertype -> $substed");
         result ??= supertypes.toList();
@@ -1399,10 +1395,9 @@ class ClassHierarchyNodeBuilder {
     return result ?? supertypes;
   }
 
-  List<KernelTypeBuilder> computeDefaultTypeArguments(KernelTypeBuilder type) {
+  List<TypeBuilder> computeDefaultTypeArguments(TypeBuilder type) {
     KernelClassBuilder cls = type.declaration;
-    List<KernelTypeBuilder> result =
-        new List<KernelTypeBuilder>(cls.typeVariables.length);
+    List<TypeBuilder> result = new List<TypeBuilder>(cls.typeVariables.length);
     for (int i = 0; i < result.length; ++i) {
       KernelTypeVariableBuilder tv = cls.typeVariables[i];
       result[i] = tv.defaultType ??
@@ -1411,8 +1406,8 @@ class ClassHierarchyNodeBuilder {
     return result;
   }
 
-  KernelTypeBuilder addInterface(List<KernelTypeBuilder> interfaces,
-      List<KernelTypeBuilder> superclasses, KernelTypeBuilder type) {
+  TypeBuilder addInterface(List<TypeBuilder> interfaces,
+      List<TypeBuilder> superclasses, TypeBuilder type) {
     ClassHierarchyNode node = hierarchy.getNodeFromType(type);
     if (node == null) return null;
     int depth = node.depth;
@@ -1435,7 +1430,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   MergeResult mergeInterfaces(
-      ClassHierarchyNode supernode, List<KernelTypeBuilder> interfaces) {
+      ClassHierarchyNode supernode, List<TypeBuilder> interfaces) {
     debug?.log(
         "mergeInterfaces($cls (${this.cls}) ${supernode.interfaces} ${interfaces}");
     List<List<Declaration>> memberLists =
@@ -1638,8 +1633,8 @@ class ClassHierarchyNodeBuilder {
             new TypeBuilderConstraintGatherer(
                 hierarchy, kernelMixedInType.classNode.typeParameters))
         .infer(kernelClass);
-    List<KernelTypeBuilder> inferredArguments =
-        new List<KernelTypeBuilder>(typeArguments.length);
+    List<TypeBuilder> inferredArguments =
+        new List<TypeBuilder>(typeArguments.length);
     for (int i = 0; i < typeArguments.length; i++) {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
@@ -1650,7 +1645,7 @@ class ClassHierarchyNodeBuilder {
 
   /// The class Function from dart:core is supposed to be ignored when used as
   /// an interface.
-  List<KernelTypeBuilder> ignoreFunction(List<KernelTypeBuilder> interfaces) {
+  List<TypeBuilder> ignoreFunction(List<TypeBuilder> interfaces) {
     if (interfaces == null) return null;
     for (int i = 0; i < interfaces.length; i++) {
       KernelClassBuilder cls = getClass(interfaces[i]);
@@ -1695,11 +1690,11 @@ class ClassHierarchyNode {
 
   /// All superclasses of [cls] excluding itself. The classes are sorted by
   /// depth from the root (Object) in ascending order.
-  final List<KernelTypeBuilder> superclasses;
+  final List<TypeBuilder> superclasses;
 
   /// The list of all classes implemented by [cls] and its supertypes excluding
   /// any classes from [superclasses].
-  final List<KernelTypeBuilder> interfaces;
+  final List<TypeBuilder> interfaces;
 
   /// The longest inheritance path from [cls] to `Object`.
   final int maxInheritancePath;
@@ -1752,7 +1747,7 @@ class ClassHierarchyNode {
     }
     sb..writeln("  superclasses:");
     int depth = 0;
-    for (KernelTypeBuilder superclass in superclasses) {
+    for (TypeBuilder superclass in superclasses) {
       sb.write("  " * (depth + 2));
       if (depth != 0) sb.write("-> ");
       superclass.printOn(sb);
@@ -1762,7 +1757,7 @@ class ClassHierarchyNode {
     if (interfaces != null) {
       sb.write("  interfaces:");
       bool first = true;
-      for (KernelTypeBuilder i in interfaces) {
+      for (TypeBuilder i in interfaces) {
         if (!first) sb.write(",");
         sb.write(" ");
         i.printOn(sb);
@@ -2488,7 +2483,7 @@ bool isAbstract(Declaration declaration) {
 bool inferParameterType(
     KernelClassBuilder cls,
     KernelProcedureBuilder member,
-    FormalParameterBuilder<KernelTypeBuilder> parameter,
+    FormalParameterBuilder<TypeBuilder> parameter,
     DartType type,
     bool hadTypesInferred,
     ClassHierarchyBuilder hierarchy) {
@@ -2508,7 +2503,7 @@ bool inferParameterType(
 void reportCantInferParameterType(
     KernelClassBuilder cls,
     MemberBuilder member,
-    FormalParameterBuilder<KernelTypeBuilder> parameter,
+    FormalParameterBuilder<TypeBuilder> parameter,
     ClassHierarchyBuilder hierarchy) {
   String name = parameter.name;
   cls.addProblem(
@@ -2562,7 +2557,7 @@ void reportCantInferReturnType(KernelClassBuilder cls, MemberBuilder member,
   //             superMember.fileUri, superMember.charOffset, name.length));
   //   }
   // }
-  // List<KernelTypeBuilder> directInterfaces = cls.interfaces;
+  // List<TypeBuilder> directInterfaces = cls.interfaces;
   // for (int i = 0; i < directInterfaces.length; i++) {
   //   ClassHierarchyNode supernode =
   //       hierarchy.getNodeFromType(directInterfaces[i]);
@@ -2602,7 +2597,7 @@ void reportCantInferFieldType(
       wasHandled: true);
 }
 
-KernelClassBuilder getClass(KernelTypeBuilder type) {
+KernelClassBuilder getClass(TypeBuilder type) {
   Declaration declaration = type.declaration;
   return declaration is KernelClassBuilder ? declaration : null;
 }

@@ -9,8 +9,8 @@ import 'package:kernel/ast.dart' show DartType, Library, Typedef;
 import '../kernel/kernel_builder.dart'
     show
         KernelTypeAliasBuilder,
-        KernelFunctionTypeBuilder,
-        KernelTypeBuilder,
+        FunctionTypeBuilder,
+        TypeBuilder,
         LibraryBuilder,
         MetadataBuilder;
 
@@ -31,19 +31,19 @@ class DillTypeAliasBuilder extends KernelTypeAliasBuilder {
   int get typeVariablesCount => target.typeParameters.length;
 
   @override
-  KernelFunctionTypeBuilder get type {
+  FunctionTypeBuilder get type {
     return unimplemented("type", -1, null);
   }
 
   @override
-  DartType buildThisType(LibraryBuilder<KernelTypeBuilder, Library> library) {
+  DartType buildThisType(LibraryBuilder<TypeBuilder, Library> library) {
     return thisType ??= target.type;
   }
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder<KernelTypeBuilder, Library> library,
-      List<KernelTypeBuilder> arguments) {
+      LibraryBuilder<TypeBuilder, Library> library,
+      List<TypeBuilder> arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].

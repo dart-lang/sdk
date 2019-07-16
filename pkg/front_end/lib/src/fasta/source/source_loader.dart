@@ -81,7 +81,6 @@ import '../kernel/kernel_builder.dart'
         FieldBuilder,
         KernelClassBuilder,
         KernelProcedureBuilder,
-        KernelTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
         NamedTypeBuilder,
@@ -1103,7 +1102,7 @@ class SourceLoader extends Loader<Library> {
   }
 
   @override
-  KernelTypeBuilder computeTypeBuilder(DartType type) {
+  TypeBuilder computeTypeBuilder(DartType type) {
     return type.accept(new TypeBuilderComputer(this));
   }
 }

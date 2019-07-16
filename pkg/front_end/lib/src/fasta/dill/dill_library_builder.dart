@@ -37,7 +37,7 @@ import '../kernel/kernel_builder.dart'
         DynamicTypeBuilder,
         InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         LibraryBuilder,
         Scope;
 
@@ -76,7 +76,7 @@ class LazyLibraryScope extends Scope {
   }
 }
 
-class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
+class DillLibraryBuilder extends LibraryBuilder<TypeBuilder, Library> {
   final Library library;
 
   DillLoader loader;
@@ -138,7 +138,7 @@ class DillLibraryBuilder extends LibraryBuilder<KernelTypeBuilder, Library> {
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic",
-        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+        new DynamicTypeBuilder<TypeBuilder, DartType>(
             const DynamicType(), this, -1),
         -1);
   }

@@ -14,20 +14,19 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelLibraryBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder,
         LibraryBuilder,
         TypeBuilder,
         TypeVariableBuilder;
 
 class KernelTypeVariableBuilder
-    extends TypeVariableBuilder<KernelTypeBuilder, DartType> {
+    extends TypeVariableBuilder<TypeBuilder, DartType> {
   final TypeParameter actualParameter;
 
   KernelTypeVariableBuilder actualOrigin;
 
   KernelTypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
-      [KernelTypeBuilder bound, TypeParameter actual])
+      [TypeBuilder bound, TypeParameter actual])
       // TODO(32378): We would like to use '??' here instead, but in conjuction
       // with '..', it crashes Dart2JS.
       : actualParameter = actual != null
@@ -47,8 +46,7 @@ class KernelTypeVariableBuilder
 
   TypeParameter get target => parameter;
 
-  DartType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     if (arguments != null) {
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri fileUri = null; // TODO(ahe): Provide these.
@@ -75,7 +73,7 @@ class KernelTypeVariableBuilder
     return buildType(library, null);
   }
 
-  KernelTypeBuilder asTypeBuilder() {
+  TypeBuilder asTypeBuilder() {
     return new KernelNamedTypeBuilder(name, null)..bind(this);
   }
 

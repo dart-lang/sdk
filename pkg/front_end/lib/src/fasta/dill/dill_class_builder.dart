@@ -12,7 +12,7 @@ import '../problems.dart' show unimplemented;
 import '../kernel/kernel_builder.dart'
     show
         KernelClassBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -55,8 +55,8 @@ class DillClassBuilder extends KernelClassBuilder {
 
   Uri get fileUri => cls.fileUri;
 
-  KernelTypeBuilder get supertype {
-    KernelTypeBuilder supertype = super.supertype;
+  TypeBuilder get supertype {
+    TypeBuilder supertype = super.supertype;
     if (supertype == null) {
       Supertype targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
@@ -86,7 +86,7 @@ class DillClassBuilder extends KernelClassBuilder {
 
   @override
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     // For performance reasons, [typeVariables] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
@@ -113,15 +113,15 @@ class DillClassBuilder extends KernelClassBuilder {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
-  KernelTypeBuilder get mixedInType {
+  TypeBuilder get mixedInType {
     return computeTypeBuilder(library, cls.mixedInType);
   }
 
-  List<KernelTypeBuilder> get interfaces {
+  List<TypeBuilder> get interfaces {
     if (cls.implementedTypes.isEmpty) return null;
     if (super.interfaces == null) {
-      List<KernelTypeBuilder> result =
-          new List<KernelTypeBuilder>(cls.implementedTypes.length);
+      List<TypeBuilder> result =
+          new List<TypeBuilder>(cls.implementedTypes.length);
       for (int i = 0; i < result.length; i++) {
         result[i] = computeTypeBuilder(library, cls.implementedTypes[i]);
       }
@@ -130,7 +130,7 @@ class DillClassBuilder extends KernelClassBuilder {
     return super.interfaces;
   }
 
-  void set mixedInType(KernelTypeBuilder mixin) {
+  void set mixedInType(TypeBuilder mixin) {
     unimplemented("mixedInType=", -1, null);
   }
 }
@@ -139,7 +139,7 @@ int computeModifiers(Class cls) {
   return cls.isAbstract ? abstractMask : 0;
 }
 
-KernelTypeBuilder computeTypeBuilder(
+TypeBuilder computeTypeBuilder(
     DillLibraryBuilder library, Supertype supertype) {
   return supertype == null
       ? null

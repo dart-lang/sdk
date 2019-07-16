@@ -44,7 +44,7 @@ import '../kernel/kernel_builder.dart'
         KernelMetadataBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
-        KernelTypeBuilder;
+        TypeBuilder;
 
 import '../modifier.dart'
     show
@@ -97,7 +97,7 @@ enum MethodBody {
 }
 
 class OutlineBuilder extends StackListener {
-  final SourceLibraryBuilder<KernelTypeBuilder, Library> library;
+  final SourceLibraryBuilder<TypeBuilder, Library> library;
 
   final bool enableNative;
   final bool stringExpectedAfterNative;
@@ -107,7 +107,7 @@ class OutlineBuilder extends StackListener {
 
   String nativeMethodName;
 
-  OutlineBuilder(SourceLibraryBuilder<KernelTypeBuilder, Library> library)
+  OutlineBuilder(SourceLibraryBuilder<TypeBuilder, Library> library)
       : library = library,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
@@ -440,8 +440,7 @@ class OutlineBuilder extends StackListener {
   @override
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
@@ -453,8 +452,7 @@ class OutlineBuilder extends StackListener {
   @override
   void beginMixinDeclaration(Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
@@ -476,8 +474,7 @@ class OutlineBuilder extends StackListener {
   void beginNamedMixinApplication(
       Token begin, Token abstractToken, Token name) {
     debugEvent("beginNamedMixinApplication");
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
       ..name = name.lexeme
@@ -532,8 +529,7 @@ class OutlineBuilder extends StackListener {
     int supertypeOffset = pop();
     TypeBuilder supertype = nullIfParserRecovery(pop());
     int modifiers = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     int charOffset = pop();
     Object name = pop();
     if (typeVariables != null && supertype is MixinApplicationBuilder) {
@@ -572,8 +568,8 @@ class OutlineBuilder extends StackListener {
     debugEvent("endMixinDeclaration");
     String documentationComment = getDocumentationComment(mixinToken);
     List<TypeBuilder> interfaces = pop(NullValue.TypeBuilderList);
-    List<KernelTypeBuilder> supertypeConstraints = nullIfParserRecovery(pop());
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
+    List<TypeBuilder> supertypeConstraints = nullIfParserRecovery(pop());
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables =
         pop(NullValue.TypeVariables);
     int nameOffset = pop();
     Object name = pop();
@@ -628,8 +624,7 @@ class OutlineBuilder extends StackListener {
     MethodBody kind = pop();
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     int charOffset = pop();
     Object name = pop();
     TypeBuilder returnType = pop();
@@ -767,8 +762,7 @@ class OutlineBuilder extends StackListener {
     }
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     int charOffset = pop();
     Object nameOrOperator = pop();
     if (Operator.subtract == nameOrOperator && formals == null) {
@@ -929,8 +923,7 @@ class OutlineBuilder extends StackListener {
     List<TypeBuilder> interfaces = popIfNotNull(implementsKeyword);
     Object mixinApplication = pop();
     int modifiers = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     int charOffset = pop();
     Object name = pop();
     List<MetadataBuilder> metadata = pop();
@@ -958,7 +951,7 @@ class OutlineBuilder extends StackListener {
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(const FixedNullableList<KernelTypeBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<TypeBuilder>().pop(stack, count) ??
         NullValue.TypeArguments);
   }
 
@@ -1217,8 +1210,7 @@ class OutlineBuilder extends StackListener {
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
     TypeBuilder returnType = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     push(library.addFunctionType(
         returnType, typeVariables, formals, functionToken.charOffset));
   }
@@ -1229,8 +1221,7 @@ class OutlineBuilder extends StackListener {
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     TypeBuilder returnType = pop();
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables =
-        pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     reportErrorIfNullableType(question);
     push(library.addFunctionType(
         returnType, typeVariables, formals, formalsOffset));
@@ -1241,7 +1232,7 @@ class OutlineBuilder extends StackListener {
       Token typedefKeyword, Token equals, Token endToken) {
     debugEvent("endFunctionTypeAlias");
     String documentationComment = getDocumentationComment(typedefKeyword);
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeVariables;
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables;
     Object name;
     int charOffset;
     FunctionTypeBuilder functionType;
@@ -1367,7 +1358,7 @@ class OutlineBuilder extends StackListener {
     Object name = pop();
     // TODO(paulberry): type variable metadata should not be ignored.  See
     // dartbug.com/28981.
-    /* List<MetadataBuilder<KernelTypeBuilder>> metadata = */ pop();
+    /* List<MetadataBuilder<TypeBuilder>> metadata = */ pop();
     if (name is ParserRecovery) {
       push(name);
     } else {
@@ -1379,8 +1370,7 @@ class OutlineBuilder extends StackListener {
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("TypeVariablesDefined");
     assert(count > 0);
-    push(const FixedNullableList<
-                TypeVariableBuilder<KernelTypeBuilder, DartType>>()
+    push(const FixedNullableList<TypeVariableBuilder<TypeBuilder, DartType>>()
             .pop(stack, count) ??
         NullValue.TypeVariables);
   }
@@ -1390,8 +1380,7 @@ class OutlineBuilder extends StackListener {
     debugEvent("endTypeVariable");
     TypeBuilder bound = nullIfParserRecovery(pop());
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeParameters =
-        peek();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeParameters = peek();
     if (typeParameters != null) {
       typeParameters[index].bound = bound;
     }
@@ -1402,8 +1391,7 @@ class OutlineBuilder extends StackListener {
     debugEvent("endTypeVariables");
 
     // Peek to leave type parameters on top of stack.
-    List<TypeVariableBuilder<KernelTypeBuilder, DartType>> typeParameters =
-        peek();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeParameters = peek();
 
     Map<String, TypeVariableBuilder> typeVariablesByName;
     if (typeParameters != null) {

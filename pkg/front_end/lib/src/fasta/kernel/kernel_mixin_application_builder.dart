@@ -12,21 +12,18 @@ import '../problems.dart' show unsupported;
 
 import 'kernel_builder.dart'
     show
-        KernelTypeBuilder,
         LibraryBuilder,
         MixinApplicationBuilder,
         TypeBuilder,
         TypeVariableBuilder;
 
-class KernelMixinApplicationBuilder
-    extends MixinApplicationBuilder<KernelTypeBuilder>
-    implements KernelTypeBuilder {
+class KernelMixinApplicationBuilder extends MixinApplicationBuilder<TypeBuilder>
+    implements TypeBuilder {
   Supertype builtType;
 
   List<TypeVariableBuilder> typeVariables;
 
-  KernelMixinApplicationBuilder(
-      KernelTypeBuilder supertype, List<KernelTypeBuilder> mixins)
+  KernelMixinApplicationBuilder(TypeBuilder supertype, List<TypeBuilder> mixins)
       : assert(mixins != null),
         super(supertype, mixins);
 

@@ -232,7 +232,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   ConstantContext constantContext = ConstantContext.none;
 
-  UnresolvedType<KernelTypeBuilder> currentLocalVariableType;
+  UnresolvedType<TypeBuilder> currentLocalVariableType;
 
   // Using non-null value to initialize this field based on performance advice
   // from VM engineers. TODO(ahe): Does this still apply?
@@ -1327,7 +1327,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
     Arguments arguments = pop();
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    List<UnresolvedType<TypeBuilder>> typeArguments = pop();
     Object receiver = pop();
     if (arguments != null && typeArguments != null) {
       assert(forest.argumentsTypeArguments(arguments).isEmpty);
@@ -2192,7 +2192,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginVariablesDeclaration");
     // TODO(danrubel): handle NNBD 'late' modifier
     reportNonNullableModifierError(lateToken);
-    UnresolvedType<KernelTypeBuilder> type = pop();
+    UnresolvedType<TypeBuilder> type = pop();
     int modifiers = Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     super.push(currentLocalVariableModifiers);
     super.push(currentLocalVariableType ?? NullValue.Type);
@@ -2494,7 +2494,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
 
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    List<UnresolvedType<TypeBuilder>> typeArguments = pop();
 
     DartType typeArgument;
     if (typeArguments != null) {
@@ -2527,7 +2527,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(node);
   }
 
-  void buildLiteralSet(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+  void buildLiteralSet(List<UnresolvedType<TypeBuilder>> typeArguments,
       Token constKeyword, Token leftBrace, List<dynamic> setOrMapEntries) {
     DartType typeArgument;
     if (typeArguments != null) {
@@ -2590,7 +2590,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         setOrMapEntries[i] = toValue(elem);
       }
     }
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    List<UnresolvedType<TypeBuilder>> typeArguments = pop();
 
     // Replicate existing behavior that has been removed from the parser.
     // This will be removed once unified collections is implemented.
@@ -2650,7 +2650,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     push(forest.literalNull(token));
   }
 
-  void buildLiteralMap(List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+  void buildLiteralMap(List<UnresolvedType<TypeBuilder>> typeArguments,
       Token constKeyword, Token leftBrace, List<MapEntry> entries) {
     DartType keyType;
     DartType valueType;
@@ -2741,7 +2741,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     // TODO(ahe): The scope is wrong for return types of generic functions.
     debugEvent("Type");
     reportErrorIfNullableType(questionMark);
-    List<UnresolvedType<KernelTypeBuilder>> arguments = pop();
+    List<UnresolvedType<TypeBuilder>> arguments = pop();
     Object name = pop();
     if (name is QualifiedName) {
       QualifiedName qualified = name;
@@ -2756,7 +2756,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         Message message = fasta.templateNotAType.withArguments(displayName);
         library.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
-        push(new UnresolvedType<KernelTypeBuilder>(
+        push(new UnresolvedType<TypeBuilder>(
             new KernelNamedTypeBuilder(name, null)
               ..bind(new KernelInvalidTypeBuilder(
                   name,
@@ -2767,14 +2767,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return;
       }
     }
-    KernelTypeBuilder result;
+    TypeBuilder result;
     if (name is Generator) {
       result = name.buildTypeWithResolvedArguments(arguments);
-      if (result == null) {
-        unhandled("null", "result", beginToken.charOffset, uri);
-      }
-    } else if (name is TypeBuilder) {
-      result = name.build(library);
       if (result == null) {
         unhandled("null", "result", beginToken.charOffset, uri);
       }
@@ -2791,8 +2786,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
     }
-    push(new UnresolvedType<KernelTypeBuilder>(
-        result, beginToken.charOffset, uri));
+    push(new UnresolvedType<TypeBuilder>(result, beginToken.charOffset, uri));
   }
 
   @override
@@ -2823,9 +2817,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("FunctionType");
     reportErrorIfNullableType(questionMark);
     FormalParameters formals = pop();
-    UnresolvedType<KernelTypeBuilder> returnType = pop();
+    UnresolvedType<TypeBuilder> returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
-    UnresolvedType<KernelTypeBuilder> type =
+    UnresolvedType<TypeBuilder> type =
         formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();
     push(type);
@@ -2835,9 +2829,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
-    push(new UnresolvedType<KernelTypeBuilder>(
+    push(new UnresolvedType<TypeBuilder>(
         new KernelNamedTypeBuilder("void", null)
-          ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
+          ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
               const VoidType(), library, offset)),
         offset,
         uri));
@@ -2954,7 +2948,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       }
     }
     Object nameNode = pop();
-    UnresolvedType<KernelTypeBuilder> type = pop();
+    UnresolvedType<TypeBuilder> type = pop();
     if (functionNestingLevel == 0) {
       // TODO(ahe): The type we compute here may be different from what is
       // computed in the outline phase. We should make sure that the outline
@@ -3054,10 +3048,10 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       exitLocalScope();
     }
     FormalParameters formals = pop();
-    UnresolvedType<KernelTypeBuilder> returnType = pop();
+    UnresolvedType<TypeBuilder> returnType = pop();
     List<KernelTypeVariableBuilder> typeVariables = pop();
     reportErrorIfNullableType(question);
-    UnresolvedType<KernelTypeBuilder> type =
+    UnresolvedType<TypeBuilder> type =
         formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();
     push(type);
@@ -3351,7 +3345,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   void pushQualifiedReference(Token start, Token periodBeforeName) {
     Identifier suffix = popIfNotNull(periodBeforeName);
     Identifier identifier;
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    List<UnresolvedType<TypeBuilder>> typeArguments = pop();
     Object type = pop();
     if (type is QualifiedName) {
       identifier = type;
@@ -3615,7 +3609,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     Token nameLastToken =
         deprecated_extractToken(nameLastIdentifier) ?? nameToken;
     String name = pop();
-    List<UnresolvedType<KernelTypeBuilder>> typeArguments = pop();
+    List<UnresolvedType<TypeBuilder>> typeArguments = pop();
 
     Object type = pop();
 
@@ -3652,7 +3646,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       int charOffset,
       Constness constness) {
     if (arguments == null) {
@@ -3935,7 +3929,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeArguments(int count, Token beginToken, Token endToken) {
     debugEvent("TypeArguments");
-    push(const FixedNullableList<UnresolvedType<KernelTypeBuilder>>()
+    push(const FixedNullableList<UnresolvedType<TypeBuilder>>()
             .pop(stack, count) ??
         NullValue.TypeArguments);
   }
@@ -4055,7 +4049,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     FormalParameters formals = pop();
     Object declaration = pop();
-    UnresolvedType<KernelTypeBuilder> returnType = pop();
+    UnresolvedType<TypeBuilder> returnType = pop();
     bool hasImplicitReturnType = returnType == null;
     exitFunction();
     List<KernelTypeVariableBuilder> typeParameters = pop();
@@ -4810,7 +4804,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void endTypeVariable(Token token, int index, Token extendsOrSuper) {
     debugEvent("TypeVariable");
-    UnresolvedType<KernelTypeBuilder> bound = pop();
+    UnresolvedType<TypeBuilder> bound = pop();
     // Peek to leave type parameters on top of stack.
     List<KernelTypeVariableBuilder> typeVariables = peek();
 
@@ -4825,7 +4819,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     List<KernelTypeVariableBuilder> typeVariables = peek();
 
     if (!legacyMode) {
-      List<KernelTypeBuilder> calculatedBounds = calculateBounds(
+      List<TypeBuilder> calculatedBounds = calculateBounds(
           typeVariables,
           library.loader.target.dynamicType,
           library.loader.target.bottomType,
@@ -5174,10 +5168,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  UnresolvedType<KernelTypeBuilder> validateTypeUse(
-      UnresolvedType<KernelTypeBuilder> unresolved,
-      bool nonInstanceAccessIsError) {
-    KernelTypeBuilder builder = unresolved.builder;
+  UnresolvedType<TypeBuilder> validateTypeUse(
+      UnresolvedType<TypeBuilder> unresolved, bool nonInstanceAccessIsError) {
+    TypeBuilder builder = unresolved.builder;
     if (builder is KernelNamedTypeBuilder &&
         builder.declaration.isTypeVariable) {
       TypeParameter typeParameter = builder.declaration.target;
@@ -5196,7 +5189,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
         return unresolved;
       }
       addProblem(message.messageObject, message.charOffset, message.length);
-      return new UnresolvedType<KernelTypeBuilder>(
+      return new UnresolvedType<TypeBuilder>(
           new KernelNamedTypeBuilder(typeParameter.name, null)
             ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
@@ -5363,7 +5356,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  DartType buildDartType(UnresolvedType<KernelTypeBuilder> unresolvedType,
+  DartType buildDartType(UnresolvedType<TypeBuilder> unresolvedType,
       {bool nonInstanceAccessIsError: false}) {
     if (unresolvedType == null) return null;
     return validateTypeUse(unresolvedType, nonInstanceAccessIsError)
@@ -5373,7 +5366,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   List<DartType> buildDartTypeArguments(
-      List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes) {
+      List<UnresolvedType<TypeBuilder>> unresolvedTypes) {
     if (unresolvedTypes == null) return <DartType>[];
     List<DartType> types =
         new List<DartType>.filled(unresolvedTypes.length, null, growable: true);
@@ -5611,7 +5604,7 @@ class FormalParameters {
 
   FunctionNode buildFunctionNode(
       KernelLibraryBuilder library,
-      UnresolvedType<KernelTypeBuilder> returnType,
+      UnresolvedType<TypeBuilder> returnType,
       List<KernelTypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
@@ -5643,11 +5636,11 @@ class FormalParameters {
       ..fileEndOffset = fileEndOffset;
   }
 
-  UnresolvedType<KernelTypeBuilder> toFunctionType(
-      UnresolvedType<KernelTypeBuilder> returnType,
+  UnresolvedType<TypeBuilder> toFunctionType(
+      UnresolvedType<TypeBuilder> returnType,
       [List<KernelTypeVariableBuilder> typeParameters]) {
     return new UnresolvedType(
-        new KernelFunctionTypeBuilder(
+        new FunctionTypeBuilder(
             returnType?.builder, typeParameters, parameters),
         charOffset,
         uri);

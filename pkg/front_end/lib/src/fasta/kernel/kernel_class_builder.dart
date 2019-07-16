@@ -109,7 +109,7 @@ import 'kernel_builder.dart'
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
-        KernelTypeBuilder,
+        TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -126,7 +126,7 @@ import 'kernel_target.dart' show KernelTarget;
 import 'types.dart' show Types;
 
 abstract class KernelClassBuilder
-    extends ClassBuilder<KernelTypeBuilder, InterfaceType> {
+    extends ClassBuilder<TypeBuilder, InterfaceType> {
   KernelClassBuilder actualOrigin;
 
   KernelClassBuilder(
@@ -134,8 +134,8 @@ abstract class KernelClassBuilder
       int modifiers,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> interfaces,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
       Scope scope,
       Scope constructors,
       LibraryBuilder parent,
@@ -163,7 +163,7 @@ abstract class KernelClassBuilder
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -201,20 +201,19 @@ abstract class KernelClassBuilder
   }
 
   /// If [arguments] are null, the default types for the variables are used.
-  InterfaceType buildType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+  InterfaceType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     return buildTypesWithBuiltArguments(
         library, buildTypeArguments(library, arguments));
   }
 
   Supertype buildSupertype(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     Class cls = isPatch ? origin.target : this.cls;
     return new Supertype(cls, buildTypeArguments(library, arguments));
   }
 
   Supertype buildMixedInType(
-      LibraryBuilder library, List<KernelTypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     Class cls = isPatch ? origin.target : this.cls;
     if (arguments != null) {
       return new Supertype(cls, buildTypeArguments(library, arguments));
@@ -248,7 +247,7 @@ abstract class KernelClassBuilder
 
     // Extract super class (if it exists).
     ClassBuilder superClass;
-    KernelTypeBuilder superClassType = supertype;
+    TypeBuilder superClassType = supertype;
     if (superClassType is KernelNamedTypeBuilder) {
       Declaration decl = superClassType.declaration;
       if (decl is ClassBuilder) {
@@ -260,7 +259,7 @@ abstract class KernelClassBuilder
     Map<ClassBuilder, int> problems;
     Map<ClassBuilder, int> problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
-    for (KernelTypeBuilder type in interfaces) {
+    for (TypeBuilder type in interfaces) {
       if (type is KernelNamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
         Declaration decl = type.declaration;

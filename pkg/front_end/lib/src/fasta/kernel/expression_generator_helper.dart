@@ -23,7 +23,7 @@ import 'constness.dart' show Constness;
 import 'forest.dart' show Forest;
 
 import 'kernel_builder.dart'
-    show Declaration, KernelTypeBuilder, PrefixBuilder, UnresolvedType;
+    show Declaration, TypeBuilder, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -115,18 +115,17 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Member interfaceTarget});
 
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder<KernelTypeBuilder, DartType> type,
+      TypeDeclarationBuilder<TypeBuilder, DartType> type,
       Token nameToken,
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType<KernelTypeBuilder>> typeArguments,
+      List<UnresolvedType<TypeBuilder>> typeArguments,
       int charOffset,
       Constness constness);
 
-  UnresolvedType<KernelTypeBuilder> validateTypeUse(
-      UnresolvedType<KernelTypeBuilder> unresolved,
-      bool nonInstanceAccessIsError);
+  UnresolvedType<TypeBuilder> validateTypeUse(
+      UnresolvedType<TypeBuilder> unresolved, bool nonInstanceAccessIsError);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -144,11 +143,11 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(UnresolvedType<KernelTypeBuilder> unresolvedType,
+  DartType buildDartType(UnresolvedType<TypeBuilder> unresolvedType,
       {bool nonInstanceAccessIsError});
 
   List<DartType> buildDartTypeArguments(
-      List<UnresolvedType<KernelTypeBuilder>> unresolvedTypes);
+      List<UnresolvedType<TypeBuilder>> unresolvedTypes);
 
   void reportDuplicatedDeclaration(
       Declaration existing, String name, int charOffset);

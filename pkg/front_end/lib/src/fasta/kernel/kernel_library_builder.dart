@@ -126,6 +126,7 @@ import 'kernel_builder.dart'
         DynamicTypeBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
+        FunctionTypeBuilder,
         ImplicitFieldType,
         InvalidTypeBuilder,
         KernelClassBuilder,
@@ -135,14 +136,12 @@ import 'kernel_builder.dart'
         KernelFormalParameterBuilder,
         KernelFunctionBuilder,
         KernelTypeAliasBuilder,
-        KernelFunctionTypeBuilder,
         KernelInvalidTypeBuilder,
         KernelMetadataBuilder,
         KernelMixinApplicationBuilder,
         KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
-        KernelTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
@@ -170,8 +169,7 @@ import 'type_algorithms.dart'
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables;
 
-class KernelLibraryBuilder
-    extends SourceLibraryBuilder<KernelTypeBuilder, Library> {
+class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
   final Library library;
 
   final KernelLibraryBuilder actualOrigin;
@@ -231,25 +229,25 @@ class KernelLibraryBuilder
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic",
-        new DynamicTypeBuilder<KernelTypeBuilder, DartType>(
+        new DynamicTypeBuilder<TypeBuilder, DartType>(
             const DynamicType(), this, -1),
         -1);
   }
 
-  KernelTypeBuilder addNamedType(
-      Object name, List<KernelTypeBuilder> arguments, int charOffset) {
+  TypeBuilder addNamedType(
+      Object name, List<TypeBuilder> arguments, int charOffset) {
     return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
   }
 
-  KernelTypeBuilder addMixinApplication(KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> mixins, int charOffset) {
+  TypeBuilder addMixinApplication(
+      TypeBuilder supertype, List<TypeBuilder> mixins, int charOffset) {
     return addType(
         new KernelMixinApplicationBuilder(supertype, mixins), charOffset);
   }
 
-  KernelTypeBuilder addVoidType(int charOffset) {
+  TypeBuilder addVoidType(int charOffset) {
     return addNamedType("void", null, charOffset)
-      ..bind(new VoidTypeBuilder<KernelTypeBuilder, VoidType>(
+      ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
           const VoidType(), this, charOffset));
   }
 
@@ -279,8 +277,8 @@ class KernelLibraryBuilder
       int modifiers,
       String className,
       List<TypeVariableBuilder> typeVariables,
-      KernelTypeBuilder supertype,
-      List<KernelTypeBuilder> interfaces,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
       int startCharOffset,
       int charOffset,
       int charEndOffset,
@@ -391,19 +389,14 @@ class KernelLibraryBuilder
     return typeVariablesByName;
   }
 
-  KernelTypeBuilder applyMixins(
-      KernelTypeBuilder type,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
-      String subclassName,
-      bool isMixinDeclaration,
+  TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
+      int charEndOffset, String subclassName, bool isMixinDeclaration,
       {String documentationComment,
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
-      List<KernelTypeBuilder> interfaces}) {
+      List<TypeBuilder> interfaces}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -434,7 +427,7 @@ class KernelLibraryBuilder
       /// 1. `S with M1`.
       /// 2. `(S with M1) with M2`.
       /// 3. `((S with M1) with M2) with M3`.
-      KernelTypeBuilder supertype = type.supertype ?? loader.target.objectType;
+      TypeBuilder supertype = type.supertype ?? loader.target.objectType;
 
       /// The variable part of the mixin application's synthetic name. It
       /// starts out as the name of the superclass, but is only used after it
@@ -477,21 +470,21 @@ class KernelLibraryBuilder
 
       /// Helper function that returns `true` if a type variable with a name
       /// from [typeVariableNames] is referenced in [type].
-      bool usesTypeVariables(KernelTypeBuilder type) {
+      bool usesTypeVariables(TypeBuilder type) {
         if (type is KernelNamedTypeBuilder) {
           if (type.declaration is KernelTypeVariableBuilder) {
             return typeVariableNames.contains(type.declaration.name);
           }
 
-          List<KernelTypeBuilder> typeArguments = type.arguments;
+          List<TypeBuilder> typeArguments = type.arguments;
           if (typeArguments != null && typeVariables != null) {
-            for (KernelTypeBuilder argument in typeArguments) {
+            for (TypeBuilder argument in typeArguments) {
               if (usesTypeVariables(argument)) {
                 return true;
               }
             }
           }
-        } else if (type is KernelFunctionTypeBuilder) {
+        } else if (type is FunctionTypeBuilder) {
           if (type.formals != null) {
             for (FormalParameterBuilder formal in type.formals) {
               if (usesTypeVariables(formal.type)) {
@@ -508,7 +501,7 @@ class KernelLibraryBuilder
       /// iteration, a new [supertype] is computed that is the mixin
       /// application of [supertype] with the current mixin.
       for (int i = 0; i < type.mixins.length; i++) {
-        KernelTypeBuilder mixin = type.mixins[i];
+        TypeBuilder mixin = type.mixins[i];
         isNamedMixinApplication = name != null && mixin == type.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
@@ -523,7 +516,7 @@ class KernelLibraryBuilder
         String fullname =
             isNamedMixinApplication ? name : "_$subclassName&$runningName";
         List<TypeVariableBuilder> applicationTypeVariables;
-        List<KernelTypeBuilder> applicationTypeArguments;
+        List<TypeBuilder> applicationTypeArguments;
         if (isNamedMixinApplication) {
           // If this is a named mixin application, it must be given all the
           // declarated type variables.
@@ -550,15 +543,15 @@ class KernelLibraryBuilder
               }
             }
             for (TypeBuilder newType in newTypes) {
-              currentDeclaration.addType(
-                  new UnresolvedType<KernelTypeBuilder>(newType, -1, null));
+              currentDeclaration
+                  .addType(new UnresolvedType<TypeBuilder>(newType, -1, null));
             }
 
             DeclarationBuilder mixinDeclaration =
                 this.endNestedDeclaration("mixin application");
             mixinDeclaration.resolveTypes(applicationTypeVariables, this);
 
-            applicationTypeArguments = <KernelTypeBuilder>[];
+            applicationTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable in typeVariables) {
               applicationTypeArguments
                   .add(addNamedType(typeVariable.name, null, charOffset)..bind(
@@ -620,8 +613,8 @@ class KernelLibraryBuilder
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
-      KernelTypeBuilder mixinApplication,
-      List<KernelTypeBuilder> interfaces,
+      TypeBuilder mixinApplication,
+      List<TypeBuilder> interfaces,
       int startCharOffset,
       int charOffset,
       int charEndOffset) {
@@ -643,7 +636,7 @@ class KernelLibraryBuilder
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder type,
+      TypeBuilder type,
       String name,
       int charOffset,
       int charEndOffset,
@@ -669,7 +662,7 @@ class KernelLibraryBuilder
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       final Object name,
       String constructorName,
       List<TypeVariableBuilder> typeVariables,
@@ -714,7 +707,7 @@ class KernelLibraryBuilder
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
@@ -769,10 +762,10 @@ class KernelLibraryBuilder
       int charOpenParenOffset,
       int charEndOffset,
       String nativeMethodName) {
-    KernelTypeBuilder returnType = addNamedType(
-        currentDeclaration.parent.name, <KernelTypeBuilder>[], charOffset);
+    TypeBuilder returnType = addNamedType(
+        currentDeclaration.parent.name, <TypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    DeclarationBuilder<KernelTypeBuilder> factoryDeclaration =
+    DeclarationBuilder<TypeBuilder> factoryDeclaration =
         endNestedDeclaration("#factory_method");
 
     // Prepare the simple procedure name.
@@ -871,7 +864,7 @@ class KernelLibraryBuilder
       List<MetadataBuilder> metadata,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      covariant KernelFunctionTypeBuilder type,
+      FunctionTypeBuilder type,
       int charOffset) {
     KernelTypeAliasBuilder typedef = new KernelTypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
@@ -883,13 +876,12 @@ class KernelLibraryBuilder
     addBuilder(name, typedef, charOffset);
   }
 
-  KernelFunctionTypeBuilder addFunctionType(
-      KernelTypeBuilder returnType,
+  FunctionTypeBuilder addFunctionType(
+      TypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset) {
-    var builder =
-        new KernelFunctionTypeBuilder(returnType, typeVariables, formals);
+    var builder = new FunctionTypeBuilder(returnType, typeVariables, formals);
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
@@ -900,7 +892,7 @@ class KernelLibraryBuilder
   KernelFormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata,
       int modifiers,
-      KernelTypeBuilder type,
+      TypeBuilder type,
       String name,
       bool hasThis,
       int charOffset,
@@ -919,7 +911,7 @@ class KernelLibraryBuilder
   }
 
   KernelTypeVariableBuilder addTypeVariable(
-      String name, KernelTypeBuilder bound, int charOffset) {
+      String name, TypeBuilder bound, int charOffset) {
     var builder = new KernelTypeVariableBuilder(name, this, charOffset, bound);
     boundlessTypeVariables.add(builder);
     return builder;
@@ -1266,8 +1258,7 @@ class KernelLibraryBuilder
       boundlessTypeVariables.add(newVariable);
     }
     for (TypeBuilder newType in newTypes) {
-      declaration
-          .addType(new UnresolvedType<KernelTypeBuilder>(newType, -1, null));
+      declaration.addType(new UnresolvedType<TypeBuilder>(newType, -1, null));
     }
     return copy;
   }
@@ -1305,7 +1296,7 @@ class KernelLibraryBuilder
         }
 
         if (!haveErroneousBounds) {
-          List<KernelTypeBuilder> calculatedBounds =
+          List<TypeBuilder> calculatedBounds =
               calculateBounds(variables, dynamicType, bottomType, objectClass);
           for (int i = 0; i < variables.length; ++i) {
             variables[i].defaultType = calculatedBounds[i];
