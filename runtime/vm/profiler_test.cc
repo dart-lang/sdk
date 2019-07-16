@@ -20,7 +20,6 @@ namespace dart {
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, profile_vm_allocation);
 DECLARE_FLAG(int, max_profile_depth);
-DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Some tests are written assuming native stack trace profiling is disabled.
@@ -2094,15 +2093,13 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePosition) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
@@ -2165,21 +2162,17 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BasicSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // We use the AlwaysInline and NeverInline annotations in this test.
-  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
   // Optimize quickly.
   SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
   SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
@@ -2256,28 +2249,26 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePosition) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @NeverInline\n"
+      "  @pragma('vm:never-inline')\n"
       "  static oats() {\n"
       "    return boo();\n"
       "  }\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
       "}\n"
       "class C {\n"
-      "  @NeverInline bacon() {\n"
+      "  @pragma('vm:never-inline') bacon() {\n"
       "    return fox();\n"
       "  }\n"
-      "  @AlwaysInline fox() {\n"
+      "  @pragma('vm:prefer-inline') fox() {\n"
       "    return B.oats();\n"
       "  }\n"
       "}\n"
@@ -2357,35 +2348,31 @@ ISOLATE_UNIT_TEST_CASE(Profiler_SourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // We use the AlwaysInline and NeverInline annotations in this test.
-  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
   // Optimize quickly.
   SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
   SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
 
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @NeverInline\n"
+      "  @pragma('vm:never-inline')\n"
       "  static oats() {\n"
       "    return boo();\n"
       "  }\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
       "}\n"
       "class C {\n"
-      "  @NeverInline bacon() {\n"
+      "  @pragma('vm:never-inline') bacon() {\n"
       "    return fox();\n"
       "  }\n"
-      "  @AlwaysInline fox() {\n"
+      "  @pragma('vm:prefer-inline') fox() {\n"
       "    return B.oats();\n"
       "  }\n"
       "}\n"
@@ -2479,31 +2466,29 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @NeverInline\n"
+      "  @pragma('vm:never-inline')\n"
       "  static oats() {\n"
       "    return boo();\n"
       "  }\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
       "}\n"
       "class C {\n"
-      "  @NeverInline bacon() {\n"
+      "  @pragma('vm:never-inline') bacon() {\n"
       "    return this + this;\n"
       "  }\n"
-      "  @AlwaysInline operator+(C other) {\n"
+      "  @pragma('vm:prefer-inline') operator+(C other) {\n"
       "    return fox();\n"
       "  }\n"
-      "  @AlwaysInline fox() {\n"
+      "  @pragma('vm:prefer-inline') fox() {\n"
       "    return B.oats();\n"
       "  }\n"
       "}\n"
@@ -2589,38 +2574,34 @@ ISOLATE_UNIT_TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
   EnableProfiler();
   DisableNativeProfileScope dnps;
   DisableBackgroundCompilationScope dbcs;
-  // We use the AlwaysInline and NeverInline annotations in this test.
-  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
   // Optimize quickly.
   SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
   SetFlagScope<bool> sfs3(&FLAG_enable_interpreter, false);
 
   const char* kScript =
-      "const AlwaysInline = 'AlwaysInline';\n"
-      "const NeverInline = 'NeverInline';\n"
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
-      "  @NeverInline A() { }\n"
+      "  @pragma('vm:never-inline') A() { }\n"
       "}\n"
       "class B {\n"
-      "  @NeverInline\n"
+      "  @pragma('vm:never-inline')\n"
       "  static oats() {\n"
       "    return boo();\n"
       "  }\n"
-      "  @AlwaysInline\n"
+      "  @pragma('vm:prefer-inline')\n"
       "  static boo() {\n"
       "    return new A();\n"
       "  }\n"
       "}\n"
       "class C {\n"
-      "  @NeverInline bacon() {\n"
+      "  @pragma('vm:never-inline') bacon() {\n"
       "    return this + this;\n"
       "  }\n"
-      "  @AlwaysInline operator+(C other) {\n"
+      "  @pragma('vm:prefer-inline') operator+(C other) {\n"
       "    return fox();\n"
       "  }\n"
-      "  @AlwaysInline fox() {\n"
+      "  @pragma('vm:prefer-inline') fox() {\n"
       "    return B.oats();\n"
       "  }\n"
       "}\n"

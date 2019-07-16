@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // No type checks are removed here, but we can skip the argument count check.
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
-// VMOptions=--enable-testing-pragmas --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10 -Denable_inlining=true
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10
+// VMOptions=--enable-testing-pragmas --no-background-compilation --optimization-counter-threshold=10 -Denable_inlining=true
 
 import "package:expect/expect.dart";
 import "common.dart";

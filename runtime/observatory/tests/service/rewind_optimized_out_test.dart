@@ -8,17 +8,14 @@ import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const alwaysInline = "AlwaysInline";
-const noInline = "NeverInline";
-
-int LINE_A = 34;
-int LINE_B = 39;
-int LINE_C = 42;
-int LINE_D = 46;
+int LINE_A = 31;
+int LINE_B = 36;
+int LINE_C = 39;
+int LINE_D = 43;
 
 int global = 0;
 
-@noInline
+@pragma('vm:never-inline')
 b3(x) {
   int sum = 0;
   try {
@@ -35,10 +32,10 @@ b3(x) {
   return sum;
 }
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b2(x) => b3(x); // Line B
 
-@alwaysInline
+@pragma('vm:prefer-inline')
 b1(x) => b2(x); // Line C
 
 test() {
@@ -79,7 +76,6 @@ var tests = <IsolateTest>[
 main(args) => runIsolateTests(args, tests, testeeConcurrent: test, extraArgs: [
       '--trace-rewind',
       '--prune-dead-locals',
-      '--enable-inlining-annotations',
       '--no-background-compilation',
       '--optimization-counter-threshold=10'
     ]);

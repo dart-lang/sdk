@@ -8,11 +8,9 @@
 
 import "package:expect/expect.dart";
 
-const String NeverInline = 'NeverInline';
-
 double v = 0;
 
-@NeverInline
+@pragma('vm:never-inline')
 int foo(int a, int p, int q) {
   double p1 = 0;
   double p2 = 0;
