@@ -33,4 +33,21 @@ fi
 export DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
 BIN_DIR="$OUT_DIR$DART_CONFIGURATION"
 
-exec "$BIN_DIR"/dart_precompiled_runtime "$@"
+OPTIONS=()
+SNAPSHOT=()
+for arg in "$@"; do
+  case $arg in
+    --*)
+    OPTIONS+=("$arg")
+    ;;
+    *)
+    SNAPSHOT="$arg"
+    ;;
+  esac
+done
+
+# Pass an absolute file path to the snapshot so that the dynamic linker can find
+# ELF snapshots which are not in the system load path.
+SNAPSHOT=$(realpath "$SNAPSHOT")
+
+exec "$BIN_DIR"/dart_precompiled_runtime "${OPTIONS[@]}" "$SNAPSHOT"
