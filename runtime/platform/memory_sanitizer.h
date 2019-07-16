@@ -11,7 +11,7 @@
 // told about areas that are initialized by generated code.
 #if defined(__has_feature)
 #if __has_feature(memory_sanitizer)
-extern "C" void __msan_unpoison(void*, size_t);
+extern "C" void __msan_unpoison(const volatile void*, size_t);
 #define MSAN_UNPOISON(ptr, len) __msan_unpoison(ptr, len)
 #define NO_SANITIZE_MEMORY __attribute__((no_sanitize_memory))
 #else  // __has_feature(memory_sanitizer)

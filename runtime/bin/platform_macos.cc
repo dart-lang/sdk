@@ -47,8 +47,7 @@ bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
   // handler error EPIPE is set instead.
-  struct sigaction act;
-  bzero(&act, sizeof(act));
+  struct sigaction act = {};
   act.sa_handler = SIG_IGN;
   if (sigaction(SIGPIPE, &act, 0) != 0) {
     perror("Setting signal handler failed");

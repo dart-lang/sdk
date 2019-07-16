@@ -704,11 +704,11 @@ void CallbackTestSignalHandler(int) {
 int ExpectAbort(void (*fn)()) {
   fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
 
-  struct sigaction old_action;
+  struct sigaction old_action = {};
   int result = __sigsetjmp(buf, /*savesigs=*/1);
   if (result == 0) {
     // Install signal handler.
-    struct sigaction handler;
+    struct sigaction handler = {};
     handler.sa_handler = CallbackTestSignalHandler;
     sigemptyset(&handler.sa_mask);
     handler.sa_flags = 0;

@@ -95,7 +95,7 @@ uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
 }
 
 void SignalHandler::InstallImpl(SignalAction action) {
-  struct sigaction act;
+  struct sigaction act = {};
   act.sa_handler = NULL;
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
@@ -107,7 +107,7 @@ void SignalHandler::InstallImpl(SignalAction action) {
 void SignalHandler::Remove() {
   // Ignore future SIGPROF signals because by default SIGPROF will terminate
   // the process and we may have some signals in flight.
-  struct sigaction act;
+  struct sigaction act = {};
   act.sa_handler = SIG_IGN;
   sigemptyset(&act.sa_mask);
   act.sa_flags = 0;
