@@ -10,10 +10,11 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
+import 'package:front_end/src/testing/id_testing.dart' show DataInterpreter;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/id_equivalence_helper.dart';
+import '../../../util/id_testing_helper.dart';
 import 'driver_resolution.dart';
 
 main() {
