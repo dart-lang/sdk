@@ -62,6 +62,7 @@ get_native_allocation_samples_test: Skip # Unsupported.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 async_single_step_exception_test: RuntimeError # Issue 29218
+get_cpu_profile_timeline_rpc_test: SkipByDesign
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
 next_through_catch_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
 next_through_simple_async_test: RuntimeError # Debugging StringConcatenation doesn't work the same on simdbc as on other platforms (bug #28975).
