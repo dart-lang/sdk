@@ -342,7 +342,10 @@ class MethodInvocationResolver {
         element.getGetter(name) ??
         element.getSetter(name);
     if (member == null) {
-      // TODO(brianwilkerson) Report this error.
+      _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+          nameNode,
+          [name, element.name]);
     } else if (member is ExecutableElement && member.isStatic) {
       // TODO(brianwilkerson) Report this error.
     }

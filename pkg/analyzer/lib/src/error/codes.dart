@@ -3104,6 +3104,18 @@ class CompileTimeErrorCode extends ErrorCode {
               "invoking a different constructor.");
 
   /**
+   * Parameters:
+   * 0: the name of the extension method that is undefined
+   * 1: the name of the extension that was explicitly specified
+   */
+  static const CompileTimeErrorCode UNDEFINED_EXTENSION_METHOD =
+      const CompileTimeErrorCode('UNDEFINED_EXTENSION_METHOD',
+          "The extension method '{0}' isn't defined for the extension '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing method, or "
+              "defining an extension method named '{0}'.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
    * <i>1<=i<=l</i>, must have a corresponding named parameter in the set
    * {<i>p<sub>n+1</sub></i> ... <i>p<sub>n+k</sub></i>} or a static warning
