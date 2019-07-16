@@ -950,6 +950,9 @@ class _WebSocketConsumer implements StreamConsumer {
   void add(data) {
     if (_closed) return;
     _ensureController();
+    // Stop sending message if _controller has been closed.
+    // https://github.com/dart-lang/sdk/issues/37441
+    if (_controller.isClosed) return;
     _controller.add(data);
   }
 
