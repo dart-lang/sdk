@@ -175,6 +175,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.INVALID_ANNOTATION_GETTER,
   CompileTimeErrorCode.INVALID_CONSTANT,
   CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
+  CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
   CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
   CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,

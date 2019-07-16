@@ -67,6 +67,8 @@ import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
+import 'invalid_extension_argument_count_test.dart'
+    as invalid_extension_argument_count;
 import 'invalid_factory_annotation_test.dart' as invalid_factory_annotation;
 import 'invalid_factory_method_impl_test.dart' as invalid_factory_method_impl;
 import 'invalid_immutable_annotation_test.dart' as invalid_immutable_annotation;
@@ -262,6 +264,7 @@ main() {
     import_deferred_library_with_load_function.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
+    invalid_extension_argument_count.main();
     invalid_factory_annotation.main();
     invalid_factory_method_impl.main();
     invalid_immutable_annotation.main();

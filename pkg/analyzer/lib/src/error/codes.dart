@@ -1697,6 +1697,16 @@ class CompileTimeErrorCode extends ErrorCode {
           'INVALID_CONSTRUCTOR_NAME', "Invalid constructor name.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode INVALID_EXTENSION_ARGUMENT_COUNT =
+      const CompileTimeErrorCode(
+          'INVALID_EXTENSION_ARGUMENT_COUNT',
+          "Extension overrides must have exactly one argument: "
+              "the value of 'this' in the extension method.",
+          correction: "Try specifying exactly one argument.");
+
+  /**
    * 7.6.2 Factories: It is a compile-time error if <i>M</i> is not the name of
    * the immediately enclosing class.
    */

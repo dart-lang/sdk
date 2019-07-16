@@ -707,6 +707,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    int argCount = node.argumentList.arguments.length;
+    if (argCount != 1) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+          node.argumentList);
+    }
+    super.visitExtensionOverride(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
