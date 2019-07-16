@@ -21,9 +21,5 @@ class NotA extends core::Object {
 static method myF() → self::NotA
   return null;
 static method main() → dynamic {
-  dynamic x = new self::C::•<dynamic>(#C1);
-}
-
-constants  {
-  #C1 = tearoff self::myF
+  dynamic x = new self::C::•<dynamic>(self::myF);
 }

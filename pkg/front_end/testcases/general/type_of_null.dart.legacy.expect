@@ -11,8 +11,8 @@ static method main() → dynamic {
   self::map<dynamic>(() → dynamic {}, () → dynamic => throw "hello");
   self::map<dynamic>(() → dynamic => throw "hello", () → dynamic {});
   () → core::Null f = () → dynamic {};
-  self::map<dynamic>(#C1, () → dynamic => throw "hello");
-  self::map<dynamic>(() → dynamic => throw "hello", #C1);
+  self::map<dynamic>(self::foo, () → dynamic => throw "hello");
+  self::map<dynamic>(() → dynamic => throw "hello", self::foo);
   self::map<dynamic>(() → dynamic {
     return null;
   }, () → dynamic => throw "hello");
@@ -20,8 +20,4 @@ static method main() → dynamic {
     return null;
   });
   self::id<dynamic>(() → dynamic {});
-}
-
-constants  {
-  #C1 = tearoff self::foo
 }

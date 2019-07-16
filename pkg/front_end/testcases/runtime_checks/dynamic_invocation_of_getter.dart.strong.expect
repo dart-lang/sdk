@@ -13,10 +13,6 @@ static method g(self::C c) → void {
 }
 static method h(core::int i) → void {}
 static method test() → void {
-  self::g(new self::C::•(#C1));
+  self::g(new self::C::•(self::h));
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = tearoff self::h
-}

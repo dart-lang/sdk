@@ -7,11 +7,7 @@ static method main() → dynamic {
     f.call(a: "Hello, World");
     f.call();
   }
-  local.call(({dynamic a = #C1}) → dynamic {
+  local.call(({dynamic a = "Default greeting!"}) → dynamic {
     core::print(a);
   });
-}
-
-constants  {
-  #C1 = "Default greeting!"
 }

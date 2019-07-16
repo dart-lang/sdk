@@ -21,9 +21,5 @@ class B<T extends core::Object = dynamic> extends self::A {
     return "${self::B::T}";
 }
 static method main() → void {
-  exp::Expect::equals("${#C1}", "String");
-}
-
-constants  {
-  #C1 = self::B<core::String> {}
+  exp::Expect::equals("${const self::B::•<core::String>()}", "String");
 }

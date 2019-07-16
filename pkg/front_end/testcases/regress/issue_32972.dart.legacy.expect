@@ -46,20 +46,13 @@ static method foo<X extends core::Object = dynamic>(self::foo::X i) → void {
   core::print(i);
 }
 static method main() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), core::List::unmodifiable<dynamic>(<dynamic>["hello world"]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3)));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), core::List::unmodifiable<dynamic>(<dynamic>["hello world"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   self::foo<core::String>("hello world");
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::int, core::int]), core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(#C3)));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#foo, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::int, core::int]), core::List::unmodifiable<dynamic>(<dynamic>[42]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   self::Foo::foo<core::int>(42);
   self::Foo f = new self::Foo::•();
   f.bar<core::double, core::double>(42.42);
   f.bar<core::double>(42.42);
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C4, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), #C2, core::Map::unmodifiable<core::Symbol, dynamic>(#C3)));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   new self::Bar::•<core::String, core::String>();
-}
-
-constants  {
-  #C1 = #foo
-  #C2 = <dynamic>[]
-  #C3 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C2}
-  #C4 = #
 }

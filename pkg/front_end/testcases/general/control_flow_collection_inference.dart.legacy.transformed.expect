@@ -1784,7 +1784,7 @@ class B extends self::A {
   get foo() → core::int
     return 42;
 }
-static method oracle<T extends core::Object = dynamic>([self::oracle::T t = #C1]) → dynamic
+static method oracle<T extends core::Object = dynamic>([self::oracle::T t = null]) → dynamic
   return true;
 static method testIfElement(dynamic dynVar, core::List<core::int> listInt, core::List<core::double> listDouble, core::Map<core::String, core::int> mapToInt, core::Map<core::String, core::double> mapToDouble) → dynamic {
   dynamic list10 = <dynamic>[];
@@ -2057,7 +2057,3 @@ static method testPromotion(self::A a) → dynamic {
   core::Map<core::int, core::int> map10 = <dynamic, dynamic>{};
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

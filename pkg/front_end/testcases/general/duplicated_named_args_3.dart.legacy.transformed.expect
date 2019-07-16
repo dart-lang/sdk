@@ -6,13 +6,9 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  static method m({core::int a = #C1}) → dynamic {}
+  static method m({core::int a = 0}) → dynamic {}
 }
 static method test() → void {
   self::C::m(a: 1, a: 2, a: 3);
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = 0
-}

@@ -12,13 +12,9 @@ class C extends core::Object implements self::I {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method call([core::int x = #C1]) → void {}
+  method call([core::int x = null]) → void {}
 }
 static method main() → dynamic {
   self::I i = new self::C::•();
   ([core::int]) → void f = (let final self::I #t1 = i in #t1.==(null) ?{() → void} null : #t1.{self::I::call}) as{TypeError} ([core::int]) → void;
-}
-
-constants  {
-  #C1 = null
 }

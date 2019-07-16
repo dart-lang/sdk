@@ -32,13 +32,6 @@ class C extends core::Iterable<core::Object> {
     ;
 }
 static method test() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C4: "fisk"})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#print, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#incorrectArgument: "fisk"})));
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #print
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = #incorrectArgument
-}

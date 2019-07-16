@@ -18,12 +18,8 @@ Try changing the type of the parameter, or casting the argument to 'T'.
   Foo.from(String _init) : this._internal(x: _init);
                                              ^" in _init as{TypeError} <BottomType>)
     ;
-  constructor _internal({self::Foo::T x = #C1}) → self::Foo<self::Foo::T>
+  constructor _internal({self::Foo::T x = null}) → self::Foo<self::Foo::T>
     : self::Foo::x = x, super core::Object::•()
     ;
 }
 static method main() → void {}
-
-constants  {
-  #C1 = null
-}

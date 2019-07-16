@@ -6,9 +6,5 @@ static method f<S extends core::Object = dynamic, T extends core::Object = dynam
   return null;
 static method main() → dynamic {
   core::String x = self::f<core::int, core::String>(42);
-  core::String y = (#C1).call<core::int, core::String>(42);
-}
-
-constants  {
-  #C1 = tearoff self::f
+  core::String y = self::f.call<core::int, core::String>(42);
 }

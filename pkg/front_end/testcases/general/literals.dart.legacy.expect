@@ -27,9 +27,9 @@ static method testMap() → dynamic {
   core::print(<dynamic, dynamic>{"a": "b"});
 }
 static method testSymbol() → dynamic {
-  core::print(#C1);
-  core::print(#C2);
-  core::print(#C3);
+  core::print(#fisk);
+  core::print(#_fisk);
+  core::print(#fisk.hest.ko);
 }
 static method main() → dynamic {
   self::testString();
@@ -40,10 +40,4 @@ static method main() → dynamic {
   self::testList();
   self::testMap();
   self::testSymbol();
-}
-
-constants  {
-  #C1 = #fisk
-  #C2 = #org-dartlang-testcase:///literals.dart::_fisk
-  #C3 = #fisk.hest.ko
 }

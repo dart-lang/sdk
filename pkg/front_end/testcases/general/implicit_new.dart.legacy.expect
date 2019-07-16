@@ -38,8 +38,8 @@ class IndexTester extends core::Object {
   operator []=(dynamic _a, dynamic _b) → void {}
 }
 static method testNSM() → dynamic {
-  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bar, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 static method f(dynamic x) → dynamic
   return x;
@@ -69,11 +69,4 @@ static method main() → dynamic {
   new self::Foo::•().+(new self::Bar::named());
   new self::Bar::named().+(new self::Foo::•());
   new self::Bar::named().+(new self::Foo::•());
-}
-
-constants  {
-  #C1 = #Bar
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
 }

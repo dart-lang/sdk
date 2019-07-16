@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field dynamic x = self::run<dynamic>(#C1);
+static field dynamic x = self::run<dynamic>(self::printRunning);
 static method run<T extends core::Object = dynamic>(() → self::run::T f) → self::run::T {
   core::print("running");
   dynamic t = f.call();
@@ -22,8 +22,4 @@ static method main() → dynamic {
   x = "hi";
   y = 123;
   y = "hi";
-}
-
-constants  {
-  #C1 = tearoff self::printRunning
 }

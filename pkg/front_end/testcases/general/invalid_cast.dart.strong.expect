@@ -130,12 +130,12 @@ Change the type of the object being constructed or the context in which it is us
  - 'Object' is from 'dart:core'.
 Change the type of the method or the context in which it is used.
   void Function(Object) i = C.staticFunction;
-                              ^" in #C1;
+                              ^" in self::C::staticFunction;
   (core::Object) → void j = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:29:29: Error: The top level function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
   void Function(Object) j = topLevelFunction;
-                            ^" in #C2;
+                            ^" in self::topLevelFunction;
   (core::Object) → void k = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:30:29: Error: The local function has type 'void Function(int)' that isn't of expected type 'void Function(Object)'.
  - 'Object' is from 'dart:core'.
 Change the type of the function or the context in which it is used.
@@ -152,13 +152,8 @@ static method ok() → dynamic {
   self::D f = new self::D::•() as{TypeError} self::D;
   self::C g = new self::C::nonFact();
   self::C h = new self::C::nonFact2();
-  (core::int) → void i = #C1;
-  (core::int) → void j = #C2;
+  (core::int) → void i = self::C::staticFunction;
+  (core::int) → void j = self::topLevelFunction;
   (core::int) → void k = localFunction;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = tearoff self::C::staticFunction
-  #C2 = tearoff self::topLevelFunction
-}

@@ -35,19 +35,10 @@ class ExistingClass extends core::Object {
     ;
 }
 static method main() → dynamic {
-  dynamic x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-}
-
-constants  {
-  #C1 = #ExistingClass.nonExistingConstructor
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-  #C5 = #ExistingClass
-  #C6 = #NonExistingClass
+  dynamic x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#ExistingClass.nonExistingConstructor, 32, core::List::unmodifiable<dynamic>(<core::Type>[core::String, core::String]), const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#NonExistingClass, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }

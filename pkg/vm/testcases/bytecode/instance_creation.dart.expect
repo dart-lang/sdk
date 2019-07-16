@@ -728,11 +728,11 @@ ConstantPool {
     constructor •(dynamic param) → #lib::I
       : super dart.core::Object::•()
       ;
-    static factory test_factory2({dynamic param = #C1}) → #lib::I
+    static factory test_factory2({dynamic param = null}) → #lib::I
       return new #lib::I::•(param);
   }
   class J extends dart.core::Object {
-    @#C3
+    @dart._internal::ExternalName::•("agent_J")
     external static factory •() → #lib::J;
   }
   abstract class K<A extends dart.core::Object = dynamic, B extends dart.core::Object = dynamic> extends dart.core::Object {
@@ -769,9 +769,4 @@ ConstantPool {
     #lib::foo2();
     #lib::foo3<dart.core::String>();
   }
-}
-constants  {
-  #C1 = null
-  #C2 = "agent_J"
-  #C3 = dart._internal::ExternalName {name:#C2}
 }

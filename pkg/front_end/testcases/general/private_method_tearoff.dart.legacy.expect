@@ -10,7 +10,7 @@ class Foo extends core::Object implements pri::Bar {
     : super core::Object::•()
     ;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_method_tearoff_lib.dart */ _f() → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#_f, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class Baz extends self::Foo {
   synthetic constructor •() → self::Baz
@@ -33,11 +33,4 @@ class Bar extends core::Object {
 }
 static method baz(pri::Bar bar) → void {
   core::print("${bar._f.runtimeType}");
-}
-
-constants  {
-  #C1 = #org-dartlang-testcase:///private_method_tearoff.dart::_f
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
 }

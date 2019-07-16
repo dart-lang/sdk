@@ -32,11 +32,6 @@ static method escape(dynamic fn) → void {
 static method main() → dynamic {
   self::foo(new self::Foo::•());
   self::bar(new self::Bar::•());
-  self::escape(#C1);
-  self::escape(#C2);
-}
-
-constants  {
-  #C1 = tearoff self::foo_escaped
-  #C2 = tearoff self::bar_escaped
+  self::escape(self::foo_escaped);
+  self::escape(self::bar_escaped);
 }

@@ -13,7 +13,7 @@ static method test(self::C<core::int> x) → void {
   #L1:
   switch(x) {
     #L2:
-    case #C1:
+    case const self::C::•<dynamic>():
       {
         dynamic y = 0;
         break #L1;
@@ -27,7 +27,3 @@ static method test(self::C<core::int> x) → void {
   }
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = self::C<dynamic> {}
-}

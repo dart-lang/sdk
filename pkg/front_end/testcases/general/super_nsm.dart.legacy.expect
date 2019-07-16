@@ -15,7 +15,7 @@ class C extends core::Object implements self::I {
   method noSuchMethod(core::Invocation _) → dynamic
     return "C";
   no-such-method-forwarder method interfaceMethod() → dynamic
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))) as{TypeError} dynamic;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
 }
 class D extends self::C {
   synthetic constructor •() → self::D
@@ -30,11 +30,4 @@ static method main() → dynamic {
   dynamic result = new self::D::•().dMethod();
   if(!result.==("D"))
     throw "Expected 'D' but got: '${result}'";
-}
-
-constants  {
-  #C1 = #interfaceMethod
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
 }

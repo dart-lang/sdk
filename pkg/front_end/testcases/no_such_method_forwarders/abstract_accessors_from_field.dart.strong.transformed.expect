@@ -15,9 +15,9 @@ class A extends core::Object implements self::I {
   method noSuchMethod(core::Invocation i) → dynamic
     return "bar";
   no-such-method-forwarder get foo() → core::int
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))) as{TypeError} core::int;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} core::int;
   no-such-method-forwarder set foo(core::int value) → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#foo=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class B extends self::A {
   synthetic constructor •() → self::B
@@ -36,12 +36,4 @@ static method main() → dynamic {
   self::A a = new self::A::•();
   self::expectTypeError(() → core::int => a.{self::I::foo});
   self::expectTypeError(() → core::String => (a as dynamic).foo = "bar");
-}
-
-constants  {
-  #C1 = #foo
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-  #C5 = #foo=
 }

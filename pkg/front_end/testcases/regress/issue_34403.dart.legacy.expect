@@ -107,10 +107,14 @@ static method main() → dynamic {
   c3.toString();
   dynamic c4 = new self::C::bar<core::String>();
   c4.toString();
-  (#C1).toString();
-  (#C1).toString();
-  (#C2).toString();
-  (#C2).toString();
+  const dynamic d1 = const self::D::foo<core::int>();
+  d1.toString();
+  const dynamic d2 = const self::D::foo<core::int>();
+  d2.toString();
+  const dynamic d3 = const self::D::foo<core::String>();
+  d3.toString();
+  const dynamic d4 = const self::D::foo<core::String>();
+  d4.toString();
   dynamic e1 = new iss::E::bar<core::int>();
   e1.toString();
   dynamic e2 = new iss::E::bar<dynamic>();
@@ -119,10 +123,14 @@ static method main() → dynamic {
   e3.toString();
   dynamic e4 = new iss::E::bar<core::String>();
   e4.toString();
-  (#C3).toString();
-  (#C4).toString();
-  (#C5).toString();
-  (#C5).toString();
+  const dynamic f1 = const iss::F::foo<core::int>();
+  f1.toString();
+  const dynamic f2 = const iss::F::foo<dynamic>();
+  f2.toString();
+  const dynamic f3 = const iss::F::foo<core::String>();
+  f3.toString();
+  const dynamic f4 = const iss::F::foo<core::String>();
+  f4.toString();
 }
 
 library;
@@ -138,12 +146,4 @@ class F<T extends core::Object = dynamic> extends core::Object {
   const constructor foo() → iss::F<iss::F::T>
     : super core::Object::•()
     ;
-}
-
-constants  {
-  #C1 = self::D<core::int> {}
-  #C2 = self::D<core::String> {}
-  #C3 = iss::F<core::int> {}
-  #C4 = iss::F<dynamic> {}
-  #C5 = iss::F<core::String> {}
 }

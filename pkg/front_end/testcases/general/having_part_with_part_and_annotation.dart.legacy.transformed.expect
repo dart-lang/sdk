@@ -11,15 +11,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-@#C1
+@self::Foo
 part having_part_with_part_and_annotation_lib1.dart;
-static const field core::int Foo = #C1;
-static const field core::int Bar = #C2 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
+static const field core::int Foo = 42;
+static const field core::int Bar = 43 /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */;
 static method fromMain() → void {}
 static method main() → dynamic {}
 static method /* from org-dartlang-testcase:///having_part_with_part_and_annotation_lib1.dart */ fromLib1() → void {}
-
-constants  {
-  #C1 = 42
-  #C2 = 43
-}

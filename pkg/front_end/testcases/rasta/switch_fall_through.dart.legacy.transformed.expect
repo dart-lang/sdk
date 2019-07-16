@@ -29,7 +29,7 @@ static method main() → dynamic {
   #L1:
   switch(1) {
     #L2:
-    case #C1:
+    case 1:
       {
         {
           "No fall-through error needed.";
@@ -39,7 +39,7 @@ static method main() → dynamic {
         throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 7);
       }
     #L3:
-    case #C2:
+    case 2:
       {
         {
           "Fall-through error needed.";
@@ -50,7 +50,7 @@ static method main() → dynamic {
         throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 13);
       }
     #L4:
-    case #C3:
+    case 3:
       {
         try {
           "No fall-through error needed.";
@@ -61,7 +61,7 @@ static method main() → dynamic {
         throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 20);
       }
     #L5:
-    case #C4:
+    case 4:
       {
         try {
           "No fall-through error needed.";
@@ -72,7 +72,7 @@ static method main() → dynamic {
         throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 26);
       }
     #L6:
-    case #C5:
+    case 5:
       {
         try {
           "Fall-through error needed.";
@@ -82,18 +82,9 @@ static method main() → dynamic {
         throw new core::FallThroughError::_create("org-dartlang-testcase:///switch_fall_through.dart", 31);
       }
     #L7:
-    case #C6:
+    case 10000:
       {
         "Should be last. No fall-through error, falling through allowed here.";
       }
   }
-}
-
-constants  {
-  #C1 = 1
-  #C2 = 2
-  #C3 = 3
-  #C4 = 4
-  #C5 = 5
-  #C6 = 10000
 }

@@ -1,6 +1,7 @@
 library test;
 import self as self;
 import "dart:core" as core;
+import "dart:math" as math;
 
 import "dart:math" as math;
 import "dart:math";
@@ -13,34 +14,34 @@ class C extends core::Object {
     return null;
 }
 static method test() → dynamic {
-  self::takeIII(#C1);
-  self::takeDDD(#C1);
-  self::takeNNN(#C1);
-  self::takeIDN(#C1);
-  self::takeDIN(#C1);
-  self::takeIIN(#C1);
-  self::takeDDN(#C1);
-  self::takeIIO(#C1);
-  self::takeDDO(#C1);
-  self::takeOOI(#C1);
-  self::takeIDI(#C1);
-  self::takeDID(#C1);
-  self::takeOON(#C1);
-  self::takeOOO(#C1);
-  self::takeIII(#C2);
-  self::takeDDD(#C2);
-  self::takeNNN(#C2);
-  self::takeIDN(#C2);
-  self::takeDIN(#C2);
-  self::takeIIN(#C2);
-  self::takeDDN(#C2);
-  self::takeIIO(#C2);
-  self::takeDDO(#C2);
-  self::takeOOI(#C2);
-  self::takeIDI(#C2);
-  self::takeDID(#C2);
-  self::takeOON(#C2);
-  self::takeOOO(#C2);
+  self::takeIII(math::max);
+  self::takeDDD(math::max);
+  self::takeNNN(math::max);
+  self::takeIDN(math::max);
+  self::takeDIN(math::max);
+  self::takeIIN(math::max);
+  self::takeDDN(math::max);
+  self::takeIIO(math::max);
+  self::takeDDO(math::max);
+  self::takeOOI(math::max);
+  self::takeIDI(math::max);
+  self::takeDID(math::max);
+  self::takeOON(math::max);
+  self::takeOOO(math::max);
+  self::takeIII(math::min);
+  self::takeDDD(math::min);
+  self::takeNNN(math::min);
+  self::takeIDN(math::min);
+  self::takeDIN(math::min);
+  self::takeIIN(math::min);
+  self::takeDDN(math::min);
+  self::takeIIO(math::min);
+  self::takeDDO(math::min);
+  self::takeOOI(math::min);
+  self::takeIDI(math::min);
+  self::takeDID(math::min);
+  self::takeOON(math::min);
+  self::takeOOO(math::min);
   self::takeIII(new self::C::•().m);
   self::takeDDD(new self::C::•().m);
   self::takeNNN(new self::C::•().m);
@@ -71,8 +72,3 @@ static method takeOOI((core::Object, core::Object) → core::int fn) → void {}
 static method takeIIO((core::int, core::int) → core::Object fn) → void {}
 static method takeDDO((core::double, core::double) → core::Object fn) → void {}
 static method main() → dynamic {}
-
-constants  {
-  #C1 = tearoff math::max
-  #C2 = tearoff math::min
-}

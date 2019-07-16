@@ -7,7 +7,7 @@ class F0 extends core::Object {
     : super core::Object::•() {}
 }
 class F1 extends core::Object {
-  constructor •({core::List<core::int> a = #C1}) → self::F1
+  constructor •({core::List<core::int> a = null}) → self::F1
     : super core::Object::•() {}
 }
 class F2 extends core::Object {
@@ -19,7 +19,7 @@ class F3 extends core::Object {
     : super core::Object::•() {}
 }
 class F4 extends core::Object {
-  constructor •({core::Iterable<core::Iterable<core::int>> a = #C1}) → self::F4
+  constructor •({core::Iterable<core::Iterable<core::int>> a = null}) → self::F4
     : super core::Object::•() {}
 }
 static method test() → void {
@@ -45,7 +45,3 @@ static method test() → void {
   new self::F4::•(a: <dynamic>[<dynamic>["hello"], <dynamic>[3]]);
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

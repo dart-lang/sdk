@@ -17,11 +17,7 @@ class Hest extends core::Object implements self::Bar {
   synthetic constructor •() → self::Hest
     : super core::Object::•()
     ;
-  @#C1
+  @core::override
   method fisk<U extends self::Foo<self::Hest::fisk::U> = self::Foo<dynamic>>() → void {}
 }
 static method main() → void {}
-
-constants  {
-  #C1 = core::_Override {}
-}

@@ -11,7 +11,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///part_not_part_of_lib2.dart";
 
-@#C1
+@core::override
 part part_not_part_of_lib1.dart;
 static method main() → dynamic {}
 
@@ -29,7 +29,3 @@ library;
 import self as par;
 
 static method methodFromLib1() → dynamic {}
-
-constants  {
-  #C1 = core::_Override {}
-}

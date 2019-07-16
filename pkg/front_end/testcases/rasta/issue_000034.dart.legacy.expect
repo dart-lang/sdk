@@ -22,7 +22,5 @@ class C extends core::Object {
     ;
 }
 static method main() → dynamic {
-  invalid-expression "pkg/front_end/testcases/rasta/issue_000034.dart:6:15: Error: This couldn't be parsed.
-  const C() : this.x;
-              ^";
+  const self::C::•();
 }

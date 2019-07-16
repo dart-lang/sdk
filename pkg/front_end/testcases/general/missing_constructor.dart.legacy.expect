@@ -36,18 +36,18 @@ class Super extends core::Object {
 }
 class Sub extends self::Super {
   constructor •() → self::Sub
-    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t1 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
   constructor foo() → self::Sub
-    : final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super.foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
 }
 class Bad extends core::Object {
   constructor foo() → self::Bad
-    : final dynamic #t3 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C6, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t3 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bad, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
   constructor bar() → self::Bad
-    : final dynamic #t4 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t4 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Bad.baz, 32, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
 }
 class M extends core::Object {
@@ -62,20 +62,10 @@ abstract class _MixinApplication&Super&M = self::Super with self::M {
 }
 class MixinApplication extends self::_MixinApplication&Super&M {
   constructor •() → self::MixinApplication
-    : final dynamic #t5 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t5 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
   constructor foo() → self::MixinApplication
-    : final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C5, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))
+    : final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#Super.foo, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #Super
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-  #C5 = #Super.foo
-  #C6 = #Bad
-  #C7 = #Bad.baz
-}

@@ -4,27 +4,14 @@ import "dart:core" as core;
 import "dart:_internal" as _in;
 
 class Bar extends core::Object {
-  @#C2
+  @_in::ExternalName::•("Bar_get_x")
   external get x() → self::Bar;
-  @#C4
+  @_in::ExternalName::•("Bar_set_x")
   external set x(self::Bar value) → void;
-  @#C6
+  @_in::ExternalName::•("Bar_f")
   external method f() → dynamic;
-  @#C8
+  @_in::ExternalName::•("Bar_constructor")
   external static factory •() → self::Bar;
 }
-@#C10
+@_in::ExternalName::•("foo")
 external static method foo() → dynamic;
-
-constants  {
-  #C1 = "Bar_get_x"
-  #C2 = _in::ExternalName {name:#C1}
-  #C3 = "Bar_set_x"
-  #C4 = _in::ExternalName {name:#C3}
-  #C5 = "Bar_f"
-  #C6 = _in::ExternalName {name:#C5}
-  #C7 = "Bar_constructor"
-  #C8 = _in::ExternalName {name:#C7}
-  #C9 = "foo"
-  #C10 = _in::ExternalName {name:#C9}
-}

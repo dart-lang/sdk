@@ -25,7 +25,7 @@ class Y2 extends self::Y1 {
   synthetic constructor •() → self::Y2
     : super self::Y1::•()
     ;
-  @#C1
+  @core::override
   get native() → core::String
     return "getter";
 }
@@ -42,8 +42,4 @@ static method main() → dynamic {
   core::print(new self::X::•().native());
   core::print(new self::Y2::•().native);
   core::print((let final dynamic #t1 = new self::Z::•() in let final dynamic #t2 = #t1.native = "setter" in #t1).f);
-}
-
-constants  {
-  #C1 = core::_Override {}
 }

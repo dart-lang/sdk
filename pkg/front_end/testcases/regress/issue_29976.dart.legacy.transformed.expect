@@ -43,12 +43,5 @@ import "dart:core" as core;
 static get x() → dynamic
   return null;
 static method main() → void {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, core::List::unmodifiable<dynamic>(<dynamic>["x${self::x.*("'")}"]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-}
-
-constants  {
-  #C1 = #f
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#f, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["x${self::x.*("'")}"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }

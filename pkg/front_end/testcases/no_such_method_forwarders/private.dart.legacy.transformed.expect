@@ -17,7 +17,7 @@ class Bar extends self::Foo implements pri::Fisk {
     : super self::Foo::•()
     ;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class Baz extends self::Foo implements pri::Fisk {
   synthetic constructor •() → self::Baz
@@ -26,7 +26,7 @@ class Baz extends self::Foo implements pri::Fisk {
   method _hest() → dynamic
     return null;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 static method main() → dynamic {}
 
@@ -41,10 +41,3 @@ abstract class Fisk extends core::Object {
   abstract method _hest() → void;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #org-dartlang-testcase:///private.dart::_hest
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-}

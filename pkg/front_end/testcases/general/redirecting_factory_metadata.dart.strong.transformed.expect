@@ -7,17 +7,11 @@ class Foo extends core::Object {
   constructor named(dynamic p) → self::Foo
     : super core::Object::•()
     ;
-  @#C1
-  static factory •(@#C2 @#C3 dynamic p) → self::Foo
+  @self::forFactoryItself
+  static factory •(@self::forParameter @self::anotherForParameter dynamic p) → self::Foo
     let<BottomType> #redirecting_factory = self::Foo::named in invalid-expression;
 }
-static const field core::int forParameter = #C2;
-static const field core::int forFactoryItself = #C1;
-static const field core::int anotherForParameter = #C3;
+static const field core::int forParameter = 1;
+static const field core::int forFactoryItself = 2;
+static const field core::int anotherForParameter = 3;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = 2
-  #C2 = 1
-  #C3 = 3
-}

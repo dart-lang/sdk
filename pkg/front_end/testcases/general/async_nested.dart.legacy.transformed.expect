@@ -8,7 +8,7 @@ import "dart:async";
 class Node extends core::Object {
   final field core::List<self::Node> nested;
   final field core::String name;
-  constructor •(core::String name, [core::List<self::Node> nested = #C1]) → self::Node
+  constructor •(core::String name, [core::List<self::Node> nested = null]) → self::Node
     : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
   method toString() → core::String
     return "<${this.{self::Node::name}}:[${let final dynamic #t1 = this.{self::Node::nested} in #t1.==(null) ? null : #t1.join(", ")}]>";
@@ -63,8 +63,4 @@ static method main() → void /* originally async */ {
   :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
   :async_completer.start(:async_op);
   return :async_completer.{asy::Completer::future};
-}
-
-constants  {
-  #C1 = null
 }

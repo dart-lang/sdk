@@ -130,8 +130,8 @@ static method main() → dynamic {
   #L3:
   switch(1) {
     #L4:
-    case #C1:
-    case #C2:
+    case 1:
+    case 2:
       {
         core::print("Hello from switch case!");
         break #L3;
@@ -145,25 +145,25 @@ static method main() → dynamic {
   #L6:
   switch(4) {
     #L7:
-    case #C2:
+    case 2:
       {
         core::print("Hello from case 2!");
         break #L6;
       }
     #L8:
-    case #C1:
+    case 1:
       {
         core::print("Hello from case 1!");
         continue #L7;
       }
     #L9:
-    case #C3:
+    case 0:
       {
         core::print("Hello from case 0!");
         continue #L8;
       }
     #L10:
-    case #C4:
+    case 4:
       {
         core::print("Hello from case 4!");
         continue #L11;
@@ -177,7 +177,7 @@ static method main() → dynamic {
   #L12:
   switch(4) {
     #L13:
-    case #C1:
+    case 1:
       {
         core::print("Hello from next case 1");
         break #L12;
@@ -209,11 +209,4 @@ static method main() → dynamic {
         break #L18;
       break #L17;
     }
-}
-
-constants  {
-  #C1 = 1
-  #C2 = 2
-  #C3 = 0
-  #C4 = 4
 }

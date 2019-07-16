@@ -6,11 +6,7 @@ typedef _NullaryFunction = () → dynamic;
 typedef _UnaryFunction = (dynamic) → dynamic;
 typedef _BinaryFunction = (dynamic, dynamic) → dynamic;
 static method main() → dynamic {
-  core::print((#C1) is () → dynamic);
-  core::print((#C1) is (dynamic) → dynamic);
-  core::print((#C1) is (dynamic, dynamic) → dynamic);
-}
-
-constants  {
-  #C1 = tearoff self::main
+  core::print(self::main is () → dynamic);
+  core::print(self::main is (dynamic) → dynamic);
+  core::print(self::main is (dynamic, dynamic) → dynamic);
 }

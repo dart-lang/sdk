@@ -11,8 +11,8 @@ static method main() → dynamic {
   self::map<core::Null>(() → core::Null {}, () → <BottomType>=> throw "hello");
   self::map<core::Null>(() → <BottomType>=> throw "hello", () → core::Null {});
   () → core::Null f = () → core::Null {};
-  self::map<core::Null>(#C1, () → <BottomType>=> throw "hello");
-  self::map<core::Null>(() → <BottomType>=> throw "hello", #C1);
+  self::map<core::Null>(self::foo, () → <BottomType>=> throw "hello");
+  self::map<core::Null>(() → <BottomType>=> throw "hello", self::foo);
   self::map<core::Null>(() → core::Null {
     return null;
   }, () → <BottomType>=> throw "hello");
@@ -20,8 +20,4 @@ static method main() → dynamic {
     return null;
   });
   self::id<() → core::Null>(() → core::Null {});
-}
-
-constants  {
-  #C1 = tearoff self::foo
 }

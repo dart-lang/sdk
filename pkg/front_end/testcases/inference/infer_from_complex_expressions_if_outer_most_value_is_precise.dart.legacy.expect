@@ -27,9 +27,9 @@ class B extends self::A {
     ;
 }
 static field dynamic a = new self::A::•();
-static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))));
-static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))];
-static field dynamic c2 = #C3;
+static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#x, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))];
+static field dynamic c2 = const <dynamic>[];
 static field dynamic d = <dynamic, dynamic>{"a": "b"};
 static field dynamic e = let final dynamic #t1 = new self::A::•() in let final dynamic #t2 = #t1.x = 3 in #t1;
 static field dynamic f = 2.+(3);
@@ -62,10 +62,3 @@ static method test1() → dynamic {
   self::j = <dynamic>[];
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #x
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-}

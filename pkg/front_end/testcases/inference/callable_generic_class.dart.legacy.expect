@@ -6,7 +6,7 @@ class ActionDispatcher<P extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::ActionDispatcher<self::ActionDispatcher::P>
     : super core::Object::•()
     ;
-  method call([generic-covariant-impl self::ActionDispatcher::P value = #C1]) → void {}
+  method call([generic-covariant-impl self::ActionDispatcher::P value = null]) → void {}
 }
 class Bar extends core::Object {
   synthetic constructor •() → self::Bar
@@ -24,8 +24,4 @@ static method main() → void {
   new self::FooActions::•().foo(new self::Bar::•());
   new self::FooActions::•().foo.call(new self::Bar::•());
   new self::FooActions::•().foo.call(new self::Bar::•());
-}
-
-constants  {
-  #C1 = null
 }

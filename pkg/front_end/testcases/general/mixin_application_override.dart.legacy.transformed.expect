@@ -129,7 +129,7 @@ class S extends core::Object {
   synthetic constructor •() → self::S
     : super core::Object::•()
     ;
-  method foo([dynamic x = #C1]) → dynamic {}
+  method foo([dynamic x = null]) → dynamic {}
 }
 class M extends core::Object {
   synthetic constructor •() → self::M
@@ -156,7 +156,7 @@ class A0 extends self::S implements self::M {
   synthetic constructor •() → self::A0
     : super self::S::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A1&S&M1 extends self::S implements self::M1 {
   synthetic constructor •() → self::_A1&S&M1
@@ -167,7 +167,7 @@ class A1 extends self::_A1&S&M1 implements self::M {
   synthetic constructor •() → self::A1
     : super self::_A1&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A2&S&M1 extends self::S implements self::M1 {
   synthetic constructor •() → self::_A2&S&M1
@@ -183,13 +183,13 @@ class A2 extends self::_A2&S&M1&M2 implements self::M {
   synthetic constructor •() → self::A2
     : super self::_A2&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _A0X&S&M extends self::S implements self::M {
   synthetic constructor •() → self::_A0X&S&M
     : super self::S::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class A0X extends self::_A0X&S&M implements self::MX {
   synthetic constructor •() → self::A0X
@@ -205,7 +205,7 @@ abstract class _A1X&S&M1&M extends self::_A1X&S&M1 implements self::M {
   synthetic constructor •() → self::_A1X&S&M1&M
     : super self::_A1X&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class A1X extends self::_A1X&S&M1&M implements self::MX {
   synthetic constructor •() → self::A1X
@@ -226,7 +226,7 @@ abstract class _A2X&S&M1&M2&M extends self::_A2X&S&M1&M2 implements self::M {
   synthetic constructor •() → self::_A2X&S&M1&M2&M
     : super self::_A2X&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class A2X extends self::_A2X&S&M1&M2&M implements self::MX {
   synthetic constructor •() → self::A2X
@@ -237,7 +237,7 @@ abstract class _B0&S&M extends self::S implements self::M {
   synthetic constructor •() → self::_B0&S&M
     : super self::S::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B0 extends self::_B0&S&M {
   synthetic constructor •() → self::B0
@@ -253,7 +253,7 @@ abstract class _B1&S&M1&M extends self::_B1&S&M1 implements self::M {
   synthetic constructor •() → self::_B1&S&M1&M
     : super self::_B1&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B1 extends self::_B1&S&M1&M {
   synthetic constructor •() → self::B1
@@ -274,7 +274,7 @@ abstract class _B2&S&M1&M2&M extends self::_B2&S&M1&M2 implements self::M {
   synthetic constructor •() → self::_B2&S&M1&M2&M
     : super self::_B2&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 class B2 extends self::_B2&S&M1&M2&M {
   synthetic constructor •() → self::B2
@@ -285,7 +285,7 @@ abstract class _B0X&S&M extends self::S implements self::M {
   synthetic constructor •() → self::_B0X&S&M
     : super self::S::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B0X&S&M&MX extends self::_B0X&S&M implements self::MX {
   synthetic constructor •() → self::_B0X&S&M&MX
@@ -306,7 +306,7 @@ abstract class _B1X&S&M1&M extends self::_B1X&S&M1 implements self::M {
   synthetic constructor •() → self::_B1X&S&M1&M
     : super self::_B1X&S&M1::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B1X&S&M1&M&MX extends self::_B1X&S&M1&M implements self::MX {
   synthetic constructor •() → self::_B1X&S&M1&M&MX
@@ -332,7 +332,7 @@ abstract class _B2X&S&M1&M2&M extends self::_B2X&S&M1&M2 implements self::M {
   synthetic constructor •() → self::_B2X&S&M1&M2&M
     : super self::_B2X&S&M1&M2::•()
     ;
-  abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
+  abstract forwarding-stub method foo([dynamic x = null]) → dynamic;
 }
 abstract class _B2X&S&M1&M2&M&MX extends self::_B2X&S&M1&M2&M implements self::MX {
   synthetic constructor •() → self::_B2X&S&M1&M2&M&MX
@@ -345,7 +345,3 @@ class B2X extends self::_B2X&S&M1&M2&M&MX {
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-}

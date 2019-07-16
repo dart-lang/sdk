@@ -2,37 +2,44 @@ library #lib;
 import self as self;
 import "dart:core" as core;
 
-@#C5
+@self::TypedefAnnotation::•(const <core::int>[1, 2, 3])
 typedef SomeType<T extends core::Object = dynamic> = (core::List<T>) → void;
 abstract class ClassAnnotation2 extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •() → self::ClassAnnotation2
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class MethodAnnotation extends core::Object {
-[@vm.unreachable.metadata=]  final field core::int x;
+[@vm.unreachable.metadata=]  const constructor •(core::int x) → self::MethodAnnotation
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class TypedefAnnotation extends core::Object {
-[@vm.unreachable.metadata=]  final field core::List<core::int> list;
+[@vm.unreachable.metadata=]  const constructor •(core::List<core::int> list) → self::TypedefAnnotation
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class VarAnnotation extends core::Object {
+[@vm.unreachable.metadata=]  const constructor •() → self::VarAnnotation
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class ParametrizedAnnotation<T extends core::Object = dynamic> extends core::Object {
-[@vm.unreachable.metadata=]  final field self::ParametrizedAnnotation::T foo;
+[@vm.unreachable.metadata=]  const constructor •(self::ParametrizedAnnotation::T foo) → self::ParametrizedAnnotation<self::ParametrizedAnnotation::T>
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 abstract class A extends core::Object {
   static method staticMethod() → void {}
 }
-@#C6
+@self::ClassAnnotation2::•()
 class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  @#C8
+[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  @self::MethodAnnotation::•(42)
   method instanceMethod() → void {}
 }
 static method foo([@vm.inferred-type.metadata=dart.core::Null?] (core::List<core::int>) → void a) → core::int {
-  @#C9 core::int x = 2;
-  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] x.{core::num::+}(2);
+  @self::VarAnnotation::•() core::int x = 2;
+  return [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int? (skip check)] x.{core::num::+}(2);
 }
-@#C11
+@self::ParametrizedAnnotation::•<core::Null>(null)
 static method main(core::List<core::String> args) → dynamic {
   self::A::staticMethod();
   [@vm.direct-call.metadata=#lib::B::instanceMethod] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::instanceMethod}();

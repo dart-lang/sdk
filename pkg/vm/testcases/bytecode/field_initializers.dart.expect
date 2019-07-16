@@ -253,7 +253,7 @@ ConstantPool {
   class B extends #lib::A {
     field dart.core::int foo6 = 46;
     static field dart.core::int foo7 = 47;
-    static const field dart.core::int foo8 = #C1;
+    static const field dart.core::int foo8 = 48;
     constructor •() → #lib::B
       : super #lib::A::•(49)
       ;
@@ -262,7 +262,4 @@ ConstantPool {
       ;
   }
   static method main() → dynamic {}
-}
-constants  {
-  #C1 = 48
 }

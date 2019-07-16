@@ -35,8 +35,8 @@ static method bad() → dynamic {
   self::D f = new self::D::•();
   self::D g = new self::C::nonFact();
   self::D h = new self::C::nonFact2();
-  (core::Object) → void i = #C1;
-  (core::Object) → void j = #C2;
+  (core::Object) → void i = self::C::staticFunction;
+  (core::Object) → void j = self::topLevelFunction;
   (core::Object) → void k = localFunction;
 }
 static method ok() → dynamic {
@@ -49,13 +49,8 @@ static method ok() → dynamic {
   self::D f = new self::D::•();
   self::C g = new self::C::nonFact();
   self::C h = new self::C::nonFact2();
-  (core::int) → void i = #C1;
-  (core::int) → void j = #C2;
+  (core::int) → void i = self::C::staticFunction;
+  (core::int) → void j = self::topLevelFunction;
   (core::int) → void k = localFunction;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = tearoff self::C::staticFunction
-  #C2 = tearoff self::topLevelFunction
-}

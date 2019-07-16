@@ -182,13 +182,13 @@ class MyClass extends self::B {
   method bMethod() → dynamic {}
   method cMethod() → dynamic {}
   no-such-method-forwarder get interfaceMethod1() → dynamic
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))) as{TypeError} dynamic;
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
   no-such-method-forwarder set property3(dynamic _) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set interfaceMethod1(dynamic value) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property1(dynamic _) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class MyMock1 extends self::B {
   synthetic constructor •() → self::MyMock1
@@ -197,21 +197,21 @@ class MyMock1 extends self::B {
   method noSuchMethod(core::Invocation _) → dynamic
     return null;
   no-such-method-forwarder method interfaceMethod2() → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod2, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder method abstractMethod() → dynamic
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))) as{TypeError} dynamic;
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#abstractMethod, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
   no-such-method-forwarder method interfaceMethod1() → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder method interfaceMethod3() → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C10, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod3, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property3(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set interfaceMethod1(dynamic value) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property1(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property2(dynamic _) → void
-    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock1::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class MyMock2 extends self::MyMock1 {
   synthetic constructor •() → self::MyMock2
@@ -225,15 +225,15 @@ class MyMock3 extends self::B {
     ;
   abstract method noSuchMethod(core::Invocation _) → dynamic;
   no-such-method-forwarder get interfaceMethod1() → dynamic
-    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))) as{TypeError} dynamic;
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1, 1, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) as{TypeError} dynamic;
   no-such-method-forwarder set property3(dynamic _) → void
-    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set interfaceMethod1(dynamic value) → void
-    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#interfaceMethod1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property1(dynamic _) → void
-    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
   no-such-method-forwarder set property2(dynamic _) → void
-    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+    return this.{self::MyMock3::noSuchMethod}(new core::_InvocationMirror::_withType(#property2=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
 }
 class C extends core::Object {
   synthetic constructor •() → self::C
@@ -294,17 +294,3 @@ abstract class J extends self::I implements self::Bar {
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #interfaceMethod1
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-  #C5 = #property3=
-  #C6 = #interfaceMethod1=
-  #C7 = #property1=
-  #C8 = #interfaceMethod2
-  #C9 = #abstractMethod
-  #C10 = #interfaceMethod3
-  #C11 = #property2=
-}

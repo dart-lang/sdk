@@ -26,14 +26,9 @@ static method test() → void {
   function h<T extends core::Object = dynamic>(T x) → T
     return x;
   (core::int) → core::int func;
-  func = #C1;
+  func = self::f;
   func = new self::C::•().f;
-  func = #C2;
+  func = self::C::g;
   func = h;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = tearoff self::f
-  #C2 = tearoff self::C::g
-}

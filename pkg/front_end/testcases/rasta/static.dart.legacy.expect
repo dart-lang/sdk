@@ -142,7 +142,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  static const field dynamic staticConstant = #C1;
+  static const field dynamic staticConstant = 42;
   static field dynamic staticField = 42;
   synthetic constructor •() → self::Foo
     : super core::Object::•()
@@ -158,79 +158,67 @@ static method use(dynamic x) → dynamic {
 }
 static method main() → dynamic {
   try {
-    #C1;
-    self::use(#C1);
+    self::Foo::staticConstant;
+    self::use(self::Foo::staticConstant);
     self::Foo::staticField;
     self::use(self::Foo::staticField);
-    #C2;
-    self::use(#C2);
+    self::Foo::staticFunction;
+    self::use(self::Foo::staticFunction);
     self::Foo::staticGetter;
     self::use(self::Foo::staticGetter);
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C1).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(let final dynamic #t1 = #C1 in let final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[#t1.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) in #t1);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t1 = self::Foo::staticConstant in let final dynamic #t2 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t1.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t1);
     self::Foo::staticField = self::Foo::staticField.+(1);
     self::use(let final dynamic #t3 = self::Foo::staticField in let final dynamic #t4 = self::Foo::staticField = #t3.+(1) in #t3);
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C2).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(let final dynamic #t5 = #C2 in let final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[#t5.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) in #t5);
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(let final dynamic #t7 = self::Foo::staticGetter in let final dynamic #t8 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[#t7.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) in #t7);
-    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).+(1);
-    self::use(let final dynamic #t9 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) in let final dynamic #t10 = self::Foo::staticSetter = #t9.+(1) in #t9);
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C1).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C1).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t5 = self::Foo::staticFunction in let final dynamic #t6 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t5.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t5);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(let final dynamic #t7 = self::Foo::staticGetter in let final dynamic #t8 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t7.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t7);
+    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1);
+    self::use(let final dynamic #t9 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in let final dynamic #t10 = self::Foo::staticSetter = #t9.+(1) in #t9);
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticConstant.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     self::Foo::staticField = self::Foo::staticField.+(1);
     self::use(self::Foo::staticField = self::Foo::staticField.+(1));
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C2).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[(#C2).+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
-    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).+(1);
-    self::use(self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).+(1));
-    (#C1).call();
-    self::use((#C1).call());
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticFunction.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[self::Foo::staticGetter.+(1)]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1);
+    self::use(self::Foo::staticSetter = (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).+(1));
+    self::Foo::staticConstant.call();
+    self::use(self::Foo::staticConstant.call());
     self::Foo::staticField.call();
     self::use(self::Foo::staticField.call());
     self::Foo::staticFunction();
     self::use(self::Foo::staticFunction());
     self::Foo::staticGetter.call();
     self::use(self::Foo::staticGetter.call());
-    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).call();
-    self::use((throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).call());
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
+    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).call();
+    self::use((throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).call());
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     self::Foo::staticField = 87;
     self::use(self::Foo::staticField = 87);
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
-    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6)));
-    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
+    throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    self::use(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
     self::Foo::staticSetter = 87;
     self::use(self::Foo::staticSetter = 87);
-    (#C1).==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : null;
-    self::use(let final dynamic #t11 = #C1 in #t11.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C7, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : #t11);
+    self::Foo::staticConstant.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t11 = self::Foo::staticConstant in #t11.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticConstant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t11);
     self::Foo::staticField.==(null) ? self::Foo::staticField = 87 : null;
     self::use(let final dynamic #t12 = self::Foo::staticField in #t12.==(null) ? self::Foo::staticField = 87 : #t12);
-    (#C2).==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : null;
-    self::use(let final dynamic #t13 = #C2 in #t13.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C8, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : #t13);
-    self::Foo::staticGetter.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : null;
-    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C9, 34, #C4, core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) : #t14);
-    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6)))).==(null) ? self::Foo::staticSetter = 87 : null;
-    self::use(let final dynamic #t15 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 33, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6))) in #t15.==(null) ? self::Foo::staticSetter = 87 : #t15);
+    self::Foo::staticFunction.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t13 = self::Foo::staticFunction in #t13.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticFunction, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t13);
+    self::Foo::staticGetter.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : null;
+    self::use(let final dynamic #t14 = self::Foo::staticGetter in #t14.==(null) ? throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticGetter, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[87]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) : #t14);
+    (throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})))).==(null) ? self::Foo::staticSetter = 87 : null;
+    self::use(let final dynamic #t15 = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#staticSetter, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))) in #t15.==(null) ? self::Foo::staticSetter = 87 : #t15);
   }
   on core::NoSuchMethodError catch(no-exception-var) {
   }
-}
-
-constants  {
-  #C1 = 42
-  #C2 = tearoff self::Foo::staticFunction
-  #C3 = #staticSetter
-  #C4 = <core::Type>[]
-  #C5 = <dynamic>[]
-  #C6 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C5}
-  #C7 = #staticConstant
-  #C8 = #staticFunction
-  #C9 = #staticGetter
 }

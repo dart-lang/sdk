@@ -6,24 +6,24 @@ class C<E extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::C<self::C::E>
     : super core::Object::•()
     ;
-  method barA([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    self::foo<dynamic>(this, let final dynamic #t1 = cmp in #t1.==(null) ? #C2 : #t1);
+  method barA([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    self::foo<dynamic>(this, let final dynamic #t1 = cmp in #t1.==(null) ? self::C::_default : #t1);
   }
-  method barB([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    self::foo<dynamic>(this, let final dynamic #t2 = cmp in #t2.==(null) ? (#C2) as (self::C::E, self::C::E) → core::int : #t2);
+  method barB([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    self::foo<dynamic>(this, let final dynamic #t2 = cmp in #t2.==(null) ? self::C::_default as (self::C::E, self::C::E) → core::int : #t2);
   }
-  method barC([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    (self::C::E, self::C::E) → core::int v = #C2;
+  method barC([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    (self::C::E, self::C::E) → core::int v = self::C::_default;
     self::foo<dynamic>(this, let final dynamic #t3 = cmp in #t3.==(null) ? v : #t3);
   }
-  method barD([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    self::foo<self::C::E>(this, let final dynamic #t4 = cmp in #t4.==(null) ? #C2 : #t4);
+  method barD([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    self::foo<self::C::E>(this, let final dynamic #t4 = cmp in #t4.==(null) ? self::C::_default : #t4);
   }
-  method barE([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    self::foo<dynamic>(this, cmp.==(null) ? #C2 : cmp);
+  method barE([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    self::foo<dynamic>(this, cmp.==(null) ? self::C::_default : cmp);
   }
-  method barF([(self::C::E, self::C::E) → core::int cmp = #C1]) → void {
-    self::foo<dynamic>(this, !cmp.==(null) ? cmp : #C2);
+  method barF([(self::C::E, self::C::E) → core::int cmp = null]) → void {
+    self::foo<dynamic>(this, !cmp.==(null) ? cmp : self::C::_default);
   }
   static method _default(dynamic a, dynamic b) → core::int {
     return 1.unary-();
@@ -31,8 +31,3 @@ class C<E extends core::Object = dynamic> extends core::Object {
 }
 static method foo<E extends core::Object = dynamic>(self::C<self::foo::E> c, (self::foo::E, self::foo::E) → core::int cmp) → void {}
 static method main() → dynamic {}
-
-constants  {
-  #C1 = null
-  #C2 = tearoff self::C::_default
-}

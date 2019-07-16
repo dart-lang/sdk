@@ -15,7 +15,7 @@ class A<N extends core::Object = dynamic, S extends core::Object = dynamic, U ex
   constructor empty() → self::A<self::A::N, self::A::S, self::A::U>
     : self::A::field = null, super core::Object::•() {}
   const constructor c(self::A::U u, self::A::S s) → self::A<self::A::N, self::A::S, self::A::U>
-    : self::A::field = #C2, super core::Object::•()
+    : self::A::field = const <dynamic>[null], super core::Object::•()
     ;
   static factory f<N extends core::Object = dynamic, S extends core::Object = dynamic, U extends core::Object = dynamic>(self::A::f::S s) → self::A<self::A::f::N, self::A::f::S, self::A::f::U> {
     exp::Expect::isTrue(s is self::A::f::S);
@@ -39,13 +39,7 @@ abstract class I<H extends core::Object = dynamic, C extends core::Object = dyna
 static method main() → dynamic {
   new self::A::•<core::num, core::double, core::List<dynamic>>(1, 2.0);
   self::A<dynamic, dynamic, dynamic> a = self::A::f<core::int, core::int, core::int>(1);
-  #C3;
+  const self::A::c<core::int, core::int, core::List<dynamic>>(const <dynamic>[], 1);
   dynamic z = a.getter;
   a.setter = 1;
-}
-
-constants  {
-  #C1 = null
-  #C2 = <dynamic>[#C1]
-  #C3 = self::A<core::int, core::int, core::List<dynamic>> {field:#C2}
 }

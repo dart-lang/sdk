@@ -25,13 +25,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static field invalid-type T = core::Map<dynamic, dynamic>.<(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))));
+static field invalid-type T = core::Map<dynamic, dynamic>.<(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#A, 33, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{}))));
 static field invalid-type B;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #A
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-}

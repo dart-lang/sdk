@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static const field dynamic x1 = #C1;
+static const field dynamic x1 = 1;
 static final field dynamic x2 = 1;
-static final field dynamic y1 = #C1;
+static final field dynamic y1 = self::x1;
 static final field dynamic y2 = self::x2;
 static method foo() → dynamic {
   core::int i;
@@ -13,8 +13,4 @@ static method foo() → dynamic {
 }
 static method main() → dynamic {
   self::foo();
-}
-
-constants  {
-  #C1 = 1
 }

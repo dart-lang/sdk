@@ -176,6 +176,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
         core::print(y);
       }
     }
+    const core::int constant = 0;
     for (final dynamic #t18 in <dynamic>[]) {
       invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:46:10: Error: Setter not found: 'constant'.
     for (constant in []) {}

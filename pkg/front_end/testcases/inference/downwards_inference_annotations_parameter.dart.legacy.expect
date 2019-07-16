@@ -11,11 +11,7 @@ class C extends core::Object {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method m(@#C1 dynamic x) → void {}
+  method m(@self::Foo::•(const <dynamic>[]) dynamic x) → void {}
 }
-static method f(@#C1 dynamic x) → void {}
+static method f(@self::Foo::•(const <dynamic>[]) dynamic x) → void {}
 static method main() → dynamic {}
-
-constants  {
-  #C1 = self::Foo {}
-}

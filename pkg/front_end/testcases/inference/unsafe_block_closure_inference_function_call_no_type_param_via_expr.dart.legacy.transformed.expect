@@ -3,13 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic v = (#C1).call(() → dynamic {
+  dynamic v = self::f.call(() → dynamic {
     return 1;
   });
 }
 static method f(dynamic x) → core::double
   return 1.0;
-
-constants  {
-  #C1 = tearoff self::f
-}

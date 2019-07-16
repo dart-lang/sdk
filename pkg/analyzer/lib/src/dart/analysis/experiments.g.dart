@@ -24,7 +24,7 @@ const _knownFeatures = <String, ExperimentalFeature>{
 };
 
 List<bool> _buildExperimentalFlagsArray() => <bool>[
-      true, // constant-update-2018
+      IsEnabledByDefault.constant_update_2018,
       true, // control-flow-collections
       IsEnabledByDefault.extension_methods,
       IsEnabledByDefault.non_nullable,
@@ -74,8 +74,7 @@ class ExperimentalFeatures {
       EnableString.constant_update_2018,
       IsEnabledByDefault.constant_update_2018,
       IsExpired.constant_update_2018,
-      'Enhanced constant expressions',
-      firstSupportedVersion: '2.4.1');
+      'Enhanced constant expressions');
 
   static const control_flow_collections = const ExperimentalFeature(
       1,
@@ -146,7 +145,7 @@ class ExperimentalFeatures {
 /// enabled by default.
 class IsEnabledByDefault {
   /// Default state of the experiment "constant-update-2018"
-  static const bool constant_update_2018 = true;
+  static const bool constant_update_2018 = false;
 
   /// Default state of the experiment "control-flow-collections"
   static const bool control_flow_collections = true;

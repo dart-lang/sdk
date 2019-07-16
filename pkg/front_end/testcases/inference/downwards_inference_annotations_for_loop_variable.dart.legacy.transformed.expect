@@ -8,13 +8,9 @@ class Foo extends core::Object {
     ;
 }
 static method test() → void {
-  for (@#C1 core::int i = 0; i.<(1); i = i.+(1)) {
+  for (@self::Foo::•(const <dynamic>[]) core::int i = 0; i.<(1); i = i.+(1)) {
   }
-  for (@#C1 core::int i in <dynamic>[0]) {
+  for (@self::Foo::•(const <dynamic>[]) core::int i in <dynamic>[0]) {
   }
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = self::Foo {}
-}

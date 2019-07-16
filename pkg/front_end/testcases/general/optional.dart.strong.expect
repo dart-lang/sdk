@@ -34,7 +34,7 @@ class Foo extends core::Object {
   synthetic constructor •() → self::Foo
     : super core::Object::•()
     ;
-  method method(dynamic x, [dynamic y = #C1, dynamic z = #C1]) → dynamic {
+  method method(dynamic x, [dynamic y = null, dynamic z = null]) → dynamic {
     return "string";
   }
 }
@@ -42,32 +42,32 @@ abstract class External extends core::Object {
   synthetic constructor •() → self::External
     : super core::Object::•()
     ;
-  abstract method externalMethod(core::int x, [core::int y = #C1, core::int z = #C1]) → core::String;
+  abstract method externalMethod(core::int x, [core::int y = null, core::int z = null]) → core::String;
   abstract method listen(self::Listener listener) → void;
 }
 abstract class Listener extends core::Object {
   synthetic constructor •() → self::Listener
     : super core::Object::•()
     ;
-  abstract method event(core::String input, [core::int x = #C1, core::int y = #C1]) → void;
+  abstract method event(core::String input, [core::int x = null, core::int y = null]) → void;
 }
 class TestListener extends self::Listener {
   synthetic constructor •() → self::TestListener
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = #C1, core::int y = #C1]) → void {}
+  method event(core::String input, [core::int x = null, core::int y = null]) → void {}
 }
 class ExtendedListener extends self::Listener {
   synthetic constructor •() → self::ExtendedListener
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = #C1, core::int y = #C1, dynamic z = #C1]) → void {}
+  method event(core::String input, [core::int x = null, core::int y = null, dynamic z = null]) → void {}
 }
 class InvalidListener extends core::Object {
   synthetic constructor •() → self::InvalidListener
     : super core::Object::•()
     ;
-  method event(dynamic input, [dynamic x = #C1]) → void {}
+  method event(dynamic input, [dynamic x = null]) → void {}
 }
 external static abstract method createExternal() → self::External;
 static method main() → dynamic {
@@ -91,8 +91,4 @@ Try changing the type of the parameter, or casting the argument to 'Listener'.
   dynamic nothing2 = foo.{self::Foo::method}(1, 2, 3, 4);
   core::String nothing3 = extern.{self::External::externalMethod}();
   core::String nothing4 = extern.{self::External::externalMethod}(1, 2, 3, 4);
-}
-
-constants  {
-  #C1 = null
 }

@@ -2,10 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef F = (@#C1 core::int app) → core::int;
-static const field core::int app = #C1;
+typedef F = (@self::app core::int app) → core::int;
+static const field core::int app = 0;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = 0
-}

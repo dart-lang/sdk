@@ -1,13 +1,3 @@
-//
-// Problems in component:
-//
-// pkg/front_end/testcases/general/magic_const.dart:15:39: Error: Can't have a non-constant List literal within a const context.
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//                                       ^
-// pkg/front_end/testcases/general/magic_const.dart:15:36: Context: While analyzing:
-// foo({a: Constant(), b: Constant(), c: []}) {}
-//                                    ^
-//
 library;
 //
 // Problems in library:
@@ -30,17 +20,15 @@ class NotConstant extends core::Object {
     : super core::Object::•()
     ;
 }
-static method foo({dynamic a = #C1, dynamic b = #C1, dynamic c = invalid-expression "Can't have a non-constant List literal within a const context."}) → dynamic {}
+static method foo({dynamic a = const self::Constant::•(), dynamic b = const self::Constant::•(), dynamic c = <dynamic>[]}) → dynamic {}
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/magic_const.dart:18:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
   const NotConstant();
         ^^^^^^^^^^^";
   new self::Constant::•();
+  const dynamic x = const self::Constant::•();
   core::bool::fromEnvironment("fisk");
+  const dynamic b = const core::bool::fromEnvironment("fisk");
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = self::Constant {}
-}

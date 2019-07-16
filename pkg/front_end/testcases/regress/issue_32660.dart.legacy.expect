@@ -36,7 +36,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method foo(core::int x, {core::int y = #C1}) → dynamic
+  method foo(core::int x, {core::int y = null}) → dynamic
     return y;
 }
 class C extends self::A implements self::B {
@@ -47,7 +47,7 @@ class C extends self::A implements self::B {
     core::print("No such method!");
     return 42;
   }
-  abstract forwarding-stub method foo(core::int x, {core::int y = #C1}) → dynamic;
+  abstract forwarding-stub method foo(core::int x, {core::int y = null}) → dynamic;
 }
 class D extends core::Object {
   synthetic constructor •() → self::D
@@ -60,7 +60,7 @@ class E extends self::D {
   synthetic constructor •() → self::E
     : super self::D::•()
     ;
-  abstract method foo(core::int x, {core::int y = #C1}) → dynamic;
+  abstract method foo(core::int x, {core::int y = null}) → dynamic;
   method noSuchMethod(core::Invocation i) → dynamic {
     core::print(i.namedArguments);
     return 42;
@@ -69,8 +69,4 @@ class E extends self::D {
 static method main() → dynamic {
   self::C c = new self::C::•();
   self::E e = new self::E::•();
-}
-
-constants  {
-  #C1 = null
 }

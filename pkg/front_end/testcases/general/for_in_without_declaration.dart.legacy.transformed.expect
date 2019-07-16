@@ -146,18 +146,12 @@ class C extends self::Super {
         core::print(y);
       }
     }
+    const core::int constant = 0;
     for (final dynamic #t18 in <dynamic>[]) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t18]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#constant, 34, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[#t18]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
     }
   }
 }
 static field core::bool topLevelField;
 static field dynamic untypedTopLevelField;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = #constant
-  #C2 = <core::Type>[]
-  #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
-}
