@@ -62,20 +62,22 @@ class MethodInvocationResolver {
   List<ExtensionElement> getApplicableExtensions(DartType type, String name) {
     final List<ExtensionElement> extensions = [];
     void checkElement(Element element, ExtensionElement extension) {
-      if (element.name == name && extension.extendedType.isSupertypeOf(type)) {
+      if (element.name == name && !extensions.contains(extension)) {
         extensions.add(extension);
       }
     }
 
     for (var extension in _resolver.nameScope.extensions) {
-      for (var accessor in extension.accessors) {
-        checkElement(accessor, extension);
-      }
-      for (var field in extension.fields) {
-        checkElement(field, extension);
-      }
-      for (var method in extension.methods) {
-        checkElement(method, extension);
+      if (_resolver.typeSystem.isSubtypeOf(type, extension.extendedType)) {
+        for (var accessor in extension.accessors) {
+          checkElement(accessor, extension);
+        }
+        for (var field in extension.fields) {
+          checkElement(field, extension);
+        }
+        for (var method in extension.methods) {
+          checkElement(method, extension);
+        }
       }
     }
     return extensions;
