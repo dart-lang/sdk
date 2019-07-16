@@ -674,6 +674,41 @@ class ElementResolver extends SimpleAstVisitor<void> {
     Expression target = node.realTarget;
     if (target is SuperExpression && !_isSuperInValidContext(target)) {
       return;
+    } else if (target is ExtensionOverride) {
+      if (node.isCascaded) {
+        // TODO(brianwilkerson) Report this error and decide how to recover.
+        throw new UnsupportedError('cascaded extension override');
+      }
+      ExtensionElement element = target.extensionName.staticElement;
+      SimpleIdentifier propertyName = node.propertyName;
+      PropertyAccessorElement member;
+      if (propertyName.inSetterContext()) {
+        member = element.getSetter(propertyName.name);
+        if (member == null) {
+          // TODO(brianwilkerson) Report this error.
+          throw new UnsupportedError('extension override of missing setter');
+        }
+        if (propertyName.inGetterContext()) {
+          PropertyAccessorElement getter = element.getGetter(propertyName.name);
+          if (getter == null) {
+            // TODO(brianwilkerson) Report this error.
+            throw new UnsupportedError('extension override of missing getter');
+          }
+          propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
+        }
+      } else if (propertyName.inGetterContext()) {
+        member = element.getGetter(propertyName.name);
+        if (member == null) {
+          // TODO(brianwilkerson) Report this error.
+          throw new UnsupportedError('extension override of missing getter');
+        }
+      }
+      if (member.isStatic) {
+        // TODO(brianwilkerson) Report this error.
+        throw new UnsupportedError('extension override of static member');
+      }
+      propertyName.staticElement = member;
+      return;
     }
     SimpleIdentifier propertyName = node.propertyName;
     _resolvePropertyAccess(target, propertyName, node.isCascaded);

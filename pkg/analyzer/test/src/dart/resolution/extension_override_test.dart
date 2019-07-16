@@ -29,25 +29,6 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  void assertInvocation() {
-    MethodInvocation invocation = extensionOverride.parent as MethodInvocation;
-    Element resolvedElement = invocation.methodName.staticElement;
-    expect(resolvedElement, extension.getMethod('m'));
-  }
-
-  void assertOverride({List<DartType> typeArguments}) {
-    expect(extensionOverride.extensionName.staticElement, extension);
-    if (typeArguments == null) {
-      expect(extensionOverride.typeArguments, isNull);
-    } else {
-      expect(
-          extensionOverride.typeArguments.arguments
-              .map((annotation) => annotation.type),
-          unorderedEquals(typeArguments));
-    }
-    expect(extensionOverride.argumentList.arguments, hasLength(1));
-  }
-
   void findDeclarationAndOverride(
       {@required String declarationName,
       @required String overrideSearch,
@@ -63,22 +44,79 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     extensionOverride = findNode.extensionOverride(overrideSearch);
   }
 
-  @failingTest
-  test_multipleArguments() async {
-    fail('Implement this');
+  test_getter_noPrefix_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  int get g => 0;
+}
+void f(A a) {
+  E(a).g;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
   }
 
-  @failingTest
-  test_noArguments() async {
-    fail('Implement this');
+  test_getter_noPrefix_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E<T> on A {
+  int get g => 0;
+}
+void f(A a) {
+  E<int>(a).g;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
   }
 
-  @failingTest
-  test_noMatchingMember() async {
-    fail('Implement this');
+  test_getter_prefix_noTypeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E on A {
+  int get g => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E(a).g;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
   }
 
-  test_noPrefix_noTypeArguments() async {
+  test_getter_prefix_typeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E<T> on A {
+  int get g => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E<int>(a).g;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
+  }
+
+  test_method_noPrefix_noTypeArguments() async {
     await assertNoErrorsInCode('''
 class A {}
 extension E on A {
@@ -89,11 +127,11 @@ void f(A a) {
 }
 ''');
     findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
-    assertOverride();
-    assertInvocation();
+    validateOverride();
+    validateInvocation();
   }
 
-  test_noPrefix_typeArguments() async {
+  test_method_noPrefix_typeArguments() async {
     await assertNoErrorsInCode('''
 class A {}
 extension E<T> on A {
@@ -104,11 +142,11 @@ void f(A a) {
 }
 ''');
     findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
-    assertOverride(typeArguments: [intType]);
-    assertInvocation();
+    validateOverride(typeArguments: [intType]);
+    validateInvocation();
   }
 
-  test_prefix_noTypeArguments() async {
+  test_method_prefix_noTypeArguments() async {
     newFile('/test/lib/lib.dart', content: '''
 class A {}
 extension E on A {
@@ -125,11 +163,11 @@ void f(p.A a) {
         declarationName: 'E',
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E(a)');
-    assertOverride();
-    assertInvocation();
+    validateOverride();
+    validateInvocation();
   }
 
-  test_prefix_typeArguments() async {
+  test_method_prefix_typeArguments() async {
     newFile('/test/lib/lib.dart', content: '''
 class A {}
 extension E<T> on A {
@@ -146,7 +184,192 @@ void f(p.A a) {
         declarationName: 'E',
         declarationUri: 'package:test/lib.dart',
         overrideSearch: 'E<int>');
-    assertOverride(typeArguments: [intType]);
-    assertInvocation();
+    validateOverride(typeArguments: [intType]);
+    validateInvocation();
+  }
+
+  test_setter_noPrefix_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  set s(int x) {}
+}
+void f(A a) {
+  E(a).s = 0;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
+  }
+
+  test_setter_noPrefix_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E<T> on A {
+  set s(int x) {}
+}
+void f(A a) {
+  E<int>(a).s = 0;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
+  }
+
+  test_setter_prefix_noTypeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E on A {
+  set s(int x) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E(a).s = 0;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
+  }
+
+  test_setter_prefix_typeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E<T> on A {
+  set s(int x) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E<int>(a).s = 0;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
+  }
+
+  test_setterAndGetter_noPrefix_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  int get s => 0;
+  set s(int x) {}
+}
+void f(A a) {
+  E(a).s += 0;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
+  }
+
+  test_setterAndGetter_noPrefix_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E<T> on A {
+  int get s => 0;
+  set s(int x) {}
+}
+void f(A a) {
+  E<int>(a).s += 0;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
+  }
+
+  test_setterAndGetter_prefix_noTypeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E on A {
+  int get s => 0;
+  set s(int x) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E(a).s += 0;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    validateOverride();
+    validatePropertyAccess();
+  }
+
+  test_setterAndGetter_prefix_typeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E<T> on A {
+  int get s => 0;
+  set s(int x) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E<int>(a).s += 0;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validatePropertyAccess();
+  }
+
+  void validateInvocation() {
+    MethodInvocation invocation = extensionOverride.parent as MethodInvocation;
+    Element resolvedElement = invocation.methodName.staticElement;
+    expect(resolvedElement, extension.getMethod('m'));
+  }
+
+  void validateOverride({List<DartType> typeArguments}) {
+    expect(extensionOverride.extensionName.staticElement, extension);
+    if (typeArguments == null) {
+      expect(extensionOverride.typeArguments, isNull);
+    } else {
+      expect(
+          extensionOverride.typeArguments.arguments
+              .map((annotation) => annotation.type),
+          unorderedEquals(typeArguments));
+    }
+    expect(extensionOverride.argumentList.arguments, hasLength(1));
+  }
+
+  void validatePropertyAccess() {
+    PropertyAccess access = extensionOverride.parent as PropertyAccess;
+    Element resolvedElement = access.propertyName.staticElement;
+    PropertyAccessorElement expectedElement;
+    if (access.propertyName.inSetterContext()) {
+      expectedElement = extension.getSetter('s');
+      if (access.propertyName.inGetterContext()) {
+        PropertyAccessorElement expectedGetter = extension.getGetter('s');
+        Element actualGetter =
+            access.propertyName.auxiliaryElements.staticElement;
+        expect(actualGetter, expectedGetter);
+      }
+    } else {
+      expectedElement = extension.getGetter('g');
+    }
+    expect(resolvedElement, expectedElement);
   }
 }
