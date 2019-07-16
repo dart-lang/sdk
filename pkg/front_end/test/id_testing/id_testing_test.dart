@@ -18,7 +18,13 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         runTestFor;
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart'
-    show Class, Member, FunctionDeclaration, FunctionExpression, TreeNode;
+    show
+        Class,
+        Member,
+        FunctionDeclaration,
+        FunctionExpression,
+        Library,
+        TreeNode;
 
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -27,34 +33,51 @@ main(List<String> args) async {
       supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const MemberNameDataComputer(), [defaultCfeConfig]));
+      runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]));
 }
 
-class MemberNameDataComputer extends DataComputer<String> {
-  const MemberNameDataComputer();
+class IdTestingDataComputer extends DataComputer<String> {
+  const IdTestingDataComputer();
 
   @override
   void computeMemberData(CompilerResult compilerResult, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
-    member.accept(new MemberNameDataExtractor(compilerResult, actualMap));
+    member.accept(new IdTestingDataExtractor(compilerResult, actualMap));
   }
 
   @override
   void computeClassData(CompilerResult compilerResult, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
-    new MemberNameDataExtractor(compilerResult, actualMap).computeForClass(cls);
+    new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
+  }
+
+  void computeLibraryData(CompilerResult compilerResult, Library library,
+      Map<Id, ActualData<String>> actualMap,
+      {bool verbose}) {
+    new IdTestingDataExtractor(compilerResult, actualMap)
+        .computeForLibrary(library);
   }
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
-class MemberNameDataExtractor extends CfeDataExtractor<String> {
-  MemberNameDataExtractor(
+class IdTestingDataExtractor extends CfeDataExtractor<String> {
+  IdTestingDataExtractor(
       CompilerResult compilerResult, Map<Id, ActualData<String>> actualMap)
       : super(compilerResult, actualMap);
+
+  @override
+  String computeLibraryValue(Id id, Library library) {
+    StringBuffer sb = new StringBuffer();
+    sb.write('file=${library.importUri.pathSegments.last}');
+    if (library.name != null) {
+      sb.write(',name=${library.name}');
+    }
+    return sb.toString();
+  }
 
   String computeClassName(Class cls) {
     return cls.name;

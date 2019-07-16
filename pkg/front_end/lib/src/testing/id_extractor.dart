@@ -34,22 +34,33 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
   @override
   final Map<Id, ActualData<T>> actualMap;
 
+  /// Implement this to compute the data corresponding to [library].
+  ///
+  /// If `null` is returned, [library] has no associated data.
+  T computeLibraryValue(Id id, Library library) => null;
+
   /// Implement this to compute the data corresponding to [cls].
   ///
   /// If `null` is returned, [cls] has no associated data.
-  T computeClassValue(Id id, Class cls);
+  T computeClassValue(Id id, Class cls) => null;
 
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
-  T computeMemberValue(Id id, Member member);
+  T computeMemberValue(Id id, Member member) => null;
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T computeNodeValue(Id id, TreeNode node);
+  T computeNodeValue(Id id, TreeNode node) => null;
 
   DataExtractor(this.actualMap);
+
+  void computeForLibrary(Library library) {
+    LibraryId id = new LibraryId(library.importUri);
+    T value = computeLibraryValue(id, library);
+    registerValue(library.fileUri, null, id, value, library);
+  }
 
   void computeForClass(Class cls) {
     ClassId id = new ClassId(cls.name);

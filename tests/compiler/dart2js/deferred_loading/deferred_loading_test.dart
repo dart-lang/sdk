@@ -138,9 +138,9 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   }
 
   @override
-  String computeClassValue(Id id, ir.Class cls) {
+  String computeClassValue(Id id, ir.Class node) {
     return outputUnitString(
-        _data.outputUnitForClassForTesting(_elementMap.getClass(cls)));
+        _data.outputUnitForClassForTesting(_elementMap.getClass(node)));
   }
 
   @override

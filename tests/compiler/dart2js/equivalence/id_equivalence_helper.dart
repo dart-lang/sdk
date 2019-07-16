@@ -20,6 +20,7 @@ import '../equivalence/id_equivalence.dart';
 
 export 'package:front_end/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
+export '../helpers/memory_compiler.dart' show CollectedMessage;
 
 const String strongMarker = 'strong.';
 const String omitMarker = 'omit.';
@@ -93,11 +94,27 @@ abstract class DataComputer<T> {
 
   /// Function that computes a data mapping for [cls].
   ///
-  /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
-  /// for the data origin.
+  /// Fills [actualMap] with the data.
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
+
+  /// Function that computes a data mapping for [library].
+  ///
+  /// Fills [actualMap] with the data.
+  void computeLibraryData(Compiler compiler, LibraryEntity library,
+      Map<Id, ActualData<T>> actualMap,
+      {bool verbose}) {}
+
+  /// Returns `true` if this data computer supports tests with compile-time
+  /// errors.
+  ///
+  /// Unsuccessful compilation might leave the compiler in an inconsistent
+  /// state, so this testing feature is opt-in.
+  bool get supportsErrors => false;
+
+  /// Returns data corresponding to [error].
+  T computeErrorData(Compiler compiler, Id id, CollectedMessage error) => null;
 
   DataInterpreter<T> get dataValidator;
 }
@@ -126,10 +143,12 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     bool skipFailedCompilations: false,
     Iterable<Id> globalIds: const <Id>[]}) async {
   OutputCollector outputCollector = new OutputCollector();
+  DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       outputProvider: outputCollector,
+      diagnosticHandler: diagnosticCollector,
       options: options,
       beforeRun: (compiler) {
         compiler.stopAfterTypeInference =
@@ -137,7 +156,10 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
       });
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
-    Expect.isTrue(result.isSuccess, "Unexpected compilation error.");
+    Expect.isTrue(
+        dataComputer.supportsErrors,
+        "Compilation with compile-time error not supported for this "
+        "testing setup.");
   }
   if (printCode) {
     print('--code------------------------------------------------------------');
@@ -145,20 +167,39 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     print('------------------------------------------------------------------');
   }
   Compiler compiler = result.compiler;
-  dynamic closedWorld = testFrontend
-      ? compiler.resolutionWorldBuilder.closedWorldForTesting
-      : compiler.backendClosedWorldForTesting;
-  ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
-  CommonElements commonElements = closedWorld.commonElements;
 
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
+  Map<Id, ActualData<T>> actualMapForUri(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  }
+
+  dynamic closedWorld = testFrontend
+      ? compiler.resolutionWorldBuilder.closedWorldForTesting
+      : compiler.backendClosedWorldForTesting;
+  ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
+  for (CollectedMessage error in diagnosticCollector.errors) {
+    Uri uri = error.uri;
+    int offset = error.begin;
+    NodeId id = new NodeId(error.begin, IdKind.error);
+    T data = dataComputer.computeErrorData(compiler, id, error);
+    if (data != null) {
+      Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
+      actualMap[id] = new ActualData<T>(id, data, uri, offset, error);
+    }
+  }
+  if (!result.isSuccess) {
+    return new Dart2jsCompiledData<T>(
+        compiler, elementEnvironment, entryPoint, actualMaps, globalData);
+  }
+
+  CommonElements commonElements = closedWorld.commonElements;
+
   Map<Id, ActualData<T>> actualMapFor(Entity entity) {
     SourceSpan span =
         compiler.backendStrategy.spanFromSpannable(entity, entity);
-    Uri uri = span.uri;
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+    return actualMapForUri(span.uri);
   }
 
   void processMember(MemberEntity member, Map<Id, ActualData<T>> actualMap) {
@@ -201,6 +242,9 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
 
   for (LibraryEntity library in elementEnvironment.libraries) {
     if (excludeLibrary(library)) continue;
+    dataComputer.computeLibraryData(
+        compiler, library, actualMapForUri(library.canonicalUri),
+        verbose: verbose);
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       processClass(cls, actualMapFor(cls));
     });
@@ -535,6 +579,11 @@ Spannable computeSpannable(
   if (id is NodeId) {
     return new SourceSpan(mainUri, id.value, id.value + 1);
   } else if (id is MemberId) {
+    if (elementEnvironment == null) {
+      // If compilation resulted in error we might not have an
+      // element environment.
+      return NO_LOCATION_SPANNABLE;
+    }
     String memberName = id.memberName;
     bool isSetter = false;
     if (memberName != '[]=' && memberName != '==' && memberName.endsWith('=')) {
@@ -581,6 +630,8 @@ Spannable computeSpannable(
       return NO_LOCATION_SPANNABLE;
     }
     return cls;
+  } else if (id is LibraryId) {
+    return new SourceSpan(id.uri, null, null);
   }
   throw new UnsupportedError('Unsupported id $id.');
 }

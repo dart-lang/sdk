@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/*library: file=main.dart*/
+
 /*member: main:main*/
 main() {
   // ignore: unused_element
@@ -9,6 +11,13 @@ main() {
 
   /*main.<anonymous>*/
   () {};
+
+  // Use all declarations.
+  setter = field = getter;
+  var c = new Class();
+  c = new Class.constructor();
+  c.setter = c.field = c.getter;
+  c.method();
 }
 
 /*member: field:field*/

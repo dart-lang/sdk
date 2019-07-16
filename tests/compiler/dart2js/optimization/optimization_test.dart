@@ -179,11 +179,6 @@ class OptimizationIrComputer extends IrDataExtractor<OptimizationTestLog> {
   }
 
   @override
-  OptimizationTestLog computeClassValue(Id id, ir.Class cls) {
-    return null;
-  }
-
-  @override
   OptimizationTestLog computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }

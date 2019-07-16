@@ -41,6 +41,7 @@ class TestConfig {
   const TestConfig(this.marker, this.name, {this.experimentalFlags = const {}});
 }
 
+// TODO(johnniwinther): Support annotations for compile-time errors.
 abstract class DataComputer<T> {
   const DataComputer();
 
@@ -58,6 +59,13 @@ abstract class DataComputer<T> {
   ///
   /// Fills [actualMap] with the data.
   void computeClassData(CompilerResult compilerResult, Class cls,
+      Map<Id, ActualData<T>> actualMap,
+      {bool verbose}) {}
+
+  /// Function that computes a data mapping for [library].
+  ///
+  /// Fills [actualMap] with the data.
+  void computeLibraryData(CompilerResult compilerResult, Library library,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
@@ -190,7 +198,7 @@ Future<bool> runTestForConfig<T>(
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
   Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
-    Uri uri = node.location.file;
+    Uri uri = node is Library ? node.fileUri : node.location.file;
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
@@ -224,6 +232,8 @@ Future<bool> runTestForConfig<T>(
 
   for (Library library in component.libraries) {
     if (excludeLibrary(library)) continue;
+    dataComputer.computeLibraryData(
+        compilerResult, library, actualMapFor(library));
     for (Class cls in library.classes) {
       processClass(cls, actualMapFor(cls));
       for (Member member in cls.members) {
@@ -302,12 +312,21 @@ Future<bool> runTestForConfig<T>(
 
 void printMessageInLocation(
     Map<Uri, Source> uriToSource, Uri uri, int offset, String message) {
-  Source source = uriToSource[uri];
-  if (source == null) {
-    print('$uri@$offset: $message');
+  if (uri == null) {
+    print(message);
+  } else {
+    Source source = uriToSource[uri];
+    if (source == null) {
+      print('$uri@$offset: $message');
+    } else {
+      if (offset != null) {
+        Location location = source.getLocation(uri, offset);
+        print('$location: $message');
+        print(source.getTextLine(location.line));
+        print(' ' * (location.column - 1) + '^');
+      } else {
+        print('$uri: $message');
+      }
+    }
   }
-  Location location = source.getLocation(uri, offset);
-  print('$location: $message');
-  print(source.getTextLine(location.line));
-  print(' ' * (location.column - 1) + '^');
 }

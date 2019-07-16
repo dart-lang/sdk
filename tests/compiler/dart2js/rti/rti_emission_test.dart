@@ -139,8 +139,8 @@ class RtiEmissionIrComputer extends IrDataExtractor<String>
       : super(reporter, actualMap);
 
   @override
-  String computeClassValue(Id id, ir.Class cls) {
-    return getClassValue(_elementMap.getClass(cls));
+  String computeClassValue(Id id, ir.Class node) {
+    return getClassValue(_elementMap.getClass(node));
   }
 
   @override

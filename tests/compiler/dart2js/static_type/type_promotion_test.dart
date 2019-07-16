@@ -71,16 +71,6 @@ class TypePromotionIrComputer extends IrDataExtractor<String> {
       : super(reporter, actualMap);
 
   @override
-  String computeClassValue(Id id, ir.Class cls) {
-    return null;
-  }
-
-  @override
-  String computeMemberValue(Id id, ir.Member node) {
-    return null;
-  }
-
-  @override
   String computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.VariableGet) {
       TypeMap type = typeMaps[node];

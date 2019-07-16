@@ -1,4 +1,4 @@
-// Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -70,16 +70,6 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
   ConstantDataExtractor(DiagnosticReporter reporter,
       Map<Id, ActualData<String>> actualMap, this.elementMap)
       : super(reporter, actualMap);
-
-  @override
-  String computeClassValue(Id id, ir.Class cls) {
-    return null;
-  }
-
-  @override
-  String computeMemberValue(Id id, ir.Member node) {
-    return null;
-  }
 
   @override
   String computeNodeValue(Id id, ir.TreeNode node) {

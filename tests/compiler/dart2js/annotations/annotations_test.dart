@@ -45,6 +45,14 @@ class AnnotationDataComputer extends DataComputer<String> {
   }
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  String computeErrorData(Compiler compiler, Id id, CollectedMessage error) {
+    return error.message.message;
+  }
+
+  @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 }
 
@@ -74,11 +82,6 @@ class AnnotationIrComputer extends IrDataExtractor<String> {
       }
       return features.getText();
     }
-    return null;
-  }
-
-  @override
-  String computeClassValue(Id id, ir.Class cls) {
     return null;
   }
 

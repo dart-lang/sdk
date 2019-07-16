@@ -3,15 +3,43 @@
 // BSD-style license that can be found in the LICENSE file.
 
 enum IdKind {
+  /// Id used for top level or class members. This is used in [MemberId].
   member,
+
+  /// Id used for classes. This is used in [ClassId].
   cls,
+
+  /// Id used for libraries. This is used in [LibraryId].
+  library,
+
+  /// Id used for a code point at certain offset. The id represents the default
+  /// use of the code point, often a read access. This is used in [NodeId].
   node,
+
+  /// Id used for an invocation at certain offset. This is used in [NodeId].
   invoke,
+
+  /// Id used for an assignment at certain offset. This is used in [NodeId].
   update,
+
+  /// Id used for the iterator expression of a for-in at certain offset. This is
+  /// used in [NodeId].
   iterator,
+
+  /// Id used for the implicit call to `Iterator.current` in a for-in at certain
+  /// offset. This is used in [NodeId].
   current,
+
+  /// Id used for the implicit call to `Iterator.moveNext` in a for-in at
+  /// certain offset. This is used in [NodeId].
   moveNext,
+
+  /// Id used for the statement at certain offset. This is used in [NodeId].
   stmt,
+
+  /// Id used for the error reported at certain offset. This is used in
+  /// [NodeId].
+  error,
 }
 
 /// Id for a code point or element.
@@ -54,6 +82,8 @@ class IdValue {
       case IdKind.cls:
         ClassId classId = id;
         return '$classPrefix${classId.name}:$value';
+      case IdKind.library:
+        return '$libraryPrefix$value';
       case IdKind.node:
         return value;
       case IdKind.invoke:
@@ -68,6 +98,8 @@ class IdValue {
         return '$moveNextPrefix$value';
       case IdKind.stmt:
         return '$stmtPrefix$value';
+      case IdKind.error:
+        return '$errorPrefix$value';
     }
     throw new UnsupportedError("Unexpected id kind: ${id.kind}");
   }
@@ -75,20 +107,22 @@ class IdValue {
   static const String globalPrefix = "global#";
   static const String memberPrefix = "member: ";
   static const String classPrefix = "class: ";
+  static const String libraryPrefix = "library: ";
   static const String invokePrefix = "invoke: ";
   static const String updatePrefix = "update: ";
   static const String iteratorPrefix = "iterator: ";
   static const String currentPrefix = "current: ";
   static const String moveNextPrefix = "moveNext: ";
   static const String stmtPrefix = "stmt: ";
+  static const String errorPrefix = "error: ";
 
-  static IdValue decode(int offset, String text) {
+  static IdValue decode(Uri sourceUri, int offset, String text) {
     Id id;
     String expected;
     if (text.startsWith(memberPrefix)) {
       text = text.substring(memberPrefix.length);
       int colonPos = text.indexOf(':');
-      if (colonPos == -1) throw "Invalid element id: '$text'";
+      if (colonPos == -1) throw "Invalid member id: '$text'";
       String name = text.substring(0, colonPos);
       bool isGlobal = name.startsWith(globalPrefix);
       if (isGlobal) {
@@ -107,6 +141,9 @@ class IdValue {
       }
       id = new ClassId(name, isGlobal: isGlobal);
       expected = text.substring(colonPos + 1);
+    } else if (text.startsWith(libraryPrefix)) {
+      id = new LibraryId(sourceUri);
+      expected = text.substring(libraryPrefix.length);
     } else if (text.startsWith(invokePrefix)) {
       id = new NodeId(offset, IdKind.invoke);
       expected = text.substring(invokePrefix.length);
@@ -125,6 +162,9 @@ class IdValue {
     } else if (text.startsWith(stmtPrefix)) {
       id = new NodeId(offset, IdKind.stmt);
       expected = text.substring(stmtPrefix.length);
+    } else if (text.startsWith(errorPrefix)) {
+      id = new NodeId(offset, IdKind.error);
+      expected = text.substring(errorPrefix.length);
     } else {
       id = new NodeId(offset, IdKind.node);
       expected = text;
@@ -206,7 +246,39 @@ class ClassId implements Id {
   String toString() => 'class:$name';
 }
 
-/// Id for a code point.
+/// Id for a library.
+class LibraryId implements Id {
+  final Uri uri;
+
+  LibraryId(this.uri);
+
+  // TODO(johnniwinther): Support global library annotations.
+  @override
+  bool get isGlobal => false;
+
+  @override
+  int get hashCode => uri.hashCode * 13;
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! LibraryId) return false;
+    return uri == other.uri;
+  }
+
+  @override
+  IdKind get kind => IdKind.library;
+
+  String get name => uri.toString();
+
+  @override
+  String get descriptor => 'library $name';
+
+  @override
+  String toString() => 'library:$name';
+}
+
+/// Id for a code point defined by a kind and a code offset.
 class NodeId implements Id {
   final int value;
   @override

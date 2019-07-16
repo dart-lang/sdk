@@ -162,7 +162,7 @@ void computeExpectedMap(Uri sourceUri, AnnotatedCode code,
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri];
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
-      IdValue idValue = IdValue.decode(annotation.offset, text);
+      IdValue idValue = IdValue.decode(sourceUri, annotation.offset, text);
       if (idValue.id.isGlobal) {
         if (fileAnnotations.globalData.containsKey(idValue.id)) {
           onFailure("Duplicate annotations for ${idValue.id} in $marker: "

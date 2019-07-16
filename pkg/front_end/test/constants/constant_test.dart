@@ -58,20 +58,10 @@ class ConstantsDataExtractor extends CfeDataExtractor<String> {
       : super(compilerResult, actualMap);
 
   @override
-  String computeClassValue(Id id, Class cls) {
-    return null;
-  }
-
-  @override
   String computeNodeValue(Id id, TreeNode node) {
     if (node is ConstantExpression) {
       return constantToText(node.constant);
     }
-    return null;
-  }
-
-  @override
-  String computeMemberValue(Id id, Member member) {
     return null;
   }
 }

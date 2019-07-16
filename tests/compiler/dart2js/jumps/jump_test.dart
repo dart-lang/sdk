@@ -129,16 +129,6 @@ class JumpsIrChecker extends IrDataExtractor<String> {
     return null;
   }
 
-  @override
-  String computeMemberValue(Id id, ir.Member member) {
-    return null;
-  }
-
-  @override
-  String computeClassValue(Id id, ir.Class cls) {
-    return null;
-  }
-
   void addTargetData(ir.TreeNode node, NodeId id, JumpTarget target) {
     if (target != null) {
       SourceSpan sourceSpan = computeSourceSpan(node);

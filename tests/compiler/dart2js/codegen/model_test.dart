@@ -260,11 +260,6 @@ class ModelIrComputer extends IrDataExtractor<Features> {
   }
 
   @override
-  Features computeClassValue(Id id, ir.Class cls) {
-    return null;
-  }
-
-  @override
   Features computeMemberValue(Id id, ir.Member node) {
     return getMemberValue(_elementMap.getMember(node));
   }
