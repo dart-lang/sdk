@@ -188,6 +188,78 @@ void f(p.A a) {
     validateInvocation();
   }
 
+  test_operator_noPrefix_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  void operator +(int offset) {}
+}
+void f(A a) {
+  E(a) + 1;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+    validateBinaryExpression();
+  }
+
+  test_operator_noPrefix_typeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E<T> on A {
+  void operator +(int offset) {}
+}
+void f(A a) {
+  E<int>(a) + 1;
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validateBinaryExpression();
+  }
+
+  test_operator_prefix_noTypeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E on A {
+  void operator +(int offset) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E(a) + 1;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    validateOverride();
+    validateBinaryExpression();
+  }
+
+  test_operator_prefix_typeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E<T> on A {
+  void operator +(int offset) {}
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E<int>(a) + 1;
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<int>');
+    validateOverride(typeArguments: [intType]);
+    validateBinaryExpression();
+  }
+
   test_setter_noPrefix_noTypeArguments() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -334,6 +406,12 @@ void f(p.A a) {
         overrideSearch: 'E<int>');
     validateOverride(typeArguments: [intType]);
     validatePropertyAccess();
+  }
+
+  void validateBinaryExpression() {
+    BinaryExpression binary = extensionOverride.parent as BinaryExpression;
+    Element resolvedElement = binary.staticElement;
+    expect(resolvedElement, extension.getMethod('+'));
   }
 
   void validateInvocation() {

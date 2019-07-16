@@ -1482,6 +1482,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
   void _resolveBinaryExpression(BinaryExpression node, String methodName) {
     Expression leftOperand = node.leftOperand;
     if (leftOperand != null) {
+      if (leftOperand is ExtensionOverride) {
+        ExtensionElement element = leftOperand.extensionName.staticElement;
+        MethodElement member = element.getMethod(methodName);
+        if (member == null) {
+          _resolver.errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
+              node.operator,
+              [methodName, element.name]);
+        } else if (member.isStatic) {
+          // TODO(brianwilkerson) Report this error.
+          throw new UnsupportedError('extension override of static member');
+        }
+        node.staticElement = member;
+        return;
+      }
       DartType leftType = _getStaticType(leftOperand);
       var isSuper = leftOperand is SuperExpression;
       var invokeType = _lookUpGetterType(leftType, methodName,
