@@ -550,7 +550,14 @@ class _Universe {
       JS('', '#.#', typeRules(universe), targetType);
 
   static void addRules(universe, rules) {
-    JS('', 'Object.assign(#, #)', typeRules(universe), rules);
+    // TODO(fishythefish): Use `Object.assign()` when IE11 is deprecated.
+    var keys = JS('JSArray', 'Object.keys(#)', rules);
+    var length = _Utils.arrayLength(keys);
+    var ruleset = typeRules(universe);
+    for (int i = 0; i < length; i++) {
+      var targetType = _Utils.arrayAt(keys, i);
+      JS('', '#[#] = #[#]', ruleset, targetType, rules, targetType);
+    }
   }
 
   static Object sharedEmptyArray(universe) =>
