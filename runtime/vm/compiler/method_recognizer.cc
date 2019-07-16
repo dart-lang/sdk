@@ -15,10 +15,6 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   return function.recognized_kind();
 }
 
-bool MethodRecognizer::AlwaysInline(const Function& function) {
-  return function.always_inline();
-}
-
 bool MethodRecognizer::PolymorphicTarget(const Function& function) {
   return function.is_polymorphic_target();
 }
@@ -219,22 +215,13 @@ void MethodRecognizer::InitializeState() {
     UNREACHABLE();                                                             \
   }
 
-#define SET_IS_ALWAYS_INLINE(class_name, function_name, dest, fp)              \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_always_inline, true)
-
-#define SET_IS_NEVER_INLINE(class_name, function_name, dest, fp)               \
-  SET_FUNCTION_BIT(class_name, function_name, dest, fp, set_is_inlinable, false)
-
 #define SET_IS_POLYMORPHIC_TARGET(class_name, function_name, dest, fp)         \
   SET_FUNCTION_BIT(class_name, function_name, dest, fp,                        \
                    set_is_polymorphic_target, true)
 
-  INLINE_WHITE_LIST(SET_IS_ALWAYS_INLINE);
-  INLINE_BLACK_LIST(SET_IS_NEVER_INLINE);
   POLYMORPHIC_TARGET_LIST(SET_IS_POLYMORPHIC_TARGET);
 
 #undef SET_RECOGNIZED_KIND
-#undef SET_IS_ALWAYS_INLINE
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
 }

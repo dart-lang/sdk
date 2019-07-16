@@ -35,7 +35,6 @@ class MethodRecognizer : public AllStatic {
   };
 
   static Kind RecognizeKind(const Function& function);
-  static bool AlwaysInline(const Function& function);
   static bool PolymorphicTarget(const Function& function);
   static intptr_t NumArgsCheckedForStaticCall(const Function& function);
 

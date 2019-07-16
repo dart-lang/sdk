@@ -473,6 +473,32 @@ KernelLoader::KernelLoader(const Script& script,
   H.InitFromKernelProgramInfo(kernel_program_info_);
 }
 
+void KernelLoader::CheckForNeverInlinePragma(const Function& function,
+                                             const Array& metadata) {
+  EnsurePragmaClassIsLookedUp();
+  const auto& pragma_name_field =
+      Field::Handle(Z, pragma_class_.LookupField(Symbols::name()));
+  auto& pragma = Object::Handle(Z);
+
+  bool prefer_inline = false;
+  bool never_inline = false;
+  Object& pragma_name = Object::Handle(Z);
+  for (intptr_t j = 0; j < metadata.Length(); ++j) {
+    pragma = metadata.At(j);
+    if (pragma.clazz() != pragma_class_.raw()) {
+      continue;
+    }
+    pragma_name = Instance::Cast(pragma).GetField(pragma_name_field);
+    if (pragma_name.raw() == Symbols::vm_never_inline().raw()) {
+      never_inline = true;
+    } else if (pragma_name.raw() == Symbols::vm_prefer_inline().raw()) {
+      prefer_inline = true;
+    }
+  }
+  ASSERT(!never_inline || !prefer_inline);
+  function.set_is_inlinable(!never_inline);
+}
+
 void KernelLoader::EvaluateDelayedPragmas() {
   potential_pragma_functions_ =
       kernel_program_info_.potential_pragma_functions();
@@ -482,14 +508,19 @@ void KernelLoader::EvaluateDelayedPragmas() {
   NoOOBMessageScope no_msg_scope(thread);
   NoReloadScope no_reload_scope(thread->isolate(), thread);
 
-  Function& function = Function::Handle();
-  Library& library = Library::Handle();
-  Class& klass = Class::Handle();
+  Function& function = Function::Handle(Z);
+  Library& library = Library::Handle(Z);
+  Class& klass = Class::Handle(Z);
+  Object& metadata_obj = Object::Handle(Z);
+
   for (int i = 0; i < potential_pragma_functions_.Length(); ++i) {
     function ^= potential_pragma_functions_.At(i);
     klass = function.Owner();
     library = klass.library();
-    library.GetMetadata(function);
+    metadata_obj = library.GetMetadata(function);
+    if (metadata_obj.IsArray()) {
+      CheckForNeverInlinePragma(function, Array::Cast(metadata_obj));
+    }
   }
 
   potential_pragma_functions_ = GrowableObjectArray::null();
@@ -1981,7 +2012,10 @@ void KernelLoader::LoadProcedure(const Library& library,
       Thread* thread = Thread::Current();
       NoOOBMessageScope no_msg_scope(thread);
       NoReloadScope no_reload_scope(thread->isolate(), thread);
-      library.GetMetadata(function);
+      Object& metadata_obj = Object::Handle(library.GetMetadata(function));
+      if (metadata_obj.IsArray()) {
+        CheckForNeverInlinePragma(function, Array::Cast(metadata_obj));
+      }
     }
   }
 }

@@ -245,6 +245,8 @@ class KernelLoader : public ValueObject {
   void LoadNativeExtensionLibraries();
   void LoadNativeExtension(const Library& library, const String& uri_path);
   void EvaluateDelayedPragmas();
+  void CheckForNeverInlinePragma(const Function& function,
+                                 const Array& metadata);
 
   void ReadVMAnnotations(const Library& library,
                          intptr_t annotation_count,

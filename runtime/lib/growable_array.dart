@@ -108,9 +108,11 @@ class _GrowableList<T> extends ListBase<T> {
   factory _GrowableList.withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get _capacity native "GrowableList_getCapacity";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "GrowableList_getLength";
 
   void set length(int new_length) {
@@ -151,6 +153,7 @@ class _GrowableList<T> extends ListBase<T> {
   void _setIndexed(int index, T value) native "GrowableList_setIndexed";
 
   @pragma("vm:entry-point", "call")
+  @pragma("vm:prefer-inline")
   void add(T value) {
     var len = length;
     if (len == _capacity) {
@@ -204,6 +207,7 @@ class _GrowableList<T> extends ListBase<T> {
     } while (true);
   }
 
+  @pragma("vm:prefer-inline")
   T removeLast() {
     var len = length - 1;
     var elem = this[len];
@@ -272,6 +276,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   // Iterable interface.
 
+  @pragma("vm:prefer-inline")
   void forEach(f(T element)) {
     int initialLength = length;
     for (int i = 0; i < length; i++) {
@@ -363,6 +368,7 @@ class _GrowableList<T> extends ListBase<T> {
 
   String toString() => ListBase.listToString(this);
 
+  @pragma("vm:prefer-inline")
   Iterator<T> get iterator {
     return new ListIterator<T>(this);
   }
