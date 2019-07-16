@@ -106,6 +106,18 @@ void testFunctions() {
   strictSubtype('int(int,num)', 'int(int,double)');
   strictSubtype('int(num,num)', 'int(int,double)');
   strictSubtype('double(num,Iterable<num>,int/)', 'num(int,CodeUnits,int)');
+
+  equivalent('~([@])', '~([@])');
+  equivalent('~(int,[double])', '~(int,[double])');
+  equivalent('~(int,[double,CodeUnits])', '~(int,[double,CodeUnits])');
+  unrelated('~([int])', '~([double])');
+  unrelated('~(int,[int])', '~(int,[double])');
+  unrelated('~(int,[CodeUnits,int])', '~(int,[CodeUnits,double])');
+  strictSubtype('~([num])', '~([int])');
+  strictSubtype('~([num,num])', '~([int,double])');
+  strictSubtype('~([int,double])', '~(int,[double])');
+  strictSubtype('~([int,double,CodeUnits])', '~([int,double])');
+  strictSubtype('~([int,double,CodeUnits])', '~(int,[double])');
 }
 
 String reason(String s, String t) => "$s <: $t";

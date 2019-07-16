@@ -240,7 +240,7 @@ class Rti {
 }
 
 class _FunctionParameters {
-  // TODO(fishythefish): Support optional and named parameters.
+  // TODO(fishythefish): Support named parameters.
 
   static _FunctionParameters allocate() => _FunctionParameters();
 
@@ -250,6 +250,14 @@ class _FunctionParameters {
   static void _setRequiredPositional(
       _FunctionParameters parameters, Object requiredPositional) {
     parameters._requiredPositional = requiredPositional;
+  }
+
+  Object _optionalPositional;
+  static JSArray _getOptionalPositional(_FunctionParameters parameters) =>
+      JS('JSArray', '#', parameters._optionalPositional);
+  static void _setOptionalPositional(
+      _FunctionParameters parameters, Object optionalPositional) {
+    parameters._optionalPositional = optionalPositional;
   }
 }
 
@@ -435,19 +443,37 @@ String _rtiToString(Rti rti, List<String> genericContext) {
   }
 
   if (kind == Rti.kindFunction) {
-    // TODO(fishythefish): Support optional and named parameters.
+    // TODO(fishythefish): Support named parameters.
     Rti returnType = Rti._getReturnType(rti);
     var parameters = Rti._getFunctionParameters(rti);
     var requiredPositional =
         _FunctionParameters._getRequiredPositional(parameters);
     var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
-    String s = _rtiToString(returnType, genericContext);
-    s += '(';
+    var optionalPositional =
+        _FunctionParameters._getOptionalPositional(parameters);
+    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+
+    String s = _rtiToString(returnType, genericContext) + '(';
+    String sep = '';
     for (int i = 0; i < requiredPositionalLength; i++) {
-      if (i > 0) s += ', ';
-      s += _rtiToString(
-          _castToRti(_Utils.arrayAt(requiredPositional, i)), genericContext);
+      s += sep +
+          _rtiToString(_castToRti(_Utils.arrayAt(requiredPositional, i)),
+              genericContext);
+      sep = ', ';
     }
+
+    if (optionalPositionalLength > 0) {
+      s += sep + '[';
+      sep = '';
+      for (int i = 0; i < optionalPositionalLength; i++) {
+        s += sep +
+            _rtiToString(_castToRti(_Utils.arrayAt(optionalPositional, i)),
+                genericContext);
+        sep = ', ';
+      }
+      s += ']';
+    }
+
     s += ')';
     return s;
   }
@@ -466,15 +492,30 @@ String _rtiToDebugString(Rti rti) {
   }
 
   String functionParametersToString(_FunctionParameters parameters) {
-    // TODO(fishythefish): Support optional and named parameters.
+    // TODO(fishythefish): Support named parameters.
     String s = '(', sep = '';
     var requiredPositional =
         _FunctionParameters._getRequiredPositional(parameters);
     var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+    var optionalPositional =
+        _FunctionParameters._getOptionalPositional(parameters);
+    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
     for (int i = 0; i < requiredPositionalLength; i++) {
       s += sep +
           _rtiToDebugString(_castToRti(_Utils.arrayAt(requiredPositional, i)));
       sep = ', ';
+    }
+
+    if (optionalPositionalLength > 0) {
+      s += sep + '[';
+      sep = '';
+      for (int i = 0; i < optionalPositionalLength; i++) {
+        s += sep +
+            _rtiToDebugString(
+                _castToRti(_Utils.arrayAt(optionalPositional, i)));
+        sep = ', ';
+      }
+      s += ']';
     }
     return s + ')';
   }
@@ -795,13 +836,27 @@ class _Universe {
       Rti._getCanonicalRecipe(returnType) +
       _canonicalRecipeOfFunctionParameters(parameters);
 
-  // TODO(fishythefish): Support optional and named parameters.
+  // TODO(fishythefish): Support named parameters.
   static String _canonicalRecipeOfFunctionParameters(
-          _FunctionParameters parameters) =>
-      Recipe.startFunctionArgumentsString +
-      _canonicalRecipeJoin(
-          _FunctionParameters._getRequiredPositional(parameters)) +
-      Recipe.endFunctionArgumentsString;
+      _FunctionParameters parameters) {
+    var requiredPositional =
+        _FunctionParameters._getRequiredPositional(parameters);
+    var optionalPositional =
+        _FunctionParameters._getOptionalPositional(parameters);
+    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+
+    String recipe = Recipe.startFunctionArgumentsString +
+        _canonicalRecipeJoin(requiredPositional);
+    if (optionalPositionalLength > 0) {
+      var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+      String sep = requiredPositionalLength > 0 ? Recipe.separatorString : '';
+      recipe += sep +
+          Recipe.startOptionalGroupString +
+          _canonicalRecipeJoin(optionalPositional) +
+          Recipe.endOptionalGroupString;
+    }
+    return recipe + Recipe.endFunctionArgumentsString;
+  }
 
   static Rti _lookupFunctionRti(
       Object universe, Rti returnType, _FunctionParameters parameters) {
@@ -1117,18 +1172,40 @@ class _Parser {
     }
   }
 
+  static const int optionalSentinel = -1;
+
   static void handleFunctionArguments(Object parser, Object stack) {
     var universe = _Parser.universe(parser);
     var parameters = _FunctionParameters.allocate();
+    var optionalPositional = _Universe.sharedEmptyArray(universe);
+
+    var head = pop(stack);
+    if (_Utils.isNum(head)) {
+      int sentinel = _Utils.asInt(head);
+      switch (sentinel) {
+        case optionalSentinel:
+          optionalPositional = pop(stack);
+          break;
+
+        default:
+          push(stack, head);
+          break;
+      }
+    } else {
+      push(stack, head);
+    }
+
     _FunctionParameters._setRequiredPositional(
         parameters, collectArray(parser, stack));
+    _FunctionParameters._setOptionalPositional(parameters, optionalPositional);
     Rti returnType = toType(universe, environment(parser), pop(stack));
     push(stack, _Universe._lookupFunctionRti(universe, returnType, parameters));
   }
 
   static void handleOptionalGroup(Object parser, Object stack) {
-    // TODO(fishythefish)
-    throw UnimplementedError('handleOptionalGroup');
+    var parameters = collectArray(parser, stack);
+    push(stack, parameters);
+    push(stack, optionalSentinel);
   }
 
   static void handleNamedGroup(Object parser, Object stack) {
@@ -1308,7 +1385,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   return _isSubtypeOfInterface(universe, s, sEnv, tName, tArgs, tEnv);
 }
 
-// TODO(fishythefish): Support optional and named parameters.
+// TODO(fishythefish): Support named parameters.
 bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   assert(isFunctionKind(t));
   if (!isFunctionKind(s)) return false;
@@ -1327,17 +1404,36 @@ bool _isFunctionSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   var sRequiredPositionalLength = _Utils.arrayLength(sRequiredPositional);
   var tRequiredPositionalLength = _Utils.arrayLength(tRequiredPositional);
   if (sRequiredPositionalLength > tRequiredPositionalLength) return false;
+  var requiredPositionalDelta =
+      tRequiredPositionalLength - sRequiredPositionalLength;
 
-  // TODO(fishythefish): Update to support optional parameters.
-  var sOptionalPositionalLength = 0;
-  var tOptionalPositionalLength = 0;
+  var sOptionalPositional =
+      _FunctionParameters._getOptionalPositional(sParameters);
+  var tOptionalPositional =
+      _FunctionParameters._getOptionalPositional(tParameters);
+  var sOptionalPositionalLength = _Utils.arrayLength(sOptionalPositional);
+  var tOptionalPositionalLength = _Utils.arrayLength(tOptionalPositional);
   if (sRequiredPositionalLength + sOptionalPositionalLength <
       tRequiredPositionalLength + tOptionalPositionalLength) return false;
 
   for (int i = 0; i < sRequiredPositionalLength; i++) {
-    var sParam = _Utils.arrayAt(sRequiredPositional, i);
-    var tParam = _Utils.arrayAt(tRequiredPositional, i);
-    if (!_isSubtype(universe, tParam, tEnv, sParam, sEnv)) return false;
+    var sParameter = _Utils.arrayAt(sRequiredPositional, i);
+    var tParameter = _Utils.arrayAt(tRequiredPositional, i);
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
+  }
+
+  for (int i = 0; i < requiredPositionalDelta; i++) {
+    var sParameter = _Utils.arrayAt(sOptionalPositional, i);
+    var tParameter =
+        _Utils.arrayAt(tRequiredPositional, sRequiredPositionalLength + i);
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
+  }
+
+  for (int i = 0; i < tOptionalPositionalLength; i++) {
+    var sParameter =
+        _Utils.arrayAt(sOptionalPositional, requiredPositionalDelta + i);
+    var tParameter = _Utils.arrayAt(tOptionalPositional, i);
+    if (!_isSubtype(universe, tParameter, tEnv, sParameter, sEnv)) return false;
   }
 
   return true;
