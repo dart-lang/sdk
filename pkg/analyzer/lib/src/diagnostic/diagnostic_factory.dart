@@ -16,6 +16,37 @@ class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
   DiagnosticFactory();
 
+  /// Return a diagnostic indicating that the [duplicateElement] (in a constant
+  /// set) is a duplicate of the [originalElement].
+  AnalysisError equalElementsInConstSet(
+      Source source, Expression duplicateElement, Expression originalElement) {
+    return new AnalysisError(
+        source,
+        duplicateElement.offset,
+        duplicateElement.length,
+        CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, [], [
+      new DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "The first element with this value.",
+          offset: originalElement.offset,
+          length: originalElement.length)
+    ]);
+  }
+
+  /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
+  /// is a duplicate of the [originalKey].
+  AnalysisError equalKeysInConstMap(
+      Source source, Expression duplicateKey, Expression originalKey) {
+    return new AnalysisError(source, duplicateKey.offset, duplicateKey.length,
+        CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, [], [
+      new DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "The first key with this value.",
+          offset: originalKey.offset,
+          length: originalKey.length)
+    ]);
+  }
+
   /// Return a diagnostic indicating that the given [identifier] was referenced
   /// before it was declared.
   AnalysisError referencedBeforeDeclaration(

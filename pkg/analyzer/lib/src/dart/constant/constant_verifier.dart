@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -44,6 +45,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   final bool _constantUpdate2018Enabled;
 
   final ConstantEvaluationEngine _evaluationEngine;
+
+  final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
@@ -171,23 +174,23 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (node.isConst) {
         InterfaceType nodeType = node.staticType;
         var elementType = nodeType.typeArguments[0];
-        var duplicateElements = <Expression>[];
+        var duplicateElements = <Expression, Expression>{};
         var verifier = _ConstLiteralVerifier(
           this,
           errorCode: CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
           forSet: true,
           setElementType: elementType,
-          setUniqueValues: Set<DartObject>(),
+          setUniqueValues: <DartObject, Expression>{},
           setDuplicateExpressions: duplicateElements,
         );
         for (CollectionElement element in node.elements) {
           verifier.verify(element);
         }
-        for (var duplicateElement in duplicateElements) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
-            duplicateElement,
-          );
+        for (var duplicateElement in duplicateElements.keys) {
+          _errorReporter.reportError(_diagnosticFactory.equalElementsInConstSet(
+              _errorReporter.source,
+              duplicateElement,
+              duplicateElements[duplicateElement]));
         }
       }
     } else if (node.isMap) {
@@ -196,25 +199,25 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var keyType = nodeType.typeArguments[0];
         var valueType = nodeType.typeArguments[1];
         bool reportEqualKeys = true;
-        var duplicateKeyElements = <Expression>[];
+        var duplicateKeyElements = <Expression, Expression>{};
         var verifier = _ConstLiteralVerifier(
           this,
           errorCode: CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT,
           forMap: true,
           mapKeyType: keyType,
           mapValueType: valueType,
-          mapUniqueKeys: Set<DartObject>(),
+          mapUniqueKeys: <DartObject, Expression>{},
           mapDuplicateKeyExpressions: duplicateKeyElements,
         );
         for (CollectionElement entry in node.elements) {
           verifier.verify(entry);
         }
         if (reportEqualKeys) {
-          for (var duplicateKeyElement in duplicateKeyElements) {
-            _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
-              duplicateKeyElement,
-            );
+          for (var duplicateKeyElement in duplicateKeyElements.keys) {
+            _errorReporter.reportError(_diagnosticFactory.equalKeysInConstMap(
+                _errorReporter.source,
+                duplicateKeyElement,
+                duplicateKeyElements[duplicateKeyElement]));
           }
         }
       }
@@ -563,15 +566,15 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
 class _ConstLiteralVerifier {
   final ConstantVerifier verifier;
-  final Set<DartObject> mapUniqueKeys;
-  final List<Expression> mapDuplicateKeyExpressions;
+  final Map<DartObject, Expression> mapUniqueKeys;
+  final Map<Expression, Expression> mapDuplicateKeyExpressions;
   final ErrorCode errorCode;
   final DartType listElementType;
   final DartType mapKeyType;
   final DartType mapValueType;
   final DartType setElementType;
-  final Set<DartObject> setUniqueValues;
-  final List<CollectionElement> setDuplicateExpressions;
+  final Map<DartObject, Expression> setUniqueValues;
+  final Map<Expression, Expression> setDuplicateExpressions;
   final bool forList;
   final bool forMap;
   final bool forSet;
@@ -765,8 +768,11 @@ class _ConstLiteralVerifier {
     if (forSet) {
       var iterableValue = listValue ?? setValue;
       for (var item in iterableValue) {
-        if (!setUniqueValues.add(item)) {
-          setDuplicateExpressions.add(element.expression);
+        Expression expression = element.expression;
+        if (setUniqueValues.containsKey(item)) {
+          setDuplicateExpressions[expression] = setUniqueValues[item];
+        } else {
+          setUniqueValues[item] = expression;
         }
       }
     }
@@ -813,8 +819,10 @@ class _ConstLiteralVerifier {
         CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
       );
 
-      if (!mapUniqueKeys.add(keyValue)) {
-        mapDuplicateKeyExpressions.add(keyExpression);
+      if (mapUniqueKeys.containsKey(keyValue)) {
+        mapDuplicateKeyExpressions[keyExpression] = mapUniqueKeys[keyValue];
+      } else {
+        mapUniqueKeys[keyValue] = keyExpression;
       }
     }
 
@@ -850,8 +858,11 @@ class _ConstLiteralVerifier {
       for (var entry in map.entries) {
         DartObjectImpl keyValue = entry.key;
         if (keyValue != null) {
-          if (!mapUniqueKeys.add(keyValue)) {
-            mapDuplicateKeyExpressions.add(element.expression);
+          if (mapUniqueKeys.containsKey(keyValue)) {
+            mapDuplicateKeyExpressions[element.expression] =
+                mapUniqueKeys[keyValue];
+          } else {
+            mapUniqueKeys[keyValue] = element.expression;
           }
         }
       }
@@ -888,8 +899,10 @@ class _ConstLiteralVerifier {
       CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT_FROM_DEFERRED_LIBRARY,
     );
 
-    if (!setUniqueValues.add(value)) {
-      setDuplicateExpressions.add(expression);
+    if (setUniqueValues.containsKey(value)) {
+      setDuplicateExpressions[expression] = setUniqueValues[value];
+    } else {
+      setUniqueValues[value] = expression;
     }
 
     return true;

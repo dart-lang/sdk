@@ -288,9 +288,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
             if (i > 0) {
               buffer.write(', ');
             }
-            buffer.write('message(resourceProvider.convertPath(\'');
+            buffer.write('message(\'');
             buffer.write(message.filePath);
-            buffer.write('\'), ');
+            buffer.write('\', ');
             buffer.write(message.offset);
             buffer.write(', ');
             buffer.write(message.length);
