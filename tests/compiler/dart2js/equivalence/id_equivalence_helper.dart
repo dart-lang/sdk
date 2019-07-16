@@ -114,7 +114,8 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(Compiler compiler, Id id, CollectedMessage error) => null;
+  T computeErrorData(Compiler compiler, Id id, List<CollectedMessage> errors) =>
+      null;
 
   DataInterpreter<T> get dataValidator;
 }
@@ -179,16 +180,25 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
       ? compiler.resolutionWorldBuilder.closedWorldForTesting
       : compiler.backendClosedWorldForTesting;
   ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
+  Map<Uri, Map<int, List<CollectedMessage>>> errors = {};
   for (CollectedMessage error in diagnosticCollector.errors) {
-    Uri uri = error.uri;
-    int offset = error.begin;
-    NodeId id = new NodeId(error.begin, IdKind.error);
-    T data = dataComputer.computeErrorData(compiler, id, error);
-    if (data != null) {
-      Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
-      actualMap[id] = new ActualData<T>(id, data, uri, offset, error);
-    }
+    Map<int, List<CollectedMessage>> map =
+        errors.putIfAbsent(error.uri, () => {});
+    List<CollectedMessage> list = map.putIfAbsent(error.begin, () => []);
+    list.add(error);
   }
+
+  errors.forEach((Uri uri, Map<int, List<CollectedMessage>> map) {
+    map.forEach((int offset, List<CollectedMessage> list) {
+      NodeId id = new NodeId(offset, IdKind.error);
+      T data = dataComputer.computeErrorData(compiler, id, list);
+      if (data != null) {
+        Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
+        actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
+      }
+    });
+  });
+
   if (!result.isSuccess) {
     return new Dart2jsCompiledData<T>(
         compiler, elementEnvironment, entryPoint, actualMaps, globalData);

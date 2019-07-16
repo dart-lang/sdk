@@ -135,6 +135,8 @@ class PragmaAnnotation {
     parameterCheck: {parameterTrust},
     downcastTrust: {downcastCheck},
     downcastCheck: {downcastTrust},
+    asTrust: {asCheck},
+    asCheck: {asTrust},
   };
   static const Map<PragmaAnnotation, Set<PragmaAnnotation>> requires = {
     noThrows: {noInline},
@@ -236,6 +238,8 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
           {'text': "Unknown dart2js pragma @pragma('$name')"});
     }
   }
+
+  Map<PragmaAnnotation, EnumSet<PragmaAnnotation>> reportedExclusions = {};
   for (PragmaAnnotation annotation
       in annotations.iterable(PragmaAnnotation.values)) {
     Set<PragmaAnnotation> implies = PragmaAnnotation.implies[annotation];
@@ -245,7 +249,7 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
           reporter.reportHintMessage(
               computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
             'text': "@pragma('dart2js:${annotation.name}') implies "
-                "@pragma('dart2js:${annotation.name}')."
+                "@pragma('dart2js:${other.name}')."
           });
         }
       }
@@ -253,12 +257,14 @@ EnumSet<PragmaAnnotation> processMemberAnnotations(
     Set<PragmaAnnotation> excludes = PragmaAnnotation.excludes[annotation];
     if (excludes != null) {
       for (PragmaAnnotation other in excludes) {
-        if (annotations.contains(other)) {
+        if (annotations.contains(other) &&
+            !(reportedExclusions[other]?.contains(annotation) ?? false)) {
           reporter.reportErrorMessage(
               computeSourceSpanFromTreeNode(member), MessageKind.GENERIC, {
             'text': "@pragma('dart2js:${annotation.name}') must not be used "
-                "with @pragma('dart2js:${annotation.name}')."
+                "with @pragma('dart2js:${other.name}')."
           });
+          (reportedExclusions[annotation] ??= new EnumSet()).add(other);
         }
       }
     }

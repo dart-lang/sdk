@@ -48,8 +48,9 @@ class AnnotationDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(Compiler compiler, Id id, CollectedMessage error) {
-    return error.message.message;
+  String computeErrorData(
+      Compiler compiler, Id id, List<CollectedMessage> errors) {
+    return '[${errors.map((error) => error.message.message).join(',')}]';
   }
 
   @override
