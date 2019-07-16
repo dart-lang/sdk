@@ -481,6 +481,15 @@ class ImportFindElement {
     throw StateError('Not found: $name');
   }
 
+  ExtensionElement extension_(String name) {
+    for (var element in definingUnit.extensions) {
+      if (element.name == name) {
+        return element;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
   GenericTypeAliasElement functionTypeAlias(String name) {
     for (var element in definingUnit.functionTypeAliases) {
       if (element.name == name) {

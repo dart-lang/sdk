@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,11 +35,8 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     expect(resolvedElement, extension.getMethod('m'));
   }
 
-  void assertOverride(String extensionName, List<DartType> typeArguments) {
-    expect(extensionOverride.extensionName.toSource(), extensionName);
-    if (extension != null) {
-      expect(extensionOverride.extensionName.staticElement, extension);
-    }
+  void assertOverride({List<DartType> typeArguments}) {
+    expect(extensionOverride.extensionName.staticElement, extension);
     if (typeArguments == null) {
       expect(extensionOverride.typeArguments, isNull);
     } else {
@@ -50,15 +48,34 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     expect(extensionOverride.argumentList.arguments, hasLength(1));
   }
 
-  void find(String declarationSearch, String overrideSearch) {
-    try {
+  void findDeclarationAndOverride(
+      {@required String declarationName,
+      @required String overrideSearch,
+      String declarationUri}) {
+    if (declarationUri == null) {
       ExtensionDeclaration declaration =
-          findNode.extensionDeclaration(declarationSearch);
+          findNode.extensionDeclaration('extension $declarationName');
       extension = declaration?.declaredElement as ExtensionElement;
-    } catch (_) {
-      // The extension could not be found.
+    } else {
+      extension =
+          findElement.importFind(declarationUri).extension_(declarationName);
     }
     extensionOverride = findNode.extensionOverride(overrideSearch);
+  }
+
+  @failingTest
+  test_multipleArguments() async {
+    fail('Implement this');
+  }
+
+  @failingTest
+  test_noArguments() async {
+    fail('Implement this');
+  }
+
+  @failingTest
+  test_noMatchingMember() async {
+    fail('Implement this');
   }
 
   test_noPrefix_noTypeArguments() async {
@@ -71,8 +88,8 @@ void f(A a) {
   E(a).m();
 }
 ''');
-    find('E ', 'E(a)');
-    assertOverride('E', null);
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    assertOverride();
     assertInvocation();
   }
 
@@ -86,8 +103,8 @@ void f(A a) {
   E<int>(a).m();
 }
 ''');
-    find('E<T>', 'E<int>');
-    assertOverride('E', [intType]);
+    findDeclarationAndOverride(declarationName: 'E', overrideSearch: 'E<int>');
+    assertOverride(typeArguments: [intType]);
     assertInvocation();
   }
 
@@ -104,8 +121,12 @@ void f(p.A a) {
   p.E(a).m();
 }
 ''');
-    find('E ', 'E(a)');
-    assertOverride('p.E', null);
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    assertOverride();
+    assertInvocation();
   }
 
   test_prefix_typeArguments() async {
@@ -121,7 +142,11 @@ void f(p.A a) {
   p.E<int>(a).m();
 }
 ''');
-    find('E<T>', 'E<int>');
-    assertOverride('p.E', [intType]);
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<int>');
+    assertOverride(typeArguments: [intType]);
+    assertInvocation();
   }
 }
