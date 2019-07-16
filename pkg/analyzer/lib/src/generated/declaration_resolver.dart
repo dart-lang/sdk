@@ -925,7 +925,7 @@ class ElementWalker {
   /// an [IndexError] if there are no more.
   ClassElement getEnum() => _enums[_enumIndex++];
 
-  ExtensionElement getExtension() => _extensions[_extensionIndex];
+  ExtensionElement getExtension() => _extensions[_extensionIndex++];
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are

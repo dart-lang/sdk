@@ -23,6 +23,14 @@ class ExtensionMethodTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_multipleExtensions() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E1 on A {}
+extension E2 on A {}
+''');
+  }
+
   test_no_match() async {
     await assertErrorCodesInCode(r'''
 class B { }
