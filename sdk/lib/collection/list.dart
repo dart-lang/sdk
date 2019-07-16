@@ -67,7 +67,6 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  @pragma("vm:prefer-inline")
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;

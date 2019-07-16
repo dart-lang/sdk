@@ -513,16 +513,14 @@ static bool IsSmallLeaf(FlowGraph* graph) {
       } else if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
-        const bool always_inline =
-            FlowGraphInliner::FunctionHasPreferInlinePragma(function);
         // Accept a static call is always inlined in some way and add the
         // cached size to the total instruction count. A reasonable guess
         // is made if the count has not been collected yet (listed methods
         // are never very large).
-        if (!always_inline && !function.IsRecognized()) {
+        if (!function.always_inline() && !function.IsRecognized()) {
           return false;
         }
-        if (!always_inline) {
+        if (!function.always_inline()) {
           static constexpr intptr_t kAvgListedMethodSize = 20;
           instruction_count +=
               (inl_size == 0 ? kAvgListedMethodSize : inl_size);
@@ -2321,7 +2319,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
       return true;
     }
   }
-  return false;
+  return MethodRecognizer::AlwaysInline(function);
 }
 
 int FlowGraphInliner::Inline() {

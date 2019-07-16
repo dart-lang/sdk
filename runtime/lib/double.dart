@@ -13,7 +13,6 @@ class _Double implements double {
   int get _identityHashCode native "Double_hashCode";
 
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:never-inline")
   double operator +(num other) {
     return _add(other.toDouble());
   }
@@ -22,7 +21,6 @@ class _Double implements double {
   double _add(double other) native "Double_add";
 
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:never-inline")
   double operator -(num other) {
     return _sub(other.toDouble());
   }
@@ -31,7 +29,6 @@ class _Double implements double {
   double _sub(double other) native "Double_sub";
 
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:never-inline")
   double operator *(num other) {
     return _mul(other.toDouble());
   }
@@ -47,7 +44,6 @@ class _Double implements double {
   int _trunc_div(double other) native "Double_trunc_div";
 
   @pragma("vm:exact-result-type", _Double)
-  @pragma("vm:never-inline")
   double operator /(num other) {
     return _div(other.toDouble());
   }
@@ -72,7 +68,6 @@ class _Double implements double {
   double operator -() native "Double_flipSignBit";
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator ==(Object other) {
     return (other is num) && _equal(other.toDouble());
   }
@@ -83,13 +78,11 @@ class _Double implements double {
   bool _equalToInteger(int other) native "Double_equalToInteger";
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator <(num other) {
     return other > this;
   }
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator >(num other) {
     return _greaterThan(other.toDouble());
   }
@@ -98,13 +91,11 @@ class _Double implements double {
   bool _greaterThan(double other) native "Double_greaterThan";
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }

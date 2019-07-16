@@ -6,17 +6,13 @@
 
 abstract class _IntegerImplementation implements int {
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   num operator +(num other) => other._addFromInteger(this);
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   num operator -(num other) => other._subFromInteger(this);
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   num operator *(num other) => other._mulFromInteger(this);
 
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator ~/(num other) {
     if ((other is int) && (other == 0)) {
       throw const IntegerDivisionByZeroException();
@@ -37,19 +33,15 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator -() {
     return 0 - this;
   }
 
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator &(int other) => other._bitAndFromInteger(this);
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator |(int other) => other._bitOrFromInteger(this);
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator ^(int other) => other._bitXorFromInteger(this);
 
   num remainder(num other) {
@@ -83,32 +75,26 @@ abstract class _IntegerImplementation implements int {
   }
 
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator >>(int other) => other._shrFromInteger(this);
   @pragma("vm:non-nullable-result-type")
-  @pragma("vm:never-inline")
   int operator <<(int other) => other._shlFromInteger(this);
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator <(num other) {
     return other > this;
   }
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator >(num other) {
     return other._greaterThanFromInteger(this);
   }
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator >=(num other) {
     return (this == other) || (this > other);
   }
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator <=(num other) {
     return (this == other) || (this < other);
   }
@@ -118,7 +104,6 @@ abstract class _IntegerImplementation implements int {
       native "Integer_greaterThanFromInteger";
 
   @pragma("vm:exact-result-type", bool)
-  @pragma("vm:never-inline")
   bool operator ==(Object other) {
     if (other is num) {
       return other._equalToInteger(this);

@@ -1248,8 +1248,7 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   const Function& target = Function::ZoneHandle(
       Z, dart_internal.LookupFunctionAllowPrivate(target_name));
   ASSERT(!target.IsNull());
-  ASSERT(target.IsRecognized());
-  ASSERT(FlowGraphInliner::FunctionHasPreferInlinePragma(target));
+  ASSERT(target.IsRecognized() && target.always_inline());
 
   const intptr_t kTypeArgsLen = 0;
   StaticCallInstr* new_call = new (Z) StaticCallInstr(

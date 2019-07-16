@@ -71,6 +71,5 @@ class Pointer<T extends NativeType> {
 
 // Returns the ABI used for size and alignment calculations.
 // See pkg/vm/lib/transformations/ffi.dart.
-@pragma('vm:prefer-inline')
 int _abi()
     native "Recognized method: method is directly interpreted by the bytecode interpreter or IR graph is built in the flow graph builder.";
