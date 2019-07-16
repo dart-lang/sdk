@@ -3149,6 +3149,10 @@
     <p>
       Return the description of the widget instance at the given location.
     </p>
+    <p>
+      If the location does not have a support widget, an error of type
+      <tt>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</tt> will be generated.
+    </p>
     <params>
       <field name="file">
         <ref>FilePath</ref>
@@ -4852,6 +4856,12 @@
           A request specified a FilePath which does not match a file in
           an analysis root, or the requested operation is not available
           for the file.
+        </p>
+      </value>
+      <value>
+        <code>FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET</code>
+        <p>
+          The given location does not have a supported widget.
         </p>
       </value>
       <value>

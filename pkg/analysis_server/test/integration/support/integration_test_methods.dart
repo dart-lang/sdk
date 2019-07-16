@@ -2583,6 +2583,9 @@ abstract class IntegrationTestMixin {
   /**
    * Return the description of the widget instance at the given location.
    *
+   * If the location does not have a support widget, an error of type
+   * FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET will be generated.
+   *
    * Parameters
    *
    * file: FilePath

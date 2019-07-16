@@ -19642,6 +19642,7 @@ class RequestError implements HasToJson {
  *   CONTENT_MODIFIED
  *   DEBUG_PORT_COULD_NOT_BE_OPENED
  *   FILE_NOT_ANALYZED
+ *   FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID
  *   FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED
  *   FORMAT_INVALID_FILE
@@ -19695,6 +19696,12 @@ class RequestErrorCode implements Enum {
    */
   static const RequestErrorCode FILE_NOT_ANALYZED =
       const RequestErrorCode._("FILE_NOT_ANALYZED");
+
+  /**
+   * The given location does not have a supported widget.
+   */
+  static const RequestErrorCode FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET =
+      const RequestErrorCode._("FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET");
 
   /**
    * The given property identifier is not valid. It might have never been
@@ -19903,6 +19910,7 @@ class RequestErrorCode implements Enum {
     CONTENT_MODIFIED,
     DEBUG_PORT_COULD_NOT_BE_OPENED,
     FILE_NOT_ANALYZED,
+    FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
     FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
     FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
     FORMAT_INVALID_FILE,
@@ -19946,6 +19954,8 @@ class RequestErrorCode implements Enum {
         return DEBUG_PORT_COULD_NOT_BE_OPENED;
       case "FILE_NOT_ANALYZED":
         return FILE_NOT_ANALYZED;
+      case "FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET":
+        return FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET;
       case "FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID":
         return FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID;
       case "FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED":

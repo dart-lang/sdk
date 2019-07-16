@@ -17,10 +17,59 @@ class FlutterDomainHandler extends AbstractRequestHandler {
    */
   FlutterDomainHandler(AnalysisServer server) : super(server);
 
+  /**
+   * Implement the 'flutter.getWidgetDescription' request.
+   */
+  void getWidgetDescription(Request request) async {
+    var params = FlutterGetWidgetDescriptionParams.fromRequest(request);
+    var file = params.file;
+    var offset = params.offset;
+
+    if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      return;
+    }
+
+    var resolvedUnit = await server.getResolvedUnit(file);
+    if (resolvedUnit == null) {
+      // TODO(scheglov) report error
+    }
+
+    var computer = server.flutterWidgetDescriptions;
+
+    var result = await computer.getDescription(
+      resolvedUnit,
+      offset,
+    );
+
+    if (result == null) {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(
+            RequestErrorCode.FLUTTER_GET_WIDGET_DESCRIPTION_NO_WIDGET,
+            'No Flutter widget at the given location.',
+          ),
+        ),
+      );
+    }
+
+    server.sendResponse(
+      result.toResponse(request.id),
+    );
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
+      if (requestName == FLUTTER_REQUEST_GET_WIDGET_DESCRIPTION) {
+        getWidgetDescription(request);
+        return Response.DELAYED_RESPONSE;
+      }
+      if (requestName == FLUTTER_REQUEST_SET_WIDGET_PROPERTY_VALUE) {
+        setPropertyValue(request);
+        return Response.DELAYED_RESPONSE;
+      }
       if (requestName == FLUTTER_REQUEST_SET_SUBSCRIPTIONS) {
         return setSubscriptions(request);
       }
@@ -28,6 +77,33 @@ class FlutterDomainHandler extends AbstractRequestHandler {
       return exception.response;
     }
     return null;
+  }
+
+  /**
+   * Implement the 'flutter.setPropertyValue' request.
+   */
+  void setPropertyValue(Request request) async {
+    var params = FlutterSetWidgetPropertyValueParams.fromRequest(request);
+
+    var result = await server.flutterWidgetDescriptions.setPropertyValue(
+      params.id,
+      params.value,
+    );
+
+    if (result.errorCode != null) {
+      server.sendResponse(
+        Response(
+          request.id,
+          error: RequestError(result.errorCode, ''),
+        ),
+      );
+    }
+
+    server.sendResponse(
+      FlutterSetWidgetPropertyValueResult(
+        result.change,
+      ).toResponse(request.id),
+    );
   }
 
   /**
