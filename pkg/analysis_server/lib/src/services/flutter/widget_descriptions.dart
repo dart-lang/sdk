@@ -4,55 +4,64 @@
 
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/flutter/class_description.dart';
+import 'package:analysis_server/src/services/flutter/property.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/comment.dart';
 
+/// The result of [WidgetDescriptions.setPropertyValue] invocation.
 class SetPropertyValueResult {
+  /// The error to report to the client, or `null` if OK.
   final protocol.RequestErrorCode errorCode;
+
+  /// The change to apply, or `null` if [errorCode] is not `null`.
   final protocol.SourceChange change;
 
-  SetPropertyValueResult({this.errorCode, this.change});
+  SetPropertyValueResult._({this.errorCode, this.change});
 }
 
 class WidgetDescriptions {
+  final ClassDescriptionRegistry _classRegistry = ClassDescriptionRegistry();
+
   /// The mapping of identifiers of previously returned properties.
-  final Map<int, _PropertyDescription> _properties = {};
+  final Map<int, PropertyDescription> _properties = {};
 
   /// Return the description of the widget with [InstanceCreationExpression] in
-  /// the [resolvedUnit] at the [offset].
+  /// the [resolvedUnit] at the [offset], or `null` if the location does not
+  /// correspond to a widget.
   protocol.FlutterGetWidgetDescriptionResult getDescription(
     ResolvedUnitResult resolvedUnit,
     int offset,
   ) {
-    var computer = _WidgetDescriptionComputer(resolvedUnit, offset);
+    var computer = _WidgetDescriptionComputer(
+      _classRegistry,
+      resolvedUnit,
+      offset,
+    );
     var widgetDescription = computer.compute();
 
     if (widgetDescription == null) {
       return null;
     }
 
-    var protocolProperties = <protocol.FlutterWidgetProperty>[];
-    for (var property in widgetDescription.properties) {
-      _properties[property.protocolProperty.id] = property;
-      protocolProperties.add(property.protocolProperty);
-    }
-
+    var protocolProperties = _toProtocolProperties(
+      widgetDescription.properties,
+    );
     return protocol.FlutterGetWidgetDescriptionResult(protocolProperties);
   }
 
-  SetPropertyValueResult setPropertyValue(
+  Future<SetPropertyValueResult> setPropertyValue(
     int id,
     protocol.FlutterWidgetPropertyValue value,
-  ) {
+  ) async {
     var property = _properties[id];
     if (property == null) {
-      return SetPropertyValueResult(
+      return SetPropertyValueResult._(
         errorCode: protocol
             .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_INVALID_ID,
       );
@@ -60,139 +69,45 @@ class WidgetDescriptions {
 
     if (value == null) {
       if (property.protocolProperty.isRequired) {
-        return SetPropertyValueResult(
+        return SetPropertyValueResult._(
           errorCode: protocol
               .RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
         );
       }
-      var change = property.removeValue();
-      return SetPropertyValueResult(change: change);
+      var change = await property.removeValue();
+      return SetPropertyValueResult._(change: change);
     } else {
-      var change = property.changeValue(value);
-      return SetPropertyValueResult(change: change);
+      var change = await property.changeValue(value);
+      return SetPropertyValueResult._(change: change);
     }
   }
-}
 
-class _PropertyDescription {
-  final String file;
-  final InstanceCreationExpression instanceCreation;
-  final Expression argumentExpression;
-  final Expression valueExpression;
-  final ParameterElement parameterElement;
+  List<protocol.FlutterWidgetProperty> _toProtocolProperties(
+    List<PropertyDescription> properties,
+  ) {
+    var protocolProperties = <protocol.FlutterWidgetProperty>[];
+    for (var property in properties) {
+      var protocolProperty = property.protocolProperty;
 
-  final protocol.FlutterWidgetProperty protocolProperty;
+      _properties[protocolProperty.id] = property;
 
-  _PropertyDescription(
-    this.file,
-    this.instanceCreation,
-    this.argumentExpression,
-    this.valueExpression,
-    this.parameterElement,
-    this.protocolProperty,
-  );
-
-  protocol.SourceChange changeValue(protocol.FlutterWidgetPropertyValue value) {
-    var change = protocol.SourceChange('Change property value');
-
-    var code = _toCode(value);
-
-    if (valueExpression != null) {
-      change.addEdit(
-        file,
-        0,
-        protocol.SourceEdit(
-          valueExpression.offset,
-          valueExpression.length,
-          code,
-        ),
-      );
-    } else {
-      var argumentList = instanceCreation.argumentList;
-
-      var rightParenthesis = argumentList.rightParenthesis;
-
-      var leadingComma = '';
-      if (rightParenthesis.previous.type != TokenType.COMMA) {
-        leadingComma = ', ';
-      }
-
-      change.addEdit(
-        file,
-        0,
-        protocol.SourceEdit(
-          rightParenthesis.offset,
-          0,
-          '$leadingComma${parameterElement.name}: $code, ',
-        ),
-      );
+      protocolProperty.children = _toProtocolProperties(property.children);
+      protocolProperties.add(protocolProperty);
     }
-
-    return change;
-  }
-
-  protocol.SourceChange removeValue() {
-    var change = protocol.SourceChange('Remove property value');
-
-    if (argumentExpression != null) {
-      int endOffset;
-      var argumentList = instanceCreation.argumentList;
-      var arguments = argumentList.arguments;
-      var argumentIndex = arguments.indexOf(argumentExpression);
-      if (argumentIndex < arguments.length - 1) {
-        endOffset = arguments[argumentIndex + 1].offset;
-      } else {
-        endOffset = argumentList.rightParenthesis.offset;
-      }
-
-      var beginOffset = argumentExpression.offset;
-      change.addEdit(
-        file,
-        0,
-        protocol.SourceEdit(
-          beginOffset,
-          endOffset - beginOffset,
-          '',
-        ),
-      );
-    }
-
-    return change;
-  }
-
-  String _toCode(protocol.FlutterWidgetPropertyValue value) {
-    if (value.boolValue != null) {
-      return '${value.boolValue}';
-    }
-
-    if (value.doubleValue != null) {
-      return value.doubleValue.toStringAsFixed(1);
-    }
-
-    if (value.intValue != null) {
-      return '${value.intValue}';
-    }
-
-    if (value.stringValue != null) {
-      var code = value.stringValue;
-      if (code.contains("'")) {
-        code = code.replaceAll("'", r"\'");
-      }
-      return "'$code'";
-    }
-
-    throw StateError('Cannot how to encode: $value');
+    return protocolProperties;
   }
 }
 
 class _WidgetDescription {
-  final List<_PropertyDescription> properties;
+  final List<PropertyDescription> properties;
 
   _WidgetDescription(this.properties);
 }
 
 class _WidgetDescriptionComputer {
   static int _nextPropertyId = 0;
+
+  final ClassDescriptionRegistry classRegistry;
 
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
@@ -202,69 +117,92 @@ class _WidgetDescriptionComputer {
 
   final Flutter flutter;
 
-  _WidgetDescriptionComputer(this.resolvedUnit, this.widgetOffset)
-      : flutter = Flutter.of(resolvedUnit);
+  _WidgetDescriptionComputer(
+    this.classRegistry,
+    this.resolvedUnit,
+    this.widgetOffset,
+  ) : flutter = Flutter.of(resolvedUnit);
 
   _WidgetDescription compute() {
     var node = NodeLocator2(widgetOffset).searchWithin(resolvedUnit.unit);
-    var creation = flutter.identifyNewExpression(node);
-    if (creation == null) {
+    var instanceCreation = flutter.identifyNewExpression(node);
+    if (instanceCreation == null) {
       return null;
     }
 
-    var constructorElement = creation.staticElement;
+    var constructorElement = instanceCreation.staticElement;
     if (constructorElement == null) {
       return null;
     }
 
-    var properties = <_PropertyDescription>[];
-    _addProperties(creation, constructorElement, properties);
+    var properties = <PropertyDescription>[];
+    _addProperties(
+      properties: properties,
+      instanceCreation: instanceCreation,
+    );
 
     return _WidgetDescription(properties);
   }
 
-  void _addProperties(
+  void _addProperties({
+    List<PropertyDescription> properties,
+    PropertyDescription parent,
+    ClassDescription classDescription,
     InstanceCreationExpression instanceCreation,
     ConstructorElement constructorElement,
-    List<_PropertyDescription> properties,
-  ) {
+  }) {
+    constructorElement ??= instanceCreation?.staticElement;
+    if (constructorElement == null) return;
+
     var existingNamed = Set<ParameterElement>();
-    for (var argumentExpression in instanceCreation.argumentList.arguments) {
-      var parameter = argumentExpression.staticParameterElement;
-      if (parameter == null) continue;
+    if (instanceCreation != null) {
+      for (var argumentExpression in instanceCreation.argumentList.arguments) {
+        var parameter = argumentExpression.staticParameterElement;
+        if (parameter == null) continue;
 
-      Expression valueExpression;
-      if (argumentExpression is NamedExpression) {
-        valueExpression = argumentExpression.expression;
-        existingNamed.add(parameter);
-      } else {
-        valueExpression = argumentExpression;
+        Expression valueExpression;
+        if (argumentExpression is NamedExpression) {
+          valueExpression = argumentExpression.expression;
+          existingNamed.add(parameter);
+        } else {
+          valueExpression = argumentExpression;
+        }
+
+        _addProperty(
+          properties: properties,
+          parent: parent,
+          parameter: parameter,
+          classDescription: classDescription,
+          instanceCreation: instanceCreation,
+          argumentExpression: argumentExpression,
+          valueExpression: valueExpression,
+        );
       }
-
-      _addProperty(
-        properties,
-        parameter,
-        instanceCreation,
-        argumentExpression,
-        valueExpression,
-      );
     }
 
     for (var parameter in constructorElement.parameters) {
       if (!parameter.isNamed) continue;
       if (existingNamed.contains(parameter)) continue;
 
-      _addProperty(properties, parameter, instanceCreation, null, null);
+      _addProperty(
+        properties: properties,
+        parent: parent,
+        parameter: parameter,
+        classDescription: classDescription,
+        instanceCreation: instanceCreation,
+      );
     }
   }
 
-  void _addProperty(
-    List<_PropertyDescription> properties,
+  void _addProperty({
+    List<PropertyDescription> properties,
+    PropertyDescription parent,
     ParameterElement parameter,
+    ClassDescription classDescription,
     InstanceCreationExpression instanceCreation,
     Expression argumentExpression,
     Expression valueExpression,
-  ) {
+  }) {
     String documentation;
     if (parameter is FieldFormalParameterElement) {
       var rawComment = parameter.field.documentationComment;
@@ -292,6 +230,17 @@ class _WidgetDescriptionComputer {
         value = protocol.FlutterWidgetPropertyValue(
           doubleValue: valueExpression.value,
         );
+      } else if (valueExpression is Identifier) {
+        var element = valueExpression.staticElement;
+        if (element is PropertyAccessorElement && element.isGetter) {
+          var field = element.variable;
+          if (field is FieldElement && field.isEnumConstant) {
+            isSafeToUpdate = true;
+            value = protocol.FlutterWidgetPropertyValue(
+              enumValue: _getEnumItem(field),
+            );
+          }
+        }
       } else if (valueExpression is IntegerLiteral) {
         isSafeToUpdate = true;
         value = protocol.FlutterWidgetPropertyValue(
@@ -308,26 +257,47 @@ class _WidgetDescriptionComputer {
     }
 
     var id = _nextPropertyId++;
-    properties.add(
-      _PropertyDescription(
-        resolvedUnit.path,
-        instanceCreation,
-        argumentExpression,
-        valueExpression,
-        parameter,
-        protocol.FlutterWidgetProperty(
-          id,
-          parameter.isRequiredPositional,
-          isSafeToUpdate,
-          parameter.name,
-          children: [], // TODO
-          documentation: documentation,
-          editor: _getEditor(parameter.type),
-          expression: valueExpressionCode,
-          value: value,
-        ),
+    var propertyDescription = PropertyDescription(
+      parent,
+      resolvedUnit,
+      classDescription,
+      instanceCreation,
+      argumentExpression,
+      valueExpression,
+      parameter,
+      protocol.FlutterWidgetProperty(
+        id,
+        parameter.isRequiredPositional,
+        isSafeToUpdate,
+        parameter.name,
+        documentation: documentation,
+        editor: _getEditor(parameter.type),
+        expression: valueExpressionCode,
+        value: value,
       ),
     );
+    properties.add(propertyDescription);
+
+    if (valueExpression is InstanceCreationExpression) {
+      // TODO(scheglov) We probably want to exclude some types, e.g. widgets.
+      _addProperties(
+        properties: propertyDescription.children,
+        parent: propertyDescription,
+        instanceCreation: valueExpression,
+      );
+    } else if (valueExpression == null) {
+      var classDescription = classRegistry.get(
+        parameter.type,
+      );
+      if (classDescription != null) {
+        _addProperties(
+          properties: propertyDescription.children,
+          parent: propertyDescription,
+          classDescription: classDescription,
+          constructorElement: classDescription.constructor,
+        );
+      }
+    }
   }
 
   protocol.FlutterWidgetPropertyEditor _getEditor(DartType type) {
@@ -351,6 +321,38 @@ class _WidgetDescriptionComputer {
         protocol.FlutterWidgetPropertyEditorKind.STRING,
       );
     }
+    if (type is InterfaceType && type.element.isEnum) {
+      return protocol.FlutterWidgetPropertyEditor(
+        protocol.FlutterWidgetPropertyEditorKind.ENUM,
+        enumItems: _getEnumItems(type.element),
+      );
+    }
     return null;
+  }
+
+  protocol.FlutterWidgetPropertyValueEnumItem _getEnumItem(FieldElement field) {
+    assert(field.isEnumConstant);
+
+    var classElement = field.enclosingElement as ClassElement;
+    var libraryUriStr = '${classElement.library.source.uri}';
+
+    var rawComment = field.documentationComment;
+    var documentation = getDartDocPlainText(rawComment);
+
+    return protocol.FlutterWidgetPropertyValueEnumItem(
+      libraryUriStr,
+      classElement.name,
+      field.name,
+      documentation: documentation,
+    );
+  }
+
+  List<protocol.FlutterWidgetPropertyValueEnumItem> _getEnumItems(
+    ClassElement element,
+  ) {
+    return element.fields
+        .where((field) => field.isStatic && field.isEnumConstant)
+        .map(_getEnumItem)
+        .toList();
   }
 }

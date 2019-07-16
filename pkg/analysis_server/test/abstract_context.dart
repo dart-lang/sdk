@@ -63,8 +63,16 @@ class AbstractContextTest with ResourceProviderMixin {
 
   void addFlutterPackage() {
     addMetaPackage();
-    Folder libFolder = MockPackages.instance.addFlutter(resourceProvider);
-    addTestPackageDependency('flutter', libFolder.parent.path);
+
+    addTestPackageDependency(
+      'ui',
+      MockPackages.instance.addUI(resourceProvider).parent.path,
+    );
+
+    addTestPackageDependency(
+      'flutter',
+      MockPackages.instance.addFlutter(resourceProvider).parent.path,
+    );
   }
 
   void addMetaPackage() {

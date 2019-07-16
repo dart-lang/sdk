@@ -30,7 +30,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'softWrap');
+    var property = _getProperty('softWrap', widgetSearch: 'Text(');
     expect(property.documentation, startsWith('Whether the text should'));
     _assertPropertyJsonText(property, r'''
 {
@@ -53,7 +53,7 @@ void main() {
   Text('aaa', softWrap: true);
 }
 ''');
-    var property = _getProperty('Text(', 'softWrap');
+    var property = _getProperty('softWrap', widgetSearch: 'Text(');
     expect(property.documentation, startsWith('Whether the text should'));
     _assertPropertyJsonText(property, r'''
 {
@@ -80,7 +80,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'data');
+    var property = _getProperty('data', widgetSearch: 'Text(');
     expect(property.documentation, startsWith('The text to display.'));
     _assertPropertyJsonText(property, r'''
 {
@@ -94,6 +94,92 @@ void main() {
   },
   "value": {
     "stringValue": "aaa"
+  }
+}
+''');
+  }
+
+  test_nested_notSet() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('');
+}
+''');
+    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+
+    var fontSizeProperty = _getProperty(
+      'fontSize',
+      parentProperty: styleProperty,
+    );
+    _assertPropertyJsonText(fontSizeProperty, r'''
+{
+  "isRequired": false,
+  "isSafeToUpdate": true,
+  "name": "fontSize",
+  "children": [],
+  "editor": {
+    "kind": "DOUBLE"
+  }
+}
+''');
+  }
+
+  test_nested_set() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', style: TextStyle(fontSize: 24));
+}
+''');
+    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+
+    var fontSizeProperty = _getProperty(
+      'fontSize',
+      parentProperty: styleProperty,
+    );
+    _assertPropertyJsonText(fontSizeProperty, r'''
+{
+  "expression": "24",
+  "isRequired": false,
+  "isSafeToUpdate": true,
+  "name": "fontSize",
+  "children": [],
+  "editor": {
+    "kind": "DOUBLE"
+  },
+  "value": {
+    "intValue": 24
+  }
+}
+''');
+
+    var fontStyleProperty = _getProperty(
+      'fontStyle',
+      parentProperty: styleProperty,
+    );
+    _assertPropertyJsonText(fontStyleProperty, r'''
+{
+  "isRequired": false,
+  "isSafeToUpdate": true,
+  "name": "fontStyle",
+  "children": [],
+  "editor": {
+    "kind": "ENUM",
+    "enumItems": [
+      {
+        "libraryUri": "package:ui/ui.dart",
+        "className": "FontStyle",
+        "name": "normal"
+      },
+      {
+        "libraryUri": "package:ui/ui.dart",
+        "className": "FontStyle",
+        "name": "italic"
+      }
+    ]
   }
 }
 ''');
@@ -117,7 +203,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'textScaleFactor');
+    var property = _getProperty('textScaleFactor', widgetSearch: 'Text(');
     _assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
@@ -131,6 +217,64 @@ void main() {
 ''');
   }
 
+  test_type_enum() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', overflow: TextOverflow.fade);
+}
+''');
+    var property = _getProperty('overflow', widgetSearch: 'Text(');
+
+    expect(
+      property.toJson()['editor']['enumItems'][0]['documentation'],
+      startsWith('Clip the overflowing'),
+    );
+
+    _assertPropertyJsonText(property, r'''
+{
+  "expression": "TextOverflow.fade",
+  "isRequired": false,
+  "isSafeToUpdate": true,
+  "name": "overflow",
+  "children": [],
+  "editor": {
+    "kind": "ENUM",
+    "enumItems": [
+      {
+        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "className": "TextOverflow",
+        "name": "clip"
+      },
+      {
+        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "className": "TextOverflow",
+        "name": "fade"
+      },
+      {
+        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "className": "TextOverflow",
+        "name": "ellipsis"
+      },
+      {
+        "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+        "className": "TextOverflow",
+        "name": "visible"
+      }
+    ]
+  },
+  "value": {
+    "enumValue": {
+      "libraryUri": "package:flutter/src/rendering/paragraph.dart",
+      "className": "TextOverflow",
+      "name": "fade"
+    }
+  }
+}
+''');
+  }
+
   test_type_int() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -139,7 +283,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
     _assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
@@ -170,7 +314,7 @@ class SetPropertyValueSelfTest extends _BaseTest {
   test_invalidId() async {
     await resolveTestUnit('');
 
-    var result = descriptions.setPropertyValue(42, null);
+    var result = await descriptions.setPropertyValue(42, null);
 
     expect(
       result.errorCode,
@@ -187,9 +331,9 @@ void main() {
   Text('', );
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(
+    var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
@@ -211,9 +355,9 @@ void main() {
   Text('');
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(
+    var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
@@ -235,9 +379,9 @@ void main() {
   Text('', maxLines: 1);
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(
+    var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
@@ -259,9 +403,9 @@ void main() {
   Text('', maxLines: 1,);
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(property.id, null);
+    var result = await descriptions.setPropertyValue(property.id, null);
 
     _assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
@@ -280,15 +424,73 @@ void main() {
   Text('', maxLines: 1, softWrap: true,);
 }
 ''');
-    var property = _getProperty('Text(', 'maxLines');
+    var property = _getProperty('maxLines', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(property.id, null);
+    var result = await descriptions.setPropertyValue(property.id, null);
 
     _assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
   Text('', softWrap: true,);
+}
+''');
+  }
+
+  test_nested_addValue() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', style: TextStyle(), );
+}
+''');
+    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+
+    var fontSizeProperty = _getProperty(
+      'fontSize',
+      parentProperty: styleProperty,
+    );
+
+    var result = await descriptions.setPropertyValue(
+      fontSizeProperty.id,
+      protocol.FlutterWidgetPropertyValue(doubleValue: 42),
+    );
+
+    _assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', style: TextStyle(fontSize: 42.0, ), );
+}
+''');
+  }
+
+  test_nested_addValue_materialize() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', );
+}
+''');
+    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+
+    var fontSizeProperty = _getProperty(
+      'fontSize',
+      parentProperty: styleProperty,
+    );
+
+    var result = await descriptions.setPropertyValue(
+      fontSizeProperty.id,
+      protocol.FlutterWidgetPropertyValue(doubleValue: 42),
+    );
+
+    _assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', style: TextStyle(fontSize: 42.0, ), );
 }
 ''');
   }
@@ -301,9 +503,9 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'data');
+    var property = _getProperty('data', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(
+    var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(stringValue: 'bbbb'),
     );
@@ -325,9 +527,9 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('Text(', 'data');
+    var property = _getProperty('data', widgetSearch: 'Text(');
 
-    var result = descriptions.setPropertyValue(property.id, null);
+    var result = await descriptions.setPropertyValue(property.id, null);
 
     expect(
       result.errorCode,
@@ -398,14 +600,27 @@ class _BaseTest extends AbstractSingleUnitTest {
   }
 
   protocol.FlutterWidgetProperty _getProperty(
+    String name, {
     String widgetSearch,
-    String propertyName,
-  ) {
-    var widgetDescription = _getDescription(widgetSearch);
-    expect(widgetDescription, isNotNull);
+    protocol.FlutterWidgetProperty parentProperty,
+  }) {
+    if (widgetSearch == null && parentProperty == null ||
+        widgetSearch != null && parentProperty != null) {
+      fail("Either 'widgetSearch' or 'parentProperty' must be specified");
+    }
 
-    return widgetDescription.properties.singleWhere(
-      (property) => property.name == propertyName,
+    List<protocol.FlutterWidgetProperty> properties;
+    if (widgetSearch != null) {
+      var widgetDescription = _getDescription(widgetSearch);
+      expect(widgetDescription, isNotNull);
+
+      properties = widgetDescription.properties;
+    } else if (parentProperty != null) {
+      properties = parentProperty.children;
+    }
+
+    return properties.singleWhere(
+      (property) => property.name == name,
     );
   }
 
@@ -414,6 +629,24 @@ class _BaseTest extends AbstractSingleUnitTest {
 
     var id = json.remove('id') as int;
     expect(id, isNotNull);
+
+    Object editor = json['editor'];
+    if (editor is Map<String, dynamic> && editor['kind'] == 'ENUM') {
+      Object items = editor['enumItems'];
+      if (items is List<Map<String, dynamic>>) {
+        for (var item in items) {
+          item.remove('documentation');
+        }
+      }
+    }
+
+    Object value = json['value'];
+    if (value is Map<String, dynamic>) {
+      Object enumItem = value['enumValue'];
+      if (enumItem is Map<String, dynamic>) {
+        enumItem.remove('documentation');
+      }
+    }
 
     var children = json['children'];
     if (children is List<Map<String, dynamic>>) {
