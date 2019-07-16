@@ -256,7 +256,7 @@ class CompilerOptions implements DiagnosticOptions {
   bool omitImplicitChecks = false;
 
   /// Whether to omit as casts by default.
-  bool defaultOmitAsCasts = false;
+  bool omitAsCasts = false;
 
   /// Whether to omit class type arguments only needed for `toString` on
   /// `Object.runtimeType`.
@@ -278,6 +278,11 @@ class CompilerOptions implements DiagnosticOptions {
   ///
   /// This is an internal configuration option derived from other flags.
   CheckPolicy defaultConditionCheckPolicy;
+
+  /// What should the compiler do with explicit casts.
+  ///
+  /// This is an internal configuration option derived from other flags.
+  CheckPolicy defaultExplicitCastCheckPolicy;
 
   /// Whether to generate code compliant with content security policy (CSP).
   bool useContentSecurityPolicy = false;
@@ -405,7 +410,7 @@ class CompilerOptions implements DiagnosticOptions {
           platformBinaries ?? _extractUriOption(options, '--platform-binaries=')
       ..sourceMapUri = _extractUriOption(options, '--source-map=')
       ..omitImplicitChecks = _hasOption(options, Flags.omitImplicitChecks)
-      ..defaultOmitAsCasts = _hasOption(options, Flags.omitAsCasts)
+      ..omitAsCasts = _hasOption(options, Flags.omitAsCasts)
       ..laxRuntimeTypeToString =
           _hasOption(options, Flags.laxRuntimeTypeToString)
       ..testMode = _hasOption(options, Flags.testMode)
@@ -495,6 +500,11 @@ class CompilerOptions implements DiagnosticOptions {
       defaultParameterCheckPolicy = CheckPolicy.checked;
       defaultImplicitDowncastCheckPolicy = CheckPolicy.checked;
       defaultConditionCheckPolicy = CheckPolicy.checked;
+    }
+    if (omitAsCasts) {
+      defaultExplicitCastCheckPolicy = CheckPolicy.trusted;
+    } else {
+      defaultExplicitCastCheckPolicy = CheckPolicy.checked;
     }
 
     if (_disableMinification) {

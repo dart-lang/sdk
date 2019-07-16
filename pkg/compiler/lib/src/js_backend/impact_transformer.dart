@@ -158,7 +158,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           onIsCheck(type, transformed);
           break;
         case TypeUseKind.AS_CAST:
-          if (!_annotationsData.omitAsCasts(worldImpact.member)) {
+          if (_annotationsData
+              .getExplicitCastCheckPolicy(worldImpact.member)
+              .isEmitted) {
             onIsCheck(type, transformed);
             hasAsCast = true;
           }

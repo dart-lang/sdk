@@ -2417,11 +2417,16 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       return;
     }
 
-    if ((!node.isTypeError &&
-            !closedWorld.annotationsData.omitAsCasts(_currentFrame.member)) ||
-        closedWorld.annotationsData
-            .getImplicitDowncastCheckPolicy(_currentFrame.member)
-            .isEmitted) {
+    CheckPolicy policy;
+    if (node.isTypeError) {
+      policy = closedWorld.annotationsData
+          .getImplicitDowncastCheckPolicy(_currentFrame.member);
+    } else {
+      policy = closedWorld.annotationsData
+          .getExplicitCastCheckPolicy(_currentFrame.member);
+    }
+
+    if (policy.isEmitted) {
       HInstruction converted = _typeBuilder.buildTypeConversion(
           expressionInstruction,
           localsHandler.substInContext(type),

@@ -351,10 +351,10 @@ abstract class AnnotationsData {
   /// If [member] is `null`, the default policy is returned.
   CheckPolicy getConditionCheckPolicy(MemberEntity member);
 
-  /// Whether to omit as casts.
+  /// Whether should the compiler do with explicit casts in [member].
   ///
   /// If [member] is `null`, the default policy is returned.
-  bool omitAsCasts(MemberEntity member);
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member);
 }
 
 class AnnotationsDataImpl implements AnnotationsData {
@@ -365,7 +365,7 @@ class AnnotationsDataImpl implements AnnotationsData {
   final CheckPolicy _defaultParameterCheckPolicy;
   final CheckPolicy _defaultImplicitDowncastCheckPolicy;
   final CheckPolicy _defaultConditionCheckPolicy;
-  final bool _defaultOmitAsCasts;
+  final CheckPolicy _defaultExplicitCastCheckPolicy;
   final Map<MemberEntity, EnumSet<PragmaAnnotation>> pragmaAnnotations;
 
   AnnotationsDataImpl(CompilerOptions options, this.pragmaAnnotations)
@@ -373,7 +373,8 @@ class AnnotationsDataImpl implements AnnotationsData {
         this._defaultImplicitDowncastCheckPolicy =
             options.defaultImplicitDowncastCheckPolicy,
         this._defaultConditionCheckPolicy = options.defaultConditionCheckPolicy,
-        this._defaultOmitAsCasts = options.defaultOmitAsCasts;
+        this._defaultExplicitCastCheckPolicy =
+            options.defaultExplicitCastCheckPolicy;
 
   factory AnnotationsDataImpl.readFromDataSource(
       CompilerOptions options, DataSource source) {
@@ -526,18 +527,18 @@ class AnnotationsDataImpl implements AnnotationsData {
   }
 
   @override
-  bool omitAsCasts(MemberEntity member) {
+  CheckPolicy getExplicitCastCheckPolicy(MemberEntity member) {
     if (member != null) {
       EnumSet<PragmaAnnotation> annotations = pragmaAnnotations[member];
       if (annotations != null) {
         if (annotations.contains(PragmaAnnotation.asTrust)) {
-          return true;
+          return CheckPolicy.trusted;
         } else if (annotations.contains(PragmaAnnotation.asCheck)) {
-          return false;
+          return CheckPolicy.checked;
         }
       }
     }
-    return _defaultOmitAsCasts;
+    return _defaultExplicitCastCheckPolicy;
   }
 }
 

@@ -199,7 +199,7 @@ class CodegenEnqueuer extends EnqueuerImpl {
         _registerIsCheck(type);
         break;
       case TypeUseKind.AS_CAST:
-        if (!_annotationsData.omitAsCasts(member)) {
+        if (_annotationsData.getExplicitCastCheckPolicy(member).isEmitted) {
           _registerIsCheck(type);
         }
         break;

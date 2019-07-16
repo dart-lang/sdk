@@ -333,7 +333,9 @@ abstract class DeferredLoadTask extends CompilerTask {
               _collectTypeDependencies(type, dependencies);
               break;
             case TypeUseKind.AS_CAST:
-              if (!closedWorld.annotationsData.omitAsCasts(element)) {
+              if (closedWorld.annotationsData
+                  .getExplicitCastCheckPolicy(element)
+                  .isEmitted) {
                 _collectTypeDependencies(type, dependencies);
               }
               break;
