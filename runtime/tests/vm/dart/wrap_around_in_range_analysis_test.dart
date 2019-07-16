@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--no-background-compilation --enable-inlining-annotations
+
 // Test for overflow (wrap-around) during computations in range analysis.
 
 import "package:expect/expect.dart";
 
-@pragma('vm:never-inline')
+const NeverInline = 'NeverInline';
+
+@NeverInline
 int foofoo(int b) {
   for (int i = 0x7ffffffffffffffc; i <= b; i += 2) {
     if (i < 0) {

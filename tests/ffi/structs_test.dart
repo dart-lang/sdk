@@ -4,7 +4,7 @@
 //
 // Dart test program for testing dart:ffi struct pointers.
 //
-// VMOptions=--deterministic --optimization-counter-threshold=50
+// VMOptions=--deterministic --optimization-counter-threshold=50 --enable-inlining-annotations
 
 library FfiTest;
 

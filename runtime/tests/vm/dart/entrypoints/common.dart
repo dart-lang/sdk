@@ -8,15 +8,13 @@ import "package:expect/expect.dart";
 // We accomplish this by using VM options in the yes-inlining variant to set the
 // "enable_inlining" constant variable to true. This maximizes code sharing
 // between the two variants, which are otherwise identical.
-const pragma NeverInline = const bool.fromEnvironment("enable_inlining")
-    ? null
-    : pragma('vm:never-inline');
+const String NeverInline =
+    const bool.fromEnvironment("enable_inlining") ? "" : "NeverInline";
 
 // In AOT we need to force some functions to be inlined since we only build the
 // unchecked entry-point when inlining.
-const pragma AlwaysInline = const bool.fromEnvironment("enable_inlining")
-    ? pragma('vm:prefer-inline')
-    : null;
+const String AlwaysInline =
+    const bool.fromEnvironment("enable_inlining") ? "AlwaysInline" : "";
 
 // All these tests can be run in test mode or in benchmark mode. In benchmark
 // mode, there is introspection is omitted and the tests runs for many more

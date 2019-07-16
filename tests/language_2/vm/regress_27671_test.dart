@@ -2,19 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable_asserts --optimization-counter-threshold=10 --no-background-compilation
+// VMOptions=--enable_asserts --enable-inlining-annotations --optimization-counter-threshold=10 --no-background-compilation
 
 import 'package:expect/expect.dart';
 import 'regress_27671_other.dart';
 
-@pragma('vm:prefer-inline')
+const AlwaysInline = "AlwaysInline";
+const NeverInline = "NeverInline";
+
+@AlwaysInline
 bounce(x) {
   for (int i = 0; i < 10; i++) {
     check(f, x);
   }
 }
 
-@pragma('vm:prefer-inline')
+@AlwaysInline
 bool f(y) => y > 0;
 
 main() {

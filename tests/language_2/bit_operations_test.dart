@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing bitwise operations.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation --enable-inlining-annotations
 
 import "package:expect/expect.dart";
+
+const neverInline = "NeverInline";
 
 void main() {
   for (int i = 0; i < 4; i++) {
@@ -224,7 +226,7 @@ void testPrecedence(int a, int b, int c, int d) {
   Expect.notEquals((a & b) << (c ^ d), a & b << c ^ d);
 }
 
-@pragma('vm:never-inline')
+@neverInline
 rightShift65Noinline(a) => a >> 65;
 
 testRightShift65() {

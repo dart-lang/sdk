@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--deterministic --optimization_counter_threshold=10
+// VMOptions=--deterministic --optimization_counter_threshold=10 --enable-inlining-annotations
 
 // Test on specialized vs non-specialized inlining.
 
 import 'dart:core';
 import "package:expect/expect.dart";
+
+const String NeverInline = 'NeverInline';
 
 // To inline or not to inline, that is the question?
 int foo(int k) {
@@ -273,14 +275,14 @@ int foo(int k) {
   }
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int bar() {
   // Here we should inline! The inlined size is very small
   // after specialization for the constant arguments.
   return foo(1) + foo(12);
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int baz(int i) {
   // Here we should not inline! The inlined size is too large,
   // just keep the original method. In fact, we can use the cached

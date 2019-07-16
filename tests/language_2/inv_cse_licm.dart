@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--deterministic--optimization_counter_threshold=10
+// VMOptions=--deterministic --enable-inlining-annotations --optimization_counter_threshold=10
 
 import 'dart:typed_data';
 import "package:expect/expect.dart";
 
+const String NeverInline = 'NeverInline';
+
 // Tests a few situations in which invariant instructions
 // can be subject to CSE and LICM.
 
-@pragma('vm:never-inline')
+@NeverInline
 int cse1(Int32List a, int n) {
   int x = a[0];
   for (int i = 0; i < n; i++) {
@@ -21,7 +23,7 @@ int cse1(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int cse2(Int32List a, int n) {
   int x = a[0];
   for (int i = 0; i < n; i++) {
@@ -33,7 +35,7 @@ int cse2(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm1(Int32List a, int n) {
   int x = 0;
   for (int i = 0; i < n; i++) {
@@ -44,7 +46,7 @@ int licm1(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm2(Int32List a) {
   int x = 0;
   for (int i = 0; i < 16; i++) {
@@ -55,7 +57,7 @@ int licm2(Int32List a) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm3(Int32List a, bool cond) {
   int x = 0;
   for (int i = 0; i < 16; i++) {
@@ -67,7 +69,7 @@ int licm3(Int32List a, bool cond) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm3_brk(Int32List a, bool cond) {
   int x = 0;
   for (int i = 0; i < 16; i++) {
@@ -82,7 +84,7 @@ int licm3_brk(Int32List a, bool cond) {
 
 int global;
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm4(Int32List a) {
   int x = 0;
   for (int i = 0; i < 16; i++) {
@@ -95,7 +97,7 @@ int licm4(Int32List a) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm5(Int32List a) {
   int x = 0;
   // Anything in the loop header can be LICMed.
@@ -105,7 +107,7 @@ int licm5(Int32List a) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm6(Int32List a, int n) {
   int x = 0;
   int i = 0;
@@ -117,7 +119,7 @@ int licm6(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm7(Int32List a, int n) {
   int x = 0;
   int i = 0;
@@ -130,7 +132,7 @@ int licm7(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm8(Int32List a, int n) {
   int x = 0;
   int i = 0;
@@ -142,7 +144,7 @@ int licm8(Int32List a, int n) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm9(Int32List a) {
   int x = 0;
   int i = 0;
@@ -155,7 +157,7 @@ int licm9(Int32List a) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm10(Int32List a, bool cond) {
   int x = 0;
   int i = 0;
@@ -170,7 +172,7 @@ int licm10(Int32List a, bool cond) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm10_brk(Int32List a, bool cond) {
   int x = 0;
   int i = 0;
@@ -185,7 +187,7 @@ int licm10_brk(Int32List a, bool cond) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm11(Int32List a) {
   int x = 0;
   while (true) {
@@ -196,12 +198,12 @@ int licm11(Int32List a) {
   return x;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int foo() {
   return global--;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 int licm12(Int32List a) {
   int x = 0;
   int i = 0;

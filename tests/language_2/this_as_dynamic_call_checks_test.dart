@@ -2,39 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--no-background-compilation --optimization-counter-threshold=10
+// VMOptions=--no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=10
 
 import "package:expect/expect.dart";
+
+const NeverInline = "NeverInline";
 
 class A<T> {
   T field;
 
-  @pragma('vm:never-inline')
+  @NeverInline
   set property(T v) {}
 
-  @pragma('vm:never-inline')
+  @NeverInline
   void method(T x) {}
 
-  @pragma('vm:never-inline')
+  @NeverInline
   void testMethod({bool violateType: false}) {
     dynamic x = this;
     x.method(violateType ? 10 : "10");
   }
 
-  @pragma('vm:never-inline')
+  @NeverInline
   void testSetter({bool violateType: false}) {
     dynamic x = this;
     x.property = violateType ? 10 : "10";
   }
 
-  @pragma('vm:never-inline')
+  @NeverInline
   void testField({bool violateType: false}) {
     dynamic x = this;
     x.field = violateType ? 10 : "10";
   }
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 void loop(A<String> obj, {bool violateType: false}) {
   for (var i = 0; i < 100; i++) {
     obj.testMethod(violateType: violateType);

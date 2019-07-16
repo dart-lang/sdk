@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--stacktrace-every=3 --optimization-counter-threshold=10 --no-background-compilation
+// VMOptions=--stacktrace-every=3 --optimization-counter-threshold=10 --enable-inlining-annotations --no-background-compilation
 
 // Test generating stacktraces with inlining and deferred code.
 // Regression test for issue dartbug.com/22331
@@ -25,7 +25,9 @@ foo(o, value) {
   return value;
 }
 
-@pragma('vm:never-inline')
+const NeverInline = 'NeverInline';
+
+@NeverInline
 baz(x, y, z) => z;
 
 bar(o) {

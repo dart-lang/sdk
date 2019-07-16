@@ -5,13 +5,15 @@
 // Don't LICM AOT's generic bounds check reference beyond other exception.
 // (dartbug.com/36803).
 //
-// VMOptions=--deterministic --optimization_level=3
+// VMOptions=--deterministic --optimization_level=3 --enable-inlining-annotations
 
 import "package:expect/expect.dart";
 
+const String NeverInline = 'NeverInline';
+
 String var1 = 'Hdi\u{1f600}T';
 
-@pragma('vm:never-inline')
+@NeverInline
 int foo() {
   List<int> a = [1, 2, 3, 4];
   int x = 0;

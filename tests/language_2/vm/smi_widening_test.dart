@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--deterministic --optimization-counter-threshold=102 --optimization-filter=Box_
+// VMOptions=--deterministic --optimization-counter-threshold=102 --enable-inlining-annotations --optimization-filter=Box_
 
 import 'package:expect/expect.dart';
 
+const String NeverInline = 'NeverInline';
+const String AlwaysInline = 'AlwaysInline';
 const int kLimit = 100;
 
 main() {
@@ -18,14 +20,14 @@ main() {
   testMints(2048);
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 optimizeConstructor(int value) {
   for (int i = 0; i < kLimit; ++i) {
     new Box(milliseconds: value);
   }
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 optimizeMicroseconds(int value) {
   final d = new Box(milliseconds: value);
   for (int i = 0; i < kLimit; ++i) {
@@ -33,7 +35,7 @@ optimizeMicroseconds(int value) {
   }
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 optimizeMilliseconds(int value) {
   final d = new Box(seconds: value);
   for (int i = 0; i < kLimit; ++i) {
@@ -41,7 +43,7 @@ optimizeMilliseconds(int value) {
   }
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 testMints(int value) {
   final d = new Box(seconds: value);
   for (int i = 0; i < kLimit; ++i) {
@@ -55,7 +57,7 @@ int c = 0;
 class Box {
   final int _value;
 
-  @pragma('vm:never-inline')
+  @NeverInline
   Box(
       {int days: 0,
       int hours: 0,
@@ -72,9 +74,9 @@ class Box {
 
   Box._microseconds(this._value);
 
-  @pragma('vm:never-inline')
+  @NeverInline
   int get inMilliseconds => _value ~/ 1000;
 
-  @pragma('vm:never-inline')
+  @NeverInline
   int get inMicroseconds => _value;
 }

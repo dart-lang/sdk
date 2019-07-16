@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--optimization-counter-threshold=1000 --no-background-compilation
+// VMOptions=--enable-inlining-annotations --optimization-counter-threshold=1000 --no-background-compilation
 
 // Regression test for correct LICM and type propagation.
+
+const AlwaysInline = "AlwaysInline";
+const NeverInline = "NeverInline";
 
 class Attribute {
   final id = 123;
@@ -15,7 +18,7 @@ abstract class Name {
   final String name;
   get attr;
 
-  @pragma('vm:prefer-inline')
+  @AlwaysInline
   int compareTo(other) {
     int nameCompare = name.compareTo(other.name);
     if (nameCompare != 0) return nameCompare;

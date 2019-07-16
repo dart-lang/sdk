@@ -4,7 +4,7 @@
 
 import 'regress_27671_test.dart';
 
-@pragma('vm:prefer-inline')
+@AlwaysInline
 void check(f, x) {
   assert(f(x) && true);
 }

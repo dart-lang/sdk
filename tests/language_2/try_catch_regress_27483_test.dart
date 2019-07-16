@@ -3,23 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing try/catch statement without any exceptions
 // being thrown.
-// VMOptions=--optimization-counter-threshold=100 --no-background-compilation
+// VMOptions=--optimization-counter-threshold=100 --no-background-compilation --enable-inlining-annotations
 
 // Test local variables updated inside try-catch.
 
 import "package:expect/expect.dart";
 
-@pragma('vm:never-inline')
+const noInline = "NeverInline";
+
+@noInline
 m1(int b) {
   if (b == 1) throw 123;
 }
 
-@pragma('vm:never-inline')
+@noInline
 m2(int b) {
   if (b == 2) throw 456;
 }
 
-@pragma('vm:never-inline')
+@noInline
 test(b) {
   var state = 0;
   try {

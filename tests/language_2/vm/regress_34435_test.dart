@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--optimization-filter=triggerBug --no-background-compilation --optimization-counter-threshold=2
+// VMOptions=--optimization-filter=triggerBug --no-background-compilation --enable-inlining-annotations --optimization-counter-threshold=2
 
-@pragma('vm:never-inline')
+const String NeverInline = 'NeverInline';
+
+@NeverInline
 dynamic triggerGC() {
   var a = [];
   for (int i = 0; i < 100; ++i) {
@@ -13,12 +15,12 @@ dynamic triggerGC() {
   return a;
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 void fillLowerStackWithReturnAddresses() {
   recursive(20);
 }
 
-@pragma('vm:never-inline')
+@NeverInline
 dynamic recursive(dynamic n) {
   if (n > 0) {
     recursive(n - 1);
@@ -27,7 +29,7 @@ dynamic recursive(dynamic n) {
 }
 
 class Box {
-  @pragma('vm:never-inline')
+  @NeverInline
   Box get value => global;
 }
 
@@ -37,7 +39,7 @@ main() {
   bool isTrue = true;
   bool hasProblem = true;
 
-  @pragma('vm:never-inline')
+  @NeverInline
   void triggerBug(Box box) {
     triggerGC();
 

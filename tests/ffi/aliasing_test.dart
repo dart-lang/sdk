@@ -6,7 +6,7 @@
 // from and stores to C memory are not aliased.
 //
 // SharedObjects=ffi_test_functions
-// VMOptions=--deterministic --optimization-counter-threshold=50
+// VMOptions=--deterministic --optimization-counter-threshold=50 --enable-inlining-annotations
 
 library FfiTest;
 
@@ -200,7 +200,10 @@ void testAliasFromAddressViaNativeFunction2() {
   source.free();
 }
 
-@pragma('vm:never-inline')
+// TODO(dacoharkes): Replace with @pragma annotations once available.
+const NeverInline = 'NeverInline';
+
+@NeverInline
 Pointer<Int8> makeDerived(Pointer<Int64> source) =>
     source.offsetBy(7).cast<Int8>();
 

@@ -115,9 +115,6 @@ class FlowGraphInliner : ValueObject {
 
   bool AlwaysInline(const Function& function);
 
-  static bool FunctionHasPreferInlinePragma(const Function& function);
-  static bool FunctionHasNeverInlinePragma(const Function& function);
-
   FlowGraph* flow_graph() const { return flow_graph_; }
   intptr_t NextInlineId(const Function& function,
                         TokenPosition tp,

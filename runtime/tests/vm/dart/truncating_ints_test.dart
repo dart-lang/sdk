@@ -2,22 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--optimization_counter_threshold=10 --no-use-osr --no-background-compilation
+// VMOptions=--enable-inlining-annotations --optimization_counter_threshold=10 --no-use-osr --no-background-compilation
 
 // Test for truncating (wrap-around) integer arithmetic.
 
 import "package:expect/expect.dart";
 
-@pragma('vm:never-inline')
+const alwaysInline = "AlwaysInline";
+const neverInline = "NeverInline";
+
+@neverInline
 add_smi(var a, var b) => a + b;
 
-@pragma('vm:never-inline')
+@neverInline
 add_mint(var a, var b) => a + b;
 
-@pragma('vm:never-inline')
+@neverInline
 add_mint_consts() => 0x5000000000000000 + 0x6000000000000000;
 
-@pragma('vm:never-inline')
+@neverInline
 test_add(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(5, add_smi(v2, v3));
@@ -43,16 +46,16 @@ test_add(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   }
 }
 
-@pragma('vm:never-inline')
+@neverInline
 sub_smi(var a, var b) => a - b;
 
-@pragma('vm:never-inline')
+@neverInline
 sub_mint(var a, var b) => a - b;
 
-@pragma('vm:never-inline')
+@neverInline
 sub_mint_consts() => (-0x5000000000000000) - 0x6000000000000000;
 
-@pragma('vm:never-inline')
+@neverInline
 test_sub(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(1, sub_smi(v3, v2));
@@ -78,16 +81,16 @@ test_sub(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   }
 }
 
-@pragma('vm:never-inline')
+@neverInline
 mul_smi(var a, var b) => a * b;
 
-@pragma('vm:never-inline')
+@neverInline
 mul_mint(var a, var b) => a * b;
 
-@pragma('vm:never-inline')
+@neverInline
 mul_mint_consts() => 0x5000000000000001 * 0x6000000000000001;
 
-@pragma('vm:never-inline')
+@neverInline
 test_mul(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(6, mul_smi(v2, v3));
@@ -109,25 +112,25 @@ test_mul(var v2, var v3, var v3fxx, var v5fxx, var v7fxx, var n60xx) {
   }
 }
 
-@pragma('vm:never-inline')
+@neverInline
 shl_smi(var a, var b) => a << b;
 
-@pragma('vm:never-inline')
+@neverInline
 shl_mint(var a, var b) => a << b;
 
-@pragma('vm:never-inline')
+@neverInline
 shl_mint_by_const16(var a) => a << 16;
 
-@pragma('vm:never-inline')
+@neverInline
 shl_smi_by_const96(var a) => a << 96;
 
-@pragma('vm:never-inline')
+@neverInline
 shl_mint_by_const96(var a) => a << 96;
 
-@pragma('vm:never-inline')
+@neverInline
 shl_mint_consts() => 0x77665544aabbccdd << 48;
 
-@pragma('vm:never-inline')
+@neverInline
 test_shl(var v2, var v3, var v8, var v40) {
   for (var i = 0; i < 20; i++) {
     Expect.equals(16, shl_smi(v2, v3));
