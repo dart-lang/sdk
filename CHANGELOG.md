@@ -22,12 +22,10 @@
   * `RawSocket.read()`
   * `Utf8Codec.encode()` (and `Utf8Encoder.convert()`)
 
-  In addition, the following methods and classes were updated to return or
-  implement `Stream<Uint8List>` rather than `Stream<List<int>>`:
+  In addition, the following classes were updated to implement
+  `Stream<Uint8List>` rather than `Stream<List<int>>`:
 
-  * `File.openRead()`
   * `HttpRequest`
-  * `HttpClientResponse`
   * `Socket`
 
   **Possible errors and how to fix them**

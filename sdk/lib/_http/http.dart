@@ -1947,7 +1947,7 @@ abstract class HttpClientRequest implements IOSink {
  *            });
  *          });
  */
-abstract class HttpClientResponse implements Stream<Uint8List> {
+abstract class HttpClientResponse implements Stream<List<int>> {
   /**
    * Returns the status code.
    *

@@ -7,7 +7,7 @@ part of dart.io;
 // Read the file in blocks of size 64k.
 const int _blockSize = 64 * 1024;
 
-class _FileStream extends Stream<Uint8List> {
+class _FileStream extends Stream<List<int>> {
   // Stream controller.
   StreamController<Uint8List> _controller;
 
@@ -498,7 +498,7 @@ class _File extends FileSystemEntity implements File {
     return new _RandomAccessFile(id, "");
   }
 
-  Stream<Uint8List> openRead([int start, int end]) {
+  Stream<List<int>> openRead([int start, int end]) {
     return new _FileStream(path, start, end);
   }
 
