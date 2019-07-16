@@ -596,7 +596,7 @@ class Dart2TypeSystem extends TypeSystem {
   /// Partially updated to reflect
   /// https://github.com/dart-lang/language/blob/da5adf7eb5f2d479069d8660ed7ca7b230098510/resources/type-system/subtyping.md
   ///
-  /// However, it does not correllate 1:1 and does not specialize Null vs Never
+  /// However, it does not correlate 1:1 and does not specialize Null vs Never
   /// cases. It also is not guaranteed to be exactly accurate vs the "spec"
   /// because it has slightly different order of operations. These should be
   /// brought in line or proven equivalent.
