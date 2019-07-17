@@ -6,8 +6,9 @@
 
 #include "vm/compiler/backend/type_propagator.h"
 
+#include "platform/text_buffer.h"
+
 #include "vm/bit_vector.h"
-#include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/object_store.h"
 #include "vm/regexp_assembler.h"
@@ -819,6 +820,33 @@ bool CompileType::IsSubtypeOf(const AbstractType& other) {
   }
 
   return ToAbstractType()->IsSubtypeOf(other, Heap::kOld);
+}
+
+void CompileType::PrintTo(BufferFormatter* f) const {
+  const char* type_name = "?";
+  if (IsNone()) {
+    f->Print("T{}");
+    return;
+  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(cid_));
+    type_name = String::Handle(cls.ScrubbedName()).ToCString();
+  } else if (type_ != NULL) {
+    type_name = type_->IsDynamicType()
+                    ? "*"
+                    : String::Handle(type_->UserVisibleName()).ToCString();
+  } else if (!is_nullable()) {
+    type_name = "!null";
+  }
+
+  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
+}
+
+const char* CompileType::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
 CompileType* Value::Type() {

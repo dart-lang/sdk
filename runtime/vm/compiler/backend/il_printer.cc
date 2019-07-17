@@ -149,35 +149,6 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
       String::Handle(dst_type.Name()).ToCString(), dst_name.ToCString());
 }
 
-static const char* TypeToUserVisibleName(const AbstractType& type) {
-  return String::Handle(type.UserVisibleName()).ToCString();
-}
-
-void CompileType::PrintTo(BufferFormatter* f) const {
-  const char* type_name = "?";
-  if (IsNone()) {
-    f->Print("T{}");
-    return;
-  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(cid_));
-    type_name = String::Handle(cls.ScrubbedName()).ToCString();
-  } else if (type_ != NULL) {
-    type_name = type_->IsDynamicType() ? "*" : TypeToUserVisibleName(*type_);
-  } else if (!is_nullable()) {
-    type_name = "!null";
-  }
-
-  f->Print("T{%s%s}", type_name, is_nullable_ ? "?" : "");
-}
-
-const char* CompileType::ToCString() const {
-  char buffer[1024];
-  BufferFormatter f(buffer, sizeof(buffer));
-  PrintTo(&f);
-  return Thread::Current()->zone()->MakeCopyOfString(buffer);
-}
-
 static void PrintTargetsHelper(BufferFormatter* f,
                                const CallTargets& targets,
                                intptr_t num_checks_to_print) {
@@ -481,6 +452,10 @@ void DropTempsInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     value()->PrintTo(f);
   }
+}
+
+static const char* TypeToUserVisibleName(const AbstractType& type) {
+  return String::Handle(type.UserVisibleName()).ToCString();
 }
 
 void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {

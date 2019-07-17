@@ -6,11 +6,13 @@
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
+#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/flow_graph_checker.h"
 #include "vm/compiler/backend/il_printer.h"
+#include "vm/compiler/backend/il_serializer.h"
 #include "vm/compiler/backend/inliner.h"
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
@@ -287,6 +289,13 @@ void CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
   INVOKE_PASS(WriteBarrierElimination);
   INVOKE_PASS(FinalizeGraph);
+#if defined(DART_PRECOMPILER)
+  if (mode == kAOT) {
+    // If we are serializing the flow graph, do it now before we start
+    // doing register allocation.
+    INVOKE_PASS(SerializeGraph);
+  }
+#endif
   INVOKE_PASS(AllocateRegisters);
   INVOKE_PASS(ReorderBlocks);
 }
@@ -490,6 +499,20 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->function().set_inlining_depth(state->inlining_depth);
   // Remove redefinitions for the rest of the pipeline.
   flow_graph->RemoveRedefinitions();
+});
+
+COMPILER_PASS(SerializeGraph, {
+  if (state->precompiler == nullptr) return state;
+  if (auto stream = state->precompiler->il_serialization_stream()) {
+    auto file_write = Dart::file_write_callback();
+    ASSERT(file_write != nullptr);
+
+    const intptr_t kInitialBufferSize = 1 * MB;
+    TextBuffer buffer(kInitialBufferSize);
+    FlowGraphSerializer::SerializeToBuffer(flow_graph, &buffer);
+
+    file_write(buffer.buf(), buffer.length(), stream);
+  }
 });
 
 }  // namespace dart

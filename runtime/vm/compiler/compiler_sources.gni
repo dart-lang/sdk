@@ -66,6 +66,8 @@ compiler_sources = [
   "backend/il_ia32.cc",
   "backend/il_printer.cc",
   "backend/il_printer.h",
+  "backend/il_serializer.cc",
+  "backend/il_serializer.h",
   "backend/il_x64.cc",
   "backend/inliner.cc",
   "backend/inliner.h",

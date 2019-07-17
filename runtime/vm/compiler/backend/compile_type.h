@@ -14,6 +14,7 @@ namespace dart {
 class AbstractType;
 class BufferFormatter;
 class Definition;
+class FlowGraphSerializer;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -210,6 +211,9 @@ class CompileType : public ZoneAllocated {
   }
 
   void PrintTo(BufferFormatter* f) const;
+  void SerializeTo(FlowGraphSerializer* b) const;
+  void SerializeExtraInfoTo(FlowGraphSerializer* f) const;
+
   const char* ToCString() const;
 
   // CompileType object might be unowned or owned by a definition.

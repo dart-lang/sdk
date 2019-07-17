@@ -40,6 +40,9 @@ cc/*: Skip # Too many timeouts and crashes for infrastructure to handle.
 [ $compiler == dartkp ]
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
+[ $compiler != dartkp ]
+dart/base_il_serialization: SkipByDesign # Serialization currently supported only when compiling with --aot.
+
 [ $compiler == fasta ]
 dart/data_uri_import_test/badencodeddate: CompileTimeError
 

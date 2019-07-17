@@ -66,6 +66,10 @@ DEFINE_FLAG(
     max_speculative_inlining_attempts,
     1,
     "Max number of attempts with speculative inlining (precompilation only)");
+DEFINE_FLAG(charp,
+            serialize_flow_graphs_to,
+            nullptr,
+            "Serialize flow graphs to the given file");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -163,7 +167,8 @@ Precompiler::Precompiler(Thread* thread)
       types_to_retain_(),
       consts_to_retain_(),
       error_(Error::Handle()),
-      get_runtime_type_is_unique_(false) {
+      get_runtime_type_is_unique_(false),
+      il_serialization_stream_(nullptr) {
   ASSERT(Precompiler::singleton_ == NULL);
   Precompiler::singleton_ = this;
 }
@@ -179,6 +184,16 @@ void Precompiler::DoCompileAll() {
   {
     StackZone stack_zone(T);
     zone_ = stack_zone.GetZone();
+
+    // Check that both the file open and write callbacks are available, though
+    // we only use the latter during IL processing.
+    if (FLAG_serialize_flow_graphs_to != nullptr &&
+        Dart::file_write_callback() != nullptr) {
+      if (auto file_open = Dart::file_open_callback()) {
+        auto file = file_open(FLAG_serialize_flow_graphs_to, /*write=*/true);
+        set_il_serialization_stream(file);
+      }
+    }
 
     if (FLAG_use_bare_instructions) {
       // Since we keep the object pool until the end of AOT compilation, it
@@ -341,6 +356,13 @@ void Precompiler::DoCompileAll() {
     Obfuscate();
 
     ProgramVisitor::Dedup();
+
+    if (il_serialization_stream() != nullptr) {
+      auto file_close = Dart::file_close_callback();
+      ASSERT(file_close != nullptr);
+      file_close(il_serialization_stream());
+      set_il_serialization_stream(nullptr);
+    }
 
     zone_ = NULL;
   }
