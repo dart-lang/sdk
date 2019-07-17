@@ -55,34 +55,6 @@ class MethodInvocationResolver {
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
 
-  /**
-   * Return extensions for this [type] that match the given [name] in the current
-   * [scope].
-   */
-  List<ExtensionElement> getApplicableExtensions(DartType type, String name) {
-    final List<ExtensionElement> extensions = [];
-    void checkElement(Element element, ExtensionElement extension) {
-      if (element.name == name && !extensions.contains(extension)) {
-        extensions.add(extension);
-      }
-    }
-
-    for (var extension in _resolver.nameScope.extensions) {
-      if (_resolver.typeSystem.isSubtypeOf(type, extension.extendedType)) {
-        for (var accessor in extension.accessors) {
-          checkElement(accessor, extension);
-        }
-        for (var field in extension.fields) {
-          checkElement(field, extension);
-        }
-        for (var method in extension.methods) {
-          checkElement(method, extension);
-        }
-      }
-    }
-    return extensions;
-  }
-
   void resolve(MethodInvocation node) {
     _invocation = node;
 
@@ -157,6 +129,81 @@ class MethodInvocationResolver {
     }
   }
 
+  /// Return the most specific extension or `null` if no single one can be
+  /// identified.
+  ExtensionElement _chooseMostSpecificExtension(
+      List<ExtensionElement> extensions, InterfaceType receiverType) {
+    //
+    // https://github.com/dart-lang/language/blob/master/accepted/future-releases/static-extension-methods/feature-specification.md#extension-conflict-resolution:
+    //
+    // If more than one extension applies to a specific member invocation, then
+    // we resort to a heuristic to choose one of the extensions to apply. If
+    // exactly one of them is "more specific" than all the others, that one is
+    // chosen. Otherwise it is a compile-time error.
+    //
+    // An extension with on type clause T1 is more specific than another
+    // extension with on type clause T2 iff
+    //
+    // 1. T2 is declared in a platform library, and T1 is not, or
+    // 2. they are both declared in platform libraries or both declared in
+    //    non-platform libraries, and
+    // 3. the instantiated type (the type after applying type inference from the
+    //    receiver) of T1 is a subtype of the instantiated type of T2 and either
+    //    not vice versa, or
+    // 4. the instantiate-to-bounds type of T1 is a subtype of the
+    //    instantiate-to-bounds type of T2 and not vice versa.
+    //
+
+    int moreSpecific(ExtensionElement e1, ExtensionElement e2) {
+      var t1 = e1.extendedType;
+      var t2 = e2.extendedType;
+
+      // todo(pq): broaden platform beyond dart:core
+      if (t2.element.library.isDartCore) {
+        //  1. T2 is declared in a platform library, and T1 is not
+        if (!t1.element.library.isDartCore) {
+          return -1;
+        }
+      } else if (t1.element.library.isDartCore) {
+        return 1;
+      }
+
+      // 2. they are both declared in platform libraries or both declared in
+      //    non-platform libraries, and
+      if (_subtypeOf(t1, t2)) {
+        // 3. the instantiated type (the type after applying type inference from the
+        //    receiver) of T1 is a subtype of the instantiated type of T2 and either
+        //    not vice versa
+        if (!_subtypeOf(t2, t1)) {
+          return -1;
+        } else {
+          // or:
+          // 4. the instantiate-to-bounds type of T1 is a subtype of the
+          //    instantiate-to-bounds type of T2 and not vice versa.
+
+          // todo(pq): implement
+
+        }
+      } else if (_subtypeOf(t2, t1)) {
+        if (!_subtypeOf(t1, t2)) {
+          return 1;
+        }
+      }
+
+      return 0;
+    }
+
+    extensions.sort(moreSpecific);
+
+    // If the first extension is definitively more specific, return it.
+    if (moreSpecific(extensions[0], extensions[1]) == -1) {
+      return extensions[0];
+    }
+
+    // Otherwise fail.
+    return null;
+  }
+
   /// Given an [argumentList] and the executable [element] that  will be invoked
   /// using those arguments, compute the list of parameters that correspond to
   /// the list of arguments. Return the parameters that correspond to the
@@ -174,6 +221,32 @@ class MethodInvocationResolver {
           false, argumentList, type.parameters);
     }
     return null;
+  }
+
+  /// Return extensions for this [type] that match the given [name] in the current
+  /// [scope].
+  List<ExtensionElement> _getApplicableExtensions(DartType type, String name) {
+    final List<ExtensionElement> extensions = [];
+    void checkElement(Element element, ExtensionElement extension) {
+      if (element.name == name && !extensions.contains(extension)) {
+        extensions.add(extension);
+      }
+    }
+
+    for (var extension in _resolver.nameScope.extensions) {
+      if (_subtypeOf(type, extension.extendedType)) {
+        for (var accessor in extension.accessors) {
+          checkElement(accessor, extension);
+        }
+        for (var field in extension.fields) {
+          checkElement(field, extension);
+        }
+        for (var method in extension.methods) {
+          checkElement(method, extension);
+        }
+      }
+    }
+    return extensions;
   }
 
   /// If the element of the invoked [targetType] is a getter, then actually
@@ -412,16 +485,26 @@ class MethodInvocationResolver {
 
     // Look for an applicable extension.
     List<ExtensionElement> extensions =
-        getApplicableExtensions(receiverType, name);
+        _getApplicableExtensions(receiverType, name);
     if (extensions.length == 1) {
-      var element = extensions[0];
-      Element member = element.getMethod(name) ??
-          element.getGetter(name) ??
-          element.getSetter(name);
+      var extension = extensions[0];
+      Element member = extension.getMethod(name) ??
+          extension.getGetter(name) ??
+          extension.getSetter(name);
       nameNode.staticElement = member;
       return;
     } else if (extensions.length > 1) {
-      // todo(pq): find extension w/ most specific type.
+      ExtensionElement extension =
+          _chooseMostSpecificExtension(extensions, receiverType);
+      if (extension == null) {
+        // todo(pq): report an error
+      } else {
+        Element member = extension.getMethod(name) ??
+            extension.getGetter(name) ??
+            extension.getSetter(name);
+        nameNode.staticElement = member;
+        return;
+      }
     }
 
     // The interface of the receiver does not have an instance member.
@@ -682,6 +765,10 @@ class MethodInvocationResolver {
 
     _reportInvocationOfNonFunction(node);
   }
+
+  /// Ask the type system for a subtype check.
+  bool _subtypeOf(DartType type1, DartType type2) =>
+      _resolver.typeSystem.isSubtypeOf(type1, type2);
 
   /// Checks whether the given [expression] is a reference to a class. If it is
   /// then the element representing the class is returned, otherwise `null` is
