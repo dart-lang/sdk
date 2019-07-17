@@ -109,6 +109,10 @@ class _WidgetDescriptionComputer {
 
   final ClassDescriptionRegistry classRegistry;
 
+  /// The set of classes for which we are currently adding properties,
+  /// used to prevent infinite recursion.
+  final Set<ClassElement> classesBeingProcessed = Set<ClassElement>();
+
   /// The resolved unit with the widget [InstanceCreationExpression].
   final ResolvedUnitResult resolvedUnit;
 
@@ -154,6 +158,9 @@ class _WidgetDescriptionComputer {
     constructorElement ??= instanceCreation?.staticElement;
     if (constructorElement == null) return;
 
+    var classElement = constructorElement.enclosingElement;
+    if (!classesBeingProcessed.add(classElement)) return;
+
     var existingNamed = Set<ParameterElement>();
     if (instanceCreation != null) {
       for (var argumentExpression in instanceCreation.argumentList.arguments) {
@@ -192,6 +199,8 @@ class _WidgetDescriptionComputer {
         instanceCreation: instanceCreation,
       );
     }
+
+    classesBeingProcessed.remove(classElement);
   }
 
   void _addProperty({

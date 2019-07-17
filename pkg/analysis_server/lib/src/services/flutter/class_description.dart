@@ -51,19 +51,43 @@ class ClassDescriptionRegistry {
       var element = type.element;
       var description = _map[element];
       if (description == null) {
-        // TODO
-        if (element.name == 'TextStyle') {
-          var constructor = element.constructors.single;
-          description = ClassDescription(
-            element,
-            constructor,
-            {},
-          );
+        description = _classDescription(element);
+        if (description != null) {
           _map[element] = description;
         }
       }
       return description;
     }
     return null;
+  }
+
+  ClassDescription _classDescription(ClassElement element) {
+    if (!_isOptedInClass(element)) return null;
+
+    var constructor = element.unnamedConstructor;
+    if (constructor == null) return null;
+
+    var parameters = constructor.parameters;
+    var defaultValueMap = <ParameterElement, String>{};
+
+    for (var parameter in parameters) {
+      if (parameter.isNotOptional || parameter.hasRequired) {
+        return null;
+      }
+    }
+
+    return ClassDescription(element, constructor, defaultValueMap);
+  }
+
+  bool _isOptedInClass(ClassElement element) {
+    return _isClass(
+      element,
+      'TextStyle',
+      'package:flutter/src/painting/text_style.dart',
+    );
+  }
+
+  static bool _isClass(ClassElement element, String name, String uri) {
+    return element.name == name && element.library.source.uri.toString() == uri;
   }
 }
