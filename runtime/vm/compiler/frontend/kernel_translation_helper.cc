@@ -518,6 +518,20 @@ const String& TranslationHelper::DartFactoryName(NameIndex factory) {
   return String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
 }
 
+// TODO(https://github.com/dart-lang/sdk/issues/37517): Should emit code to
+// throw a NoSuchMethodError.
+static void CheckStaticLookup(const Object& target) {
+  if (target.IsNull()) {
+#ifndef PRODUCT
+    ASSERT(Isolate::Current()->HasAttemptedReload());
+    Report::LongJump(LanguageError::Handle(LanguageError::New(String::Handle(
+        String::New("Unimplemented handling of missing static target")))));
+#else
+    UNREACHABLE();
+#endif
+  }
+}
+
 RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
     NameIndex kernel_library) {
   // We only use the string and don't rely on having any particular parent.
@@ -538,7 +552,7 @@ RawLibrary* TranslationHelper::LookupLibraryByKernelLibrary(
   ASSERT(!library_name.IsNull());
   const Library& library =
       Library::Handle(Z, Library::LookupLibrary(thread_, library_name));
-  ASSERT(!library.IsNull());
+  CheckStaticLookup(library);
   name_index_handle_ = Smi::New(kernel_library);
   return info_.InsertLibrary(thread_, name_index_handle_, library);
 }
@@ -558,8 +572,10 @@ RawClass* TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class) {
   NameIndex kernel_library = CanonicalNameParent(kernel_class);
   Library& library =
       Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
+  ASSERT(!library.IsNull());
   const Class& klass =
       Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
+  CheckStaticLookup(klass);
   ASSERT(!klass.IsNull());
   name_index_handle_ = Smi::New(kernel_class);
   return info_.InsertClass(thread_, name_index_handle_, klass);
@@ -574,14 +590,16 @@ RawField* TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field) {
     Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
     klass = library.toplevel_class();
+    CheckStaticLookup(klass);
   } else {
     ASSERT(IsClass(enclosing));
     klass = LookupClassByKernelClass(enclosing);
   }
-  RawField* field = klass.LookupFieldAllowPrivate(
-      DartSymbolObfuscate(CanonicalNameString(kernel_field)));
-  ASSERT(field != Object::null());
-  return field;
+  Field& field = Field::Handle(
+      Z, klass.LookupFieldAllowPrivate(
+             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  CheckStaticLookup(field);
+  return field.raw();
 }
 
 RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
@@ -594,15 +612,16 @@ RawFunction* TranslationHelper::LookupStaticMethodByKernelProcedure(
   if (IsLibrary(enclosing)) {
     Library& library =
         Library::Handle(Z, LookupLibraryByKernelLibrary(enclosing));
-    RawFunction* function = library.LookupFunctionAllowPrivate(procedure_name);
-    ASSERT(function != Object::null());
-    return function;
+    Function& function =
+        Function::Handle(Z, library.LookupFunctionAllowPrivate(procedure_name));
+    CheckStaticLookup(function);
+    return function.raw();
   } else {
     ASSERT(IsClass(enclosing));
     Class& klass = Class::Handle(Z, LookupClassByKernelClass(enclosing));
     Function& function = Function::ZoneHandle(
         Z, klass.LookupFunctionAllowPrivate(procedure_name));
-    ASSERT(!function.IsNull());
+    CheckStaticLookup(function);
     // Redirecting factory must be resolved.
     ASSERT(!function.IsRedirectingFactory() ||
            function.RedirectionTarget() != Function::null());
@@ -615,6 +634,7 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
   ASSERT(IsConstructor(constructor));
   Class& klass =
       Class::Handle(Z, LookupClassByKernelClass(EnclosingName(constructor)));
+  CheckStaticLookup(klass);
   return LookupConstructorByKernelConstructor(klass, constructor);
 }
 
@@ -622,10 +642,10 @@ RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
     const Class& owner,
     NameIndex constructor) {
   ASSERT(IsConstructor(constructor));
-  RawFunction* function =
-      owner.LookupConstructorAllowPrivate(DartConstructorName(constructor));
-  ASSERT(function != Object::null());
-  return function;
+  Function& function = Function::Handle(
+      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+  CheckStaticLookup(function);
+  return function.raw();
 }
 
 RawFunction* TranslationHelper::LookupConstructorByKernelConstructor(
@@ -650,15 +670,17 @@ RawFunction* TranslationHelper::LookupMethodByMember(
   NameIndex kernel_class = EnclosingName(target);
   Class& klass = Class::Handle(Z, LookupClassByKernelClass(kernel_class));
 
-  RawFunction* function = klass.LookupFunctionAllowPrivate(method_name);
+  Function& function =
+      Function::Handle(Z, klass.LookupFunctionAllowPrivate(method_name));
+  CheckStaticLookup(function);
 #ifdef DEBUG
-  if (function == Object::null()) {
+  if (function.IsNull()) {
     THR_Print("Unable to find \'%s\' in %s\n", method_name.ToCString(),
               klass.ToCString());
   }
 #endif
-  ASSERT(function != Object::null());
-  return function;
+  ASSERT(!function.IsNull());
+  return function.raw();
 }
 
 RawFunction* TranslationHelper::LookupDynamicFunction(const Class& klass,

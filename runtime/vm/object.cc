@@ -3567,6 +3567,7 @@ void Class::EnsureDeclarationLoaded() const {
 
 // Ensure that top level parsing of the class has been done.
 RawError* Class::EnsureIsFinalized(Thread* thread) const {
+  ASSERT(!IsNull());
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
@@ -4465,6 +4466,7 @@ RawFunction* Class::CheckFunctionType(const Function& func, MemberKind kind) {
 }
 
 RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4516,6 +4518,7 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
                                                MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4551,6 +4554,7 @@ RawFunction* Class::LookupSetterFunction(const String& name) const {
 RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Function::null();
@@ -4588,6 +4592,7 @@ RawField* Class::LookupField(const String& name) const {
 }
 
 RawField* Class::LookupField(const String& name, MemberKind kind) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
     return Field::null();
@@ -4635,6 +4640,7 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
 
 RawField* Class::LookupFieldAllowPrivate(const String& name,
                                          bool instance_only) const {
+  ASSERT(!IsNull());
   // Use slow string compare, ignoring privacy name mangling.
   Thread* thread = Thread::Current();
   if (EnsureIsFinalized(thread) != Error::null()) {
@@ -10452,6 +10458,7 @@ RawObject* Library::LookupReExport(const String& name,
 }
 
 RawObject* Library::LookupEntry(const String& name, intptr_t* index) const {
+  ASSERT(!IsNull());
   Thread* thread = Thread::Current();
   REUSABLE_ARRAY_HANDLESCOPE(thread);
   REUSABLE_OBJECT_HANDLESCOPE(thread);
