@@ -9595,6 +9595,29 @@ class A<T> {
 ''');
   }
 
+  test_type_inference_field_depends_onFieldFormal() async {
+    var library = await checkLibrary('''
+class A<T> {
+  T value;
+
+  A(this.value);
+}
+
+class B {
+  var a = new A('');
+}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  T value;
+  A(T this.value);
+}
+class B {
+  A<String> a;
+}
+''');
+  }
+
   test_type_inference_multiplyDefinedElement() async {
     addLibrarySource('/a.dart', 'class C {}');
     addLibrarySource('/b.dart', 'class C {}');
