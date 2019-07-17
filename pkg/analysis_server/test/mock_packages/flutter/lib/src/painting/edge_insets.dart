@@ -3,6 +3,9 @@
 // found in the LICENSE file.
 
 class EdgeInsets extends EdgeInsetsGeometry {
+  /// An [EdgeInsets] with zero offsets in each direction.
+  static const EdgeInsets zero = EdgeInsets.only();
+
   /// The offset from the left.
   final double left;
 

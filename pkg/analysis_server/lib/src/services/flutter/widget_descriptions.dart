@@ -119,6 +119,7 @@ class _WidgetDescriptionComputer {
   /// The offset of the widget expression.
   final int widgetOffset;
 
+  /// The instance of [Flutter] support.
   final Flutter flutter;
 
   _WidgetDescriptionComputer(
@@ -144,6 +145,7 @@ class _WidgetDescriptionComputer {
       properties: properties,
       instanceCreation: instanceCreation,
     );
+    _addContainerProperty(properties, instanceCreation);
 
     return _WidgetDescription(properties);
   }
@@ -288,12 +290,14 @@ class _WidgetDescriptionComputer {
     properties.add(propertyDescription);
 
     if (valueExpression is InstanceCreationExpression) {
-      // TODO(scheglov) We probably want to exclude some types, e.g. widgets.
-      _addProperties(
-        properties: propertyDescription.children,
-        parent: propertyDescription,
-        instanceCreation: valueExpression,
-      );
+      var type = valueExpression.staticType;
+      if (classRegistry.hasNestedProperties(type)) {
+        _addProperties(
+          properties: propertyDescription.children,
+          parent: propertyDescription,
+          instanceCreation: valueExpression,
+        );
+      }
     } else if (valueExpression == null) {
       var classDescription = classRegistry.get(
         parameter.type,
@@ -305,6 +309,49 @@ class _WidgetDescriptionComputer {
           classDescription: classDescription,
           constructorElement: classDescription.constructor,
         );
+      }
+    }
+  }
+
+  void _addContainerProperty(
+    List<PropertyDescription> properties,
+    InstanceCreationExpression widgetCreation,
+  ) {
+    if (!flutter.isWidgetCreation(widgetCreation)) {
+      return;
+    }
+
+    var childArgument = widgetCreation.parent;
+    if (childArgument is NamedExpression &&
+        childArgument.name.label.name == 'child') {
+      var argumentList = childArgument.parent;
+      var parentCreation = argumentList.parent;
+      if (argumentList is ArgumentList &&
+          parentCreation is InstanceCreationExpression) {
+        if (flutter.isExactlyContainerCreation(parentCreation)) {
+          var id = _nextPropertyId++;
+          var containerProperty = PropertyDescription(
+            null,
+            resolvedUnit,
+            null,
+            parentCreation,
+            null,
+            null,
+            null,
+            protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+          );
+          properties.add(containerProperty);
+
+          _addProperties(
+            properties: containerProperty.children,
+            parent: containerProperty,
+            instanceCreation: parentCreation,
+          );
+
+          containerProperty.children.removeWhere(
+            (property) => property.protocolProperty.name == 'child',
+          );
+        }
       }
     }
   }

@@ -61,6 +61,14 @@ class ClassDescriptionRegistry {
     return null;
   }
 
+  /// Return `true` if properties should be created for instances of [type].
+  bool hasNestedProperties(DartType type) {
+    if (type is InterfaceType) {
+      return _isOptedInClass(type.element);
+    }
+    return false;
+  }
+
   ClassDescription _classDescription(ClassElement element) {
     if (!_isOptedInClass(element)) return null;
 
@@ -82,12 +90,12 @@ class ClassDescriptionRegistry {
   bool _isOptedInClass(ClassElement element) {
     return _isClass(
       element,
-      'TextStyle',
       'package:flutter/src/painting/text_style.dart',
+      'TextStyle',
     );
   }
 
-  static bool _isClass(ClassElement element, String name, String uri) {
+  static bool _isClass(ClassElement element, String uri, String name) {
     return element.name == name && element.library.source.uri.toString() == uri;
   }
 }

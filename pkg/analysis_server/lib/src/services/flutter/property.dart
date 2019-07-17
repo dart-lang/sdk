@@ -20,7 +20,8 @@ class PropertyDescription {
   final ResolvedUnitResult _resolvedUnit;
 
   /// If the object that has this property is not materialized yet, so the
-  /// [_instanceCreation] is `null` description of the object for materialize.
+  /// [_instanceCreation] is `null`, the description of the object to
+  /// materialize.
   final ClassDescription _classDescription;
 
   /// The instance creation of the object that has this property. Or `null`
@@ -28,7 +29,7 @@ class PropertyDescription {
   /// is set.
   final InstanceCreationExpression _instanceCreation;
 
-  /// If the property is set, the full argument expression, might be
+  /// If the property is set, the full argument expression, might be a
   /// [NamedExpression].
   final Expression _argumentExpression;
 

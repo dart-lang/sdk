@@ -322,6 +322,14 @@ class Flutter {
       argument is NamedExpression && argument.name.label.name == 'children';
 
   /**
+   * Return `true` if the [node] is creation of `Container`.
+   */
+  bool isExactlyContainerCreation(InstanceCreationExpression node) {
+    var type = node.staticType;
+    return isExactWidgetTypeContainer(type);
+  }
+
+  /**
    * Return `true` if the given [type] is the Flutter class `StatefulWidget`.
    */
   bool isExactlyStatefulWidgetType(DartType type) {

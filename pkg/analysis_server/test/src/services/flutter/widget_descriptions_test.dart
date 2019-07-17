@@ -15,9 +15,67 @@ import '../../../abstract_single_unit.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ContainerPropertiesTest);
     defineReflectiveTests(GetDescriptionTest);
     defineReflectiveTests(SetPropertyValueSelfTest);
   });
+}
+
+@reflectiveTest
+class ContainerPropertiesTest extends _BaseTest {
+  test_alignment_hasContainer() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Container(
+    child: Text(''),
+    alignment: Alignment.centerRight,
+  );
+}
+''');
+    var property = _getProperty('Container', widgetSearch: 'Text(');
+    var alignmentProperty = _getProperty('alignment', parentProperty: property);
+    // TODO(scheglov) Value, editor.
+    _assertPropertyJsonText(alignmentProperty, r'''
+{
+  "expression": "Alignment.centerRight",
+  "isRequired": false,
+  "isSafeToUpdate": false,
+  "name": "alignment",
+  "children": []
+}
+''');
+  }
+
+  test_container_existing() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Container(
+    child: Text(''),
+    alignment: Alignment.centerRight,
+  );
+}
+''');
+    var property = _getProperty('Container', widgetSearch: 'Text(');
+    var childrenNames = property.children.map((p) => p.name).toList();
+
+    expect(
+      childrenNames,
+      containsAll([
+        'alignment',
+        'color',
+        'decoration',
+        'height',
+        'margin',
+        'width',
+      ]),
+    );
+
+    expect(childrenNames, isNot(contains('child')));
+  }
 }
 
 @reflectiveTest

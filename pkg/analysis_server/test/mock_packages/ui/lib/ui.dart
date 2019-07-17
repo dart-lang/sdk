@@ -4,4 +4,6 @@
 
 library dart.ui;
 
+part 'geometry.dart';
+part 'painting.dart';
 part 'text.dart';

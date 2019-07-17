@@ -5,7 +5,15 @@
 import 'package:ui/ui.dart' show TextDirection;
 
 export 'package:ui/ui.dart'
-    show FontStyle, FontWeight, TextAlign, TextBaseline, TextDirection;
+    show
+        BlendMode,
+        Color,
+        FontStyle,
+        FontWeight,
+        Radius,
+        TextAlign,
+        TextBaseline,
+        TextDirection;
 
 /// The two cardinal directions in two dimensions.
 ///
