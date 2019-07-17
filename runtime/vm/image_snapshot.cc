@@ -811,8 +811,8 @@ void AssemblyImageWriter::FrameUnwindEpilogue() {
 }
 
 intptr_t AssemblyImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
+  for (auto* cursor = reinterpret_cast<compiler::target::uword*>(start);
+       cursor < reinterpret_cast<compiler::target::uword*>(end); cursor++) {
     WriteWordLiteralText(*cursor);
   }
   return end - start;
@@ -841,11 +841,10 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
 }
 
 intptr_t BlobImageWriter::WriteByteSequence(uword start, uword end) {
-  for (uword* cursor = reinterpret_cast<uword*>(start);
-       cursor < reinterpret_cast<uword*>(end); cursor++) {
-    instructions_blob_stream_.WriteWord(*cursor);
-  }
-  return end - start;
+  const uword size = end - start;
+  instructions_blob_stream_.WriteBytes(reinterpret_cast<const void*>(start),
+                                       size);
+  return size;
 }
 
 void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
