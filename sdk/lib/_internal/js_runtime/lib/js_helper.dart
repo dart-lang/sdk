@@ -476,7 +476,7 @@ class Primitives {
     if (!JS(
         'bool',
         r'/^\s*[+-]?(?:Infinity|NaN|'
-        r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
+            r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
         source)) {
       return null;
     }
@@ -729,15 +729,15 @@ class Primitives {
         'JSArray|Null',
         // Thu followed by a space.
         r'/^[A-Z,a-z]{3}\s'
-        // Oct 31 followed by space.
-        r'[A-Z,a-z]{3}\s\d+\s'
-        // Time followed by a space.
-        r'\d{2}:\d{2}:\d{2}\s'
-        // The time zone name followed by a space.
-        r'([A-Z]{3,5})\s'
-        // The year.
-        r'\d{4}$/'
-        '.exec(#.toString())',
+            // Oct 31 followed by space.
+            r'[A-Z,a-z]{3}\s\d+\s'
+            // Time followed by a space.
+            r'\d{2}:\d{2}:\d{2}\s'
+            // The time zone name followed by a space.
+            r'([A-Z]{3,5})\s'
+            // The year.
+            r'\d{4}$/'
+            '.exec(#.toString())',
         d);
     if (match != null) return match[1];
 
@@ -1479,7 +1479,7 @@ class TypeErrorDecoder {
     return JS(
         '',
         r'{ $method$: null, '
-        r'toString: function() { return "$receiver$"; } }');
+            r'toString: function() { return "$receiver$"; } }');
   }
 
   /// Extract a pattern from a JavaScript TypeError message.
@@ -1527,13 +1527,13 @@ class TypeErrorDecoder {
     String pattern = JS(
         'String',
         r"#.replace(new RegExp('\\\\\\$arguments\\\\\\$', 'g'), "
-        r"'((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
-        r"'((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
-        r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
-        r"'((?:x|[^x])*)')",
+            r"'((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$argumentsExpr\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$expr\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$method\\\\\\$', 'g'),  '((?:x|[^x])*)')"
+            r".replace(new RegExp('\\\\\\$receiver\\\\\\$', 'g'),  "
+            r"'((?:x|[^x])*)')",
         message);
 
     return new TypeErrorDecoder(
@@ -2098,7 +2098,7 @@ abstract class Closure implements Function {
             : JS(
                 '',
                 'new Function("a,b,c,d" + #,'
-                ' "this.\$initialize(a,b,c,d" + # + ")")',
+                    ' "this.\$initialize(a,b,c,d" + # + ")")',
                 functionCounter,
                 functionCounter++);
 
@@ -2144,10 +2144,10 @@ abstract class Closure implements Function {
         signatureFunction = JS(
             '',
             'function(f,r){'
-            'return function(){'
-            'return f.apply({\$receiver:r(this)},arguments)'
-            '}'
-            '}(#,#)',
+                'return function(){'
+                'return f.apply({\$receiver:r(this)},arguments)'
+                '}'
+                '}(#,#)',
             functionType,
             getReceiver);
       }
@@ -2193,70 +2193,70 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,S){'
-            'return function(){'
-            'return S(this)[n]()'
-            '}'
-            '}(#,#)',
+                'return function(){'
+                'return S(this)[n]()'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 1:
         return JS(
             '',
             'function(n,S){'
-            'return function(a){'
-            'return S(this)[n](a)'
-            '}'
-            '}(#,#)',
+                'return function(a){'
+                'return S(this)[n](a)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 2:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b){'
-            'return S(this)[n](a,b)'
-            '}'
-            '}(#,#)',
+                'return function(a,b){'
+                'return S(this)[n](a,b)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 3:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c){'
-            'return S(this)[n](a,b,c)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c){'
+                'return S(this)[n](a,b,c)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 4:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c,d){'
-            'return S(this)[n](a,b,c,d)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c,d){'
+                'return S(this)[n](a,b,c,d)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       case 5:
         return JS(
             '',
             'function(n,S){'
-            'return function(a,b,c,d,e){'
-            'return S(this)[n](a,b,c,d,e)'
-            '}'
-            '}(#,#)',
+                'return function(a,b,c,d,e){'
+                'return S(this)[n](a,b,c,d,e)'
+                '}'
+                '}(#,#)',
             stubName,
             getSelf);
       default:
         return JS(
             '',
             'function(f,s){'
-            'return function(){'
-            'return f.apply(s(this),arguments)'
-            '}'
-            '}(#,#)',
+                'return function(){'
+                'return f.apply(s(this),arguments)'
+                '}'
+                '}(#,#)',
             function,
             getSelf);
     }
@@ -2286,9 +2286,9 @@ abstract class Closure implements Function {
           '',
           '(new Function(#))()',
           'return function(){'
-          'var $selfName = this.${BoundClosure.selfFieldName()};'
-          'return $selfName.$stubName();'
-          '}');
+              'var $selfName = this.${BoundClosure.selfFieldName()};'
+              'return $selfName.$stubName();'
+              '}');
     }
     assert(1 <= arity && arity < 27);
     String arguments = JS('String',
@@ -2298,8 +2298,8 @@ abstract class Closure implements Function {
         '',
         '(new Function(#))()',
         'return function($arguments){'
-        'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
-        '}');
+            'return this.${BoundClosure.selfFieldName()}.$stubName($arguments);'
+            '}');
   }
 
   static cspForwardInterceptedCall(
@@ -2317,10 +2317,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(){'
-            'return s(this)[n](r(this))'
-            '}'
-            '}(#,#,#)',
+                'return function(){'
+                'return s(this)[n](r(this))'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2328,10 +2328,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a){'
-            'return s(this)[n](r(this),a)'
-            '}'
-            '}(#,#,#)',
+                'return function(a){'
+                'return s(this)[n](r(this),a)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2339,10 +2339,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b){'
-            'return s(this)[n](r(this),a,b)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b){'
+                'return s(this)[n](r(this),a,b)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2350,10 +2350,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c){'
-            'return s(this)[n](r(this),a,b,c)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c){'
+                'return s(this)[n](r(this),a,b,c)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2361,10 +2361,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c,d){'
-            'return s(this)[n](r(this),a,b,c,d)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c,d){'
+                'return s(this)[n](r(this),a,b,c,d)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2372,10 +2372,10 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(n,s,r){'
-            'return function(a,b,c,d,e){'
-            'return s(this)[n](r(this),a,b,c,d,e)'
-            '}'
-            '}(#,#,#)',
+                'return function(a,b,c,d,e){'
+                'return s(this)[n](r(this),a,b,c,d,e)'
+                '}'
+                '}(#,#,#)',
             name,
             getSelf,
             getReceiver);
@@ -2383,12 +2383,12 @@ abstract class Closure implements Function {
         return JS(
             '',
             'function(f,s,r,a){'
-            'return function(){'
-            'a=[r(this)];'
-            'Array.prototype.push.apply(a,arguments);'
-            'return f.apply(s(this),a)'
-            '}'
-            '}(#,#,#)',
+                'return function(){'
+                'a=[r(this)];'
+                'Array.prototype.push.apply(a,arguments);'
+                'return f.apply(s(this),a)'
+                '}'
+                '}(#,#,#)',
             function,
             getSelf,
             getReceiver);
@@ -2416,9 +2416,9 @@ abstract class Closure implements Function {
           '',
           '(new Function(#))()',
           'return function(){'
-          'return this.$selfField.$stubName(this.$receiverField);'
-          '${functionCounter++}'
-          '}');
+              'return this.$selfField.$stubName(this.$receiverField);'
+              '${functionCounter++}'
+              '}');
     }
     assert(1 < arity && arity < 28);
     String arguments = JS(
@@ -2429,9 +2429,9 @@ abstract class Closure implements Function {
         '',
         '(new Function(#))()',
         'return function($arguments){'
-        'return this.$selfField.$stubName(this.$receiverField, $arguments);'
-        '${functionCounter++}'
-        '}');
+            'return this.$selfField.$stubName(this.$receiverField, $arguments);'
+            '${functionCounter++}'
+            '}');
   }
 
   // The backend adds a special getter of the form
@@ -3248,8 +3248,8 @@ String _computeThisScriptFromTrace() {
     stack = JS(
         'String|Null',
         '(function() {'
-        'try { throw new Error() } catch(e) { return e.stack }'
-        '})()');
+            'try { throw new Error() } catch(e) { return e.stack }'
+            '})()');
     if (stack == null) throw new UnsupportedError('No stack trace');
   }
   var pattern, matches;
