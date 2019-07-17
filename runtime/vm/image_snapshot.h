@@ -315,7 +315,7 @@ class AssemblyImageWriter : public ImageWriter {
   intptr_t WriteByteSequence(uword start, uword end);
   void WriteWordLiteralText(uword value) {
 // Padding is helpful for comparing the .S with --disassemble.
-#if defined(ARCH_IS_64_BIT)
+#if defined(TARGET_ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
