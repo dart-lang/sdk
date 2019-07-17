@@ -22,8 +22,8 @@ class ExtensionDeclaresFieldTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_multiple() {
-    assertErrorsInCode('''
+  test_multiple() async {
+    await assertErrorsInCode('''
 extension E on String {
   String one, two, three;
 }
@@ -34,22 +34,22 @@ extension E on String {
     ]);
   }
 
-  test_none() {
-    assertNoErrorsInCode('''
+  test_none() async {
+    await assertNoErrorsInCode('''
 extension E on String {}
 ''');
   }
 
-  test_one() {
-    assertErrorsInCode('''
+  test_one() async {
+    await assertErrorsInCode('''
 extension E on String {
   String s;
 }
 ''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD, 33, 1)]);
   }
 
-  test_static() {
-    assertNoErrorsInCode('''
+  test_static() async {
+    await assertNoErrorsInCode('''
 extension E on String {
   static String EMPTY = '';
 }

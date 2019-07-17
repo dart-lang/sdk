@@ -22,22 +22,22 @@ class ExtensionDeclaresConstructorTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_named() {
-    assertErrorsInCode('''
+  test_named() async {
+    await assertErrorsInCode('''
 extension E on String {
   E.named() : super();
 }
 ''', [error(CompileTimeErrorCode.EXTENSION_DECLARES_CONSTRUCTOR, 28, 5)]);
   }
 
-  test_none() {
-    assertNoErrorsInCode('''
+  test_none() async {
+    await assertNoErrorsInCode('''
 extension E on String {}
 ''');
   }
 
-  test_unnamed() {
-    assertErrorsInCode('''
+  test_unnamed() async {
+    await assertErrorsInCode('''
 extension E on String {
   E() : super();
 }

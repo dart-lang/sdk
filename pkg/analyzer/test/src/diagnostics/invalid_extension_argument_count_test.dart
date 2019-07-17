@@ -22,8 +22,8 @@ class InvalidExtensionArgumentCountTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_many() {
-    assertErrorsInCode('''
+  test_many() async {
+    await assertErrorsInCode('''
 extension E on String {
   void m() {}
 }
@@ -35,8 +35,8 @@ f() {
     ]);
   }
 
-  test_one() {
-    assertNoErrorsInCode('''
+  test_one() async {
+    await assertNoErrorsInCode('''
 extension E on String {
   void m() {}
 }
@@ -46,8 +46,8 @@ f() {
 ''');
   }
 
-  test_zero() {
-    assertErrorsInCode('''
+  test_zero() async {
+    await assertErrorsInCode('''
 extension E on String {
   void m() {}
 }

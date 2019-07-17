@@ -411,17 +411,24 @@ class MethodInvocationResolver {
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
     ExtensionElement element = override.extensionName.staticElement;
-    Element member = element.getMethod(name) ??
-        element.getGetter(name) ??
-        element.getSetter(name);
+    Element member = element.getMethod(name) ?? element.getGetter(name);
     if (member == null) {
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
           nameNode,
           [name, element.name]);
     } else if (member is ExecutableElement && member.isStatic) {
-      // TODO(brianwilkerson) Report this error.
+      _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          nameNode);
     }
+    if (node.isCascaded) {
+      // TODO(brianwilkerson) Report this error and decide how to recover.
+      throw new UnsupportedError('cascaded extension override');
+    }
+    // TODO(brianwilkerson) Handle the case where the name resolved to a getter.
+    //  It might be that the getter returns a function that is being invoked, or
+    //  it might be an error to have an argument list.
     nameNode.staticElement = member;
   }
 

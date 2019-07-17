@@ -1200,6 +1200,16 @@ class CompileTimeErrorCode extends ErrorCode {
               "Try removing the field declaration or making it a static field.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER =
+      const CompileTimeErrorCode(
+          'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
+          "An extension override can't be used to access a static member from an "
+              "extension.",
+          correction: "Try using just the name of the extension.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *

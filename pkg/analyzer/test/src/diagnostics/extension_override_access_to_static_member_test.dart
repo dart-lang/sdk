@@ -11,12 +11,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
+    defineReflectiveTests(ExtensionOverrideAccessToStaticMemberTest);
   });
 }
 
 @reflectiveTest
-class ExtensionDeclaresAbstractMethodTest extends DriverResolutionTest {
+class ExtensionOverrideAccessToStaticMemberTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = new FeatureSet.forTesting(
@@ -25,46 +25,57 @@ class ExtensionDeclaresAbstractMethodTest extends DriverResolutionTest {
   test_getter() async {
     await assertErrorsInCode('''
 extension E on String {
-  bool get isPalindrome;
+  static String get empty => '';
+}
+void f() {
+  E('a').empty;
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 35, 12),
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 79,
+          5),
+    ]);
+  }
+
+  test_getterAndSetter() async {
+    await assertErrorsInCode('''
+extension E on String {
+  static String get empty => '';
+  static void set empty(String s) {}
+}
+void f() {
+  E('a').empty += 'b';
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          116, 5),
     ]);
   }
 
   test_method() async {
     await assertErrorsInCode('''
 extension E on String {
-  String reversed();
+  static String empty() => '';
+}
+void f() {
+  E('a').empty();
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 33, 8),
-    ]);
-  }
-
-  test_none() async {
-    await assertNoErrorsInCode('''
-extension E on String {}
-''');
-  }
-
-  test_operator() async {
-    await assertErrorsInCode('''
-extension E on String {
-  String operator -(String otherString);
-}
-''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 42, 1),
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 77,
+          5),
     ]);
   }
 
   test_setter() async {
     await assertErrorsInCode('''
 extension E on String {
-  set length(int newLength);
+  static void set empty(String s) {}
+}
+void f() {
+  E('a').empty = 'b';
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 30, 6),
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 83,
+          5),
     ]);
   }
 }

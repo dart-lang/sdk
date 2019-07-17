@@ -710,8 +710,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
         }
       }
       if (member != null && member.isStatic) {
-        // TODO(brianwilkerson) Report this error.
-        throw new UnsupportedError('extension override of static member');
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+            propertyName);
       }
       propertyName.staticElement = member;
       return;
@@ -1496,9 +1497,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
               CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD,
               node.operator,
               [methodName, element.name]);
-        } else if (member.isStatic) {
-          // TODO(brianwilkerson) Report this error.
-          throw new UnsupportedError('extension override of static member');
         }
         node.staticElement = member;
         return;

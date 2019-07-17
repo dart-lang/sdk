@@ -59,6 +59,8 @@ import 'extension_declares_abstract_method_test.dart'
 import 'extension_declares_constructor_test.dart'
     as extension_declares_constructor;
 import 'extension_declares_field_test.dart' as extension_declares_field;
+import 'extension_override_access_to_static_member_test.dart'
+    as extension_override_access_to_static_member;
 import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
@@ -220,7 +222,6 @@ main() {
     ambiguous_import.main();
     ambiguous_set_or_map_literal.main();
     argument_type_not_assignable.main();
-
     assignment_to_const.main();
     assignment_to_final_local.main();
     assignment_to_final_no_setter.main();
@@ -260,6 +261,7 @@ main() {
     extension_declares_abstract_method.main();
     extension_declares_constructor.main();
     extension_declares_field.main();
+    extension_override_access_to_static_member.main();
     final_not_initialized.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
