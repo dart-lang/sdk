@@ -405,6 +405,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _entityWriter.writeMemberToDataSink(this, value);
   }
 
+  @override
   void writeTypeVariable(IndexedTypeVariable value) {
     _entityWriter.writeTypeVariableToDataSink(this, value);
   }

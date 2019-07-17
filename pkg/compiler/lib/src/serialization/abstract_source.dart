@@ -138,6 +138,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
 
+  @override
   IndexedTypeVariable readTypeVariable() {
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }

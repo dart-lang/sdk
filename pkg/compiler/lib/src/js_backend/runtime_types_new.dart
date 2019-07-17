@@ -204,7 +204,9 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
         _emitInteger(1 + environment.bindings.length + index);
         return;
       }
-      // TODO(sra): Encode type variables names via namer.
+      jsAst.Name name = _emitter.typeVariableAccessNewRti(type.element);
+      _emitName(name);
+      return;
     }
     // TODO(sra): Handle missing cases. This just emits some readable junk. The
     // backticks ensure it won't parse at runtime.

@@ -568,6 +568,9 @@ class CodegenResult {
         case ModularNameKind.globalPropertyNameForMember:
           name.value = namer.globalPropertyNameForMember(name.data);
           break;
+        case ModularNameKind.globalNameForInterfaceTypeVariable:
+          name.value = namer.globalNameForInterfaceTypeVariable(name.data);
+          break;
         case ModularNameKind.nameForGetInterceptor:
           name.value = namer.nameForGetInterceptor(name.set);
           break;
@@ -645,6 +648,7 @@ enum ModularNameKind {
   globalPropertyNameForClass,
   globalPropertyNameForType,
   globalPropertyNameForMember,
+  globalNameForInterfaceTypeVariable,
   nameForGetInterceptor,
   nameForOneShotInterceptor,
   asName,
@@ -698,6 +702,9 @@ class ModularName extends js.Name implements js.AstContainer {
       case ModularNameKind.invocation:
         data = Selector.readFromDataSource(source);
         break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        data = source.readTypeVariable();
+        break;
       case ModularNameKind.nameForGetInterceptor:
         set = source.readClasses().toSet();
         break;
@@ -750,6 +757,10 @@ class ModularName extends js.Name implements js.AstContainer {
         Selector selector = data;
         selector.writeToDataSink(sink);
         break;
+      case ModularNameKind.globalNameForInterfaceTypeVariable:
+        TypeVariableEntity typeVariable = data;
+        sink.writeTypeVariable(typeVariable);
+        break;
       case ModularNameKind.nameForGetInterceptor:
         sink.writeClasses(set);
         break;
@@ -766,7 +777,7 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   js.Name get value {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value;
   }
 
@@ -784,19 +795,19 @@ class ModularName extends js.Name implements js.AstContainer {
 
   @override
   String get name {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.name;
   }
 
   @override
   bool get allowRename {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.allowRename;
   }
 
   @override
   int compareTo(js.Name other) {
-    assert(_value != null);
+    assert(_value != null, 'value not set for $this');
     return _value.compareTo(other);
   }
 
@@ -820,7 +831,8 @@ class ModularName extends js.Name implements js.AstContainer {
   }
 
   @override
-  String toString() => 'ModularName(kind=$kind,data=$data,value=${value?.key})';
+  String toString() =>
+      'ModularName(kind=$kind, data=$data, value=${_value?.key})';
 }
 
 enum ModularExpressionKind {
