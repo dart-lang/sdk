@@ -81,7 +81,7 @@ DEFINE_FLAG(bool,
             "Enable specializing monomorphic calls from unoptimized code.");
 DEFINE_FLAG(bool,
             unopt_megamorphic_calls,
-            false,
+            true,
             "Enable specializing megamorphic calls from unoptimized code.");
 
 DECLARE_FLAG(int, reload_every);
