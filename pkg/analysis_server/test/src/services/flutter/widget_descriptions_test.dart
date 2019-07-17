@@ -2,84 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
-import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../abstract_single_unit.dart';
+import 'widget_description.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContainerPropertiesTest);
     defineReflectiveTests(GetDescriptionTest);
     defineReflectiveTests(SetPropertyValueSelfTest);
   });
 }
 
 @reflectiveTest
-class ContainerPropertiesTest extends _BaseTest {
-  test_alignment_hasContainer() async {
-    await resolveTestUnit('''
-import 'package:flutter/material.dart';
-
-void main() {
-  Container(
-    child: Text(''),
-    alignment: Alignment.centerRight,
-  );
-}
-''');
-    var property = _getProperty('Container', widgetSearch: 'Text(');
-    var alignmentProperty = _getProperty('alignment', parentProperty: property);
-    // TODO(scheglov) Value, editor.
-    _assertPropertyJsonText(alignmentProperty, r'''
-{
-  "expression": "Alignment.centerRight",
-  "isRequired": false,
-  "isSafeToUpdate": false,
-  "name": "alignment",
-  "children": []
-}
-''');
-  }
-
-  test_container_existing() async {
-    await resolveTestUnit('''
-import 'package:flutter/material.dart';
-
-void main() {
-  Container(
-    child: Text(''),
-    alignment: Alignment.centerRight,
-  );
-}
-''');
-    var property = _getProperty('Container', widgetSearch: 'Text(');
-    var childrenNames = property.children.map((p) => p.name).toList();
-
-    expect(
-      childrenNames,
-      containsAll([
-        'alignment',
-        'color',
-        'decoration',
-        'height',
-        'margin',
-        'width',
-      ]),
-    );
-
-    expect(childrenNames, isNot(contains('child')));
-  }
-}
-
-@reflectiveTest
-class GetDescriptionTest extends _BaseTest {
+class GetDescriptionTest extends WidgetDescriptionBase {
   test_kind_named_notSet() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -88,9 +25,9 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('softWrap', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'softWrap');
     expect(property.documentation, startsWith('Whether the text should'));
-    _assertPropertyJsonText(property, r'''
+    assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
   "isSafeToUpdate": true,
@@ -111,9 +48,9 @@ void main() {
   Text('aaa', softWrap: true);
 }
 ''');
-    var property = _getProperty('softWrap', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'softWrap');
     expect(property.documentation, startsWith('Whether the text should'));
-    _assertPropertyJsonText(property, r'''
+    assertPropertyJsonText(property, r'''
 {
   "expression": "true",
   "isRequired": false,
@@ -138,9 +75,9 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('data', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'data');
     expect(property.documentation, startsWith('The text to display.'));
-    _assertPropertyJsonText(property, r'''
+    assertPropertyJsonText(property, r'''
 {
   "expression": "'aaa'",
   "isRequired": true,
@@ -165,13 +102,10 @@ void main() {
   Text('');
 }
 ''');
-    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+    var styleProperty = getWidgetProperty('Text(', 'style');
 
-    var fontSizeProperty = _getProperty(
-      'fontSize',
-      parentProperty: styleProperty,
-    );
-    _assertPropertyJsonText(fontSizeProperty, r'''
+    var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
+    assertPropertyJsonText(fontSizeProperty, r'''
 {
   "isRequired": false,
   "isSafeToUpdate": true,
@@ -192,13 +126,10 @@ void main() {
   Text('', style: TextStyle(fontSize: 24));
 }
 ''');
-    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+    var styleProperty = getWidgetProperty('Text(', 'style');
 
-    var fontSizeProperty = _getProperty(
-      'fontSize',
-      parentProperty: styleProperty,
-    );
-    _assertPropertyJsonText(fontSizeProperty, r'''
+    var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
+    assertPropertyJsonText(fontSizeProperty, r'''
 {
   "expression": "24",
   "isRequired": false,
@@ -214,11 +145,8 @@ void main() {
 }
 ''');
 
-    var fontStyleProperty = _getProperty(
-      'fontStyle',
-      parentProperty: styleProperty,
-    );
-    _assertPropertyJsonText(fontStyleProperty, r'''
+    var fontStyleProperty = getNestedProperty(styleProperty, 'fontStyle');
+    assertPropertyJsonText(fontStyleProperty, r'''
 {
   "isRequired": false,
   "isSafeToUpdate": true,
@@ -249,7 +177,7 @@ void main() {
   42;
 }
 ''');
-    var description = _getDescription('42');
+    var description = getDescription('42');
     expect(description, isNull);
   }
 
@@ -261,8 +189,8 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('textScaleFactor', widgetSearch: 'Text(');
-    _assertPropertyJsonText(property, r'''
+    var property = getWidgetProperty('Text(', 'textScaleFactor');
+    assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
   "isSafeToUpdate": true,
@@ -283,14 +211,14 @@ void main() {
   Text('', overflow: TextOverflow.fade);
 }
 ''');
-    var property = _getProperty('overflow', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'overflow');
 
     expect(
       property.toJson()['editor']['enumItems'][0]['documentation'],
       startsWith('Clip the overflowing'),
     );
 
-    _assertPropertyJsonText(property, r'''
+    assertPropertyJsonText(property, r'''
 {
   "expression": "TextOverflow.fade",
   "isRequired": false,
@@ -341,8 +269,8 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
-    _assertPropertyJsonText(property, r'''
+    var property = getWidgetProperty('Text(', 'maxLines');
+    assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
   "isSafeToUpdate": true,
@@ -362,13 +290,13 @@ void main() {
   new Foo();
 }
 ''');
-    var description = _getDescription('Foo');
+    var description = getDescription('Foo');
     expect(description, isNull);
   }
 }
 
 @reflectiveTest
-class SetPropertyValueSelfTest extends _BaseTest {
+class SetPropertyValueSelfTest extends WidgetDescriptionBase {
   test_invalidId() async {
     await resolveTestUnit('');
 
@@ -389,14 +317,14 @@ void main() {
   Text('', );
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -413,14 +341,14 @@ void main() {
   Text('');
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -437,14 +365,14 @@ void main() {
   Text('', maxLines: 1);
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(intValue: 42),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -461,11 +389,11 @@ void main() {
   Text('', maxLines: 1,);
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -482,11 +410,11 @@ void main() {
   Text('', maxLines: 1, softWrap: true,);
 }
 ''');
-    var property = _getProperty('maxLines', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -503,19 +431,16 @@ void main() {
   Text('', style: TextStyle(), );
 }
 ''');
-    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+    var styleProperty = getWidgetProperty('Text(', 'style');
 
-    var fontSizeProperty = _getProperty(
-      'fontSize',
-      parentProperty: styleProperty,
-    );
+    var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
 
     var result = await descriptions.setPropertyValue(
       fontSizeProperty.id,
       protocol.FlutterWidgetPropertyValue(doubleValue: 42),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -532,19 +457,16 @@ void main() {
   Text('', );
 }
 ''');
-    var styleProperty = _getProperty('style', widgetSearch: 'Text(');
+    var styleProperty = getWidgetProperty('Text(', 'style');
 
-    var fontSizeProperty = _getProperty(
-      'fontSize',
-      parentProperty: styleProperty,
-    );
+    var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
 
     var result = await descriptions.setPropertyValue(
       fontSizeProperty.id,
       protocol.FlutterWidgetPropertyValue(doubleValue: 42),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -561,14 +483,14 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('data', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'data');
 
     var result = await descriptions.setPropertyValue(
       property.id,
       protocol.FlutterWidgetPropertyValue(stringValue: 'bbbb'),
     );
 
-    _assertExpectedChange(result, r'''
+    assertExpectedChange(result, r'''
 import 'package:flutter/material.dart';
 
 void main() {
@@ -585,7 +507,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = _getProperty('data', widgetSearch: 'Text(');
+    var property = getWidgetProperty('Text(', 'data');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 
@@ -594,121 +516,5 @@ void main() {
       protocol.RequestErrorCode.FLUTTER_SET_WIDGET_PROPERTY_VALUE_IS_REQUIRED,
     );
     expect(result.change, isNull);
-  }
-}
-
-@reflectiveTest
-class _BaseTest extends AbstractSingleUnitTest {
-  final flutter = Flutter.mobile;
-  final descriptions = WidgetDescriptions();
-
-  @override
-  void setUp() {
-    super.setUp();
-    addFlutterPackage();
-  }
-
-  void _assertExpectedChange(SetPropertyValueResult result, String expected) {
-    expect(result.errorCode, isNull);
-
-    var change = result.change;
-
-    expect(change.edits, hasLength(1));
-    var fileEdit = change.edits[0];
-    expect(fileEdit.file, testAnalysisResult.path);
-
-    var actual = SourceEdit.applySequence(
-      testAnalysisResult.content,
-      fileEdit.edits,
-    );
-    expect(actual, expected);
-  }
-
-  void _assertPropertyJsonText(
-    protocol.FlutterWidgetProperty property,
-    String expected,
-  ) {
-    var json = property.toJson();
-    _removeNotInterestingElements(json);
-
-    var actual = JsonEncoder.withIndent('  ').convert(json);
-
-    expected = expected.trimRight();
-    if (actual != expected) {
-      print('-----');
-      print(actual);
-      print('-----');
-    }
-    expect(actual, expected);
-  }
-
-  protocol.FlutterGetWidgetDescriptionResult _getDescription(String search) {
-    var content = testAnalysisResult.content;
-
-    var offset = content.indexOf(search);
-    if (offset == -1) {
-      fail('Not found: $search');
-    }
-
-    if (content.indexOf(search, offset + search.length) != -1) {
-      fail('More than one: $search');
-    }
-
-    return descriptions.getDescription(testAnalysisResult, offset);
-  }
-
-  protocol.FlutterWidgetProperty _getProperty(
-    String name, {
-    String widgetSearch,
-    protocol.FlutterWidgetProperty parentProperty,
-  }) {
-    if (widgetSearch == null && parentProperty == null ||
-        widgetSearch != null && parentProperty != null) {
-      fail("Either 'widgetSearch' or 'parentProperty' must be specified");
-    }
-
-    List<protocol.FlutterWidgetProperty> properties;
-    if (widgetSearch != null) {
-      var widgetDescription = _getDescription(widgetSearch);
-      expect(widgetDescription, isNotNull);
-
-      properties = widgetDescription.properties;
-    } else if (parentProperty != null) {
-      properties = parentProperty.children;
-    }
-
-    return properties.singleWhere(
-      (property) => property.name == name,
-    );
-  }
-
-  void _removeNotInterestingElements(Map<String, dynamic> json) {
-    json.remove('documentation');
-
-    var id = json.remove('id') as int;
-    expect(id, isNotNull);
-
-    Object editor = json['editor'];
-    if (editor is Map<String, dynamic> && editor['kind'] == 'ENUM') {
-      Object items = editor['enumItems'];
-      if (items is List<Map<String, dynamic>>) {
-        for (var item in items) {
-          item.remove('documentation');
-        }
-      }
-    }
-
-    Object value = json['value'];
-    if (value is Map<String, dynamic>) {
-      Object enumItem = value['enumValue'];
-      if (enumItem is Map<String, dynamic>) {
-        enumItem.remove('documentation');
-      }
-    }
-
-    var children = json['children'];
-    if (children is List<Map<String, dynamic>>) {
-      children.forEach(_removeNotInterestingElements);
-    }
   }
 }
