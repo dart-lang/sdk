@@ -61,6 +61,8 @@ import 'extension_declares_constructor_test.dart'
 import 'extension_declares_field_test.dart' as extension_declares_field;
 import 'extension_override_access_to_static_member_test.dart'
     as extension_override_access_to_static_member;
+import 'extension_override_argument_not_assignable_test.dart'
+    as extension_override_argument_not_assignable;
 import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
@@ -262,6 +264,7 @@ main() {
     extension_declares_constructor.main();
     extension_declares_field.main();
     extension_override_access_to_static_member.main();
+    extension_override_argument_not_assignable.main();
     final_not_initialized.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();

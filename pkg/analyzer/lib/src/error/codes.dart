@@ -1210,6 +1210,15 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try using just the name of the extension.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE =
+      const CompileTimeErrorCode(
+          'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
+          "The argument to the extension override is not assignable to the "
+              "extended type.");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
