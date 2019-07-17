@@ -66,8 +66,8 @@ class OffsetsExtractor : public AllStatic {
   {                                                                            \
     auto filter = Filter;                                                      \
     bool comma = false;                                                        \
-    std::cout << "static dart::compiler::target::word " #Class "_" #Name       \
-                 "[] = {";                                                     \
+    std::cout << "static constexpr dart::compiler::target::word " #Class       \
+                 "_" #Name "[] = {";                                           \
     for (intptr_t i = static_cast<intptr_t>(First);                            \
          i <= static_cast<intptr_t>(Last); i++) {                              \
       auto v = static_cast<Type>(i);                                           \

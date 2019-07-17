@@ -322,6 +322,9 @@ class Address : public ValueObject {
       case DB_W:
       case IB_W:
         return true;
+      default:
+        UNREACHABLE();
+        return false;
     }
   }
 

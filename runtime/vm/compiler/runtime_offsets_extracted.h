@@ -339,9 +339,11 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 168;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 16;
-static dart::compiler::target::word Code_entry_point_offset[] = {4, 12, 8, 16};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {4, 8};
-static dart::compiler::target::word
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    4, 12, 8, 16};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         580, 584, 588, 592, 596, -1, 600, 604,
         608, 612, -1,  -1,  -1,  -1, -1,  -1};
@@ -694,10 +696,11 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 288;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 32;
-static dart::compiler::target::word Code_entry_point_offset[] = {8, 24, 16, 32};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {8,
-                                                                          16};
-static dart::compiler::target::word
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    8, 24, 16, 32};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1152, 1160, 1168, 1176, -1,   -1,   1184, 1192,
         1200, 1208, 1216, -1,   1224, 1232, -1,   -1};
@@ -1046,8 +1049,10 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 168;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 16;
-static dart::compiler::target::word Code_entry_point_offset[] = {4, 12, 8, 16};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    4, 12, 8, 16};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {4, 8};
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -1397,10 +1402,11 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 288;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 32;
-static dart::compiler::target::word Code_entry_point_offset[] = {8, 24, 16, 32};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {8,
-                                                                          16};
-static dart::compiler::target::word
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    8, 24, 16, 32};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
         1152, 1160, 1168, 1176, 1184, 1192, 1200, 1208, 1216, 1224, 1232,
         1240, 1248, 1256, 1264, -1,   -1,   -1,   -1,   1272, 1280, 1288,
@@ -1688,9 +1694,10 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 288;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 32;
-static dart::compiler::target::word Code_entry_point_offset[] = {8, 24, 16, 32};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {8,
-                                                                          16};
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    8, 24, 16, 32};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {8, 16};
 static constexpr dart::compiler::target::word Array_header_size = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;
@@ -1971,8 +1978,10 @@ static constexpr dart::compiler::target::word ClassTable_elements_start_offset =
 static constexpr dart::compiler::target::word ClassTable_element_size = 168;
 static constexpr dart::compiler::target::word
     ClassTable_class_heap_stats_table_offset = 16;
-static dart::compiler::target::word Code_entry_point_offset[] = {4, 12, 8, 16};
-static dart::compiler::target::word Code_function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
+    4, 12, 8, 16};
+static constexpr dart::compiler::target::word
+    Code_function_entry_point_offset[] = {4, 8};
 static constexpr dart::compiler::target::word Array_header_size = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word Double_InstanceSize = 16;

@@ -1901,7 +1901,7 @@ RegExpTree* RegExpParser::ParseCharacterClass(const RegExpBuilder* builder) {
       new (Z) ZoneGrowableArray<CharacterRange>(2);
   bool add_unicode_case_equivalents = is_unicode() && builder->ignore_case();
   while (has_more() && current() != ']') {
-    uint32_t char_1;
+    uint32_t char_1 = 0;
     bool is_class_1 =
         ParseClassEscape(ranges, add_unicode_case_equivalents, &char_1);
     if (current() == '-') {
@@ -1915,7 +1915,7 @@ RegExpTree* RegExpParser::ParseCharacterClass(const RegExpBuilder* builder) {
         ranges->Add(CharacterRange::Singleton('-'));
         break;
       }
-      uint32_t char_2;
+      uint32_t char_2 = 0;
       bool is_class_2 =
           ParseClassEscape(ranges, add_unicode_case_equivalents, &char_2);
       if (is_class_1 || is_class_2) {

@@ -7937,10 +7937,10 @@ class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
       : TemplateDefinition(DeoptId::kNone),
         representation_(rep),
         from_representation_(from_rep) {
-    ASSERT(rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
-                                    from_rep == kSmallUnboxedInt16) ||
-           rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
-                                     from_rep == kSmallUnboxedUint16));
+    ASSERT((rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
+                                     from_rep == kSmallUnboxedInt16)) ||
+           (rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
+                                      from_rep == kSmallUnboxedUint16)));
     SetInputAt(0, value);
   }
 
