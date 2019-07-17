@@ -437,6 +437,30 @@ class JSNumber extends Interceptor implements int, double {
     if (e < 0) throw RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
+
+    const int maxPreciseInteger = 9007199254740991;
+
+    // Reject inputs that are outside the range of integer values that can be
+    // represented precisely as a Number (double).
+    if (this < -maxPreciseInteger || this > maxPreciseInteger) {
+      throw RangeError.range(
+          this, -maxPreciseInteger, maxPreciseInteger, 'receiver');
+    }
+    if (e > maxPreciseInteger) {
+      throw RangeError.range(e, 0, maxPreciseInteger, 'exponent');
+    }
+    if (m > maxPreciseInteger) {
+      throw RangeError.range(e, 1, maxPreciseInteger, 'modulus');
+    }
+
+    // This is floor(sqrt(maxPreciseInteger)).
+    const int maxValueThatCanBeSquaredWithoutTruncation = 94906265;
+    if (m > maxValueThatCanBeSquaredWithoutTruncation) {
+      // Use BigInt version to avoid truncation in multiplications below. The
+      // 'maxPreciseInteger' check on [m] ensures that toInt() does not round.
+      return BigInt.from(this).modPow(BigInt.from(e), BigInt.from(m)).toInt();
+    }
+
     int b = this;
     if (b < 0 || b > m) {
       b %= m;

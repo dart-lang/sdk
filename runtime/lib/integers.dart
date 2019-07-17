@@ -360,6 +360,14 @@ abstract class _IntegerImplementation implements int {
     if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
     if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
+
+    // This is floor(sqrt(2^63)).
+    const int maxValueThatCanBeSquaredWithoutTruncation = 3037000499;
+    if (m > maxValueThatCanBeSquaredWithoutTruncation) {
+      // Use BigInt version to avoid truncation in multiplications below.
+      return BigInt.from(this).modPow(BigInt.from(e), BigInt.from(m)).toInt();
+    }
+
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
