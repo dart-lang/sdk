@@ -685,25 +685,31 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (propertyName.inSetterContext()) {
         member = element.getSetter(propertyName.name);
         if (member == null) {
-          // TODO(brianwilkerson) Report this error.
-          throw new UnsupportedError('extension override of missing setter');
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
+              propertyName,
+              [propertyName.name, element.name]);
         }
         if (propertyName.inGetterContext()) {
           PropertyAccessorElement getter = element.getGetter(propertyName.name);
           if (getter == null) {
-            // TODO(brianwilkerson) Report this error.
-            throw new UnsupportedError('extension override of missing getter');
+            _resolver.errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
+                propertyName,
+                [propertyName.name, element.name]);
           }
           propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
         }
       } else if (propertyName.inGetterContext()) {
         member = element.getGetter(propertyName.name);
         if (member == null) {
-          // TODO(brianwilkerson) Report this error.
-          throw new UnsupportedError('extension override of missing getter');
+          _resolver.errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
+              propertyName,
+              [propertyName.name, element.name]);
         }
       }
-      if (member.isStatic) {
+      if (member != null && member.isStatic) {
         // TODO(brianwilkerson) Report this error.
         throw new UnsupportedError('extension override of static member');
       }

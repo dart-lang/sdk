@@ -3115,15 +3115,39 @@ class CompileTimeErrorCode extends ErrorCode {
 
   /**
    * Parameters:
-   * 0: the name of the extension method that is undefined
+   * 0: the name of the getter that is undefined
+   * 1: the name of the extension that was explicitly specified
+   */
+  static const CompileTimeErrorCode UNDEFINED_EXTENSION_GETTER =
+      const CompileTimeErrorCode('UNDEFINED_EXTENSION_GETTER',
+          "The getter '{0}' isn't defined for the extension '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing getter, or "
+              "defining a getter named '{0}'.");
+
+  /**
+   * Parameters:
+   * 0: the name of the method that is undefined
    * 1: the name of the extension that was explicitly specified
    */
   static const CompileTimeErrorCode UNDEFINED_EXTENSION_METHOD =
       const CompileTimeErrorCode('UNDEFINED_EXTENSION_METHOD',
-          "The extension method '{0}' isn't defined for the extension '{1}'.",
+          "The method '{0}' isn't defined for the extension '{1}'.",
           correction:
               "Try correcting the name to the name of an existing method, or "
-              "defining an extension method named '{0}'.");
+              "defining a method named '{0}'.");
+
+  /**
+   * Parameters:
+   * 0: the name of the setter that is undefined
+   * 1: the name of the extension that was explicitly specified
+   */
+  static const CompileTimeErrorCode UNDEFINED_EXTENSION_SETTER =
+      const CompileTimeErrorCode('UNDEFINED_EXTENSION_SETTER',
+          "The setter '{0}' isn't defined for the extension '{1}'.",
+          correction:
+              "Try correcting the name to the name of an existing setter, or "
+              "defining a setter named '{0}'.");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>,
