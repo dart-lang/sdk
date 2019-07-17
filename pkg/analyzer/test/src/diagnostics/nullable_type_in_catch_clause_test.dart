@@ -22,7 +22,7 @@ class NullableTypeInCatchClauseTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_noOnClause() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 f() {
   try {
   } catch (e) {
@@ -32,7 +32,7 @@ f() {
   }
 
   test_on_class_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 f() {
   try {
@@ -43,7 +43,7 @@ f() {
   }
 
   test_on_class_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 f() {
   try {
@@ -56,7 +56,7 @@ f() {
   }
 
   test_on_typeParameter() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A<B> {
   m() {
     try {
@@ -70,7 +70,7 @@ class A<B> {
   }
 
   test_on_typeParameter_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A<B extends Object> {
   m() {
     try {

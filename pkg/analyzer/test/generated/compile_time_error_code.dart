@@ -1800,7 +1800,7 @@ var b2 = const bool.fromEnvironment('x', defaultValue: 1);
     // The type of the defaultValue needs to be correct even when the default
     // value isn't used (because the variable is defined in the environment).
     driver.declaredVariables = new DeclaredVariables.fromMap({'x': 'true'});
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 var b = const bool.fromEnvironment('x', defaultValue: 1);
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 8, 48),

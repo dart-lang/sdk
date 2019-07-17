@@ -22,7 +22,7 @@ class NotInitializedNonNullableStaticFieldTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_futureOr_questionArgument_none() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'dart:async';
 
 class A {
@@ -32,7 +32,7 @@ class A {
   }
 
   test_hasInitializer() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   static int v = 0;
 }
@@ -40,7 +40,7 @@ class A {
   }
 
   test_noInitializer() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   static int x = 0, y, z = 2;
 }
@@ -51,7 +51,7 @@ class A {
   }
 
   test_nullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   static int? v;
 }
@@ -59,7 +59,7 @@ class A {
   }
 
   test_type_dynamic() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   static dynamic v;
 }
@@ -67,7 +67,7 @@ class A {
   }
 
   test_type_dynamic_implicit() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   static var v;
 }
@@ -75,7 +75,7 @@ class A {
   }
 
   test_type_never() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {
   static Never v;
 }
@@ -86,7 +86,7 @@ class A {
   }
 
   test_type_void() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {
   static void v;
 }

@@ -171,7 +171,7 @@ class EnclosedScopeTest extends DriverResolutionTest {
 @reflectiveTest
 class ErrorResolverTest extends DriverResolutionTest {
   test_breakLabelOnSwitchMember() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   void m(int i) {
     switch (i) {
@@ -187,7 +187,7 @@ class A {
   }
 
   test_continueLabelOnSwitch() async {
-    assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 class A {
   void m(int i) {
     l: switch (i) {

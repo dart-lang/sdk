@@ -21,7 +21,7 @@ class ImportResolutionTest extends DriverResolutionTest {
     newFile('/test/lib/declares_never.dart', content: '''
 class Never {}
 ''');
-    assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'declares_never.dart';
 
 Never f() => throw 'foo';

@@ -20,7 +20,7 @@ main() {
 @reflectiveTest
 class NonBoolConditionTest extends DriverResolutionTest {
   test_ifElement() async {
-    assertErrorsInCode(
+    await assertErrorsInCode(
         '''
 const c = [if (3) 1];
 ''',

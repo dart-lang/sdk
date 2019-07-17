@@ -26,24 +26,24 @@ class FinalNotInitializedWithNnbdTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_field_noConstructor_initializer() {
-    assertNoErrorsInCode('''
+  test_field_noConstructor_initializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f = 1;
 }
 ''');
   }
 
-  test_field_noConstructor_noInitializer() {
-    assertNoErrorsInCode('''
+  test_field_noConstructor_noInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
 }
 ''');
   }
 
-  test_field_unnamedConstructor_constructorInitializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_constructorInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C() : f = 2;
@@ -51,8 +51,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_fieldFormalParameter() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_fieldFormalParameter() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C(this.f);
@@ -60,8 +60,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_initializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_initializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f = 1;
   C();
@@ -69,8 +69,8 @@ class C {
 ''');
   }
 
-  test_field_unnamedConstructor_noInitializer() {
-    assertNoErrorsInCode('''
+  test_field_unnamedConstructor_noInitializer() async {
+    await assertNoErrorsInCode('''
 class C {
   late final f;
   C();
@@ -78,16 +78,16 @@ class C {
 ''');
   }
 
-  test_localVariable_initializer() {
-    assertNoErrorsInCode('''
+  test_localVariable_initializer() async {
+    await assertNoErrorsInCode('''
 f() {
   late final x = 1;
 }
 ''');
   }
 
-  test_localVariable_noInitializer() {
-    assertNoErrorsInCode('''
+  test_localVariable_noInitializer() async {
+    await assertNoErrorsInCode('''
 f() {
   late final x;
 }

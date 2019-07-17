@@ -22,14 +22,14 @@ class NullableTypeInImplementsClauseTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_class_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 class B implements A {}
 ''');
   }
 
   test_class_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 class B implements A? {}
 ''', [
@@ -38,14 +38,14 @@ class B implements A? {}
   }
 
   test_mixin_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 mixin B implements A {}
 ''');
   }
 
   test_mixin_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 mixin B implements A? {}
 ''', [

@@ -759,7 +759,7 @@ main(void x) sync* {
   test_importDuplicatedLibraryNamed() async {
     newFile("/test/lib/lib1.dart", content: "library lib;");
     newFile("/test/lib/lib2.dart", content: "library lib;");
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 library test;
 import 'lib1.dart';
 import 'lib2.dart';''', [
@@ -773,7 +773,7 @@ import 'lib2.dart';''', [
     newFile("/test/lib/lib1.dart", content: '''
 part of lib;
 class A {}''');
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 library lib;
 import 'lib1.dart' deferred as p;
 var a = new p.A();''', [

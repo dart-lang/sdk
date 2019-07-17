@@ -22,14 +22,14 @@ class NullableTypeInOnClauseTest extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_nonNullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class A {}
 mixin B on A {}
 ''');
   }
 
   test_nullable() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class A {}
 mixin B on A? {}
 ''', [

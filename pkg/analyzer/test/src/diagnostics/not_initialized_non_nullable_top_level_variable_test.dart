@@ -23,7 +23,7 @@ class NotInitializedNonNullableTopLevelVariableTest
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_futureOr_questionArgument_none() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 import 'dart:async';
 
 FutureOr<int?> v;
@@ -31,13 +31,13 @@ FutureOr<int?> v;
   }
 
   test_hasInitializer() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 int v = 0;
 ''');
   }
 
   test_noInitializer() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 int x = 0, y, z = 2;
 ''', [
       error(
@@ -48,25 +48,25 @@ int x = 0, y, z = 2;
   }
 
   test_nullable() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 int? v;
 ''');
   }
 
   test_type_dynamic() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 dynamic v;
 ''');
   }
 
   test_type_dynamic_implicit() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 var v;
 ''');
   }
 
   test_type_never() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 Never v;
 ''', [
       error(
@@ -77,7 +77,7 @@ Never v;
   }
 
   test_type_void() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 void v;
 ''');
   }
