@@ -4,6 +4,7 @@
 library kernel.ast.visitor;
 
 import 'dart:core' hide MapEntry;
+import 'dart:collection';
 
 import 'ast.dart';
 
@@ -289,6 +290,14 @@ class DartTypeVisitor1<R, T> {
   R visitTypedefType(TypedefType node, T arg) => defaultDartType(node, arg);
 }
 
+/// Visitor for [Constant] nodes.
+///
+/// Note: Constant nodes are _not_ trees but directed acyclic graphs. This
+/// means that visiting a constant node without tracking which subnodes that
+/// have already been visited might lead to exponential running times.
+///
+/// Use [ComputeOnceConstantVisitor] or [VisitOnceConstantVisitor] to visit
+/// a constant node while ensuring each subnode is only visited once.
 class ConstantVisitor<R> {
   const ConstantVisitor();
 
@@ -309,6 +318,167 @@ class ConstantVisitor<R> {
   R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
   R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
   R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
+}
+
+abstract class _ConstantCallback<R> {
+  R defaultConstant(Constant node);
+
+  R visitNullConstant(NullConstant node);
+  R visitBoolConstant(BoolConstant node);
+  R visitIntConstant(IntConstant node);
+  R visitDoubleConstant(DoubleConstant node);
+  R visitStringConstant(StringConstant node);
+  R visitSymbolConstant(SymbolConstant node);
+  R visitMapConstant(MapConstant node);
+  R visitListConstant(ListConstant node);
+  R visitSetConstant(SetConstant node);
+  R visitInstanceConstant(InstanceConstant node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node);
+  R visitTearOffConstant(TearOffConstant node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node);
+  R visitUnevaluatedConstant(UnevaluatedConstant node);
+}
+
+class _ConstantCallbackVisitor<R> implements ConstantVisitor<R> {
+  final _ConstantCallback _callback;
+
+  _ConstantCallbackVisitor(this._callback);
+
+  @override
+  R visitUnevaluatedConstant(UnevaluatedConstant node) =>
+      _callback.visitUnevaluatedConstant(node);
+
+  @override
+  R visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      _callback.visitTypeLiteralConstant(node);
+
+  @override
+  R visitTearOffConstant(TearOffConstant node) =>
+      _callback.visitTearOffConstant(node);
+
+  @override
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      _callback.visitPartialInstantiationConstant(node);
+
+  @override
+  R visitInstanceConstant(InstanceConstant node) =>
+      _callback.visitInstanceConstant(node);
+
+  @override
+  R visitSetConstant(SetConstant node) => _callback.visitSetConstant(node);
+
+  @override
+  R visitListConstant(ListConstant node) => _callback.visitListConstant(node);
+
+  @override
+  R visitMapConstant(MapConstant node) => _callback.visitMapConstant(node);
+
+  @override
+  R visitSymbolConstant(SymbolConstant node) =>
+      _callback.visitSymbolConstant(node);
+
+  @override
+  R visitStringConstant(StringConstant node) =>
+      _callback.visitStringConstant(node);
+
+  @override
+  R visitDoubleConstant(DoubleConstant node) =>
+      _callback.visitDoubleConstant(node);
+
+  @override
+  R visitIntConstant(IntConstant node) => _callback.visitIntConstant(node);
+
+  @override
+  R visitBoolConstant(BoolConstant node) => _callback.visitBoolConstant(node);
+
+  @override
+  R visitNullConstant(NullConstant node) => _callback.visitNullConstant(node);
+
+  @override
+  R defaultConstant(Constant node) => _callback.defaultConstant(node);
+}
+
+/// Visitor-like class used for visiting a [Constant] node while computing a
+/// value for each subnode. The visitor caches the computed values ensuring that
+/// each subnode is only visited once.
+class ComputeOnceConstantVisitor<R> implements _ConstantCallback<R> {
+  _ConstantCallbackVisitor _visitor;
+  Map<Constant, R> cache = new LinkedHashMap.identity();
+
+  ComputeOnceConstantVisitor() {
+    _visitor = new _ConstantCallbackVisitor<R>(this);
+  }
+
+  /// Visits [node] if not already visited to compute a value for [node].
+  ///
+  /// If the value has already been computed the cached value is returned immediately.
+  ///
+  /// Call this method to compute values for subnodes recursively, while only
+  /// visiting each subnode once.
+  R visitConstant(Constant node) {
+    return cache[node] ??= node.accept(_visitor);
+  }
+
+  R defaultConstant(Constant node) => null;
+
+  R visitNullConstant(NullConstant node) => defaultConstant(node);
+  R visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  R visitIntConstant(IntConstant node) => defaultConstant(node);
+  R visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  R visitStringConstant(StringConstant node) => defaultConstant(node);
+  R visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
+  R visitMapConstant(MapConstant node) => defaultConstant(node);
+  R visitListConstant(ListConstant node) => defaultConstant(node);
+  R visitSetConstant(SetConstant node) => defaultConstant(node);
+  R visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  R visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
+  R visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  R visitTypeLiteralConstant(TypeLiteralConstant node) => defaultConstant(node);
+  R visitUnevaluatedConstant(UnevaluatedConstant node) => defaultConstant(node);
+}
+
+/// Visitor-like class used for visiting each subnode of a [Constant] node once.
+///
+/// The visitor records the visited node to ensure that each subnode is only
+/// visited once.
+class VisitOnceConstantVisitor implements _ConstantCallback<void> {
+  _ConstantCallbackVisitor<void> _visitor;
+  Set<Constant> cache = new LinkedHashSet.identity();
+
+  VisitOnceConstantVisitor() {
+    _visitor = new _ConstantCallbackVisitor<void>(this);
+  }
+
+  /// Visits [node] if not already visited.
+  ///
+  /// Call this method to visit subnodes recursively, while only visiting each
+  /// subnode once.
+  void visitConstant(Constant node) {
+    if (cache.add(node)) {
+      node.accept(_visitor);
+    }
+  }
+
+  void defaultConstant(Constant node) => null;
+
+  void visitNullConstant(NullConstant node) => defaultConstant(node);
+  void visitBoolConstant(BoolConstant node) => defaultConstant(node);
+  void visitIntConstant(IntConstant node) => defaultConstant(node);
+  void visitDoubleConstant(DoubleConstant node) => defaultConstant(node);
+  void visitStringConstant(StringConstant node) => defaultConstant(node);
+  void visitSymbolConstant(SymbolConstant node) => defaultConstant(node);
+  void visitMapConstant(MapConstant node) => defaultConstant(node);
+  void visitListConstant(ListConstant node) => defaultConstant(node);
+  void visitSetConstant(SetConstant node) => defaultConstant(node);
+  void visitInstanceConstant(InstanceConstant node) => defaultConstant(node);
+  void visitPartialInstantiationConstant(PartialInstantiationConstant node) =>
+      defaultConstant(node);
+  void visitTearOffConstant(TearOffConstant node) => defaultConstant(node);
+  void visitTypeLiteralConstant(TypeLiteralConstant node) =>
+      defaultConstant(node);
+  void visitUnevaluatedConstant(UnevaluatedConstant node) =>
+      defaultConstant(node);
 }
 
 class MemberReferenceVisitor<R> {

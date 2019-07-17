@@ -4,6 +4,8 @@
 
 library js_backend.backend.codegen_listener;
 
+import 'dart:collection';
+
 import '../common/names.dart' show Identifiers;
 import '../common_elements.dart' show CommonElements, ElementEnvironment;
 import '../constants/values.dart';
@@ -124,12 +126,15 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   void onQueueClosed() {}
 
   /// Adds the impact of [constant] to [impactBuilder].
-  void _computeImpactForCompileTimeConstant(
-      ConstantValue constant, WorldImpactBuilder impactBuilder) {
-    _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
+  void _computeImpactForCompileTimeConstant(ConstantValue constant,
+      WorldImpactBuilder impactBuilder, Set<ConstantValue> visited) {
+    if (visited.add(constant)) {
+      _computeImpactForCompileTimeConstantInternal(constant, impactBuilder);
 
-    for (ConstantValue dependency in constant.getDependencies()) {
-      _computeImpactForCompileTimeConstant(dependency, impactBuilder);
+      for (ConstantValue dependency in constant.getDependencies()) {
+        _computeImpactForCompileTimeConstant(
+            dependency, impactBuilder, visited);
+      }
     }
   }
 
@@ -193,7 +198,8 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   @override
   WorldImpact registerUsedConstant(ConstantValue constant) {
     WorldImpactBuilderImpl impactBuilder = new WorldImpactBuilderImpl();
-    _computeImpactForCompileTimeConstant(constant, impactBuilder);
+    _computeImpactForCompileTimeConstant(
+        constant, impactBuilder, new LinkedHashSet.identity());
     return impactBuilder;
   }
 

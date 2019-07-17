@@ -1032,7 +1032,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         }
         return null;
       } else {
-        return constant.accept(_constantValuefier);
+        return _constantValuefier.visitConstant(constant);
       }
     }
 

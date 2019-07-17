@@ -85,6 +85,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   KernelDartTypes _types;
   ir.TypeEnvironment _typeEnvironment;
   ir.ClassHierarchy _classHierarchy;
+  ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
   JProgramEnv programEnv;
@@ -143,6 +144,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+    _constantValuefier = new ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
     for (int libraryIndex = 0;
@@ -322,6 +324,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     _constantEnvironment = new JsConstantEnvironment(this, environment);
     _typeConverter = new DartTypeConverter(this);
     _types = new KernelDartTypes(this);
+    _constantValuefier = new ConstantValuefier(this);
 
     source.registerComponentLookup(new ComponentLookup(component));
     _EntityLookup entityLookup = new _EntityLookup();
@@ -1451,7 +1454,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   ConstantValue getConstantValue(ir.Expression node,
       {bool requireConstant: true, bool implicitNull: false}) {
     if (node is ir.ConstantExpression) {
-      return node.constant.accept(new ConstantValuefier(this));
+      return _constantValuefier.visitConstant(node.constant);
     }
 
     ConstantExpression constant;

@@ -659,7 +659,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   }
 }
 
-class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
+class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
   final IrToElementMap elementMap;
 
   ConstantValuefier(this.elementMap);
@@ -695,7 +695,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
     for (ir.DartType type in node.types) {
       typeArguments.add(elementMap.getDartType(type));
     }
-    FunctionConstantValue function = node.tearOffConstant.accept(this);
+    FunctionConstantValue function = visitConstant(node.tearOffConstant);
     return new InstantiationConstantValue(typeArguments, function);
   }
 
@@ -706,7 +706,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
     Map<FieldEntity, ConstantValue> fields = {};
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       FieldEntity field = elementMap.getField(reference.asField);
-      fields[field] = value.accept(this);
+      fields[field] = visitConstant(value);
     });
     return new ConstructedConstantValue(type, fields);
   }
@@ -715,7 +715,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
   ConstantValue visitListConstant(ir.ListConstant node) {
     List<ConstantValue> elements = [];
     for (ir.Constant element in node.entries) {
-      elements.add(element.accept(this));
+      elements.add(visitConstant(element));
     }
     DartType type = elementMap.commonElements
         .listType(elementMap.getDartType(node.typeArgument));
@@ -726,7 +726,7 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
   ConstantValue visitSetConstant(ir.SetConstant node) {
     List<ConstantValue> elements = [];
     for (ir.Constant element in node.entries) {
-      elements.add(element.accept(this));
+      elements.add(visitConstant(element));
     }
     DartType type = elementMap.commonElements
         .setType(elementMap.getDartType(node.typeArgument));
@@ -738,8 +738,8 @@ class ConstantValuefier implements ir.ConstantVisitor<ConstantValue> {
     List<ConstantValue> keys = [];
     List<ConstantValue> values = [];
     for (ir.ConstantMapEntry element in node.entries) {
-      keys.add(element.key.accept(this));
-      values.add(element.value.accept(this));
+      keys.add(visitConstant(element.key));
+      values.add(visitConstant(element.value));
     }
     DartType type = elementMap.commonElements.mapType(
         elementMap.getDartType(node.keyType),

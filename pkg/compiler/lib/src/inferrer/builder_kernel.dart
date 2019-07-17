@@ -1851,12 +1851,13 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
 
   @override
   TypeInformation visitConstantExpression(ir.ConstantExpression node) {
-    return node.constant.accept(new TypeInformationConstantVisitor(this, node));
+    return new TypeInformationConstantVisitor(this, node)
+        .visitConstant(node.constant);
   }
 }
 
 class TypeInformationConstantVisitor
-    implements ir.ConstantVisitor<TypeInformation> {
+    extends ir.ComputeOnceConstantVisitor<TypeInformation> {
   final KernelTypeGraphBuilder builder;
   final ir.ConstantExpression expression;
 
@@ -1903,7 +1904,7 @@ class TypeInformationConstantVisitor
     return builder.createMapTypeInformation(
         new ConstantReference(expression, node),
         node.entries
-            .map((e) => new Pair(e.key.accept(this), e.value.accept(this))),
+            .map((e) => new Pair(visitConstant(e.key), visitConstant(e.value))),
         isConst: true);
   }
 
@@ -1911,7 +1912,7 @@ class TypeInformationConstantVisitor
   TypeInformation visitListConstant(ir.ListConstant node) {
     return builder.createListTypeInformation(
         new ConstantReference(expression, node),
-        node.entries.map((e) => e.accept(this)),
+        node.entries.map((e) => visitConstant(e)),
         isConst: true);
   }
 
@@ -1919,7 +1920,7 @@ class TypeInformationConstantVisitor
   TypeInformation visitSetConstant(ir.SetConstant node) {
     return builder.createSetTypeInformation(
         new ConstantReference(expression, node),
-        node.entries.map((e) => e.accept(this)),
+        node.entries.map((e) => visitConstant(e)),
         isConst: true);
   }
 
@@ -1927,7 +1928,8 @@ class TypeInformationConstantVisitor
   TypeInformation visitInstanceConstant(ir.InstanceConstant node) {
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       builder._inferrer.recordTypeOfField(
-          builder._elementMap.getField(reference.asField), value.accept(this));
+          builder._elementMap.getField(reference.asField),
+          visitConstant(value));
     });
     return builder._types.getConcreteTypeFor(builder
         ._closedWorld.abstractValueDomain
@@ -1937,8 +1939,8 @@ class TypeInformationConstantVisitor
   @override
   TypeInformation visitPartialInstantiationConstant(
       ir.PartialInstantiationConstant node) {
-    return builder
-        .createInstantiationTypeInformation(node.tearOffConstant.accept(this));
+    return builder.createInstantiationTypeInformation(
+        visitConstant(node.tearOffConstant));
   }
 
   @override

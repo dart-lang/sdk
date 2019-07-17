@@ -804,7 +804,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       ir.Field node, ConstantReference constant) {
     impactBuilder.registerStaticUse(new StaticUse.fieldConstantInit(
         elementMap.getField(node),
-        constant.constant.accept(_constantValuefier)));
+        _constantValuefier.visitConstant(constant.constant)));
   }
 
   @override
