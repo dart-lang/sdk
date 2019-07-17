@@ -176,9 +176,9 @@ bool isSealedType(DartType type, CoreTypes coreTypes) {
   return false;
 }
 
-// Returns true if an instance call to [interfaceTarget] with given
-// [receiver] can omit argument type checks needed due to generic-covariant
-// parameters.
+/// Returns true if an instance call to [interfaceTarget] with given
+/// [receiver] can omit argument type checks needed due to generic-covariant
+/// parameters.
 bool isUncheckedCall(Member interfaceTarget, Expression receiver,
     TypeEnvironment typeEnvironment) {
   if (interfaceTarget == null) {
@@ -229,3 +229,10 @@ bool _hasGenericCovariantParameters(Member target) {
     throw 'Unexpected instance call target ${target.runtimeType} $target';
   }
 }
+
+/// Returns true if invocation [node] is a closure call with statically known
+/// function type. Such invocations can omit argument type checks.
+bool isUncheckedClosureCall(
+        MethodInvocation node, TypeEnvironment typeEnvironment) =>
+    node.name.name == 'call' &&
+    getStaticType(node.receiver, typeEnvironment) is FunctionType;

@@ -879,6 +879,35 @@ void BytecodeFlowGraphBuilder::BuildUncheckedInterfaceCall() {
   BuildInterfaceCallCommon(/*is_unchecked_call=*/true);
 }
 
+void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  const Array& arg_desc_array =
+      Array::Cast(ConstantAt(DecodeOperandD()).value());
+  const ArgumentsDescriptor arg_desc(arg_desc_array);
+
+  const intptr_t argc = DecodeOperandF().value();
+
+  LocalVariable* receiver_temp = B->MakeTemporary();
+  code_ += B->CheckNull(position_, receiver_temp, Symbols::Call(),
+                        /*clear_temp=*/false);
+
+  code_ += B->LoadNativeField(Slot::Closure_function());
+  Value* function = Pop();
+
+  const ArgumentArray arguments = GetArguments(argc);
+
+  ClosureCallInstr* call = new (Z) ClosureCallInstr(
+      function, arguments, arg_desc.TypeArgsLen(),
+      Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), position_,
+      B->GetNextDeoptId(), Code::EntryKind::kUnchecked);
+
+  code_ <<= call;
+  B->Push(call);
+}
+
 void BytecodeFlowGraphBuilder::BuildDynamicCall() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter

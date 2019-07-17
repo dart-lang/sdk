@@ -479,28 +479,6 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
   return instructions;
 }
 
-Fragment FlowGraphBuilder::CheckNull(TokenPosition position,
-                                     LocalVariable* receiver,
-                                     const String& function_name,
-                                     bool clear_the_temp /* = true */) {
-  Fragment instructions = LoadLocal(receiver);
-
-  CheckNullInstr* check_null =
-      new (Z) CheckNullInstr(Pop(), function_name, GetNextDeoptId(), position);
-
-  instructions <<= check_null;
-
-  if (clear_the_temp) {
-    // Null out receiver to make sure it is not saved into the frame before
-    // doing the call.
-    instructions += NullConstant();
-    instructions += StoreLocal(TokenPosition::kNoSource, receiver);
-    instructions += Drop();
-  }
-
-  return instructions;
-}
-
 Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                                       const Function& target,
                                       intptr_t argument_count,

@@ -1997,6 +1997,33 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(UncheckedClosureCall, D_F);
+    DEBUG_CHECK;
+    {
+      const uint32_t argc = rF;
+      const uint32_t kidx = rD;
+
+      RawClosure* receiver = Closure::RawCast(*SP--);
+      RawObject** call_base = SP - argc + 1;
+      RawObject** call_top = SP + 1;
+
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
+      if (UNLIKELY(receiver == null_value)) {
+        SP[0] = Symbols::Call().raw();
+        goto ThrowNullError;
+      }
+      argdesc_ = static_cast<RawArray*>(LOAD_CONSTANT(kidx));
+      call_top[0] = receiver->ptr()->function_;
+
+      if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    DISPATCH();
+  }
+
+  {
     BYTECODE(UncheckedInterfaceCall, D_F);
     DEBUG_CHECK;
     {

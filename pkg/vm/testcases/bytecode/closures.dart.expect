@@ -41,8 +41,10 @@ Bytecode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
+  StoreLocal           r3
   PushInt              3
-  DynamicCall          CP#17, 2
+  Push                 r3
+  UncheckedClosureCall CP#16, 2
   Drop1
   Push                 r0
   LoadContextVar       0, 0
@@ -66,7 +68,6 @@ ConstantPool {
   [14] = InstanceField dart:core::_Closure::_function (field)
   [15] = Reserved
   [16] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [17] = ICData dynamic target-name 'call', arg-desc CP#16
 }
 Closure #lib::simpleClosure::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
 ClosureCode {
@@ -594,13 +595,17 @@ Bytecode {
   Push                 r1
   StoreFieldTOS        CP#1
   PopLocal             r3
-  PushConstant         CP#43
+  PushConstant         CP#40
   Push                 r3
-  DynamicCall          CP#44, 2
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#37, 2
   Drop1
-  PushConstant         CP#45
+  PushConstant         CP#41
   Push                 r3
-  DynamicCall          CP#46, 2
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#37, 2
   Drop1
   PushNull
   ReturnTOS
@@ -641,18 +646,13 @@ ConstantPool {
   [32] = InstanceField dart:core::_Closure::_function (field)
   [33] = Reserved
   [34] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [35] = ICData dynamic target-name 'call', arg-desc CP#34
-  [36] = EndClosureFunctionScope
-  [37] = ObjectRef < #lib::C7, #lib::C8 >
-  [38] = ObjectRef ArgDesc num-args 1, num-type-args 2, names []
-  [39] = ICData dynamic target-name 'call', arg-desc CP#38
-  [40] = ObjectRef < dart:core::List < #lib::C7 >, dart:core::List < #lib::C8 > >
-  [41] = ICData dynamic target-name 'call', arg-desc CP#38
-  [42] = EndClosureFunctionScope
-  [43] = ObjectRef < #lib::C5, #lib::C6 >
-  [44] = ICData dynamic target-name 'call', arg-desc CP#38
-  [45] = ObjectRef < dart:core::List < #lib::C5 >, dart:core::List < #lib::C6 > >
-  [46] = ICData dynamic target-name 'call', arg-desc CP#38
+  [35] = EndClosureFunctionScope
+  [36] = ObjectRef < #lib::C7, #lib::C8 >
+  [37] = ObjectRef ArgDesc num-args 1, num-type-args 2, names []
+  [38] = ObjectRef < dart:core::List < #lib::C7 >, dart:core::List < #lib::C8 > >
+  [39] = EndClosureFunctionScope
+  [40] = ObjectRef < #lib::C5, #lib::C6 >
+  [41] = ObjectRef < dart:core::List < #lib::C5 >, dart:core::List < #lib::C6 > >
 }
 Closure #lib::A::foo::'nested1' <dart:core::Object T5, dart:core::Object T6> () -> void
 ClosureCode {
@@ -698,13 +698,17 @@ L2:
   Push                 r1
   StoreFieldTOS        CP#1
   PopLocal             r3
-  PushConstant         CP#37
+  PushConstant         CP#36
   Push                 r3
-  DynamicCall          CP#39, 2
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#37, 2
   Drop1
-  PushConstant         CP#40
+  PushConstant         CP#38
   Push                 r3
-  DynamicCall          CP#41, 2
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#37, 2
   Drop1
   PushNull
   ReturnTOS
@@ -755,7 +759,9 @@ L2:
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
-  DynamicCall          CP#35, 1
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#34, 1
   Drop1
   PushNull
   ReturnTOS
@@ -908,28 +914,32 @@ Bytecode {
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
+  StoreLocal           r4
   PushInt              10
-  DynamicCall          CP#25, 2
+  Push                 r4
+  UncheckedClosureCall CP#23, 2
   Drop1
   Push                 r3
+  StoreLocal           r4
   PushInt              11
-  DynamicCall          CP#26, 2
+  Push                 r4
+  UncheckedClosureCall CP#23, 2
   Drop1
   Push                 r2
-  DirectCall           CP#21, 1
+  DirectCall           CP#20, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 2
-  DirectCall           CP#21, 1
+  DirectCall           CP#20, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  DirectCall           CP#21, 1
+  DirectCall           CP#20, 1
   Drop1
   Push                 r0
   PushInt              42
   StoreContextVar      0, 3
-  AllocateClosure      CP#27
+  AllocateClosure      CP#24
   StoreLocal           r3
   Push                 r3
   PushNull
@@ -941,14 +951,16 @@ Bytecode {
   PushConstant         CP#14
   StoreFieldTOS        CP#15
   Push                 r3
-  PushConstant         CP#27
+  PushConstant         CP#24
   StoreFieldTOS        CP#17
   Push                 r3
   Push                 r0
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  DynamicCall          CP#31, 1
+  StoreLocal           r3
+  Push                 r3
+  UncheckedClosureCall CP#19, 1
   Drop1
   PushNull
   ReturnTOS
@@ -974,18 +986,14 @@ ConstantPool {
   [17] = InstanceField dart:core::_Closure::_function (field)
   [18] = Reserved
   [19] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [20] = ICData dynamic target-name 'call', arg-desc CP#19
-  [21] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [22] = Reserved
-  [23] = EndClosureFunctionScope
-  [24] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
-  [25] = ICData dynamic target-name 'call', arg-desc CP#24
-  [26] = ICData dynamic target-name 'call', arg-desc CP#24
-  [27] = ClosureFunction 2
-  [28] = InterfaceCall '#lib::B::set:foo', ArgDesc num-args 2, num-type-args 0, names []
-  [29] = Reserved
-  [30] = EndClosureFunctionScope
-  [31] = ICData dynamic target-name 'call', arg-desc CP#19
+  [20] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [21] = Reserved
+  [22] = EndClosureFunctionScope
+  [23] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
+  [24] = ClosureFunction 2
+  [25] = InterfaceCall '#lib::B::set:foo', ArgDesc num-args 2, num-type-args 0, names []
+  [26] = Reserved
+  [27] = EndClosureFunctionScope
 }
 Closure #lib::B::topLevel::'<anonymous closure>' (dart:core::int y) -> dart:core::Null
 ClosureCode {
@@ -1045,11 +1053,13 @@ ClosureCode {
   StoreFieldTOS        CP#1
   PopLocal             r3
   Push                 r3
-  DynamicCall          CP#20, 1
+  StoreLocal           r2
+  Push                 r2
+  UncheckedClosureCall CP#19, 1
   Drop1
   Push                 r0
   LoadContextVar       1, 1
-  DirectCall           CP#21, 1
+  DirectCall           CP#20, 1
   Drop1
 L1:
   PushNull
@@ -1095,7 +1105,7 @@ ClosureCode {
   LoadContextVar       0, 0
   Push                 r0
   LoadContextVar       0, 3
-  InterfaceCall        CP#28, 2
+  InterfaceCall        CP#25, 2
   Drop1
   PushNull
   ReturnTOS
@@ -1331,11 +1341,13 @@ L2:
   StoreFieldTOS        CP#7
   PopLocal             r3
   Push                 r3
-  DynamicCall          CP#20, 1
+  StoreLocal           r4
+  Push                 r4
+  UncheckedClosureCall CP#19, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#21, 1
+  DirectCall           CP#20, 1
   Drop1
   Push                 r0
   LoadContextParent
@@ -1366,9 +1378,8 @@ ConstantPool {
   [17] = InstanceField dart:core::_Closure::_function (field)
   [18] = Reserved
   [19] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [20] = ICData dynamic target-name 'call', arg-desc CP#19
-  [21] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [22] = Reserved
+  [20] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [21] = Reserved
 }
 Closure #lib::C::testForInLoop::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
@@ -1533,8 +1544,7 @@ ConstantPool {
   [13] = InstanceField dart:core::_Closure::_function (field)
   [14] = Reserved
   [15] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [16] = ICData dynamic target-name 'call', arg-desc CP#15
-  [17] = EndClosureFunctionScope
+  [16] = EndClosureFunctionScope
 }
 Closure #lib::D::bar::'<anonymous closure>' () -> dart:core::Null
 ClosureCode {
@@ -1564,7 +1574,9 @@ ClosureCode {
   StoreFieldTOS        CP#1
   PopLocal             r2
   Push                 r2
-  DynamicCall          CP#16, 1
+  StoreLocal           r3
+  Push                 r3
+  UncheckedClosureCall CP#15, 1
   Drop1
   PushNull
   ReturnTOS

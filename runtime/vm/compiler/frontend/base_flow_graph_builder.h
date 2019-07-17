@@ -303,6 +303,15 @@ class BaseFlowGraphBuilder {
 
   Fragment DebugStepCheck(TokenPosition position);
 
+  // Loads 'receiver' and checks it for null. Throws NoSuchMethod if it is null.
+  // 'function_name' is a selector which is being called (reported in
+  // NoSuchMethod message).
+  // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
+  Fragment CheckNull(TokenPosition position,
+                     LocalVariable* receiver,
+                     const String& function_name,
+                     bool clear_the_temp = true);
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

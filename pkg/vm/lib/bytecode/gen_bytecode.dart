@@ -42,7 +42,8 @@ import 'generics.dart'
         getInstantiatorTypeArguments,
         hasFreeTypeParameters,
         hasInstantiatorTypeArguments,
-        isUncheckedCall;
+        isUncheckedCall,
+        isUncheckedClosureCall;
 import 'local_variable_table.dart' show LocalVariableTable;
 import 'local_vars.dart' show LocalVariables;
 import 'nullability_detector.dart' show NullabilityDetector;
@@ -928,11 +929,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     initializedFields.add(field);
   }
 
-  void _genArguments(Expression receiver, Arguments arguments) {
+  void _genArguments(Expression receiver, Arguments arguments,
+      {int storeReceiverToLocal}) {
     if (arguments.types.isNotEmpty) {
       _genTypeArguments(arguments.types);
     }
     _generateNode(receiver);
+    if (storeReceiverToLocal != null) {
+      asm.emitStoreLocal(storeReceiverToLocal);
+    }
     _generateNodeList(arguments.positional);
     arguments.named.forEach((NamedExpression ne) => _generateNode(ne.value));
   }
@@ -1366,7 +1371,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     savedMaxSourcePositions = <int>[];
     maxSourcePosition = node.fileOffset;
 
-    locals = new LocalVariables(node, options);
+    locals = new LocalVariables(node, options, typeEnvironment);
     locals.enterScope(node);
     assert(!locals.isSyncYieldingFrame);
 
@@ -2678,9 +2683,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   void _genInstanceCall(
       int totalArgCount, int callCpIndex, bool isDynamic, bool isUnchecked,
       [TreeNode context]) {
-    if (totalArgCount >= argumentsLimit) {
-      throw new TooManyArgumentsException(context.fileOffset);
-    }
     if (isDynamic) {
       assert(!isUnchecked);
       asm.emitDynamicCall(callCpIndex, totalArgCount);
@@ -2699,6 +2701,27 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     final args = node.arguments;
+    final totalArgCount = args.positional.length +
+        args.named.length +
+        1 /* receiver */ +
+        (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
+    if (totalArgCount >= argumentsLimit) {
+      throw new TooManyArgumentsException(node.fileOffset);
+    }
+    // Front-end guarantees that all calls with known function type
+    // do not need any argument type checks.
+    if (isUncheckedClosureCall(node, typeEnvironment)) {
+      final int receiverTemp = locals.tempIndexInFrame(node);
+      _genArguments(node.receiver, args, storeReceiverToLocal: receiverTemp);
+      // Duplicate receiver (closure) for UncheckedClosureCall.
+      asm.emitPush(receiverTemp);
+      final argDescCpIndex = cp.addArgDescByArguments(args, hasReceiver: true);
+      asm.emitUncheckedClosureCall(argDescCpIndex, totalArgCount);
+      return;
+    }
+
+    _genArguments(node.receiver, args);
+
     Member interfaceTarget = node.interfaceTarget;
     if (interfaceTarget is Field ||
         interfaceTarget is Procedure && interfaceTarget.isGetter) {
@@ -2709,15 +2732,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final isDynamic = interfaceTarget == null;
     final isUnchecked =
         isUncheckedCall(interfaceTarget, node.receiver, typeEnvironment);
-    _genArguments(node.receiver, args);
     final argDesc =
         objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
     final callCpIndex = cp.addInstanceCall(
         InvocationKind.method, interfaceTarget, node.name, argDesc);
-    final totalArgCount = args.positional.length +
-        args.named.length +
-        1 /* receiver */ +
-        (args.types.isNotEmpty ? 1 : 0) /* type arguments */;
     _genInstanceCall(totalArgCount, callCpIndex, isDynamic, isUnchecked, node);
   }
 

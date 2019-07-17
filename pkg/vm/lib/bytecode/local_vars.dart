@@ -9,6 +9,8 @@ import 'dart:math' show max;
 import 'package:kernel/ast.dart';
 import 'package:kernel/transformations/continuation.dart'
     show ContinuationVariables;
+import 'package:kernel/type_environment.dart';
+import 'package:vm/bytecode/generics.dart';
 
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
@@ -27,6 +29,7 @@ class LocalVariables {
   final Map<ForInStatement, VariableDeclaration> _capturedIteratorVars =
       <ForInStatement, VariableDeclaration>{};
   final BytecodeOptions options;
+  final TypeEnvironment typeEnvironment;
 
   Scope _currentScope;
   Frame _currentFrame;
@@ -185,7 +188,7 @@ class LocalVariables {
   List<VariableDeclaration> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options) {
+  LocalVariables(Member node, this.options, this.typeEnvironment) {
     final scopeBuilder = new _ScopeBuilder(this);
     node.accept(scopeBuilder);
 
@@ -1189,6 +1192,15 @@ class _Allocator extends RecursiveVisitor<Null> {
   @override
   visitLogicalExpression(LogicalExpression node) {
     _visit(node, temps: 1);
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    int numTemps = 0;
+    if (isUncheckedClosureCall(node, locals.typeEnvironment)) {
+      numTemps = 1;
+    }
+    _visit(node, temps: numTemps);
   }
 
   @override

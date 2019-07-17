@@ -259,6 +259,8 @@ static intptr_t GetConstantPoolIndex(const KBCInstr* instr) {
     case KernelBytecode::kDirectCall_Wide:
     case KernelBytecode::kInterfaceCall:
     case KernelBytecode::kInterfaceCall_Wide:
+    case KernelBytecode::kUncheckedClosureCall:
+    case KernelBytecode::kUncheckedClosureCall_Wide:
     case KernelBytecode::kUncheckedInterfaceCall:
     case KernelBytecode::kUncheckedInterfaceCall_Wide:
     case KernelBytecode::kDynamicCall:

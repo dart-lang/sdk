@@ -657,8 +657,8 @@ namespace dart {
   V(Unused24,                              0, RESV, ___, ___, ___)             \
   V(Unused25,                              0, RESV, ___, ___, ___)             \
   V(Unused26,                              0, RESV, ___, ___, ___)             \
-  V(Unused27,                              0, RESV, ___, ___, ___)             \
-  V(Unused28,                              0, RESV, ___, ___, ___)             \
+  V(UncheckedClosureCall,                D_F, ORDN, num, num, ___)             \
+  V(UncheckedClosureCall_Wide,           D_F, WIDE, num, num, ___)             \
   V(UncheckedInterfaceCall,              D_F, ORDN, num, num, ___)             \
   V(UncheckedInterfaceCall_Wide,         D_F, WIDE, num, num, ___)             \
   V(DynamicCall,                         D_F, ORDN, num, num, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 14;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 15;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -973,6 +973,8 @@ class KernelBytecode {
       case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kInterfaceCall:
       case KernelBytecode::kInterfaceCall_Wide:
+      case KernelBytecode::kUncheckedClosureCall:
+      case KernelBytecode::kUncheckedClosureCall_Wide:
       case KernelBytecode::kUncheckedInterfaceCall:
       case KernelBytecode::kUncheckedInterfaceCall_Wide:
       case KernelBytecode::kDynamicCall:

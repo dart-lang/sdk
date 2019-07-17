@@ -379,6 +379,11 @@ class BytecodeAssembler {
     _emitInstructionDF(Opcode.kInterfaceCall, rd, rf);
   }
 
+  void emitUncheckedClosureCall(int rd, int rf) {
+    emitSourcePosition();
+    _emitInstructionDF(Opcode.kUncheckedClosureCall, rd, rf);
+  }
+
   void emitUncheckedInterfaceCall(int rd, int rf) {
     emitSourcePosition();
     _emitInstructionDF(Opcode.kUncheckedInterfaceCall, rd, rf);
