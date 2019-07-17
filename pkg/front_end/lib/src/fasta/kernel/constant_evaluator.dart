@@ -870,12 +870,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     final positionals = evaluatePositionalArguments(node.arguments);
     final named = evaluateNamedArguments(node.arguments);
 
-    // Is the constructor unavailable due to separate compilation?
-    bool isUnavailable = constructor.isInExternalLibrary &&
-        constructor.initializers.isEmpty &&
-        constructor.enclosingClass.supertype != null;
-
-    if (isUnavailable || (isSymbol && shouldBeUnevaluated)) {
+    if (isSymbol && shouldBeUnevaluated) {
       return unevaluated(
           node,
           new ConstructorInvocation(constructor,
