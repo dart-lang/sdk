@@ -118,10 +118,6 @@ int topLevelVariable;
     // There should be 1 error due to the fact that unresolvedIdentifier is
     // unresolved.
     expect(currentAnalysisErrors[pathname], hasLength(1));
-    void check(HighlightRegionType type, List<String> expected) {
-      expect(highlights[type], equals(expected.toSet()));
-      highlights.remove(type);
-    }
 
     check(HighlightRegionType.ANNOTATION, ['@override']);
     check(HighlightRegionType.BUILT_IN,
@@ -178,6 +174,7 @@ class B {}
 ''';
     await computeHighlights(pathname, text);
     expect(currentAnalysisErrors[pathname], hasLength(0));
+
     check(HighlightRegionType.BUILT_IN, ['implements', 'mixin', 'on']);
     check(HighlightRegionType.KEYWORD, ['class']);
   }

@@ -6,6 +6,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'closingLabels_computer_test.dart' as closingLabels_computer_test;
 import 'folding_computer_test.dart' as folding_computer_test;
+import 'highlights2_computer_test.dart' as highlights2_computer;
+import 'highlights_computer_test.dart' as highlights_computer;
 import 'import_elements_computer_test.dart' as import_elements_computer_test;
 import 'imported_elements_computer_test.dart'
     as imported_elements_computer_test;
@@ -15,6 +17,8 @@ main() {
   defineReflectiveSuite(() {
     closingLabels_computer_test.main();
     folding_computer_test.main();
+    highlights2_computer.main();
+    highlights_computer.main();
     import_elements_computer_test.main();
     imported_elements_computer_test.main();
     outline_computer_test.main();
