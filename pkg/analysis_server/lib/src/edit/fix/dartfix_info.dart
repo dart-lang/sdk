@@ -64,6 +64,21 @@ will be converted to
   const double myDouble = 8;''',
     BasicFixLintAssistTask.preferIntLiterals,
   ),
+  //
+  // Pedantic lint fixes.
+  //
+  const DartFixInfo(
+    'null-closures',
+    '''
+Convert nulls to closures that return null where expected.
+
+For example, this
+  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: null);
+
+will be converted to
+  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);''',
+    BasicFixLintErrorTask.nullClosures,
+  ),
   const DartFixInfo(
     'prefer-equal-for-default-values',
     '''

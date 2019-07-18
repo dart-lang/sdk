@@ -67,6 +67,15 @@ class BasicFixLintErrorTask extends FixLintTask {
     }
   }
 
+  static void nullClosures(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerLintTask(
+      Registry.ruleRegistry['null_closures'],
+      new BasicFixLintErrorTask(
+          DartFixKind.REPLACE_NULL_WITH_CLOSURE, listener),
+    );
+  }
+
   static void preferEqualForDefaultValues(
       DartFixRegistrar registrar, DartFixListener listener) {
     registrar.registerLintTask(
