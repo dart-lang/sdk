@@ -85,6 +85,9 @@ class PropertyDescription {
           builder.write(code);
         }
       });
+
+      var functionBody = _enclosingFunctionBody();
+      builder.format(range.node(functionBody));
     });
 
     return changeBuilder.sourceChange;
@@ -153,6 +156,13 @@ class PropertyDescription {
         });
       }
     }
+  }
+
+  FunctionBody _enclosingFunctionBody() {
+    if (_parent != null) {
+      return _parent._enclosingFunctionBody();
+    }
+    return _instanceCreation.thisOrAncestorOfType<FunctionBody>();
   }
 
   String _toPrimitiveValueCode(protocol.FlutterWidgetPropertyValue value) {

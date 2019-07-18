@@ -37,7 +37,10 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', maxLines: 42, );
+  Text(
+    '',
+    maxLines: 42,
+  );
 }
 ''');
   }

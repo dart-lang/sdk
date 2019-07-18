@@ -297,6 +297,49 @@ void main() {
 
 @reflectiveTest
 class SetPropertyValueSelfTest extends WidgetDescriptionBase {
+  test_format_dontFormatOther() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void functionbefore() {
+  1 +  2; // two spaces
+}
+
+void main() {
+  Text('', );
+}
+
+void functionAfter() {
+  1 +  2; // two spaces
+}
+''');
+    var property = await getWidgetProperty('Text(', 'maxLines');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(intValue: 42),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void functionbefore() {
+  1 +  2; // two spaces
+}
+
+void main() {
+  Text(
+    '',
+    maxLines: 42,
+  );
+}
+
+void functionAfter() {
+  1 +  2; // two spaces
+}
+''');
+  }
+
   test_invalidId() async {
     await resolveTestUnit('');
 
@@ -328,7 +371,10 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', maxLines: 42, );
+  Text(
+    '',
+    maxLines: 42,
+  );
 }
 ''');
   }
@@ -352,7 +398,10 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', maxLines: 42, );
+  Text(
+    '',
+    maxLines: 42,
+  );
 }
 ''');
   }
@@ -444,7 +493,12 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', style: TextStyle(fontSize: 42.0, ), );
+  Text(
+    '',
+    style: TextStyle(
+      fontSize: 42.0,
+    ),
+  );
 }
 ''');
   }
@@ -470,7 +524,12 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', style: TextStyle(fontSize: 42.0, ), );
+  Text(
+    '',
+    style: TextStyle(
+      fontSize: 42.0,
+    ),
+  );
 }
 ''');
   }
@@ -543,7 +602,10 @@ void main() {
 import 'package:flutter/material.dart';
 
 void main() {
-  Text('', overflow: TextOverflow.ellipsis, );
+  Text(
+    '',
+    overflow: TextOverflow.ellipsis,
+  );
 }
 ''');
   }
