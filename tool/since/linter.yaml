@@ -20,6 +20,7 @@ avoid_init_to_null: 0.1.11
 avoid_js_rounded_ints: 0.1.48
 avoid_null_checks_in_equality_operators: 0.1.31
 avoid_positional_boolean_parameters: 0.1.31
+avoid_print: 0.1.93
 avoid_private_typedef_functions: 0.1.46
 avoid_relative_lib_imports: 0.1.44
 avoid_renaming_method_parameters: 0.1.45
