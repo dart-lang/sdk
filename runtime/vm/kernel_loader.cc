@@ -1575,6 +1575,13 @@ void KernelLoader::FinishClassLoading(const Class& klass,
           TokenPosition::kNoSource, TokenPosition::kNoSource);
       fields_.Add(&deleted_enum_sentinel);
     }
+
+    // Due to ReadVMAnnotations(), the klass may have been loaded at this point
+    // (loading the class while evaluating annotations).
+    if (klass.is_loaded()) {
+      return;
+    }
+
     klass.SetFields(Array::Handle(Z, MakeFieldsArray()));
   }
 

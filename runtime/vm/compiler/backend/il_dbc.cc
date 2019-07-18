@@ -1139,6 +1139,7 @@ EMIT_NATIVE_CODE(AllocateObject,
 }
 
 EMIT_NATIVE_CODE(StoreInstanceField, 2) {
+  ASSERT(OffsetInBytes() > 0);  // Field is finalized and points after header.
   ASSERT(OffsetInBytes() % kWordSize == 0);
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
