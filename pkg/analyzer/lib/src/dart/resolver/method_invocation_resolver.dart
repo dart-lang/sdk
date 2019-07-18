@@ -158,12 +158,19 @@ class MethodInvocationResolver {
       var t1 = _instantiateToBounds(e1.extendedType);
       var t2 = _instantiateToBounds(e2.extendedType);
 
-      if (t2.element.library.isInSdk) {
+      bool inSdk(DartType type) {
+        if (type.isDynamic || type.isVoid) {
+          return true;
+        }
+        return t2.element.library.isInSdk;
+      }
+
+      if (inSdk(t2)) {
         //  1. T2 is declared in a platform library, and T1 is not
-        if (!t1.element.library.isInSdk) {
+        if (!inSdk(t1)) {
           return -1;
         }
-      } else if (t1.element.library.isInSdk) {
+      } else if (inSdk(t1)) {
         return 1;
       }
 
