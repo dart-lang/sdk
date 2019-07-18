@@ -464,8 +464,8 @@ class IdbFactory extends Interceptor {
     return JS(
         'bool',
         '!!(window.indexedDB || '
-        'window.webkitIndexedDB || '
-        'window.mozIndexedDB)');
+            'window.webkitIndexedDB || '
+            'window.mozIndexedDB)');
   }
 
   Future<Database> open(String name,

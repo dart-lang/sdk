@@ -190,7 +190,7 @@ class AudioContext extends BaseAudioContext {
     var function = JS(
         '=Object',
         '#.createScriptProcessor || '
-        '#.createJavaScriptNode',
+            '#.createJavaScriptNode',
         this,
         this);
     if (numberOfOutputChannels != null) {

@@ -9,13 +9,13 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
   /**
-   * Checks if touch events supported on the current platform.
+   * PointerEvent used for both touch and mouse.  To check if touch is supported
+   * call the property TouchEvent.supported
    */
-   static bool get supported {
+  static bool get supported {
     try {
-      return TouchEvent('touches') is TouchEvent;
+      return PointerEvent('pointerover') is PointerEvent;
     } catch (_) {}
-
     return false;
   }
 }

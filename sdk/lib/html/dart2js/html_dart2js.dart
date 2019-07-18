@@ -2676,7 +2676,7 @@ class CanvasRenderingContext2D extends Interceptor
     JS(
         'void',
         'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-        '#.webkitLineDashOffset = #',
+            '#.webkitLineDashOffset = #',
         this,
         this,
         value,
@@ -3755,7 +3755,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     return JS(
         'String',
         r'#.replace(/-([\da-z])/ig,'
-        r'function(_, letter) { return letter.toUpperCase();})',
+            r'function(_, letter) { return letter.toUpperCase();})',
         replacedMs);
   }
 
@@ -9845,7 +9845,7 @@ class Document extends Node {
   String get visibilityState => JS(
       'String',
       '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
-      '#.webkitVisibilityState)',
+          '#.webkitVisibilityState)',
       this,
       this,
       this,
@@ -13199,6 +13199,9 @@ class Element extends Node
 
   String get innerHtml => _innerHtml;
 
+  @JSName('innerText')
+  String innerText;
+
   /**
    * This is an ease-of-use accessor for event streams which should only be
    * used when an explicit accessor is not available.
@@ -13943,8 +13946,6 @@ class Element extends Node
 
   @JSName('innerHTML')
   String _innerHtml;
-
-  String innerText;
 
   @JSName('localName')
   final String _localName;
@@ -21429,7 +21430,7 @@ class MutationObserver extends Interceptor {
     return JS(
         'MutationObserver',
         'new(window.MutationObserver||window.WebKitMutationObserver||'
-        'window.MozMutationObserver)(#)',
+            'window.MozMutationObserver)(#)',
         convertDartClosureToJS(_wrapBinaryZone(callback), 2));
   }
 }
@@ -21566,8 +21567,8 @@ class Navigator extends NavigatorConcurrentHardware
       JS(
           'void',
           '#.getUserMedia = '
-          '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
-          '#.msGetUserMedia)',
+              '(#.getUserMedia || #.webkitGetUserMedia || #.mozGetUserMedia ||'
+              '#.msGetUserMedia)',
           this,
           this,
           this,
@@ -22988,8 +22989,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -23365,8 +23365,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
   CanvasPattern createPattern(
-      /*CanvasImageSource*/ image,
-      String repetitionType) native;
+      /*CanvasImageSource*/ image, String repetitionType) native;
 
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
@@ -24372,9 +24371,11 @@ class PluginArray extends Interceptor
 
   void refresh(bool reload) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
 
 @Native("PointerEvent")
 class PointerEvent extends MouseEvent {
@@ -24416,6 +24417,17 @@ class PointerEvent extends MouseEvent {
   final num width;
 
   List<PointerEvent> getCoalescedEvents() native;
+
+  /**
+   * PointerEvent used for both touch and mouse.  To check if touch is supported
+   * call the property TouchEvent.supported
+   */
+  static bool get supported {
+    try {
+      return PointerEvent('pointerover') is PointerEvent;
+    } catch (_) {}
+    return false;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26651,7 +26663,7 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
   static bool get supported => JS(
       'bool',
       '!!(Element.prototype.createShadowRoot||'
-      'Element.prototype.webkitCreateShadowRoot)');
+          'Element.prototype.webkitCreateShadowRoot)');
 
   static bool _shadowRootDeprecationReported = false;
   static void _shadowRootDeprecationReport() {
@@ -28900,11 +28912,14 @@ class TouchEvent extends UIEvent {
 
   /**
    * Checks if touch events supported on the current platform.
-   *
-   * Note that touch events are only supported if the user is using a touch
-   * device.
    */
-  static bool get supported => Device.isEventTypeSupported('TouchEvent');
+  static bool get supported {
+    try {
+      return TouchEvent('touches') is TouchEvent;
+    } catch (_) {}
+
+    return false;
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38909,17 +38924,17 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     JS(
         'void',
         "Object.defineProperty(#, 'keyCode', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'which', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'charCode', {"
-        "  get : function() { return this.charCodeVal; } })",
+            "  get : function() { return this.charCodeVal; } })",
         eventObj);
 
     var keyIdentifier = _convertToHexString(charCode, keyCode);
@@ -38942,7 +38957,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static bool get canUseDispatchEvent => JS(
       'bool',
       '(typeof document.body.dispatchEvent == "function")'
-      '&& document.body.dispatchEvent.length > 0');
+          '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
