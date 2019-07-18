@@ -5376,7 +5376,7 @@ class ProgramCompiler extends Object
 
   @override
   js_ast.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
-      _visitExpression(node.expression);
+      throw UnsupportedError('Encountered an unevaluated constant: $node');
 }
 
 bool _isInlineJSFunction(Statement body) {
