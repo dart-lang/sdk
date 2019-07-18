@@ -133,6 +133,8 @@ String operatorNameToIdentifier(String name) {
     return r'operator$shl';
   } else if (name == '>>') {
     return r'operator$shr';
+  } else if (name == '>>>') {
+    return r'operator$shru';
   } else if (name == '>=') {
     return r'operator$ge';
   } else if (name == '>') {

@@ -1243,6 +1243,7 @@ class BinaryConstantExpression extends ConstantExpression {
         break;
       case BinaryOperatorKind.SHL:
       case BinaryOperatorKind.SHR:
+      case BinaryOperatorKind.SHRU:
       case BinaryOperatorKind.AND:
       case BinaryOperatorKind.OR:
       case BinaryOperatorKind.XOR:
@@ -1266,7 +1267,8 @@ class BinaryConstantExpression extends ConstantExpression {
         }
         if (isValid &&
             (operator.kind == BinaryOperatorKind.SHL ||
-                operator.kind == BinaryOperatorKind.SHR)) {
+                operator.kind == BinaryOperatorKind.SHR ||
+                operator.kind == BinaryOperatorKind.SHRU)) {
           IntConstantValue shift = rightValue;
           if (shift.intValue < BigInt.zero) {
             environment.reportError(right, MessageKind.INVALID_CONSTANT_SHIFT,
@@ -1392,8 +1394,9 @@ class BinaryConstantExpression extends ConstantExpression {
       case BinaryOperatorKind.AND:
       case BinaryOperatorKind.OR:
       case BinaryOperatorKind.XOR:
-      case BinaryOperatorKind.SHR:
       case BinaryOperatorKind.SHL:
+      case BinaryOperatorKind.SHR:
+      case BinaryOperatorKind.SHRU:
         return commonElements.intType;
       case BinaryOperatorKind.IF_NULL:
       case BinaryOperatorKind.INDEX:
@@ -1430,8 +1433,9 @@ class BinaryConstantExpression extends ConstantExpression {
     BinaryOperatorKind.XOR: 9,
     BinaryOperatorKind.AND: 10,
     BinaryOperatorKind.OR: 8,
-    BinaryOperatorKind.SHR: 11,
     BinaryOperatorKind.SHL: 11,
+    BinaryOperatorKind.SHR: 11,
+    BinaryOperatorKind.SHRU: 11,
     BinaryOperatorKind.ADD: 12,
     BinaryOperatorKind.SUB: 12,
     BinaryOperatorKind.MUL: 13,

@@ -1588,6 +1588,8 @@ class Namer extends ModularNamer {
       return r'$shl';
     } else if (name == '>>') {
       return r'$shr';
+    } else if (name == '>>>') {
+      return r'$shru';
     } else if (name == '>=') {
       return r'$ge';
     } else if (name == '>') {
