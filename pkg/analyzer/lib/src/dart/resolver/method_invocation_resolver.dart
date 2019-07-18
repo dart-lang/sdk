@@ -158,13 +158,12 @@ class MethodInvocationResolver {
       var t1 = e1.extendedType;
       var t2 = e2.extendedType;
 
-      // todo(pq): broaden platform beyond dart:core
-      if (t2.element.library.isDartCore) {
+      if (t2.element.library.isInSdk) {
         //  1. T2 is declared in a platform library, and T1 is not
-        if (!t1.element.library.isDartCore) {
+        if (!t1.element.library.isInSdk) {
           return -1;
         }
-      } else if (t1.element.library.isDartCore) {
+      } else if (t1.element.library.isInSdk) {
         return 1;
       }
 
@@ -504,7 +503,17 @@ class MethodInvocationResolver {
       ExtensionElement extension =
           _chooseMostSpecificExtension(extensions, receiverType);
       if (extension == null) {
-        // todo(pq): report an error
+        _setDynamicResolution(node);
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
+          nameNode,
+          [
+            name,
+            extensions[0].name,
+            extensions[1].name,
+          ],
+        );
+        return;
       } else {
         Element member = extension.getMethod(name) ??
             extension.getGetter(name) ??

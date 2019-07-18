@@ -143,6 +143,24 @@ class CompileTimeErrorCode extends ErrorCode {
               "explicitly hiding the name in one of the export directives.");
 
   /**
+   * It is a compile time error if there are two applicable extensions defining
+   * the same member and neither is more specific than the other.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the first declaring extension
+   * 2: the name of the second declaring extension
+   */
+  static const CompileTimeErrorCode AMBIGUOUS_EXTENSION_METHOD_ACCESS =
+      const CompileTimeErrorCode(
+          'AMBIGUOUS_EXTENSION_METHOD_ACCESS',
+          "A member named '{0}' is defined in extensions '{1}' and '{2}' and "
+              "neither is more specific.",
+          correction:
+              "Try using an extension override to specify the extension "
+              "you want to to be chosen.");
+
+  /**
    * No parameters.
    */
   // #### Description

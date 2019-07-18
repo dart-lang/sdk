@@ -60,10 +60,6 @@ f() {
     expect(invocation.methodName.staticElement.library.isDartCore, isFalse);
   }
 
-  test_multi_match_ambiguous() async {
-    // todo(pq): implement
-  }
-
   test_multipleExtensions() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -85,6 +81,27 @@ f() {
   b.c();
 }
 ''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  test_noMostSpecificExtension() async {
+    await assertErrorsInCode('''
+class A { }
+
+extension A1_Ext on A {
+  void a() { }
+}
+
+extension A2_Ext on A {
+  void a() { }
+}
+
+f() {
+  A a = A();
+  a.a();
+}
+''', [
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 120, 1),
+    ]);
   }
 
   test_one_match() async {
