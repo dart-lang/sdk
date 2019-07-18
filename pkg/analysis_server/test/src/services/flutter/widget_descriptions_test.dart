@@ -517,4 +517,34 @@ void main() {
     );
     expect(result.change, isNull);
   }
+
+  test_type_enum_addValue() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('');
+}
+''');
+    var property = await getWidgetProperty('Text(', 'overflow');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(
+        enumValue: protocol.FlutterWidgetPropertyValueEnumItem(
+          'package:flutter/src/rendering/paragraph.dart',
+          'TextOverflow',
+          'ellipsis',
+        ),
+      ),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', overflow: TextOverflow.ellipsis, );
+}
+''');
+  }
 }

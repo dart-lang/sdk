@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -63,10 +64,26 @@ class PropertyDescription {
       protocol.FlutterWidgetPropertyValue value) async {
     var changeBuilder = DartChangeBuilder(_resolvedUnit.session);
 
+    ClassElement enumClassElement;
+    var enumValue = value.enumValue;
+    if (enumValue != null) {
+      var helper = AnalysisSessionHelper(_resolvedUnit.session);
+      enumClassElement = await helper.getClass(
+        enumValue.libraryUri,
+        enumValue.className,
+      );
+    }
+
     await changeBuilder.addFileEdit(_resolvedUnit.path, (builder) {
       _changeCode(builder, (builder) {
-        var code = _toCode(value);
-        builder.write(code);
+        if (enumClassElement != null) {
+          builder.writeReference(enumClassElement);
+          builder.write('.');
+          builder.write(enumValue.name);
+        } else {
+          var code = _toPrimitiveValueCode(value);
+          builder.write(code);
+        }
       });
     });
 
@@ -138,8 +155,7 @@ class PropertyDescription {
     }
   }
 
-  /// TODO(scheglov) Use builder.
-  String _toCode(protocol.FlutterWidgetPropertyValue value) {
+  String _toPrimitiveValueCode(protocol.FlutterWidgetPropertyValue value) {
     if (value.boolValue != null) {
       return '${value.boolValue}';
     }
@@ -160,6 +176,6 @@ class PropertyDescription {
       return "'$code'";
     }
 
-    throw StateError('Cannot how to encode: $value');
+    throw StateError('Not a primitive value: $value');
   }
 }
