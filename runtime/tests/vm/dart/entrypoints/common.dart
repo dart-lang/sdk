@@ -57,5 +57,3 @@ _validateTearoffFn(String name, int entryPoint) {
 const validate = benchmarkMode ? null : _validateFn;
 @pragma("vm:entry-point", "get")
 const validateTearoff = benchmarkMode ? null : _validateTearoffFn;
-
-void bumpUsageCounter() {}
