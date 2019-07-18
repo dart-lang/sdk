@@ -1562,6 +1562,101 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     });
   }
 
+  test_format_hasEdits() async {
+    var initialCode = r'''
+void functionBefore() {
+  1 +  2;
+}
+
+void foo() {
+  1 +  2;
+  42;
+  3 +  4;
+}
+
+void functionAfter() {
+  1 +  2;
+}
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, content: initialCode);
+
+    var builder = newBuilder();
+    await builder.addFileEdit(path, (builder) {
+      builder.addInsertion(34, (builder) {
+        builder.writeln('  3 +  4;');
+      });
+      builder.addSimpleReplacement(SourceRange(62, 2), '1 +  2 +  3');
+      builder.addInsertion(112, (builder) {
+        builder.writeln('  3 +  4;');
+      });
+      builder.format(SourceRange(48, 29));
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, r'''
+void functionBefore() {
+  1 +  2;
+  3 +  4;
+}
+
+void foo() {
+  1 + 2;
+  1 + 2 + 3;
+  3 + 4;
+}
+
+void functionAfter() {
+  1 +  2;
+  3 +  4;
+}
+''');
+  }
+
+  test_format_noEdits() async {
+    var initialCode = r'''
+void functionBefore() {
+  1 +  2;
+}
+
+void foo() {
+  1 +  2;
+  3;
+  4 +  5;
+}
+
+void functionAfter() {
+  1 +  2;
+}
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, content: initialCode);
+
+    var builder = newBuilder();
+    await builder.addFileEdit(path, (builder) {
+      builder.format(SourceRange(37, 39));
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, r'''
+void functionBefore() {
+  1 +  2;
+}
+
+void foo() {
+  1 + 2;
+  3;
+  4 + 5;
+}
+
+void functionAfter() {
+  1 +  2;
+}
+''');
+  }
+
   test_replaceTypeWithFuture() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');

@@ -25,6 +25,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -1211,12 +1212,43 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   @override
-  String importLibrary(Uri uri) {
-    return _importLibrary(uri).uriText;
+  void format(SourceRange range) {
+    var newContent = resolvedUnit.content;
+    var newRangeOffset = range.offset;
+    var newRangeLength = range.length;
+    for (var edit in fileEdit.edits) {
+      newContent = edit.apply(newContent);
+
+      var lengthDelta = edit.replacement.length - edit.length;
+      if (edit.offset < newRangeOffset) {
+        newRangeOffset += lengthDelta;
+      } else if (edit.offset < newRangeOffset + newRangeLength) {
+        newRangeLength += lengthDelta;
+      }
+    }
+
+    var formattedResult = DartFormatter().formatSource(
+      SourceCode(
+        newContent,
+        isCompilationUnit: true,
+        selectionStart: newRangeOffset,
+        selectionLength: newRangeLength,
+      ),
+    );
+
+    replaceEdits(
+      range,
+      SourceEdit(
+        range.offset,
+        range.length,
+        formattedResult.selectedText,
+      ),
+    );
   }
 
-  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
-    return _importLibraryWithRelativeUri(uriText, prefix).uriText;
+  @override
+  String importLibrary(Uri uri) {
+    return _importLibrary(uri).uriText;
   }
 
   @override
@@ -1248,6 +1280,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     return ImportLibraryElementResultImpl(prefix);
+  }
+
+  String importLibraryWithRelativeUri(String uriText, [String prefix = null]) {
+    return _importLibraryWithRelativeUri(uriText, prefix).uriText;
   }
 
   @override

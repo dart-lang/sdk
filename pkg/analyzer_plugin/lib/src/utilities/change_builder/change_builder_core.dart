@@ -301,7 +301,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
   void addDeletion(SourceRange range) {
     if (range.length > 0) {
       EditBuilderImpl builder = createEditBuilder(range.offset, range.length);
-      _addEdit(builder);
+      _addEditBuilder(builder);
     }
   }
 
@@ -311,7 +311,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      _addEdit(builder);
+      _addEditBuilder(builder);
     }
   }
 
@@ -329,7 +329,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       buildEdit(builder);
     } finally {
-      _addEdit(builder);
+      _addEditBuilder(builder);
     }
   }
 
@@ -339,7 +339,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      _addEdit(builder);
+      _addEditBuilder(builder);
     }
   }
 
@@ -349,7 +349,7 @@ class FileEditBuilderImpl implements FileEditBuilder {
     try {
       builder.write(text);
     } finally {
-      _addEdit(builder);
+      _addEditBuilder(builder);
     }
   }
 
@@ -365,16 +365,44 @@ class FileEditBuilderImpl implements FileEditBuilder {
   }
 
   /**
-   * Add the edit from the given [builder] to the edits associates with the
+   * Replace edits in the [range] with the given [edit].
+   * The [range] is relative to the original code.
+   */
+  void replaceEdits(SourceRange range, SourceEdit edit) {
+    fileEdit.edits.removeWhere((edit) {
+      if (range.contains(edit.offset)) {
+        if (!range.contains(edit.end)) {
+          throw StateError('$edit is not completely in $range');
+        }
+        return true;
+      } else if (range.contains(edit.end)) {
+        throw StateError('$edit is not completely in $range');
+      }
+      return false;
+    });
+
+    _addEdit(edit);
+  }
+
+  /**
+   * Add the edit from the given [edit] to the edits associates with the
    * current file.
    */
-  void _addEdit(EditBuilderImpl builder) {
-    SourceEdit edit = builder.sourceEdit;
+  void _addEdit(SourceEdit edit) {
     fileEdit.add(edit);
     int delta = _editDelta(edit);
     changeBuilder._updatePositions(
         edit.offset + math.max<int>(0, delta), delta);
     changeBuilder._lockedPositions.clear();
+  }
+
+  /**
+   * Add the edit from the given [builder] to the edits associates with the
+   * current file.
+   */
+  void _addEditBuilder(EditBuilderImpl builder) {
+    SourceEdit edit = builder.sourceEdit;
+    _addEdit(edit);
     _captureSelection(builder, edit);
   }
 

@@ -348,6 +348,15 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
       FunctionBody body, TypeProvider typeProvider);
 
   /**
+   * Format the code covered by the [range].
+   *
+   * If there are any edits that are in the [range], these edits are applied
+   * first, and replaced with a single new edit that produces the resulting
+   * formatted code. The [range] is relative to the original code.
+   */
+  void format(SourceRange range);
+
+  /**
    * Arrange to have an import added for the library with the given [uri].
    *
    * Returns the text of the URI that will be used in the import directive.
