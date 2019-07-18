@@ -1782,6 +1782,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
   void _onData(event) {
     switch (event) {
       case RawSocketEvent.read:
+        if (_raw == null) break;
         var buffer = _raw.read();
         if (buffer != null) _controller.add(buffer);
         break;
@@ -1812,11 +1813,17 @@ class _Socket extends Stream<Uint8List> implements Socket {
     _consumer.done(error, stackTrace);
   }
 
-  int _write(List<int> data, int offset, int length) =>
-      _raw.write(data, offset, length);
+  int _write(List<int> data, int offset, int length) {
+    if (_raw != null) {
+      return _raw.write(data, offset, length);
+    }
+    return 0;
+  }
 
   void _enableWriteEvent() {
-    _raw.writeEventsEnabled = true;
+    if (_raw != null) {
+      _raw.writeEventsEnabled = true;
+    }
   }
 
   void _disableWriteEvent() {
