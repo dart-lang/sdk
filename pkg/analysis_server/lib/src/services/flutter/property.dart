@@ -125,19 +125,37 @@ class PropertyDescription {
     if (_valueExpression != null) {
       builder.addReplacement(range.node(_valueExpression), buildCode);
     } else {
+      var parameterName = _parameterElement.name;
       if (_instanceCreation != null) {
         var argumentList = _instanceCreation.argumentList;
-        var rightParenthesis = argumentList.rightParenthesis;
 
-        // TODO(scheglov) Insert sorted by names.
-        builder.addInsertion(rightParenthesis.offset, (builder) {
+        var insertOffset = 0;
+        for (var argument in _instanceCreation.argumentList.arguments) {
+          if (argument is NamedExpression) {
+            var argumentName = argument.name.label.name;
+            if (argumentName.compareTo(parameterName) > 0) {
+              insertOffset = argument.offset;
+            }
+          }
+        }
+
+        var needsLeadingComma = false;
+        if (insertOffset == 0) {
+          var rightParenthesis = argumentList.rightParenthesis;
+          insertOffset = rightParenthesis.offset;
           var previous = rightParenthesis.previous;
           if (previous.type != TokenType.COMMA &&
               previous != argumentList.leftParenthesis) {
+            needsLeadingComma = true;
+          }
+        }
+
+        builder.addInsertion(insertOffset, (builder) {
+          if (needsLeadingComma) {
             builder.write(', ');
           }
 
-          builder.write(_parameterElement.name);
+          builder.write(parameterName);
           builder.write(': ');
 
           buildCode(builder);
@@ -148,7 +166,7 @@ class PropertyDescription {
           builder.writeReference(_classDescription.element);
           // TODO(scheglov) constructor name
           builder.write('(');
-          builder.write(_parameterElement.name);
+          builder.write(parameterName);
           builder.write(': ');
           buildCode(builder);
           builder.write(', ');

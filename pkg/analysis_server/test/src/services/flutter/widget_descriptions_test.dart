@@ -406,6 +406,119 @@ void main() {
 ''');
   }
 
+  test_named_addValue_sortedByName_first() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    bbb: 2,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0});
+}
+''');
+    var property = await getWidgetProperty('MyWidget<int>', 'aaa');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(intValue: 42),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    aaa: 42,
+    bbb: 2,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0});
+}
+''');
+  }
+
+  test_named_addValue_sortedByName_last() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    aaa: 1,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0});
+}
+''');
+    var property = await getWidgetProperty('MyWidget<int>', 'bbb');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(intValue: 42),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    aaa: 1,
+    bbb: 42,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0});
+}
+''');
+  }
+
+  test_named_addValue_sortedByName_middle() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    aaa: 1,
+    ccc: 3,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0, int ccc = 0});
+}
+''');
+    var property = await getWidgetProperty('MyWidget<int>', 'bbb');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(intValue: 42),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  MyWidget<int>(
+    aaa: 1,
+    bbb: 42,
+    ccc: 3,
+  );
+}
+
+class MyWidget<T> {
+  MyWidget({int aaa = 0, int bbb = 0, int ccc = 0});
+}
+''');
+  }
+
   test_named_changeValue() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
