@@ -63,7 +63,7 @@ union(Map<String, String> a, List<String> b, Map<String, String> c) =>
 ```
 
 The second fix is to change the elements of one kind into elements that are
-consistent with the other elements. For example, you could add the elements
+consistent with the other elements. For example, you can add the elements
 of the list as keys that map to themselves:
 
 ```dart
@@ -112,8 +112,8 @@ union(a, b) => <String, String>{...a, ...b};
 ```
 
 The second fix is to add type information so that the expressions have
-either the type `Iterable` or the type `Map`. You could add an explicit
-cast or, in this case, add types to the declarations of the two parameters:
+either the type `Iterable` or the type `Map`. You can add an explicit cast
+or, in this case, add types to the declarations of the two parameters:
 
 ```dart
 union(List<int> a, List<int> b) => {...a, ...b};
@@ -261,7 +261,7 @@ run on earlier versions._
 
 The analyzer produces this diagnostic when a set literal is found in code
 that has an SDK constraint whose lower bound is less than 2.2. Set literals
-were not supported in earlier versions, so this code won't be able to run
+weren't supported in earlier versions, so this code won't be able to run
 against earlier versions of the SDK.
 
 #### Example

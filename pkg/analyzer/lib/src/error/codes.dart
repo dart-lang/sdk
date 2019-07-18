@@ -203,7 +203,7 @@ class CompileTimeErrorCode extends ErrorCode {
   // ```
   //
   // The second fix is to change the elements of one kind into elements that are
-  // consistent with the other elements. For example, you could add the elements
+  // consistent with the other elements. For example, you can add the elements
   // of the list as keys that map to themselves:
   //
   // ```dart
@@ -259,8 +259,8 @@ class CompileTimeErrorCode extends ErrorCode {
   // ```
   //
   // The second fix is to add type information so that the expressions have
-  // either the type `Iterable` or the type `Map`. You could add an explicit
-  // cast or, in this case, add types to the declarations of the two parameters:
+  // either the type `Iterable` or the type `Map`. You can add an explicit cast
+  // or, in this case, add types to the declarations of the two parameters:
   //
   // ```dart
   // union(List<int> a, List<int> b) => {...a, ...b};

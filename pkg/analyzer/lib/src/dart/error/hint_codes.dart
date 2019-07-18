@@ -662,7 +662,7 @@ class HintCode extends ErrorCode {
   //
   // The analyzer produces this diagnostic when a set literal is found in code
   // that has an SDK constraint whose lower bound is less than 2.2. Set literals
-  // were not supported in earlier versions, so this code won't be able to run
+  // weren't supported in earlier versions, so this code won't be able to run
   // against earlier versions of the SDK.
   //
   // #### Example
