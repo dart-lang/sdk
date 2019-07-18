@@ -73,8 +73,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
     }
     int timeStamp = state == ResultState.VALID ? 0 : -1;
 
-    CompilationUnit unit = result.unit;
-    CompilationUnitElement declaredUnit = unit.declaredElement;
+    CompilationUnitElement declaredUnit = result.unit.declaredElement;
     CompilationUnitElement libraryUnit =
         declaredUnit.library.definingCompilationUnit;
 
@@ -88,8 +87,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
       });
     }
 
-    return DartFileEditBuilderImpl(
-        this, path, timeStamp, session, unit, libraryEditBuilder);
+    return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder);
   }
 }
 
@@ -999,7 +997,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
       _EnclosingElementFinder finder = new _EnclosingElementFinder();
-      finder.find(dartFileEditBuilder.unit, offset);
+      finder.find(dartFileEditBuilder.resolvedUnit.unit, offset);
       _enclosingClass = finder.enclosingClass;
       _enclosingExecutable = finder.enclosingExecutable;
       _hasEnclosingElementsInitialized = true;
@@ -1125,19 +1123,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 class DartFileEditBuilderImpl extends FileEditBuilderImpl
     implements DartFileEditBuilder {
   /**
-   * The session that analyzed this file.
+   * The resolved unit for the file.
    */
-  final AnalysisSession session;
-
-  /**
-   * The compilation unit to which the code will be added.
-   */
-  final CompilationUnit unit;
-
-  /**
-   * The target library, which contains the [unit].
-   */
-  final LibraryElement libraryElement;
+  final ResolvedUnitResult resolvedUnit;
 
   /**
    * The change builder for the library
@@ -1166,12 +1154,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /**
    * Initialize a newly created builder to build a source file edit within the
    * change being built by the given [changeBuilder]. The file being edited has
-   * the given [path] and [timeStamp], and the given fully resolved [unit].
+   * the given [resolvedUnit] and [timeStamp].
    */
-  DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder, String path,
-      int timeStamp, this.session, this.unit, this.libraryChangeBuilder)
-      : libraryElement = unit.declaredElement.library,
-        super(changeBuilder, path, timeStamp);
+  DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder,
+      this.resolvedUnit, int timeStamp, this.libraryChangeBuilder)
+      : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
   bool get hasEdits =>
@@ -1297,7 +1284,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     LibraryDirective libraryDirective;
     List<ImportDirective> importDirectives = <ImportDirective>[];
     PartDirective partDirective;
-    for (Directive directive in unit.directives) {
+    for (Directive directive in resolvedUnit.unit.directives) {
       if (directive is LibraryDirective) {
         libraryDirective = directive;
       } else if (directive is ImportDirective) {
@@ -1333,7 +1320,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             {ImportDirective prev,
             ImportDirective next,
             bool trailingNewLine: false}) {
-          LineInfo lineInfo = unit.lineInfo;
+          LineInfo lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
             int offset = prev.end;
             int line = lineInfo.getLocation(offset).lineNumber;
@@ -1458,11 +1445,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // If still at the beginning of the file, add before the first declaration.
     int offset;
     bool insertEmptyLineAfter = false;
-    if (unit.declarations.isNotEmpty) {
-      offset = unit.declarations.first.offset;
+    if (resolvedUnit.unit.declarations.isNotEmpty) {
+      offset = resolvedUnit.unit.declarations.first.offset;
       insertEmptyLineAfter = true;
     } else {
-      offset = unit.end;
+      offset = resolvedUnit.unit.end;
     }
     addInsertion(offset, (EditBuilder builder) {
       for (int i = 0; i < importList.length; i++) {
@@ -1482,7 +1469,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * the element is declared in the same library.
    */
   ImportElement _getImportElement(Element element) {
-    for (ImportElement import in libraryElement.imports) {
+    for (ImportElement import in resolvedUnit.libraryElement.imports) {
       Map<String, Element> definedNames = import.namespace.definedNames;
       if (definedNames.containsValue(element)) {
         return import;
@@ -1496,9 +1483,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    */
   String _getLibraryUriText(Uri uri) {
     if (uri.scheme == 'file') {
-      var pathContext = session.resourceProvider.pathContext;
+      var pathContext = resolvedUnit.session.resourceProvider.pathContext;
       String whatPath = pathContext.fromUri(uri);
-      String libraryPath = libraryElement.source.fullName;
+      String libraryPath = resolvedUnit.libraryElement.source.fullName;
       String libraryFolder = pathContext.dirname(libraryPath);
       String relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
@@ -1539,7 +1526,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
    * Return `true` if the [element] is defined in the target library.
    */
   bool _isDefinedLocally(Element element) {
-    return element.library == libraryElement;
+    return element.library == resolvedUnit.libraryElement;
   }
 
   /**
