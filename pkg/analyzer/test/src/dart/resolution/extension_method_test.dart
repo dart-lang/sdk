@@ -123,31 +123,6 @@ f() {
     expect(invocation.methodName.staticElement, declaration.declaredElement);
   }
 
-  test_specific_subtype_match_local() async {
-    await assertNoErrorsInCode('''
-class A { }
-
-class B extends A { }
-
-extension A_Ext on A {
-  void a() { }
-}
-
-extension B_Ext on B {
-  void /*2*/ a() { }
-}
-
-f() {
-  B b = B();
-  b.a();
-}
-''');
-
-    var invocation = findNode.methodInvocation('b.a()');
-    var declaration = findNode.methodDeclaration('void /*2*/ a()');
-    expect(invocation.methodName.staticElement, declaration.declaredElement);
-  }
-
   test_specific_subtype_match_platform() async {
     newFile('/test/lib/core.dart', content: '''
 library dart.core;
@@ -176,6 +151,60 @@ f() {
 
     var invocation = findNode.methodInvocation('c.a()');
     var declaration = findNode.methodDeclaration('void /*2*/ a()');
+    expect(invocation.methodName.staticElement, declaration.declaredElement);
+  }
+
+  test_specificSubtype_match_local() async {
+    await assertNoErrorsInCode('''
+class A { }
+
+class B extends A { }
+
+extension A_Ext on A {
+  void a() { }
+}
+
+extension B_Ext on B {
+  void /*2*/ a() { }
+}
+
+f() {
+  B b = B();
+  b.a();
+}
+''');
+
+    var invocation = findNode.methodInvocation('b.a()');
+    var declaration = findNode.methodDeclaration('void /*2*/ a()');
+    expect(invocation.methodName.staticElement, declaration.declaredElement);
+  }
+
+  @failingTest
+  test_specificSubtype_match_local_generics() async {
+    await assertNoErrorsInCode('''
+class A<T> { }
+
+class B<T> extends A<T> { }
+
+class O { }
+
+extension A_Ext<T> on A<T> {
+  void f(T x) { }
+}
+
+extension B_Ext<T> on B<T> {
+  void /*2*/ f(T x) { }
+}
+
+main() {
+  B<O> x = B<O>();
+  O o = O();
+  x.f(o);
+}
+''');
+
+    var invocation = findNode.methodInvocation('x.f(o)');
+    var declaration = findNode.methodDeclaration('void /*2*/ f(T x)');
     expect(invocation.methodName.staticElement, declaration.declaredElement);
   }
 }

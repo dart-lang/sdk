@@ -155,8 +155,8 @@ class MethodInvocationResolver {
     //
 
     int moreSpecific(ExtensionElement e1, ExtensionElement e2) {
-      var t1 = e1.extendedType;
-      var t2 = e2.extendedType;
+      var t1 = _instantiateToBounds(e1.extendedType);
+      var t2 = _instantiateToBounds(e2.extendedType);
 
       if (t2.element.library.isInSdk) {
         //  1. T2 is declared in a platform library, and T1 is not
@@ -232,8 +232,10 @@ class MethodInvocationResolver {
       }
     }
 
+    var targetType = _instantiateToBounds(type);
     for (var extension in _resolver.nameScope.extensions) {
-      if (_subtypeOf(type, extension.extendedType)) {
+      var extensionType = _instantiateToBounds(extension.extendedType);
+      if (_subtypeOf(targetType, extensionType)) {
         for (var accessor in extension.accessors) {
           checkElement(accessor, extension);
         }
@@ -515,7 +517,7 @@ class MethodInvocationResolver {
         );
         return;
       } else {
-        Element member = extension.getMethod(name) ??
+        ExecutableElement member = extension.getMethod(name) ??
             extension.getGetter(name) ??
             extension.getSetter(name);
         nameNode.staticElement = member;
@@ -781,6 +783,10 @@ class MethodInvocationResolver {
 
     _reportInvocationOfNonFunction(node);
   }
+
+  /// Ask the type system to instantiate the given type to its bounds.
+  DartType _instantiateToBounds(DartType type) =>
+      _resolver.typeSystem.instantiateToBounds(type);
 
   /// Ask the type system for a subtype check.
   bool _subtypeOf(DartType type1, DartType type2) =>
