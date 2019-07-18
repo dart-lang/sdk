@@ -332,6 +332,20 @@ RawInstance* ConstantEvaluator::EvaluateConstantExpression(
   return result_.raw();
 }
 
+bool ConstantEvaluator::IsInstanceConstant(intptr_t constant_offset,
+                                           const Class& clazz) {
+  // Get reader directly into raw bytes of constant table.
+  KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
+  reader.ReadUInt();  // skip variable-sized int for adjusted constant offset
+  reader.SetOffset(reader.ReaderOffset() + constant_offset);
+  // Peek for an instance of the given clazz.
+  if (reader.ReadByte() == kInstanceConstant) {
+    const NameIndex index = reader.ReadCanonicalNameReference();
+    return H.LookupClassByKernelClass(index) == clazz.raw();
+  }
+  return false;
+}
+
 RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
   // Get reader directly into raw bytes of constant table.
   KernelReaderHelper reader(Z, &H, script_, H.constants_table(), 0);
@@ -444,8 +458,8 @@ RawInstance* ConstantEvaluator::EvaluateConstant(intptr_t constant_offset) {
       const auto& klass = Class::Handle(Z, H.LookupClassByKernelClass(index));
       if (!klass.is_declaration_loaded()) {
         FATAL1(
-            "Trying to evaluate an instance constant which references class "
-            "%s, which is not loaded yet.",
+            "Trying to evaluate an instance constant whose references class "
+            "%s is not loaded yet.",
             klass.ToCString());
       }
       const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));

@@ -1266,7 +1266,6 @@ class RawKernelProgramInfo : public RawObject {
   RawArray* bytecode_component_;
   RawGrowableObjectArray* potential_natives_;
   RawGrowableObjectArray* potential_pragma_functions_;
-  RawGrowableObjectArray* evaluating_;  // detects cycles
   RawExternalTypedData* constants_table_;
   RawArray* libraries_cache_;
   RawArray* classes_cache_;

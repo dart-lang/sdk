@@ -361,9 +361,10 @@ class KernelLoader : public ValueObject {
           Library::Handle(zone_, dart::Library::InternalLibrary());
       external_name_class_ = internal_lib.LookupClass(Symbols::ExternalName());
       external_name_field_ = external_name_class_.LookupField(Symbols::name());
-    } else {
-      ASSERT(!external_name_field_.IsNull());
     }
+    ASSERT(!external_name_class_.IsNull());
+    ASSERT(!external_name_field_.IsNull());
+    ASSERT(external_name_class_.is_declaration_loaded());
   }
 
   void EnsurePragmaClassIsLookedUp() {
@@ -371,8 +372,9 @@ class KernelLoader : public ValueObject {
       const Library& core_lib =
           Library::Handle(zone_, dart::Library::CoreLibrary());
       pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
-      ASSERT(!pragma_class_.IsNull());
     }
+    ASSERT(!pragma_class_.IsNull());
+    ASSERT(pragma_class_.is_declaration_loaded());
   }
 
   void EnsurePotentialNatives() {
@@ -388,37 +390,6 @@ class KernelLoader : public ValueObject {
   void EnsurePotentialPragmaFunctions() {
     potential_pragma_functions_ =
         translation_helper_.EnsurePotentialPragmaFunctions();
-  }
-
-  // Returns `true` if the [library] was newly enqueued or `false`
-  // if it was already enqueued. Allocates storage on first enqueue.
-  bool EnqueueLibraryForEvaluation(const Library& library) {
-    evaluating_ = kernel_program_info_.evaluating();
-    if (evaluating_.IsNull()) {
-      evaluating_ = GrowableObjectArray::New();
-      kernel_program_info_.set_evaluating(evaluating_);
-      ASSERT(!evaluating_.IsNull());
-    } else {
-      for (intptr_t i = 0, n = evaluating_.Length(); i < n; i++) {
-        if (library.raw() == evaluating_.At(i)) {
-          return false;
-        }
-      }
-    }
-    evaluating_.Add(library);
-    return true;
-  }
-
-  // Dequeues most recent libary. Releases storage when empty.
-  void DequeueLibraryForEvaluation(const Library& library) {
-    ASSERT(!evaluating_.IsNull());
-    RawObject* object = evaluating_.RemoveLast();
-    ASSERT(library.raw() == object);
-    if (evaluating_.Length() == 0) {
-      evaluating_ = GrowableObjectArray::null();
-      kernel_program_info_.set_evaluating(evaluating_);
-      ASSERT(evaluating_.IsNull());
-    }
   }
 
   Program* program_;
@@ -448,7 +419,6 @@ class KernelLoader : public ValueObject {
 
   Class& external_name_class_;
   Field& external_name_field_;
-  GrowableObjectArray& evaluating_;
   GrowableObjectArray& potential_natives_;
   GrowableObjectArray& potential_pragma_functions_;
 
