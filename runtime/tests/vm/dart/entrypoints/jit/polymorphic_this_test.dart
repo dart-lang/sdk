@@ -14,6 +14,14 @@ import "package:expect/expect.dart";
 abstract class C<T> {
   @NeverInline
   void target1(T x) {
+    // Make sure this method gets optimized before main.
+    // Otherwise it might get inlined into warm-up loop, and subsequent
+    // loop will call an unoptimized version (which is not guaranteed to
+    // dispatch to unchecked entry point).
+    bumpUsageCounter();
+    bumpUsageCounter();
+    bumpUsageCounter();
+
     target2(x);
   }
 
