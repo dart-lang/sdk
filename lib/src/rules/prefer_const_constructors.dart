@@ -7,6 +7,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:linter/src/analyzer.dart';
 
+import '../ast.dart';
+
 const _desc = r'Prefer const with constant constructors.';
 
 const _details = r'''
@@ -78,6 +80,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isConst &&
         node.staticElement != null &&
         node.staticElement.isConst) {
+
+      // Handled by analyzer hint.
+      if (hasLiteralAnnotation(node.staticElement)) {
+        return;
+      }
+
       final typeProvider = context.typeProvider;
 
       if (node.staticElement.enclosingElement.type == typeProvider.objectType) {

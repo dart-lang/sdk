@@ -4,6 +4,16 @@
 
 // test w/ `pub run test -N prefer_const_constructors`
 
+
+/// Inlined for testing.
+library meta;
+
+class _Literal {
+  const _Literal();
+}
+
+const _Literal literal = _Literal();
+
 class A {
   const A({A parent});
   const A.a();
@@ -96,3 +106,12 @@ class J<T> {
 void gimmeJ<T>() => new J<T>(); // OK
 void gimmeJofString() => new J<String>(); // LINT
 void gimmeJofDynamic() => new J<dynamic>(); // LINT
+
+class K {
+  @literal
+  const K();
+}
+
+k() {
+  var kk = K(); // OK (handled by analyzer hint)
+}

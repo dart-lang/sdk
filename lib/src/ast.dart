@@ -60,9 +60,27 @@ bool hasErrorWithConstantVisitor(LinterContext context, AstNode node) {
   return listener.hasConstError;
 }
 
-/// Returns `true` if this [node] has an `@override` annotation.
-bool hasOverrideAnnotation(Declaration node) =>
-    node.metadata.map((Annotation a) => a.name.name).contains('override');
+/// Returns `true` if this [element] has a `@literal` annotation.
+bool hasLiteralAnnotation(Element element) {
+  final metadata = element.metadata;
+  for (var i = 0; i < metadata.length; i++) {
+    if (metadata[i].isLiteral) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Returns `true` if this [element] has an `@override` annotation.
+bool hasOverrideAnnotation(Element element) {
+  final metadata = element.metadata;
+  for (var i = 0; i < metadata.length; i++) {
+    if (metadata[i].isOverride) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /// Returns `true` if this [node] is the child of a private compilation unit
 /// member.
