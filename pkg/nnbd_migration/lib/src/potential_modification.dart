@@ -82,8 +82,8 @@ class ConditionalModification extends PotentialModification {
   }
 }
 
-/// Records information about the possible addition of an import
-/// to the source code.
+/// Records information about the possible addition of an import to the source
+/// code.
 class PotentiallyAddImport extends PotentialModification {
   final _usages = <PotentialModification>[];
 

@@ -95,11 +95,27 @@ class _SingleNullabilityFix extends SingleNullabilityFix {
     } else {
       throw new UnimplementedError('TODO(paulberry)');
     }
-    return _SingleNullabilityFix._(source, kind);
+
+    Location location;
+
+    // TODO(devoncarew): Calculate line and column info from the source+offset.
+    if (potentialModification.modifications.isNotEmpty) {
+      location = new Location(
+        source.fullName,
+        potentialModification.modifications.first.offset,
+        potentialModification.modifications.first.length,
+        0, // TODO(devoncarew): calculate the startLine info
+        0, // TODO(devoncarew): calculate the startColumn info
+      );
+    }
+
+    return _SingleNullabilityFix._(source, kind, location: location);
   }
 
-  _SingleNullabilityFix._(this.source, this.kind);
+  _SingleNullabilityFix._(this.source, this.kind, {Location location})
+      : this._location = location;
 
-  /// TODO(paulberry): do something better
-  Location get location => null;
+  Location get location => _location;
+
+  Location _location;
 }

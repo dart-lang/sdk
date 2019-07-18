@@ -14,9 +14,9 @@ class NullabilityFixKind {
   static const addImport =
       const NullabilityFixKind._(appliedMessage: 'Add an import');
 
-  /// A formal parameter needs to have a required annotation added.
+  /// A formal parameter needs to have a required modifier added.
   static const addRequired =
-      const NullabilityFixKind._(appliedMessage: 'Add a required annotation');
+      const NullabilityFixKind._(appliedMessage: "Add a 'required' modifier");
 
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixKind._(

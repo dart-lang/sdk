@@ -169,7 +169,7 @@ Analysis Details:
   void showFix(DartFix fix) {
     logger.stdout('''
 
-• ${fix.name}''');
+• ${ansi.emphasized(fix.name)}''');
     if (fix.description != null) {
       for (String line in _indentAndWrapDescription(fix.description)) {
         logger.stdout(line);
@@ -189,17 +189,18 @@ Analysis Details:
 
     logger.stdout('''
 
-These fixes are automatically applied unless at least one
---$includeOption option is specified and --$requiredOption is not specified.
-They may be individually disabled using --$excludeOption.''');
+These fixes are automatically applied unless at least one --$includeOption option is specified
+(and --$requiredOption is not specified). They may be individually disabled using --$excludeOption.''');
 
     fixes.where((fix) => fix.isRequired).forEach(showFix);
 
     logger.stdout('''
 
-These fixes are NOT automatically applied, but may be enabled using --$includeOption.''');
+These fixes are NOT automatically applied, but may be enabled using --$includeOption:''');
 
-    fixes.where((fix) => !fix.isRequired).forEach(showFix);
+    fixes.where((fix) => !fix.isRequired).toList()
+      ..sort(compareFixes)
+      ..forEach(showFix);
 
     return result;
   }
