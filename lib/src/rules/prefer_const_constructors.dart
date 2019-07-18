@@ -80,7 +80,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.isConst &&
         node.staticElement != null &&
         node.staticElement.isConst) {
-
       // Handled by analyzer hint.
       if (hasLiteralAnnotation(node.staticElement)) {
         return;
