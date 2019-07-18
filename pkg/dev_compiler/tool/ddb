@@ -37,6 +37,10 @@ void main(List<String> args) async {
         abbr: 'd',
         help: 'Use current source instead of built SDK.',
         defaultsTo: false)
+    ..addFlag('summarize-text',
+        help: 'Emit API summary in a .js.txt file.\n'
+            'Ignored when not passed with --kernel.',
+        defaultsTo: false)
     ..addOption('runtime',
         abbr: 'r',
         help: 'Platform to run on (node|d8|chrome).  Default is node.',
@@ -62,12 +66,13 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
-  var entry = options.rest.first;
+  var entry = p.canonicalize(options.rest.first);
   var libRoot = p.dirname(entry);
   var basename = p.basenameWithoutExtension(entry);
 
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
+  var summarizeText = options['summarize-text'] as bool;
   var binary = options['binary'] as String;
   var experiments = options['enable-experiment'] as List;
   var summaries = options['summary'] as List;
@@ -85,7 +90,8 @@ void main(List<String> args) async {
   // In debug mode (`-d`), we run from the `pkg/dev_compiler` sources.  We
   // determine the location via this actual script (i.e., `-d` assumes
   // this script remains under to `tool` sub-directory).
-  var toolPath = Platform.script.normalizePath().toFilePath();
+  var toolPath =
+      Platform.script.normalizePath().toFilePath(windows: Platform.isWindows);
   var ddcPath = p.dirname(p.dirname(toolPath));
   var dartCheckoutPath = p.dirname(p.dirname(ddcPath));
 
@@ -93,7 +99,7 @@ void main(List<String> args) async {
     if (debug) {
       // Use unbuilt script.  This only works from a source checkout.
       args.insertAll(
-          0, ['--enable-asserts', p.join(ddcPath, 'bin', '${command}.dart')]);
+          0, ['--enable-asserts', p.join(ddcPath, 'bin', '$command.dart')]);
       command = dartBinary;
     } else {
       // Use built snapshot.
@@ -147,9 +153,10 @@ void main(List<String> args) async {
       dartSdk, 'lib', '_internal', kernel ? 'ddc_sdk.dill' : 'ddc_sdk.sum');
 
   ProcessResult result;
-  var uri = Uri.file('$libRoot/$basename.js');
   var ddcArgs = [
     if (kernel) '--kernel',
+    if (kernel && summarizeText)
+      '--summarize-text',
     '--modules=$mod',
     '--dart-sdk-summary=$ddcSdk',
     // TODO(nshahan) Cleanup when we settle on using or removing library-root.
@@ -158,7 +165,7 @@ void main(List<String> args) async {
     for (var summary in summaries) '--summary=$summary',
     for (var experiment in experiments) '--enable-experiment=$experiment',
     '-o',
-    '$uri',
+    p.setExtension(entry, '.js'),
     entry
   ];
 
@@ -197,7 +204,7 @@ void main(List<String> args) async {
   });
 </script>
 """;
-    var htmlFile = '$libRoot/$basename.html';
+    var htmlFile = p.setExtension(entry, '.html');
     new File(htmlFile).writeAsStringSync(html);
     var tmp = p.join(Directory.systemTemp.path, 'ddc');
 
@@ -229,7 +236,7 @@ void main(List<String> args) async {
       process.exit(1);
     }
     ''';
-    var nodeFile = '$libRoot/$basename.run.js';
+    var nodeFile = p.setExtension(entry, '.run.js');
     new File(nodeFile).writeAsStringSync(runjs);
     var nodeBinary = binary ?? 'node';
     result = Process.runSync(
@@ -239,7 +246,7 @@ void main(List<String> args) async {
     // Fix SDK import.  `d8` doesn't let us set paths, so we need a full path
     // to the SDK.
 
-    var jsFile = File('$libRoot/$basename.js');
+    var jsFile = File(p.setExtension(entry, '.js'));
     var jsContents = jsFile.readAsStringSync();
     jsContents = jsContents.replaceFirst(
         "from 'dart_sdk.js'", "from '$sdkJsPath/dart_sdk.js'");
@@ -256,7 +263,7 @@ void main(List<String> args) async {
       console.error(e);
     }
     ''';
-    var d8File = p.join(libRoot, '$basename.d8.js');
+    var d8File = p.setExtension(entry, '.d8.js');
     new File(d8File).writeAsStringSync(runjs);
     var d8Binary = binary ?? p.join(dartCheckoutPath, _d8executable);
     result = Process.runSync(d8Binary, ['--module', d8File]);
