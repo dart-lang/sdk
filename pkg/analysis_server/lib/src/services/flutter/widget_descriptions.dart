@@ -34,16 +34,16 @@ class WidgetDescriptions {
   /// Return the description of the widget with [InstanceCreationExpression] in
   /// the [resolvedUnit] at the [offset], or `null` if the location does not
   /// correspond to a widget.
-  protocol.FlutterGetWidgetDescriptionResult getDescription(
+  Future<protocol.FlutterGetWidgetDescriptionResult> getDescription(
     ResolvedUnitResult resolvedUnit,
     int offset,
-  ) {
+  ) async {
     var computer = _WidgetDescriptionComputer(
       _classRegistry,
       resolvedUnit,
       offset,
     );
-    var widgetDescription = computer.compute();
+    var widgetDescription = await computer.compute();
 
     if (widgetDescription == null) {
       return null;
@@ -128,7 +128,7 @@ class _WidgetDescriptionComputer {
     this.widgetOffset,
   ) : flutter = Flutter.of(resolvedUnit);
 
-  _WidgetDescription compute() {
+  Future<_WidgetDescription> compute() async {
     var node = NodeLocator2(widgetOffset).searchWithin(resolvedUnit.unit);
     var instanceCreation = flutter.identifyNewExpression(node);
     if (instanceCreation == null) {
@@ -148,6 +148,49 @@ class _WidgetDescriptionComputer {
     _addContainerProperty(properties, instanceCreation);
 
     return _WidgetDescription(properties);
+  }
+
+  void _addContainerProperty(
+    List<PropertyDescription> properties,
+    InstanceCreationExpression widgetCreation,
+  ) {
+    if (!flutter.isWidgetCreation(widgetCreation)) {
+      return;
+    }
+
+    var childArgument = widgetCreation.parent;
+    if (childArgument is NamedExpression &&
+        childArgument.name.label.name == 'child') {
+      var argumentList = childArgument.parent;
+      var parentCreation = argumentList.parent;
+      if (argumentList is ArgumentList &&
+          parentCreation is InstanceCreationExpression) {
+        if (flutter.isExactlyContainerCreation(parentCreation)) {
+          var id = _nextPropertyId++;
+          var containerProperty = PropertyDescription(
+            null,
+            resolvedUnit,
+            null,
+            parentCreation,
+            null,
+            null,
+            null,
+            protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+          );
+          properties.add(containerProperty);
+
+          _addProperties(
+            properties: containerProperty.children,
+            parent: containerProperty,
+            instanceCreation: parentCreation,
+          );
+
+          containerProperty.children.removeWhere(
+            (property) => property.protocolProperty.name == 'child',
+          );
+        }
+      }
+    }
   }
 
   void _addProperties({
@@ -231,38 +274,8 @@ class _WidgetDescriptionComputer {
     var isSafeToUpdate = false;
     protocol.FlutterWidgetPropertyValue value;
     if (valueExpression != null) {
-      if (valueExpression is BooleanLiteral) {
-        isSafeToUpdate = true;
-        value = protocol.FlutterWidgetPropertyValue(
-          boolValue: valueExpression.value,
-        );
-      } else if (valueExpression is DoubleLiteral) {
-        isSafeToUpdate = true;
-        value = protocol.FlutterWidgetPropertyValue(
-          doubleValue: valueExpression.value,
-        );
-      } else if (valueExpression is Identifier) {
-        var element = valueExpression.staticElement;
-        if (element is PropertyAccessorElement && element.isGetter) {
-          var field = element.variable;
-          if (field is FieldElement && field.isEnumConstant) {
-            isSafeToUpdate = true;
-            value = protocol.FlutterWidgetPropertyValue(
-              enumValue: _getEnumItem(field),
-            );
-          }
-        }
-      } else if (valueExpression is IntegerLiteral) {
-        isSafeToUpdate = true;
-        value = protocol.FlutterWidgetPropertyValue(
-          intValue: valueExpression.value,
-        );
-      } else if (valueExpression is SimpleStringLiteral) {
-        isSafeToUpdate = true;
-        value = protocol.FlutterWidgetPropertyValue(
-          stringValue: valueExpression.value,
-        );
-      }
+      value = _toValue(valueExpression);
+      isSafeToUpdate = value != null;
     } else {
       isSafeToUpdate = true;
     }
@@ -313,47 +326,21 @@ class _WidgetDescriptionComputer {
     }
   }
 
-  void _addContainerProperty(
-    List<PropertyDescription> properties,
-    InstanceCreationExpression widgetCreation,
+  List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForEnum(
+    ClassElement element,
   ) {
-    if (!flutter.isWidgetCreation(widgetCreation)) {
-      return;
-    }
+    return element.fields
+        .where((field) => field.isStatic && field.isEnumConstant)
+        .map(_toEnumItem)
+        .toList();
+  }
 
-    var childArgument = widgetCreation.parent;
-    if (childArgument is NamedExpression &&
-        childArgument.name.label.name == 'child') {
-      var argumentList = childArgument.parent;
-      var parentCreation = argumentList.parent;
-      if (argumentList is ArgumentList &&
-          parentCreation is InstanceCreationExpression) {
-        if (flutter.isExactlyContainerCreation(parentCreation)) {
-          var id = _nextPropertyId++;
-          var containerProperty = PropertyDescription(
-            null,
-            resolvedUnit,
-            null,
-            parentCreation,
-            null,
-            null,
-            null,
-            protocol.FlutterWidgetProperty(id, true, false, 'Container'),
-          );
-          properties.add(containerProperty);
-
-          _addProperties(
-            properties: containerProperty.children,
-            parent: containerProperty,
-            instanceCreation: parentCreation,
-          );
-
-          containerProperty.children.removeWhere(
-            (property) => property.protocolProperty.name == 'child',
-          );
-        }
-      }
-    }
+  List<protocol.FlutterWidgetPropertyValueEnumItem> _enumItemsForStaticFields(
+      ClassElement classElement) {
+    return classElement.fields
+        .where((f) => f.isStatic)
+        .map(_toEnumItem)
+        .toList();
   }
 
   protocol.FlutterWidgetPropertyEditor _getEditor(DartType type) {
@@ -377,18 +364,19 @@ class _WidgetDescriptionComputer {
         protocol.FlutterWidgetPropertyEditorKind.STRING,
       );
     }
-    if (type is InterfaceType && type.element.isEnum) {
-      return protocol.FlutterWidgetPropertyEditor(
-        protocol.FlutterWidgetPropertyEditorKind.ENUM,
-        enumItems: _getEnumItems(type.element),
-      );
+    if (type is InterfaceType) {
+      var classElement = type.element;
+      if (classElement.isEnum) {
+        return protocol.FlutterWidgetPropertyEditor(
+          protocol.FlutterWidgetPropertyEditorKind.ENUM,
+          enumItems: _enumItemsForEnum(classElement),
+        );
+      }
     }
     return null;
   }
 
-  protocol.FlutterWidgetPropertyValueEnumItem _getEnumItem(FieldElement field) {
-    assert(field.isEnumConstant);
-
+  protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
     var classElement = field.enclosingElement as ClassElement;
     var libraryUriStr = '${classElement.library.source.uri}';
 
@@ -403,12 +391,37 @@ class _WidgetDescriptionComputer {
     );
   }
 
-  List<protocol.FlutterWidgetPropertyValueEnumItem> _getEnumItems(
-    ClassElement element,
-  ) {
-    return element.fields
-        .where((field) => field.isStatic && field.isEnumConstant)
-        .map(_getEnumItem)
-        .toList();
+  protocol.FlutterWidgetPropertyValue _toValue(Expression valueExpression) {
+    if (valueExpression is BooleanLiteral) {
+      return protocol.FlutterWidgetPropertyValue(
+        boolValue: valueExpression.value,
+      );
+    } else if (valueExpression is DoubleLiteral) {
+      return protocol.FlutterWidgetPropertyValue(
+        doubleValue: valueExpression.value,
+      );
+    } else if (valueExpression is Identifier) {
+      var element = valueExpression.staticElement;
+      if (element is PropertyAccessorElement && element.isGetter) {
+        var field = element.variable;
+        if (field is FieldElement && field.isStatic) {
+          var enclosingClass = field.enclosingElement as ClassElement;
+          if (field.isEnumConstant) {
+            return protocol.FlutterWidgetPropertyValue(
+              enumValue: _toEnumItem(field),
+            );
+          }
+        }
+      }
+    } else if (valueExpression is IntegerLiteral) {
+      return protocol.FlutterWidgetPropertyValue(
+        intValue: valueExpression.value,
+      );
+    } else if (valueExpression is SimpleStringLiteral) {
+      return protocol.FlutterWidgetPropertyValue(
+        stringValue: valueExpression.value,
+      );
+    }
+    return null;
   }
 }

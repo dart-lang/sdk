@@ -25,7 +25,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'softWrap');
+    var property = await getWidgetProperty('Text(', 'softWrap');
     expect(property.documentation, startsWith('Whether the text should'));
     assertPropertyJsonText(property, r'''
 {
@@ -48,7 +48,7 @@ void main() {
   Text('aaa', softWrap: true);
 }
 ''');
-    var property = getWidgetProperty('Text(', 'softWrap');
+    var property = await getWidgetProperty('Text(', 'softWrap');
     expect(property.documentation, startsWith('Whether the text should'));
     assertPropertyJsonText(property, r'''
 {
@@ -75,7 +75,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'data');
+    var property = await getWidgetProperty('Text(', 'data');
     expect(property.documentation, startsWith('The text to display.'));
     assertPropertyJsonText(property, r'''
 {
@@ -102,7 +102,7 @@ void main() {
   Text('');
 }
 ''');
-    var styleProperty = getWidgetProperty('Text(', 'style');
+    var styleProperty = await getWidgetProperty('Text(', 'style');
 
     var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
     assertPropertyJsonText(fontSizeProperty, r'''
@@ -126,7 +126,7 @@ void main() {
   Text('', style: TextStyle(fontSize: 24));
 }
 ''');
-    var styleProperty = getWidgetProperty('Text(', 'style');
+    var styleProperty = await getWidgetProperty('Text(', 'style');
 
     var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
     assertPropertyJsonText(fontSizeProperty, r'''
@@ -177,7 +177,7 @@ void main() {
   42;
 }
 ''');
-    var description = getDescription('42');
+    var description = await getDescription('42');
     expect(description, isNull);
   }
 
@@ -189,7 +189,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'textScaleFactor');
+    var property = await getWidgetProperty('Text(', 'textScaleFactor');
     assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
@@ -211,7 +211,7 @@ void main() {
   Text('', overflow: TextOverflow.fade);
 }
 ''');
-    var property = getWidgetProperty('Text(', 'overflow');
+    var property = await getWidgetProperty('Text(', 'overflow');
 
     expect(
       property.toJson()['editor']['enumItems'][0]['documentation'],
@@ -269,7 +269,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
     assertPropertyJsonText(property, r'''
 {
   "isRequired": false,
@@ -290,7 +290,7 @@ void main() {
   new Foo();
 }
 ''');
-    var description = getDescription('Foo');
+    var description = await getDescription('Foo');
     expect(description, isNull);
   }
 }
@@ -317,7 +317,7 @@ void main() {
   Text('', );
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
@@ -341,7 +341,7 @@ void main() {
   Text('');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
@@ -365,7 +365,7 @@ void main() {
   Text('', maxLines: 1);
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(
       property.id,
@@ -389,7 +389,7 @@ void main() {
   Text('', maxLines: 1,);
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 
@@ -410,7 +410,7 @@ void main() {
   Text('', maxLines: 1, softWrap: true,);
 }
 ''');
-    var property = getWidgetProperty('Text(', 'maxLines');
+    var property = await getWidgetProperty('Text(', 'maxLines');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 
@@ -431,7 +431,7 @@ void main() {
   Text('', style: TextStyle(), );
 }
 ''');
-    var styleProperty = getWidgetProperty('Text(', 'style');
+    var styleProperty = await getWidgetProperty('Text(', 'style');
 
     var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
 
@@ -457,7 +457,7 @@ void main() {
   Text('', );
 }
 ''');
-    var styleProperty = getWidgetProperty('Text(', 'style');
+    var styleProperty = await getWidgetProperty('Text(', 'style');
 
     var fontSizeProperty = getNestedProperty(styleProperty, 'fontSize');
 
@@ -483,7 +483,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'data');
+    var property = await getWidgetProperty('Text(', 'data');
 
     var result = await descriptions.setPropertyValue(
       property.id,
@@ -507,7 +507,7 @@ void main() {
   Text('aaa');
 }
 ''');
-    var property = getWidgetProperty('Text(', 'data');
+    var property = await getWidgetProperty('Text(', 'data');
 
     var result = await descriptions.setPropertyValue(property.id, null);
 

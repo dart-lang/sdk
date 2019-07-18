@@ -52,7 +52,8 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     expect(actual, expected);
   }
 
-  protocol.FlutterGetWidgetDescriptionResult getDescription(String search) {
+  Future<protocol.FlutterGetWidgetDescriptionResult> getDescription(
+      String search) async {
     var content = testAnalysisResult.content;
 
     var offset = content.indexOf(search);
@@ -75,9 +76,9 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     );
   }
 
-  protocol.FlutterWidgetProperty getWidgetProperty(
-      String widgetSearch, String name) {
-    var widgetDescription = getDescription(widgetSearch);
+  Future<protocol.FlutterWidgetProperty> getWidgetProperty(
+      String widgetSearch, String name) async {
+    var widgetDescription = await getDescription(widgetSearch);
     expect(widgetDescription, isNotNull);
 
     var properties = widgetDescription.properties;

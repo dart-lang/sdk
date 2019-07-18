@@ -26,7 +26,7 @@ void main() {
   );
 }
 ''');
-    var property = getWidgetProperty('Text(', 'Container');
+    var property = await getWidgetProperty('Text(', 'Container');
     var alignmentProperty = getNestedProperty(property, 'alignment');
     // TODO(scheglov) Value, editor.
     assertPropertyJsonText(alignmentProperty, r'''
@@ -51,7 +51,7 @@ void main() {
   );
 }
 ''');
-    var property = getWidgetProperty('Text(', 'Container');
+    var property = await getWidgetProperty('Text(', 'Container');
     var childrenNames = property.children.map((p) => p.name).toList();
 
     expect(
