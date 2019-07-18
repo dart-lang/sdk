@@ -198,7 +198,6 @@ main() {
     await waitResponse(
       CompletionGetSuggestionsParams(path, 0).toRequest('0'),
     );
-    expect(serverErrors, isEmpty);
   }
 
   test_relevanceTags_enum() async {

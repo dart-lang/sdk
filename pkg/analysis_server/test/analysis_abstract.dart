@@ -53,7 +53,6 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   AnalysisServer server;
   RequestHandler handler;
 
-  final List<ServerErrorParams> serverErrors = <ServerErrorParams>[];
   final List<GeneralAnalysisService> generalServices =
       <GeneralAnalysisService>[];
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
@@ -175,8 +174,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
 
   void processNotification(Notification notification) {
     if (notification.event == SERVER_NOTIFICATION_ERROR) {
-      var params = new ServerErrorParams.fromNotification(notification);
-      serverErrors.add(params);
+      fail('${notification.toJson()}');
     }
   }
 

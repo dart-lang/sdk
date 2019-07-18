@@ -51,6 +51,7 @@ class FlutterDomainHandler extends AbstractRequestHandler {
           ),
         ),
       );
+      return;
     }
 
     server.sendResponse(
