@@ -755,7 +755,7 @@ class RemoteError implements Error {
   String toString() => _description;
 }
 
-/*
+/**
  * An efficiently transferable sequence of byte values.
  *
  * A [TransferableTypedData] is created from a number of bytes.
