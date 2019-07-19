@@ -80,12 +80,26 @@ class DocumentationGenerator {
       return null;
     }
     List<String> docs = [];
+    bool inDartCodeBlock = false;
     while (comments != null) {
       String lexeme = comments.lexeme;
       if (lexeme.startsWith('// TODO')) {
         break;
       } else if (lexeme.startsWith('// ')) {
-        docs.add(lexeme.substring(3));
+        String trimmedLine = lexeme.substring(3);
+        if (trimmedLine == '```dart') {
+          inDartCodeBlock = true;
+          docs.add('{% prettify dart %}');
+        } else if (trimmedLine == '```') {
+          if (inDartCodeBlock) {
+            docs.add('{% endprettify %}');
+            inDartCodeBlock = false;
+          } else {
+            docs.add(trimmedLine);
+          }
+        } else {
+          docs.add(trimmedLine);
+        }
       } else if (lexeme == '//') {
         docs.add('');
       }

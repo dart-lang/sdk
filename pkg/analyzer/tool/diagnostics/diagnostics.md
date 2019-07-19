@@ -42,10 +42,10 @@ literal or a set literal.
 
 The following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
     [!{...a, ...b, ...c}!];
-```
+{% endprettify %}
 
 The list `b` can only be spread into a set, and the maps `a` and `c` can
 only be spread into a map, and the literal can't be both.
@@ -57,19 +57,19 @@ of the spread elements of one kind or another, so that the elements are
 consistent. In this case, that likely means removing the list and deciding
 what to do about the now unused parameter:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
     {...a, ...c};
-```
+{% endprettify %}
 
 The second fix is to change the elements of one kind into elements that are
 consistent with the other elements. For example, you can add the elements
 of the list as keys that map to themselves:
 
-```dart
+{% prettify dart %}
 union(Map<String, String> a, List<String> b, Map<String, String> c) =>
     {...a, for (String s in b) s: s, ...c};
-```
+{% endprettify %}
 
 ### ambiguous_set_or_map_literal_either
 
@@ -94,9 +94,9 @@ literal or a set literal.
 
 The following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 union(a, b) => [!{...a, ...b}!];
-```
+{% endprettify %}
 
 The problem occurs because there are no type arguments, and there is no
 information about the type of either `a` or `b`.
@@ -107,43 +107,43 @@ There are three common ways to fix this problem. The first is to add type
 arguments to the literal. For example, if the literal is intended to be a
 map literal, you might write something like this:
 
-```dart
+{% prettify dart %}
 union(a, b) => <String, String>{...a, ...b};
-```
+{% endprettify %}
 
 The second fix is to add type information so that the expressions have
 either the type `Iterable` or the type `Map`. You can add an explicit cast
 or, in this case, add types to the declarations of the two parameters:
 
-```dart
+{% prettify dart %}
 union(List<int> a, List<int> b) => {...a, ...b};
-```
+{% endprettify %}
 
 The third fix is to add context information. In this case, that means
 adding a return type to the function:
 
-```dart
+{% prettify dart %}
 Set<String> union(a, b) => {...a, ...b};
-```
+{% endprettify %}
 
 In other cases, you might add a type somewhere else. For example, say the
 original code looks like this:
 
-```dart
+{% prettify dart %}
 union(a, b) {
   var x = {...a, ...b};
   return x;
 }
-```
+{% endprettify %}
 
 You might add a type annotation on `x`, like this:
 
-```dart
+{% prettify dart %}
 union(a, b) {
   Map<String, String> x = {...a, ...b};
   return x;
 }
-```
+{% endprettify %}
 
 ### deprecated_member_use
 
@@ -159,11 +159,11 @@ member is used in a different package.
 If the method `m` in the class `C` is annotated with `@deprecated`, then
 the following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 void f(C c) {
   c.[!m!]();
 }
-```
+{% endprettify %}
 
 #### Common fixes
 
@@ -183,9 +183,9 @@ expression, rather than a map entry, in what appears to be a map literal.
 
 The following code generates this diagnostic:
 
-```dart
+{% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, [!'c'!]};
-```
+{% endprettify %}
 
 #### Common fix
 
@@ -193,9 +193,9 @@ If the expression is intended to compute either a key or a value in an
 entry, fix the issue by replacing the expression with the key or the value.
 For example:
 
-```dart
+{% prettify dart %}
 var map = <String, int>{'a': 0, 'b': 1, 'c': 2};
-```
+{% endprettify %}
 
 ### invalid_literal_annotation
 
@@ -210,18 +210,18 @@ to a const constructor.
 
 The following code produces this diagnostic:
 
-```dart
+{% prettify dart %}
 [!@literal!]
 var x;
-```
+{% endprettify %}
 
 #### Common fixes
 
 Remove the annotation:
 
-```dart
+{% prettify dart %}
 var x;
-```
+{% endprettify %}
 
 ### not_iterable_spread
 
@@ -237,20 +237,20 @@ set literal doesn't implement the type `Iterable`.
 
 The following code generates this diagnostic:
 
-```dart
+{% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...[!m!]};
-```
+{% endprettify %}
 
 #### Common fix
 
 The most common fix is to replace the expression with one that produces an
 iterable object:
 
-```dart
+{% prettify dart %}
 var m = <String, int>{'a': 0, 'b': 1};
 var s = <String>{...m.keys};
-```
+{% endprettify %}
 
 ### sdk_version_set_literal
 
@@ -276,9 +276,9 @@ environment:
 
 The following code generates this diagnostic:
 
-```dart
+{% prettify dart %}
 var s = [!<int>{}!];
-```
+{% endprettify %}
 
 #### Common fixes
 
@@ -293,6 +293,6 @@ environment:
 If you do need to support older versions of the SDK, then replace the set
 literal with code that creates the set without the use of a literal:
 
-```dart
+{% prettify dart %}
 var s = new Set<int>();
-```
+{% endprettify %}
