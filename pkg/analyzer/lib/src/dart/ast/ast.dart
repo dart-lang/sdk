@@ -3850,6 +3850,8 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Token rightBracket;
 
+  ExtensionElement _declaredElement;
+
   ExtensionDeclarationImpl(
       CommentImpl comment,
       List<Annotation> metadata,
@@ -3883,10 +3885,15 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..add(rightBracket);
 
   @override
-  Element get declaredElement => name.staticElement;
+  ExtensionElement get declaredElement => _declaredElement;
+
+  /// Set the element declared by this declaration to the given [element].
+  set declaredElement(ExtensionElement element) {
+    _declaredElement = element;
+  }
 
   @override
-  Element get element => name.staticElement;
+  ExtensionElement get element => declaredElement;
 
   @override
   Token get endToken => rightBracket;

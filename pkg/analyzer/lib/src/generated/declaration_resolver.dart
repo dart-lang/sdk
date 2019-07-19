@@ -186,6 +186,7 @@ class DeclarationResolver extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     ExtensionElement element = _match(node.name, _walker.getExtension());
+    (node as ExtensionDeclarationImpl).declaredElement = element;
     _walk(new ElementWalker.forExtension(element), () {
       super.visitExtensionDeclaration(node);
     });
