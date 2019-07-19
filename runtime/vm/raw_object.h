@@ -1465,6 +1465,7 @@ class RawInstructions : public RawObject {
   friend class Function;
   friend class ImageReader;
   friend class ImageWriter;
+  friend class AssemblyImageWriter;
   friend class BlobImageWriter;
 };
 

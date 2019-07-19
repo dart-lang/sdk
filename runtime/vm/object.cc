@@ -2086,14 +2086,21 @@ RawString* Object::DictionaryName() const {
 }
 
 void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
-  uword initial_value = (class_id == kInstructionsCid)
-                            ? compiler::Assembler::GetBreakInstructionFiller()
-                            : reinterpret_cast<uword>(null_);
   uword cur = address;
   uword end = address + size;
-  while (cur < end) {
-    *reinterpret_cast<uword*>(cur) = initial_value;
-    cur += kWordSize;
+  if (class_id == kInstructionsCid) {
+    compiler::target::uword initial_value =
+        compiler::Assembler::GetBreakInstructionFiller();
+    while (cur < end) {
+      *reinterpret_cast<compiler::target::uword*>(cur) = initial_value;
+      cur += compiler::target::kWordSize;
+    }
+  } else {
+    uword initial_value = reinterpret_cast<uword>(null_);
+    while (cur < end) {
+      *reinterpret_cast<uword*>(cur) = initial_value;
+      cur += kWordSize;
+    }
   }
   uint32_t tags = 0;
   ASSERT(class_id != kIllegalCid);
