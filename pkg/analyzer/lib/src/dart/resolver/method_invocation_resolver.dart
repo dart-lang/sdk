@@ -299,6 +299,10 @@ class MethodInvocationResolver {
     return invokeType;
   }
 
+  /// Ask the type system to instantiate the given type to its bounds.
+  DartType _instantiateToBounds(DartType type) =>
+      _resolver.typeSystem.instantiateToBounds(type);
+
   bool _isCoreFunction(DartType type) {
     // TODO(scheglov) Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
@@ -413,6 +417,23 @@ class MethodInvocationResolver {
     return null;
   }
 
+  void _resolveExtension(MethodInvocation node, ExtensionElement extension,
+      SimpleIdentifier nameNode, String name) {
+    ExecutableElement member = extension.getMethod(name) ??
+        extension.getGetter(name) ??
+        extension.getSetter(name);
+    if (member.isStatic) {
+      _setDynamicResolution(node);
+      _resolver.errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
+        nameNode,
+      );
+      return;
+    }
+    nameNode.staticElement = member;
+    return;
+  }
+
   void _resolveExtensionOverride(MethodInvocation node,
       ExtensionOverride override, SimpleIdentifier nameNode, String name) {
     ExtensionElement element = override.extensionName.staticElement;
@@ -499,12 +520,7 @@ class MethodInvocationResolver {
     List<ExtensionElement> extensions =
         _getApplicableExtensions(receiverType, name);
     if (extensions.length == 1) {
-      var extension = extensions[0];
-      Element member = extension.getMethod(name) ??
-          extension.getGetter(name) ??
-          extension.getSetter(name);
-      nameNode.staticElement = member;
-      return;
+      return _resolveExtension(node, extensions[0], nameNode, name);
     } else if (extensions.length > 1) {
       ExtensionElement extension =
           _chooseMostSpecificExtension(extensions, receiverType);
@@ -521,11 +537,7 @@ class MethodInvocationResolver {
         );
         return;
       } else {
-        ExecutableElement member = extension.getMethod(name) ??
-            extension.getGetter(name) ??
-            extension.getSetter(name);
-        nameNode.staticElement = member;
-        return;
+        return _resolveExtension(node, extension, nameNode, name);
       }
     }
 
@@ -787,10 +799,6 @@ class MethodInvocationResolver {
 
     _reportInvocationOfNonFunction(node);
   }
-
-  /// Ask the type system to instantiate the given type to its bounds.
-  DartType _instantiateToBounds(DartType type) =>
-      _resolver.typeSystem.instantiateToBounds(type);
 
   /// Ask the type system for a subtype check.
   bool _subtypeOf(DartType type1, DartType type2) =>

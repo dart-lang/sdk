@@ -115,6 +115,23 @@ f() {
     expect(invocation.methodName.staticElement, declaration.declaredElement);
   }
 
+  test_method_resolvesToStatic() async {
+    await assertErrorsInCode('''
+class A { }
+
+extension A1_Ext on A {
+  static void a() { }
+}
+
+f() {
+  A a = A();
+  a.a();
+}
+''', [
+      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 85, 1),
+    ]);
+  }
+
   test_method_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A { }

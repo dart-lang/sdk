@@ -126,6 +126,15 @@ class CompileTimeErrorCode extends ErrorCode {
               "same library.");
 
   /**
+   * No parameters.
+   */
+  //todo (pq): refactor to reuse StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER.
+  static const CompileTimeErrorCode ACCESS_STATIC_EXTENSION_MEMBER =
+      const CompileTimeErrorCode('ACCESS_STATIC_EXTENSION_MEMBER',
+          "Static extension members can't be accessed.",
+          correction: "Try removing the static member access.");
+
+  /**
    * 14.2 Exports: It is a compile-time error if a name <i>N</i> is re-exported
    * by a library <i>L</i> and <i>N</i> is introduced into the export namespace
    * of <i>L</i> by more than one export, unless each all exports refer to same

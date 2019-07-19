@@ -65,6 +65,7 @@ const List<ErrorCode> errorCodeValues = const [
   CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
   CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
   CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
+  CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
   CompileTimeErrorCode.AMBIGUOUS_EXPORT,
   CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
   CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
