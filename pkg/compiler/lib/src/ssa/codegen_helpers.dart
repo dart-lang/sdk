@@ -143,18 +143,15 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
 
   @override
   HInstruction visitInvokeDynamic(HInvokeDynamic node) {
-    if (node.isInterceptedCall) {
-      tryReplaceInterceptorWithDummy(node, node.selector, node.receiverType);
-    }
+    tryReplaceExplicitReceiverWithDummy(
+        node, node.selector, node.element, node.receiverType);
     return node;
   }
 
   @override
   HInstruction visitInvokeSuper(HInvokeSuper node) {
-    if (node.isInterceptedCall) {
-      AbstractValue mask = node.getDartReceiver(_closedWorld).instructionType;
-      tryReplaceInterceptorWithDummy(node, node.selector, mask);
-    }
+    tryReplaceExplicitReceiverWithDummy(
+        node, node.selector, node.element, null);
     return node;
   }
 
@@ -164,8 +161,8 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     return node;
   }
 
-  bool tryReplaceInterceptorWithDummy(
-      HInvoke node, Selector selector, AbstractValue mask) {
+  void tryReplaceExplicitReceiverWithDummy(HInvoke node, Selector selector,
+      MemberEntity target, AbstractValue mask) {
     // Calls of the form
     //
     //     a.foo$1(a, x)
@@ -185,29 +182,41 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
     // --->
     //     b.get$thing().foo$1(0, x)
     //
+    assert(target != null || mask != null);
+
+    if (!node.isInterceptedCall) return;
 
     // TODO(15933): Make automatically generated property extraction closures
     // work with the dummy receiver optimization.
-    if (selector.isGetter) return false;
+    if (selector.isGetter) return;
 
     // This assignment of inputs is uniform for HInvokeDynamic and HInvokeSuper.
     HInstruction interceptor = node.inputs[0];
     HInstruction receiverArgument = node.inputs[1];
 
-    if (interceptor.nonCheck() == receiverArgument.nonCheck()) {
-      if (_interceptorData.isInterceptedSelector(selector) &&
-          !_interceptorData.isInterceptedMixinSelector(
-              selector, mask, _closedWorld)) {
-        ConstantValue constant =
-            new DummyInterceptorConstantValue(receiverArgument.instructionType);
-        HConstant dummy = graph.addConstant(constant, _closedWorld);
-        receiverArgument.usedBy.remove(node);
-        node.inputs[1] = dummy;
-        dummy.usedBy.add(node);
-        return true;
-      }
+    // A 'self-interceptor'?
+    if (interceptor.nonCheck() != receiverArgument.nonCheck()) return;
+
+    // TODO(sra): Should this be an assert?
+    if (!_interceptorData.isInterceptedSelector(selector)) return;
+
+    if (target != null) {
+      // A call that resolves to a single instance method (element) requires the
+      // calling convention consistent with the method.
+      ClassEntity cls = target.enclosingClass;
+      assert(_interceptorData.isInterceptedMethod(target));
+      if (_interceptorData.isInterceptedClass(cls)) return;
+    } else if (_interceptorData.isInterceptedMixinSelector(
+        selector, mask, _closedWorld)) {
+      return;
     }
-    return false;
+
+    ConstantValue constant =
+        DummyInterceptorConstantValue(receiverArgument.instructionType);
+    HConstant dummy = graph.addConstant(constant, _closedWorld);
+    receiverArgument.usedBy.remove(node);
+    node.inputs[1] = dummy;
+    dummy.usedBy.add(node);
   }
 
   @override
