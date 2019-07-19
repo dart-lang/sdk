@@ -89,10 +89,15 @@ class ClassDescriptionRegistry {
 
   bool _isOptedInClass(ClassElement element) {
     return _isClass(
-      element,
-      'package:flutter/src/painting/text_style.dart',
-      'TextStyle',
-    );
+          element,
+          'package:flutter/src/widgets/container.dart',
+          'Container',
+        ) ||
+        _isClass(
+          element,
+          'package:flutter/src/painting/text_style.dart',
+          'TextStyle',
+        );
   }
 
   static bool _isClass(ClassElement element, String uri, String name) {

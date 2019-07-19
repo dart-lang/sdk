@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 
 class Flutter {
+  static const _nameAlign = 'Align';
   static const _nameCenter = 'Center';
   static const _nameContainer = 'Container';
   static const _namePadding = 'Padding';
@@ -186,6 +187,21 @@ class Flutter {
   }
 
   /**
+   * Return the named expression with the given [name], or `null` if none.
+   */
+  NamedExpression findNamedArgument(
+    InstanceCreationExpression creation,
+    String name,
+  ) {
+    var arguments = creation.argumentList.arguments;
+    return arguments.firstWhere(
+      (argument) =>
+          argument is NamedExpression && argument.name.label.name == name,
+      orElse: () => null,
+    );
+  }
+
+  /**
    * If the given [node] is a simple identifier, find the named expression whose
    * name is the given [name] that is an argument to a Flutter instance creation
    * expression. Return null if any condition cannot be satisfied.
@@ -339,10 +355,18 @@ class Flutter {
   }
 
   /**
+   * Return `true` if the [node] is creation of `Align`.
+   */
+  bool isExactlyAlignCreation(InstanceCreationExpression node) {
+    var type = node?.staticType;
+    return isExactWidgetTypeAlign(type);
+  }
+
+  /**
    * Return `true` if the [node] is creation of `Container`.
    */
   bool isExactlyContainerCreation(InstanceCreationExpression node) {
-    var type = node.staticType;
+    var type = node?.staticType;
     return isExactWidgetTypeContainer(type);
   }
 
@@ -365,6 +389,14 @@ class Flutter {
   /// Return `true` if the given [element] is the Flutter class `State`.
   bool isExactState(ClassElement element) {
     return _isExactWidget(element, _nameState, _uriFramework);
+  }
+
+  /**
+   * Return `true` if the given [type] is the Flutter class `Align`.
+   */
+  bool isExactWidgetTypeAlign(DartType type) {
+    return type is InterfaceType &&
+        _isExactWidget(type.element, _nameAlign, _uriBasic);
   }
 
   /**

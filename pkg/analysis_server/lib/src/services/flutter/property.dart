@@ -30,6 +30,11 @@ class PropertyDescription {
   /// is set.
   final InstanceCreationExpression _instanceCreation;
 
+  /// Information about the `Container` property, which is not based on an
+  /// actual [_instanceCreation] of the `Container` widget, i.e. is not
+  /// materialized.
+  final VirtualContainerProperty virtualContainer;
+
   /// If the property is set, the full argument expression, might be a
   /// [NamedExpression].
   final Expression _argumentExpression;
@@ -57,8 +62,11 @@ class PropertyDescription {
     this._argumentExpression,
     this._valueExpression,
     this._parameterElement,
-    this.protocolProperty,
-  );
+    this.protocolProperty, {
+    this.virtualContainer,
+  });
+
+  String get name => protocolProperty.name;
 
   Future<protocol.SourceChange> changeValue(
       protocol.FlutterWidgetPropertyValue value) async {
@@ -118,6 +126,16 @@ class PropertyDescription {
     return changeBuilder.sourceChange;
   }
 
+  void replaceChild(String name, PropertyDescription newChild) {
+    assert(newChild._parent == this);
+    for (var i = 0; i < children.length; i++) {
+      if (children[i].name == 'alignment') {
+        children[i] = newChild;
+        break;
+      }
+    }
+  }
+
   void _changeCode(
     DartFileEditBuilder builder,
     void buildCode(DartEditBuilder builder),
@@ -162,25 +180,54 @@ class PropertyDescription {
           builder.write(', ');
         });
       } else {
-        _parent._changeCode(builder, (builder) {
-          builder.writeReference(_classDescription.element);
-          // TODO(scheglov) constructor name
-          builder.write('(');
-          builder.write(parameterName);
-          builder.write(': ');
-          buildCode(builder);
-          builder.write(', ');
-          builder.write(')');
-        });
+        if (_parent.virtualContainer != null) {
+          _parent._changeCodeVirtualContainer(
+              builder, parameterName, buildCode);
+        } else {
+          _parent._changeCode(builder, (builder) {
+            builder.writeReference(_classDescription.element);
+            // TODO(scheglov) constructor name
+            builder.write('(');
+            builder.write(parameterName);
+            builder.write(': ');
+            buildCode(builder);
+            builder.write(', ');
+            builder.write(')');
+          });
+        }
       }
     }
+  }
+
+  void _changeCodeVirtualContainer(
+    DartFileEditBuilder builder,
+    String parameterName,
+    void writeArgumentValue(DartEditBuilder builder),
+  ) {
+    builder.addInsertion(
+      virtualContainer.widgetCreation.offset,
+      (builder) {
+        builder.writeReference(virtualContainer.containerElement);
+        builder.write('(');
+
+        builder.write(parameterName);
+        builder.write(': ');
+        writeArgumentValue(builder);
+        builder.write(', ');
+        // TODO(scheglov) move parent creation attribute, sorted
+
+        builder.write('child: ');
+      },
+    );
+    builder.addSimpleInsertion(virtualContainer.widgetCreation.end, ',)');
   }
 
   FunctionBody _enclosingFunctionBody() {
     if (_parent != null) {
       return _parent._enclosingFunctionBody();
     }
-    return _instanceCreation.thisOrAncestorOfType<FunctionBody>();
+    var anchorExpr = virtualContainer?.widgetCreation ?? _instanceCreation;
+    return anchorExpr.thisOrAncestorOfType<FunctionBody>();
   }
 
   String _toPrimitiveValueCode(protocol.FlutterWidgetPropertyValue value) {
@@ -205,5 +252,39 @@ class PropertyDescription {
     }
 
     throw StateError('Not a primitive value: $value');
+  }
+}
+
+/// Every widget has the `Container` property, either based of an actual
+/// `Container` widget instance creation, or virtual, materialized when a
+/// nested property is set.
+///
+/// This class provides information necessary for such materialization.
+class VirtualContainerProperty {
+  final ClassElement containerElement;
+  final InstanceCreationExpression widgetCreation;
+
+  /// The existing wrapper around the widget, with semantic that is a subset
+  /// of the `Container` semantic, such as `Padding`. Such wrapper should be
+  /// replaced with full `Container` when `Container` is materialized.
+  ///
+  /// Might be `null`, if no existing replacable wrapped.
+  InstanceCreationExpression _parentCreation;
+
+  /// The argument from the [_parentCreation] that should be moved into
+  /// the new `Container` creation during its materialization.
+  NamedExpression _parentArgumentToMove;
+
+  VirtualContainerProperty(
+    this.containerElement,
+    this.widgetCreation,
+  );
+
+  void setParentCreation(
+    InstanceCreationExpression parentCreation,
+    NamedExpression parentArgumentToMove,
+  ) {
+    _parentCreation = parentCreation;
+    _parentArgumentToMove = parentArgumentToMove;
   }
 }

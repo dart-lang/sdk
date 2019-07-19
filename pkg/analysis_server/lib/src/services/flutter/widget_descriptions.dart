@@ -125,6 +125,7 @@ class _WidgetDescriptionComputer {
 
   ClassElement _classAlignment;
   ClassElement _classAlignmentDirectional;
+  ClassElement _classContainer;
 
   _WidgetDescriptionComputer(
     this.classRegistry,
@@ -164,39 +165,81 @@ class _WidgetDescriptionComputer {
       return;
     }
 
+    InstanceCreationExpression parentCreation;
     var childArgument = widgetCreation.parent;
     if (childArgument is NamedExpression &&
         childArgument.name.label.name == 'child') {
       var argumentList = childArgument.parent;
-      var parentCreation = argumentList.parent;
+      var argumentListParent = argumentList.parent;
       if (argumentList is ArgumentList &&
-          parentCreation is InstanceCreationExpression) {
-        if (flutter.isExactlyContainerCreation(parentCreation)) {
-          var id = _nextPropertyId++;
-          var containerProperty = PropertyDescription(
-            null,
-            resolvedUnit,
-            null,
-            parentCreation,
-            null,
-            null,
-            null,
-            protocol.FlutterWidgetProperty(id, true, false, 'Container'),
-          );
-          properties.add(containerProperty);
-
-          _addProperties(
-            properties: containerProperty.children,
-            parent: containerProperty,
-            instanceCreation: parentCreation,
-          );
-
-          containerProperty.children.removeWhere(
-            (property) => property.protocolProperty.name == 'child',
-          );
-        }
+          argumentListParent is InstanceCreationExpression) {
+        parentCreation = argumentListParent;
       }
     }
+
+    PropertyDescription containerProperty;
+    if (flutter.isExactlyContainerCreation(parentCreation)) {
+      var id = _nextPropertyId++;
+      containerProperty = PropertyDescription(
+        null,
+        resolvedUnit,
+        null,
+        parentCreation,
+        null,
+        null,
+        null,
+        protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+      );
+      properties.add(containerProperty);
+
+      _addProperties(
+        properties: containerProperty.children,
+        parent: containerProperty,
+        instanceCreation: parentCreation,
+      );
+
+      containerProperty.children.removeWhere(
+        (property) => property.name == 'child',
+      );
+    } else {
+      var id = _nextPropertyId++;
+      var containerDescription = classRegistry.get(_classContainer.type);
+      containerProperty = PropertyDescription(
+        null,
+        resolvedUnit,
+        containerDescription,
+        null,
+        null,
+        null,
+        null,
+        protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+        virtualContainer: VirtualContainerProperty(
+          _classContainer,
+          widgetCreation,
+        ),
+      );
+      properties.add(containerProperty);
+
+      _addProperties(
+        properties: containerProperty.children,
+        parent: containerProperty,
+        classDescription: containerDescription,
+      );
+
+      if (flutter.isExactlyAlignCreation(parentCreation) &&
+          flutter.findNamedArgument(parentCreation, 'widthFactor') == null &&
+          flutter.findNamedArgument(parentCreation, 'heightFactor') == null) {
+        _replaceNestedContainerProperty(
+          containerProperty,
+          parentCreation,
+          'alignment',
+        );
+      }
+    }
+
+    containerProperty.children.removeWhere(
+      (property) => property.name == 'child',
+    );
   }
 
   void _addProperties({
@@ -207,6 +250,7 @@ class _WidgetDescriptionComputer {
     ConstructorElement constructorElement,
   }) {
     constructorElement ??= instanceCreation?.staticElement;
+    constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
     var classElement = constructorElement.enclosingElement;
@@ -326,7 +370,6 @@ class _WidgetDescriptionComputer {
           properties: propertyDescription.children,
           parent: propertyDescription,
           classDescription: classDescription,
-          constructorElement: classDescription.constructor,
         );
       }
     }
@@ -358,6 +401,10 @@ class _WidgetDescriptionComputer {
     _classAlignmentDirectional = await sessionHelper.getClass(
       flutter.widgetsUri,
       'AlignmentDirectional',
+    );
+    _classContainer = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'Container',
     );
   }
 
@@ -405,6 +452,36 @@ class _WidgetDescriptionComputer {
       }
     }
     return null;
+  }
+
+  /// If the [parentCreation] has a property with the given [name], replace
+  /// with it the corresponding nested property of the [containerProperty].
+  void _replaceNestedContainerProperty(
+    PropertyDescription containerProperty,
+    InstanceCreationExpression parentCreation,
+    String name,
+  ) {
+    var argument = flutter.findNamedArgument(parentCreation, name);
+    if (argument != null) {
+      var replacements = <PropertyDescription>[];
+      _addProperty(
+        properties: replacements,
+        parent: containerProperty,
+        parameter: argument.staticParameterElement,
+        instanceCreation: parentCreation,
+        argumentExpression: argument,
+        valueExpression: argument.expression,
+      );
+
+      var replacement = replacements[0];
+      if (replacement != null) {
+        containerProperty.replaceChild(name, replacement);
+        containerProperty.virtualContainer.setParentCreation(
+          parentCreation,
+          argument,
+        );
+      }
+    }
   }
 
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
