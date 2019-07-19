@@ -738,10 +738,14 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     ParameterInstr* param = defn->AsParameter();
     intptr_t slot_index = param->index();
     ASSERT(slot_index >= 0);
-    ASSERT((param->base_reg() == FPREG) || (param->base_reg() == SPREG));
     if (param->base_reg() == FPREG) {
       // Slot index for the rightmost fixed parameter is -1.
       slot_index -= flow_graph_.num_direct_parameters();
+    } else {
+      // Slot index for a "frameless" parameter is reversed.
+      ASSERT(param->base_reg() == SPREG);
+      ASSERT(slot_index < flow_graph_.num_direct_parameters());
+      slot_index = flow_graph_.num_direct_parameters() - 1 - slot_index;
     }
 
 #if defined(TARGET_ARCH_DBC)
