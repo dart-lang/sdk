@@ -115,6 +115,24 @@ f() {
     expect(invocation.methodName.staticElement, declaration.declaredElement);
   }
 
+  test_method_privateExtension() async {
+    newFile('/test/lib/lib.dart', content: '''
+class B { }
+
+extension _ on B {
+  void a() { }
+}
+''');
+    await assertErrorCodesInCode(r'''
+import 'lib.dart';
+
+f() {
+  B b = B();
+  b.a();
+}
+''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   test_method_resolvesToStatic() async {
     await assertErrorsInCode('''
 class A { }
@@ -217,11 +235,38 @@ f() {
     expect(invocation.methodName.staticElement, declaration.declaredElement);
   }
 
+  test_method_unnamedExtension() async {
+    newFile('/test/lib/lib.dart', content: '''
+class B { }
+
+extension on B {
+  void a() { }
+}
+''');
+    await assertErrorCodesInCode(r'''
+import 'lib.dart';
+
+f() {
+  B b = B();
+  b.a();
+}
+''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   test_multipleExtensions() async {
     await assertNoErrorsInCode('''
 class A {}
 extension E1 on A {}
 extension E2 on A {}
+''');
+  }
+
+  test_unnamedExtension() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension on A {
+  void a() { }
+}
 ''');
   }
 }
