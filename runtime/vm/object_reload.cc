@@ -807,6 +807,7 @@ void ICData::Reset(Zone* zone) const {
     const Array& data_array = Array::Handle(
         zone, CachedEmptyICDataArray(num_args, tracking_exactness));
     set_entries(data_array);
+    set_is_megamorphic(false);
     return;
   } else if (rule == kNoRebind || rule == kNSMDispatch) {
     // TODO(30877) we should account for addition/removal of NSM.
