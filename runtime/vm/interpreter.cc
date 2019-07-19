@@ -2438,6 +2438,7 @@ SwitchDispatch:
 
   {
     BYTECODE(StoreContextVar, A_E);
+    DEBUG_CHECK;
     const uword offset_in_words =
         static_cast<uword>(Context::variable_offset(rE) / kWordSize);
     RawContext* instance = reinterpret_cast<RawContext*>(SP[-1]);

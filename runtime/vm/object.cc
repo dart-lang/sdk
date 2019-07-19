@@ -15399,13 +15399,30 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
 #endif
 }
 
-uword Bytecode::GetDebugCheckedOpcodePc(uword from_offset,
-                                        uword to_offset) const {
+uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  uword pc = PayloadStart();
+  const uword end_pc = pc + Size();
+  while (pc < end_pc) {
+    if (KernelBytecode::IsDebugCheckOpcode(
+            reinterpret_cast<const KBCInstr*>(pc))) {
+      return pc;
+    }
+    pc = KernelBytecode::Next(pc);
+  }
+  return 0;
+#endif
+}
+
+uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
+                                                   uword to_offset) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   uword pc = PayloadStart() + from_offset;
-  uword end_pc = pc + (to_offset - from_offset);
+  const uword end_pc = pc + (to_offset - from_offset);
   while (pc < end_pc) {
     uword next_pc = KernelBytecode::Next(pc);
     if (KernelBytecode::IsDebugCheckedOpcode(

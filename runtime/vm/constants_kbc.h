@@ -954,6 +954,10 @@ class KernelBytecode {
     }
   }
 
+  DART_FORCE_INLINE static bool IsDebugCheckOpcode(const KBCInstr* instr) {
+    return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
+  }
+
   // The interpreter, the bytecode generator, and this function must agree on
   // this list of opcodes.
   // The interpreter checks for a debug break at each instruction with listed
@@ -964,6 +968,8 @@ class KernelBytecode {
       case KernelBytecode::kAllocate:
       case KernelBytecode::kPopLocal:
       case KernelBytecode::kPopLocal_Wide:
+      case KernelBytecode::kStoreContextVar:
+      case KernelBytecode::kStoreContextVar_Wide:
       case KernelBytecode::kStoreLocal:
       case KernelBytecode::kStoreLocal_Wide:
       case KernelBytecode::kStoreStaticTOS:

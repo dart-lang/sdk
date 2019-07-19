@@ -787,6 +787,7 @@ class Debugger {
   void RewindToOptimizedFrame(StackFrame* frame,
                               const Code& code,
                               intptr_t post_deopt_frame_index);
+  void RewindToInterpretedFrame(StackFrame* frame, const Bytecode& bytecode);
 
   void ResetSteppingFramePointers();
   bool SteppedForSyntheticAsyncBreakpoint() const;
@@ -830,6 +831,12 @@ class Debugger {
   // lower on the stack.
   uword stepping_fp_;
   bool interpreted_stepping_;
+
+  // When stepping through code, do not stop more than once in the same
+  // token position range.
+  uword last_stepping_fp_;
+  TokenPosition last_stepping_pos_;
+
   // Used to track the current async/async* function.
   uword async_stepping_fp_;
   bool interpreted_async_stepping_;

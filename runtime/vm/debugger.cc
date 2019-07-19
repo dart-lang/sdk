@@ -799,7 +799,7 @@ intptr_t ActivationFrame::ContextLevel() {
         if (local_vars.Kind() ==
             kernel::BytecodeLocalVariablesIterator::kScope) {
           if (local_vars.StartPC() <= pc_offset &&
-              pc_offset < local_vars.EndPC()) {
+              pc_offset <= local_vars.EndPC()) {
             ASSERT(context_level_ <= local_vars.ContextLevel());
             context_level_ = local_vars.ContextLevel();
           }
@@ -1170,21 +1170,8 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
 }
 
 RawObject* ActivationFrame::GetAsyncOperation() {
-  GetVarDescriptors();
-  intptr_t var_desc_len = var_descriptors_.Length();
-  for (intptr_t i = 0; i < var_desc_len; i++) {
-    RawLocalVarDescriptors::VarInfo var_info;
-    var_descriptors_.GetInfo(i, &var_info);
-    if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
-      const int8_t kind = var_info.kind();
-      const auto variable_index = VariableIndex(var_info.index());
-      if (kind == RawLocalVarDescriptors::kStackVar) {
-        return GetStackVar(variable_index);
-      } else {
-        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-        return GetContextVar(var_info.scope_id, variable_index.value());
-      }
-    }
+  if (function().name() == Symbols::AsyncOperation().raw()) {
+    return GetParameter(0);
   }
   return Object::null();
 }
@@ -1897,6 +1884,8 @@ Debugger::Debugger(Isolate* isolate)
       awaiter_stack_trace_(NULL),
       stepping_fp_(0),
       interpreted_stepping_(false),
+      last_stepping_fp_(0),
+      last_stepping_pos_(TokenPosition::kNoSource),
       async_stepping_fp_(0),
       interpreted_async_stepping_(false),
       top_frame_awaiter_(Object::null()),
@@ -2977,47 +2966,62 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
     kernel::BytecodeSourcePositionsIterator iter(zone, bytecode);
     uword pc_offset = kUwordMax;
     TokenPosition pos = TokenPosition::kNoSource;
-    while (iter.MoveNext()) {
-      if (pc_offset != kUwordMax) {
-        uword pc = bytecode.GetDebugCheckedOpcodePc(pc_offset, iter.PcOffset());
-        pc_offset = kUwordMax;
-        if (pc != 0) {
-          TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
-          if (requested_column >= 0) {
-            kernel::BytecodeSourcePositionsIterator iter2(zone, bytecode);
+    // Ignore all possible breakpoint positions until the first DebugCheck
+    // opcode of the function.
+    const uword debug_check_pc = bytecode.GetFirstDebugCheckOpcodePc();
+    if (debug_check_pc != 0) {
+      const uword debug_check_pc_offset =
+          debug_check_pc - bytecode.PayloadStart();
+      while (iter.MoveNext()) {
+        if (pc_offset != kUwordMax) {
+          // Check that there is at least one 'debug checked' opcode in the last
+          // source position range.
+          uword pc = bytecode.GetDebugCheckedOpcodeReturnAddress(
+              pc_offset, iter.PcOffset());
+          pc_offset = kUwordMax;
+          if (pc != 0) {
             TokenPosition next_closest_token_position =
                 TokenPosition::kMaxSource;
-            while (iter2.MoveNext()) {
-              const TokenPosition next = iter2.TokenPos();
-              if (next < next_closest_token_position && next > pos) {
-                next_closest_token_position = next;
+            if (requested_column >= 0) {
+              kernel::BytecodeSourcePositionsIterator iter2(zone, bytecode);
+              TokenPosition next_closest_token_position =
+                  TokenPosition::kMaxSource;
+              while (iter2.MoveNext()) {
+                const TokenPosition next = iter2.TokenPos();
+                if (next < next_closest_token_position && next > pos) {
+                  next_closest_token_position = next;
+                }
               }
             }
+            RefineBreakpointPos(
+                script, pos, next_closest_token_position, requested_token_pos,
+                last_token_pos, requested_column, exact_token_pos,
+                &best_fit_pos, &best_column, &best_line, &best_token_pos);
           }
-          RefineBreakpointPos(script, pos, next_closest_token_position,
+        }
+        pos = iter.TokenPos();
+        if ((!pos.IsReal()) || (pos < requested_token_pos) ||
+            (pos > last_token_pos)) {
+          // Token is not in the target range.
+          continue;
+        }
+        if (iter.PcOffset() < debug_check_pc_offset) {
+          // No breakpoints in prologue.
+          continue;
+        }
+        pc_offset = iter.PcOffset();
+      }
+      if (pc_offset != kUwordMax) {
+        uword pc = bytecode.GetDebugCheckedOpcodeReturnAddress(pc_offset,
+                                                               bytecode.Size());
+        if (pc != 0) {
+          RefineBreakpointPos(script, pos, TokenPosition::kMaxSource,
                               requested_token_pos, last_token_pos,
                               requested_column, exact_token_pos, &best_fit_pos,
                               &best_column, &best_line, &best_token_pos);
         }
       }
-      pos = iter.TokenPos();
-      if ((!pos.IsReal()) || (pos < requested_token_pos) ||
-          (pos > last_token_pos)) {
-        // Token is not in the target range.
-        continue;
-      }
-      pc_offset = iter.PcOffset();
     }
-    if (pc_offset != kUwordMax) {
-      uword pc = bytecode.GetDebugCheckedOpcodePc(pc_offset, bytecode.Size());
-      if (pc != 0) {
-        RefineBreakpointPos(script, pos, TokenPosition::kMaxSource,
-                            requested_token_pos, last_token_pos,
-                            requested_column, exact_token_pos, &best_fit_pos,
-                            &best_column, &best_line, &best_token_pos);
-      }
-    }
-
 #else
     UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -3145,11 +3149,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
       kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                    bytecode);
       uword pc_offset = kUwordMax;
-      // TODO(regis): We should ignore all possible breakpoint positions until
-      // the first DebugCheck opcode of the function.
+      // The breakpoint location provided already ignores breakpoint positions
+      // in the prologue, ie. until the first DebugCheck opcode of the function.
       while (iter.MoveNext()) {
         if (pc_offset != kUwordMax) {
-          pc = bytecode.GetDebugCheckedOpcodePc(pc_offset, iter.PcOffset());
+          pc = bytecode.GetDebugCheckedOpcodeReturnAddress(pc_offset,
+                                                           iter.PcOffset());
           pc_offset = kUwordMax;
           // TODO(regis): We may want to find all PCs for a token position,
           // e.g. in the case of duplicated bytecode in finally clauses.
@@ -3160,7 +3165,8 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
         }
       }
       if (pc_offset != kUwordMax) {
-        pc = bytecode.GetDebugCheckedOpcodePc(pc_offset, bytecode.Size());
+        pc = bytecode.GetDebugCheckedOpcodeReturnAddress(pc_offset,
+                                                         bytecode.Size());
       }
     }
     if (pc != 0) {
@@ -3839,9 +3845,7 @@ void Debugger::EnterSingleStepMode() {
 
 void Debugger::ResetSteppingFramePointers() {
   stepping_fp_ = 0;
-  interpreted_stepping_ = false;
   async_stepping_fp_ = 0;
-  interpreted_async_stepping_ = false;
 }
 
 bool Debugger::SteppedForSyntheticAsyncBreakpoint() const {
@@ -3877,7 +3881,6 @@ void Debugger::SetAsyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
     interpreted_async_stepping_ = stack_trace->FrameAt(0)->IsInterpreted();
   } else {
     async_stepping_fp_ = 0;
-    interpreted_async_stepping_ = false;
   }
 }
 
@@ -3887,7 +3890,6 @@ void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
     interpreted_stepping_ = stack_trace->FrameAt(0)->IsInterpreted();
   } else {
     stepping_fp_ = 0;
-    interpreted_stepping_ = false;
   }
 }
 
@@ -4037,13 +4039,13 @@ bool Debugger::CanRewindFrame(intptr_t frame_index, const char** error) const {
   return true;
 }
 
-// Given a return address pc, find the "rewind" pc, which is the pc
+// Given a return address, find the "rewind" pc, which is the pc
 // before the corresponding call.
-static uword LookupRewindPc(const Code& code, uword pc) {
+static uword LookupRewindPc(const Code& code, uword return_address) {
   ASSERT(!code.is_optimized());
-  ASSERT(code.ContainsInstructionAt(pc));
+  ASSERT(code.ContainsInstructionAt(return_address));
 
-  uword pc_offset = pc - code.PayloadStart();
+  uword pc_offset = return_address - code.PayloadStart();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(
@@ -4064,10 +4066,33 @@ static uword LookupRewindPc(const Code& code, uword pc) {
   return 0;
 }
 
+// Given a return address, find the "rewind" pc, which is the pc
+// before the corresponding call.
+static uword LookupRewindPc(const Bytecode& bytecode, uword return_address) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
+  ASSERT(bytecode.ContainsInstructionAt(return_address));
+  uword pc = bytecode.PayloadStart();
+  const uword end_pc = pc + bytecode.Size();
+  while (pc < end_pc) {
+    uword next_pc = KernelBytecode::Next(pc);
+    if (next_pc == return_address) {
+      return pc;
+    }
+    pc = next_pc;
+  }
+  return 0;
+#endif
+}
+
 void Debugger::RewindToFrame(intptr_t frame_index) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Code& code = Code::Handle(zone);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   Function& function = Function::Handle(zone);
 
   // Find the requested frame.
@@ -4079,29 +4104,47 @@ void Debugger::RewindToFrame(intptr_t frame_index) {
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
-      code = frame->LookupDartCode();
-      function = code.function();
-      if (!IsFunctionVisible(function)) {
-        continue;
-      }
-      if (code.is_optimized()) {
-        intptr_t sub_index = 0;
-        for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
-             it.Advance()) {
-          if (current_frame == frame_index) {
-            RewindToOptimizedFrame(frame, code, sub_index);
-            UNREACHABLE();
-          }
-          current_frame++;
-          sub_index++;
+      if (frame->is_interpreted()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        bytecode = frame->LookupDartBytecode();
+        function = bytecode.function();
+        if (function.IsNull() || !IsFunctionVisible(function)) {
+          continue;  // Skip bytecode stub frame or invisible frame.
         }
-      } else {
         if (current_frame == frame_index) {
-          // We are rewinding to an unoptimized frame.
-          RewindToUnoptimizedFrame(frame, code);
+          // We are rewinding to an interpreted frame.
+          RewindToInterpretedFrame(frame, bytecode);
           UNREACHABLE();
         }
         current_frame++;
+#else
+        UNREACHABLE();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      } else {
+        code = frame->LookupDartCode();
+        function = code.function();
+        if (!IsFunctionVisible(function)) {
+          continue;
+        }
+        if (code.is_optimized()) {
+          intptr_t sub_index = 0;
+          for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
+               it.Advance()) {
+            if (current_frame == frame_index) {
+              RewindToOptimizedFrame(frame, code, sub_index);
+              UNREACHABLE();
+            }
+            current_frame++;
+            sub_index++;
+          }
+        } else {
+          if (current_frame == frame_index) {
+            // We are rewinding to an unoptimized frame.
+            RewindToUnoptimizedFrame(frame, code);
+            UNREACHABLE();
+          }
+          current_frame++;
+        }
       }
     }
   }
@@ -4125,10 +4168,10 @@ void Debugger::RewindToUnoptimizedFrame(StackFrame* frame, const Code& code) {
     OS::PrintErr(
         "===============================\n"
         "Rewinding to unoptimized frame:\n"
-        "    rewind_pc(0x%" Px ") sp(0x%" Px ") fp(0x%" Px
+        "    rewind_pc(0x%" Px " offset:0x%" Px ") sp(0x%" Px ") fp(0x%" Px
         ")\n"
         "===============================\n",
-        rewind_pc, frame->sp(), frame->fp());
+        rewind_pc, rewind_pc - code.PayloadStart(), frame->sp(), frame->fp());
   }
   Exceptions::JumpToFrame(Thread::Current(), rewind_pc, frame->sp(),
                           frame->fp(), true /* clear lazy deopt at target */);
@@ -4161,6 +4204,36 @@ void Debugger::RewindToOptimizedFrame(StackFrame* frame,
   uword deopt_stub_pc = StubCode::DeoptForRewind().EntryPoint();
   Exceptions::JumpToFrame(thread, deopt_stub_pc, frame->sp(), frame->fp(),
                           true /* clear lazy deopt at target */);
+  UNREACHABLE();
+}
+
+void Debugger::RewindToInterpretedFrame(StackFrame* frame,
+                                        const Bytecode& bytecode) {
+  // We will be jumping out of the debugger rather than exiting this
+  // function, so prepare the debugger state.
+  ClearCachedStackTraces();
+  resume_action_ = kContinue;
+  resume_frame_index_ = -1;
+  EnterSingleStepMode();
+
+  uword rewind_pc = LookupRewindPc(bytecode, frame->pc());
+  if (FLAG_trace_rewind && rewind_pc == 0) {
+    OS::PrintErr("Unable to find rewind pc for bytecode pc(%" Px ")\n",
+                 frame->pc());
+  }
+  ASSERT(rewind_pc != 0);
+  if (FLAG_trace_rewind) {
+    OS::PrintErr(
+        "===============================\n"
+        "Rewinding to interpreted frame:\n"
+        "    rewind_pc(0x%" Px " offset:0x%" Px ") sp(0x%" Px ") fp(0x%" Px
+        ")\n"
+        "===============================\n",
+        rewind_pc, rewind_pc - bytecode.PayloadStart(), frame->sp(),
+        frame->fp());
+  }
+  Exceptions::JumpToFrame(Thread::Current(), rewind_pc, frame->sp(),
+                          frame->fp(), true /* clear lazy deopt at target */);
   UNREACHABLE();
 }
 
@@ -4271,7 +4344,9 @@ bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
     Smi& value = Smi::Handle(zone);
     for (int i = 0; i < yields.Length(); i++) {
       value ^= yields.At(i);
-      if (value.Value() == looking_for) return true;
+      if (value.Value() == looking_for) {
+        return true;
+      }
     }
   }
   return false;
@@ -4340,6 +4415,28 @@ RawError* Debugger::PauseStepping() {
   if (!frame->TokenPos().IsDebugPause()) {
     return Error::null();
   }
+
+  if (frame->fp() == last_stepping_fp_ &&
+      frame->TokenPos() == last_stepping_pos_) {
+    // Do not stop multiple times for the same token position.
+    // Several 'debug checked' opcodes may be issued in the same token range.
+    return Error::null();
+  }
+
+  // In bytecode, do not stop before encountering the DebugCheck opcode.
+  // Skip this check if we previously stopped in this frame.
+  // If no DebugCheck was emitted, do not stop (InPrologue returns true).
+  if (frame->IsInterpreted() && frame->fp() != last_stepping_fp_) {
+    uword debug_check_pc = frame->bytecode().GetFirstDebugCheckOpcodePc();
+    // Frame pc is return address, debug_check_pc is exact, so use '<=' in test.
+    if (debug_check_pc == 0 || frame->pc() <= debug_check_pc) {
+      return Error::null();
+    }
+  }
+
+  // We are stopping in this frame at the token pos.
+  last_stepping_fp_ = frame->fp();
+  last_stepping_pos_ = frame->TokenPos();
 
   // If there is an active breakpoint at this pc, then we should have
   // already bailed out of this function in the skip_next_step_ test
@@ -4986,8 +5083,7 @@ void Debugger::AsyncStepInto(const Closure& async_op) {
 
 void Debugger::Continue() {
   SetResumeAction(kContinue);
-  stepping_fp_ = 0;
-  async_stepping_fp_ = 0;
+  ResetSteppingFramePointers();
   NotifySingleStepping(false);
 }
 

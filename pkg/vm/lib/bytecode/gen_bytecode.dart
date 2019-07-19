@@ -1668,11 +1668,14 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       // The debugger expects the source position to correspond to the
       // declaration position of the last parameter, if any, or of the function.
       if (options.emitSourcePositions && function != null) {
-        var pos = function.fileOffset;
+        var pos = TreeNode.noOffset;
         if (function.namedParameters.isNotEmpty) {
           pos = function.namedParameters.last.fileOffset;
         } else if (function.positionalParameters.isNotEmpty) {
           pos = function.positionalParameters.last.fileOffset;
+        }
+        if (pos == TreeNode.noOffset) {
+          pos = function.fileOffset;
         }
         _recordSourcePosition(pos);
       }

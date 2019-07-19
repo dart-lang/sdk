@@ -435,6 +435,7 @@ class BytecodeAssembler {
   }
 
   void emitStoreContextVar(int ra, int re) {
+    emitSourcePosition();
     _emitInstructionAE(Opcode.kStoreContextVar, ra, re);
   }
 

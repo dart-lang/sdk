@@ -102,19 +102,6 @@ var tests = <IsolateTest>[
     expect(result.type, equals('Instance'));
     expect(result.valueAsString, equals('100'));
 
-    // Resume again, for fun.
-    var result2 = await isolate.resume();
-    expect(result2['type'], equals('Success'));
-  },
-  hasStoppedAtBreakpoint,
-  stoppedAtLine(LINE_A),
-  (Isolate isolate) async {
-    // global is now 101.
-    Instance result = await isolate.rootLibrary.evaluate('global');
-    print('global is $result');
-    expect(result.type, equals('Instance'));
-    expect(result.valueAsString, equals('101'));
-
     // Rewind up to 'test'/
     var result2 = await isolate.rewind(3);
     expect(result2['type'], equals('Success'));
