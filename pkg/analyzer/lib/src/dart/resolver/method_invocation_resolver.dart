@@ -246,9 +246,6 @@ class MethodInvocationResolver {
         for (var accessor in extension.accessors) {
           checkElement(accessor, extension);
         }
-        for (var field in extension.fields) {
-          checkElement(field, extension);
-        }
         for (var method in extension.methods) {
           checkElement(method, extension);
         }
