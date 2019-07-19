@@ -9114,7 +9114,9 @@ class Pointer : public Instance {
   }
 
   void SetNativeAddress(size_t address) const {
-    StorePointer(&raw_ptr()->c_memory_address_, Integer::New(address));
+    const auto& address_boxed = Integer::Handle(Integer::New(address));
+    NoSafepointScope no_safepoint_scope;
+    StorePointer(&raw_ptr()->c_memory_address_, address_boxed.raw());
   }
 
   static intptr_t type_arguments_offset() {
