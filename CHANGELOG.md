@@ -1,3 +1,7 @@
+# 0.1.95
+
+* fixed false positive in `prefer_asserts_in_initializer_lists` (#1655).
+
 # 0.1.94
 
 * (internal): analyzer API call updates

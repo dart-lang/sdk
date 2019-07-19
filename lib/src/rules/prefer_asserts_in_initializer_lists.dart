@@ -101,8 +101,8 @@ class _AssertVisitor extends RecursiveAstVisitor {
   bool _hasMethod(MethodElement element) {
     final type = classElement.type;
     final name = element.name;
-    return type.lookUpMethod(name, element.library) == element ||
-        type.lookUpInheritedMethod(name) == element;
+    return element == type.lookUpMethod(name, element.library) ||
+        element == type.lookUpInheritedMethod(name);
   }
 }
 

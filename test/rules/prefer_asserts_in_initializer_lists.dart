@@ -126,3 +126,10 @@ class G<T> extends F<T> {
     }
 }
 
+abstract class H<T> {
+  H() {
+    assert(_assert()); // OK
+  }
+
+  bool _assert() => true;
+}
