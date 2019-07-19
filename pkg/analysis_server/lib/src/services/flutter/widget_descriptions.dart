@@ -11,6 +11,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/comment.dart';
 
@@ -122,6 +123,9 @@ class _WidgetDescriptionComputer {
   /// The instance of [Flutter] support.
   final Flutter flutter;
 
+  ClassElement _classAlignment;
+  ClassElement _classAlignmentDirectional;
+
   _WidgetDescriptionComputer(
     this.classRegistry,
     this.resolvedUnit,
@@ -139,6 +143,8 @@ class _WidgetDescriptionComputer {
     if (constructorElement == null) {
       return null;
     }
+
+    await _fetchClassElements();
 
     var properties = <PropertyDescription>[];
     _addProperties(
@@ -343,6 +349,18 @@ class _WidgetDescriptionComputer {
         .toList();
   }
 
+  Future<void> _fetchClassElements() async {
+    var sessionHelper = AnalysisSessionHelper(resolvedUnit.session);
+    _classAlignment = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'Alignment',
+    );
+    _classAlignmentDirectional = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'AlignmentDirectional',
+    );
+  }
+
   protocol.FlutterWidgetPropertyEditor _getEditor(DartType type) {
     if (type.isDartCoreBool) {
       return protocol.FlutterWidgetPropertyEditor(
@@ -370,6 +388,19 @@ class _WidgetDescriptionComputer {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
           enumItems: _enumItemsForEnum(classElement),
+        );
+      }
+      if (flutter.isExactAlignmentGeometry(classElement)) {
+        var items = <protocol.FlutterWidgetPropertyValueEnumItem>[];
+        items.addAll(
+          _enumItemsForStaticFields(_classAlignment),
+        );
+        items.addAll(
+          _enumItemsForStaticFields(_classAlignmentDirectional),
+        );
+        return protocol.FlutterWidgetPropertyEditor(
+          protocol.FlutterWidgetPropertyEditorKind.ENUM,
+          enumItems: items,
         );
       }
     }
@@ -406,7 +437,9 @@ class _WidgetDescriptionComputer {
         var field = element.variable;
         if (field is FieldElement && field.isStatic) {
           var enclosingClass = field.enclosingElement as ClassElement;
-          if (field.isEnumConstant) {
+          if (field.isEnumConstant ||
+              flutter.isExactAlignment(enclosingClass) ||
+              flutter.isExactAlignmentDirectional(enclosingClass)) {
             return protocol.FlutterWidgetPropertyValue(
               enumValue: _toEnumItem(field),
             );

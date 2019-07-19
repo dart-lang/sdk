@@ -33,6 +33,7 @@ class Flutter {
   final String packageName;
   final String widgetsUri;
 
+  final Uri _uriAlignment;
   final Uri _uriAsync;
   final Uri _uriBasic;
   final Uri _uriContainer;
@@ -65,6 +66,7 @@ class Flutter {
 
   Flutter._(this.packageName, String uriPrefix)
       : widgetsUri = '$uriPrefix/widgets.dart',
+        _uriAlignment = Uri.parse('$uriPrefix/src/painting/alignment.dart'),
         _uriAsync = Uri.parse('$uriPrefix/src/widgets/async.dart'),
         _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
         _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
@@ -320,6 +322,21 @@ class Flutter {
    */
   bool isChildrenArgument(Expression argument) =>
       argument is NamedExpression && argument.name.label.name == 'children';
+
+  /// Return `true` if the [element] is the Flutter class `Alignment`.
+  bool isExactAlignment(ClassElement element) {
+    return _isExactWidget(element, 'Alignment', _uriAlignment);
+  }
+
+  /// Return `true` if the [element] is the Flutter class `AlignmentDirectional`.
+  bool isExactAlignmentDirectional(ClassElement element) {
+    return _isExactWidget(element, 'AlignmentDirectional', _uriAlignment);
+  }
+
+  /// Return `true` if the [element] is the Flutter class `AlignmentGeometry`.
+  bool isExactAlignmentGeometry(ClassElement element) {
+    return _isExactWidget(element, 'AlignmentGeometry', _uriAlignment);
+  }
 
   /**
    * Return `true` if the [node] is creation of `Container`.
