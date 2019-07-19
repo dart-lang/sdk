@@ -514,7 +514,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
                 "Unexpected function signature: "
                 "$targetElement inside a non-closure: $target");
           }
-          _buildMethodSignature(originalClosureNode);
+          if (options.experimentNewRti) {
+            _buildMethodSignatureNewRti(originalClosureNode);
+          } else {
+            _buildMethodSignature(originalClosureNode);
+          }
           break;
         case MemberKind.generatorBody:
           _buildGeneratorBody(
@@ -1230,6 +1234,21 @@ class KernelSsaGraphBuilder extends ir.Visitor {
             _sourceInformationBuilder.buildReturn(originalClosureNode)))
         .addSuccessor(graph.exit);
 
+    _closeFunction();
+  }
+
+  /// Constructs a special signature function for a closure.
+  void _buildMethodSignatureNewRti(ir.FunctionNode originalClosureNode) {
+    // The signature function has no corresponding ir.Node, so we just use the
+    // targetElement to set up the type environment.
+    _openFunction(targetElement, checks: TargetChecks.none);
+    FunctionType functionType =
+        _elementMap.getFunctionType(originalClosureNode);
+    HInstruction rti =
+        _typeBuilder.analyzeTypeArgumentNewRti(functionType, sourceElement);
+    close(new HReturn(_abstractValueDomain, rti,
+            _sourceInformationBuilder.buildReturn(originalClosureNode)))
+        .addSuccessor(graph.exit);
     _closeFunction();
   }
 
