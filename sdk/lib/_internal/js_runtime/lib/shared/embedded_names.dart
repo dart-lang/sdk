@@ -336,6 +336,15 @@ enum JsBuiltin {
   ///       ...
   dartObjectConstructor,
 
+  /// Returns the JavaScript constructor function for the runtime's Closure
+  /// class, the base class of all closure objects.  This can be used for type
+  /// tests, as in
+  ///
+  ///     var constructor = JS_BUILTIN('', JsBuiltin.dartClosureConstructor);
+  ///     if (JS('bool', '# instanceof #', obj, constructor))
+  ///       ...
+  dartClosureConstructor,
+
   /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///
   /// This relies on a deterministic encoding of is-check properties (for

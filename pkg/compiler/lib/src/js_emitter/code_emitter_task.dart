@@ -99,6 +99,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.reporter,
           _emitter,
           codegen.rtiEncoder,
+          codegen.rtiRecipeEncoder,
           closedWorld.elementEnvironment);
       typeTestRegistry = new TypeTestRegistry(
           _compiler.options, closedWorld.elementEnvironment);

@@ -4507,6 +4507,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return js.js
             .expressionTemplateYielding(_emitter.typeAccess(objectClass));
 
+      case JsBuiltin.dartClosureConstructor:
+        ClassEntity closureClass = closedWorld.commonElements.closureClass;
+        return js.js
+            .expressionTemplateYielding(_emitter.typeAccess(closureClass));
+
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = _namer.fixedNames.operatorIsPrefix.length;
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');

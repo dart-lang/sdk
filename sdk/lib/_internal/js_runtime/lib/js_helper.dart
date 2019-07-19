@@ -59,7 +59,8 @@ import 'dart:_js_names'
         unmangleGlobalNameIfPreservedAnyways,
         unmangleAllIdentifiersIfPreservedAnyways;
 
-import 'dart:_rti' as newRti show createRuntimeType, getRuntimeType;
+import 'dart:_rti' as newRti
+    show createRuntimeType, getRuntimeType, getTypeFromTypesTable;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -2132,7 +2133,9 @@ abstract class Closure implements Function {
           '''(function(getType, t) {
                     return function(){ return getType(t); };
                 })(#, #)''',
-          RAW_DART_FUNCTION_REF(getType),
+          JS_GET_FLAG('USE_NEW_RTI')
+              ? RAW_DART_FUNCTION_REF(newRti.getTypeFromTypesTable)
+              : RAW_DART_FUNCTION_REF(getType),
           functionType);
     } else if (JS('bool', 'typeof # == "function"', functionType)) {
       if (isStatic) {
@@ -2456,7 +2459,7 @@ closureFromTearOff(receiver, functions, applyTrampolineIndex, reflectionInfo,
   return Closure.fromTearOff(
       receiver,
       JS('JSArray', '#', functions),
-      applyTrampolineIndex,
+      JS('int|Null', '#', applyTrampolineIndex),
       reflectionInfo,
       JS('bool', '!!#', isStatic),
       JS('bool', '!!#', isIntercepted),

@@ -14,10 +14,11 @@ import 'dart:_foreign_helper'
         JS_EMBEDDED_GLOBAL,
         JS_GET_NAME,
         RAW_DART_FUNCTION_REF;
+
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
 
 import 'dart:_js_embedded_names'
-    show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE;
+    show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE, TYPES;
 
 import 'dart:_recipe_syntax';
 
@@ -124,6 +125,11 @@ class Rti {
   static const kindFunction = 10;
   static const kindGenericFunction = 11;
   static const kindGenericFunctionParameter = 12;
+
+  static bool _isFunctionType(Rti rti) {
+    int kind = Rti._getKind(rti);
+    return kind == kindFunction || kind == kindGenericFunction;
+  }
 
   /// Primary data associated with type.
   ///
@@ -281,6 +287,19 @@ Rti findType(String recipe) {
   return _Universe.eval(_theUniverse(), recipe);
 }
 
+/// Returns the Rti type of [object]. Closures have both an interface type
+/// (Closures implement `Function`) and a structural function type. Uses
+/// [testRti] to choose the appropriate type.
+///
+/// Called from generated code.
+Rti instanceOrFunctionType(object, Rti testRti) {
+  if (Rti._isFunctionType(testRti)) {
+    Rti rti = _instanceFunctionType(object);
+    if (rti != null) return rti;
+  }
+  return instanceType(object);
+}
+
 /// Returns the Rti type of [object].
 /// Called from generated code.
 Rti instanceType(object) {
@@ -316,6 +335,39 @@ Rti instanceType(object) {
 Rti _instanceTypeFromConstructor(constructor) {
   // TODO(sra): Cache Rti on constructor.
   return findType(JS('String', '#.name', constructor));
+}
+
+/// Returns the structural function type of [object], or `null` if the object is
+/// not a closure.
+Rti _instanceFunctionType(object) {
+  if (_Utils.instanceOf(
+      object,
+      JS_BUILTIN(
+          'depends:none;effects:none;', JsBuiltin.dartClosureConstructor))) {
+    var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+    var signature = JS('', '#[#]', object, signatureName);
+    if (signature != null) {
+      if (JS('bool', 'typeof # == "number"', signature)) {
+        return getTypeFromTypesTable(_Utils.asInt(signature));
+      }
+      return _castToRti(JS('', '#[#]()', object, signatureName));
+    }
+  }
+  return null;
+}
+
+/// Returns Rti from types table. The types table is initialized with recipe
+/// strings.
+Rti getTypeFromTypesTable(/*int*/ _index) {
+  int index = _Utils.asInt(_index);
+  var table = JS_EMBEDDED_GLOBAL('', TYPES);
+  var type = _Utils.arrayAt(table, index);
+  if (_Utils.isString(type)) {
+    Rti rti = findType(_Utils.asString(type));
+    _Utils.arraySetAt(table, index, rti);
+    return rti;
+  }
+  return _castToRti(type);
 }
 
 Type getRuntimeType(object) {
@@ -363,7 +415,7 @@ bool _generalIsTestImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  Rti objectRti = instanceType(object);
+  Rti objectRti = instanceOrFunctionType(object, testRti);
   return isSubtype(_theUniverse(), objectRti, testRti);
 }
 
@@ -373,7 +425,7 @@ _generalAsCheckImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  Rti objectRti = instanceType(object);
+  Rti objectRti = instanceOrFunctionType(object, testRti);
   if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
   var message = "${Error.safeToString(object)}:"
       " type '${_rtiToString(objectRti, null)}'"
@@ -387,7 +439,7 @@ _generalTypeCheckImplementation(object) {
   // This static method is installed on an Rti object as a JavaScript instance
   // method. The Rti object is 'this'.
   Rti testRti = _castToRti(JS('', 'this'));
-  Rti objectRti = instanceType(object);
+  Rti objectRti = instanceOrFunctionType(object, testRti);
   if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
   var message = "${Error.safeToString(object)}:"
       " type '${_rtiToString(objectRti, null)}'"
