@@ -408,6 +408,27 @@ deps = {
       ],
       "dep_type": "cipd",
   },
+
+  # TODO(37531): Remove these cipd packages and build with sdk instead when
+  # benchmark runner gets support for that.
+  Var("dart_root") + "/benchmarks/FfiBoringssl/dart/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/ffiboringssl",
+              "version": "commit:a86c69888b9a416f5249aacb4690a765be064969",
+          },
+      ],
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/benchmarks/FfiCall/dart/native/out/": {
+      "packages": [
+          {
+              "package": "dart/benchmarks/fficall",
+              "version": "version:1",
+          },
+      ],
+      "dep_type": "cipd",
+  },
 }
 
 deps_os = {

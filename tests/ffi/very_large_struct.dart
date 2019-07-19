@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library FfiTestCoordinateBare;
-
 import 'dart:ffi';
 
 /// Large sample struct for dart:ffi library.
@@ -44,7 +42,7 @@ class VeryLargeStruct extends Struct<VeryLargeStruct> {
   Pointer<VeryLargeStruct> parent;
 
   @IntPtr()
-  int numChidlren;
+  int numChildren;
 
   Pointer<VeryLargeStruct> children;
 
