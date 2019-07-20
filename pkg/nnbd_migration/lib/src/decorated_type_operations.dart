@@ -17,11 +17,6 @@ class DecoratedTypeOperations
   DecoratedTypeOperations(this._typeSystem, this._variableRepository);
 
   @override
-  DecoratedType elementType(VariableElement element) {
-    return _variableRepository.decoratedElementType(element);
-  }
-
-  @override
   bool isLocalVariable(VariableElement element) {
     return element is LocalVariableElement;
   }
@@ -29,5 +24,10 @@ class DecoratedTypeOperations
   @override
   bool isSubtypeOf(DecoratedType leftType, DecoratedType rightType) {
     return _typeSystem.isSubtypeOf(leftType.type, rightType.type);
+  }
+
+  @override
+  DecoratedType variableType(VariableElement variable) {
+    return _variableRepository.decoratedElementType(variable);
   }
 }
