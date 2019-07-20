@@ -371,10 +371,13 @@ void f(bool b, int i) {
   /*stmt: unreachable*/ do {} while (b);
   /*stmt: unreachable*/ for (;;) {}
   /*stmt: unreachable*/ for (var _ in []) {}
-  /*stmt: unreachable*/ if (b) {}
-  /*stmt: unreachable*/ switch (i) {}
+  // TODO(paulberry): b shouldn't be considered both nullable and non-nullable.
+  /*stmt: unreachable*/ if (/*nonNullable,nullable*/b) {}
+  // TODO(paulberry): i shouldn't be considered both nullable and non-nullable.
+  /*stmt: unreachable*/ switch (/*nonNullable,nullable*/i) {}
   /*stmt: unreachable*/ try {} finally {}
-  /*stmt: unreachable*/ while (b) {}
+  // TODO(paulberry): b shouldn't be considered both nullable and non-nullable.
+  /*stmt: unreachable*/ while (/*nonNullable,nullable*/b) {}
 }
 ''');
   }
@@ -485,7 +488,8 @@ void f() {
   test_logicalAnd_leftFalse() async {
     await trackCode(r'''
 void f(int x) {
-  false && /*unreachable*/ (x == 1);
+  // TODO(paulberry): x shouldn't be considered both nullable and non-nullable.
+  false && /*unreachable*/ (/*nonNullable,nullable*/x == 1);
 }
 ''');
   }
@@ -493,7 +497,8 @@ void f(int x) {
   test_logicalOr_leftTrue() async {
     await trackCode(r'''
 void f(int x) {
-  true || /*unreachable*/ (x == 1);
+  // TODO(paulberry): x shouldn't be considered both nullable and non-nullable.
+  true || /*unreachable*/ (/*nonNullable,nullable*/x == 1);
 }
 ''');
   }
@@ -717,18 +722,10 @@ class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
   Set<_FlowAssertion> computeNodeValue(Id id, AstNode node) {
     Set<_FlowAssertion> result = {};
     if (_flowResult.nullableNodes.contains(node)) {
-      // We sometimes erroneously annotate a node as both nullable and
-      // non-nullable.  Ignore for now.  TODO(paulberry): fix this.
-      if (!_flowResult.nonNullableNodes.contains(node)) {
-        result.add(_FlowAssertion.nullable);
-      }
+      result.add(_FlowAssertion.nullable);
     }
     if (_flowResult.nonNullableNodes.contains(node)) {
-      // We sometimes erroneously annotate a node as both nullable and
-      // non-nullable.  Ignore for now.  TODO(paulberry): fix this.
-      if (!_flowResult.nullableNodes.contains(node)) {
-        result.add(_FlowAssertion.nonNullable);
-      }
+      result.add(_FlowAssertion.nonNullable);
     }
     if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_FlowAssertion.unreachable);
