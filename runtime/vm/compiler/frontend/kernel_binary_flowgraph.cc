@@ -874,7 +874,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       }
     }
     if (extra_entry != nullptr) {
-      B->RecordUncheckedEntryPoint(extra_entry);
+      B->RecordUncheckedEntryPoint(graph_entry, extra_entry);
     }
   } else {
     // If the function's body contains any yield points, build switch statement

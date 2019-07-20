@@ -325,6 +325,10 @@ class BytecodeAssembler {
     _emitJumpInstruction(Opcode.kJumpIfNotNull, label);
   }
 
+  void emitJumpIfUnchecked(Label label) {
+    _emitJumpInstruction(Opcode.kJumpIfUnchecked, label);
+  }
+
   void emitReturnTOS() {
     emitSourcePosition();
     _emitInstruction0(Opcode.kReturnTOS);

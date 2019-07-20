@@ -391,14 +391,17 @@
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": { },
     "dartkb-interpret-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_interpreter",
         "vm-options": ["--enable_interpreter", "--compilation-counter-threshold=-1"]
     }},
     "dartkb-mixed-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_mixed",
         "vm-options": ["--enable_interpreter"]
     }},
     "dartkb-compile-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
+        "builder-tag": "bytecode_compiler",
         "vm-options": ["--use_bytecode_compiler"]
     }},
     "(dartdevc|dartdevk)-checked-(linux|mac|win)-(debug|product|release)-chrome": {

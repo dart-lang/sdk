@@ -30,9 +30,6 @@ dart/kernel_determinism_test: SkipSlow
 dart/redirection_type_shuffling_test/none: RuntimeError
 dart/snapshot_version_test: RuntimeError
 
-[ $compiler != dartk ]
-dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
-
 [ $compiler == dartkb ]
 cc/*: Skip # Too many timeouts and crashes for infrastructure to handle.
 
@@ -107,6 +104,7 @@ cc/IsolateReload_KernelIncrementalCompileExpression: SkipByDesign
 cc/IsolateReload_KernelIncrementalCompileGenerics: SkipByDesign
 cc/Mixin_PrivateSuperResolution: Skip
 cc/Mixin_PrivateSuperResolutionCrossLibraryShouldFail: Skip
+dart/entrypoints/jit/*: SkipByDesign # These tests should only run on JIT.
 
 [ $compiler != dartk && $compiler != dartkb && $compiler != none ]
 dart/appjit*: SkipByDesign # Test needs to run from source
@@ -247,8 +245,8 @@ cc/RegenerateAllocStubs: SkipByDesign # This test is meaningless for DBC as allo
 [ $arch == simdbc || $arch == simdbc64 || $compiler == dartkb ]
 dart/generic_field_invocation_test: SkipByDesign # DBC and KBC interpreters do not support --no_lazy_dispatchers
 
-[ $builder_tag == optimization_counter_threshold || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 || $compiler != dartk && $compiler != dartkp ]
-dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensible to when functions are optimized, so they are disabled on hotreload and optcounter bots.
+[ $builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed || $builder_tag == optimization_counter_threshold || $hot_reload || $hot_reload_rollback || $arch != arm && $arch != simarm && $arch != x64 || $compiler != dartk && $compiler != dartkb && $compiler != dartkp ]
+dart/entrypoints/*: SkipByDesign # These tests are for compiler optimizations and very sensible to when functions are optimized, so they are disabled on hotreload, optcounter and bytecode interpreter bots.
 
 [ $compiler == dart2analyzer || $compiler == dart2js ]
 dart/data_uri*test: Skip # Data uri's not supported by dart2js or the analyzer.

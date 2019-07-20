@@ -411,6 +411,7 @@ Bytecode {
   InstantiateTypeArgumentsTOS 0, CP#1
   PopLocal             r0
 L1:
+  JumpIfUnchecked      L2
   Push                 FP[-6]
   LoadTypeArgumentsField CP#0
   Push                 r0
@@ -418,6 +419,7 @@ L1:
   PushConstant         CP#3
   PushConstant         CP#4
   AssertSubtype
+L2:
   PushNull
   ReturnTOS
 }
@@ -428,6 +430,239 @@ ConstantPool {
   [2] = Type #lib::E::foo6::TypeParam/0
   [3] = Type #lib::E::TypeParam/0
   [4] = ObjectRef 'T'
+}
+
+Class 'F', script = '#lib', abstract
+    type-params <dart:core::Object T> (args: 1)
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::F < #lib::F::TypeParam/0 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo7', abstract, reflectable, debuggable
+    type-params <#lib::F::TypeParam/0 Q>
+    parameters [#lib::F::foo7::TypeParam/0 'a', dart:core::num 'b', #lib::F::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+Function 'foo8', abstract, reflectable, debuggable
+    type-params <#lib::F::TypeParam/0 Q>
+    parameters [#lib::F::foo8::TypeParam/0 'a', dart:core::num 'b', #lib::F::TypeParam/0 'c'] (required: 3)
+    return-type void
+Class 'G', script = '#lib'
+    type-params <dart:core::Object T> (args: 1)
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::G < #lib::G::TypeParam/0 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo7', reflectable, debuggable
+    type-params <#lib::G::TypeParam/0 Q>
+    parameters [#lib::G::foo7::TypeParam/0 'a', dart:core::int 'b', #lib::G::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  CheckFunctionTypeArgs 1, r0
+  JumpIfNotZeroTypeArgs L1
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PopLocal             r0
+L1:
+  JumpIfUnchecked      L2
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  Push                 r0
+  PushConstant         CP#1
+  PushConstant         CP#2
+  PushConstant         CP#3
+  AssertSubtype
+  Push                 FP[-5]
+  PushConstant         CP#2
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     0, CP#5
+  Drop1
+L2:
+  PushNull
+  ReturnTOS
+}
+Parameter flags: [0, 0, 2]
+Default function type arguments: CP#6
+ConstantPool {
+  [0] = TypeArgumentsField #lib::G
+  [1] = Type #lib::G::foo7::TypeParam/0
+  [2] = Type #lib::G::TypeParam/0
+  [3] = ObjectRef 'Q'
+  [4] = ObjectRef 'c'
+  [5] = SubtypeTestCache
+  [6] = ObjectRef < #lib::G::TypeParam/0 >
+}
+
+Class 'H', script = '#lib'
+    type-params <dart:core::Object T> (args: 1)
+    extends #lib::G < #lib::H::TypeParam/0 >
+    implements [#lib::F < #lib::H::TypeParam/0 >]
+
+
+Function '', constructor, reflectable
+    parameters [] (required: 0)
+    return-type #lib::H < #lib::H::TypeParam/0 >
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall '#lib::G:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'foo8', reflectable, debuggable
+    type-params <#lib::H::TypeParam/0 Q>
+    parameters [#lib::H::foo8::TypeParam/0 'a', dart:core::int 'b', #lib::H::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  CheckFunctionTypeArgs 1, r0
+  JumpIfNotZeroTypeArgs L1
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PopLocal             r0
+L1:
+  JumpIfUnchecked      L2
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  Push                 r0
+  PushConstant         CP#1
+  PushConstant         CP#2
+  PushConstant         CP#3
+  AssertSubtype
+  Push                 FP[-5]
+  PushConstant         CP#2
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     0, CP#5
+  Drop1
+L2:
+  PushNull
+  ReturnTOS
+}
+Parameter flags: [0, 0, 2]
+Default function type arguments: CP#6
+ConstantPool {
+  [0] = TypeArgumentsField #lib::H
+  [1] = Type #lib::H::foo8::TypeParam/0
+  [2] = Type #lib::H::TypeParam/0
+  [3] = ObjectRef 'Q'
+  [4] = ObjectRef 'c'
+  [5] = SubtypeTestCache
+  [6] = ObjectRef < #lib::H::TypeParam/0 >
+}
+
+
+Function 'foo7', reflectable, debuggable, forwarding-stub
+    type-params <#lib::H::TypeParam/0 Q>
+    parameters [#lib::H::foo7::TypeParam/0 'a', dart:core::num 'b', #lib::H::TypeParam/0 'c'] (required: 3)
+    return-type void
+
+Bytecode {
+  Entry                2
+  CheckStack           0
+  CheckFunctionTypeArgs 1, r0
+  JumpIfUnchecked      L1
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  Push                 r0
+  PushConstant         CP#1
+  PushConstant         CP#2
+  PushConstant         CP#3
+  AssertSubtype
+  Push                 FP[-5]
+  PushConstant         CP#2
+  Push                 FP[-8]
+  LoadTypeArgumentsField CP#0
+  PushNull
+  PushConstant         CP#4
+  AssertAssignable     0, CP#5
+  Drop1
+L1:
+  Push                 FP[-6]
+  PushConstant         CP#6
+  PushNull
+  PushNull
+  PushConstant         CP#7
+  AssertAssignable     1, CP#8
+  Drop1
+  Push                 r0
+  Push                 FP[-8]
+  Push                 FP[-7]
+  Push                 FP[-6]
+  Push                 FP[-5]
+  DirectCall           CP#9, 5
+  ReturnTOS
+}
+Parameter flags: [0, 1, 2]
+Forwarding stub target: CP#11
+ConstantPool {
+  [0] = TypeArgumentsField #lib::H
+  [1] = Type #lib::H::foo7::TypeParam/0
+  [2] = Type #lib::H::TypeParam/0
+  [3] = ObjectRef 'Q'
+  [4] = ObjectRef 'c'
+  [5] = SubtypeTestCache
+  [6] = Type dart:core::int
+  [7] = ObjectRef 'b'
+  [8] = SubtypeTestCache
+  [9] = DirectCall '#lib::G::foo7', ArgDesc num-args 4, num-type-args 1, names []
+  [10] = Reserved
+  [11] = ObjectRef #lib::G::foo7
 }
 
 
@@ -481,6 +716,27 @@ ConstantPool {
     static factory •<P extends dart.core::String = dynamic>() → #lib::E<#lib::E::•::P>
       return null;
     method foo6<generic-covariant-impl T extends #lib::E::P = #lib::E::P, U extends dart.core::List<#lib::E::foo6::T> = dart.core::List<#lib::E::P>>(dart.core::Map<#lib::E::foo6::T, #lib::E::foo6::U> map) → void {}
+  }
+  abstract class F<T extends dart.core::Object = dynamic> extends dart.core::Object {
+    synthetic constructor •() → #lib::F<#lib::F::T>
+      : super dart.core::Object::•()
+      ;
+    abstract method foo7<generic-covariant-impl Q extends #lib::F::T = #lib::F::T>(#lib::F::foo7::Q a, covariant dart.core::num b, generic-covariant-impl #lib::F::T c) → void;
+    abstract method foo8<generic-covariant-impl Q extends #lib::F::T = #lib::F::T>(#lib::F::foo8::Q a, covariant dart.core::num b, generic-covariant-impl #lib::F::T c) → void;
+  }
+  class G<T extends dart.core::Object = dynamic> extends dart.core::Object {
+    synthetic constructor •() → #lib::G<#lib::G::T>
+      : super dart.core::Object::•()
+      ;
+    method foo7<generic-covariant-impl Q extends #lib::G::T = #lib::G::T>(#lib::G::foo7::Q a, dart.core::int b, generic-covariant-impl #lib::G::T c) → void {}
+  }
+  class H<T extends dart.core::Object = dynamic> extends #lib::G<#lib::H::T> implements #lib::F<#lib::H::T> {
+    synthetic constructor •() → #lib::H<#lib::H::T>
+      : super #lib::G::•()
+      ;
+    method foo8<generic-covariant-impl Q extends #lib::H::T = #lib::H::T>(#lib::H::foo8::Q a, dart.core::int b, generic-covariant-impl #lib::H::T c) → void {}
+    forwarding-stub method foo7<generic-covariant-impl Q extends #lib::H::T>(#lib::H::foo7::Q a, covariant dart.core::num b, generic-covariant-impl #lib::H::T c) → void
+      return super.{#lib::G::foo7}<#lib::H::foo7::Q>(a, b, c);
   }
   static field dart.core::List<dart.core::Iterable<dynamic>> globalVar;
   static method foo1(dynamic x) → dynamic {

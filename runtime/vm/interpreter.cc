@@ -2746,6 +2746,13 @@ SwitchDispatch:
   }
 
   {
+    BYTECODE(JumpIfUnchecked, T);
+    // Interpreter is not tracking unchecked calls, so fall through to
+    // parameter type checks.
+    DISPATCH();
+  }
+
+  {
     BYTECODE(StoreIndexedTOS, 0);
     SP -= 3;
     RawArray* array = RAW_CAST(Array, SP[1]);

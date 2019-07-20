@@ -904,6 +904,87 @@ Fragment BaseFlowGraphBuilder::CheckNull(TokenPosition position,
   return instructions;
 }
 
+void BaseFlowGraphBuilder::RecordUncheckedEntryPoint(
+    GraphEntryInstr* graph_entry,
+    FunctionEntryInstr* unchecked_entry) {
+  // Closures always check all arguments on their checked entry-point, most
+  // call-sites are unchecked, and they're inlined less often, so it's very
+  // beneficial to build multiple entry-points for them. Regular methods however
+  // have fewer checks to begin with since they have dynamic invocation
+  // forwarders, so in AOT we implement a more conservative time-space tradeoff
+  // by only building the unchecked entry-point when inlining. We should
+  // reconsider this heuristic if we identify non-inlined type-checks in
+  // hotspots of new benchmarks.
+  if (!IsInlining() && (parsed_function_->function().IsClosureFunction() ||
+                        !FLAG_precompiled_mode)) {
+    graph_entry->set_unchecked_entry(unchecked_entry);
+  } else if (InliningUncheckedEntry()) {
+    graph_entry->set_normal_entry(unchecked_entry);
+  }
+}
+
+Fragment BaseFlowGraphBuilder::BuildEntryPointsIntrospection() {
+  if (!FLAG_enable_testing_pragmas) return Drop();
+
+  auto& function = Function::Handle(Z, parsed_function_->function().raw());
+
+  if (function.IsImplicitClosureFunction()) {
+    const auto& parent = Function::Handle(Z, function.parent_function());
+    const auto& func_name = String::Handle(Z, parent.name());
+    const auto& owner = Class::Handle(Z, parent.Owner());
+    function = owner.LookupFunction(func_name);
+  }
+
+  Object& options = Object::Handle(Z);
+  if (!Library::FindPragma(thread_, /*only_core=*/false, function,
+                           Symbols::vm_trace_entrypoints(), &options) ||
+      options.IsNull() || !options.IsClosure()) {
+    return Drop();
+  }
+  auto& closure = Closure::ZoneHandle(Z, Closure::Cast(options).raw());
+  LocalVariable* entry_point_num = MakeTemporary();
+
+  auto& function_name = String::ZoneHandle(
+      Z, String::New(function.ToLibNamePrefixedQualifiedCString(), Heap::kOld));
+  if (parsed_function_->function().IsImplicitClosureFunction()) {
+    function_name = String::Concat(
+        function_name, String::Handle(Z, String::New("#tearoff", Heap::kNew)),
+        Heap::kOld);
+  }
+
+  Fragment call_hook;
+  call_hook += Constant(closure);
+  call_hook += PushArgument();
+  call_hook += Constant(function_name);
+  call_hook += PushArgument();
+  call_hook += LoadLocal(entry_point_num);
+  call_hook += PushArgument();
+  call_hook += Constant(Function::ZoneHandle(Z, closure.function()));
+  call_hook += ClosureCall(TokenPosition::kNoSource,
+                           /*type_args_len=*/0, /*argument_count=*/3,
+                           /*argument_names=*/Array::ZoneHandle(Z));
+  call_hook += Drop();  // result of closure call
+  call_hook += Drop();  // entrypoint number
+  return call_hook;
+}
+
+Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
+                                           intptr_t type_args_len,
+                                           intptr_t argument_count,
+                                           const Array& argument_names,
+                                           bool is_statically_checked) {
+  Value* function = Pop();
+  const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
+  ArgumentArray arguments = GetArguments(total_count);
+  ClosureCallInstr* call = new (Z)
+      ClosureCallInstr(function, arguments, type_args_len, argument_names,
+                       position, GetNextDeoptId(),
+                       is_statically_checked ? Code::EntryKind::kUnchecked
+                                             : Code::EntryKind::kNormal);
+  Push(call);
+  return Fragment(call);
+}
+
 }  // namespace kernel
 }  // namespace dart
 

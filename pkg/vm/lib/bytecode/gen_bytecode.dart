@@ -1827,29 +1827,116 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final forwardingParamTypes = _getForwardingParameterTypes(
         function, forwardingTarget, forwardingSubstitution);
 
-    for (var typeParam in function.typeParameters) {
-      _genTypeParameterBoundCheck(typeParam, forwardingBounds);
+    if (_hasSkippableTypeChecks(
+        function, forwardingBounds, forwardingParamTypes)) {
+      final Label skipChecks = new Label();
+      asm.emitJumpIfUnchecked(skipChecks);
+
+      // We can skip bounds checks of type parameter and type checks of
+      // non-covariant parameters if function is called via unchecked call.
+
+      for (var typeParam in function.typeParameters) {
+        if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
+          _genTypeParameterBoundCheck(typeParam, forwardingBounds);
+        }
+      }
+      for (var param in function.positionalParameters) {
+        if (!param.isCovariant &&
+            _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+          _genArgumentTypeCheck(param, forwardingParamTypes);
+        }
+      }
+      for (var param in locals.sortedNamedParameters) {
+        if (!param.isCovariant &&
+            _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+          _genArgumentTypeCheck(param, forwardingParamTypes);
+        }
+      }
+
+      asm.bind(skipChecks);
     }
+
+    // Covariant parameters need to be checked even if function is called
+    // via unchecked call, so they are generated outside of JumpIfUnchecked.
+
     for (var param in function.positionalParameters) {
-      _genArgumentTypeCheck(param, forwardingParamTypes);
+      if (param.isCovariant &&
+          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+        _genArgumentTypeCheck(param, forwardingParamTypes);
+      }
     }
     for (var param in locals.sortedNamedParameters) {
-      _genArgumentTypeCheck(param, forwardingParamTypes);
+      if (param.isCovariant &&
+          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+        _genArgumentTypeCheck(param, forwardingParamTypes);
+      }
     }
   }
 
-  void _genTypeParameterBoundCheck(TypeParameter typeParam,
+  /// Returns true if bound of [typeParam] should be checked.
+  bool _typeParameterNeedsBoundCheck(TypeParameter typeParam,
       Map<TypeParameter, DartType> forwardingTypeParameterBounds) {
     if (canSkipTypeChecksForNonCovariantArguments &&
         !typeParam.isGenericCovariantImpl) {
-      return;
+      return false;
     }
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]
         : typeParam.bound;
     if (typeEnvironment.isTop(bound)) {
-      return;
+      return false;
     }
+    return true;
+  }
+
+  /// Returns true if type of [param] should be checked.
+  bool _parameterNeedsTypeCheck(VariableDeclaration param,
+      Map<VariableDeclaration, DartType> forwardingParameterTypes) {
+    if (canSkipTypeChecksForNonCovariantArguments &&
+        !param.isCovariant &&
+        !param.isGenericCovariantImpl) {
+      return false;
+    }
+    final DartType type = (forwardingParameterTypes != null)
+        ? forwardingParameterTypes[param]
+        : param.type;
+    if (typeEnvironment.isTop(type)) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Returns true if there are parameter type/bound checks which can
+  /// be skipped on unchecked call.
+  bool _hasSkippableTypeChecks(
+      FunctionNode function,
+      Map<TypeParameter, DartType> forwardingBounds,
+      Map<VariableDeclaration, DartType> forwardingParamTypes) {
+    for (var typeParam in function.typeParameters) {
+      if (_typeParameterNeedsBoundCheck(typeParam, forwardingBounds)) {
+        return true;
+      }
+    }
+    for (var param in function.positionalParameters) {
+      if (!param.isCovariant &&
+          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+        return true;
+      }
+    }
+    for (var param in locals.sortedNamedParameters) {
+      if (!param.isCovariant &&
+          _parameterNeedsTypeCheck(param, forwardingParamTypes)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _genTypeParameterBoundCheck(TypeParameter typeParam,
+      Map<TypeParameter, DartType> forwardingTypeParameterBounds) {
+    final DartType bound = (forwardingTypeParameterBounds != null)
+        ? forwardingTypeParameterBounds[typeParam]
+        : typeParam.bound;
     final DartType type = new TypeParameterType(typeParam);
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
@@ -1860,17 +1947,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genArgumentTypeCheck(VariableDeclaration variable,
       Map<VariableDeclaration, DartType> forwardingParameterTypes) {
-    if (canSkipTypeChecksForNonCovariantArguments &&
-        !variable.isCovariant &&
-        !variable.isGenericCovariantImpl) {
-      return;
-    }
     final DartType type = (forwardingParameterTypes != null)
         ? forwardingParameterTypes[variable]
         : variable.type;
-    if (typeEnvironment.isTop(type)) {
-      return;
-    }
     if (locals.isCaptured(variable)) {
       asm.emitPush(locals.getOriginalParamSlotIndex(variable));
     } else {

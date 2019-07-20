@@ -87,6 +87,7 @@ ClosureCode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0, 0
+  JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#3
   PushNull
@@ -94,6 +95,7 @@ ClosureCode {
   PushConstant         CP#4
   AssertAssignable     0, CP#5
   Drop1
+L1:
   Push                 r0
   PushConstant         CP#7
   PushConstant         CP#6

@@ -571,8 +571,8 @@ namespace dart {
   V(CheckFunctionTypeArgs_Wide,          A_E, WIDE, num, reg, ___)             \
   V(CheckStack,                            A, ORDN, num, ___, ___)             \
   V(DebugCheck,                            0, ORDN, ___, ___, ___)             \
-  V(Unused02,                              0, RESV, ___, ___, ___)             \
-  V(Unused03,                              0, RESV, ___, ___, ___)             \
+  V(JumpIfUnchecked,                       T, ORDN, tgt, ___, ___)             \
+  V(JumpIfUnchecked_Wide,                  T, WIDE, tgt, ___, ___)             \
   V(Allocate,                              D, ORDN, lit, ___, ___)             \
   V(Allocate_Wide,                         D, WIDE, lit, ___, ___)             \
   V(AllocateT,                             0, ORDN, ___, ___, ___)             \
@@ -749,7 +749,7 @@ class KernelBytecode {
   // Maximum bytecode format version supported by VM.
   // The range of supported versions should include version produced by bytecode
   // generator (currentBytecodeFormatVersion in pkg/vm/lib/bytecode/dbc.dart).
-  static const intptr_t kMaxSupportedBytecodeFormatVersion = 15;
+  static const intptr_t kMaxSupportedBytecodeFormatVersion = 16;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -885,8 +885,20 @@ class KernelBytecode {
       case KernelBytecode::kJumpIfNull_Wide:
       case KernelBytecode::kJumpIfNotNull:
       case KernelBytecode::kJumpIfNotNull_Wide:
+      case KernelBytecode::kJumpIfUnchecked:
+      case KernelBytecode::kJumpIfUnchecked_Wide:
         return true;
 
+      default:
+        return false;
+    }
+  }
+
+  DART_FORCE_INLINE static bool IsJumpIfUncheckedOpcode(const KBCInstr* instr) {
+    switch (DecodeOpcode(instr)) {
+      case KernelBytecode::kJumpIfUnchecked:
+      case KernelBytecode::kJumpIfUnchecked_Wide:
+        return true;
       default:
         return false;
     }

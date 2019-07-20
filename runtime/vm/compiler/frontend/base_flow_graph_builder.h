@@ -108,6 +108,32 @@ class TestFragment {
 
 typedef ZoneGrowableArray<PushArgumentInstr*>* ArgumentArray;
 
+// Indicates which form of the unchecked entrypoint we are compiling.
+//
+// kNone:
+//
+//   There is no unchecked entrypoint: the unchecked entry is set to NULL in
+//   the 'GraphEntryInstr'.
+//
+// kSeparate:
+//
+//   The normal and unchecked entrypoint each point to their own versions of
+//   the prologue, containing exactly those checks which need to be performed
+//   on either side. Both sides jump directly to the body after performing
+//   their prologue.
+//
+// kSharedWithVariable:
+//
+//   A temporary variable is allocated and initialized to 0 on normal entry
+//   and 2 on unchecked entry. Code which should be ommitted on the unchecked
+//   entrypoint is made conditional on this variable being equal to 0.
+//
+enum class UncheckedEntryPointStyle {
+  kNone = 0,
+  kSeparate = 1,
+  kSharedWithVariable = 2,
+};
+
 class BaseFlowGraphBuilder {
  public:
   BaseFlowGraphBuilder(
@@ -311,6 +337,25 @@ class BaseFlowGraphBuilder {
                      LocalVariable* receiver,
                      const String& function_name,
                      bool clear_the_temp = true);
+
+  // Records extra unchecked entry point 'unchecked_entry' in 'graph_entry'.
+  void RecordUncheckedEntryPoint(GraphEntryInstr* graph_entry,
+                                 FunctionEntryInstr* unchecked_entry);
+
+  // Pop the index of the current entry-point off the stack. If there is any
+  // entrypoint-tracing hook registered in a pragma for the function, it is
+  // called with the name of the current function and the current entry-point
+  // index.
+  Fragment BuildEntryPointsIntrospection();
+
+  // Builds closure call with given number of arguments. Target closure
+  // function is taken from top of the stack.
+  // PushArgument instructions should be already added for arguments.
+  Fragment ClosureCall(TokenPosition position,
+                       intptr_t type_args_len,
+                       intptr_t argument_count,
+                       const Array& argument_names,
+                       bool use_unchecked_entry = false);
 
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }

@@ -76,6 +76,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#1
   PopLocal             r0
+  JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#3
   PushNull
@@ -83,6 +84,7 @@ ClosureCode {
   PushConstant         CP#4
   AssertAssignable     1, CP#5
   Drop1
+L1:
   Push                 r0
   Push                 r0
   LoadContextVar       0, 0
@@ -337,6 +339,7 @@ L2:
   PushInt              1
   DirectCall           CP#8, 4
   PopLocal             r0
+  JumpIfUnchecked      L3
   Push                 FP[-5]
   PushConstant         CP#10
   PushNull
@@ -344,6 +347,7 @@ L2:
   PushConstant         CP#11
   AssertAssignable     0, CP#12
   Drop1
+L3:
   PushNull
   ReturnTOS
 }
@@ -1011,6 +1015,7 @@ ClosureCode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      1, 0
+  JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#3
   PushNull
@@ -1018,6 +1023,7 @@ ClosureCode {
   PushConstant         CP#4
   AssertAssignable     1, CP#5
   Drop1
+L1:
   Push                 r0
   LoadContextParent
   Push                 r0
@@ -1030,7 +1036,7 @@ ClosureCode {
   LoadContextVar       0, 1
   PushInt              5
   CompareIntGt
-  JumpIfFalse          L1
+  JumpIfFalse          L2
   Push                 r0
   PushInt              4
   StoreContextVar      1, 1
@@ -1061,7 +1067,7 @@ ClosureCode {
   LoadContextVar       1, 1
   DirectCall           CP#20, 1
   Drop1
-L1:
+L2:
   PushNull
   ReturnTOS
 }
@@ -1282,6 +1288,7 @@ ClosureCode {
   Push                 FP[-6]
   LoadFieldTOS         CP#5
   PopLocal             r0
+  JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#20
   PushNull
@@ -1289,6 +1296,7 @@ ClosureCode {
   PushConstant         CP#21
   AssertAssignable     1, CP#22
   Drop1
+L1:
   Push                 r0
   Push                 FP[-5]
   Push                 r0
@@ -1434,6 +1442,7 @@ Bytecode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0, 0
+  JumpIfUnchecked      L1
   Push                 FP[-5]
   PushConstant         CP#0
   Push                 FP[-6]
@@ -1442,6 +1451,7 @@ Bytecode {
   PushConstant         CP#2
   AssertAssignable     0, CP#3
   Drop1
+L1:
   AllocateClosure      CP#4
   StoreLocal           r2
   Push                 r2

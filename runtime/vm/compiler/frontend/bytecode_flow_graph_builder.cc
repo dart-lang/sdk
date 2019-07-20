@@ -174,6 +174,9 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     if (parsed_function()->has_arg_desc_var()) {
       ++num_locals;
     }
+    if (parsed_function()->has_entry_points_temp_var()) {
+      ++num_locals;
+    }
 
     if (num_locals == 0) {
       return;
@@ -205,6 +208,11 @@ void BytecodeFlowGraphBuilder::AllocateLocalVariables(
     }
     if (parsed_function()->has_arg_desc_var()) {
       parsed_function()->arg_desc_var()->set_index(VariableIndex(-idx));
+      ++idx;
+    }
+    if (parsed_function()->has_entry_points_temp_var()) {
+      parsed_function()->entry_points_temp_var()->set_index(
+          VariableIndex(-idx));
       ++idx;
     }
     ASSERT(idx == num_locals);
@@ -815,6 +823,10 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
       Array::ZoneHandle(Z, arg_desc.GetArgumentNames()), arguments,
       *ic_data_array_, B->GetNextDeoptId(), ICData::kStatic);
 
+  if (target.MayHaveUncheckedEntryPoint(isolate())) {
+    call->set_entry_kind(Code::EntryKind::kUnchecked);
+  }
+
   // TODO(alexmarkov): add type info
   // SetResultTypeForStaticCall(call, target, argument_count, result_type);
 
@@ -1348,6 +1360,112 @@ void BytecodeFlowGraphBuilder::BuildJumpIfNotNull() {
   BuildJumpIfStrictCompare(Token::kNE);
 }
 
+void BytecodeFlowGraphBuilder::BuildJumpIfUnchecked() {
+  if (is_generating_interpreter()) {
+    UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
+  }
+
+  ASSERT(IsStackEmpty());
+
+  const intptr_t target_pc = pc_ + DecodeOperandT().value();
+  JoinEntryInstr* target = jump_targets_.Lookup(target_pc);
+  ASSERT(target != nullptr);
+  FunctionEntryInstr* unchecked_entry = nullptr;
+  const intptr_t kCheckedEntry =
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kNone);
+  const intptr_t kUncheckedEntry =
+      static_cast<intptr_t>(UncheckedEntryPointStyle::kSharedWithVariable);
+
+  switch (entry_point_style_) {
+    case UncheckedEntryPointStyle::kNone: {
+      JoinEntryInstr* do_checks = B->BuildJoinEntry();
+      code_ += B->Goto(B->InliningUncheckedEntry() ? target : do_checks);
+      code_ = Fragment(do_checks);
+    } break;
+
+    case UncheckedEntryPointStyle::kSeparate: {
+      // Route normal entry to checks.
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->IntConstant(kCheckedEntry);
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      Fragment do_checks = code_;
+
+      // Create a separate unchecked entry point.
+      unchecked_entry = B->BuildFunctionEntry(graph_entry_);
+      code_ = Fragment(unchecked_entry);
+
+      // Re-build prologue for unchecked entry point. It can only contain
+      // Entry, CheckStack and DebugCheck instructions.
+      bytecode_instr_ = raw_bytecode_;
+      ASSERT(KernelBytecode::IsEntryOpcode(bytecode_instr_));
+      bytecode_instr_ = KernelBytecode::Next(bytecode_instr_);
+      while (!KernelBytecode::IsJumpIfUncheckedOpcode(bytecode_instr_)) {
+        ASSERT(KernelBytecode::IsCheckStackOpcode(bytecode_instr_) ||
+               KernelBytecode::IsDebugCheckOpcode(bytecode_instr_));
+        ASSERT(jump_targets_.Lookup(bytecode_instr_ - raw_bytecode_) ==
+               nullptr);
+        BuildInstruction(KernelBytecode::DecodeOpcode(bytecode_instr_));
+        bytecode_instr_ = KernelBytecode::Next(bytecode_instr_);
+      }
+      ASSERT((bytecode_instr_ - raw_bytecode_) == pc_);
+
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->IntConstant(
+            static_cast<intptr_t>(UncheckedEntryPointStyle::kSeparate));
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      code_ += B->Goto(target);
+
+      code_ = do_checks;
+    } break;
+
+    case UncheckedEntryPointStyle::kSharedWithVariable: {
+      LocalVariable* ep_var = parsed_function()->entry_points_temp_var();
+
+      // Dispatch based on the value of entry_points_temp_var.
+      TargetEntryInstr *do_checks, *skip_checks;
+      if (FLAG_enable_testing_pragmas) {
+        code_ += B->LoadLocal(ep_var);
+        code_ += B->BuildEntryPointsIntrospection();
+      }
+      code_ += B->LoadLocal(ep_var);
+      code_ += B->IntConstant(kUncheckedEntry);
+      code_ += B->BranchIfEqual(&skip_checks, &do_checks, /*negate=*/false);
+
+      code_ = Fragment(skip_checks);
+      code_ += B->Goto(target);
+
+      // Relink the body of the function from normal entry to 'prologue_join'.
+      JoinEntryInstr* prologue_join = B->BuildJoinEntry();
+      FunctionEntryInstr* normal_entry = graph_entry_->normal_entry();
+      if (normal_entry->next() != nullptr) {
+        prologue_join->LinkTo(normal_entry->next());
+        normal_entry->set_next(nullptr);
+      }
+
+      unchecked_entry = B->BuildFunctionEntry(graph_entry_);
+      code_ = Fragment(unchecked_entry);
+      code_ += B->IntConstant(kUncheckedEntry);
+      code_ += B->StoreLocal(TokenPosition::kNoSource, ep_var);
+      code_ += B->Drop();
+      code_ += B->Goto(prologue_join);
+
+      code_ = Fragment(normal_entry);
+      code_ += B->IntConstant(kCheckedEntry);
+      code_ += B->StoreLocal(TokenPosition::kNoSource, ep_var);
+      code_ += B->Drop();
+      code_ += B->Goto(prologue_join);
+
+      code_ = Fragment(do_checks);
+    } break;
+  }
+
+  if (unchecked_entry != nullptr) {
+    B->RecordUncheckedEntryPoint(graph_entry_, unchecked_entry);
+  }
+}
+
 void BytecodeFlowGraphBuilder::BuildDrop1() {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
@@ -1715,12 +1833,29 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
     const PcDescriptors& descriptors,
     const ExceptionHandlers& handlers,
     GraphEntryInstr* graph_entry) {
+  bool seen_jump_if_unchecked = false;
   for (intptr_t pc = 0; pc < bytecode_length_;) {
     const KBCInstr* instr = &(raw_bytecode_[pc]);
 
     if (KernelBytecode::IsJumpOpcode(instr)) {
       const intptr_t target = pc + KernelBytecode::DecodeT(instr);
       EnsureControlFlowJoin(descriptors, target);
+
+      if (KernelBytecode::IsJumpIfUncheckedOpcode(instr)) {
+        if (seen_jump_if_unchecked) {
+          FATAL1(
+              "Multiple JumpIfUnchecked bytecode instructions are not allowed: "
+              "%s.",
+              function().ToFullyQualifiedCString());
+        }
+        seen_jump_if_unchecked = true;
+        ASSERT(entry_point_style_ == UncheckedEntryPointStyle::kNone);
+        entry_point_style_ = ChooseEntryPointStyle(instr);
+        if (entry_point_style_ ==
+            UncheckedEntryPointStyle::kSharedWithVariable) {
+          parsed_function_->EnsureEntryPointsTemp();
+        }
+      }
     } else if (KernelBytecode::IsCheckStackOpcode(instr) &&
                (KernelBytecode::DecodeA(instr) != 0)) {
       // (dartbug.com/36590) BlockEntryInstr::FindOsrEntryAndRelink assumes
@@ -1789,6 +1924,37 @@ void BytecodeFlowGraphBuilder::CollectControlFlow(
   }
 }
 
+UncheckedEntryPointStyle BytecodeFlowGraphBuilder::ChooseEntryPointStyle(
+    const KBCInstr* jump_if_unchecked) {
+  ASSERT(KernelBytecode::IsJumpIfUncheckedOpcode(jump_if_unchecked));
+
+  if (!function().MayHaveUncheckedEntryPoint(isolate())) {
+    return UncheckedEntryPointStyle::kNone;
+  }
+
+  // Separate entry points are used if bytecode has the following pattern:
+  //   Entry
+  //   CheckStack (optional)
+  //   DebugCheck (optional)
+  //   JumpIfUnchecked
+  //
+  const KBCInstr* instr = raw_bytecode_;
+  if (!KernelBytecode::IsEntryOpcode(instr)) {
+    return UncheckedEntryPointStyle::kSharedWithVariable;
+  }
+  instr = KernelBytecode::Next(instr);
+  if (KernelBytecode::IsCheckStackOpcode(instr)) {
+    instr = KernelBytecode::Next(instr);
+  }
+  if (KernelBytecode::IsDebugCheckOpcode(instr)) {
+    instr = KernelBytecode::Next(instr);
+  }
+  if (instr != jump_if_unchecked) {
+    return UncheckedEntryPointStyle::kSharedWithVariable;
+  }
+  return UncheckedEntryPointStyle::kSeparate;
+}
+
 void BytecodeFlowGraphBuilder::CreateParameterVariables() {
   const Bytecode& bytecode = Bytecode::Handle(Z, function().bytecode());
   object_pool_ = bytecode.object_pool();
@@ -1817,18 +1983,17 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
 
   ProcessICDataInObjectPool(object_pool_);
 
-  GraphEntryInstr* graph_entry =
-      new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
+  graph_entry_ = new (Z) GraphEntryInstr(*parsed_function_, B->osr_id_);
 
-  auto normal_entry = B->BuildFunctionEntry(graph_entry);
-  graph_entry->set_normal_entry(normal_entry);
+  auto normal_entry = B->BuildFunctionEntry(graph_entry_);
+  graph_entry_->set_normal_entry(normal_entry);
 
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(Z, bytecode.pc_descriptors());
   const ExceptionHandlers& handlers =
       ExceptionHandlers::Handle(Z, bytecode.exception_handlers());
 
-  CollectControlFlow(descriptors, handlers, graph_entry);
+  CollectControlFlow(descriptors, handlers, graph_entry_);
 
   kernel::BytecodeSourcePositionsIterator source_pos_iter(Z, bytecode);
   bool update_position = source_pos_iter.MoveNext();
@@ -1877,11 +2042,11 @@ FlowGraph* BytecodeFlowGraphBuilder::BuildGraph() {
   // Catch entries are always considered reachable, even if they
   // become unreachable after OSR.
   if (B->IsCompiledForOsr()) {
-    graph_entry->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
+    graph_entry_->RelinkToOsrEntry(Z, B->last_used_block_id_ + 1);
   }
 
   FlowGraph* flow_graph = new (Z) FlowGraph(
-      *parsed_function_, graph_entry, B->last_used_block_id_, prologue_info_);
+      *parsed_function_, graph_entry_, B->last_used_block_id_, prologue_info_);
 
   if (FLAG_print_flow_graph_from_bytecode) {
     FlowGraphPrinter::PrintGraph("Constructed from bytecode", flow_graph);
