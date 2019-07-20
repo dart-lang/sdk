@@ -4711,7 +4711,7 @@ class ResolverVisitor extends ScopedVisitor {
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
-      _flowAnalysis.flow.ifStatement_thenBegin(node, condition);
+      _flowAnalysis.flow.ifStatement_thenBegin(condition);
       visitStatementInScope(thenStatement);
     } else {
       _promoteManager.visitIfStatement_thenStatement(
