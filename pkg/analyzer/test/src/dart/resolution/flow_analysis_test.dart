@@ -51,7 +51,7 @@ class NullableFlowTest extends FlowTestBase {
 
   test_assign_toNonNull() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (x != null) return;
   /*nullable*/ x;
   x = 0;
@@ -62,7 +62,7 @@ void f(int x) {
 
   test_assign_toNull() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (x == null) return;
   /*nonNullable*/ x;
   x = null;
@@ -73,7 +73,7 @@ void f(int x) {
 
   test_assign_toUnknown_fromNotNull() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a == null) return;
   /*nonNullable*/ a;
   a = b;
@@ -84,7 +84,7 @@ void f(int a, int b) {
 
   test_assign_toUnknown_fromNull() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a != null) return;
   /*nullable*/ a;
   a = b;
@@ -95,7 +95,7 @@ void f(int a, int b) {
 
   test_binaryExpression_logicalAnd() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   x == null && /*nullable*/ x.isEven;
 }
 ''');
@@ -103,7 +103,7 @@ void f(int x) {
 
   test_binaryExpression_logicalOr() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   x == null || /*nonNullable*/ x.isEven;
 }
 ''');
@@ -112,7 +112,7 @@ void f(int x) {
   test_constructor_if_then_else() async {
     await trackCode(r'''
 class C {
-  C(int x) {
+  C(int? x) {
     if (x == null) {
       /*nullable*/ x;
     } else {
@@ -125,7 +125,7 @@ class C {
 
   test_if_joinThenElse_ifNull() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a == null) {
     /*nullable*/ a;
     if (b == null) return;
@@ -143,7 +143,7 @@ void f(int a, int b) {
 
   test_if_notNull_thenExit_left() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (null != x) return;
   /*nullable*/ x;
 }
@@ -152,7 +152,7 @@ void f(int x) {
 
   test_if_notNull_thenExit_right() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (x != null) return;
   /*nullable*/ x;
 }
@@ -161,7 +161,7 @@ void f(int x) {
 
   test_if_null_thenExit_left() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (null == x) return;
   /*nonNullable*/ x;
 }
@@ -170,7 +170,7 @@ void f(int x) {
 
   test_if_null_thenExit_right() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (x == null) return;
   /*nonNullable*/ x;
 }
@@ -179,7 +179,7 @@ void f(int x) {
 
   test_if_then_else() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   if (x == null) {
     /*nullable*/ x;
   } else {
@@ -192,7 +192,7 @@ void f(int x) {
   test_method_if_then_else() async {
     await trackCode(r'''
 class C {
-  void f(int x) {
+  void f(int? x) {
     if (x == null) {
       /*nullable*/ x;
     } else {
@@ -205,7 +205,7 @@ class C {
 
   test_potentiallyMutatedInClosure() async {
     await trackCode(r'''
-f(int a, int b) {
+f(int? a, int? b) {
   localFunction() {
     a = b;
   }
@@ -221,7 +221,7 @@ f(int a, int b) {
 
   test_tryFinally_eqNullExit_body() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   try {
     if (x == null) return;
     /*nonNullable*/ x;
@@ -235,7 +235,7 @@ void f(int x) {
 
   test_tryFinally_eqNullExit_finally() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   try {
     x;
   } finally {
@@ -249,7 +249,7 @@ void f(int x) {
 
   test_tryFinally_outerEqNotNullExit_assignUnknown_body() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a != null) return;
   try {
     /*nullable*/ a;
@@ -265,7 +265,7 @@ void f(int a, int b) {
 
   test_tryFinally_outerEqNullExit_assignUnknown_body() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a == null) return;
   try {
     /*nonNullable*/ a;
@@ -281,7 +281,7 @@ void f(int a, int b) {
 
   test_tryFinally_outerEqNullExit_assignUnknown_finally() async {
     await trackCode(r'''
-void f(int a, int b) {
+void f(int? a, int? b) {
   if (a == null) return;
   try {
     /*nonNullable*/ a;
@@ -297,7 +297,7 @@ void f(int a, int b) {
 
   test_while_eqNull() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   while (x == null) {
     /*nullable*/ x;
   }
@@ -308,7 +308,7 @@ void f(int x) {
 
   test_while_notEqNull() async {
     await trackCode(r'''
-void f(int x) {
+void f(int? x) {
   while (x != null) {
     /*nonNullable*/ x;
   }
