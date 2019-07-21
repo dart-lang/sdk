@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 /// Sets of local variables that are potentially assigned in a statement.
 ///
 /// These statements are loops, `switch`, and `try` statements.
@@ -387,6 +389,44 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     return !_current.notNullable.contains(variable);
   }
 
+  @visibleForTesting
+  Map<Variable, Type> joinPromoted(
+    Map<Variable, Type> first,
+    Map<Variable, Type> second,
+  ) {
+    if (identical(first, second)) return first;
+    if (first.isEmpty || second.isEmpty) return const {};
+
+    var result = <Variable, Type>{};
+    var alwaysFirst = true;
+    var alwaysSecond = true;
+    for (var variable in first.keys) {
+      var firstType = first[variable];
+      var secondType = second[variable];
+      if (secondType != null) {
+        if (identical(firstType, secondType)) {
+          result[variable] = firstType;
+        } else if (typeOperations.isSubtypeOf(firstType, secondType)) {
+          result[variable] = secondType;
+          alwaysFirst = false;
+        } else if (typeOperations.isSubtypeOf(secondType, firstType)) {
+          result[variable] = firstType;
+          alwaysSecond = false;
+        } else {
+          alwaysFirst = false;
+          alwaysSecond = false;
+        }
+      } else {
+        alwaysFirst = false;
+      }
+    }
+
+    if (alwaysFirst) return first;
+    if (alwaysSecond && result.length == second.length) return second;
+    if (result.isEmpty) return const {};
+    return result;
+  }
+
   void logicalAnd_end(Expression andExpression, Expression rightOperand) {
     _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
@@ -604,7 +644,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     var newNotAssigned = first.notAssigned.union(second.notAssigned);
     var newNotNullable = first.notNullable.union(second.notNullable);
     var newNotNonNullable = first.notNonNullable.union(second.notNonNullable);
-    var newPromoted = _joinPromoted(first.promoted, second.promoted);
+    var newPromoted = joinPromoted(first.promoted, second.promoted);
 
     return _State._identicalOrNew(
       first,
@@ -615,42 +655,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
       newNotNonNullable,
       newPromoted,
     );
-  }
-
-  Map<Variable, Type> _joinPromoted(
-    Map<Variable, Type> first,
-    Map<Variable, Type> second,
-  ) {
-    if (identical(first, second)) return first;
-    if (first.isEmpty || second.isEmpty) return const {};
-
-    var result = <Variable, Type>{};
-    var alwaysFirst = true;
-    var alwaysSecond = true;
-    for (var variable in first.keys) {
-      var firstType = first[variable];
-      var secondType = second[variable];
-      if (firstType != null && secondType != null) {
-        if (typeOperations.isSubtypeOf(firstType, secondType)) {
-          result[variable] = secondType;
-          alwaysFirst = false;
-        } else if (typeOperations.isSubtypeOf(secondType, firstType)) {
-          result[variable] = firstType;
-          alwaysSecond = false;
-        } else {
-          alwaysFirst = false;
-          alwaysSecond = false;
-        }
-      } else {
-        alwaysFirst = false;
-        alwaysSecond = false;
-      }
-    }
-
-    if (alwaysFirst) return first;
-    if (alwaysSecond) return second;
-    if (result.isEmpty) return const {};
-    return result;
   }
 }
 
