@@ -655,6 +655,9 @@ abstract class TypeOperations<Variable, Type> {
   /// Return `true` if the [variable] is a local variable, not a parameter.
   bool isLocalVariable(Variable variable);
 
+  /// Returns `true` if [type1] and [type2] are the same type.
+  bool isSameType(Type type1, Type type2);
+
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);
 
@@ -733,7 +736,7 @@ class _State<Variable, Type> {
     previousType ??= typeOperations.variableType(variable);
 
     if (typeOperations.isSubtypeOf(type, previousType) &&
-        type != previousType) {
+        !typeOperations.isSameType(type, previousType)) {
       var newPromoted = <Variable, Type>{}..addAll(promoted);
       newPromoted[variable] = type;
       return _State<Variable, Type>(

@@ -464,6 +464,16 @@ class _TypeSystemTypeOperations
   }
 
   @override
+  bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
+    if (type1.nullabilitySuffix != type2.nullabilitySuffix) {
+      // TODO(paulberry): after DartType.operator== has been updated to compare
+      // nullabilities, this if test can be dropped.  See dartbug.com/37587.
+      return false;
+    }
+    return type1 == type2;
+  }
+
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
   }
@@ -471,15 +481,7 @@ class _TypeSystemTypeOperations
   @override
   DartType tryPromoteToNonNull(covariant TypeImpl type) {
     TypeImpl promotedType = typeSystem.promoteToNonNull(type);
-    if (promotedType.nullabilitySuffix != type.nullabilitySuffix) {
-      // TODO(paulberry): after DartType.operator== has been updated to compare
-      // nullabilities, this if test can be dropped.  See dartbug.com/37587.
-      return promotedType;
-    }
-    if (promotedType != type) {
-      return promotedType;
-    }
-    return null;
+    return isSameType(type, promotedType) ? null : promotedType;
   }
 
   @override

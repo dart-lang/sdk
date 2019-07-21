@@ -22,6 +22,11 @@ class DecoratedTypeOperations
   }
 
   @override
+  bool isSameType(DecoratedType type1, DecoratedType type2) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   bool isSubtypeOf(DecoratedType leftType, DecoratedType rightType) {
     return _typeSystem.isSubtypeOf(leftType.type, rightType.type);
   }

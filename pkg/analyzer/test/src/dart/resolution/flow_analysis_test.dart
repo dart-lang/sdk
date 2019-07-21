@@ -193,6 +193,18 @@ void f(int? x) {
 ''');
   }
 
+  test_is_promotes_nullability() async {
+    await trackCode(r'''
+void f(int? x) {
+  if (x is int) {
+    /*nonNullable*/ x;
+  } else {
+    x;
+  }
+}
+''');
+  }
+
   test_method_if_then_else() async {
     await trackCode(r'''
 class C {
