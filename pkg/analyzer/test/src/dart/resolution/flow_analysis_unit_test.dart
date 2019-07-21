@@ -8,63 +8,59 @@ import 'package:test/test.dart';
 main() {
   group('API', () {
     test('conditionNotEqNull promotes true branch', () {
-      var flow = _Harness().flow;
-      var x = _Var('x', _Type('int?'));
-      flow.add(x, assigned: true);
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      flow.conditionNotEqNull(expr, x);
-      flow.ifStatement_thenBegin(expr);
-      expect(flow.promotedType(x).type, 'int');
-      flow.ifStatement_elseBegin();
-      expect(flow.promotedType(x), isNull);
-      flow.ifStatement_end(true);
-      flow.verifyStackEmpty();
+      h.flow.conditionNotEqNull(expr, x);
+      h.flow.ifStatement_thenBegin(expr);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.ifStatement_end(true);
+      h.flow.verifyStackEmpty();
     });
 
     test('conditionEqNull promotes false branch', () {
-      var flow = _Harness().flow;
-      var x = _Var('x', _Type('int?'));
-      flow.add(x, assigned: true);
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      flow.conditionEqNull(expr, x);
-      flow.ifStatement_thenBegin(expr);
-      expect(flow.promotedType(x), isNull);
-      flow.ifStatement_elseBegin();
-      expect(flow.promotedType(x).type, 'int');
-      flow.ifStatement_end(true);
-      flow.verifyStackEmpty();
+      h.flow.conditionEqNull(expr, x);
+      h.flow.ifStatement_thenBegin(expr);
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.ifStatement_end(true);
+      h.flow.verifyStackEmpty();
     });
 
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
-      var flow = _Harness().flow;
-      var x = _Var('x', _Type('int?'));
-      flow.add(x, assigned: true);
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      flow.conditionEqNull(expr, x);
-      flow.ifStatement_thenBegin(expr);
-      flow.handleExit();
-      flow.ifStatement_end(false);
-      expect(flow.promotedType(x).type, 'int');
-      flow.verifyStackEmpty();
+      h.flow.conditionEqNull(expr, x);
+      h.flow.ifStatement_thenBegin(expr);
+      h.flow.handleExit();
+      h.flow.ifStatement_end(false);
+      expect(h.flow.promotedType(x).type, 'int');
+      h.flow.verifyStackEmpty();
     });
 
     void _checkIs(String declaredType, String tryPromoteType,
         String expectedPromotedType) {
-      var flow = _Harness().flow;
-      var x = _Var('x', _Type(declaredType));
-      flow.add(x, assigned: true);
+      var h = _Harness();
+      var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      flow.isExpression_end(expr, x, false, _Type(tryPromoteType));
-      flow.ifStatement_thenBegin(expr);
+      h.flow.isExpression_end(expr, x, false, _Type(tryPromoteType));
+      h.flow.ifStatement_thenBegin(expr);
       if (expectedPromotedType == null) {
-        expect(flow.promotedType(x), isNull);
+        expect(h.flow.promotedType(x), isNull);
       } else {
-        expect(flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(x).type, 'int');
       }
-      flow.ifStatement_elseBegin();
-      expect(flow.promotedType(x), isNull);
-      flow.ifStatement_end(true);
-      flow.verifyStackEmpty();
+      h.flow.ifStatement_elseBegin();
+      expect(h.flow.promotedType(x), isNull);
+      h.flow.ifStatement_end(true);
+      h.flow.verifyStackEmpty();
     }
 
     test('isExpression_end promotes to a subtype', () {
@@ -161,6 +157,12 @@ class _Harness
     flow = FlowAnalysis<_Statement, _Expression, _Var, _Type>(this, this, this);
   }
 
+  _Var addAssignedVar(String name, String type) {
+    var v = _Var(name, _Type(type));
+    flow.add(v, assigned: true);
+    return v;
+  }
+
   @override
   bool isLocalVariable(_Var variable) {
     throw UnimplementedError('TODO(paulberry)');
@@ -189,6 +191,7 @@ class _Harness
       'int <: String': false,
       'int? <: int': false,
       'String <: int': false,
+      'String <: int?': false,
     };
 
     if (leftType.type == rightType.type) return true;
