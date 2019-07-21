@@ -5029,9 +5029,7 @@ class ExtensionElementImpl extends ElementImpl
     }
 
     if (linkedNode != null) {
-      // TODO(brianwilkerson) Implement this.
-//      var context = enclosingUnit.linkedContext;
-//      return _extendedType = context.getExtendedType(linkedNode)?.type;
+      return _extendedType = linkedContext.getExtendedType(linkedNode).type;
     } else if (_unlinkedExtension != null) {
       return _extendedType = enclosingUnit.resynthesizerContext
           .resolveTypeRef(this, _unlinkedExtension.extendedType);

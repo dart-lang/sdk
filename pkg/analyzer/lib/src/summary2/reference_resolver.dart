@@ -165,6 +165,34 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    var outerScope = scope;
+    var outerReference = reference;
+
+    var name = node.name.name;
+    reference = reference.getChild('@extension').getChild(name);
+
+    ExtensionElementImpl element = reference.element;
+    node.name.staticElement = element;
+
+    _createTypeParameterElements(node.typeParameters);
+    scope = new TypeParameterScope(scope, element);
+
+    node.typeParameters?.accept(this);
+    node.extendedType.accept(this);
+
+    // TODO(scheglov) do we need a scope?
+//    scope = new ClassScope(scope, element);
+    LinkingNodeContext(node, scope);
+
+    node.members.accept(this);
+    nodesToBuildType.addDeclaration(node);
+
+    scope = outerScope;
+    reference = outerReference;
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.fields.accept(this);
 

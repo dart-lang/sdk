@@ -93,6 +93,7 @@ class SourceLibraryBuilder {
       var unitRef = reference.getChild('@unit').getChild(unitContext.uriStr);
       var classRef = unitRef.getChild('@class');
       var enumRef = unitRef.getChild('@enum');
+      var extensionRef = unitRef.getChild('@extension');
       var functionRef = unitRef.getChild('@function');
       var mixinRef = unitRef.getChild('@mixin');
       var typeAliasRef = unitRef.getChild('@typeAlias');
@@ -113,6 +114,11 @@ class SourceLibraryBuilder {
         } else if (node is ast.EnumDeclaration) {
           var name = node.name.name;
           var reference = enumRef.getChild(name);
+          reference.node2 = node;
+          localScope.declare(name, reference);
+        } else if (node is ast.ExtensionDeclaration) {
+          var name = node.name.name;
+          var reference = extensionRef.getChild(name);
           reference.node2 = node;
           localScope.declare(name, reference);
         } else if (node is ast.FunctionDeclaration) {

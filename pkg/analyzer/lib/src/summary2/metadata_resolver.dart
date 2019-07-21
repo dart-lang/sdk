@@ -79,6 +79,13 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
   }

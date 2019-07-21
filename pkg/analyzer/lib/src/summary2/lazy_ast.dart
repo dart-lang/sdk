@@ -662,6 +662,103 @@ class LazyEnumDeclaration {
   }
 }
 
+class LazyExtensionDeclaration {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  bool _hasDocumentationComment = false;
+  bool _hasExtendedType = false;
+  bool _hasMembers = false;
+  bool _hasMetadata = false;
+
+  LazyExtensionDeclaration(this.data);
+
+  static LazyExtensionDeclaration get(ExtensionDeclaration node) {
+    return node.getProperty(_key);
+  }
+
+  static int getCodeLength(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeLength ?? 0;
+    }
+    return node.length;
+  }
+
+  static int getCodeOffset(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
+    }
+    return node.offset;
+  }
+
+  static void readDocumentationComment(
+    LinkedUnitContext context,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasDocumentationComment) {
+      node.documentationComment = context.createComment(lazy.data);
+      lazy._hasDocumentationComment = true;
+    }
+  }
+
+  static void readExtendedType(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasExtendedType) {
+      (node as ExtensionDeclarationImpl).extendedType = reader.readNode(
+        lazy.data.extensionDeclaration_extendedType,
+      );
+      lazy._hasExtendedType = true;
+    }
+  }
+
+  static void readMembers(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMembers) {
+      var dataList = lazy.data.extensionDeclaration_members;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.members[i] = reader.readNode(data);
+      }
+      lazy._hasMembers = true;
+    }
+  }
+
+  static void readMetadata(
+    AstBinaryReader reader,
+    ExtensionDeclaration node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null && !lazy._hasMetadata) {
+      var dataList = lazy.data.annotatedNode_metadata;
+      for (var i = 0; i < dataList.length; ++i) {
+        var data = dataList[i];
+        node.metadata[i] = reader.readNode(data);
+      }
+      lazy._hasMetadata = true;
+    }
+  }
+
+  static void setData(ExtensionDeclaration node, LinkedNode data) {
+    node.setProperty(_key, LazyExtensionDeclaration(data));
+  }
+}
+
 class LazyFieldDeclaration {
   static const _key = 'lazyAst';
 

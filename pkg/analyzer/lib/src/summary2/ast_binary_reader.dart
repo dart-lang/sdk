@@ -590,6 +590,28 @@ class AstBinaryReader {
     );
   }
 
+  ExtensionDeclaration _read_extensionDeclaration(LinkedNode data) {
+    timerAstBinaryReaderClass.start();
+    try {
+      var node = astFactory.extensionDeclaration(
+        comment: _readDocumentationComment(data),
+        metadata: _readNodeListLazy(data.annotatedNode_metadata),
+        extensionKeyword: _Tokens.EXTENSION,
+        name: data.name.isNotEmpty ? _declaredIdentifier(data) : null,
+        typeParameters: _readNode(data.extensionDeclaration_typeParameters),
+        onKeyword: _Tokens.ON,
+        extendedType: _readNodeLazy(data.extensionDeclaration_extendedType),
+        leftBracket: _Tokens.OPEN_CURLY_BRACKET,
+        members: _readNodeListLazy(data.extensionDeclaration_members),
+        rightBracket: _Tokens.CLOSE_CURLY_BRACKET,
+      );
+      LazyExtensionDeclaration.setData(node, data);
+      return node;
+    } finally {
+      timerAstBinaryReaderClass.stop();
+    }
+  }
+
   FieldDeclaration _read_fieldDeclaration(LinkedNode data) {
     var node = astFactory.fieldDeclaration2(
       comment: _readDocumentationComment(data),
@@ -1674,6 +1696,8 @@ class AstBinaryReader {
         return _read_expressionStatement(data);
       case LinkedNodeKind.extendsClause:
         return _read_extendsClause(data);
+      case LinkedNodeKind.extensionDeclaration:
+        return _read_extensionDeclaration(data);
       case LinkedNodeKind.fieldDeclaration:
         return _read_fieldDeclaration(data);
       case LinkedNodeKind.fieldFormalParameter:
@@ -1913,6 +1937,7 @@ class _Tokens {
   static final EQ = TokenFactory.tokenFromType(TokenType.EQ);
   static final EXPORT = TokenFactory.tokenFromKeyword(Keyword.EXPORT);
   static final EXTENDS = TokenFactory.tokenFromKeyword(Keyword.EXTENDS);
+  static final EXTENSION = TokenFactory.tokenFromKeyword(Keyword.EXTENSION);
   static final FINAL = TokenFactory.tokenFromKeyword(Keyword.FINAL);
   static final FINALLY = TokenFactory.tokenFromKeyword(Keyword.FINALLY);
   static final FOR = TokenFactory.tokenFromKeyword(Keyword.FOR);

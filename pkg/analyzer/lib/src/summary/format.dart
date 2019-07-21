@@ -5308,6 +5308,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -5348,6 +5349,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -5537,6 +5539,12 @@ class LinkedNodeBuilder extends Object
   @override
   LinkedNodeBuilder get extendsClause_superclass {
     assert(kind == idl.LinkedNodeKind.extendsClause);
+    return _variantField_6;
+  }
+
+  @override
+  LinkedNodeBuilder get extensionDeclaration_typeParameters {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
     return _variantField_6;
   }
 
@@ -5973,6 +5981,11 @@ class LinkedNodeBuilder extends Object
     _variantField_6 = value;
   }
 
+  set extensionDeclaration_typeParameters(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
+    _variantField_6 = value;
+  }
+
   set fieldDeclaration_fields(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.fieldDeclaration);
     _variantField_6 = value;
@@ -6320,6 +6333,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  LinkedNodeBuilder get extensionDeclaration_extendedType {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
+    return _variantField_7;
+  }
+
+  @override
   LinkedNodeBuilder get fieldFormalParameter_typeParameters {
     assert(kind == idl.LinkedNodeKind.fieldFormalParameter);
     return _variantField_7;
@@ -6570,6 +6589,11 @@ class LinkedNodeBuilder extends Object
 
   set doStatement_condition(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.doStatement);
+    _variantField_7 = value;
+  }
+
+  set extensionDeclaration_extendedType(LinkedNodeBuilder value) {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
     _variantField_7 = value;
   }
 
@@ -7404,6 +7428,12 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
+  List<LinkedNodeBuilder> get extensionDeclaration_members {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
+    return _variantField_5 ??= <LinkedNodeBuilder>[];
+  }
+
+  @override
   List<LinkedNodeBuilder> get forParts_updaters {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
@@ -7413,6 +7443,11 @@ class LinkedNodeBuilder extends Object
   set classOrMixinDeclaration_members(List<LinkedNodeBuilder> value) {
     assert(kind == idl.LinkedNodeKind.classDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration);
+    _variantField_5 = value;
+  }
+
+  set extensionDeclaration_members(List<LinkedNodeBuilder> value) {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
     _variantField_5 = value;
   }
 
@@ -7648,6 +7683,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
@@ -7678,6 +7714,7 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
@@ -8247,6 +8284,19 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder extendsClause_superclass,
   })  : _kind = idl.LinkedNodeKind.extendsClause,
         _variantField_6 = extendsClause_superclass;
+
+  LinkedNodeBuilder.extensionDeclaration({
+    List<LinkedNodeBuilder> annotatedNode_metadata,
+    LinkedNodeBuilder extensionDeclaration_typeParameters,
+    LinkedNodeBuilder extensionDeclaration_extendedType,
+    List<LinkedNodeBuilder> extensionDeclaration_members,
+    int informativeId,
+  })  : _kind = idl.LinkedNodeKind.extensionDeclaration,
+        _variantField_4 = annotatedNode_metadata,
+        _variantField_6 = extensionDeclaration_typeParameters,
+        _variantField_7 = extensionDeclaration_extendedType,
+        _variantField_5 = extensionDeclaration_members,
+        _variantField_36 = informativeId;
 
   LinkedNodeBuilder.fieldDeclaration({
     List<LinkedNodeBuilder> annotatedNode_metadata,
@@ -9097,6 +9147,12 @@ class LinkedNodeBuilder extends Object
       expressionStatement_expression?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.extendsClause) {
       extendsClause_superclass?.flushInformative();
+    } else if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      annotatedNode_metadata?.forEach((b) => b.flushInformative());
+      extensionDeclaration_typeParameters?.flushInformative();
+      extensionDeclaration_extendedType?.flushInformative();
+      extensionDeclaration_members?.forEach((b) => b.flushInformative());
+      informativeId = null;
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       annotatedNode_metadata?.forEach((b) => b.flushInformative());
       fieldDeclaration_fields?.flushInformative();
@@ -9879,6 +9935,30 @@ class LinkedNodeBuilder extends Object
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addBool(this.extendsClause_superclass != null);
       this.extendsClause_superclass?.collectApiSignature(signature);
+      signature.addInt(this.flags ?? 0);
+      signature.addString(this.name ?? '');
+    } else if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      if (this.annotatedNode_metadata == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.annotatedNode_metadata.length);
+        for (var x in this.annotatedNode_metadata) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      if (this.extensionDeclaration_members == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.extensionDeclaration_members.length);
+        for (var x in this.extensionDeclaration_members) {
+          x?.collectApiSignature(signature);
+        }
+      }
+      signature.addBool(this.extensionDeclaration_typeParameters != null);
+      this.extensionDeclaration_typeParameters?.collectApiSignature(signature);
+      signature.addBool(this.extensionDeclaration_extendedType != null);
+      this.extensionDeclaration_extendedType?.collectApiSignature(signature);
       signature.addInt(this.flags ?? 0);
       signature.addString(this.name ?? '');
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
@@ -11513,6 +11593,7 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -11765,6 +11846,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNode get extendsClause_superclass {
     assert(kind == idl.LinkedNodeKind.extendsClause);
+    _variantField_6 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
+    return _variantField_6;
+  }
+
+  @override
+  idl.LinkedNode get extensionDeclaration_typeParameters {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
     _variantField_6 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 6, null);
     return _variantField_6;
@@ -12289,6 +12378,14 @@ class _LinkedNodeImpl extends Object
   @override
   idl.LinkedNode get doStatement_condition {
     assert(kind == idl.LinkedNodeKind.doStatement);
+    _variantField_7 ??=
+        const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 7, null);
+    return _variantField_7;
+  }
+
+  @override
+  idl.LinkedNode get extensionDeclaration_extendedType {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
     _variantField_7 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 7, null);
     return _variantField_7;
@@ -13015,6 +13112,15 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
+  List<idl.LinkedNode> get extensionDeclaration_members {
+    assert(kind == idl.LinkedNodeKind.extensionDeclaration);
+    _variantField_5 ??=
+        const fb.ListReader<idl.LinkedNode>(const _LinkedNodeReader())
+            .vTableGet(_bc, _bcOffset, 5, const <idl.LinkedNode>[]);
+    return _variantField_5;
+  }
+
+  @override
   List<idl.LinkedNode> get forParts_updaters {
     assert(kind == idl.LinkedNodeKind.forPartsWithDeclarations ||
         kind == idl.LinkedNodeKind.forPartsWithExpression);
@@ -13187,6 +13293,7 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.exportDirective ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
@@ -13739,6 +13846,22 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (kind == idl.LinkedNodeKind.extendsClause) {
       if (extendsClause_superclass != null)
         _result["extendsClause_superclass"] = extendsClause_superclass.toJson();
+    }
+    if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      if (annotatedNode_metadata.isNotEmpty)
+        _result["annotatedNode_metadata"] =
+            annotatedNode_metadata.map((_value) => _value.toJson()).toList();
+      if (extensionDeclaration_typeParameters != null)
+        _result["extensionDeclaration_typeParameters"] =
+            extensionDeclaration_typeParameters.toJson();
+      if (extensionDeclaration_extendedType != null)
+        _result["extensionDeclaration_extendedType"] =
+            extensionDeclaration_extendedType.toJson();
+      if (extensionDeclaration_members.isNotEmpty)
+        _result["extensionDeclaration_members"] = extensionDeclaration_members
+            .map((_value) => _value.toJson())
+            .toList();
+      if (informativeId != 0) _result["informativeId"] = informativeId;
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       if (annotatedNode_metadata.isNotEmpty)
@@ -14903,6 +15026,19 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "extendsClause_superclass": extendsClause_superclass,
         "flags": flags,
+        "kind": kind,
+        "name": name,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      return {
+        "annotatedNode_metadata": annotatedNode_metadata,
+        "extensionDeclaration_typeParameters":
+            extensionDeclaration_typeParameters,
+        "extensionDeclaration_extendedType": extensionDeclaration_extendedType,
+        "extensionDeclaration_members": extensionDeclaration_members,
+        "flags": flags,
+        "informativeId": informativeId,
         "kind": kind,
         "name": name,
       };

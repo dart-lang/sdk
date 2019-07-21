@@ -155,6 +155,11 @@ class _ElementRequest {
       return _enum(unit, reference);
     }
 
+    if (parentName == '@extension') {
+      var unit = elementOfReference(parent2);
+      return _extension(unit, reference);
+    }
+
     if (parentName == '@field') {
       var enclosing = elementOfReference(parent2);
       return _field(enclosing, reference);
@@ -334,6 +339,16 @@ class _ElementRequest {
     return reference.element;
   }
 
+  ExtensionElementImpl _extension(
+      CompilationUnitElementImpl unit, Reference reference) {
+    if (reference.node2 == null) {
+      _indexUnitElementDeclarations(unit);
+      assert(reference.node2 != null, '$reference');
+    }
+    ExtensionElementImpl.forLinkedNode(unit, reference, reference.node2);
+    return reference.element;
+  }
+
   FieldElementImpl _field(ClassElementImpl enclosing, Reference reference) {
     enclosing.fields;
     // Requesting fields sets elements for all fields.
@@ -405,6 +420,7 @@ class _ElementRequest {
   ) {
     var classRef = unitRef.getChild('@class');
     var enumRef = unitRef.getChild('@enum');
+    var extensionRef = unitRef.getChild('@extension');
     var functionRef = unitRef.getChild('@function');
     var mixinRef = unitRef.getChild('@mixin');
     var typeAliasRef = unitRef.getChild('@typeAlias');
@@ -416,6 +432,9 @@ class _ElementRequest {
       } else if (declaration is ClassTypeAlias) {
         var name = declaration.name.name;
         classRef.getChild(name).node2 = declaration;
+      } else if (declaration is ExtensionDeclaration) {
+        var name = declaration.name.name;
+        extensionRef.getChild(name).node2 = declaration;
       } else if (declaration is EnumDeclaration) {
         var name = declaration.name.name;
         enumRef.getChild(name).node2 = declaration;

@@ -853,6 +853,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.enumConstantDeclaration,
     LinkedNodeKind.exportDirective,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.functionDeclaration,
     LinkedNodeKind.functionTypeAlias,
@@ -1162,6 +1163,15 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(6, variant: LinkedNodeKind.extendsClause)
   LinkedNode get extendsClause_superclass;
 
+  @VariantId(7, variant: LinkedNodeKind.extensionDeclaration)
+  LinkedNode get extensionDeclaration_extendedType;
+
+  @VariantId(5, variant: LinkedNodeKind.extensionDeclaration)
+  List<LinkedNode> get extensionDeclaration_members;
+
+  @VariantId(6, variant: LinkedNodeKind.extensionDeclaration)
+  LinkedNode get extensionDeclaration_typeParameters;
+
   @VariantId(6, variant: LinkedNodeKind.fieldDeclaration)
   LinkedNode get fieldDeclaration_fields;
 
@@ -1331,6 +1341,7 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.enumConstantDeclaration,
     LinkedNodeKind.enumDeclaration,
     LinkedNodeKind.exportDirective,
+    LinkedNodeKind.extensionDeclaration,
     LinkedNodeKind.fieldDeclaration,
     LinkedNodeKind.fieldFormalParameter,
     LinkedNodeKind.functionDeclaration,
@@ -1807,6 +1818,7 @@ enum LinkedNodeKind {
   expressionFunctionBody,
   expressionStatement,
   extendsClause,
+  extensionDeclaration,
   fieldDeclaration,
   fieldFormalParameter,
   formalParameterList,

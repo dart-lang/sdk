@@ -265,6 +265,8 @@ enum LinkedNodeKind : byte {
 
   extendsClause,
 
+  extensionDeclaration,
+
   fieldDeclaration,
 
   fieldFormalParameter,
