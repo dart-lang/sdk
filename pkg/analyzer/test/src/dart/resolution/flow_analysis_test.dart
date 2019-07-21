@@ -244,8 +244,7 @@ void f(int? x) {
   } finally {
     x;
   }
-  // TODO(paulberry): x should be known to be non-nullable now
-  x;
+  /*nonNullable*/ x;
 }
 ''');
   }
