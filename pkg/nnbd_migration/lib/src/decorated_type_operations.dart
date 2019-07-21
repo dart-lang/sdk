@@ -27,6 +27,11 @@ class DecoratedTypeOperations
   }
 
   @override
+  DecoratedType tryPromoteToNonNull(DecoratedType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
   DecoratedType variableType(VariableElement variable) {
     return _variableRepository.decoratedElementType(variable);
   }

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -76,11 +77,7 @@ class FlowAnalysisHelper {
       VariableElement localElement, Expression right) {
     if (localElement == null) return;
 
-    flow.write(
-      localElement,
-      isNull: _isNull(right),
-      isNonNull: _isNonNull(right),
-    );
+    flow.write(localElement);
   }
 
   void binaryExpression_bangEq(
@@ -244,24 +241,6 @@ class FlowAnalysisHelper {
     return false;
   }
 
-  void simpleIdentifier(SimpleIdentifier node) {
-    if (flow == null) return;
-
-    var element = node.staticElement;
-    var isLocalVariable = element is LocalVariableElement;
-    if (isLocalVariable || element is ParameterElement) {
-      if (node.inGetterContext() && !node.inDeclarationContext()) {
-        if (flow.isNullable(element)) {
-          result.nullableNodes.add(node);
-        }
-
-        if (flow.isNonNullable(element)) {
-          result.nonNullableNodes.add(node);
-        }
-      }
-    }
-  }
-
   void variableDeclarationStatement(VariableDeclarationStatement node) {
     var variables = node.variables.variables;
     for (var i = 0; i < variables.length; ++i) {
@@ -318,29 +297,11 @@ class FlowAnalysisHelper {
     }
     return null;
   }
-
-  static bool _isNonNull(Expression node) {
-    if (node is NullLiteral) return false;
-
-    return node is Literal;
-  }
-
-  static bool _isNull(Expression node) {
-    return node is NullLiteral;
-  }
 }
 
 /// The result of performing flow analysis on a unit.
 class FlowAnalysisResult {
   static const _astKey = 'FlowAnalysisResult';
-
-  /// The list of identifiers, resolved to a local variable or a parameter,
-  /// where the variable is known to be nullable.
-  final List<SimpleIdentifier> nullableNodes = [];
-
-  /// The list of identifiers, resolved to a local variable or a parameter,
-  /// where the variable is known to be non-nullable.
-  final List<SimpleIdentifier> nonNullableNodes = [];
 
   /// The list of nodes, [Expression]s or [Statement]s, that cannot be reached,
   /// for example because a previous statement always exits.
@@ -505,6 +466,20 @@ class _TypeSystemTypeOperations
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return typeSystem.isSubtypeOf(leftType, rightType);
+  }
+
+  @override
+  DartType tryPromoteToNonNull(covariant TypeImpl type) {
+    TypeImpl promotedType = typeSystem.promoteToNonNull(type);
+    if (promotedType.nullabilitySuffix != type.nullabilitySuffix) {
+      // TODO(paulberry): after DartType.operator== has been updated to compare
+      // nullabilities, this if test can be dropped.  See dartbug.com/37587.
+      return promotedType;
+    }
+    if (promotedType != type) {
+      return promotedType;
+    }
+    return null;
   }
 
   @override

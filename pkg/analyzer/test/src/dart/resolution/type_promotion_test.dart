@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
@@ -414,6 +415,30 @@ main(v) {
 ''');
   }
 
+  test_null_check_does_not_promote_non_nullable_type() async {
+    await resolveCode(r'''
+f(int x) {
+  if (x != null) {
+    x;
+  } else {
+    x;
+  }
+}
+''');
+  }
+
+  test_null_check_promotes_nullable_type() async {
+    await resolveCode(r'''
+f(int? x) {
+  if (x != null) {
+    /*int*/ x;
+  } else {
+    x;
+  }
+}
+''');
+  }
+
   test_potentiallyMutatedInClosure() async {
     await resolveCode(r'''
 f(Object x) {
@@ -727,8 +752,14 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     if (node is SimpleIdentifier && node.inGetterContext()) {
       var element = node.staticElement;
       if (element is LocalVariableElement || element is ParameterElement) {
-        var promotedType = node.staticType;
-        if (promotedType != (element as VariableElement).type) {
+        TypeImpl promotedType = node.staticType;
+        TypeImpl declaredType = (element as VariableElement).type;
+        // TODO(paulberry): once type equality has been updated to account for
+        // nullability, isPromoted should just be
+        // `promotedType != declaredType`.  See dartbug.com/37587.
+        var isPromoted = promotedType != declaredType ||
+            promotedType.nullabilitySuffix != declaredType.nullabilitySuffix;
+        if (isPromoted) {
           return promotedType;
         }
       }

@@ -4,7 +4,10 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -53,9 +56,10 @@ class NullableFlowTest extends FlowTestBase {
     await trackCode(r'''
 void f(int? x) {
   if (x != null) return;
-  /*nullable*/ x;
+  x;
   x = 0;
-  /*nonNullable*/ x;
+  // TODO(paulberry): x should be known to be non-nullable now
+  x;
 }
 ''');
   }
@@ -66,7 +70,7 @@ void f(int? x) {
   if (x == null) return;
   /*nonNullable*/ x;
   x = null;
-  /*nullable*/ x;
+  x;
 }
 ''');
   }
@@ -86,7 +90,7 @@ void f(int? a, int? b) {
     await trackCode(r'''
 void f(int? a, int? b) {
   if (a != null) return;
-  /*nullable*/ a;
+  a;
   a = b;
   a;
 }
@@ -96,7 +100,7 @@ void f(int? a, int? b) {
   test_binaryExpression_logicalAnd() async {
     await trackCode(r'''
 void f(int? x) {
-  x == null && /*nullable*/ x.isEven;
+  x == null && x.isEven;
 }
 ''');
   }
@@ -114,7 +118,7 @@ void f(int? x) {
 class C {
   C(int? x) {
     if (x == null) {
-      /*nullable*/ x;
+      x;
     } else {
       /*nonNullable*/ x;
     }
@@ -127,7 +131,7 @@ class C {
     await trackCode(r'''
 void f(int? a, int? b) {
   if (a == null) {
-    /*nullable*/ a;
+    a;
     if (b == null) return;
     /*nonNullable*/ b;
   } else {
@@ -145,7 +149,7 @@ void f(int? a, int? b) {
     await trackCode(r'''
 void f(int? x) {
   if (null != x) return;
-  /*nullable*/ x;
+  x;
 }
 ''');
   }
@@ -154,7 +158,7 @@ void f(int? x) {
     await trackCode(r'''
 void f(int? x) {
   if (x != null) return;
-  /*nullable*/ x;
+  x;
 }
 ''');
   }
@@ -181,7 +185,7 @@ void f(int? x) {
     await trackCode(r'''
 void f(int? x) {
   if (x == null) {
-    /*nullable*/ x;
+    x;
   } else {
     /*nonNullable*/ x;
   }
@@ -194,7 +198,7 @@ void f(int? x) {
 class C {
   void f(int? x) {
     if (x == null) {
-      /*nullable*/ x;
+      x;
     } else {
       /*nonNullable*/ x;
     }
@@ -228,7 +232,8 @@ void f(int? x) {
   } finally {
     x;
   }
-  /*nonNullable*/ x;
+  // TODO(paulberry): x should be known to be non-nullable now
+  x;
 }
 ''');
   }
@@ -252,7 +257,7 @@ void f(int? x) {
 void f(int? a, int? b) {
   if (a != null) return;
   try {
-    /*nullable*/ a;
+    a;
     a = b;
     a;
   } finally {
@@ -299,7 +304,7 @@ void f(int? a, int? b) {
     await trackCode(r'''
 void f(int? x) {
   while (x == null) {
-    /*nullable*/ x;
+    x;
   }
   /*nonNullable*/ x;
 }
@@ -312,7 +317,7 @@ void f(int? x) {
   while (x != null) {
     /*nonNullable*/ x;
   }
-  /*nullable*/ x;
+  x;
 }
 ''');
   }
@@ -371,13 +376,10 @@ void f(bool b, int i) {
   /*stmt: unreachable*/ do {} while (b);
   /*stmt: unreachable*/ for (;;) {}
   /*stmt: unreachable*/ for (var _ in []) {}
-  // TODO(paulberry): b shouldn't be considered both nullable and non-nullable.
-  /*stmt: unreachable*/ if (/*nonNullable,nullable*/b) {}
-  // TODO(paulberry): i shouldn't be considered both nullable and non-nullable.
-  /*stmt: unreachable*/ switch (/*nonNullable,nullable*/i) {}
+  /*stmt: unreachable*/ if (b) {}
+  /*stmt: unreachable*/ switch (i) {}
   /*stmt: unreachable*/ try {} finally {}
-  // TODO(paulberry): b shouldn't be considered both nullable and non-nullable.
-  /*stmt: unreachable*/ while (/*nonNullable,nullable*/b) {}
+  /*stmt: unreachable*/ while (b) {}
 }
 ''');
   }
@@ -488,8 +490,7 @@ void f() {
   test_logicalAnd_leftFalse() async {
     await trackCode(r'''
 void f(int x) {
-  // TODO(paulberry): x shouldn't be considered both nullable and non-nullable.
-  false && /*unreachable*/ (/*nonNullable,nullable*/x == 1);
+  false && /*unreachable*/ (x == 1);
 }
 ''');
   }
@@ -497,8 +498,7 @@ void f(int x) {
   test_logicalOr_leftTrue() async {
     await trackCode(r'''
 void f(int x) {
-  // TODO(paulberry): x shouldn't be considered both nullable and non-nullable.
-  true || /*unreachable*/ (/*nonNullable,nullable*/x == 1);
+  true || /*unreachable*/ (x == 1);
 }
 ''');
   }
@@ -705,8 +705,8 @@ class _FlowAnalysisDataComputer extends DataComputer<Set<_FlowAssertion>> {
   void computeUnitData(CompilationUnit unit,
       Map<Id, ActualData<Set<_FlowAssertion>>> actualMap) {
     var flowResult = FlowAnalysisResult.getFromNode(unit);
-    _FlowAnalysisDataExtractor(
-            unit.declaredElement.source.uri, actualMap, flowResult)
+    _FlowAnalysisDataExtractor(unit.declaredElement.source.uri, actualMap,
+            flowResult, unit.declaredElement.context.typeSystem)
         .run(unit);
   }
 }
@@ -714,18 +714,34 @@ class _FlowAnalysisDataComputer extends DataComputer<Set<_FlowAssertion>> {
 class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
   FlowAnalysisResult _flowResult;
 
-  _FlowAnalysisDataExtractor(Uri uri,
-      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap, this._flowResult)
+  final TypeSystem _typeSystem;
+
+  _FlowAnalysisDataExtractor(
+      Uri uri,
+      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap,
+      this._flowResult,
+      this._typeSystem)
       : super(uri, actualMap);
 
   @override
   Set<_FlowAssertion> computeNodeValue(Id id, AstNode node) {
     Set<_FlowAssertion> result = {};
-    if (_flowResult.nullableNodes.contains(node)) {
-      result.add(_FlowAssertion.nullable);
-    }
-    if (_flowResult.nonNullableNodes.contains(node)) {
-      result.add(_FlowAssertion.nonNullable);
+    if (node is SimpleIdentifier && node.inGetterContext()) {
+      var element = node.staticElement;
+      if (element is LocalVariableElement || element is ParameterElement) {
+        TypeImpl promotedType = node.staticType;
+        TypeImpl declaredType = (element as VariableElement).type;
+        // TODO(paulberry): once type equality has been updated to account for
+        // nullability, isPromoted should just be
+        // `promotedType != declaredType`.  See dartbug.com/37587.
+        var isPromoted = promotedType != declaredType ||
+            promotedType.nullabilitySuffix != declaredType.nullabilitySuffix;
+        if (isPromoted &&
+            _typeSystem.isNullable(declaredType) &&
+            !_typeSystem.isNullable(promotedType)) {
+          result.add(_FlowAssertion.nonNullable);
+        }
+      }
     }
     if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_FlowAssertion.unreachable);

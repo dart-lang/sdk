@@ -6,6 +6,49 @@ import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 import 'package:test/test.dart';
 
 main() {
+  group('API', () {
+    test('conditionNotEqNull promotes true branch', () {
+      var flow = _Harness().flow;
+      var x = _Var('x', _Type('int?'));
+      flow.add(x, assigned: true);
+      var expr = _Expression();
+      flow.conditionNotEqNull(expr, x);
+      flow.ifStatement_thenBegin(expr);
+      expect(flow.promotedType(x).type, 'int');
+      flow.ifStatement_elseBegin();
+      expect(flow.promotedType(x), isNull);
+      flow.ifStatement_end(true);
+      flow.verifyStackEmpty();
+    });
+
+    test('conditionEqNull promotes false branch', () {
+      var flow = _Harness().flow;
+      var x = _Var('x', _Type('int?'));
+      flow.add(x, assigned: true);
+      var expr = _Expression();
+      flow.conditionEqNull(expr, x);
+      flow.ifStatement_thenBegin(expr);
+      expect(flow.promotedType(x), isNull);
+      flow.ifStatement_elseBegin();
+      expect(flow.promotedType(x).type, 'int');
+      flow.ifStatement_end(true);
+      flow.verifyStackEmpty();
+    });
+
+    test('ifStatement_end(false) keeps else branch if then branch exits', () {
+      var flow = _Harness().flow;
+      var x = _Var('x', _Type('int?'));
+      flow.add(x, assigned: true);
+      var expr = _Expression();
+      flow.conditionEqNull(expr, x);
+      flow.ifStatement_thenBegin(expr);
+      flow.handleExit();
+      flow.ifStatement_end(false);
+      expect(flow.promotedType(x).type, 'int');
+      flow.verifyStackEmpty();
+    });
+  });
+
   group('join', () {
     group('should re-use an input if possible', () {
       var x = _Var('x', null);
@@ -115,6 +158,14 @@ class _Harness
     if (leftType.type == rightType.type) return true;
     var query = '$leftType <: $rightType';
     return _subtypes[query] ?? fail('Unknown subtype query: $query');
+  }
+
+  @override
+  _Type tryPromoteToNonNull(_Type type) {
+    if (type.type.endsWith('?')) {
+      return _Type(type.type.substring(0, type.type.length - 1));
+    }
+    return null;
   }
 
   @override

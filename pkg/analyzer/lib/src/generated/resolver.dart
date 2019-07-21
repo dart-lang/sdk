@@ -5006,8 +5006,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _flowAnalysis?.simpleIdentifier(node);
-
     if (_flowAnalysis != null &&
         _flowAnalysis.isPotentiallyNonNullableLocalReadBeforeWrite(node)) {
       errorReporter.reportErrorForNode(
