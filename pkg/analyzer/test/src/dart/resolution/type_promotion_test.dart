@@ -172,6 +172,16 @@ void f(bool b, Object x) {
 ''');
   }
 
+  test_for_declaredVar() async {
+    await resolveCode(r'''
+void f() {
+  for (Object x = g(); x is int; x = g()) {
+    /*int*/ x;
+  }
+}
+''');
+  }
+
   test_for_outerIsType() async {
     await resolveCode(r'''
 void f(bool b, Object x) {

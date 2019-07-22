@@ -133,14 +133,13 @@ class FlowAnalysisHelper {
 
     if (_blockFunctionBodyLevel > 1) {
       assert(flow != null);
-      return;
+    } else {
+      flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
+        _nodeOperations,
+        _typeOperations,
+        _FunctionBodyAccess(node),
+      );
     }
-
-    flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
-      _nodeOperations,
-      _typeOperations,
-      _FunctionBodyAccess(node),
-    );
 
     var parameters = _enclosingExecutableParameters(node);
     if (parameters != null) {
@@ -157,12 +156,17 @@ class FlowAnalysisHelper {
       return;
     }
 
+    // Set this.flow to null before doing any clean-up so that if an exception
+    // is raised, the state is already updated correctly, and we don't have
+    // cascading failures.
+    var flow = this.flow;
+    this.flow = null;
+
     if (!flow.isReachable) {
       result.functionBodiesThatDontComplete.add(node);
     }
 
-    flow.verifyStackEmpty();
-    flow = null;
+    flow.finish();
   }
 
   void breakStatement(BreakStatement node) {
@@ -247,12 +251,14 @@ class FlowAnalysisHelper {
     }
   }
 
-  void variableDeclarationStatement(VariableDeclarationStatement node) {
-    var variables = node.variables.variables;
-    for (var i = 0; i < variables.length; ++i) {
-      var variable = variables[i];
-      flow.add(variable.declaredElement,
-          assigned: variable.initializer != null);
+  void variableDeclarationList(VariableDeclarationList node) {
+    if (flow != null) {
+      var variables = node.variables;
+      for (var i = 0; i < variables.length; ++i) {
+        var variable = variables[i];
+        flow.add(variable.declaredElement,
+            assigned: variable.initializer != null);
+      }
     }
   }
 

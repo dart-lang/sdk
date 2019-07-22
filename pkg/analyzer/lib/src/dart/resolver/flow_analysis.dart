@@ -42,7 +42,14 @@ class AssignedVariables<Statement, Variable> {
 }
 
 class FlowAnalysis<Statement, Expression, Variable, Type> {
+  static bool get _assertionsEnabled {
+    bool result = false;
+    assert(result = true);
+    return result;
+  }
+
   final _VariableSet<Variable> _emptySet;
+
   final State<Variable, Type> _identity;
 
   /// The [NodeOperations], used to manipulate expressions.
@@ -63,8 +70,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// states.
   final Map<Statement, int> _statementToStackIndex = {};
 
-  /// The list of all variables.
-  final List<Variable> _variables = [];
+  /// List of all variables passed to [add].
+  final List<Variable> _addedVariables = [];
 
   State<Variable, Type> _current;
 
@@ -76,6 +83,19 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// The state when [_condition] evaluates to `false`.
   State<Variable, Type> _conditionFalse;
+
+  /// If assertions are enabled, keeps track of all variables that have been
+  /// passed into the API (other than through a call to [add]).  The [finish]
+  /// method uses this to verify that the caller doesn't forget to pass a
+  /// variable to [add].
+  ///
+  /// Note: the reason we have to keep track of this set (rather than simply
+  /// checking each variable at the time it is passed into the API) is because
+  /// the client doesn't call `add` until a variable is declared, and in
+  /// erroneous code, it's possible that a variable might be used before its
+  /// declaration.
+  final Set<Variable> _referencedVariables =
+      _assertionsEnabled ? <Variable>{} : null;
 
   factory FlowAnalysis(
     NodeOperations<Expression> nodeOperations,
@@ -108,7 +128,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Add a new [variable], which might be already [assigned].
   void add(Variable variable, {bool assigned: false}) {
-    _variables.add(variable);
+    _addedVariables.add(variable);
     _current = _current.add(variable, assigned: assigned);
   }
 
@@ -174,6 +194,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// The [binaryExpression] checks that the [variable] is equal to `null`.
   void conditionEqNull(Expression binaryExpression, Variable variable) {
+    _variableReferenced(variable);
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
@@ -185,6 +206,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// The [binaryExpression] checks that the [variable] is not equal to `null`.
   void conditionNotEqNull(Expression binaryExpression, Variable variable) {
+    _variableReferenced(variable);
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
@@ -196,6 +218,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   void doStatement_bodyBegin(
       Statement doStatement, Set<Variable> loopAssigned) {
+    _variablesReferenced(loopAssigned);
     _current = _current.removePromotedAll(loopAssigned);
 
     _statementToStackIndex[doStatement] = _stack.length;
@@ -221,7 +244,21 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = _join(falseCondition, breakState);
   }
 
+  /// This method should be called at the conclusion of flow analysis for a top
+  /// level function or method.  Performs assertion checks.
+  void finish() {
+    assert(_stack.isEmpty);
+    assert(() {
+      var variablesNotAdded =
+          _referencedVariables.difference(Set<Variable>.from(_addedVariables));
+      assert(variablesNotAdded.isEmpty,
+          'Variables not passed to add: $variablesNotAdded');
+      return true;
+    }());
+  }
+
   void forEachStatement_bodyBegin(Set<Variable> loopAssigned) {
+    _variablesReferenced(loopAssigned);
     _stack.add(_current);
     _current = _current.removePromotedAll(loopAssigned);
   }
@@ -245,6 +282,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void forStatement_conditionBegin(Set<Variable> loopAssigned) {
+    _variablesReferenced(loopAssigned);
     _current = _current.removePromotedAll(loopAssigned);
   }
 
@@ -346,11 +384,13 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Return whether the [variable] is definitely assigned in the current state.
   bool isAssigned(Variable variable) {
+    _variableReferenced(variable);
     return !_current.notAssigned.contains(variable);
   }
 
   void isExpression_end(
       Expression isExpression, Variable variable, bool isNot, Type type) {
+    _variableReferenced(variable);
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
@@ -474,6 +514,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// Retrieves the type that the [variable] is promoted to, if the [variable]
   /// is currently promoted.  Otherwise returns `null`.
   Type promotedType(Variable variable) {
+    _variableReferenced(variable);
     return _current.promoted[variable];
   }
 
@@ -482,6 +523,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// these variables might have different types and are "un-promoted" from
   /// the "afterExpression" state.
   void switchStatement_beginCase(Set<Variable> notPromoted) {
+    _variablesReferenced(notPromoted);
     _current = _stack.last.removePromotedAll(notPromoted);
   }
 
@@ -511,6 +553,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void tryCatchStatement_bodyEnd(Set<Variable> assignedInBody) {
+    _variablesReferenced(assignedInBody);
     var beforeBody = _stack.removeLast();
     var beforeCatch = beforeBody.removePromotedAll(assignedInBody);
     _stack.add(beforeCatch);
@@ -539,6 +582,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void tryFinallyStatement_end(Set<Variable> assignedInFinally) {
+    _variablesReferenced(assignedInFinally);
     var afterBody = _stack.removeLast();
     _current = _current.restrict(
       typeOperations,
@@ -549,14 +593,11 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void tryFinallyStatement_finallyBegin(Set<Variable> assignedInBody) {
+    _variablesReferenced(assignedInBody);
     var beforeTry = _stack.removeLast();
     var afterBody = _current;
     _stack.add(afterBody);
     _current = _join(afterBody, beforeTry.removePromotedAll(assignedInBody));
-  }
-
-  void verifyStackEmpty() {
-    assert(_stack.isEmpty);
   }
 
   void whileStatement_bodyBegin(
@@ -574,6 +615,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   void whileStatement_conditionBegin(Set<Variable> loopAssigned) {
+    _variablesReferenced(loopAssigned);
     _current = _current.removePromotedAll(loopAssigned);
   }
 
@@ -587,6 +629,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
   /// Register write of the given [variable] in the current state.
   void write(Variable variable) {
+    _variableReferenced(variable);
     _current = _current.write(typeOperations, _emptySet, variable);
   }
 
@@ -622,6 +665,26 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
       newNotAssigned,
       newPromoted,
     );
+  }
+
+  /// If assertions are enabled, records that the given variable has been
+  /// referenced.  The [finish] method will verify that all referenced variables
+  /// were eventually passed to [add].
+  void _variableReferenced(Variable variable) {
+    assert(() {
+      _referencedVariables.add(variable);
+      return true;
+    }());
+  }
+
+  /// If assertions are enabled, records that the given variables have been
+  /// referenced.  The [finish] method will verify that all referenced variables
+  /// were eventually passed to [add].
+  void _variablesReferenced(Iterable<Variable> variables) {
+    assert(() {
+      _referencedVariables.addAll(variables);
+      return true;
+    }());
   }
 }
 

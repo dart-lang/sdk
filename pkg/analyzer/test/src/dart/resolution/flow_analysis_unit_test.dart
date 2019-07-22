@@ -17,7 +17,7 @@ main() {
       h.flow.ifStatement_elseBegin();
       expect(h.flow.promotedType(x), isNull);
       h.flow.ifStatement_end(true);
-      h.flow.verifyStackEmpty();
+      h.flow.finish();
     });
 
     test('conditionEqNull promotes false branch', () {
@@ -30,7 +30,21 @@ main() {
       h.flow.ifStatement_elseBegin();
       expect(h.flow.promotedType(x).type, 'int');
       h.flow.ifStatement_end(true);
-      h.flow.verifyStackEmpty();
+      h.flow.finish();
+    });
+
+    test('finish checks proper nesting', () {
+      var h = _Harness();
+      var expr = _Expression();
+      h.flow.ifStatement_thenBegin(expr);
+      expect(() => h.flow.finish(), _asserts);
+    });
+
+    test('finish checks for un-added variables', () {
+      var h = _Harness();
+      var x = _Var('x', _Type('int'));
+      h.flow.isAssigned(x);
+      expect(() => h.flow.finish(), _asserts);
     });
 
     test('ifStatement_end(false) keeps else branch if then branch exits', () {
@@ -42,7 +56,7 @@ main() {
       h.flow.handleExit();
       h.flow.ifStatement_end(false);
       expect(h.flow.promotedType(x).type, 'int');
-      h.flow.verifyStackEmpty();
+      h.flow.finish();
     });
 
     void _checkIs(String declaredType, String tryPromoteType,
@@ -60,7 +74,7 @@ main() {
       h.flow.ifStatement_elseBegin();
       expect(h.flow.promotedType(x), isNull);
       h.flow.ifStatement_end(true);
-      h.flow.verifyStackEmpty();
+      h.flow.finish();
     }
 
     test('isExpression_end promotes to a subtype', () {
@@ -437,6 +451,18 @@ main() {
       });
     });
   });
+}
+
+/// Returns the appropriate matcher for expecting an assertion error to be
+/// thrown or not, based on whether assertions are enabled.
+Matcher get _asserts {
+  var matcher = throwsA(TypeMatcher<AssertionError>());
+  bool assertionsEnabled = false;
+  assert(assertionsEnabled = true);
+  if (!assertionsEnabled) {
+    matcher = isNot(matcher);
+  }
+  return matcher;
 }
 
 class _Expression {}

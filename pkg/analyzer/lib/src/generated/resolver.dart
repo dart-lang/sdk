@@ -5118,6 +5118,12 @@ class ResolverVisitor extends ScopedVisitor {
     for (var i = 0; i < catchLength; ++i) {
       var catchClause = catchClauses[i];
       flow.tryCatchStatement_catchBegin();
+      if (catchClause.exceptionParameter != null) {
+        flow.add(catchClause.exceptionParameter.staticElement, assigned: true);
+      }
+      if (catchClause.stackTraceParameter != null) {
+        flow.add(catchClause.stackTraceParameter.staticElement, assigned: true);
+      }
       catchClause.accept(this);
       flow.tryCatchStatement_catchEnd();
     }
@@ -5159,18 +5165,13 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
+    _flowAnalysis?.variableDeclarationList(node);
     for (VariableDeclaration decl in node.variables) {
       VariableElement variableElement =
           resolutionMap.elementDeclaredByVariableDeclaration(decl);
       InferenceContext.setType(decl, variableElement?.type);
     }
     super.visitVariableDeclarationList(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _flowAnalysis?.variableDeclarationStatement(node);
-    super.visitVariableDeclarationStatement(node);
   }
 
   @override
