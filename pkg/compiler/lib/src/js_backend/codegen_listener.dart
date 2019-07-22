@@ -20,7 +20,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
-import 'runtime_types.dart';
+import 'runtime_types_resolution.dart';
 
 class CodegenEnqueuerListener extends EnqueuerListener {
   final ElementEnvironment _elementEnvironment;

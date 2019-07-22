@@ -26,6 +26,7 @@ import '../js_backend/checked_mode_helpers.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;

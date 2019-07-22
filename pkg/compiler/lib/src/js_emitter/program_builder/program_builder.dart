@@ -27,7 +27,8 @@ import '../../js_backend/interceptor_data.dart';
 import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
-    show RuntimeTypesChecks, RuntimeTypesNeed, RuntimeTypesEncoder;
+    show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';

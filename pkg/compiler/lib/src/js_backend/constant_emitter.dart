@@ -18,6 +18,7 @@ import '../options.dart';
 import 'field_analysis.dart' show JFieldAnalysis;
 import 'runtime_types.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
+import 'runtime_types_resolution.dart';
 
 typedef jsAst.Expression _ConstantReferenceGenerator(ConstantValue constant);
 

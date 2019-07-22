@@ -13,14 +13,9 @@ import '../js/js.dart' show js;
 import '../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart'
-    show
-        ClassChecks,
-        ClassFunctionType,
-        OnVariableCallback,
-        RuntimeTypesChecks,
-        RuntimeTypesEncoder,
-        Substitution,
-        TypeCheck;
+    show RuntimeTypesChecks, RuntimeTypesEncoder, OnVariableCallback;
+import '../js_backend/runtime_types_codegen.dart'
+    show ClassChecks, ClassFunctionType, Substitution, TypeCheck;
 import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
 

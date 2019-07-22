@@ -34,7 +34,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/resolution_listener.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/dart2js_target.dart';
 import '../native/enqueue.dart' show NativeResolutionEnqueuer;
 import '../native/resolver.dart';
@@ -293,8 +293,7 @@ class KernelFrontendStrategy extends FrontendStrategy {
   RuntimeTypesNeedBuilder _createRuntimeTypesNeedBuilder() {
     return _runtimeTypesNeedBuilder ??= _options.disableRtiOptimization
         ? const TrivialRuntimeTypesNeedBuilder()
-        : new RuntimeTypesNeedBuilderImpl(
-            elementEnvironment, _elementMap.types);
+        : new RuntimeTypesNeedBuilderImpl(elementEnvironment);
   }
 
   RuntimeTypesNeedBuilder get runtimeTypesNeedBuilderForTesting =>

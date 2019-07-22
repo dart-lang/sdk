@@ -34,6 +34,7 @@ import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart';
 import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoderImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;

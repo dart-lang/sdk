@@ -22,7 +22,7 @@ import '../js_backend/field_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';

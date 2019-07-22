@@ -25,7 +25,7 @@ import 'js_backend/backend_usage.dart' show BackendUsage;
 import 'js_backend/interceptor_data.dart' show InterceptorData;
 import 'js_backend/native_data.dart' show NativeData;
 import 'js_backend/no_such_method_registry.dart' show NoSuchMethodData;
-import 'js_backend/runtime_types.dart' show RuntimeTypesNeed;
+import 'js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import 'js_model/locals.dart';
 import 'js_emitter/sorter.dart';
 import 'universe/class_hierarchy.dart';

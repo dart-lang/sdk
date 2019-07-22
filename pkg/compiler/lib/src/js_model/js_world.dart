@@ -24,7 +24,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../js_model/locals.dart';
 import '../ordered_typeset.dart';
 import '../options.dart';

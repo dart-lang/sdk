@@ -17,8 +17,8 @@ import '../universe/class_hierarchy.dart';
 import '../world.dart';
 import 'namer.dart';
 import 'native_data.dart';
-
-import 'runtime_types.dart' show RuntimeTypesNeed, RuntimeTypesSubstitutions;
+import 'runtime_types_codegen.dart' show RuntimeTypesSubstitutions;
+import 'runtime_types_resolution.dart' show RuntimeTypesNeed;
 
 abstract class RecipeEncoder {
   /// Returns a [jsAst.Expression] representing the given [recipe] to be

@@ -12,7 +12,7 @@ import '../js_backend/backend_usage.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
-import '../js_backend/runtime_types.dart';
+import '../js_backend/runtime_types_resolution.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/member_usage.dart';
