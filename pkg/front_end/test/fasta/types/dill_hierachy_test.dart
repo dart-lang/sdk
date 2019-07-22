@@ -119,7 +119,8 @@ class F implements D<int, bool>;""",
         final DillLoader loader = target.loader;
         loader.appendLibraries(component);
         await target.buildOutlines();
-        KernelClassBuilder objectClass = loader.coreLibrary["Object"];
+        KernelClassBuilder objectClass =
+            loader.coreLibrary.getLocalMember("Object");
         ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
             objectClass, loader, new CoreTypes(component));
         Library library = component.libraries.last;

@@ -142,8 +142,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and isn't a setter).
-  MemberBuilder operator [](String name) {
-    // TODO(ahe): Rename this to getLocalMember.
+  MemberBuilder getLocalMember(String name) {
     return scope.local[name] ??
         internalProblem(
             templateInternalProblemNotFoundIn.withArguments(
@@ -167,7 +166,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
   /// For example, this method is convenient for use when building synthetic
   /// members, such as those of an enum.
   MemberBuilder firstMemberNamed(String name) {
-    Declaration declaration = this[name];
+    Declaration declaration = getLocalMember(name);
     while (declaration.next != null) {
       declaration = declaration.next;
     }

@@ -79,7 +79,7 @@ class DillLoader extends Loader<Library> {
   KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
-    return library[cls.name];
+    return library.getLocalMember(cls.name);
   }
 
   @override

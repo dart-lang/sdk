@@ -568,9 +568,9 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       String name = identifier.name;
       Declaration declaration;
       if (classBuilder != null) {
-        declaration = classBuilder[name];
+        declaration = classBuilder.getLocalMember(name);
       } else {
-        declaration = library[name];
+        declaration = library.getLocalMember(name);
       }
       KernelFieldBuilder field;
       if (declaration.isField && declaration.next == null) {

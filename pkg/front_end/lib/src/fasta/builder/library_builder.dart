@@ -217,7 +217,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
-  Declaration operator [](String name) {
+  Declaration getLocalMember(String name) {
     return scope.local[name] ??
         internalProblem(
             templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),

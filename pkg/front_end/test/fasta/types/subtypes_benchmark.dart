@@ -149,7 +149,8 @@ Future<void> run(Uri benchmarkInput, String name) async {
     final DillLoader loader = target.loader;
     loader.appendLibraries(c);
     await target.buildOutlines();
-    KernelClassBuilder objectClass = loader.coreLibrary["Object"];
+    KernelClassBuilder objectClass =
+        loader.coreLibrary.getLocalMember("Object");
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, coreTypes);
 
