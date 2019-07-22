@@ -1095,6 +1095,22 @@ main() { // missing async
         ]);
   }
 
+  void test_missing_closing_bracket_issue37528() {
+    final code = '\${foo';
+    createParser(code);
+    final result = fasta.scanString(code);
+    expect(result.hasErrors, isTrue);
+    var token = _parserProxy.fastaParser.syntheticPreviousToken(result.tokens);
+    try {
+      _parserProxy.fastaParser.parseExpression(token);
+      // TODO(danrubel): Replace this test once root cause is found
+      fail('exception expected');
+    } catch (e) {
+      var msg = e.toString();
+      expect(msg.contains('test_missing_closing_bracket_issue37528'), isTrue);
+    }
+  }
+
   void test_partialNamedConstructor() {
     parseCompilationUnit('class C { C. }', errors: [
       expectedError(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
