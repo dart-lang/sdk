@@ -347,6 +347,39 @@ void main() {
 ''');
   }
 
+  test_write_hasPadding_add() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Padding(
+    padding: EdgeInsets.only(left: 1, right: 3),
+    child: Text(''),
+  );
+}
+''');
+    var alignmentProperty = await _alignmentProperty('Text(');
+
+    var result = await descriptions.setPropertyValue(
+      alignmentProperty.id,
+      protocol.FlutterWidgetPropertyValue(
+        enumValue: _alignmentValue('bottomLeft'),
+      ),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Container(
+    alignment: Alignment.bottomLeft,
+    padding: EdgeInsets.only(left: 1, right: 3),
+    child: Text(''),
+  );
+}
+''');
+  }
+
   test_write_noContainer_add() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -774,6 +807,40 @@ void main() {
       }
     }
   ]
+}
+''');
+  }
+
+  test_write_hasAlign_add_only() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Align(
+    alignment: Alignment.centerRight,
+    child: Text(''),
+  );
+}
+''');
+    var paddingProperty = await _paddingProperty('Text(');
+    var leftProperty = getNestedProperty(paddingProperty, 'left');
+
+    var result = await descriptions.setPropertyValue(
+      leftProperty.id,
+      protocol.FlutterWidgetPropertyValue(
+        doubleValue: 1,
+      ),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Container(
+    alignment: Alignment.centerRight,
+    padding: EdgeInsets.only(left: 1),
+    child: Text(''),
+  );
 }
 ''');
   }

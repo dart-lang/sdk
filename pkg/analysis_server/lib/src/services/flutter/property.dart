@@ -243,22 +243,71 @@ class PropertyDescription {
     String parameterName,
     void writeArgumentValue(DartEditBuilder builder),
   ) {
-    builder.addInsertion(
-      virtualContainer.widgetCreation.offset,
-      (builder) {
-        builder.writeReference(virtualContainer.containerElement);
-        builder.write('(');
+    if (virtualContainer._parentCreation != null) {
+      // `new Padding(...)` -> `Container(...)`
+      builder.addReplacement(
+        range.startEnd(
+          virtualContainer._parentCreation,
+          virtualContainer._parentCreation.constructorName,
+        ),
+        (builder) {
+          builder.writeReference(virtualContainer.containerElement);
+        },
+      );
 
-        builder.write(parameterName);
-        builder.write(': ');
-        writeArgumentValue(builder);
-        builder.write(', ');
-        // TODO(scheglov) move parent creation attribute, sorted
+      var existingArgument = virtualContainer._parentArgumentToMove;
+      var existingName = existingArgument.name.label.name;
 
-        builder.write('child: ');
-      },
-    );
-    builder.addSimpleInsertion(virtualContainer.widgetCreation.end, ',)');
+      int parameterOffset;
+      var leadingComma = false;
+      var trailingComma = false;
+      if (existingName.compareTo(parameterName) > 0) {
+        // `Container(padding: ..., child: ...)`
+        //    ->
+        // `Container(alignment: ..., padding: ..., child: ...)`
+        parameterOffset = existingArgument.offset;
+        trailingComma = true;
+      } else {
+        // `Container(alignment: ..., child: ...)`
+        //    ->
+        // `Container(alignment: ..., padding: ..., child: ...)`
+        parameterOffset = existingArgument.end;
+        leadingComma = true;
+      }
+
+      builder.addInsertion(
+        parameterOffset,
+        (builder) {
+          if (leadingComma) {
+            builder.write(', ');
+          }
+
+          builder.write(parameterName);
+          builder.write(': ');
+          writeArgumentValue(builder);
+
+          if (trailingComma) {
+            builder.write(', ');
+          }
+        },
+      );
+    } else {
+      builder.addInsertion(
+        virtualContainer.widgetCreation.offset,
+        (builder) {
+          builder.writeReference(virtualContainer.containerElement);
+          builder.write('(');
+
+          builder.write(parameterName);
+          builder.write(': ');
+          writeArgumentValue(builder);
+          builder.write(', ');
+
+          builder.write('child: ');
+        },
+      );
+      builder.addSimpleInsertion(virtualContainer.widgetCreation.end, ',)');
+    }
   }
 
   FunctionBody _enclosingFunctionBody() {
