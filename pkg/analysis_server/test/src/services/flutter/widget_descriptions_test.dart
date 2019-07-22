@@ -609,7 +609,7 @@ void main() {
   Text(
     '',
     style: TextStyle(
-      fontSize: 42.0,
+      fontSize: 42,
     ),
   );
 }
@@ -640,7 +640,7 @@ void main() {
   Text(
     '',
     style: TextStyle(
-      fontSize: 42.0,
+      fontSize: 42,
     ),
   );
 }

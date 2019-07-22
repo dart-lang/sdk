@@ -100,7 +100,7 @@ class Padding extends SingleChildRenderObjectWidget {
 
   const Padding({
     Key key,
-    this.padding,
+    @required this.padding,
     Widget child,
   });
 }

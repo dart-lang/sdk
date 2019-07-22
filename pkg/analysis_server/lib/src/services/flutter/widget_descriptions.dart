@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/util/comment.dart';
 
 /// The result of [WidgetDescriptions.setPropertyValue] invocation.
 class SetPropertyValueResult {
@@ -126,6 +125,7 @@ class _WidgetDescriptionComputer {
   ClassElement _classAlignment;
   ClassElement _classAlignmentDirectional;
   ClassElement _classContainer;
+  ClassElement _classEdgeInsets;
 
   _WidgetDescriptionComputer(
     this.classRegistry,
@@ -235,6 +235,14 @@ class _WidgetDescriptionComputer {
           'alignment',
         );
       }
+
+      if (flutter.isExactlyPaddingCreation(parentCreation)) {
+        _replaceNestedContainerProperty(
+          containerProperty,
+          parentCreation,
+          'padding',
+        );
+      }
     }
 
     containerProperty.children.removeWhere(
@@ -307,11 +315,7 @@ class _WidgetDescriptionComputer {
     Expression argumentExpression,
     Expression valueExpression,
   }) {
-    String documentation;
-    if (parameter is FieldFormalParameterElement) {
-      var rawComment = parameter.field.documentationComment;
-      documentation = getDartDocPlainText(rawComment);
-    }
+    var documentation = getParameterDocumentation(parameter);
 
     String valueExpressionCode;
     if (valueExpression != null) {
@@ -352,7 +356,13 @@ class _WidgetDescriptionComputer {
     );
     properties.add(propertyDescription);
 
-    if (valueExpression is InstanceCreationExpression) {
+    if (flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
+      _nextPropertyId = propertyDescription.addEdgeInsetsNestedProperties(
+        _nextPropertyId,
+        flutter,
+        _classEdgeInsets,
+      );
+    } else if (valueExpression is InstanceCreationExpression) {
       var type = valueExpression.staticType;
       if (classRegistry.hasNestedProperties(type)) {
         _addProperties(
@@ -405,6 +415,10 @@ class _WidgetDescriptionComputer {
     _classContainer = await sessionHelper.getClass(
       flutter.widgetsUri,
       'Container',
+    );
+    _classEdgeInsets = await sessionHelper.getClass(
+      flutter.widgetsUri,
+      'EdgeInsets',
     );
   }
 
@@ -487,9 +501,7 @@ class _WidgetDescriptionComputer {
   protocol.FlutterWidgetPropertyValueEnumItem _toEnumItem(FieldElement field) {
     var classElement = field.enclosingElement as ClassElement;
     var libraryUriStr = '${classElement.library.source.uri}';
-
-    var rawComment = field.documentationComment;
-    var documentation = getDartDocPlainText(rawComment);
+    var documentation = getFieldDocumentation(field);
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,

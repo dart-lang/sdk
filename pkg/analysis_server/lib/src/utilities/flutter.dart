@@ -38,6 +38,7 @@ class Flutter {
   final Uri _uriAsync;
   final Uri _uriBasic;
   final Uri _uriContainer;
+  final Uri _uriEdgeInsets;
   final Uri _uriFramework;
   final Uri _uriWidgetsIcon;
   final Uri _uriWidgetsText;
@@ -71,9 +72,32 @@ class Flutter {
         _uriAsync = Uri.parse('$uriPrefix/src/widgets/async.dart'),
         _uriBasic = Uri.parse('$uriPrefix/src/widgets/basic.dart'),
         _uriContainer = Uri.parse('$uriPrefix/src/widgets/container.dart'),
+        _uriEdgeInsets = Uri.parse('$uriPrefix/src/painting/edge_insets.dart'),
         _uriFramework = Uri.parse('$uriPrefix/src/widgets/framework.dart'),
         _uriWidgetsIcon = Uri.parse('$uriPrefix/src/widgets/icon.dart'),
         _uriWidgetsText = Uri.parse('$uriPrefix/src/widgets/text.dart');
+
+  /**
+   * Return the argument with the given [index], or `null` if none.
+   */
+  Expression argumentByIndex(List<Expression> arguments, int index) {
+    if (index < arguments.length) {
+      return arguments[index];
+    }
+    return null;
+  }
+
+  /**
+   * Return the named expression with the given [name], or `null` if none.
+   */
+  NamedExpression argumentByName(List<Expression> arguments, String name) {
+    for (var argument in arguments) {
+      if (argument is NamedExpression && argument.name.label.name == name) {
+        return argument;
+      }
+    }
+    return null;
+  }
 
   void convertChildToChildren(
       InstanceCreationExpression childArg,
@@ -194,11 +218,7 @@ class Flutter {
     String name,
   ) {
     var arguments = creation.argumentList.arguments;
-    return arguments.firstWhere(
-      (argument) =>
-          argument is NamedExpression && argument.name.label.name == name,
-      orElse: () => null,
-    );
+    return argumentByName(arguments, name);
   }
 
   /**
@@ -354,6 +374,12 @@ class Flutter {
     return _isExactWidget(element, 'AlignmentGeometry', _uriAlignment);
   }
 
+  /// Return `true` if the [type] is the Flutter type `EdgeInsetsGeometry`.
+  bool isExactEdgeInsetsGeometryType(DartType type) {
+    return type is InterfaceType &&
+        _isExactWidget(type.element, 'EdgeInsetsGeometry', _uriEdgeInsets);
+  }
+
   /**
    * Return `true` if the [node] is creation of `Align`.
    */
@@ -368,6 +394,14 @@ class Flutter {
   bool isExactlyContainerCreation(InstanceCreationExpression node) {
     var type = node?.staticType;
     return isExactWidgetTypeContainer(type);
+  }
+
+  /**
+   * Return `true` if the [node] is creation of `Padding`.
+   */
+  bool isExactlyPaddingCreation(InstanceCreationExpression node) {
+    var type = node?.staticType;
+    return isExactWidgetTypePadding(type);
   }
 
   /**
