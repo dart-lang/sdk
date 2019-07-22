@@ -241,6 +241,12 @@ class FlowAnalysisHelper {
     return false;
   }
 
+  void loopVariable(DeclaredIdentifier loopVariable) {
+    if (loopVariable != null) {
+      flow.add(loopVariable.declaredElement, assigned: true);
+    }
+  }
+
   void variableDeclarationStatement(VariableDeclarationStatement node) {
     var variables = node.variables.variables;
     for (var i = 0; i < variables.length; ++i) {

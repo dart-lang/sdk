@@ -4568,6 +4568,7 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
+      _flowAnalysis?.loopVariable(loopVariable);
       loopVariable?.accept(this);
 
       _flowAnalysis?.flow?.forEachStatement_bodyBegin(
