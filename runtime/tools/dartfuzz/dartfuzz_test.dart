@@ -343,7 +343,7 @@ class DartFuzzTest {
           if (result1.output == result2.output) {
             numSuccess++;
           } else {
-            reportDivergence(result1, result2, true);
+            reportDivergence(result1, result2);
           }
           break;
         case ResultCode.timeout:
@@ -366,16 +366,23 @@ class DartFuzzTest {
           return;
         }
       }
-      reportDivergence(result1, result2, false);
+      reportDivergence(result1, result2);
     }
   }
 
-  void reportDivergence(
-      TestResult result1, TestResult result2, bool outputDivergence) {
+  String generateReport(TestResult result1, TestResult result2) {
+    if (result1.code == result2.code) {
+      return "output";
+    } else {
+      return "${result1.code} vs ${result2.code}";
+    }
+  }
+
+  void reportDivergence(TestResult result1, TestResult result2) {
     numDivergences++;
-    print(
-        '\n${isolate}: !DIVERGENCE! $version:$seed (output=${outputDivergence})');
-    if (outputDivergence) {
+    String report = generateReport(result1, result2);
+    print('\n${isolate}: !DIVERGENCE! $version:$seed (${report})');
+    if (result1.code == result2.code) {
       // Only report the actual output divergence details when requested,
       // since this output may be lengthy and should be reproducable anyway.
       if (showStats) {
