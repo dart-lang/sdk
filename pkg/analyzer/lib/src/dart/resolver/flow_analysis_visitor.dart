@@ -479,9 +479,8 @@ class _TypeSystemTypeOperations
   }
 
   @override
-  DartType tryPromoteToNonNull(covariant TypeImpl type) {
-    TypeImpl promotedType = typeSystem.promoteToNonNull(type);
-    return isSameType(type, promotedType) ? null : promotedType;
+  DartType promoteToNonNull(DartType type) {
+    return typeSystem.promoteToNonNull(type);
   }
 
   @override

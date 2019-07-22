@@ -500,11 +500,12 @@ class _Harness
   }
 
   @override
-  _Type tryPromoteToNonNull(_Type type) {
+  _Type promoteToNonNull(_Type type) {
     if (type.type.endsWith('?')) {
       return _Type(type.type.substring(0, type.type.length - 1));
+    } else {
+      return type;
     }
-    return null;
   }
 
   @override

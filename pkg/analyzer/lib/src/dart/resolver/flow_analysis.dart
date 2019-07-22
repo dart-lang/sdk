@@ -684,9 +684,9 @@ class State<Variable, Type> {
       TypeOperations<Variable, Type> typeOperations, Variable variable) {
     var previousType = promoted[variable];
     previousType ??= typeOperations.variableType(variable);
-    var type = typeOperations.tryPromoteToNonNull(previousType);
+    var type = typeOperations.promoteToNonNull(previousType);
 
-    if (type != null) {
+    if (!typeOperations.isSameType(type, previousType)) {
       var newPromoted = <Variable, Type>{}..addAll(promoted);
       newPromoted[variable] = type;
       return State<Variable, Type>._(
@@ -924,12 +924,11 @@ abstract class TypeOperations<Variable, Type> {
   /// Return `true` if the [leftType] is a subtype of the [rightType].
   bool isSubtypeOf(Type leftType, Type rightType);
 
-  /// Returns the non-null promoted version of [type], if it is different,
-  /// otherwise `null`.  For example, given `int?`, returns `int`.
+  /// Returns the non-null promoted version of [type].
   ///
   /// Note that some types don't have a non-nullable version (e.g.
-  /// `FutureOr<int?>`), so `null` may be returned even if the type is nullable.
-  Type tryPromoteToNonNull(Type type);
+  /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
+  Type /*!*/ promoteToNonNull(Type type);
 
   /// Return the static type of the given [variable].
   Type variableType(Variable variable);
