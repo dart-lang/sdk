@@ -122,13 +122,13 @@ abstract class TestRunner {
     if (mode.endsWith('debug-x64')) return 'DebugX64';
     if (mode.endsWith('debug-arm32')) return 'DebugSIMARM';
     if (mode.endsWith('debug-arm64')) return 'DebugSIMARM64';
-    if (mode.endsWith('debug-dbc')) return 'DebugSIMDBC';
+    if (mode.endsWith('debug-dbc32')) return 'DebugSIMDBC';
     if (mode.endsWith('debug-dbc64')) return 'DebugSIMDBC64';
     if (mode.endsWith('ia32')) return 'ReleaseIA32';
     if (mode.endsWith('x64')) return 'ReleaseX64';
     if (mode.endsWith('arm32')) return 'ReleaseSIMARM';
     if (mode.endsWith('arm64')) return 'ReleaseSIMARM64';
-    if (mode.endsWith('dbc')) return 'ReleaseSIMDBC';
+    if (mode.endsWith('dbc32')) return 'ReleaseSIMDBC';
     if (mode.endsWith('dbc64')) return 'ReleaseSIMDBC64';
     throw ('unknown tag in mode: $mode');
   }
@@ -282,7 +282,8 @@ class DartFuzzTest {
     fileName = '${tmpDir.path}/fuzz.dart';
     runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env, rand);
     runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env, rand);
-    isolate = 'Isolate (${tmpDir.path}) '
+    fp = samePrecision(mode1, mode2);
+    isolate = 'Isolate (${tmpDir.path}) ${fp ? "" : "NO-"}FP : '
         '${runner1.description} - ${runner2.description}';
 
     start_time = new DateTime.now().millisecondsSinceEpoch;
@@ -295,6 +296,10 @@ class DartFuzzTest {
     numNotRun = 0;
     numTimeOut = 0;
     numDivergences = 0;
+  }
+
+  bool samePrecision(String mode1, String mode2) {
+    return mode1.contains('64') == mode2.contains('64');
   }
 
   bool timeIsUp() {
@@ -324,7 +329,7 @@ class DartFuzzTest {
 
   void generateTest() {
     final file = new File(fileName).openSync(mode: FileMode.write);
-    new DartFuzz(seed, file).run();
+    new DartFuzz(seed, fp, file).run();
     file.closeSync();
   }
 
@@ -415,6 +420,7 @@ class DartFuzzTest {
   String fileName;
   TestRunner runner1;
   TestRunner runner2;
+  bool fp;
   String isolate;
   int seed;
 
@@ -558,9 +564,9 @@ class DartFuzzTestSession {
   // Modes not used on cluster runs because they have outstanding issues.
   static const List<String> nonClusterModes = [
     // Deprecated.
-    'jit-debug-dbc',
+    'jit-debug-dbc32',
     'jit-debug-dbc64',
-    'jit-dbc',
+    'jit-dbc32',
     'jit-dbc64',
     // Times out often:
     'aot-debug-arm32',

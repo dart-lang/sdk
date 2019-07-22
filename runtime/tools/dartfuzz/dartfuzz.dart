@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.13';
+const String version = '1.14';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -29,7 +29,7 @@ const methodName = 'foo';
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
 class DartFuzz {
-  DartFuzz(this.seed, this.file);
+  DartFuzz(this.seed, this.fp, this.file);
 
   void run() {
     // Initialize program variables.
@@ -66,7 +66,7 @@ class DartFuzz {
   void emitHeader() {
     emitLn('// The Dart Project Fuzz Tester ($version).');
     emitLn('// Program generated as:');
-    emitLn('//   dart dartfuzz.dart --seed $seed');
+    emitLn('//   dart dartfuzz.dart --seed $seed --${fp ? "" : "no-"}fp');
     emitLn('');
     emitLn("import 'dart:async';");
     emitLn("import 'dart:cli';");
@@ -1008,7 +1008,7 @@ class DartFuzz {
         emitExpr(depth, DartType.INT);
         break;
       case 'D':
-        emitExpr(depth, DartType.DOUBLE);
+        emitExpr(depth, fp ? DartType.DOUBLE : DartType.INT);
         break;
       case 'S':
         emitExpr(depth, DartType.STRING);
@@ -1039,7 +1039,7 @@ class DartFuzz {
       case 1:
         return DartType.INT;
       case 2:
-        return DartType.DOUBLE;
+        return fp ? DartType.DOUBLE : DartType.INT;
       case 3:
         return DartType.STRING;
       case 4:
@@ -1119,6 +1119,9 @@ class DartFuzz {
   // Random seed used to generate program.
   final int seed;
 
+  // Enables floating-point operations.
+  final bool fp;
+
   // File used for output.
   final RandomAccessFile file;
 
@@ -1163,12 +1166,15 @@ int getSeed(String userSeed) {
 main(List<String> arguments) {
   final parser = new ArgParser()
     ..addOption('seed',
-        help: 'random seed (0 forces time-based seed)', defaultsTo: '0');
+        help: 'random seed (0 forces time-based seed)', defaultsTo: '0')
+    ..addFlag('fp',
+        help: 'enables floating-point operations', defaultsTo: true);
   try {
     final results = parser.parse(arguments);
     final seed = getSeed(results['seed']);
+    final fp = results['fp'];
     final file = new File(results.rest.single).openSync(mode: FileMode.write);
-    new DartFuzz(seed, file).run();
+    new DartFuzz(seed, fp, file).run();
     file.closeSync();
   } catch (e) {
     print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');

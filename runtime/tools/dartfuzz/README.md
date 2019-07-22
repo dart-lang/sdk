@@ -12,12 +12,13 @@ How to run DartFuzz
 ===================
 To generate a single random Dart program, run
 
-    dart dartfuzz.dart [--help] [--seed SEED] FILENAME
+    dart dartfuzz.dart [--help] [--seed SEED] [--[no-]fp] FILENAME
 
 where
 
-    --help : prints help and exits
-    --seed : defines random seed (system-set by default)
+    --help    : prints help and exits
+    --seed    : defines random seed (system-set by default)
+    --[no-]fp : enables/disables floating-point operations
 
 The tool provides a runnable main isolate. A typical single
 test run looks as:
@@ -52,7 +53,7 @@ where
         jit-[debug-]x64     = Dart JIT (x64)
         jit-[debug-]arm32   = Dart JIT (simarm)
         jit-[debug-]arm64   = Dart JIT (simarm64)
-        jit-[debug-]dbc     = Dart JIT (simdbc)
+        jit-[debug-]dbc32   = Dart JIT (simdbc)
         jit-[debug-]dbc64   = Dart JIT (simdbc64)
         aot-[debug-]x64     = Dart AOT (x64)
         aot-[debug-]arm32   = Dart AOT (simarm)
