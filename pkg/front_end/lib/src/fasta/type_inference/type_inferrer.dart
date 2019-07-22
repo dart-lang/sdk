@@ -96,9 +96,9 @@ import '../fasta_codes.dart'
         templateUndefinedMethod,
         templateUndefinedSetter;
 
-import '../kernel/kernel_builder.dart' show KernelLibraryBuilder;
+import '../kernel/expression_generator.dart' show buildIsNull;
 
-import '../kernel/kernel_expression_generator.dart' show buildIsNull;
+import '../kernel/kernel_builder.dart' show KernelLibraryBuilder;
 
 import '../kernel/kernel_shadow_ast.dart'
     show

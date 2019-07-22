@@ -63,28 +63,7 @@ import 'collections.dart'
         IfMapEntry,
         SpreadElement;
 
-import 'kernel_expression_generator.dart'
-    show
-        KernelDeferredAccessGenerator,
-        KernelDelayedAssignment,
-        KernelDelayedPostfixIncrement,
-        KernelIndexedAccessGenerator,
-        KernelLoadLibraryGenerator,
-        KernelNullAwarePropertyAccessGenerator,
-        KernelParserErrorGenerator,
-        KernelPrefixUseGenerator,
-        KernelPropertyAccessGenerator,
-        KernelReadOnlyAccessGenerator,
-        KernelStaticAccessGenerator,
-        KernelSuperIndexedAccessGenerator,
-        KernelSuperPropertyAccessGenerator,
-        KernelThisIndexedAccessGenerator,
-        KernelThisPropertyAccessGenerator,
-        KernelTypeUseGenerator,
-        KernelUnexpectedQualifiedUseGenerator,
-        KernelUnlinkedGenerator,
-        KernelUnresolvedNameGenerator,
-        KernelVariableUseGenerator;
+import 'expression_generator.dart';
 
 import 'kernel_shadow_ast.dart'
     show
@@ -657,40 +636,37 @@ class Fangorn extends Forest {
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
 
   @override
-  KernelVariableUseGenerator variableUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      VariableDeclaration variable,
-      DartType promotedType) {
-    return new KernelVariableUseGenerator(
+  VariableUseGenerator variableUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, VariableDeclaration variable, DartType promotedType) {
+    return new VariableUseGenerator.internal(
         helper, token, variable, promotedType);
   }
 
   @override
-  KernelPropertyAccessGenerator propertyAccessGenerator(
+  PropertyAccessGenerator propertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Name name,
       Member getter,
       Member setter) {
-    return new KernelPropertyAccessGenerator.internal(
+    return new PropertyAccessGenerator.internal(
         helper, token, receiver, name, getter, setter);
   }
 
   @override
-  KernelThisPropertyAccessGenerator thisPropertyAccessGenerator(
+  ThisPropertyAccessGenerator thisPropertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Name name,
       Member getter,
       Member setter) {
-    return new KernelThisPropertyAccessGenerator(
+    return new ThisPropertyAccessGenerator.internal(
         helper, token, name, getter, setter);
   }
 
   @override
-  KernelNullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
+  NullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression receiverExpression,
@@ -698,156 +674,151 @@ class Fangorn extends Forest {
       Member getter,
       Member setter,
       DartType type) {
-    return new KernelNullAwarePropertyAccessGenerator(
+    return new NullAwarePropertyAccessGenerator.internal(
         helper, token, receiverExpression, name, getter, setter, type);
   }
 
   @override
-  KernelSuperPropertyAccessGenerator superPropertyAccessGenerator(
+  SuperPropertyAccessGenerator superPropertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Name name,
       Member getter,
       Member setter) {
-    return new KernelSuperPropertyAccessGenerator(
+    return new SuperPropertyAccessGenerator.internal(
         helper, token, name, getter, setter);
   }
 
   @override
-  KernelIndexedAccessGenerator indexedAccessGenerator(
+  IndexedAccessGenerator indexedAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Expression index,
       Procedure getter,
       Procedure setter) {
-    return new KernelIndexedAccessGenerator.internal(
+    return new IndexedAccessGenerator.internal(
         helper, token, receiver, index, getter, setter);
   }
 
   @override
-  KernelThisIndexedAccessGenerator thisIndexedAccessGenerator(
+  ThisIndexedAccessGenerator thisIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression index,
       Procedure getter,
       Procedure setter) {
-    return new KernelThisIndexedAccessGenerator(
+    return new ThisIndexedAccessGenerator.internal(
         helper, token, index, getter, setter);
   }
 
   @override
-  KernelSuperIndexedAccessGenerator superIndexedAccessGenerator(
+  SuperIndexedAccessGenerator superIndexedAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression index,
       Member getter,
       Member setter) {
-    return new KernelSuperIndexedAccessGenerator(
+    return new SuperIndexedAccessGenerator.internal(
         helper, token, index, getter, setter);
   }
 
   @override
-  KernelStaticAccessGenerator staticAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Member getter,
-      Member setter) {
-    return new KernelStaticAccessGenerator(helper, token, getter, setter);
+  StaticAccessGenerator staticAccessGenerator(ExpressionGeneratorHelper helper,
+      Token token, Member getter, Member setter) {
+    return new StaticAccessGenerator.internal(helper, token, getter, setter);
   }
 
   @override
-  KernelLoadLibraryGenerator loadLibraryGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      LoadLibraryBuilder builder) {
-    return new KernelLoadLibraryGenerator(helper, token, builder);
+  LoadLibraryGenerator loadLibraryGenerator(ExpressionGeneratorHelper helper,
+      Token token, LoadLibraryBuilder builder) {
+    return new LoadLibraryGenerator.internal(helper, token, builder);
   }
 
   @override
-  KernelDeferredAccessGenerator deferredAccessGenerator(
+  DeferredAccessGenerator deferredAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       PrefixUseGenerator prefixGenerator,
       Generator suffixGenerator) {
-    return new KernelDeferredAccessGenerator(
+    return new DeferredAccessGenerator.internal(
         helper, token, prefixGenerator, suffixGenerator);
   }
 
   @override
-  KernelTypeUseGenerator typeUseGenerator(
+  TypeUseGenerator typeUseGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       TypeDeclarationBuilder declaration,
       String plainNameForRead) {
-    return new KernelTypeUseGenerator(
+    return new TypeUseGenerator.internal(
         helper, token, declaration, plainNameForRead);
   }
 
   @override
-  KernelReadOnlyAccessGenerator readOnlyAccessGenerator(
+  ReadOnlyAccessGenerator readOnlyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression expression,
       String plainNameForRead) {
-    return new KernelReadOnlyAccessGenerator(
+    return new ReadOnlyAccessGenerator.internal(
         helper, token, expression, plainNameForRead);
   }
 
   @override
-  KernelUnresolvedNameGenerator unresolvedNameGenerator(
+  UnresolvedNameGenerator unresolvedNameGenerator(
       ExpressionGeneratorHelper helper, Token token, Name name) {
-    return new KernelUnresolvedNameGenerator(helper, token, name);
+    return new UnresolvedNameGenerator.internal(helper, token, name);
   }
 
   @override
-  KernelUnlinkedGenerator unlinkedGenerator(ExpressionGeneratorHelper helper,
+  UnlinkedGenerator unlinkedGenerator(ExpressionGeneratorHelper helper,
       Token token, UnlinkedDeclaration declaration) {
-    return new KernelUnlinkedGenerator(helper, token, declaration);
+    return new UnlinkedGenerator.internal(helper, token, declaration);
   }
 
   @override
-  KernelDelayedAssignment delayedAssignment(
+  DelayedAssignment delayedAssignment(
       ExpressionGeneratorHelper helper,
       Token token,
       Generator generator,
       Expression value,
       String assignmentOperator) {
-    return new KernelDelayedAssignment(
+    return new DelayedAssignment.internal(
         helper, token, generator, value, assignmentOperator);
   }
 
   @override
-  KernelDelayedPostfixIncrement delayedPostfixIncrement(
+  DelayedPostfixIncrement delayedPostfixIncrement(
       ExpressionGeneratorHelper helper,
       Token token,
       Generator generator,
       Name binaryOperator,
       Procedure interfaceTarget) {
-    return new KernelDelayedPostfixIncrement(
+    return new DelayedPostfixIncrement.internal(
         helper, token, generator, binaryOperator, interfaceTarget);
   }
 
   @override
-  KernelPrefixUseGenerator prefixUseGenerator(
+  PrefixUseGenerator prefixUseGenerator(
       ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
-    return new KernelPrefixUseGenerator(helper, token, prefix);
+    return new PrefixUseGenerator.internal(helper, token, prefix);
   }
 
   @override
-  KernelUnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
+  UnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       Generator prefixGenerator,
       bool isUnresolved) {
-    return new KernelUnexpectedQualifiedUseGenerator(
+    return new UnexpectedQualifiedUseGenerator.internal(
         helper, token, prefixGenerator, isUnresolved);
   }
 
   @override
-  KernelParserErrorGenerator parserErrorGenerator(
+  ParserErrorGenerator parserErrorGenerator(
       ExpressionGeneratorHelper helper, Token token, Message message) {
-    return new KernelParserErrorGenerator(helper, token, message);
+    return new ParserErrorGenerator.internal(helper, token, message);
   }
 }
 

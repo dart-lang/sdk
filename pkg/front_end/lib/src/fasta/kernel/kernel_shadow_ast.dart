@@ -90,11 +90,11 @@ import 'collections.dart'
         SpreadMapEntry,
         convertToElement;
 
+import 'expression_generator.dart' show makeLet;
+
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
 
 import 'kernel_builder.dart' show KernelLibraryBuilder;
-
-import 'kernel_expression_generator.dart' show makeLet;
 
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
