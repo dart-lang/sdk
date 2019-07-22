@@ -3,10 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/fasta/builder/builder.dart';
-
-/// Helper methods to use on annotated tests.
-
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
+import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
+
+/// Helper methods to use in annotated tests.
 
 /// Returns a canonical simple name for [member].
 String getMemberName(Member member) {
@@ -75,6 +78,61 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
     }
     return null;
   });
+}
+
+DeclarationBuilder<TypeBuilder> lookupLibraryDeclarationBuilder(
+    CompilerResult compilerResult, Library library,
+    {bool required: true}) {
+  SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
+  KernelLibraryBuilder builder = loader.builders[library.importUri];
+  if (builder == null && required) {
+    throw new ArgumentError("DeclarationBuilder for $library not found.");
+  }
+  return builder.libraryDeclaration;
+}
+
+ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
+    {bool required: true}) {
+  DeclarationBuilder<TypeBuilder> libraryBuilder =
+      lookupLibraryDeclarationBuilder(compilerResult, cls.enclosingLibrary,
+          required: required);
+  ClassBuilder clsBuilder = libraryBuilder.members[cls.name];
+  if (clsBuilder == null && required) {
+    throw new ArgumentError("ClassBuilder for $cls not found.");
+  }
+  return clsBuilder;
+}
+
+MemberBuilder lookupMemberBuilder(CompilerResult compilerResult, Member member,
+    {bool required: true}) {
+  MemberBuilder memberBuilder;
+  if (member.enclosingClass != null) {
+    ClassBuilder classBuilder = lookupClassBuilder(
+        compilerResult, member.enclosingClass,
+        required: required);
+    if (classBuilder != null) {
+      if (member is Constructor) {
+        memberBuilder = classBuilder.constructors.local[member.name.name];
+      } else if (member is Procedure && member.isSetter) {
+        memberBuilder = classBuilder.scope.setters[member.name.name];
+      } else {
+        memberBuilder = classBuilder.scope.local[member.name.name];
+      }
+    }
+  } else {
+    DeclarationBuilder<TypeBuilder> libraryBuilder =
+        lookupLibraryDeclarationBuilder(
+            compilerResult, member.enclosingLibrary);
+    if (member is Procedure && member.isSetter) {
+      memberBuilder = libraryBuilder.members[member.name.name];
+    } else {
+      memberBuilder = libraryBuilder.setters[member.name.name];
+    }
+  }
+  if (memberBuilder == null && required) {
+    throw new ArgumentError("MemberBuilder for $member not found.");
+  }
+  return memberBuilder;
 }
 
 /// Returns a textual representation of the constant [node] to be used in

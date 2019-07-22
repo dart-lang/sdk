@@ -95,13 +95,22 @@ class CfeCompiledData<T> extends CompiledData<T> {
     if (id is MemberId) {
       Library library = lookupLibrary(compilerResult.component, uri);
       Member member;
+      int offset;
       if (id.className != null) {
         Class cls = lookupClass(library, id.className);
         member = lookupClassMember(cls, id.memberName);
+        offset = member.fileOffset;
+        if (offset == -1) {
+          offset = cls.fileOffset;
+        }
       } else {
         member = lookupLibraryMember(library, id.memberName);
+        offset = member.fileOffset;
       }
-      return member.fileOffset;
+      if (offset == -1) {
+        offset = 0;
+      }
+      return offset;
     } else if (id is ClassId) {
       Library library = lookupLibrary(compilerResult.component, uri);
       Class cls = lookupClass(library, id.className);
