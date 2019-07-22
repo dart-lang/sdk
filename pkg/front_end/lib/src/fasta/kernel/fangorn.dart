@@ -29,12 +29,9 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         LogicalExpression,
         MapEntry,
-        Member,
-        Name,
         NamedExpression,
         Not,
         NullLiteral,
-        Procedure,
         Rethrow,
         Statement,
         StringConcatenation,
@@ -62,8 +59,6 @@ import 'collections.dart'
         IfElement,
         IfMapEntry,
         SpreadElement;
-
-import 'expression_generator.dart';
 
 import 'kernel_shadow_ast.dart'
     show
@@ -93,17 +88,7 @@ import 'kernel_shadow_ast.dart'
         WhileJudgment,
         YieldJudgment;
 
-import 'forest.dart'
-    show
-        ExpressionGeneratorHelper,
-        Forest,
-        Generator,
-        LoadLibraryBuilder,
-        Message,
-        PrefixBuilder,
-        PrefixUseGenerator,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
+import 'forest.dart' show Forest;
 
 /// A shadow tree factory.
 class Fangorn extends Forest {
@@ -634,192 +619,6 @@ class Fangorn extends Forest {
 
   @override
   bool isVariablesDeclaration(Object node) => node is _VariablesDeclaration;
-
-  @override
-  VariableUseGenerator variableUseGenerator(ExpressionGeneratorHelper helper,
-      Token token, VariableDeclaration variable, DartType promotedType) {
-    return new VariableUseGenerator.internal(
-        helper, token, variable, promotedType);
-  }
-
-  @override
-  PropertyAccessGenerator propertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new PropertyAccessGenerator.internal(
-        helper, token, receiver, name, getter, setter);
-  }
-
-  @override
-  ThisPropertyAccessGenerator thisPropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new ThisPropertyAccessGenerator.internal(
-        helper, token, name, getter, setter);
-  }
-
-  @override
-  NullAwarePropertyAccessGenerator nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiverExpression,
-      Name name,
-      Member getter,
-      Member setter,
-      DartType type) {
-    return new NullAwarePropertyAccessGenerator.internal(
-        helper, token, receiverExpression, name, getter, setter, type);
-  }
-
-  @override
-  SuperPropertyAccessGenerator superPropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Name name,
-      Member getter,
-      Member setter) {
-    return new SuperPropertyAccessGenerator.internal(
-        helper, token, name, getter, setter);
-  }
-
-  @override
-  IndexedAccessGenerator indexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
-    return new IndexedAccessGenerator.internal(
-        helper, token, receiver, index, getter, setter);
-  }
-
-  @override
-  ThisIndexedAccessGenerator thisIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
-    return new ThisIndexedAccessGenerator.internal(
-        helper, token, index, getter, setter);
-  }
-
-  @override
-  SuperIndexedAccessGenerator superIndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression index,
-      Member getter,
-      Member setter) {
-    return new SuperIndexedAccessGenerator.internal(
-        helper, token, index, getter, setter);
-  }
-
-  @override
-  StaticAccessGenerator staticAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Member getter, Member setter) {
-    return new StaticAccessGenerator.internal(helper, token, getter, setter);
-  }
-
-  @override
-  LoadLibraryGenerator loadLibraryGenerator(ExpressionGeneratorHelper helper,
-      Token token, LoadLibraryBuilder builder) {
-    return new LoadLibraryGenerator.internal(helper, token, builder);
-  }
-
-  @override
-  DeferredAccessGenerator deferredAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      PrefixUseGenerator prefixGenerator,
-      Generator suffixGenerator) {
-    return new DeferredAccessGenerator.internal(
-        helper, token, prefixGenerator, suffixGenerator);
-  }
-
-  @override
-  TypeUseGenerator typeUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      TypeDeclarationBuilder declaration,
-      String plainNameForRead) {
-    return new TypeUseGenerator.internal(
-        helper, token, declaration, plainNameForRead);
-  }
-
-  @override
-  ReadOnlyAccessGenerator readOnlyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression expression,
-      String plainNameForRead) {
-    return new ReadOnlyAccessGenerator.internal(
-        helper, token, expression, plainNameForRead);
-  }
-
-  @override
-  UnresolvedNameGenerator unresolvedNameGenerator(
-      ExpressionGeneratorHelper helper, Token token, Name name) {
-    return new UnresolvedNameGenerator.internal(helper, token, name);
-  }
-
-  @override
-  UnlinkedGenerator unlinkedGenerator(ExpressionGeneratorHelper helper,
-      Token token, UnlinkedDeclaration declaration) {
-    return new UnlinkedGenerator.internal(helper, token, declaration);
-  }
-
-  @override
-  DelayedAssignment delayedAssignment(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator generator,
-      Expression value,
-      String assignmentOperator) {
-    return new DelayedAssignment.internal(
-        helper, token, generator, value, assignmentOperator);
-  }
-
-  @override
-  DelayedPostfixIncrement delayedPostfixIncrement(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator generator,
-      Name binaryOperator,
-      Procedure interfaceTarget) {
-    return new DelayedPostfixIncrement.internal(
-        helper, token, generator, binaryOperator, interfaceTarget);
-  }
-
-  @override
-  PrefixUseGenerator prefixUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
-    return new PrefixUseGenerator.internal(helper, token, prefix);
-  }
-
-  @override
-  UnexpectedQualifiedUseGenerator unexpectedQualifiedUseGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator prefixGenerator,
-      bool isUnresolved) {
-    return new UnexpectedQualifiedUseGenerator.internal(
-        helper, token, prefixGenerator, isUnresolved);
-  }
-
-  @override
-  ParserErrorGenerator parserErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, Message message) {
-    return new ParserErrorGenerator.internal(helper, token, message);
-  }
 }
 
 class _VariablesDeclaration extends Statement {

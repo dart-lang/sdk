@@ -111,69 +111,65 @@ main() {
     cls.addMember(interfaceTarget);
 
     PrefixUseGenerator prefixUseGenerator =
-        new PrefixUseGenerator.internal(helper, token, prefixBuilder);
+        new PrefixUseGenerator(helper, token, prefixBuilder);
 
     check(
         "DelayedAssignment(offset: 4, value: expression,"
         " assignmentOperator: +=)",
-        new DelayedAssignment.internal(
+        new DelayedAssignment(
             helper, token, generator, expression, assignmentOperator));
     check(
         "DelayedPostfixIncrement(offset: 4, binaryOperator: +,"
         " interfaceTarget: $uri::#class1::myInterfaceTarget)",
-        new DelayedPostfixIncrement.internal(
+        new DelayedPostfixIncrement(
             helper, token, generator, binaryOperator, interfaceTarget));
     check(
         "VariableUseGenerator(offset: 4, variable: dynamic #t1;\n,"
         " promotedType: void)",
-        new VariableUseGenerator.internal(helper, token, variable, type));
+        new VariableUseGenerator(helper, token, variable, type));
     check(
         "PropertyAccessGenerator(offset: 4, _receiverVariable: null,"
         " receiver: expression, name: bar, getter: $uri::myGetter,"
         " setter: $uri::mySetter)",
-        new PropertyAccessGenerator.internal(
+        new PropertyAccessGenerator(
             helper, token, expression, name, getter, setter));
     check(
         "ThisPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new ThisPropertyAccessGenerator.internal(
-            helper, token, name, getter, setter));
+        new ThisPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
         "NullAwarePropertyAccessGenerator(offset: 4,"
         " receiver: final dynamic #t1 = expression;\n,"
         " receiverExpression: expression, name: bar, getter: $uri::myGetter,"
         " setter: $uri::mySetter, type: void)",
-        new NullAwarePropertyAccessGenerator.internal(
+        new NullAwarePropertyAccessGenerator(
             helper, token, expression, name, getter, setter, type));
     check(
         "SuperPropertyAccessGenerator(offset: 4, name: bar,"
         " getter: $uri::myGetter, setter: $uri::mySetter)",
-        new SuperPropertyAccessGenerator.internal(
-            helper, token, name, getter, setter));
+        new SuperPropertyAccessGenerator(helper, token, name, getter, setter));
     check(
         "IndexedAccessGenerator(offset: 4, receiver: expression, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter,"
         " receiverVariable: null, indexVariable: null)",
-        new IndexedAccessGenerator.internal(
+        new IndexedAccessGenerator(
             helper, token, expression, index, getter, setter));
     check(
         "ThisIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
-        new ThisIndexedAccessGenerator.internal(
-            helper, token, index, getter, setter));
+        new ThisIndexedAccessGenerator(helper, token, index, getter, setter));
     check(
         "SuperIndexedAccessGenerator(offset: 4, index: index,"
         " getter: $uri::myGetter, setter: $uri::mySetter, indexVariable: null)",
-        new SuperIndexedAccessGenerator.internal(
-            helper, token, index, getter, setter));
+        new SuperIndexedAccessGenerator(helper, token, index, getter, setter));
     check(
         "StaticAccessGenerator(offset: 4, readTarget: $uri::myGetter,"
         " writeTarget: $uri::mySetter)",
-        new StaticAccessGenerator.internal(helper, token, getter, setter));
+        new StaticAccessGenerator(helper, token, getter, setter));
     check(
         "LoadLibraryGenerator(offset: 4,"
         " builder: Instance of 'LoadLibraryBuilder')",
-        new LoadLibraryGenerator.internal(helper, token, loadLibraryBuilder));
+        new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
         "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
         new ThisAccessGenerator(helper, token, false, false));
@@ -189,31 +185,30 @@ main() {
         "offset: 4, prefix: myPrefix, deferred: false),"
         " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
         " isSuper: false))",
-        new DeferredAccessGenerator.internal(
+        new DeferredAccessGenerator(
             helper, token, prefixUseGenerator, generator));
     check(
         "ReadOnlyAccessGenerator(offset: 4, expression: expression,"
         " plainNameForRead: foo, value: null)",
-        new ReadOnlyAccessGenerator.internal(helper, token, expression, "foo"));
+        new ReadOnlyAccessGenerator(helper, token, expression, "foo"));
     check(
         "ParenthesizedExpressionGenerator(offset: 4, expression: expression,"
         " plainNameForRead: null, value: null)",
         new ParenthesizedExpressionGenerator(helper, token, expression));
     check("TypeUseGenerator(offset: 4, declaration: T, plainNameForRead: foo)",
-        new TypeUseGenerator.internal(helper, token, declaration, "foo"));
+        new TypeUseGenerator(helper, token, declaration, "foo"));
     check("UnresolvedNameGenerator(offset: 4, name: bar)",
         new UnresolvedNameGenerator.internal(helper, token, name));
     check(
         "UnlinkedGenerator(offset: 4, name: foo)",
-        new UnlinkedGenerator.internal(
+        new UnlinkedGenerator(
             helper, token, new UnlinkedDeclaration("foo", false, -1, null)));
     check("PrefixUseGenerator(offset: 4, prefix: myPrefix, deferred: false)",
         prefixUseGenerator);
     check(
         "UnexpectedQualifiedUseGenerator("
         "offset: 4, prefixGenerator: , isInitializer: false, isSuper: false)",
-        new UnexpectedQualifiedUseGenerator.internal(
-            helper, token, generator, false));
+        new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
     return Future<void>.value();
   });
 }

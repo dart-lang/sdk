@@ -14,29 +14,14 @@ import 'package:kernel/ast.dart'
         Expression,
         LibraryDependency,
         MapEntry,
-        Member,
-        Name,
         NamedExpression,
-        Procedure,
         Statement,
         TreeNode,
         VariableDeclaration;
 
 import 'body_builder.dart' show LabelTarget;
 
-import 'expression_generator.dart' show Generator, PrefixUseGenerator;
-
-import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
-
-import 'kernel_builder.dart'
-    show
-        Identifier,
-        LoadLibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder,
-        UnlinkedDeclaration;
-
-import '../fasta_codes.dart' show Message;
+import 'kernel_builder.dart' show Identifier;
 
 import '../scanner.dart' show Token;
 
@@ -384,89 +369,6 @@ abstract class Forest {
   bool isThisExpression(Object node);
 
   bool isVariablesDeclaration(Object node);
-
-  Generator variableUseGenerator(ExpressionGeneratorHelper helper,
-      Token location, VariableDeclaration variable, DartType promotedType);
-
-  Generator propertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token location,
-      Expression receiver,
-      Name name,
-      Member getter,
-      Member setter);
-
-  Generator thisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Name name, Member getter, Member setter);
-
-  Generator nullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token location,
-      Expression receiverExpression,
-      Name name,
-      Member getter,
-      Member setter,
-      DartType type);
-
-  Generator superPropertyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Name name, Member getter, Member setter);
-
-  Generator indexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token location,
-      Expression receiver,
-      Expression index,
-      Procedure getter,
-      Procedure setter);
-
-  Generator thisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Expression index, Procedure getter, Procedure setter);
-
-  Generator superIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Expression index, Member getter, Member setter);
-
-  Generator staticAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Member getter, Member setter);
-
-  Generator loadLibraryGenerator(ExpressionGeneratorHelper helper,
-      Token location, LoadLibraryBuilder builder);
-
-  Generator deferredAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token location,
-      PrefixUseGenerator prefixGenerator,
-      Generator suffixGenerator);
-
-  Generator typeUseGenerator(ExpressionGeneratorHelper helper, Token location,
-      TypeDeclarationBuilder declaration, String plainNameForRead);
-
-  Generator readOnlyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token location, Expression expression, String plainNameForRead);
-
-  Generator unresolvedNameGenerator(
-      ExpressionGeneratorHelper helper, Token location, Name name);
-
-  Generator unlinkedGenerator(ExpressionGeneratorHelper helper, Token location,
-      UnlinkedDeclaration declaration);
-
-  Generator delayedAssignment(ExpressionGeneratorHelper helper, Token location,
-      Generator generator, Expression value, String assignmentOperator);
-
-  Generator delayedPostfixIncrement(
-      ExpressionGeneratorHelper helper,
-      Token location,
-      Generator generator,
-      Name binaryOperator,
-      Procedure interfaceTarget);
-
-  Generator prefixUseGenerator(
-      ExpressionGeneratorHelper helper, Token location, PrefixBuilder prefix);
-
-  Generator unexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
-      Token token, Generator prefixGenerator, bool isUnresolved);
-
-  Generator parserErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, Message message);
 
   // TODO(ahe): Remove this method when all users are moved here.
   Arguments castArguments(Arguments arguments) {

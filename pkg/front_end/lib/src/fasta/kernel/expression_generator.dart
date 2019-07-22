@@ -447,15 +447,9 @@ class VariableUseGenerator extends Generator {
 
   final DartType promotedType;
 
-  factory VariableUseGenerator(ExpressionGeneratorHelper helper, Token token,
-      VariableDeclaration variable,
-      [DartType promotedType]) {
-    return helper.forest
-        .variableUseGenerator(helper, token, variable, promotedType);
-  }
-
-  VariableUseGenerator.internal(ExpressionGeneratorHelper helper, Token token,
-      this.variable, this.promotedType)
+  VariableUseGenerator(
+      ExpressionGeneratorHelper helper, Token token, this.variable,
+      [this.promotedType])
       : super(helper, token);
 
   @override
@@ -528,14 +522,8 @@ class PropertyAccessGenerator extends Generator {
 
   VariableDeclaration _receiverVariable;
 
-  factory PropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      Expression receiver, Name name, Member getter, Member setter) {
-    return helper.forest
-        .propertyAccessGenerator(helper, token, receiver, name, getter, setter);
-  }
-
-  PropertyAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.receiver, this.name, this.getter, this.setter)
+  PropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.receiver, this.name, this.getter, this.setter)
       : super(helper, token);
 
   @override
@@ -647,14 +635,8 @@ class ThisPropertyAccessGenerator extends Generator {
 
   final Member setter;
 
-  factory ThisPropertyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Name name, Member getter, Member setter) {
-    return helper.forest
-        .thisPropertyAccessGenerator(helper, token, name, getter, setter);
-  }
-
-  ThisPropertyAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.name, this.getter, this.setter)
+  ThisPropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.name, this.getter, this.setter)
       : super(helper, token);
 
   @override
@@ -735,19 +717,7 @@ class NullAwarePropertyAccessGenerator extends Generator {
 
   final DartType type;
 
-  factory NullAwarePropertyAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiverExpression,
-      Name name,
-      Member getter,
-      Member setter,
-      DartType type) {
-    return helper.forest.nullAwarePropertyAccessGenerator(
-        helper, token, receiverExpression, name, getter, setter, type);
-  }
-
-  NullAwarePropertyAccessGenerator.internal(
+  NullAwarePropertyAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
       this.receiverExpression,
@@ -841,14 +811,8 @@ class SuperPropertyAccessGenerator extends Generator {
 
   final Member setter;
 
-  factory SuperPropertyAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Name name, Member getter, Member setter) {
-    return helper.forest
-        .superPropertyAccessGenerator(helper, token, name, getter, setter);
-  }
-
-  SuperPropertyAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.name, this.getter, this.setter)
+  SuperPropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.name, this.getter, this.setter)
       : super(helper, token);
 
   @override
@@ -931,18 +895,7 @@ class IndexedAccessGenerator extends Generator {
 
   VariableDeclaration indexVariable;
 
-  factory IndexedAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Expression receiver,
-      Expression index,
-      Procedure getter,
-      Procedure setter) {
-    return helper.forest
-        .indexedAccessGenerator(helper, token, receiver, index, getter, setter);
-  }
-
-  IndexedAccessGenerator.internal(ExpressionGeneratorHelper helper, Token token,
+  IndexedAccessGenerator(ExpressionGeneratorHelper helper, Token token,
       this.receiver, this.index, this.getter, this.setter)
       : super(helper, token);
 
@@ -1109,14 +1062,8 @@ class ThisIndexedAccessGenerator extends Generator {
 
   VariableDeclaration indexVariable;
 
-  factory ThisIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Expression index, Procedure getter, Procedure setter) {
-    return helper.forest
-        .thisIndexedAccessGenerator(helper, token, index, getter, setter);
-  }
-
-  ThisIndexedAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.index, this.getter, this.setter)
+  ThisIndexedAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.index, this.getter, this.setter)
       : super(helper, token);
 
   @override
@@ -1243,14 +1190,8 @@ class SuperIndexedAccessGenerator extends Generator {
 
   VariableDeclaration indexVariable;
 
-  factory SuperIndexedAccessGenerator(ExpressionGeneratorHelper helper,
-      Token token, Expression index, Member getter, Member setter) {
-    return helper.forest
-        .superIndexedAccessGenerator(helper, token, index, getter, setter);
-  }
-
-  SuperIndexedAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.index, this.getter, this.setter)
+  SuperIndexedAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.index, this.getter, this.setter)
       : super(helper, token);
 
   String get plainNameForRead => "[]";
@@ -1387,11 +1328,10 @@ class StaticAccessGenerator extends Generator {
 
   final Member writeTarget;
 
-  factory StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      Member readTarget, Member writeTarget) {
-    return helper.forest
-        .staticAccessGenerator(helper, token, readTarget, writeTarget);
-  }
+  StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.readTarget, this.writeTarget)
+      : assert(readTarget != null || writeTarget != null),
+        super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(ExpressionGeneratorHelper helper,
       Declaration declaration, Token token, Declaration builderSetter) {
@@ -1417,11 +1357,6 @@ class StaticAccessGenerator extends Generator {
     }
     return new StaticAccessGenerator(helper, token, getter, setter);
   }
-
-  StaticAccessGenerator.internal(ExpressionGeneratorHelper helper, Token token,
-      this.readTarget, this.writeTarget)
-      : assert(readTarget != null || writeTarget != null),
-        super(helper, token);
 
   @override
   String get debugName => "StaticAccessGenerator";
@@ -1500,12 +1435,7 @@ class StaticAccessGenerator extends Generator {
 class LoadLibraryGenerator extends Generator {
   final LoadLibraryBuilder builder;
 
-  factory LoadLibraryGenerator(ExpressionGeneratorHelper helper, Token token,
-      LoadLibraryBuilder builder) {
-    return helper.forest.loadLibraryGenerator(helper, token, builder);
-  }
-
-  LoadLibraryGenerator.internal(
+  LoadLibraryGenerator(
       ExpressionGeneratorHelper helper, Token token, this.builder)
       : super(helper, token);
 
@@ -1546,14 +1476,8 @@ class DeferredAccessGenerator extends Generator {
 
   final Generator suffixGenerator;
 
-  factory DeferredAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      PrefixUseGenerator prefixGenerator, Generator suffixGenerator) {
-    return helper.forest.deferredAccessGenerator(
-        helper, token, prefixGenerator, suffixGenerator);
-  }
-
-  DeferredAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.prefixGenerator, this.suffixGenerator)
+  DeferredAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.prefixGenerator, this.suffixGenerator)
       : super(helper, token);
 
   @override
@@ -1671,15 +1595,9 @@ class DeferredAccessGenerator extends Generator {
 class TypeUseGenerator extends ReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
 
-  factory TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
-      TypeDeclarationBuilder declaration, String plainNameForRead) {
-    return helper.forest
-        .typeUseGenerator(helper, token, declaration, plainNameForRead);
-  }
-
-  TypeUseGenerator.internal(ExpressionGeneratorHelper helper, Token token,
+  TypeUseGenerator(ExpressionGeneratorHelper helper, Token token,
       this.declaration, String plainNameForRead)
-      : super.internal(helper, token, null, plainNameForRead);
+      : super(helper, token, null, plainNameForRead);
 
   @override
   String get debugName => "TypeUseGenerator";
@@ -1863,14 +1781,8 @@ class ReadOnlyAccessGenerator extends Generator {
 
   VariableDeclaration value;
 
-  factory ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      Expression expression, String plainNameForRead) {
-    return helper.forest
-        .readOnlyAccessGenerator(helper, token, expression, plainNameForRead);
-  }
-
-  ReadOnlyAccessGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.expression, this.plainNameForRead)
+  ReadOnlyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.expression, this.plainNameForRead)
       : super(helper, token);
 
   @override
@@ -1910,8 +1822,7 @@ class ReadOnlyAccessGenerator extends Generator {
 }
 
 abstract class ErroneousExpressionGenerator extends Generator {
-  ErroneousExpressionGenerator.internal(
-      ExpressionGeneratorHelper helper, Token token)
+  ErroneousExpressionGenerator(ExpressionGeneratorHelper helper, Token token)
       : super(helper, token);
 
   /// Pass [arguments] that must be evaluated before throwing an error.  At
@@ -2038,12 +1949,12 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     if (name.name.isEmpty) {
       unhandled("empty", "name", offsetForToken(token), helper.uri);
     }
-    return helper.forest.unresolvedNameGenerator(helper, token, name);
+    return new UnresolvedNameGenerator.internal(helper, token, name);
   }
 
   UnresolvedNameGenerator.internal(
       ExpressionGeneratorHelper helper, Token token, this.name)
-      : super.internal(helper, token);
+      : super(helper, token);
 
   @override
   String get debugName => "UnresolvedNameGenerator";
@@ -2123,12 +2034,7 @@ class UnlinkedGenerator extends Generator {
 
   final Name name;
 
-  factory UnlinkedGenerator(ExpressionGeneratorHelper helper, Token token,
-      UnlinkedDeclaration declaration) {
-    return helper.forest.unlinkedGenerator(helper, token, declaration);
-  }
-
-  UnlinkedGenerator.internal(
+  UnlinkedGenerator(
       ExpressionGeneratorHelper helper, Token token, this.declaration)
       : name = new Name(declaration.name, helper.library.target),
         receiver = new InvalidExpression(declaration.name)
@@ -2167,7 +2073,7 @@ class UnlinkedGenerator extends Generator {
 abstract class ContextAwareGenerator extends Generator {
   final Generator generator;
 
-  ContextAwareGenerator.internal(
+  ContextAwareGenerator(
       ExpressionGeneratorHelper helper, Token token, this.generator)
       : super(helper, token);
 
@@ -2232,15 +2138,9 @@ class DelayedAssignment extends ContextAwareGenerator {
 
   String assignmentOperator;
 
-  factory DelayedAssignment(ExpressionGeneratorHelper helper, Token token,
-      Generator generator, Expression value, String assignmentOperator) {
-    return helper.forest
-        .delayedAssignment(helper, token, generator, value, assignmentOperator);
-  }
-
-  DelayedAssignment.internal(ExpressionGeneratorHelper helper, Token token,
+  DelayedAssignment(ExpressionGeneratorHelper helper, Token token,
       Generator generator, this.value, this.assignmentOperator)
-      : super.internal(helper, token, generator);
+      : super(helper, token, generator);
 
   @override
   String get debugName => "DelayedAssignment";
@@ -2332,19 +2232,9 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
 
   final Procedure interfaceTarget;
 
-  factory DelayedPostfixIncrement(ExpressionGeneratorHelper helper, Token token,
-      Generator generator, Name binaryOperator, Procedure interfaceTarget) {
-    return helper.forest.delayedPostfixIncrement(
-        helper, token, generator, binaryOperator, interfaceTarget);
-  }
-
-  DelayedPostfixIncrement.internal(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      Generator generator,
-      this.binaryOperator,
-      this.interfaceTarget)
-      : super.internal(helper, token, generator);
+  DelayedPostfixIncrement(ExpressionGeneratorHelper helper, Token token,
+      Generator generator, this.binaryOperator, this.interfaceTarget)
+      : super(helper, token, generator);
 
   @override
   String get debugName => "DelayedPostfixIncrement";
@@ -2376,13 +2266,8 @@ class DelayedPostfixIncrement extends ContextAwareGenerator {
 
 class PrefixUseGenerator extends Generator {
   final PrefixBuilder prefix;
-  factory PrefixUseGenerator(
-      ExpressionGeneratorHelper helper, Token token, PrefixBuilder prefix) {
-    return helper.forest.prefixUseGenerator(helper, token, prefix);
-  }
 
-  PrefixUseGenerator.internal(
-      ExpressionGeneratorHelper helper, Token token, this.prefix)
+  PrefixUseGenerator(ExpressionGeneratorHelper helper, Token token, this.prefix)
       : super(helper, token);
 
   @override
@@ -2473,14 +2358,8 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 
   final bool isUnresolved;
 
-  factory UnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper,
-      Token token, Generator prefixGenerator, bool isUnresolved) {
-    return helper.forest.unexpectedQualifiedUseGenerator(
-        helper, token, prefixGenerator, isUnresolved);
-  }
-
-  UnexpectedQualifiedUseGenerator.internal(ExpressionGeneratorHelper helper,
-      Token token, this.prefixGenerator, this.isUnresolved)
+  UnexpectedQualifiedUseGenerator(ExpressionGeneratorHelper helper, Token token,
+      this.prefixGenerator, this.isUnresolved)
       : super(helper, token);
 
   @override
@@ -2534,12 +2413,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
 class ParserErrorGenerator extends Generator {
   final Message message;
 
-  factory ParserErrorGenerator(
-      ExpressionGeneratorHelper helper, Token token, Message message) {
-    return helper.forest.parserErrorGenerator(helper, token, message);
-  }
-
-  ParserErrorGenerator.internal(
+  ParserErrorGenerator(
       ExpressionGeneratorHelper helper, Token token, this.message)
       : super(helper, token);
 
@@ -2839,7 +2713,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator
 
   IncompleteErrorGenerator(
       ExpressionGeneratorHelper helper, Token token, this.message)
-      : super.internal(helper, token);
+      : super(helper, token);
 
   Name get name => null;
 
@@ -3033,7 +2907,7 @@ class IncompletePropertyAccessGenerator extends Generator
 class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
   ParenthesizedExpressionGenerator(
       ExpressionGeneratorHelper helper, Token token, Expression expression)
-      : super.internal(helper, token, expression, null);
+      : super(helper, token, expression, null);
 
   String get debugName => "ParenthesizedExpressionGenerator";
 
