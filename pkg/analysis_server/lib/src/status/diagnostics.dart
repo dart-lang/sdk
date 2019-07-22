@@ -30,6 +30,7 @@ import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -40,7 +41,6 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/source/sdk_ext.dart';
 import 'package:path/path.dart' as pathPackage;
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -171,6 +171,7 @@ abstract class AbstractCompletionPage extends DiagnosticPageWithNav {
             description: 'Latency statistics for code completion.');
 
   pathPackage.Context get pathContext;
+
   List<CompletionPerformance> get performanceItems;
 
   @override
@@ -364,6 +365,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 class CompletionPage extends AbstractCompletionPage {
   @override
   AnalysisServer server;
+
   CompletionPage(DiagnosticsSite site, this.server) : super(site);
 
   CompletionDomainHandler get completionDomain => server.handlers
@@ -392,6 +394,8 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
+    b.write(writeOption('Experiments', options.enabledExperiments.join(', ')));
+    b.write('<br>');
 
     b.write(
         writeOption('Analyze function bodies', options.analyzeFunctionBodies));
@@ -403,8 +407,6 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Generate hints', options.hint));
     b.write(writeOption('Preserve comments', options.preserveComments));
     b.write(writeOption('Strong mode hints', options.strongModeHints));
-
-    b.write(writeOption('Enabled experiments', options.enabledExperiments));
 
     return b.toString();
   }
@@ -455,10 +457,15 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="column one-half">');
     h3('Analysis options');
     p(describe(driver.analysisOptions), raw: true);
+
+    h3('Pub files');
+    buf.writeln('<p>');
     buf.writeln(
         writeOption('Has .packages file', folder.getChild('.packages').exists));
     buf.writeln(writeOption(
         'Has pubspec.yaml file', folder.getChild('pubspec.yaml').exists));
+    buf.writeln('</p>');
+
     buf.writeln('</div>');
 
     buf.writeln('<div class="column one-half">');
@@ -472,12 +479,15 @@ class ContextsPage extends DiagnosticPageWithNav {
         p(writeOption('Use summaries', sdk.useSummary), raw: true);
       }
     }
+
     buf.writeln('</div>');
 
     buf.writeln('</div>');
 
     h3('Lints');
-    p(driver.analysisOptions.lintRules.map((l) => l.name).join(', '));
+    List<String> lints =
+        driver.analysisOptions.lintRules.map((l) => l.name).toList()..sort();
+    ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
 
     h3('Error processors');
     p(driver.analysisOptions.errorProcessors
@@ -555,7 +565,9 @@ class ContextsPage extends DiagnosticPageWithNav {
             ?.getContext(driver.analysisContext)
             ?.dartdocDirectiveInfo ??
         new DartdocDirectiveInfo();
+    buf.write('<p class="scroll-table">');
     writeMap(info.templateMap);
+    buf.write('</p>');
   }
 
   void writeList<E>(List<E> list) {
@@ -978,6 +990,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
 class LspCompletionPage extends AbstractCompletionPage {
   @override
   LspAnalysisServer server;
+
   LspCompletionPage(DiagnosticsSite site, this.server) : super(site);
 
   @override
@@ -1059,8 +1072,7 @@ class NotFoundPage extends DiagnosticPage {
   NotFoundPage(DiagnosticsSite site, this.path)
       : super(site, '', '404 Not found', description: "'$path' not found.");
 
-  Future generateContent(Map<String, String> params) async {
-  }
+  Future generateContent(Map<String, String> params) async {}
 }
 
 class PluginsPage extends DiagnosticPageWithNav {
