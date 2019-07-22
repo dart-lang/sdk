@@ -51,7 +51,7 @@ class Scope extends LocalVariableEntry {
   }
 
   Scope.readContents(BufferedReader reader, int startPC) : super(startPC) {
-    endPC = startPC = reader.readPackedUInt30();
+    endPC = startPC + reader.readPackedUInt30();
     contextLevel = reader.readSLEB128();
     position = reader.readPackedUInt30() - 1;
     endPosition = reader.readPackedUInt30() - 1;
@@ -152,7 +152,9 @@ class LocalVariableTable {
     final scope = activeScopes.removeLast();
     scope.endPC = pc;
     scope.endPosition = endPosition;
-    if (scope.variables.isEmpty) {
+    if (scope.variables.isEmpty &&
+        activeScopes.isNotEmpty &&
+        scope.contextLevel == activeScopes.last.contextLevel) {
       scopes.remove(scope);
     }
   }
