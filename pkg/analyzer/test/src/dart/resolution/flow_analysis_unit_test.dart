@@ -246,14 +246,14 @@ main() {
       test('unpromoted -> unchanged', () {
         var h = _Harness();
         var s1 = State<_Var, _Type>(true).add(intVar);
-        var s2 = s1.markNonNullable(h, emptySet, intVar);
+        var s2 = s1.markNonNullable(h, intVar);
         expect(s2, same(s1));
       });
 
       test('unpromoted -> promoted', () {
         var h = _Harness();
         var s1 = State<_Var, _Type>(true).add(intQVar);
-        var s2 = s1.markNonNullable(h, emptySet, intQVar);
+        var s2 = s1.markNonNullable(h, intQVar);
         expect(s2.reachable, true);
         expect(s2.notAssigned, same(s1.notAssigned));
         expect(s2.promoted[intQVar].type, 'int');
@@ -264,7 +264,7 @@ main() {
         var s1 = State<_Var, _Type>(true)
             .add(objectQVar)
             .promote(h, objectQVar, _Type('int'));
-        var s2 = s1.markNonNullable(h, emptySet, objectQVar);
+        var s2 = s1.markNonNullable(h, objectQVar);
         expect(s2, same(s1));
       });
 
@@ -273,7 +273,7 @@ main() {
         var s1 = State<_Var, _Type>(true)
             .add(objectQVar)
             .promote(h, objectQVar, _Type('int?'));
-        var s2 = s1.markNonNullable(h, emptySet, objectQVar);
+        var s2 = s1.markNonNullable(h, objectQVar);
         expect(s2.reachable, true);
         expect(s2.notAssigned, same(s1.notAssigned));
         _Type.allowComparisons(() {

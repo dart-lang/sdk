@@ -180,8 +180,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
 
     _condition = binaryExpression;
     _conditionTrue = _current;
-    _conditionFalse =
-        _current.markNonNullable(typeOperations, _emptySet, variable);
+    _conditionFalse = _current.markNonNullable(typeOperations, variable);
   }
 
   /// The [binaryExpression] checks that the [variable] is not equal to `null`.
@@ -191,8 +190,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
 
     _condition = binaryExpression;
-    _conditionTrue =
-        _current.markNonNullable(typeOperations, _emptySet, variable);
+    _conditionTrue = _current.markNonNullable(typeOperations, variable);
     _conditionFalse = _current;
   }
 
@@ -683,9 +681,7 @@ class State<Variable, Type> {
   }
 
   State<Variable, Type> markNonNullable(
-      TypeOperations<Variable, Type> typeOperations,
-      _VariableSet<Variable> emptySet,
-      Variable variable) {
+      TypeOperations<Variable, Type> typeOperations, Variable variable) {
     var previousType = promoted[variable];
     previousType ??= typeOperations.variableType(variable);
     var type = typeOperations.tryPromoteToNonNull(previousType);
