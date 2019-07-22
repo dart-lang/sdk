@@ -584,19 +584,20 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   String get displayName {
-    String name = this.name;
-
-    // Function types have an empty name when they are defined implicitly by
-    // either a closure or as part of a parameter declaration.
     if (name == null || name.isEmpty) {
+      // Function types have an empty name when they are defined implicitly by
+      // either a closure or as part of a parameter declaration.
       StringBuffer buffer = new StringBuffer();
       appendTo(buffer, new Set.identity());
+      if (nullabilitySuffix == NullabilitySuffix.question) {
+        buffer.write('?');
+      }
       return buffer.toString();
     }
 
     List<DartType> typeArguments = this.typeArguments;
 
-    bool areAllTypeArgumentsDynamic() {
+    bool allTypeArgumentsAreDynamic() {
       for (DartType type in typeArguments) {
         if (type != null && !type.isDynamic) {
           return false;
@@ -605,10 +606,10 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return true;
     }
 
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(name);
     // If there is at least one non-dynamic type, then list them out.
-    if (!areAllTypeArgumentsDynamic()) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(name);
+    if (!allTypeArgumentsAreDynamic()) {
       buffer.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i != 0) {
@@ -618,10 +619,11 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
         buffer.write(typeArg.displayName);
       }
       buffer.write(">");
-      name = buffer.toString();
     }
-
-    return name;
+    if (nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+    return buffer.toString();
   }
 
   @override
@@ -1403,11 +1405,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @override
   String get displayName {
-    String name = this.name;
-
     List<DartType> typeArguments = this.typeArguments;
 
-    bool areAllTypeArgumentsDynamic() {
+    bool allTypeArgumentsAreDynamic() {
       for (DartType type in typeArguments) {
         if (type != null && !type.isDynamic) {
           return false;
@@ -1416,10 +1416,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
 
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(name);
     // If there is at least one non-dynamic type, then list them out.
-    if (!areAllTypeArgumentsDynamic()) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(name);
+    if (!allTypeArgumentsAreDynamic()) {
       buffer.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i != 0) {
@@ -1429,9 +1429,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         buffer.write(typeArg.displayName);
       }
       buffer.write(">");
-      name = buffer.toString();
     }
-    return name;
+    if (nullabilitySuffix == NullabilitySuffix.question) {
+      buffer.write('?');
+    }
+    return buffer.toString();
   }
 
   @override
