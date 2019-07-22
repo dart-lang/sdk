@@ -12,7 +12,30 @@ import '../elements/types.dart';
 /// A type environment maps type parameter variables to type values. The type
 /// variables are mostly elided in the runtime representation, replaced by
 /// indexes into the reified environment.
-abstract class TypeEnvironmentStructure {}
+abstract class TypeEnvironmentStructure {
+  /// Structural equality on [TypeEnvironmentStructure].
+  static bool same(TypeEnvironmentStructure a, TypeEnvironmentStructure b) {
+    if (a is SingletonTypeEnvironmentStructure) {
+      if (b is SingletonTypeEnvironmentStructure) {
+        return a.variable == b.variable;
+      }
+      return false;
+    }
+    return _sameFullStructure(a, b);
+  }
+
+  static bool _sameFullStructure(
+      FullTypeEnvironmentStructure a, FullTypeEnvironmentStructure b) {
+    if (a.classType != b.classType) return false;
+    List<TypeVariableType> aBindings = a.bindings;
+    List<TypeVariableType> bBindings = b.bindings;
+    if (aBindings.length != bBindings.length) return false;
+    for (int i = 0; i < aBindings.length; i++) {
+      if (aBindings[i] != bBindings[i]) return false;
+    }
+    return true;
+  }
+}
 
 /// A singleton type environment maps a binds a single value.
 class SingletonTypeEnvironmentStructure extends TypeEnvironmentStructure {
@@ -38,13 +61,36 @@ class FullTypeEnvironmentStructure extends TypeEnvironmentStructure {
 
 /// A TypeRecipe is evaluated against a type environment to produce either a
 /// type, or another type environment.
-abstract class TypeRecipe {}
+abstract class TypeRecipe {
+  /// Returns `true` is [recipeB] evaluated in an environment described by
+  /// [structureB] gives the same type as [recipeA] evaluated in environment
+  /// described by [structureA].
+  static bool yieldsSameType(
+      TypeRecipe recipeA,
+      TypeEnvironmentStructure structureA,
+      TypeRecipe recipeB,
+      TypeEnvironmentStructure structureB) {
+    if (recipeA == recipeB &&
+        TypeEnvironmentStructure.same(structureA, structureB)) {
+      return true;
+    }
+
+    // TODO(sra): Type recipes that are different but equal modulo naming also
+    // yield the same type, e.g. `List<X> @X` and `List<Y> @Y`.
+    return false;
+  }
+}
 
 /// A recipe that yields a reified type.
 class TypeExpressionRecipe extends TypeRecipe {
   final DartType type;
 
   TypeExpressionRecipe(this.type);
+
+  @override
+  bool operator ==(other) {
+    return other is TypeExpressionRecipe && type == other.type;
+  }
 
   @override
   String toString() => 'TypeExpressionRecipe($type)';
@@ -59,6 +105,11 @@ class SingletonTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   final DartType type;
 
   SingletonTypeEnvironmentRecipe(this.type);
+
+  @override
+  bool operator ==(other) {
+    return other is SingletonTypeEnvironmentRecipe && type == other.type;
+  }
 
   @override
   String toString() => 'SingletonTypeEnvironmentRecipe($type)';
@@ -79,6 +130,22 @@ class FullTypeEnvironmentRecipe extends TypeEnvironmentRecipe {
   final List<DartType> types;
 
   FullTypeEnvironmentRecipe({this.classType, this.types = const []});
+
+  @override
+  bool operator ==(other) {
+    return other is FullTypeEnvironmentRecipe && _equal(this, other);
+  }
+
+  static bool _equal(FullTypeEnvironmentRecipe a, FullTypeEnvironmentRecipe b) {
+    if (a.classType != b.classType) return false;
+    List<DartType> aTypes = a.types;
+    List<DartType> bTypes = b.types;
+    if (aTypes.length != bTypes.length) return false;
+    for (int i = 0; i < aTypes.length; i++) {
+      if (aTypes[i] != bTypes[i]) return false;
+    }
+    return true;
+  }
 
   @override
   String toString() => 'FullTypeEnvironmentRecipe($classType, $types)';

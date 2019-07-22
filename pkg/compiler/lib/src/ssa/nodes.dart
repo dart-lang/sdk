@@ -4521,7 +4521,8 @@ class HTypeEval extends HRtiInstruction {
 
   @override
   bool dataEquals(HTypeEval other) {
-    return typeExpression == other.typeExpression;
+    return TypeRecipe.yieldsSameType(
+        typeExpression, envStructure, other.typeExpression, other.envStructure);
   }
 
   @override
