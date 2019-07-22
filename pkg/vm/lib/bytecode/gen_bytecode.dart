@@ -7,7 +7,7 @@ library vm.bytecode.gen_bytecode;
 // TODO(askesc): We should not need to call the constant evaluator
 // explicitly once constant-update-2018 is shipped.
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    show ConstantEvaluator, EvaluationEnvironment, ErrorReporter;
+    show ConstantEvaluator, EvaluationEnvironment;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -23,7 +23,6 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart'
     show getExternalName, getNativeExtensionUris;
 import 'package:kernel/library_index.dart' show LibraryIndex;
-import 'package:kernel/target/targets.dart' show ConstantsBackend;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeVariable;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
@@ -80,10 +79,12 @@ void generateBytecode(
   final typeEnvironment = new TypeEnvironment(coreTypes, hierarchy);
   final constantsBackend = new VmConstantsBackend(coreTypes);
   final errorReporter = new ForwardConstantEvaluationErrors();
+  final constantEvaluator = new ConstantEvaluator(constantsBackend,
+      options.environmentDefines, typeEnvironment, errorReporter);
   libraries ??= component.libraries;
   try {
     final bytecodeGenerator = new BytecodeGenerator(component, coreTypes,
-        hierarchy, typeEnvironment, constantsBackend, options, errorReporter);
+        hierarchy, typeEnvironment, constantEvaluator, options);
     for (var library in libraries) {
       bytecodeGenerator.visitLibrary(library);
     }
@@ -98,9 +99,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
   final TypeEnvironment typeEnvironment;
-  final ConstantsBackend constantsBackend;
+  final ConstantEvaluator constantEvaluator;
   final BytecodeOptions options;
-  final ErrorReporter errorReporter;
   final BytecodeMetadataRepository metadata = new BytecodeMetadataRepository();
   final RecognizedMethods recognizedMethods;
   final int formatVersion;
@@ -123,7 +123,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   Set<TypeParameter> functionTypeParametersSet;
   List<DartType> instantiatorTypeArguments;
   LocalVariables locals;
-  ConstantEvaluator constantEvaluator;
   Map<LabeledStatement, Label> labeledStatements;
   Map<SwitchCase, Label> switchCases;
   Map<TryCatch, TryBlock> tryCatches;
@@ -141,14 +140,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   List<int> savedMaxSourcePositions;
   int maxSourcePosition;
 
-  BytecodeGenerator(
-      ast.Component component,
-      this.coreTypes,
-      this.hierarchy,
-      this.typeEnvironment,
-      this.constantsBackend,
-      this.options,
-      this.errorReporter)
+  BytecodeGenerator(ast.Component component, this.coreTypes, this.hierarchy,
+      this.typeEnvironment, this.constantEvaluator, this.options)
       : recognizedMethods = new RecognizedMethods(typeEnvironment),
         formatVersion = currentBytecodeFormatVersion,
         astUriToSource = component.uriToSource {
@@ -378,14 +371,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     if (nodes.isEmpty) {
       return const Annotations(null, false);
     }
-    final savedConstantEvaluator = constantEvaluator;
-    if (constantEvaluator == null) {
-      constantEvaluator = new ConstantEvaluator(constantsBackend,
-          options.environmentDefines, typeEnvironment, errorReporter)
-        ..env = new EvaluationEnvironment();
-    }
-    List<Constant> constants = nodes.map(_evaluateConstantExpression).toList();
-    constantEvaluator = savedConstantEvaluator;
+    List<Constant> constants = constantEvaluator.withNewEnvironment(
+        () => nodes.map(_evaluateConstantExpression).toList());
     bool hasPragma = constants.any(_isPragma);
     if (!options.emitAnnotations) {
       if (hasPragma) {
@@ -1346,11 +1333,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
           new List<TypeParameter>.from(enclosingFunction.typeParameters);
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
-    // TODO(alexmarkov): improve caching in ConstantEvaluator and reuse it
-    constantEvaluator = new ConstantEvaluator(constantsBackend,
-        options.environmentDefines, typeEnvironment, errorReporter)
-      ..env = new EvaluationEnvironment();
-
+    constantEvaluator.env = new EvaluationEnvironment();
     if (node.isAbstract || node is Field && !hasInitializerCode(node)) {
       return;
     }
@@ -1469,7 +1452,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     functionTypeParametersSet = null;
     instantiatorTypeArguments = null;
     locals = null;
-    constantEvaluator = null;
+    constantEvaluator.env = null;
     labeledStatements = null;
     switchCases = null;
     tryCatches = null;
