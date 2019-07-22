@@ -24,7 +24,7 @@ main() {
     final testLogger = TestLogger();
     String exampleSource = await exampleFile.readAsString();
 
-    await driver.start(['-iuse-mixin', exampleDir.path],
+    await driver.start(['--fix', 'use-mixin', exampleDir.path],
         testContext: testContext, testLogger: testLogger);
     if (_debug) {
       print(testLogger.stderrBuffer.toString());

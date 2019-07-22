@@ -9,12 +9,12 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
-const excludeOption = 'exclude';
-
 const forceOption = 'force';
-const includeOption = 'include';
+const includeOption = 'fix';
+const excludeOption = 'exclude';
 const overwriteOption = 'overwrite';
 const requiredOption = 'required';
+
 const _binaryName = 'dartfix';
 const _colorOption = 'color';
 const _serverSnapshot = 'server';
@@ -44,10 +44,8 @@ class Options {
 
   Options._fromArgs(this.context, ArgResults results)
       : force = results[forceOption] as bool,
-        includeFixes =
-            (results[includeOption] as List ?? []).cast<String>().toList(),
-        excludeFixes =
-            (results[excludeOption] as List ?? []).cast<String>().toList(),
+        includeFixes = (results[includeOption] as List ?? []).cast<String>(),
+        excludeFixes = (results[excludeOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
@@ -57,7 +55,9 @@ class Options {
         useColor = results.wasParsed(_colorOption)
             ? results[_colorOption] as bool
             : null,
-        verbose = results[_verboseOption] as bool;
+        verbose = results[_verboseOption] as bool {
+    includeFixes.addAll((results['include'] as List ?? []).cast<String>());
+  }
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
@@ -70,7 +70,10 @@ class Options {
     final parser = ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
       ..addMultiOption(includeOption,
-          abbr: 'i', help: 'Include a specific fix.', valueHelp: 'name-of-fix')
+          help: 'Include a specific fix.', valueHelp: 'name-of-fix')
+      // 'include' is an alias for 'fix' (above)
+      ..addMultiOption('include',
+          help: 'Include a specific fix.', valueHelp: 'name-of-fix', hide: true)
       ..addMultiOption(excludeOption,
           abbr: 'x', help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
       ..addFlag(requiredOption,
