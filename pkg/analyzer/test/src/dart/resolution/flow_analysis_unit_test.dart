@@ -55,7 +55,7 @@ main() {
       if (expectedPromotedType == null) {
         expect(h.flow.promotedType(x), isNull);
       } else {
-        expect(h.flow.promotedType(x).type, 'int');
+        expect(h.flow.promotedType(x).type, expectedPromotedType);
       }
       h.flow.ifStatement_elseBegin();
       expect(h.flow.promotedType(x), isNull);
