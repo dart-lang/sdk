@@ -42,6 +42,9 @@ class DartUnitOutlineComputer {
           constantOutlines.add(_newEnumConstant(constant));
         }
         unitContents.add(_newEnumOutline(enumDeclaration, constantOutlines));
+      } else if (unitMember is ExtensionDeclaration) {
+        unitContents.add(_newExtensionOutline(
+            unitMember, _outlinesForMembers(unitMember.members)));
       } else if (unitMember is TopLevelVariableDeclaration) {
         TopLevelVariableDeclaration fieldDeclaration = unitMember;
         VariableDeclarationList fields = fieldDeclaration.variables;
@@ -92,7 +95,6 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
-    node.firstTokenAfterCommentAndMetadata;
     SimpleIdentifier nameNode = node.name;
     String name = nameNode.name;
     Element element = new Element(
@@ -173,6 +175,21 @@ class DartUnitOutlineComputer {
             isDeprecated: _isDeprecated(node)),
         location: _getLocationNode(nameNode));
     return _nodeOutline(node, element, children);
+  }
+
+  Outline _newExtensionOutline(
+      ExtensionDeclaration node, List<Outline> extensionContents) {
+    SimpleIdentifier nameNode = node.name;
+    String name = nameNode?.name ?? '';
+    Element element = new Element(
+        ElementKind.EXTENSION,
+        name,
+        Element.makeFlags(
+            isPrivate: Identifier.isPrivateName(name),
+            isDeprecated: _isDeprecated(node)),
+        location: _getLocationNode(nameNode ?? node.extendedType),
+        typeParameters: _getTypeParametersStr(node.typeParameters));
+    return _nodeOutline(node, element, extensionContents);
   }
 
   Outline _newFunctionOutline(FunctionDeclaration function, bool isStatic) {

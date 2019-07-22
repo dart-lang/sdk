@@ -470,6 +470,7 @@ final Matcher isElementDeclaration =
  *   CONSTRUCTOR_INVOCATION
  *   ENUM
  *   ENUM_CONSTANT
+ *   EXTENSION
  *   FIELD
  *   FILE
  *   FUNCTION
@@ -499,6 +500,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "CONSTRUCTOR_INVOCATION",
   "ENUM",
   "ENUM_CONSTANT",
+  "EXTENSION",
   "FIELD",
   "FILE",
   "FUNCTION",

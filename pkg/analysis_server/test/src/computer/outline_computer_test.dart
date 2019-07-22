@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
@@ -410,6 +411,68 @@ enum MyEnum {
       _isEnumConstant(outlines_MyEnum[0], 'A');
       _isEnumConstant(outlines_MyEnum[1], 'B');
       _isEnumConstant(outlines_MyEnum[2], 'C');
+    }
+  }
+
+  test_extension_named() async {
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+    Outline unitOutline = await _computeOutline('''
+extension MyExt on String {
+  int get halfLength => length ~/ 2;
+  void writeOn(StringBuffer b) {
+    b.write(this);
+  }
+}
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // MyExt
+    {
+      Outline outline_MyExt = topOutlines[0];
+      Element element_MyExt = outline_MyExt.element;
+      expect(element_MyExt.kind, ElementKind.EXTENSION);
+      expect(element_MyExt.name, 'MyExt');
+      {
+        Location location = element_MyExt.location;
+        expect(location.offset, testCode.indexOf('MyExt on'));
+        expect(location.length, 'MyExt'.length);
+      }
+      expect(element_MyExt.parameters, null);
+      expect(element_MyExt.returnType, null);
+      // StringUtilities children
+      List<Outline> outlines_MyExt = outline_MyExt.children;
+      expect(outlines_MyExt, hasLength(2));
+    }
+  }
+
+  test_extension_unnamed() async {
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+    Outline unitOutline = await _computeOutline('''
+extension on String {
+  int get halfLength => length ~/ 2;
+  void writeOn(StringBuffer b) {
+    b.write(this);
+  }
+}
+''');
+    List<Outline> topOutlines = unitOutline.children;
+    expect(topOutlines, hasLength(1));
+    // MyExt
+    {
+      Outline outline_MyExt = topOutlines[0];
+      Element element_MyExt = outline_MyExt.element;
+      expect(element_MyExt.kind, ElementKind.EXTENSION);
+      expect(element_MyExt.name, '');
+      {
+        Location location = element_MyExt.location;
+        expect(location.offset, testCode.indexOf('String'));
+        expect(location.length, 'String'.length);
+      }
+      expect(element_MyExt.parameters, null);
+      expect(element_MyExt.returnType, null);
+      // StringUtilities children
+      List<Outline> outlines_MyExt = outline_MyExt.children;
+      expect(outlines_MyExt, hasLength(2));
     }
   }
 

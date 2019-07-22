@@ -3906,7 +3906,7 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get firstTokenAfterCommentAndMetadata => name.beginToken;
+  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
 
   @override
   NodeList<ClassMember> get members => _members;

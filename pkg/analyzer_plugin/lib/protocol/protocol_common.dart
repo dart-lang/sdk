@@ -1903,6 +1903,7 @@ class Element implements HasToJson {
  *   CONSTRUCTOR_INVOCATION
  *   ENUM
  *   ENUM_CONSTANT
+ *   EXTENSION
  *   FIELD
  *   FILE
  *   FUNCTION
@@ -1943,6 +1944,8 @@ class ElementKind implements Enum {
   static const ElementKind ENUM = const ElementKind._("ENUM");
 
   static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
+
+  static const ElementKind EXTENSION = const ElementKind._("EXTENSION");
 
   static const ElementKind FIELD = const ElementKind._("FIELD");
 
@@ -2000,6 +2003,7 @@ class ElementKind implements Enum {
     CONSTRUCTOR_INVOCATION,
     ENUM,
     ENUM_CONSTANT,
+    EXTENSION,
     FIELD,
     FILE,
     FUNCTION,
@@ -2042,6 +2046,8 @@ class ElementKind implements Enum {
         return ENUM;
       case "ENUM_CONSTANT":
         return ENUM_CONSTANT;
+      case "EXTENSION":
+        return EXTENSION;
       case "FIELD":
         return FIELD;
       case "FILE":
