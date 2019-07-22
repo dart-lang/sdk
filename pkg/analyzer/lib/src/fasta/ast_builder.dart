@@ -813,7 +813,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(Token onKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     TypeAnnotation type = pop();
     extensionDeclaration
       ..extendedType = type

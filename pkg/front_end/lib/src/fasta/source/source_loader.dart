@@ -202,7 +202,9 @@ class SourceLoader extends Loader<Library> {
     ScannerResult result = scan(bytes,
         includeComments: includeComments,
         configuration: new ScannerConfiguration(
-            enableTripleShift: target.enableTripleShift));
+            enableTripleShift: target.enableTripleShift,
+            enableExtensionMethods: target.enableExtensionMethods,
+            enableNonNullable: target.enableNonNullable));
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);

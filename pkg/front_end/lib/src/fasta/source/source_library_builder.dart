@@ -367,10 +367,21 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       List<TypeVariableBuilder> typeVariables,
       T supertype,
       List<T> interfaces,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
       int supertypeOffset);
+
+  void addExtensionDeclaration(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String extensionName,
+      List<TypeVariableBuilder> typeVariables,
+      T type,
+      int startOffset,
+      int nameOffset,
+      int endOffset);
 
   void addNamedMixinApplication(
       String documentationComment,
@@ -1027,6 +1038,9 @@ class DeclarationBuilder<T extends TypeBuilder> {
   Scope toScope(Scope parent) {
     return new Scope(members, setters, parent, name, isModifiable: false);
   }
+
+  @override
+  String toString() => 'DeclarationBuilder(${hashCode}:name=$name)';
 }
 
 class FieldInfo {

@@ -346,7 +346,8 @@
     },
 
     "exclude": [
-      "^pkg/analysis_server/lib/src/analysis_server\\.dart"
+      "^pkg/analysis_server/lib/src/analysis_server\\.dart",
+      "test/extensions/data/"
     ]
   }
 }

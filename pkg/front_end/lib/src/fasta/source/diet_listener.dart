@@ -52,7 +52,13 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery, StackListener;
+    show
+        FixedNullableList,
+        NullValue,
+        ParserRecovery,
+        StackListener,
+        ValueKind,
+        valueKinds;
 
 import '../quote.dart' show unescapeString;
 
@@ -76,6 +82,9 @@ class DietListener extends StackListener {
 
   bool currentClassIsParserRecovery = false;
 
+  /// Counter used for naming unnamed extension declarations.
+  int unnamedExtensionCounter = 0;
+
   /// For top-level declarations, this is the library scope. For class members,
   /// this is the instance scope of [currentClass].
   Scope memberScope;
@@ -95,12 +104,13 @@ class DietListener extends StackListener {
 
   @override
   void endMetadataStar(int count) {
+    assert(checkState(valueKinds(ValueKind.Token, count)));
     debugEvent("MetadataStar");
     if (count > 0) {
       discard(count - 1);
-      push(pop(NullValue.Metadata));
+      push(pop(NullValue.Token) ?? NullValue.Token);
     } else {
-      push(NullValue.Metadata);
+      push(NullValue.Token);
     }
   }
 
@@ -692,19 +702,12 @@ class DietListener extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(Token mixinKeyword, Token name) {
-    debugEvent("beginMixinDeclaration");
-    push(mixinKeyword);
-  }
-
-  @override
-  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
-    debugEvent("beginClassDeclaration");
-    push(begin);
-  }
-
-  @override
   void beginClassOrMixinBody(Token token) {
+    assert(checkState([
+      ValueKind.Token,
+      ValueKind.NameOrParserRecovery,
+      ValueKind.TokenOrNull
+    ]));
     debugEvent("beginClassOrMixinBody");
     Token beginToken = pop();
     Object name = pop();
@@ -728,15 +731,44 @@ class DietListener extends StackListener {
   }
 
   @override
+  void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
+    debugEvent("beginClassDeclaration");
+    push(begin);
+  }
+
+  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    debugEvent("ClassDeclaration");
+    debugEvent("endClassDeclaration");
     checkEmpty(beginToken.charOffset);
   }
 
   @override
+  void beginMixinDeclaration(Token mixinKeyword, Token name) {
+    debugEvent("beginMixinDeclaration");
+    push(mixinKeyword);
+  }
+
+  @override
   void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    debugEvent("MixinDeclaration");
+    debugEvent("endMixinDeclaration");
     checkEmpty(mixinKeyword.charOffset);
+  }
+
+  @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token nameToken) {
+    debugEvent("beginExtensionDeclaration");
+    String name = nameToken?.lexeme ??
+        // Synthesized name used internally.
+        'extension-${unnamedExtensionCounter++}';
+    push(name);
+    push(extensionKeyword);
+  }
+
+  @override
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
+    debugEvent("endExtensionDeclaration");
+    checkEmpty(extensionKeyword.charOffset);
   }
 
   @override

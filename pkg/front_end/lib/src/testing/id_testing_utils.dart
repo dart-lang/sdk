@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/builder/builder.dart';
+
 /// Helper methods to use on annotated tests.
 
 import 'package:kernel/ast.dart';
@@ -307,4 +309,60 @@ class DartTypeToTextVisitor implements DartTypeVisitor<void> {
       sb.write('>');
     }
   }
+}
+
+/// Returns `true` if [type] is `Object` from `dart:core`.
+bool isObject(DartType type) {
+  return type is InterfaceType &&
+      type.classNode.name == 'Object' &&
+      '${type.classNode.enclosingLibrary.importUri}' == 'dart:core';
+}
+
+/// Returns a textual representation of the [typeParameter] to be used in
+/// testing.
+String typeParameterToText(TypeParameter typeParameter) {
+  String name = typeParameter.name;
+  if (!isObject(typeParameter.bound)) {
+    return '$name extends ${typeToText(typeParameter.bound)}';
+  }
+  return name;
+}
+
+/// Returns a textual representation of the [type] to be used in testing.
+String typeBuilderToText(TypeBuilder type) {
+  StringBuffer sb = new StringBuffer();
+  _typeBuilderToText(type, sb);
+  return sb.toString();
+}
+
+void _typeBuilderToText(TypeBuilder type, StringBuffer sb) {
+  if (type is NamedTypeBuilder) {
+    sb.write(type.name);
+    if (type.arguments != null && type.arguments.isNotEmpty) {
+      sb.write('<');
+      _typeBuildersToText(type.arguments, sb);
+      sb.write('>');
+    }
+  } else {
+    throw 'Unhandled type builder $type (${type.runtimeType})';
+  }
+}
+
+void _typeBuildersToText(Iterable<TypeBuilder> types, StringBuffer sb) {
+  String comma = '';
+  for (TypeBuilder type in types) {
+    sb.write(comma);
+    _typeBuilderToText(type, sb);
+    comma = ',';
+  }
+}
+
+/// Returns a textual representation of the [typeVariable] to be used in
+/// testing.
+String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
+  String name = typeVariable.name;
+  if (typeVariable.bound != null) {
+    return '$name extends ${typeBuilderToText(typeVariable.bound)}';
+  }
+  return name;
 }

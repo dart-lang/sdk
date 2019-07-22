@@ -58,6 +58,7 @@ import '../modifier.dart'
         abstractMask,
         constMask,
         covariantMask,
+        extensionDeclarationMask,
         externalMask,
         mixinDeclarationMask,
         staticMask;
@@ -88,7 +89,7 @@ import '../scanner.dart' show Token;
 import 'source_library_builder.dart' show FieldInfo, SourceLibraryBuilder;
 
 import 'stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery, StackListener;
+    show FixedNullableList, NullValue, ParserRecovery, StackListener, ValueKind;
 
 enum MethodBody {
   Abstract,
@@ -106,6 +107,9 @@ class OutlineBuilder extends StackListener {
   int importIndex = 0;
 
   String nativeMethodName;
+
+  /// Counter used for naming unnamed extension declarations.
+  int unnamedExtensionCounter = 0;
 
   OutlineBuilder(SourceLibraryBuilder<TypeBuilder, Library> library)
       : library = library,
@@ -439,7 +443,7 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginClassDeclaration(Token begin, Token abstractToken, Token name) {
-    debugEvent("beginNamedMixinApplication");
+    debugEvent("beginClassDeclaration");
     List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
     library.currentDeclaration
@@ -530,7 +534,7 @@ class OutlineBuilder extends StackListener {
     TypeBuilder supertype = nullIfParserRecovery(pop());
     int modifiers = pop();
     List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
-    int charOffset = pop();
+    int nameOffset = pop();
     Object name = pop();
     if (typeVariables != null && supertype is MixinApplicationBuilder) {
       supertype.typeVariables = typeVariables;
@@ -554,7 +558,7 @@ class OutlineBuilder extends StackListener {
         supertype,
         interfaces,
         startCharOffset,
-        charOffset,
+        nameOffset,
         endToken.charOffset,
         supertypeOffset);
   }
@@ -602,6 +606,64 @@ class OutlineBuilder extends StackListener {
         nameOffset,
         endToken.charOffset,
         -1);
+  }
+
+  @override
+  void beginExtensionDeclaration(Token extensionKeyword, Token nameToken) {
+    assert(checkState(
+        [ValueKind.TypeVariableListOrNull, ValueKind.MetadataListOrNull]));
+    debugEvent("beginExtensionDeclaration");
+    library.beginNestedDeclaration("extension");
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables = pop();
+    int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
+    String name = nameToken?.lexeme ??
+        // Synthesized name used internally.
+        'extension-${unnamedExtensionCounter++}';
+    push(name);
+    push(offset);
+    push(typeVariables ?? NullValue.TypeVariables);
+    library.currentDeclaration
+      ..name = name
+      ..charOffset = offset
+      ..typeVariables = typeVariables;
+  }
+
+  @override
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
+    assert(checkState([
+      ValueKind.TypeBuilder,
+      ValueKind.TypeVariableListOrNull,
+      ValueKind.Integer,
+      ValueKind.NameOrNull,
+      ValueKind.MetadataListOrNull
+    ]));
+    debugEvent("endExtensionDeclaration");
+    String documentationComment = getDocumentationComment(extensionKeyword);
+    TypeBuilder supertype = pop();
+    List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables =
+        pop(NullValue.TypeVariables);
+    int nameOffset = pop();
+    String name = pop(NullValue.Name);
+    if (name == null) {
+      nameOffset = extensionKeyword.charOffset;
+      name = '$nameOffset';
+    }
+    List<MetadataBuilder> metadata = pop(NullValue.Metadata);
+    checkEmpty(extensionKeyword.charOffset);
+    int startOffset = metadata == null
+        ? extensionKeyword.charOffset
+        : metadata.first.charOffset;
+    library.addExtensionDeclaration(
+        documentationComment,
+        metadata,
+        extensionDeclarationMask,
+        name,
+        typeVariables,
+        supertype,
+        startOffset,
+        nameOffset,
+        endToken.charOffset);
   }
 
   ProcedureKind computeProcedureKind(Token token) {

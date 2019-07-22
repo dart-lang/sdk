@@ -90,6 +90,7 @@ class SourceClassBuilder extends KernelClassBuilder
       List<TypeVariableBuilder> typeVariables,
       TypeBuilder supertype,
       List<TypeBuilder> interfaces,
+      List<TypeBuilder> onTypes,
       Scope scope,
       Scope constructors,
       LibraryBuilder parent,
@@ -103,7 +104,7 @@ class SourceClassBuilder extends KernelClassBuilder
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, charOffset, charEndOffset),
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            scope, constructors, parent, charOffset);
+            onTypes, scope, constructors, parent, charOffset);
 
   @override
   Class get cls => origin.actualCls;

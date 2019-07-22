@@ -2128,7 +2128,7 @@ class Parser {
     }
     // TODO(danrubel): Do not allow fields or constructors
     token = parseClassOrMixinBody(token);
-    listener.endExtensionDeclaration(onKeyword, token);
+    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
 

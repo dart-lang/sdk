@@ -279,13 +279,13 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       List<TypeVariableBuilder> typeVariables,
       TypeBuilder supertype,
       List<TypeBuilder> interfaces,
-      int startCharOffset,
-      int charOffset,
-      int charEndOffset,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
       int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    var declaration = endNestedDeclaration(className)
-      ..resolveTypes(typeVariables, this);
+    DeclarationBuilder<TypeBuilder> declaration =
+        endNestedDeclaration(className)..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
     Map<String, MemberBuilder> constructors = declaration.constructors;
@@ -312,17 +312,20 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
         modifiers,
         className,
         typeVariables,
-        applyMixins(supertype, startCharOffset, charOffset, charEndOffset,
-            className, isMixinDeclaration,
+        applyMixins(supertype, startOffset, nameOffset, endOffset, className,
+            isMixinDeclaration,
             typeVariables: typeVariables),
         interfaces,
+        // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
+        // here.
+        null,
         classScope,
         constructorScope,
         this,
         new List<ConstructorReferenceBuilder>.from(constructorReferences),
-        startCharOffset,
-        charOffset,
-        charEndOffset,
+        startOffset,
+        nameOffset,
+        endOffset,
         isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(cls.target, documentationComment);
@@ -355,7 +358,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(className, cls, charOffset);
+    addBuilder(className, cls, nameOffset);
   }
 
   Map<String, TypeVariableBuilder> checkTypeVariables(
@@ -387,6 +390,91 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       }
     }
     return typeVariablesByName;
+  }
+
+  @override
+  void addExtensionDeclaration(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String extensionName,
+      List<TypeVariableBuilder> typeVariables,
+      TypeBuilder type,
+      int startOffset,
+      int nameOffset,
+      int endOffset) {
+    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    DeclarationBuilder<TypeBuilder> declaration =
+        endNestedDeclaration(extensionName)..resolveTypes(typeVariables, this);
+    assert(declaration.parent == libraryDeclaration);
+    Map<String, MemberBuilder> members = declaration.members;
+    Map<String, MemberBuilder> constructors = declaration.constructors;
+    Map<String, MemberBuilder> setters = declaration.setters;
+
+    Scope classScope = new Scope(members, setters,
+        scope.withTypeVariables(typeVariables), "extension $extensionName",
+        isModifiable: false);
+
+    // When looking up a constructor, we don't consider type variables or the
+    // library scope.
+    Scope constructorScope =
+        new Scope(constructors, null, null, extensionName, isModifiable: false);
+    bool isMixinDeclaration = false;
+    if (modifiers & mixinDeclarationMask != 0) {
+      isMixinDeclaration = true;
+      modifiers = (modifiers & ~mixinDeclarationMask) | abstractMask;
+    }
+    if (declaration.hasConstConstructor) {
+      modifiers |= hasConstConstructorMask;
+    }
+    ClassBuilder cls = new SourceClassBuilder(
+        metadata,
+        modifiers,
+        extensionName,
+        typeVariables,
+        null, // No explicit supertype.
+        null, // No implemented interfaces.
+        [type],
+        classScope,
+        constructorScope,
+        this,
+        new List<ConstructorReferenceBuilder>.from(constructorReferences),
+        startOffset,
+        nameOffset,
+        endOffset,
+        isMixinDeclaration: isMixinDeclaration);
+    loader.target.metadataCollector
+        ?.setDocumentationComment(cls.target, documentationComment);
+
+    constructorReferences.clear();
+    Map<String, TypeVariableBuilder> typeVariablesByName =
+        checkTypeVariables(typeVariables, cls);
+    void setParent(String name, MemberBuilder member) {
+      while (member != null) {
+        member.parent = cls;
+        member = member.next;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, MemberBuilder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder tv = typeVariablesByName[name];
+        if (tv != null) {
+          cls.addProblem(templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset, name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(name, member);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    addBuilder(extensionName, cls, nameOffset);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -578,6 +666,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
             isNamedMixinApplication
                 ? interfaces
                 : isMixinDeclaration ? [supertype, mixin] : null,
+            null, // No `on` clause types.
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 scope.withTypeVariables(typeVariables),
                 "mixin $fullname ", isModifiable: false),

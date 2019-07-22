@@ -593,8 +593,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token onKeyword, Token token) {
-    listener?.endExtensionDeclaration(onKeyword, token);
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
+    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, token);
   }
 
   @override

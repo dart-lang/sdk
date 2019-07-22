@@ -24,11 +24,20 @@ import '../fasta_codes.dart'
 
 abstract class ClassBuilder<T extends TypeBuilder, R>
     extends TypeDeclarationBuilder<T, R> {
+  /// The type variables declared on a class, extension or mixin declaration.
   List<TypeVariableBuilder> typeVariables;
 
+  /// The type in the `extends` clause of a class declaration.
+  ///
+  /// Currently this also holds the synthesized super class for a mixin
+  /// declaration.
   T supertype;
 
+  /// The type in the `implements` clause of a class or mixin declaration.
   List<T> interfaces;
+
+  /// The types in the `on` clause of an extension or mixin declaration.
+  List<T> onTypes;
 
   final Scope scope;
 
@@ -47,6 +56,7 @@ abstract class ClassBuilder<T extends TypeBuilder, R>
       this.typeVariables,
       this.supertype,
       this.interfaces,
+      this.onTypes,
       this.scope,
       this.constructors,
       LibraryBuilder parent,

@@ -93,8 +93,8 @@ class KernelEnumBuilder extends SourceClassBuilder
       int startCharOffset,
       int charOffset,
       int charEndOffset)
-      : super(metadata, 0, name, null, null, null, scope, constructors, parent,
-            null, startCharOffset, charOffset, charEndOffset,
+      : super(metadata, 0, name, null, null, null, null, scope, constructors,
+            parent, null, startCharOffset, charOffset, charEndOffset,
             cls: cls);
 
   factory KernelEnumBuilder(

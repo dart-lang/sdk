@@ -5,7 +5,9 @@
 library fasta.stack_listener;
 
 import 'package:kernel/ast.dart'
-    show AsyncMarker, Expression, FunctionNode, TreeNode;
+    show AsyncMarker, DartType, Expression, FunctionNode, TreeNode;
+
+import '../builder/builder.dart';
 
 import '../fasta_codes.dart'
     show
@@ -58,10 +60,12 @@ enum NullValue {
   Labels,
   Metadata,
   Modifiers,
+  Name,
   ParameterDefaultValue,
   Prefix,
   StringLiteral,
   SwitchScope,
+  Token,
   Type,
   TypeArguments,
   TypeBuilderList,
@@ -72,8 +76,112 @@ enum NullValue {
   WithClause,
 }
 
+/// Enum values used for checking the expected top of the stack in
+/// `StackListener.checkState`.
+enum ValueKind {
+  Integer,
+  TypeVariableListOrNull,
+  TypeBuilder,
+  Name,
+  NameOrNull,
+  NameOrParserRecovery,
+  NameOrParserRecoveryOrNull,
+  MetadataListOrNull,
+  Token,
+  TokenOrNull,
+}
+
+/// Helper method for creating a list of [ValueKind]s of the given length
+/// [count].
+List<ValueKind> valueKinds(ValueKind kind, int count) {
+  return new List.generate(count, (_) => kind);
+}
+
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
+
+  /// Checks the top of the current stack against [kinds]. If a mismatch is
+  /// found, a top of the current stack is print along with the expected [kinds]
+  /// marking the frames that don't match, and throws an exception.
+  ///
+  /// Use this in assert statements like `assert(checkState([ValueKind.Token]))`
+  /// to document the expected stack and get earlier errors on unexpected stack
+  /// content.
+  bool checkState(List<ValueKind> kinds) {
+    bool success = true;
+    StringBuffer sb = new StringBuffer();
+
+    String padLeft(Object object, int length) {
+      String text = '$object';
+      if (text.length < length) {
+        return ' ' * (length - text.length) + text;
+      }
+      return text;
+    }
+
+    String padRight(Object object, int length) {
+      String text = '$object';
+      if (text.length < length) {
+        return text + ' ' * (length - text.length);
+      }
+      return text;
+    }
+
+    bool checkValue(ValueKind kind, Object value) {
+      switch (kind) {
+        case ValueKind.Integer:
+          return value is int;
+        case ValueKind.TypeVariableListOrNull:
+          return value == NullValue.TypeVariables ||
+              value is List<TypeVariableBuilder<TypeBuilder, DartType>>;
+        case ValueKind.TypeBuilder:
+          return value is TypeBuilder;
+        case ValueKind.Name:
+          return value is String;
+        case ValueKind.NameOrNull:
+          return value == NullValue.Name || value is String;
+        case ValueKind.NameOrParserRecovery:
+          return value is String || value is ParserRecovery;
+        case ValueKind.NameOrParserRecoveryOrNull:
+          return value == NullValue.Name ||
+              value is String ||
+              value is ParserRecovery;
+        case ValueKind.MetadataListOrNull:
+          return value == NullValue.Metadata || value is List<MetadataBuilder>;
+        case ValueKind.Token:
+          return value is Token;
+        case ValueKind.TokenOrNull:
+          return value == NullValue.Token || value is Token;
+      }
+      return false;
+    }
+
+    for (int i = 0; i < kinds.length; i++) {
+      ValueKind kind = kinds[i];
+      sb.write(padLeft(i, 4));
+      sb.write(': ');
+      sb.write(padRight(kind, 40));
+      int index = stack.arrayLength - i - 1;
+      if (index >= 0) {
+        Object value = stack.array[index];
+        if (checkValue(kind, value)) {
+          sb.write(' ');
+        } else {
+          sb.write('*');
+          success = false;
+        }
+        sb.write(value);
+        sb.write(' (${value.runtimeType})');
+      } else {
+        success = false;
+      }
+      sb.writeln();
+    }
+    if (!success) {
+      throw '$runtimeType failure\n$sb';
+    }
+    return success;
+  }
 
   @override
   Uri get uri;

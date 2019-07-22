@@ -3,7 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 analyzer:
+  enable-experiment: [extension-methods]
   exclude:
+    - test/extensions/data/**
     - testcases/**
   errors:
     # Allow having TODOs in the code

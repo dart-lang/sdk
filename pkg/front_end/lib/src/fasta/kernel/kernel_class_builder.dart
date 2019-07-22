@@ -136,12 +136,13 @@ abstract class KernelClassBuilder
       List<TypeVariableBuilder> typeVariables,
       TypeBuilder supertype,
       List<TypeBuilder> interfaces,
+      List<TypeBuilder> onTypes,
       Scope scope,
       Scope constructors,
       LibraryBuilder parent,
       int charOffset)
       : super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            scope, constructors, parent, charOffset);
+            onTypes, scope, constructors, parent, charOffset);
 
   Class get cls;
 

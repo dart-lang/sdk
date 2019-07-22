@@ -37,6 +37,7 @@ class DillClassBuilder extends KernelClassBuilder {
             null,
             null,
             null,
+            null,
             new Scope(<String, MemberBuilder>{}, <String, MemberBuilder>{},
                 parent.scope, "class ${cls.name}", isModifiable: false),
             new Scope(<String, MemberBuilder>{}, null, null, cls.name,

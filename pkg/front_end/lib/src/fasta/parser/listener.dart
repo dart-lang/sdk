@@ -194,7 +194,8 @@ class Listener implements UnescapeErrorListener {
   /// - substructures from [beginExtensionDeclaration]
   /// - on type
   /// - body
-  void endExtensionDeclaration(Token onKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     logEvent('ExtensionDeclaration');
   }
 

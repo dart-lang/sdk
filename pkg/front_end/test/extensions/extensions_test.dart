@@ -1,0 +1,132 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io' show Directory, Platform;
+import 'package:front_end/src/fasta/builder/builder.dart';
+import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
+import 'package:front_end/src/fasta/kernel/kernel_library_builder.dart';
+import 'package:front_end/src/fasta/source/source_library_builder.dart';
+import 'package:front_end/src/fasta/source/source_loader.dart';
+import 'package:front_end/src/testing/id.dart' show ActualData, Id;
+import 'package:front_end/src/testing/features.dart';
+import 'package:front_end/src/testing/id_testing.dart'
+    show DataInterpreter, runTests;
+import 'package:front_end/src/testing/id_testing.dart';
+import 'package:front_end/src/testing/id_testing_helper.dart'
+    show
+        CfeDataExtractor,
+        CompilerResult,
+        DataComputer,
+        cfeExtensionMethodsConfig,
+        createUriForFileName,
+        onFailure,
+        runTestFor;
+import 'package:front_end/src/testing/id_testing_utils.dart';
+import 'package:kernel/ast.dart' show Class, Member, TreeNode;
+import 'package:kernel/ast.dart';
+
+main(List<String> args) async {
+  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
+  await runTests(dataDir,
+      args: args,
+      supportedMarkers: sharedMarkers,
+      createUriForFileName: createUriForFileName,
+      onFailure: onFailure,
+      runTest: runTestFor(
+          const ExtensionsDataComputer(), [cfeExtensionMethodsConfig]));
+}
+
+class ExtensionsDataComputer extends DataComputer<Features> {
+  const ExtensionsDataComputer();
+
+  @override
+  void computeMemberData(CompilerResult compilerResult, Member member,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
+  }
+
+  @override
+  void computeClassData(CompilerResult compilerResult, Class cls,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool verbose}) {
+    new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
+  }
+
+  @override
+  DataInterpreter<Features> get dataValidator =>
+      const FeaturesDataInterpreter();
+}
+
+class Tags {
+  static const String builderName = 'builder-name';
+  static const String builderTypeParameters = 'builder-type-params';
+  static const String builderSupertype = 'builder-supertype';
+  static const String builderInterfaces = 'builder-interfaces';
+  static const String builderOnTypes = 'builder-onTypes';
+
+  static const String clsName = 'cls-name';
+  static const String clsTypeParameters = 'cls-type-params';
+  static const String clsSupertype = 'cls-supertype';
+  static const String clsInterfaces = 'cls-interfaces';
+}
+
+class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
+  ExtensionsDataExtractor(
+      CompilerResult compilerResult, Map<Id, ActualData<Features>> actualMap)
+      : super(compilerResult, actualMap);
+
+  @override
+  Features computeClassValue(Id id, Class cls) {
+    SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
+    KernelLibraryBuilder builder =
+        loader.builders[cls.enclosingLibrary.importUri];
+    DeclarationBuilder<TypeBuilder> libraryBuilder = builder.libraryDeclaration;
+    ClassBuilder clsBuilder = libraryBuilder.members[cls.name];
+    if (clsBuilder.isExtension) {
+      Features features = new Features();
+      features[Tags.builderName] = clsBuilder.name;
+      if (clsBuilder.typeVariables != null) {
+        for (TypeVariableBuilder typeVariable in clsBuilder.typeVariables) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
+      }
+
+      features[Tags.builderSupertype] = clsBuilder.supertype?.name;
+      if (clsBuilder.interfaces != null) {
+        for (TypeBuilder superinterface in clsBuilder.interfaces) {
+          features.addElement(Tags.builderInterfaces, superinterface.name);
+        }
+      }
+      if (clsBuilder.onTypes != null) {
+        for (TypeBuilder onType in clsBuilder.onTypes) {
+          features.addElement(Tags.builderOnTypes, typeBuilderToText(onType));
+        }
+      }
+
+      features[Tags.clsName] = cls.name;
+      for (TypeParameter typeParameter in cls.typeParameters) {
+        features.addElement(
+            Tags.clsTypeParameters, typeParameterToText(typeParameter));
+      }
+      features[Tags.clsSupertype] = cls.supertype?.classNode?.name;
+      for (Supertype superinterface in cls.implementedTypes) {
+        features.addElement(Tags.clsInterfaces, superinterface.classNode.name);
+      }
+      return features;
+    }
+    return null;
+  }
+
+  @override
+  Features computeNodeValue(Id id, TreeNode node) {
+    return null;
+  }
+
+  @override
+  Features computeMemberValue(Id id, Member member) {
+    return null;
+  }
+}

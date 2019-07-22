@@ -28,10 +28,15 @@ export '../kernel_generator_impl.dart' show CompilerResult;
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');
 
-/// Test configuration used for testing CFE in with constant evaluation.
+/// Test configuration used for testing CFE with constant evaluation.
 const TestConfig cfeConstantUpdate2018Config = const TestConfig(
     cfeMarker, 'cfe with constant-update-2018',
     experimentalFlags: const {ExperimentalFlag.constantUpdate2018: true});
+
+/// Test configuration used for testing CFE with extension methods.
+const TestConfig cfeExtensionMethodsConfig = const TestConfig(
+    cfeMarker, 'cfe with constant-update-2018',
+    experimentalFlags: const {ExperimentalFlag.extensionMethods: true});
 
 class TestConfig {
   final String marker;
