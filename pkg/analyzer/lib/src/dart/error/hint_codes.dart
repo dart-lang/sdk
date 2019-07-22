@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 
 /**
  * The hints and coding recommendations for best practices which are not
@@ -839,11 +838,12 @@ class HintCode extends ErrorCode {
       correction: "Try removing the stack trace variable, or using it.");
 
   /**
-   * See [Modifier.IS_USED_IN_LIBRARY].
+   * Parameters:
+   * 0: The name that is declared but not referenced.
    */
   static const HintCode UNUSED_ELEMENT = const HintCode(
-      'UNUSED_ELEMENT', "The {0} '{1}' isn't used.",
-      correction: "Try removing the declaration of '{1}'.");
+      'UNUSED_ELEMENT', "The declaration '{0}' isn't referenced.",
+      correction: "Try removing the declaration of '{0}'.");
 
   /**
    * Unused fields are fields which are never read.
