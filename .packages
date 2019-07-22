@@ -104,7 +104,6 @@ typed_data:third_party/pkg/typed_data/lib
 unittest:third_party/pkg/unittest/lib
 usage:third_party/pkg/usage/lib
 vm:pkg/vm/lib
-vm_service:pkg/vm_service/lib
 watcher:third_party/pkg/watcher/lib
 web_components:third_party/pkg/web_components/lib
 web_socket_channel:third_party/pkg/web_socket_channel/lib
