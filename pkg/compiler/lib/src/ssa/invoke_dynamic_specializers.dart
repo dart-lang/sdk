@@ -421,6 +421,15 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     return null;
   }
 
+  bool inputsAreNum(HInstruction instruction, JClosedWorld closedWorld) {
+    HInstruction left = instruction.inputs[1];
+    HInstruction right = instruction.inputs[2];
+    return left
+            .isNumberOrNull(closedWorld.abstractValueDomain)
+            .isDefinitelyTrue &&
+        right.isNumberOrNull(closedWorld.abstractValueDomain).isDefinitelyTrue;
+  }
+
   bool inputsArePositiveIntegers(
       HInstruction instruction, JClosedWorld closedWorld) {
     HInstruction left = instruction.inputs[1];
@@ -712,6 +721,9 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     }
     if (inputsArePositiveIntegers(instruction, closedWorld)) {
       return closedWorld.abstractValueDomain.positiveIntType;
+    }
+    if (inputsAreNum(instruction, closedWorld)) {
+      return closedWorld.abstractValueDomain.intType;
     }
     return super.computeTypeFromInputTypes(instruction, results, closedWorld);
   }
