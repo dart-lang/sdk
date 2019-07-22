@@ -11,7 +11,6 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/util/features.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/testing/id_testing.dart';
 
@@ -478,109 +477,6 @@ Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,
       filterActualData: filterActualData,
       fatalErrors: !testAfterFailures,
       onFailure: Expect.fail);
-}
-
-class FeaturesDataInterpreter implements DataInterpreter<Features> {
-  const FeaturesDataInterpreter();
-
-  @override
-  String isAsExpected(Features actualFeatures, String expectedData) {
-    if (expectedData == '*') {
-      return null;
-    } else if (expectedData == '') {
-      return actualFeatures.isNotEmpty ? "Expected empty data." : null;
-    } else {
-      List<String> errorsFound = [];
-      Features expectedFeatures = Features.fromText(expectedData);
-      Set<String> validatedFeatures = new Set<String>();
-      expectedFeatures.forEach((String key, Object expectedValue) {
-        bool expectMatch = true;
-        if (key.startsWith('!')) {
-          key = key.substring(1);
-          expectMatch = false;
-        }
-        validatedFeatures.add(key);
-        Object actualValue = actualFeatures[key];
-        if (!expectMatch) {
-          if (actualFeatures.containsKey(key)) {
-            errorsFound.add('Unexpected data found for $key=$actualValue');
-          }
-        } else if (!actualFeatures.containsKey(key)) {
-          errorsFound.add('No data found for $key');
-        } else if (expectedValue == '') {
-          if (actualValue != '') {
-            errorsFound.add('Non-empty data found for $key');
-          }
-        } else if (expectedValue == '*') {
-          return;
-        } else if (expectedValue is List) {
-          if (actualValue is List) {
-            List actualList = actualValue.toList();
-            for (Object expectedObject in expectedValue) {
-              String expectedText = '$expectedObject';
-              bool matchFound = false;
-              if (expectedText.endsWith('*')) {
-                // Wildcard matcher.
-                String prefix =
-                    expectedText.substring(0, expectedText.indexOf('*'));
-                List matches = [];
-                for (Object actualObject in actualList) {
-                  if ('$actualObject'.startsWith(prefix)) {
-                    matches.add(actualObject);
-                    matchFound = true;
-                  }
-                }
-                for (Object match in matches) {
-                  actualList.remove(match);
-                }
-              } else {
-                for (Object actualObject in actualList) {
-                  if (expectedText == '$actualObject') {
-                    actualList.remove(actualObject);
-                    matchFound = true;
-                    break;
-                  }
-                }
-              }
-              if (!matchFound) {
-                errorsFound.add("No match found for $key=[$expectedText]");
-              }
-            }
-            if (actualList.isNotEmpty) {
-              errorsFound
-                  .add("Extra data found $key=[${actualList.join(',')}]");
-            }
-          } else {
-            errorsFound.add("List data expected for $key: "
-                "expected '$expectedValue', found '${actualValue}'");
-          }
-        } else if (expectedValue != actualValue) {
-          errorsFound.add(
-              "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
-        }
-      });
-      actualFeatures.forEach((String key, Object value) {
-        if (!validatedFeatures.contains(key)) {
-          if (value == '') {
-            errorsFound.add("Extra data found '$key'");
-          } else {
-            errorsFound.add("Extra data found $key=$value");
-          }
-        }
-      });
-      return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;
-    }
-  }
-
-  @override
-  String getText(Features actualData) {
-    return actualData.getText();
-  }
-
-  @override
-  bool isEmpty(Features actualData) {
-    return actualData == null || actualData.isEmpty;
-  }
 }
 
 /// Compute a [Spannable] from an [id] in the library [mainUri].

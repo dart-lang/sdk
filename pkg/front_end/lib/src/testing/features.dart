@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Set of features used in annotations.
+import 'id_testing.dart';
+
+/// Utility class for annotated testing representing a set of features.
 class Features {
   Map<String, Object> _features = {};
 
+  /// Mark the feature [key] as existing. If [value] is provided, the feature
+  /// [key] is set to have this value.
   void add(String key, {var value: ''}) {
     _features[key] = value.toString();
   }
 
+  /// Add [value] as an element of the list values of feature [key].
   void addElement(String key, [var value]) {
     List<String> list = _features.putIfAbsent(key, () => <String>[]);
     if (value != null) {
@@ -17,22 +22,30 @@ class Features {
     }
   }
 
+  /// Returns `true` if feature [key] exists.
   bool containsKey(String key) {
     return _features.containsKey(key);
   }
 
+  /// Set the feature [key] to exist with the [value].
   void operator []=(String key, String value) {
     _features[key] = value;
   }
 
+  /// Returns the value set for feature [key].
   Object operator [](String key) => _features[key];
 
+  /// Removes the value set for feature [key]. Returns the existing value.
   Object remove(String key) => _features.remove(key);
 
+  /// Returns `true` if this feature set is empty.
   bool get isEmpty => _features.isEmpty;
 
+  /// Returns `true` if this feature set is non-empty.
   bool get isNotEmpty => _features.isNotEmpty;
 
+  /// Call [f] for each feature in this feature set with its corresponding
+  /// value.
   void forEach(void Function(String, Object) f) {
     _features.forEach(f);
   }
@@ -154,5 +167,108 @@ class Features {
       }
     }
     return features;
+  }
+}
+
+class FeaturesDataInterpreter implements DataInterpreter<Features> {
+  const FeaturesDataInterpreter();
+
+  @override
+  String isAsExpected(Features actualFeatures, String expectedData) {
+    if (expectedData == '*') {
+      return null;
+    } else if (expectedData == '') {
+      return actualFeatures.isNotEmpty ? "Expected empty data." : null;
+    } else {
+      List<String> errorsFound = [];
+      Features expectedFeatures = Features.fromText(expectedData);
+      Set<String> validatedFeatures = new Set<String>();
+      expectedFeatures.forEach((String key, Object expectedValue) {
+        bool expectMatch = true;
+        if (key.startsWith('!')) {
+          key = key.substring(1);
+          expectMatch = false;
+        }
+        validatedFeatures.add(key);
+        Object actualValue = actualFeatures[key];
+        if (!expectMatch) {
+          if (actualFeatures.containsKey(key)) {
+            errorsFound.add('Unexpected data found for $key=$actualValue');
+          }
+        } else if (!actualFeatures.containsKey(key)) {
+          errorsFound.add('No data found for $key');
+        } else if (expectedValue == '') {
+          if (actualValue != '') {
+            errorsFound.add('Non-empty data found for $key');
+          }
+        } else if (expectedValue == '*') {
+          return;
+        } else if (expectedValue is List) {
+          if (actualValue is List) {
+            List actualList = actualValue.toList();
+            for (Object expectedObject in expectedValue) {
+              String expectedText = '$expectedObject';
+              bool matchFound = false;
+              if (expectedText.endsWith('*')) {
+                // Wildcard matcher.
+                String prefix =
+                    expectedText.substring(0, expectedText.indexOf('*'));
+                List matches = [];
+                for (Object actualObject in actualList) {
+                  if ('$actualObject'.startsWith(prefix)) {
+                    matches.add(actualObject);
+                    matchFound = true;
+                  }
+                }
+                for (Object match in matches) {
+                  actualList.remove(match);
+                }
+              } else {
+                for (Object actualObject in actualList) {
+                  if (expectedText == '$actualObject') {
+                    actualList.remove(actualObject);
+                    matchFound = true;
+                    break;
+                  }
+                }
+              }
+              if (!matchFound) {
+                errorsFound.add("No match found for $key=[$expectedText]");
+              }
+            }
+            if (actualList.isNotEmpty) {
+              errorsFound
+                  .add("Extra data found $key=[${actualList.join(',')}]");
+            }
+          } else {
+            errorsFound.add("List data expected for $key: "
+                "expected '$expectedValue', found '${actualValue}'");
+          }
+        } else if (expectedValue != actualValue) {
+          errorsFound.add(
+              "Mismatch for $key: expected '$expectedValue', found '${actualValue}'");
+        }
+      });
+      actualFeatures.forEach((String key, Object value) {
+        if (!validatedFeatures.contains(key)) {
+          if (value == '') {
+            errorsFound.add("Extra data found '$key'");
+          } else {
+            errorsFound.add("Extra data found $key=$value");
+          }
+        }
+      });
+      return errorsFound.isNotEmpty ? errorsFound.join('\n ') : null;
+    }
+  }
+
+  @override
+  String getText(Features actualData) {
+    return actualData.getText();
+  }
+
+  @override
+  bool isEmpty(Features actualData) {
+    return actualData == null || actualData.isEmpty;
   }
 }
