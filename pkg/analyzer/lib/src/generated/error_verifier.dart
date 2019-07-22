@@ -363,7 +363,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    _checkForArgumentTypesNotAssignableInList(node);
+    if (node.parent is! ExtensionOverride) {
+      _checkForArgumentTypesNotAssignableInList(node);
+    }
     super.visitArgumentList(node);
   }
 
@@ -873,6 +875,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression functionExpression = node.function;
+    if (functionExpression is ExtensionOverride) {
+      // TODO(brianwilkerson) Update `_checkTypeArguments` to handle extension
+      //  overrides.
+//      _checkTypeArguments(node);
+      return super.visitFunctionExpressionInvocation(node);
+    }
     DartType expressionType = functionExpression.staticType;
     if (!_checkForNullableDereference(functionExpression) &&
         !_checkForUseOfVoidResult(functionExpression) &&
@@ -884,7 +892,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkTypeArguments(node);
     }
     _checkForImplicitDynamicInvoke(node);
-    _checkForNullableDereference(node.function);
+    _checkForNullableDereference(functionExpression);
     _checkForMissingRequiredParam(
         node.staticInvokeType, node.argumentList, node);
     super.visitFunctionExpressionInvocation(node);

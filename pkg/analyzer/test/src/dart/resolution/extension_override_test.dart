@@ -44,6 +44,82 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     extensionOverride = findNode.extensionOverride(overrideSearch);
   }
 
+  test_call_noPrefix_noTypeArguments() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  int call(String s) => 0;
+}
+void f(A a) {
+  E(a)('');
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+    validateCall();
+  }
+
+  @failingTest
+  test_call_noPrefix_typeArguments() async {
+    // The test is failing because we're not yet doing type inference.
+    await assertNoErrorsInCode('''
+class A {}
+extension E<T> on A {
+  int call(T s) => 0;
+}
+void f(A a) {
+  E<String>(a)('');
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E<T>', overrideSearch: 'E<S');
+    validateOverride(typeArguments: [stringType]);
+    validateCall();
+  }
+
+  test_call_prefix_noTypeArguments() async {
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E on A {
+  int call(String s) => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E(a)('');
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E(a)');
+    validateOverride();
+    validateCall();
+  }
+
+  @failingTest
+  test_call_prefix_typeArguments() async {
+    // The test is failing because we're not yet doing type inference.
+    newFile('/test/lib/lib.dart', content: '''
+class A {}
+extension E<T> on A {
+  int call(T s) => 0;
+}
+''');
+    await assertNoErrorsInCode('''
+import 'lib.dart' as p;
+void f(p.A a) {
+  p.E<String>(a)('');
+}
+''');
+    findDeclarationAndOverride(
+        declarationName: 'E',
+        declarationUri: 'package:test/lib.dart',
+        overrideSearch: 'E<S');
+    validateOverride(typeArguments: [stringType]);
+    validateCall();
+  }
+
   test_getter_noPrefix_noTypeArguments() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -414,10 +490,27 @@ void f(p.A a) {
     expect(resolvedElement, extension.getMethod('+'));
   }
 
+  void validateCall() {
+    FunctionExpressionInvocation invocation =
+        extensionOverride.parent as FunctionExpressionInvocation;
+    Element resolvedElement = invocation.staticElement;
+    expect(resolvedElement, extension.getMethod('call'));
+
+    NodeList<Expression> arguments = invocation.argumentList.arguments;
+    for (int i = 0; i < arguments.length; i++) {
+      expect(arguments[i].staticParameterElement, isNotNull);
+    }
+  }
+
   void validateInvocation() {
     MethodInvocation invocation = extensionOverride.parent as MethodInvocation;
     Element resolvedElement = invocation.methodName.staticElement;
     expect(resolvedElement, extension.getMethod('m'));
+
+    NodeList<Expression> arguments = invocation.argumentList.arguments;
+    for (int i = 0; i < arguments.length; i++) {
+      expect(arguments[i].staticParameterElement, isNotNull);
+    }
   }
 
   void validateOverride({List<DartType> typeArguments}) {

@@ -96,6 +96,7 @@ class MethodInvocationResolver {
 
     if (receiver is ExtensionOverride) {
       _resolveExtensionOverride(node, receiver, nameNode, name);
+      return;
     }
 
     ClassElement typeReference = getTypeReference(receiver);

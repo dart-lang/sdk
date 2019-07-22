@@ -11,7 +11,8 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
+//    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
+    defineReflectiveTests(ExtensionDeclaresAbstractMethodWithNNBDTest);
   });
 }
 
@@ -63,5 +64,39 @@ void f(B b) {
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 75,
           1),
     ]);
+  }
+}
+
+@reflectiveTest
+class ExtensionDeclaresAbstractMethodWithNNBDTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = new FeatureSet.forTesting(
+        sdkVersion: '2.3.0',
+        additionalFeatures: [Feature.extension_methods, Feature.non_nullable]);
+
+  test_override_onNonNullable() async {
+    await assertErrorsInCode(r'''
+extension E on String {
+  void m() {}
+}
+f() {
+  E(null).m();
+}
+''', [
+      error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE, 50,
+          4),
+    ]);
+  }
+
+  test_override_onNullable() async {
+    await assertNoErrorsInCode(r'''
+extension E on String? {
+  void m() {}
+}
+f() {
+  E(null).m();
+}
+''');
   }
 }

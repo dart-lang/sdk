@@ -392,8 +392,23 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     Expression function = node.function;
-    DartType staticInvokeType = _instantiateGenericMethod(
-        function.staticType, node.typeArguments, node);
+    DartType functionType;
+    if (function is ExtensionOverride) {
+      ExtensionElement element = function.extensionName.staticElement;
+      MethodElement member = element.getMethod('call');
+      if (member != null && member.isStatic) {
+        _resolver.errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+            node.argumentList);
+      }
+      node.staticElement = member;
+      functionType = member.type;
+    } else {
+      functionType = function.staticType;
+    }
+
+    DartType staticInvokeType =
+        _instantiateGenericMethod(functionType, node.typeArguments, node);
 
     node.staticInvokeType = staticInvokeType;
 
