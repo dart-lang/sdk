@@ -4067,6 +4067,11 @@ class StaticCallInstr : public TemplateDartCall<0> {
 
   virtual bool HasUnknownSideEffects() const { return true; }
 
+  // Initialize result type of this call instruction if target is a recognized
+  // method or has pragma annotation.
+  // Returns true on success, false if result type is still unknown.
+  bool InitResultType(Zone* zone);
+
   void SetResultType(Zone* zone, CompileType new_type) {
     result_type_ = new (zone) CompileType(new_type);
   }

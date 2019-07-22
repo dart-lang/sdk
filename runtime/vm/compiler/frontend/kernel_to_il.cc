@@ -470,49 +470,15 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
                     rebind_rule);
 }
 
-static intptr_t GetResultCidOfListFactory(Zone* zone,
-                                          const Function& function,
-                                          intptr_t argument_count) {
-  if (!function.IsFactory()) {
-    return kDynamicCid;
-  }
-
-  const Class& owner = Class::Handle(zone, function.Owner());
-  if ((owner.library() != Library::CoreLibrary()) &&
-      (owner.library() != Library::TypedDataLibrary())) {
-    return kDynamicCid;
-  }
-
-  if ((owner.Name() == Symbols::List().raw()) &&
-      (function.name() == Symbols::ListFactory().raw())) {
-    ASSERT(argument_count == 1 || argument_count == 2);
-    return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
-  }
-  return FactoryRecognizer::ResultCid(function);
-}
-
 void FlowGraphBuilder::SetResultTypeForStaticCall(
     StaticCallInstr* call,
     const Function& target,
     intptr_t argument_count,
     const InferredTypeMetadata* result_type) {
-  const intptr_t list_cid =
-      GetResultCidOfListFactory(Z, target, argument_count);
-  if (list_cid != kDynamicCid) {
+  if (call->InitResultType(Z)) {
     ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
-           (result_type->cid == list_cid));
-    call->SetResultType(Z, CompileType::FromCid(list_cid));
-    call->set_is_known_list_constructor(true);
+           (result_type->cid == call->result_cid()));
     return;
-  }
-  if (target.has_pragma()) {
-    intptr_t recognized_cid = MethodRecognizer::ResultCidFromPragma(target);
-    if (recognized_cid != kDynamicCid) {
-      ASSERT((result_type == NULL) || (result_type->cid == kDynamicCid) ||
-             (result_type->cid == recognized_cid));
-      call->SetResultType(Z, CompileType::FromCid(recognized_cid));
-      return;
-    }
   }
   if ((result_type != NULL) && !result_type->IsTrivial()) {
     call->SetResultType(Z, result_type->ToCompileType(Z));

@@ -355,4 +355,26 @@ intptr_t FactoryRecognizer::ResultCid(const Function& factory) {
   return kDynamicCid;
 }
 
+intptr_t FactoryRecognizer::GetResultCidOfListFactory(Zone* zone,
+                                                      const Function& function,
+                                                      intptr_t argument_count) {
+  if (!function.IsFactory()) {
+    return kDynamicCid;
+  }
+
+  const Class& owner = Class::Handle(zone, function.Owner());
+  if ((owner.library() != Library::CoreLibrary()) &&
+      (owner.library() != Library::TypedDataLibrary())) {
+    return kDynamicCid;
+  }
+
+  if ((owner.Name() == Symbols::List().raw()) &&
+      (function.name() == Symbols::ListFactory().raw())) {
+    ASSERT(argument_count == 1 || argument_count == 2);
+    return (argument_count == 1) ? kGrowableObjectArrayCid : kArrayCid;
+  }
+
+  return ResultCid(function);
+}
+
 }  // namespace dart

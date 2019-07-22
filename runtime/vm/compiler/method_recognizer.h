@@ -84,8 +84,16 @@ class MethodTokenRecognizer : public AllStatic {
 // Class that recognizes factories and returns corresponding result cid.
 class FactoryRecognizer : public AllStatic {
  public:
+  // Return result cid of 'factory' if it is recognized.
   // Return kDynamicCid if factory is not recognized.
   static intptr_t ResultCid(const Function& factory);
+
+  // Return result cid of 'function' called with 'argument_count' arguments,
+  // if function is a recognized list factory constructor.
+  // Return kDynamicCid if function is not recognized.
+  static intptr_t GetResultCidOfListFactory(Zone* zone,
+                                            const Function& function,
+                                            intptr_t argument_count);
 };
 
 }  // namespace dart

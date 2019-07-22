@@ -827,8 +827,7 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
 
-  // TODO(alexmarkov): add type info
-  // SetResultTypeForStaticCall(call, target, argument_count, result_type);
+  call->InitResultType(Z);
 
   code_ <<= call;
   B->Push(call);
