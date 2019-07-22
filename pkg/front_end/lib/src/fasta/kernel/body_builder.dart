@@ -3740,7 +3740,7 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
           buildProblem(message.messageObject, nameToken.charOffset,
               nameToken.lexeme.length));
     } else {
-      errorName = debugName(getNodeName(type), name);
+      errorName = debugName(type.fullNameForErrors, name);
     }
     errorName ??= name;
 
@@ -5693,15 +5693,13 @@ String debugName(String className, String name, [String prefix]) {
   return prefix == null ? result : "$prefix.result";
 }
 
+// TODO(johnniwinther): This is a bit ad hoc. Call sites should know what kind
+// of objects can be anticipated and handle these directly.
 String getNodeName(Object node) {
   if (node is Identifier) {
     return node.name;
   } else if (node is Declaration) {
     return node.fullNameForErrors;
-  } else if (node is ThisAccessGenerator) {
-    return node.isSuper ? "super" : "this";
-  } else if (node is Generator) {
-    return node.plainNameForRead;
   } else if (node is QualifiedName) {
     return flattenName(node, node.charOffset, null);
   } else {
