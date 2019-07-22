@@ -1561,8 +1561,11 @@ abstract class Stream<T> {
 
     void onData(T event) {
       timer.cancel();
-      controller.add(event);
       timer = zone.createTimer(timeLimit, timeout);
+      // It might close the stream and cancel timer, so create recuring Timer
+      // before calling into add();
+      // issue: https://github.com/dart-lang/sdk/issues/37565
+      controller.add(event);
     }
 
     void onError(error, StackTrace stackTrace) {
