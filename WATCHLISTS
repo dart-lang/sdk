@@ -27,7 +27,7 @@
     'dart2js': {
       'filepath': (
         '^pkg/compiler|'
-        '^tests/compiler'
+        '^tests/compiler/dart2js'
       )
     },
     'package_vm': {
