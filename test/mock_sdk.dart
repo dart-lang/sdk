@@ -306,8 +306,21 @@ class HtmlElement {}
   static _MockSdkLibrary LIB_DOM_HTML = _MockSdkLibrary(
       'dart:_dom_html', '/lib/html/dartium/dom_html_dartium.dart', '''
 library dart.dom.html;
+class AnchorElement extends HtmlElement {
+  String href;
+}
+class EmbedElement extends HtmlEment {
+  String src;
+}
+class IFrameElement extends HtmlEment {
+  String src;
+}
+class ImageElement extends HtmlEment {
+  String src;
+}
 class  ScriptElement {
   String src;
+  String type;
 }
 ''');
 

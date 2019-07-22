@@ -8,7 +8,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/util/dart_type_utilities.dart';
 
-const _desc = r'Avoid unsafe HTML APIs.';
+const _descPrefix = r'Avoid unsafe HTML APIs';
+const _desc = r'$_descPrefix.';
 
 const _details = r'''
 
@@ -40,6 +41,11 @@ class UnsafeHtml extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const hrefAttributeCode =
+      LintCode('unsafe_html', '$_descPrefix (assigning "href" attribute).');
+  static const srcAttributeCode =
+      LintCode('unsafe_html', '$_descPrefix (assigning "src" attribute).');
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -71,14 +77,14 @@ class _Visitor extends SimpleAstVisitor<void> {
               type, 'ImageElement', 'dart.dom.html') ||
           DartTypeUtilities.extendsClass(
               type, 'ScriptElement', 'dart.dom.html')) {
-        rule.reportLint(assignment);
+        rule.reportLint(assignment, errorCode: srcAttributeCode);
       }
     } else if (property.name == 'href') {
       DartType type = target.staticType;
       if (type.isDynamic ||
           DartTypeUtilities.extendsClass(
               type, 'AnchorElement', 'dart.dom.html')) {
-        rule.reportLint(assignment);
+        rule.reportLint(assignment, errorCode: hrefAttributeCode);
       }
     }
   }
