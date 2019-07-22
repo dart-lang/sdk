@@ -1245,7 +1245,7 @@ $stackTrace''');
         }
         expression = argument.identifier;
       } else {
-        expression = argument;
+        expression = argument as Expression;
       }
       DecoratedType parameterType;
       if (name != null) {
