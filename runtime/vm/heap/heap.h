@@ -40,8 +40,9 @@ class Heap {
   enum WeakSelector {
     kPeers = 0,
 #if !defined(HASH_IN_OBJECT_HEADER)
-    kHashes,
+    kIdentityHashes,
 #endif
+    kCanonicalHashes,
     kObjectIds,
     kNumWeakSelectors
   };
@@ -208,13 +209,20 @@ class Heap {
   // Associate an identity hashCode with an object. An non-existent hashCode
   // is equal to 0.
   void SetHash(RawObject* raw_obj, intptr_t hash) {
-    SetWeakEntry(raw_obj, kHashes, hash);
+    SetWeakEntry(raw_obj, kIdentityHashes, hash);
   }
   intptr_t GetHash(RawObject* raw_obj) const {
-    return GetWeakEntry(raw_obj, kHashes);
+    return GetWeakEntry(raw_obj, kIdentityHashes);
   }
 #endif
-  int64_t HashCount() const;
+
+  void SetCanonicalHash(RawObject* raw_obj, intptr_t hash) {
+    SetWeakEntry(raw_obj, kCanonicalHashes, hash);
+  }
+  intptr_t GetCanonicalHash(RawObject* raw_obj) const {
+    return GetWeakEntry(raw_obj, kCanonicalHashes);
+  }
+  void ResetCanonicalHashTable();
 
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
@@ -226,7 +234,6 @@ class Heap {
     ASSERT(Thread::Current()->IsMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
-  int64_t ObjectIdCount() const;
   void ResetObjectIdTable();
 
   // Used by the GC algorithms to propagate weak entries.

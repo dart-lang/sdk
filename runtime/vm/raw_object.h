@@ -358,6 +358,10 @@ class RawObject {
     return IsFreeListElement() || IsForwardingCorpse();
   }
 
+  intptr_t GetClassId() const {
+    uint32_t tags = ptr()->tags_;
+    return ClassIdTag::decode(tags);
+  }
   intptr_t GetClassIdMayBeSmi() const {
     return IsHeapObject() ? GetClassId() : static_cast<intptr_t>(kSmiCid);
   }
@@ -503,11 +507,6 @@ class RawObject {
                                    intptr_t class_id);
 
   intptr_t HeapSizeFromClass() const;
-
-  intptr_t GetClassId() const {
-    uint32_t tags = ptr()->tags_;
-    return ClassIdTag::decode(tags);
-  }
 
   void SetClassId(intptr_t new_cid) {
     uint32_t tags = ptr()->tags_;
@@ -660,12 +659,7 @@ class RawObject {
   friend class StoreBufferUpdateVisitor;  // RememberCard
   void RememberCard(RawObject* const* slot);
 
-  friend class Api;
-  friend class ApiMessageReader;  // GetClassId
-  friend class Serializer;        // GetClassId
   friend class Array;
-  friend class Become;  // GetClassId
-  friend class CompactorTask;  // GetClassId
   friend class ByteBuffer;
   friend class CidRewriteVisitor;
   friend class Closure;
@@ -681,25 +675,15 @@ class RawObject {
   friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer
   friend class Heap;
-  friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   template <bool>
   friend class MarkingVisitorBase;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
-  friend class RawCode;
-  friend class RawExternalTypedData;
-  friend class RawInstructions;
   friend class RawInstance;
-  friend class RawString;
-  friend class RawTypedData;
-  friend class RawTypedDataView;
   friend class Scavenger;
   friend class ScavengerVisitor;
-  friend class SizeExcludingClassVisitor;  // GetClassId
-  friend class InstanceAccumulator;        // GetClassId
-  friend class RetainingPathVisitor;       // GetClassId
   friend class ImageReader;                // tags_ check
   friend class ImageWriter;
   friend class AssemblyImageWriter;
@@ -708,29 +692,17 @@ class RawObject {
   friend class Deserializer;
   friend class SnapshotWriter;
   friend class String;
-  friend class Type;                    // GetClassId
-  friend class TypedDataBase;           // GetClassId
-  friend class TypedData;               // GetClassId
-  friend class TypedDataView;           // GetClassId
   friend class WeakProperty;            // StorePointer
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
-  friend class NativeEntry;             // GetClassId
-  friend class WritePointerVisitor;     // GetClassId
   friend class Interpreter;
   friend class InterpreterHelpers;
   friend class Simulator;
   friend class SimulatorHelpers;
   friend class ObjectLocator;
-  friend class InstanceMorpher;  // GetClassId
-  friend class VerifyCanonicalVisitor;
-  friend class ObjectGraph::Stack;  // GetClassId
-  friend class Precompiler;         // GetClassId
-  friend class ObjectOffsetTrait;   // GetClassId
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
-  friend class RawTransferableTypedData;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

@@ -4925,7 +4925,10 @@ void Class::RehashConstants(Zone* zone) const {
   while (it.MoveNext()) {
     constant ^= set.GetKey(it.Current());
     ASSERT(!constant.IsNull());
-    ASSERT(constant.IsCanonical());
+    // Shape changes lose the canonical bit because they may result/ in merging
+    // constants. E.g., [x1, y1], [x1, y2] -> [x1].
+    DEBUG_ASSERT(constant.IsCanonical() ||
+                 Isolate::Current()->HasAttemptedReload());
     InsertCanonicalConstant(zone, constant);
   }
   set.Release();
@@ -16490,10 +16493,15 @@ uint32_t Instance::CanonicalizeHash() const {
   if (IsNull()) {
     return 2011;
   }
-  NoSafepointScope no_safepoint;
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(raw());
+  if (hash != 0) {
+    return hash;
+  }
+  NoSafepointScope no_safepoint(thread);
   const intptr_t instance_size = SizeFromClass();
   ASSERT(instance_size != 0);
-  uint32_t hash = instance_size / kWordSize;
+  hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
@@ -16501,7 +16509,9 @@ uint32_t Instance::CanonicalizeHash() const {
     member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
     hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, String::kHashBits);
+  hash = FinalizeHash(hash, String::kHashBits);
+  thread->heap()->SetCanonicalHash(raw(), hash);
+  return hash;
 }
 
 #if defined(DEBUG)
@@ -20727,19 +20737,25 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
 }
 
 uint32_t Array::CanonicalizeHash() const {
-  NoSafepointScope no_safepoint;
   intptr_t len = Length();
   if (len == 0) {
     return 1;
   }
-  uint32_t hash = len;
+  Thread* thread = Thread::Current();
+  uint32_t hash = thread->heap()->GetCanonicalHash(raw());
+  if (hash != 0) {
+    return hash;
+  }
+  hash = len;
   Instance& member = Instance::Handle(GetTypeArguments());
   hash = CombineHashes(hash, member.CanonicalizeHash());
   for (intptr_t i = 0; i < len; i++) {
     member ^= At(i);
     hash = CombineHashes(hash, member.CanonicalizeHash());
   }
-  return FinalizeHash(hash, kHashBits);
+  hash = FinalizeHash(hash, kHashBits);
+  thread->heap()->SetCanonicalHash(raw(), hash);
+  return hash;
 }
 
 RawArray* Array::New(intptr_t len, Heap::Space space) {

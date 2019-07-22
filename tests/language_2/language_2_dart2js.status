@@ -24,6 +24,10 @@ call_method_is_check_test/06: RuntimeError
 call_method_must_not_be_field_test/03: RuntimeError # Issue 32155
 call_method_must_not_be_getter_test/03: RuntimeError # Issue 32155
 canonical_const2_test: RuntimeError, OK # non JS number semantics
+canonicalization_hashing_memoize_array_test: Timeout # Issue 37523
+canonicalization_hashing_memoize_instance_test: Timeout # Issue 37523
+canonicalization_hashing_shallow_collision_array_test: Timeout # Issue 37523
+canonicalization_hashing_shallow_collision_instance_test: Timeout # Issue 37523
 closure_type_arguments_test: Crash # Issue 34272
 compile_time_constant_static5_test/11: CompileTimeError
 compile_time_constant_static5_test/16: CompileTimeError

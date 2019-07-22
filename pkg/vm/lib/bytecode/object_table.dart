@@ -1190,6 +1190,7 @@ class _ConstObjectHandle extends ObjectHandle {
   ConstTag tag;
   dynamic value;
   ObjectHandle type;
+  int _hashCode = 0;
 
   _ConstObjectHandle._empty();
 
@@ -1356,27 +1357,31 @@ class _ConstObjectHandle extends ObjectHandle {
 
   @override
   int get hashCode {
+    if (_hashCode != 0) {
+      return _hashCode;
+    }
     switch (tag) {
       case ConstTag.kInt:
       case ConstTag.kDouble:
       case ConstTag.kBool:
       case ConstTag.kTearOff:
       case ConstTag.kSymbol:
-        return value.hashCode;
+        return _hashCode = value.hashCode;
       case ConstTag.kInstance:
         {
           final fieldValues = value as Map<ObjectHandle, ObjectHandle>;
-          return _combineHashes(type.hashCode, mapHashCode(fieldValues));
+          return _hashCode =
+              _combineHashes(type.hashCode, mapHashCode(fieldValues));
         }
         break;
       case ConstTag.kList:
         {
           final elems = value as List<ObjectHandle>;
-          return _combineHashes(type.hashCode, listHashCode(elems));
+          return _hashCode = _combineHashes(type.hashCode, listHashCode(elems));
         }
         break;
       case ConstTag.kTearOffInstantiation:
-        return _combineHashes(value.hashCode, type.hashCode);
+        return _hashCode = _combineHashes(value.hashCode, type.hashCode);
       default:
         throw 'Unexpected constant tag: $tag';
     }
@@ -1384,6 +1389,9 @@ class _ConstObjectHandle extends ObjectHandle {
 
   @override
   bool operator ==(other) {
+    if (identical(this, other)) {
+      return true;
+    }
     if (other is _ConstObjectHandle && this.tag == other.tag) {
       switch (tag) {
         case ConstTag.kInt:

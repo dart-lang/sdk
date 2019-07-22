@@ -829,16 +829,9 @@ int64_t Heap::PeerCount() const {
   return new_weak_tables_[kPeers]->count() + old_weak_tables_[kPeers]->count();
 }
 
-#if !defined(HASH_IN_OBJECT_HEADER)
-int64_t Heap::HashCount() const {
-  return new_weak_tables_[kHashes]->count() +
-         old_weak_tables_[kHashes]->count();
-}
-#endif
-
-int64_t Heap::ObjectIdCount() const {
-  return new_weak_tables_[kObjectIds]->count() +
-         old_weak_tables_[kObjectIds]->count();
+void Heap::ResetCanonicalHashTable() {
+  new_weak_tables_[kCanonicalHashes]->Reset();
+  old_weak_tables_[kCanonicalHashes]->Reset();
 }
 
 void Heap::ResetObjectIdTable() {

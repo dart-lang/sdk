@@ -215,8 +215,11 @@ void Isolate::ValidateClassTable() {
 #endif  // DEBUG
 
 void Isolate::RehashConstants() {
-  StackZone stack_zone(Thread::Current());
+  Thread* thread = Thread::Current();
+  StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+
+  thread->heap()->ResetCanonicalHashTable();
 
   Class& cls = Class::Handle(zone);
   intptr_t top = class_table()->NumCids();

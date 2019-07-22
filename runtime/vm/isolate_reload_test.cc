@@ -2939,6 +2939,39 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
+  const char* kScript =
+      "class A {\n"
+      "  final x;\n"
+      "  const A(this.x);\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  a = const A(1);\n"
+      "  hash1 = a.hashCode;\n"
+      "  return 'okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A {\n"
+      "  final x, y, z;\n"
+      "  const A(this.x, this.y, this.z);\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  hash2 = a.hashCode;\n"
+      "  return (hash1 == hash2).toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
   const char* kScript =
       "foo() {}\n"
