@@ -84,11 +84,11 @@ class Driver {
       return true;
     }
     if (options.excludeFixes.isNotEmpty) {
-      _unsupportedOption(excludeOption);
+      _unsupportedOption(excludeFixOption);
       return false;
     }
     if (options.includeFixes.isNotEmpty) {
-      _unsupportedOption(includeOption);
+      _unsupportedOption(includeFixOption);
       return false;
     }
     if (options.requiredFixes) {
@@ -189,14 +189,14 @@ Analysis Details:
 
     logger.stdout('''
 
-These fixes are automatically applied unless at least one --$includeOption option is specified
-(and --$requiredOption is not specified). They may be individually disabled using --$excludeOption.''');
+These fixes are automatically applied unless at least one --$includeFixOption option is specified
+(and --$requiredOption is not specified). They may be individually disabled using --$excludeFixOption.''');
 
     fixes.where((fix) => fix.isRequired).forEach(showFix);
 
     logger.stdout('''
 
-These fixes are NOT automatically applied, but may be enabled using --$includeOption:''');
+These fixes are NOT automatically applied, but may be enabled using --$includeFixOption:''');
 
     fixes.where((fix) => !fix.isRequired).toList()
       ..sort(compareFixes)

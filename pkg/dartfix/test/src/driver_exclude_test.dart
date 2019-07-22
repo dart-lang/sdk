@@ -24,7 +24,7 @@ main() {
     final testLogger = TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
-    var args = ['-xuse-mixin', exampleDir.path];
+    var args = ['--excludeFix', 'use-mixin', exampleDir.path];
     if (_debug) {
       args.add('-v');
     }

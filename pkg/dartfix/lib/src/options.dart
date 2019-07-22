@@ -10,8 +10,8 @@ import 'package:dartfix/src/context.dart';
 import 'package:path/path.dart' as path;
 
 const forceOption = 'force';
-const includeOption = 'fix';
-const excludeOption = 'exclude';
+const includeFixOption = 'fix';
+const excludeFixOption = 'excludeFix';
 const overwriteOption = 'overwrite';
 const requiredOption = 'required';
 
@@ -44,8 +44,8 @@ class Options {
 
   Options._fromArgs(this.context, ArgResults results)
       : force = results[forceOption] as bool,
-        includeFixes = (results[includeOption] as List ?? []).cast<String>(),
-        excludeFixes = (results[excludeOption] as List ?? []).cast<String>(),
+        includeFixes = (results[includeFixOption] as List ?? []).cast<String>(),
+        excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
@@ -55,9 +55,7 @@ class Options {
         useColor = results.wasParsed(_colorOption)
             ? results[_colorOption] as bool
             : null,
-        verbose = results[_verboseOption] as bool {
-    includeFixes.addAll((results['include'] as List ?? []).cast<String>());
-  }
+        verbose = results[_verboseOption] as bool;
 
   String makeAbsoluteAndNormalize(String target) {
     if (!path.isAbsolute(target)) {
@@ -69,13 +67,10 @@ class Options {
   static Options parse(List<String> args, Context context, Logger logger) {
     final parser = ArgParser(allowTrailingOptions: true)
       ..addSeparator('Choosing fixes to be applied:')
-      ..addMultiOption(includeOption,
+      ..addMultiOption(includeFixOption,
           help: 'Include a specific fix.', valueHelp: 'name-of-fix')
-      // 'include' is an alias for 'fix' (above)
-      ..addMultiOption('include',
-          help: 'Include a specific fix.', valueHelp: 'name-of-fix', hide: true)
-      ..addMultiOption(excludeOption,
-          abbr: 'x', help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
+      ..addMultiOption(excludeFixOption,
+          help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
       ..addFlag(requiredOption,
           abbr: 'r',
           help: 'Apply required fixes.',
@@ -203,7 +198,7 @@ Usage: $_binaryName [options...] <directory paths>
         ? '''
 
 Use --$_helpOption to display the fixes that can be specified using either
---$includeOption or --$excludeOption.'''
+--$includeFixOption or --$excludeFixOption.'''
         : '');
   }
 }

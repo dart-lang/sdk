@@ -73,7 +73,7 @@ main() {
   }
 
   test('exclude fix', () {
-    parse(['--exclude', 'c', '--exclude', 'd', 'foo'],
+    parse(['--excludeFix', 'c', '--excludeFix', 'd', 'foo'],
         excludeFixes: ['c', 'd'], targetSuffixes: ['foo']);
   });
 
@@ -90,7 +90,7 @@ main() {
   });
 
   test('include fix', () {
-    parse(['--include', 'a', '--include', 'b', 'foo'],
+    parse(['--fix', 'a', '--fix', 'b', 'foo'],
         includeFixes: ['a', 'b'], targetSuffixes: ['foo']);
   });
 

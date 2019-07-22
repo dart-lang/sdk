@@ -26,7 +26,7 @@ main() {
     final errText = testLogger.stderrBuffer.toString();
     final outText = testLogger.stdoutBuffer.toString();
     expect(errText, isEmpty);
-    expect(outText, contains('--$excludeOption'));
+    expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });
@@ -50,7 +50,7 @@ main() {
     print(errText);
     print(outText);
     expect(errText, isEmpty);
-    expect(outText, contains('--$excludeOption'));
+    expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
     expect(outText, contains('use-mixin'));
   });
