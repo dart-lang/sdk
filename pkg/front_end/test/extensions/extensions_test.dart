@@ -62,6 +62,7 @@ class Tags {
   static const String builderSupertype = 'builder-supertype';
   static const String builderInterfaces = 'builder-interfaces';
   static const String builderOnTypes = 'builder-onTypes';
+  static const String builderParameters = 'builder-params';
 
   static const String clsName = 'cls-name';
   static const String clsTypeParameters = 'cls-type-params';
@@ -70,6 +71,7 @@ class Tags {
 
   static const String memberName = 'member-name';
   static const String memberTypeParameters = 'member-type-params';
+  static const String memberParameters = 'member-params';
 }
 
 class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
@@ -134,15 +136,25 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member);
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
-    if (memberBuilder is ProcedureBuilder &&
-        memberBuilder.typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables) {
-        features.addElement(Tags.builderTypeParameters,
-            typeVariableBuilderToText(typeVariable));
+    if (memberBuilder is ProcedureBuilder) {
+      if (memberBuilder.formals != null) {
+        for (FormalParameterBuilder parameter in memberBuilder.formals) {
+          features.addElement(Tags.builderParameters, parameter.name);
+        }
+      }
+      if (memberBuilder.typeVariables != null) {
+        for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables) {
+          features.addElement(Tags.builderTypeParameters,
+              typeVariableBuilderToText(typeVariable));
+        }
       }
     }
     features[Tags.memberName] = getMemberName(member);
     if (member.function != null) {
+      for (VariableDeclaration parameter
+          in member.function.positionalParameters) {
+        features.addElement(Tags.memberParameters, parameter.name);
+      }
       for (TypeParameter typeParameter in member.function.typeParameters) {
         features.addElement(
             Tags.memberTypeParameters, typeParameterToText(typeParameter));

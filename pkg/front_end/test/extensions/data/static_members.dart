@@ -14,17 +14,21 @@ class A1 {}
 extension A2 on A1 {
   /*member: A2.method1:
      builder-name=method1,
-     member-name=method1
+     builder-params=[o],
+     member-name=method1,
+     member-params=[o]
   */
-  static void method1() {}
+  static A1 method1(A1 o) => o;
 
   /*member: A2.method2:
      builder-name=method2,
+     builder-params=[o],
      builder-type-params=[T],
      member-name=method2,
+     member-params=[o],
      member-type-params=[T]
   */
-  static void method2<T>() {}
+  static T method2<T>(T o) => o;
 }
 
 class B1<T> {}
@@ -41,17 +45,21 @@ class B1<T> {}
 extension B2<T> on B1<T> {
   /*member: B2.method1:
      builder-name=method1,
-     member-name=method1
+     builder-params=[o],
+     member-name=method1,
+     member-params=[o]
   */
-  static void method1() {}
+  static B1 method1(B1 o) => o;
 
   /*member: B2.method2:
      builder-name=method2,
+     builder-params=[o],
      builder-type-params=[S],
      member-name=method2,
+     member-params=[o],
      member-type-params=[S]
   */
-  static void method2<S>() {}
+  static S method2<S>(S o) => o;
 }
 
 main() {}
