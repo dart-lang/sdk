@@ -149,7 +149,7 @@ List extractKeys(victim) {
 /// *if* names are being preserved for other reasons (use of dart:mirrors, for
 /// example).
 String unmangleGlobalNameIfPreservedAnyways(String name) {
-  var names = JS_EMBEDDED_GLOBAL('=Object', MANGLED_GLOBAL_NAMES);
+  var names = JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES);
   return JsCache.fetch(names, name);
 }
 
