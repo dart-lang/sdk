@@ -161,7 +161,7 @@ communication of `Uint8List` data.
   [33327]: https://github.com/dart-lang/sdk/issues/33327
   [35804]: https://github.com/dart-lang/sdk/issues/35804
 
-* **Breaking change** [#36971](https://github.com/dart-lang/sdk/issues/36971): 
+* [#36971](https://github.com/dart-lang/sdk/issues/36971):
   The `HttpClientResponse` interface has been extended with the addition of a
   new `compressionState` getter, which specifies whether the body of a
   response was compressed when it was received and whether it has been
@@ -170,19 +170,18 @@ communication of `Uint8List` data.
   As part of this change, a corresponding new enum was added to `dart:io`:
   `HttpClientResponseCompressionState`.
 
-  For those implementing the `HttpClientResponse`
-  interface, this is a breaking change, as implementing classes will need to
-  implement the new getter.
+  This is a **breaking change** for those implementing the `HttpClientResponse`
+  interface as subclasses will need to implement the new getter.
 
 #### `dart:async`
 
-* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382): 
+* **Breaking change** [#36382](https://github.com/dart-lang/sdk/issues/36382):
   The `await for` allowed `null` as a stream due to a bug
   in `StreamIterator` class. This bug has now been fixed.
 
 #### `dart:core`
 
-* **Breaking change** [#36171](https://github.com/dart-lang/sdk/issues/36171): 
+* [#36171](https://github.com/dart-lang/sdk/issues/36171):
   The `RegExp` interface has been extended with two new
   constructor named parameters:
 
@@ -201,8 +200,9 @@ communication of `Uint8List` data.
   * `String namedGroup(String name)`, a method that retrieves the match for
     the given named capture group
 
-  This change only affects implementers of the `RegExp` interface; current
-  code using Dart regular expressions will not be affected.
+  This is a **breaking change** for implementers of the `RegExp` interface.
+  Subclasses will need to add the new properties and may have to update the
+  return types on overridden methods.
 
 ### Language
 
