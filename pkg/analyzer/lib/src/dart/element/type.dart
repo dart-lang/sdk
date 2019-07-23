@@ -1521,6 +1521,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreList {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "List" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreMap {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Map" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreNull {
     ClassElement element = this.element;
     if (element == null) {
@@ -1530,12 +1548,30 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  bool get isDartCoreSet {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Set" && element.library.isDartCore;
+  }
+
+  @override
   bool get isDartCoreString {
     ClassElement element = this.element;
     if (element == null) {
       return false;
     }
     return element.name == "String" && element.library.isDartCore;
+  }
+
+  @override
+  bool get isDartCoreSymbol {
+    ClassElement element = this.element;
+    if (element == null) {
+      return false;
+    }
+    return element.name == "Symbol" && element.library.isDartCore;
   }
 
   @override
@@ -2832,10 +2868,22 @@ abstract class TypeImpl implements DartType {
   bool get isDartCoreInt => false;
 
   @override
+  bool get isDartCoreList => false;
+
+  @override
+  bool get isDartCoreMap => false;
+
+  @override
   bool get isDartCoreNull => false;
 
   @override
+  bool get isDartCoreSet => false;
+
+  @override
   bool get isDartCoreString => false;
+
+  @override
+  bool get isDartCoreSymbol => false;
 
   @override
   bool get isDynamic => false;

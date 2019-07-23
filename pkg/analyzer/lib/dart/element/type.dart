@@ -67,13 +67,29 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreInt;
 
+  /// Returns `true` if this type represents the type 'List' defined in the
+  /// dart:core library.
+  bool get isDartCoreList;
+
+  /// Returns `true` if this type represents the type 'Map' defined in the
+  /// dart:core library.
+  bool get isDartCoreMap;
+
   /// Return `true` if this type represents the type 'Null' defined in the
   /// dart:core library.
   bool get isDartCoreNull;
 
+  /// Returns `true` if this type represents the type 'Set' defined in the
+  /// dart:core library.
+  bool get isDartCoreSet;
+
   /// Return `true` if this type represents the type 'String' defined in the
   /// dart:core library.
   bool get isDartCoreString;
+
+  /// Returns `true` if this type represents the type 'Symbol' defined in the
+  /// dart:core library.
+  bool get isDartCoreSymbol;
 
   /// Return `true` if this type represents the type 'dynamic'.
   bool get isDynamic;
