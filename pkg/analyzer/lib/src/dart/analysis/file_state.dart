@@ -244,7 +244,7 @@ class FileState {
    */
   bool get isExternalLibrary {
     return _fsState.externalSummaries != null &&
-        _fsState.externalSummaries.linkedMap.containsKey(uriStr);
+        _fsState.externalSummaries.hasLinkedLibrary(uriStr);
   }
 
   /**
@@ -253,8 +253,8 @@ class FileState {
    */
   bool get isPart {
     if (_fsState.externalSummaries != null &&
-        _fsState.externalSummaries.unlinkedMap.containsKey(uriStr)) {
-      return !_fsState.externalSummaries.linkedMap.containsKey(uriStr);
+        _fsState.externalSummaries.hasUnlinkedUnit(uriStr)) {
+      return _fsState.externalSummaries.isPartUnit(uriStr);
     }
     if (_unlinked2 != null) {
       return !_unlinked2.hasLibraryDirective && _unlinked2.hasPartOfDirective;

@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:meta/meta.dart';
 
 import '../compiler/shared_command.dart' show sdkLibraryVariables;
@@ -130,11 +131,13 @@ class CompilerAnalysisDriver {
     _extensionTypes ??= ExtensionTypeSet(
       resynthesizerBuilder.context.typeProvider,
       resynthesizerBuilder.resynthesizer,
+      resynthesizerBuilder.elementFactory,
     );
 
     return LinkedAnalysisDriver(
       analysisOptions,
       resynthesizerBuilder.resynthesizer,
+      resynthesizerBuilder.elementFactory,
       sourceFactory,
       resynthesizerBuilder.libraryUris,
       declaredVariables,
@@ -172,6 +175,7 @@ class CompilerAnalysisDriver {
 class LinkedAnalysisDriver {
   final AnalysisOptions analysisOptions;
   final SummaryResynthesizer resynthesizer;
+  final LinkedElementFactory elementFactory;
   final SourceFactory sourceFactory;
   final List<String> libraryUris;
   final DeclaredVariables declaredVariables;
@@ -186,6 +190,7 @@ class LinkedAnalysisDriver {
   LinkedAnalysisDriver(
       this.analysisOptions,
       this.resynthesizer,
+      this.elementFactory,
       this.sourceFactory,
       this.libraryUris,
       this.declaredVariables,
@@ -193,12 +198,22 @@ class LinkedAnalysisDriver {
       this._fsState,
       this._resourceProvider);
 
-  TypeProvider get typeProvider => resynthesizer.typeProvider;
+  TypeProvider get typeProvider {
+    if (resynthesizer != null) {
+      return resynthesizer.typeProvider;
+    } else {
+      return elementFactory.analysisContext.typeProvider;
+    }
+  }
 
   /// True if [uri] refers to a Dart library (i.e. a Dart source file exists
   /// with this uri, and it is not a part file).
   bool _isLibraryUri(String uri) {
-    return resynthesizer.hasLibrarySummary(uri);
+    if (resynthesizer != null) {
+      return resynthesizer.hasLibrarySummary(uri);
+    } else {
+      return elementFactory.isLibraryUri(uri);
+    }
   }
 
   /// Analyzes the library at [uri] and returns the results of analysis for all
@@ -208,16 +223,23 @@ class LinkedAnalysisDriver {
       throw ArgumentError('"$libraryUri" is not a library');
     }
 
+    AnalysisContext analysisContext;
+    if (resynthesizer != null) {
+      analysisContext = resynthesizer.context;
+    } else {
+      analysisContext = elementFactory.analysisContext;
+    }
+
     var libraryFile = _fsState.getFileForUri(Uri.parse(libraryUri));
     var analyzer = LibraryAnalyzer(
         analysisOptions as AnalysisOptionsImpl,
         declaredVariables,
-        resynthesizer.sourceFactory,
+        sourceFactory,
         (uri) => _isLibraryUri('$uri'),
-        resynthesizer.context,
+        analysisContext,
         resynthesizer,
-        null,
-        InheritanceManager2(resynthesizer.typeSystem),
+        elementFactory,
+        InheritanceManager2(analysisContext.typeSystem),
         libraryFile,
         _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,
@@ -233,6 +255,10 @@ class LinkedAnalysisDriver {
   }
 
   LibraryElement getLibrary(String uri) {
-    return resynthesizer.getLibraryElement(uri);
+    if (resynthesizer != null) {
+      return resynthesizer.getLibraryElement(uri);
+    } else {
+      return elementFactory.libraryOfUri(uri);
+    }
   }
 }

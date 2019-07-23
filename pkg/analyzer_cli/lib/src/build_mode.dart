@@ -195,8 +195,6 @@ class BuildMode with HasContextMixin {
   PackageBundleAssembler assembler;
   final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
-  final bool buildSummary2 = false;
-  final bool consumeSummary2 = false;
   final Map<String, ParsedUnitResult> inputParsedUnitResults = {};
   summary2.LinkedElementFactory elementFactory;
 
@@ -277,21 +275,21 @@ class BuildMode with HasContextMixin {
           });
 
           // Build and assemble linked libraries.
-          if (!options.buildSummaryOnlyUnlinked) {
-            // Prepare URIs of unlinked units that should be linked.
-            var unlinkedUris = new Set<String>();
-            for (var bundle in unlinkedBundles) {
-              unlinkedUris.addAll(bundle.unlinkedUnitUris);
-            }
-            for (var src in explicitSources) {
-              unlinkedUris.add('${src.uri}');
-            }
-            // Perform linking.
-            _computeLinkedLibraries(unlinkedUris);
-          }
-
-          if (buildSummary2) {
+          if (AnalysisDriver.useSummary2) {
             _computeLinkedLibraries2();
+          } else {
+            if (!options.buildSummaryOnlyUnlinked) {
+              // Prepare URIs of unlinked units that should be linked.
+              var unlinkedUris = new Set<String>();
+              for (var bundle in unlinkedBundles) {
+                unlinkedUris.addAll(bundle.unlinkedUnitUris);
+              }
+              for (var src in explicitSources) {
+                unlinkedUris.add('${src.uri}');
+              }
+              // Perform linking.
+              _computeLinkedLibraries(unlinkedUris);
+            }
           }
 
           // Write the whole package bundle.
@@ -339,9 +337,6 @@ class BuildMode with HasContextMixin {
    * add them to  the [assembler].
    */
   void _computeLinkedLibraries(Set<String> libraryUris) {
-    // Ensure that summary1 linking is done with summary1 rules.
-    AnalysisDriver.useSummary2 = false;
-
     logger.run('Link output summary', () {
       void trackDependency(String absoluteUri) {
         if (dependencyTracker != null) {
@@ -378,7 +373,6 @@ class BuildMode with HasContextMixin {
    * [inputParsedUnitResults] to produce linked libraries in [assembler].
    */
   void _computeLinkedLibraries2() {
-    AnalysisDriver.useSummary2 = consumeSummary2;
     logger.run('Link output summary2', () {
       var inputLibraries = <summary2.LinkInputLibrary>[];
 
@@ -520,9 +514,6 @@ class BuildMode with HasContextMixin {
     analysisOptions =
         createAnalysisOptionsForCommandLineOptions(options, rootPath);
 
-    // Ensure that FileState prepare summary2 information if necessary.
-    AnalysisDriver.useSummary2 = consumeSummary2;
-
     AnalysisDriverScheduler scheduler = new AnalysisDriverScheduler(logger);
     analysisDriver = new AnalysisDriver(
         scheduler,
@@ -538,7 +529,7 @@ class BuildMode with HasContextMixin {
     declaredVariables = new DeclaredVariables.fromMap(options.definedVariables);
     analysisDriver.declaredVariables = declaredVariables;
 
-    if (buildSummary2) {
+    if (AnalysisDriver.useSummary2) {
       _createLinkedElementFactory();
     }
 
@@ -609,10 +600,13 @@ class BuildMode with HasContextMixin {
       return;
     }
     var result = await analysisDriver.parseFile(source.fullName);
-    inputParsedUnitResults[result.path] = result;
-    UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(result.unit);
-    uriToUnit[absoluteUri] = unlinkedUnit;
-    assembler.addUnlinkedUnit(source, unlinkedUnit);
+    if (AnalysisDriver.useSummary2) {
+      inputParsedUnitResults[result.path] = result;
+    } else {
+      UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(result.unit);
+      uriToUnit[absoluteUri] = unlinkedUnit;
+      assembler.addUnlinkedUnit(source, unlinkedUnit);
+    }
   }
 
   /**
@@ -620,8 +614,6 @@ class BuildMode with HasContextMixin {
    * is sent to a new file at that path.
    */
   Future<void> _printErrors({String outputPath}) async {
-    AnalysisDriver.useSummary2 = consumeSummary2;
-
     await logger.runAsync('Compute and print analysis errors', () async {
       StringBuffer buffer = new StringBuffer();
       var severityProcessor = (AnalysisError error) =>

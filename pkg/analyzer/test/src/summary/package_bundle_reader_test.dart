@@ -187,6 +187,9 @@ class _PackageBundleMock implements PackageBundle {
   List<String> unlinkedUnitUris;
 
   @override
+  LinkedNodeBundle bundle2;
+
+  @override
   noSuchMethod(Invocation invocation) {
     throw new StateError('Unexpected invocation of ${invocation.memberName}');
   }
