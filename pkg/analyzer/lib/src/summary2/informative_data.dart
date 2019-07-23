@@ -146,6 +146,22 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.extensionDeclaration(
+        codeOffset: node.offset,
+        codeLength: node.length,
+        documentationComment_tokens: _nodeCommentTokens(node),
+        nameOffset: node.name.offset,
+      ),
+    );
+
+    node.typeParameters?.accept(this);
+    node.members.accept(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     setData(
       node,

@@ -23367,6 +23367,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23387,6 +23388,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23409,6 +23411,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23429,6 +23432,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23497,6 +23501,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -23526,6 +23531,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -23547,6 +23553,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23564,6 +23571,7 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -23658,6 +23666,17 @@ class UnlinkedInformativeDataBuilder extends Object
     int directiveKeywordOffset,
   })  : _kind = idl.LinkedNodeKind.exportDirective,
         _variantField_1 = directiveKeywordOffset;
+
+  UnlinkedInformativeDataBuilder.extensionDeclaration({
+    int codeLength,
+    int codeOffset,
+    int nameOffset,
+    List<String> documentationComment_tokens,
+  })  : _kind = idl.LinkedNodeKind.extensionDeclaration,
+        _variantField_2 = codeLength,
+        _variantField_3 = codeOffset,
+        _variantField_1 = nameOffset,
+        _variantField_4 = documentationComment_tokens;
 
   UnlinkedInformativeDataBuilder.fieldDeclaration({
     List<String> documentationComment_tokens,
@@ -23801,6 +23820,7 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.enumConstantDeclaration) {
     } else if (kind == idl.LinkedNodeKind.enumDeclaration) {
     } else if (kind == idl.LinkedNodeKind.exportDirective) {
+    } else if (kind == idl.LinkedNodeKind.extensionDeclaration) {
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
     } else if (kind == idl.LinkedNodeKind.fieldFormalParameter) {
     } else if (kind == idl.LinkedNodeKind.functionDeclaration) {
@@ -23905,6 +23925,19 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.exportDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.directiveKeywordOffset ?? 0);
+    } else if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.nameOffset ?? 0);
+      signature.addInt(this.codeLength ?? 0);
+      signature.addInt(this.codeOffset ?? 0);
+      if (this.documentationComment_tokens == null) {
+        signature.addInt(0);
+      } else {
+        signature.addInt(this.documentationComment_tokens.length);
+        for (var x in this.documentationComment_tokens) {
+          signature.addString(x);
+        }
+      }
     } else if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       if (this.documentationComment_tokens == null) {
@@ -24111,6 +24144,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -24133,6 +24167,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.defaultFormalParameter ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -24187,6 +24222,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldFormalParameter ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
@@ -24208,6 +24244,7 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.constructorDeclaration ||
         kind == idl.LinkedNodeKind.enumDeclaration ||
         kind == idl.LinkedNodeKind.enumConstantDeclaration ||
+        kind == idl.LinkedNodeKind.extensionDeclaration ||
         kind == idl.LinkedNodeKind.fieldDeclaration ||
         kind == idl.LinkedNodeKind.functionDeclaration ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
@@ -24288,6 +24325,13 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.exportDirective) {
       if (directiveKeywordOffset != 0)
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+    }
+    if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      if (codeLength != 0) _result["codeLength"] = codeLength;
+      if (codeOffset != 0) _result["codeOffset"] = codeOffset;
+      if (nameOffset != 0) _result["nameOffset"] = nameOffset;
+      if (documentationComment_tokens.isNotEmpty)
+        _result["documentationComment_tokens"] = documentationComment_tokens;
     }
     if (kind == idl.LinkedNodeKind.fieldDeclaration) {
       if (documentationComment_tokens.isNotEmpty)
@@ -24445,6 +24489,15 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.exportDirective) {
       return {
         "directiveKeywordOffset": directiveKeywordOffset,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.extensionDeclaration) {
+      return {
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
+        "nameOffset": nameOffset,
+        "documentationComment_tokens": documentationComment_tokens,
         "kind": kind,
       };
     }
