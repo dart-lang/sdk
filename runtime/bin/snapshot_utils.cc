@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <memory>
+
 #include "bin/snapshot_utils.h"
 
 #include "bin/dartutils.h"
@@ -240,7 +242,17 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // For testing AOT with the standalone embedder, we also support loading
   // from a dynamic library to simulate what happens on iOS.
+
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+  // On Linux and OSX, resolve the script path before passing into dlopen()
+  // since dlopen will not search the filesystem for paths like 'libtest.so'.
+  std::unique_ptr<char, decltype(std::free)*> absolute_path{
+      realpath(script_name, nullptr), std::free};
+  script_name = absolute_path.get();
+#endif
+
   snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
+
   if (snapshot != NULL) {
     return snapshot;
   }
