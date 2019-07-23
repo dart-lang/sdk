@@ -5020,6 +5020,19 @@ class ExtensionElementImpl extends ElementImpl
   String get displayName => name;
 
   @override
+  String get documentationComment {
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      var comment = context.getDocumentationComment(linkedNode);
+      return getCommentNodeRawText(comment);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.documentationComment?.text;
+    }
+    return super.documentationComment;
+  }
+
+  @override
   TypeParameterizedElementMixin get enclosingTypeParameterContext => null;
 
   @override

@@ -256,6 +256,9 @@ class LinkedUnitContext {
     } else if (node is EnumDeclaration) {
       LazyEnumDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;
+    } else if (node is ExtensionDeclaration) {
+      LazyExtensionDeclaration.readDocumentationComment(this, node);
+      return node.documentationComment;
     } else if (node is FunctionDeclaration) {
       LazyFunctionDeclaration.readDocumentationComment(this, node);
       return node.documentationComment;

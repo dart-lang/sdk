@@ -136,6 +136,12 @@ class ResynthesizeAst2Test extends ResynthesizeTestStrategyTwoPhase
     return elementFactory.libraryOfUri('${source.uri}');
   }
 
+  @failingTest
+  @override
+  test_extension_documented_tripleSlash() async {
+    await super.test_extension_documented_tripleSlash();
+  }
+
   void _addLibraryUnits(
     Source definingSource,
     CompilationUnit definingUnit,

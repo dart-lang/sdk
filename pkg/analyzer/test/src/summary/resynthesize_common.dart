@@ -208,6 +208,9 @@ mixin GetElementTestCases implements ResynthesizeTestHelpers {
 mixin ResynthesizeTestCases implements ResynthesizeTestHelpers {
   FeatureSet get disableNnbd => FeatureSet.forTesting(sdkVersion: '2.2.2');
 
+  FeatureSet get enableExtensionMethods =>
+      FeatureSet.forTesting(additionalFeatures: [Feature.extension_methods]);
+
   FeatureSet get enableNnbd =>
       FeatureSet.forTesting(additionalFeatures: [Feature.non_nullable]);
 
@@ -5851,6 +5854,22 @@ class C<T> {
 ''');
   }
 
+  test_extension_documented_tripleSlash() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+/// aaa
+/// bbbb
+/// cc
+extension E on int {}''');
+    checkElementText(library, r'''
+/// aaa
+/// bbbb
+/// cc
+extension E on int {
+}
+''');
+  }
+
   test_field_covariant() async {
     var library = await checkLibrary('''
 class C {
@@ -9580,21 +9599,6 @@ int y;
 ''');
   }
 
-  test_type_inference_fieldFormal_depends_onField() async {
-    var library = await checkLibrary('''
-class A<T> {
-  var f = 0;
-  A(this.f);
-}
-''');
-    checkElementText(library, r'''
-class A<T> {
-  int f;
-  A(int this.f);
-}
-''');
-  }
-
   test_type_inference_field_depends_onFieldFormal() async {
     var library = await checkLibrary('''
 class A<T> {
@@ -9614,6 +9618,21 @@ class A<T> {
 }
 class B {
   A<String> a;
+}
+''');
+  }
+
+  test_type_inference_fieldFormal_depends_onField() async {
+    var library = await checkLibrary('''
+class A<T> {
+  var f = 0;
+  A(this.f);
+}
+''');
+    checkElementText(library, r'''
+class A<T> {
+  int f;
+  A(int this.f);
 }
 ''');
   }
