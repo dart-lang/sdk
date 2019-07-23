@@ -138,8 +138,8 @@ import 'kernel_builder.dart'
         KernelTypeAliasBuilder,
         KernelInvalidTypeBuilder,
         KernelMetadataBuilder,
-        KernelMixinApplicationBuilder,
-        KernelNamedTypeBuilder,
+        MixinApplicationBuilder,
+        NamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
         KernelTypeVariableBuilder,
@@ -236,13 +236,12 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
   TypeBuilder addNamedType(
       Object name, List<TypeBuilder> arguments, int charOffset) {
-    return addType(new KernelNamedTypeBuilder(name, arguments), charOffset);
+    return addType(new NamedTypeBuilder(name, arguments), charOffset);
   }
 
   TypeBuilder addMixinApplication(
       TypeBuilder supertype, List<TypeBuilder> mixins, int charOffset) {
-    return addType(
-        new KernelMixinApplicationBuilder(supertype, mixins), charOffset);
+    return addType(new MixinApplicationBuilder(supertype, mixins), charOffset);
   }
 
   TypeBuilder addVoidType(int charOffset) {
@@ -498,7 +497,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
             "interfaces", "unnamed mixin application", charOffset, fileUri);
       }
     }
-    if (type is KernelMixinApplicationBuilder) {
+    if (type is MixinApplicationBuilder) {
       // Documentation below assumes the given mixin application is in one of
       // these forms:
       //
@@ -559,7 +558,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       /// Helper function that returns `true` if a type variable with a name
       /// from [typeVariableNames] is referenced in [type].
       bool usesTypeVariables(TypeBuilder type) {
-        if (type is KernelNamedTypeBuilder) {
+        if (type is NamedTypeBuilder) {
           if (type.declaration is KernelTypeVariableBuilder) {
             return typeVariableNames.contains(type.declaration.name);
           }
@@ -593,10 +592,10 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
         isNamedMixinApplication = name != null && mixin == type.mixins.last;
         bool isGeneric = false;
         if (!isNamedMixinApplication) {
-          if (supertype is KernelNamedTypeBuilder) {
+          if (supertype is NamedTypeBuilder) {
             isGeneric = isGeneric || usesTypeVariables(supertype);
           }
-          if (mixin is KernelNamedTypeBuilder) {
+          if (mixin is NamedTypeBuilder) {
             runningName += "&${extractName(mixin.name)}";
             isGeneric = isGeneric || usesTypeVariables(mixin);
           }
@@ -619,13 +618,12 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
                 copyTypeVariables(typeVariables, currentDeclaration);
 
             List<TypeBuilder> newTypes = <TypeBuilder>[];
-            if (supertype is KernelNamedTypeBuilder &&
-                supertype.arguments != null) {
+            if (supertype is NamedTypeBuilder && supertype.arguments != null) {
               for (int i = 0; i < supertype.arguments.length; ++i) {
                 supertype.arguments[i] = supertype.arguments[i].clone(newTypes);
               }
             }
-            if (mixin is KernelNamedTypeBuilder && mixin.arguments != null) {
+            if (mixin is NamedTypeBuilder && mixin.arguments != null) {
               for (int i = 0; i < mixin.arguments.length; ++i) {
                 mixin.arguments[i] = mixin.arguments[i].clone(newTypes);
               }
@@ -709,8 +707,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       int charEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(name).resolveTypes(typeVariables, this);
-    KernelNamedTypeBuilder supertype = applyMixins(mixinApplication,
-        startCharOffset, charOffset, charEndOffset, name, false,
+    NamedTypeBuilder supertype = applyMixins(mixinApplication, startCharOffset,
+        charOffset, charEndOffset, name, false,
         documentationComment: documentationComment,
         metadata: metadata,
         name: name,
@@ -912,7 +910,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     DeclarationBuilder<TypeBuilder> savedDeclaration = currentDeclaration;
     currentDeclaration = factoryDeclaration;
     for (TypeVariableBuilder tv in procedure.typeVariables) {
-      KernelNamedTypeBuilder t = procedure.returnType;
+      NamedTypeBuilder t = procedure.returnType;
       t.arguments.add(addNamedType(tv.name, null, procedure.charOffset));
     }
     currentDeclaration = savedDeclaration;

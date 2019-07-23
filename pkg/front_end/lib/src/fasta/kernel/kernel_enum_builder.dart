@@ -55,7 +55,7 @@ import 'kernel_builder.dart'
         KernelFieldBuilder,
         KernelFormalParameterBuilder,
         KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         KernelProcedureBuilder,
         TypeBuilder,
         LibraryBuilder,
@@ -70,13 +70,13 @@ class KernelEnumBuilder extends SourceClassBuilder
   @override
   final List<EnumConstantInfo> enumConstantInfos;
 
-  final KernelNamedTypeBuilder intType;
+  final NamedTypeBuilder intType;
 
-  final KernelNamedTypeBuilder stringType;
+  final NamedTypeBuilder stringType;
 
-  final KernelNamedTypeBuilder objectType;
+  final NamedTypeBuilder objectType;
 
-  final KernelNamedTypeBuilder listType;
+  final NamedTypeBuilder listType;
 
   KernelEnumBuilder.internal(
       List<MetadataBuilder> metadata,
@@ -109,16 +109,15 @@ class KernelEnumBuilder extends SourceClassBuilder
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    TypeBuilder intType = new KernelNamedTypeBuilder("int", null);
-    TypeBuilder stringType = new KernelNamedTypeBuilder("String", null);
-    KernelNamedTypeBuilder objectType =
-        new KernelNamedTypeBuilder("Object", null);
+    TypeBuilder intType = new NamedTypeBuilder("int", null);
+    TypeBuilder stringType = new NamedTypeBuilder("String", null);
+    NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
     Class cls = new Class(name: name);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
-    KernelNamedTypeBuilder selfType = new KernelNamedTypeBuilder(name, null);
+    NamedTypeBuilder selfType = new NamedTypeBuilder(name, null);
     TypeBuilder listType =
-        new KernelNamedTypeBuilder("List", <TypeBuilder>[selfType]);
+        new NamedTypeBuilder("List", <TypeBuilder>[selfType]);
 
     /// metadata class E {
     ///   final int index;

@@ -35,11 +35,6 @@ export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
 export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
 
-export 'kernel_mixin_application_builder.dart'
-    show KernelMixinApplicationBuilder;
-
-export 'kernel_named_type_builder.dart' show KernelNamedTypeBuilder;
-
 export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;
 
 export 'kernel_procedure_builder.dart'

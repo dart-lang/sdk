@@ -106,7 +106,7 @@ import 'kernel_builder.dart'
         KernelFunctionBuilder,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         KernelProcedureBuilder,
         KernelRedirectingFactoryBuilder,
         TypeBuilder,
@@ -249,7 +249,7 @@ abstract class KernelClassBuilder
     // Extract super class (if it exists).
     ClassBuilder superClass;
     TypeBuilder superClassType = supertype;
-    if (superClassType is KernelNamedTypeBuilder) {
+    if (superClassType is NamedTypeBuilder) {
       Declaration decl = superClassType.declaration;
       if (decl is ClassBuilder) {
         superClass = decl;
@@ -261,7 +261,7 @@ abstract class KernelClassBuilder
     Map<ClassBuilder, int> problemsOffsets;
     Set<ClassBuilder> implemented = new Set<ClassBuilder>();
     for (TypeBuilder type in interfaces) {
-      if (type is KernelNamedTypeBuilder) {
+      if (type is NamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
         Declaration decl = type.declaration;
         if (decl is ClassBuilder) {

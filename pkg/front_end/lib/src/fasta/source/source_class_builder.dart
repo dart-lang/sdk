@@ -32,7 +32,7 @@ import '../kernel/kernel_builder.dart'
         KernelFunctionBuilder,
         KernelInvalidTypeBuilder,
         KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -163,14 +163,13 @@ class SourceClassBuilder extends KernelClassBuilder
           fileUri);
       actualCls.supertype = null;
     }
-    if (actualCls.supertype == null && supertype is! KernelNamedTypeBuilder) {
+    if (actualCls.supertype == null && supertype is! NamedTypeBuilder) {
       supertype = null;
     }
     mixedInType = checkSupertype(mixedInType);
     actualCls.mixedInType =
         mixedInType?.buildMixedInType(library, charOffset, fileUri);
-    if (actualCls.mixedInType == null &&
-        mixedInType is! KernelNamedTypeBuilder) {
+    if (actualCls.mixedInType == null && mixedInType is! NamedTypeBuilder) {
       mixedInType = null;
     }
     actualCls.isMixinDeclaration = isMixinDeclaration;
@@ -259,7 +258,7 @@ class SourceClassBuilder extends KernelClassBuilder
       }
     }
     if (message != null) {
-      return new KernelNamedTypeBuilder(supertype.name, null)
+      return new NamedTypeBuilder(supertype.name, null)
         ..bind(new KernelInvalidTypeBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }

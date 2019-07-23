@@ -13,7 +13,7 @@ import 'kernel_builder.dart'
     show
         KernelClassBuilder,
         KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         LibraryBuilder,
         TypeBuilder,
         TypeVariableBuilder;
@@ -74,7 +74,7 @@ class KernelTypeVariableBuilder
   }
 
   TypeBuilder asTypeBuilder() {
-    return new KernelNamedTypeBuilder(name, null)..bind(this);
+    return new NamedTypeBuilder(name, null)..bind(this);
   }
 
   void finish(LibraryBuilder library, KernelClassBuilder object,

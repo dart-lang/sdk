@@ -1745,7 +1745,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         // This way of computing the superclass is slower than using the kernel
         // objects directly.
         Object supertype = builder.supertype;
-        if (supertype is NamedTypeBuilder<TypeBuilder, Object>) {
+        if (supertype is NamedTypeBuilder) {
           Object builder = supertype.declaration;
           if (builder is ClassBuilder<TypeBuilder, Object>) return builder;
         }
@@ -2793,7 +2793,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         library.addProblem(
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType<TypeBuilder>(
-            new KernelNamedTypeBuilder(name, null)
+            new NamedTypeBuilder(name, null)
               ..bind(new KernelInvalidTypeBuilder(
                   name,
                   message.withLocation(
@@ -2813,7 +2813,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // TODO(ahe): Arguments could be passed here.
       library.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
-      result = new KernelNamedTypeBuilder(name.name, null)
+      result = new NamedTypeBuilder(name.name, null)
         ..bind(new KernelInvalidTypeBuilder(
             name.name,
             name.message.withLocation(
@@ -2866,7 +2866,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
     push(new UnresolvedType<TypeBuilder>(
-        new KernelNamedTypeBuilder("void", null)
+        new NamedTypeBuilder("void", null)
           ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
               const VoidType(), library, offset)),
         offset,
@@ -5207,8 +5207,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   UnresolvedType<TypeBuilder> validateTypeUse(
       UnresolvedType<TypeBuilder> unresolved, bool nonInstanceAccessIsError) {
     TypeBuilder builder = unresolved.builder;
-    if (builder is KernelNamedTypeBuilder &&
-        builder.declaration.isTypeVariable) {
+    if (builder is NamedTypeBuilder && builder.declaration.isTypeVariable) {
       TypeParameter typeParameter = builder.declaration.target;
       LocatedMessage message;
       if (!isInstanceContext && typeParameter.parent is Class) {
@@ -5226,7 +5225,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
       addProblem(message.messageObject, message.charOffset, message.length);
       return new UnresolvedType<TypeBuilder>(
-          new KernelNamedTypeBuilder(typeParameter.name, null)
+          new NamedTypeBuilder(typeParameter.name, null)
             ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);

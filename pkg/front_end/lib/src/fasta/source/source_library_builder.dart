@@ -657,7 +657,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   /// Used to add implementation builder during the call to [build] above.
   /// Currently, only anonymous mixins are using implementation builders (see
-  /// [KernelMixinApplicationBuilder]
+  /// [MixinApplicationBuilder]
   /// (../kernel/kernel_mixin_application_builder.dart)).
   void addImplementationBuilder(
       String name, Declaration declaration, int charOffset) {

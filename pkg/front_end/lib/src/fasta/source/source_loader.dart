@@ -670,7 +670,7 @@ class SourceLoader extends Loader<Library> {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {
         var builder = mixedInType.declaration;
-        if (builder is ClassBuilder) {
+        if (builder is ClassBuilder<TypeBuilder, DartType>) {
           isClassBuilder = true;
           for (Declaration constructory in builder.constructors.local.values) {
             if (constructory.isConstructor && !constructory.isSynthetic) {

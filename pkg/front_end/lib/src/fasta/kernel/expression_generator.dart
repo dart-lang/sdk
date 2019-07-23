@@ -114,7 +114,7 @@ import 'kernel_builder.dart'
         Declaration,
         KernelClassBuilder,
         KernelInvalidTypeBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         TypeBuilder,
         UnresolvedType;
 
@@ -442,8 +442,7 @@ abstract class Generator {
 
   TypeBuilder buildTypeWithResolvedArguments(
       List<UnresolvedType<TypeBuilder>> arguments) {
-    KernelNamedTypeBuilder result =
-        new KernelNamedTypeBuilder(token.lexeme, null);
+    NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.library.addProblem(
         message, offsetForToken(token), lengthForToken(token), _uri);
@@ -1653,7 +1652,7 @@ class DeferredAccessGenerator extends Generator {
     TypeBuilder type =
         suffixGenerator.buildTypeWithResolvedArguments(arguments);
     LocatedMessage message;
-    if (type is KernelNamedTypeBuilder &&
+    if (type is NamedTypeBuilder &&
         type.declaration is KernelInvalidTypeBuilder) {
       KernelInvalidTypeBuilder declaration = type.declaration;
       message = declaration.message;
@@ -1667,7 +1666,7 @@ class DeferredAccessGenerator extends Generator {
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
     }
-    KernelNamedTypeBuilder result = new KernelNamedTypeBuilder(name, null);
+    NamedTypeBuilder result = new NamedTypeBuilder(name, null);
     _helper.library.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
     result.bind(result.buildInvalidType(message));
@@ -1748,7 +1747,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
             _helper.validateTypeUse(arguments[i], false).builder;
       }
     }
-    return new KernelNamedTypeBuilder(_plainNameForRead, argumentBuilders)
+    return new NamedTypeBuilder(_plainNameForRead, argumentBuilders)
       ..bind(declaration);
   }
 
@@ -2504,8 +2503,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
-    KernelNamedTypeBuilder result =
-        new KernelNamedTypeBuilder(_plainNameForRead, null);
+    NamedTypeBuilder result = new NamedTypeBuilder(_plainNameForRead, null);
     Message message =
         template.withArguments(prefixGenerator.token.lexeme, token.lexeme);
     _helper.library.addProblem(message, offsetForToken(prefixGenerator.token),
@@ -2600,8 +2598,7 @@ class ParserErrorGenerator extends Generator {
 
   TypeBuilder buildTypeWithResolvedArguments(
       List<UnresolvedType<TypeBuilder>> arguments) {
-    KernelNamedTypeBuilder result =
-        new KernelNamedTypeBuilder(token.lexeme, null);
+    NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
     _helper.library.addProblem(message, offsetForToken(token), noLength, _uri);
     result.bind(result.buildInvalidType(
         message.withLocation(_uri, offsetForToken(token), noLength)));

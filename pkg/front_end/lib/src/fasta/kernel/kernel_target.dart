@@ -92,7 +92,6 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
         KernelProcedureBuilder,
         LibraryBuilder,
         NamedTypeBuilder,
@@ -121,12 +120,11 @@ class KernelTarget extends TargetImplementation {
 
   Component component;
 
-  final TypeBuilder dynamicType = new KernelNamedTypeBuilder("dynamic", null);
+  final TypeBuilder dynamicType = new NamedTypeBuilder("dynamic", null);
 
-  final NamedTypeBuilder objectType =
-      new KernelNamedTypeBuilder("Object", null);
+  final NamedTypeBuilder objectType = new NamedTypeBuilder("Object", null);
 
-  final TypeBuilder bottomType = new KernelNamedTypeBuilder("Null", null);
+  final TypeBuilder bottomType = new NamedTypeBuilder("Null", null);
 
   bool get legacyMode => backendTarget.legacyMode;
 
@@ -232,7 +230,7 @@ class KernelTarget extends TargetImplementation {
     cls.implementedTypes.clear();
     cls.supertype = null;
     cls.mixedInType = null;
-    builder.supertype = new KernelNamedTypeBuilder("Object", null)
+    builder.supertype = new NamedTypeBuilder("Object", null)
       ..bind(objectClassBuilder);
     builder.interfaces = null;
     builder.mixedInType = null;
@@ -373,9 +371,8 @@ class KernelTarget extends TargetImplementation {
             Class cls = declaration.target;
             if (cls != objectClass) {
               cls.supertype ??= objectClass.asRawSupertype;
-              declaration.supertype ??=
-                  new KernelNamedTypeBuilder("Object", null)
-                    ..bind(objectClassBuilder);
+              declaration.supertype ??= new NamedTypeBuilder("Object", null)
+                ..bind(objectClassBuilder);
             }
             if (declaration.isMixinApplication) {
               cls.mixedInType = declaration.mixedInType.buildMixedInType(

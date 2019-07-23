@@ -31,7 +31,6 @@ import 'kernel_builder.dart'
         FunctionTypeBuilder,
         KernelClassBuilder,
         KernelFormalParameterBuilder,
-        KernelNamedTypeBuilder,
         KernelTypeAliasBuilder,
         KernelTypeVariableBuilder,
         NamedTypeBuilder,
@@ -60,7 +59,7 @@ export 'package:kernel/src/bounds_checks.dart' show Variance;
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
 int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
-  if (type is KernelNamedTypeBuilder) {
+  if (type is NamedTypeBuilder) {
     TypeDeclarationBuilder declaration = type.declaration;
     if (declaration == null || declaration is KernelTypeVariableBuilder) {
       if (type.name == variable.name) {
@@ -129,7 +128,7 @@ TypeBuilder substituteRange(
     Map<TypeVariableBuilder, TypeBuilder> upperSubstitution,
     Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
     {bool isCovariant = true}) {
-  if (type is KernelNamedTypeBuilder) {
+  if (type is NamedTypeBuilder) {
     if (type.declaration is KernelTypeVariableBuilder) {
       if (isCovariant) {
         return upperSubstitution[type.declaration] ?? type;
@@ -150,8 +149,7 @@ TypeBuilder substituteRange(
       }
     }
     if (arguments != null) {
-      return new KernelNamedTypeBuilder(type.name, arguments)
-        ..bind(type.declaration);
+      return new NamedTypeBuilder(type.name, arguments)..bind(type.declaration);
     }
     return type;
   }
@@ -344,11 +342,11 @@ class TypeVariablesGraph implements Graph<int> {
 /// Finds all type builders for [variable] in [type].
 ///
 /// Returns list of the found type builders.
-List<NamedTypeBuilder<TypeBuilder, Object>> findVariableUsesInType(
+List<NamedTypeBuilder> findVariableUsesInType(
   TypeVariableBuilder<TypeBuilder, Object> variable,
   TypeBuilder type,
 ) {
-  var uses = <NamedTypeBuilder<TypeBuilder, Object>>[];
+  var uses = <NamedTypeBuilder>[];
   if (type is NamedTypeBuilder) {
     if (type.declaration == variable) {
       uses.add(type);
@@ -393,9 +391,9 @@ List<Object> findInboundReferences(
     List<TypeVariableBuilder<TypeBuilder, Object>> variables) {
   var variablesAndDependencies = <Object>[];
   for (TypeVariableBuilder<TypeBuilder, Object> dependent in variables) {
-    var dependencies = <NamedTypeBuilder<TypeBuilder, Object>>[];
+    var dependencies = <NamedTypeBuilder>[];
     for (TypeVariableBuilder<TypeBuilder, Object> dependence in variables) {
-      List<NamedTypeBuilder<TypeBuilder, Object>> uses =
+      List<NamedTypeBuilder> uses =
           findVariableUsesInType(dependence, dependent.bound);
       if (uses.length != 0) {
         dependencies.addAll(uses);
@@ -417,7 +415,7 @@ List<Object> findInboundReferences(
 /// [findInboundReferences].
 List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
   var typesAndDependencies = <Object>[];
-  if (type is NamedTypeBuilder<TypeBuilder, Object>) {
+  if (type is NamedTypeBuilder) {
     if (type.arguments == null) {
       TypeDeclarationBuilder<TypeBuilder, Object> declaration =
           type.declaration;
@@ -522,17 +520,14 @@ List<Object> getInboundReferenceIssues(
       List<Object> rawTypesAndMutualDependencies =
           findRawTypesWithInboundReferences(variable.bound);
       for (int i = 0; i < rawTypesAndMutualDependencies.length; i += 2) {
-        NamedTypeBuilder<TypeBuilder, Object> type =
-            rawTypesAndMutualDependencies[i];
+        NamedTypeBuilder type = rawTypesAndMutualDependencies[i];
         List<Object> variablesAndDependencies =
             rawTypesAndMutualDependencies[i + 1];
         for (int j = 0; j < variablesAndDependencies.length; j += 2) {
           TypeVariableBuilder<TypeBuilder, Object> dependent =
               variablesAndDependencies[j];
-          List<NamedTypeBuilder<TypeBuilder, Object>> dependencies =
-              variablesAndDependencies[j + 1];
-          for (NamedTypeBuilder<TypeBuilder, Object> dependency
-              in dependencies) {
+          List<NamedTypeBuilder> dependencies = variablesAndDependencies[j + 1];
+          for (NamedTypeBuilder dependency in dependencies) {
             issues.add(variable);
             issues.add(templateBoundIssueViaRawTypeWithNonSimpleBounds
                 .withArguments(type.declaration.name));
@@ -573,7 +568,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
     [Set<TypeDeclarationBuilder<TypeBuilder, Object>> visited]) {
   visited ??= new Set<TypeDeclarationBuilder<TypeBuilder, Object>>.identity();
   var paths = <List<Object>>[];
-  if (start is NamedTypeBuilder<TypeBuilder, Object>) {
+  if (start is NamedTypeBuilder) {
     TypeDeclarationBuilder<TypeBuilder, Object> declaration = start.declaration;
     if (start.arguments == null) {
       if (start.declaration == end) {
@@ -722,7 +717,7 @@ List<Object> convertRawTypeCyclesIntoIssues(
     if (cycle.length == 2) {
       // Loop.
       TypeVariableBuilder<TypeBuilder, Object> variable = cycle[0];
-      NamedTypeBuilder<TypeBuilder, Object> type = cycle[1];
+      NamedTypeBuilder type = cycle[1];
       issues.add(variable);
       issues.add(templateBoundIssueViaLoopNonSimplicity
           .withArguments(type.declaration.name));
@@ -731,13 +726,13 @@ List<Object> convertRawTypeCyclesIntoIssues(
       var context = <LocatedMessage>[];
       for (int i = 0; i < cycle.length; i += 2) {
         TypeVariableBuilder<TypeBuilder, Object> variable = cycle[i];
-        NamedTypeBuilder<TypeBuilder, Object> type = cycle[i + 1];
+        NamedTypeBuilder type = cycle[i + 1];
         context.add(templateNonSimpleBoundViaReference
             .withArguments(type.declaration.name)
             .withLocation(
                 variable.fileUri, variable.charOffset, variable.name.length));
       }
-      NamedTypeBuilder<TypeBuilder, Object> firstEncounteredType = cycle[1];
+      NamedTypeBuilder firstEncounteredType = cycle[1];
 
       issues.add(declaration);
       issues.add(templateBoundIssueViaCycleNonSimplicity.withArguments(
@@ -796,7 +791,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
           "${declaration.fileUri}:${declaration.name}";
       String lexMinPathAndName = null;
       for (int i = 1; i < cycle.length; i += 2) {
-        NamedTypeBuilder<TypeBuilder, Object> type = cycle[i];
+        NamedTypeBuilder type = cycle[i];
         String pathAndName =
             "${type.declaration.fileUri}:${type.declaration.name}";
         if (lexMinPathAndName == null ||
@@ -849,8 +844,7 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
         findGenericFunctionTypes(formal.type, result: result);
       }
     }
-  } else if (type is NamedTypeBuilder<TypeBuilder, Object> &&
-      type.arguments != null) {
+  } else if (type is NamedTypeBuilder && type.arguments != null) {
     for (TypeBuilder argument in type.arguments) {
       findGenericFunctionTypes(argument, result: result);
     }

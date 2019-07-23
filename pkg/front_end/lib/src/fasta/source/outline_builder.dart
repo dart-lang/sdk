@@ -42,8 +42,8 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/kernel_builder.dart'
     show
         KernelMetadataBuilder,
-        KernelMixinApplicationBuilder,
-        KernelNamedTypeBuilder,
+        MixinApplicationBuilder,
+        NamedTypeBuilder,
         TypeBuilder;
 
 import '../modifier.dart'
@@ -491,7 +491,7 @@ class OutlineBuilder extends StackListener {
   void handleClassOrMixinImplements(
       Token implementsKeyword, int interfacesCount) {
     debugEvent("ClassOrMixinImplements");
-    push(const FixedNullableList<KernelNamedTypeBuilder>()
+    push(const FixedNullableList<NamedTypeBuilder>()
             .pop(stack, interfacesCount) ??
         NullValue.TypeBuilderList);
   }
@@ -520,8 +520,7 @@ class OutlineBuilder extends StackListener {
   @override
   void handleMixinOn(Token onKeyword, int typeCount) {
     debugEvent("handleMixinOn");
-    push(const FixedNullableList<KernelNamedTypeBuilder>()
-            .pop(stack, typeCount) ??
+    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, typeCount) ??
         new ParserRecovery(offsetForToken(onKeyword)));
   }
 
@@ -590,7 +589,7 @@ class OutlineBuilder extends StackListener {
       if (supertypeConstraints.length == 1) {
         supertype = supertypeConstraints.first;
       } else {
-        supertype = new KernelMixinApplicationBuilder(
+        supertype = new MixinApplicationBuilder(
             supertypeConstraints.first, supertypeConstraints.skip(1).toList());
       }
     }
@@ -1050,7 +1049,7 @@ class OutlineBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(const FixedNullableList<KernelNamedTypeBuilder>().pop(stack, count) ??
+    push(const FixedNullableList<NamedTypeBuilder>().pop(stack, count) ??
         new ParserRecovery(-1));
   }
 

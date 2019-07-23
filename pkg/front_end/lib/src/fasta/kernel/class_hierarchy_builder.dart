@@ -81,7 +81,7 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         KernelProcedureBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -247,8 +247,7 @@ class ClassHierarchyBuilder {
   TypeBuilder asSupertypeOf(Class cls, Class supertype) {
     ClassHierarchyNode clsNode = getNodeFromKernelClass(cls);
     if (cls == supertype) {
-      return new KernelNamedTypeBuilder(clsNode.cls.name, null)
-        ..bind(clsNode.cls);
+      return new NamedTypeBuilder(clsNode.cls.name, null)..bind(clsNode.cls);
     }
     ClassHierarchyNode supertypeNode = getNodeFromKernelClass(supertype);
     List<TypeBuilder> supertypes = clsNode.superclasses;
@@ -283,7 +282,7 @@ class ClassHierarchyBuilder {
                 superclass.typeParameters.length, nullKernelClass.rawType));
       }
     }
-    KernelNamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
+    NamedTypeBuilder supertype = asSupertypeOf(kernelClass, superclass);
     if (supertype == null) return null;
     if (supertype.arguments == null && superclass.typeParameters.isEmpty) {
       return superclass.rawType;
@@ -1325,7 +1324,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   TypeBuilder recordSupertype(TypeBuilder supertype) {
-    if (supertype is KernelNamedTypeBuilder) {
+    if (supertype is NamedTypeBuilder) {
       debug?.log(
           "In ${this.cls.fullNameForErrors} recordSupertype(${supertype.fullNameForErrors})");
       Declaration declaration = supertype.declaration;
@@ -1360,7 +1359,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   List<TypeBuilder> substSupertypes(
-      KernelNamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
+      NamedTypeBuilder supertype, List<TypeBuilder> supertypes) {
     Declaration declaration = supertype.declaration;
     if (declaration is! KernelClassBuilder) return supertypes;
     KernelClassBuilder cls = declaration;
@@ -1639,7 +1638,7 @@ class ClassHierarchyNodeBuilder {
       inferredArguments[i] =
           hierarchy.loader.computeTypeBuilder(typeArguments[i]);
     }
-    KernelNamedTypeBuilder mixedInType = cls.mixedInType;
+    NamedTypeBuilder mixedInType = cls.mixedInType;
     mixedInType.arguments = inferredArguments;
   }
 

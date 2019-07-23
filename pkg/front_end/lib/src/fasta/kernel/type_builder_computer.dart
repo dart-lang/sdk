@@ -27,7 +27,7 @@ import '../kernel/kernel_builder.dart'
         FunctionTypeBuilder,
         KernelClassBuilder,
         KernelFormalParameterBuilder,
-        KernelNamedTypeBuilder,
+        NamedTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         TypeBuilder,
@@ -51,13 +51,13 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   TypeBuilder visitDynamicType(DynamicType node) {
-    return new KernelNamedTypeBuilder("dynamic", null)
+    return new NamedTypeBuilder("dynamic", null)
       ..bind(new DynamicTypeBuilder<TypeBuilder, DartType>(
           const DynamicType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitVoidType(VoidType node) {
-    return new KernelNamedTypeBuilder("void", null)
+    return new NamedTypeBuilder("void", null)
       ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
           const VoidType(), loader.coreLibrary, -1));
   }
@@ -77,7 +77,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
         arguments[i] = kernelArguments[i].accept(this);
       }
     }
-    return new KernelNamedTypeBuilder(cls.name, arguments)..bind(cls);
+    return new NamedTypeBuilder(cls.name, arguments)..bind(cls);
   }
 
   @override
@@ -119,7 +119,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     Library kernelLibrary = kernelClass.enclosingLibrary;
     LibraryBuilder<TypeBuilder, Library> library =
         loader.builders[kernelLibrary.importUri];
-    return new KernelNamedTypeBuilder(parameter.name, null)
+    return new NamedTypeBuilder(parameter.name, null)
       ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
   }
 
