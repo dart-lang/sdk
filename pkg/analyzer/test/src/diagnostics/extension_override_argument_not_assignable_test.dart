@@ -11,7 +11,7 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-//    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
+    defineReflectiveTests(ExtensionDeclaresAbstractMethodTest);
     defineReflectiveTests(ExtensionDeclaresAbstractMethodWithNNBDTest);
   });
 }
