@@ -30,39 +30,44 @@ String getParameterDocumentation(ParameterElement parameter) {
 }
 
 class PropertyDescription {
-  final PropertyDescription _parent;
+  static int _nextPropertyId = 0;
+
+  final PropertyDescription parent;
 
   /// The resolved unit, where the property value is.
-  final ResolvedUnitResult _resolvedUnit;
+  final ResolvedUnitResult resolvedUnit;
+
+  /// The instance of [Flutter] support for the [resolvedUnit].
+  final Flutter flutter;
 
   /// If the object that has this property is not materialized yet, so the
-  /// [_instanceCreation] is `null`, the description of the object to
+  /// [instanceCreation] is `null`, the description of the object to
   /// materialize.
-  final ClassDescription _classDescription;
+  final ClassDescription classDescription;
 
   /// The instance creation of the object that has this property. Or `null`
-  /// if the object is not materialized yet, in this case [_classDescription]
+  /// if the object is not materialized yet, in this case [classDescription]
   /// is set.
-  final InstanceCreationExpression _instanceCreation;
+  final InstanceCreationExpression instanceCreation;
 
   /// Information about the `Container` property, which is not based on an
-  /// actual [_instanceCreation] of the `Container` widget, i.e. is not
+  /// actual [instanceCreation] of the `Container` widget, i.e. is not
   /// materialized.
   final VirtualContainerProperty virtualContainer;
 
   /// If the property is set, the full argument expression, might be a
   /// [NamedExpression].
-  final Expression _argumentExpression;
+  final Expression argumentExpression;
 
   /// If the property is set, the value part of the argument expression,
-  /// the same as [_argumentExpression] if a positional argument, or the
+  /// the same as [argumentExpression] if a positional argument, or the
   /// expression part of the [NamedExpression].
-  final Expression _valueExpression;
+  final Expression valueExpression;
 
   /// The parameter element in the object constructor that is actually
-  /// invoked by [_instanceCreation], or will be invoked when
-  /// [_classDescription] is materialized.
-  final ParameterElement _parameterElement;
+  /// invoked by [instanceCreation], or will be invoked when
+  /// [classDescription] is materialized.
+  final ParameterElement parameterElement;
 
   /// Optional nested properties.
   final List<PropertyDescription> children = [];
@@ -73,54 +78,46 @@ class PropertyDescription {
   /// Otherwise `null`.
   _EdgeInsetsProperty _edgeInsetsProperty;
 
-  PropertyDescription(
-    this._parent,
-    this._resolvedUnit,
-    this._classDescription,
-    this._instanceCreation,
-    this._argumentExpression,
-    this._valueExpression,
-    this._parameterElement,
-    this.protocolProperty, {
+  PropertyDescription({
+    this.parent,
+    this.resolvedUnit,
+    this.flutter,
+    this.classDescription,
+    this.instanceCreation,
+    this.argumentExpression,
+    this.valueExpression,
+    this.parameterElement,
+    this.protocolProperty,
     this.virtualContainer,
   });
 
   String get name => protocolProperty.name;
 
   /// This property has type `EdgeInsets`, add its nested properties.
-  int addEdgeInsetsNestedProperties(
-    int nextPropertyId,
-    Flutter flutter,
-    ClassElement classEdgeInsets,
-  ) {
-    _edgeInsetsProperty = _EdgeInsetsProperty(
-      flutter,
-      classEdgeInsets,
-      this,
-      nextPropertyId,
-    );
-    return _edgeInsetsProperty.addNested();
+  void addEdgeInsetsNestedProperties(ClassElement classEdgeInsets) {
+    _edgeInsetsProperty = _EdgeInsetsProperty(classEdgeInsets, this);
+    _edgeInsetsProperty.addNested();
   }
 
   Future<protocol.SourceChange> changeValue(
       protocol.FlutterWidgetPropertyValue value) async {
-    if (_parent?._edgeInsetsProperty != null) {
-      return _parent._edgeInsetsProperty.changeValue(this, value);
+    if (parent?._edgeInsetsProperty != null) {
+      return parent._edgeInsetsProperty.changeValue(this, value);
     }
 
-    var changeBuilder = DartChangeBuilder(_resolvedUnit.session);
+    var changeBuilder = DartChangeBuilder(resolvedUnit.session);
 
     ClassElement enumClassElement;
     var enumValue = value.enumValue;
     if (enumValue != null) {
-      var helper = AnalysisSessionHelper(_resolvedUnit.session);
+      var helper = AnalysisSessionHelper(resolvedUnit.session);
       enumClassElement = await helper.getClass(
         enumValue.libraryUri,
         enumValue.className,
       );
     }
 
-    await changeBuilder.addFileEdit(_resolvedUnit.path, (builder) {
+    await changeBuilder.addFileEdit(resolvedUnit.path, (builder) {
       _changeCode(builder, (builder) {
         if (enumClassElement != null) {
           builder.writeReference(enumClassElement);
@@ -138,21 +135,21 @@ class PropertyDescription {
   }
 
   Future<protocol.SourceChange> removeValue() async {
-    var changeBuilder = DartChangeBuilder(_resolvedUnit.session);
+    var changeBuilder = DartChangeBuilder(resolvedUnit.session);
 
-    if (_argumentExpression != null) {
+    if (argumentExpression != null) {
       int endOffset;
-      var argumentList = _instanceCreation.argumentList;
+      var argumentList = instanceCreation.argumentList;
       var arguments = argumentList.arguments;
-      var argumentIndex = arguments.indexOf(_argumentExpression);
+      var argumentIndex = arguments.indexOf(argumentExpression);
       if (argumentIndex < arguments.length - 1) {
         endOffset = arguments[argumentIndex + 1].offset;
       } else {
         endOffset = argumentList.rightParenthesis.offset;
       }
 
-      var beginOffset = _argumentExpression.offset;
-      await changeBuilder.addFileEdit(_resolvedUnit.path, (builder) {
+      var beginOffset = argumentExpression.offset;
+      await changeBuilder.addFileEdit(resolvedUnit.path, (builder) {
         builder.addDeletion(
           SourceRange(beginOffset, endOffset - beginOffset),
         );
@@ -163,7 +160,7 @@ class PropertyDescription {
   }
 
   void replaceChild(String name, PropertyDescription newChild) {
-    assert(newChild._parent == this);
+    assert(newChild.parent == this);
     for (var i = 0; i < children.length; i++) {
       if (children[i].name == name) {
         children[i] = newChild;
@@ -176,12 +173,12 @@ class PropertyDescription {
     DartFileEditBuilder builder,
     void buildCode(DartEditBuilder builder),
   ) {
-    if (_valueExpression != null) {
-      builder.addReplacement(range.node(_valueExpression), buildCode);
+    if (valueExpression != null) {
+      builder.addReplacement(range.node(valueExpression), buildCode);
     } else {
-      var parameterName = _parameterElement.name;
-      if (_instanceCreation != null) {
-        var argumentList = _instanceCreation.argumentList;
+      var parameterName = parameterElement.name;
+      if (instanceCreation != null) {
+        var argumentList = instanceCreation.argumentList;
 
         var insertOffset = 0;
         for (var argument in argumentList.arguments) {
@@ -219,12 +216,11 @@ class PropertyDescription {
           builder.write(', ');
         });
       } else {
-        if (_parent.virtualContainer != null) {
-          _parent._changeCodeVirtualContainer(
-              builder, parameterName, buildCode);
+        if (parent.virtualContainer != null) {
+          parent._changeCodeVirtualContainer(builder, parameterName, buildCode);
         } else {
-          _parent._changeCode(builder, (builder) {
-            builder.writeReference(_classDescription.element);
+          parent._changeCode(builder, (builder) {
+            builder.writeReference(classDescription.element);
             // TODO(scheglov) constructor name
             builder.write('(');
             builder.write(parameterName);
@@ -311,10 +307,10 @@ class PropertyDescription {
   }
 
   FunctionBody _enclosingFunctionBody() {
-    if (_parent != null) {
-      return _parent._enclosingFunctionBody();
+    if (parent != null) {
+      return parent._enclosingFunctionBody();
     }
-    var anchorExpr = virtualContainer?.widgetCreation ?? _instanceCreation;
+    var anchorExpr = virtualContainer?.widgetCreation ?? instanceCreation;
     return anchorExpr.thisOrAncestorOfType<FunctionBody>();
   }
 
@@ -350,6 +346,8 @@ class PropertyDescription {
 
     throw StateError('Not a primitive value: $value');
   }
+
+  static int nextId() => _nextPropertyId++;
 }
 
 /// Every widget has the `Container` property, either based of an actual
@@ -390,13 +388,10 @@ class VirtualContainerProperty {
 ///
 /// We try to generate nice looking code for `EdgeInsets` instances.
 class _EdgeInsetsProperty {
-  final Flutter flutter;
   final ClassElement classEdgeInsets;
 
   /// The property that has type `EdgeInsets`.
   final PropertyDescription property;
-
-  int nextPropertyId;
 
   /// The constructor `EdgeInsets.only`.
   ConstructorElement onlyConstructor;
@@ -411,19 +406,16 @@ class _EdgeInsetsProperty {
   PropertyDescription rightProperty;
   PropertyDescription bottomProperty;
 
-  _EdgeInsetsProperty(
-    this.flutter,
-    this.classEdgeInsets,
-    this.property,
-    this.nextPropertyId,
-  );
+  _EdgeInsetsProperty(this.classEdgeInsets, this.property);
 
-  int addNested() {
+  Flutter get flutter => property.flutter;
+
+  void addNested() {
     Expression leftExpression;
     Expression topExpression;
     Expression rightExpression;
     Expression bottomExpression;
-    var propertyExpression = property._valueExpression;
+    var propertyExpression = property.valueExpression;
     if (propertyExpression is InstanceCreationExpression) {
       var constructor = propertyExpression.staticElement;
       if (constructor?.enclosingElement == classEdgeInsets) {
@@ -486,8 +478,6 @@ class _EdgeInsetsProperty {
       expression: bottomExpression,
       value: bottomValue,
     );
-
-    return nextPropertyId;
   }
 
   /// The value of the [nested] property is changed, make changes to the
@@ -521,9 +511,9 @@ class _EdgeInsetsProperty {
       return property.removeValue();
     }
 
-    var changeBuilder = DartChangeBuilder(property._resolvedUnit.session);
+    var changeBuilder = DartChangeBuilder(property.resolvedUnit.session);
 
-    await changeBuilder.addFileEdit(property._resolvedUnit.path, (builder) {
+    await changeBuilder.addFileEdit(property.resolvedUnit.path, (builder) {
       property._changeCode(builder, (builder) {
         if (leftCode == rightCode && topCode == bottomCode) {
           builder.writeReference(classEdgeInsets);
@@ -600,15 +590,12 @@ class _EdgeInsetsProperty {
     );
     var parameterDocumentation = getParameterDocumentation(parameter);
     var nested = PropertyDescription(
-      property,
-      property._resolvedUnit,
-      null,
-      null,
-      null,
-      expression,
-      parameter,
-      protocol.FlutterWidgetProperty(
-        nextPropertyId++,
+      parent: property,
+      resolvedUnit: property.resolvedUnit,
+      valueExpression: expression,
+      parameterElement: parameter,
+      protocolProperty: protocol.FlutterWidgetProperty(
+        PropertyDescription.nextId(),
         true,
         true,
         name,
@@ -626,7 +613,7 @@ class _EdgeInsetsProperty {
 
   String _expressionCode(Expression expression) {
     if (expression != null) {
-      var content = property._resolvedUnit.content;
+      var content = property.resolvedUnit.content;
       return content.substring(expression.offset, expression.end);
     }
     return null;

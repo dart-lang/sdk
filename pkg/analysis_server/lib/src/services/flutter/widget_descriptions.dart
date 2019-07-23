@@ -105,8 +105,6 @@ class _WidgetDescription {
 }
 
 class _WidgetDescriptionComputer {
-  static int _nextPropertyId = 0;
-
   final ClassDescriptionRegistry classRegistry;
 
   /// The set of classes for which we are currently adding properties,
@@ -179,16 +177,15 @@ class _WidgetDescriptionComputer {
 
     PropertyDescription containerProperty;
     if (flutter.isExactlyContainerCreation(parentCreation)) {
-      var id = _nextPropertyId++;
       containerProperty = PropertyDescription(
-        null,
-        resolvedUnit,
-        null,
-        parentCreation,
-        null,
-        null,
-        null,
-        protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+        resolvedUnit: resolvedUnit,
+        instanceCreation: parentCreation,
+        protocolProperty: protocol.FlutterWidgetProperty(
+          PropertyDescription.nextId(),
+          true,
+          false,
+          'Container',
+        ),
       );
       properties.add(containerProperty);
 
@@ -202,17 +199,16 @@ class _WidgetDescriptionComputer {
         (property) => property.name == 'child',
       );
     } else {
-      var id = _nextPropertyId++;
       var containerDescription = classRegistry.get(_classContainer.type);
       containerProperty = PropertyDescription(
-        null,
-        resolvedUnit,
-        containerDescription,
-        null,
-        null,
-        null,
-        null,
-        protocol.FlutterWidgetProperty(id, true, false, 'Container'),
+        resolvedUnit: resolvedUnit,
+        classDescription: containerDescription,
+        protocolProperty: protocol.FlutterWidgetProperty(
+          PropertyDescription.nextId(),
+          true,
+          false,
+          'Container',
+        ),
         virtualContainer: VirtualContainerProperty(
           _classContainer,
           widgetCreation,
@@ -334,17 +330,17 @@ class _WidgetDescriptionComputer {
       isSafeToUpdate = true;
     }
 
-    var id = _nextPropertyId++;
     var propertyDescription = PropertyDescription(
-      parent,
-      resolvedUnit,
-      classDescription,
-      instanceCreation,
-      argumentExpression,
-      valueExpression,
-      parameter,
-      protocol.FlutterWidgetProperty(
-        id,
+      parent: parent,
+      resolvedUnit: resolvedUnit,
+      flutter: flutter,
+      classDescription: classDescription,
+      instanceCreation: instanceCreation,
+      argumentExpression: argumentExpression,
+      valueExpression: valueExpression,
+      parameterElement: parameter,
+      protocolProperty: protocol.FlutterWidgetProperty(
+        PropertyDescription.nextId(),
         parameter.isRequiredPositional,
         isSafeToUpdate,
         parameter.name,
@@ -357,11 +353,7 @@ class _WidgetDescriptionComputer {
     properties.add(propertyDescription);
 
     if (flutter.isExactEdgeInsetsGeometryType(parameter.type)) {
-      _nextPropertyId = propertyDescription.addEdgeInsetsNestedProperties(
-        _nextPropertyId,
-        flutter,
-        _classEdgeInsets,
-      );
+      propertyDescription.addEdgeInsetsNestedProperties(_classEdgeInsets);
     } else if (valueExpression is InstanceCreationExpression) {
       var type = valueExpression.staticType;
       if (classRegistry.hasNestedProperties(type)) {
