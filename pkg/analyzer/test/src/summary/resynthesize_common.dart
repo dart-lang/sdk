@@ -9758,6 +9758,28 @@ dynamic v;
 ''');
   }
 
+  test_type_never_disableNnbd() async {
+    featureSet = disableNnbd;
+    var library = await checkLibrary('Never d;');
+    checkElementText(
+        library,
+        r'''
+Never* d;
+''',
+        annotateNullability: true);
+  }
+
+  test_type_never_enableNnbd() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('Never d;');
+    checkElementText(
+        library,
+        r'''
+Never d;
+''',
+        annotateNullability: true);
+  }
+
   test_type_param_generic_function_type_nullability_legacy() async {
     featureSet = disableNnbd;
     var library = await checkLibrary('''

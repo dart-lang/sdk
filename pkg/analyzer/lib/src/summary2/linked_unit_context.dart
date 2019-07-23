@@ -866,7 +866,8 @@ class LinkedUnitContext {
 
     var kind = linkedType.kind;
     if (kind == LinkedNodeTypeKind.bottom) {
-      return BottomTypeImpl.instance;
+      var nullabilitySuffix = _nullabilitySuffix(linkedType.nullabilitySuffix);
+      return BottomTypeImpl.instance.withNullability(nullabilitySuffix);
     } else if (kind == LinkedNodeTypeKind.dynamic_) {
       return DynamicTypeImpl.instance;
     } else if (kind == LinkedNodeTypeKind.function) {

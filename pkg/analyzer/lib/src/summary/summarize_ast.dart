@@ -516,7 +516,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.references = unlinkedReferences;
     b.typedefs = typedefs;
     b.variables = variables;
+
     b.publicNamespace = computePublicNamespace(compilationUnit);
+    if (isCoreLibrary) {
+      b.publicNamespace.names.add(
+        UnlinkedPublicNameBuilder(
+          name: 'Never',
+          kind: ReferenceKind.classOrEnum,
+        ),
+      );
+    }
+
     _computeApiSignature(b);
     return b;
   }

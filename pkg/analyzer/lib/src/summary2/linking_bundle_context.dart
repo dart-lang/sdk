@@ -80,6 +80,7 @@ class LinkingBundleContext {
     if (type.isBottom) {
       return LinkedNodeTypeBuilder(
         kind: LinkedNodeTypeKind.bottom,
+        nullabilitySuffix: _nullabilitySuffix(type),
       );
     } else if (type.isDynamic) {
       return LinkedNodeTypeBuilder(
