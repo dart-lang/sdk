@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
+import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 import 'package:test/test.dart';
 
 main() {
@@ -295,7 +295,7 @@ main() {
             .add(objectQVar)
             .add(intQVar)
             .promote(h, objectQVar, _Type('int'));
-        var s2 = s1.removePromotedAll({intQVar});
+        var s2 = s1.removePromotedAll([intQVar].toSet());
         expect(s2, same(s1));
       });
 
@@ -306,7 +306,7 @@ main() {
             .add(intQVar)
             .promote(h, objectQVar, _Type('int'))
             .promote(h, intQVar, _Type('int'));
-        var s2 = s1.removePromotedAll({intQVar});
+        var s2 = s1.removePromotedAll([intQVar].toSet());
         expect(s2.reachable, true);
         expect(s2.notAssigned, same(s1.notAssigned));
         _Type.allowComparisons(() {
@@ -320,12 +320,13 @@ main() {
         var h = _Harness();
         var reachable = State<_Var, _Type>(true);
         var unreachable = reachable.setReachable(false);
-        expect(reachable.restrict(h, emptySet, reachable, {}), same(reachable));
-        expect(reachable.restrict(h, emptySet, unreachable, {}),
+        expect(
+            reachable.restrict(h, emptySet, reachable, Set()), same(reachable));
+        expect(reachable.restrict(h, emptySet, unreachable, Set()),
             same(unreachable));
-        expect(unreachable.restrict(h, emptySet, unreachable, {}),
+        expect(unreachable.restrict(h, emptySet, unreachable, Set()),
             same(unreachable));
-        expect(unreachable.restrict(h, emptySet, unreachable, {}),
+        expect(unreachable.restrict(h, emptySet, unreachable, Set()),
             same(unreachable));
       });
 
@@ -338,7 +339,7 @@ main() {
         var s0 = State<_Var, _Type>(true).add(a).add(b).add(c).add(d);
         var s1 = s0.write(h, emptySet, a).write(h, emptySet, b);
         var s2 = s0.write(h, emptySet, a).write(h, emptySet, c);
-        var result = s1.restrict(h, emptySet, s2, {});
+        var result = s1.restrict(h, emptySet, s2, Set());
         expect(result.notAssigned.contains(a), false);
         expect(result.notAssigned.contains(b), false);
         expect(result.notAssigned.contains(c), false);
@@ -353,7 +354,8 @@ main() {
           var s0 = State<_Var, _Type>(true).add(x, assigned: true);
           var s1 = thisType == null ? s0 : s0.promote(h, x, _Type(thisType));
           var s2 = otherType == null ? s0 : s0.promote(h, x, _Type(otherType));
-          var result = s1.restrict(h, emptySet, s2, unsafe ? {x} : {});
+          var result =
+              s1.restrict(h, emptySet, s2, unsafe ? [x].toSet() : Set());
           if (expectedType == null) {
             expect(result.promoted, isNot(contains(x)));
           } else {

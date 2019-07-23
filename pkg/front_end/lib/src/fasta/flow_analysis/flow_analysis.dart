@@ -95,7 +95,7 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   /// erroneous code, it's possible that a variable might be used before its
   /// declaration.
   final Set<Variable> _referencedVariables =
-      _assertionsEnabled ? <Variable>{} : null;
+      _assertionsEnabled ? Set<Variable>() : null;
 
   factory FlowAnalysis(
     NodeOperations<Expression> nodeOperations,

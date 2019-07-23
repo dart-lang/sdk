@@ -16,7 +16,6 @@ import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
 import 'flow_analysis_test.dart' as flow_analysis;
-import 'flow_analysis_unit_test.dart' as flow_analysis_unit;
 import 'for_element_test.dart' as for_element;
 import 'for_in_test.dart' as for_in;
 import 'function_expression_invocation_test.dart'
@@ -56,7 +55,6 @@ main() {
     extension_method.main();
     extension_override.main();
     flow_analysis.main();
-    flow_analysis_unit.main();
     for_element.main();
     for_in.main();
     function_expression_invocation.main();

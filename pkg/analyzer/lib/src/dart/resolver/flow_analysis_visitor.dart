@@ -9,8 +9,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 
 /// The helper for performing flow analysis during resolution.
 ///
