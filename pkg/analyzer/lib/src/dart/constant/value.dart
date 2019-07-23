@@ -701,8 +701,7 @@ class DartObjectImpl implements DartObject {
     return null;
   }
 
-  /// If this constant represents a library function or static method, returns
-  /// it, otherwise returns `null`.
+  @override
   ExecutableElement toFunctionValue() {
     InstanceState state = _state;
     return state is FunctionState ? state._element : null;
