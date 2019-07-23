@@ -303,7 +303,7 @@ abstract class ScannerTestBase {
   }
 
   void test_hexadecimal_missingDigit() {
-    _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 1, "0x");
+    _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 5, "a = 0x");
   }
 
   void test_identifier() {

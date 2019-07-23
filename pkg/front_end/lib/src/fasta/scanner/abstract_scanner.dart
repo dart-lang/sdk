@@ -26,7 +26,8 @@ import 'error_token.dart'
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart' show CommentToken, DartDocToken, LanguageVersionToken;
+import 'token.dart'
+    show CommentToken, DartDocToken, LanguageVersionToken, SyntheticStringToken;
 
 import 'token_constants.dart';
 
@@ -246,6 +247,9 @@ abstract class AbstractScanner implements Scanner {
 
   /// Append [token] to the token stream.
   void appendErrorToken(ErrorToken token);
+
+  /// Prepend [token] to the token stream.
+  void prependErrorToken(ErrorToken token);
 
   /**
    * Returns a new comment from the scan offset [start] to the current
@@ -790,7 +794,11 @@ abstract class AbstractScanner implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          unterminated(messageExpectedHexDigit, shouldAdvance: false);
+          prependErrorToken(new UnterminatedToken(
+              messageExpectedHexDigit, start, stringOffset));
+          // Recovery
+          // TODO(danrubel): append actual characters not "0"
+          appendToken(SyntheticStringToken(TokenType.INT, "0", tokenStart));
           return next;
         }
         appendSubstringToken(TokenType.HEXADECIMAL, start, true);

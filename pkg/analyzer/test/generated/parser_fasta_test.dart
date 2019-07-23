@@ -1062,6 +1062,17 @@ main() { // missing async
         ]);
   }
 
+  void test_constructor_this_cascade_synthetic() {
+    // https://github.com/dart-lang/sdk/issues/37110
+    parseCompilationUnit('class B extends A { B(): this.. {} }', errors: [
+      expectedError(ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER, 25, 4),
+      expectedError(ParserErrorCode.EXPECTED_TOKEN, 29, 2),
+      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 32, 1),
+      expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 33, 1),
+      expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 35, 1),
+    ]);
+  }
+
   void test_constructor_this_field() {
     // https://github.com/dart-lang/sdk/issues/36262
     // https://github.com/dart-lang/sdk/issues/31198

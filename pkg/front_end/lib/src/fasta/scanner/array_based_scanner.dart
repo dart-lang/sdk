@@ -260,6 +260,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(token);
   }
 
+  @override
   void prependErrorToken(ErrorToken token) {
     hasErrors = true;
     if (_errorTail == tail) {

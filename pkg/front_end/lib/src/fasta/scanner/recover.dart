@@ -135,8 +135,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   }
 
   recoverHexDigit() {
-    return synthesizeToken(errorTail.charOffset, "0", TokenType.INT)
-      ..setNext(errorTail.next);
+    throw "Internal error: Hex digit error token should have been prepended";
   }
 
   recoverStringInterpolation() {
@@ -156,7 +155,9 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
 
   // All unmatched error tokens should have been prepended
   Token current = tokens;
-  while (current is ErrorToken && current.errorCode == codeUnmatchedToken) {
+  while (current is ErrorToken &&
+      (current.errorCode == codeUnmatchedToken ||
+          current.errorCode == codeExpectedHexDigit)) {
     if (errorTail == null) {
       error = current;
     }
