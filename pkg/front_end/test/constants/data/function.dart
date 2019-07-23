@@ -15,6 +15,16 @@ const Map<String, int> Function(String, int) instantiation1 =
 
 main() {
   print(/*Function(method1)*/ function0);
-  print(/*Instantiation(method1<int>)*/ instantiation0);
-  print(/*Instantiation(method2<String,int>)*/ instantiation1);
+  // TODO(paulberry): analyzer should record instantiation information.  See
+  // dartbug.com/37608.
+  print(
+      /*cfe.Instantiation(method1<int>)*/
+      /*dart2js.Instantiation(method1<int>)*/
+      /*analyzer.Function(method1)*/
+      instantiation0);
+  print(
+      /*cfe.Instantiation(method2<String,int>)*/
+      /*dart2js.Instantiation(method2<String,int>)*/
+      /*analyzer.Function(method2)*/
+      instantiation1);
 }

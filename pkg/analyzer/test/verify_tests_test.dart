@@ -59,7 +59,13 @@ void buildTestsIn(
       return;
     }
     if (testAllFile == null) {
-      fail('Missing "test_all.dart" in $relativePath');
+      if (relativePath != 'id_tests') {
+        fail('Missing "test_all.dart" in $relativePath');
+      } else {
+        // The tests in the id_tests folder don't have a test_all.dart file
+        // because they don't use the package:test framework.
+        return;
+      }
     }
     ParsedUnitResult result = session.getParsedUnit(testAllFile.path);
     if (result.state != ResultState.VALID) {
