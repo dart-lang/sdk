@@ -208,6 +208,18 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
   /// second in the formal parameter scope.
   bool inInitializer = false;
 
+  /// Set to `true` when we are parsing a field initializer either directly
+  /// or within an initializer list.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    var foo = <init>;
+  ///    class Class {
+  ///      var bar = <init>;
+  ///      Class() : <init>;
+  ///    }
+  ///
+  /// This is used to determine whether instance properties are available.
   bool inFieldInitializer = false;
 
   bool inCatchClause = false;

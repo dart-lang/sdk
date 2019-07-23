@@ -168,11 +168,24 @@ abstract class Generator {
   Uri get _uri => _helper.uri;
 
   /// Builds a [Expression] representing a read from the generator.
+  ///
+  /// The read of the this subexpression does _not_ need to support a
+  /// simultaneous write of the same subexpression.
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead(), null);
   }
 
   /// Internal implementation for [buildSimpleRead].
+  ///
+  /// The read of the this subexpression does _not_ need to support a
+  /// simultaneous write of the same subexpression.
+  ///
+  /// This is in contrast to [_makeRead] which is used for instance in compound
+  /// assignments like `a.b = c` where both a read and a write of the
+  /// subexpression `a.b` occurs.
+  ///
+  /// Subclasses that can benefit from this distinction should override this
+  /// method.
   Expression _makeSimpleRead() => _makeRead(null);
 
   /// Builds a [Expression] representing an assignment with the generator on
@@ -292,7 +305,7 @@ abstract class Generator {
   /// Returns a [Expression] representing a compile-time error.
   ///
   /// At runtime, an exception will be thrown.
-  Expression makeInvalidRead() {
+  Expression _makeInvalidRead() {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
             _forest.literalNull(token),
@@ -307,7 +320,7 @@ abstract class Generator {
   /// [value].
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
-  Expression makeInvalidWrite(Expression value) {
+  Expression _makeInvalidWrite(Expression value) {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
             _forest.literalNull(token),
@@ -318,8 +331,25 @@ abstract class Generator {
         offsetForToken(token));
   }
 
+  /// Returns an [Expression] the reads this subexpression.
+  ///
+  /// The created read expression must support a simultaneous write of the same
+  /// expression with valid semantics.
+  ///
+  /// For instance in `a.b += c`, both a read and a write of the subexpression
+  /// `a.b` is created, but `a` must _not_ be evaluated twice. For this reason
+  /// [PropertyAccessGenerator] creates a synthetic local variable for `a` and
+  /// uses this for the both the [PropertyGet] and [PropertySet] of property
+  /// `b`.
+  ///
+  /// If [complexAssignment] is provided, the created expression is registered
+  /// as the `read` of the complex assignment.
+  ///
+  /// The default implementation creates the expression through
+  /// [_makeInvalidRead]. Subclasses with valid read operations must override
+  /// this method with a valid implementation.
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
-    Expression read = makeInvalidRead();
+    Expression read = _makeInvalidRead();
     if (complexAssignment != null) {
       read = _helper.desugarSyntheticExpression(read);
       complexAssignment.read = read;
@@ -327,9 +357,26 @@ abstract class Generator {
     return read;
   }
 
+  /// Returns an [Expression] the write [value] to this subexpression.
+  ///
+  /// The created read expression must support a simultaneous read of the same
+  /// expression with valid semantics.
+  ///
+  /// For instance in `a.b += c`, both a read and a write of the subexpression
+  /// `a.b` is created, but `a` must _not_ be evaluated twice. For this reason
+  /// [PropertyAccessGenerator] creates a synthetic local variable for `a` and
+  /// uses this for the both the [PropertyGet] and [PropertySet] of property
+  /// `b`.
+  ///
+  /// If [complexAssignment] is provided, the created expression is registered
+  /// as the `write` of the complex assignment.
+  ///
+  /// The default implementation creates the expression through
+  /// [_makeInvalidWrite]. Subclasses with valid write operations must override
+  /// this method with a valid implementation.
   Expression _makeWrite(Expression value, bool voidContext,
       ComplexAssignmentJudgment complexAssignment) {
-    Expression write = makeInvalidWrite(value);
+    Expression write = _makeInvalidWrite(value);
     if (complexAssignment != null) {
       write = _helper.desugarSyntheticExpression(write);
       complexAssignment.write = write;
@@ -362,17 +409,25 @@ abstract class Generator {
         offset);
   }
 
+  /// Returns an expression, generator or initializer for an invocation of this
+  /// subexpression with [arguments] at [offset].
+  ///
+  /// For instance:
+  /// * If this is a [PropertyAccessGenerator] for `a.b`, this will create
+  ///   a [MethodInvocation] for `a.b(...)`.
+  /// * If this is a [ThisAccessGenerator] for `this` in an initializer list,
+  ///   this will create a [RedirectingInitializer] for `this(...)`.
+  /// * If this is an [IncompleteErrorGenerator], this will return the error
+  ///   generator itself.
+  ///
   /* Expression | Generator | Initializer */ doInvocation(
       int offset, Arguments arguments);
 
   /* Expression | Generator */ buildPropertyAccess(
       IncompleteSendGenerator send, int operatorOffset, bool isNullAware) {
     if (send is SendAccessGenerator) {
-      return _helper.buildMethodInvocation(
-          buildSimpleRead(),
-          send.name,
-          send.arguments as dynamic /* TODO(ahe): Remove this cast. */,
-          offsetForToken(send.token),
+      return _helper.buildMethodInvocation(buildSimpleRead(), send.name,
+          send.arguments, offsetForToken(send.token),
           isNullAware: isNullAware);
     } else {
       if (_helper.constantContext != ConstantContext.none &&
@@ -438,6 +493,21 @@ abstract class Generator {
   }
 }
 
+/// [VariableUseGenerator] represents the subexpression whose prefix is a
+/// local variable or parameter name.
+///
+/// For instance:
+///
+///   method(a) {
+///     var b;
+///     a;         // a VariableUseGenerator is created for `a`.
+///     b = a[];   // a VariableUseGenerator is created for `a` and `b`.
+///     b();       // a VariableUseGenerator is created for `b`.
+///     b.c = a.d; // a VariableUseGenerator is created for `a` and `b`.
+///   }
+///
+/// If the variable is final or read-only (like a parameter in a catch clause) a
+/// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
   final VariableDeclaration variable;
 
@@ -472,7 +542,7 @@ class VariableUseGenerator extends Generator {
         ?.mutateVariable(variable, _helper.functionNestingLevel);
     Expression write;
     if (variable.isFinal || variable.isConst) {
-      write = makeInvalidWrite(value);
+      write = _makeInvalidWrite(value);
       if (complexAssignment != null) {
         write = _helper.desugarSyntheticExpression(write);
         complexAssignment.write = write;
@@ -508,15 +578,36 @@ class VariableUseGenerator extends Generator {
   }
 }
 
+/// A [PropertyAccessGenerator] represents a subexpression whose prefix is
+/// an explicit property access.
+///
+/// For instance
+///
+///   method(a) {
+///     a.b;      // a PropertyAccessGenerator is created for `a.b`.
+///     a.b();    // a PropertyAccessGenerator is created for `a.b`.
+///     a.b = c;  // a PropertyAccessGenerator is created for `a.b`.
+///     a.b += c; // a PropertyAccessGenerator is created for `a.b`.
+///   }
+///
+/// If the receiver is `this`, a [ThisPropertyAccessGenerator] is created
+/// instead. If the access is null-aware, e.g. `a?.b`, a
+/// [NullAwarePropertyAccessGenerator] is created instead.
 class PropertyAccessGenerator extends Generator {
+  /// The receiver expression. `a` in the examples in the class documentation.
   final Expression receiver;
 
+  /// The name for the accessed property. `b` in the examples in the class
+  /// documentation.
   final Name name;
 
+  // TODO(johnniwinther): Remove [getter] and [setter]? These are never
+  // passed.
   final Member getter;
 
   final Member setter;
 
+  /// Synthetic variable created for [receiver] if need.
   VariableDeclaration _receiverVariable;
 
   PropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
@@ -597,11 +688,14 @@ class PropertyAccessGenerator extends Generator {
     return super._finish(makeLet(_receiverVariable, body), complexAssignment);
   }
 
+  /// Creates a [Generator] for the access of property [name] on [receiver].
   static Generator make(
       ExpressionGeneratorHelper helper,
       Token token,
       Expression receiver,
       Name name,
+      // TODO(johnniwinther): Remove [getter] and [setter]? These are never
+      // passed.
       Member getter,
       Member setter,
       bool isNullAware) {
@@ -620,13 +714,50 @@ class PropertyAccessGenerator extends Generator {
   }
 }
 
-/// Special case of [PropertyAccessGenerator] to avoid creating an indirect
-/// access to 'this'.
+/// A [ThisPropertyAccessGenerator] represents a subexpression whose prefix is
+/// an implicit or explicit access on `this`.
+///
+/// For instance
+///
+///   class C {
+///     var b;
+///     method() {
+///       b;           // a ThisPropertyAccessGenerator is created for `b`.
+///       b();         // a ThisPropertyAccessGenerator is created for `b`.
+///       b = c;       // a ThisPropertyAccessGenerator is created for `b`.
+///       b += c;      // a ThisPropertyAccessGenerator is created for `b`.
+///       this.b;      // a ThisPropertyAccessGenerator is created for `this.b`.
+///       this.b();    // a ThisPropertyAccessGenerator is created for `this.b`.
+///       this.b = c;  // a ThisPropertyAccessGenerator is created for `this.b`.
+///       this.b += c; // a ThisPropertyAccessGenerator is created for `this.b`.
+///     }
+///   }
+///
+/// This is a special case of [PropertyAccessGenerator] to avoid creating an
+/// indirect access to 'this' in for instance `this.b += c` which by
+/// [PropertyAccessGenerator] would have been created as
+///
+///     let #1 = this in #.b = #.b + c
+///
+/// instead of
+///
+///     this.b = this.b + c
+///
 class ThisPropertyAccessGenerator extends Generator {
+  /// The name for the accessed property. `b` in the examples in the class
+  /// documentation.
   final Name name;
 
+  /// The member accessed if this subexpression has a read.
+  ///
+  /// This is `null` if the `this` class does not have a readable property named
+  /// [name].
   final Member getter;
 
+  /// The member accessed if this subexpression has a write.
+  ///
+  /// This is `null` if the `this` class does not have a writable property named
+  /// [name].
   final Member setter;
 
   ThisPropertyAccessGenerator(ExpressionGeneratorHelper helper, Token token,
@@ -1351,7 +1482,7 @@ class StaticAccessGenerator extends Generator {
   Expression _makeRead(ComplexAssignmentJudgment complexAssignment) {
     Expression read;
     if (readTarget == null) {
-      read = makeInvalidRead();
+      read = _makeInvalidRead();
       if (complexAssignment != null) {
         read = _helper.desugarSyntheticExpression(read);
       }
@@ -1367,7 +1498,7 @@ class StaticAccessGenerator extends Generator {
       ComplexAssignmentJudgment complexAssignment) {
     Expression write;
     if (writeTarget == null) {
-      write = makeInvalidWrite(value);
+      write = _makeInvalidWrite(value);
       if (complexAssignment != null) {
         write = _helper.desugarSyntheticExpression(write);
       }
@@ -1674,7 +1805,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   }
 
   @override
-  Expression makeInvalidWrite(Expression value) {
+  Expression _makeInvalidWrite(Expression value) {
     return _helper.wrapSyntheticExpression(
         _helper.throwNoSuchMethodError(
             _forest.literalNull(token),
@@ -1892,12 +2023,12 @@ abstract class ErroneousExpressionGenerator extends Generator {
   }
 
   @override
-  Expression makeInvalidRead() {
+  Expression _makeInvalidRead() {
     return buildError(_forest.argumentsEmpty(token), isGetter: true);
   }
 
   @override
-  Expression makeInvalidWrite(Expression value) {
+  Expression _makeInvalidWrite(Expression value) {
     return buildError(_forest.arguments(<Expression>[value], token),
         isSetter: true);
   }
@@ -2072,14 +2203,14 @@ abstract class ContextAwareGenerator extends Generator {
 
   @override
   Expression buildAssignment(Expression value, {bool voidContext: false}) {
-    return makeInvalidWrite(value);
+    return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildNullAwareAssignment(
       Expression value, DartType type, int offset,
       {bool voidContext: false}) {
-    return makeInvalidWrite(value);
+    return _makeInvalidWrite(value);
   }
 
   @override
@@ -2089,28 +2220,28 @@ abstract class ContextAwareGenerator extends Generator {
       Procedure interfaceTarget,
       bool isPreIncDec: false,
       bool isPostIncDec: false}) {
-    return makeInvalidWrite(value);
+    return _makeInvalidWrite(value);
   }
 
   @override
   Expression buildPrefixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
+    return _makeInvalidWrite(null);
   }
 
   @override
   Expression buildPostfixIncrement(Name binaryOperator,
       {int offset: -1, bool voidContext: false, Procedure interfaceTarget}) {
-    return makeInvalidWrite(null);
+    return _makeInvalidWrite(null);
   }
 
   @override
-  makeInvalidRead() {
+  _makeInvalidRead() {
     return unsupported("makeInvalidRead", token.charOffset, _helper.uri);
   }
 
   @override
-  Expression makeInvalidWrite(Expression value) {
+  Expression _makeInvalidWrite(Expression value) {
     return _helper.buildProblem(messageIllegalAssignmentToNonAssignable,
         offsetForToken(token), lengthForToken(token));
   }
@@ -2260,7 +2391,7 @@ class PrefixUseGenerator extends Generator {
   String get _debugName => "PrefixUseGenerator";
 
   @override
-  Expression buildSimpleRead() => makeInvalidRead();
+  Expression buildSimpleRead() => _makeInvalidRead();
 
   @override
   /* Expression | Generator */ Object qualifiedLookup(Token name) {
@@ -2319,13 +2450,13 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  Expression makeInvalidRead() {
+  Expression _makeInvalidRead() {
     return _helper.buildProblem(messageCantUsePrefixAsExpression,
         offsetForToken(token), lengthForToken(token));
   }
 
   @override
-  Expression makeInvalidWrite(Expression value) => makeInvalidRead();
+  Expression _makeInvalidWrite(Expression value) => _makeInvalidRead();
 
   @override
   void printOn(StringSink sink) {
@@ -2354,7 +2485,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   String get _debugName => "UnexpectedQualifiedUseGenerator";
 
   @override
-  Expression buildSimpleRead() => makeInvalidRead();
+  Expression buildSimpleRead() => _makeInvalidRead();
 
   @override
   Expression doInvocation(int offset, Arguments arguments) {
@@ -2449,9 +2580,9 @@ class ParserErrorGenerator extends Generator {
     return buildProblem();
   }
 
-  Expression makeInvalidRead() => buildProblem();
+  Expression _makeInvalidRead() => buildProblem();
 
-  Expression makeInvalidWrite(Expression value) => buildProblem();
+  Expression _makeInvalidWrite(Expression value) => buildProblem();
 
   Initializer buildFieldInitializer(Map<String, int> initializedFields) {
     return _helper.buildInvalidInitializer(
@@ -2492,10 +2623,49 @@ class ParserErrorGenerator extends Generator {
   }
 }
 
+/// A [ThisAccessGenerator] represents a subexpression whose prefix is `this`
+/// or `super`.
+///
+/// For instance
+///
+///   class C {
+///     var b = this.c; // a ThisAccessGenerator is created for `this`.
+///     var c;
+///     C(this.c) :     // a ThisAccessGenerator is created for `this`.
+///       this.b = c;   // a ThisAccessGenerator is created for `this`.
+///     method() {
+///       this.b;       // a ThisAccessGenerator is created for `this`.
+///       super.b();    // a ThisAccessGenerator is created for `super`.
+///       this.b = c;   // a ThisAccessGenerator is created for `this`.
+///       this.b += c;  // a ThisAccessGenerator is created for `this`.
+///     }
+///   }
+///
 class ThisAccessGenerator extends Generator {
+  /// `true` if this access is in an initializer list.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    class Class {
+  ///      Class() : <init>;
+  ///    }
+  ///
   final bool isInitializer;
+
+  /// `true` if this access is in a field initializer either directly or within
+  /// an initializer list.
+  ///
+  /// For instance in `<init>` in
+  ///
+  ///    var foo = <init>;
+  ///    class Class {
+  ///      var bar = <init>;
+  ///      Class() : <init>;
+  ///    }
+  ///
   final bool inFieldInitializer;
 
+  // `true` if this subexpression represents a `super` prefix.
   final bool isSuper;
 
   ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
@@ -2902,7 +3072,7 @@ class ParenthesizedExpressionGenerator extends ReadOnlyAccessGenerator {
         assignmentOffset: offsetForToken(token));
   }
 
-  Expression makeInvalidWrite(Expression value) {
+  Expression _makeInvalidWrite(Expression value) {
     return _helper.wrapInvalidWrite(
         _helper.desugarSyntheticExpression(_helper.buildProblem(
             messageCannotAssignToParenthesizedExpression,
