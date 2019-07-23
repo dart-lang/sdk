@@ -26,6 +26,7 @@ import 'utils.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuildModeTest);
+    defineReflectiveTests(BuildModeSummaryDependenciesTest);
     defineReflectiveTests(ExitCodesTest);
     defineReflectiveTests(ExitCodesTest_PreviewDart2);
     defineReflectiveTests(LinterTest);
@@ -34,6 +35,86 @@ main() {
     defineReflectiveTests(OptionsTest);
     defineReflectiveTests(OptionsTest_PreviewDart2);
   }, name: 'Driver');
+}
+
+class AbstractBuildModeTest extends BaseTest {
+  Future<void> _doDrive(String path,
+      {String uri,
+      List<String> additionalArgs: const [],
+      String dartSdkSummaryPath}) async {
+    path = _p(path);
+
+    var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
+    var options = _p('data/options_tests_project/' + optionsFileName);
+
+    List<String> args = <String>[];
+    if (dartSdkSummaryPath != null) {
+      args.add('--dart-sdk-summary');
+      args.add(dartSdkSummaryPath);
+    } else {
+      String sdkPath = _findSdkDirForSummaries();
+      args.add('--dart-sdk');
+      args.add(sdkPath);
+    }
+    args.add('--build-mode');
+    args.add('--format=machine');
+    args.addAll(additionalArgs);
+
+    uri ??= 'file:///test_file.dart';
+    String source = '$uri|$path';
+
+    await drive(source, args: args, options: options);
+  }
+
+  /// Try to find a appropriate directory to pass to "--dart-sdk" that will
+  /// allow summaries to be found.
+  String _findSdkDirForSummaries() {
+    Set<String> triedDirectories = new Set<String>();
+    bool isSuitable(String sdkDir) {
+      triedDirectories.add(sdkDir);
+      return new File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
+          .existsSync();
+    }
+
+    String makeAbsoluteAndNormalized(String result) {
+      result = path.absolute(result);
+      result = path.normalize(result);
+      return result;
+    }
+
+    // Usually the sdk directory is the parent of the parent of the "dart"
+    // executable.
+    Directory executableParent = new File(Platform.executable).parent;
+    Directory executableGrandparent = executableParent.parent;
+    if (isSuitable(executableGrandparent.path)) {
+      return makeAbsoluteAndNormalized(executableGrandparent.path);
+    }
+    // During build bot execution, the sdk directory is simply the parent of the
+    // "dart" executable.
+    if (isSuitable(executableParent.path)) {
+      return makeAbsoluteAndNormalized(executableParent.path);
+    }
+    // If neither of those are suitable, assume we are running locally within the
+    // SDK project (e.g. within an IDE).  Find the build output directory and
+    // search all built configurations.
+    Directory sdkRootDir =
+        new File(Platform.script.toFilePath()).parent.parent.parent.parent;
+    for (String outDirName in ['out', 'xcodebuild']) {
+      Directory outDir = new Directory(path.join(sdkRootDir.path, outDirName));
+      if (outDir.existsSync()) {
+        for (FileSystemEntity subdir in outDir.listSync()) {
+          if (subdir is Directory) {
+            String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
+            if (isSuitable(candidateSdkDir)) {
+              return makeAbsoluteAndNormalized(candidateSdkDir);
+            }
+          }
+        }
+      }
+    }
+    throw new Exception('Could not find an SDK directory containing summaries.'
+        '  Tried: ${triedDirectories.toList()}');
+  }
 }
 
 class BaseTest {
@@ -135,7 +216,266 @@ class BaseTest {
 }
 
 @reflectiveTest
-class BuildModeTest extends BaseTest {
+class BuildModeSummaryDependenciesTest extends AbstractBuildModeTest {
+  String tempDir;
+
+  /// Any direct export is a dependency.
+  test_export_direct() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], 'class A {}');
+      await _assertDependencies('c', [a], '''
+export 'package:a/a.dart';
+''', [a]);
+    });
+  }
+
+  /// Imports of dependencies are not necessary dependencies.
+  /// Here our dependency does not use its dependency.
+  test_import2_notUsed() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], '');
+      var b = await _buildPackage('b', [a], '''
+import 'package:a/a.dart';
+''');
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+''', [b]);
+    });
+  }
+
+  test_import2_usedAsFieldType() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], 'class A {}');
+      var b = await _buildPackage('b', [a], '''
+import 'package:a/a.dart';
+class B {
+  A f;
+}
+''');
+
+      // We don't use `f`, so don't depend on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+var x = B();
+''', [b]);
+
+      // We use `f` for type inference.
+      // So, dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+var x = B().f;
+''', [a, b]);
+
+      // We reference `f` in initializer, but not for type inference.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+Object x = B().f;
+''', [b]);
+
+      // We perform full analysis, so request the type of `f`;
+      // So, dependency on "a".
+      await _assertDependencies(
+        'c',
+        [a, b],
+        '''
+import 'package:b/b.dart';
+Object x = B().f;
+''',
+        [a, b],
+        summaryOnly: false,
+      );
+    });
+  }
+
+  test_import2_usedAsSupertype() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], 'class A {}');
+      var b = await _buildPackage('b', [a], '''
+import 'package:a/a.dart';
+class B extends A {}
+''');
+
+      // We don't invoke anything on class `B`, so don't ask its supertype.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+B x;
+''', [b]);
+
+      // We infer the type of `x` to `B`.
+      // But we don't ask `B` for its supertype.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+var x = B();
+''', [b]);
+
+      // We perform full analysis, and check that `new B()` is assignable
+      // to `B x`. While doing this, we ask for `B` supertype.
+      // So, dependency on "a".
+      await _assertDependencies(
+        'c',
+        [a, b],
+        '''
+import 'package:b/b.dart';
+var x = B();
+''',
+        [a, b],
+        summaryOnly: false,
+      );
+    });
+  }
+
+  test_import2_usedAsTopLevelVariableType() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], 'class A {}');
+      var b = await _buildPackage('b', [a], '''
+import 'package:a/a.dart';
+A v;
+''');
+
+      // We don't use `v`.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+''', [b]);
+
+      // We use `v` for type inference.
+      // So, dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+var x = v;
+''', [a, b]);
+
+      // We don't use `v` for type inference.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+Object x = v;
+''', [b]);
+
+      // We perform full analysis, and request the type of `v`.
+      // So, dependency on "a".
+      await _assertDependencies(
+        'c',
+        [a, b],
+        '''
+import 'package:b/b.dart';
+Object x = v;
+''',
+        [a, b],
+        summaryOnly: false,
+      );
+
+      // We use `v` in a method body.
+      // So, no dependency on "a".
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+main() {
+  v;
+}
+''', [b]);
+
+      // We perform full analysis, so ask for the type of `v`.
+      // So, dependency on "a".
+      await _assertDependencies(
+        'c',
+        [a, b],
+        '''
+import 'package:b/b.dart';
+main() {
+  v;
+}
+''',
+        [a, b],
+        summaryOnly: false,
+      );
+    });
+  }
+
+  /// Any direct import is a dependency.
+  test_import_direct() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], '');
+      var b = await _buildPackage('b', [], '');
+      await _assertDependencies('c', [a, b], '''
+import 'package:a/a.dart';
+import 'package:b/b.dart';
+''', [a, b]);
+    });
+  }
+
+  /// Exports of dependencies are dependencies.
+  test_import_export() async {
+    await _withTempDir(() async {
+      var a = await _buildPackage('a', [], 'class A {}');
+      var b = await _buildPackage('b', [a], '''
+export 'package:a/a.dart';
+''');
+      await _assertDependencies('c', [a, b], '''
+import 'package:b/b.dart';
+''', [a, b]);
+    });
+  }
+
+  Future<void> _assertDependencies(
+    String name,
+    List<_DependencyPackage> inputPackages,
+    String content,
+    List<_DependencyPackage> expectedPackages, {
+    bool summaryOnly = true,
+  }) async {
+    var pkg = await _buildPackage(name, inputPackages, content,
+        summaryOnly: summaryOnly);
+
+    var depString = File(pkg.dep).readAsStringSync();
+    var expectedList = expectedPackages.map((p) => p.sum).toList();
+    expect(depString.split('\n'), unorderedEquals(expectedList));
+  }
+
+  Future<_DependencyPackage> _buildPackage(
+    String name,
+    List<_DependencyPackage> inputPackages,
+    String content, {
+    bool summaryOnly = true,
+  }) async {
+    var filePath = path.join(tempDir, '$name.dart');
+    File(filePath).writeAsStringSync(content);
+    var pkg = _DependencyPackage(
+      name: name,
+      path: filePath,
+      uri: 'package:$name/$name.dart',
+      sum: path.join(tempDir, '$name.sum'),
+      dep: path.join(tempDir, '$name.dep'),
+    );
+
+    var args = <String>[];
+    if (summaryOnly) {
+      args.add('--build-summary-only');
+    }
+    for (var input in inputPackages) {
+      args.add('--build-summary-input=${input.sum}');
+    }
+    args.add('--build-summary-output=${pkg.sum}');
+    args.add('--summary-deps-output=${pkg.dep}');
+
+    await _doDrive(pkg.path, uri: pkg.uri, additionalArgs: args);
+    expect(exitCode, 0);
+
+    return pkg;
+  }
+
+  Future<void> _withTempDir(Future<void> f()) async {
+    await withTempDirAsync((tempDir) async {
+      this.tempDir = tempDir;
+      await f();
+    });
+  }
+}
+
+@reflectiveTest
+class BuildModeTest extends AbstractBuildModeTest {
   test_buildLinked() async {
     await withTempDirAsync((tempDir) async {
       var outputPath = path.join(tempDir, 'test_file.dart.sum');
@@ -483,84 +823,6 @@ var b = new B();
       await _doDrive(bDart, uri: bUri, additionalArgs: ['$aUri|$aDart']);
       expect(errorSink, isEmpty);
     });
-  }
-
-  Future<void> _doDrive(String path,
-      {String uri,
-      List<String> additionalArgs: const [],
-      String dartSdkSummaryPath}) async {
-    path = _p(path);
-
-    var optionsFileName = AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE;
-    var options = _p('data/options_tests_project/' + optionsFileName);
-
-    List<String> args = <String>[];
-    if (dartSdkSummaryPath != null) {
-      args.add('--dart-sdk-summary');
-      args.add(dartSdkSummaryPath);
-    } else {
-      String sdkPath = _findSdkDirForSummaries();
-      args.add('--dart-sdk');
-      args.add(sdkPath);
-    }
-    args.add('--build-mode');
-    args.add('--format=machine');
-    args.addAll(additionalArgs);
-
-    uri ??= 'file:///test_file.dart';
-    String source = '$uri|$path';
-
-    await drive(source, args: args, options: options);
-  }
-
-  /// Try to find a appropriate directory to pass to "--dart-sdk" that will
-  /// allow summaries to be found.
-  String _findSdkDirForSummaries() {
-    Set<String> triedDirectories = new Set<String>();
-    bool isSuitable(String sdkDir) {
-      triedDirectories.add(sdkDir);
-      return new File(path.join(sdkDir, 'lib', '_internal', 'strong.sum'))
-          .existsSync();
-    }
-
-    String makeAbsoluteAndNormalized(String result) {
-      result = path.absolute(result);
-      result = path.normalize(result);
-      return result;
-    }
-
-    // Usually the sdk directory is the parent of the parent of the "dart"
-    // executable.
-    Directory executableParent = new File(Platform.executable).parent;
-    Directory executableGrandparent = executableParent.parent;
-    if (isSuitable(executableGrandparent.path)) {
-      return makeAbsoluteAndNormalized(executableGrandparent.path);
-    }
-    // During build bot execution, the sdk directory is simply the parent of the
-    // "dart" executable.
-    if (isSuitable(executableParent.path)) {
-      return makeAbsoluteAndNormalized(executableParent.path);
-    }
-    // If neither of those are suitable, assume we are running locally within the
-    // SDK project (e.g. within an IDE).  Find the build output directory and
-    // search all built configurations.
-    Directory sdkRootDir =
-        new File(Platform.script.toFilePath()).parent.parent.parent.parent;
-    for (String outDirName in ['out', 'xcodebuild']) {
-      Directory outDir = new Directory(path.join(sdkRootDir.path, outDirName));
-      if (outDir.existsSync()) {
-        for (FileSystemEntity subdir in outDir.listSync()) {
-          if (subdir is Directory) {
-            String candidateSdkDir = path.join(subdir.path, 'dart-sdk');
-            if (isSuitable(candidateSdkDir)) {
-              return makeAbsoluteAndNormalized(candidateSdkDir);
-            }
-          }
-        }
-      }
-    }
-    throw new Exception('Could not find an SDK directory containing summaries.'
-        '  Tried: ${triedDirectories.toList()}');
   }
 }
 
@@ -972,4 +1234,14 @@ class TestSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _DependencyPackage {
+  final String name;
+  final String path;
+  final String uri;
+  final String sum;
+  final String dep;
+
+  _DependencyPackage({this.name, this.path, this.uri, this.sum, this.dep});
 }
