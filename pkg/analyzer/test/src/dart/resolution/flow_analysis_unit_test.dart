@@ -143,14 +143,6 @@ main() {
       });
     });
 
-    test('exit', () {
-      var s1 = State<_Var, _Type>(true);
-      var s2 = s1.exit();
-      expect(s2.reachable, false);
-      expect(s2.notAssigned, same(s1.notAssigned));
-      expect(s2.promoted, same(s1.promoted));
-    });
-
     group('promote', () {
       test('unpromoted -> unchanged (same)', () {
         var h = _Harness();
@@ -327,7 +319,7 @@ main() {
       test('reachability', () {
         var h = _Harness();
         var reachable = State<_Var, _Type>(true);
-        var unreachable = reachable.exit();
+        var unreachable = reachable.setReachable(false);
         expect(reachable.restrict(h, emptySet, reachable, {}), same(reachable));
         expect(reachable.restrict(h, emptySet, unreachable, {}),
             same(unreachable));
