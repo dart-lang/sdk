@@ -20,6 +20,7 @@
 ///   i int (small)
 ///   D double
 ///   S String
+///   s String (small)
 ///   L List<int>
 ///   X Set<int>
 ///   M Map<int, String>
@@ -773,8 +774,8 @@ class DartLib {
     DartLib('trim', 'SV'),
     DartLib('trimLeft', 'SV'),
     DartLib('trimRight', 'SV'),
-    DartLib('padLeft', 'SiS'),
-    DartLib('padRight', 'SiS'),
+    DartLib('padLeft', 'Sis'),
+    DartLib('padRight', 'Sis'),
     DartLib('replaceRange', 'SIIS'),
     DartLib('toLowerCase', 'SV'),
     DartLib('toUpperCase', 'SV'),

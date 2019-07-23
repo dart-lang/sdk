@@ -263,7 +263,7 @@ void addToTable(String ret, String name, String proto) {
   // for example, to avoid excessive runtime or memory
   // allocation in the generated fuzzing program.
   if (name == 'padLeft' || name == 'padRight') {
-    proto = proto.replaceAll('I', 'i');
+    proto = proto.replaceFirst('IS', 'is');
   } else if (name == 'List.filled') {
     proto = proto.replaceFirst('I', 'i');
   }
@@ -295,6 +295,7 @@ void dumpHeader() {
 ///   i int (small)
 ///   D double
 ///   S String
+///   s String (small)
 ///   L List<int>
 ///   X Set<int>
 ///   M Map<int, String>

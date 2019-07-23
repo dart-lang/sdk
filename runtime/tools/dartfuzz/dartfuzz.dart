@@ -13,7 +13,7 @@ import 'dartfuzz_api_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.14';
+const String version = '1.15';
 
 // Restriction on statements and expressions.
 const int stmtLength = 2;
@@ -533,9 +533,9 @@ class DartFuzz {
     }
   }
 
-  void emitString() {
+  void emitString({int length = 8}) {
     emit("'");
-    for (int i = 0, n = rand.nextInt(8); i < n; i++) {
+    for (int i = 0, n = rand.nextInt(length); i < n; i++) {
       emitChar();
     }
     emit("'");
@@ -1012,6 +1012,14 @@ class DartFuzz {
         break;
       case 'S':
         emitExpr(depth, DartType.STRING);
+        break;
+      case 's':
+        // Emit string literal of 2 characters maximum length
+        // for 'small string' parameters to avoid recursively constructed
+        // strings which might lead to exponentially growing data structures
+        // e.g. loop { var = 'x'.padLeft(8, var); }
+        // TODO (felih): detect recursion to eliminate such cases specifically
+        emitString(length: 2);
         break;
       case 'L':
         emitExpr(depth, DartType.INT_LIST);
