@@ -151,10 +151,20 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   recoverUnmatched() {
     // TODO(ahe): Try to use top-level keywords (such as `class`, `typedef`,
     // and `enum`) and indentation to recover.
-    return errorTail.next;
+    throw "Internal error: Unmatched error token should have been prepended";
   }
 
-  for (Token current = tokens; !current.isEof; current = current.next) {
+  // All unmatched error tokens should have been prepended
+  Token current = tokens;
+  while (current is ErrorToken && current.errorCode == codeUnmatchedToken) {
+    if (errorTail == null) {
+      error = current;
+    }
+    errorTail = current;
+    current = current.next;
+  }
+
+  for (; !current.isEof; current = current.next) {
     while (current is ErrorToken) {
       ErrorToken first = current;
       Token next = current;

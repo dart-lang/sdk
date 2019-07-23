@@ -33,11 +33,14 @@ import '../util/link.dart' show Link;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   bool hasErrors = false;
+  Token _errorTail;
 
   ArrayBasedScanner(ScannerConfiguration config, bool includeComments,
       LanguageVersionChanged languageVersionChanged, {int numberOfBytesHint})
       : super(config, includeComments, languageVersionChanged,
-            numberOfBytesHint: numberOfBytesHint);
+            numberOfBytesHint: numberOfBytesHint) {
+    this._errorTail = this.tokens;
+  }
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]
@@ -257,6 +260,20 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     appendToken(token);
   }
 
+  void prependErrorToken(ErrorToken token) {
+    hasErrors = true;
+    if (_errorTail == tail) {
+      appendToken(token);
+      _errorTail = tail;
+    } else {
+      token.next = _errorTail.next;
+      token.next.previous = token;
+      _errorTail.next = token;
+      token.previous = _errorTail;
+      _errorTail = _errorTail.next;
+    }
+  }
+
   @override
   void appendSubstringToken(TokenType type, int start, bool asciiOnly,
       [int extraOffset = 0]) {
@@ -374,6 +391,6 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     TokenType type = closeBraceInfoFor(begin);
     appendToken(new SyntheticToken(type, tokenStart)..beforeSynthetic = tail);
     begin.endGroup = tail;
-    appendErrorToken(new UnmatchedToken(begin));
+    prependErrorToken(new UnmatchedToken(begin));
   }
 }

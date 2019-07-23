@@ -1090,8 +1090,8 @@ abstract class AbstractScanner implements Scanner {
    */
   void appendToken(Token token) {
     tail.next = token;
-    tail.next.previous = tail;
-    tail = tail.next;
+    token.previous = tail;
+    tail = token;
     if (comments != null && comments == token.precedingComments) {
       comments = null;
       commentsTail = null;
