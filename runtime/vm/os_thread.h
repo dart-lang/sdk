@@ -315,7 +315,7 @@ class OSThread : public BaseThread {
   static thread_local ThreadState* current_vm_thread_;
 #endif
 
-  friend class Isolate;  // to access set_thread(Thread*).
+  friend class IsolateGroup;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
   friend class ThreadInterrupterFuchsia;

@@ -44,6 +44,7 @@ class HierarchyInfo;
 class Instance;
 class Interpreter;
 class Isolate;
+class IsolateGroup;
 class Library;
 class Object;
 class OSThread;
@@ -358,9 +359,13 @@ class Thread : public ThreadState {
   void EnterApiScope();
   void ExitApiScope();
 
-  // The isolate that this thread is operating on, or NULL if none.
+  // The isolate that this thread is operating on, or nullptr if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
+
+  // The isolate group that this thread is operating on, or nullptr if none.
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
 
@@ -883,6 +888,7 @@ class Thread : public ThreadState {
 
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
+  IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   ApiLocalScope* api_top_scope_;
@@ -968,6 +974,7 @@ class Thread : public ThreadState {
   friend class Interpreter;
   friend class InterruptChecker;
   friend class Isolate;
+  friend class IsolateGroup;
   friend class IsolateTestHelper;
   friend class NoOOBMessageScope;
   friend class Simulator;

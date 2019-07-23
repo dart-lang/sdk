@@ -56,6 +56,7 @@ class IsolateSpawnState;
 class Log;
 class Message;
 class MessageHandler;
+class MonitorLocker;
 class Mutex;
 class Object;
 class ObjectIdRing;
@@ -227,9 +228,35 @@ class IsolateGroup {
   void RegisterIsolate(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
 
+  Monitor* threads_lock() const;
+  ThreadRegistry* thread_registry() const { return thread_registry_.get(); }
+  SafepointHandler* safepoint_handler() { return safepoint_handler_.get(); }
+
+  static inline IsolateGroup* Current() {
+    Thread* thread = Thread::Current();
+    return thread == nullptr ? nullptr : thread->isolate_group();
+  }
+
+  Thread* ScheduleThreadLocked(MonitorLocker* ml,
+                               Thread* existing_mutator_thread,
+                               bool is_vm_isolate,
+                               bool is_mutator,
+                               bool bypass_safepoint = false);
+  void UnscheduleThreadLocked(MonitorLocker* ml,
+                              Thread* thread,
+                              bool is_mutator,
+                              bool bypass_safepoint = false);
+
+  Thread* ScheduleThread(bool bypass_safepoint = false);
+  void UnscheduleThread(Thread* thread,
+                        bool is_mutator,
+                        bool bypass_safepoint = false);
+
  private:
   std::unique_ptr<IsolateGroupSource> source_;
   void* embedder_data_ = nullptr;
+  std::unique_ptr<ThreadRegistry> thread_registry_;
+  std::unique_ptr<SafepointHandler> safepoint_handler_;
   std::unique_ptr<Monitor> isolates_monitor_;
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
@@ -297,8 +324,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return deferred_marking_stack_;
   }
 
-  ThreadRegistry* thread_registry() const { return thread_registry_; }
-  SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
+  ThreadRegistry* thread_registry() const { return group()->thread_registry(); }
+
+  SafepointHandler* safepoint_handler() const {
+    return group()->safepoint_handler();
+  }
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -958,7 +988,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  Monitor* threads_lock() const;
+  Monitor* threads_lock() { return isolate_group_->threads_lock(); }
   Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
   void UnscheduleThread(Thread* thread,
                         bool is_mutator,
@@ -1088,8 +1118,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // All other fields go here.
   int64_t start_time_micros_;
-  ThreadRegistry* thread_registry_;
-  SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_ = nullptr;
   char* name_ = nullptr;
   Dart_Port main_port_ = 0;

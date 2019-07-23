@@ -134,6 +134,8 @@ IsolateGroup::IsolateGroup(std::unique_ptr<IsolateGroupSource> source,
                            void* embedder_data)
     : source_(std::move(source)),
       embedder_data_(embedder_data),
+      thread_registry_(new ThreadRegistry()),
+      safepoint_handler_(new SafepointHandler(this)),
       isolates_monitor_(new Monitor()),
       isolates_() {}
 
@@ -165,6 +167,145 @@ void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
     }
     delete this;
   }
+}
+
+Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
+                                           Thread* existing_mutator_thread,
+                                           bool is_vm_isolate,
+                                           bool is_mutator,
+                                           bool bypass_safepoint) {
+  ASSERT(threads_lock()->IsOwnedByCurrentThread());
+
+  // Schedule the thread into the isolate group by associating
+  // a 'Thread' structure with it (this is done while we are holding
+  // the thread registry lock).
+  Thread* thread = nullptr;
+  OSThread* os_thread = OSThread::Current();
+  if (os_thread != nullptr) {
+    // If a safepoint operation is in progress wait for it
+    // to finish before scheduling this thread in.
+    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
+      ml->Wait();
+    }
+
+    if (is_mutator) {
+      if (existing_mutator_thread == nullptr) {
+        // Allocate a new [Thread] structure for the mutator thread.
+        thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+      } else {
+        // Reuse the existing cached [Thread] structure for the mutator thread.,
+        // see comment in 'base_isolate.h'.
+        thread_registry()->AddToActiveListLocked(existing_mutator_thread);
+        thread = existing_mutator_thread;
+      }
+    } else {
+      thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
+    }
+
+    // Now get a free Thread structure.
+    ASSERT(thread != nullptr);
+
+    thread->ResetHighWatermark();
+
+    // Set up other values and set the TLS value.
+    thread->isolate_ = nullptr;
+    thread->isolate_group_ = this;
+    thread->set_os_thread(os_thread);
+    ASSERT(thread->execution_state() == Thread::kThreadInNative);
+    thread->set_execution_state(Thread::kThreadInVM);
+    thread->set_safepoint_state(
+        Thread::SetBypassSafepoints(bypass_safepoint, 0));
+    thread->set_vm_tag(VMTag::kVMTagId);
+    ASSERT(thread->no_safepoint_scope_depth() == 0);
+    os_thread->set_thread(thread);
+    Thread::SetCurrent(thread);
+    os_thread->EnableThreadInterrupts();
+  }
+  return thread;
+}
+
+void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
+                                          Thread* thread,
+                                          bool is_mutator,
+                                          bool bypass_safepoint) {
+  // Disassociate the 'Thread' structure and unschedule the thread
+  // from this isolate group.
+  if (!is_mutator) {
+    ASSERT(thread->api_top_scope_ == nullptr);
+    ASSERT(thread->zone() == nullptr);
+    ASSERT(thread->sticky_error() == Error::null());
+  }
+  if (!bypass_safepoint) {
+    // Ensure that the thread reports itself as being at a safepoint.
+    thread->EnterSafepoint();
+  }
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != nullptr);
+  os_thread->DisableThreadInterrupts();
+  os_thread->set_thread(nullptr);
+  OSThread::SetCurrent(os_thread);
+
+  // Even if we unschedule the mutator thread, e.g. via calling
+  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
+  // stacks active, which e.g. GC marker threads want to visit.  So we don't
+  // clear out the isolate pointer if we are on the mutator thread.
+  //
+  // The [thread] structure for the mutator thread is kept alive in the thread
+  // registry even if the mutator thread is temporarily unscheduled.
+  //
+  // All other threads are not allowed to unschedule themselves and schedule
+  // again later on.
+  if (!is_mutator) {
+    thread->isolate_ = nullptr;
+  }
+  thread->heap_ = nullptr;
+  thread->set_os_thread(nullptr);
+  thread->set_execution_state(Thread::kThreadInNative);
+  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
+  thread->clear_pending_functions();
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
+  if (is_mutator) {
+    // The mutator thread structure stays alive and attached to the isolate as
+    // long as the isolate lives. So we simply remove the thread from the list
+    // of scheduled threads.
+    thread_registry()->RemoveFromActiveListLocked(thread);
+  } else {
+    // Return thread structure.
+    thread_registry()->ReturnThreadLocked(thread);
+  }
+}
+
+Thread* IsolateGroup::ScheduleThread(bool bypass_safepoint) {
+  // We are about to associate the thread with an isolate group and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(threads_lock(), false);
+
+  const bool is_vm_isolate = false;
+
+  // Schedule the thread into the isolate by associating
+  // a 'Thread' structure with it (this is done while we are holding
+  // the thread registry lock).
+  return ScheduleThreadLocked(&ml, /*existing_mutator_thread=*/nullptr,
+                              is_vm_isolate, /*is_mutator=*/false,
+                              bypass_safepoint);
+}
+
+void IsolateGroup::UnscheduleThread(Thread* thread,
+                                    bool is_mutator,
+                                    bool bypass_safepoint) {
+  // Disassociate the 'Thread' structure and unschedule the thread
+  // from this isolate group.
+  //
+  // We are disassociating the thread from an isolate and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(threads_lock(), false);
+  UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
 bool IsolateVisitor::IsVMInternalIsolate(Isolate* isolate) const {
@@ -924,8 +1065,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
 #endif  // !defined(PRODUCT)
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
-      thread_registry_(new ThreadRegistry()),
-      safepoint_handler_(new SafepointHandler(this)),
       random_(),
       mutex_(NOT_IN_PRODUCT("Isolate::mutex_")),
       symbols_mutex_(NOT_IN_PRODUCT("Isolate::symbols_mutex_")),
@@ -1024,15 +1163,12 @@ Isolate::~Isolate() {
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when isolate deleted.
   ASSERT(spawn_count_ == 0);
-  delete safepoint_handler_;
 
   // We have cached the mutator thread, delete it.
   ASSERT(scheduled_mutator_thread_ == nullptr);
   mutator_thread_->isolate_ = nullptr;
   delete mutator_thread_;
   mutator_thread_ = nullptr;
-
-  delete thread_registry_;
 
   if (obfuscation_map_ != nullptr) {
     for (intptr_t i = 0; obfuscation_map_[i] != nullptr; i++) {
@@ -2061,7 +2197,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validate_frames) {
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
-  thread_registry()->VisitObjectPointers(visitor, validate_frames);
+  thread_registry()->VisitObjectPointers(this, visitor, validate_frames);
 
   // Visit mutator thread, even if the isolate isn't entered/scheduled (there
   // might be live API handles to visit).
@@ -2077,7 +2213,7 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 void Isolate::ReleaseStoreBuffers() {
-  thread_registry()->ReleaseStoreBuffers();
+  thread_registry()->ReleaseStoreBuffers(this);
 }
 
 void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
@@ -2085,12 +2221,12 @@ void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
   ASSERT(marking_stack_ == nullptr);
   marking_stack_ = marking_stack;
   deferred_marking_stack_ = deferred_marking_stack;
-  thread_registry()->AcquireMarkingStacks();
+  thread_registry()->AcquireMarkingStacks(this);
   ASSERT(Thread::Current()->is_marking());
 }
 
 void Isolate::DisableIncrementalBarrier() {
-  thread_registry()->ReleaseMarkingStacks();
+  thread_registry()->ReleaseMarkingStacks(this);
   ASSERT(marking_stack_ != nullptr);
   marking_stack_ = nullptr;
   deferred_marking_stack_ = nullptr;
@@ -2255,8 +2391,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  intptr_t zone_handle_count = thread_registry_->CountZoneHandles();
-  intptr_t scoped_handle_count = thread_registry_->CountScopedHandles();
+  intptr_t zone_handle_count = thread_registry()->CountZoneHandles(this);
+  intptr_t scoped_handle_count = thread_registry()->CountScopedHandles(this);
 
   jsobj.AddProperty("_numZoneHandles", zone_handle_count);
   jsobj.AddProperty("_numScopedHandles", scoped_handle_count);
@@ -2320,7 +2456,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
 
-  jsobj.AddProperty("_threads", thread_registry_);
+  jsobj.AddProperty("_threads", thread_registry());
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
@@ -2875,76 +3011,47 @@ void Isolate::WaitForOutstandingSpawns() {
   }
 }
 
-Monitor* Isolate::threads_lock() const {
+Monitor* IsolateGroup::threads_lock() const {
   return thread_registry_->threads_lock();
 }
 
 Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
-  // Schedule the thread into the isolate by associating
-  // a 'Thread' structure with it (this is done while we are holding
-  // the thread registry lock).
-  Thread* thread = nullptr;
-  OSThread* os_thread = OSThread::Current();
-  if (os_thread != nullptr) {
-    // We are about to associate the thread with an isolate and it would
-    // not be possible to correctly track no_safepoint_scope_depth for the
-    // thread in the constructor/destructor of MonitorLocker,
-    // so we create a MonitorLocker object which does not do any
-    // no_safepoint_scope_depth increments/decrements.
-    MonitorLocker ml(threads_lock(), false);
+  // We are about to associate the thread with an isolate group and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(group()->threads_lock(), false);
 
-    // Check to make sure we don't already have a mutator thread.
-    if (is_mutator && scheduled_mutator_thread_ != nullptr) {
-      return nullptr;
-    }
-
-    // If a safepoint operation is in progress wait for it
-    // to finish before scheduling this thread in.
-    while (!bypass_safepoint && safepoint_handler()->SafepointInProgress()) {
-      ml.Wait();
-    }
-
-    // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
-    // VM startup it might not have been set at this point.
-    const bool is_vm_isolate =
-        Dart::vm_isolate() == nullptr || Dart::vm_isolate() == this;
-
-    if (is_mutator) {
-      if (mutator_thread_ == nullptr) {
-        // Allocate a new [Thread] structure for the mutator thread.
-        thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
-        mutator_thread_ = thread;
-      } else {
-        // Reuse the existing cached [Thread] structure for the mutator thread.,
-        // see comment in 'base_isolate.h'.
-        thread_registry()->AddToActiveListLocked(mutator_thread_);
-        thread = mutator_thread_;
-      }
-    } else {
-      thread = thread_registry()->GetFreeThreadLocked(is_vm_isolate);
-    }
-    ASSERT(thread != nullptr);
-
-    thread->ResetHighWatermark();
-
-    // Set up other values and set the TLS value.
-    thread->isolate_ = this;
-    ASSERT(heap() != nullptr);
-    thread->heap_ = heap();
-    thread->set_os_thread(os_thread);
-    ASSERT(thread->execution_state() == Thread::kThreadInNative);
-    thread->set_execution_state(Thread::kThreadInVM);
-    thread->set_safepoint_state(
-        Thread::SetBypassSafepoints(bypass_safepoint, 0));
-    thread->set_vm_tag(VMTag::kVMTagId);
-    ASSERT(thread->no_safepoint_scope_depth() == 0);
-    os_thread->set_thread(thread);
-    if (is_mutator) {
-      scheduled_mutator_thread_ = thread;
-    }
-    Thread::SetCurrent(thread);
-    os_thread->EnableThreadInterrupts();
+  // Check to make sure we don't already have a mutator thread.
+  if (is_mutator && scheduled_mutator_thread_ != nullptr) {
+    return nullptr;
   }
+
+  // NOTE: We cannot just use `Dart::vm_isolate() == this` here, since during
+  // VM startup it might not have been set at this point.
+  const bool is_vm_isolate =
+      Dart::vm_isolate() == nullptr || Dart::vm_isolate() == this;
+
+  // We lazily create a [Thread] structure for the mutator thread, but we'll
+  // reuse it until the death of the isolate.
+  Thread* existing_mutator_thread = is_mutator ? mutator_thread_ : nullptr;
+
+  // Schedule the thread into the isolate by associating a 'Thread' structure
+  // with it (this is done while we are holding the thread registry lock).
+  Thread* thread =
+      group()->ScheduleThreadLocked(&ml, existing_mutator_thread, is_vm_isolate,
+                                    is_mutator, bypass_safepoint);
+  if (is_mutator) {
+    ASSERT(mutator_thread_ == nullptr || mutator_thread_ == thread);
+    mutator_thread_ = thread;
+    scheduled_mutator_thread_ = thread;
+  }
+  thread->isolate_ = this;
+
+  ASSERT(heap() != nullptr);
+  thread->heap_ = heap();
+
   return thread;
 }
 
@@ -2958,57 +3065,18 @@ void Isolate::UnscheduleThread(Thread* thread,
   // thread in the constructor/destructor of MonitorLocker,
   // so we create a MonitorLocker object which does not do any
   // no_safepoint_scope_depth increments/decrements.
-  MonitorLocker ml(threads_lock(), false);
+  MonitorLocker ml(group()->threads_lock(), false);
 
   if (is_mutator) {
     if (thread->sticky_error() != Error::null()) {
       ASSERT(sticky_error_ == Error::null());
       sticky_error_ = thread->StealStickyError();
     }
-  } else {
-    ASSERT(thread->api_top_scope_ == nullptr);
-    ASSERT(thread->zone() == nullptr);
-    ASSERT(thread->sticky_error() == Error::null());
-  }
-  if (!bypass_safepoint) {
-    // Ensure that the thread reports itself as being at a safepoint.
-    thread->EnterSafepoint();
-  }
-  OSThread* os_thread = thread->os_thread();
-  ASSERT(os_thread != nullptr);
-  os_thread->DisableThreadInterrupts();
-  os_thread->set_thread(nullptr);
-  OSThread::SetCurrent(os_thread);
-
-  // Even if we unschedule the mutator thread, e.g. via calling
-  // `Dart_ExitIsolate()` inside a native, we might still have one or more Dart
-  // stacks active, which e.g. GC marker threads want to visit.  So we don't
-  // clear out the isolate pointer if we are on the mutator thread.
-  //
-  // The [thread] structure for the mutator thread is kept alive in the thread
-  // registry even if the mutator thread is temporarily unscheduled.
-  //
-  // All other threads are not allowed to unschedule themselves and schedule
-  // again later on.
-  if (!is_mutator) {
-    thread->isolate_ = nullptr;
-  }
-  thread->heap_ = nullptr;
-  thread->set_os_thread(nullptr);
-  thread->set_execution_state(Thread::kThreadInNative);
-  thread->set_safepoint_state(Thread::SetAtSafepoint(true, 0));
-  thread->clear_pending_functions();
-  ASSERT(thread->no_safepoint_scope_depth() == 0);
-
-  if (is_mutator) {
     ASSERT(mutator_thread_ == thread);
     ASSERT(mutator_thread_ == scheduled_mutator_thread_);
-    thread_registry()->RemoveFromActiveListLocked(thread);
     scheduled_mutator_thread_ = nullptr;
-  } else {
-    // Return thread structure.
-    thread_registry()->ReturnThreadLocked(thread);
   }
+  group()->UnscheduleThreadLocked(&ml, thread, is_mutator, bypass_safepoint);
 }
 
 static const char* NewConstChar(const char* chars) {

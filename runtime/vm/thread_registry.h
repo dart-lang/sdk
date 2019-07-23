@@ -25,22 +25,20 @@ class ThreadRegistry {
   ThreadRegistry() : threads_lock_(), active_list_(NULL), free_list_(NULL) {}
   ~ThreadRegistry();
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+  void VisitObjectPointers(Isolate* isolate_of_interest,
+                           ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
 
-  void ReleaseStoreBuffers();
-  void AcquireMarkingStacks();
-  void ReleaseMarkingStacks();
+  void ReleaseStoreBuffers(Isolate* isolate_of_interest);
+  void AcquireMarkingStacks(Isolate* isolate_of_interest);
+  void ReleaseMarkingStacks(Isolate* isolate_of_interest);
 
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
 
-  // Calculates the sum of the max memory usage in bytes of each thread.
-  uintptr_t ThreadHighWatermarksTotalLocked() const;
-
-  intptr_t CountZoneHandles() const;
-  intptr_t CountScopedHandles() const;
+  intptr_t CountZoneHandles(Isolate* isolate_of_interest) const;
+  intptr_t CountScopedHandles(Isolate* isolate_of_interest) const;
 
  private:
   Thread* active_list() const { return active_list_; }
@@ -60,6 +58,7 @@ class ThreadRegistry {
   Thread* free_list_;    // Free list of Thread objects that can be reused.
 
   friend class Isolate;
+  friend class IsolateGroup;
   friend class SafepointHandler;
   friend class Scavenger;
   DISALLOW_COPY_AND_ASSIGN(ThreadRegistry);

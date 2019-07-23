@@ -909,8 +909,14 @@ void Scavenger::MakeNewSpaceIterable() const {
   MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = heap_->isolate()->thread_registry()->active_list();
   while (current != NULL) {
-    if (current->HasActiveTLAB()) {
-      heap_->MakeTLABIterable(current);
+    // NOTE: During the transition period all isolates within an isolate group
+    // share the thread registry, but have their own heap.
+    // So we explicitly filter those threads which belong to the isolate of
+    // interest (once we have a shared heap this needs to change).
+    if (current->isolate() == isolate) {
+      if (current->HasActiveTLAB()) {
+        heap_->MakeTLABIterable(current);
+      }
     }
     current = current->next();
   }
@@ -925,7 +931,13 @@ void Scavenger::AbandonTLABs(Isolate* isolate) {
   MonitorLocker ml(isolate->threads_lock(), false);
   Thread* current = isolate->thread_registry()->active_list();
   while (current != NULL) {
-    heap_->AbandonRemainingTLAB(current);
+    // NOTE: During the transition period all isolates within an isolate group
+    // share the thread registry, but have their own heap.
+    // So we explicitly filter those threads which belong to the isolate of
+    // interest (once we have a shared heap this needs to change).
+    if (current->isolate() == isolate) {
+      heap_->AbandonRemainingTLAB(current);
+    }
     current = current->next();
   }
   Thread* mutator_thread = isolate->mutator_thread();

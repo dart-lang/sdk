@@ -24,10 +24,11 @@ class SafepointOperationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(SafepointOperationScope);
 };
 
-// Implements handling of safepoint operations for all threads in an Isolate.
+// Implements handling of safepoint operations for all threads in an
+// IsolateGroup.
 class SafepointHandler {
  public:
-  explicit SafepointHandler(Isolate* I);
+  explicit SafepointHandler(IsolateGroup* I);
   ~SafepointHandler();
 
   void EnterSafepointUsingLock(Thread* T);
@@ -39,8 +40,8 @@ class SafepointHandler {
   void SafepointThreads(Thread* T);
   void ResumeThreads(Thread* T);
 
-  Isolate* isolate() const { return isolate_; }
-  Monitor* threads_lock() const { return isolate_->threads_lock(); }
+  IsolateGroup* isolate_group() const { return isolate_group_; }
+  Monitor* threads_lock() const { return isolate_group_->threads_lock(); }
   bool SafepointInProgress() const {
     ASSERT(threads_lock()->IsOwnedByCurrentThread());
     return ((safepoint_operation_count_ > 0) && (owner_ != NULL));
@@ -74,7 +75,7 @@ class SafepointHandler {
     safepoint_operation_count_ -= 1;
   }
 
-  Isolate* isolate_;
+  IsolateGroup* isolate_group_;
 
   // Monitor used by thread initiating a safepoint operation to track threads
   // not at a safepoint and wait for these threads to reach a safepoint.
@@ -91,6 +92,7 @@ class SafepointHandler {
   Thread* owner_;
 
   friend class Isolate;
+  friend class IsolateGroup;
   friend class SafepointOperationScope;
   friend class HeapIterationScope;
 };
