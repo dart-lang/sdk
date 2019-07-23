@@ -39,10 +39,9 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   // example of how these events are used.
   //
   // In addition, the scanner will attempt a bit of recovery when braces don't
-  // match up during brace grouping. See
-  // [ArrayBasedScanner.discardBeginGroupUntil](array_based_scanner.dart). For
-  // more details on brace grouping see
-  // [AbstractScanner.unmatchedBeginGroup](abstract_scanner.dart).
+  // match up during brace grouping. For more details on brace grouping see
+  // [AbstractScanner.discardBeginGroupUntil] and
+  // [AbstractScanner.unmatchedBeginGroup].
 
   /// Tokens with errors.
   ErrorToken error;
