@@ -1169,6 +1169,9 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(5, variant: LinkedNodeKind.extensionDeclaration)
   List<LinkedNode> get extensionDeclaration_members;
 
+  @VariantId(20, variant: LinkedNodeKind.extensionDeclaration)
+  String get extensionDeclaration_refName;
+
   @VariantId(6, variant: LinkedNodeKind.extensionDeclaration)
   LinkedNode get extensionDeclaration_typeParameters;
 

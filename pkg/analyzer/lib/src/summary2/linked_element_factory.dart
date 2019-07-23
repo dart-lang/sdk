@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/core_types.dart';
+import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/linked_bundle_context.dart';
 import 'package:analyzer/src/summary2/linked_unit_context.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -433,8 +434,8 @@ class _ElementRequest {
         var name = declaration.name.name;
         classRef.getChild(name).node2 = declaration;
       } else if (declaration is ExtensionDeclaration) {
-        var name = declaration.name.name;
-        extensionRef.getChild(name).node2 = declaration;
+        var refName = LazyExtensionDeclaration.get(declaration).refName;
+        extensionRef.getChild(refName).node2 = declaration;
       } else if (declaration is EnumDeclaration) {
         var name = declaration.name.name;
         enumRef.getChild(name).node2 = declaration;

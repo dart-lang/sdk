@@ -1946,6 +1946,8 @@ table LinkedNode {
 
   variantField_25:LinkedNodeType (id: 25);
 
+  variantField_20:string (id: 20);
+
   flags:uint (id: 18);
 
   variantField_1:string (id: 1);
@@ -1963,8 +1965,6 @@ table LinkedNode {
   variantField_34:[string] (id: 34);
 
   name:string (id: 37);
-
-  variantField_20:string (id: 20);
 
   variantField_31:bool (id: 31);
 

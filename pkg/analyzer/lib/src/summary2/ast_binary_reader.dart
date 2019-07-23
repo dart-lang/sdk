@@ -605,7 +605,7 @@ class AstBinaryReader {
         members: _readNodeListLazy(data.extensionDeclaration_members),
         rightBracket: _Tokens.CLOSE_CURLY_BRACKET,
       );
-      LazyExtensionDeclaration.setData(node, data);
+      LazyExtensionDeclaration(node, data);
       return node;
     } finally {
       timerAstBinaryReaderClass.stop();

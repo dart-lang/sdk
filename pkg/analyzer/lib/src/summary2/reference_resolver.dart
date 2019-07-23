@@ -169,11 +169,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     var outerScope = scope;
     var outerReference = reference;
 
-    var name = node.name.name;
-    reference = reference.getChild('@extension').getChild(name);
+    var refName = LazyExtensionDeclaration.get(node).refName;
+    reference = reference.getChild('@extension').getChild(refName);
 
     ExtensionElementImpl element = reference.element;
-    node.name.staticElement = element;
+    node.name?.staticElement = element;
 
     _createTypeParameterElements(node.typeParameters);
     scope = new TypeParameterScope(scope, element);

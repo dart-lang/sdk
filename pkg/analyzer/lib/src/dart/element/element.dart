@@ -1782,19 +1782,16 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       var containerRef = reference.getChild('@extension');
       _extensions = <ExtensionElement>[];
       for (var node in linkedNode.declarations) {
-        String name;
         if (node is ExtensionDeclaration) {
-          name = node.name.name;
-        } else {
-          continue;
-        }
-        var reference = containerRef.getChild(name);
-        if (reference.hasElementFor(node)) {
-          _extensions.add(reference.element);
-        } else {
-          _extensions.add(
-            ExtensionElementImpl.forLinkedNode(this, reference, node),
-          );
+          var refName = linkedContext.getExtensionRefName(node);
+          var reference = containerRef.getChild(refName);
+          if (reference.hasElementFor(node)) {
+            _extensions.add(reference.element);
+          } else {
+            _extensions.add(
+              ExtensionElementImpl.forLinkedNode(this, reference, node),
+            );
+          }
         }
       }
       return _extensions;
@@ -5086,6 +5083,14 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
+  String get identifier {
+    if (linkedNode != null) {
+      return reference.name;
+    }
+    return super.identifier;
+  }
+
+  @override
   bool get isSimplyBounded => true;
 
   @override
@@ -5155,7 +5160,7 @@ class ExtensionElementImpl extends ElementImpl
   @override
   String get name {
     if (linkedNode != null) {
-      return reference.name;
+      return (linkedNode as ExtensionDeclaration).name?.name ?? '';
     }
     if (_unlinkedExtension != null) {
       return _unlinkedExtension.name;

@@ -672,10 +672,34 @@ class LazyExtensionDeclaration {
   bool _hasMembers = false;
   bool _hasMetadata = false;
 
-  LazyExtensionDeclaration(this.data);
+  /// The name for use in `Reference`. If the extension is named, the name
+  /// of the extension. If the extension is unnamed, a synthetic name.
+  String _refName;
+
+  LazyExtensionDeclaration(ExtensionDeclaration node, this.data) {
+    node.setProperty(_key, this);
+    if (data != null) {
+      _refName = data.extensionDeclaration_refName;
+    }
+  }
+
+  String get refName => _refName;
+
+  void put(LinkedNodeBuilder builder) {
+    assert(_refName != null);
+    builder.extensionDeclaration_refName = _refName;
+  }
+
+  void setRefName(String referenceName) {
+    _refName = referenceName;
+  }
 
   static LazyExtensionDeclaration get(ExtensionDeclaration node) {
-    return node.getProperty(_key);
+    LazyExtensionDeclaration lazy = node.getProperty(_key);
+    if (lazy == null) {
+      return LazyExtensionDeclaration(node, null);
+    }
+    return lazy;
   }
 
   static int getCodeLength(
@@ -752,10 +776,6 @@ class LazyExtensionDeclaration {
       }
       lazy._hasMetadata = true;
     }
-  }
-
-  static void setData(ExtensionDeclaration node, LinkedNode data) {
-    node.setProperty(_key, LazyExtensionDeclaration(data));
   }
 }
 

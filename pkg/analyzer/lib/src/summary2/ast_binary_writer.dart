@@ -503,6 +503,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     _storeCompilationUnitMember(builder, node);
     _storeInformativeId(builder, node);
     builder.name = node.name?.name;
+    LazyExtensionDeclaration.get(node).put(builder);
 
     return builder;
   }

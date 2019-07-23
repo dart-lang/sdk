@@ -100,6 +100,7 @@ class SourceLibraryBuilder {
       var getterRef = unitRef.getChild('@getter');
       var setterRef = unitRef.getChild('@setter');
       var variableRef = unitRef.getChild('@variable');
+      var nextUnnamedExtensionId = 0;
       for (var node in unitContext.unit.declarations) {
         if (node is ast.ClassDeclaration) {
           var name = node.name.name;
@@ -117,10 +118,16 @@ class SourceLibraryBuilder {
           reference.node2 = node;
           localScope.declare(name, reference);
         } else if (node is ast.ExtensionDeclaration) {
-          var name = node.name.name;
-          var reference = extensionRef.getChild(name);
+          var name = node.name?.name;
+          var refName = name ?? 'extension-${nextUnnamedExtensionId++}';
+          LazyExtensionDeclaration.get(node).setRefName(refName);
+
+          var reference = extensionRef.getChild(refName);
           reference.node2 = node;
-          localScope.declare(name, reference);
+
+          if (name != null) {
+            localScope.declare(name, reference);
+          }
         } else if (node is ast.FunctionDeclaration) {
           var name = node.name.name;
 

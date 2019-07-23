@@ -303,6 +303,10 @@ class LinkedUnitContext {
     return node.extendedType;
   }
 
+  String getExtensionRefName(ExtensionDeclaration node) {
+    return LazyExtensionDeclaration.get(node).refName;
+  }
+
   String getFieldFormalParameterName(AstNode node) {
     if (node is DefaultFormalParameter) {
       return getFieldFormalParameterName(node.parameter);
