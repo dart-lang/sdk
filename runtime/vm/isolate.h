@@ -252,6 +252,13 @@ class IsolateGroup {
                         bool is_mutator,
                         bool bypass_safepoint = false);
 
+  Dart_LibraryTagHandler library_tag_handler() const {
+    return library_tag_handler_;
+  }
+  void set_library_tag_handler(Dart_LibraryTagHandler handler) {
+    library_tag_handler_ = handler;
+  }
+
  private:
   std::unique_ptr<IsolateGroupSource> source_;
   void* embedder_data_ = nullptr;
@@ -261,6 +268,7 @@ class IsolateGroup {
   IntrusiveDList<Isolate> isolates_;
   intptr_t isolate_count_ = 0;
   bool initial_spawn_successful_ = false;
+  Dart_LibraryTagHandler library_tag_handler_ = nullptr;
 };
 
 class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
@@ -403,13 +411,12 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     environment_callback_ = value;
   }
 
-  bool HasTagHandler() const { return library_tag_handler_ != nullptr; }
+  bool HasTagHandler() const {
+    return group()->library_tag_handler() != nullptr;
+  }
   RawObject* CallTagHandler(Dart_LibraryTag tag,
                             const Object& arg1,
                             const Object& arg2);
-  void set_library_tag_handler(Dart_LibraryTagHandler value) {
-    library_tag_handler_ = value;
-  }
 
   void SetupImagePage(const uint8_t* snapshot_buffer, bool is_executable);
 
@@ -1127,7 +1134,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
   Dart_EnvironmentCallback environment_callback_ = nullptr;
-  Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   ApiState* api_state_ = nullptr;
   Random random_;
   Simulator* simulator_ = nullptr;

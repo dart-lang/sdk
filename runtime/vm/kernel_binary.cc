@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
+#include <memory>
+
 #include "vm/kernel_binary.h"
 #include "platform/globals.h"
 #include "vm/compiler/frontend/kernel_to_il.h"
@@ -166,14 +168,18 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
 std::unique_ptr<Program> Program::ReadFromFile(
     const char* script_uri, const char** error /* = nullptr */) {
   Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   if (script_uri == NULL) {
+    return nullptr;
+  }
+  if (!isolate->HasTagHandler()) {
     return nullptr;
   }
   std::unique_ptr<kernel::Program> kernel_program;
 
   const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(thread->isolate()->CallTagHandler(
-      Dart_kKernelTag, Object::null_object(), uri));
+  const Object& ret = Object::Handle(
+      isolate->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
   Api::Scope api_scope(thread);
   Dart_Handle retval = Api::NewHandle(thread, ret.raw());
   {

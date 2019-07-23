@@ -5095,7 +5095,7 @@ DART_EXPORT Dart_Handle
 Dart_SetLibraryTagHandler(Dart_LibraryTagHandler handler) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
-  isolate->set_library_tag_handler(handler);
+  isolate->group()->set_library_tag_handler(handler);
   return Api::Success();
 }
 

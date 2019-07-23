@@ -200,10 +200,6 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
 
   Dart_Handle result;
 
-  // Set up the library tag handler for this isolate.
-  result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
-  if (Dart_IsError(result)) return result;
-
   // Prepare builtin and other core libraries for use to resolve URIs.
   // Set up various closures, e.g: printing, timers etc.
   // Set up 'package root' for URI resolution.
@@ -329,12 +325,17 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
                                        int* exit_code) {
   Dart_EnterScope();
 
+  // Set up the library tag handler for the isolate group shared by all
+  // isolates in the group.
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
+  CHECK_RESULT(result);
+
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
 
   const char* resolved_packages_config = nullptr;
-  Dart_Handle result = SetupCoreLibraries(isolate, isolate_data,
-                                          /*is_isolate_group_start=*/true,
-                                          &resolved_packages_config);
+  result = SetupCoreLibraries(isolate, isolate_data,
+                              /*is_isolate_group_start=*/true,
+                              &resolved_packages_config);
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

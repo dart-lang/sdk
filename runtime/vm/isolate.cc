@@ -1337,7 +1337,8 @@ RawObject* Isolate::CallTagHandler(Dart_LibraryTag tag,
   Dart_Handle api_result;
   {
     TransitionVMToNative transition(thread);
-    api_result = library_tag_handler_(tag, api_arg1, api_arg2);
+    ASSERT(HasTagHandler());
+    api_result = group()->library_tag_handler()(tag, api_arg1, api_arg2);
   }
   return Api::UnwrapHandle(api_result);
 }

@@ -4,6 +4,8 @@
 
 library test_extension_test;
 
+import 'dart:isolate';
+
 import "test_extension.dart";
 
 class Expect {
@@ -22,7 +24,9 @@ class Expect {
   }
 }
 
-main() {
+isolateHandler(_) {}
+
+main() async {
   Expect.equals('cat 13', new Cat(13).toString(), 'new Cat(13).toString()');
 
   Expect.equals(3, Cat.ifNull(null, 3), 'Cat.ifNull(null, 3)');
@@ -35,4 +39,6 @@ main() {
   } on String catch (e) {
     Expect.equals("ball", e);
   }
+
+  await Isolate.spawn(isolateHandler, []);
 }
