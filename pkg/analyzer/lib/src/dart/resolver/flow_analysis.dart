@@ -701,12 +701,31 @@ abstract class NodeOperations<Expression> {
   Expression unwrapParenthesized(Expression node);
 }
 
+/// An instance of the [State] class represents the information gathered by flow
+/// analysis at a single point in the control flow of the function or method
+/// being analyzed.
+///
+/// Instances of this class are immuatable, so the methods below that "update"
+/// the state actually leave `this` unchanged and return a new state object.
 @visibleForTesting
 class State<Variable, Type> {
+  /// Indicates whether this point in the control flow is reachable.
   final bool reachable;
+
+  /// The set of variables that are not yet definitely assigned at this point in
+  /// the control flow.
   final _VariableSet<Variable> notAssigned;
+
+  /// For each variable whose type is promoted at this point in the control
+  /// flow, the promoted type.  Variables whose type is not promoted are not
+  /// present in the map.  Variables that have gone out of scope are not
+  /// guaranteed to be present in the map even if they were promoted at the time
+  /// they went out of scope.
   final Map<Variable, Type> promoted;
 
+  /// Creates a state object with the given [reachable] status.  All variables
+  /// are assumed to be unpromoted and already assigned, so joining another
+  /// state with this one will have no effect on it.
   State(bool reachable)
       : this._(
           reachable,
@@ -720,7 +739,9 @@ class State<Variable, Type> {
     this.promoted,
   );
 
-  /// Add a new [variable] to track definite assignment.
+  /// Updates the state to track a newly declared local [variable].  The
+  /// optional [assigned] boolean indicates whether the variable is assigned at
+  /// the point of declaration.
   State<Variable, Type> add(Variable variable, {bool assigned: false}) {
     var newNotAssigned = assigned ? notAssigned : notAssigned.add(variable);
 
@@ -735,6 +756,7 @@ class State<Variable, Type> {
     );
   }
 
+  /// Updates the state to indicate that the control flow path is unreachable.
   State<Variable, Type> exit() {
     return State<Variable, Type>._(
       false,
@@ -743,6 +765,11 @@ class State<Variable, Type> {
     );
   }
 
+  /// Updates the state to indicate that the given [variable] has been
+  /// determined to contain a non-null value.
+  ///
+  /// TODO(paulberry): should this method mark the variable as definitely
+  /// assigned?  Does it matter?
   State<Variable, Type> markNonNullable(
       TypeOperations<Variable, Type> typeOperations, Variable variable) {
     var previousType = promoted[variable];
@@ -762,6 +789,14 @@ class State<Variable, Type> {
     return this;
   }
 
+  /// Updates the state to indicate that the given [variable] has been
+  /// determined to satisfy the given [type].
+  ///
+  /// Note that the state is only changed if [type] is a subtype of the
+  /// variable's previous (possibly promoted) type.
+  ///
+  /// TODO(paulberry): if the type is non-nullable, should this method mark the
+  /// variable as definitely assigned?  Does it matter?
   State<Variable, Type> promote(
     TypeOperations<Variable, Type> typeOperations,
     Variable variable,
@@ -784,6 +819,8 @@ class State<Variable, Type> {
     return this;
   }
 
+  /// Updates the state to indicate that the given [variables] are no longer
+  /// promoted; they are presumed to have their declared types.
   State<Variable, Type> removePromotedAll(Set<Variable> variables) {
     var newPromoted = _removePromotedAll(promoted, variables);
 
@@ -796,6 +833,16 @@ class State<Variable, Type> {
     );
   }
 
+  /// Updates the state to reflect a control path that is known to have
+  /// previously passed through some [other] state.
+  ///
+  /// The control flow path is considered reachable if both this state and the
+  /// other state are reachable.  Variables are considered definitely assigned
+  /// if they were definitely assigned in either this state or the other state.
+  /// Variable type promotions are taken from this state, unless the promotion
+  /// in the other state is more specific, and the variable is "safe".  A
+  /// variable is considered safe if there is no chance that it was assigned
+  /// more recently than the "other" state.
   State<Variable, Type> restrict(
     TypeOperations<Variable, Type> typeOperations,
     _VariableSet<Variable> emptySet,
@@ -866,6 +913,8 @@ class State<Variable, Type> {
     );
   }
 
+  /// Updates the state to indicate whether the control flow path is
+  /// [reachable].
   State<Variable, Type> setReachable(bool reachable) {
     if (this.reachable == reachable) return this;
 
@@ -879,6 +928,11 @@ class State<Variable, Type> {
   @override
   String toString() => '($reachable, $notAssigned, $promoted)';
 
+  /// Updates the state to indicate that an assignment was made to the given
+  /// [variable].  The variable is marked as definitely assigned, and any
+  /// previous type promotion is removed.
+  ///
+  /// TODO(paulberry): allow for writes that preserve type promotions.
   State<Variable, Type> write(TypeOperations<Variable, Type> typeOperations,
       _VariableSet<Variable> emptySet, Variable variable) {
     var newNotAssigned = typeOperations.isLocalVariable(variable)
@@ -899,6 +953,8 @@ class State<Variable, Type> {
     );
   }
 
+  /// Removes a [variable] from a "promoted" [map], treating the map as
+  /// immutable.
   Map<Variable, Type> _removePromoted(
       Map<Variable, Type> map, Variable variable) {
     if (map.isEmpty) return const {};
@@ -914,6 +970,8 @@ class State<Variable, Type> {
     return result;
   }
 
+  /// Removes a set of [variable]s from a "promoted" [map], treating the map as
+  /// immutable.
   Map<Variable, Type> _removePromotedAll(
     Map<Variable, Type> map,
     Set<Variable> variables,
@@ -936,6 +994,8 @@ class State<Variable, Type> {
     return result;
   }
 
+  /// Creates a new [State] object, unless it is equivalent to either [first] or
+  /// [second], in which case one of those objects is re-used.
   static State<Variable, Type> _identicalOrNew<Variable, Type>(
     State<Variable, Type> first,
     State<Variable, Type> second,
@@ -961,6 +1021,7 @@ class State<Variable, Type> {
     );
   }
 
+  /// Determines whether the given "promoted" maps are equivalent.
   static bool _promotionsEqual<Variable, Type>(
       TypeOperations<Variable, Type> typeOperations,
       Map<Variable, Type> p1,
