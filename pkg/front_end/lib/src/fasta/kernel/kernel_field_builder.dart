@@ -29,7 +29,7 @@ import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
-import 'kernel_body_builder.dart' show KernelBodyBuilder;
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -124,9 +124,8 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
                 classBuilder.hasConstConstructor)) &&
         constInitializerToken != null) {
       Scope scope = classBuilder?.scope ?? library.scope;
-      KernelBodyBuilder bodyBuilder =
-          new KernelBodyBuilder.forOutlineExpression(
-              library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
+          library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext =
           isConst ? ConstantContext.inferred : ConstantContext.none;
       initializer = bodyBuilder.parseFieldInitializer(constInitializerToken)
@@ -172,8 +171,7 @@ class KernelFieldBuilder extends FieldBuilder<Expression> {
     TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
         .createTopLevelTypeInferrer(
             fileUri, field.enclosingClass?.thisType, null);
-    KernelBodyBuilder bodyBuilder =
-        new KernelBodyBuilder.forField(this, typeInferrer);
+    BodyBuilder bodyBuilder = new BodyBuilder.forField(this, typeInferrer);
     bodyBuilder.constantContext =
         isConst ? ConstantContext.inferred : ConstantContext.none;
     initializer = bodyBuilder.parseFieldInitializer(type.initializerToken);

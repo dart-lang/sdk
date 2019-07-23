@@ -21,8 +21,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 
-import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
-    show KernelBodyBuilder;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show KernelLibraryBuilder, KernelProcedureBuilder;
@@ -61,7 +60,7 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
   }
 }
 
-class MockBodyBuilder extends KernelBodyBuilder {
+class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
       : super(libraryBuilder, libraryBuilder.mockProcedure(name), scope, scope,
@@ -72,7 +71,7 @@ class MockBodyBuilder extends KernelBodyBuilder {
 }
 
 Expression compileExpression(String source) {
-  KernelBodyBuilder listener = new MockBodyBuilder(
+  BodyBuilder listener = new MockBodyBuilder(
       Uri.parse("org-dartlang-test:my_library.dart"),
       "<test>",
       new UnlinkedScope());

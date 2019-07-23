@@ -16,7 +16,7 @@ import '../scope.dart' show Scope;
 
 import '../source/source_loader.dart' show SourceLoader;
 
-import 'kernel_body_builder.dart' show KernelBodyBuilder;
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -109,9 +109,8 @@ class KernelFormalParameterBuilder extends FormalParameterBuilder<TypeBuilder> {
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;
       Scope scope = classBuilder.scope;
-      KernelBodyBuilder bodyBuilder =
-          new KernelBodyBuilder.forOutlineExpression(
-              library, classBuilder, this, scope, fileUri);
+      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
+          library, classBuilder, this, scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.required;
       target.initializer = bodyBuilder.parseFieldInitializer(initializerToken)
         ..parent = target;

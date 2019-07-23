@@ -104,6 +104,8 @@ import 'expression_generator.dart'
 
 import 'expression_generator_helper.dart' show ExpressionGeneratorHelper;
 
+import 'fangorn.dart' show Fangorn;
+
 import 'forest.dart' show Forest;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
@@ -134,8 +136,10 @@ const noLocation = null;
 // has been enabled by default.
 const invalidCollectionElement = const Object();
 
-abstract class BodyBuilder extends ScopeListener<JumpTarget>
+class BodyBuilder extends ScopeListener<JumpTarget>
     implements ExpressionGeneratorHelper, EnsureLoaded {
+  final Forest forest;
+
   // TODO(ahe): Rename [library] to 'part'.
   @override
   final KernelLibraryBuilder library;
@@ -277,7 +281,8 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
       this.isInstanceMember,
       this.uri,
       this.typeInferrer)
-      : enableNative =
+      : forest = const Fangorn(),
+        enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString,
@@ -311,6 +316,25 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
                 : field.parent,
             field.parent is KernelClassBuilder ? field.parent : null,
             typeInferrer);
+
+  BodyBuilder.forOutlineExpression(
+      KernelLibraryBuilder library,
+      KernelClassBuilder classBuilder,
+      ModifierBuilder member,
+      Scope scope,
+      Uri fileUri)
+      : this(
+            library,
+            member,
+            scope,
+            null,
+            library.loader.hierarchy,
+            library.loader.coreTypes,
+            classBuilder,
+            member?.isInstanceMember ?? false,
+            fileUri,
+            library.loader.typeInferenceEngine?.createLocalTypeInferrer(
+                fileUri, classBuilder?.target?.thisType, library));
 
   bool get inConstructor {
     return functionNestingLevel == 0 && member is KernelConstructorBuilder;
@@ -5358,9 +5382,11 @@ abstract class BodyBuilder extends ScopeListener<JumpTarget>
     return new DeferredCheckJudgment(check, expression);
   }
 
-  /// TODO(ahe): This method is temporarily implemented by subclasses. Once type
-  /// promotion is independent of shadow nodes, remove this method.
-  void enterThenForTypePromotion(Expression condition);
+  /// TODO(ahe): This method is temporarily implemented. Once type promotion is
+  /// independent of shadow nodes, remove this method.
+  void enterThenForTypePromotion(Expression condition) {
+    typePromoter?.enterThen(condition);
+  }
 
   bool isErroneousNode(TreeNode node) {
     return library.loader.handledErrors.isNotEmpty &&

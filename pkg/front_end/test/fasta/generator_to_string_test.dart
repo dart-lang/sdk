@@ -45,12 +45,9 @@ import 'package:front_end/src/fasta/kernel/kernel_target.dart'
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show Message, templateUnspecified;
 
-import 'package:front_end/src/fasta/kernel/expression_generator.dart' /*
-    show Generator*/
-    ;
+import 'package:front_end/src/fasta/kernel/expression_generator.dart';
 
-import 'package:front_end/src/fasta/kernel/kernel_body_builder.dart'
-    show KernelBodyBuilder;
+import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
@@ -98,7 +95,7 @@ main() {
             new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
-    KernelBodyBuilder helper = new KernelBodyBuilder(
+    BodyBuilder helper = new BodyBuilder(
         libraryBuilder, null, null, null, null, null, null, false, uri, null);
 
     Generator generator = new ThisAccessGenerator(helper, token, false, false);

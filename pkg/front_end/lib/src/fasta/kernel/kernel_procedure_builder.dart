@@ -62,7 +62,7 @@ import '../source/source_loader.dart' show SourceLoader;
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly, Variance;
 
-import 'kernel_body_builder.dart' show KernelBodyBuilder;
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -520,9 +520,8 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
     // for const constructors into the outline.
     if (isConst && beginInitializers != null) {
       ClassBuilder classBuilder = parent;
-      KernelBodyBuilder bodyBuilder =
-          new KernelBodyBuilder.forOutlineExpression(
-              library, classBuilder, this, classBuilder.scope, fileUri);
+      BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
+          library, classBuilder, this, classBuilder.scope, fileUri);
       bodyBuilder.constantContext = ConstantContext.inferred;
       bodyBuilder.parseInitializers(beginInitializers);
       if (library.loader is SourceLoader) {

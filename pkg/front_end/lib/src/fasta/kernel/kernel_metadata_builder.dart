@@ -6,7 +6,7 @@ library fasta.kernel_metadata_builder;
 
 import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
-import 'kernel_body_builder.dart' show KernelBodyBuilder;
+import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
     show
@@ -37,7 +37,7 @@ class KernelMetadataBuilder extends MetadataBuilder {
     Scope scope = parent is Library || parent is Class || classBuilder == null
         ? library.scope
         : classBuilder.scope;
-    KernelBodyBuilder bodyBuilder = new KernelBodyBuilder.forOutlineExpression(
+    BodyBuilder bodyBuilder = new BodyBuilder.forOutlineExpression(
         library, classBuilder, member, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       KernelMetadataBuilder annotationBuilder = metadata[i];
