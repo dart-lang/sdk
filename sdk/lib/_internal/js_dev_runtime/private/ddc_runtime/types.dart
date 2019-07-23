@@ -695,16 +695,21 @@ List<TypeVariable> _typeFormalsFromFunction(Object typeConstructor) {
 FunctionType fnType(returnType, List args, [@undefined extra]) =>
     FunctionType.create(returnType, args, extra);
 
-/// Creates a generic function type.
+/// Creates a generic function type from [instantiateFn] and [typeBounds].
 ///
-/// A function type consists of two things: an instantiate function, and an
-/// function that returns a list of upper bound constraints for each
-/// the type formals. Both functions accept the type parameters, allowing us
-/// to substitute values. The upper bound constraints can be omitted if all
-/// of the type parameters use the default upper bound.
+/// A function type consists of two things:
+/// * An instantiate function that takes type arguments and returns the
+///   function signature in the form of a two element list. The first element
+///   is the return type. The second element is a list of the argument types.
+/// * A function that returns a list of upper bound constraints for each of
+///   the type formals.
+///
+/// Both functions accept the type parameters, allowing us to substitute values.
+/// The upper bound constraints can be omitted if all of the type parameters use
+/// the default upper bound.
 ///
 /// For example given the type <T extends Iterable<T>>(T) -> T, we can declare
-/// this type with `gFnType(T => [T, [T]], T => [Iterable$(T)])`.\
+/// this type with `gFnType(T => [T, [T]], T => [Iterable$(T)])`.
 gFnType(instantiateFn, typeBounds) =>
     GenericFunctionType(instantiateFn, typeBounds);
 
@@ -882,6 +887,7 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // given t1 is Future<A> | A, then:
     // (Future<A> | A) <: t2 iff Future<A> <: t2 and A <: t2.
     let t1Future = ${getGenericClass(Future)}(t1TypeArg);
+    // Known to handle the case FutureOr<Null> <: Future<Null>.
     return $_isSubtype(t1Future, $t2) && $_isSubtype(t1TypeArg, $t2);
   }
 
@@ -890,9 +896,7 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
     let t2TypeArg = ${getGenericArgs(t2)}[0];
     let t2Future = ${getGenericClass(Future)}(t2TypeArg);
-    let s1 = $_isSubtype($t1, t2Future);
-    let s2 = $_isSubtype($t1, t2TypeArg);
-    return s1 || s2;
+    return $_isSubtype($t1, t2Future) || $_isSubtype($t1, t2TypeArg);
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
@@ -908,9 +912,11 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     }
 
     // All JS types are subtypes of anonymous JS types.
-    if ($t1 === $jsobject && $t2 instanceof $AnonymousJSType) return true;
+    if ($t1 === $jsobject && $t2 instanceof $AnonymousJSType) {
+      return true;
+    }
 
-    // Compare two interface types:
+    // Compare two interface types.
     return ${_isInterfaceSubtype(t1, t2)};
   }
 
@@ -941,6 +947,9 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // to avoid capture because it does not depend on its TypeVariable objects,
     // rather it uses JS function parameters to ensure correct binding.
     let fresh = $t2.typeFormals;
+
+    // TODO(nshahan) Remove this variance check. The types should be equal
+    // according to the spec and to match other backends.
 
     // Check the bounds of the type parameters of g1 and g2.
     // given a type parameter `T1 extends U1` from g1, and a type parameter
@@ -1000,22 +1009,12 @@ bool _isInterfaceSubtype(t1, t2) => JS('', '''(() => {
   if (raw1 != null && raw1 == raw2) {
     let typeArguments1 = $getGenericArgs($t1);
     let typeArguments2 = $getGenericArgs($t2);
-    let length = typeArguments1.length;
-    if (typeArguments2.length == 0) {
-      // t2 is the raw form of t1
-      return true;
-    } else if (length == 0) {
-      // t1 is raw, but t2 is not
-      if (typeArguments2.every($_isTop)) {
-        return true;
-      }
-      return false;
+    if (typeArguments1.length != typeArguments2.length) {
+      $assertFailed();
     }
-    if (length != typeArguments2.length) $assertFailed();
-    for (let i = 0; i < length; ++i) {
-      let result = $_isSubtype(typeArguments1[i], typeArguments2[i]);
-      if (!result) {
-        return result;
+    for (let i = 0; i < typeArguments1.length; ++i) {
+      if (!$_isSubtype(typeArguments1[i], typeArguments2[i])) {
+        return false;
       }
     }
     return true;
