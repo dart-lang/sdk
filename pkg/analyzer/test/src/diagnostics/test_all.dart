@@ -138,6 +138,8 @@ import 'non_constant_spread_expression_from_deferred_library_test.dart'
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
 import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
+import 'not_initialized_non_nullable_instance_field_test.dart'
+    as not_initialized_non_nullable_instance_field;
 import 'not_initialized_non_nullable_static_field_test.dart'
     as not_initialized_non_nullable_static_field;
 import 'not_initialized_non_nullable_top_level_variable_test.dart'
@@ -319,6 +321,7 @@ main() {
     non_constant_spread_expression_from_deferred_library.main();
     non_null_opt_out.main();
     not_assigned_potentially_non_nullable_local_variable.main();
+    not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_static_field.main();
     not_initialized_non_nullable_top_level_variable.main();
     not_iterable_spread.main();

@@ -2555,6 +2555,43 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try adding the missing arguments.");
 
   /**
+   * It is an error if an instance field with potentially non-nullable type has
+   * no initializer expression and is not initialized in a constructor via an
+   * initializing formal or an initializer list entry, unless the field is
+   * marked with the `late` modifier.
+   *
+   * Parameters:
+   * 0: the name of the field that is not initialized
+   */
+  static const CompileTimeErrorCode
+      NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD = const CompileTimeErrorCode(
+          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
+          "Non-nullable instance field '{0}' must be initialized.",
+          correction: "Try adding an initializer expression, "
+              "or a generative constructor that initializes it, "
+              "or mark it 'late'.");
+
+  /**
+   * It is an error if an instance field with potentially non-nullable type has
+   * no initializer expression and is not initialized in a constructor via an
+   * initializing formal or an initializer list entry, unless the field is
+   * marked with the `late` modifier.
+   *
+   * Parameters:
+   *
+   * Parameters:
+   * 0: the name of the field that is not initialized
+   */
+  static const CompileTimeErrorCode
+      NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR =
+      const CompileTimeErrorCode(
+          'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
+          "Non-nullable instance field '{0}' must be initialized.",
+          correction: "Try adding an initializer expression, "
+              "or add a field initializer in this constructor, "
+              "or mark it 'late'.");
+
+  /**
    * It is an error if a static variable with potentially non-nullable type has
    * no initializer expression.
    *

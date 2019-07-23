@@ -2937,6 +2937,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     expect(typeSystem.isNonNullable(starType), true);
   }
 
+  test_isNonNullable_Never() {
+    expect(typeSystem.isNonNullable(neverType), true);
+  }
+
   test_isNonNullable_never() {
     expect(typeSystem.isNonNullable(neverType), true);
   }
@@ -3113,6 +3117,10 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isNullable_interface_star() {
     expect(typeSystem.isNullable(starType), false);
+  }
+
+  test_isNullable_Never() {
+    expect(typeSystem.isNullable(neverType), false);
   }
 
   test_isNullable_never() {

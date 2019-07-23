@@ -2013,15 +2013,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
       }
     }
-    // Prepare a list of not initialized fields.
+
+    // Prepare lists of not initialized fields.
     List<FieldElement> notInitFinalFields = <FieldElement>[];
-    fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
-      if (state == INIT_STATE.NOT_INIT) {
-        if (fieldElement.isFinal && !fieldElement.isLate) {
-          notInitFinalFields.add(fieldElement);
-        }
+    List<FieldElement> notInitNonNullableFields = <FieldElement>[];
+    fieldElementsMap.forEach((FieldElement field, INIT_STATE state) {
+      if (state != INIT_STATE.NOT_INIT) return;
+      if (field.isLate) return;
+
+      if (field.isFinal) {
+        notInitFinalFields.add(field);
+      } else if (_isNonNullable &&
+          _typeSystem.isPotentiallyNonNullable(field.type)) {
+        notInitNonNullableFields.add(field);
       }
     });
+
     // Visit all of the states in the map to ensure that none were never
     // initialized.
     fieldElementsMap.forEach((FieldElement fieldElement, INIT_STATE state) {
@@ -2053,6 +2060,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
             constructor.returnType,
             [names[0], names[1], names.length - 2]);
+      }
+    }
+
+    if (notInitNonNullableFields.isNotEmpty) {
+      var names = notInitNonNullableFields.map((f) => f.name).toList()..sort();
+      for (var name in names) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+            constructor.returnType,
+            [name]);
       }
     }
   }
@@ -3419,7 +3437,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     for (ClassMember classMember in members) {
       if (classMember is FieldDeclaration) {
-        _checkForFinalNotInitialized(classMember.fields);
+        var fields = classMember.fields;
+        _checkForFinalNotInitialized(fields);
+        _checkForNotInitializedNonNullableInstanceFields(classMember);
       }
     }
   }
@@ -4705,6 +4725,31 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.NON_VOID_RETURN_FOR_SETTER, typeName);
       }
+    }
+  }
+
+  void _checkForNotInitializedNonNullableInstanceFields(
+    FieldDeclaration fieldDeclaration,
+  ) {
+    if (!_isNonNullable) return;
+
+    if (fieldDeclaration.isStatic) return;
+    var fields = fieldDeclaration.fields;
+
+    if (fields.isLate) return;
+    if (fields.isFinal) return;
+
+    for (var field in fields.variables) {
+      if (field.initializer != null) continue;
+
+      var type = field.declaredElement.type;
+      if (!_typeSystem.isPotentiallyNonNullable(type)) continue;
+
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD,
+        field,
+        [field.name.name],
+      );
     }
   }
 
