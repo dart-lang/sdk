@@ -2087,6 +2087,7 @@ Level _findLogLevel(int value) {
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
   static const kVMUpdate = 'VMUpdate';
+  static const kVMFlagUpdate = 'VMFlagUpdate';
   static const kIsolateStart = 'IsolateStart';
   static const kIsolateRunnable = 'IsolateRunnable';
   static const kIsolateExit = 'IsolateExit';
@@ -2123,6 +2124,8 @@ class ServiceEvent extends ServiceObject {
 
   String kind;
   DateTime timestamp;
+  String flag;
+  String newValue;
   List<M.Breakpoint> pauseBreakpoints;
   Breakpoint breakpoint;
   Frame topFrame;
@@ -2252,6 +2255,12 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['alias'] != null) {
       alias = map['alias'];
+    }
+    if (map['flag'] != null) {
+      flag = map['flag'];
+    }
+    if (map['new_value'] != null) {
+      newValue = map['new_value'];
     }
   }
 

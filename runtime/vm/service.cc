@@ -4708,6 +4708,12 @@ static bool SetFlag(Thread* thread, JSONStream* js) {
       // to notify the ThreadInterrupter to pick up the change.
       Profiler::UpdateSamplePeriod();
     }
+    if (Service::vm_stream.enabled()) {
+      ServiceEvent event(NULL, ServiceEvent::kVMFlagUpdate);
+      event.set_flag_name(flag_name);
+      event.set_flag_new_value(flag_value);
+      Service::HandleEvent(&event);
+    }
     return true;
   } else {
     JSONObject jsobj(js);

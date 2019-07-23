@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.22
+# Dart VM Service Protocol 3.23
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.22_ of the Dart VM Service Protocol. This
+This document describes of _version 3.23_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1080,7 +1080,7 @@ The _streamId_ parameter may have the following published values:
 
 streamId | event types provided
 -------- | -----------
-VM | VMUpdate
+VM | VMUpdate, VMFlagUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, IsolateReload, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, PausePostRequest, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
@@ -1513,13 +1513,13 @@ class Event extends Response {
   // The isolate with which this event is associated.
   //
   // This is provided for all event kinds except for:
-  //   VMUpdate
+  //   VMUpdate, VMFlagUpdate
   @Isolate isolate [optional];
 
   // The vm with which this event is associated.
   //
   // This is provided for the event kind:
-  //   VMUpdate
+  //   VMUpdate, VMFlagUpdate
   @VM vm [optional];
 
   // The timestamp (in milliseconds since the epoch) associated with this event.
@@ -1635,6 +1635,18 @@ class Event extends Response {
   // This is provided for the event kinds:
   //   ServiceRegistered
   String alias [optional];
+
+  // The name of the changed flag.
+  //
+  // This is provided for the event kinds:
+  //   VMFlagUpdate
+  String flag [optional];
+
+  // The new value of the changed flag.
+  //
+  // This is provided for the event kinds:
+  //   VMFlagUpdate
+  String newValue [optional];
 }
 ```
 
@@ -1651,6 +1663,9 @@ enum EventKind {
   // Notification that VM identifying information has changed. Currently used
   // to notify of changes to the VM debugging name via setVMName.
   VMUpdate,
+
+  // Notification that a VM flag has been changed via the service protocol.
+  VMFlagUpdate,
 
   // Notification that a new isolate has started.
   IsolateStart,
@@ -3127,5 +3142,6 @@ version | comments
 3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
 3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
 3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
+3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

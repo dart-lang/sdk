@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -74,12 +76,25 @@ var tests = <VMTest>[
     final kProfilePeriod = 'profile_period';
     final kValue = 100;
     expect(await getFlagValue(vm, kProfilePeriod), '1000');
-    var params = {
+    final params = {
       'name': '$kProfilePeriod',
       'value': '$kValue',
     };
-    var result = await vm.invokeRpcNoUpgrade('setFlag', params);
+    final completer = Completer();
+    final stream = await vm.getEventStream(VM.kVMStream);
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      if (event.kind == ServiceEvent.kVMFlagUpdate) {
+        expect(event.owner.type, 'VM');
+        expect(event.flag, kProfilePeriod);
+        expect(event.newValue, kValue.toString());
+        subscription.cancel();
+        completer.complete();
+      }
+    });
+    final result = await vm.invokeRpcNoUpgrade('setFlag', params);
     expect(result['type'], equals('Success'));
+    await completer.future;
     expect(await getFlagValue(vm, kProfilePeriod), kValue.toString());
   }
 ];

@@ -15,6 +15,8 @@ namespace dart {
 ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
     : isolate_(isolate),
       kind_(event_kind),
+      flag_name_(NULL),
+      flag_new_value_(NULL),
       embedder_kind_(NULL),
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
@@ -52,6 +54,8 @@ const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
     case kVMUpdate:
       return "VMUpdate";
+    case kVMFlagUpdate:
+      return "VMFlagUpdate";
     case kIsolateStart:
       return "IsolateStart";
     case kIsolateRunnable:
@@ -113,6 +117,7 @@ const char* ServiceEvent::KindAsCString() const {
 const StreamInfo* ServiceEvent::stream_info() const {
   switch (kind()) {
     case kVMUpdate:
+    case kVMFlagUpdate:
       return &Service::vm_stream;
 
     case kIsolateStart:
@@ -173,6 +178,10 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   PrintJSONHeader(&jsobj);
+  if (kind() == kVMFlagUpdate) {
+    jsobj.AddProperty("flag", flag_name());
+    jsobj.AddProperty("new_value", flag_new_value());
+  }
   if (kind() == kIsolateReload) {
     if (reload_error_ == NULL) {
       jsobj.AddProperty("status", "success");
