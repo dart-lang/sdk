@@ -171,6 +171,13 @@ class FindElement {
       findIn(enum_.accessors);
     }
 
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.accessors);
+    }
+
     for (var class_ in unitElement.types) {
       if (of != null && class_.name != of) {
         continue;
@@ -275,6 +282,13 @@ class FindElement {
       }
     }
 
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.methods);
+    }
+
     for (var class_ in unitElement.types) {
       if (of != null && class_.name != of) {
         continue;
@@ -370,6 +384,13 @@ class FindElement {
           result = accessor;
         }
       }
+    }
+
+    for (var extension_ in unitElement.extensions) {
+      if (of != null && extension_.name != of) {
+        continue;
+      }
+      findIn(extension_.accessors);
     }
 
     for (var class_ in unitElement.types) {
