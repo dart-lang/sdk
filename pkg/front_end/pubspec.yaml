@@ -6,7 +6,7 @@ author: Dart Team <misc@dartlang.org>
 description: Front end for compilation of Dart code.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/front_end
 environment:
-  sdk: '>=2.1.0-dev.5.0 <3.0.0'
+  sdk: '>=2.2.2 <3.0.0'
 dependencies:
   kernel: 0.3.20
   package_config: '^1.0.1'
