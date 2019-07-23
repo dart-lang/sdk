@@ -293,6 +293,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /// True if the 'dart:core' library is been summarized.
   bool isCoreLibrary = false;
 
+  /// True if the 'dart:core' library defining unit is been summarized.
+  bool isCoreLibraryDefiningUnit = false;
+
   /// True is a [PartOfDirective] was found, so the unit is a part.
   bool isPartOf = false;
 
@@ -518,7 +521,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.variables = variables;
 
     b.publicNamespace = computePublicNamespace(compilationUnit);
-    if (isCoreLibrary) {
+    if (isCoreLibraryDefiningUnit) {
       b.publicNamespace.names.add(
         UnlinkedPublicNameBuilder(
           name: 'Never',
@@ -1395,6 +1398,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     libraryNameOffset = node.name.offset;
     libraryNameLength = node.name.length;
     isCoreLibrary = libraryName == 'dart.core';
+    isCoreLibraryDefiningUnit = isCoreLibrary;
     libraryDocumentationComment =
         serializeDocumentation(node.documentationComment);
     libraryAnnotations = serializeAnnotations(node.metadata);
