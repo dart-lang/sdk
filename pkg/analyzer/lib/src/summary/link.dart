@@ -2571,10 +2571,12 @@ class ExtensionElementForLink
   @override
   final CompilationUnitElementForLink enclosingElement;
 
-  // TODO(brianwilkerson) Remove this field if it remains unreferenced.
   final UnlinkedExtension _unlinkedExtension;
 
   ExtensionElementForLink(this.enclosingElement, this._unlinkedExtension);
+
+  @override
+  String get name => _unlinkedExtension.name;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
