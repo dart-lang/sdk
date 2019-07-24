@@ -158,7 +158,7 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     if (skipFailedCompilations) return null;
     Expect.isTrue(
         dataComputer.supportsErrors,
-        "Compilation with compile-time error not supported for this "
+        "Compilation with compile-time errors not supported for this "
         "testing setup.");
   }
   if (printCode) {
@@ -175,10 +175,6 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
-  dynamic closedWorld = testFrontend
-      ? compiler.resolutionWorldBuilder.closedWorldForTesting
-      : compiler.backendClosedWorldForTesting;
-  ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   Map<Uri, Map<int, List<CollectedMessage>>> errors = {};
   for (CollectedMessage error in diagnosticCollector.errors) {
     Map<int, List<CollectedMessage>> map =
@@ -200,9 +196,13 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
 
   if (!result.isSuccess) {
     return new Dart2jsCompiledData<T>(
-        compiler, elementEnvironment, entryPoint, actualMaps, globalData);
+        compiler, null, entryPoint, actualMaps, globalData);
   }
 
+  dynamic closedWorld = testFrontend
+      ? compiler.resolutionWorldBuilder.closedWorldForTesting
+      : compiler.backendClosedWorldForTesting;
+  ElementEnvironment elementEnvironment = closedWorld?.elementEnvironment;
   CommonElements commonElements = closedWorld.commonElements;
 
   Map<Id, ActualData<T>> actualMapFor(Entity entity) {

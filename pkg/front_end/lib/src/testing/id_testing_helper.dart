@@ -3,14 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions;
+    show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
-import 'package:front_end/src/testing/id_extractor.dart' show DataExtractor;
+import 'package:front_end/src/api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
+import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import '../kernel_generator_impl.dart' show CompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
-import 'id.dart' show ActualData, ClassId, Id, IdValue, MemberId, NodeId;
+import 'id.dart'
+    show ActualData, ClassId, Id, IdKind, IdValue, MemberId, NodeId;
+import 'id_extractor.dart' show DataExtractor;
 import 'id_testing.dart'
     show
         CompiledData,
@@ -73,6 +78,18 @@ abstract class DataComputer<T> {
   void computeLibraryData(CompilerResult compilerResult, Library library,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
+
+  /// Returns `true` if this data computer supports tests with compile-time
+  /// errors.
+  ///
+  /// Unsuccessful compilation might leave the compiler in an inconsistent
+  /// state, so this testing feature is opt-in.
+  bool get supportsErrors => false;
+
+  /// Returns data corresponding to [error].
+  T computeErrorData(
+          CompilerResult compiler, Id id, List<FormattedMessage> errors) =>
+      null;
 
   /// Returns the [DataInterpreter] used to check the actual data with the
   /// expected data.
@@ -201,15 +218,53 @@ Future<bool> runTestForConfig<T>(
       testData.expectedMaps[config.marker];
   Iterable<Id> globalIds = memberAnnotations.globalData.keys;
   CompilerOptions options = new CompilerOptions();
+  List<FormattedMessage> errors = [];
+  options.onDiagnostic = (DiagnosticMessage message) {
+    if (message is FormattedMessage && message.severity == Severity.error) {
+      errors.add(message);
+    }
+    printDiagnosticMessage(message, print);
+  };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
   CompilerResult compilerResult = await compileScript(
       testData.memorySourceFiles,
       options: options,
       retainDataForTesting: true);
+
   Component component = compilerResult.component;
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+
+  Map<Id, ActualData<T>> actualMapForUri(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  }
+
+  if (errors.isNotEmpty) {
+    if (!dataComputer.supportsErrors) {
+      onFailure("Compilation with compile-time errors not supported for this "
+          "testing setup.");
+    }
+
+    Map<Uri, Map<int, List<FormattedMessage>>> errorMap = {};
+    for (FormattedMessage error in errors) {
+      Map<int, List<FormattedMessage>> map =
+          errorMap.putIfAbsent(error.uri, () => {});
+      List<FormattedMessage> list = map.putIfAbsent(error.charOffset, () => []);
+      list.add(error);
+    }
+
+    errorMap.forEach((Uri uri, Map<int, List<FormattedMessage>> map) {
+      map.forEach((int offset, List<DiagnosticMessage> list) {
+        NodeId id = new NodeId(offset, IdKind.error);
+        T data = dataComputer.computeErrorData(compilerResult, id, list);
+        if (data != null) {
+          Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
+          actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
+        }
+      });
+    });
+  }
 
   Map<Id, ActualData<T>> actualMapFor(TreeNode node) {
     Uri uri = node is Library ? node.fileUri : node.location.file;

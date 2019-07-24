@@ -65,6 +65,15 @@ class IdTestingDataComputer extends DataComputer<String> {
   }
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  String computeErrorData(
+      Compiler compiler, Id id, List<CollectedMessage> errors) {
+    return errors.map((c) => c.message.message).join(',');
+  }
+
+  @override
   bool get testFrontend => true;
 
   @override

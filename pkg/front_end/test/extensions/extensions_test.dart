@@ -141,12 +141,14 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
         for (FormalParameterBuilder parameter in memberBuilder.formals) {
           features.addElement(Tags.builderParameters, parameter.name);
         }
+        features.markAsUnsorted(Tags.builderParameters);
       }
       if (memberBuilder.typeVariables != null) {
         for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables) {
           features.addElement(Tags.builderTypeParameters,
               typeVariableBuilderToText(typeVariable));
         }
+        features.markAsUnsorted(Tags.builderTypeParameters);
       }
     }
     features[Tags.memberName] = getMemberName(member);
@@ -155,10 +157,12 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
           in member.function.positionalParameters) {
         features.addElement(Tags.memberParameters, parameter.name);
       }
+      features.markAsUnsorted(Tags.memberParameters);
       for (TypeParameter typeParameter in member.function.typeParameters) {
         features.addElement(
             Tags.memberTypeParameters, typeParameterToText(typeParameter));
       }
+      features.markAsUnsorted(Tags.memberTypeParameters);
     }
     return features;
   }

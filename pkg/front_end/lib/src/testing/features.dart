@@ -7,6 +7,7 @@ import 'id_testing.dart';
 /// Utility class for annotated testing representing a set of features.
 class Features {
   Map<String, Object> _features = {};
+  Set<String> _unsorted = new Set<String>();
 
   /// Mark the feature [key] as existing. If [value] is provided, the feature
   /// [key] is set to have this value.
@@ -20,6 +21,12 @@ class Features {
     if (value != null) {
       list.add(value.toString());
     }
+  }
+
+  /// Marks list values of [key] as unsorted. This prevents the [getText]
+  /// representation from automatically sorting the values.
+  void markAsUnsorted(String key) {
+    _unsorted.add(key);
   }
 
   /// Returns `true` if feature [key] exists.
@@ -63,7 +70,11 @@ class Features {
         }
         sb.write(name);
         if (value is List<String>) {
-          value = '[${(value..sort()).join(',')}]';
+          if (_unsorted.contains(name)) {
+            value = '[${value.join(',')}]';
+          } else {
+            value = '[${(value..sort()).join(',')}]';
+          }
         }
         if (value != '') {
           sb.write('=');
