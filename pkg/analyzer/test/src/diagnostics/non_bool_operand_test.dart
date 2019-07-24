@@ -22,20 +22,24 @@ class NonBoolOperandTest_NNBD extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_and_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   if(x && true) {}
 }
-''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
   }
 
   test_or_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   if(x || false) {}
 }
-''', [StaticTypeWarningCode.NON_BOOL_OPERAND]);
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_OPERAND, 21, 1),
+    ]);
   }
 }

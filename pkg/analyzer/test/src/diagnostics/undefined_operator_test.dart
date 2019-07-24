@@ -45,12 +45,14 @@ f(var a) {
   }
 
   test_index_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x[0];
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 3),
+    ]);
   }
 
   test_indexBoth() async {
@@ -143,48 +145,61 @@ f(var a) {
   }
 
   test_minus_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x - 3;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
   }
 
   test_minusEq_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x -= 1;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+    ]);
   }
 
   test_plus_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x + 3;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
   }
 
   test_plusEq_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x += 1;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 2),
+    ]);
   }
 
   test_postfixDec_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x--;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+    ]);
   }
 
   test_postfixExpression() async {
@@ -213,21 +228,27 @@ f(var a) {
   }
 
   test_postfixInc_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x++;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 19, 2),
+    ]);
   }
 
   test_prefixDec_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   --x;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+    ]);
   }
 
   test_prefixExpression() async {
@@ -256,20 +277,26 @@ f(var a) {
   }
 
   test_prefixInc_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   ++x;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 2),
+    ]);
   }
 
   test_unaryMinus_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   -x;
 }
-''', [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 18, 1),
+    ]);
   }
 }

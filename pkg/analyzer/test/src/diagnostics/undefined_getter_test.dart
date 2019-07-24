@@ -92,12 +92,14 @@ f(Object x) {
   }
 
   test_nullMember_undefined() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null _null;
   _null.foo;
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 3),
+    ]);
   }
 
   test_promotedTypeParameter_regress35305() async {

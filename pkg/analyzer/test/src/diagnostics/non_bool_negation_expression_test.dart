@@ -22,11 +22,14 @@ class NonBoolNegationExpressionTest_NNBD extends DriverResolutionTest {
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
   test_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   !x;
 }
-''', [StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 13, 1),
+      error(StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1),
+    ]);
   }
 }

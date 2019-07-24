@@ -11,12 +11,12 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(InvalidUseOfNullValue);
+    defineReflectiveTests(InvalidUseOfNullValueTest);
   });
 }
 
 @reflectiveTest
-class InvalidUseOfNullValue extends DriverResolutionTest {
+class InvalidUseOfNullValueTest extends DriverResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
@@ -40,12 +40,14 @@ m() async {
   }
 
   test_cascade() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x..toString;
 }
-''', [StaticWarningCode.INVALID_USE_OF_NULL_VALUE]);
+''', [
+      error(StaticWarningCode.INVALID_USE_OF_NULL_VALUE, 18, 1),
+    ]);
   }
 
   test_eq() async {
@@ -58,12 +60,15 @@ m() {
   }
 
   test_forLoop() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   for (var y in x) {}
 }
-''', [StaticWarningCode.INVALID_USE_OF_NULL_VALUE]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 27, 1),
+      error(StaticWarningCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
+    ]);
   }
 
   test_is() async {

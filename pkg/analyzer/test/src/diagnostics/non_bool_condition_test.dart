@@ -41,21 +41,25 @@ class NonBoolConditionTest_NNBD extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
   test_if_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   if (x) {}
 }
-''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 22, 1),
+    ]);
   }
 
   test_ternary_condition_null() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 m() {
   Null x;
   x ? 0 : 1;
 }
-''', [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+''', [
+      error(StaticTypeWarningCode.NON_BOOL_CONDITION, 18, 1),
+    ]);
   }
 }
 

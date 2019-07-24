@@ -128,7 +128,7 @@ f() {
   }
 
   test_method_noMatch() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class B { }
 
 extension A on B {
@@ -139,7 +139,9 @@ f() {
   B b = B();
   b.c();
 }
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 73, 1),
+    ]);
   }
 
   test_method_noMostSpecificExtension() async {
@@ -189,14 +191,16 @@ extension _ on B {
   void a() { }
 }
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib.dart';
 
 f() {
   B b = B();
   b.a();
 }
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 43, 1),
+    ]);
   }
 
   test_method_resolvesToStatic() async {
@@ -306,14 +310,16 @@ extension on B {
   void a() { }
 }
 ''');
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 import 'lib.dart';
 
 f() {
   B b = B();
   b.a();
 }
-''', [StaticTypeWarningCode.UNDEFINED_METHOD]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 43, 1),
+    ]);
   }
 
   test_multipleExtensions() async {
