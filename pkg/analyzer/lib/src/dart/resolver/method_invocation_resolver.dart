@@ -328,6 +328,7 @@ class MethodInvocationResolver {
       return;
     }
     nameNode.staticElement = member;
+    _setResolution(node, member.type);
     return;
   }
 

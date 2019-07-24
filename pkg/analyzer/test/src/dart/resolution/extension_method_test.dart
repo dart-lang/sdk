@@ -23,8 +23,21 @@ class ExtensionMethodTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_accessStaticWithinInstance() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  static void a() {}
+  void b() { a(); }
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
   test_getter_noMatch() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class B { }
 
 extension A on B { }
@@ -33,7 +46,10 @@ f() {
   B b = B();
   int x = b.a;
 }
-''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 1),
+    ]);
   }
 
   test_getter_oneMatch() async {
@@ -78,18 +94,6 @@ f() {
     expect(invocation.identifier.staticElement, declaration.declaredElement);
   }
 
-  test_accessStaticWithinInstance() async {
-    await assertNoErrorsInCode('''
-class A {}
-extension E on A {
-  static void a() {}
-  void b() { a(); }
-}
-''');
-    var invocation = findNode.methodInvocation('a();');
-    assertElement(invocation, findElement.method('a'));
-  }
-
   test_method_moreSpecificThanPlatform() async {
     //
     // An extension with on type clause T1 is more specific than another
@@ -125,6 +129,7 @@ f() {
 
     var invocation = findNode.methodInvocation('c.a()');
     assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   test_method_noMatch() async {
@@ -181,6 +186,7 @@ f() {
 
     var invocation = findNode.methodInvocation('b.a()');
     assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   test_method_privateExtension() async {
@@ -242,6 +248,7 @@ f() {
 
     var invocation = findNode.methodInvocation('b.a()');
     assertElement(invocation, findElement.method('a', of: 'B_Ext'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   @failingTest
@@ -270,6 +277,7 @@ main() {
 
     var invocation = findNode.methodInvocation('x.f(o)');
     assertElement(invocation, findElement.method('f', of: 'B_Ext'));
+    assertInvokeType(invocation, 'void Function(T)');
   }
 
   test_method_specificSubtypeMatchPlatform() async {
@@ -300,6 +308,7 @@ f() {
 
     var invocation = findNode.methodInvocation('c.a()');
     assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   test_method_unnamedExtension() async {
@@ -331,7 +340,7 @@ extension E2 on A {}
   }
 
   test_setter_noMatch() async {
-    await assertErrorCodesInCode(r'''
+    await assertErrorsInCode(r'''
 class B { }
 
 extension A on B {
@@ -341,7 +350,9 @@ f() {
   B b = B();
   b.a = 1;
 }
-''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 58, 1),
+    ]);
   }
 
   test_setter_oneMatch() async {
