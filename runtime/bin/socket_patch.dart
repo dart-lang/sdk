@@ -475,7 +475,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           // Keep first error, if present.
           if (error == null) {
             int errorCode = result.errorCode;
-            if (errorCode != null && socket.isBindError(errorCode)) {
+            if (sourceAddress != null &&
+                errorCode != null &&
+                socket.isBindError(errorCode)) {
               error = createError(result, "Bind failed", sourceAddress);
             } else {
               error = createError(result, "Connection failed", address, port);
