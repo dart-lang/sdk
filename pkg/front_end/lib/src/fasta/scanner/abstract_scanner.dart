@@ -35,8 +35,7 @@ import 'error_token.dart'
 
 import 'keyword_state.dart' show KeywordState;
 
-import 'token.dart'
-    show CommentToken, DartDocToken, LanguageVersionToken, SyntheticStringToken;
+import 'token.dart' show CommentToken, DartDocToken, LanguageVersionToken;
 
 import 'token_constants.dart';
 
@@ -1117,8 +1116,8 @@ abstract class AbstractScanner implements Scanner {
           prependErrorToken(new UnterminatedToken(
               messageExpectedHexDigit, start, stringOffset));
           // Recovery
-          // TODO(danrubel): append actual characters not "0"
-          appendToken(SyntheticStringToken(TokenType.INT, "0", tokenStart));
+          appendSyntheticSubstringToken(
+              TokenType.HEXADECIMAL, start, true, "0");
           return next;
         }
         appendSubstringToken(TokenType.HEXADECIMAL, start, true);

@@ -303,7 +303,12 @@ abstract class ScannerTestBase {
   }
 
   void test_hexadecimal_missingDigit() {
-    _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 5, "a = 0x");
+    var token = _assertError(ScannerErrorCode.MISSING_HEX_DIGIT, 5, "a = 0x");
+    expect(token.lexeme, 'a');
+    token = token.next;
+    expect(token.lexeme, '=');
+    token = token.next;
+    expect(token.lexeme, '0x0');
   }
 
   void test_identifier() {
@@ -1299,13 +1304,14 @@ abstract class ScannerTestBase {
    * [expectedOffset] the string offset that should be associated with the error
    * [source] the source to be scanned to produce the error
    */
-  void _assertError(
+  Token _assertError(
       ScannerErrorCode expectedError, int expectedOffset, String source,
       [List<Object> arguments]) {
     ErrorListener listener = new ErrorListener();
-    scanWithListener(source, listener);
+    var tokens = scanWithListener(source, listener);
     listener.assertErrors(
         [new TestError(expectedOffset, expectedError, arguments)]);
+    return tokens;
   }
 
   /**
