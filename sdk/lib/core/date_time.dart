@@ -248,7 +248,7 @@ class DateTime implements Comparable<DateTime> {
    *   part and an optional two digit minute part. The sign must be either
    *   "+" or "-", and can not be omitted.
    *   The minutes may be separated from the hours by a ':'.
-   *   Examples: "Z", "-10", "01:30", "1130".
+   *   Examples: "Z", "-10", "+01:30", "+1130".
    *
    * This includes the output of both [toString] and [toIso8601String], which
    * will be parsed back into a `DateTime` object with the same time as the
