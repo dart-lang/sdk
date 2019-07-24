@@ -23,12 +23,18 @@ import 'package:front_end/src/testing/id.dart'
     show ActualData, Id, IdValue, MemberId, NodeId;
 import 'package:front_end/src/testing/id_testing.dart';
 
-/// Test configuration used for testing CFE with constant evaluation.
+/// Test configuration used for testing the analyzer with constant evaluation.
 final TestConfig analyzerConstantUpdate2018Config = TestConfig(
     analyzerMarker, 'analyzer with constant-update-2018',
     featureSet: FeatureSet.forTesting(
         sdkVersion: '2.2.2',
         additionalFeatures: [Feature.constant_update_2018]));
+
+/// Test configuration used for testing the analyzer with NNBD.
+final TestConfig analyzerNnbdConfig = TestConfig(
+    analyzerMarker, 'analyzer with NNBD',
+    featureSet: FeatureSet.forTesting(
+        sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]));
 
 /// A fake absolute directory used as the root of a memory-file system in ID
 /// tests.

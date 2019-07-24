@@ -6,6 +6,7 @@ analyzer:
   enable-experiment: [extension-methods]
   exclude:
     - test/extensions/data/**
+    - test/flow_analysis/nullability_and_reachability/data/**
     - testcases/**
   errors:
     # Allow having TODOs in the code

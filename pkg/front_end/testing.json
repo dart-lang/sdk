@@ -347,7 +347,8 @@
 
     "exclude": [
       "^pkg/analysis_server/lib/src/analysis_server\\.dart",
-      "test/extensions/data/"
+      "test/extensions/data/",
+      "test/flow_analysis/nullability_and_reachability/data/"
     ]
   }
 }
