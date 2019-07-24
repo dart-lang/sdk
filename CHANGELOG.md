@@ -1,6 +1,8 @@
 # 0.1.95
 
-* fixed false positive in `prefer_asserts_in_initializer_lists` (#1655).
+* improvements to `unsafe_html` error reporting
+* fixed false positive in `prefer_asserts_in_initializer_lists`
+* fixed `prefer_const_constructors` to not flag `@literal` annotated constructors.
 
 # 0.1.94
 
