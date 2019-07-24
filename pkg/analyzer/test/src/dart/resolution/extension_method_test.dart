@@ -78,6 +78,18 @@ f() {
     expect(invocation.identifier.staticElement, declaration.declaredElement);
   }
 
+  test_accessStaticWithinInstance() async {
+    await assertNoErrorsInCode('''
+class A {}
+extension E on A {
+  static void a() {}
+  void b() { a(); }
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+  }
+
   test_method_moreSpecificThanPlatform() async {
     //
     // An extension with on type clause T1 is more specific than another

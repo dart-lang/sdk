@@ -5993,6 +5993,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
           // TODO(brianwilkerson) Figure out what, if anything, to do here.
           throw UnsupportedError('Extension of function type');
         }
+        nameScope = ExtensionScope(nameScope, extensionElement);
         visitExtensionMembersInScope(node);
       }
     } finally {
