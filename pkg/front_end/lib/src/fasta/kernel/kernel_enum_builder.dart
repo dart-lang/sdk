@@ -53,7 +53,6 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelConstructorBuilder,
         KernelFieldBuilder,
-        KernelFormalParameterBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
         KernelProcedureBuilder,
@@ -141,10 +140,10 @@ class KernelEnumBuilder extends SourceClassBuilder
         "",
         null,
         <FormalParameterBuilder>[
-          new KernelFormalParameterBuilder(null, initializingFormalMask,
-              intType, "index", parent, charOffset),
-          new KernelFormalParameterBuilder(null, initializingFormalMask,
-              stringType, "_name", parent, charOffset)
+          new FormalParameterBuilder(null, initializingFormalMask, intType,
+              "index", parent, charOffset),
+          new FormalParameterBuilder(null, initializingFormalMask, stringType,
+              "_name", parent, charOffset)
         ],
         parent,
         charOffset,

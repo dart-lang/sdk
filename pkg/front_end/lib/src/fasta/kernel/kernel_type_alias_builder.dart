@@ -26,7 +26,7 @@ import '../problems.dart' show unhandled;
 import 'kernel_builder.dart'
     show
         FunctionTypeBuilder,
-        KernelFormalParameterBuilder,
+        FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -76,7 +76,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder<TypeBuilder, DartType> {
           .addAll(freshTypeParameters.freshTypeParameters);
 
       if (type.formals != null) {
-        for (KernelFormalParameterBuilder formal in type.formals) {
+        for (FormalParameterBuilder formal in type.formals) {
           VariableDeclaration parameter = formal.build(libraryBuilder, 0);
           parameter.type = freshTypeParameters.substitute(parameter.type);
           if (formal.isNamed) {

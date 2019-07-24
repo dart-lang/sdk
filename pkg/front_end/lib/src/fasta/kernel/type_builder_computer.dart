@@ -26,7 +26,7 @@ import '../kernel/kernel_builder.dart'
         DynamicTypeBuilder,
         FunctionTypeBuilder,
         KernelClassBuilder,
-        KernelFormalParameterBuilder,
+        FormalParameterBuilder,
         NamedTypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -88,25 +88,22 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     List<KernelTypeVariableBuilder> typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
-    List<KernelFormalParameterBuilder> formals =
-        new List<KernelFormalParameterBuilder>(
-            positionalParameters.length + namedParameters.length);
+    List<FormalParameterBuilder> formals = new List<FormalParameterBuilder>(
+        positionalParameters.length + namedParameters.length);
     for (int i = 0; i < positionalParameters.length; i++) {
       TypeBuilder type = positionalParameters[i].accept(this);
       FormalParameterKind kind = FormalParameterKind.mandatory;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] =
-          new KernelFormalParameterBuilder(null, 0, type, null, null, -1)
-            ..kind = kind;
+      formals[i] = new FormalParameterBuilder(null, 0, type, null, null, -1)
+        ..kind = kind;
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
       TypeBuilder type = positionalParameters[i].accept(this);
       formals[i + positionalParameters.length] =
-          new KernelFormalParameterBuilder(
-              null, 0, type, parameter.name, null, -1)
+          new FormalParameterBuilder(null, 0, type, parameter.name, null, -1)
             ..kind = FormalParameterKind.optionalNamed;
     }
 

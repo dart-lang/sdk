@@ -40,7 +40,7 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/kernel_builder.dart'
-    show KernelFormalParameterBuilder, KernelTypeAliasBuilder, TypeBuilder;
+    show FormalParameterBuilder, KernelTypeAliasBuilder, TypeBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
@@ -252,10 +252,10 @@ class DietListener extends StackListener {
     if (typedefBuilder is KernelTypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
-        List<FormalParameterBuilder<TypeBuilder>> formals = type.formals;
+        List<FormalParameterBuilder> formals = type.formals;
         if (formals != null) {
           for (int i = 0; i < formals.length; ++i) {
-            KernelFormalParameterBuilder formal = formals[i];
+            FormalParameterBuilder formal = formals[i];
             List<MetadataBuilder> metadata = formal.metadata;
             if (metadata != null && metadata.length > 0) {
               // [parseMetadata] is using [Parser.parseMetadataStar] under the

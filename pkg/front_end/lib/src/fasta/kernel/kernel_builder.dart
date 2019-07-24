@@ -27,8 +27,6 @@ export 'kernel_enum_builder.dart' show KernelEnumBuilder;
 
 export 'kernel_field_builder.dart' show KernelFieldBuilder;
 
-export 'kernel_formal_parameter_builder.dart' show KernelFormalParameterBuilder;
-
 export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
 export 'kernel_library_builder.dart' show KernelLibraryBuilder;

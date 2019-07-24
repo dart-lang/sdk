@@ -133,7 +133,6 @@ import 'kernel_builder.dart'
         KernelConstructorBuilder,
         KernelEnumBuilder,
         KernelFieldBuilder,
-        KernelFormalParameterBuilder,
         KernelFunctionBuilder,
         KernelTypeAliasBuilder,
         KernelInvalidTypeBuilder,
@@ -207,7 +206,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  List<KernelFormalParameterBuilder> untypedInitializingFormals;
+  List<FormalParameterBuilder> untypedInitializingFormals;
 
   List<KernelFieldBuilder> implicitlyTypedFields;
 
@@ -976,7 +975,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     return addType(builder, charOffset);
   }
 
-  KernelFormalParameterBuilder addFormalParameter(
+  FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata,
       int modifiers,
       TypeBuilder type,
@@ -987,12 +986,11 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     if (hasThis) {
       modifiers |= initializingFormalMask;
     }
-    KernelFormalParameterBuilder formal = new KernelFormalParameterBuilder(
+    FormalParameterBuilder formal = new FormalParameterBuilder(
         metadata, modifiers, type, name, this, charOffset);
     formal.initializerToken = initializerToken;
     if (legacyMode && hasThis && type == null) {
-      (untypedInitializingFormals ??= <KernelFormalParameterBuilder>[])
-          .add(formal);
+      (untypedInitializingFormals ??= <FormalParameterBuilder>[]).add(formal);
     }
     return formal;
   }

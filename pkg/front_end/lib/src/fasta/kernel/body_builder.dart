@@ -673,7 +673,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (member is KernelConstructorBuilder) {
       member.prepareInitializers();
       if (member.formals != null) {
-        for (KernelFormalParameterBuilder formal in member.formals) {
+        for (FormalParameterBuilder formal in member.formals) {
           if (formal.isInitializingFormal) {
             Initializer initializer;
             if (member.isExternal) {
@@ -784,7 +784,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     KernelFunctionBuilder builder = member;
     if (formals?.parameters != null) {
       for (int i = 0; i < formals.parameters.length; i++) {
-        KernelFormalParameterBuilder parameter = formals.parameters[i];
+        FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.target.initializer;
         if (parameter.isOptional || initializer != null) {
           VariableDeclaration realParameter = builder.formals[i].target;
@@ -887,7 +887,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           // Illegal parameters were removed by the function builder.
           // Add them as local variable to put them in scope of the body.
           List<Statement> statements = <Statement>[];
-          for (KernelFormalParameterBuilder parameter in builder.formals) {
+          for (FormalParameterBuilder parameter in builder.formals) {
             statements.add(parameter.target);
           }
           statements.add(body);
@@ -1169,14 +1169,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     enterFunctionTypeScope(typeParameterBuilders);
 
-    List<KernelFormalParameterBuilder> formals =
+    List<FormalParameterBuilder> formals =
         parameters.positionalParameters.length == 0
             ? null
-            : new List<KernelFormalParameterBuilder>(
+            : new List<FormalParameterBuilder>(
                 parameters.positionalParameters.length);
     for (int i = 0; i < parameters.positionalParameters.length; i++) {
       VariableDeclaration formal = parameters.positionalParameters[i];
-      formals[i] = new KernelFormalParameterBuilder(
+      formals[i] = new FormalParameterBuilder(
           null, 0, null, formal.name, library, formal.fileOffset)
         ..declaration = formal;
     }
@@ -3005,7 +3005,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       return;
     }
     Identifier name = nameNode;
-    KernelFormalParameterBuilder parameter;
+    FormalParameterBuilder parameter;
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
@@ -3016,8 +3016,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         return;
       }
     } else {
-      parameter = new KernelFormalParameterBuilder(null, modifiers,
-          type?.builder, name?.name, library, offsetForToken(nameToken));
+      parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
+          name?.name, library, offsetForToken(nameToken));
     }
     VariableDeclaration variable =
         parameter.build(library, functionNestingLevel);
@@ -3058,13 +3058,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     // 0. It might be simpler if the parser didn't call this method in that
     // case, however, then [beginOptionalFormalParameters] wouldn't always be
     // matched by this method.
-    List<KernelFormalParameterBuilder> parameters =
-        const FixedNullableList<KernelFormalParameterBuilder>()
-            .pop(stack, count);
+    List<FormalParameterBuilder> parameters =
+        const FixedNullableList<FormalParameterBuilder>().pop(stack, count);
     if (parameters == null) {
       push(new ParserRecovery(offsetForToken(beginToken)));
     } else {
-      for (KernelFormalParameterBuilder parameter in parameters) {
+      for (FormalParameterBuilder parameter in parameters) {
         parameter.kind = kind;
       }
       push(parameters);
@@ -3135,15 +3134,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
-    List<KernelFormalParameterBuilder> optionals;
+    List<FormalParameterBuilder> optionals;
     int optionalsCount = 0;
-    if (count > 0 && peek() is List<KernelFormalParameterBuilder>) {
+    if (count > 0 && peek() is List<FormalParameterBuilder>) {
       optionals = pop();
       count--;
       optionalsCount = optionals.length;
     }
-    List<KernelFormalParameterBuilder> parameters =
-        const FixedNullableList<KernelFormalParameterBuilder>()
+    List<FormalParameterBuilder> parameters =
+        const FixedNullableList<FormalParameterBuilder>()
             .popPadded(stack, count, optionalsCount);
     if (optionals != null && parameters != null) {
       parameters.setRange(count, count + optionalsCount, optionals);
@@ -3187,8 +3186,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     FormalParameters catchParameters = popIfNotNull(catchKeyword);
     DartType exceptionType =
         buildDartType(popIfNotNull(onKeyword)) ?? const DynamicType();
-    KernelFormalParameterBuilder exception;
-    KernelFormalParameterBuilder stackTrace;
+    FormalParameterBuilder exception;
+    FormalParameterBuilder stackTrace;
     List<Statement> compileTimeErrors;
     if (catchParameters?.parameters != null) {
       int parameterCount = catchParameters.parameters.length;
@@ -3205,8 +3204,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         // If parameterCount is 0, the parser reported an error already.
         if (parameterCount != 0) {
           for (int i = 2; i < parameterCount; i++) {
-            KernelFormalParameterBuilder parameter =
-                catchParameters.parameters[i];
+            FormalParameterBuilder parameter = catchParameters.parameters[i];
             compileTimeErrors ??= <Statement>[];
             compileTimeErrors.add(buildProblemStatement(
                 fasta.messageCatchSyntaxExtraParameters, parameter.charOffset,
@@ -5628,7 +5626,7 @@ class LabelTarget extends Declaration implements JumpTarget {
 }
 
 class FormalParameters {
-  final List<KernelFormalParameterBuilder> parameters;
+  final List<FormalParameterBuilder> parameters;
   final int charOffset;
   final int length;
   final Uri uri;
@@ -5651,7 +5649,7 @@ class FormalParameters {
     List<VariableDeclaration> positionalParameters = <VariableDeclaration>[];
     List<VariableDeclaration> namedParameters = <VariableDeclaration>[];
     if (parameters != null) {
-      for (KernelFormalParameterBuilder parameter in parameters) {
+      for (FormalParameterBuilder parameter in parameters) {
         if (parameter.isNamed) {
           namedParameters.add(parameter.target);
         } else {
@@ -5689,7 +5687,7 @@ class FormalParameters {
     assert(parameters.isNotEmpty);
     Map<String, Declaration> local = <String, Declaration>{};
 
-    for (KernelFormalParameterBuilder parameter in parameters) {
+    for (FormalParameterBuilder parameter in parameters) {
       Declaration existing = local[parameter.name];
       if (existing != null) {
         helper.reportDuplicatedDeclaration(

@@ -30,7 +30,6 @@ import 'kernel_builder.dart'
         TypeAliasBuilder,
         FunctionTypeBuilder,
         KernelClassBuilder,
-        KernelFormalParameterBuilder,
         KernelTypeAliasBuilder,
         KernelTypeVariableBuilder,
         NamedTypeBuilder,
@@ -111,7 +110,7 @@ int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
       }
     }
     if (type.formals != null) {
-      for (KernelFormalParameterBuilder formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         result = Variance.meet(
             result,
             Variance.combine(Variance.contravariant,
@@ -160,9 +159,9 @@ TypeBuilder substituteRange(
       variables =
           new List<KernelTypeVariableBuilder>(type.typeVariables.length);
     }
-    List<KernelFormalParameterBuilder> formals;
+    List<FormalParameterBuilder> formals;
     if (type.formals != null) {
-      formals = new List<KernelFormalParameterBuilder>(type.formals.length);
+      formals = new List<FormalParameterBuilder>(type.formals.length);
     }
     TypeBuilder returnType;
     bool changed = false;
@@ -185,12 +184,12 @@ TypeBuilder substituteRange(
 
     if (type.formals != null) {
       for (int i = 0; i < formals.length; i++) {
-        KernelFormalParameterBuilder formal = type.formals[i];
+        FormalParameterBuilder formal = type.formals[i];
         TypeBuilder parameterType = substituteRange(
             formal.type, upperSubstitution, lowerSubstitution,
             isCovariant: !isCovariant);
         if (parameterType != formal.type) {
-          formals[i] = new KernelFormalParameterBuilder(
+          formals[i] = new FormalParameterBuilder(
               formal.metadata,
               formal.modifiers,
               parameterType,
@@ -373,7 +372,7 @@ List<NamedTypeBuilder> findVariableUsesInType(
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         uses.addAll(findVariableUsesInType(variable, formal.type));
       }
     }
@@ -497,7 +496,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
       }
     }
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         typesAndDependencies
             .addAll(findRawTypesWithInboundReferences(formal.type));
       }
@@ -638,7 +637,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
       }
     }
     if (start.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in start.formals) {
+      for (FormalParameterBuilder formal in start.formals) {
         paths.addAll(findRawTypePathsToDeclaration(formal.type, end, visited));
       }
     }
@@ -840,7 +839,7 @@ void findGenericFunctionTypes(TypeBuilder type, {List<TypeBuilder> result}) {
     }
     findGenericFunctionTypes(type.returnType, result: result);
     if (type.formals != null) {
-      for (FormalParameterBuilder<TypeBuilder> formal in type.formals) {
+      for (FormalParameterBuilder formal in type.formals) {
         findGenericFunctionTypes(formal.type, result: result);
       }
     }

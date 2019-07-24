@@ -745,7 +745,7 @@ class ClassHierarchyNodeBuilder {
           bType = substitution.substituteType(bType);
         }
         if (aType != bType) {
-          FormalParameterBuilder<TypeBuilder> parameter;
+          FormalParameterBuilder parameter;
           for (int i = aPositional.length; i < a.formals.length; ++i) {
             if (a.formals[i].name == name) {
               parameter = a.formals[i];
@@ -2482,7 +2482,7 @@ bool isAbstract(Declaration declaration) {
 bool inferParameterType(
     KernelClassBuilder cls,
     KernelProcedureBuilder member,
-    FormalParameterBuilder<TypeBuilder> parameter,
+    FormalParameterBuilder parameter,
     DartType type,
     bool hadTypesInferred,
     ClassHierarchyBuilder hierarchy) {
@@ -2499,11 +2499,8 @@ bool inferParameterType(
   return result;
 }
 
-void reportCantInferParameterType(
-    KernelClassBuilder cls,
-    MemberBuilder member,
-    FormalParameterBuilder<TypeBuilder> parameter,
-    ClassHierarchyBuilder hierarchy) {
+void reportCantInferParameterType(KernelClassBuilder cls, MemberBuilder member,
+    FormalParameterBuilder parameter, ClassHierarchyBuilder hierarchy) {
   String name = parameter.name;
   cls.addProblem(
       templateCantInferTypeDueToInconsistentOverrides.withArguments(name),

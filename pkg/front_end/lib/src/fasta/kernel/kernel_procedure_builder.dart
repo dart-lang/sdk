@@ -70,7 +70,6 @@ import 'kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         FormalParameterBuilder,
-        KernelFormalParameterBuilder,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
         TypeBuilder,
@@ -181,7 +180,7 @@ abstract class KernelFunctionBuilder extends ProcedureBuilder<TypeBuilder> {
       setParents(result.typeParameters, result);
     }
     if (formals != null) {
-      for (KernelFormalParameterBuilder formal in formals) {
+      for (FormalParameterBuilder formal in formals) {
         VariableDeclaration parameter = formal.build(library, 0);
         if (needsCheckVisitor != null) {
           if (parameter.type.accept(needsCheckVisitor)) {
@@ -261,7 +260,7 @@ abstract class KernelFunctionBuilder extends ProcedureBuilder<TypeBuilder> {
       // into the outline. For all other formals we need to call
       // buildOutlineExpressions to clear initializerToken to prevent
       // consuming too much memory.
-      for (FormalParameterBuilder<TypeBuilder> formal in formals) {
+      for (FormalParameterBuilder formal in formals) {
         formal.buildOutlineExpressions(library);
       }
     }
@@ -502,7 +501,7 @@ class KernelConstructorBuilder extends KernelFunctionBuilder {
       constructor.name = new Name(name, library.target);
     }
     if (isEligibleForTopLevelInference) {
-      for (KernelFormalParameterBuilder formal in formals) {
+      for (FormalParameterBuilder formal in formals) {
         if (formal.type == null && formal.isInitializingFormal) {
           formal.declaration.type = null;
         }
