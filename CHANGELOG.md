@@ -121,7 +121,11 @@
 
 #### Linter
 
-The Linter was updated to `0.1.94`, which includes a number of internal fixes.
+The Linter was updated to `0.1.95`, which includes:
+
+* improvements to `unsafe_html` error reporting
+* fixed false positives in `prefer_asserts_in_initializer_lists`
+* fixes to `prefer_const_constructors` to not flag `@literal` annotated constructors
 
 #### Dartdoc
 
