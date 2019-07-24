@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -115,6 +116,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   final MethodInvocationResolver _methodInvocationResolver;
 
+  final ExtensionMemberResolver _extensionMemberResolver;
+
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
@@ -122,6 +125,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
       : _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
+        _extensionMemberResolver = ExtensionMemberResolver(_resolver),
         _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
@@ -1208,8 +1212,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
       Expression target, DartType type, String getterName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      return type.lookUpInheritedGetter(getterName,
+      var getter = type.lookUpInheritedGetter(getterName,
           library: _definingLibrary, thisType: target is! SuperExpression);
+      if (getter != null) {
+        return getter;
+      }
+
+      var extension =
+          _extensionMemberResolver.findExtension(type, getterName, target);
+      if (extension != null) {
+        return extension.getGetter(getterName);
+      }
     }
     return null;
   }
@@ -1273,8 +1286,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
       Expression target, DartType type, String setterName) {
     type = _resolveTypeParameter(type);
     if (type is InterfaceType) {
-      return type.lookUpInheritedSetter(setterName,
+      var setter = type.lookUpInheritedSetter(setterName,
           library: _definingLibrary, thisType: target is! SuperExpression);
+      if (setter != null) {
+        return setter;
+      }
+
+      var extension =
+          _extensionMemberResolver.findExtension(type, setterName, target);
+      if (extension != null) {
+        return extension.getSetter(setterName);
+      }
     }
     return null;
   }

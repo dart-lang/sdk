@@ -22,6 +22,61 @@ class ExtensionMethodTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
+  test_getter_noMatch() async {
+    await assertErrorCodesInCode(r'''
+class B { }
+
+extension A on B { }
+
+f() {
+  B b = B();
+  int x = b.a;
+}
+''', [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
+  test_getter_oneMatch() async {
+    await assertNoErrorsInCode('''
+class B { }
+
+extension A on B {
+  int get a => 1;
+}
+
+f() {
+  B b = B();
+  int x = b.a;
+}
+''');
+  }
+
+  test_getter_specificSubtypeMatchLocal() async {
+    await assertNoErrorsInCode('''
+class A { }
+
+class B extends A { 
+  int get b => 1;
+}
+
+extension A_Ext on A {
+  int get a => 1;
+}
+
+extension B_Ext on B {
+  int /*2*/ get a => 2;
+}
+
+f() {
+  B b = B();
+  int x = b.a;
+}
+''');
+
+    var invocation = findNode.prefixed('b.a');
+    var declaration = findNode.methodDeclaration('int /*2*/ get a');
+    expect(invocation.identifier.staticElement, declaration.declaredElement);
+  }
+
   test_method_moreSpecificThanPlatform() async {
     //
     // An extension with on type clause T1 is more specific than another
@@ -253,6 +308,35 @@ f() {
 class A {}
 extension E1 on A {}
 extension E2 on A {}
+''');
+  }
+
+  test_setter_noMatch() async {
+    await assertErrorCodesInCode(r'''
+class B { }
+
+extension A on B {
+}
+
+f() {
+  B b = B();
+  b.a = 1;
+}
+''', [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  test_setter_oneMatch() async {
+    await assertNoErrorsInCode('''
+class B { }
+
+extension A on B {
+  set a(int x) { }
+}
+
+f() {
+  B b = B();
+  b.a = 1;
+}
 ''');
   }
 
