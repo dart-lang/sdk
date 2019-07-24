@@ -31,6 +31,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   IndexedSink<Uri> _uriIndex;
   IndexedSink<ir.Member> _memberNodeIndex;
   IndexedSink<ImportEntity> _importIndex;
+  IndexedSink<ConstantValue> _constantIndex;
 
   Map<Type, IndexedSink> _generalCaches = {};
 
@@ -49,6 +50,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
     _uriIndex = new IndexedSink<Uri>(this);
     _memberNodeIndex = new IndexedSink<ir.Member>(this);
     _importIndex = new IndexedSink<ImportEntity>(this);
+    _constantIndex = new IndexedSink<ConstantValue>(this);
   }
 
   @override
@@ -465,6 +467,10 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   }
 
   void _writeConstant(ConstantValue value) {
+    _constantIndex.write(value, _writeConstantInternal);
+  }
+
+  void _writeConstantInternal(ConstantValue value) {
     _writeEnumInternal(value.kind);
     switch (value.kind) {
       case ConstantValueKind.BOOL:

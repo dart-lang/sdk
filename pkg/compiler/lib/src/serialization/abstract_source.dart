@@ -19,6 +19,7 @@ abstract class AbstractDataSource extends DataSourceMixin
   IndexedSource<Uri> _uriIndex;
   IndexedSource<_MemberData> _memberNodeIndex;
   IndexedSource<ImportEntity> _importIndex;
+  IndexedSource<ConstantValue> _constantIndex;
 
   Map<Type, IndexedSource> _generalCaches = {};
 
@@ -30,6 +31,7 @@ abstract class AbstractDataSource extends DataSourceMixin
     _uriIndex = new IndexedSource<Uri>(this);
     _memberNodeIndex = new IndexedSource<_MemberData>(this);
     _importIndex = new IndexedSource<ImportEntity>(this);
+    _constantIndex = new IndexedSource<ConstantValue>(this);
   }
 
   @override
@@ -533,6 +535,10 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   ConstantValue _readConstant() {
+    return _constantIndex.read(_readConstantInternal);
+  }
+
+  ConstantValue _readConstantInternal() {
     ConstantValueKind kind = _readEnumInternal(ConstantValueKind.values);
     switch (kind) {
       case ConstantValueKind.BOOL:
