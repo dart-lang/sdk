@@ -210,11 +210,16 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
   int _currentIndex = 0;
   final Map<int, ir.Constant> _indexToNodeMap = {};
   final Map<ir.Constant, int> _nodeToIndexMap = {};
+  final Set<ir.Constant> _visitedNonindexedNodes = {};
 
-  void registerConstant(ir.Constant node) {
+  /// Returns `true` if node not already registered.
+  bool _register(ir.Constant node) {
+    int index = _nodeToIndexMap[node];
+    if (index != null) return false;
     _indexToNodeMap[_currentIndex] = node;
     _nodeToIndexMap[node] = _currentIndex;
     _currentIndex++;
+    return true;
   }
 
   int getIndex(ir.Constant node) {
@@ -244,33 +249,38 @@ class _ConstantNodeIndexerVisitor implements ir.ConstantVisitor<void> {
 
   @override
   void visitInstanceConstant(ir.InstanceConstant node) {
-    node.fieldValues.forEach((_, ir.Constant value) {
-      value.accept(this);
-    });
+    if (_visitedNonindexedNodes.add(node)) {
+      node.fieldValues.forEach((_, ir.Constant value) {
+        value.accept(this);
+      });
+    }
   }
 
   @override
   void visitSetConstant(ir.SetConstant node) {
-    registerConstant(node);
-    for (ir.Constant element in node.entries) {
-      element.accept(this);
+    if (_register(node)) {
+      for (ir.Constant element in node.entries) {
+        element.accept(this);
+      }
     }
   }
 
   @override
   void visitListConstant(ir.ListConstant node) {
-    registerConstant(node);
-    for (ir.Constant element in node.entries) {
-      element.accept(this);
+    if (_register(node)) {
+      for (ir.Constant element in node.entries) {
+        element.accept(this);
+      }
     }
   }
 
   @override
   void visitMapConstant(ir.MapConstant node) {
-    registerConstant(node);
-    for (ir.ConstantMapEntry entry in node.entries) {
-      entry.key.accept(this);
-      entry.value.accept(this);
+    if (_register(node)) {
+      for (ir.ConstantMapEntry entry in node.entries) {
+        entry.key.accept(this);
+        entry.value.accept(this);
+      }
     }
   }
 
