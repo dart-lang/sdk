@@ -55,74 +55,8 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   /// Used for appending to [good].
   Token goodTail;
 
-  /// The previous token appended to [good]. Since tokens are single linked
-  /// lists, this allows us to rewrite the current token without scanning all
-  /// of [good]. This is supposed to be the token immediately before
-  /// [goodTail], that is, `beforeGoodTail.next == goodTail`.
-  Token beforeGoodTail;
-
   recoverIdentifier(NonAsciiIdentifierToken first) {
-    List<int> codeUnits = <int>[];
-
-    // True if the previous good token is an identifier and ends right where
-    // [first] starts. This is the case for input like `blåbærgrød`. In this
-    // case, the scanner produces this sequence of tokens:
-    //
-    //     [
-    //        StringToken("bl"),
-    //        NonAsciiIdentifierToken("å"),
-    //        StringToken("b"),
-    //        NonAsciiIdentifierToken("æ"),
-    //        StringToken("rgr"),
-    //        NonAsciiIdentifierToken("ø"),
-    //        StringToken("d"),
-    //        EOF,
-    //     ]
-    bool prepend = false;
-
-    // True if following token is also an identifier that starts right where
-    // [errorTail] ends. This is the case for "b" above.
-    bool append = false;
-    if (goodTail != null) {
-      if (goodTail.type == TokenType.IDENTIFIER &&
-          goodTail.charEnd == first.charOffset) {
-        prepend = true;
-      }
-    }
-    Token next = errorTail.next;
-    if (next.type == TokenType.IDENTIFIER &&
-        errorTail.charOffset + 1 == next.charOffset) {
-      append = true;
-    }
-    if (prepend) {
-      codeUnits.addAll(goodTail.lexeme.codeUnits);
-    }
-    NonAsciiIdentifierToken current = first;
-    while (current != errorTail) {
-      codeUnits.add(current.character);
-      current = current.next;
-    }
-    codeUnits.add(errorTail.character);
-    int charOffset = first.charOffset;
-    if (prepend) {
-      charOffset = goodTail.charOffset;
-      if (beforeGoodTail == null) {
-        // We're prepending the first good token, so the new token will become
-        // the first good token.
-        good = null;
-        goodTail = null;
-        beforeGoodTail = null;
-      } else {
-        goodTail = beforeGoodTail;
-      }
-    }
-    if (append) {
-      codeUnits.addAll(next.lexeme.codeUnits);
-      next = next.next;
-    }
-    String value = new String.fromCharCodes(codeUnits);
-    return synthesizeToken(charOffset, value, TokenType.IDENTIFIER)
-      ..setNext(next);
+    throw "Internal error: Identifier error token should have been prepended";
   }
 
   recoverExponent() {
@@ -153,13 +87,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
 
   // All unmatched error tokens should have been prepended
   Token current = tokens;
-  while (current is ErrorToken &&
-      (current.errorCode == codeExpectedHexDigit ||
-          current.errorCode == codeUnexpectedDollarInString ||
-          current.errorCode == codeMissingExponent ||
-          current.errorCode == codeUnmatchedToken ||
-          current.errorCode == codeUnterminatedComment ||
-          current.errorCode == codeUnterminatedString)) {
+  while (current is ErrorToken) {
     if (errorTail == null) {
       error = current;
     }
@@ -217,7 +145,6 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
     } else {
       goodTail.setNext(current);
     }
-    beforeGoodTail = goodTail;
     goodTail = current;
   }
 
