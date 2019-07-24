@@ -1172,7 +1172,7 @@ abstract class AbstractScanner implements Scanner {
           } else {
             if (!hasExponentDigits) {
               appendSyntheticSubstringToken(TokenType.DOUBLE, start, true, '0');
-              appendErrorToken(new UnterminatedToken(
+              prependErrorToken(new UnterminatedToken(
                   messageMissingExponent, tokenStart, stringOffset));
               return next;
             }
@@ -1353,7 +1353,9 @@ abstract class AbstractScanner implements Scanner {
     while (true) {
       if (identical($EOF, next)) {
         if (!asciiOnlyLines) handleUnicode(unicodeStart);
-        unterminated(messageUnterminatedComment);
+        prependErrorToken(UnterminatedToken(
+            messageUnterminatedComment, tokenStart, stringOffset));
+        advanceAfterError(true);
         break;
       } else if (identical($STAR, next)) {
         next = advance();
@@ -1623,7 +1625,8 @@ abstract class AbstractScanner implements Scanner {
     } else {
       beginToken(); // The synthetic identifier starts here.
       appendSyntheticSubstringToken(TokenType.IDENTIFIER, scanOffset, true, '');
-      unterminated(messageUnexpectedDollarInString, shouldAdvance: false);
+      prependErrorToken(UnterminatedToken(
+          messageUnexpectedDollarInString, tokenStart, stringOffset));
     }
     beginToken(); // The string interpolation suffix starts here.
     return next;
@@ -1750,11 +1753,6 @@ abstract class AbstractScanner implements Scanner {
   int unexpected(int character) {
     appendErrorToken(buildUnexpectedCharacterToken(character, tokenStart));
     return advanceAfterError(true);
-  }
-
-  int unterminated(Message message, {bool shouldAdvance: true}) {
-    appendErrorToken(new UnterminatedToken(message, tokenStart, stringOffset));
-    return advanceAfterError(shouldAdvance);
   }
 
   void unterminatedString(int quoteChar, int quoteStart, int start,

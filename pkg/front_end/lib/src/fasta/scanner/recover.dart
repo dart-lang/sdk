@@ -126,7 +126,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   }
 
   recoverExponent() {
-    return errorTail.next;
+    throw "Internal error: Exponent error token should have been prepended";
   }
 
   recoverString() {
@@ -138,12 +138,11 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   }
 
   recoverStringInterpolation() {
-    return errorTail.next;
+    throw "Internal error: Interpolation error token should have been prepended";
   }
 
   recoverComment() {
-    // TODO(ahe): Improve this.
-    return skipToEof(errorTail);
+    throw "Internal error: Comment error token should have been prepended";
   }
 
   recoverUnmatched() {
@@ -156,7 +155,10 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   Token current = tokens;
   while (current is ErrorToken &&
       (current.errorCode == codeExpectedHexDigit ||
+          current.errorCode == codeUnexpectedDollarInString ||
+          current.errorCode == codeMissingExponent ||
           current.errorCode == codeUnmatchedToken ||
+          current.errorCode == codeUnterminatedComment ||
           current.errorCode == codeUnterminatedString)) {
     if (errorTail == null) {
       error = current;

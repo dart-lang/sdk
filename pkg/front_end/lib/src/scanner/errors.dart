@@ -118,8 +118,6 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "UNTERMINATED_STRING_LITERAL":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      // TODO(danrubel): Remove this once all analyzer clients
-      // can process errors via the scanner's errors list.
       reportError(
           ScannerErrorCode.UNTERMINATED_STRING_LITERAL, endOffset - 1, null);
       return;
@@ -127,8 +125,9 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     case "UNTERMINATED_MULTI_LINE_COMMENT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
-      charOffset = endOffset;
-      return _makeError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT, null);
+      reportError(ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+          endOffset - 1, null);
+      return;
 
     case "MISSING_DIGIT":
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
