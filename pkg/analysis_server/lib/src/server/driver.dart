@@ -285,6 +285,12 @@ class Driver implements ServerStarter {
   static const String USE_LSP = "lsp";
 
   /**
+   * The path on disk to a directory containing language model files for smart
+   * code completion.
+   */
+  static const String COMPLETION_MODEL_FOLDER = "completion-model";
+
+  /**
    * The name of the flag to use summary2.
    */
   static const String USE_SUMMARY2 = "use-summary2";
@@ -339,6 +345,8 @@ class Driver implements ServerStarter {
     analysisServerOptions.cacheFolder = results[CACHE_FOLDER];
     analysisServerOptions.useFastaParser = results[USE_FASTA_PARSER];
     analysisServerOptions.useLanguageServerProtocol = results[USE_LSP];
+    analysisServerOptions.completionModelFolder =
+        results[COMPLETION_MODEL_FOLDER];
     AnalysisDriver.useSummary2 = results[USE_SUMMARY2];
 
     bool disableAnalyticsForSession = results[SUPPRESS_ANALYTICS_FLAG];
@@ -722,6 +730,8 @@ class Driver implements ServerStarter {
         help: "Whether to enable parsing via the Fasta parser");
     parser.addFlag(USE_LSP,
         defaultsTo: false, help: "Whether to use the Language Server Protocol");
+    parser.addOption(COMPLETION_MODEL_FOLDER,
+        help: "[path] path to the location of a code completion model");
     parser.addFlag(USE_SUMMARY2,
         defaultsTo: false, help: "Whether to use summary2");
     parser.addOption(TRAIN_USING,

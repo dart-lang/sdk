@@ -744,6 +744,9 @@ class AnalysisServerOptions {
   /// Whether to use the Language Server Protocol.
   bool useLanguageServerProtocol = false;
 
+  /// Base path to locate trained completion language model files.
+  String completionModelFolder;
+
   /// Whether to enable parsing via the Fasta parser.
   bool useFastaParser = true;
 
