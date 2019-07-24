@@ -1766,7 +1766,7 @@ abstract class AbstractScanner implements Scanner {
     appendSyntheticSubstringToken(TokenType.STRING, start, asciiOnly, suffix);
     // Ensure that the error is reported on a visible token
     int errorStart = tokenStart < stringOffset ? tokenStart : quoteStart;
-    appendErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
+    prependErrorToken(new UnterminatedString(prefix, errorStart, stringOffset));
   }
 
   int advanceAfterError(bool shouldAdvance) {

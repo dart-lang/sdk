@@ -130,7 +130,7 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   }
 
   recoverString() {
-    return errorTail.next;
+    throw "Internal error: String error token should have been prepended";
   }
 
   recoverHexDigit() {
@@ -155,8 +155,9 @@ Token scannerRecovery(List<int> bytes, Token tokens, List<int> lineStarts) {
   // All unmatched error tokens should have been prepended
   Token current = tokens;
   while (current is ErrorToken &&
-      (current.errorCode == codeUnmatchedToken ||
-          current.errorCode == codeExpectedHexDigit)) {
+      (current.errorCode == codeExpectedHexDigit ||
+          current.errorCode == codeUnmatchedToken ||
+          current.errorCode == codeUnterminatedString)) {
     if (errorTail == null) {
       error = current;
     }

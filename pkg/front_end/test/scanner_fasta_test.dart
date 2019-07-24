@@ -501,12 +501,12 @@ abstract class ScannerTest_Fasta_Base {
 
   void test_string_simple_missing_interpolation_identifier() {
     Token token = scan(r'"foo $');
-    expect((token as fasta.ErrorToken).errorCode,
-        same(codeUnexpectedDollarInString));
-
-    token = token.next;
     expect((token as fasta.ErrorToken).errorCode, same(codeUnterminatedString));
     expect((token as fasta.UnterminatedString).start, '"');
+
+    token = token.next;
+    expect((token as fasta.ErrorToken).errorCode,
+        same(codeUnexpectedDollarInString));
 
     token = token.next;
     expectToken(token, TokenType.STRING, 0, 5, lexeme: '"foo ');
