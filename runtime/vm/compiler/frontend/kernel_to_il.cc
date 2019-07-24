@@ -821,12 +821,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
 #endif  // !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kObjectEquals:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StrictCompare(Token::kEQ_STRICT);
       break;
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::String_length());
       if (kind == MethodRecognizer::kStringBaseIsEmpty) {
@@ -835,40 +837,49 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       }
       break;
     case MethodRecognizer::kGrowableArrayLength:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::GrowableObjectArray_length());
       break;
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Array_length());
       break;
     case MethodRecognizer::kTypedListLength:
     case MethodRecognizer::kTypedListViewLength:
     case MethodRecognizer::kByteDataViewLength:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::TypedDataBase_length());
       break;
     case MethodRecognizer::kByteDataViewOffsetInBytes:
     case MethodRecognizer::kTypedDataViewOffsetInBytes:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::TypedDataView_offset_in_bytes());
       break;
     case MethodRecognizer::kByteDataViewTypedData:
     case MethodRecognizer::kTypedDataViewTypedData:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::TypedDataView_data());
       break;
     case MethodRecognizer::kClassIDgetID:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadClassId();
       break;
     case MethodRecognizer::kGrowableArrayCapacity:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
       break;
     case MethodRecognizer::kListFactory: {
+      ASSERT(function.IsFactory() && (function.NumParameters() == 2) &&
+             function.HasOptionalParameters());
       // factory List<E>([int length]) {
       //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
       //                                            : new _GrowableList<E>(0);
@@ -933,15 +944,18 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     }
     case MethodRecognizer::kObjectArrayAllocate:
+      ASSERT(function.IsFactory() && (function.NumParameters() == 2));
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += CreateArray();
       break;
     case MethodRecognizer::kLinkedHashMap_getIndex:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashMap_index());
       break;
     case MethodRecognizer::kLinkedHashMap_setIndex:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreInstanceField(TokenPosition::kNoSource,
@@ -949,10 +963,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getData:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashMap_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setData:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreInstanceField(TokenPosition::kNoSource,
@@ -960,10 +976,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getHashMask:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashMap_hash_mask());
       break;
     case MethodRecognizer::kLinkedHashMap_setHashMask:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body +=
@@ -972,10 +990,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashMap_used_data());
       break;
     case MethodRecognizer::kLinkedHashMap_setUsedData:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body +=
@@ -984,10 +1004,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
+      ASSERT(function.NumParameters() == 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::LinkedHashMap_deleted_keys());
       break;
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
+      ASSERT(function.NumParameters() == 2);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadLocal(parsed_function_->RawParameterVariable(1));
       body += StoreInstanceField(TokenPosition::kNoSource,
@@ -996,6 +1018,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
       break;
     case MethodRecognizer::kFfiAbi:
+      ASSERT(function.NumParameters() == 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
     default: {
@@ -1019,6 +1042,7 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   ASSERT(class_table->HasValidClassAt(cid));
   const auto& view_class = Class::ZoneHandle(H.zone(), class_table->At(cid));
 
+  ASSERT(function.IsFactory() && (function.NumParameters() == 4));
   LocalVariable* typed_data = parsed_function_->RawParameterVariable(1);
   LocalVariable* offset_in_bytes = parsed_function_->RawParameterVariable(2);
   LocalVariable* length = parsed_function_->RawParameterVariable(3);

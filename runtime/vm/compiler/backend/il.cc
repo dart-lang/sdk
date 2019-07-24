@@ -4628,7 +4628,8 @@ bool StaticCallInstr::InitResultType(Zone* zone) {
     set_is_known_list_constructor(true);
     return true;
   } else if (function().has_pragma()) {
-    intptr_t recognized_cid = MethodRecognizer::ResultCidFromPragma(function());
+    const intptr_t recognized_cid =
+        MethodRecognizer::ResultCidFromPragma(function());
     if (recognized_cid != kDynamicCid) {
       SetResultType(zone, CompileType::FromCid(recognized_cid));
       return true;
