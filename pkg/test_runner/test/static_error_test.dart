@@ -13,22 +13,26 @@ void main() {
 }
 
 void testFlags() {
-  var unspecified = StaticError.unspecified(1);
+  var unspecified = StaticError(
+      line: 1,
+      column: 2,
+      length: 3,
+      code: "unspecified",
+      message: "unspecified");
+  var unspecifiedAnalyzer =
+      StaticError(line: 1, column: 2, length: 3, code: "unspecified");
+  var unspecifiedCfe =
+      StaticError(line: 1, column: 2, length: 3, message: "unspecified");
   var noLength = StaticError(line: 1, column: 2, code: "E.CODE");
   var analyzer = StaticError(line: 1, column: 2, length: 3, code: "E.CODE");
   var cfe = StaticError(line: 1, column: 2, length: 3, message: "E.");
   var both =
       StaticError(line: 1, column: 2, length: 3, code: "E.CODE", message: "E.");
 
-  // isUnspecified.
-  Expect.isTrue(unspecified.isUnspecified);
-  Expect.isFalse(noLength.isUnspecified);
-  Expect.isFalse(analyzer.isUnspecified);
-  Expect.isFalse(cfe.isUnspecified);
-  Expect.isFalse(both.isUnspecified);
-
   // isAnalyzer.
   Expect.isTrue(unspecified.isAnalyzer);
+  Expect.isTrue(unspecifiedAnalyzer.isAnalyzer);
+  Expect.isFalse(unspecifiedCfe.isAnalyzer);
   Expect.isTrue(noLength.isAnalyzer);
   Expect.isTrue(analyzer.isAnalyzer);
   Expect.isFalse(cfe.isAnalyzer);
@@ -36,6 +40,8 @@ void testFlags() {
 
   // isCfe.
   Expect.isTrue(unspecified.isCfe);
+  Expect.isFalse(unspecifiedAnalyzer.isCfe);
+  Expect.isTrue(unspecifiedCfe.isCfe);
   Expect.isFalse(noLength.isCfe);
   Expect.isFalse(analyzer.isCfe);
   Expect.isTrue(cfe.isCfe);
@@ -66,10 +72,6 @@ void testCompareTo() {
     StaticError(line: 6, column: 1, length: 1, code: "E.CODE"),
     StaticError(line: 6, column: 1, length: 1, code: "E.CODE", message: "A."),
     StaticError(line: 6, column: 1, length: 1, code: "E.CODE", message: "Z."),
-
-    // Unspecified before specified.
-    StaticError.unspecified(7),
-    StaticError(line: 7, column: 1, length: 1, code: "E.CODE", message: "E."),
   ];
 
   // Every pair of errors in the array should be ordered correctly.
@@ -216,7 +218,25 @@ void testDescribeDifferences() {
   Expected error code Error.CODE but was Weird.ERROR.
   """);
 
-  var unspecified = StaticError.unspecified(2);
+  // Unspecified errors.
+  var unspecified = StaticError(
+      line: 2,
+      column: 3,
+      length: 4,
+      code: "unspecified",
+      message: "unspecified");
+  var specifiedAnalyzer = StaticError(
+      line: 2,
+      column: 3,
+      length: 4,
+      code: "Error.CODE",
+      message: "unspecified");
+  var specifiedCfe = StaticError(
+      line: 2,
+      column: 3,
+      length: 4,
+      code: "unspecified",
+      message: "Error message.");
 
   // Matches if line is right.
   expectNoDifferences(
@@ -234,12 +254,50 @@ void testDescribeDifferences() {
       StaticError(
           line: 3,
           column: 3,
-          length: 6,
+          length: 4,
           code: "Weird.ERROR",
           message: "Error message."),
       """
-  Expected unspecified error on line 2 but was on 3.
+  Expected on line 2 but was on 3.
   """);
+
+  // Ignores differences in other fields.
+  expectNoDifferences(
+      unspecified,
+      StaticError(
+          line: 2,
+          column: 333,
+          length: 4444,
+          code: "Different.CODE",
+          message: "Different message."));
+
+  // If error is specified on analyzer, must match fields when actual is
+  // analyzer error.
+  expectDifferences(specifiedAnalyzer,
+      StaticError(line: 2, column: 5, length: 6, code: "Weird.ERROR"), """
+  Expected on column 3 but was on 5.
+  Expected length 4 but was 6.
+  Expected error code Error.CODE but was Weird.ERROR.
+  """);
+  expectNoDifferences(specifiedAnalyzer,
+      StaticError(line: 2, column: 333, length: 444, message: "Message."));
+  expectNoDifferences(specifiedAnalyzer,
+      StaticError(line: 2, column: 3, length: 4, code: "Error.CODE"));
+
+  // If error is specified on CFE, must match fields when actual is
+  // CFE error.
+  expectDifferences(
+      specifiedCfe,
+      StaticError(line: 2, column: 5, length: 6, message: "Different message."),
+      """
+  Expected on column 3 but was on 5.
+  Expected length 4 but was 6.
+  Expected error message 'Error message.' but was 'Different message.'.
+  """);
+  expectNoDifferences(specifiedCfe,
+      StaticError(line: 2, column: 333, length: 444, code: "Error.CODE."));
+  expectNoDifferences(specifiedCfe,
+      StaticError(line: 2, column: 3, length: 4, message: "Error message."));
 }
 
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {

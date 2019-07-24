@@ -55,6 +55,8 @@ List<String> _parseOption(String filePath, String contents, String name,
 /// This same class is also used for *reported* errors when parsing the output
 /// of a front end.
 class StaticError implements Comparable<StaticError> {
+  static const _unspecified = "unspecified";
+
   /// The one-based line number of the beginning of the error's location.
   final int line;
 
@@ -74,6 +76,15 @@ class StaticError implements Comparable<StaticError> {
   /// be reported by the CFE.
   final String message;
 
+  /// Creates a new StaticError at the given location with the given expected
+  /// error code and message.
+  ///
+  /// In order to make it easier to incrementally add error tests before a
+  /// feature is fully implemented or specified, an error expectation can be in
+  /// an "unspecified" state for either or both platforms by having the error
+  /// code or message be the special string "unspecified". When an unspecified
+  /// error is tested, a front end is expected to report *some* error on that
+  /// error's line, but it can be any location, error code, or message.
   StaticError({this.line, this.column, this.length, this.code, this.message}) {
     // Must have a location.
     assert(line != null);
@@ -83,32 +94,14 @@ class StaticError implements Comparable<StaticError> {
     assert(code != null || message != null);
   }
 
-  /// In order to make it easier to incrementally add error tests before a
-  /// feature is fully implemented or specified, an error expectation can be in
-  /// an "unspecified" state. That means all that's known is the line number.
-  /// All other fields will be `null`. In that state, a front end is expected to
-  /// report *some* error on that line, but it can be any location, error code,
-  /// or message.
-  StaticError.unspecified(this.line)
-      : column = null,
-        length = null,
-        code = null,
-        message = null;
-
-  /// Whether this is an unspecified error that only tracks a line number and
-  /// no other information.
-  bool get isUnspecified => column == null;
-
   /// Whether this error should be reported by analyzer.
-  bool get isAnalyzer => isUnspecified || code != null;
+  bool get isAnalyzer => code != null;
 
   /// Whether this error should be reported by the CFE.
-  bool get isCfe => isUnspecified || message != null;
+  bool get isCfe => message != null;
 
   /// A textual description of this error's location.
   String get location {
-    if (isUnspecified) return "Unspecified error at line $line";
-
     var result = "Error at line $line, column $column";
     if (length != null) result += ", length $length";
     return result;
@@ -116,10 +109,8 @@ class StaticError implements Comparable<StaticError> {
 
   String toString() {
     var result = location;
-    if (!isUnspecified) {
-      if (code != null) result += "\n$code";
-      if (message != null) result += "\n$message";
-    }
+    if (code != null) result += "\n$code";
+    if (message != null) result += "\n$message";
     return result;
   }
 
@@ -127,10 +118,7 @@ class StaticError implements Comparable<StaticError> {
   @override
   int compareTo(StaticError other) {
     if (line != other.line) return line.compareTo(other.line);
-
-    var thisColumn = column ?? 0;
-    var otherColumn = other.column ?? 0;
-    if (thisColumn != otherColumn) return thisColumn.compareTo(otherColumn);
+    if (this.column != other.column) return column.compareTo(other.column);
 
     var thisLength = length ?? 0;
     var otherLength = other.length ?? 0;
@@ -149,36 +137,47 @@ class StaticError implements Comparable<StaticError> {
   ///
   /// If this error correctly matches [actual], returns `null`. Otherwise
   /// returns a list of strings describing the mismatch.
+  ///
+  /// Note that this does *not* check to see that [actual] matches the platforms
+  /// that this error expects. For example, if [actual] only reports an error
+  /// code (i.e. it is analyzer-only) and this error only specifies an error
+  /// message (i.e. it is CFE-only), this will still report differences in
+  /// location information. This method expects that error expectations have
+  /// already been filtered by platform so this will only be called in cases
+  /// where the platforms do match.
   List<String> describeDifferences(StaticError actual) {
     var differences = <String>[];
-
-    if (isUnspecified) {
-      if (line == actual.line) return null;
-
-      return [
-        "Expected unspecified error on line $line but was on "
-            "${actual.line}."
-      ];
-    }
 
     if (line != actual.line) {
       differences.add("Expected on line $line but was on ${actual.line}.");
     }
 
-    if (column != actual.column) {
-      differences
-          .add("Expected on column $column but was on ${actual.column}.");
+    // If the error is unspecified on the front end being tested, the column
+    // and length can be any values.
+    var requirePreciseLocation = code != _unspecified && actual.isAnalyzer ||
+        message != _unspecified && actual.isCfe;
+    if (requirePreciseLocation) {
+      if (column != actual.column) {
+        differences
+            .add("Expected on column $column but was on ${actual.column}.");
+      }
+
+      // This error represents an expectation, so should have a length.
+      assert(length != null);
+      if (actual.length != null && length != actual.length) {
+        differences.add("Expected length $length but was ${actual.length}.");
+      }
     }
 
-    if (length != null && actual.length != null && length != actual.length) {
-      differences.add("Expected length $length but was ${actual.length}.");
-    }
-
-    if (code != null && actual.code != null && code != actual.code) {
+    if (code != null &&
+        code != _unspecified &&
+        actual.code != null &&
+        code != actual.code) {
       differences.add("Expected error code $code but was ${actual.code}.");
     }
 
     if (message != null &&
+        message != _unspecified &&
         actual.message != null &&
         message != actual.message) {
       differences.add(
@@ -629,15 +628,12 @@ class _ErrorExpectationParser {
       RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*,\s*"
           r"length\s+(\d+)\s*\]\s*$");
 
-  /// An analyzer error code is a dotted identifier.
-  static final _unspecifiedErrorRegExp =
-      RegExp(r"^\s*// \[unspecified error\]");
-
   /// An analyzer error expectation starts with `// [analyzer]`.
   static final _analyzerErrorRegExp = RegExp(r"^\s*// \[analyzer\]\s*(.*)");
 
-  /// An analyzer error code is a dotted identifier.
-  static final _errorCodeRegExp = RegExp(r"^\w+\.\w+$");
+  /// An analyzer error code is a dotted identifier or the magic string
+  /// "unspecified".
+  static final _errorCodeRegExp = RegExp(r"^\w+\.\w+|unspecified$");
 
   /// The first line of a CFE error expectation starts with `// [cfe]`.
   static final _cfeErrorRegExp = RegExp(r"^\s*// \[cfe\]\s*(.*)");
@@ -682,13 +678,6 @@ class _ErrorExpectationParser {
             line: int.parse(match.group(1)),
             column: int.parse(match.group(2)),
             length: int.parse(match.group(3)));
-        _advance();
-        continue;
-      }
-
-      match = _unspecifiedErrorRegExp.firstMatch(sourceLine);
-      if (match != null) {
-        _errors.add(StaticError.unspecified(_lastRealLine));
         _advance();
         continue;
       }

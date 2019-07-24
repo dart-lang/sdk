@@ -359,10 +359,45 @@ int i = "s";
   // Unspecified errors.
   expectParseErrorExpectations("""
 int i = "s";
-/\/ [unspecified error]
+/\/     ^^^
+// [analyzer] unspecified
+// [cfe] unspecified
 int j = "s";
-  /\/ [unspecified error] some additional info
-""", [StaticError.unspecified(1), StaticError.unspecified(3)]);
+/\/     ^^^
+// [analyzer] unspecified
+// [cfe] Message.
+int k = "s";
+/\/     ^^^
+// [analyzer] Error.CODE
+// [cfe] unspecified
+int l = "s";
+/\/     ^^^
+// [analyzer] unspecified
+int m = "s";
+/\/     ^^^
+// [cfe] unspecified
+""", [
+    StaticError(
+        line: 1,
+        column: 8,
+        length: 3,
+        code: "unspecified",
+        message: "unspecified"),
+    StaticError(
+        line: 5,
+        column: 8,
+        length: 3,
+        code: "unspecified",
+        message: "Message."),
+    StaticError(
+        line: 9,
+        column: 8,
+        length: 3,
+        code: "Error.CODE",
+        message: "unspecified"),
+    StaticError(line: 13, column: 8, length: 3, code: "unspecified"),
+    StaticError(line: 16, column: 8, length: 3, message: "unspecified"),
+  ]);
 
   // Ignore multitest markers.
   expectParseErrorExpectations("""
