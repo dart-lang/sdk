@@ -440,6 +440,9 @@ static bool TryReadKernelListBuffer(const char* script_uri,
                                     uint8_t** kernel_ir,
                                     intptr_t* kernel_ir_size) {
   const char* kernel_list_dirname = DartUtils::DirName(script_uri);
+  if (strcmp(kernel_list_dirname, script_uri) == 0) {
+    kernel_list_dirname = "";
+  }
   KernelIRNode* kernel_ir_head = nullptr;
   KernelIRNode* kernel_ir_tail = nullptr;
   // Add all kernels to the linked list
@@ -452,11 +455,11 @@ static bool TryReadKernelListBuffer(const char* script_uri,
     intptr_t this_kernel_size;
     uint8_t* this_buffer;
 
-    StringPointer absolute_filename(
+    StringPointer resolved_filename(
         File::IsAbsolutePath(filename)
             ? strdup(filename)
             : Utils::SCreate("%s%s", kernel_list_dirname, filename));
-    if (!TryReadFile(absolute_filename.c_str(), &this_buffer,
+    if (!TryReadFile(resolved_filename.c_str(), &this_buffer,
                      &this_kernel_size)) {
       return false;
     }
