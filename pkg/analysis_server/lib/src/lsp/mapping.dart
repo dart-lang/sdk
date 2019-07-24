@@ -644,12 +644,17 @@ lsp.Diagnostic toDiagnostic(
         .toList();
   }
 
+  String message = error.message;
+  if (error.correctionMessage != null) {
+    message = '$message\n${error.correctionMessage}';
+  }
+
   return new lsp.Diagnostic(
     toRange(result.lineInfo, error.offset, error.length),
     toDiagnosticSeverity(errorSeverity),
     errorCode.name.toLowerCase(),
     languageSourceName,
-    error.message,
+    message,
     relatedInformation,
   );
 }

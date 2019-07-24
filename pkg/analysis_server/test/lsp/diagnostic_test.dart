@@ -50,6 +50,21 @@ void f() {
     expect(diagnostic.relatedInformation, hasLength(1));
   }
 
+  test_correction() async {
+    newFile(mainFilePath, content: '''
+void f() {
+  x = 0;
+}
+''');
+
+    final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
+    await initialize();
+    final diagnostics = await diagnosticsUpdate;
+    expect(diagnostics, hasLength(1));
+    final diagnostic = diagnostics.first;
+    expect(diagnostic.message, contains('\nTry'));
+  }
+
   test_deletedFile() async {
     newFile(mainFilePath, content: 'String a = 1;');
 
