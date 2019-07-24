@@ -5852,6 +5852,8 @@ class Context : public Object {
   }
   inline void SetAt(intptr_t context_index, const Object& value) const;
 
+  intptr_t GetLevel() const;
+
   void Dump(int indent = 0) const;
 
   static const intptr_t kBytesPerElement = kWordSize;

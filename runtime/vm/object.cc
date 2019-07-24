@@ -15536,6 +15536,16 @@ RawLocalVarDescriptors* Bytecode::GetLocalVarDescriptors() const {
 #endif
 }
 
+intptr_t Context::GetLevel() const {
+  intptr_t level = 0;
+  Context& parent_ctx = Context::Handle(parent());
+  while (!parent_ctx.IsNull()) {
+    level++;
+    parent_ctx = parent_ctx.parent();
+  }
+  return level;
+}
+
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
   ASSERT(Object::context_class() != Class::null());

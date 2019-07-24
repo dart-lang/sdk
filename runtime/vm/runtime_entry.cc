@@ -2136,9 +2136,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
         // Ensure that we have unoptimized code.
         frame->function().EnsureHasCompiledUnoptimizedCode();
       }
-      // TODO(regis): Provide var descriptors in kernel bytecode.
-      const int num_vars =
-          frame->IsInterpreted() ? 0 : frame->NumLocalVariables();
+      const int num_vars = frame->NumLocalVariables();
 #else
       // Variable locations and number are unknown when precompiling.
       const int num_vars = 0;
@@ -2149,7 +2147,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      Debugger::CollectAwaiterReturnStackTrace();
+      isolate->debugger()->CollectAwaiterReturnStackTrace();
     }
     FLAG_stacktrace_every = saved_stacktrace_every;
   }

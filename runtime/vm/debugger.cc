@@ -264,6 +264,7 @@ ActivationFrame::ActivationFrame(Kind kind)
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
+      deopt_id_(DeoptId::kNone),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -287,6 +288,7 @@ ActivationFrame::ActivationFrame(const Closure& async_activation)
       token_pos_initialized_(false),
       token_pos_(TokenPosition::kNoSource),
       try_index_(-1),
+      deopt_id_(DeoptId::kNone),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -769,6 +771,7 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
 // Calculate the context level at the current bytecode pc or code deopt id
 // of the frame.
 intptr_t ActivationFrame::ContextLevel() {
+  ASSERT(live_frame_);
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(IsInterpreted() || !code_.is_optimized());
@@ -804,27 +807,6 @@ intptr_t ActivationFrame::ContextLevel() {
             context_level_ = local_vars.ContextLevel();
           }
         }
-      }
-      if (context_level_ < 0 && function().IsClosureFunction()) {
-        // Obtain the context level from the parent function.
-        // TODO(alexmarkov): Define scope which includes the whole closure body.
-        Function& parent = Function::Handle(zone, function().parent_function());
-        do {
-          bytecode = parent.bytecode();
-          kernel::BytecodeLocalVariablesIterator local_vars(zone, bytecode);
-          while (local_vars.MoveNext()) {
-            if (local_vars.Kind() ==
-                kernel::BytecodeLocalVariablesIterator::kScope) {
-              if (local_vars.StartTokenPos() <= TokenPos() &&
-                  TokenPos() <= local_vars.EndTokenPos()) {
-                ASSERT(context_level_ <= local_vars.ContextLevel());
-                context_level_ = local_vars.ContextLevel();
-              }
-            }
-          }
-          if (context_level_ >= 0) break;
-          parent = parent.parent_function();
-        } while (!parent.IsNull());
       }
       if (context_level_ < 0) {
         PrintDescriptorsError("Missing context level in local variables info");
@@ -883,9 +865,14 @@ RawObject* ActivationFrame::GetAsyncContextVariable(const String& name) {
         ASSERT(kind == RawLocalVarDescriptors::kContextVar);
         if (!live_frame_) {
           ASSERT(!ctx_.IsNull());
+          // Compiled code uses relative context levels, i.e. the frame context
+          // level is always 0 on entry.
+          // Bytecode uses absolute context levels, i.e. the frame context level
+          // on entry must be calculated.
+          const intptr_t frame_ctx_level =
+              IsInterpreted() ? ctx_.GetLevel() : 0;
           return GetRelativeContextVar(var_info.scope_id,
-                                       variable_index.value(),
-                                       /* frame_ctx_level = */ 0);
+                                       variable_index.value(), frame_ctx_level);
         }
         return GetContextVar(var_info.scope_id, variable_index.value());
       }
@@ -1605,20 +1592,31 @@ const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
-  return Thread::Current()->zone()->PrintToString(
-      "[ Frame pc(0x%" Px " offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
-      ")\n"
-      "\tfunction = %s\n"
-      "\turl = %s\n"
-      "\tline = %" Pd
-      "\n"
-      "\tcontext = %s\n"
-      "\tcontext level = %" Pd " ]\n",
-      pc(),
-      pc() -
-          (IsInterpreted() ? bytecode().PayloadStart() : code().PayloadStart()),
-      fp(), sp(), func_name, url.ToCString(), line, ctx_.ToCString(),
-      ContextLevel());
+  if (live_frame_) {
+    return Thread::Current()->zone()->PrintToString(
+        "[ Frame pc(0x%" Px " %s offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
+        ")\n"
+        "\tfunction = %s\n"
+        "\turl = %s\n"
+        "\tline = %" Pd
+        "\n"
+        "\tcontext = %s\n"
+        "\tcontext level = %" Pd " ]\n",
+        pc(), IsInterpreted() ? "bytecode" : "code",
+        pc() - (IsInterpreted() ? bytecode().PayloadStart()
+                                : code().PayloadStart()),
+        fp(), sp(), func_name, url.ToCString(), line, ctx_.ToCString(),
+        ContextLevel());
+  } else {
+    return Thread::Current()->zone()->PrintToString(
+        "[ Frame %s function = %s\n"
+        "\turl = %s\n"
+        "\tline = %" Pd
+        "\n"
+        "\tcontext = %s\n",
+        IsInterpreted() ? "bytecode" : "code", func_name, url.ToCString(), line,
+        ctx_.ToCString());
+  }
 }
 
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
@@ -2126,8 +2124,6 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   if (FLAG_trace_debugger_stacktrace) {
     const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
-  }
-  if (FLAG_trace_debugger_stacktrace) {
     OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());
   }
   return activation;
@@ -2145,8 +2141,6 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   if (FLAG_trace_debugger_stacktrace) {
     const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
-  }
-  if (FLAG_trace_debugger_stacktrace) {
     OS::PrintErr("\tLine number: %" Pd "\n", activation->LineNumber());
   }
   return activation;
