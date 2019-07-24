@@ -11,6 +11,12 @@ void checkRtiIdentical(Object rti1, Object rti2) {
       identical(rti1, rti2), 'identical(${format(rti1)}, ${format(rti2)}');
 }
 
+void checkToString(String expected, Object rti1) {
+  String result = rti.testingRtiToString(rti1);
+  if (expected == result) return;
+  Expect.equals(expected, result.replaceAll('minified:', ''));
+}
+
 test1() {
   var universe = rti.testingCreateUniverse();
 
@@ -18,12 +24,12 @@ test1() {
   var rti1 = rti.testingUniverseEval(universe, 'int');
   var rti2 = rti.testingEnvironmentEval(universe, env, '1');
 
-  Expect.equals('int', rti.testingRtiToString(rti1));
-  Expect.equals('int', rti.testingRtiToString(rti2));
+  checkToString('int', rti1);
+  checkToString('int', rti2);
   checkRtiIdentical(rti1, rti2);
 
   var rti3 = rti.testingEnvironmentEval(universe, env, 'A<0,1,2>');
-  Expect.equals('A<Foo<bool>, int, bool>', rti.testingRtiToString(rti3));
+  checkToString('A<Foo<bool>, int, bool>', rti3);
 }
 
 test2() {
@@ -37,32 +43,31 @@ test2() {
 
   var rti1 = rti.testingEnvironmentEval(universe, env1, 'A<0,1,2>');
   var rti2 = rti.testingEnvironmentEval(universe, env2, 'A<0,1,2>');
-  Expect.equals('A<Foo<bool>, int, bool>', rti.testingRtiToString(rti1));
-  Expect.equals('A<Foo, bool, int>', rti.testingRtiToString(rti2));
+  checkToString('A<Foo<bool>, int, bool>', rti1);
+  checkToString('A<Foo, bool, int>', rti2);
 }
 
 test3() {
   var universe = rti.testingCreateUniverse();
-  var env = rti.testingUniverseEval(universe, 'C<aa,bb><cc,@>');
+  var env = rti.testingUniverseEval(universe, 'C<aaa,bbb><ccc,@>');
   var rti1 = rti.testingEnvironmentEval(universe, env, 'A<0,1,2,3,4>');
-  Expect.equals(
-      'A<C<aa, bb>, cc, dynamic, aa, bb>', rti.testingRtiToString(rti1));
+  checkToString('A<C<aaa, bbb>, ccc, dynamic, aaa, bbb>', rti1);
 }
 
 test4() {
   var universe = rti.testingCreateUniverse();
-  var env = rti.testingUniverseEval(universe, '@<aa,bb>');
+  var env = rti.testingUniverseEval(universe, '@<aaa,bbb>');
   var rti1 = rti.testingEnvironmentEval(universe, env, 'A<0,1,2>');
-  Expect.equals('A<dynamic, aa, bb>', rti.testingRtiToString(rti1));
+  checkToString('A<dynamic, aaa, bbb>', rti1);
 }
 
 test5() {
   var universe = rti.testingCreateUniverse();
-  var env1 = rti.testingUniverseEval(universe, '@<aa><bb><cc>');
-  var env2 = rti.testingUniverseEval(universe, '@;<aa><bb><cc>');
+  var env1 = rti.testingUniverseEval(universe, '@<aaa><bbb><ccc>');
+  var env2 = rti.testingUniverseEval(universe, '@;<aaa><bbb><ccc>');
   var rti1 = rti.testingEnvironmentEval(universe, env1, 'A<0,1,2,3>');
   var rti2 = rti.testingEnvironmentEval(universe, env2, 'A<0,1,2,3>');
-  Expect.equals('A<dynamic, aa, bb, cc>', rti.testingRtiToString(rti1));
+  checkToString('A<dynamic, aaa, bbb, ccc>', rti1);
   checkRtiIdentical(rti1, rti2);
 }
 

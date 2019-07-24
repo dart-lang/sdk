@@ -12,10 +12,14 @@ import 'dart:_foreign_helper'
         JS,
         JS_BUILTIN,
         JS_EMBEDDED_GLOBAL,
+        JS_GET_FLAG,
         JS_GET_NAME,
+        JS_STRING_CONCAT,
         RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors' show JSArray, JSUnmodifiableArray;
+
+import 'dart:_js_names' show unmangleGlobalNameIfPreservedAnyways;
 
 import 'dart:_js_embedded_names'
     show JsBuiltin, JsGetName, RtiUniverseFieldNames, RTI_UNIVERSE, TYPES;
@@ -482,6 +486,7 @@ String _rtiToString(Rti rti, List<String> genericContext) {
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
+    name = _unminifyOrTag(name);
     var arguments = Rti._getInterfaceTypeArguments(rti);
     if (arguments.length != 0) {
       name += '<';
@@ -531,6 +536,12 @@ String _rtiToString(Rti rti, List<String> genericContext) {
   }
 
   return '?';
+}
+
+String _unminifyOrTag(String rawClassName) {
+  String preserved = unmangleGlobalNameIfPreservedAnyways(rawClassName);
+  if (preserved != null) return preserved;
+  return JS_GET_FLAG('MINIFIED') ? 'minified:$rawClassName' : rawClassName;
 }
 
 String _rtiToDebugString(Rti rti) {

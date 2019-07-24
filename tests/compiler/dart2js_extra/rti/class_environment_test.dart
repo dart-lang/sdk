@@ -11,6 +11,12 @@ void checkRtiIdentical(Object rti1, Object rti2) {
       identical(rti1, rti2), 'identical(${format(rti1)}, ${format(rti2)}');
 }
 
+void checkToString(String expected, Object rti1) {
+  String result = rti.testingRtiToString(rti1);
+  if (expected == result) return;
+  Expect.equals(expected, result.replaceAll('minified:', ''));
+}
+
 testInterface1() {
   var universe = rti.testingCreateUniverse();
 
@@ -18,8 +24,8 @@ testInterface1() {
   var rti1 = rti.testingUniverseEval(universe, 'int');
   var rti2 = rti.testingEnvironmentEval(universe, env, '1');
 
-  Expect.equals('int', rti.testingRtiToString(rti1));
-  Expect.equals('int', rti.testingRtiToString(rti2));
+  checkToString('int', rti1);
+  checkToString('int', rti2);
   checkRtiIdentical(rti1, rti2);
 }
 
@@ -31,9 +37,9 @@ testInterface2() {
   var rti2 = rti.testingEnvironmentEval(universe, env, '2');
   var rti3 = rti.testingEnvironmentEval(universe, env, 'List<1>');
 
-  Expect.equals('List<int>', rti.testingRtiToString(rti1));
-  Expect.equals('List<int>', rti.testingRtiToString(rti2));
-  Expect.equals('List<int>', rti.testingRtiToString(rti3));
+  checkToString('List<int>', rti1);
+  checkToString('List<int>', rti2);
+  checkToString('List<int>', rti3);
   checkRtiIdentical(rti1, rti2);
   checkRtiIdentical(rti1, rti3);
 }
