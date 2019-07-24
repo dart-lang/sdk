@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -57,7 +56,7 @@ f() {
 ''');
 
     var invocation = findNode.methodInvocation('c.a()');
-    expect(invocation.methodName.staticElement.library.isDartCore, isFalse);
+    assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
   }
 
   test_method_noMatch() async {
@@ -111,8 +110,7 @@ f() {
 ''');
 
     var invocation = findNode.methodInvocation('b.a()');
-    var declaration = findNode.methodDeclaration('void a()');
-    expect(invocation.methodName.staticElement, declaration.declaredElement);
+    assertElement(invocation, findElement.method('a'));
   }
 
   test_method_privateExtension() async {
@@ -161,7 +159,7 @@ extension A_Ext on A {
 }
 
 extension B_Ext on B {
-  void /*2*/ a() { }
+  void a() { }
 }
 
 f() {
@@ -171,8 +169,7 @@ f() {
 ''');
 
     var invocation = findNode.methodInvocation('b.a()');
-    var declaration = findNode.methodDeclaration('void /*2*/ a()');
-    expect(invocation.methodName.staticElement, declaration.declaredElement);
+    assertElement(invocation, findElement.method('a', of: 'B_Ext'));
   }
 
   @failingTest
@@ -189,7 +186,7 @@ extension A_Ext<T> on A<T> {
 }
 
 extension B_Ext<T> on B<T> {
-  void /*2*/ f(T x) { }
+  void f(T x) { }
 }
 
 main() {
@@ -200,8 +197,7 @@ main() {
 ''');
 
     var invocation = findNode.methodInvocation('x.f(o)');
-    var declaration = findNode.methodDeclaration('void /*2*/ f(T x)');
-    expect(invocation.methodName.staticElement, declaration.declaredElement);
+    assertElement(invocation, findElement.method('f', of: 'B_Ext'));
   }
 
   test_method_specificSubtypeMatchPlatform() async {
@@ -221,7 +217,7 @@ extension Core_Ext on Core {
 }
 
 extension Core2_Ext on Core2 {
-  void /*2*/ a() => 0;
+  void a() => 0;
 }
 
 f() {
@@ -231,8 +227,7 @@ f() {
 ''');
 
     var invocation = findNode.methodInvocation('c.a()');
-    var declaration = findNode.methodDeclaration('void /*2*/ a()');
-    expect(invocation.methodName.staticElement, declaration.declaredElement);
+    assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
   }
 
   test_method_unnamedExtension() async {
