@@ -718,9 +718,17 @@ class State<Variable, Type> {
 
   /// For each variable whose type is promoted at this point in the control
   /// flow, the promoted type.  Variables whose type is not promoted are not
-  /// present in the map.  Variables that have gone out of scope are not
-  /// guaranteed to be present in the map even if they were promoted at the time
-  /// they went out of scope.
+  /// present in the map.
+  ///
+  /// Flow analysis has no awareness of scope, so variables that are out of
+  /// scope are retained in the map until such time as their promotions would
+  /// have been lost, if their scope had extended to the entire function being
+  /// analyzed.  So, for example, if a variable is declared and then promoted
+  /// inside the `then` branch of an `if` statement, and the `else` branch of
+  /// the `if` statement ends in a `return` statement, then the promotion
+  /// remains in the map after the `if` statement ends.  This should not have
+  /// any effect on analysis results for error-free code, because it is an error
+  /// to refer to a variable that is no longer in scope.
   final Map<Variable, Type> promoted;
 
   /// Creates a state object with the given [reachable] status.  All variables
