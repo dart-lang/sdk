@@ -37,7 +37,8 @@ TestResult runCommand(List<String> cmd, Map<String, String> env) {
   if (res.exitCode == -sigkill) {
     return new TestResult(ResultCode.timeout, res.stdout);
   } else if (res.exitCode != 0) {
-    return new TestResult(ResultCode.error, res.stderr);
+    return new TestResult(
+        ResultCode.error, '${res.exitCode}\n${res.stdout}\n${res.stderr}\n');
   }
   return new TestResult(ResultCode.success, res.stdout);
 }
