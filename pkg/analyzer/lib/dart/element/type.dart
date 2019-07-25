@@ -79,6 +79,10 @@ abstract class DartType {
   /// dart:core library.
   bool get isDartCoreNull;
 
+  /// Return `true` if this type represents the type 'num' defined in the
+  /// dart:core library.
+  bool get isDartCoreNum;
+
   /// Returns `true` if this type represents the type 'Set' defined in the
   /// dart:core library.
   bool get isDartCoreSet;

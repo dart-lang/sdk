@@ -1,6 +1,6 @@
 ## 0.37.1 (Not yet published)
-* Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreSet`, and
-  `isDartCoreSymbol` to `DartType`.
+* Added the getters `isDartCoreList`, `isDartCoreMap`, `isDartCoreNum`,
+  `isDartCoreSet`, and `isDartCoreSymbol` to `DartType`.
 * Added the method `DartObject.toFunctionValue`.
 
 ## 0.37.0
