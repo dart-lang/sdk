@@ -1036,7 +1036,11 @@ class BatchRunnerProcess {
   Future<bool> terminate() {
     if (_process == null) return Future.value(true);
     var terminateCompleter = Completer<bool>();
+    final sigkillTimer = Timer(Duration(seconds: 5), () {
+      _process.kill(io.ProcessSignal.sigkill);
+    });
     _processExitHandler = (_) {
+      sigkillTimer.cancel();
       terminateCompleter.complete(true);
     };
     _process.kill();
