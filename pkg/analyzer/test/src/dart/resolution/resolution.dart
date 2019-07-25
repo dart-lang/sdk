@@ -430,6 +430,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is AssignmentExpression) {
       return node.staticElement;
+    } else if (node is BinaryExpression) {
+      return node.staticElement;
     } else if (node is Declaration) {
       return node.declaredElement;
     } else if (node is FormalParameter) {
@@ -448,6 +450,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.staticElement;
     } else if (node is PropertyAccess) {
       return node.propertyName.staticElement;
+    } else if (node is TypeName) {
+      return node.name.staticElement;
     } else {
       fail('Unsupported node: (${node.runtimeType}) $node');
     }

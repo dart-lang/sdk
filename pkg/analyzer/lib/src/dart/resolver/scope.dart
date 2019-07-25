@@ -162,16 +162,12 @@ class ExtensionScope extends EnclosedScope {
     List<PropertyAccessorElement> accessors = extensionElement.accessors;
     int accessorLength = accessors.length;
     for (int i = 0; i < accessorLength; i++) {
-      if (accessors[i].isStatic) {
-        define(accessors[i]);
-      }
+      define(accessors[i]);
     }
     List<MethodElement> methods = extensionElement.methods;
     int methodLength = methods.length;
     for (int i = 0; i < methodLength; i++) {
-      if (methods[i].isStatic) {
-        define(methods[i]);
-      }
+      define(methods[i]);
     }
   }
 }

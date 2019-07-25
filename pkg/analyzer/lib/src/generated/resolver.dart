@@ -4466,7 +4466,10 @@ class ResolverVisitor extends ScopedVisitor {
     // Continue the extension resolution.
     //
     try {
-      typeAnalyzer.thisType = node.declaredElement.extendedType;
+      DartType extendedType = node.declaredElement.extendedType;
+      if (extendedType is InterfaceType) {
+        typeAnalyzer.thisType = extendedType;
+      }
       super.visitExtensionDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
