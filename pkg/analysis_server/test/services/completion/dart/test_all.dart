@@ -13,6 +13,7 @@ import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
 import 'keyword_contributor_test.dart' as keyword_test;
 import 'label_contributor_test.dart' as label_contributor_test;
+import 'language_model_test.dart' as language_model_test;
 import 'library_member_contributor_test.dart' as library_member_test;
 import 'library_prefix_contributor_test.dart' as library_prefix_test;
 import 'local_constructor_contributor_test.dart' as local_constructor_test;
@@ -37,6 +38,7 @@ main() {
     inherited_ref_test.main();
     keyword_test.main();
     label_contributor_test.main();
+    language_model_test.main();
     library_member_test.main();
     library_prefix_test.main();
     local_constructor_test.main();

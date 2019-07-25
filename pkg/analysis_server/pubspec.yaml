@@ -19,6 +19,7 @@ dependencies:
   source_span: any
   package_config: any
   path: any
+  tflite_native: any
   watcher: any
   yaml: any
 

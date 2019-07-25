@@ -135,6 +135,7 @@ vars = {
   "term_glyph_tag": "1.0.1",
   "test_reflective_loader_tag": "0.1.8",
   "test_tag": "test-v1.6.4",
+  "tflite_native_rev": "712b8a93fbb4caf83ffed37f154da88c2a517a91",
   "typed_data_tag": "1.1.6",
   "unittest_rev": "2b8375bc98bb9dc81c539c91aaea6adce12e1072",
   "usage_tag": "3.4.0",
@@ -360,6 +361,8 @@ deps = {
       Var("dart_git") + "term_glyph.git" + "@" + Var("term_glyph_tag"),
   Var("dart_root") + "/third_party/pkg/test":
       Var("dart_git") + "test.git" + "@" + Var("test_tag"),
+  Var("dart_root") + "/third_party/pkg/tflite_native":
+      Var("dart_git") + "tflite_native.git" + "@" + Var("tflite_native_rev"),
   Var("dart_root") + "/third_party/pkg/test_descriptor":
       Var("dart_git") + "test_descriptor.git" + "@" + Var("test_descriptor_tag"),
   Var("dart_root") + "/third_party/pkg/test_process":
@@ -397,6 +400,16 @@ deps = {
       ],
       "condition": "(host_os == 'linux' or host_os == 'mac') and (host_cpu == 'x64' or host_cpu == 'arm64')",
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/pkg/analysis_server/language_model": {
+    "packages": [
+      {
+        "package": "dart/language_model",
+        "version": "KB68QHR1SKtopACaf3TFcu9MusRbwWqs0L1m_urGLL4C",
+      }
+    ],
+    "dep_type": "cipd",
   },
 
   Var("dart_root") + "/buildtools": {
