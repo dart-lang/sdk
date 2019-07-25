@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/element_type_matchers.dart';
 import 'element_text.dart';
@@ -3608,6 +3609,28 @@ const int Function(int, String) V =
 ''');
   }
 
+  @FailingTest(reason: 'Resolution is not implemented yet for extensions')
+  test_const_reference_staticMethod_ofExtension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static void f() {}
+}
+const x = E.f;
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+  static void f() {}
+}
+const void Function() x =
+        E/*location: test.dart;E*/.
+        f/*location: test.dart;E;f*/;
+''');
+  }
+
   test_const_reference_topLevelFunction() async {
     var library = await checkLibrary(r'''
 foo() {}
@@ -5124,7 +5147,7 @@ void defaultF<T>(T v) {}
 ''');
   }
 
-  test_defaultValue_refersToExtension_method() async {
+  test_defaultValue_refersToExtension_method_inside() async {
     featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
 class A {}
@@ -5133,9 +5156,7 @@ extension E on A {
   static void g([Object p = f]) {}
 }
 ''');
-    checkElementText(
-        library,
-        r'''
+    checkElementText(library, r'''
 class A {
 }
 extension E on A {
@@ -5143,8 +5164,7 @@ extension E on A {
   static void g([Object p =
         f/*location: test.dart;E;f*/]) {}
 }
-''',
-        withTypes: true);
+''');
   }
 
   test_defaultValue_refersToGenericClass() async {
@@ -10842,6 +10862,26 @@ final int v;
     var library = await checkLibrary('final v = 0;');
     checkElementText(library, r'''
 final int v;
+''');
+  }
+
+  @FailingTest(reason: 'Resolution is not implemented yet for extensions')
+  test_variable_initializer_staticMethod_ofExtension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static int f() => 0;
+}
+var x = E.f();
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+  static int f() {}
+}
+int x;
 ''');
   }
 

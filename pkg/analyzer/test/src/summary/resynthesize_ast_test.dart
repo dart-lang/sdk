@@ -40,8 +40,8 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
 
   @override
   @failingTest
-  test_defaultValue_refersToExtension_method() async {
-    await super.test_defaultValue_refersToExtension_method();
+  test_defaultValue_refersToExtension_method_inside() async {
+    await super.test_defaultValue_refersToExtension_method_inside();
   }
 
   @override
