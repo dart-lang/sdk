@@ -103,24 +103,26 @@ class NamedTypeBuilder extends TypeBuilder {
       return;
     } else if (member is TypeDeclarationBuilder) {
       declaration = member.origin;
-      if (arguments == null && declaration.typeVariablesCount != 0) {
-        String typeName;
-        int typeNameOffset;
-        if (name is Identifier) {
-          typeName = name.name;
-          typeNameOffset = name.charOffset;
-        } else {
-          typeName = name;
-          typeNameOffset = charOffset;
+      if (!declaration.isExtension) {
+        if (arguments == null && declaration.typeVariablesCount != 0) {
+          String typeName;
+          int typeNameOffset;
+          if (name is Identifier) {
+            typeName = name.name;
+            typeNameOffset = name.charOffset;
+          } else {
+            typeName = name;
+            typeNameOffset = charOffset;
+          }
+          library.addProblem(
+              templateMissingExplicitTypeArguments
+                  .withArguments(declaration.typeVariablesCount),
+              typeNameOffset,
+              typeName.length,
+              fileUri);
         }
-        library.addProblem(
-            templateMissingExplicitTypeArguments
-                .withArguments(declaration.typeVariablesCount),
-            typeNameOffset,
-            typeName.length,
-            fileUri);
+        return;
       }
-      return;
     }
     Template<Message Function(String name)> template =
         member == null ? templateTypeNotFound : templateNotAType;

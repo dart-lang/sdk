@@ -25,7 +25,7 @@ abstract class TypeAliasBuilder<T extends TypeBuilder, R>
       this.type,
       LibraryBuilder<T, Object> parent,
       int charOffset)
-      : super(metadata, null, name, parent, charOffset);
+      : super(metadata, 0, name, parent, charOffset);
 
   String get debugName => "TypeAliasBuilder";
 

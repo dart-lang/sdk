@@ -169,8 +169,8 @@ abstract class Generator {
 
   /// Builds a [Expression] representing a read from the generator.
   ///
-  /// The read of the this subexpression does _not_ need to support a
-  /// simultaneous write of the same subexpression.
+  /// The read of this subexpression does _not_ need to support a simultaneous
+  /// write of the same subexpression.
   Expression buildSimpleRead() {
     return _finish(_makeSimpleRead(), null);
   }
@@ -181,7 +181,7 @@ abstract class Generator {
   /// simultaneous write of the same subexpression.
   ///
   /// This is in contrast to [_makeRead] which is used for instance in compound
-  /// assignments like `a.b = c` where both a read and a write of the
+  /// assignments like `a.b += c` where both a read and a write of the
   /// subexpression `a.b` occurs.
   ///
   /// Subclasses that can benefit from this distinction should override this
@@ -440,6 +440,11 @@ abstract class Generator {
     }
   }
 
+  /// Returns a [TypeBuilder] for this subexpression instantiated with the
+  /// type [arguments]. If no type arguments are provided [arguments] is `null`.
+  ///
+  /// The type arguments have not been resolved and should be resolved to
+  /// create a [TypeBuilder] for a valid type.
   TypeBuilder buildTypeWithResolvedArguments(
       List<UnresolvedType<TypeBuilder>> arguments) {
     NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
@@ -1647,8 +1652,8 @@ class DeferredAccessGenerator extends Generator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       List<UnresolvedType<TypeBuilder>> arguments) {
-    String name =
-        "${prefixGenerator._plainNameForRead}.${suffixGenerator._plainNameForRead}";
+    String name = "${prefixGenerator._plainNameForRead}."
+        "${suffixGenerator._plainNameForRead}";
     TypeBuilder type =
         suffixGenerator.buildTypeWithResolvedArguments(arguments);
     LocatedMessage message;
@@ -1705,6 +1710,25 @@ class DeferredAccessGenerator extends Generator {
   }
 }
 
+/// [TypeUseGenerator] represents the subexpression whose prefix is the name of
+/// a class, enum, type variable, typedef, mixin declaration, extension
+/// declaration or built-in type, like dynamic and void.
+///
+/// For instance:
+///
+///   class A<T> {}
+///   typedef B = Function();
+///   mixin C<T> on A<T> {}
+///   extension D<T> on A<T> {}
+///
+///   method<T>() {
+///     C<B>        // a TypeUseGenerator is created for `C` and `B`.
+///     B b;        // a TypeUseGenerator is created for `B`.
+///     D.foo();    // a TypeUseGenerator is created for `D`.
+///     new A<T>(); // a TypeUseGenerator is created for `A` and `T`.
+///     T();        // a TypeUseGenerator is created for `T`.
+///   }
+///
 class TypeUseGenerator extends ReadOnlyAccessGenerator {
   final TypeDeclarationBuilder declaration;
 
@@ -1718,6 +1742,10 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   @override
   TypeBuilder buildTypeWithResolvedArguments(
       List<UnresolvedType<TypeBuilder>> arguments) {
+    if (declaration.isExtension) {
+      // Extension declarations cannot be used as types.
+      return super.buildTypeWithResolvedArguments(arguments);
+    }
     if (arguments != null) {
       int expected = declaration.typeVariablesCount;
       if (arguments.length != expected) {

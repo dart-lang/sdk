@@ -10,17 +10,8 @@ import 'package:front_end/src/testing/features.dart';
 import 'package:front_end/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:front_end/src/testing/id_testing.dart';
-import 'package:front_end/src/testing/id_testing_helper.dart'
-    show
-        CfeDataExtractor,
-        CompilerResult,
-        DataComputer,
-        cfeExtensionMethodsConfig,
-        createUriForFileName,
-        onFailure,
-        runTestFor;
+import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
-import 'package:kernel/ast.dart' show Class, Member, TreeNode;
 import 'package:kernel/ast.dart';
 
 main(List<String> args) async {
@@ -52,6 +43,19 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   }
 
   @override
+  bool get supportsErrors => true;
+
+  @override
+  Features computeErrorData(
+      CompilerResult compiler, Id id, List<FormattedMessage> errors) {
+    Features features = new Features();
+    for (FormattedMessage error in errors) {
+      features.addElement(Tags.errors, error.message);
+    }
+    return features;
+  }
+
+  @override
   DataInterpreter<Features> get dataValidator =>
       const FeaturesDataInterpreter();
 }
@@ -72,6 +76,8 @@ class Tags {
   static const String memberName = 'member-name';
   static const String memberTypeParameters = 'member-type-params';
   static const String memberParameters = 'member-params';
+
+  static const String errors = 'errors';
 }
 
 class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
@@ -116,11 +122,6 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(Tags.clsInterfaces, superinterface.classNode.name);
     }
     return features;
-  }
-
-  @override
-  Features computeNodeValue(Id id, TreeNode node) {
-    return null;
   }
 
   @override

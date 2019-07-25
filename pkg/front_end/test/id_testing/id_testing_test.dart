@@ -66,7 +66,7 @@ class IdTestingDataComputer extends DataComputer<String> {
 
   String computeErrorData(
       CompilerResult compiler, Id id, List<FormattedMessage> errors) {
-    return errors.map((m) => m.message).join(',');
+    return errorsToText(errors);
   }
 
   @override

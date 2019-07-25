@@ -25,7 +25,8 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
   TypeDeclarationBuilder(
       this.metadata, this.modifiers, this.name, this.parent, int charOffset,
       [Uri fileUri])
-      : super(parent, charOffset, fileUri);
+      : assert(modifiers != null),
+        super(parent, charOffset, fileUri);
 
   bool get isTypeDeclaration => true;
 

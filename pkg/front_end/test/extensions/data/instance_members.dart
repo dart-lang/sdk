@@ -54,7 +54,7 @@ extension B2<T> on B1<T> {
      builder-name=method1,
      member-name=method1
   */
-  B2<T> method1() {
+  B1<T> method1() {
     // TODO(johnniwinther): Use `this` here instead.
     return null;
   }
@@ -67,7 +67,7 @@ extension B2<T> on B1<T> {
      member-params=[o],
      member-type-params=[S]
   */
-  B2<T> method2<S>(S o) {
+  B1<T> method2<S>(S o) {
     print(o);
     // TODO(johnniwinther): Use `this` here instead.
     return null;

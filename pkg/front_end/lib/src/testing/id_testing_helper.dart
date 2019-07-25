@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
-import 'package:front_end/src/api_prototype/experimental_flags.dart'
-    show ExperimentalFlag;
-import 'package:front_end/src/api_prototype/terminal_color_support.dart'
-    show printDiagnosticMessage;
-import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
-import 'package:front_end/src/fasta/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
+import '../api_prototype/compiler_options.dart'
+    show CompilerOptions, DiagnosticMessage;
+import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+import '../api_prototype/terminal_color_support.dart'
+    show printDiagnosticMessage;
+import '../fasta/messages.dart' show FormattedMessage;
+import '../fasta/severity.dart' show Severity;
 import '../kernel_generator_impl.dart' show CompilerResult;
 import 'compiler_common.dart' show compileScript, toTestUri;
 import 'id.dart'
@@ -29,6 +28,7 @@ import 'id_testing_utils.dart';
 
 export '../fasta/compiler_context.dart' show CompilerContext;
 export '../kernel_generator_impl.dart' show CompilerResult;
+export '../fasta/messages.dart' show FormattedMessage;
 
 /// Test configuration used for testing CFE in its default state.
 const TestConfig defaultCfeConfig = const TestConfig(cfeMarker, 'cfe');

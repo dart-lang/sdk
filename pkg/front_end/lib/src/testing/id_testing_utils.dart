@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/builder/builder.dart';
-import 'package:front_end/src/fasta/kernel/kernel_builder.dart';
-import 'package:front_end/src/fasta/source/source_library_builder.dart';
-import 'package:front_end/src/fasta/source/source_loader.dart';
-import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
+import '../fasta/builder/builder.dart';
+import '../fasta/kernel/kernel_builder.dart';
+import '../fasta/messages.dart';
+import '../fasta/source/source_library_builder.dart';
+import '../fasta/source/source_loader.dart';
+import '../kernel_generator_impl.dart';
 
 /// Helper methods to use in annotated tests.
 
@@ -423,4 +424,9 @@ String typeVariableBuilderToText(TypeVariableBuilder typeVariable) {
     return '$name extends ${typeBuilderToText(typeVariable.bound)}';
   }
   return name;
+}
+
+/// Returns a textual representation of [errors] to be used in testing.
+String errorsToText(List<FormattedMessage> errors) {
+  return errors.map((m) => m.message).join(',');
 }
