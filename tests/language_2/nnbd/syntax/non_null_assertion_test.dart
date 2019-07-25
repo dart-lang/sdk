@@ -25,31 +25,31 @@ Object? f() => null;
 main() {
   List<Object> listOfObject = [];
 
-  var x1 = [0!];
+  var x1 = [0!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x1;
 
-  var x2 = [true!];
+  var x2 = [true!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x2;
 
-  var x3 = ["foo"!];
+  var x3 = ["foo"!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x3;
 
-  var x4 = [#foo!];
+  var x4 = [#foo!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x4;
 
-  var x5 = [[1]!];
+  var x5 = [[1]!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x5;
 
-  var x6 = [{1:2}!];
+  var x6 = [{1:2}!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x6;
 
-  var x7 = [{1}!];
+  var x7 = [{1}!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x7;
 
-  var x8 = [new C()!];
+  var x8 = [new C()!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x8;
 
-  var x9 = [const C()!];
+  var x9 = [const C()!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x9;
 
   Expect.throws(() {
@@ -70,6 +70,6 @@ main() {
   });
 
   int i = 0;
-  var x13 = [i++!];
+  var x13 = [i++!]; // ignore: unnecessary_non_null_assertion
   listOfObject = x13;
 }

@@ -5,5 +5,9 @@
 // SharedOptions=--enable-experiment=non-nullable
 void main() {
   void x;
+  int i;
+  int? iq;
   x!; //# 00: compile-time error
+  i!; //# 01: compile-time error
+  iq!; //# 02: ok
 }

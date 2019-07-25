@@ -5481,6 +5481,17 @@ class StaticWarningCode extends ErrorCode {
               "Try casting or check the value is not null before using it.");
 
   /**
+   * When the '!' operator is used on a value that we know to be non-null,
+   * it is unnecessary.
+   */
+  static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
+      const StaticWarningCode(
+          'UNNECESSARY_NON_NULL_ASSERTION',
+          "The '!' will have no effect because the target expression cannot be"
+              " null.",
+          correction: "Try removing the '!' operator here.");
+
+  /**
    * When the '...?' operator is used on a value that we know to be non-null,
    * it is unnecessary.
    */

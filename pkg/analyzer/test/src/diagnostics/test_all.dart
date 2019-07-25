@@ -203,6 +203,8 @@ import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
+import 'unnecessary_non_null_assertion_test.dart'
+    as unnecessary_non_null_assertion;
 import 'unnecessary_null_aware_call_test.dart' as unnecessary_null_aware_call;
 import 'unnecessary_null_aware_spread_test.dart'
     as unnecessary_null_aware_spread;
@@ -368,6 +370,7 @@ main() {
     undefined_shown_name.main();
     unnecessary_cast.main();
     unnecessary_no_such_method.main();
+    unnecessary_non_null_assertion.main();
     unnecessary_null_aware_call.main();
     unnecessary_null_aware_spread.main();
     unnecessary_type_check_false.main();

@@ -1167,12 +1167,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    if (node.operator.type != TokenType.BANG) {
+    if (node.operator.type == TokenType.BANG) {
+      _checkForUseOfVoidResult(node);
+      _checkForUnnecessaryNullAware(node.operand, node.operator);
+    } else {
       _checkForAssignmentToFinal(node.operand);
       _checkForIntNotAssignable(node.operand);
       _checkForNullableDereference(node.operand);
-    } else {
-      _checkForUseOfVoidResult(node);
     }
     super.visitPostfixExpression(node);
   }
@@ -5655,6 +5656,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_CALL;
     } else if (operator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION) {
       errorCode = StaticWarningCode.UNNECESSARY_NULL_AWARE_SPREAD;
+    } else if (operator.type == TokenType.BANG) {
+      errorCode = StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION;
     } else {
       return;
     }
