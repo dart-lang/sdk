@@ -490,7 +490,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         _resolvedVariable(_typeProvider.doubleType, 'd'),
         TokenType.QUESTION_QUESTION_EQ,
         _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -549,7 +549,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     // 1 ?? 1.5
     Expression node = AstTestFactory.binaryExpression(
         _resolvedInteger(1), TokenType.QUESTION_QUESTION, _resolvedDouble(1.5));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
@@ -667,7 +667,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
         AstTestFactory.booleanLiteral(true),
         _resolvedDouble(1.0),
         _resolvedInteger(0));
-    expect(_analyze(node), same(_typeProvider.numType));
+    expect(_analyze(node), _typeProvider.numType);
     _listener.assertNoErrors();
   }
 
