@@ -79,6 +79,17 @@ abstract class TypeRecipe {
     // yield the same type, e.g. `List<X> @X` and `List<Y> @Y`.
     return false;
   }
+
+  /// Returns `true` if [recipe] evaluates in an environment with [structure] to
+  /// the environment.
+  static bool isIdentity(
+      TypeRecipe recipe, TypeEnvironmentStructure structure) {
+    if (structure is SingletonTypeEnvironmentStructure &&
+        recipe is TypeExpressionRecipe) {
+      if (structure.variable == recipe.type) return true;
+    }
+    return false;
+  }
 }
 
 /// A recipe that yields a reified type.

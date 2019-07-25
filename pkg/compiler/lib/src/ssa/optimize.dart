@@ -18,6 +18,7 @@ import '../js_backend/field_analysis.dart'
 import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types_codegen.dart';
+import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
@@ -1844,6 +1845,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
     }
 
+    return node;
+  }
+
+  @override
+  HInstruction visitTypeEval(HTypeEval node) {
+    if (TypeRecipe.isIdentity(node.typeExpression, node.envStructure)) {
+      return node.inputs.single;
+    }
     return node;
   }
 }
