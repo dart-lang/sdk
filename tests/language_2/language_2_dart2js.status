@@ -246,6 +246,10 @@ round_test: Fail, OK # Common JavaScript engine Math.round bug.
 stacktrace_test: RuntimeError
 
 [ $compiler == dart2js && $system == windows ]
+canonicalization_hashing_memoize_array_test: Skip # Issue 37631
+canonicalization_hashing_memoize_instance_test: Skip # Issue 37631
+canonicalization_hashing_shallow_collision_array_test: Skip # Issue 37631
+canonicalization_hashing_shallow_collision_instance_test: Skip # Issue 37631
 string_literals_test: Pass, RuntimeError # Failures on dart2js-win7-chrome-4-4-be and dart2js-win7-ie11ff-4-4-be
 
 [ $compiler == dart2js && $checked ]
