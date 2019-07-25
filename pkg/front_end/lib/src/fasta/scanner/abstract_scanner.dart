@@ -421,15 +421,6 @@ abstract class AbstractScanner implements Scanner {
     }
   }
 
-  /// Append [token] to the token stream.
-  /// DEPRECATED: Use prependErrorToken instead.
-  void appendErrorToken(ErrorToken token) {
-    // TODO(danrubel): Update scanner to use prependErrorToken everywhere
-    // then remove this method
-    hasErrors = true;
-    appendToken(token);
-  }
-
   /// Prepend [token] to the token stream.
   void prependErrorToken(ErrorToken token) {
     hasErrors = true;
@@ -994,7 +985,7 @@ abstract class AbstractScanner implements Scanner {
       int next = advance();
       if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.BANG_EQ_EQ);
-        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
       } else {
         appendPrecedenceToken(TokenType.BANG_EQ);
@@ -1019,7 +1010,7 @@ abstract class AbstractScanner implements Scanner {
       int next = advance();
       if (identical(next, $EQ)) {
         appendPrecedenceToken(TokenType.EQ_EQ_EQ);
-        appendErrorToken(new UnsupportedOperator(tail, tokenStart));
+        prependErrorToken(new UnsupportedOperator(tail, tokenStart));
         return advance();
       } else {
         appendPrecedenceToken(TokenType.EQ_EQ);
