@@ -8,23 +8,23 @@ class Foo<T extends core::Object = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   get v1() → self::Bar<self::Foo::T>
-    return const self::Bar::•<core::Null>();
+    return #C1;
   get v2() → self::Bar<core::List<self::Foo::T>>
-    return const self::Bar::•<core::List<core::Null>>();
+    return #C2;
   get v3() → self::Bar<(self::Foo::T) → self::Foo::T>
-    return const self::Bar::•<(core::Object) → core::Null>();
+    return #C3;
   get v4() → self::Bar<((self::Foo::T) → self::Foo::T) → self::Foo::T>
-    return const self::Bar::•<((core::Null) → core::Object) → core::Null>();
+    return #C4;
   get v5() → core::List<self::Foo::T>
-    return const <core::Null>[];
+    return #C5;
   get v6() → core::List<(self::Foo::T) → self::Foo::T>
-    return const <(core::Object) → core::Null>[];
+    return #C6;
   get v7() → core::Map<self::Foo::T, self::Foo::T>
-    return const <core::Null, core::Null>{};
+    return #C8;
   get v8() → core::Map<(self::Foo::T) → self::Foo::T, self::Foo::T>
-    return const <(core::Object) → core::Null, core::Null>{};
+    return #C9;
   get v9() → core::Map<self::Foo::T, (self::Foo::T) → self::Foo::T>
-    return const <core::Null, (core::Object) → core::Null>{};
+    return #C10;
 }
 class Bar<T extends core::Object = dynamic> extends core::Object {
   const constructor •() → self::Bar<self::Bar::T>
@@ -32,3 +32,16 @@ class Bar<T extends core::Object = dynamic> extends core::Object {
     ;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Bar<core::Null> {}
+  #C2 = self::Bar<core::List<core::Null>> {}
+  #C3 = self::Bar<(core::Object) → core::Null> {}
+  #C4 = self::Bar<((core::Null) → core::Object) → core::Null> {}
+  #C5 = <core::Null>[]
+  #C6 = <(core::Object) → core::Null>[]
+  #C7 = <dynamic>[]
+  #C8 = core::_ImmutableMap<core::Null, core::Null> {_kvPairs:#C7}
+  #C9 = core::_ImmutableMap<(core::Object) → core::Null, core::Null> {_kvPairs:#C7}
+  #C10 = core::_ImmutableMap<core::Null, (core::Object) → core::Null> {_kvPairs:#C7}
+}

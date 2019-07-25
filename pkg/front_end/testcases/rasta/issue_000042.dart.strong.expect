@@ -47,12 +47,12 @@ static method main() → dynamic {
   #L3:
   switch(1) {
     #L4:
-    case 1:
+    case #C1:
       {
         break #L3;
       }
     #L5:
-    case 2:
+    case #C2:
       {
         break #L3;
       }
@@ -61,4 +61,9 @@ static method main() → dynamic {
   }
   on core::NoSuchMethodError catch(no-exception-var) {
   }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
 }

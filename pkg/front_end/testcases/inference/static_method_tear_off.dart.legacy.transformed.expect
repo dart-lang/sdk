@@ -9,7 +9,11 @@ class C extends core::Object {
   static method f(core::String s) → core::int
     return null;
 }
-static const field dynamic v = self::C::f;
+static const field dynamic v = #C1;
 static method main() → dynamic {
-  self::v;
+  #C1;
+}
+
+constants  {
+  #C1 = tearoff self::C::f
 }

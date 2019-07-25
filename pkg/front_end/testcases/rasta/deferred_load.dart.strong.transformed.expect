@@ -5,7 +5,7 @@ import "dart:async" as asy;
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {
-  self::__loadLibrary_lib;
+  #C1;
   LoadLibrary(lib);
 }
 static method __loadLibrary_lib() → asy::Future<dynamic>
@@ -16,3 +16,7 @@ import self as self2;
 
 static method foo() → dynamic
   return null;
+
+constants  {
+  #C1 = tearoff self::__loadLibrary_lib
+}

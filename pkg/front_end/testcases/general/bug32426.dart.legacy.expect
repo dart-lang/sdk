@@ -12,9 +12,13 @@ class C extends core::Object implements self::I {
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
-  method call([core::int x = null]) → void {}
+  method call([core::int x = #C1]) → void {}
 }
 static method main() → dynamic {
   self::I i = new self::C::•();
   ([core::int]) → void f = i;
+}
+
+constants  {
+  #C1 = null
 }

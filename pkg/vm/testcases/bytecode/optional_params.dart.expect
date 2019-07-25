@@ -265,19 +265,19 @@ ConstantPool {
 }
 ]library #lib from "#lib" as #lib {
 
-  static method foo1(dynamic x, [dynamic a = "default_a", dynamic b = "default_b"]) → void {
+  static method foo1(dynamic x, [dynamic a = #C1, dynamic b = #C2]) → void {
     dart.core::print("x = ${x}");
     dart.core::print("a = ${a}");
     dart.core::print("b = ${b}");
   }
-  static method foo2(dynamic y, dynamic z, {dynamic c = "default_c", dynamic a = 42, dynamic b = const <dart.core::String>["default_b"]}) → void {
+  static method foo2(dynamic y, dynamic z, {dynamic c = #C3, dynamic a = #C4, dynamic b = #C5}) → void {
     dart.core::print("y = ${y}");
     dart.core::print("z = ${z}");
     dart.core::print("a = ${a}");
     dart.core::print("b = ${b}");
     dart.core::print("c = ${c}");
   }
-  static method foo3<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic>(dynamic z, dynamic y, {dart.core::bool a = false, dart.core::Map<#lib::foo3::P, #lib::foo3::Q> b = null}) → void {
+  static method foo3<P extends dart.core::Object = dynamic, Q extends dart.core::Object = dynamic>(dynamic z, dynamic y, {dart.core::bool a = #C6, dart.core::Map<#lib::foo3::P, #lib::foo3::Q> b = #C7}) → void {
     dart.core::print(#lib::foo3::P);
     dart.core::print(y);
     dart.core::print(b);
@@ -286,4 +286,13 @@ ConstantPool {
     #lib::foo1("fixed_x", "concrete_a");
     #lib::foo2("fixed_y", "fixed_z", a: "concrete_a");
   }
+}
+constants  {
+  #C1 = "default_a"
+  #C2 = "default_b"
+  #C3 = "default_c"
+  #C4 = 42
+  #C5 = <dart.core::String>[#C2]
+  #C6 = false
+  #C7 = null
 }

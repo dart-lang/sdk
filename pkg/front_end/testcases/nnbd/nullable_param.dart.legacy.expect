@@ -52,6 +52,10 @@ static method main() → dynamic {
   foo.bar(6);
   self::test_nullable_function_type_formal_param(f: () → dynamic => 2);
 }
-static method test_nullable_function_type_formal_param({() → core::int f = null}) → core::int {
+static method test_nullable_function_type_formal_param({() → core::int f = #C1}) → core::int {
   return let final dynamic #t1 = f.call() in #t1.==(null) ? 1.unary-() : #t1;
+}
+
+constants  {
+  #C1 = null
 }

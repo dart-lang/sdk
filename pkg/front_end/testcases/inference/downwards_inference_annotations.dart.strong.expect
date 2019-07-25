@@ -10,16 +10,20 @@ class Foo extends core::Object {
     : super core::Object::•()
     ;
 }
-@self::Foo::•(const <core::String>[])
+@#C1
 class Bar extends core::Object {
   synthetic constructor •() → self::Bar
     : super core::Object::•()
     ;
 }
-@self::Foo::named(const <core::String>[])
+@#C1
 class Baz extends core::Object {
   synthetic constructor •() → self::Baz
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = self::Foo {}
+}

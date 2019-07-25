@@ -7,10 +7,14 @@ class F3<T extends core::Object = dynamic> extends core::Object {
     : super core::Object::•() {}
 }
 class F4<T extends core::Object = dynamic> extends core::Object {
-  constructor •({core::Iterable<core::Iterable<self::F4::T>> a = null}) → self::F4<self::F4::T>
+  constructor •({core::Iterable<core::Iterable<self::F4::T>> a = #C1}) → self::F4<self::F4::T>
     : super core::Object::•() {}
 }
 static method main() → void {
   new self::F3::•<dynamic>(<core::Iterable<dynamic>>[]);
   new self::F4::•<dynamic>(a: <core::Iterable<dynamic>>[]);
+}
+
+constants  {
+  #C1 = null
 }

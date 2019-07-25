@@ -20,8 +20,15 @@ import "dart:core" as core;
 import "dart:_foreign_helper";
 
 static method main() → dynamic {
-  core::String x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["int", "42"]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
-  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#JS, 32, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>["String", "\"hello\""]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  core::String x = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, core::List::unmodifiable<dynamic>(<dynamic>["int", "42"]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, core::List::unmodifiable<dynamic>(<dynamic>["String", "\"hello\""]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
   y = "world";
   y = 42;
+}
+
+constants  {
+  #C1 = #JS
+  #C2 = <core::Type>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
 }

@@ -7,10 +7,10 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-  method f([core::num x = 10]) → void {
+  method f([core::num x = #C1]) → void {
     this.{self::B::_x} = x;
   }
-  method g({core::num x = 20}) → void {
+  method g({core::num x = #C2}) → void {
     this.{self::B::_x} = x;
   }
   method check(core::Object expectedValue) → void {
@@ -23,16 +23,16 @@ abstract class I<T extends core::Object = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T>
     : super core::Object::•()
     ;
-  abstract method f([generic-covariant-impl self::I::T x = null]) → void;
-  abstract method g({generic-covariant-impl self::I::T x = null}) → void;
+  abstract method f([generic-covariant-impl self::I::T x = #C3]) → void;
+  abstract method g({generic-covariant-impl self::I::T x = #C3}) → void;
 }
 class C extends self::B implements self::I<core::num> {
   synthetic constructor •() → self::C
     : super self::B::•()
     ;
-  forwarding-stub method f([generic-covariant-impl core::num x = 10]) → void
+  forwarding-stub method f([generic-covariant-impl core::num x = #C1]) → void
     return super.{self::B::f}(x);
-  forwarding-stub method g({generic-covariant-impl core::num x = 20}) → void
+  forwarding-stub method g({generic-covariant-impl core::num x = #C2}) → void
     return super.{self::B::g}(x: x);
 }
 static method main() → dynamic {
@@ -41,4 +41,10 @@ static method main() → dynamic {
   c.{self::B::check}(10);
   c.{self::C::g}();
   c.{self::B::check}(20);
+}
+
+constants  {
+  #C1 = 10
+  #C2 = 20
+  #C3 = null
 }
