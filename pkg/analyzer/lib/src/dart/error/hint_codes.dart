@@ -85,16 +85,29 @@ class HintCode extends ErrorCode {
           "Try replacing the use of the deprecated member with the replacement.");
 
   /**
-   * Deprecated members should not be invoked or used from within the package
-   * where they are declared.
-   *
-   * Intentionally separate from DEPRECATED_MEMBER_USE, so that package owners
-   * can ignore same-package deprecate member use Hints if they like, and
-   * continue to see cross-package deprecated member use Hints.
-   *
    * Parameters:
    * 0: the name of the member
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a deprecated library member or
+  // class member is used in the same package in which it's declared.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // @deprecated
+  // var x = 0;
+  // var y = [!x!];
+  // ```
+  //
+  // #### Common fixes
+  //
+  // The fix depends on what's been deprecated and what the replacement is. The
+  // documentation for deprecated declarations should indicate what code to use
+  // in place of the deprecated code.
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = const HintCode(
       'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
       "'{0}' is deprecated and shouldn't be used.",
@@ -431,14 +444,31 @@ class HintCode extends ErrorCode {
       "The parameter '{0}' is required. {1}.");
 
   /**
-   * Generate a hint for methods or functions that have a return type, but do
-   * not have a non-void return statement on all branches. At the end of methods
-   * or functions with no return, Dart implicitly returns `null`, avoiding these
-   * implicit returns is considered a best practice.
-   *
    * Parameters:
    * 0: the name of the declared return type
    */
+  // #### Description
+  //
+  // Any function or method that doesn’t end with either an explicit return or a
+  // throw implicitly returns `null`. This is rarely the desired behavior. The
+  // analyzer produces this diagnostic when it finds an implicit return.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // [!int!] f(int x) {
+  //   if (x < 0) {
+  //     return 0;
+  //   }
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // Add a return statement that makes the return value explicit, even if `null`
+  // is the appropriate value.
   static const HintCode MISSING_RETURN = const HintCode(
       'MISSING_RETURN',
       "This function has a return type of '{0}', but doesn't end with a "
@@ -839,25 +869,87 @@ class HintCode extends ErrorCode {
 
   /**
    * Parameters:
-   * 0: The name that is declared but not referenced.
+   * 0: the name that is declared but not referenced
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a private class, enum, mixin,
+  // typedef, top level variable, top level function, or method is declared but
+  // never referenced.
+  //
+  // #### Example
+  //
+  // Assuming that no code in the library references `_C`, the following code
+  // produces this diagnostic:
+  //
+  // ```dart
+  // class [!_C!] {}
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the declaration isn't needed, then remove it.
+  //
+  // If the declaration was intended to be used, then add the missing code.
   static const HintCode UNUSED_ELEMENT = const HintCode(
       'UNUSED_ELEMENT', "The declaration '{0}' isn't referenced.",
       correction: "Try removing the declaration of '{0}'.");
 
   /**
-   * Unused fields are fields which are never read.
+   * Parameters:
+   * 0: the name of the unused field
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a private field is declared but
+  // never read, even if it's written in one or more places.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // class Point {
+  //   int [!_x!];
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the field isn't needed, then remove it.
+  //
+  // If the field was intended to be used, then add the missing code.
   static const HintCode UNUSED_FIELD = const HintCode(
       'UNUSED_FIELD', "The value of the field '{0}' isn't used.",
       correction: "Try removing the field, or using it.");
 
   /**
-   * Unused imports are imports which are never used.
-   *
    * Parameters:
-   * 0: The content of the unused import's uri
+   * 0: the content of the unused import's uri
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when an import isn't needed because
+  // none of the names that are imported are referenced within the importing
+  // library.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // import [!'dart:async'!];
+  //
+  // void main() {
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the import isn't needed, then remove it.
+  //
+  // If some of the imported names are intended to be used, then add the missing
+  // code.
   static const HintCode UNUSED_IMPORT = const HintCode(
       'UNUSED_IMPORT', "Unused import: '{0}'.",
       correction: "Try removing the import directive.");
@@ -872,8 +964,29 @@ class HintCode extends ErrorCode {
               "using it in either a 'break' or 'continue' statement.");
 
   /**
-   * Unused local variables are local variables that are never read.
+   * Parameters:
+   * 0: the name of the unused variable
    */
+  // #### Description
+  //
+  // The analyzer produces this diagnostic when a local variable is declared but
+  // never read, even if it's written in one or more places.
+  //
+  // #### Example
+  //
+  // The following code produces this diagnostic:
+  //
+  // ```dart
+  // void main() {
+  //   int [!count!] = 0;
+  // }
+  // ```
+  //
+  // #### Common fixes
+  //
+  // If the variable isn't needed, then remove it.
+  //
+  // If the variable was intended to be used, then add the missing code.
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' isn't used.",
