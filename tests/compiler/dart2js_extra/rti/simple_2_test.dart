@@ -5,12 +5,6 @@
 import 'dart:_rti' as rti;
 import "package:expect/expect.dart";
 
-void checkToString(String expected, Object rti1) {
-  String result = rti.testingRtiToString(rti1);
-  if (expected == result) return;
-  Expect.equals(expected, result.replaceAll('minified:', ''));
-}
-
 testDynamic1() {
   var universe = rti.testingCreateUniverse();
 
@@ -19,7 +13,7 @@ testDynamic1() {
 
   Expect.isTrue(identical(rti1, rti2), 'dynamic should be identical');
   Expect.isFalse(rti1 is String);
-  checkToString('dynamic', rti1);
+  Expect.equals('dynamic', rti.testingRtiToString(rti1));
 }
 
 testDynamic2() {
@@ -30,7 +24,7 @@ testDynamic2() {
 
   Expect.isTrue(identical(rti1, rti2), 'dynamic should be identical');
   Expect.isFalse(rti1 is String);
-  checkToString('dynamic', rti1);
+  Expect.equals('dynamic', rti.testingRtiToString(rti1));
 }
 
 testVoid() {
@@ -41,7 +35,7 @@ testVoid() {
 
   Expect.isTrue(identical(rti1, rti2), 'void should be identical');
   Expect.isFalse(rti1 is String);
-  checkToString('void', rti1);
+  Expect.equals('void', rti.testingRtiToString(rti1));
 }
 
 testNever() {
@@ -52,7 +46,7 @@ testNever() {
 
   Expect.isTrue(identical(rti1, rti2), 'Never should be identical');
   Expect.isFalse(rti1 is String);
-  checkToString('Never', rti1);
+  Expect.equals('Never', rti.testingRtiToString(rti1));
 }
 
 testAny() {
@@ -63,7 +57,7 @@ testAny() {
 
   Expect.isTrue(identical(rti1, rti2), "'any' should be identical");
   Expect.isFalse(rti1 is String);
-  checkToString('any', rti1);
+  Expect.equals('any', rti.testingRtiToString(rti1));
 }
 
 testTerminal() {
@@ -90,7 +84,7 @@ testInterface1() {
 
   Expect.isTrue(identical(rti1, rti2));
   Expect.isFalse(rti1 is String);
-  checkToString('int', rti1);
+  Expect.equals('int', rti.testingRtiToString(rti1));
 }
 
 testInterface2() {
@@ -101,7 +95,7 @@ testInterface2() {
 
   Expect.isTrue(identical(rti1, rti2));
   Expect.isFalse(rti1 is String);
-  checkToString('Foo<int, bool>', rti1);
+  Expect.equals('Foo<int, bool>', rti.testingRtiToString(rti1));
 }
 
 testInterface3() {
@@ -112,7 +106,7 @@ testInterface3() {
 
   Expect.isTrue(identical(rti1, rti2));
   Expect.isFalse(rti1 is String);
-  checkToString('Foo<Bar<int>, Bar<bool>>', rti1);
+  Expect.equals('Foo<Bar<int>, Bar<bool>>', rti.testingRtiToString(rti1));
 }
 
 testInterface4() {
@@ -123,7 +117,7 @@ testInterface4() {
 
   Expect.isTrue(identical(rti1, rti2));
   Expect.isFalse(rti1 is String);
-  checkToString('Foo<Foo<Foo<Foo<int>>>>', rti1);
+  Expect.equals('Foo<Foo<Foo<Foo<int>>>>', rti.testingRtiToString(rti1));
 }
 
 main() {
