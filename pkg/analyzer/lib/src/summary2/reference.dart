@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary2/scope.dart';
 
 /// Indirection between a name and the corresponding [Element].
@@ -33,11 +32,8 @@ class Reference {
   /// The simple name of the reference in its [parent].
   final String name;
 
-  /// The corresponding [LinkedNode], or `null` if a named container.
-  LinkedNode node;
-
   /// The corresponding [AstNode], or `null` if a named container.
-  AstNode node2;
+  AstNode node;
 
   /// The corresponding [Element], or `null` if a named container.
   Element element;
@@ -89,11 +85,11 @@ class Reference {
   /// The element might be not `null`, but the node is different in case of
   /// duplicate declarations.
   bool hasElementFor(AstNode node) {
-    if (element != null && node2 == node) {
+    if (element != null && this.node == node) {
       return true;
     } else {
-      if (node2 == null) {
-        node2 = node;
+      if (node == null) {
+        this.node = node;
       }
       return false;
     }

@@ -9180,7 +9180,7 @@ class ParameterElementImpl extends VariableElementImpl
         NormalFormalParameter parameterNode = node.parameter;
         var name = parameterNode.identifier?.name ?? '';
         var reference = containerRef.getChild(name);
-        reference.node2 = node;
+        reference.node = node;
         if (parameterNode is FieldFormalParameter) {
           return DefaultFieldFormalParameterElementImpl.forLinkedNode(
             enclosing,
