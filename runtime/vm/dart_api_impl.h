@@ -75,13 +75,13 @@ const char* CanonicalFunction(const char* func);
     const Object& tmp =                                                        \
         Object::Handle(zone, Api::UnwrapHandle((dart_handle)));                \
     if (tmp.IsNull()) {                                                        \
-      return Api::NewError("%s expects argument '%s' to be non-null.",         \
-                           CURRENT_FUNC, #dart_handle);                        \
+      return Api::NewArgumentError("%s expects argument '%s' to be non-null.", \
+                                   CURRENT_FUNC, #dart_handle);                \
     } else if (tmp.IsError()) {                                                \
       return dart_handle;                                                      \
     }                                                                          \
-    return Api::NewError("%s expects argument '%s' to be of type %s.",         \
-                         CURRENT_FUNC, #dart_handle, #type);                   \
+    return Api::NewArgumentError("%s expects argument '%s' to be of type %s.", \
+                                 CURRENT_FUNC, #dart_handle, #type);           \
   } while (0)
 
 #define RETURN_NULL_ERROR(parameter)                                           \
@@ -225,6 +225,8 @@ class Api : AllStatic {
 
   // Generates a handle used to designate an error return.
   static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
+  static Dart_Handle NewArgumentError(const char* format, ...)
+      PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
   static Dart_Handle Null() { return null_handle_; }
