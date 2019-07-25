@@ -2632,6 +2632,123 @@ void BytecodeReaderHelper::ReadParameterCovariance(
   }
 }
 
+RawObject* BytecodeReaderHelper::BuildParameterDescriptor(
+    const Function& function) {
+  ASSERT(function.is_declared_in_bytecode());
+
+  Object& result = Object::Handle(Z);
+  if (!function.HasBytecode()) {
+    result = BytecodeReader::ReadFunctionBytecode(Thread::Current(), function);
+    if (result.IsError()) {
+      return result.raw();
+    }
+  }
+
+  const intptr_t num_params = function.NumParameters();
+  const intptr_t num_implicit_params = function.NumImplicitParameters();
+  const intptr_t num_explicit_params = num_params - num_implicit_params;
+  const Array& descriptor = Array::Handle(
+      Z, Array::New(num_explicit_params * Parser::kParameterEntrySize));
+
+  // 1. Find isFinal in the Code declaration.
+  bool found_final = false;
+  if (!function.is_abstract()) {
+    AlternativeReadingScope alt(&reader_, function.bytecode_offset());
+    const intptr_t code_flags = reader_.ReadUInt();
+
+    if ((code_flags & Code::kHasParameterFlagsFlag) != 0) {
+      const intptr_t num_explicit_params_written = reader_.ReadUInt();
+      ASSERT(num_explicit_params == num_explicit_params_written);
+      for (intptr_t i = 0; i < num_explicit_params; ++i) {
+        const intptr_t flags = reader_.ReadUInt();
+        descriptor.SetAt(
+            i * Parser::kParameterEntrySize + Parser::kParameterIsFinalOffset,
+            Bool::Get((flags & Parameter::kIsFinalFlag) != 0));
+      }
+      found_final = true;
+    }
+  }
+  if (!found_final) {
+    for (intptr_t i = 0; i < num_explicit_params; ++i) {
+      descriptor.SetAt(
+          i * Parser::kParameterEntrySize + Parser::kParameterIsFinalOffset,
+          Bool::Get(false));
+    }
+  }
+
+  // 2. Find metadata implicitly after the function declaration's metadata.
+  const Class& klass = Class::Handle(Z, function.Owner());
+  const Library& library = Library::Handle(Z, klass.library());
+  const Object& metadata = Object::Handle(
+      Z, library.GetExtendedMetadata(function, num_explicit_params));
+  if (metadata.IsError()) {
+    return metadata.raw();
+  }
+  if (Array::Cast(metadata).Length() != 0) {
+    for (intptr_t i = 0; i < num_explicit_params; i++) {
+      result = Array::Cast(metadata).At(i);
+      descriptor.SetAt(
+          i * Parser::kParameterEntrySize + Parser::kParameterMetadataOffset,
+          result);
+    }
+  }
+
+  // 3. Find the defaultValues in the EntryOptional sequence.
+  if (!function.is_abstract()) {
+    const Bytecode& bytecode = Bytecode::Handle(Z, function.bytecode());
+    ASSERT(!bytecode.IsNull());
+    const ObjectPool& constants = ObjectPool::Handle(Z, bytecode.object_pool());
+    ASSERT(!constants.IsNull());
+    const KBCInstr* instr =
+        reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+    if (KernelBytecode::IsEntryOptionalOpcode(instr)) {
+      const intptr_t num_fixed_params = KernelBytecode::DecodeA(instr);
+      const intptr_t num_opt_pos_params = KernelBytecode::DecodeB(instr);
+      const intptr_t num_opt_named_params = KernelBytecode::DecodeC(instr);
+      instr = KernelBytecode::Next(instr);
+      ASSERT(num_fixed_params == function.num_fixed_parameters());
+      ASSERT(num_opt_pos_params == function.NumOptionalPositionalParameters());
+      ASSERT(num_opt_named_params == function.NumOptionalNamedParameters());
+      ASSERT((num_opt_pos_params == 0) || (num_opt_named_params == 0));
+
+      for (intptr_t i = 0; i < num_opt_pos_params; i++) {
+        const KBCInstr* load_value_instr = instr;
+        instr = KernelBytecode::Next(instr);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+        result = constants.ObjectAt(KernelBytecode::DecodeE(load_value_instr));
+        descriptor.SetAt((num_fixed_params - num_implicit_params + i) *
+                                 Parser::kParameterEntrySize +
+                             Parser::kParameterDefaultValueOffset,
+                         result);
+      }
+      for (intptr_t i = 0; i < num_opt_named_params; i++) {
+        const KBCInstr* load_name_instr = instr;
+        const KBCInstr* load_value_instr =
+            KernelBytecode::Next(load_name_instr);
+        instr = KernelBytecode::Next(load_value_instr);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_name_instr));
+        result = constants.ObjectAt(KernelBytecode::DecodeE(load_name_instr));
+        intptr_t param_index;
+        for (param_index = num_fixed_params; param_index < num_params;
+             param_index++) {
+          if (function.ParameterNameAt(param_index) == result.raw()) {
+            break;
+          }
+        }
+        ASSERT(param_index < num_params);
+        ASSERT(KernelBytecode::IsLoadConstantOpcode(load_value_instr));
+        result = constants.ObjectAt(KernelBytecode::DecodeE(load_value_instr));
+        descriptor.SetAt(
+            (param_index - num_implicit_params) * Parser::kParameterEntrySize +
+                Parser::kParameterDefaultValueOffset,
+            result);
+      }
+    }
+  }
+
+  return descriptor.raw();
+}
+
 void BytecodeReaderHelper::ParseBytecodeFunction(
     ParsedFunction* parsed_function,
     const Function& function) {
@@ -3110,6 +3227,40 @@ RawObject* BytecodeReader::ReadAnnotation(const Field& annotation_field) {
                               annotation_field.bytecode_offset());
 
   return bytecode_reader.ReadObject();
+}
+
+RawArray* BytecodeReader::ReadExtendedAnnotations(const Field& annotation_field,
+                                                  intptr_t count) {
+  ASSERT(annotation_field.is_declared_in_bytecode());
+
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+
+  const Script& script = Script::Handle(zone, annotation_field.Script());
+  TranslationHelper translation_helper(thread);
+  translation_helper.InitFromScript(script);
+
+  ActiveClass active_class;
+
+  BytecodeComponentData bytecode_component(
+      &Array::Handle(zone, translation_helper.GetBytecodeComponent()));
+  ASSERT(!bytecode_component.IsNull());
+  BytecodeReaderHelper bytecode_reader(&translation_helper, &active_class,
+                                       &bytecode_component);
+
+  AlternativeReadingScope alt(&bytecode_reader.reader(),
+                              annotation_field.bytecode_offset());
+
+  bytecode_reader.ReadObject();  // Discard main annotation.
+
+  Array& result = Array::Handle(zone, Array::New(count));
+  Object& element = Object::Handle(zone);
+  for (intptr_t i = 0; i < count; i++) {
+    element = bytecode_reader.ReadObject();
+    result.SetAt(i, element);
+  }
+  return result.raw();
 }
 
 void BytecodeReader::LoadClassDeclaration(const Class& cls) {

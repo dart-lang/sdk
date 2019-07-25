@@ -655,6 +655,15 @@ RawObject* BuildParameterDescriptor(const Function& function) {
     Script& script = Script::Handle(zone, function.script());
     helper.InitFromScript(script);
 
+    if (function.is_declared_in_bytecode()) {
+      BytecodeComponentData bytecode_component(
+          &Array::Handle(zone, helper.GetBytecodeComponent()));
+      ActiveClass active_class;
+      BytecodeReaderHelper bytecode_reader_helper(&helper, &active_class,
+                                                  &bytecode_component);
+      return bytecode_reader_helper.BuildParameterDescriptor(function);
+    }
+
     const Class& owner_class = Class::Handle(zone, function.Owner());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);

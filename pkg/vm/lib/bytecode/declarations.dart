@@ -105,7 +105,7 @@ class ClassDeclaration {
   final ObjectHandle superType;
   final List<ObjectHandle> interfaces;
   final Members members;
-  final ObjectHandle annotations;
+  final AnnotationsDeclaration annotations;
 
   ClassDeclaration(
       this.name,
@@ -161,7 +161,7 @@ class ClassDeclaration {
     final superType = reader.readPackedObject();
     final interfaces = reader.readPackedList<ObjectHandle>();
     final annotations = ((flags & hasAnnotationsFlag) != 0)
-        ? reader.readLinkOffset<ObjectHandle>()
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     final members = reader.readLinkOffset<Members>();
     return new ClassDeclaration(
@@ -343,7 +343,7 @@ class FieldDeclaration {
   final ObjectHandle getterName;
   final ObjectHandle setterName;
   final Code initializerCode;
-  final ObjectHandle annotations;
+  final AnnotationsDeclaration annotations;
 
   FieldDeclaration(
       this.flags,
@@ -409,7 +409,7 @@ class FieldDeclaration {
     final setterName =
         ((flags & hasSetterFlag) != 0) ? reader.readPackedObject() : null;
     final annotations = ((flags & hasAnnotationsFlag) != 0)
-        ? reader.readLinkOffset<ObjectHandle>()
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new FieldDeclaration(flags, name, type, value, script, position,
         endPosition, getterName, setterName, initializerCode, annotations);
@@ -496,7 +496,7 @@ class FunctionDeclaration {
   final ObjectHandle returnType;
   final ObjectHandle nativeName;
   final Code code;
-  final ObjectHandle annotations;
+  final AnnotationsDeclaration annotations;
 
   FunctionDeclaration(
       this.flags,
@@ -576,7 +576,7 @@ class FunctionDeclaration {
     final code =
         ((flags & isAbstractFlag) == 0) ? reader.readLinkOffset<Code>() : null;
     final annotations = ((flags & hasAnnotationsFlag) != 0)
-        ? reader.readLinkOffset<ObjectHandle>()
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
         : null;
     return new FunctionDeclaration(
         flags,
@@ -717,6 +717,7 @@ class ParameterDeclaration {
   // Parameter flags are written separately (in Code).
   static const isCovariantFlag = 1 << 0;
   static const isGenericCovariantImplFlag = 1 << 1;
+  static const isFinalFlag = 1 << 2;
 
   final ObjectHandle name;
   final ObjectHandle type;
@@ -1117,6 +1118,20 @@ class ClosureCode {
   }
 }
 
+class AnnotationsDeclaration {
+  final ObjectHandle object;
+
+  AnnotationsDeclaration(this.object);
+
+  void write(BufferedWriter writer) {
+    writer.writePackedObject(object);
+  }
+
+  factory AnnotationsDeclaration.read(BufferedReader reader) {
+    return new AnnotationsDeclaration(reader.readPackedObject());
+  }
+}
+
 class _Section {
   int numItems;
   int offset;
@@ -1147,7 +1162,7 @@ class Component {
   final List<SourceFile> sourceFiles = <SourceFile>[];
   final Map<Uri, SourceFile> uriToSource = <Uri, SourceFile>{};
   final List<LocalVariableTable> localVariables = <LocalVariableTable>[];
-  final List<ObjectHandle> annotations = <ObjectHandle>[];
+  final List<AnnotationsDeclaration> annotations = <AnnotationsDeclaration>[];
   ObjectHandle mainLibrary;
 
   Component(this.version)
@@ -1163,7 +1178,7 @@ class Component {
     final annotationsWriter = new BufferedWriter.fromWriter(writer);
     for (var annot in annotations) {
       writer.linkWriter.put(annot, annotationsWriter.offset);
-      annotationsWriter.writePackedObject(annot);
+      annot.write(annotationsWriter);
     }
     BytecodeSizeStatistics.annotationsSize += annotationsWriter.offset;
 
@@ -1355,7 +1370,7 @@ class Component {
     reader.offset = annotationsStart;
     for (int i = 0; i < annotationsNum; ++i) {
       int offset = reader.offset - annotationsStart;
-      ObjectHandle annot = reader.readPackedObject();
+      AnnotationsDeclaration annot = new AnnotationsDeclaration.read(reader);
       reader.linkReader.setOffset(annot, offset);
       annotations.add(annot);
     }

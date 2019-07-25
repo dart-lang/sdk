@@ -21,11 +21,7 @@ convert/streamed_conversion_json_utf8_decode_test: Pass, Timeout # Please triage
 isolate/isolate_complex_messages_test: Pass, Crash # runtime/vm/object.cc: 17395: error: expected: type_arguments.IsNull() || type_arguments.IsCanonical()
 isolate/mandel_isolate_test: Pass, Timeout # Please triage.
 isolate/spawn_uri_exported_main_test: Pass, RuntimeError # Please triage: Expect.fail('Isolate was not spawned successfully.')
-mirrors/*: Skip # Mirrors are not yet supported in bytecode modes.
-mirrors/invocation_fuzz_test/emptyarray: Skip # Times out, issue 32232
-mirrors/invocation_fuzz_test/false: Skip # Times out, issue 32232
 mirrors/library_uri_io_test: RuntimeError # Platform.script points to dill file.
-mirrors/method_mirror_location_test: Crash # runtime/lib/mirrors.cc: 1634: error: expected: token_pos != TokenPosition::kNoSource
 
 [ $compiler == fasta ]
 html/*: Skip # TODO(ahe): Make dart:html available.

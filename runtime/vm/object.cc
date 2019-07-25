@@ -10163,7 +10163,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 #else
   if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction() &&
       !obj.IsLibrary() && !obj.IsTypeParameter()) {
-    return Object::null();
+    UNREACHABLE();
   }
   const String& metaname = String::Handle(MakeMetadataName(obj));
   Field& field = Field::Handle(GetMetadataField(metaname));
@@ -10187,6 +10187,25 @@ RawObject* Library::GetMetadata(const Object& obj) const {
     }
   }
   return metadata.raw();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+RawArray* Library::GetExtendedMetadata(const Object& obj,
+                                       intptr_t count) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Object::empty_array().raw();
+#else
+  if (!obj.IsFunction()) {
+    UNREACHABLE();
+  }
+  const String& metaname = String::Handle(MakeMetadataName(obj));
+  Field& field = Field::Handle(GetMetadataField(metaname));
+  if (field.IsNull()) {
+    // There is no metadata for this object.
+    return Object::empty_array().raw();
+  }
+  ASSERT(field.is_declared_in_bytecode());
+  return kernel::BytecodeReader::ReadExtendedAnnotations(field, count);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
