@@ -250,8 +250,10 @@ class RangeBoundary : public ValueObject {
                            int64_t shift_count) {
     ASSERT(value_boundary.IsConstant());
     ASSERT(shift_count >= 0);
-    int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
-    int64_t result = value >> shift_count;
+    const int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+    const int64_t result = (shift_count <= 63)
+                               ? (value >> shift_count)
+                               : (value >= 0 ? 0 : -1);  // Dart semantics
     return RangeBoundary(result);
   }
 

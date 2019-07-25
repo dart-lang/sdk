@@ -2442,6 +2442,10 @@ void Range::BinaryOp(const Token::Kind op,
 
   ASSERT(!min.IsUnknown() && !max.IsUnknown());
 
+  // Sanity: avoid [l, u] with constants l > u.
+  ASSERT(!min.IsConstant() || !max.IsConstant() ||
+         min.ConstantValue() <= max.ConstantValue());
+
   *result = Range(min, max);
 }
 
