@@ -458,7 +458,18 @@ Object createServiceObject(dynamic json, List<String> expectedTypes) {
     return json.map((e) => createServiceObject(e, expectedTypes)).toList();
   } else if (json is Map) {
     String type = json['type'];
-    if (_isNullInstance(json) && (!expectedTypes.contains(type))) {
+
+    // Not a Response type.
+    if (type == null) {
+      // If there's only one expected type, we'll just use that type.
+      if (expectedTypes.length == 1) {
+        type = expectedTypes.first;
+      } else {
+        return null;
+      }
+    } else if (_isNullInstance(json) && (!expectedTypes.contains(type))) {
+      // Replace null instances with null when we don't expect an instance to
+      // be returned.
       return null;
     }
     if (_typeFactories[type] == null) {
