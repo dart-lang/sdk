@@ -427,37 +427,17 @@ Dart_Handle Api::NewError(const char* format, ...) {
 
   va_list args;
   va_start(args, format);
-  char* buffer = OS::VSCreate(Z, format, args);
+  intptr_t len = Utils::VSNPrint(NULL, 0, format, args);
   va_end(args);
+
+  char* buffer = Z->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, format);
+  Utils::VSNPrint(buffer, (len + 1), format, args2);
+  va_end(args2);
 
   const String& message = String::Handle(Z, String::New(buffer));
   return Api::NewHandle(T, ApiError::New(message));
-}
-
-Dart_Handle Api::NewArgumentError(const char* format, ...) {
-  Thread* T = Thread::Current();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  // Ensure we transition safepoint state to VM if we are not already in
-  // that state.
-  TransitionToVM transition(T);
-  HANDLESCOPE(T);
-
-  va_list args;
-  va_start(args, format);
-  char* buffer = OS::VSCreate(Z, format, args);
-  va_end(args);
-
-  const String& message = String::Handle(Z, String::New(buffer));
-  const Array& arguments = Array::Handle(Array::New(1));
-  arguments.SetAt(0, message);
-  Object& error = Object::Handle(DartLibraryCalls::InstanceCreate(
-      Library::Handle(Library::CoreLibrary()), Symbols::ArgumentError(),
-      Symbols::Dot(), arguments));
-  if (!error.IsError()) {
-    error = UnhandledException::New(Instance::Cast(error), Instance::Handle());
-  }
-  return Api::NewHandle(T, error.raw());
 }
 
 void Api::SetupAcquiredError(Isolate* isolate) {
@@ -2883,8 +2863,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   // Now check and handle a dart object that implements the List interface.
   const Instance& instance = Instance::Handle(Z, GetListInstance(Z, obj));
   if (instance.IsNull()) {
-    return Api::NewArgumentError(
-        "Object does not implement the List interface");
+    return Api::NewError("Object does not implement the List interface");
   }
   const String& name = String::Handle(Z, Field::GetterName(Symbols::Length()));
   const int kTypeArgsLen = 0;
@@ -2894,7 +2873,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   const Function& function =
       Function::Handle(Z, Resolver::ResolveDynamic(instance, name, args_desc));
   if (function.IsNull()) {
-    return Api::NewArgumentError("List object does not have a 'length' field.");
+    return Api::NewError("List object does not have a 'length' field.");
   }
 
   const Array& args = Array::Handle(Z, Array::New(kNumArgs));
@@ -2945,8 +2924,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
                             Send1Arg(instance, Symbols::IndexToken(),
                                      Instance::Handle(Z, Integer::New(index))));
     }
-    return Api::NewArgumentError(
-        "Object does not implement the 'List' interface");
+    return Api::NewError("Object does not implement the 'List' interface");
   }
 }
 
@@ -3002,8 +2980,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
         return Api::Success();
       }
     }
-    return Api::NewArgumentError(
-        "Object does not implement the 'List' interface");
+    return Api::NewError("Object does not implement the 'List' interface");
   }
 }
 
@@ -3058,8 +3035,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
         return Api::NewHandle(T, DartEntry::InvokeFunction(function, args));
       }
     }
-    return Api::NewArgumentError(
-        "Object does not implement the 'List' interface");
+    return Api::NewError("Object does not implement the 'List' interface");
   }
 }
 
@@ -3259,8 +3235,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       return Api::Success();
     }
   }
-  return Api::NewArgumentError(
-      "Object does not implement the 'List' interface");
+  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 #define SET_LIST_ELEMENT_AS_BYTES(type, obj, native_array, offset, length)     \
@@ -3336,8 +3311,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       return Api::Success();
     }
   }
-  return Api::NewArgumentError(
-      "Object does not implement the 'List' interface");
+  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 // --- Maps ---
@@ -3355,7 +3329,7 @@ DART_EXPORT Dart_Handle Dart_MapGetAt(Dart_Handle map, Dart_Handle key) {
     return Api::NewHandle(
         T, Send1Arg(instance, Symbols::IndexToken(), Instance::Cast(key_obj)));
   }
-  return Api::NewArgumentError("Object does not implement the 'Map' interface");
+  return Api::NewError("Object does not implement the 'Map' interface");
 }
 
 DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
@@ -3372,7 +3346,7 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key) {
         T, Send1Arg(instance, String::Handle(Z, String::New("containsKey")),
                     Instance::Cast(key_obj)));
   }
-  return Api::NewArgumentError("Object does not implement the 'Map' interface");
+  return Api::NewError("Object does not implement the 'Map' interface");
 }
 
 DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map) {
@@ -3389,7 +3363,7 @@ DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map) {
     return Api::NewHandle(T, Send0Arg(Instance::Cast(iterator),
                                       String::Handle(String::New("toList"))));
   }
-  return Api::NewArgumentError("Object does not implement the 'Map' interface");
+  return Api::NewError("Object does not implement the 'Map' interface");
 }
 
 // --- Typed Data ---
@@ -4719,7 +4693,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kBool:
         if (!Api::GetNativeBooleanArgument(arguments, arg_index,
                                            &(native_value->as_bool))) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Boolean.",
               CURRENT_FUNC, i);
@@ -4729,15 +4703,14 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kInt32: {
         int64_t value = 0;
         if (!GetNativeIntegerArgument(arguments, arg_index, &value)) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Integer.",
               CURRENT_FUNC, i);
         }
         if (value < INT_MIN || value > INT_MAX) {
-          return Api::NewArgumentError(
-              "%s: argument value at index %d is out of range", CURRENT_FUNC,
-              i);
+          return Api::NewError("%s: argument value at index %d is out of range",
+                               CURRENT_FUNC, i);
         }
         native_value->as_int32 = static_cast<int32_t>(value);
         break;
@@ -4746,15 +4719,14 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kUint32: {
         int64_t value = 0;
         if (!GetNativeIntegerArgument(arguments, arg_index, &value)) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Integer.",
               CURRENT_FUNC, i);
         }
         if (value < 0 || value > UINT_MAX) {
-          return Api::NewArgumentError(
-              "%s: argument value at index %d is out of range", CURRENT_FUNC,
-              i);
+          return Api::NewError("%s: argument value at index %d is out of range",
+                               CURRENT_FUNC, i);
         }
         native_value->as_uint32 = static_cast<uint32_t>(value);
         break;
@@ -4763,7 +4735,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kInt64: {
         int64_t value = 0;
         if (!GetNativeIntegerArgument(arguments, arg_index, &value)) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Integer.",
               CURRENT_FUNC, i);
@@ -4775,7 +4747,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kUint64: {
         uint64_t value = 0;
         if (!GetNativeUnsignedIntegerArgument(arguments, arg_index, &value)) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Integer.",
               CURRENT_FUNC, i);
@@ -4787,7 +4759,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       case Dart_NativeArgument_kDouble:
         if (!GetNativeDoubleArgument(arguments, arg_index,
                                      &(native_value->as_double))) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type Double.",
               CURRENT_FUNC, i);
@@ -4798,7 +4770,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
         if (!GetNativeStringArgument(arguments, arg_index,
                                      &(native_value->as_string.dart_str),
                                      &(native_value->as_string.peer))) {
-          return Api::NewArgumentError(
+          return Api::NewError(
               "%s: expects argument at index %d to be of"
               " type String.",
               CURRENT_FUNC, i);
@@ -4824,8 +4796,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       }
 
       default:
-        return Api::NewArgumentError("%s: invalid argument type %d.",
-                                     CURRENT_FUNC, arg_type);
+        return Api::NewError("%s: invalid argument type %d.", CURRENT_FUNC,
+                             arg_type);
     }
   }
   return Api::Success();
@@ -4890,7 +4862,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
   TransitionNativeToVM transition(arguments->thread());
   Dart_Handle result = Api::Null();
   if (!GetNativeStringArgument(arguments, arg_index, &result, peer)) {
-    return Api::NewArgumentError(
+    return Api::NewError(
         "%s expects argument at %d to be of"
         " type String.",
         CURRENT_FUNC, arg_index);
@@ -4908,7 +4880,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
   if (!GetNativeIntegerArgument(arguments, index, value)) {
-    return Api::NewArgumentError(
+    return Api::NewError(
         "%s: expects argument at %d to be of"
         " type Integer.",
         CURRENT_FUNC, index);
@@ -4926,9 +4898,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
   if (!Api::GetNativeBooleanArgument(arguments, index, value)) {
-    return Api::NewArgumentError(
-        "%s: expects argument at %d to be of type Boolean.", CURRENT_FUNC,
-        index);
+    return Api::NewError("%s: expects argument at %d to be of type Boolean.",
+                         CURRENT_FUNC, index);
   }
   return Api::Success();
 }
@@ -4943,7 +4914,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
   if (!GetNativeDoubleArgument(arguments, index, value)) {
-    return Api::NewArgumentError(
+    return Api::NewError(
         "%s: expects argument at %d to be of"
         " type Double.",
         CURRENT_FUNC, index);

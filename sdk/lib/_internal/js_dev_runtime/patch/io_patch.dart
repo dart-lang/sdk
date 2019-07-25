@@ -546,7 +546,7 @@ class RawDatagramSocket {
 @patch
 class _SecureFilter {
   @patch
-  factory _SecureFilter._() {
+  factory _SecureFilter() {
     throw UnsupportedError("_SecureFilter._SecureFilter");
   }
 }

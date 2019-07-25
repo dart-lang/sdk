@@ -38,16 +38,12 @@ const intptr_t SSLFilter::kApproximateSize =
     sizeof(SSLFilter) + (2 * SSLFilter::kInternalBIOSize);
 
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
-  SSLFilter* filter = NULL;
+  SSLFilter* filter;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
   ThrowIfError(Dart_GetNativeInstanceField(
       dart_this, SSLFilter::kSSLFilterNativeFieldIndex,
       reinterpret_cast<intptr_t*>(&filter)));
-  if (filter == NULL) {
-    Dart_PropagateError(Dart_NewUnhandledExceptionError(
-        DartUtils::NewInternalError("No native peer")));
-  }
   return filter;
 }
 

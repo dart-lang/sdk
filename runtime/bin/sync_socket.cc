@@ -351,10 +351,6 @@ Dart_Handle SynchronousSocket::GetSocketIdNativeField(
     return result;
   }
   *socket = reinterpret_cast<SynchronousSocket*>(id);
-  if (*socket == NULL) {
-    Dart_PropagateError(Dart_NewUnhandledExceptionError(
-        DartUtils::NewInternalError("No native peer")));
-  }
   return result;
 }
 

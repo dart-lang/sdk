@@ -14,7 +14,7 @@ class SecureSocket {
 @patch
 class _SecureFilter {
   @patch
-  factory _SecureFilter._() => new _SecureFilterImpl._();
+  factory _SecureFilter() => new _SecureFilterImpl();
 }
 
 @patch
@@ -22,7 +22,7 @@ class _SecureFilter {
 class X509Certificate {
   @patch
   @pragma("vm:entry-point")
-  factory X509Certificate._() => new _X509CertificateImpl._();
+  factory X509Certificate._() => new _X509CertificateImpl();
 }
 
 class _SecureSocket extends _Socket implements SecureSocket {
@@ -75,7 +75,7 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   @pragma("vm:entry-point")
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
-  _SecureFilterImpl._() {
+  _SecureFilterImpl() {
     buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
     for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
       buffers[i] = new _ExternalBuffer(
@@ -206,7 +206,7 @@ class _X509CertificateImpl extends NativeFieldWrapperClass1
     implements X509Certificate {
   // The native field must be set manually on a new object, in native code.
   // This is done by WrappedX509 in secure_socket.cc.
-  _X509CertificateImpl._();
+  _X509CertificateImpl();
 
   Uint8List _cachedDer;
   Uint8List get _der native "X509_Der";

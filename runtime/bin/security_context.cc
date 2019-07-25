@@ -86,10 +86,6 @@ SSLCertContext* SSLCertContext::GetSecurityContext(Dart_NativeArguments args) {
   ThrowIfError(Dart_GetNativeInstanceField(
       dart_this, SSLCertContext::kSecurityContextNativeFieldIndex,
       reinterpret_cast<intptr_t*>(&context)));
-  if (context == NULL) {
-    Dart_PropagateError(Dart_NewUnhandledExceptionError(
-        DartUtils::NewInternalError("No native peer")));
-  }
   return context;
 }
 
@@ -648,10 +644,6 @@ static X509* GetX509Certificate(Dart_NativeArguments args) {
   ThrowIfError(Dart_GetNativeInstanceField(
       dart_this, SSLCertContext::kX509NativeFieldIndex,
       reinterpret_cast<intptr_t*>(&certificate)));
-  if (certificate == NULL) {
-    Dart_PropagateError(Dart_NewUnhandledExceptionError(
-        DartUtils::NewInternalError("No native peer")));
-  }
   return certificate;
 }
 

@@ -460,7 +460,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterPending = false;
   bool _filterActive = false;
 
-  _SecureFilter _secureFilter = new _SecureFilter._();
+  _SecureFilter _secureFilter = new _SecureFilter();
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
@@ -1226,7 +1226,7 @@ class _ExternalBuffer {
 }
 
 abstract class _SecureFilter {
-  external factory _SecureFilter._();
+  external factory _SecureFilter();
 
   void connect(
       String hostName,
