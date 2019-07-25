@@ -181,8 +181,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.typeParameters?.accept(this);
     node.extendedType.accept(this);
 
-    // TODO(scheglov) do we need a scope?
-//    scope = new ClassScope(scope, element);
+    scope = new ExtensionScope(scope, element);
     LinkingNodeContext(node, scope);
 
     node.members.accept(this);

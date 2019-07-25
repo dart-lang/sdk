@@ -344,6 +344,15 @@ class FindElement {
       findIn(function.parameters);
     }
 
+    for (var extension_ in unitElement.extensions) {
+      for (var method in extension_.methods) {
+        findIn(method.parameters);
+      }
+      for (var accessor in extension_.accessors) {
+        findIn(accessor.parameters);
+      }
+    }
+
     for (var class_ in unitElement.types) {
       for (var constructor in class_.constructors) {
         findIn(constructor.parameters);

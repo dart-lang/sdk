@@ -153,7 +153,7 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
         codeOffset: node.offset,
         codeLength: node.length,
         documentationComment_tokens: _nodeCommentTokens(node),
-        nameOffset: node.name.offset,
+        nameOffset: node.name?.offset ?? 0,
       ),
     );
 

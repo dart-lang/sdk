@@ -707,7 +707,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null) {
+    if (lazy?.data != null) {
       return context.getInformativeData(lazy.data)?.codeLength ?? 0;
     }
     return node.length;
@@ -718,7 +718,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null) {
+    if (lazy?.data != null) {
       return context.getInformativeData(lazy.data)?.codeOffset ?? 0;
     }
     return node.offset;
@@ -729,7 +729,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasDocumentationComment) {
+    if (lazy?.data != null && !lazy._hasDocumentationComment) {
       node.documentationComment = context.createComment(lazy.data);
       lazy._hasDocumentationComment = true;
     }
@@ -740,7 +740,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasExtendedType) {
+    if (lazy?.data != null && !lazy._hasExtendedType) {
       (node as ExtensionDeclarationImpl).extendedType = reader.readNode(
         lazy.data.extensionDeclaration_extendedType,
       );
@@ -753,7 +753,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasMembers) {
+    if (lazy?.data != null && !lazy._hasMembers) {
       var dataList = lazy.data.extensionDeclaration_members;
       for (var i = 0; i < dataList.length; ++i) {
         var data = dataList[i];
@@ -768,7 +768,7 @@ class LazyExtensionDeclaration {
     ExtensionDeclaration node,
   ) {
     var lazy = get(node);
-    if (lazy != null && !lazy._hasMetadata) {
+    if (lazy?.data != null && !lazy._hasMetadata) {
       var dataList = lazy.data.annotatedNode_metadata;
       for (var i = 0; i < dataList.length; ++i) {
         var data = dataList[i];

@@ -5124,6 +5124,29 @@ void defaultF<T>(T v) {}
 ''');
   }
 
+  test_defaultValue_refersToExtension_method() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+class A {}
+extension E on A {
+  static void f() {}
+  static void g([Object p = f]) {}
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A {
+}
+extension E on A {
+  static void f() {}
+  static void g([Object p =
+        f/*location: test.dart;E;f*/]) {}
+}
+''',
+        withTypes: true);
+  }
+
   test_defaultValue_refersToGenericClass() async {
     var library = await checkLibrary('''
 class B<T1, T2> {
