@@ -682,7 +682,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
   const MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(function);
 
   switch (kind) {
-// On simdbc and the bytecode interpreter we fall back to natives.
+// On simdbc we fall back to natives.
 #if !defined(TARGET_ARCH_DBC)
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
@@ -700,11 +700,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Int32x4ArrayView_factory:
     case MethodRecognizer::kTypedData_Float64x2ArrayView_factory:
 #endif  // !defined(TARGET_ARCH_DBC)
-    // This list must be kept in sync with BytecodeReaderHelper::NativeEntry in
-    // runtime/vm/compiler/frontend/bytecode_reader.cc and implemented in the
-    // bytecode interpreter in runtime/vm/interpreter.cc. Alternatively, these
-    // methods must work in their original form (a Dart body or native entry) in
-    // the bytecode interpreter.
     case MethodRecognizer::kObjectEquals:
     case MethodRecognizer::kStringBaseLength:
     case MethodRecognizer::kStringBaseIsEmpty:
@@ -732,7 +727,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_setUsedData:
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
-    case MethodRecognizer::kFfiAbi:
       return true;
     default:
       return false;
@@ -1016,10 +1010,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
                                  Slot::LinkedHashMap_deleted_keys(),
                                  kNoStoreBarrier);
       body += NullConstant();
-      break;
-    case MethodRecognizer::kFfiAbi:
-      ASSERT(function.NumParameters() == 0);
-      body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
     default: {
       UNREACHABLE();
