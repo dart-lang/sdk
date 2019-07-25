@@ -789,7 +789,8 @@ class State<Variable, Type> {
   }
 
   /// Updates the state to indicate that the given [variable] has been
-  /// determined to satisfy the given [type].
+  /// determined to satisfy the given [type], e.g. as a consequence of an `is`
+  /// expression as the condition of an `if` statement.
   ///
   /// Note that the state is only changed if [type] is a subtype of the
   /// variable's previous (possibly promoted) type.
@@ -820,6 +821,23 @@ class State<Variable, Type> {
 
   /// Updates the state to indicate that the given [variables] are no longer
   /// promoted; they are presumed to have their declared types.
+  ///
+  /// This is used at the top of loops to conservatively cancel the promotion of
+  /// variables that are modified within the loop, so that we correctly analyze
+  /// code like the following:
+  ///
+  ///     if (x is int) {
+  ///       x.isEven; // OK, promoted to int
+  ///       while (true) {
+  ///         x.isEven; // ERROR: promotion lost
+  ///         x = 'foo';
+  ///       }
+  ///     }
+  ///
+  /// Note that a more accurate analysis would be to iterate to a fixed point,
+  /// and only remove promotions if it can be shown that they aren't restored
+  /// later in the loop body.  If we switch to a fixed point analysis, we should
+  /// be able to remove this method.
   State<Variable, Type> removePromotedAll(Set<Variable> variables) {
     var newPromoted = _removePromotedAll(promoted, variables);
 
@@ -835,6 +853,9 @@ class State<Variable, Type> {
   /// Updates the state to reflect a control path that is known to have
   /// previously passed through some [other] state.
   ///
+  /// Approximately, this method forms the union of the definite assignments and
+  /// promotions in `this` state and the [other] state.  More precisely:
+  ///
   /// The control flow path is considered reachable if both this state and the
   /// other state are reachable.  Variables are considered definitely assigned
   /// if they were definitely assigned in either this state or the other state.
@@ -842,6 +863,13 @@ class State<Variable, Type> {
   /// in the other state is more specific, and the variable is "safe".  A
   /// variable is considered safe if there is no chance that it was assigned
   /// more recently than the "other" state.
+  ///
+  /// This is used after a `try/finally` statement to combine the promotions and
+  /// definite assignments that occurred in the `try` and `finally` blocks
+  /// (where `this` is the state from the `finally` block and `other` is the
+  /// state from the `try` block).  Variables that are assigned in the `finally`
+  /// block are considered "unsafe" because the assignment might have cancelled
+  /// the effect of any promotion that occurred inside the `try` block.
   State<Variable, Type> restrict(
     TypeOperations<Variable, Type> typeOperations,
     _VariableSet<Variable> emptySet,
