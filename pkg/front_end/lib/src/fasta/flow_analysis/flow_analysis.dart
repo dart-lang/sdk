@@ -705,7 +705,7 @@ abstract class NodeOperations<Expression> {
 /// analysis at a single point in the control flow of the function or method
 /// being analyzed.
 ///
-/// Instances of this class are immuatable, so the methods below that "update"
+/// Instances of this class are immutable, so the methods below that "update"
 /// the state actually leave `this` unchanged and return a new state object.
 @visibleForTesting
 class State<Variable, Type> {
