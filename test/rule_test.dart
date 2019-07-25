@@ -5,11 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -24,8 +20,10 @@ import 'package:linter/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'mock_sdk.dart';
 import 'rules/experiments/experiments.dart';
+import 'util/annotation.dart';
+import 'util/annotation_matcher.dart';
+import 'util/test_resource_provider.dart';
 import 'util/test_utils.dart';
 
 main() {
@@ -174,11 +172,6 @@ defineRuleUnitTests() {
       testEach(bad, isValidDartIdentifier, isFalse);
     });
     group('libary_name_prefixes', () {
-      testEach(
-          Iterable<List<String>> values, dynamic f(List<String> s), Matcher m) {
-        values.forEach((s) => test('${s[3]}', () => expect(f(s), m)));
-      }
-
       bool isGoodPrefx(List<String> v) => matchesOrIsPrefixedBy(
           v[3],
           Analyzer.facade.createLibraryNamePrefix(
@@ -204,57 +197,10 @@ defineRuleUnitTests() {
   });
 }
 
-/// Test framework sanity
+/// Test framework sanity.
 defineSanityTests() {
-  group('test framework', () {
-    group('annotation', () {
-      test('extraction', () {
-        expect(extractAnnotation('int x; // LINT [1:3]'), isNotNull);
-        expect(extractAnnotation('int x; //LINT'), isNotNull);
-        expect(extractAnnotation('int x; // OK'), isNull);
-        expect(extractAnnotation('int x;'), isNull);
-        expect(extractAnnotation('dynamic x; // LINT dynamic is bad').message,
-            'dynamic is bad');
-        expect(
-            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad')
-                .message,
-            'dynamic is bad');
-        expect(
-            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').column,
-            1);
-        expect(
-            extractAnnotation('dynamic x; // LINT [1:3] dynamic is bad').length,
-            3);
-        expect(extractAnnotation('dynamic x; //LINT').message, isNull);
-        expect(extractAnnotation('dynamic x; //LINT ').message, isNull);
-        // Commented out lines shouldn't get linted.
-        expect(extractAnnotation('// dynamic x; //LINT '), isNull);
-      });
-    });
-    test('equality', () {
-      expect(Annotation('Actual message (to be ignored)', ErrorType.LINT, 1),
-          matchesAnnotation(null, ErrorType.LINT, 1));
-      expect(Annotation('Message', ErrorType.LINT, 1),
-          matchesAnnotation('Message', ErrorType.LINT, 1));
-    });
-    test('inequality', () {
-      expect(
-          () => expect(Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message', ErrorType.HINT, 1)),
-          throwsA(TypeMatcher<TestFailure>()));
-      expect(
-          () => expect(Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message2', ErrorType.LINT, 1)),
-          throwsA(TypeMatcher<TestFailure>()));
-      expect(
-          () => expect(Annotation('Message', ErrorType.LINT, 1),
-              matchesAnnotation('Message', ErrorType.LINT, 2)),
-          throwsA(TypeMatcher<TestFailure>()));
-    });
-  });
-
   group('reporting', () {
-    //https://github.com/dart-lang/linter/issues/193
+    // https://github.com/dart-lang/linter/issues/193
     group('ignore synthetic nodes', () {
       String path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
       File file = File(path);
@@ -278,48 +224,6 @@ defineSoloRuleTest(String ruleToTest) {
     }
   }
 }
-
-Annotation extractAnnotation(String line) {
-  int index = line.indexOf(RegExp(r'(//|#)[ ]?LINT'));
-
-  // Grab the first comment to see if there's one preceding the annotation.
-  // Check for '#' first to allow for lints on dartdocs.
-  int comment = line.indexOf('#');
-  if (comment == -1) {
-    comment = line.indexOf('//');
-  }
-
-  if (index > -1 && comment == index) {
-    int column;
-    int length;
-    var annotation = line.substring(index);
-    var leftBrace = annotation.indexOf('[');
-    if (leftBrace != -1) {
-      var sep = annotation.indexOf(':');
-      column = int.parse(annotation.substring(leftBrace + 1, sep));
-      var rightBrace = annotation.indexOf(']');
-      length = int.parse(annotation.substring(sep + 1, rightBrace));
-    }
-
-    int msgIndex = annotation.indexOf(']') + 1;
-    if (msgIndex < 1) {
-      msgIndex = annotation.indexOf('T') + 1;
-    }
-    String msg;
-    if (msgIndex < line.length) {
-      msg = line.substring(index + msgIndex).trim();
-      if (msg.isEmpty) {
-        msg = null;
-      }
-    }
-    return Annotation.forLint(msg, column, length);
-  }
-  return null;
-}
-
-AnnotationMatcher matchesAnnotation(
-        String message, ErrorType type, int lineNumber) =>
-    AnnotationMatcher(Annotation(message, type, lineNumber));
 
 testRules(String ruleDir, {String analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
@@ -360,24 +264,8 @@ testRule(String ruleName, File file,
       fail('rule `$ruleName` is not registered; unable to test.');
     }
 
-    MemoryResourceProvider memoryResourceProvider = MemoryResourceProvider(
-        context: PhysicalResourceProvider.INSTANCE.pathContext);
-    TestResourceProvider resourceProvider =
-        TestResourceProvider(memoryResourceProvider);
-
-    p.Context pathContext = memoryResourceProvider.pathContext;
-    String packageConfigPath = memoryResourceProvider.convertPath(pathContext
-        .join(pathContext.dirname(file.absolute.path), '.mock_packages'));
-    if (!resourceProvider.getFile(packageConfigPath).exists) {
-      packageConfigPath = null;
-    }
-
-    LinterOptions options = LinterOptions([rule], analysisOptions)
-      ..mockSdk = MockSdk(memoryResourceProvider)
-      ..resourceProvider = resourceProvider
-      ..packageConfigPath = packageConfigPath;
-
-    DartLinter driver = DartLinter(options);
+    DartLinter driver =
+        buildDriver(rule, file, analysisOptions: analysisOptions);
 
     Iterable<AnalysisErrorInfo> lints = await driver.lintFiles([file]);
 
@@ -397,7 +285,7 @@ testRule(String ruleName, File file,
       if (debug) {
         // Dump results for debugging purposes.
 
-        //AST.
+        // AST.
         Spelunker(file.absolute.path).spelunk();
         print('');
         // Lints.
@@ -410,108 +298,15 @@ testRule(String ruleName, File file,
   });
 }
 
-class Annotation implements Comparable<Annotation> {
-  final int column;
-  final int length;
-  final String message;
-  final ErrorType type;
-  int lineNumber;
-
-  Annotation(this.message, this.type, this.lineNumber,
-      {this.column, this.length});
-
-  Annotation.forError(AnalysisError error, LineInfo lineInfo)
-      : this(error.message, error.errorCode.type,
-            lineInfo.getLocation(error.offset).lineNumber,
-            column: lineInfo.getLocation(error.offset).columnNumber,
-            length: error.length);
-
-  Annotation.forLint([String message, int column, int length])
-      : this(message, ErrorType.LINT, null, column: column, length: length);
-
-  @override
-  int compareTo(Annotation other) {
-    if (lineNumber != other.lineNumber) {
-      return lineNumber - other.lineNumber;
-    } else if (column != other.column) {
-      return column - other.column;
-    }
-    return message.compareTo(other.message);
-  }
-
-  @override
-  String toString() =>
-      '[$type]: "$message" (line: $lineNumber) - [$column:$length]';
-
-  static Iterable<Annotation> fromErrors(AnalysisErrorInfo error) {
-    List<Annotation> annotations = [];
-    error.errors.forEach(
-        (e) => annotations.add(Annotation.forError(e, error.lineInfo)));
-    return annotations;
-  }
-}
-
-class AnnotationMatcher extends Matcher {
-  final Annotation _expected;
-
-  AnnotationMatcher(this._expected);
-
-  @override
-  Description describe(Description description) =>
-      description.addDescriptionOf(_expected);
-
-  @override
-  bool matches(item, Map matchState) => item is Annotation && _matches(item);
-
-  bool _matches(Annotation other) {
-    // Only test messages if they're specified in the expectation
-    if (_expected.message != null) {
-      if (_expected.message != other.message) {
-        return false;
-      }
-    }
-    // Similarly for highlighting
-    if (_expected.column != null) {
-      if (_expected.column != other.column ||
-          _expected.length != other.length) {
-        return false;
-      }
-    }
-    return _expected.type == other.type &&
-        _expected.lineNumber == other.lineNumber;
-  }
-}
-
+/// A [LintFilter] that filters no lint.
 class NoFilter implements LintFilter {
   @override
   bool filter(AnalysisError lint) => false;
 }
 
+/// A [DetailedReporter] that filters no lint, only used in debug mode, when
+/// actual lints do not match expectations.
 class ResultReporter extends DetailedReporter {
   ResultReporter(Iterable<AnalysisErrorInfo> errors)
       : super(errors, NoFilter(), stdout);
-}
-
-class TestResourceProvider extends PhysicalResourceProvider {
-  MemoryResourceProvider memoryResourceProvider;
-
-  TestResourceProvider(this.memoryResourceProvider) : super(null);
-
-  @override
-  file_system.File getFile(String path) {
-    file_system.File file = memoryResourceProvider.getFile(path);
-    return file.exists ? file : super.getFile(path);
-  }
-
-  @override
-  file_system.Folder getFolder(String path) {
-    file_system.Folder folder = memoryResourceProvider.getFolder(path);
-    return folder.exists ? folder : super.getFolder(path);
-  }
-
-  @override
-  file_system.Resource getResource(String path) {
-    file_system.Resource resource = memoryResourceProvider.getResource(path);
-    return resource.exists ? resource : super.getResource(path);
-  }
 }
