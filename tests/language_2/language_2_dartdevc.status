@@ -152,10 +152,6 @@ call_method_implicit_tear_off_implements_function_test/05: RuntimeError # Kernel
 call_method_implicit_tear_off_implements_function_test/06: RuntimeError # Kernel is missing the implicit `call` tearoff for assignment `Function`
 call_method_must_not_be_field_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
 call_method_must_not_be_getter_test/06: RuntimeError # Kernel does not distinguish `d()` from `d.call()`
-canonicalization_hashing_memoize_array_test: Skip # Issue 37631
-canonicalization_hashing_memoize_instance_test: Skip # Issue 37631
-canonicalization_hashing_shallow_collision_array_test: Skip # Issue 37631
-canonicalization_hashing_shallow_collision_instance_test: Skip # Issue 37631
 compile_time_constant_c_test/02: MissingCompileTimeError
 compile_time_constant_k_test/01: MissingCompileTimeError
 compile_time_constant_k_test/02: MissingCompileTimeError
