@@ -150,6 +150,8 @@ class LinkedUnitContext {
       return LazyConstructorDeclaration.getCodeLength(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeLength(this, node);
+    } else if (node is ExtensionDeclaration) {
+      return LazyExtensionDeclaration.getCodeLength(this, node);
     } else if (node is FormalParameter) {
       return LazyFormalParameter.getCodeLength(this, node);
     } else if (node is FunctionDeclaration) {
@@ -181,6 +183,8 @@ class LinkedUnitContext {
       return LazyConstructorDeclaration.getCodeOffset(this, node);
     } else if (node is EnumDeclaration) {
       return LazyEnumDeclaration.getCodeOffset(this, node);
+    } else if (node is ExtensionDeclaration) {
+      return LazyExtensionDeclaration.getCodeOffset(this, node);
     } else if (node is FormalParameter) {
       return LazyFormalParameter.getCodeOffset(this, node);
     } else if (node is FunctionDeclaration) {

@@ -5014,6 +5014,28 @@ class ExtensionElementImpl extends ElementImpl
   }
 
   @override
+  int get codeLength {
+    if (linkedNode != null) {
+      return linkedContext.getCodeLength(linkedNode);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.codeRange?.length;
+    }
+    return super.codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    if (linkedNode != null) {
+      return linkedContext.getCodeOffset(linkedNode);
+    }
+    if (_unlinkedExtension != null) {
+      return _unlinkedExtension.codeRange?.offset;
+    }
+    return super.codeOffset;
+  }
+
+  @override
   String get displayName => name;
 
   @override

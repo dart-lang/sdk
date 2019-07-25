@@ -3871,9 +3871,6 @@ class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Token get beginToken => extensionKeyword;
-
-  @override
   Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(extensionKeyword)
     ..add(name)
