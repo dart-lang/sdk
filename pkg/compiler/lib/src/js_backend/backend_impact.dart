@@ -779,4 +779,10 @@ class BackendImpacts {
       ])
     ];
   }
+
+  BackendImpact _rtiAddRules;
+
+  BackendImpact get rtiAddRules => _rtiAddRules ??= BackendImpact(
+      staticUses: [_commonElements.rtiAddRulesMethod],
+      otherImpacts: [_needsString('Needed to encode the new RTI ruleset.')]);
 }

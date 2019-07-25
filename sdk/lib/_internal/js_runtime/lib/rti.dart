@@ -1508,7 +1508,6 @@ bool _isSubtypeOfInterface(
     return true;
   }
 
-  // TODO(fishythefish): Should we recursively attempt to find supertypes?
   var rule = _Universe.findRule(universe, sName);
   if (rule == null) return false;
   var supertypeArgs = TypeRule.lookupSupertype(rule, tName);

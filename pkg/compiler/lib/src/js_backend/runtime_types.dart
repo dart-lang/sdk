@@ -34,10 +34,6 @@ abstract class RuntimeTypesChecks {
   /// Returns the required runtime type checks.
   TypeChecks get requiredChecks;
 
-  /// Return all classes that are referenced in the type of the function, i.e.,
-  /// in the return type or the argument types.
-  Iterable<ClassEntity> getReferencedClasses(FunctionType type);
-
   /// Return all classes needed for runtime type information.
   Iterable<ClassEntity> get requiredClasses;
 }
@@ -54,9 +50,6 @@ class TrivialTypesChecks implements RuntimeTypesChecks {
 
   @override
   Iterable<ClassEntity> get requiredClasses => _allClasses;
-
-  @override
-  Iterable<ClassEntity> getReferencedClasses(FunctionType type) => _allClasses;
 }
 
 /// Interface for computing the needed runtime type checks.
@@ -515,13 +508,6 @@ class _RuntimeTypesChecks implements RuntimeTypesChecks {
     required
         .addAll(_substitutions.getClassesUsedInSubstitutions(requiredChecks));
     return required;
-  }
-
-  @override
-  Iterable<ClassEntity> getReferencedClasses(FunctionType type) {
-    FunctionArgumentCollector collector = new FunctionArgumentCollector();
-    collector.collect(type);
-    return collector.classes;
   }
 }
 

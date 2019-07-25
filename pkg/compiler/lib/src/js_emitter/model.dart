@@ -9,6 +9,7 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/entities.dart';
 import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import '../js/js_debug.dart' as js show nodeToString;
+import '../js_backend/runtime_types_codegen.dart';
 import 'js_emitter.dart' show MetadataCollector;
 
 class Program {
@@ -244,6 +245,7 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
+  final ClassChecks classChecksNewRti;
   final List<StubMethod> checkedSetters;
 
   /// Stub methods for this class that are call stubs for getters.
@@ -293,6 +295,7 @@ class Class implements FieldContainer {
       this.noSuchMethodStubs,
       this.checkedSetters,
       this.isChecks,
+      this.classChecksNewRti,
       this.functionTypeIndex,
       {this.hasRtiField,
       this.onlyForRti,
@@ -340,6 +343,7 @@ class MixinApplication extends Class {
       List<StubMethod> callStubs,
       List<StubMethod> checkedSetters,
       List<StubMethod> isChecks,
+      ClassChecks classChecksNewRti,
       js.Expression functionTypeIndex,
       {bool hasRtiField,
       bool onlyForRti,
@@ -355,6 +359,7 @@ class MixinApplication extends Class {
             const <StubMethod>[],
             checkedSetters,
             isChecks,
+            classChecksNewRti,
             functionTypeIndex,
             hasRtiField: hasRtiField,
             onlyForRti: onlyForRti,

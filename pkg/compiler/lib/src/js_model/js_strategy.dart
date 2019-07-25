@@ -271,6 +271,7 @@ class JsBackendStrategy implements BackendStrategy {
             // tracing.
             new ComponentLookup(_elementMap.programEnv.mainComponent)),
         new CodegenEnqueuerListener(
+            _compiler.options,
             elementEnvironment,
             commonElements,
             impacts,

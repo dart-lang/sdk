@@ -490,6 +490,7 @@ abstract class CommonElements {
   FieldEntity get rtiIsField;
   FunctionEntity get rtiEvalMethod;
   FunctionEntity get rtiBindMethod;
+  FunctionEntity get rtiAddRulesMethod;
 
   // From dart:_internal
 
@@ -1837,6 +1838,7 @@ class CommonElementsImpl
       _checkTypeBound ??= _findRtiFunction('checkTypeBound');
 
   ClassEntity get _rtiImplClass => _findClass(rtiLibrary, 'Rti');
+  ClassEntity get _rtiUniverseClass => _findClass(rtiLibrary, '_Universe');
   FieldEntity _findRtiClassField(String name) =>
       _findClassMember(_rtiImplClass, name);
 
@@ -1862,6 +1864,11 @@ class CommonElementsImpl
   @override
   FunctionEntity get rtiBindMethod =>
       _rtiBindMethod ??= _findClassMember(_rtiImplClass, '_bind');
+
+  FunctionEntity _rtiAddRulesMethod;
+  @override
+  FunctionEntity get rtiAddRulesMethod =>
+      _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
 
   // From dart:_internal
 
