@@ -2114,6 +2114,9 @@ abstract class ExtendsClause implements AstNode {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionDeclaration implements CompilationUnitMember {
+  @override
+  ExtensionElement get declaredElement;
+
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
 

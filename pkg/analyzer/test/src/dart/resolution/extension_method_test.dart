@@ -94,6 +94,31 @@ f() {
     expect(invocation.identifier.staticElement, declaration.declaredElement);
   }
 
+  test_getter_usingThis() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  int get a => 1;
+  int m() => this.a;
+}
+''');
+    var access = findNode.propertyAccess('this.a');
+    assertPropertyAccess(access, findElement.getter('a'), 'int');
+  }
+
+  @failingTest
+  test_metadata() async {
+    await assertNoErrorsInCode('''
+const int ann = 1;
+class C {}
+@ann
+extension E on C {}
+''');
+    var annotation = findNode.annotation('@ann');
+    assertElement(annotation, findElement.topVar('ann'));
+  }
+
   test_method_moreSpecificThanPlatform() async {
     //
     // An extension with on type clause T1 is more specific than another

@@ -4453,6 +4453,29 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    //
+    // Resolve the metadata in the library scope
+    // and associate the annotations with the element.
+    //
+    if (node.metadata != null) {
+      node.metadata.accept(this);
+      ElementResolver.resolveMetadata(node);
+    }
+    //
+    // Continue the extension resolution.
+    //
+    try {
+      typeAnalyzer.thisType = node.declaredElement.extendedType;
+      super.visitExtensionDeclaration(node);
+      node.accept(elementResolver);
+      node.accept(typeAnalyzer);
+    } finally {
+      typeAnalyzer.thisType = null;
+    }
+  }
+
+  @override
   void visitForElementInScope(ForElement node) {
     ForLoopParts forLoopParts = node.forLoopParts;
     if (forLoopParts is ForParts) {
