@@ -406,8 +406,7 @@ class EditDomainHandler extends AbstractRequestHandler {
         return Response.DELAYED_RESPONSE;
       } else if (requestName ==
           EDIT_REQUEST_LIST_POSTFIX_COMPLETION_TEMPLATES) {
-        listPostfixCompletionTemplates(request);
-        return Response.DELAYED_RESPONSE;
+        return listPostfixCompletionTemplates(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
@@ -489,17 +488,15 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.sendResponse(response);
   }
 
-  Future listPostfixCompletionTemplates(Request request) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
-    var templates = DartPostfixCompletion.ALL_TEMPLATES
-        .map((pfc) =>
-            new PostfixTemplateDescriptor(pfc.name, pfc.key, pfc.example))
+  Response listPostfixCompletionTemplates(Request request) {
+    List<PostfixTemplateDescriptor> templates = DartPostfixCompletion
+        .ALL_TEMPLATES
+        .map((PostfixCompletionKind kind) =>
+            new PostfixTemplateDescriptor(kind.name, kind.key, kind.example))
         .toList();
 
-    Response response = new EditListPostfixCompletionTemplatesResult(templates)
+    return new EditListPostfixCompletionTemplatesResult(templates)
         .toResponse(request.id);
-    server.sendResponse(response);
   }
 
   Future<void> organizeDirectives(Request request) async {

@@ -24,7 +24,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class DartPostfixCompletion {
   static const NO_TEMPLATE =
       const PostfixCompletionKind('', 'no change', null, null);
-  static const ALL_TEMPLATES = const [
+
+  static const List<PostfixCompletionKind> ALL_TEMPLATES = const [
     const PostfixCompletionKind("assert", "expr.assert -> assert(expr);",
         isAssertContext, expandAssert),
     const PostfixCompletionKind(
