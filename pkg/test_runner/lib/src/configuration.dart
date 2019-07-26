@@ -360,6 +360,21 @@ class TestConfiguration {
       isValid = false;
     }
 
+    if (architecture == Architecture.ia32 && compiler == Compiler.dartkp) {
+      print("Warning: IA32 does not support AOT mode.");
+      isValid = false;
+    }
+
+    if (system == System.android &&
+        !(architecture == Architecture.ia32 ||
+            architecture == Architecture.x64 ||
+            architecture == Architecture.arm ||
+            architecture == Architecture.arm64)) {
+      print("Warning: Android only supports the following "
+          "architectures: ia32/x64/arm/arm64.");
+      isValid = false;
+    }
+
     if (shard < 1 || shard > shardCount) {
       print("Error: shard index is $shard out of $shardCount shards");
       isValid = false;

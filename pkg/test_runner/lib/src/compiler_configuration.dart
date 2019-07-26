@@ -620,6 +620,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
 
   bool get _isArm64 => _configuration.architecture == Architecture.arm64;
 
+  bool get _isX64 => _configuration.architecture == Architecture.x64;
+
+  bool get _isIA32 => _configuration.architecture == Architecture.ia32;
+
   bool get _isAot => true;
 
   PrecompilerCompilerConfiguration(TestConfiguration configuration)
@@ -689,10 +693,14 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
       if (_isAndroid) {
-        if (_isArm) {
+        if (_isArm || _isIA32) {
           exec = "$buildDir/clang_x86/gen_snapshot";
-        } else if (_configuration.architecture == Architecture.arm64) {
+        } else if (_isArm64 || _isX64) {
           exec = "$buildDir/clang_x64/gen_snapshot";
+        } else {
+          // Guaranteed by package:test_runner/src/configuration.dart's
+          // TestConfiguration.validate().
+          assert(false);
         }
       } else {
         exec = "$buildDir/gen_snapshot";
