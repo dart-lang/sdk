@@ -32,20 +32,20 @@ main() {
   Expect.equals("EA.v3", c.v3);
 
 
-  Iterable<num> in = <int>[];
+  Iterable<num> i_num = <int>[];
   Iterable<int> ii = <int>[];
   List<num> ln = <int>[];
   List<int> li = <int>[];
 
-  in // No `in` extension declared.
-    .in //# 02: compile-time error
+  i_num // No `i_num` extension declared.
+    .i_num //# 02: compile-time error
   ;
 
-  Expect.equals("Iterable<int>.in", ii.in);
-  Expect.equals("List<num>.in", ln.in);
+  Expect.equals("Iterable<int>.i_num", ii.i_num);
+  Expect.equals("List<num>.i_num", ln.i_num);
 
   li // Both apply, neither is more specific.
-    .in //# 03: compile-time error
+    .i_num //# 03: compile-time error
   ;
 
   c // no most specific because both are equally specific.
@@ -82,11 +82,11 @@ extension EC on C {
 // Iterable<num>, Iterable<int>, List<num> and List<int> also forms diamond
 // hierarchy.
 extension II on Iterable<int> {
-  String get in => "Iterable<int>.in";
+  String get i_num => "Iterable<int>.i_num";
 }
 
 extension LN on List<num> {
-  String get in => "List<num>.in";
+  String get i_num => "List<num>.i_num";
 }
 
 // Two exactly identical `on` types.
