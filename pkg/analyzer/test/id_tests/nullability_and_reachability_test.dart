@@ -81,11 +81,7 @@ class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
       if (element is LocalVariableElement || element is ParameterElement) {
         TypeImpl promotedType = node.staticType;
         TypeImpl declaredType = (element as VariableElement).type;
-        // TODO(paulberry): once type equality has been updated to account for
-        // nullability, isPromoted should just be
-        // `promotedType != declaredType`.  See dartbug.com/37587.
-        var isPromoted = promotedType != declaredType ||
-            promotedType.nullabilitySuffix != declaredType.nullabilitySuffix;
+        var isPromoted = promotedType != declaredType;
         if (isPromoted &&
             _typeSystem.isNullable(declaredType) &&
             !_typeSystem.isNullable(promotedType)) {

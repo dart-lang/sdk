@@ -477,11 +477,6 @@ class _TypeSystemTypeOperations
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
-    if (type1.nullabilitySuffix != type2.nullabilitySuffix) {
-      // TODO(paulberry): after DartType.operator== has been updated to compare
-      // nullabilities, this if test can be dropped.  See dartbug.com/37587.
-      return false;
-    }
     return type1 == type2;
   }
 

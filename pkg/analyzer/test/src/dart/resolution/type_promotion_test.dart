@@ -754,11 +754,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
       if (element is LocalVariableElement || element is ParameterElement) {
         TypeImpl promotedType = node.staticType;
         TypeImpl declaredType = (element as VariableElement).type;
-        // TODO(paulberry): once type equality has been updated to account for
-        // nullability, isPromoted should just be
-        // `promotedType != declaredType`.  See dartbug.com/37587.
-        var isPromoted = promotedType != declaredType ||
-            promotedType.nullabilitySuffix != declaredType.nullabilitySuffix;
+        var isPromoted = promotedType != declaredType;
         if (isPromoted) {
           return promotedType;
         }

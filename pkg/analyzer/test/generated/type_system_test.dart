@@ -1781,14 +1781,8 @@ class LeastUpperBoundTest extends BoundTestBase {
     var bNoneNone = _bTypeNoneElement(NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type1, type2),
-        expected,
-      );
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type2, type1),
-        expected,
-      );
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
     }
 
     assertLUB(bStarQuestion, aQuestion, aQuestion);
@@ -1863,14 +1857,8 @@ class LeastUpperBoundTest extends BoundTestBase {
     var aNone = _interfaceType(aElement, NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type1, type2),
-        expected,
-      );
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type2, type1),
-        expected,
-      );
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
     }
 
     assertLUB(aQuestion, aQuestion, aQuestion);
@@ -2101,14 +2089,8 @@ class LeastUpperBoundTest extends BoundTestBase {
     var cStarNone = cTypeElementStar(NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type1, type2),
-        expected,
-      );
-      _assertInterfaceType(
-        typeSystem.getLeastUpperBound(type2, type1),
-        expected,
-      );
+      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
+      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
     }
 
     assertLUB(bNoneQuestion, cNoneQuestion, aQuestion);
@@ -2359,17 +2341,6 @@ class LeastUpperBoundTest extends BoundTestBase {
         _functionType(returns: type),
         _functionType(returns: voidType),
       );
-    }
-  }
-
-  /// TODO(scheglov) Replace with `DartType.==` when
-  /// https://github.com/dart-lang/sdk/issues/37587 is fixed.
-  void _assertInterfaceType(DartType type, InterfaceTypeImpl expectedType) {
-    if (type is InterfaceTypeImpl) {
-      expect(type, expectedType);
-      expect(type.nullabilitySuffix, expectedType.nullabilitySuffix);
-    } else {
-      fail('Expected interface: (${type.runtimeType}) $type');
     }
   }
 }
