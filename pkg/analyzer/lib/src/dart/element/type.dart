@@ -726,7 +726,8 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
               normalParameterTypes, object.normalParameterTypes) &&
           TypeImpl.equalArrays(
               optionalParameterTypes, object.optionalParameterTypes) &&
-          _equals(namedParameterTypes, object.namedParameterTypes);
+          _equals(namedParameterTypes, object.namedParameterTypes) &&
+          nullabilitySuffix == object.nullabilitySuffix;
     }
     return false;
   }
@@ -1659,8 +1660,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return true;
     }
     if (object is InterfaceTypeImpl) {
-      return (element == object.element) &&
-          TypeImpl.equalArrays(typeArguments, object.typeArguments);
+      return element == object.element &&
+          TypeImpl.equalArrays(typeArguments, object.typeArguments) &&
+          nullabilitySuffix == object.nullabilitySuffix;
     }
     return false;
   }
