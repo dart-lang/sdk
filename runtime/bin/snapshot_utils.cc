@@ -27,7 +27,6 @@ extern const char* kIsolateSnapshotInstructionsSymbolName;
 
 static const int64_t kAppSnapshotHeaderSize = 5 * kInt64Size;
 static const int64_t kAppSnapshotPageSize = 4 * KB;
-static const char* kFileUriPrefix = "file://";
 
 class MappedAppSnapshot : public AppSnapshot {
  public:
@@ -229,24 +228,14 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(const char* script_name) {
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri) {
-  UriDecoder decoder(script_uri);
-  script_uri = decoder.decoded();
-
-  std::unique_ptr<char> script_name;
-  if (strncmp(script_uri, kFileUriPrefix, strlen(kFileUriPrefix)) == 0) {
-    script_name.reset(strdup(script_uri + 7));
-  } else {
-    script_name.reset(strdup(script_uri));
-  }
-
-  if (File::GetType(NULL, script_name.get(), true) != File::kIsFile) {
+AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_name) {
+  if (File::GetType(NULL, script_name, true) != File::kIsFile) {
     // If 'script_name' refers to a pipe, don't read to check for an app
     // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
     // anyway if it was).
     return NULL;
   }
-  AppSnapshot* snapshot = TryReadAppSnapshotBlobs(script_name.get());
+  AppSnapshot* snapshot = TryReadAppSnapshotBlobs(script_name);
   if (snapshot != NULL) {
     return snapshot;
   }
@@ -258,11 +247,11 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri) {
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
   std::unique_ptr<char, decltype(std::free)*> absolute_path{
-      realpath(script_name.get(), nullptr), std::free};
-  script_name.reset(strdup(absolute_path.get()));
+      realpath(script_name, nullptr), std::free};
+  script_name = absolute_path.get();
 #endif
 
-  snapshot = TryReadAppSnapshotDynamicLibrary(script_name.get());
+  snapshot = TryReadAppSnapshotDynamicLibrary(script_name);
 
   if (snapshot != NULL) {
     return snapshot;
