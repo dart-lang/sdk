@@ -589,6 +589,7 @@ class FragmentEmitter {
   RecipeEncoder _recipeEncoder;
   RulesetEncoder _rulesetEncoder;
 
+  DartTypes get _dartTypes => _closedWorld.dartTypes;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
 
@@ -619,7 +620,8 @@ class FragmentEmitter {
           _closedWorld.elementEnvironment,
           _closedWorld.commonElements,
           _closedWorld.rtiNeed);
-      _rulesetEncoder = RulesetEncoder(_emitter, _recipeEncoder);
+      _rulesetEncoder =
+          RulesetEncoder(_closedWorld.dartTypes, _emitter, _recipeEncoder);
     }
   }
 
@@ -1946,8 +1948,8 @@ class FragmentEmitter {
     classes.forEach((Class cls) {
       if (cls.classChecksNewRti == null) return;
       InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
-      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks
-          .map((TypeCheck check) => _elementEnvironment.getThisType(check.cls));
+      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
+          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
       ruleset[targetType] = supertypes;
     });
 

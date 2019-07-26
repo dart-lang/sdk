@@ -705,7 +705,16 @@ class _Universe {
   }
 
   static Rti evalTypeVariable(Object universe, Rti environment, String name) {
-    throw UnimplementedError('_Universe.evalTypeVariable("$name")');
+    if (Rti._getKind(environment) == Rti.kindBinding) {
+      environment = Rti._getBindingBase(environment);
+    }
+
+    assert(Rti._getKind(environment) == Rti.kindInterface);
+    String interfaceName = Rti._getInterfaceName(environment);
+    var rule = _Universe.findRule(universe, interfaceName);
+    assert(rule != null);
+    String recipe = TypeRule.lookupTypeVariable(rule, name);
+    return _Universe.evalInEnvironment(universe, environment, recipe);
   }
 
   static _cacheGet(cache, key) => JS('', '#.get(#)', cache, key);
