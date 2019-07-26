@@ -182,20 +182,27 @@ class AnnotatedCode {
 /// [AnnotatedCode] objects.
 Map<String, AnnotatedCode> splitByPrefixes(
     AnnotatedCode annotatedCode, Iterable<String> prefixes) {
+  Set<String> prefixSet = prefixes.toSet();
   Map<String, List<Annotation>> map = <String, List<Annotation>>{};
-  for (String prefix in prefixes) {
+  for (String prefix in prefixSet) {
     map[prefix] = <Annotation>[];
   }
   outer:
   for (Annotation annotation in annotatedCode.annotations) {
-    for (String prefix in prefixes) {
-      if (annotation.text.startsWith(prefix)) {
-        map[prefix].add(new Annotation(annotation.lineNo, annotation.columnNo,
-            annotation.offset, annotation.text.substring(prefix.length)));
+    int dotPos = annotation.text.indexOf('.');
+    if (dotPos != -1) {
+      String annotationPrefix = annotation.text.substring(0, dotPos);
+      String annotationText = annotation.text.substring(dotPos + 1);
+      List<String> markers = annotationPrefix.split('|').toList();
+      if (prefixSet.containsAll(markers)) {
+        for (String part in markers) {
+          map[part].add(new Annotation(annotation.lineNo, annotation.columnNo,
+              annotation.offset, annotationText));
+        }
         continue outer;
       }
     }
-    for (String prefix in prefixes) {
+    for (String prefix in prefixSet) {
       map[prefix].add(annotation);
     }
   }

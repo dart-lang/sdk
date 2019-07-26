@@ -18,8 +18,7 @@ main() {
   print(/*Int(0)*/ int0);
   print(/*Double(0.5)*/ double0);
   print(
-      /*cfe.Symbol(foo)*/
-      /*analyzer.Symbol(foo)*/
+      /*cfe|analyzer.Symbol(foo)*/
       /*dart2js.Instance(Symbol,{_name:String(foo))*/
       symbol0);
 }

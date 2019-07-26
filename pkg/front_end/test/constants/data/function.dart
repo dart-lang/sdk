@@ -18,13 +18,11 @@ main() {
   // TODO(paulberry): analyzer should record instantiation information.  See
   // dartbug.com/37608.
   print(
-      /*cfe.Instantiation(method1<int>)*/
-      /*dart2js.Instantiation(method1<int>)*/
+      /*cfe|dart2js.Instantiation(method1<int>)*/
       /*analyzer.Function(method1)*/
       instantiation0);
   print(
-      /*cfe.Instantiation(method2<String,int>)*/
-      /*dart2js.Instantiation(method2<String,int>)*/
+      /*cfe|dart2js.Instantiation(method2<String,int>)*/
       /*analyzer.Function(method2)*/
       instantiation1);
 }

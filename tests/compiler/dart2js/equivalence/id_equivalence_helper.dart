@@ -21,10 +21,10 @@ export 'package:front_end/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter;
 export '../helpers/memory_compiler.dart' show CollectedMessage;
 
-const String strongMarker = 'strong.';
-const String omitMarker = 'omit.';
-const String strongConstMarker = 'strongConst.';
-const String omitConstMarker = 'omitConst.';
+const String strongMarker = 'strong';
+const String omitMarker = 'omit';
+const String strongConstMarker = 'strongConst';
+const String omitConstMarker = 'omitConst';
 
 const TestConfig strongConfig = const TestConfig(strongMarker, 'strong mode',
     ['${Flags.enableLanguageExperiments}=no-constant-update-2018']);

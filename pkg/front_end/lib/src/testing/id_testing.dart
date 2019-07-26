@@ -7,9 +7,9 @@ import 'annotated_code_helper.dart';
 import 'id.dart';
 import '../fasta/colors.dart' as colors;
 
-const String cfeMarker = 'cfe.';
-const String dart2jsMarker = 'dart2js.';
-const String analyzerMarker = 'analyzer.';
+const String cfeMarker = 'cfe';
+const String dart2jsMarker = 'dart2js';
+const String analyzerMarker = 'analyzer';
 
 /// Markers used in annotated tests shard by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [
