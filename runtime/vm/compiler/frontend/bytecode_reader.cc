@@ -756,13 +756,16 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
               &Library::PrivateCoreLibName(Symbols::_simpleInstanceOf());
         }
         intptr_t checked_argument_count = 1;
-        if ((kind == InvocationKind::method) &&
-            ((MethodTokenRecognizer::RecognizeTokenKind(name) !=
-              Token::kILLEGAL) ||
-             (name.raw() == simpleInstanceOf->raw()))) {
-          intptr_t argument_count = ArgumentsDescriptor(array).Count();
-          ASSERT(argument_count <= 2);
-          checked_argument_count = argument_count;
+        if (kind == InvocationKind::method) {
+          const Token::Kind token_kind =
+              MethodTokenRecognizer::RecognizeTokenKind(name);
+          if ((token_kind != Token::kILLEGAL) ||
+              (name.raw() == simpleInstanceOf->raw())) {
+            intptr_t argument_count = ArgumentsDescriptor(array).Count();
+            ASSERT(argument_count <= 2);
+            checked_argument_count =
+                (token_kind == Token::kSET) ? 1 : argument_count;
+          }
         }
         // Do not mangle == or call:
         //   * operator == takes an Object so its either not checked or checked
