@@ -13,6 +13,7 @@ import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
 import 'keyword_contributor_test.dart' as keyword_test;
 import 'label_contributor_test.dart' as label_contributor_test;
+// ignore: unused_import
 import 'language_model_test.dart' as language_model_test;
 import 'library_member_contributor_test.dart' as library_member_test;
 import 'library_prefix_contributor_test.dart' as library_prefix_test;
@@ -26,7 +27,6 @@ import 'type_member_contributor_test.dart' as type_member_contributor_test;
 import 'uri_contributor_test.dart' as uri_contributor_test;
 import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
 
-/// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     arglist_test.main();
@@ -38,7 +38,9 @@ main() {
     inherited_ref_test.main();
     keyword_test.main();
     label_contributor_test.main();
-    language_model_test.main();
+    // TODO(brianwilkerson) Run this test when it's been updated to not rely on
+    //  the location of the 'script' being run.
+//    language_model_test.main();
     library_member_test.main();
     library_prefix_test.main();
     local_constructor_test.main();
