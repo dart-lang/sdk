@@ -72,8 +72,8 @@ class PackageApiDocs extends LintRule implements ProjectVisitor, NodeLintRule {
   ProjectVisitor getProjectVisitor() => this;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldDeclaration(this, visitor);

@@ -54,8 +54,8 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(_ReportNoClearEffectVisitor(this));
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);

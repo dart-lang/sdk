@@ -38,8 +38,8 @@ class PreferAdjacentStringConcatenation extends LintRule
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }

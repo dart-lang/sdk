@@ -115,8 +115,8 @@ class InvariantBooleans extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     var visitor = _InvariantBooleansVisitor(this);
     registry.addCompilationUnit(this, visitor);
   }

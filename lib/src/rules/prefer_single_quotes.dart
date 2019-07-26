@@ -53,8 +53,8 @@ class PreferSingleQuotes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     final visitor = QuoteVisitor(this, useSingle: true);
     registry.addSimpleStringLiteral(this, visitor);
     registry.addStringInterpolation(this, visitor);

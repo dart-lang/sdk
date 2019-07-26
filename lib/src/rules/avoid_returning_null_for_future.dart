@@ -27,8 +27,8 @@ class AvoidReturningNullForFuture extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);

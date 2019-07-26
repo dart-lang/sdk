@@ -88,8 +88,8 @@ class AlwaysSpecifyTypes extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry,
-      [LinterContext context]) {
+  void registerNodeProcessors(
+      NodeLintRegistry registry, LinterContext context) {
     final visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
