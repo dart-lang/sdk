@@ -13,7 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -239,7 +239,7 @@ class LinkedAnalysisDriver {
         analysisContext,
         resynthesizer,
         elementFactory,
-        InheritanceManager2(analysisContext.typeSystem),
+        InheritanceManager3(analysisContext.typeSystem),
         libraryFile,
         _resourceProvider);
     // TODO(jmesserly): ideally we'd use the existing public `analyze()` method,

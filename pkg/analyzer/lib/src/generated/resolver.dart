@@ -22,7 +22,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -3337,7 +3337,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on the [definingLibrary].
   InstanceFieldResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManager3 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3441,7 +3441,7 @@ class NonNullableTypeProvider extends TypeProviderImpl {
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor {
   /// The inheritance manager used to find overridden methods.
-  final InheritanceManager2 _inheritance;
+  final InheritanceManager3 _inheritance;
 
   /// The URI of the library being verified.
   final Uri _libraryUri;
@@ -3543,7 +3543,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
   PartialResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManager3 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3699,7 +3699,7 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager2 inheritance;
+  final InheritanceManager3 inheritance;
 
   final AnalysisOptionsImpl _analysisOptions;
 
@@ -3765,7 +3765,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
   ResolverVisitor(
-      InheritanceManager2 inheritance,
+      InheritanceManager3 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,

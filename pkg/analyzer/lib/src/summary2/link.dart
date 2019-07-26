@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -46,7 +46,7 @@ class Linker {
   /// Libraries that are being linked.
   final Map<Uri, SourceLibraryBuilder> builders = {};
 
-  InheritanceManager2 inheritance; // TODO(scheglov) cache it
+  InheritanceManager3 inheritance; // TODO(scheglov) cache it
 
   Linker(this.elementFactory) {
     linkingBundleContext = LinkingBundleContext(
@@ -206,7 +206,7 @@ class Linker {
 
   void _createTypeSystem() {
     if (typeProvider != null) {
-      inheritance = InheritanceManager2(typeSystem);
+      inheritance = InheritanceManager3(typeSystem);
       return;
     }
 
@@ -217,7 +217,7 @@ class Linker {
       ..initializeCore(coreLib)
       ..initializeAsync(asyncLib);
 
-    inheritance = InheritanceManager2(typeSystem);
+    inheritance = InheritanceManager3(typeSystem);
   }
 
   void _performTopLevelInference() {

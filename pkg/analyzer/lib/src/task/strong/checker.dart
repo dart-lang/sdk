@@ -19,7 +19,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart' show ErrorProcessor;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
@@ -119,7 +119,7 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
 class CodeChecker extends RecursiveAstVisitor {
   final Dart2TypeSystem rules;
   final TypeProvider typeProvider;
-  final InheritanceManager2 inheritance;
+  final InheritanceManager3 inheritance;
   final AnalysisErrorListener reporter;
   final AnalysisOptionsImpl _options;
   _OverrideChecker _overrideChecker;

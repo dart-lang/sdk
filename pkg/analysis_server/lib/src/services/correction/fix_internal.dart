@@ -2129,15 +2129,15 @@ class FixProcessor {
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     ClassElement targetClassElement = targetClass.declaredElement;
     utils.targetClassElement = targetClassElement;
-    List<FunctionType> signatures =
+    List<ExecutableElement> signatures =
         InheritanceOverrideVerifier.missingOverrides(targetClass).toList();
     // sort by name, getters before setters
-    signatures.sort((FunctionType a, FunctionType b) {
-      int names = compareStrings(a.element.displayName, b.element.displayName);
+    signatures.sort((ExecutableElement a, ExecutableElement b) {
+      int names = compareStrings(a.displayName, b.displayName);
       if (names != 0) {
         return names;
       }
-      if (a.element.kind == ElementKind.GETTER) {
+      if (a.kind == ElementKind.GETTER) {
         return -1;
       }
       return 1;
@@ -2166,10 +2166,9 @@ class FixProcessor {
 
         // merge getter/setter pairs into fields
         for (int i = 0; i < signatures.length; i++) {
-          FunctionType signature = signatures[i];
-          ExecutableElement element = signature.element;
+          ExecutableElement element = signatures[i];
           if (element.kind == ElementKind.GETTER && i + 1 < signatures.length) {
-            ExecutableElement nextElement = signatures[i + 1].element;
+            ExecutableElement nextElement = signatures[i + 1];
             if (nextElement.kind == ElementKind.SETTER) {
               // remove this and the next elements, adjust iterator
               signatures.removeAt(i + 1);
@@ -2183,7 +2182,7 @@ class FixProcessor {
               builder.write(eol);
               // add field
               builder.write(prefix);
-              builder.writeType(signature.returnType, required: true);
+              builder.writeType(element.returnType, required: true);
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');
@@ -2191,9 +2190,9 @@ class FixProcessor {
           }
         }
         // add elements
-        for (FunctionType signature in signatures) {
+        for (ExecutableElement element in signatures) {
           addSeparatorBetweenDeclarations();
-          builder.writeOverride(signature);
+          builder.writeOverride(element);
         }
         builder.write(location.suffix);
       });
