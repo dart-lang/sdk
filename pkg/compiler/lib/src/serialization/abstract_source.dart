@@ -625,21 +625,19 @@ abstract class AbstractDataSource extends DataSourceMixin
       case _TreeNodeKind.typeParameter:
         return _readTypeParameter(memberData);
       case _TreeNodeKind.constant:
-        // TODO(johnniwinther): Support serialization within a member context
-        // and use this to temporarily cache constant node indices.
+        memberData ??= _readMemberData();
         ir.ConstantExpression expression = _readTreeNode(memberData);
-        _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
-        expression.constant.accept(indexer);
-        ir.Constant constant = indexer.getConstant(_readIntInternal());
+        ir.Constant constant =
+            memberData.getConstantByIndex(expression, _readIntInternal());
         return new ConstantReference(expression, constant);
       case _TreeNodeKind.node:
-        if (memberData == null) {
-          memberData = _readMemberData();
-        }
+        memberData ??= _readMemberData();
         int index = _readIntInternal();
         ir.TreeNode treeNode = memberData.getTreeNodeByIndex(index);
-        assert(treeNode != null,
-            "No TreeNode found for index $index in ${memberData.node}.$_errorContext");
+        assert(
+            treeNode != null,
+            "No TreeNode found for index $index in "
+            "${memberData.node}.$_errorContext");
         return treeNode;
     }
     throw new UnsupportedError("Unexpected _TreeNodeKind $kind");

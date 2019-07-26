@@ -209,6 +209,10 @@ class _MemberData {
   /// [ir.TreeNode]s.
   Map<ir.TreeNode, int> _nodeToIndexMap;
 
+  /// Cached [ir.ConstantExpression] to [_ConstantNodeIndexerVisitor] map used
+  /// for fast serialization/deserialization of constant references.
+  Map<ir.ConstantExpression, _ConstantNodeIndexerVisitor> _constantIndexMap;
+
   _MemberData(this.node);
 
   void _ensureMaps() {
@@ -218,6 +222,27 @@ class _MemberData {
       node.accept(
           new _TreeNodeIndexerVisitor(_indexToNodeMap, _nodeToIndexMap));
     }
+  }
+
+  _ConstantNodeIndexerVisitor _createConstantIndexer(
+      ir.ConstantExpression node) {
+    _ConstantNodeIndexerVisitor indexer = new _ConstantNodeIndexerVisitor();
+    node.constant.accept(indexer);
+    return indexer;
+  }
+
+  ir.Constant getConstantByIndex(ir.ConstantExpression node, int index) {
+    _constantIndexMap ??= {};
+    _ConstantNodeIndexerVisitor indexer =
+        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    return indexer.getConstant(index);
+  }
+
+  int getIndexByConstant(ir.ConstantExpression node, ir.Constant constant) {
+    _constantIndexMap ??= {};
+    _ConstantNodeIndexerVisitor indexer =
+        _constantIndexMap[node] ??= _createConstantIndexer(node);
+    return indexer.getIndex(constant);
   }
 
   /// Returns the [ir.TreeNode] corresponding to [index] in this member.
