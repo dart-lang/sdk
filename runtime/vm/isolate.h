@@ -932,7 +932,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   // Lookup an isolate by its main port and return a copy of its name. Returns
   // nullptr if not matching isolate is found.
-  static std::unique_ptr<const char> LookupIsolateNameByPort(Dart_Port port);
+  static std::unique_ptr<char[]> LookupIsolateNameByPort(Dart_Port port);
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
