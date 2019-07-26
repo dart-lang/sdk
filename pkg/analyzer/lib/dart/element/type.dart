@@ -132,6 +132,7 @@ abstract class DartType {
   ///
   /// `operator==` would consider F<int> and F<bool> to be different types;
   /// `isEquivalentTo` considers them to be equivalent.
+  @Deprecated('operator== was fixed. Use it instead.')
   bool isEquivalentTo(DartType dest);
 
   /// Return `true` if this type is more specific than the given [type].

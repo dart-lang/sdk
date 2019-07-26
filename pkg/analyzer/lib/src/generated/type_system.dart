@@ -2509,9 +2509,9 @@ abstract class TypeSystem implements public.TypeSystem {
     var result = mixinElement.type.instantiate(inferredTypes);
 
     for (int i = 0; i < srcs.length; i++) {
-      if (!srcs[i]
-          .substitute2(result.typeArguments, mixinElement.type.typeArguments)
-          .isEquivalentTo(dests[i])) {
+      if (srcs[i].substitute2(
+              result.typeArguments, mixinElement.type.typeArguments) !=
+          dests[i]) {
         // Failed to find an appropriate substitution
         return null;
       }
