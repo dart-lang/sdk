@@ -48,7 +48,7 @@ static const char* const kNone = "No Test or Benchmarks";
 static const char* const kList = "List all Tests and Benchmarks";
 static const char* const kAllBenchmarks = "All Benchmarks";
 static const char* run_filter = kNone;
-static const char* kernel_snapshot = NULL;
+static const char* kernel_snapshot = nullptr;
 
 static int run_matches = 0;
 
@@ -102,7 +102,7 @@ static void PrintUsage() {
     *error = strdup(Dart_GetError(result));                                    \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
-    return NULL;                                                               \
+    return nullptr;                                                            \
   }
 
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
@@ -112,33 +112,33 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           Dart_IsolateFlags* flags,
                                           void* data,
                                           char** error) {
-  ASSERT(script_uri != NULL);
+  ASSERT(script_uri != nullptr);
   const bool is_service_isolate =
       strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
   if (is_service_isolate) {
     // We don't need service isolate for VM tests.
-    return NULL;
+    return nullptr;
   }
   const bool is_kernel_isolate =
       strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;
   if (!is_kernel_isolate) {
     *error =
         strdup("Spawning of only Kernel isolate is supported in run_vm_tests.");
-    return NULL;
+    return nullptr;
   }
-  Dart_Isolate isolate = NULL;
-  bin::IsolateGroupData* isolate_group_data = NULL;
-  const uint8_t* kernel_service_buffer = NULL;
+  Dart_Isolate isolate = nullptr;
+  bin::IsolateGroupData* isolate_group_data = nullptr;
+  const uint8_t* kernel_service_buffer = nullptr;
   intptr_t kernel_service_buffer_size = 0;
 
   // Kernel isolate uses an app snapshot or the kernel service dill file.
-  if (kernel_snapshot != NULL &&
+  if (kernel_snapshot != nullptr &&
       (bin::DartUtils::SniffForMagicNumber(kernel_snapshot) ==
        bin::DartUtils::kAppJITMagicNumber)) {
     script_uri = kernel_snapshot;
     bin::AppSnapshot* app_snapshot =
         bin::Snapshot::TryReadAppSnapshot(script_uri);
-    ASSERT(app_snapshot != NULL);
+    ASSERT(app_snapshot != nullptr);
     const uint8_t* ignore_vm_snapshot_data;
     const uint8_t* ignore_vm_snapshot_instructions;
     const uint8_t* isolate_snapshot_data;
@@ -151,11 +151,12 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                   app_snapshot, app_snapshot != nullptr);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
-        isolate_snapshot_data, isolate_snapshot_instructions, NULL, NULL, flags,
+        isolate_snapshot_data, isolate_snapshot_instructions,
+        /*shared_data=*/nullptr, /*shared_instructions=*/nullptr, flags,
         isolate_group_data, /*isolate_data=*/nullptr, error);
-    if (*error != NULL) {
+    if (*error != nullptr) {
       free(*error);
-      *error = NULL;
+      *error = nullptr;
     }
     // If a test does not actually require the kernel isolate the main thead can
     // start calling Dart::Cleanup() while the kernel isolate is booting up.
@@ -163,17 +164,17 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
     // here.
     if (isolate == nullptr) {
       delete isolate_group_data;
-      return NULL;
+      return nullptr;
     }
   }
-  if (isolate == NULL) {
+  if (isolate == nullptr) {
     delete isolate_group_data;
-    isolate_group_data = NULL;
+    isolate_group_data = nullptr;
 
     bin::dfe.Init();
     bin::dfe.LoadKernelService(&kernel_service_buffer,
                                &kernel_service_buffer_size);
-    ASSERT(kernel_service_buffer != NULL);
+    ASSERT(kernel_service_buffer != nullptr);
     isolate_group_data = new bin::IsolateGroupData(
         script_uri, package_root, packages_config, nullptr, false);
     isolate_group_data->SetKernelBufferUnowned(
@@ -183,16 +184,16 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
         script_uri, main, kernel_service_buffer, kernel_service_buffer_size,
         flags, isolate_group_data, /*isolate_data=*/nullptr, error);
   }
-  if (isolate == NULL) {
+  if (isolate == nullptr) {
     delete isolate_group_data;
-    return NULL;
+    return nullptr;
   }
 
   Dart_EnterScope();
 
   bin::DartUtils::SetOriginalWorkingDirectory();
   Dart_Handle result = bin::DartUtils::PrepareForScriptLoading(
-      false /* is_service_isolate */, false /* trace_loading */);
+      /*is_service_isolate=*/false, /*trace_loading=*/false);
   CHECK_RESULT(result);
 
   // Setup kernel service as the main script for this isolate.
@@ -205,10 +206,10 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   Dart_ExitScope();
   Dart_ExitIsolate();
   *error = Dart_IsolateMakeRunnable(isolate);
-  if (*error != NULL) {
+  if (*error != nullptr) {
     Dart_EnterIsolate(isolate);
     Dart_ShutdownIsolate();
-    return NULL;
+    return nullptr;
   }
 
   return isolate;
@@ -232,7 +233,7 @@ void ShiftArgs(int* argc, const char** argv) {
 static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
-  const char** dart_argv = NULL;
+  const char** dart_argv = nullptr;
 
   // Perform platform specific initialization.
   if (!dart::bin::Platform::Initialize()) {
@@ -278,7 +279,7 @@ static int Main(int argc, const char** argv) {
 
   if (strncmp(argv[arg_pos], "--dfe", strlen("--dfe")) == 0) {
     const char* delim = strstr(argv[arg_pos], "=");
-    if (delim == NULL || strlen(delim + 1) == 0) {
+    if (delim == nullptr || strlen(delim + 1) == 0) {
       Syslog::PrintErr("Invalid value for the option: %s\n", argv[arg_pos]);
       PrintUsage();
       return 1;
@@ -304,7 +305,7 @@ static int Main(int argc, const char** argv) {
   bin::EventHandler::Start();
 
   char* error = Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
-  if (error != NULL) {
+  if (error != nullptr) {
     Syslog::PrintErr("Failed to parse flags: %s\n", error);
     free(error);
     return 1;
@@ -325,8 +326,8 @@ static int Main(int argc, const char** argv) {
       /*cleanup_group=*/CleanupIsolateGroup,
       /*thread_exit=*/nullptr, dart::bin::DartUtils::OpenFile,
       dart::bin::DartUtils::ReadFile, dart::bin::DartUtils::WriteFile,
-      dart::bin::DartUtils::CloseFile, nullptr /* entropy_source */,
-      nullptr /* get_service_assets */, start_kernel_isolate,
+      dart::bin::DartUtils::CloseFile, /*entropy_source=*/nullptr,
+      /*get_service_assets=*/nullptr, start_kernel_isolate,
       /*code_observer=*/nullptr);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);
