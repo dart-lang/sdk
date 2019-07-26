@@ -6,9 +6,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 final directory =
     Platform.script.resolve('../../../../language_model/lexeme').path;
