@@ -6,7 +6,6 @@
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
-#include "vm/compiler/aot/precompiler.h"
 #include "vm/compiler/backend/block_scheduler.h"
 #include "vm/compiler/backend/branch_optimizer.h"
 #include "vm/compiler/backend/constant_propagator.h"
@@ -21,6 +20,7 @@
 #include "vm/compiler/call_specializer.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
+#include "vm/compiler/aot/precompiler.h"
 #endif
 #include "vm/timeline.h"
 
@@ -501,6 +501,7 @@ COMPILER_PASS(FinalizeGraph, {
   flow_graph->RemoveRedefinitions();
 });
 
+#if defined(DART_PRECOMPILER)
 COMPILER_PASS(SerializeGraph, {
   if (state->precompiler == nullptr) return state;
   if (auto stream = state->precompiler->il_serialization_stream()) {
@@ -509,11 +510,14 @@ COMPILER_PASS(SerializeGraph, {
 
     const intptr_t kInitialBufferSize = 1 * MB;
     TextBuffer buffer(kInitialBufferSize);
-    FlowGraphSerializer::SerializeToBuffer(flow_graph, &buffer);
+    StackZone stack_zone(Thread::Current());
+    FlowGraphSerializer::SerializeToBuffer(stack_zone.GetZone(), flow_graph,
+                                           &buffer);
 
     file_write(buffer.buf(), buffer.length(), stream);
   }
 });
+#endif
 
 }  // namespace dart
 

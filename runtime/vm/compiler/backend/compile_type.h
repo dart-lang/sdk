@@ -15,6 +15,8 @@ class AbstractType;
 class BufferFormatter;
 class Definition;
 class FlowGraphSerializer;
+class SExpression;
+class SExpList;
 
 // CompileType describes type of a value produced by a definition.
 //
@@ -211,8 +213,8 @@ class CompileType : public ZoneAllocated {
   }
 
   void PrintTo(BufferFormatter* f) const;
-  void SerializeTo(FlowGraphSerializer* b) const;
-  void SerializeExtraInfoTo(FlowGraphSerializer* f) const;
+  SExpression* ToSExpression(FlowGraphSerializer* s) const;
+  void AddExtraInfoToSExpression(SExpList* sexp, FlowGraphSerializer* s) const;
 
   const char* ToCString() const;
 
