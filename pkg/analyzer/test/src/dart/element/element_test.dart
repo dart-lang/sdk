@@ -2448,6 +2448,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2457,6 +2458,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeC), isFalse);
   }
 
@@ -2466,6 +2468,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
     classB.interfaces = <InterfaceType>[typeA];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2475,6 +2478,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
     classB.mixins = <InterfaceType>[typeA];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isDirectSupertypeOf(typeB), isTrue);
   }
 
@@ -2500,13 +2504,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isMoreSpecificThan(typeA), isTrue);
     // the opposite test tests a different branch in isMoreSpecificThan()
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isMoreSpecificThan(typeB), isFalse);
   }
 
   void test_isMoreSpecificThan_dynamic() {
     InterfaceType type = ElementFactory.classElement2("A").type;
+    // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
   }
 
@@ -2517,12 +2524,15 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeAOfDynamic =
         classA.type.instantiate(<DartType>[dynamicType]);
     InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeAOfDynamic.isMoreSpecificThan(typeAOfB), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeAOfB.isMoreSpecificThan(typeAOfDynamic), isTrue);
   }
 
   void test_isMoreSpecificThan_self() {
     InterfaceType type = ElementFactory.classElement2("A").type;
+    // ignore: deprecated_member_use_from_same_package
     expect(type.isMoreSpecificThan(type), isTrue);
   }
 
@@ -2538,6 +2548,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.interfaces = <InterfaceType>[classB.type];
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2553,6 +2564,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classC.mixins = <InterfaceType>[classB.type];
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2568,6 +2580,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
     classA.supertype = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isMoreSpecificThan(typeC), isFalse);
   }
 
@@ -2582,6 +2595,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -2593,7 +2607,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeA = classA.type;
     TypeParameterType parameterType = classA.typeParameters[0].type;
     DartType objectType = _typeProvider.objectType;
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterType.isMoreSpecificThan(objectType), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterType.isMoreSpecificThan(typeA), isFalse);
   }
 
@@ -2611,6 +2627,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     parameterEA.bound = typeA;
     parameterEA.type = parameterAEType;
     classB.typeParameters = <TypeParameterElementImpl>[parameterEA];
+    // ignore: deprecated_member_use_from_same_package
     expect(parameterAEType.isMoreSpecificThan(typeA), isTrue);
   }
 
@@ -3651,14 +3668,17 @@ class VoidTypeImplTest extends EngineTestCase {
 
   void test_isMoreSpecificThan_void_A() {
     ClassElement classA = ElementFactory.classElement2("A");
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(classA.type), isFalse);
   }
 
   void test_isMoreSpecificThan_void_dynamic() {
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(DynamicTypeImpl.instance), isTrue);
   }
 
   void test_isMoreSpecificThan_void_void() {
+    // ignore: deprecated_member_use_from_same_package
     expect(_voidType.isMoreSpecificThan(_voidType), isTrue);
   }
 

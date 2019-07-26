@@ -5552,7 +5552,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     // OK, type parameter is not supertype of its bound
-    if (!bound.isMoreSpecificThan(element.type)) {
+    if (!_typeSystem.isSubtypeOf(bound, element.type)) {
       return;
     }
 

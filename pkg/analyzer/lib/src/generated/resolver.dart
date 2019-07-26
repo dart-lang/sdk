@@ -1202,8 +1202,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           elseType != null &&
           !thenType.isDynamic &&
           !elseType.isDynamic &&
-          !thenType.isMoreSpecificThan(elseType) &&
-          !elseType.isMoreSpecificThan(thenType)) {
+          !_typeSystem.isSubtypeOf(thenType, elseType) &&
+          !_typeSystem.isSubtypeOf(elseType, thenType)) {
         return false;
       }
     }
@@ -1213,7 +1213,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         rhsType != null &&
         !lhsType.isDynamic &&
         !rhsType.isDynamic &&
-        _typeSystem.isMoreSpecificThan(lhsType, rhsType)) {
+        _typeSystem.isSubtypeOf(lhsType, rhsType)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
     }

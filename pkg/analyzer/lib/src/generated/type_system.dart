@@ -2429,6 +2429,7 @@ abstract class TypeSystem implements public.TypeSystem {
    *
    * In strong mode, this is equivalent to [isSubtypeOf].
    */
+  @Deprecated('Use isSubtypeOf() instead.')
   bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
   @override
@@ -2632,14 +2633,6 @@ abstract class TypeSystem implements public.TypeSystem {
   /**
    * Tries to promote from the first type from the second type, and returns the
    * promoted type if it succeeds, otherwise null.
-   *
-   * In the Dart 1 type system, it is not possible to promote from or to
-   * `dynamic`, and we must be promoting to a more specific type, see
-   * [isMoreSpecificThan]. Also it will always return the promote [to] type or
-   * null.
-   *
-   * In strong mode, this can potentially return a different type, see
-   * the override in [Dart2TypeSystem].
    */
   DartType tryPromoteToType(DartType to, DartType from);
 

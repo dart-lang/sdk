@@ -5,6 +5,9 @@
 * Deprecated the `isEquivalentTo(DartType)` method of `DartType`.
   The operator `==` now correctly considers two types equal if and
   only if they represent the same type as defined by the spec.
+* Deprecated the `isMoreSpecificThan(DartType)` method of `DartType`.
+  Deprecated the `isMoreSpecificThan(DartType)` method of `TypeSystem`.
+  Use `TypeSystem.isSubtypeOf(DartType)` instead.
 
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.

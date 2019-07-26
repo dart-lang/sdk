@@ -1798,6 +1798,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       //
       // Direct supertype: S is a direct supertype of T.
       //
+      // ignore: deprecated_member_use_from_same_package
       if (type.isDirectSupertypeOf(this)) {
         return true;
       }
@@ -2376,7 +2377,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (DartType type in types) {
       // If any existing type in the bucket is more specific than this type,
       // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isMoreSpecificThan(t, type))) {
+      if (bucket.any((DartType t) => typeSystem.isSubtypeOf(t, type))) {
         continue;
       }
       // Otherwise, we need to add this type to the bucket and remove any types
@@ -2384,7 +2385,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       bool added = false;
       int i = 0;
       while (i < bucket.length) {
-        if (typeSystem.isMoreSpecificThan(type, bucket[i])) {
+        if (typeSystem.isSubtypeOf(type, bucket[i])) {
           if (added) {
             if (i < bucket.length - 1) {
               bucket[i] = bucket.removeLast();
