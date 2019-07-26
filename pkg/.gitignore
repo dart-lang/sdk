@@ -8,3 +8,4 @@
 /*.vcxproj.filters
 /*.xcodeproj
 .idea/
+analysis_server/language_model/
