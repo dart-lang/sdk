@@ -28,7 +28,7 @@ extension E on String {
   bool get isPalindrome;
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 35, 12),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 35, 12),
     ]);
   }
 
@@ -38,7 +38,7 @@ extension E on String {
   String reversed();
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 33, 8),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 33, 8),
     ]);
   }
 
@@ -54,7 +54,7 @@ extension E on String {
   String operator -(String otherString);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 42, 1),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 42, 1),
     ]);
   }
 
@@ -64,7 +64,7 @@ extension E on String {
   set length(int newLength);
 }
 ''', [
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, 30, 6),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, 30, 6),
     ]);
   }
 }

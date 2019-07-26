@@ -140,10 +140,8 @@ import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
 import 'not_initialized_non_nullable_instance_field_test.dart'
     as not_initialized_non_nullable_instance_field;
-import 'not_initialized_non_nullable_static_field_test.dart'
-    as not_initialized_non_nullable_static_field;
-import 'not_initialized_non_nullable_top_level_variable_test.dart'
-    as not_initialized_non_nullable_top_level_variable;
+import 'not_initialized_non_nullable_variable_test.dart'
+    as not_initialized_non_nullable_variable;
 import 'not_iterable_spread_test.dart' as not_iterable_spread;
 import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
@@ -324,8 +322,7 @@ main() {
     non_null_opt_out.main();
     not_assigned_potentially_non_nullable_local_variable.main();
     not_initialized_non_nullable_instance_field.main();
-    not_initialized_non_nullable_static_field.main();
-    not_initialized_non_nullable_top_level_variable.main();
+    not_initialized_non_nullable_variable.main();
     not_iterable_spread.main();
     not_map_spread.main();
     not_null_aware_null_spread.main();

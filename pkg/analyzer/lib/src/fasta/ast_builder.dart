@@ -1590,7 +1590,7 @@ class AstBuilder extends StackListener {
       checkFieldFormalParameters(parameters);
       if (extensionDeclaration != null && body is EmptyFunctionBody) {
         errorReporter.errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_METHOD, name);
+            CompileTimeErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER, name);
         return;
       }
       currentDeclarationMembers.add(ast.methodDeclaration(

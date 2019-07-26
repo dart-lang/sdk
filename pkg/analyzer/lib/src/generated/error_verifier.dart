@@ -1389,7 +1389,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _checkForFinalNotInitialized(node.variables);
-    _checkForNotInitializedNonNullableTopLevelVariable(node.variables);
+    _checkForNotInitializedNonNullableVariable(node.variables);
     super.visitTopLevelVariableDeclaration(node);
   }
 
@@ -4751,35 +4751,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _checkForNotInitializedNonNullableStaticField(FieldDeclaration node) {
-    if (!_isNonNullable) return;
-
-    if (!node.isStatic) return;
-
-    var fields = node.fields;
-
-    // Const and final checked separately.
-    if (fields.isConst || fields.isFinal) return;
-
-    if (fields.type == null) return;
-    var type = fields.type.type;
-
-    if (!_typeSystem.isPotentiallyNonNullable(type)) return;
-
-    for (var variable in fields.variables) {
-      if (variable.initializer == null) {
-        _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_STATIC_FIELD,
-          variable.name,
-          [variable.name.name],
-        );
-      }
+    if (!node.isStatic) {
+      return;
     }
+    _checkForNotInitializedNonNullableVariable(node.fields);
   }
 
-  void _checkForNotInitializedNonNullableTopLevelVariable(
+  void _checkForNotInitializedNonNullableVariable(
     VariableDeclarationList node,
   ) {
-    if (!_isNonNullable) return;
+    if (!_isNonNullable) {
+      return;
+    }
 
     // Const and final checked separately.
     if (node.isConst || node.isFinal) {
@@ -4798,7 +4781,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     for (var variable in node.variables) {
       if (variable.initializer == null) {
         _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_TOP_LEVEL_VARIABLE,
+          CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE,
           variable.name,
           [variable.name.name],
         );

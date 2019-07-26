@@ -52,8 +52,8 @@ class HintCode extends ErrorCode {
       "Dead code: this on-catch block will never be executed because '{0}' is "
           "a subtype of '{1}' and hence will have been caught above.",
       correction:
-          "Try reordering the catch clauses so that this block can be reached, or "
-          "removing the unreachable catch clause.");
+          "Try reordering the catch clauses so that this block can be reached, "
+          "or removing the unreachable catch clause.");
 
   /**
    * Parameters:
@@ -81,8 +81,8 @@ class HintCode extends ErrorCode {
   // should indicate what code to use in place of the deprecated code.
   static const HintCode DEPRECATED_MEMBER_USE = const HintCode(
       'DEPRECATED_MEMBER_USE', "'{0}' is deprecated and shouldn't be used.",
-      correction:
-          "Try replacing the use of the deprecated member with the replacement.");
+      correction: "Try replacing the use of the deprecated member with the "
+          "replacement.");
 
   /**
    * Parameters:
@@ -108,11 +108,11 @@ class HintCode extends ErrorCode {
   // The fix depends on what's been deprecated and what the replacement is. The
   // documentation for deprecated declarations should indicate what code to use
   // in place of the deprecated code.
-  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = const HintCode(
-      'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
-      "'{0}' is deprecated and shouldn't be used.",
-      correction:
-          "Try replacing the use of the deprecated member with the replacement.");
+  static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE =
+      const HintCode('DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
+          "'{0}' is deprecated and shouldn't be used.",
+          correction: "Try replacing the use of the deprecated member with the "
+              "replacement.");
 
   /**
    * Users should not create a class named `Function` anymore.
@@ -213,7 +213,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode INFERENCE_FAILURE_ON_COLLECTION_LITERAL = HintCode(
       'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
-      "The type argument(s) of '{0}' cannot be inferred.",
+      "The type argument(s) of '{0}' can't be inferred.",
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
@@ -223,7 +223,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode INFERENCE_FAILURE_ON_INSTANCE_CREATION = HintCode(
       'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
-      "The type argument(s) of '{0}' cannot be inferred.",
+      "The type argument(s) of '{0}' can't be inferred.",
       correction: "Use explicit type argument(s) for '{0}'.");
 
   /**
@@ -233,7 +233,7 @@ class HintCode extends ErrorCode {
   static const HintCode INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE =
       const HintCode(
           'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
-          "The type of {0} cannot be inferred without either a type or "
+          "The type of {0} can't be inferred without either a type or "
               "initializer.",
           correction: "Try specifying the type of the variable.");
 
@@ -347,8 +347,10 @@ class HintCode extends ErrorCode {
   /// 0: the name of the member
   /// 1: the name of the defining class
   static const HintCode INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER =
-      const HintCode('INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
-          "The member '{0}' can only be used within '{1}' or a template library.");
+      const HintCode(
+          'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
+          "The member '{0}' can only be used within '{1}' or a template "
+              "library.");
 
   /// This hint is generated anywhere where a member annotated with
   /// `@visibleForTesting` is used outside the defining library, or a test.
@@ -482,8 +484,9 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MIXIN_ON_SEALED_CLASS = const HintCode(
       'MIXIN_ON_SEALED_CLASS',
-      "The class '{0}' should not be used as a mixin constraint because it is "
-          "sealed, and any class mixing in this mixin has '{0}' as a superclass.",
+      "The class '{0}' shouldn't be used as a mixin constraint because it is "
+          "sealed, and any class mixing in this mixin has '{0}' as a "
+          "superclass.",
       correction:
           "Try composing with this class, or refer to its documentation for "
           "more information.");
@@ -508,7 +511,7 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCallSuper in '{0}', "
-          "but does not invoke the overridden method.");
+          "but doesn't invoke the overridden method.");
 
   /**
    * Generate a hint for non-const instance creation using a constructor
@@ -527,8 +530,8 @@ class HintCode extends ErrorCode {
   static const HintCode NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW =
       const HintCode(
           'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
-          "This instance creation must be 'const', because the {0} constructor is "
-              "marked as '@literal'.",
+          "This instance creation must be 'const', because the {0} constructor "
+              "is marked as '@literal'.",
           correction: "Try replacing the 'new' keyword with 'const'.");
 
   /**
@@ -548,8 +551,8 @@ class HintCode extends ErrorCode {
       "The value of the '?.' operator can be 'null', which isn't appropriate "
           "in a condition.",
       correction:
-          "Try replacing the '?.' with a '.', testing the left-hand side for null if "
-          "necessary.");
+          "Try replacing the '?.' with a '.', testing the left-hand side for "
+          "null if necessary.");
 
   /**
    * A condition in operands of a logical operator could evaluate to `null`
@@ -626,7 +629,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = const HintCode(
       'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-      "The class '{0}' was not exported from 'dart:core' until version 2.1, "
+      "The class '{0}' wasn't exported from 'dart:core' until version 2.1, "
           "but this code is required to be able to run on earlier versions.",
       correction:
           "Try either importing 'dart:async' or updating the SDK constraints.");
@@ -648,20 +651,22 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_BOOL_OPERATOR = const HintCode(
       'SDK_VERSION_BOOL_OPERATOR',
-      "Using the operator '{0}' for 'bool's was not supported until version "
-          "2.3.2, but this code is required to be able to run on earlier versions.",
+      "Using the operator '{0}' for 'bool's wasn't supported until version "
+          "2.3.2, but this code is required to be able to run on earlier "
+          "versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
    * The operator '==' is being used on non-primitive values in code that
    * is expected to run on versions of the SDK that did not support it.
    */
-  static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT = const HintCode(
-      'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-      "Using the operator '==' for non-primitive types was not supported until "
-          "version 2.3.2, but this code is required to be able to run on earlier "
-          "versions.",
-      correction: "Try updating the SDK constraints.");
+  static const HintCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
+      const HintCode(
+          'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
+          "Using the operator '==' for non-primitive types wasn't supported "
+              "until version 2.3.2, but this code is required to be able to "
+              "run on earlier versions.",
+          correction: "Try updating the SDK constraints.");
 
   /**
    * The operator '>>>' is being used in code that is expected to run on
@@ -669,7 +674,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_GT_GT_GT_OPERATOR = const HintCode(
       'SDK_VERSION_GT_GT_GT_OPERATOR',
-      "The operator '>>>' was not supported until version 2.3.2, but this code "
+      "The operator '>>>' wasn't supported until version 2.3.2, but this code "
           "is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
@@ -679,9 +684,9 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT = const HintCode(
       'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-      "The use of an is expression in a constant expression wasn't "
-          "supported until version 2.3.2, but this code is required to be able "
-          "to run on earlier versions.",
+      "The use of an is expression in a constant expression wasn't supported "
+          "until version 2.3.2, but this code is required to be able to run on "
+          "earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -728,8 +733,8 @@ class HintCode extends ErrorCode {
   // ```
   static const HintCode SDK_VERSION_SET_LITERAL = const HintCode(
       'SDK_VERSION_SET_LITERAL',
-      "Set literals weren't supported until version 2.2, "
-          "but this code must be able to run on earlier versions.",
+      "Set literals weren't supported until version 2.2, but this code is "
+          "required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
   /**
@@ -745,7 +750,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SDK_VERSION_UI_AS_CODE = const HintCode(
       'SDK_VERSION_UI_AS_CODE',
-      "The for, if and spread elements were not supported until version 2.2.2, "
+      "The for, if, and spread elements weren't supported until version 2.2.2, "
           "but this code is required to be able to run on earlier versions.",
       correction: "Try updating the SDK constraints.");
 
@@ -781,8 +786,8 @@ class HintCode extends ErrorCode {
    */
   static const HintCode SUBTYPE_OF_SEALED_CLASS = const HintCode(
       'SUBTYPE_OF_SEALED_CLASS',
-      "The class '{0}' should not be extended, mixed in, or implemented "
-          "because it is sealed.",
+      "The class '{0}' shouldn't be extended, mixed in, or implemented because "
+          "it is sealed.",
       correction:
           "Try composing instead of inheriting, or refer to its documentation "
           "for more information.");
@@ -853,7 +858,8 @@ class HintCode extends ErrorCode {
    */
   static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
       'UNUSED_CATCH_CLAUSE',
-      "The exception variable '{0}' isn't used, so the 'catch' clause can be removed.",
+      "The exception variable '{0}' isn't used, so the 'catch' clause can be "
+          "removed.",
       // TODO(brianwilkerson) Split this error code so that we can differentiate
       // between removing the catch clause and replacing the catch clause with
       // an on clause.
