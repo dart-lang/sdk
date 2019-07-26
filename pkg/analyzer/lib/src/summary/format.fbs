@@ -2815,6 +2815,8 @@ table UnlinkedInformativeData {
 
   variantField_4:[string] (id: 4);
 
+  variantField_8:uint (id: 8);
+
   /// The kind of the node.
   kind:LinkedNodeKind (id: 0);
 }

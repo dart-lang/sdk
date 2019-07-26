@@ -946,9 +946,12 @@ class AstBinaryReader {
       SimpleIdentifier prefix;
       if (data.importDirective_prefix.isNotEmpty) {
         prefix = astFactory.simpleIdentifier(
-          TokenFactory.tokenFromString(data.importDirective_prefix)
-            ..offset = data.importDirective_prefixOffset,
+          TokenFactory.tokenFromString(data.importDirective_prefix),
         );
+
+        var informativeData = _unitContext.getInformativeData(data);
+        prefix.token.offset =
+            informativeData?.importDirective_prefixOffset ?? 0;
       }
 
       var node = astFactory.importDirective(

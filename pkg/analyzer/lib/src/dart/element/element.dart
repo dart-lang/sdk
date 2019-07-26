@@ -6666,6 +6666,10 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   int get prefixOffset {
+    if (linkedNode != null) {
+      ImportDirective node = linkedNode;
+      return node.prefix?.offset ?? -1;
+    }
     if (_unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;
     }

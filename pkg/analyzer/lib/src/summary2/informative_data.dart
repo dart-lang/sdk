@@ -267,6 +267,7 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
       node,
       UnlinkedInformativeDataBuilder.importDirective(
         directiveKeywordOffset: node.keyword.offset,
+        importDirective_prefixOffset: node.prefix?.offset ?? 0,
       ),
     );
   }

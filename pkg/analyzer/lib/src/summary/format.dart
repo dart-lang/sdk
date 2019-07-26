@@ -7107,12 +7107,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  int get importDirective_prefixOffset {
-    assert(kind == idl.LinkedNodeKind.importDirective);
-    return _variantField_15 ??= 0;
-  }
-
-  @override
   int get indexExpression_element {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     return _variantField_15 ??= 0;
@@ -7180,12 +7174,6 @@ class LinkedNodeBuilder extends Object
 
   set emptyStatement_fake(int value) {
     assert(kind == idl.LinkedNodeKind.emptyStatement);
-    assert(value == null || value >= 0);
-    _variantField_15 = value;
-  }
-
-  set importDirective_prefixOffset(int value) {
-    assert(kind == idl.LinkedNodeKind.importDirective);
     assert(value == null || value >= 0);
     _variantField_15 = value;
   }
@@ -8527,7 +8515,6 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder.importDirective({
     List<LinkedNodeBuilder> namespaceDirective_combinators,
     List<LinkedNodeBuilder> annotatedNode_metadata,
-    int importDirective_prefixOffset,
     List<LinkedNodeBuilder> namespaceDirective_configurations,
     String namespaceDirective_selectedUri,
     String importDirective_prefix,
@@ -8538,7 +8525,6 @@ class LinkedNodeBuilder extends Object
   })  : _kind = idl.LinkedNodeKind.importDirective,
         _variantField_2 = namespaceDirective_combinators,
         _variantField_4 = annotatedNode_metadata,
-        _variantField_15 = importDirective_prefixOffset,
         _variantField_3 = namespaceDirective_configurations,
         _variantField_20 = namespaceDirective_selectedUri,
         _variantField_1 = importDirective_prefix,
@@ -10308,7 +10294,6 @@ class LinkedNodeBuilder extends Object
       }
       signature.addBool(this.uriBasedDirective_uri != null);
       this.uriBasedDirective_uri?.collectApiSignature(signature);
-      signature.addInt(this.importDirective_prefixOffset ?? 0);
       signature.addInt(this.flags ?? 0);
       signature.addInt(this.uriBasedDirective_uriElement ?? 0);
       signature.addString(this.namespaceDirective_selectedUri ?? '');
@@ -12918,14 +12903,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  int get importDirective_prefixOffset {
-    assert(kind == idl.LinkedNodeKind.importDirective);
-    _variantField_15 ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
-    return _variantField_15;
-  }
-
-  @override
   int get indexExpression_element {
     assert(kind == idl.LinkedNodeKind.indexExpression);
     _variantField_15 ??=
@@ -14127,8 +14104,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       if (annotatedNode_metadata.isNotEmpty)
         _result["annotatedNode_metadata"] =
             annotatedNode_metadata.map((_value) => _value.toJson()).toList();
-      if (importDirective_prefixOffset != 0)
-        _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
       if (namespaceDirective_configurations.isNotEmpty)
         _result["namespaceDirective_configurations"] =
             namespaceDirective_configurations
@@ -15311,7 +15286,6 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
       return {
         "namespaceDirective_combinators": namespaceDirective_combinators,
         "annotatedNode_metadata": annotatedNode_metadata,
-        "importDirective_prefixOffset": importDirective_prefixOffset,
         "namespaceDirective_configurations": namespaceDirective_configurations,
         "namespaceDirective_selectedUri": namespaceDirective_selectedUri,
         "flags": flags,
@@ -23382,6 +23356,7 @@ class UnlinkedInformativeDataBuilder extends Object
   int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
+  int _variantField_8;
   idl.LinkedNodeKind _kind;
 
   @override
@@ -23609,6 +23584,18 @@ class UnlinkedInformativeDataBuilder extends Object
   }
 
   @override
+  int get importDirective_prefixOffset {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    return _variantField_8 ??= 0;
+  }
+
+  set importDirective_prefixOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    assert(value == null || value >= 0);
+    _variantField_8 = value;
+  }
+
+  @override
   idl.LinkedNodeKind get kind => _kind ??= idl.LinkedNodeKind.adjacentStrings;
 
   /// The kind of the node.
@@ -23761,8 +23748,10 @@ class UnlinkedInformativeDataBuilder extends Object
 
   UnlinkedInformativeDataBuilder.importDirective({
     int directiveKeywordOffset,
+    int importDirective_prefixOffset,
   })  : _kind = idl.LinkedNodeKind.importDirective,
-        _variantField_1 = directiveKeywordOffset;
+        _variantField_1 = directiveKeywordOffset,
+        _variantField_8 = importDirective_prefixOffset;
 
   UnlinkedInformativeDataBuilder.libraryDirective({
     int directiveKeywordOffset,
@@ -24025,6 +24014,7 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.importDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.directiveKeywordOffset ?? 0);
+      signature.addInt(this.importDirective_prefixOffset ?? 0);
     } else if (kind == idl.LinkedNodeKind.libraryDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.directiveKeywordOffset ?? 0);
@@ -24128,6 +24118,9 @@ class UnlinkedInformativeDataBuilder extends Object
     if (offset_variantField_4 != null) {
       fbBuilder.addOffset(4, offset_variantField_4);
     }
+    if (_variantField_8 != null && _variantField_8 != 0) {
+      fbBuilder.addUint32(8, _variantField_8);
+    }
     if (_kind != null && _kind != idl.LinkedNodeKind.adjacentStrings) {
       fbBuilder.addUint8(0, _kind.index);
     }
@@ -24159,6 +24152,7 @@ class _UnlinkedInformativeDataImpl extends Object
   int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
+  int _variantField_8;
   idl.LinkedNodeKind _kind;
 
   @override
@@ -24284,6 +24278,13 @@ class _UnlinkedInformativeDataImpl extends Object
   }
 
   @override
+  int get importDirective_prefixOffset {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    _variantField_8 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    return _variantField_8;
+  }
+
+  @override
   idl.LinkedNodeKind get kind {
     _kind ??= const _LinkedNodeKindReader()
         .vTableGet(_bc, _bcOffset, 0, idl.LinkedNodeKind.adjacentStrings);
@@ -24396,6 +24397,8 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.importDirective) {
       if (directiveKeywordOffset != 0)
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+      if (importDirective_prefixOffset != 0)
+        _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
       if (directiveKeywordOffset != 0)
@@ -24578,6 +24581,7 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.importDirective) {
       return {
         "directiveKeywordOffset": directiveKeywordOffset,
+        "importDirective_prefixOffset": importDirective_prefixOffset,
         "kind": kind,
       };
     }

@@ -772,7 +772,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     try {
       var builder = LinkedNodeBuilder.importDirective(
         importDirective_prefix: node.prefix?.name,
-        importDirective_prefixOffset: node.prefix?.offset ?? 0,
       );
       builder.flags = AstBinaryFlags.encode(
         isDeferred: node.deferredKeyword != null,

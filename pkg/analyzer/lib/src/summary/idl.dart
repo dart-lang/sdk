@@ -1319,9 +1319,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(1, variant: LinkedNodeKind.importDirective)
   String get importDirective_prefix;
 
-  @VariantId(15, variant: LinkedNodeKind.importDirective)
-  int get importDirective_prefixOffset;
-
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
 
@@ -3695,6 +3692,9 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.topLevelVariableDeclaration,
   ])
   List<String> get documentationComment_tokens;
+
+  @VariantId(8, variant: LinkedNodeKind.importDirective)
+  int get importDirective_prefixOffset;
 
   /// The kind of the node.
   @Id(0)
