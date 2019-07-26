@@ -1915,6 +1915,24 @@ class InstantiatedClass {
     return InstantiatedClass.of(supertype);
   }
 
+  /// Return a list containing all of the superclass constraints defined for
+  /// this class. The list will be empty if this class does not represent a
+  /// mixin declaration. If this class _does_ represent a mixin declaration but
+  /// the declaration does not have an `on` clause, then the list will contain
+  /// the type for the class `Object`.
+  List<InstantiatedClass> get superclassConstraints {
+    var constraints = element.superclassConstraints;
+
+    var result = List<InstantiatedClass>(constraints.length);
+    for (var i = 0; i < constraints.length; i++) {
+      var constraint = constraints[i];
+      var substituted = _substitution.substituteType(constraint);
+      result[i] = InstantiatedClass.of(substituted);
+    }
+
+    return result;
+  }
+
   @visibleForTesting
   InterfaceType get withNullabilitySuffixNone {
     return withNullability(NullabilitySuffix.none);
@@ -2070,6 +2088,14 @@ class InterfaceLeastUpperBoundHelper {
       if (!interface.isDartCoreFunction) {
         if (set.add(interface)) {
           _addSuperinterfaces(set, interface);
+        }
+      }
+    }
+
+    for (var constraint in type.superclassConstraints) {
+      if (!constraint.isDartCoreFunction) {
+        if (set.add(constraint)) {
+          _addSuperinterfaces(set, constraint);
         }
       }
     }

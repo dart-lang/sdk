@@ -489,6 +489,27 @@ class ElementFactory {
     return method;
   }
 
+  static MixinElementImpl mixinElement({
+    @required String name,
+    List<TypeParameterElement> typeParameters,
+    List<String> typeParameterNames = const [],
+    List<InterfaceType> constraints = const [],
+    List<InterfaceType> interfaces = const [],
+  }) {
+    typeParameters ??= ElementFactory.typeParameters(typeParameterNames);
+
+    if (constraints.isEmpty) {
+      constraints = [objectType];
+    }
+
+    var element = MixinElementImpl(name, 0);
+    element.typeParameters = typeParameters;
+    element.superclassConstraints = constraints;
+    element.interfaces = interfaces;
+    element.constructors = const <ConstructorElement>[];
+    return element;
+  }
+
   static ParameterElementImpl namedParameter(String name) {
     ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;

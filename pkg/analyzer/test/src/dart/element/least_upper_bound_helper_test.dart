@@ -264,6 +264,78 @@ class InterfaceLeastUpperBoundHelperTest extends EngineTestCase {
     );
   }
 
+  void test_computeSuperinterfaceSet_mixin_constraints() {
+    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+
+    var classA = ElementFactory.classElement3(name: 'A');
+    var instA = InstantiatedClass(classA, const []);
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [instA.withNullabilitySuffixNone],
+    );
+    var instB = InstantiatedClass(classB, const []);
+
+    var classC = ElementFactory.classElement3(name: 'C');
+    var instC = InstantiatedClass(classC, const []);
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      constraints: [
+        instB.withNullabilitySuffixNone,
+        instC.withNullabilitySuffixNone,
+      ],
+    );
+    var instM = InstantiatedClass(mixinM, const []);
+
+    expect(
+      _superInterfaces(instM),
+      unorderedEquals([instObject, instA, instB, instC]),
+    );
+  }
+
+  void test_computeSuperinterfaceSet_mixin_constraints_object() {
+    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+
+    var mixinM = ElementFactory.mixinElement(name: 'M');
+    var instM = InstantiatedClass(mixinM, const []);
+
+    expect(
+      _superInterfaces(instM),
+      unorderedEquals([instObject]),
+    );
+  }
+
+  void test_computeSuperinterfaceSet_mixin_interfaces() {
+    var instObject = InstantiatedClass.of(_typeProvider.objectType);
+
+    var classA = ElementFactory.classElement3(name: 'A');
+    var instA = InstantiatedClass(classA, const []);
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [instA.withNullabilitySuffixNone],
+    );
+    var instB = InstantiatedClass(classB, const []);
+
+    var classC = ElementFactory.classElement3(name: 'C');
+    var instC = InstantiatedClass(classC, const []);
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      interfaces: [
+        instB.withNullabilitySuffixNone,
+        instC.withNullabilitySuffixNone,
+      ],
+    );
+    var instM = InstantiatedClass(mixinM, const []);
+
+    expect(
+      _superInterfaces(instM),
+      unorderedEquals([instObject, instA, instB, instC]),
+    );
+  }
+
   void test_computeSuperinterfaceSet_multipleInterfacePaths() {
     var instObject = InstantiatedClass.of(_typeProvider.objectType);
 

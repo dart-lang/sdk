@@ -1886,6 +1886,59 @@ class LeastUpperBoundTest extends BoundTestBase {
     assertLUB(aNone, aNone, aNone);
   }
 
+  void test_mixinAndClass_constraintAndInterface() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var typeA = InstantiatedClass(classA, []).withNullabilitySuffixNone;
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [typeA],
+    );
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      constraints: [typeA],
+    );
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(classB, []),
+      InterfaceTypeImpl.explicit(mixinM, []),
+      typeA,
+    );
+  }
+
+  void test_mixinAndClass_object() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var mixinM = ElementFactory.mixinElement(name: 'M');
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(classA, []),
+      InterfaceTypeImpl.explicit(mixinM, []),
+      typeProvider.objectType,
+    );
+  }
+
+  void test_mixinAndClass_sharedInterface() {
+    var classA = ElementFactory.classElement3(name: 'A');
+    var typeA = InstantiatedClass(classA, []).withNullabilitySuffixNone;
+
+    var classB = ElementFactory.classElement3(
+      name: 'B',
+      interfaces: [typeA],
+    );
+
+    var mixinM = ElementFactory.mixinElement(
+      name: 'M',
+      interfaces: [typeA],
+    );
+
+    _checkLeastUpperBound(
+      InterfaceTypeImpl.explicit(classB, []),
+      InterfaceTypeImpl.explicit(mixinM, []),
+      typeA,
+    );
+  }
+
   void test_mixinCase() {
     // class A
     // class B extends A
