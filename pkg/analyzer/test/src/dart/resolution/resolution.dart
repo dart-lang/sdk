@@ -436,6 +436,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.declaredElement;
     } else if (node is FormalParameter) {
       return node.declaredElement;
+    } else if (node is FunctionExpressionInvocation) {
+      return node.staticElement;
     } else if (node is Identifier) {
       return node.staticElement;
     } else if (node is IndexExpression) {

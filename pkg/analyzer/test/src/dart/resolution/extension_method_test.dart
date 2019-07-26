@@ -148,64 +148,98 @@ extension on C {}
 /// by code external to the extension declaration.
 @reflectiveTest
 class ExtensionMethodsExternalReferenceTest extends BaseExtensionMethodsTest {
-  test_getter_noMatch() async {
+  test_instance_call_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  int call(int x) => 0;
+}
+
+extension E on C {
+  int call(int x) => 0;
+}
+
+f(C c) {
+  c(2);
+}
+''');
+    var invocation = findNode.methodInvocation('c(2)');
+    expect(invocation.staticInvokeType.element,
+        same(findElement.method('call', of: 'C')));
+    assertInvokeType(invocation, 'int Function(int)');
+  }
+
+  @failingTest
+  test_instance_call_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  int call(int x) => 0;
+}
+
+f(C c) {
+  c(2);
+}
+''');
+    var invocation = findNode.methodInvocation('c(2)');
+    expect(invocation.staticInvokeType.element,
+        same(findElement.method('call', of: 'E')));
+    assertInvokeType(invocation, 'int Function(int)');
+  }
+
+  test_instance_getter_noMatch() async {
     await assertErrorsInCode(r'''
-class B {}
+class C {}
 
-extension A on B {}
+extension E on C {}
 
-Object f() {
-  B b = B();
-  return b.a;
+f(C c) {
+  c.a;
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 70, 1),
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
     ]);
   }
 
-  test_getter_oneMatch() async {
+  test_instance_getter_oneMatch() async {
     await assertNoErrorsInCode('''
-class B {}
+class C {}
 
-extension A on B {
+extension E on C {
   int get a => 1;
 }
 
-f() {
-  B b = B();
-  int x = b.a;
+f(C c) {
+  c.a;
 }
 ''');
+    var access = findNode.prefixed('c.a');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
   }
 
-  test_getter_specificSubtypeMatchLocal() async {
+  test_instance_getter_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A {}
-
-class B extends A { 
-  int get b => 1;
-}
+class B extends A {}
 
 extension A_Ext on A {
   int get a => 1;
 }
-
 extension B_Ext on B {
-  int /*2*/ get a => 2;
+  int get a => 2;
 }
 
-f() {
-  B b = B();
-  int x = b.a;
+f(B b) {
+  b.a;
 }
 ''');
-
-    var invocation = findNode.prefixed('b.a');
-    var declaration = findNode.methodDeclaration('int /*2*/ get a');
-    expect(invocation.identifier.staticElement, declaration.declaredElement);
+    var access = findNode.prefixed('b.a');
+    assertElement(access, findElement.getter('a', of: 'B_Ext'));
+    assertType(access, 'int');
   }
 
-  test_method_moreSpecificThanPlatform() async {
+  test_instance_method_moreSpecificThanPlatform() async {
     //
     // An extension with on type clause T1 is more specific than another
     // extension with on type clause T2 iff
@@ -232,8 +266,7 @@ extension Core2_Ext on Core2 {
   void a() {}
 }
 
-f() {
-  Core2 c = Core2();
+f(Core2 c) {
   c.a();
 }
 ''');
@@ -242,24 +275,23 @@ f() {
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_method_noMatch() async {
+  test_instance_method_noMatch() async {
     await assertErrorsInCode(r'''
-class B {}
+class C {}
 
-extension A on B {
+extension E on C {
   void a() {}
 }
 
-f() {
-  B b = B();
-  b.c();
+f(C c) {
+  c.c();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 71, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 61, 1),
     ]);
   }
 
-  test_method_noMostSpecificExtension() async {
+  test_instance_method_noMostSpecificExtension() async {
     await assertErrorsInCode('''
 class A {}
 
@@ -271,16 +303,15 @@ extension A2_Ext on A {
   void a() {}
 }
 
-f() {
-  A a = A();
+f(A a) {
   a.a();
 }
 ''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 117, 1),
+      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 107, 1),
     ]);
   }
 
-  test_method_oneMatch() async {
+  test_instance_method_oneMatch() async {
     await assertNoErrorsInCode('''
 class B {}
 
@@ -288,18 +319,16 @@ extension A on B {
   void a() {}
 }
 
-f() {
-  B b = B();
+f(B b) {
   b.a();
 }
 ''');
-
     var invocation = findNode.methodInvocation('b.a()');
     assertElement(invocation, findElement.method('a'));
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_method_privateExtension() async {
+  test_instance_method_privateExtension() async {
     newFile('/test/lib/lib.dart', content: '''
 class B {}
 
@@ -310,48 +339,43 @@ extension _ on B {
     await assertErrorsInCode(r'''
 import 'lib.dart';
 
-f() {
-  B b = B();
+f(B b) {
   b.a();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 43, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
     ]);
   }
 
-  test_method_resolvesToStatic() async {
+  test_instance_method_resolvesToStatic() async {
     await assertErrorsInCode('''
-class A {}
+class C {}
 
-extension A1_Ext on A {
+extension E on C {
   static void a() {}
 }
 
-f() {
-  A a = A();
-  a.a();
+f(C c) {
+  c.a();
 }
 ''', [
-      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 83, 1),
+      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 68, 1),
     ]);
   }
 
-  test_method_specificSubtypeMatchLocal() async {
+  test_instance_method_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A {}
-
 class B extends A {}
 
 extension A_Ext on A {
   void a() {}
 }
-
 extension B_Ext on B {
   void a() {}
 }
 
-f() {
-  B b = B();
+f(B b) {
   b.a();
 }
 ''');
@@ -362,7 +386,7 @@ f() {
   }
 
   @failingTest
-  test_method_specificSubtypeMatchLocalGenerics() async {
+  test_instance_method_specificSubtypeMatchLocalGenerics() async {
     await assertNoErrorsInCode('''
 class A<T> {}
 
@@ -378,19 +402,16 @@ extension B_Ext<T> on B<T> {
   void f(T x) {}
 }
 
-main() {
-  B<C> x = B<C>();
-  C o = C();
+f(B<C> x, C o) {
   x.f(o);
 }
 ''');
-
     var invocation = findNode.methodInvocation('x.f(o)');
     assertElement(invocation, findElement.method('f', of: 'B_Ext'));
     assertInvokeType(invocation, 'void Function(T)');
   }
 
-  test_method_specificSubtypeMatchPlatform() async {
+  test_instance_method_specificSubtypeMatchPlatform() async {
     newFile('/test/lib/core.dart', content: '''
 library dart.core;
 
@@ -398,7 +419,6 @@ class Core {}
 
 class Core2 extends Core {}
 ''');
-
     await assertNoErrorsInCode('''
 import 'core.dart';
 
@@ -410,65 +430,129 @@ extension Core2_Ext on Core2 {
   void a() => 0;
 }
 
-f() {
-  Core2 c = Core2();
+f(Core2 c) {
   c.a();
 }
 ''');
-
     var invocation = findNode.methodInvocation('c.a()');
     assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_method_unnamedExtension() async {
+  test_instance_method_unnamedExtension() async {
     newFile('/test/lib/lib.dart', content: '''
-class B {}
+class C {}
 
-extension on B {
+extension on C {
   void a() {}
 }
 ''');
     await assertErrorsInCode(r'''
 import 'lib.dart';
 
-f() {
-  B b = B();
-  b.a();
+f(C c) {
+  c.a();
 }
 ''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 43, 1),
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
     ]);
   }
 
-  test_setter_noMatch() async {
-    await assertErrorsInCode(r'''
-class B {}
-
-extension A on B {}
-
-f() {
-  B b = B();
-  b.a = 1;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 56, 1),
-    ]);
-  }
-
-  test_setter_oneMatch() async {
+  @failingTest
+  test_instance_operator() async {
     await assertNoErrorsInCode('''
-class B {}
+class C {}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c + 2;
+}
+''');
+    var binary = findNode.binary('+ ');
+    assertElement(binary, findElement.method('+', of: 'E'));
+  }
 
-extension A on B {
+  test_instance_setter_noMatch() async {
+    await assertErrorsInCode(r'''
+class C {}
+
+extension E on C {}
+
+f(C c) {
+  c.a = 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 46, 1),
+    ]);
+  }
+
+  test_instance_setter_oneMatch() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
   set a(int x) {}
 }
 
-f() {
-  B b = B();
-  b.a = 1;
+f(C c) {
+  c.a = 1;
 }
 ''');
+    var access = findNode.prefixed('c.a');
+    assertElement(access, findElement.setter('a'));
+  }
+
+  @failingTest
+  test_static_getter() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  static int get a => 1;
+}
+
+f() {
+  E.a;
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.getter('a'));
+    assertType(identifier, 'int');
+  }
+
+  @failingTest
+  test_static_method() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  static void a() {}
+}
+
+f() {
+  E.a();
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  @failingTest
+  test_static_setter() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  static set a(int x) {}
+}
+
+f() {
+  E.a = 3;
+}
+''');
+    var identifier = findNode.simple('a =');
+    assertElement(identifier, findElement.setter('a'));
   }
 }
 
@@ -476,7 +560,21 @@ f() {
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
 class ExtensionMethodsInternalReferenceTest extends BaseExtensionMethodsTest {
-  // TODO(brianwilkerson) Add tests for `call`.
+  @failingTest
+  test_instance_call() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  int call(int x) => 0;
+  int m() => this(2);
+}
+''');
+    var invocation = findNode.functionExpressionInvocation('this(2)');
+    assertElement(invocation, findElement.method('call', of: 'E'));
+    assertType(invocation, 'int');
+  }
+
   test_instance_getter_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {
@@ -699,7 +797,7 @@ extension E on C {
 class C {}
 
 extension E on C {
-  static set a(int) {}
+  static set a(int x) {}
   void m() {
     a = 3;
   }
@@ -714,7 +812,7 @@ extension E on C {
 class C {}
 
 extension E on C {
-  static set a(int) {}
+  static set a(int x) {}
   static void m() {
     a = 3;
   }
