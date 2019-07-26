@@ -3074,6 +3074,7 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
   forwarder ^= Object::Clone(*this, Heap::kOld);
 
   forwarder.set_name(mangled_name);
+  forwarder.set_is_native(false);
   forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
   forwarder.set_is_debuggable(false);
 
