@@ -77,7 +77,7 @@ CompilerResult compile(List<String> args,
     print('''
 We're sorry, you've found a bug in our compiler.
 You can report this bug at:
-    https://github.com/dart-lang/sdk/issues/labels/area-dev-compiler
+    https://github.com/dart-lang/sdk/issues/labels/web-dev-compiler
 Please include the information below in your report, along with
 any other information that may help us track it down. Thanks!
     $_binaryName arguments: ${args.join(' ')}
