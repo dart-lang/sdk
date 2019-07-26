@@ -1876,22 +1876,30 @@ class LeastUpperBoundTest extends BoundTestBase {
 
   void test_mixinAndClass_constraintAndInterface() {
     var classA = ElementFactory.classElement3(name: 'A');
-    var typeA = InstantiatedClass(classA, []).withNullabilitySuffixNone;
+    var instA = InstantiatedClass(classA, []);
 
     var classB = ElementFactory.classElement3(
       name: 'B',
-      interfaces: [typeA],
+      interfaces: [instA.withNullabilitySuffixNone],
     );
 
     var mixinM = ElementFactory.mixinElement(
       name: 'M',
-      constraints: [typeA],
+      constraints: [instA.withNullabilitySuffixNone],
     );
 
     _checkLeastUpperBound(
-      InterfaceTypeImpl.explicit(classB, []),
-      InterfaceTypeImpl.explicit(mixinM, []),
-      typeA,
+      InterfaceTypeImpl.explicit(
+        classB,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      InterfaceTypeImpl.explicit(
+        mixinM,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      instA.withNullability(NullabilitySuffix.star),
     );
   }
 
@@ -1908,22 +1916,30 @@ class LeastUpperBoundTest extends BoundTestBase {
 
   void test_mixinAndClass_sharedInterface() {
     var classA = ElementFactory.classElement3(name: 'A');
-    var typeA = InstantiatedClass(classA, []).withNullabilitySuffixNone;
+    var instA = InstantiatedClass(classA, []);
 
     var classB = ElementFactory.classElement3(
       name: 'B',
-      interfaces: [typeA],
+      interfaces: [instA.withNullabilitySuffixNone],
     );
 
     var mixinM = ElementFactory.mixinElement(
       name: 'M',
-      interfaces: [typeA],
+      interfaces: [instA.withNullabilitySuffixNone],
     );
 
     _checkLeastUpperBound(
-      InterfaceTypeImpl.explicit(classB, []),
-      InterfaceTypeImpl.explicit(mixinM, []),
-      typeA,
+      InterfaceTypeImpl.explicit(
+        classB,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      InterfaceTypeImpl.explicit(
+        mixinM,
+        [],
+        nullabilitySuffix: NullabilitySuffix.star,
+      ),
+      instA.withNullability(NullabilitySuffix.star),
     );
   }
 
