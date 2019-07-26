@@ -66,6 +66,15 @@ class ConstantsBackend {
   /// This method must be deterministic, i.e. it must always return the same
   /// value for the same constant value and place in the AST.
   bool shouldInlineConstant(ConstantExpression initializer) => true;
+
+  /// Whether this target supports unevaluated constants.
+  ///
+  /// If not, then trying to perform constant evaluation without an environment
+  /// raises an exception.
+  ///
+  /// This defaults to `false` since it requires additional work for a backend
+  /// to support unevaluated constants.
+  bool get supportsUnevaluatedConstants => false;
 }
 
 /// A target provides backend-specific options for generating kernel IR.
@@ -235,6 +244,13 @@ abstract class Target {
   ConstantsBackend constantsBackend(CoreTypes coreTypes);
 }
 
+class NoneConstantsBackend extends ConstantsBackend {
+  @override
+  final bool supportsUnevaluatedConstants;
+
+  const NoneConstantsBackend({this.supportsUnevaluatedConstants});
+}
+
 class NoneTarget extends Target {
   final TargetFlags flags;
 
@@ -275,5 +291,6 @@ class NoneTarget extends Target {
 
   @override
   ConstantsBackend constantsBackend(CoreTypes coreTypes) =>
-      const ConstantsBackend();
+      // TODO(johnniwinther): Should this vary with the use case?
+      const NoneConstantsBackend(supportsUnevaluatedConstants: true);
 }

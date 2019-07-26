@@ -22,7 +22,10 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       {Map<String, String> environment: const {},
       bool supportReevaluationForTesting: false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
-        super(const Dart2jsConstantsBackend(), environment, typeEnvironment,
+        super(
+            const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+            environment,
+            typeEnvironment,
             new ErrorReporter(reportError));
 
   @override

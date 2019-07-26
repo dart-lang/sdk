@@ -412,7 +412,8 @@ Future<Context> createContext(
     ..onDiagnostic = (DiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       errors.add(message);
-    };
+    }
+    ..environmentDefines = const {};
 
   final ProcessedOptions options =
       new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);

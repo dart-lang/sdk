@@ -584,7 +584,9 @@ const nullCheck = const _NullCheck();
   var oldCompilerState = _compilerState;
   _compilerState = await fe.initializeCompiler(oldCompilerState, false, null,
       sdkUri, packagesUri, null, [], DevCompilerTarget(TargetFlags()),
-      fileSystem: _fileSystem, experiments: const {});
+      fileSystem: _fileSystem,
+      experiments: const {},
+      environmentDefines: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
   fe.DdcResult result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);

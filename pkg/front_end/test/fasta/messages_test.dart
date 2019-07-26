@@ -215,8 +215,10 @@ class MessageTestSuite extends ChainContext {
       }
       // "Wrap" example as a part.
       for (Example example in examples) {
-        yield createDescription("part_wrapped_${example.name}",
-            new PartWrapExample("part_wrapped_${example.name}", name, example), null);
+        yield createDescription(
+            "part_wrapped_${example.name}",
+            new PartWrapExample("part_wrapped_${example.name}", name, example),
+            null);
       }
 
       yield createDescription(
@@ -517,7 +519,8 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
               .resolve("vm_platform_strong.dill")
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
-          ..onDiagnostic = messages.add,
+          ..onDiagnostic = messages.add
+          ..environmentDefines = const {},
         main,
         output);
 

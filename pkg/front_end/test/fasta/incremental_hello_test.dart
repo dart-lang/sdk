@@ -38,7 +38,8 @@ test({bool sdkFromSource}) async {
     ..target = new VmTarget(new TargetFlags(legacyMode: true))
     ..legacyMode = true
     ..omitPlatform = true
-    ..onDiagnostic = diagnosticMessageHandler;
+    ..onDiagnostic = diagnosticMessageHandler
+    ..environmentDefines = const {};
 
   if (sdkFromSource) {
     optionBuilder.librariesSpecificationUri =

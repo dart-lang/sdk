@@ -521,6 +521,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
             ? typeEnvironment.coreTypes.index
                 .getMember('dart:collection', '_UnmodifiableSet', '_map')
             : null {
+    if (environmentDefines == null && !backend.supportsUnevaluatedConstants) {
+      throw new ArgumentError(
+          "No 'environmentDefines' passed to the constant evaluator but the "
+          "ConstantsBackend does not support unevaluated constants.");
+    }
     primitiveEqualCache = <Class, bool>{
       coreTypes.boolClass: true,
       coreTypes.doubleClass: false,

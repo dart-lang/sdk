@@ -783,8 +783,9 @@ CompilerOptions getOptions() {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
-    };
-  options.sdkSummary = sdkRoot.resolve("vm_platform_strong.dill");
+    }
+    ..sdkSummary = sdkRoot.resolve("vm_platform_strong.dill")
+    ..environmentDefines = const {};
   return options;
 }
 

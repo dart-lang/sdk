@@ -236,7 +236,8 @@ generateKernel(Uri entryUri,
     ..legacyMode = legacyMode
     ..target = createTarget(isFlutter: false, legacyMode: legacyMode)
     ..packagesFileUri = Uri.base.resolve('.packages')
-    ..compileSdk = compileSdk;
+    ..compileSdk = compileSdk
+    ..environmentDefines = const {};
   if (!compileSdk) {
     // TODO(sigmund): fix this: this is broken since the change to move .dill
     // files out of the patched_sdk folder. It is not failing anywhere because
