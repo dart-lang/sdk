@@ -281,6 +281,7 @@ class LibraryAnalyzer {
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _context.typeSystem,
+        inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
 
@@ -336,7 +337,7 @@ class LibraryAnalyzer {
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
     var context = LinterContextImpl(allUnits, currentUnit, _declaredVariables,
-        _typeProvider, _typeSystem, _analysisOptions);
+        _typeProvider, _typeSystem, _inheritance, _analysisOptions);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       if (linter is NodeLintRule) {

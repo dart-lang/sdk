@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -71,6 +72,7 @@ mixin FixLintProcessor {
         session.declaredVariables,
         result.typeProvider,
         result.typeSystem,
+        InheritanceManager3(result.typeSystem),
         result.session.analysisContext.analysisOptions);
     for (Linter linter in linters) {
       if (linter != null) {

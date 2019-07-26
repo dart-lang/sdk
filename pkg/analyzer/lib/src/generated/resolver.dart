@@ -262,6 +262,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The type system primitives
   final TypeSystem _typeSystem;
 
+  /// The inheritance manager to access interface type hierarchy.
+  final InheritanceManager3 _inheritanceManager;
+
   /// The current library
   final LibraryElement _currentLibrary;
 
@@ -283,12 +286,14 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     CompilationUnit unit,
     String content, {
     TypeSystem typeSystem,
+    @required InheritanceManager3 inheritanceManager,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
+        _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
@@ -304,6 +309,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         declaredVariables,
         typeProvider,
         _typeSystem,
+        _inheritanceManager,
         analysisOptions);
   }
 
