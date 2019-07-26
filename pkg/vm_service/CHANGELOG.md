@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0+1
+- Updated description and homepage.
+
 ## 1.0.0
 - Migrated `vm_service_lib` into the Dart SDK.
 - Renamed from `package:vm_service_lib` to `package:vm_service`.
