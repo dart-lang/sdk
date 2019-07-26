@@ -195,6 +195,17 @@ class TranslationHelper {
     info_.set_bytecode_component(bytecode_component);
   }
 
+  void SetExpressionEvaluationFunction(const Function& function) {
+    ASSERT(expression_evaluation_function_ == nullptr);
+    expression_evaluation_function_ = &Function::Handle(zone_, function.raw());
+  }
+  const Function& GetExpressionEvaluationFunction() {
+    if (expression_evaluation_function_ == nullptr) {
+      return Function::null_function();
+    }
+    return *expression_evaluation_function_;
+  }
+
  private:
   // This will mangle [name_to_modify] if necessary and make the result a symbol
   // if asked.  The result will be available in [name_to_modify] and it is also
@@ -224,6 +235,7 @@ class TranslationHelper {
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
+  Function* expression_evaluation_function_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(TranslationHelper);
 };

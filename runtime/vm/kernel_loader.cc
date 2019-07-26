@@ -213,8 +213,7 @@ KernelLoader::KernelLoader(Program* program,
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
-      expression_evaluation_library_(Library::Handle(Z)),
-      expression_evaluation_function_(Function::Handle(Z)) {
+      expression_evaluation_library_(Library::Handle(Z)) {
   if (!program->is_single_program()) {
     FATAL(
         "Trying to load a concatenated dill file at a time where that is "
@@ -459,8 +458,7 @@ KernelLoader::KernelLoader(const Script& script,
       potential_pragma_functions_(GrowableObjectArray::Handle(Z)),
       pragma_class_(Class::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
-      expression_evaluation_library_(Library::Handle(Z)),
-      expression_evaluation_function_(Function::Handle(Z)) {
+      expression_evaluation_library_(Library::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
   T.finalize_ = false;
 
@@ -819,28 +817,32 @@ RawObject* KernelLoader::LoadExpressionEvaluationFunction(
 
   // Load the "evaluate:source" expression evaluation library.
   ASSERT(expression_evaluation_library_.IsNull());
-  ASSERT(expression_evaluation_function_.IsNull());
+  ASSERT(H.GetExpressionEvaluationFunction().IsNull());
   const Object& result = Object::Handle(Z, LoadProgram(true));
   if (result.IsError()) {
     return result.raw();
   }
-  ASSERT(!expression_evaluation_library_.IsNull());
-  ASSERT(!expression_evaluation_function_.IsNull());
+  const Function& function = H.GetExpressionEvaluationFunction();
+  ASSERT(!function.IsNull());
   ASSERT(GrowableObjectArray::Handle(I->object_store()->libraries()).Length() ==
          num_libs);
   ASSERT(I->class_table()->NumCids() == num_cids);
 
-  // Make the expression evaluation function have the right kernel data and
-  // parent.
-  auto& eval_data = ExternalTypedData::Handle(
-      Z, expression_evaluation_library_.kernel_data());
-  auto& eval_script =
-      Script::Handle(Z, expression_evaluation_function_.script());
-  expression_evaluation_function_.SetKernelDataAndScript(
-      eval_script, eval_data, expression_evaluation_library_.kernel_offset());
-  expression_evaluation_function_.set_owner(real_class);
+  // Make the expression evaluation function have the right script,
+  // kernel data and parent.
+  const auto& eval_script = Script::Handle(Z, function.script());
+  auto& kernel_data = ExternalTypedData::Handle(Z);
+  intptr_t kernel_offset = -1;
+  if (!function.is_declared_in_bytecode()) {
+    ASSERT(!expression_evaluation_library_.IsNull());
+    kernel_data = expression_evaluation_library_.kernel_data();
+    kernel_offset = expression_evaluation_library_.kernel_offset();
+  }
+  function.SetKernelDataAndScript(eval_script, kernel_data, kernel_offset);
 
-  return expression_evaluation_function_.raw();
+  function.set_owner(real_class);
+
+  return function.raw();
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
@@ -1906,7 +1908,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   if (register_function) {
     functions_.Add(&function);
   } else {
-    expression_evaluation_function_ = function.raw();
+    H.SetExpressionEvaluationFunction(function);
   }
   function.set_kernel_offset(procedure_offset);
   if ((library.is_dart_scheme() &&

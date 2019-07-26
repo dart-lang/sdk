@@ -2676,15 +2676,18 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     if (obj.IsLibrary()) {
       const Library& lib = Library::Cast(obj);
       library_uri = lib.url();
+      isStatic = true;
     } else if (obj.IsClass() || ((obj.IsInstance() || obj.IsNull()) &&
                                  !ContainsNonInstance(obj))) {
       Class& cls = Class::Handle(zone);
       if (obj.IsClass()) {
         cls ^= obj.raw();
+        isStatic = true;
       } else {
         Instance& instance = Instance::Handle(zone);
         instance ^= obj.raw();
         cls = instance.clazz();
+        isStatic = false;
       }
       if (cls.id() < kInstanceCid || cls.id() == kTypeArgumentsCid) {
         js->PrintError(

@@ -23,7 +23,7 @@ library runtime.tools.kernel_service;
 import 'dart:async' show Future, ZoneSpecification, runZoned;
 import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
-import 'dart:io' show Platform, stderr hide FileSystemEntity;
+import 'dart:io' show File, Platform, stderr hide FileSystemEntity;
 import 'dart:isolate';
 import 'dart:typed_data' show Uint8List;
 
@@ -45,6 +45,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalFlags;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
+final bool dumpKernel = new bool.fromEnvironment('DFE_DUMP_KERNEL');
 const String platformKernelFile = 'virtual_platform_kernel.dill';
 
 // NOTE: Any changes to these tags need to be reflected in kernel_isolate.cc
@@ -436,7 +437,21 @@ Future _processExpressionCompilationRequest(request) async {
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors, null);
     } else {
-      result = new CompilationResult.ok(serializeProcedure(procedure));
+      final Component component =
+          createExpressionEvaluationComponent(procedure);
+      if (compiler.bytecode) {
+        await runWithFrontEndCompilerContext(
+            compiler.generator.entryPoint, compiler.options, component, () {
+          generateBytecode(component,
+              coreTypes: compiler.generator.getCoreTypes(),
+              hierarchy: compiler.generator.getClassHierarchy(),
+              options: new BytecodeOptions(
+                enableAsserts: compiler.enableAsserts,
+                environmentDefines: compiler.options.environmentDefines,
+              ));
+        });
+      }
+      result = new CompilationResult.ok(serializeComponent(component));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -796,7 +811,11 @@ abstract class CompilationResult {
 class _CompilationOk extends CompilationResult {
   final Uint8List bytes;
 
-  _CompilationOk(this.bytes) : super._();
+  _CompilationOk(this.bytes) : super._() {
+    if (dumpKernel && bytes != null) {
+      _debugDumpKernel(bytes);
+    }
+  }
 
   @override
   Status get status => Status.ok;
@@ -852,4 +871,10 @@ Future<T> runWithPrintToStderr<T>(Future<T> f()) {
   return runZoned(() => new Future<T>(f),
       zoneSpecification: new ZoneSpecification(
           print: (_1, _2, _3, String line) => stderr.writeln(line)));
+}
+
+int _debugDumpCounter = 0;
+void _debugDumpKernel(Uint8List bytes) {
+  new File('kernel_service.tmp${_debugDumpCounter++}.dill')
+      .writeAsBytesSync(bytes);
 }

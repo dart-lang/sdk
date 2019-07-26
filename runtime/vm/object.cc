@@ -7755,7 +7755,7 @@ void Function::InheritBinaryDeclarationFrom(const Field& src) const {
 
 void Function::SetKernelDataAndScript(const Script& script,
                                       const ExternalTypedData& data,
-                                      intptr_t offset) {
+                                      intptr_t offset) const {
   Array& data_field = Array::Handle(Array::New(3));
   data_field.SetAt(0, script);
   data_field.SetAt(1, data);

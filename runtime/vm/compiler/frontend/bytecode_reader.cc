@@ -1307,7 +1307,15 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         uri ^= ReadObject();
       }
       RawLibrary* library = Library::LookupLibrary(thread_, uri);
+      NoSafepointScope no_safepoint_scope(thread_);
       if (library == Library::null()) {
+        // We do not register expression evaluation libraries with the VM:
+        // The expression evaluation functions should be GC-able as soon as
+        // they are not reachable anymore and we never look them up by name.
+        if (uri.raw() == Symbols::EvalSourceUri().raw()) {
+          ASSERT(expression_evaluation_library_ != nullptr);
+          return expression_evaluation_library_->raw();
+        }
         FATAL1("Unable to find library %s", uri.ToCString());
       }
       return library;
@@ -2176,13 +2184,13 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
       name = ConstructorName(cls, name);
     }
 
-    // Expression evaluation functions are not supported yet.
-    ASSERT(!name.Equals(Symbols::DebugProcedureName()));
-
     function = Function::New(name, kind, is_static, (flags & kIsConstFlag) != 0,
                              (flags & kIsAbstractFlag) != 0,
                              (flags & kIsExternalFlag) != 0, is_native,
                              script_class, position);
+
+    const bool is_expression_evaluation =
+        (name.raw() == Symbols::DebugProcedureName().raw());
 
     // Declare function scope as types (type parameters) in function
     // signature may back-reference to the function being declared.
@@ -2234,7 +2242,15 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
 
     intptr_t param_index = 0;
     if (!is_static) {
-      function.SetParameterTypeAt(param_index, H.GetDeclarationType(cls));
+      if (is_expression_evaluation) {
+        // Do not reference enclosing class as expression evaluation
+        // method logically belongs to another (real) class.
+        // Enclosing class is not registered and doesn't have
+        // a valid cid, so it can't be used in a type.
+        function.SetParameterTypeAt(param_index, AbstractType::dynamic_type());
+      } else {
+        function.SetParameterTypeAt(param_index, H.GetDeclarationType(cls));
+      }
       function.SetParameterNameAt(param_index, Symbols::This());
       ++param_index;
     } else if (is_factory) {
@@ -2293,6 +2309,18 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
           }
         }
       }
+    }
+
+    if (is_expression_evaluation) {
+      H.SetExpressionEvaluationFunction(function);
+      // Read bytecode of expression evaluation function eagerly,
+      // while expression_evaluation_library_ and FunctionScope
+      // are still set, as its constant pool may reference back to a library
+      // or a function which are not registered and cannot be looked up.
+      ASSERT(!function.is_abstract());
+      ASSERT(function.bytecode_offset() != 0);
+      CompilerState compiler_state(thread_);
+      ReadCode(function, function.bytecode_offset());
     }
 
     functions_->SetAt(function_index_++, function);
@@ -2438,12 +2466,6 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   ASSERT(library.toplevel_class() == Object::null());
 
   // TODO(alexmarkov): fill in library.owned_scripts.
-  //
-  // TODO(alexmarkov): figure out if we need to finish class loading immediately
-  //  in case of 'loading_native_wrappers_library_ ' or '!register_class'.
-  //
-  // TODO(alexmarkov): support native extension libraries.
-  //
 
   const intptr_t flags = reader_.ReadUInt();
   if (((flags & kUsesDartMirrorsFlag) != 0) && !FLAG_enable_mirrors) {
@@ -2506,9 +2528,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
       ASSERT(name.raw() == Symbols::Empty().raw());
       cls = Class::New(library, Symbols::TopLevel(), script,
                        TokenPosition::kNoSource, register_class);
-      if (register_class) {
-        library.set_toplevel_class(cls);
-      }
+      library.set_toplevel_class(cls);
     } else {
       if (lookup_classes) {
         cls = library.LookupLocalClass(name);
@@ -2532,6 +2552,7 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
     if (loading_native_wrappers_library_ || !register_class) {
       AlternativeReadingScope alt(&reader_, class_offset);
       ReadClassDeclaration(cls);
+      ActiveClassScope active_class_scope(active_class_, &cls);
       AlternativeReadingScope alt2(&reader_, cls.bytecode_offset());
       ReadMembers(cls, /* discard_fields = */ false);
     }

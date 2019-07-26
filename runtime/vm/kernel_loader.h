@@ -447,11 +447,12 @@ class KernelLoader : public ValueObject {
   //      |> procedure ":Eval"
   //
   // See
-  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart:compileExpression
-  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart:serializeProcedure
+  //   * pkg/front_end/lib/src/fasta/incremental_compiler.dart,
+  //       compileExpression
+  //   * pkg/front_end/lib/src/fasta/kernel/utils.dart,
+  //       createExpressionEvaluationComponent
   //
   Library& expression_evaluation_library_;
-  Function& expression_evaluation_function_;
 
   GrowableArray<const Function*> functions_;
   GrowableArray<const Field*> fields_;

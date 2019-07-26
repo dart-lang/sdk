@@ -2648,7 +2648,7 @@ class Function : public Object {
 
   void SetKernelDataAndScript(const Script& script,
                               const ExternalTypedData& data,
-                              intptr_t offset);
+                              intptr_t offset) const;
 
   intptr_t KernelDataProgramOffset() const;
 
