@@ -85,6 +85,7 @@ import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
+import 'invalid_use_of_never_value_test.dart' as invalid_use_of_never_value;
 import 'invalid_use_of_null_value_test.dart' as invalid_use_of_null_value;
 import 'invalid_use_of_protected_member_test.dart'
     as invalid_use_of_protected_member;
@@ -283,6 +284,7 @@ main() {
     invalid_override_different_default_values_positional.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
+    invalid_use_of_never_value.main();
     invalid_use_of_null_value.main();
     invalid_use_of_protected_member.main();
     invalid_use_of_visible_for_template_member.main();

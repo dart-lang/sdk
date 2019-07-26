@@ -5573,6 +5573,25 @@ class StaticWarningCode extends ErrorCode {
               "dynamic.");
 
   /**
+   * It is an error to call a method or getter on an expression of type [Never],
+   * or to invoke it as if it were a function.
+   *
+   * Go out of our way to provide a *little* more information here because many
+   * dart users probably have never heard of the type Never. Be careful however
+   * of providing too much information or it only becomes more confusing. Hard
+   * balance to strike.
+   *
+   * Parameters: none
+   */
+  static const StaticWarningCode INVALID_USE_OF_NEVER_VALUE =
+      const StaticWarningCode(
+          'INVALID_USE_OF_NEVER_VALUE',
+          'This expression is invalid because its target is of type Never and'
+              ' will never complete with a value',
+          correction: 'Try checking for throw expressions or type errors in the'
+              ' target expression');
+
+  /**
    * When the '?.' operator is used on a target that we know to be non-null,
    * it is unnecessary.
    */

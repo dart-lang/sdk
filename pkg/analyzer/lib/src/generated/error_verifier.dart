@@ -884,6 +884,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType expressionType = functionExpression.staticType;
     if (!_checkForNullableDereference(functionExpression) &&
         !_checkForUseOfVoidResult(functionExpression) &&
+        !_checkForUseOfNever(functionExpression) &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
@@ -5676,6 +5677,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         name,
         [enclosingElement.name]);
+  }
+
+  /**
+   * While in general Never is a sort of placehold type that should be usable
+   * anywhere, we explicitly bar it from some dubious syntactic locations such
+   * as calling a method on Never, which in practice would look something like
+   * `(throw x).toString()` which is clearly something between a mistake and
+   * dead code.
+   *
+   * See [StaticWarningCode.INVALID_USE_OF_NEVER_VALUE].
+   */
+  bool _checkForUseOfNever(Expression expression) {
+    if (expression == null ||
+        !identical(expression.staticType, BottomTypeImpl.instance)) {
+      return false;
+    }
+
+    _errorReporter.reportErrorForNode(
+        StaticWarningCode.INVALID_USE_OF_NEVER_VALUE, expression);
+
+    return true;
   }
 
   /**

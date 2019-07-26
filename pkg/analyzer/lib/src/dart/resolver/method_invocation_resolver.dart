@@ -133,6 +133,12 @@ class MethodInvocationResolver {
       _reportUseOfVoidType(node, receiver);
       return;
     }
+
+    // TODO(mfairhurst): use == once it considers nullabilitySuffix
+    if (identical(receiverType, BottomTypeImpl.instance)) {
+      _reportUseOfNeverType(node, receiver);
+      return;
+    }
   }
 
   /// Given an [argumentList] and the executable [element] that  will be invoked
@@ -248,6 +254,14 @@ class MethodInvocationResolver {
       StaticTypeWarningCode.UNDEFINED_METHOD,
       node.methodName,
       [name, typeReference.displayName],
+    );
+  }
+
+  void _reportUseOfNeverType(MethodInvocation node, AstNode errorNode) {
+    _setDynamicResolution(node);
+    _resolver.errorReporter.reportErrorForNode(
+      StaticWarningCode.INVALID_USE_OF_NEVER_VALUE,
+      errorNode,
     );
   }
 
@@ -681,6 +695,11 @@ class MethodInvocationResolver {
 
     if (type is VoidType) {
       return _reportUseOfVoidType(node, node.methodName);
+    }
+
+    // TODO(mfairhurst): use == once it considers nullabilitySuffix
+    if (identical(type, BottomTypeImpl.instance)) {
+      return _reportUseOfNeverType(node, node.methodName);
     }
 
     _reportInvocationOfNonFunction(node);
