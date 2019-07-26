@@ -3012,7 +3012,7 @@ class TypeBuilder {
 
 @reflectiveTest
 class TypeSystemTest extends AbstractTypeSystemTest {
-  DartType get functionClassTypeNone {
+  InterfaceTypeImpl get functionClassTypeNone {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -3020,7 +3020,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType get functionClassTypeQuestion {
+  InterfaceTypeImpl get functionClassTypeQuestion {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -3028,7 +3028,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType get functionClassTypeStar {
+  InterfaceTypeImpl get functionClassTypeStar {
     return InterfaceTypeImpl.explicit(
       typeProvider.functionType.element,
       const <DartType>[],
@@ -3039,7 +3039,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get noneType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.none);
 
-  FunctionType get nothingToVoidFunctionTypeNone {
+  FunctionTypeImpl get nothingToVoidFunctionTypeNone {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -3048,7 +3048,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  FunctionType get nothingToVoidFunctionTypeQuestion {
+  FunctionTypeImpl get nothingToVoidFunctionTypeQuestion {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -3057,7 +3057,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  FunctionType get nothingToVoidFunctionTypeStar {
+  FunctionTypeImpl get nothingToVoidFunctionTypeStar {
     return FunctionTypeImpl.synthetic(
       voidType,
       const <TypeParameterElement>[],
@@ -3072,7 +3072,31 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   DartType get starType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.star);
 
-  DartType futureOrTypeNone({@required DartType argument}) {
+  InterfaceTypeImpl get stringClassTypeNone {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl get stringClassTypeQuestion {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl get stringClassTypeStar {
+    return InterfaceTypeImpl.explicit(
+      typeProvider.stringType.element,
+      const <DartType>[],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl futureOrTypeNone({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
     return InterfaceTypeImpl.explicit(
       element,
@@ -3081,7 +3105,7 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType futureOrTypeQuestion({@required DartType argument}) {
+  InterfaceTypeImpl futureOrTypeQuestion({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
     return InterfaceTypeImpl.explicit(
       element,
@@ -3090,8 +3114,35 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
-  DartType futureOrTypeStar({@required DartType argument}) {
+  InterfaceTypeImpl futureOrTypeStar({@required DartType argument}) {
     var element = typeProvider.futureOrType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeNone(DartType argument) {
+    var element = typeProvider.listType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeQuestion(DartType argument) {
+    var element = typeProvider.listType.element;
+    return InterfaceTypeImpl.explicit(
+      element,
+      <DartType>[argument],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  InterfaceTypeImpl listClassTypeStar(DartType argument) {
+    var element = typeProvider.listType.element;
     return InterfaceTypeImpl.explicit(
       element,
       <DartType>[argument],
@@ -3218,10 +3269,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isNonNullable_interface_star() {
     expect(typeSystem.isNonNullable(starType), true);
-  }
-
-  test_isNonNullable_Never() {
-    expect(typeSystem.isNonNullable(neverType), true);
   }
 
   test_isNonNullable_never() {
@@ -3571,6 +3618,130 @@ class TypeSystemTest extends AbstractTypeSystemTest {
 
   test_isPotentiallyNullable_void() {
     expect(typeSystem.isPotentiallyNullable(voidType), true);
+  }
+
+  test_promoteToNonNull_dynamic() {
+    expect(
+      typeSystem.promoteToNonNull(dynamicType),
+      dynamicType,
+    );
+  }
+
+  test_promoteToNonNull_functionType() {
+    // NonNull(T0 Function(...)) = T0 Function(...)
+    expect(
+      typeSystem.promoteToNonNull(nothingToVoidFunctionTypeQuestion),
+      nothingToVoidFunctionTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_futureOr_question() {
+    // NonNull(FutureOr<T>) = FutureOr<T>
+    expect(
+      typeSystem.promoteToNonNull(
+        futureOrTypeQuestion(argument: stringClassTypeQuestion),
+      ),
+      futureOrTypeNone(argument: stringClassTypeQuestion),
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_function_none() {
+    expect(
+      typeSystem.promoteToNonNull(functionClassTypeQuestion),
+      functionClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_none() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeNone),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_question() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeQuestion),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_question_withTypeArguments() {
+    // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn>
+    // NonNull(List<String?>?) = List<String?>
+    expect(
+      typeSystem.promoteToNonNull(
+        listClassTypeQuestion(stringClassTypeQuestion),
+      ),
+      listClassTypeNone(stringClassTypeQuestion),
+    );
+  }
+
+  test_promoteToNonNull_interfaceType_star() {
+    expect(
+      typeSystem.promoteToNonNull(stringClassTypeStar),
+      stringClassTypeNone,
+    );
+  }
+
+  test_promoteToNonNull_never() {
+    expect(typeSystem.promoteToNonNull(neverType), neverType);
+  }
+
+  test_promoteToNonNull_null() {
+    expect(typeSystem.promoteToNonNull(nullType), neverType);
+  }
+
+  test_promoteToNonNull_typeParameter_noneBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: noneType),
+      ),
+      typeParameterTypeNone(bound: noneType),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_question() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeQuestion(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_questionBound_star() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeStar(bound: stringClassTypeQuestion),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_typeParameter_starBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: stringClassTypeStar),
+      ),
+      typeParameterTypeNone(bound: stringClassTypeNone),
+    );
+  }
+
+  test_promoteToNonNull_void() {
+    expect(
+      typeSystem.promoteToNonNull(voidType),
+      voidType,
+    );
   }
 
   DartType typeParameterTypeNone({@required DartType bound}) {

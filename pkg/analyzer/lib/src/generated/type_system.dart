@@ -2548,7 +2548,18 @@ abstract class TypeSystem implements public.TypeSystem {
   /// operation `NonNull` defined in the spec.
   DartType promoteToNonNull(covariant TypeImpl type) {
     if (type.isDartCoreNull) return BottomTypeImpl.instance;
-    // TODO(mfairhurst): handle type parameter types
+
+    if (type is TypeParameterTypeImpl) {
+      var promotedElement = TypeParameterElementImpl.synthetic(
+        type.element.name,
+      );
+      promotedElement.bound = promoteToNonNull(type.element.bound);
+      return TypeParameterTypeImpl(
+        promotedElement,
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
     return type.withNullability(NullabilitySuffix.none);
   }
 
