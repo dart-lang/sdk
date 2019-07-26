@@ -417,11 +417,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 13) {
 
 DEFINE_NATIVE_ENTRY(Isolate_getDebugName, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
-  Isolate* isolate_lookup = Isolate::LookupIsolateByPort(port.Id());
-  if (isolate_lookup == NULL) {
+  auto name = Isolate::LookupIsolateNameByPort(port.Id());
+  if (name == nullptr) {
     return String::null();
   }
-  return String::New(isolate_lookup->name());
+  return String::New(name.get());
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {

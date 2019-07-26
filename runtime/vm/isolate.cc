@@ -2852,6 +2852,18 @@ Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
   return nullptr;
 }
 
+std::unique_ptr<const char> Isolate::LookupIsolateNameByPort(Dart_Port port) {
+  MonitorLocker ml(isolates_list_monitor_);
+  Isolate* current = isolates_list_head_;
+  while (current != nullptr) {
+    if (current->main_port() == port) {
+      return std::unique_ptr<const char>(strdup(current->name()));
+    }
+    current = current->next_;
+  }
+  return std::unique_ptr<const char>();
+}
+
 bool Isolate::AddIsolateToList(Isolate* isolate) {
   MonitorLocker ml(isolates_list_monitor_);
   if (!creation_enabled_) {
