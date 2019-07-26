@@ -36,7 +36,7 @@ class ExtensionOverrideTest extends DriverResolutionTest {
     if (declarationUri == null) {
       ExtensionDeclaration declaration =
           findNode.extensionDeclaration('extension $declarationName');
-      extension = declaration?.declaredElement as ExtensionElement;
+      extension = declaration?.declaredElement;
     } else {
       extension =
           findElement.importFind(declarationUri).extension_(declarationName);
