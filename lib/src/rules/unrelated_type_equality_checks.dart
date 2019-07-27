@@ -132,7 +132,7 @@ class DerivedClass2 extends ClassBase with Mixin {}
 
 ''';
 
-bool _hasNonComparableOperands(BinaryExpression node) {
+bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
   var left = node.leftOperand;
   var leftType = left.staticType;
   var right = node.rightOperand;
@@ -142,7 +142,7 @@ bool _hasNonComparableOperands(BinaryExpression node) {
   }
   return !DartTypeUtilities.isNullLiteral(left) &&
       !DartTypeUtilities.isNullLiteral(right) &&
-      DartTypeUtilities.unrelatedTypes(leftType, rightType) &&
+      DartTypeUtilities.unrelatedTypes(typeSystem, leftType, rightType) &&
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 
@@ -164,7 +164,7 @@ class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
   }
 }
@@ -173,8 +173,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   static const String _boolClassName = 'bool';
 
   final LintRule rule;
+  final TypeSystem typeSystem;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.typeSystem);
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -188,7 +189,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    if (_hasNonComparableOperands(node)) {
+    if (_hasNonComparableOperands(typeSystem, node)) {
       rule.reportLint(node);
     }
   }

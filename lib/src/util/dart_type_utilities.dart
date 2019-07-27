@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 
 typedef bool AstNodePredicate(AstNode node);
@@ -312,10 +313,9 @@ class DartTypeUtilities {
   /// * Two equal types are considered related, e.g. classes `int` and `int`,
   ///   classes `List<String>` and `List<String>`,
   ///   classes `List<T>` and `List<T>`, and type variables `A` and `A`.
-  /// * Two types such that one is more specific than the other, such as classes
+  /// * Two types such that one is a subtype of the other, such as classes
   ///   `List<dynamic>` and `Iterable<dynamic>`, and type variables `A` and `B`
-  ///   where `A extends B`. The rules of type specificity are documented
-  ///   [InterfaceType.isMoreSpecificThan](https://pub.dev/documentation/analyzer/latest/dart_element_type/InterfaceType/isMoreSpecificThan.html).
+  ///   where `A extends B`.
   /// * Two types, each representing a class:
   ///   * are related if they represent the same class, modulo type arguments,
   ///     and each of their pair-wise type arguments are related, e.g.
@@ -328,7 +328,8 @@ class DartTypeUtilities {
   ///   bounds are related.
   /// * Otherwise, the types are related.
   // TODO(srawlins): typedefs and functions in general.
-  static bool unrelatedTypes(DartType leftType, DartType rightType) {
+  static bool unrelatedTypes(
+      TypeSystem typeSystem, DartType leftType, DartType rightType) {
     // If we don't have enough information, or can't really compare the types,
     // return false as they _might_ be related.
     if (leftType == null ||
@@ -340,8 +341,8 @@ class DartTypeUtilities {
       return false;
     }
     if (leftType == rightType ||
-        leftType.isMoreSpecificThan(rightType) ||
-        rightType.isMoreSpecificThan(leftType)) {
+        typeSystem.isSubtypeOf(leftType, rightType) ||
+        typeSystem.isSubtypeOf(rightType, leftType)) {
       return false;
     }
     Element leftElement = leftType.element;
@@ -363,7 +364,8 @@ class DartTypeUtilities {
         for (int i = 0; i < leftTypeArguments.length; i++) {
           // If any of the pair-wise type arguments are unrelated, then
           // [leftType] and [rightType] are unrelated.
-          if (unrelatedTypes(leftTypeArguments[i], rightTypeArguments[i])) {
+          if (unrelatedTypes(
+              typeSystem, leftTypeArguments[i], rightTypeArguments[i])) {
             return true;
           }
         }
@@ -375,7 +377,7 @@ class DartTypeUtilities {
       }
     } else if (leftElement is TypeParameterElement &&
         rightElement is TypeParameterElement) {
-      return unrelatedTypes(leftElement.bound, rightElement.bound);
+      return unrelatedTypes(typeSystem, leftElement.bound, rightElement.bound);
     } else if (leftType is FunctionType) {
       if (_isFunctionTypeUnrelatedToType(leftType, rightType)) {
         return true;

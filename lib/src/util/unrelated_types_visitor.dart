@@ -80,8 +80,9 @@ bool _isParameterizedMethodInvocation(
 /// define the target, i.e. implement only [definition] and [methodName].
 abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final TypeSystem typeSystem;
 
-  UnrelatedTypesProcessors(this.rule);
+  UnrelatedTypesProcessors(this.rule, this.typeSystem);
 
   /// The type definition which this [UnrelatedTypesProcessors] is concerned
   /// with.
@@ -128,7 +129,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
     // Finally, determine whether the type of the argument is related to the
     // type of the method target.
     if (targetType is InterfaceType &&
-        DartTypeUtilities.unrelatedTypes(argument.staticType,
+        DartTypeUtilities.unrelatedTypes(typeSystem, argument.staticType,
             _findIterableTypeArgument(definition, targetType))) {
       rule.reportLint(node);
     }
