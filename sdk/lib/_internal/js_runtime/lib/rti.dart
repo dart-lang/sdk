@@ -794,7 +794,6 @@ class _Universe {
         rti, RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation));
     Rti._setIsTestFunction(
         rti, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
-
     return rti;
   }
 

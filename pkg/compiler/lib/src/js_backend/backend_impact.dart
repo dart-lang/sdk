@@ -776,7 +776,10 @@ class BackendImpacts {
         _commonElements.instanceType,
         _commonElements.rtiEvalMethod,
         _commonElements.rtiBindMethod,
-      ])
+        _commonElements.generalIsTestImplementation,
+        _commonElements.generalAsCheckImplementation,
+        _commonElements.generalTypeCheckImplementation,
+      ], globalUses: [])
     ];
   }
 

@@ -492,6 +492,10 @@ abstract class CommonElements {
   FunctionEntity get rtiBindMethod;
   FunctionEntity get rtiAddRulesMethod;
 
+  FunctionEntity get generalIsTestImplementation;
+  FunctionEntity get generalAsCheckImplementation;
+  FunctionEntity get generalTypeCheckImplementation;
+
   // From dart:_internal
 
   ClassEntity get symbolImplementationClass;
@@ -1869,6 +1873,24 @@ class CommonElementsImpl
   @override
   FunctionEntity get rtiAddRulesMethod =>
       _rtiAddRulesMethod ??= _findClassMember(_rtiUniverseClass, 'addRules');
+
+  FunctionEntity _generalIsTestImplementation;
+  @override
+  FunctionEntity get generalIsTestImplementation =>
+      _generalIsTestImplementation ??=
+          _findRtiFunction('_generalIsTestImplementation');
+
+  FunctionEntity _generalAsCheckImplementation;
+  @override
+  FunctionEntity get generalAsCheckImplementation =>
+      _generalAsCheckImplementation ??=
+          _findRtiFunction('_generalAsCheckImplementation');
+
+  FunctionEntity _generalTypeCheckImplementation;
+  @override
+  FunctionEntity get generalTypeCheckImplementation =>
+      _generalTypeCheckImplementation ??=
+          _findRtiFunction('_generalTypeCheckImplementation');
 
   // From dart:_internal
 
