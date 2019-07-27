@@ -6,15 +6,16 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-final directory =
-    Platform.script.resolve('../../../../language_model/lexeme').path;
+final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
+    '..', '..', '..', 'language_model', 'lexeme');
 const expectedLookback = 100;
 
 void main() {
-  if (Platform.isWindows || sizeOf<IntPtr>() == 4) {
-    // We don't yet support running tflite on Windows or 32-bit systems.
+  if (sizeOf<IntPtr>() == 4) {
+    // We don't yet support running tflite on 32-bit systems.
     return;
   }
 
