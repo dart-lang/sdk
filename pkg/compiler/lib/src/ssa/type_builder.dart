@@ -476,19 +476,13 @@ abstract class TypeBuilder {
     HInstruction reifiedType = analyzeTypeArgumentNewRti(
         type, builder.sourceElement,
         sourceInformation: sourceInformation);
-    if (type is InterfaceType) {
-      // TODO(sra): Under NNDB opt-in, this will be NonNullable.
-      AbstractValue subtype =
-          _abstractValueDomain.createNullableSubtype(type.element);
-      return HAsCheck(original, reifiedType, isTypeError, subtype)
-        ..sourceInformation = sourceInformation;
-    } else {
-      // TypeMasks don't encode function types or FutureOr types or type
-      // variable types.
-      AbstractValue abstractValue = original.instructionType;
-      return HAsCheck(original, reifiedType, isTypeError, abstractValue)
-        ..sourceInformation = sourceInformation;
-    }
+    AbstractValueWithPrecision checkedType =
+        _abstractValueDomain.createFromStaticType(type);
+    AbstractValue instructionType = _abstractValueDomain.intersection(
+        original.instructionType, checkedType.abstractValue);
+    return HAsCheck(
+        original, reifiedType, checkedType, isTypeError, instructionType)
+      ..sourceInformation = sourceInformation;
   }
 }
 

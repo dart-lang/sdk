@@ -752,7 +752,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             _closedWorld.elementEnvironment.getFieldType(field);
         HInstruction closureCall = new HInvokeClosure(
             callSelector,
-            _abstractValueDomain.createFromStaticType(fieldType),
+            _abstractValueDomain.createFromStaticType(fieldType).abstractValue,
             inputs,
             node.instructionType,
             node.typeArguments)
@@ -1853,6 +1853,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (TypeRecipe.isIdentity(node.typeExpression, node.envStructure)) {
       return node.inputs.single;
     }
+    return node;
+  }
+
+  @override
+  HInstruction visitAsCheck(HAsCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
   }
 }
