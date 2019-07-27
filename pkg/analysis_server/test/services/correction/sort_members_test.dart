@@ -654,6 +654,36 @@ class D {}
 ''');
   }
 
+  test_unitMembers_extensionClass() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    await _parseTestUnit(r'''
+extension E on C {}
+class C {}
+''');
+    // validate change
+    _assertSort(r'''
+class C {}
+extension E on C {}
+''');
+  }
+
+  test_unitMembers_extensions() async {
+    createAnalysisOptionsFile(experiments: ['extension-methods']);
+    await _parseTestUnit(r'''
+extension E2 on String {}
+extension on List {}
+extension E1 on int {}
+extension on bool {}
+''');
+    // validate change
+    _assertSort(r'''
+extension on List {}
+extension on bool {}
+extension E1 on int {}
+extension E2 on String {}
+''');
+  }
+
   test_unitMembers_function() async {
     await _parseTestUnit(r'''
 fc() {}
