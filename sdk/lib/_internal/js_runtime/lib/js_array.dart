@@ -97,15 +97,31 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('JSUnmodifiableArray', '#', list);
   }
 
-  checkMutable(reason) {
-    if (this is! JSMutableArray) {
-      throw new UnsupportedError(reason);
+  static bool isFixedLength(JSArray a) {
+    return !JS('bool', r'!#.fixed$length', a);
+  }
+
+  static bool isUnmodifiable(JSArray a) {
+    return !JS('bool', r'!#.immutable$list', a);
+  }
+
+  static bool isGrowable(JSArray a) {
+    return !isFixedLength(a);
+  }
+
+  static bool isMutable(JSArray a) {
+    return !isUnmodifiable(a);
+  }
+
+  checkMutable(String reason) {
+    if (!isMutable(this)) {
+      throw UnsupportedError(reason);
     }
   }
 
-  checkGrowable(reason) {
-    if (this is! JSExtendableArray) {
-      throw new UnsupportedError(reason);
+  checkGrowable(String reason) {
+    if (!isGrowable(this)) {
+      throw UnsupportedError(reason);
     }
   }
 
