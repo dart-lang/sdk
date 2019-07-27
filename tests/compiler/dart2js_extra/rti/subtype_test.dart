@@ -118,6 +118,16 @@ void testFunctions() {
   strictSubtype('~([int,double])', '~(int,[double])');
   strictSubtype('~([int,double,CodeUnits])', '~([int,double])');
   strictSubtype('~([int,double,CodeUnits])', '~(int,[double])');
+
+  equivalent('~({foo:@})', '~({foo:@})');
+  unrelated('~({foo:@})', '~({bar:@})');
+  unrelated('~({foo:@,quux:@})', '~({bar:@,baz:@})');
+  unrelated('~(@,{foo:@})', '~(@,@)');
+  unrelated('~(@,{foo:@})', '~({bar:@,foo:@})');
+  equivalent('~({bar:int,foo:double})', '~({bar:int,foo:double})');
+  strictSubtype('~({bar:int,foo:double})', '~({bar:int})');
+  strictSubtype('~({bar:int,foo:double})', '~({foo:double})');
+  strictSubtype('~({bar:num,baz:num,foo:num})', '~({baz:int,foo:double})');
 }
 
 String reason(String s, String t) => "$s <: $t";
