@@ -53,11 +53,11 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   final LinterContext context;
+  final TypeSystem typeSystem;
 
   InterfaceType _futureDynamicType;
-  InterfaceType _futureOrDynamicType;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
     if (type.isVoid) return true;
@@ -80,11 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    final typeProvider = context.typeProvider;
-    _futureDynamicType =
-        typeProvider.futureType.instantiate([typeProvider.dynamicType]);
-    _futureOrDynamicType =
-        typeProvider.futureOrType.instantiate([typeProvider.dynamicType]);
+    _futureDynamicType = context.typeProvider.futureDynamicType;
   }
 
   @override
@@ -138,8 +134,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             !isTypeAcceptableWhenExpectingVoid(type) ||
         expectedType.isDartAsyncFutureOr &&
             (expectedType as InterfaceType).typeArguments.first.isVoid &&
-            !type.isAssignableTo(_futureDynamicType) &&
-            !type.isAssignableTo(_futureOrDynamicType)) {
+            !typeSystem.isAssignableTo(type, _futureDynamicType)) {
       rule.reportLint(node);
     } else if (checkedNode is FunctionExpression &&
         checkedNode.body is! ExpressionFunctionBody &&

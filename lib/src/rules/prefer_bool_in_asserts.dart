@@ -59,13 +59,18 @@ class PreferBoolInAsserts extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
+  final TypeSystem typeSystem;
+
   final DartType boolType;
 
   _Visitor(this.rule, LinterContext context)
-      : boolType = context.typeProvider.boolType;
+      : typeSystem = context.typeSystem,
+        boolType = context.typeProvider.boolType;
+
   @override
   void visitAssertStatement(AssertStatement node) {
-    if (!_unbound(node.condition.staticType).isAssignableTo(boolType)) {
+    var conditionType = _unbound(node.condition.staticType);
+    if (!typeSystem.isAssignableTo(conditionType, boolType)) {
       rule.reportLint(node.condition);
     }
   }
