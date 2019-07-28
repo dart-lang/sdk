@@ -193,7 +193,7 @@ abstract class StreamTransformer<S, T> {}
 
 class Future<T> {
   factory Future.delayed(Duration duration, [T computation()]) => null;
-  factory Future.value([value]) => null;
+  factory Future.value([FutureOr<T> value]) => null;
   static Future wait(List<Future> futures) => null;
 }
 

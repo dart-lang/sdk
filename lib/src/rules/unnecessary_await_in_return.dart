@@ -46,7 +46,7 @@ class UnnecessaryAwaitInReturn extends LintRule implements NodeLintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    final visitor = _Visitor(this);
+    final visitor = _Visitor(this, context.typeSystem);
     registry.addExpressionFunctionBody(this, visitor);
     registry.addReturnStatement(this, visitor);
   }
@@ -54,8 +54,9 @@ class UnnecessaryAwaitInReturn extends LintRule implements NodeLintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+  final TypeSystem typeSystem;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.typeSystem);
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
@@ -96,7 +97,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (returnType != null &&
         returnType.isDartAsyncFuture &&
-        type.isSubtypeOf(returnType)) {
+        typeSystem.isSubtypeOf(type, returnType)) {
       rule.reportLintForToken((expression as AwaitExpression).awaitKeyword);
     }
   }

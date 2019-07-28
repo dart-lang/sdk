@@ -118,7 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             null &&
         typeSystem.mostSpecificTypeArgument(type, typeProvider.mapType) ==
             null &&
-        !type.element.type.isSubtypeOf(typeProvider.stringType)) {
+        !type.isDartCoreString) {
       return;
     }
 
