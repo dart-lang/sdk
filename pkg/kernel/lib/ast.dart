@@ -5604,7 +5604,7 @@ class SymbolConstant extends Constant {
         : '#$name';
   }
 
-  int get hashCode => name.hashCode ^ libraryReference.hashCode;
+  int get hashCode => _Hash.hash2(name, libraryReference);
 
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -5636,12 +5636,10 @@ class MapConstant extends Constant {
 
   String toString() => '${this.runtimeType}<$keyType, $valueType>($entries)';
 
-  // TODO(kustermann): Consider combining the hash codes in a better way (also
-  // below and in [listHashCode]/[mapHashCode].
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??=
-        keyType.hashCode ^ valueType.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5662,7 +5660,7 @@ class ConstantMapEntry {
 
   String toString() => '$key: $value';
 
-  int get hashCode => key.hashCode ^ value.hashCode;
+  int get hashCode => _Hash.hash2(key, value);
 
   bool operator ==(Object other) =>
       other is ConstantMapEntry && other.key == key && other.value == value;
@@ -5688,7 +5686,8 @@ class ListConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5721,7 +5720,8 @@ class SetConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= typeArgument.hashCode ^ listHashCode(entries);
+    return _cachedHashCode ??= _Hash.combineFinish(
+        typeArgument.hashCode, _Hash.combineListHash(entries));
   }
 
   bool operator ==(Object other) =>
@@ -5774,9 +5774,10 @@ class InstanceConstant extends Constant {
 
   int _cachedHashCode;
   int get hashCode {
-    return _cachedHashCode ??= classReference.hashCode ^
-        listHashCode(typeArguments) ^
-        mapHashCode(fieldValues);
+    return _cachedHashCode ??= _Hash.combine2Finish(
+        classReference.hashCode,
+        listHashCode(typeArguments),
+        _Hash.combineMapHashUnordered(fieldValues));
   }
 
   bool operator ==(Object other) {
@@ -5810,7 +5811,8 @@ class PartialInstantiationConstant extends Constant {
     return '${runtimeType}(${tearOffConstant.procedure}<${types.join(', ')}>)';
   }
 
-  int get hashCode => tearOffConstant.hashCode ^ listHashCode(types);
+  int get hashCode => _Hash.combineFinish(
+      tearOffConstant.hashCode, _Hash.combineListHash(types));
 
   bool operator ==(Object other) {
     return other is PartialInstantiationConstant &&
@@ -6307,15 +6309,112 @@ CanonicalName getCanonicalNameOfLibrary(Library library) {
   return library.canonicalName;
 }
 
+/// Murmur-inspired hashing, with a fall-back to Jenkins-inspired hashing when
+/// compiled to JavaScript.
+///
+/// A hash function should be constructed of several [combine] calls followed by
+/// a [finish] call.
+class _Hash {
+  static const int M = 0x9ddfea08eb382000 + 0xd69;
+  static const bool intIs64Bit = (1 << 63) != 0;
+
+  /// Primitive hash combining step.
+  static int combine(int value, int hash) {
+    if (intIs64Bit) {
+      value *= M;
+      value ^= _shru(value, 47);
+      value *= M;
+      hash ^= value;
+      hash *= M;
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + value);
+      hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
+      hash = hash ^ (hash >> 6);
+    }
+    return hash;
+  }
+
+  /// Primitive hash finalization step.
+  static int finish(int hash) {
+    if (intIs64Bit) {
+      hash ^= _shru(hash, 44);
+      hash *= M;
+      hash ^= _shru(hash, 41);
+    } else {
+      // Fall back to Jenkins-inspired hashing on JavaScript platforms.
+      hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
+      hash = hash ^ (hash >> 11);
+      hash = 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+    }
+    return hash;
+  }
+
+  static int combineFinish(int value, int hash) {
+    return finish(combine(value, hash));
+  }
+
+  static int combine2(int value1, int value2, int hash) {
+    return combine(value2, combine(value1, hash));
+  }
+
+  static int combine2Finish(int value1, int value2, int hash) {
+    return finish(combine2(value1, value2, hash));
+  }
+
+  static int hash2(Object object1, Object object2) {
+    return combine2Finish(object2.hashCode, object2.hashCode, 0);
+  }
+
+  static int combineListHash(List list, [int hash = 1]) {
+    for (var item in list) {
+      hash = _Hash.combine(item.hashCode, hash);
+    }
+    return hash;
+  }
+
+  static int combineList(List<int> hashes, int hash) {
+    for (var item in hashes) {
+      hash = combine(item, hash);
+    }
+    return hash;
+  }
+
+  static int combineMapHashUnordered(Map map, [int hash = 2]) {
+    if (map == null || map.isEmpty) return hash;
+    List<int> entryHashes = List(map.length);
+    int i = 0;
+    for (var entry in map.entries) {
+      entryHashes[i++] = combine(entry.key.hashCode, entry.value.hashCode);
+    }
+    entryHashes.sort();
+    return combineList(entryHashes, hash);
+  }
+
+  // TODO(sra): Replace with '>>>'.
+  static int _shru(int v, int n) {
+    assert(n >= 1);
+    assert(intIs64Bit);
+    return ((v >> 1) & (0x7fffFFFFffffF000 + 0xFFF)) >> (n - 1);
+  }
+}
+
 int listHashCode(List list) {
-  return list.fold(0, (int value, Object item) => value ^ item.hashCode);
+  return _Hash.finish(_Hash.combineListHash(list));
 }
 
 int mapHashCode(Map map) {
-  int value = 0;
-  for (final Object x in map.keys) value ^= x.hashCode;
-  for (final Object x in map.values) value ^= x.hashCode;
-  return value;
+  return mapHashCodeUnordered(map);
+}
+
+int mapHashCodeOrdered(Map map, [int hash = 2]) {
+  for (final Object x in map.keys) hash = _Hash.combine(x.hashCode, hash);
+  for (final Object x in map.values) hash = _Hash.combine(x.hashCode, hash);
+  return _Hash.finish(hash);
+}
+
+int mapHashCodeUnordered(Map map) {
+  return _Hash.finish(_Hash.combineMapHashUnordered(map));
 }
 
 bool listEquals(List a, List b) {
