@@ -11,8 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
-import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -23,7 +22,7 @@ class InheritanceOverrideVerifier {
 
   final TypeSystem _typeSystem;
   final TypeProvider _typeProvider;
-  final InheritanceManager3 _inheritance;
+  final InheritanceManager2 _inheritance;
   final ErrorReporter _reporter;
 
   InheritanceOverrideVerifier(
@@ -77,9 +76,9 @@ class InheritanceOverrideVerifier {
     }
   }
 
-  /// Returns [ExecutableElement] members that are in the interface of the
+  /// Returns [FunctionType]s of members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(ClassDeclaration node) {
+  static List<FunctionType> missingOverrides(ClassDeclaration node) {
     return node.name.getProperty(_missingOverridesKey) ?? const [];
   }
 }
@@ -87,7 +86,7 @@ class InheritanceOverrideVerifier {
 class _ClassVerifier {
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;
-  final InheritanceManager3 inheritance;
+  final InheritanceManager2 inheritance;
   final ErrorReporter reporter;
 
   final FeatureSet featureSet;
@@ -189,27 +188,27 @@ class _ClassVerifier {
     _checkForMismatchedAccessorTypes(interface);
 
     if (!classElement.isAbstract) {
-      List<ExecutableElement> inheritedAbstract = null;
+      List<FunctionType> inheritedAbstract = null;
 
       for (var name in interface.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {
           continue;
         }
 
-        var interfaceElement = interface.map[name];
-        var concreteElement = interface.implemented[name];
+        var interfaceType = interface.map[name];
+        var concreteType = interface.implemented[name];
 
         // No concrete implementation of the name.
-        if (concreteElement == null) {
+        if (concreteType == null) {
           if (!_reportConcreteClassWithAbstractMember(name.name)) {
             inheritedAbstract ??= [];
-            inheritedAbstract.add(interfaceElement);
+            inheritedAbstract.add(interfaceType);
           }
           continue;
         }
 
         // The case when members have different kinds is reported in verifier.
-        if (concreteElement.kind != interfaceElement.kind) {
+        if (concreteType.element.kind != interfaceType.element.kind) {
           continue;
         }
 
@@ -221,17 +220,16 @@ class _ClassVerifier {
         // 2. if the class contains no member named `m`, and the class member
         //    for `noSuchMethod` is the one declared in `Object`, then it's a
         //    compile-time error.
-        if (!typeSystem.isOverrideSubtypeOf(
-            concreteElement.type, interfaceElement.type)) {
+        if (!typeSystem.isOverrideSubtypeOf(concreteType, interfaceType)) {
           reporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             classNameNode,
             [
               name.name,
-              concreteElement.enclosingElement.name,
-              concreteElement.displayName,
-              interfaceElement.enclosingElement.name,
-              interfaceElement.displayName,
+              concreteType.element.enclosingElement.name,
+              concreteType.displayName,
+              interfaceType.element.enclosingElement.name,
+              interfaceType.displayName,
             ],
           );
         }
@@ -267,15 +265,15 @@ class _ClassVerifier {
 
     var name = new Name(libraryUri, member.name);
     for (var superInterface in allSuperinterfaces) {
-      var superMember = superInterface.declared[name];
-      if (superMember != null) {
+      var superMemberType = superInterface.declared[name];
+      if (superMemberType != null) {
         // The case when members have different kinds is reported in verifier.
         // TODO(scheglov) Do it here?
-        if (member.kind != superMember.kind) {
+        if (member.kind != superMemberType.element.kind) {
           continue;
         }
 
-        if (!typeSystem.isOverrideSubtypeOf(member.type, superMember.type)) {
+        if (!typeSystem.isOverrideSubtypeOf(member.type, superMemberType)) {
           reporter.reportErrorForNode(
             CompileTimeErrorCode.INVALID_OVERRIDE,
             node,
@@ -283,14 +281,14 @@ class _ClassVerifier {
               name.name,
               member.enclosingElement.name,
               member.type.displayName,
-              superMember.enclosingElement.name,
-              superMember.displayName
+              superMemberType.element.enclosingElement.name,
+              superMemberType.displayName
             ],
           );
         }
         if (methodParameterNodes != null) {
           _checkForOptionalParametersDifferentDefaultValues(
-            superMember,
+            superMemberType.element,
             member,
             methodParameterNodes,
           );
@@ -384,7 +382,7 @@ class _ClassVerifier {
       if (!name.isAccessibleFor(libraryUri)) continue;
 
       var getter = interface.map[name];
-      if (getter.kind == ElementKind.GETTER) {
+      if (getter.element.kind == ElementKind.GETTER) {
         // TODO(scheglov) We should separate getters and setters.
         var setter = interface.map[new Name(libraryUri, '${name.name}=')];
         if (setter != null && setter.parameters.length == 1) {
@@ -392,24 +390,27 @@ class _ClassVerifier {
           var setterType = setter.parameters[0].type;
           if (!typeSystem.isAssignableTo(getterType, setterType,
               featureSet: featureSet)) {
+            var getterElement = getter.element;
+            var setterElement = setter.element;
+
             Element errorElement;
-            if (getter.enclosingElement == classElement) {
-              errorElement = getter;
-            } else if (setter.enclosingElement == classElement) {
-              errorElement = setter;
+            if (getterElement.enclosingElement == classElement) {
+              errorElement = getterElement;
+            } else if (setterElement.enclosingElement == classElement) {
+              errorElement = setterElement;
             } else {
               errorElement = classElement;
             }
 
-            String getterName = getter.displayName;
-            if (getter.enclosingElement != classElement) {
-              var getterClassName = getter.enclosingElement.displayName;
+            String getterName = getterElement.displayName;
+            if (getterElement.enclosingElement != classElement) {
+              var getterClassName = getterElement.enclosingElement.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
-            String setterName = setter.displayName;
-            if (setter.enclosingElement != classElement) {
-              var setterClassName = setter.enclosingElement.displayName;
+            String setterName = setterElement.displayName;
+            if (setterElement.enclosingElement != classElement) {
+              var setterClassName = setterElement.enclosingElement.displayName;
               setterName = '$setterClassName.$setterName';
             }
 
@@ -444,9 +445,6 @@ class _ClassVerifier {
     for (var i = 0; i < baseParameterElements.length; ++i) {
       var baseParameter = baseParameterElements[i];
       if (baseParameter.isOptional) {
-        if (baseParameter is ParameterMember) {
-          baseParameter = (baseParameter as ParameterMember).baseElement;
-        }
         baseOptionalElements.add(baseParameter);
       }
     }
@@ -636,13 +634,13 @@ class _ClassVerifier {
         node,
         [
           name.name,
-          conflict.getter.enclosingElement.name,
-          conflict.method.enclosingElement.name
+          conflict.getter.element.enclosingElement.name,
+          conflict.method.element.enclosingElement.name
         ],
       );
     } else {
       var candidatesStr = conflict.candidates.map((candidate) {
-        var className = candidate.enclosingElement.name;
+        var className = candidate.element.enclosingElement.name;
         return '$className.${name.name} (${candidate.displayName})';
       }).join(', ');
 
@@ -654,18 +652,20 @@ class _ClassVerifier {
     }
   }
 
-  void _reportInheritedAbstractMembers(List<ExecutableElement> elements) {
-    if (elements == null) {
+  void _reportInheritedAbstractMembers(List<FunctionType> types) {
+    if (types == null) {
       return;
     }
 
     classNameNode.setProperty(
       InheritanceOverrideVerifier._missingOverridesKey,
-      elements,
+      types,
     );
 
     var descriptions = <String>[];
-    for (ExecutableElement element in elements) {
+    for (FunctionType type in types) {
+      ExecutableElement element = type.element;
+
       String prefix = '';
       if (element is PropertyAccessorElement) {
         if (element.isGetter) {

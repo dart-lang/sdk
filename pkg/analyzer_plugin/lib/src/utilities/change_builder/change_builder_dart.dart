@@ -416,7 +416,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeOverride(
-    ExecutableElement element, {
+    FunctionType signature, {
     StringBuffer displayTextBuffer,
     String returnTypeGroupName,
     bool invokeSuper: false,
@@ -430,6 +430,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
     }
 
+    ExecutableElement element = signature.element as ExecutableElement;
     String prefix = getIndent(1);
     String prefix2 = getIndent(2);
     ElementKind elementKind = element.kind;
@@ -450,7 +451,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     // return type
-    DartType returnType = element.returnType;
+    DartType returnType = signature.returnType;
     bool typeWritten = writeType(returnType,
         groupName: returnTypeGroupName, methodBeingCopied: element);
     if (typeWritten) {
@@ -490,10 +491,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       }
       displayTextBuffer?.write(' => …');
     } else {
-      List<ParameterElement> parameters = element.parameters;
+      List<ParameterElement> parameters = signature.parameters;
       withCarbonCopyBuffer(() {
-        writeTypeParameters(element.type.typeFormals,
-            methodBeingCopied: element);
+        writeTypeParameters(signature.typeFormals, methodBeingCopied: element);
         writeParameters(parameters, methodBeingCopied: element);
       });
       writeln(' {');

@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions, Logger;
@@ -211,8 +210,6 @@ abstract class LinterContext {
 
   DeclaredVariables get declaredVariables;
 
-  InheritanceManager3 get inheritanceManager;
-
   TypeProvider get typeProvider;
 
   TypeSystem get typeSystem;
@@ -258,18 +255,8 @@ class LinterContextImpl implements LinterContext {
   @override
   final TypeSystem typeSystem;
 
-  @override
-  final InheritanceManager3 inheritanceManager;
-
-  LinterContextImpl(
-    this.allUnits,
-    this.currentUnit,
-    this.declaredVariables,
-    this.typeProvider,
-    this.typeSystem,
-    this.inheritanceManager,
-    this.analysisOptions,
-  );
+  LinterContextImpl(this.allUnits, this.currentUnit, this.declaredVariables,
+      this.typeProvider, this.typeSystem, this.analysisOptions);
 
   @override
   bool canBeConst(InstanceCreationExpression expression) {

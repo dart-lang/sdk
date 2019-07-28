@@ -22,7 +22,7 @@ import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -262,9 +262,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The type system primitives
   final TypeSystem _typeSystem;
 
-  /// The inheritance manager to access interface type hierarchy.
-  final InheritanceManager3 _inheritanceManager;
-
   /// The current library
   final LibraryElement _currentLibrary;
 
@@ -286,14 +283,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     CompilationUnit unit,
     String content, {
     TypeSystem typeSystem,
-    @required InheritanceManager3 inheritanceManager,
     ResourceProvider resourceProvider,
     DeclaredVariables declaredVariables,
     AnalysisOptions analysisOptions,
   })  : _nullType = typeProvider.nullType,
         _futureNullType = typeProvider.futureNullType,
         _typeSystem = typeSystem ?? new Dart2TypeSystem(typeProvider),
-        _inheritanceManager = inheritanceManager,
         _invalidAccessVerifier =
             new _InvalidAccessVerifier(_errorReporter, _currentLibrary) {
     _inDeprecatedMember = _currentLibrary.hasDeprecated;
@@ -309,7 +304,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         declaredVariables,
         typeProvider,
         _typeSystem,
-        _inheritanceManager,
         analysisOptions);
   }
 
@@ -3343,7 +3337,7 @@ class InstanceFieldResolverVisitor extends ResolverVisitor {
   /// the node that will first be visited.  If `null` or unspecified, a new
   /// [LibraryScope] will be created based on the [definingLibrary].
   InstanceFieldResolverVisitor(
-      InheritanceManager3 inheritance,
+      InheritanceManager2 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3447,7 +3441,7 @@ class NonNullableTypeProvider extends TypeProviderImpl {
 /// being used correctly.
 class OverrideVerifier extends RecursiveAstVisitor {
   /// The inheritance manager used to find overridden methods.
-  final InheritanceManager3 _inheritance;
+  final InheritanceManager2 _inheritance;
 
   /// The URI of the library being verified.
   final Uri _libraryUri;
@@ -3549,7 +3543,7 @@ class PartialResolverVisitor extends ResolverVisitor {
   /// [LibraryScope] will be created based on [definingLibrary] and
   /// [typeProvider].
   PartialResolverVisitor(
-      InheritanceManager3 inheritance,
+      InheritanceManager2 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
@@ -3705,7 +3699,7 @@ class ResolverVisitor extends ScopedVisitor {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager3 inheritance;
+  final InheritanceManager2 inheritance;
 
   final AnalysisOptionsImpl _analysisOptions;
 
@@ -3771,7 +3765,7 @@ class ResolverVisitor extends ScopedVisitor {
   /// TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
   ResolverVisitor(
-      InheritanceManager3 inheritance,
+      InheritanceManager2 inheritance,
       LibraryElement definingLibrary,
       Source source,
       TypeProvider typeProvider,
