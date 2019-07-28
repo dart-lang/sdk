@@ -103,18 +103,17 @@ import 'kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelFunctionBuilder,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
         NamedTypeBuilder,
-        KernelProcedureBuilder,
-        KernelRedirectingFactoryBuilder,
+        ProcedureBuilder,
+        RedirectingFactoryBuilder,
         TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
-        ProcedureBuilder,
+        FunctionBuilder,
         Scope,
         TypeVariableBuilder;
 
@@ -436,7 +435,7 @@ abstract class KernelClassBuilder
             unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
                 fileUri);
           }
-          if (declaration is KernelRedirectingFactoryBuilder) {
+          if (declaration is RedirectingFactoryBuilder) {
             // Compute the immediate redirection target, not the effective.
             ConstructorReferenceBuilder redirectionTarget =
                 declaration.redirectionTarget;
@@ -449,7 +448,7 @@ abstract class KernelClassBuilder
                 // only legal to do to things in the kernel tree.
                 addRedirectingConstructor(declaration, library);
               }
-              if (targetBuilder is ProcedureBuilder) {
+              if (targetBuilder is FunctionBuilder) {
                 List<DartType> typeArguments = declaration.typeArguments;
                 if (typeArguments == null) {
                   // TODO(32049) If type arguments aren't specified, they should
@@ -510,7 +509,7 @@ abstract class KernelClassBuilder
   }
 
   void addRedirectingConstructor(
-      KernelProcedureBuilder constructor, KernelLibraryBuilder library) {
+      ProcedureBuilder constructor, KernelLibraryBuilder library) {
     // Add a new synthetic field to this class for representing factory
     // constructors. This is used to support resolving such constructors in
     // source code.
@@ -1390,13 +1389,13 @@ abstract class KernelClassBuilder
 
   // Computes the function type of a given redirection target. Returns [null] if
   // the type of the target could not be computed.
-  FunctionType computeRedirecteeType(KernelRedirectingFactoryBuilder factory,
-      TypeEnvironment typeEnvironment) {
+  FunctionType computeRedirecteeType(
+      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
     ConstructorReferenceBuilder redirectionTarget = factory.redirectionTarget;
     FunctionNode target;
     if (redirectionTarget.target == null) return null;
-    if (redirectionTarget.target is KernelFunctionBuilder) {
-      KernelFunctionBuilder targetBuilder = redirectionTarget.target;
+    if (redirectionTarget.target is FunctionBuilder) {
+      FunctionBuilder targetBuilder = redirectionTarget.target;
       target = targetBuilder.function;
     } else if (redirectionTarget.target is DillMemberBuilder &&
         (redirectionTarget.target.isConstructor ||
@@ -1492,8 +1491,8 @@ abstract class KernelClassBuilder
     }
   }
 
-  void checkRedirectingFactory(KernelRedirectingFactoryBuilder factory,
-      TypeEnvironment typeEnvironment) {
+  void checkRedirectingFactory(
+      RedirectingFactoryBuilder factory, TypeEnvironment typeEnvironment) {
     // The factory type cannot contain any type parameters other than those of
     // its enclosing class, because constructors cannot specify type parameters
     // of their own.
@@ -1522,7 +1521,7 @@ abstract class KernelClassBuilder
     for (String name in names) {
       Declaration constructor = constructors[name];
       do {
-        if (constructor is KernelRedirectingFactoryBuilder) {
+        if (constructor is RedirectingFactoryBuilder) {
           checkRedirectingFactory(constructor, typeEnvironment);
         }
         constructor = constructor.next;

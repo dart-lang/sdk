@@ -33,7 +33,7 @@ import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
         Declaration,
-        KernelConstructorBuilder,
+        ConstructorBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
         LibraryBuilder,
@@ -147,7 +147,7 @@ class FormalParameterBuilder extends ModifierBuilder {
     // optional and named parameters of instance methods because these might be
     // needed to generated noSuchMethod forwarders.
     final bool isConstConstructorParameter =
-        (parent is KernelConstructorBuilder && parent.target.isConst);
+        (parent is ConstructorBuilder && parent.target.isConst);
     if ((isConstConstructorParameter || parent.isInstanceMember) &&
         initializerToken != null) {
       final ClassBuilder classBuilder = parent.parent;

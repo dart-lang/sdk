@@ -130,17 +130,16 @@ import 'kernel_builder.dart'
         ImplicitFieldType,
         InvalidTypeBuilder,
         KernelClassBuilder,
-        KernelConstructorBuilder,
+        ConstructorBuilder,
         KernelEnumBuilder,
         KernelFieldBuilder,
-        KernelFunctionBuilder,
         KernelTypeAliasBuilder,
         KernelInvalidTypeBuilder,
         KernelMetadataBuilder,
         MixinApplicationBuilder,
         NamedTypeBuilder,
-        KernelProcedureBuilder,
-        KernelRedirectingFactoryBuilder,
+        ProcedureBuilder,
+        RedirectingFactoryBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
@@ -148,7 +147,7 @@ import 'kernel_builder.dart'
         MetadataBuilder,
         NameIterator,
         PrefixBuilder,
-        ProcedureBuilder,
+        FunctionBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
@@ -173,7 +172,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
   final KernelLibraryBuilder actualOrigin;
 
-  final List<KernelFunctionBuilder> nativeMethods = <KernelFunctionBuilder>[];
+  final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
 
   final List<KernelTypeVariableBuilder> boundlessTypeVariables =
       <KernelTypeVariableBuilder>[];
@@ -760,7 +759,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       String nativeMethodName,
       {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelConstructorBuilder procedure = new KernelConstructorBuilder(
+    ConstructorBuilder procedure = new ConstructorBuilder(
         metadata,
         modifiers & ~abstractMask,
         returnType,
@@ -813,7 +812,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
         returnType = addVoidType(charOffset);
       }
     }
-    ProcedureBuilder procedure = new KernelProcedureBuilder(
+    FunctionBuilder procedure = new ProcedureBuilder(
         metadata,
         modifiers,
         returnType,
@@ -864,9 +863,9 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       procedureName = name;
     }
 
-    KernelProcedureBuilder procedure;
+    ProcedureBuilder procedure;
     if (redirectionTarget != null) {
-      procedure = new KernelRedirectingFactoryBuilder(
+      procedure = new RedirectingFactoryBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
@@ -883,7 +882,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
           nativeMethodName,
           redirectionTarget);
     } else {
-      procedure = new KernelProcedureBuilder(
+      procedure = new ProcedureBuilder(
           metadata,
           staticMask | modifiers,
           returnType,
@@ -1016,7 +1015,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       cls = declaration.build(this, coreLibrary);
     } else if (declaration is KernelFieldBuilder) {
       member = declaration.build(this)..isStatic = true;
-    } else if (declaration is KernelProcedureBuilder) {
+    } else if (declaration is ProcedureBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is KernelTypeAliasBuilder) {
       typedef = declaration.build(this);
@@ -1321,12 +1320,12 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     return count;
   }
 
-  void addNativeMethod(KernelFunctionBuilder method) {
+  void addNativeMethod(FunctionBuilder method) {
     nativeMethods.add(method);
   }
 
   int finishNativeMethods() {
-    for (KernelFunctionBuilder method in nativeMethods) {
+    for (FunctionBuilder method in nativeMethods) {
       method.becomeNative(loader);
     }
     return nativeMethods.length;
@@ -1425,7 +1424,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
               declaration.typeVariables, legacyMode || issues.isNotEmpty);
         }
         declaration.forEach((String name, Declaration member) {
-          if (member is KernelProcedureBuilder) {
+          if (member is ProcedureBuilder) {
             List<Object> issues = legacyMode
                 ? const <Object>[]
                 : getNonSimplicityIssuesForTypeVariables(member.typeVariables);
@@ -1444,7 +1443,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
         // In case of issues, use legacy mode for error recovery.
         count += computeDefaultTypesForVariables(
             declaration.typeVariables, legacyMode || issues.isNotEmpty);
-      } else if (declaration is KernelFunctionBuilder) {
+      } else if (declaration is FunctionBuilder) {
         List<Object> issues = legacyMode
             ? const <Object>[]
             : getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
@@ -1915,7 +1914,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       Declaration declaration = iterator.current;
       if (declaration is KernelFieldBuilder) {
         checkBoundsInField(declaration.target, typeEnvironment);
-      } else if (declaration is KernelProcedureBuilder) {
+      } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(
             declaration.target.function, typeEnvironment, declaration.fileUri);
       } else if (declaration is KernelClassBuilder) {

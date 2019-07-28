@@ -80,7 +80,7 @@ import '../kernel/kernel_builder.dart'
         EnumBuilder,
         FieldBuilder,
         KernelClassBuilder,
-        KernelProcedureBuilder,
+        ProcedureBuilder,
         LibraryBuilder,
         MemberBuilder,
         NamedTypeBuilder,
@@ -317,8 +317,8 @@ class SourceLoader extends Loader<Library> {
               "debugExpression in $enclosingClass");
       }
     }
-    KernelProcedureBuilder builder = new KernelProcedureBuilder(null, 0, null,
-        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new ProcedureBuilder(null, 0, null, "debugExpr",
+        null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope, isInstanceMember);

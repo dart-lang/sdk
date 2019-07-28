@@ -545,7 +545,7 @@ class DietListener extends StackListener {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
-    ProcedureBuilder builder = lookupConstructor(beginToken, name);
+    FunctionBuilder builder = lookupConstructor(beginToken, name);
     if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
@@ -592,7 +592,7 @@ class DietListener extends StackListener {
     Token metadata = pop();
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
-    ProcedureBuilder builder;
+    FunctionBuilder builder;
     if (name is QualifiedName ||
         (getOrSet == null && name == currentClass.name)) {
       builder = lookupConstructor(beginToken, name);
@@ -624,7 +624,7 @@ class DietListener extends StackListener {
       ..constantContext = constantContext;
   }
 
-  StackListener createFunctionListener(ProcedureBuilder builder) {
+  StackListener createFunctionListener(FunctionBuilder builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -636,7 +636,7 @@ class DietListener extends StackListener {
   }
 
   void buildRedirectingFactoryMethod(
-      Token token, ProcedureBuilder builder, MemberKind kind, Token metadata) {
+      Token token, FunctionBuilder builder, MemberKind kind, Token metadata) {
     final StackListener listener = createFunctionListener(builder);
     try {
       Parser parser = new Parser(listener);

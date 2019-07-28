@@ -82,7 +82,7 @@ import 'kernel_builder.dart'
         KernelFieldBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
-        KernelProcedureBuilder,
+        ProcedureBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -480,7 +480,7 @@ class ClassHierarchyNodeBuilder {
                     .add(new DelayedOverrideCheck(cls, a, b));
               }
             }
-          } else if (a is KernelProcedureBuilder) {
+          } else if (a is ProcedureBuilder) {
             if (!inferMethodTypes(a, b)) {
               hierarchy.overrideChecks.add(new DelayedOverrideCheck(cls, a, b));
             }
@@ -568,7 +568,7 @@ class ClassHierarchyNodeBuilder {
     return null;
   }
 
-  bool inferMethodTypes(KernelProcedureBuilder a, Declaration b) {
+  bool inferMethodTypes(ProcedureBuilder a, Declaration b) {
     debug?.log(
         "Trying to infer types for ${fullName(a)} based on ${fullName(b)}");
     if (b is DelayedMember) {
@@ -767,7 +767,7 @@ class ClassHierarchyNodeBuilder {
     return result;
   }
 
-  bool inferGetterType(KernelProcedureBuilder a, Declaration b) {
+  bool inferGetterType(ProcedureBuilder a, Declaration b) {
     debug?.log(
         "Inferring getter types for ${fullName(a)} based on ${fullName(b)}");
     Member bTarget = b.target;
@@ -800,7 +800,7 @@ class ClassHierarchyNodeBuilder {
     return a.target.function.returnType == bType;
   }
 
-  bool inferSetterType(KernelProcedureBuilder a, Declaration b) {
+  bool inferSetterType(ProcedureBuilder a, Declaration b) {
     debug?.log(
         "Inferring setter types for ${fullName(a)} based on ${fullName(b)}");
     Member bTarget = b.target;
@@ -843,7 +843,7 @@ class ClassHierarchyNodeBuilder {
   void checkValidOverride(Declaration a, Declaration b) {
     debug?.log(
         "checkValidOverride(${fullName(a)}, ${fullName(b)}) ${a.runtimeType}");
-    if (a is KernelProcedureBuilder) {
+    if (a is ProcedureBuilder) {
       if (inferMethodTypes(a, b)) return;
     } else if (a.isField) {
       if (inferFieldTypes(a, b)) return;
@@ -2000,7 +2000,7 @@ class DelayedOverrideCheck {
     debug?.log(
         "Delayed override check of ${fullName(a)} ${fullName(b)} wrt. ${cls.fullNameForErrors}");
     if (cls == a.parent) {
-      if (a is KernelProcedureBuilder) {
+      if (a is ProcedureBuilder) {
         if (a.isGetter && !hasExplicitReturnType(a)) {
           DartType type;
           if (b.isGetter) {
@@ -2481,7 +2481,7 @@ bool isAbstract(Declaration declaration) {
 
 bool inferParameterType(
     KernelClassBuilder cls,
-    KernelProcedureBuilder member,
+    ProcedureBuilder member,
     FormalParameterBuilder parameter,
     DartType type,
     bool hadTypesInferred,
@@ -2509,7 +2509,7 @@ void reportCantInferParameterType(KernelClassBuilder cls, MemberBuilder member,
       wasHandled: true);
 }
 
-bool inferReturnType(KernelClassBuilder cls, KernelProcedureBuilder member,
+bool inferReturnType(KernelClassBuilder cls, ProcedureBuilder member,
     DartType type, bool hadTypesInferred, ClassHierarchyBuilder hierarchy) {
   if (type == member.target.function.returnType) return true;
   bool result = true;
@@ -2599,19 +2599,17 @@ KernelClassBuilder getClass(TypeBuilder type) {
 }
 
 bool hasExplicitReturnType(Declaration declaration) {
-  assert(
-      declaration is KernelProcedureBuilder || declaration is DillMemberBuilder,
+  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
       "${declaration.runtimeType}");
-  return declaration is KernelProcedureBuilder
+  return declaration is ProcedureBuilder
       ? declaration.returnType != null
       : true;
 }
 
 bool hasExplicitlyTypedFormalParameter(Declaration declaration, int index) {
-  assert(
-      declaration is KernelProcedureBuilder || declaration is DillMemberBuilder,
+  assert(declaration is ProcedureBuilder || declaration is DillMemberBuilder,
       "${declaration.runtimeType}");
-  return declaration is KernelProcedureBuilder
+  return declaration is ProcedureBuilder
       ? declaration.formals[index].type != null
       : true;
 }

@@ -24,7 +24,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show KernelLibraryBuilder, KernelProcedureBuilder;
+    show KernelLibraryBuilder, ProcedureBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -54,8 +54,8 @@ class MockLibraryBuilder extends KernelLibraryBuilder {
                 .loader,
             null);
 
-  KernelProcedureBuilder mockProcedure(String name) {
-    return new KernelProcedureBuilder(null, 0, null, name, null, null,
+  ProcedureBuilder mockProcedure(String name) {
+    return new ProcedureBuilder(null, 0, null, name, null, null,
         ProcedureKind.Getter, this, -1, -1, -1, -1);
   }
 }

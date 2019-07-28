@@ -337,11 +337,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 fileUri, classBuilder?.target?.thisType, library));
 
   bool get inConstructor {
-    return functionNestingLevel == 0 && member is KernelConstructorBuilder;
+    return functionNestingLevel == 0 && member is ConstructorBuilder;
   }
 
   bool get isInstanceContext {
-    return isInstanceMember || member is KernelConstructorBuilder;
+    return isInstanceMember || member is ConstructorBuilder;
   }
 
   TypeEnvironment get typeEnvironment => typeInferrer?.typeSchemaEnvironment;
@@ -668,9 +668,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void prepareInitializers() {
-    ProcedureBuilder<TypeBuilder> member = this.member;
+    FunctionBuilder member = this.member;
     scope = member.computeFormalParameterInitializerScope(scope);
-    if (member is KernelConstructorBuilder) {
+    if (member is ConstructorBuilder) {
       member.prepareInitializers();
       if (member.formals != null) {
         for (FormalParameterBuilder formal in member.formals) {
@@ -755,7 +755,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       initializer = buildInvalidInitializer(node, token.charOffset);
     }
     typeInferrer?.inferInitializer(this, initializer);
-    if (member is KernelConstructorBuilder && !member.isExternal) {
+    if (member is ConstructorBuilder && !member.isExternal) {
       member.addInitializer(initializer, this);
     } else {
       addProblem(
@@ -767,10 +767,10 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   DartType _computeReturnTypeContext(MemberBuilder member) {
-    if (member is KernelProcedureBuilder) {
+    if (member is ProcedureBuilder) {
       return member.procedure.function.returnType;
     } else {
-      assert(member is KernelConstructorBuilder);
+      assert(member is ConstructorBuilder);
       return const DynamicType();
     }
   }
@@ -781,7 +781,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("finishFunction");
     typePromoter?.finished();
 
-    KernelFunctionBuilder builder = member;
+    FunctionBuilder builder = member;
     if (formals?.parameters != null) {
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
@@ -928,9 +928,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = body.fileOffset;
       }
     }
-    if (builder is KernelConstructorBuilder) {
+    if (builder is ConstructorBuilder) {
       finishConstructor(builder, asyncModifier);
-    } else if (builder is KernelProcedureBuilder) {
+    } else if (builder is ProcedureBuilder) {
       builder.asyncModifier = asyncModifier;
     } else {
       unhandled("${builder.runtimeType}", "finishFunction", builder.charOffset,
@@ -1232,7 +1232,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   void finishConstructor(
-      KernelConstructorBuilder builder, AsyncMarker asyncModifier) {
+      ConstructorBuilder builder, AsyncMarker asyncModifier) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
@@ -3009,7 +3009,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
         memberKind != MemberKind.GeneralizedFunctionType) {
-      ProcedureBuilder<TypeBuilder> member = this.member;
+      FunctionBuilder member = this.member;
       parameter = member.getFormal(name.name);
       if (parameter == null) {
         push(new ParserRecovery(nameToken.charOffset));
@@ -3023,8 +3023,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         parameter.build(library, functionNestingLevel);
     Expression initializer = name?.initializer;
     if (initializer != null) {
-      if (member is KernelRedirectingFactoryBuilder) {
-        KernelRedirectingFactoryBuilder factory = member;
+      if (member is RedirectingFactoryBuilder) {
+        RedirectingFactoryBuilder factory = member;
         addProblem(
             fasta.templateDefaultValueInRedirectingFactoryConstructor
                 .withArguments(factory.redirectionTarget.fullNameForErrors),

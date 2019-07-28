@@ -51,11 +51,11 @@ import 'kernel_builder.dart'
         EnumConstantInfo,
         FormalParameterBuilder,
         KernelClassBuilder,
-        KernelConstructorBuilder,
+        ConstructorBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
-        KernelProcedureBuilder,
+        ProcedureBuilder,
         TypeBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -133,7 +133,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
     members["_name"] = new KernelFieldBuilder(null, stringType, "_name",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    KernelConstructorBuilder constructorBuilder = new KernelConstructorBuilder(
+    ConstructorBuilder constructorBuilder = new ConstructorBuilder(
         null,
         constMask,
         null,
@@ -160,7 +160,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         charOffset,
         charOffset);
     members["values"] = valuesBuilder;
-    KernelProcedureBuilder toStringBuilder = new KernelProcedureBuilder(
+    ProcedureBuilder toStringBuilder = new ProcedureBuilder(
         null,
         0,
         stringType,
@@ -274,7 +274,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     Field indexField = indexFieldBuilder.build(libraryBuilder);
     KernelFieldBuilder nameFieldBuilder = firstMemberNamed("_name");
     Field nameField = nameFieldBuilder.build(libraryBuilder);
-    KernelProcedureBuilder toStringBuilder = firstMemberNamed("toString");
+    ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
     toStringBuilder.body = new ReturnStatement(
         new DirectPropertyGet(new ThisExpression(), nameField));
     List<Expression> values = <Expression>[];
@@ -293,7 +293,7 @@ class KernelEnumBuilder extends SourceClassBuilder
     valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
-    KernelConstructorBuilder constructorBuilder = constructorScopeBuilder[""];
+    ConstructorBuilder constructorBuilder = constructorScopeBuilder[""];
     Constructor constructor = constructorBuilder.build(libraryBuilder);
     constructor.initializers.insert(
         0,

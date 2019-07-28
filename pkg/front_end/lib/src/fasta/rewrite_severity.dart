@@ -46,6 +46,7 @@ Severity rewriteSeverity(
       case "builder/dynamic_type_builder.dart":
       case "builder/field_builder.dart":
       case "builder/formal_parameter_builder.dart":
+      case "builder/function_builder.dart":
       case "builder/function_type_builder.dart":
       case "builder/library_builder.dart":
       case "builder/member_builder.dart":
@@ -74,20 +75,12 @@ Severity rewriteSeverity(
       case "kernel/forest.dart":
       case "kernel/kernel_class_builder.dart":
       case "kernel/kernel_enum_builder.dart":
-      case "kernel/kernel_expression_generator.dart":
-      case "kernel/kernel_expression_generator_impl.dart":
       case "kernel/kernel_field_builder.dart":
-      case "kernel/kernel_formal_parameter_builder.dart":
-      case "kernel/kernel_function_type_builder.dart":
       case "kernel/kernel_invalid_type_builder.dart":
       case "kernel/kernel_library_builder.dart":
-      case "kernel/kernel_mixin_application_builder.dart":
-      case "kernel/kernel_named_type_builder.dart":
       case "kernel/kernel_prefix_builder.dart":
-      case "kernel/kernel_procedure_builder.dart":
       case "kernel/kernel_shadow_ast.dart":
       case "kernel/kernel_target.dart":
-      case "kernel/kernel_type_builder.dart":
       case "kernel/kernel_type_variable_builder.dart":
       case "kernel/load_library_builder.dart":
       case "kernel/metadata_collector.dart":

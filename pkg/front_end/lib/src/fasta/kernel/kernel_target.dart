@@ -92,9 +92,9 @@ import 'kernel_builder.dart'
         KernelClassBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
-        KernelProcedureBuilder,
-        LibraryBuilder,
         NamedTypeBuilder,
+        ProcedureBuilder,
+        LibraryBuilder,
         TypeBuilder,
         TypeDeclarationBuilder;
 
@@ -343,7 +343,7 @@ class KernelTarget extends TargetImplementation {
         AmbiguousBuilder problem = declaration;
         declaration = problem.getFirstDeclaration();
       }
-      if (declaration is KernelProcedureBuilder) {
+      if (declaration is ProcedureBuilder) {
         component.mainMethod = declaration.procedure;
       } else if (declaration is DillMemberBuilder) {
         if (declaration.member is Procedure) {

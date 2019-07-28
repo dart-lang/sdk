@@ -29,7 +29,7 @@ import '../kernel/kernel_builder.dart'
         Declaration,
         KernelClassBuilder,
         KernelFieldBuilder,
-        KernelFunctionBuilder,
+        FunctionBuilder,
         KernelInvalidTypeBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
@@ -130,7 +130,7 @@ class SourceClassBuilder extends KernelClassBuilder
           if (!declaration.isPatch && declaration.next == null) {
             cls.addMember(field);
           }
-        } else if (declaration is KernelFunctionBuilder) {
+        } else if (declaration is FunctionBuilder) {
           Member function = declaration.build(library);
           function.parent = cls;
           if (!declaration.isPatch && declaration.next == null) {

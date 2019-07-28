@@ -23,7 +23,7 @@ import '../builder/builder.dart'
         MetadataBuilder,
         NameIterator,
         PrefixBuilder,
-        ProcedureBuilder,
+        FunctionBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
@@ -533,7 +533,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     } else {
       assert(currentDeclaration.parent == libraryDeclaration);
     }
-    bool isConstructor = declaration is ProcedureBuilder &&
+    bool isConstructor = declaration is FunctionBuilder &&
         (declaration.isConstructor || declaration.isFactory);
     if (!isConstructor && name == currentDeclaration.name) {
       addProblem(

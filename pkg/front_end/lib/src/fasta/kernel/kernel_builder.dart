@@ -35,13 +35,6 @@ export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
 
 export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;
 
-export 'kernel_procedure_builder.dart'
-    show
-        KernelConstructorBuilder,
-        KernelFunctionBuilder,
-        KernelRedirectingFactoryBuilder,
-        KernelProcedureBuilder;
-
 export 'kernel_type_alias_builder.dart' show KernelTypeAliasBuilder;
 
 export 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;

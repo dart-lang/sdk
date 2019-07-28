@@ -137,7 +137,7 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member);
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
-    if (memberBuilder is ProcedureBuilder) {
+    if (memberBuilder is FunctionBuilder) {
       if (memberBuilder.formals != null) {
         for (FormalParameterBuilder parameter in memberBuilder.formals) {
           features.addElement(Tags.builderParameters, parameter.name);
