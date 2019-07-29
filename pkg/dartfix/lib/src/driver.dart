@@ -189,7 +189,7 @@ Analysis Details:
 
     logger.stdout('''
 
-These fixes are automatically applied unless at least one --$includeFixOption option is specified
+The following fixes are automatically applied unless at least one --$includeFixOption option is specified
 (and --$requiredOption is not specified). They may be individually disabled using --$excludeFixOption.''');
 
     fixes.where((fix) => fix.isRequired).forEach(showFix);
