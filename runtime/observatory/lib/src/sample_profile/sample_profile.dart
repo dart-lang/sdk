@@ -820,7 +820,7 @@ class SampleProfile extends M.SampleProfile {
   }
 
   Future load(ServiceObjectOwner owner, ServiceMap profile) async {
-    await loadProgress(owner, profile).last;
+    await loadProgress(owner, profile).drain();
   }
 
   static Future sleep([Duration duration = const Duration(microseconds: 0)]) {

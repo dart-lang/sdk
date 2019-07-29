@@ -53,9 +53,6 @@ async_scope_test: Pass, Slow
 [ !$strong && ($compiler == dartk || $compiler == dartkp) ]
 *: Skip
 
-[ $arch != ia32 || $arch != x64 || $system != linux ]
-get_native_allocation_samples_test: Skip # Unsupported.
-
 # These tests are slow on simulators.
 [ $arch == simarm || $arch == simarm64 ]
 *: Pass, Slow
@@ -81,6 +78,9 @@ debugger_location_test: Pass, Slow
 
 [ $compiler == dartk || $compiler == dartkp ]
 rewind_test: Pass, Slow
+
+[ $system != linux || $arch != ia32 && $arch != x64 ]
+get_native_allocation_samples_test: Skip # Unsupported.
 
 # Skip all service tests because random reloads interfere.
 [ $hot_reload || $hot_reload_rollback ]
