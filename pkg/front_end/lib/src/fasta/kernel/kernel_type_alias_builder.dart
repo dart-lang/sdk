@@ -37,7 +37,7 @@ import 'kernel_builder.dart'
 
 final InvalidType cyclicTypeAliasMarker = new InvalidType();
 
-class KernelTypeAliasBuilder extends TypeAliasBuilder<TypeBuilder, DartType> {
+class KernelTypeAliasBuilder extends TypeAliasBuilder {
   final Typedef target;
 
   DartType thisType;
@@ -45,7 +45,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder<TypeBuilder, DartType> {
   KernelTypeAliasBuilder(
       List<MetadataBuilder> metadata,
       String name,
-      List<TypeVariableBuilder<TypeBuilder, DartType>> typeVariables,
+      List<TypeVariableBuilder> typeVariables,
       FunctionTypeBuilder type,
       LibraryBuilder<TypeBuilder, Library> parent,
       int charOffset,

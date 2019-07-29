@@ -2872,8 +2872,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     int offset = offsetForToken(token);
     push(new UnresolvedType<TypeBuilder>(
         new NamedTypeBuilder("void", null)
-          ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
-              const VoidType(), library, offset)),
+          ..bind(new VoidTypeBuilder(const VoidType(), library, offset)),
         offset,
         uri));
   }
@@ -3680,7 +3679,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder<TypeBuilder, Object> type,
+      TypeDeclarationBuilder type,
       Token nameToken,
       Token nameLastToken,
       Arguments arguments,
@@ -3772,7 +3771,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         errorName ??= debugName(type.name, name);
       }
-    } else if (type is InvalidTypeBuilder<TypeBuilder, Object>) {
+    } else if (type is InvalidTypeBuilder) {
       LocatedMessage message = type.message;
       return evaluateArgumentsBefore(
           arguments,

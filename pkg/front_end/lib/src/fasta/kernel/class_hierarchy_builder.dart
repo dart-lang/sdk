@@ -1330,8 +1330,7 @@ class ClassHierarchyNodeBuilder {
       if (cls.isMixinApplication) {
         recordSupertype(cls.mixedInType);
       }
-      List<TypeVariableBuilder<TypeBuilder, Object>> typeVariables =
-          cls.typeVariables;
+      List<TypeVariableBuilder> typeVariables = cls.typeVariables;
       if (typeVariables == null) {
         substitutions[cls.target] = Substitution.empty;
         assert(cls.target.typeParameters.isEmpty);
@@ -1360,8 +1359,7 @@ class ClassHierarchyNodeBuilder {
     Declaration declaration = supertype.declaration;
     if (declaration is! ClassBuilder) return supertypes;
     ClassBuilder cls = declaration;
-    List<TypeVariableBuilder<TypeBuilder, Object>> typeVariables =
-        cls.typeVariables;
+    List<TypeVariableBuilder> typeVariables = cls.typeVariables;
     if (typeVariables == null) {
       debug?.log("In ${this.cls.fullNameForErrors} $supertypes aren't substed");
       for (int i = 0; i < supertypes.length; i++) {
@@ -1369,8 +1367,8 @@ class ClassHierarchyNodeBuilder {
       }
       return supertypes;
     }
-    Map<TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder> substitution =
-        <TypeVariableBuilder<TypeBuilder, Object>, TypeBuilder>{};
+    Map<TypeVariableBuilder, TypeBuilder> substitution =
+        <TypeVariableBuilder, TypeBuilder>{};
     List<TypeBuilder> arguments =
         supertype.arguments ?? computeDefaultTypeArguments(supertype);
     for (int i = 0; i < typeVariables.length; i++) {

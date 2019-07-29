@@ -52,14 +52,13 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilder visitDynamicType(DynamicType node) {
     return new NamedTypeBuilder("dynamic", null)
-      ..bind(new DynamicTypeBuilder<TypeBuilder, DartType>(
-          const DynamicType(), loader.coreLibrary, -1));
+      ..bind(
+          new DynamicTypeBuilder(const DynamicType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitVoidType(VoidType node) {
     return new NamedTypeBuilder("void", null)
-      ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
-          const VoidType(), loader.coreLibrary, -1));
+      ..bind(new VoidTypeBuilder(const VoidType(), loader.coreLibrary, -1));
   }
 
   TypeBuilder visitBottomType(BottomType node) {

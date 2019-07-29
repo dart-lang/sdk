@@ -4,6 +4,8 @@
 
 library fasta.type_declaration_builder;
 
+import 'package:kernel/ast.dart' show DartType;
+
 import 'builder.dart'
     show
         Declaration,
@@ -12,8 +14,7 @@ import 'builder.dart'
         ModifierBuilder,
         TypeBuilder;
 
-abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
-    extends ModifierBuilder {
+abstract class TypeDeclarationBuilder extends ModifierBuilder {
   final List<MetadataBuilder> metadata;
 
   final int modifiers;
@@ -35,9 +36,10 @@ abstract class TypeDeclarationBuilder<T extends TypeBuilder, R>
 
   int get typeVariablesCount => 0;
 
-  R buildType(LibraryBuilder<T, Object> library, List<T> arguments);
+  DartType buildType(
+      LibraryBuilder<TypeBuilder, Object> library, List<TypeBuilder> arguments);
 
   /// [arguments] have already been built.
-  R buildTypesWithBuiltArguments(
-      LibraryBuilder<T, Object> library, List<R> arguments);
+  DartType buildTypesWithBuiltArguments(
+      LibraryBuilder<TypeBuilder, Object> library, List<DartType> arguments);
 }

@@ -115,7 +115,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Member interfaceTarget});
 
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder<TypeBuilder, DartType> type,
+      TypeDeclarationBuilder type,
       Token nameToken,
       Token nameLastToken,
       Arguments arguments,

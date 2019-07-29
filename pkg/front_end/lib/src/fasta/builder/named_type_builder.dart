@@ -55,7 +55,7 @@ class NamedTypeBuilder extends TypeBuilder {
   List<TypeBuilder> arguments;
 
   @override
-  TypeDeclarationBuilder<TypeBuilder, DartType> declaration;
+  TypeDeclarationBuilder declaration;
 
   NamedTypeBuilder(this.name, this.arguments);
 

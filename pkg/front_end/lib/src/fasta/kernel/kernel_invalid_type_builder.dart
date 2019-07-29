@@ -11,8 +11,7 @@ import '../fasta_codes.dart' show LocatedMessage;
 import 'kernel_builder.dart'
     show InvalidTypeBuilder, TypeBuilder, LibraryBuilder;
 
-class KernelInvalidTypeBuilder
-    extends InvalidTypeBuilder<TypeBuilder, DartType> {
+class KernelInvalidTypeBuilder extends InvalidTypeBuilder {
   @override
   final LocatedMessage message;
 

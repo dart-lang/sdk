@@ -18,8 +18,7 @@ import 'kernel_builder.dart'
         TypeBuilder,
         TypeVariableBuilder;
 
-class KernelTypeVariableBuilder
-    extends TypeVariableBuilder<TypeBuilder, DartType> {
+class KernelTypeVariableBuilder extends TypeVariableBuilder {
   final TypeParameter actualParameter;
 
   KernelTypeVariableBuilder actualOrigin;

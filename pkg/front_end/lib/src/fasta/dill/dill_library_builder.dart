@@ -137,10 +137,7 @@ class DillLibraryBuilder extends LibraryBuilder<TypeBuilder, Library> {
 
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
-        "dynamic",
-        new DynamicTypeBuilder<TypeBuilder, DartType>(
-            const DynamicType(), this, -1),
-        -1);
+        "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
   }
 
   void addClass(Class cls) {

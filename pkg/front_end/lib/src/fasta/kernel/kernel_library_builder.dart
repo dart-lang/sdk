@@ -225,10 +225,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
-        "dynamic",
-        new DynamicTypeBuilder<TypeBuilder, DartType>(
-            const DynamicType(), this, -1),
-        -1);
+        "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);
   }
 
   TypeBuilder addNamedType(
@@ -243,8 +240,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
   TypeBuilder addVoidType(int charOffset) {
     return addNamedType("void", null, charOffset)
-      ..bind(new VoidTypeBuilder<TypeBuilder, VoidType>(
-          const VoidType(), this, charOffset));
+      ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
   }
 
   @override
@@ -1360,14 +1356,13 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
     int count = 0;
 
     int computeDefaultTypesForVariables(
-        List<TypeVariableBuilder<TypeBuilder, Object>> variables,
-        bool legacyMode) {
+        List<TypeVariableBuilder> variables, bool legacyMode) {
       if (variables == null) return 0;
 
       bool haveErroneousBounds = false;
       if (!legacyMode) {
         for (int i = 0; i < variables.length; ++i) {
-          TypeVariableBuilder<TypeBuilder, Object> variable = variables[i];
+          TypeVariableBuilder variable = variables[i];
           List<TypeBuilder> genericFunctionTypes = <TypeBuilder>[];
           findGenericFunctionTypes(variable.bound,
               result: genericFunctionTypes);
@@ -1399,7 +1394,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
     void reportIssues(List<Object> issues) {
       for (int i = 0; i < issues.length; i += 3) {
-        TypeDeclarationBuilder<TypeBuilder, Object> declaration = issues[i];
+        TypeDeclarationBuilder declaration = issues[i];
         Message message = issues[i + 1];
         List<LocatedMessage> context = issues[i + 2];
 

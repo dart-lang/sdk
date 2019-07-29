@@ -138,8 +138,7 @@ import '../scope.dart' show AmbiguousBuilder;
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
-abstract class ClassBuilder
-    extends TypeDeclarationBuilder<TypeBuilder, InterfaceType> {
+abstract class ClassBuilder extends TypeDeclarationBuilder {
   /// The type variables declared on a class, extension or mixin declaration.
   List<TypeVariableBuilder> typeVariables;
 

@@ -12,24 +12,23 @@ import 'builder.dart'
         TypeDeclarationBuilder,
         TypeVariableBuilder;
 
-abstract class TypeAliasBuilder<T extends TypeBuilder, R>
-    extends TypeDeclarationBuilder<T, R> {
-  final T type;
+abstract class TypeAliasBuilder extends TypeDeclarationBuilder {
+  final TypeBuilder type;
 
-  final List<TypeVariableBuilder<T, R>> typeVariables;
+  final List<TypeVariableBuilder> typeVariables;
 
   TypeAliasBuilder(
       List<MetadataBuilder> metadata,
       String name,
       this.typeVariables,
       this.type,
-      LibraryBuilder<T, Object> parent,
+      LibraryBuilder<TypeBuilder, Object> parent,
       int charOffset)
       : super(metadata, 0, name, parent, charOffset);
 
   String get debugName => "TypeAliasBuilder";
 
-  LibraryBuilder<T, Object> get parent => super.parent;
+  LibraryBuilder<TypeBuilder, Object> get parent => super.parent;
 
   int get typeVariablesCount;
 }
