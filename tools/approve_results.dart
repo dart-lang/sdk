@@ -452,7 +452,7 @@ ${parser.usage}""");
     }
     final buildset = "buildset:patch/gerrit/$gerritHost/$changelist/$patchset";
 
-    Map<String, dynamic> searchBuilds(String cursor) async {
+    Future<Map<String, dynamic>> searchBuilds(String cursor) async {
       final url = Uri.parse(
           "https://cr-buildbucket.appspot.com/_ah/api/buildbucket/v1/search"
           "?bucket=luci.dart.try"
