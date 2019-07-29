@@ -193,7 +193,6 @@ class ObjectPointerVisitor;
   V(List, "List")                                                              \
   V(ListFactory, "List.")                                                      \
   V(ListLiteralFactory, "List._fromLiteral")                                   \
-  V(LoadLibrary, "loadLibrary")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \

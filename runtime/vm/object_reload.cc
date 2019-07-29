@@ -183,12 +183,10 @@ void ObjectPool::ResetICDatas(Zone* zone) const {
 #endif
 }
 
-void Class::CopyStaticFieldValues(const Class& old_cls) const {
+void Class::CopyStaticFieldValues(IsolateReloadContext* reload_context,
+                                  const Class& old_cls) const {
   // We only update values for non-enum classes.
   const bool update_values = !is_enum_class();
-
-  IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
-  ASSERT(reload_context != NULL);
 
   const Array& old_field_list = Array::Handle(old_cls.fields());
   Field& old_field = Field::Handle();
@@ -285,17 +283,15 @@ class EnumMapTraits {
 //   When an enum value is deleted, we 'become' all references to the 'deleted'
 //   sentinel value. The index value is -1.
 //
-void Class::ReplaceEnum(const Class& old_enum) const {
+void Class::ReplaceEnum(IsolateReloadContext* reload_context,
+                        const Class& old_enum) const {
   // We only do this for finalized enum classes.
   ASSERT(is_enum_class());
   ASSERT(old_enum.is_enum_class());
   ASSERT(is_finalized());
   ASSERT(old_enum.is_finalized());
 
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  IsolateReloadContext* reload_context = Isolate::Current()->reload_context();
-  ASSERT(reload_context != NULL);
+  Zone* zone = Thread::Current()->zone();
 
   Array& enum_fields = Array::Handle(zone);
   Field& field = Field::Handle(zone);

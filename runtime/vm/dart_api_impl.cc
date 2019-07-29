@@ -5473,8 +5473,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // instead of freelists.
   BumpAllocateScope bump_allocate_scope(T);
 
-  I->DoneLoading();
-
   // TODO(hausner): move the remaining code below (finalization and
   // invoking of _completeDeferredLoads) into Isolate::DoneLoading().
 
@@ -5483,8 +5481,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   if (Api::IsError(state)) {
     return state;
   }
-
-  I->DoneFinalizing();
 
 #if !defined(PRODUCT)
   // Now that the newly loaded classes are finalized, notify the debugger

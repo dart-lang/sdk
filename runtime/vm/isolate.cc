@@ -1404,21 +1404,6 @@ void Isolate::BuildName(const char* name_prefix) {
   }
 }
 
-void Isolate::DoneLoading() {
-  GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(current_zone(), object_store()->libraries());
-  Library& lib = Library::Handle(current_zone());
-  intptr_t num_libs = libs.Length();
-  for (intptr_t i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    // If this library was loaded with Dart_LoadLibrary, it was marked
-    // as 'load in progres'. Set the status to 'loaded'.
-    if (lib.LoadInProgress()) {
-      lib.SetLoaded();
-    }
-  }
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 bool Isolate::CanReload() const {
   return !Isolate::IsVMInternalIsolate(this) && is_runnable() &&
@@ -1474,14 +1459,6 @@ void Isolate::DeleteReloadContext() {
   reload_context_ = nullptr;
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-void Isolate::DoneFinalizing() {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (IsReloading()) {
-    reload_context_->FinalizeLoading();
-  }
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-}
 
 const char* Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == nullptr);

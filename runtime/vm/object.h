@@ -1364,8 +1364,10 @@ class Class : public Object {
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
 
-  void ReplaceEnum(const Class& old_enum) const;
-  void CopyStaticFieldValues(const Class& old_cls) const;
+  void ReplaceEnum(IsolateReloadContext* reload_context,
+                   const Class& old_enum) const;
+  void CopyStaticFieldValues(IsolateReloadContext* reload_context,
+                             const Class& old_cls) const;
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(IsolateReloadContext* context,
                                      const Class& new_cls) const;
