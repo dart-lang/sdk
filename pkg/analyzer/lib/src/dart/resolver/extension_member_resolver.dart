@@ -131,9 +131,30 @@ class ExtensionMemberResolver {
   /// current scope.
   List<ExtensionElement> getApplicableExtensions(DartType type, String name) {
     final List<ExtensionElement> extensions = [];
-    void checkElement(Element element, ExtensionElement extension) {
-      if (element.displayName == name && !extensions.contains(extension)) {
-        extensions.add(extension);
+
+    /// Return `true` if the [elementName] matches the target [name], taking
+    /// into account the `=` on the end of the names of setters.
+    bool matchesName(String elementName) {
+      if (elementName.endsWith('=')) {
+        elementName = elementName.substring(0, elementName.length - 1);
+      }
+      return elementName == name;
+    }
+
+    /// Add the given [extension] to the list of [extensions] if it defined a
+    /// member whose name matches the target [name].
+    void checkExtension(ExtensionElement extension) {
+      for (var accessor in extension.accessors) {
+        if (matchesName(accessor.name)) {
+          extensions.add(extension);
+          return;
+        }
+      }
+      for (var method in extension.methods) {
+        if (matchesName(method.name)) {
+          extensions.add(extension);
+          return;
+        }
       }
     }
 
@@ -141,12 +162,7 @@ class ExtensionMemberResolver {
     for (var extension in _nameScope.extensions) {
       var extensionType = _instantiateToBounds(extension.extendedType);
       if (_subtypeOf(targetType, extensionType)) {
-        for (var accessor in extension.accessors) {
-          checkElement(accessor, extension);
-        }
-        for (var method in extension.methods) {
-          checkElement(method, extension);
-        }
+        checkExtension(extension);
       }
     }
     return extensions;

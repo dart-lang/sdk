@@ -669,6 +669,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
       DartType staticType = _getStaticType(operand, read: true);
       MethodElement staticMethod =
           _lookUpMethod(operand, staticType, methodName);
+      if (staticMethod == null && staticType is InterfaceType) {
+        ExtensionElement extension = _extensionMemberResolver.findExtension(
+            staticType, methodName, node);
+        if (extension != null) {
+          staticMethod = extension.getMethod(methodName);
+        }
+      }
       node.staticElement = staticMethod;
       if (_shouldReportInvalidMember(staticType, staticMethod)) {
         if (operand is SuperExpression) {
@@ -1542,6 +1549,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var isSuper = leftOperand is SuperExpression;
       var invokeType = _lookUpGetterType(leftType, methodName,
           concrete: isSuper, forSuper: isSuper);
+      if (invokeType == null && leftType is InterfaceType) {
+        ExtensionElement extension =
+            _extensionMemberResolver.findExtension(leftType, methodName, node);
+        if (extension != null) {
+          invokeType = extension.getMethod(methodName).type;
+        }
+      }
       var invokeElement = invokeType?.element;
       node.staticElement = invokeElement;
       node.staticInvokeType = invokeType;
