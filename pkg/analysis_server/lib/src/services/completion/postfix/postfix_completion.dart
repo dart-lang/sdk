@@ -319,6 +319,8 @@ class PostfixCompletionProcessor {
 
   TypeProvider get typeProvider => completionContext.resolveResult.typeProvider;
 
+  TypeSystem get typeSystem => completionContext.resolveResult.typeSystem;
+
   Future<PostfixCompletion> compute() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -449,7 +451,7 @@ class PostfixCompletionProcessor {
       _findOuterExpression(node, typeProvider.intType);
 
   Expression findIterableExpression() =>
-      _findOuterExpression(node, typeProvider.iterableType);
+      _findOuterExpression(node, typeProvider.iterableDynamicType);
 
   Expression findObjectExpression() =>
       _findOuterExpression(node, typeProvider.objectType);
@@ -542,7 +544,7 @@ class PostfixCompletionProcessor {
     Expression expr = list.firstWhere((expr) {
       DartType type = expr.staticType;
       if (type == null) return false;
-      if (type.isSubtypeOf(builtInType)) return true;
+      if (typeSystem.isSubtypeOf(type, builtInType)) return true;
       Element element = type.element;
       if (element is TypeDefiningElement) {
         TypeDefiningElement typeDefElem = element;
@@ -553,7 +555,7 @@ class PostfixCompletionProcessor {
               pType.typeParameters.length, typeProvider.dynamicType));
         }
       }
-      return type.isSubtypeOf(builtInType);
+      return typeSystem.isSubtypeOf(type, builtInType);
     }, orElse: () => null);
     if (expr is SimpleIdentifier && expr.parent is PropertyAccess) {
       expr = expr.parent;
