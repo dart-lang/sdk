@@ -9,23 +9,35 @@ import 'dart:isolate';
 import 'package:unittest/unittest.dart';
 import "remote_unittest_helper.dart";
 
-child(args) {
+isolateEntryPoint(args) {
   var msg = args[0];
-  var reply = args[1];
-  reply.send('re: $msg');
+  var sendPort = args[1];
+  sendPort.send('re: $msg');
 }
 
 void main([args, port]) {
-  if (testRemote(main, port)) return;
+  if (testRemote(main, port)) {
+    return;
+  }
+
   test('message - reply chain', () async {
+    const String debugName = 'spawnedIsolate';
+
     ReceivePort port = new ReceivePort();
     port.listen(expectAsync((msg) {
       port.close();
       expect(msg, equals('re: hi'));
     }));
-    const String debugName = 'spawnedIsolate';
-    final i =
-        await Isolate.spawn(child, ['hi', port.sendPort], debugName: debugName);
-    expect(i.debugName, debugName);
+
+    // Start new isolate; paused so it's alive till we read the debugName.
+    // If the isolate runs to completion, the isolate might get cleaned up
+    // and debugName might be null.
+    final isolate = await Isolate.spawn(
+        isolateEntryPoint, ['hi', port.sendPort],
+        paused: true, debugName: debugName);
+
+    expect(isolate.debugName, debugName);
+
+    isolate.resume(isolate.pauseCapability);
   });
 }
