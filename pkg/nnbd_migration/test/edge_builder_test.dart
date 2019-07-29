@@ -2317,6 +2317,21 @@ class C {
         hard: true);
   }
 
+  test_redirecting_constructor_ordinary_to_unnamed() async {
+    await analyze('''
+class C {
+  C.named(int/*1*/ i, int/*2*/ j) : this(j, i);
+  C(int/*3*/ j, int/*4*/ i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*4*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int/*2*/').node,
+        decoratedTypeAnnotation('int/*3*/').node,
+        hard: true);
+  }
+
   test_return_from_async_future() async {
     await analyze('''
 Future<int> f() async {

@@ -714,7 +714,7 @@ $stackTrace''');
   @override
   DecoratedType visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var callee = node.constructorName.staticElement;
+    var callee = node.staticElement;
     var calleeType = _variables.decoratedElementType(callee);
     _handleInvocationArguments(
         node, node.argumentList.arguments, null, calleeType, null);

@@ -1837,6 +1837,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_redirecting_constructor_ordinary_to_unnamed() async {
+    var content = '''
+class C {
+  C.named(int i, int j) : this(j, i);
+  C(int j, int i);
+}
+main() {
+  C.named(null, 1);
+}
+''';
+    var expected = '''
+class C {
+  C.named(int? i, int j) : this(j, i);
+  C(int j, int? i);
+}
+main() {
+  C.named(null, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_single_file_multiple_changes() async {
     var content = '''
 int f() => null;
