@@ -100,6 +100,7 @@ import 'invalid_override_different_default_values_named_test.dart'
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
 import 'invalid_override_test.dart' as invalid_override;
+import 'invalid_reference_to_this_test.dart' as invalid_reference_to_this;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'invalid_use_of_covariant_in_extension_test.dart'
@@ -314,6 +315,7 @@ main() {
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
     invalid_override.main();
+    invalid_reference_to_this.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
     invalid_use_of_covariant_in_extension.main();

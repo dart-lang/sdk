@@ -6559,6 +6559,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return false;
       } else if (node is MethodDeclaration) {
         return !node.isStatic;
+      } else if (node is FieldDeclaration) {
+        if (node.fields.isLate &&
+            (node.parent is ClassDeclaration ||
+                node.parent is MixinDeclaration)) {
+          return true;
+        }
+        // Continue; a non-late variable may still occur in a valid context.
       }
     }
     return false;
