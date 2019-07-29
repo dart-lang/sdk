@@ -127,6 +127,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
       signature.addInt(node.file.libraryFiles.length);
       for (var file in node.file.libraryFiles) {
+        signature.addBool(file.exists);
         signature.addBytes(file.apiSignature);
       }
     }
