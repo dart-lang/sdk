@@ -41,6 +41,7 @@ import 'generics.dart'
         getInstantiatorTypeArguments,
         hasFreeTypeParameters,
         hasInstantiatorTypeArguments,
+        isAllDynamic,
         isUncheckedCall,
         isUncheckedClosureCall;
 import 'local_variable_table.dart' show LocalVariableTable;
@@ -1320,8 +1321,8 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
 
-    if (type is InterfaceType && type.typeArguments.isEmpty) {
-      assert(type.classNode.typeParameters.isEmpty);
+    if (type is InterfaceType &&
+        (type.typeArguments.isEmpty || isAllDynamic(type.typeArguments))) {
       asm.emitPushConstant(cp.addType(type));
       final argDesc = objectTable.getArgDescHandle(2);
       final cpIndex = cp.addInterfaceCall(
