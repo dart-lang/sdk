@@ -925,6 +925,30 @@ class C {}
     expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
   }
 
+  test_constructorFieldInitializer_simple() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i) : f = i;
+  int/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+  }
+
+  test_constructorFieldInitializer_via_this() async {
+    await analyze('''
+class C {
+  C(int/*1*/ i) : this.f = i;
+  int/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int/*1*/').node,
+        decoratedTypeAnnotation('int/*2*/').node,
+        hard: true);
+  }
+
   test_doubleLiteral() async {
     await analyze('''
 double f() {

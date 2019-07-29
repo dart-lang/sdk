@@ -889,6 +889,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  test_field_initializer_simple() async {
+    var content = '''
+class C {
+  int f;
+  C(int i) : f = i;
+}
+main() {
+  C(null);
+}
+''';
+    var expected = '''
+class C {
+  int? f;
+  C(int? i) : f = i;
+}
+main() {
+  C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   test_field_type_inferred() async {
     var content = '''
 int f() => null;

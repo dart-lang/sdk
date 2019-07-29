@@ -346,6 +346,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType> {
   }
 
   @override
+  DecoratedType visitConstructorFieldInitializer(
+      ConstructorFieldInitializer node) {
+    _handleAssignment(
+        node.expression, getOrComputeElementType(node.fieldName.staticElement));
+    return null;
+  }
+
+  @override
   DecoratedType visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.parameter.accept(this);
     var defaultValue = node.defaultValue;
