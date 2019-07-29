@@ -146,7 +146,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   final ModifierBuilder member;
 
-  final KernelClassBuilder classBuilder;
+  final ClassBuilder classBuilder;
 
   final ClassHierarchy hierarchy;
 
@@ -295,7 +295,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         super(enclosingScope);
 
   BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
-      KernelClassBuilder classBuilder, TypeInferrer typeInferrer)
+      ClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
             part,
             field,
@@ -311,15 +311,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   BodyBuilder.forField(KernelFieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
             field,
-            field.parent is KernelClassBuilder
-                ? field.parent.parent
-                : field.parent,
-            field.parent is KernelClassBuilder ? field.parent : null,
+            field.parent is ClassBuilder ? field.parent.parent : field.parent,
+            field.parent is ClassBuilder ? field.parent : null,
             typeInferrer);
 
   BodyBuilder.forOutlineExpression(
       KernelLibraryBuilder library,
-      KernelClassBuilder classBuilder,
+      ClassBuilder classBuilder,
       ModifierBuilder member,
       Scope scope,
       Uri fileUri)
@@ -1738,16 +1736,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     /// Performs a similar lookup to [lookupConstructor], but using a slower
     /// implementation.
     Constructor lookupConstructorWithPatches(Name name, bool isSuper) {
-      ClassBuilder<TypeBuilder, Object> builder = classBuilder.origin;
+      ClassBuilder builder = classBuilder.origin;
 
-      ClassBuilder<TypeBuilder, Object> getSuperclass(
-          ClassBuilder<TypeBuilder, Object> builder) {
+      ClassBuilder getSuperclass(ClassBuilder builder) {
         // This way of computing the superclass is slower than using the kernel
         // objects directly.
         Object supertype = builder.supertype;
         if (supertype is NamedTypeBuilder) {
           Object builder = supertype.declaration;
-          if (builder is ClassBuilder<TypeBuilder, Object>) return builder;
+          if (builder is ClassBuilder) return builder;
         }
         return null;
       }
@@ -3701,8 +3698,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     String errorName;
     LocatedMessage message;
-    if (type is ClassBuilder<TypeBuilder, Object>) {
-      if (type is EnumBuilder<TypeBuilder, Object>) {
+    if (type is ClassBuilder) {
+      if (type is EnumBuilder) {
         return buildProblem(fasta.messageEnumInstantiation,
             nameToken.charOffset, nameToken.length);
       }

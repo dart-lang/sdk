@@ -89,7 +89,6 @@ import 'kernel_builder.dart'
         ClassBuilder,
         Declaration,
         InvalidTypeBuilder,
-        KernelClassBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
@@ -404,7 +403,7 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed synthetic constructors");
   }
 
-  KernelClassBuilder get objectClassBuilder => objectType.declaration;
+  ClassBuilder get objectClassBuilder => objectType.declaration;
 
   Class get objectClass => objectClassBuilder.cls;
 
@@ -457,7 +456,7 @@ class KernelTarget extends TargetImplementation {
     if (supertype.isMixinApplication) {
       installForwardingConstructors(supertype);
     }
-    if (supertype is KernelClassBuilder) {
+    if (supertype is ClassBuilder) {
       if (supertype.cls.constructors.isEmpty) {
         builder.addSyntheticConstructor(makeDefaultConstructor(builder.target));
       } else {

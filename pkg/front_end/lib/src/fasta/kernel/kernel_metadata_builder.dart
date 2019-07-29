@@ -9,11 +9,7 @@ import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 import 'body_builder.dart' show BodyBuilder;
 
 import 'kernel_builder.dart'
-    show
-        KernelClassBuilder,
-        KernelLibraryBuilder,
-        MetadataBuilder,
-        MemberBuilder;
+    show ClassBuilder, KernelLibraryBuilder, MetadataBuilder, MemberBuilder;
 
 import '../scanner.dart' show Token;
 
@@ -30,7 +26,7 @@ class KernelMetadataBuilder extends MetadataBuilder {
       Annotatable parent,
       List<MetadataBuilder> metadata,
       KernelLibraryBuilder library,
-      KernelClassBuilder classBuilder,
+      ClassBuilder classBuilder,
       MemberBuilder member) {
     if (metadata == null) return;
     Uri fileUri = member?.fileUri ?? classBuilder?.fileUri ?? library.fileUri;

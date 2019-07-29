@@ -21,8 +21,6 @@ export 'class_hierarchy_builder.dart'
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 
-export 'kernel_class_builder.dart' show KernelClassBuilder;
-
 export 'kernel_enum_builder.dart' show KernelEnumBuilder;
 
 export 'kernel_field_builder.dart' show KernelFieldBuilder;

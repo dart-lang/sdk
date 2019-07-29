@@ -29,7 +29,6 @@ import 'kernel_builder.dart'
         FormalParameterBuilder,
         TypeAliasBuilder,
         FunctionTypeBuilder,
-        KernelClassBuilder,
         KernelTypeAliasBuilder,
         KernelTypeVariableBuilder,
         NamedTypeBuilder,
@@ -67,7 +66,7 @@ int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
         return Variance.unrelated;
       }
     } else {
-      if (declaration is KernelClassBuilder) {
+      if (declaration is ClassBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
           for (TypeBuilder argument in type.arguments) {
@@ -230,11 +229,8 @@ TypeBuilder substitute(
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<TypeBuilder> calculateBounds(
-    List<TypeVariableBuilder> variables,
-    TypeBuilder dynamicType,
-    TypeBuilder bottomType,
-    KernelClassBuilder objectClass) {
+List<TypeBuilder> calculateBounds(List<TypeVariableBuilder> variables,
+    TypeBuilder dynamicType, TypeBuilder bottomType, ClassBuilder objectClass) {
   List<TypeBuilder> bounds = new List<TypeBuilder>(variables.length);
 
   for (int i = 0; i < variables.length; i++) {
@@ -444,7 +440,7 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder type) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(const <Object>[]);
         }
-      } else if (declaration is ClassBuilder<TypeBuilder, Object> &&
+      } else if (declaration is ClassBuilder &&
           declaration.typeVariables != null) {
         List<Object> dependencies =
             findInboundReferences(declaration.typeVariables);
@@ -573,8 +569,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
       if (start.declaration == end) {
         paths.add(<Object>[start]);
       } else if (visited.add(start.declaration)) {
-        if (declaration is ClassBuilder<TypeBuilder, Object> &&
-            declaration.typeVariables != null) {
+        if (declaration is ClassBuilder && declaration.typeVariables != null) {
           for (TypeVariableBuilder<TypeBuilder, Object> variable
               in declaration.typeVariables) {
             if (variable.bound != null) {
@@ -658,8 +653,7 @@ List<List<Object>> findRawTypePathsToDeclaration(
 List<List<Object>> findRawTypeCycles(
     TypeDeclarationBuilder<TypeBuilder, Object> declaration) {
   var cycles = <List<Object>>[];
-  if (declaration is ClassBuilder<TypeBuilder, Object> &&
-      declaration.typeVariables != null) {
+  if (declaration is ClassBuilder && declaration.typeVariables != null) {
     for (TypeVariableBuilder<TypeBuilder, Object> variable
         in declaration.typeVariables) {
       if (variable.bound != null) {
@@ -771,8 +765,7 @@ List<Object> getNonSimplicityIssuesForDeclaration(
     TypeDeclarationBuilder<TypeBuilder, Object> declaration,
     {bool performErrorRecovery: true}) {
   var issues = <Object>[];
-  if (declaration is ClassBuilder<TypeBuilder, Object> &&
-      declaration.typeVariables != null) {
+  if (declaration is ClassBuilder && declaration.typeVariables != null) {
     issues.addAll(getInboundReferenceIssues(declaration.typeVariables));
   } else if (declaration is TypeAliasBuilder<TypeBuilder, Object> &&
       declaration.typeVariables != null) {

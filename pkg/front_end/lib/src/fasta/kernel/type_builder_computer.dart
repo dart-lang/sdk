@@ -25,7 +25,7 @@ import '../kernel/kernel_builder.dart'
     show
         DynamicTypeBuilder,
         FunctionTypeBuilder,
-        KernelClassBuilder,
+        ClassBuilder,
         FormalParameterBuilder,
         NamedTypeBuilder,
         KernelTypeVariableBuilder,
@@ -67,7 +67,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   TypeBuilder visitInterfaceType(InterfaceType node) {
-    KernelClassBuilder cls =
+    ClassBuilder cls =
         loader.computeClassBuilderFromTargetClass(node.classNode);
     List<TypeBuilder> arguments;
     List<DartType> kernelArguments = node.typeArguments;

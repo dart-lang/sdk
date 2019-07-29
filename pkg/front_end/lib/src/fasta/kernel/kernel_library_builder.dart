@@ -129,7 +129,6 @@ import 'kernel_builder.dart'
         FunctionTypeBuilder,
         ImplicitFieldType,
         InvalidTypeBuilder,
-        KernelClassBuilder,
         ConstructorBuilder,
         KernelEnumBuilder,
         KernelFieldBuilder,
@@ -1412,7 +1411,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
 
     bool legacyMode = loader.target.legacyMode;
     for (var declaration in libraryDeclaration.members.values) {
-      if (declaration is KernelClassBuilder) {
+      if (declaration is ClassBuilder) {
         {
           List<Object> issues = legacyMode
               ? const <Object>[]
@@ -1917,7 +1916,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
       } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(
             declaration.target.function, typeEnvironment, declaration.fileUri);
-      } else if (declaration is KernelClassBuilder) {
+      } else if (declaration is ClassBuilder) {
         declaration.checkBoundsInOutline(typeEnvironment);
       }
     }

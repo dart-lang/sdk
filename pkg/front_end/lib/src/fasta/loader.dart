@@ -303,8 +303,7 @@ fileUri: ${contextMessage.uri}
 
   Declaration getNativeAnnotation() => target.getNativeAnnotation(this);
 
-  ClassBuilder<TypeBuilder, Object> computeClassBuilderFromTargetClass(
-      covariant Object cls);
+  ClassBuilder computeClassBuilderFromTargetClass(covariant Object cls);
 
   TypeBuilder computeTypeBuilder(covariant Object type);
 }

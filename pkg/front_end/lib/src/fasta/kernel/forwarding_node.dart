@@ -37,12 +37,12 @@ import "../type_inference/type_inference_engine.dart"
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
 import "kernel_builder.dart"
-    show ClassHierarchyBuilder, Declaration, DelayedMember, KernelClassBuilder;
+    show ClassHierarchyBuilder, Declaration, DelayedMember, ClassBuilder;
 
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
-  final KernelClassBuilder parent;
+  final ClassBuilder parent;
 
   final Declaration combinedMemberSignatureResult;
 

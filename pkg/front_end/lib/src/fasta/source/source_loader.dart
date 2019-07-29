@@ -79,7 +79,6 @@ import '../kernel/kernel_builder.dart'
         DelayedOverrideCheck,
         EnumBuilder,
         FieldBuilder,
-        KernelClassBuilder,
         ProcedureBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -670,7 +669,7 @@ class SourceLoader extends Loader<Library> {
       bool isClassBuilder = false;
       if (mixedInType is NamedTypeBuilder) {
         var builder = mixedInType.declaration;
-        if (builder is ClassBuilder<TypeBuilder, DartType>) {
+        if (builder is ClassBuilder) {
           isClassBuilder = true;
           for (Declaration constructory in builder.constructors.local.values) {
             if (constructory.isConstructor && !constructory.isSynthetic) {
@@ -1095,7 +1094,7 @@ class SourceLoader extends Loader<Library> {
   }
 
   @override
-  KernelClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+  ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder library = builders[kernelLibrary.importUri];
     if (library == null) {

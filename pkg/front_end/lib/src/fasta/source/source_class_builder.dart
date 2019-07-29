@@ -27,7 +27,6 @@ import '../kernel/kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelClassBuilder,
         KernelFieldBuilder,
         FunctionBuilder,
         KernelInvalidTypeBuilder,
@@ -72,7 +71,7 @@ Class initializeClass(
   return cls;
 }
 
-class SourceClassBuilder extends KernelClassBuilder
+class SourceClassBuilder extends ClassBuilder
     implements Comparable<SourceClassBuilder> {
   @override
   final Class actualCls;

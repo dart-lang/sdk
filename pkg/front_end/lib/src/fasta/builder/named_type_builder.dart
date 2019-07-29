@@ -41,7 +41,7 @@ import 'builder.dart'
 
 import '../kernel/kernel_builder.dart'
     show
-        KernelClassBuilder,
+        ClassBuilder,
         KernelInvalidTypeBuilder,
         LibraryBuilder,
         TypeBuilder,
@@ -209,7 +209,7 @@ class NamedTypeBuilder extends TypeBuilder {
   Supertype buildSupertype(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    if (declaration is KernelClassBuilder) {
+    if (declaration is ClassBuilder) {
       return declaration.buildSupertype(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addProblem(
@@ -227,7 +227,7 @@ class NamedTypeBuilder extends TypeBuilder {
   Supertype buildMixedInType(
       LibraryBuilder library, int charOffset, Uri fileUri) {
     TypeDeclarationBuilder declaration = this.declaration;
-    if (declaration is KernelClassBuilder) {
+    if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
     } else if (declaration is KernelInvalidTypeBuilder) {
       library.addProblem(

@@ -112,7 +112,7 @@ import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
         Declaration,
-        KernelClassBuilder,
+        ClassBuilder,
         KernelInvalidTypeBuilder,
         NamedTypeBuilder,
         TypeBuilder,
@@ -1854,8 +1854,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
     Name name = send.name;
     Arguments arguments = send.arguments;
 
-    if (declaration is KernelClassBuilder) {
-      KernelClassBuilder declaration = this.declaration;
+    if (declaration is ClassBuilder) {
+      ClassBuilder declaration = this.declaration;
       Declaration member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.library);
 

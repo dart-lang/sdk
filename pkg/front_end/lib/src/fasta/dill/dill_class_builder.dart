@@ -11,7 +11,7 @@ import '../problems.dart' show unimplemented;
 
 import '../kernel/kernel_builder.dart'
     show
-        KernelClassBuilder,
+        ClassBuilder,
         TypeBuilder,
         KernelTypeVariableBuilder,
         LibraryBuilder,
@@ -25,7 +25,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_member_builder.dart' show DillMemberBuilder;
 
-class DillClassBuilder extends KernelClassBuilder {
+class DillClassBuilder extends ClassBuilder {
   final Class cls;
 
   DillClassBuilder(Class cls, DillLibraryBuilder parent)

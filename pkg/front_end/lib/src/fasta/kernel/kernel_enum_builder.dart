@@ -50,7 +50,7 @@ import 'kernel_builder.dart'
         EnumBuilder,
         EnumConstantInfo,
         FormalParameterBuilder,
-        KernelClassBuilder,
+        ClassBuilder,
         ConstructorBuilder,
         KernelFieldBuilder,
         KernelLibraryBuilder,
@@ -64,8 +64,7 @@ import 'kernel_builder.dart'
 
 import 'metadata_collector.dart';
 
-class KernelEnumBuilder extends SourceClassBuilder
-    implements EnumBuilder<TypeBuilder, InterfaceType> {
+class KernelEnumBuilder extends SourceClassBuilder implements EnumBuilder {
   @override
   final List<EnumConstantInfo> enumConstantInfos;
 
@@ -305,7 +304,7 @@ class KernelEnumBuilder extends SourceClassBuilder
         new FieldInitializer(nameField,
             new VariableGet(constructor.function.positionalParameters[1]))
           ..parent = constructor);
-    KernelClassBuilder objectClass = objectType.declaration;
+    ClassBuilder objectClass = objectType.declaration;
     MemberBuilder superConstructor = objectClass.findConstructorOrFactory(
         "", charOffset, fileUri, libraryBuilder);
     if (superConstructor == null || !superConstructor.isConstructor) {

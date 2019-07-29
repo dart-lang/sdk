@@ -11,7 +11,7 @@ import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 
 import 'kernel_builder.dart'
     show
-        KernelClassBuilder,
+        ClassBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
         LibraryBuilder,
@@ -77,8 +77,8 @@ class KernelTypeVariableBuilder
     return new NamedTypeBuilder(name, null)..bind(this);
   }
 
-  void finish(LibraryBuilder library, KernelClassBuilder object,
-      TypeBuilder dynamicType) {
+  void finish(
+      LibraryBuilder library, ClassBuilder object, TypeBuilder dynamicType) {
     if (isPatch) return;
     DartType objectType = object.buildType(library, null);
     parameter.bound ??= bound?.build(library) ?? objectType;
