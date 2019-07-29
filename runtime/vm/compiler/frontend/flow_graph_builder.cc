@@ -379,11 +379,8 @@ bool SimpleInstanceOfType(const AbstractType& type) {
     // If the interface type we check against is generic but has all-dynamic
     // type arguments, then we can still use the _simpleInstanceOf
     // implementation (see also runtime/lib/object.cc:Object_SimpleInstanceOf).
-    //
-    // NOTE: We rely on the all-dynamic vector to be represented as `null` here.
-    ASSERT(AbstractType::Handle(type_class.RareType()).arguments() ==
-           TypeArguments::null());
-    return type.arguments() == TypeArguments::null();
+    const auto& rare_type = AbstractType::Handle(type_class.RareType());
+    return rare_type.Equals(type);
   }
 
   // Finally a simple class for instance of checking.
