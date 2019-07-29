@@ -18,6 +18,7 @@ import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/lsp_stdio_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart'
     show UriContributor;
 import 'package:analysis_server/src/socket_server.dart';
@@ -397,6 +398,16 @@ class Driver implements ServerStarter {
     if (results[HELP_OPTION]) {
       _printUsage(parser.parser, analytics, fromHelp: true);
       return null;
+    }
+
+    if (analysisServerOptions.completionModelFolder != null) {
+      CompletionRanking.instance =
+          CompletionRanking(analysisServerOptions.completionModelFolder);
+      CompletionRanking.instance.start().catchError(() {
+        // Disable smart ranking if model startup fails.
+        analysisServerOptions.completionModelFolder = null;
+        CompletionRanking.instance = null;
+      });
     }
 
     final defaultSdkPath = _getSdkPath(results);
