@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/standard_resolution_map.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -2714,7 +2714,7 @@ class B extends A {
     }
 
     TypeSystem typeSystem = await session.typeSystem;
-    var inherited = new InheritanceManager2(typeSystem).getInherited(
+    var inherited = new InheritanceManager3(typeSystem).getInherited(
       targetElement.type,
       new Name(null, nameToOverride),
     );

@@ -1,12 +1,9 @@
-// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart'
-    show InheritanceManagerBase, InheritanceManager3;
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -18,21 +15,21 @@ class Conflict {
 
   /// The list of candidates for a valid override for a member [name].  It has
   /// at least two items, because otherwise the only candidate is always valid.
-  final List<FunctionType> candidates;
+  final List<ExecutableElement> candidates;
 
   /// The getter that conflicts with the [method], or `null`, if the conflict
   /// is inconsistent inheritance.
-  final FunctionType getter;
+  final ExecutableElement getter;
 
   /// The method tha conflicts with the [getter], or `null`, if the conflict
   /// is inconsistent inheritance.
-  final FunctionType method;
+  final ExecutableElement method;
 
   Conflict(this.name, this.candidates, [this.getter, this.method]);
 }
 
 /// Manages knowledge about interface types and their members.
-class InheritanceManager2 extends InheritanceManagerBase {
+class InheritanceManager3 extends InheritanceManagerBase {
   static final _noSuchMethodName = Name(null, 'noSuchMethod');
 
   final TypeSystem _typeSystem;
@@ -44,11 +41,10 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// self-referencing cycles.
   final Set<ClassElement> _processingClasses = new Set<ClassElement>();
 
-  InheritanceManager2(this._typeSystem);
+  InheritanceManager3(this._typeSystem);
 
   @override
-  InheritanceManager3 get asInheritanceManager3 =>
-      InheritanceManager3(_typeSystem);
+  InheritanceManager3 get asInheritanceManager3 => this;
 
   /// Return the most specific signature of the member with the given [name]
   /// that the [type] inherits from the mixins, superclasses, or interfaces;
@@ -56,13 +52,13 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// at all, or because there is no the most specific signature.
   ///
   /// This is equivalent to `getInheritedMap(type)[name]`.
-  FunctionType getInherited(InterfaceType type, Name name) {
+  ExecutableElement getInherited(InterfaceType type, Name name) {
     return getInheritedMap(type)[name];
   }
 
   /// Return signatures of all concrete members that the given [type] inherits
   /// from the superclasses and mixins.
-  Map<Name, FunctionType> getInheritedConcreteMap(InterfaceType type) {
+  Map<Name, ExecutableElement> getInheritedConcreteMap(InterfaceType type) {
     var interface = getInterface(type);
     return interface._superImplemented.last;
   }
@@ -71,7 +67,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// inherited from the super-interfaces (superclasses, mixins, and
   /// interfaces).  If there is no most specific signature for a name, the
   /// corresponding name will not be included.
-  Map<Name, FunctionType> getInheritedMap(InterfaceType type) {
+  Map<Name, ExecutableElement> getInheritedMap(InterfaceType type) {
     var interface = getInterface(type);
     if (interface._inheritedMap == null) {
       interface._inheritedMap = {};
@@ -101,12 +97,12 @@ class InheritanceManager2 extends InheritanceManagerBase {
       return Interface._empty;
     }
 
-    Map<Name, List<FunctionType>> namedCandidates = {};
-    List<Map<Name, FunctionType>> superImplemented = [];
-    Map<Name, FunctionType> declared;
+    Map<Name, List<ExecutableElement>> namedCandidates = {};
+    List<Map<Name, ExecutableElement>> superImplemented = [];
+    Map<Name, ExecutableElement> declared;
     Interface superInterface;
-    Map<Name, FunctionType> implemented;
-    Map<Name, FunctionType> implementedForMixing;
+    Map<Name, ExecutableElement> implemented;
+    Map<Name, ExecutableElement> implementedForMixing;
     try {
       // If a class declaration has a member declaration, the signature of that
       // member declaration becomes the signature in the interface.
@@ -118,7 +114,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
       }
 
       if (classElement.isMixin) {
-        var superClassCandidates = <Name, List<FunctionType>>{};
+        var superClassCandidates = <Name, List<ExecutableElement>>{};
         for (var constraint in type.superclassConstraints) {
           var interfaceObj = getInterface(constraint);
           _addCandidates(superClassCandidates, interfaceObj);
@@ -129,7 +125,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
 
         // `mixin M on S1, S2 {}` can call using `super` any instance member
         // from its superclass constraints, whether it is abstract or concrete.
-        var superClass = <Name, FunctionType>{};
+        var superClass = <Name, ExecutableElement>{};
         _findMostSpecificFromNamedCandidates(superClass, superClassCandidates);
         superImplemented.add(superClass);
       } else {
@@ -148,7 +144,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
           var interfaceObj = getInterface(mixin);
           _addCandidates(namedCandidates, interfaceObj);
 
-          implemented = <Name, FunctionType>{}
+          implemented = <Name, ExecutableElement>{}
             ..addAll(implemented)
             ..addAll(interfaceObj._implementedForMixing);
           superImplemented.add(implemented);
@@ -159,7 +155,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
       _processingClasses.remove(classElement);
     }
 
-    var thisImplemented = <Name, FunctionType>{};
+    var thisImplemented = <Name, ExecutableElement>{};
     _addImplemented(thisImplemented, type);
 
     if (classElement.isMixin) {
@@ -168,7 +164,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
       implementedForMixing.addAll(thisImplemented);
     }
 
-    implemented = <Name, FunctionType>{}..addAll(implemented);
+    implemented = <Name, ExecutableElement>{}..addAll(implemented);
     _addImplemented(implemented, type);
 
     // If a class declaration does not have a member declaration with a
@@ -177,7 +173,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
     // super-interfaces that is a valid override of all the other
     // super-interface signatures with the same name. That "most specific"
     // signature becomes the signature of the class's interface.
-    Map<Name, FunctionType> map = new Map.of(declared);
+    Map<Name, ExecutableElement> map = new Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
       map,
       namedCandidates,
@@ -189,7 +185,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
         noSuchMethodForwarders = superInterface._noSuchMethodForwarders;
       }
     } else {
-      var noSuchMethod = implemented[_noSuchMethodName]?.element;
+      var noSuchMethod = implemented[_noSuchMethodName];
       if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
         var superForwarders = superInterface?._noSuchMethodForwarders;
         for (var name in map.keys) {
@@ -227,7 +223,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// If [forMixinIndex] is specified, only the nominal superclass, and the
   /// given number of mixins after it are considered.  For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
-  FunctionType getMember(
+  ExecutableElement getMember(
     InterfaceType type,
     Name name, {
     bool concrete: false,
@@ -251,16 +247,16 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [type], would override; or `null`
   /// if no members would be overridden.
-  List<FunctionType> getOverridden(InterfaceType type, Name name) {
+  List<ExecutableElement> getOverridden(InterfaceType type, Name name) {
     var interface = getInterface(type);
     return interface._overridden[name];
   }
 
-  void _addCandidate(Map<Name, List<FunctionType>> namedCandidates, Name name,
-      FunctionType candidate) {
+  void _addCandidate(Map<Name, List<ExecutableElement>> namedCandidates,
+      Name name, ExecutableElement candidate) {
     var candidates = namedCandidates[name];
     if (candidates == null) {
-      candidates = <FunctionType>[];
+      candidates = <ExecutableElement>[];
       namedCandidates[name] = candidates;
     }
 
@@ -268,7 +264,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
   }
 
   void _addCandidates(
-      Map<Name, List<FunctionType>> namedCandidates, Interface interface) {
+      Map<Name, List<ExecutableElement>> namedCandidates, Interface interface) {
     var map = interface.map;
     for (var name in map.keys) {
       var candidate = map[name];
@@ -277,13 +273,13 @@ class InheritanceManager2 extends InheritanceManagerBase {
   }
 
   void _addImplemented(
-      Map<Name, FunctionType> implemented, InterfaceType type) {
+      Map<Name, ExecutableElement> implemented, InterfaceType type) {
     var libraryUri = type.element.librarySource.uri;
 
     void addMember(ExecutableElement member) {
       if (!member.isAbstract && !member.isStatic) {
         var name = new Name(libraryUri, member.name);
-        implemented[name] = member.type;
+        implemented[name] = member;
       }
     }
 
@@ -299,14 +295,14 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// getters, all methods, or all setter.  If a conflict found, return the
   /// new [Conflict] instance that describes it.
   Conflict _checkForGetterMethodConflict(
-      Name name, List<FunctionType> candidates) {
+      Name name, List<ExecutableElement> candidates) {
     assert(candidates.length > 1);
 
     bool allGetters = true;
     bool allMethods = true;
     bool allSetters = true;
     for (var candidate in candidates) {
-      var kind = candidate.element.kind;
+      var kind = candidate.kind;
       if (kind != ElementKind.GETTER) {
         allGetters = false;
       }
@@ -322,18 +318,18 @@ class InheritanceManager2 extends InheritanceManagerBase {
       return null;
     }
 
-    FunctionType getterType;
-    FunctionType methodType;
+    ExecutableElement getter;
+    ExecutableElement method;
     for (var candidate in candidates) {
-      var kind = candidate.element.kind;
+      var kind = candidate.kind;
       if (kind == ElementKind.GETTER) {
-        getterType ??= candidate;
+        getter ??= candidate;
       }
       if (kind == ElementKind.METHOD) {
-        methodType ??= candidate;
+        method ??= candidate;
       }
     }
-    return new Conflict(name, candidates, getterType, methodType);
+    return new Conflict(name, candidates, getter, method);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -342,8 +338,8 @@ class InheritanceManager2 extends InheritanceManagerBase {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      Map<Name, FunctionType> map,
-      Map<Name, List<FunctionType>> namedCandidates) {
+      Map<Name, ExecutableElement> map,
+      Map<Name, List<ExecutableElement>> namedCandidates) {
     List<Conflict> conflicts = null;
 
     for (var name in namedCandidates.keys) {
@@ -371,12 +367,13 @@ class InheritanceManager2 extends InheritanceManagerBase {
       // candidates from [I1, I2, S, M1, M2]. But during method lookup
       // candidates should be considered in backward order, i.e. from `M2`,
       // then from `M1`, then from `S`.
-      FunctionType validOverride;
+      ExecutableElement validOverride;
       for (var i = candidates.length - 1; i >= 0; i--) {
         validOverride = candidates[i];
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
-          if (!_typeSystem.isOverrideSubtypeOf(validOverride, candidate)) {
+          if (!_typeSystem.isOverrideSubtypeOf(
+              validOverride.type, candidate.type)) {
             validOverride = null;
             break;
           }
@@ -397,8 +394,8 @@ class InheritanceManager2 extends InheritanceManagerBase {
     return conflicts;
   }
 
-  Map<Name, FunctionType> _getTypeMembers(InterfaceType type) {
-    var declared = <Name, FunctionType>{};
+  Map<Name, ExecutableElement> _getTypeMembers(InterfaceType type) {
+    var declared = <Name, ExecutableElement>{};
     var libraryUri = type.element.librarySource.uri;
 
     var methods = type.methods;
@@ -406,7 +403,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
       var method = methods[i];
       if (!method.isStatic) {
         var name = new Name(libraryUri, method.name);
-        declared[name] = method.type;
+        declared[name] = method;
       }
     }
 
@@ -415,7 +412,7 @@ class InheritanceManager2 extends InheritanceManagerBase {
       var accessor = accessors[i];
       if (!accessor.isStatic) {
         var name = new Name(libraryUri, accessor.name);
-        declared[name] = accessor.type;
+        declared[name] = accessor;
       }
     }
 
@@ -428,6 +425,14 @@ class InheritanceManager2 extends InheritanceManagerBase {
         enclosing.supertype == null &&
         !enclosing.isMixin;
   }
+}
+
+/// A temporary bridge between the old and the new versions of inheritance
+/// managers. Clients may not reference, extend, implement, or mix-in this
+/// class. It will be removed in the next major version of analyser, together
+/// with "InheritanceManager2".
+abstract class InheritanceManagerBase {
+  InheritanceManager3 get asInheritanceManager3;
 }
 
 /// The instance interface of an [InterfaceType].
@@ -444,30 +449,30 @@ class Interface {
   );
 
   /// The map of names to their signature in the interface.
-  final Map<Name, FunctionType> map;
+  final Map<Name, ExecutableElement> map;
 
   /// The map of declared names to their signatures.
-  final Map<Name, FunctionType> declared;
+  final Map<Name, ExecutableElement> declared;
 
   /// The map of names to their concrete implementations.
-  final Map<Name, FunctionType> implemented;
+  final Map<Name, ExecutableElement> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> _noSuchMethodForwarders;
 
   /// The map of names to their concrete implementations that can be mixed
   /// when this type is used as a mixin.
-  final Map<Name, FunctionType> _implementedForMixing;
+  final Map<Name, ExecutableElement> _implementedForMixing;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<FunctionType>> _overridden;
+  final Map<Name, List<ExecutableElement>> _overridden;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, FunctionType>> _superImplemented;
+  final List<Map<Name, ExecutableElement>> _superImplemented;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
@@ -476,7 +481,7 @@ class Interface {
 
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
-  Map<Name, FunctionType> _inheritedMap;
+  Map<Name, ExecutableElement> _inheritedMap;
 
   Interface._(
     this.map,

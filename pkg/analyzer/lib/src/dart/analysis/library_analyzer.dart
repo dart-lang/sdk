@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/legacy_type_asserter.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -61,7 +61,7 @@ class LibraryAnalyzer {
   final FileState _library;
   final ResourceProvider _resourceProvider;
 
-  final InheritanceManager2 _inheritance;
+  final InheritanceManager3 _inheritance;
   final bool Function(Uri) _isLibraryUri;
   final AnalysisContext _context;
   final ElementResynthesizer _resynthesizer;
@@ -281,6 +281,7 @@ class LibraryAnalyzer {
     unit.accept(new BestPracticesVerifier(
         errorReporter, _typeProvider, _libraryElement, unit, file.content,
         typeSystem: _context.typeSystem,
+        inheritanceManager: _inheritance,
         resourceProvider: _resourceProvider,
         analysisOptions: _context.analysisOptions));
 
@@ -336,7 +337,7 @@ class LibraryAnalyzer {
     var nodeRegistry = new NodeLintRegistry(_analysisOptions.enableTiming);
     var visitors = <AstVisitor>[];
     var context = LinterContextImpl(allUnits, currentUnit, _declaredVariables,
-        _typeProvider, _typeSystem, _analysisOptions);
+        _typeProvider, _typeSystem, _inheritance, _analysisOptions);
     for (Linter linter in _analysisOptions.lintRules) {
       linter.reporter = errorReporter;
       if (linter is NodeLintRule) {

@@ -8,6 +8,8 @@
 * Deprecated the `isMoreSpecificThan(DartType)` method of `DartType`.
   Deprecated the `isMoreSpecificThan(DartType)` method of `TypeSystem`.
   Use `TypeSystem.isSubtypeOf(DartType)` instead.
+* Deprecated InheritanceManager2, and replaced with InheritanceManager3.
+  InheritanceManager3 returns ExecutableElements, not FunctionType(s).
 
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.

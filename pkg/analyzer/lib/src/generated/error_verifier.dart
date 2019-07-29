@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -90,7 +90,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager2 _inheritanceManager;
+  final InheritanceManager3 _inheritanceManager;
 
   /**
    * A flag indicating whether the visitor is currently within a constructor
@@ -303,11 +303,24 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   /**
    * Initialize a newly created error verifier.
+   *
+   * [inheritanceManager] should be an instance of either [InheritanceManager2]
+   * or [InheritanceManager3].  If an [InheritanceManager2] is supplied, it
+   * will be converted into an [InheritanceManager3] internally.  The ability
+   * to pass in [InheritanceManager2] exists for backward compatibility; in a
+   * future major version of the analyzer, an [InheritanceManager3] will
+   * be required.
    */
-  ErrorVerifier(ErrorReporter errorReporter, this._currentLibrary,
-      this._typeProvider, this._inheritanceManager, bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false, this.flowAnalysisResult})
+  ErrorVerifier(
+      ErrorReporter errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      InheritanceManagerBase inheritanceManager,
+      bool enableSuperMixins,
+      {this.disableConflictingGenericsCheck: false,
+      this.flowAnalysisResult})
       : _errorReporter = errorReporter,
+        _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =
             new _UninstantiatedBoundChecker(errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
@@ -2630,12 +2643,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = method.name;
 
       // find inherited property accessor
-      ExecutableElement inherited = _inheritanceManager
-          .getInherited(enclosingType, new Name(libraryUri, name))
-          ?.element;
-      inherited ??= _inheritanceManager
-          .getInherited(enclosingType, new Name(libraryUri, '$name='))
-          ?.element;
+      ExecutableElement inherited = _inheritanceManager.getInherited(
+          enclosingType, new Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited(
+          enclosingType, new Name(libraryUri, '$name='));
 
       if (method.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -2659,12 +2670,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       String name = accessor.displayName;
 
       // find inherited method or property accessor
-      ExecutableElement inherited = _inheritanceManager
-          .getInherited(enclosingType, new Name(libraryUri, name))
-          ?.element;
-      inherited ??= _inheritanceManager
-          .getInherited(enclosingType, new Name(libraryUri, '$name='))
-          ?.element;
+      ExecutableElement inherited = _inheritanceManager.getInherited(
+          enclosingType, new Name(libraryUri, name));
+      inherited ??= _inheritanceManager.getInherited(
+          enclosingType, new Name(libraryUri, '$name='));
 
       if (accessor.isStatic && inherited != null) {
         _errorReporter.reportErrorForElement(
@@ -4392,11 +4401,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     for (var name in mixinElementImpl.superInvokedNames) {
       var nameObject = new Name(mixinLibraryUri, name);
 
-      var superMemberType = _inheritanceManager.getMember(
-          enclosingType, nameObject,
+      var superMember = _inheritanceManager.getMember(enclosingType, nameObject,
           forMixinIndex: mixinIndex, concrete: true, forSuper: true);
 
-      if (superMemberType == null) {
+      if (superMember == null) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
@@ -4405,16 +4413,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
 
-      FunctionType mixinMemberType =
+      ExecutableElement mixinMember =
           _inheritanceManager.getMember(mixinType, nameObject, forSuper: true);
 
-      if (mixinMemberType != null &&
-          !_typeSystem.isOverrideSubtypeOf(superMemberType, mixinMemberType)) {
+      if (mixinMember != null &&
+          !_typeSystem.isOverrideSubtypeOf(
+              superMember.type, mixinMember.type)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
             mixinName.name,
-            [name, mixinMemberType.displayName, superMemberType.displayName]);
+            [name, mixinMember.type.displayName, superMember.type.displayName]);
         return true;
       }
     }

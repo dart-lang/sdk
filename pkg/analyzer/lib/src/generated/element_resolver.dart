@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         SimpleIdentifierImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
@@ -89,7 +89,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * The manager for the inheritance mappings.
    */
-  final InheritanceManager2 _inheritance;
+  final InheritanceManager3 _inheritance;
 
   /**
    * The resolver driving this participant.
@@ -1249,25 +1249,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Look up the [FunctionType] of a getter or a method with the given [name]
-   * in the given [targetType].
-   */
-  FunctionType _lookUpGetterType(DartType targetType, String name,
-      {bool concrete: false, bool forSuper: false}) {
-    targetType = _resolveTypeParameter(targetType);
-    if (targetType is InterfaceType) {
-      var nameObject = new Name(_definingLibrary.source.uri, name);
-      return _inheritance.getMember(
-        targetType,
-        nameObject,
-        concrete: concrete,
-        forSuper: forSuper,
-      );
-    }
-    return null;
-  }
-
-  /**
    * Look up the method with the given [methodName] in the given [type]. Return
    * the element representing the method that was found, or `null` if there is
    * no method with the given name. The [target] is the target of the
@@ -1547,18 +1528,26 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       DartType leftType = _getStaticType(leftOperand);
       var isSuper = leftOperand is SuperExpression;
-      var invokeType = _lookUpGetterType(leftType, methodName,
-          concrete: isSuper, forSuper: isSuper);
-      if (invokeType == null && leftType is InterfaceType) {
+
+      ExecutableElement invokeElement;
+      if (leftType is InterfaceType) {
+        invokeElement = _inheritance.getMember(
+          leftType,
+          new Name(_definingLibrary.source.uri, methodName),
+          forSuper: isSuper,
+        );
+      }
+
+      if (invokeElement == null && leftType is InterfaceType) {
         ExtensionElement extension =
             _extensionMemberResolver.findExtension(leftType, methodName, node);
         if (extension != null) {
-          invokeType = extension.getMethod(methodName).type;
+          invokeElement = extension.getMethod(methodName);
         }
       }
-      var invokeElement = invokeType?.element;
+
       node.staticElement = invokeElement;
-      node.staticInvokeType = invokeType;
+      node.staticInvokeType = invokeElement?.type;
       if (_shouldReportInvalidMember(leftType, invokeElement)) {
         if (isSuper) {
           _recordUndefinedToken(

@@ -68,7 +68,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager2.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -2474,7 +2474,7 @@ class ExprTypeComputer {
       nameScope = new ClassScope(
           new TypeParameterScope(nameScope, enclosingClass), enclosingClass);
     }
-    var inheritance = new InheritanceManager2(linker.typeSystem);
+    var inheritance = new InheritanceManager3(linker.typeSystem);
     // Note: this is a bit of a hack; we ought to use the feature set for the
     // compilation unit being analyzed, but that's not feasible because sumaries
     // don't record the feature set.  This should be resolved when we switch to
@@ -3997,7 +3997,7 @@ class Linker {
   SpecialTypeElementForLink _voidElement;
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
-  InheritanceManager2 _inheritanceManager;
+  InheritanceManager3 _inheritanceManager;
   ContextForLink _context;
   AnalysisSessionForLink _session;
 
@@ -4036,9 +4036,9 @@ class Linker {
   SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
       new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
-  /// Get an instance of [InheritanceManager2] for use during linking.
-  InheritanceManager2 get inheritanceManager =>
-      _inheritanceManager ??= new InheritanceManager2(typeSystem);
+  /// Get an instance of [InheritanceManager3] for use during linking.
+  InheritanceManager3 get inheritanceManager =>
+      _inheritanceManager ??= new InheritanceManager3(typeSystem);
 
   /// Get a stub implementation of [AnalysisContext] which can be used during
   /// linking.
