@@ -749,8 +749,8 @@ class Dart2TypeSystem extends TypeSystem {
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType, FeatureSet featureSet) {
-    if (leftType is TypeParameterType && _isNumType(leftType.element.bound)) {
-      if (rightType == leftType || _isIntType(rightType)) {
+    if (leftType is TypeParameterType && leftType.bound.isDartCoreNum) {
+      if (rightType == leftType || rightType.isDartCoreInt) {
         if (operator == TokenType.PLUS ||
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
@@ -763,7 +763,7 @@ class Dart2TypeSystem extends TypeSystem {
           return leftType;
         }
       }
-      if (_isDoubleType(rightType)) {
+      if (rightType.isDartCoreDouble) {
         if (operator == TokenType.PLUS ||
             operator == TokenType.MINUS ||
             operator == TokenType.STAR ||
@@ -2583,7 +2583,7 @@ abstract class TypeSystem implements public.TypeSystem {
       }
       return typeProvider.boolType;
     }
-    if (_isIntType(leftType)) {
+    if (leftType.isDartCoreInt) {
       // int op double
       if (operator == TokenType.MINUS ||
           operator == TokenType.PERCENT ||
@@ -2593,7 +2593,7 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.PERCENT_EQ ||
           operator == TokenType.PLUS_EQ ||
           operator == TokenType.STAR_EQ) {
-        if (_isDoubleType(rightType)) {
+        if (rightType.isDartCoreDouble) {
           InterfaceTypeImpl doubleType = typeProvider.doubleType;
           if (featureSet.isEnabled(Feature.non_nullable)) {
             return promoteToNonNull(doubleType);
@@ -2612,7 +2612,7 @@ abstract class TypeSystem implements public.TypeSystem {
           operator == TokenType.PLUS_EQ ||
           operator == TokenType.STAR_EQ ||
           operator == TokenType.TILDE_SLASH_EQ) {
-        if (_isIntType(rightType)) {
+        if (rightType.isDartCoreInt) {
           InterfaceTypeImpl intType = typeProvider.intType;
           if (featureSet.isEnabled(Feature.non_nullable)) {
             return promoteToNonNull(intType);
@@ -2778,24 +2778,6 @@ abstract class TypeSystem implements public.TypeSystem {
    * bound in a type system specific manner.
    */
   DartType _interfaceLeastUpperBound(InterfaceType type1, InterfaceType type2);
-
-  /// Return `true` if the [type] is `double` with any nullability suffix.
-  bool _isDoubleType(DartType type) {
-    return type is InterfaceType &&
-        type.element == typeProvider.doubleType.element;
-  }
-
-  /// Return `true` if the [type] is `int` with any nullability suffix.
-  bool _isIntType(DartType type) {
-    return type is InterfaceType &&
-        type.element == typeProvider.intType.element;
-  }
-
-  /// Return `true` if the [type] is `num` with any nullability suffix.
-  bool _isNumType(DartType type) {
-    return type is InterfaceType &&
-        type.element == typeProvider.numType.element;
-  }
 
   /**
    * Starting from the given [type], search its class hierarchy for types of the

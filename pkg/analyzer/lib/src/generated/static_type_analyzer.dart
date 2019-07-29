@@ -410,12 +410,14 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return;
     }
     DartType staticType = node.staticInvokeType?.returnType ?? _dynamicType;
-    staticType = _typeSystem.refineBinaryExpressionType(
-        node.leftOperand.staticType,
-        node.operator.type,
-        node.rightOperand.staticType,
-        staticType,
-        _featureSet);
+    if (node.leftOperand is! ExtensionOverride) {
+      staticType = _typeSystem.refineBinaryExpressionType(
+          node.leftOperand.staticType,
+          node.operator.type,
+          node.rightOperand.staticType,
+          staticType,
+          _featureSet);
+    }
     _recordStaticType(node, staticType);
   }
 

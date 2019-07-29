@@ -619,11 +619,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase with ResourceProviderMixin {
     MethodElement operator =
         ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
     classA.methods = <MethodElement>[operator];
+
+    var asExpression = AstTestFactory.asExpression(
+        AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA));
+    asExpression.staticType = typeA;
+
     BinaryExpressionImpl node = AstTestFactory.binaryExpression(
-        AstTestFactory.asExpression(
-            AstTestFactory.identifier3("a"), AstTestFactory.typeName(classA)),
-        TokenType.PLUS,
-        _resolvedDouble(2.0));
+        asExpression, TokenType.PLUS, _resolvedDouble(2.0));
     node.staticElement = operator;
     node.staticInvokeType = node.staticElement.type;
     expect(_analyze(node), same(typeA));
