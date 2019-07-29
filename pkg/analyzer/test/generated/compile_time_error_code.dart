@@ -5142,17 +5142,12 @@ typedef A B();
   }
 
   test_typeAliasCannotReferenceItself_typeVariableBounds() async {
-    var errors = [
-      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
-    ];
-    if (!AnalysisDriver.useSummary2) {
-      errors.add(
-        error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
-      );
-    }
     await assertErrorsInCode('''
 typedef A<T extends A<int>>();
-''', errors);
+''', [
+      error(CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF, 0, 30),
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 22, 3),
+    ]);
   }
 
   test_typeArgumentNotMatchingBounds_const() async {
