@@ -8,6 +8,8 @@ import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
 import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'completion_manager_test.dart' as completion_manager;
+// ignore: unused_import
+import 'completion_ranking_test.dart' as completion_ranking_test;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
@@ -33,14 +35,18 @@ main() {
     combinator_test.main();
     common_usage_test.main();
     completion_manager.main();
+    // TODO(lambdabaa): Run this test once we figure out how to suppress
+    //   output from the tflite shared library
+    // completion_ranking_test.main();
+    completion_ranking_test.main();
     field_formal_contributor_test.main();
     imported_ref_test.main();
     inherited_ref_test.main();
     keyword_test.main();
     label_contributor_test.main();
     // TODO(brianwilkerson) Run this test when it's been updated to not rely on
-    //  the location of the 'script' being run.
-//    language_model_test.main();
+    //   the location of the 'script' being run.
+    // language_model_test.main();
     library_member_test.main();
     library_prefix_test.main();
     local_constructor_test.main();
