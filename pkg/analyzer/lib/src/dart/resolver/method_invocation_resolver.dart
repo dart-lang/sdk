@@ -134,8 +134,7 @@ class MethodInvocationResolver {
       return;
     }
 
-    // TODO(mfairhurst): use == once it considers nullabilitySuffix
-    if (identical(receiverType, BottomTypeImpl.instance)) {
+    if (receiverType == BottomTypeImpl.instance) {
       _reportUseOfNeverType(node, receiver);
       return;
     }
@@ -697,8 +696,7 @@ class MethodInvocationResolver {
       return _reportUseOfVoidType(node, node.methodName);
     }
 
-    // TODO(mfairhurst): use == once it considers nullabilitySuffix
-    if (identical(type, BottomTypeImpl.instance)) {
+    if (type == BottomTypeImpl.instance) {
       return _reportUseOfNeverType(node, node.methodName);
     }
 
