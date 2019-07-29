@@ -52,6 +52,8 @@ import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'export_suplicated_library_named_test.dart'
+    as export_suplicated_library_named;
 import 'expression_in_map_test.dart' as expression_in_map;
 import 'extends_non_class_test.dart' as extends_non_class;
 import 'extension_declares_abstract_method_test.dart'
@@ -63,12 +65,26 @@ import 'extension_override_access_to_static_member_test.dart'
     as extension_override_access_to_static_member;
 import 'extension_override_argument_not_assignable_test.dart'
     as extension_override_argument_not_assignable;
+import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
+import 'field_initialized_in_initializer_and_declaration_test.dart'
+    as field_initialized_in_initializer_and_declaration;
+import 'field_initializer_not_assignable_test.dart'
+    as field_initializer_not_assignable;
+import 'field_initializing_formal_not_assignable_test.dart'
+    as field_initializing_formal_not_assignable;
+import 'final_initialized_in_delcaration_and_constructor_test.dart'
+    as final_initialized_in_delcaration_and_constructor;
+import 'final_not_initialized_constructor_test.dart'
+    as final_not_initialized_constructor;
 import 'final_not_initialized_test.dart' as final_not_initialized;
 import 'implements_non_class_test.dart' as implements_non_class;
 import 'implicit_this_reference_in_initializer_test.dart'
     as implicit_this_reference_in_initializer;
 import 'import_deferred_library_with_load_function_test.dart'
     as import_deferred_library_with_load_function;
+import 'import_duplicated_library_named_test.dart'
+    as import_duplicated_library_named;
+import 'import_of_non_library_test.dart' as import_of_non_library;
 import 'invalid_assignment_test.dart' as invalid_assignment;
 import 'invalid_cast_new_expr_test.dart' as invalid_cast_new_expr;
 import 'invalid_extension_argument_count_test.dart'
@@ -83,6 +99,7 @@ import 'invalid_override_different_default_values_named_test.dart'
     as invalid_override_different_default_values_named;
 import 'invalid_override_different_default_values_positional_test.dart'
     as invalid_override_different_default_values_positional;
+import 'invalid_override_test.dart' as invalid_override;
 import 'invalid_required_param_test.dart' as invalid_required_param;
 import 'invalid_sealed_annotation_test.dart' as invalid_sealed_annotation;
 import 'invalid_use_of_never_value_test.dart' as invalid_use_of_never_value;
@@ -105,8 +122,11 @@ import 'map_entry_not_in_map_test.dart' as map_entry_not_in_map;
 import 'map_key_type_not_assignable_test.dart' as map_key_type_not_assignable;
 import 'map_value_type_not_assignable_test.dart'
     as map_value_type_not_assignable;
+import 'mismatched_getter_and_setter_types_test.dart'
+    as mismatched_getter_and_setter_types;
 import 'missing_default_value_for_parameter_test.dart'
-    as missing_default_value_for_paramter;
+    as missing_default_value_for_parameter;
+import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
@@ -261,6 +281,7 @@ main() {
     duplicate_shown_name.main();
     equal_elements_in_const_set.main();
     equal_keys_in_const_map.main();
+    export_suplicated_library_named.main();
     expression_in_map.main();
     extends_non_class.main();
     extension_declares_abstract_method.main();
@@ -268,10 +289,18 @@ main() {
     extension_declares_field.main();
     extension_override_access_to_static_member.main();
     extension_override_argument_not_assignable.main();
+    extra_positional_arguments.main();
+    field_initialized_in_initializer_and_declaration.main();
+    field_initializer_not_assignable.main();
+    field_initializing_formal_not_assignable.main();
+    final_initialized_in_delcaration_and_constructor.main();
+    final_not_initialized_constructor.main();
     final_not_initialized.main();
     implements_non_class.main();
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
+    import_duplicated_library_named.main();
+    import_of_non_library.main();
     invalid_assignment.main();
     invalid_cast_new_expr.main();
     invalid_extension_argument_count.main();
@@ -282,6 +311,7 @@ main() {
     invalid_optional_parameter_type.main();
     invalid_override_different_default_values_named.main();
     invalid_override_different_default_values_positional.main();
+    invalid_override.main();
     invalid_required_param.main();
     invalid_sealed_annotation.main();
     invalid_use_of_never_value.main();
@@ -298,7 +328,9 @@ main() {
     map_entry_not_in_map.main();
     map_key_type_not_assignable.main();
     map_value_type_not_assignable.main();
-    missing_default_value_for_paramter.main();
+    mismatched_getter_and_setter_types.main();
+    missing_default_value_for_parameter.main();
+    missing_enum_value_in_switch.main();
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
