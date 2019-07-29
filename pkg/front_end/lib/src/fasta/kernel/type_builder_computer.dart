@@ -113,8 +113,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeParameter parameter = node.parameter;
     Class kernelClass = parameter.parent;
     Library kernelLibrary = kernelClass.enclosingLibrary;
-    LibraryBuilder<TypeBuilder, Library> library =
-        loader.builders[kernelLibrary.importUri];
+    LibraryBuilder library = loader.builders[kernelLibrary.importUri];
     return new NamedTypeBuilder(parameter.name, null)
       ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
   }

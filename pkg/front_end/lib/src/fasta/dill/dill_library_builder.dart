@@ -37,7 +37,6 @@ import '../kernel/kernel_builder.dart'
         DynamicTypeBuilder,
         InvalidTypeBuilder,
         KernelInvalidTypeBuilder,
-        TypeBuilder,
         LibraryBuilder,
         Scope;
 
@@ -76,7 +75,7 @@ class LazyLibraryScope extends Scope {
   }
 }
 
-class DillLibraryBuilder extends LibraryBuilder<TypeBuilder, Library> {
+class DillLibraryBuilder extends LibraryBuilder {
   final Library library;
 
   DillLoader loader;

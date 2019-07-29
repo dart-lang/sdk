@@ -958,7 +958,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void ensureLoaded(Member member) {
     if (member == null) return;
     Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder<dynamic, dynamic> builder =
+    LibraryBuilder builder =
         library.loader.builders[ensureLibraryLoaded.importUri] ??
             library.loader.target.dillTarget.loader
                 .builders[ensureLibraryLoaded.importUri];
@@ -975,7 +975,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   bool isLoaded(Member member) {
     if (member == null) return true;
     Library ensureLibraryLoaded = member.enclosingLibrary;
-    LibraryBuilder<dynamic, dynamic> builder =
+    LibraryBuilder builder =
         library.loader.builders[ensureLibraryLoaded.importUri] ??
             library.loader.target.dillTarget.loader
                 .builders[ensureLibraryLoaded.importUri];

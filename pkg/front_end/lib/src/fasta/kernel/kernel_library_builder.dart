@@ -166,7 +166,7 @@ import 'type_algorithms.dart'
         getNonSimplicityIssuesForDeclaration,
         getNonSimplicityIssuesForTypeVariables;
 
-class KernelLibraryBuilder extends SourceLibraryBuilder<TypeBuilder, Library> {
+class KernelLibraryBuilder extends SourceLibraryBuilder {
   final Library library;
 
   final KernelLibraryBuilder actualOrigin;

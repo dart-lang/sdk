@@ -43,7 +43,7 @@ import 'kernel_builder.dart'
         LibraryBuilder,
         MetadataBuilder;
 
-class KernelFieldBuilder extends FieldBuilder<Expression> {
+class KernelFieldBuilder extends FieldBuilder {
   final Field field;
   final List<MetadataBuilder> metadata;
   final TypeBuilder type;

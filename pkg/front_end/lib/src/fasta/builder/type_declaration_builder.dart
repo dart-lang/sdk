@@ -36,10 +36,9 @@ abstract class TypeDeclarationBuilder extends ModifierBuilder {
 
   int get typeVariablesCount => 0;
 
-  DartType buildType(
-      LibraryBuilder<TypeBuilder, Object> library, List<TypeBuilder> arguments);
+  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments);
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
-      LibraryBuilder<TypeBuilder, Object> library, List<DartType> arguments);
+      LibraryBuilder library, List<DartType> arguments);
 }

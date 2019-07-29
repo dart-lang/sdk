@@ -17,18 +17,13 @@ abstract class TypeAliasBuilder extends TypeDeclarationBuilder {
 
   final List<TypeVariableBuilder> typeVariables;
 
-  TypeAliasBuilder(
-      List<MetadataBuilder> metadata,
-      String name,
-      this.typeVariables,
-      this.type,
-      LibraryBuilder<TypeBuilder, Object> parent,
-      int charOffset)
+  TypeAliasBuilder(List<MetadataBuilder> metadata, String name,
+      this.typeVariables, this.type, LibraryBuilder parent, int charOffset)
       : super(metadata, 0, name, parent, charOffset);
 
   String get debugName => "TypeAliasBuilder";
 
-  LibraryBuilder<TypeBuilder, Object> get parent => super.parent;
+  LibraryBuilder get parent => super.parent;
 
   int get typeVariablesCount;
 }

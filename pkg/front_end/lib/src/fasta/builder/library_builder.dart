@@ -4,6 +4,8 @@
 
 library fasta.library_builder;
 
+import 'package:kernel/ast.dart' show Library;
+
 import '../combinator.dart' show Combinator;
 
 import '../problems.dart' show internalProblem, unsupported;
@@ -35,8 +37,7 @@ import 'builder.dart'
         ScopeBuilder,
         TypeBuilder;
 
-abstract class LibraryBuilder<T extends TypeBuilder, R>
-    extends ModifierBuilder {
+abstract class LibraryBuilder extends ModifierBuilder {
   final Scope scope;
 
   final Scope exportScope;
@@ -74,7 +75,7 @@ abstract class LibraryBuilder<T extends TypeBuilder, R>
   int get modifiers => 0;
 
   @override
-  R get target;
+  Library get target;
 
   Uri get uri;
 

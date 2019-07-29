@@ -4,7 +4,7 @@
 
 library fasta.type_builder;
 
-import 'package:kernel/ast.dart' show DartType, Library, Supertype;
+import 'package:kernel/ast.dart' show DartType, Supertype;
 
 import '../fasta_codes.dart' show LocatedMessage;
 
@@ -48,11 +48,10 @@ abstract class TypeBuilder {
 
   String get fullNameForErrors => "${printOn(new StringBuffer())}";
 
-  DartType build(LibraryBuilder<TypeBuilder, Object> library);
+  DartType build(LibraryBuilder library);
 
-  Supertype buildSupertype(LibraryBuilder<TypeBuilder, Library> library,
-      int charOffset, Uri fileUri);
+  Supertype buildSupertype(LibraryBuilder library, int charOffset, Uri fileUri);
 
-  Supertype buildMixedInType(LibraryBuilder<TypeBuilder, Library> library,
-      int charOffset, Uri fileUri);
+  Supertype buildMixedInType(
+      LibraryBuilder library, int charOffset, Uri fileUri);
 }

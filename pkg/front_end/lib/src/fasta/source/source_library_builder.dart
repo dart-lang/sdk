@@ -4,7 +4,7 @@
 
 library fasta.source_library_builder;
 
-import 'package:kernel/ast.dart' show ProcedureKind;
+import 'package:kernel/ast.dart' show Library, ProcedureKind;
 
 import '../../base/resolve_relative_uri.dart' show resolveRelativeUri;
 
@@ -77,18 +77,17 @@ import '../problems.dart' show unexpected, unhandled;
 
 import 'source_loader.dart' show SourceLoader;
 
-abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
-    extends LibraryBuilder<T, R> {
+abstract class SourceLibraryBuilder extends LibraryBuilder {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
   final SourceLoader loader;
 
-  final DeclarationBuilder<T> libraryDeclaration;
+  final DeclarationBuilder<TypeBuilder> libraryDeclaration;
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
 
-  final List<SourceLibraryBuilder<T, R>> parts = <SourceLibraryBuilder<T, R>>[];
+  final List<SourceLibraryBuilder> parts = <SourceLibraryBuilder>[];
 
   // Can I use library.parts instead? See KernelLibraryBuilder.addPart.
   final List<int> partOffsets = <int>[];
@@ -121,7 +120,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// declaration (class, method, and so on), we don't have enough information
   /// to create a builder and this object records its members and types until,
   /// for example, [addClass] is called.
-  DeclarationBuilder<T> currentDeclaration;
+  DeclarationBuilder<TypeBuilder> currentDeclaration;
 
   bool canAddImplementationBuilders = false;
 
@@ -130,7 +129,10 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   Message accessProblem;
 
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
-      : this.fromScopes(loader, fileUri, new DeclarationBuilder<T>.library(),
+      : this.fromScopes(
+            loader,
+            fileUri,
+            new DeclarationBuilder<TypeBuilder>.library(),
             scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
@@ -145,25 +147,27 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   @override
   bool get isPart => partOfName != null || partOfUri != null;
 
-  List<UnresolvedType<T>> get types => libraryDeclaration.types;
+  List<UnresolvedType<TypeBuilder>> get types => libraryDeclaration.types;
 
   @override
   bool get isSynthetic => accessProblem != null;
 
-  T addNamedType(Object name, List<T> arguments, int charOffset);
+  TypeBuilder addNamedType(
+      Object name, List<TypeBuilder> arguments, int charOffset);
 
-  T addMixinApplication(T supertype, List<T> mixins, int charOffset);
+  TypeBuilder addMixinApplication(
+      TypeBuilder supertype, List<TypeBuilder> mixins, int charOffset);
 
-  T addType(T type, int charOffset) {
+  TypeBuilder addType(TypeBuilder type, int charOffset) {
     currentDeclaration
-        .addType(new UnresolvedType<T>(type, charOffset, fileUri));
+        .addType(new UnresolvedType<TypeBuilder>(type, charOffset, fileUri));
     return type;
   }
 
-  T addVoidType(int charOffset);
+  TypeBuilder addVoidType(int charOffset);
 
-  ConstructorReferenceBuilder addConstructorReference(
-      Object name, List<T> typeArguments, String suffix, int charOffset) {
+  ConstructorReferenceBuilder addConstructorReference(Object name,
+      List<TypeBuilder> typeArguments, String suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(
         name, typeArguments, suffix, this, charOffset);
     constructorReferences.add(ref);
@@ -174,14 +178,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
     currentDeclaration = currentDeclaration.createNested(name, hasMembers);
   }
 
-  DeclarationBuilder<T> endNestedDeclaration(String name) {
+  DeclarationBuilder<TypeBuilder> endNestedDeclaration(String name) {
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
             currentDeclaration.name == "operator" ||
             identical(name, "<syntax-error>"),
         "${name} != ${currentDeclaration.name}");
-    DeclarationBuilder<T> previous = currentDeclaration;
+    DeclarationBuilder<TypeBuilder> previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
     return previous;
   }
@@ -365,8 +369,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       String name,
       List<TypeVariableBuilder> typeVariables,
-      T supertype,
-      List<T> interfaces,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -378,7 +382,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int modifiers,
       String extensionName,
       List<TypeVariableBuilder> typeVariables,
-      T type,
+      TypeBuilder type,
       int startOffset,
       int nameOffset,
       int endOffset);
@@ -389,8 +393,8 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String name,
       List<TypeVariableBuilder> typeVariables,
       int modifiers,
-      T mixinApplication,
-      List<T> interfaces,
+      TypeBuilder mixinApplication,
+      List<TypeBuilder> interfaces,
       int startCharOffset,
       int charOffset,
       int charEndOffset);
@@ -399,7 +403,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      T type,
+      TypeBuilder type,
       String name,
       int charOffset,
       int charEndOffset,
@@ -408,7 +412,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       {Token constInitializerToken});
 
   void addFields(String documentationComment, List<MetadataBuilder> metadata,
-      int modifiers, T type, List<FieldInfo> fieldInfos) {
+      int modifiers, TypeBuilder type, List<FieldInfo> fieldInfos) {
     for (FieldInfo info in fieldInfos) {
       bool isConst = modifiers & constMask != 0;
       bool isFinal = modifiers & finalMask != 0;
@@ -437,7 +441,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      T returnType,
+      TypeBuilder returnType,
       final Object name,
       String constructorName,
       List<TypeVariableBuilder> typeVariables,
@@ -453,7 +457,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
-      T returnType,
+      TypeBuilder returnType,
       String name,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
@@ -483,7 +487,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
       int charOffset);
 
   FunctionTypeBuilder addFunctionType(
-      T returnType,
+      TypeBuilder returnType,
       List<TypeVariableBuilder> typeVariables,
       List<FormalParameterBuilder> formals,
       int charOffset);
@@ -504,13 +508,14 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   FormalParameterBuilder addFormalParameter(
       List<MetadataBuilder> metadata,
       int modifiers,
-      T type,
+      TypeBuilder type,
       String name,
       bool hasThis,
       int charOffset,
       Token initializerToken);
 
-  TypeVariableBuilder addTypeVariable(String name, T bound, int charOffset);
+  TypeVariableBuilder addTypeVariable(
+      String name, TypeBuilder bound, int charOffset);
 
   Declaration addBuilder(String name, Declaration declaration, int charOffset) {
     // TODO(ahe): Set the parent correctly here. Could then change the
@@ -621,7 +626,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
 
   void buildBuilder(Declaration declaration, LibraryBuilder coreLibrary);
 
-  R build(LibraryBuilder coreLibrary) {
+  Library build(LibraryBuilder coreLibrary) {
     assert(implementationBuilders.isEmpty);
     canAddImplementationBuilders = true;
     Iterator<Declaration> iterator = this.iterator;
@@ -697,7 +702,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   void includeParts(Set<Uri> usedParts) {
     Set<Uri> seenParts = new Set<Uri>();
     for (int i = 0; i < parts.length; i++) {
-      SourceLibraryBuilder<T, R> part = parts[i];
+      SourceLibraryBuilder part = parts[i];
       int partOffset = partOffsets[i];
       if (part == this) {
         addProblem(messagePartOfSelf, -1, noLength, fileUri);
@@ -726,7 +731,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   }
 
   bool includePart(
-      SourceLibraryBuilder<T, R> part, Set<Uri> usedParts, int partOffset) {
+      SourceLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
     if (part.partOfUri != null) {
       if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
         // This is an error, but the part is not removed from the list of parts,
@@ -873,7 +878,7 @@ abstract class SourceLibraryBuilder<T extends TypeBuilder, R>
   /// when done.
   int resolveTypes() {
     int typeCount = types.length;
-    for (UnresolvedType<T> t in types) {
+    for (UnresolvedType<TypeBuilder> t in types) {
       t.resolveIn(scope, this);
       if (!loader.target.legacyMode) {
         t.checkType(this);

@@ -4,7 +4,7 @@
 
 library fasta.outline_builder;
 
-import 'package:kernel/ast.dart' show Library, ProcedureKind;
+import 'package:kernel/ast.dart' show ProcedureKind;
 
 import '../builder/builder.dart';
 
@@ -98,7 +98,7 @@ enum MethodBody {
 }
 
 class OutlineBuilder extends StackListener {
-  final SourceLibraryBuilder<TypeBuilder, Library> library;
+  final SourceLibraryBuilder library;
 
   final bool enableNative;
   final bool stringExpectedAfterNative;
@@ -111,7 +111,7 @@ class OutlineBuilder extends StackListener {
   /// Counter used for naming unnamed extension declarations.
   int unnamedExtensionCounter = 0;
 
-  OutlineBuilder(SourceLibraryBuilder<TypeBuilder, Library> library)
+  OutlineBuilder(SourceLibraryBuilder library)
       : library = library,
         enableNative =
             library.loader.target.backendTarget.enableNative(library.uri),

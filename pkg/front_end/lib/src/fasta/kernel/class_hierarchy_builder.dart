@@ -107,7 +107,7 @@ ProcedureKind memberKind(Member member) {
   return member is Procedure ? member.kind : null;
 }
 
-bool isNameVisibleIn(Name name, LibraryBuilder<TypeBuilder, Library> library) {
+bool isNameVisibleIn(Name name, LibraryBuilder library) {
   return !name.isPrivate || name.library == library.target;
 }
 

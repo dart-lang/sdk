@@ -4,11 +4,11 @@
 
 library fasta.field_builder;
 
+import 'package:kernel/ast.dart' show DartType, Expression;
+
 import 'builder.dart' show LibraryBuilder, MemberBuilder;
 
-import 'package:kernel/ast.dart' show DartType;
-
-abstract class FieldBuilder<T> extends MemberBuilder {
+abstract class FieldBuilder extends MemberBuilder {
   final String name;
 
   final int modifiers;
@@ -21,7 +21,7 @@ abstract class FieldBuilder<T> extends MemberBuilder {
 
   DartType get builtType;
 
-  void set initializer(T value);
+  void set initializer(Expression value);
 
   bool get hasInitializer;
 

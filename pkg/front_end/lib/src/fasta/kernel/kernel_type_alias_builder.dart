@@ -10,7 +10,6 @@ import 'package:kernel/ast.dart'
         DynamicType,
         FunctionType,
         InvalidType,
-        Library,
         TypeParameter,
         Typedef,
         VariableDeclaration;
@@ -47,7 +46,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder {
       String name,
       List<TypeVariableBuilder> typeVariables,
       FunctionTypeBuilder type,
-      LibraryBuilder<TypeBuilder, Library> parent,
+      LibraryBuilder parent,
       int charOffset,
       [Typedef target])
       : target = target ??
@@ -93,7 +92,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder {
     return target;
   }
 
-  DartType buildThisType(LibraryBuilder<TypeBuilder, Library> library) {
+  DartType buildThisType(LibraryBuilder library) {
     if (thisType != null) {
       if (identical(thisType, cyclicTypeAliasMarker)) {
         library.addProblem(templateCyclicTypedef.withArguments(name),
@@ -130,7 +129,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder {
 
   /// [arguments] have already been built.
   DartType buildTypesWithBuiltArguments(
-      LibraryBuilder<TypeBuilder, Object> library, List<DartType> arguments) {
+      LibraryBuilder library, List<DartType> arguments) {
     var thisType = buildThisType(library);
     if (const DynamicType() == thisType) return thisType;
     FunctionType result = thisType;
@@ -143,8 +142,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder {
   }
 
   List<DartType> buildTypeArguments(
-      LibraryBuilder<TypeBuilder, Library> library,
-      List<TypeBuilder> arguments) {
+      LibraryBuilder library, List<TypeBuilder> arguments) {
     if (arguments == null && typeVariables == null) {
       return <DartType>[];
     }
@@ -186,8 +184,7 @@ class KernelTypeAliasBuilder extends TypeAliasBuilder {
   int get typeVariablesCount => typeVariables?.length ?? 0;
 
   @override
-  DartType buildType(LibraryBuilder<TypeBuilder, Object> library,
-      List<TypeBuilder> arguments) {
+  DartType buildType(LibraryBuilder library, List<TypeBuilder> arguments) {
     var thisType = buildThisType(library);
     if (thisType is InvalidType) return thisType;
     FunctionType result = thisType;
