@@ -406,7 +406,7 @@ deps = {
     "packages": [
       {
         "package": "dart/language_model",
-        "version": "KB68QHR1SKtopACaf3TFcu9MusRbwWqs0L1m_urGLL4C",
+        "version": "gABkW8D_-f45it57vQ_ZTKFwev16RcCjvrdTCytEnQgC",
       }
     ],
     "dep_type": "cipd",

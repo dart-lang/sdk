@@ -26,7 +26,7 @@ void entrypoint(SendPort sendPort) {
   final port = ReceivePort();
   sendPort.send(port.sendPort);
   port.listen((message) {
-    Map<String, dynamic> response = {};
+    Map<String, Map<String, double>> response = {};
     switch (message['method']) {
       case 'load':
         model = LanguageModel.load(message['args'][0]);
@@ -65,13 +65,14 @@ class CompletionRanking {
 
   /// Makes a next-token prediction starting at the completion request
   /// cursor and walking back to find previous input tokens.
-  Future<Map<String, double>> predict(DartCompletionRequest request) {
+  Future<Map<String, double>> predict(DartCompletionRequest request) async {
     final query = constructQuery(request, _LOOKBACK);
     if (query == null) {
       return Future.value(null);
     }
 
-    return makeRequest('predict', query);
+    final response = await makeRequest('predict', query);
+    return response['data'];
   }
 
   /// Transforms [CompletionSuggestion] relevances and
@@ -177,7 +178,7 @@ class CompletionRanking {
   }
 
   /// Send an RPC to the isolate worker and wait for it to respond.
-  Future<Map<String, dynamic>> makeRequest(
+  Future<Map<String, Map<String, double>>> makeRequest(
       String method, List<String> args) async {
     final port = ReceivePort();
     _write.send({
