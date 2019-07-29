@@ -6,7 +6,8 @@ library js_backend.runtime_types_new;
 
 import 'package:js_runtime/shared/recipe_syntax.dart';
 
-import '../common_elements.dart' show JCommonElements, JElementEnvironment;
+import '../common_elements.dart'
+    show CommonElements, JCommonElements, JElementEnvironment;
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as jsAst;
@@ -387,6 +388,9 @@ class RulesetEncoder {
 
   RulesetEncoder(this._dartTypes, this._emitter, this._recipeEncoder);
 
+  CommonElements get _commonElements => _dartTypes.commonElements;
+  ClassEntity get _objectClass => _commonElements.objectClass;
+
   final _leftBrace = js.stringPart('{');
   final _rightBrace = js.stringPart('}');
   final _leftBracket = js.stringPart('[');
@@ -395,8 +399,9 @@ class RulesetEncoder {
   final _comma = js.stringPart(',');
   final _quote = js.stringPart("'");
 
+  bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
+
   // TODO(fishythefish): Common substring elimination.
-  // TODO(fishythefish): Omit "Object" from supertypes.
 
   /// Produces a string readable by `JSON.parse()`.
   jsAst.StringConcatenation encodeRuleset(
@@ -405,7 +410,9 @@ class RulesetEncoder {
         _quote,
         _leftBrace,
         ...js.joinLiterals(
-            ruleset.entries.map((entry) => _encodeRule(entry.key, entry.value)),
+            ruleset.entries
+                .where((entry) => !_isObject(entry.key))
+                .map((entry) => _encodeRule(entry.key, entry.value)),
             _comma),
         _rightBrace,
         _quote,
@@ -418,8 +425,10 @@ class RulesetEncoder {
         _colon,
         _leftBrace,
         ...js.joinLiterals(
-            supertypes.map((InterfaceType supertype) =>
-                _encodeSupertype(targetType, supertype)),
+            supertypes
+                .where((InterfaceType supertype) => !_isObject(supertype))
+                .map((InterfaceType supertype) =>
+                    _encodeSupertype(targetType, supertype)),
             _comma),
         _rightBrace,
       ]);
