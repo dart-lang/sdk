@@ -66,7 +66,9 @@ class Tags {
   static const String builderSupertype = 'builder-supertype';
   static const String builderInterfaces = 'builder-interfaces';
   static const String builderOnTypes = 'builder-onTypes';
-  static const String builderParameters = 'builder-params';
+  static const String builderRequiredParameters = 'builder-params';
+  static const String builderPositionalParameters = 'builder-pos-params';
+  static const String builderNamedParameters = 'builder-named-params';
 
   static const String clsName = 'cls-name';
   static const String clsTypeParameters = 'cls-type-params';
@@ -75,9 +77,13 @@ class Tags {
 
   static const String memberName = 'member-name';
   static const String memberTypeParameters = 'member-type-params';
-  static const String memberParameters = 'member-params';
+  static const String memberRequiredParameters = 'member-params';
+  static const String memberPositionalParameters = 'member-pos-params';
+  static const String memberNamedParameters = 'member-named-params';
 
   static const String errors = 'errors';
+
+  static const String hasThis = 'this';
 }
 
 class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
@@ -140,9 +146,19 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     if (memberBuilder is FunctionBuilder) {
       if (memberBuilder.formals != null) {
         for (FormalParameterBuilder parameter in memberBuilder.formals) {
-          features.addElement(Tags.builderParameters, parameter.name);
+          if (parameter.isRequired) {
+            features.addElement(Tags.builderRequiredParameters, parameter.name);
+          } else if (parameter.isPositional) {
+            features.addElement(
+                Tags.builderPositionalParameters, parameter.name);
+          } else {
+            assert(parameter.isNamed);
+            features.addElement(Tags.builderNamedParameters, parameter.name);
+          }
         }
-        features.markAsUnsorted(Tags.builderParameters);
+        features.markAsUnsorted(Tags.builderRequiredParameters);
+        features.markAsUnsorted(Tags.builderPositionalParameters);
+        features.markAsUnsorted(Tags.builderNamedParameters);
       }
       if (memberBuilder.typeVariables != null) {
         for (TypeVariableBuilder typeVariable in memberBuilder.typeVariables) {
@@ -154,11 +170,23 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
     }
     features[Tags.memberName] = getMemberName(member);
     if (member.function != null) {
-      for (VariableDeclaration parameter
-          in member.function.positionalParameters) {
-        features.addElement(Tags.memberParameters, parameter.name);
+      for (int index = 0;
+          index < member.function.positionalParameters.length;
+          index++) {
+        VariableDeclaration parameter =
+            member.function.positionalParameters[index];
+        if (index < member.function.requiredParameterCount) {
+          features.addElement(Tags.memberRequiredParameters, parameter.name);
+        } else {
+          features.addElement(Tags.memberPositionalParameters, parameter.name);
+        }
       }
-      features.markAsUnsorted(Tags.memberParameters);
+      for (VariableDeclaration parameter in member.function.namedParameters) {
+        features.addElement(Tags.memberNamedParameters, parameter.name);
+      }
+      features.markAsUnsorted(Tags.memberRequiredParameters);
+      features.markAsUnsorted(Tags.memberPositionalParameters);
+      features.markAsUnsorted(Tags.memberNamedParameters);
       for (TypeParameter typeParameter in member.function.typeParameters) {
         features.addElement(
             Tags.memberTypeParameters, typeParameterToText(typeParameter));
@@ -166,5 +194,15 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
       features.markAsUnsorted(Tags.memberTypeParameters);
     }
     return features;
+  }
+
+  @override
+  Features computeNodeValue(Id id, TreeNode node) {
+    if (node is ThisExpression) {
+      Features features = new Features();
+      features.add(Tags.hasThis);
+      return features;
+    }
+    return null;
   }
 }

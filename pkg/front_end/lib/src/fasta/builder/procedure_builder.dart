@@ -7,7 +7,8 @@ library fasta.procedure_builder;
 // Note: we're deliberately using AsyncMarker and ProcedureKind from kernel
 // outside the kernel-specific builders. This is simpler than creating
 // additional enums.
-import 'package:kernel/ast.dart' show AsyncMarker, ProcedureKind;
+import 'package:kernel/ast.dart'
+    show AsyncMarker, ProcedureKind, VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
 
@@ -217,6 +218,9 @@ abstract class FunctionBuilder extends MemberBuilder {
 
   FunctionNode function;
 
+  /// If this procedure is an instance member declared in an extension
+  /// declaration, [extensionThis] holds the synthetically added `this`
+  /// parameter.
   VariableDeclaration extensionThis;
 
   Statement actualBody;
@@ -287,6 +291,19 @@ abstract class FunctionBuilder extends MemberBuilder {
         }
       }
       setParents(result.typeParameters, result);
+    }
+
+    if (parent is ClassBuilder) {
+      ClassBuilder cls = parent;
+      if (cls.isExtension && isInstanceMember) {
+        DartType thisType = cls.onTypes.first.build(library);
+        extensionThis = new VariableDeclarationJudgment("this", 0,
+            type: thisType, isFinal: true)
+          ..fileOffset = charOffset
+          ..parent = result;
+        result.positionalParameters.add(extensionThis);
+        result.requiredParameterCount++;
+      }
     }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {

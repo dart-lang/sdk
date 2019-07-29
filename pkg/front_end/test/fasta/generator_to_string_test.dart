@@ -95,10 +95,11 @@ main() {
             new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 
-    BodyBuilder helper = new BodyBuilder(
-        libraryBuilder, null, null, null, null, null, null, false, uri, null);
+    BodyBuilder helper = new BodyBuilder(libraryBuilder, null, null, null, null,
+        null, null, false, null, uri, null);
 
-    Generator generator = new ThisAccessGenerator(helper, token, false, false);
+    Generator generator =
+        new ThisAccessGenerator(helper, token, false, false, null);
 
     Library library = new Library(uri);
     Class cls = new Class();
@@ -168,8 +169,9 @@ main() {
         " builder: Instance of 'LoadLibraryBuilder')",
         new LoadLibraryGenerator(helper, token, loadLibraryBuilder));
     check(
-        "ThisAccessGenerator(offset: 4, isInitializer: false, isSuper: false)",
-        new ThisAccessGenerator(helper, token, false, false));
+        "ThisAccessGenerator(offset: 4, isInitializer: false, "
+        "inFieldInitializer: false, isSuper: false, extensionThis: null)",
+        new ThisAccessGenerator(helper, token, false, false, null));
     check("IncompleteErrorGenerator(offset: 4, message: Unspecified)",
         new IncompleteErrorGenerator(helper, token, message));
     check("SendAccessGenerator(offset: 4, name: bar, arguments: (\"arg\"))",
@@ -181,7 +183,7 @@ main() {
         " prefixGenerator: PrefixUseGenerator("
         "offset: 4, prefix: myPrefix, deferred: false),"
         " suffixGenerator: ThisAccessGenerator(offset: 4, isInitializer: false,"
-        " isSuper: false))",
+        " inFieldInitializer: false, isSuper: false, extensionThis: null))",
         new DeferredAccessGenerator(
             helper, token, prefixUseGenerator, generator));
     check(
@@ -204,7 +206,8 @@ main() {
         prefixUseGenerator);
     check(
         "UnexpectedQualifiedUseGenerator("
-        "offset: 4, prefixGenerator: , isInitializer: false, isSuper: false)",
+        "offset: 4, prefixGenerator: , isInitializer: false,"
+        " inFieldInitializer: false, isSuper: false, extensionThis: null)",
         new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
     return Future<void>.value();
   });

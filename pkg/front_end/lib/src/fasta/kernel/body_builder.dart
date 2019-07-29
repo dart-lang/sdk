@@ -270,6 +270,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// Their types need to be inferred late, for example, in [finishFunction].
   List<List<VariableDeclaration>> multiVariablesWithMetadata;
 
+  /// If the current member is an instance member in an extension declaration,
+  /// [extensionThis] holds the synthetically add parameter holding the value
+  /// for `this`.
+  final VariableDeclaration extensionThis;
+
   BodyBuilder(
       this.library,
       this.member,
@@ -279,6 +284,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       this.coreTypes,
       this.classBuilder,
       this.isInstanceMember,
+      this.extensionThis,
       this.uri,
       this.typeInferrer)
       : forest = const Fangorn(),
@@ -305,6 +311,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             part.loader.coreTypes,
             classBuilder,
             field.isInstanceMember,
+            null,
             field.fileUri,
             typeInferrer);
 
@@ -330,6 +337,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             library.loader.coreTypes,
             classBuilder,
             member?.isInstanceMember ?? false,
+            null,
             fileUri,
             library.loader.typeInferenceEngine?.createLocalTypeInferrer(
                 fileUri, classBuilder?.target?.thisType, library));
@@ -3976,7 +3984,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {
       push(new ThisAccessGenerator(
-          this, token, inInitializer, inFieldInitializer));
+          this, token, inInitializer, inFieldInitializer, extensionThis));
     } else {
       push(new IncompleteErrorGenerator(
           this, token, fasta.messageThisAsIdentifier));
@@ -3990,7 +3998,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(
-          this, token, inInitializer, inFieldInitializer,
+          this, token, inInitializer, inFieldInitializer, extensionThis,
           isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(

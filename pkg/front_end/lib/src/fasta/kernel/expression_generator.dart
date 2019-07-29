@@ -2690,11 +2690,15 @@ class ThisAccessGenerator extends Generator {
   ///
   final bool inFieldInitializer;
 
-  // `true` if this subexpression represents a `super` prefix.
+  /// `true` if this subexpression represents a `super` prefix.
   final bool isSuper;
 
+  /// If non-null, this subexpression represents a `this` prefix in an
+  /// extension declaration member.
+  final VariableDeclaration extensionThis;
+
   ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.isInitializer, this.inFieldInitializer,
+      this.isInitializer, this.inFieldInitializer, this.extensionThis,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -2709,6 +2713,12 @@ class ThisAccessGenerator extends Generator {
     if (!isSuper) {
       if (inFieldInitializer) {
         return buildFieldInitializerError(null);
+      } else if (extensionThis != null) {
+        var fact = _helper.typePromoter
+            ?.getFactForAccess(extensionThis, _helper.functionNestingLevel);
+        var scope = _helper.typePromoter?.currentScope;
+        return new VariableGetJudgment(extensionThis, fact, scope)
+          ..fileOffset = offsetForToken(token);
       } else {
         return _forest.thisExpression(token);
       }
@@ -2874,8 +2884,12 @@ class ThisAccessGenerator extends Generator {
   void printOn(StringSink sink) {
     sink.write(", isInitializer: ");
     sink.write(isInitializer);
+    sink.write(", inFieldInitializer: ");
+    sink.write(inFieldInitializer);
     sink.write(", isSuper: ");
     sink.write(isSuper);
+    sink.write(", extensionThis: ");
+    sink.write(extensionThis);
   }
 }
 

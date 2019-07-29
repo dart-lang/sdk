@@ -64,7 +64,7 @@ class MockBodyBuilder extends BodyBuilder {
   MockBodyBuilder.internal(
       MockLibraryBuilder libraryBuilder, String name, Scope scope)
       : super(libraryBuilder, libraryBuilder.mockProcedure(name), scope, scope,
-            null, null, null, false, libraryBuilder.uri, null);
+            null, null, null, false, null, libraryBuilder.uri, null);
 
   MockBodyBuilder(Uri uri, String name, Scope scope)
       : this.internal(new MockLibraryBuilder(uri), name, scope);

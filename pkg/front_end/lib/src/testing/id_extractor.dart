@@ -360,4 +360,19 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitSetLiteral(node);
   }
+
+  @override
+  visitThisExpression(ThisExpression node) {
+    TreeNode parent = node.parent;
+    if (node.fileOffset == TreeNode.noOffset ||
+        (parent is PropertyGet ||
+                parent is PropertySet ||
+                parent is MethodInvocation) &&
+            parent.fileOffset == node.fileOffset) {
+      // Skip implicit this expressions.
+    } else {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitThisExpression(node);
+  }
 }

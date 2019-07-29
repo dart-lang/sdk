@@ -8,6 +8,7 @@
 
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
+extensions/use_this: TextSerializationFailure
 general/abstract_members: TypeCheckError
 general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
 general/accessors: TextSerializationFailure # Was: RuntimeError
@@ -94,7 +95,7 @@ general/escape: TextSerializationFailure # Was: Pass
 general/export_main: TextSerializationFailure # Was: Pass
 general/export_test: TextSerializationFailure # Was: Pass
 general/expressions: TextSerializationFailure # Was: RuntimeError
-general/extension_methods: TypeCheckError
+general/extension_methods: TextSerializationFailure
 general/external: TextSerializationFailure # Was: Pass
 general/external_import: TextSerializationFailure # Was: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/fallthrough: ExpectationFileMismatch

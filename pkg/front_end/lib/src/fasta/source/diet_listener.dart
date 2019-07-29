@@ -610,17 +610,30 @@ class DietListener extends StackListener {
 
   StackListener createListener(
       ModifierBuilder builder, Scope memberScope, bool isInstanceMember,
-      [Scope formalParameterScope]) {
+      {VariableDeclaration extensionThis, Scope formalParameterScope}) {
     // Note: we set thisType regardless of whether we are building a static
     // member, since that provides better error recovery.
-    InterfaceType thisType = currentClass?.target?.thisType;
+    // TODO(johnniwinther): Provide a dummy this on static extension methods
+    // for better error recovery?
+    InterfaceType thisType =
+        extensionThis == null ? currentClass?.target?.thisType : null;
     var typeInferrer =
         typeInferenceEngine?.createLocalTypeInferrer(uri, thisType, library);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
         ? ConstantContext.inferred
         : ConstantContext.none;
-    return new BodyBuilder(library, builder, memberScope, formalParameterScope,
-        hierarchy, coreTypes, currentClass, isInstanceMember, uri, typeInferrer)
+    return new BodyBuilder(
+        library,
+        builder,
+        memberScope,
+        formalParameterScope,
+        hierarchy,
+        coreTypes,
+        currentClass,
+        isInstanceMember,
+        extensionThis,
+        uri,
+        typeInferrer)
       ..constantContext = constantContext;
   }
 
@@ -632,7 +645,8 @@ class DietListener extends StackListener {
     assert(typeParameterScope != null);
     assert(formalParameterScope != null);
     return createListener(builder, typeParameterScope, builder.isInstanceMember,
-        formalParameterScope);
+        extensionThis: builder.extensionThis,
+        formalParameterScope: formalParameterScope);
   }
 
   void buildRedirectingFactoryMethod(
