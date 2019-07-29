@@ -1310,11 +1310,11 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         Z, LookupLibrary(dependency_helper.target_library_canonical_name_));
     if (!FLAG_enable_mirrors &&
         target_library.url() == Symbols::DartMirrors().raw()) {
-      H.ReportError("import of dart:mirrors with --enable-mirrors=false");
+      H.ReportError("import of dart:mirrors is not supported in the current Dart runtime");
     }
     if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().raw()) {
-      H.ReportError("import of dart:ffi with --enable-ffi=false");
+      H.ReportError("import of dart:ffi is not supported in the current Dart runtime");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
