@@ -2182,6 +2182,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(accessors, visitor);
     safelyVisitChildren(enums, visitor);
+    safelyVisitChildren(extensions, visitor);
     safelyVisitChildren(functions, visitor);
     safelyVisitChildren(functionTypeAliases, visitor);
     safelyVisitChildren(mixins, visitor);
@@ -5276,6 +5277,15 @@ class ExtensionElementImpl extends ElementImpl
   PropertyAccessorElement getSetter(String setterName) {
     return AbstractClassElementImpl.getSetterFromAccessors(
         setterName, accessors);
+  }
+
+  @override
+  void visitChildren(ElementVisitor visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(fields, visitor);
+    safelyVisitChildren(methods, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   /// Create the accessors and fields when [linkedNode] is not `null`.
