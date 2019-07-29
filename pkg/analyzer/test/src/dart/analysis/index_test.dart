@@ -872,6 +872,13 @@ A v = null;
 ''');
   }
 
+  test_isReferencedBy_NeverElement() async {
+    await _indexTestUnit('''
+Never f() {
+}''');
+    expect(index.usedElementOffsets, isEmpty);
+  }
+
   test_isReferencedBy_ParameterElement() async {
     await _indexTestUnit('''
 foo({var p}) {}
