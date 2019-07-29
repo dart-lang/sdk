@@ -277,7 +277,10 @@ class CommonMasks implements AbstractValueDomain {
     if (type is InterfaceType) {
       if (isPrecise) {
         // TODO(sra): Could be precise if instantiated-to-bounds.
-        isPrecise = type.typeArguments.isEmpty;
+        for (DartType argument in type.typeArguments) {
+          if (argument is DynamicType) continue;
+          isPrecise = false;
+        }
       }
       switch (classRelation) {
         case ClassRelation.exact:
