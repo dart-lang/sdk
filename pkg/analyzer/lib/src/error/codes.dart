@@ -1940,6 +1940,14 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try removing the 'covariant' keyword.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
+      const CompileTimeErrorCode('INVALID_USE_OF_COVARIANT_IN_EXTENSION',
+          "The 'covariant' keyword can't be used in extensions.",
+          correction: "Try removing the 'covariant' keyword.");
+
+  /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at
    * the specified URI is not a library declaration.
    *
@@ -5640,7 +5648,7 @@ class StaticWarningCode extends ErrorCode {
 
 /**
  * This class has Strong Mode specific error codes.
- * 
+ *
  * "Strong Mode" was the prototype for Dart 2's sound type system. Many of these
  * errors became part of Dart 2. Some of them are optional flags, used for
  * stricter checking.

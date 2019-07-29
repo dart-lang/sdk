@@ -214,6 +214,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   ClassElement _enclosingEnum;
 
   /**
+   * The element of the extension being visited, or `null` if we are not
+   * in the scope of an extension.
+   */
+  ExtensionElement _enclosingExtension;
+
+  /**
    * The method or function that we are currently visiting, or `null` if we are
    * not inside a method or function.
    */
@@ -807,6 +813,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkUseOfCovariantInParameters(node);
     _checkUseOfDefaultValuesInParameters(node);
     super.visitFormalParameterList(node);
+  }
+
+  @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _enclosingExtension = node.declaredElement;
+    super.visitExtensionDeclaration(node);
+    _enclosingExtension = null;
   }
 
   @override
@@ -6125,17 +6138,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   void _checkUseOfCovariantInParameters(FormalParameterList node) {
     AstNode parent = node.parent;
-    if (parent is MethodDeclaration && !parent.isStatic) {
+    if (_enclosingClass != null &&
+        parent is MethodDeclaration &&
+        !parent.isStatic) {
       return;
     }
+
     NodeList<FormalParameter> parameters = node.parameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       FormalParameter parameter = parameters[i];
       Token keyword = parameter.covariantKeyword;
       if (keyword != null) {
-        _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT, keyword);
+        if (_enclosingExtension != null) {
+          _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION,
+            keyword,
+          );
+        } else {
+          _errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.INVALID_USE_OF_COVARIANT,
+            keyword,
+          );
+        }
       }
     }
   }
