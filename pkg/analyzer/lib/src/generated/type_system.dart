@@ -2554,7 +2554,10 @@ abstract class TypeSystem implements public.TypeSystem {
       var promotedElement = TypeParameterElementImpl.synthetic(
         type.element.name,
       );
-      promotedElement.bound = promoteToNonNull(type.element.bound);
+
+      var bound = type.element.bound ?? typeProvider.objectType;
+      promotedElement.bound = promoteToNonNull(bound);
+
       return TypeParameterTypeImpl(
         promotedElement,
         nullabilitySuffix: NullabilitySuffix.none,

@@ -3066,6 +3066,15 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
+  DartType get objectClassTypeNone => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.none);
+
+  DartType get objectClassTypeQuestion => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.question);
+
+  DartType get objectClassTypeStar => (typeProvider.objectType as TypeImpl)
+      .withNullability(NullabilitySuffix.star);
+
   DartType get questionType => (typeProvider.stringType as TypeImpl)
       .withNullability(NullabilitySuffix.question);
 
@@ -3701,6 +3710,15 @@ class TypeSystemTest extends AbstractTypeSystemTest {
     );
   }
 
+  test_promoteToNonNull_typeParameter_nullBound_none() {
+    expect(
+      typeSystem.promoteToNonNull(
+        typeParameterTypeNone(bound: null),
+      ),
+      typeParameterTypeNone(bound: objectClassTypeNone),
+    );
+  }
+
   test_promoteToNonNull_typeParameter_questionBound_none() {
     expect(
       typeSystem.promoteToNonNull(
@@ -3745,7 +3763,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeNone({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(
@@ -3755,7 +3772,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeQuestion({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(
@@ -3765,7 +3781,6 @@ class TypeSystemTest extends AbstractTypeSystemTest {
   }
 
   DartType typeParameterTypeStar({@required DartType bound}) {
-    expect(bound, isNotNull);
     var element = TypeParameterElementImpl.synthetic('T');
     element.bound = bound;
     return TypeParameterTypeImpl(
