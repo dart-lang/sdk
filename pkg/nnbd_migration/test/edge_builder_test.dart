@@ -925,6 +925,18 @@ class C {}
     expect(constructorDecoratedType.returnType.typeArguments, isEmpty);
   }
 
+  test_constructorFieldInitializer_generic() async {
+    await analyze('''
+class C<T> {
+  C(T/*1*/ x) : f = x;
+  T/*2*/ f;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('T/*1*/').node,
+        decoratedTypeAnnotation('T/*2*/').node,
+        hard: true);
+  }
+
   test_constructorFieldInitializer_simple() async {
     await analyze('''
 class C {
