@@ -1648,7 +1648,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // next object start and initialize the object.
     str(end_address, Address(THR, target::Thread::top_offset()));
     add(instance, instance, Operand(kHeapObjectTag));
-    LoadImmediate(temp2, instance_size);
+    NOT_IN_PRODUCT(LoadImmediate(temp2, instance_size));
     NOT_IN_PRODUCT(UpdateAllocationStatsWithSize(cid, temp2));
 
     // Initialize the tags.

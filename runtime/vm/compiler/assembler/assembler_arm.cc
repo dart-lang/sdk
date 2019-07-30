@@ -3607,7 +3607,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(temp2,
         FieldAddress(instance, target::Object::tags_offset()));  // Store tags.
 
-    LoadImmediate(temp2, instance_size);
+    NOT_IN_PRODUCT(LoadImmediate(temp2, instance_size));
     NOT_IN_PRODUCT(IncrementAllocationStatsWithSize(temp1, temp2));
   } else {
     b(failure);
