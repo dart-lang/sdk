@@ -234,6 +234,7 @@ luci.cq_group(
     tree_status_host="dart-status.appspot.com",
     retry_config=cq.RETRY_NONE,
     verifiers=None,
+    cancel_stale_tryjobs = True,
 )
 
 
