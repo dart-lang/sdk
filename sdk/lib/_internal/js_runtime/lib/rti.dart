@@ -332,6 +332,18 @@ Rti instanceType(object) {
           'depends:none;effects:none;', JsBuiltin.dartObjectConstructor))) {
     var rti = JS('', r'#[#]', object, JS_GET_NAME(JsGetName.RTI_NAME));
     if (rti != null) return _castToRti(rti);
+
+    // Subclasses of Closure are synthetic classes, so make them appear to be
+    // the 'Closure' class.
+    // TODO(sra): Can this be done less expensively, e.g. by putting $ti on the
+    // prototype of Closure class?
+    var closureClassConstructor = JS_BUILTIN(
+        'depends:none;effects:none;', JsBuiltin.dartClosureConstructor);
+    if (closureClassConstructor != null &&
+        _Utils.instanceOf(object, closureClassConstructor)) {
+      return _instanceTypeFromConstructor(closureClassConstructor);
+    }
+
     return _instanceTypeFromConstructor(JS('', '#.constructor', object));
   }
 
