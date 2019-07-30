@@ -1473,8 +1473,6 @@ bool isSubtype(universe, Rti s, Rti t) {
   return _isSubtype(universe, s, null, t, null);
 }
 
-int _ticks = 0;
-
 bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   // TODO(fishythefish): Update for NNBD. See
   // https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
