@@ -55,6 +55,24 @@ void main() => print('Hello, world!')
         equals("void main() => print('Hello, world!');"));
   }
 
+  test_parseFile_errors_path() {
+    String content = '''
+void main() => print('Hello, world!')
+''';
+    String expectedPath;
+    ParseStringResult result =
+        _withMemoryFile(content, (resourceProvider, path) {
+      expectedPath = path;
+      return parseFile(
+          path: path,
+          featureSet: defaultFeatureSet,
+          resourceProvider: resourceProvider,
+          throwIfDiagnostics: false);
+    });
+    expect(result.errors, hasLength(1));
+    expect(result.errors[0].source.fullName, expectedPath);
+  }
+
   test_parseFile_errors_throw() {
     String content = '''
 void main() => print('Hello, world!')
@@ -135,6 +153,18 @@ void main() => print('Hello, world!')
     expect(result.lineInfo, isNotNull);
     expect(result.unit.toString(),
         equals("void main() => print('Hello, world!');"));
+  }
+
+  test_parseString_errors_path() {
+    String content = '''
+void main() => print('Hello, world!')
+''';
+    var path = 'foo/bar';
+    ParseStringResult result = parseString(
+        content: content, path: 'foo/bar', throwIfDiagnostics: false);
+    expect(result.errors, hasLength(1));
+    var error = result.errors[0];
+    expect(error.source.fullName, path);
   }
 
   test_parseString_errors_throw() {
