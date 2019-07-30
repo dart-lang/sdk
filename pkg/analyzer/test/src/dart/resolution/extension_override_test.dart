@@ -135,6 +135,30 @@ void f(A a) {
     validatePropertyAccess();
   }
 
+  test_getter_noPrefix_noTypeArguments_methodInvocation() async {
+    await assertNoErrorsInCode('''
+class A {}
+
+extension E on A {
+  double Function(int) get g => (b) => 2.0;
+}
+
+void f(A a) {
+  E(a).g(0);
+}
+''');
+    findDeclarationAndOverride(declarationName: 'E ', overrideSearch: 'E(a)');
+    validateOverride();
+
+    var invocation = findNode.methodInvocation('g(0);');
+    assertMethodInvocation(
+      invocation,
+      findElement.getter('g'),
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
+    );
+  }
+
   test_getter_noPrefix_typeArguments() async {
     await assertNoErrorsInCode('''
 class A {}

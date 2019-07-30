@@ -187,6 +187,27 @@ f(C c) {
     assertInvokeType(invocation, 'int Function(int)');
   }
 
+  test_instance_getter_methodInvocation() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  double Function(int) get a => (b) => 2.0;
+}
+
+f(C c) {
+  c.a(0);
+}
+''');
+    var invocation = findNode.methodInvocation('a(0);');
+    assertMethodInvocation(
+      invocation,
+      findElement.getter('a'),
+      'double Function(int)',
+      expectedMethodNameType: 'double Function(int) Function()',
+    );
+  }
+
   test_instance_getter_noMatch() async {
     await assertErrorsInCode(r'''
 class C {}

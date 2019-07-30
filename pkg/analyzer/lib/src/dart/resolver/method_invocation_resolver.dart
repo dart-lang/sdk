@@ -339,7 +339,8 @@ class MethodInvocationResolver {
       return;
     }
     nameNode.staticElement = member;
-    _setResolution(node, member.type);
+    var calleeType = _getCalleeType(node, member);
+    _setResolution(node, calleeType);
     return;
   }
 
@@ -371,9 +372,6 @@ class MethodInvocationResolver {
       throw new UnsupportedError('cascaded extension override');
     }
 
-    // TODO(brianwilkerson) Handle the case where the name resolved to a getter.
-    //  It might be that the getter returns a function that is being invoked, or
-    //  it might be an error to have an argument list.
     nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
