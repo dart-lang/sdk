@@ -54,7 +54,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
-DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(int, max_polymorphic_checks);
@@ -2341,9 +2340,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (Compiler::CanOptimizeFunction(thread, function)) {
     if (FLAG_background_compilation) {
-      if (FLAG_enable_inlining_annotations) {
-        FATAL("Cannot enable inlining annotations and background compilation");
-      }
       Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
       while (!field.IsNull()) {
         if (FLAG_trace_optimization || FLAG_trace_field_guards) {

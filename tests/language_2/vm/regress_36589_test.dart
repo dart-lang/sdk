@@ -8,27 +8,25 @@
 
 import "package:expect/expect.dart";
 
-const String NeverInline = 'NeverInline';
-
 List<int> mX = new List(1);
 
-@NeverInline
+@pragma('vm:never-inline')
 int foo() {
   return mX[8589934591];
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 foo_store() {
   mX[8589934591] = 0;
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 int bar() {
   List<int> x = new List(1);
   return x[8589934591];
 }
 
-@NeverInline
+@pragma('vm:never-inline')
 bar_store() {
   List<int> x = new List(1);
   x[8589934591] = 0;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--deterministic --enable-inlining-annotations
+// VMOptions=--deterministic
 
 // Issue #37622 found with fuzzing: internal compiler crash (division-by-zero).
 
@@ -10,9 +10,7 @@ import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
-const String NeverInline = 'NeverInline';
-
-@NeverInline
+@pragma('vm:never-inline')
 int foo() {
   int x = 0;
   {

@@ -7,6 +7,8 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | Pragma | Meaning |
 | --- | --- |
 | `vm:entry-point` | [Defining entry-points into Dart code for an embedder or native methods](compiler/aot/entry_point_pragma.md) |
+| `vm:never-inline` | [Never inline a function or method](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-never-be-inlined)  |
+| `vm:prefer-inline` | [Inline a function or method when possible](compiler/pragmas_recognized_by_compiler.md#requesting-a-function-be-inlined)  |
 
 ## Pragmas for internal use
 
@@ -14,7 +16,7 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 
 | Pragma | Meaning |
 | --- | --- |
-| `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/result_type_pragma.md) |
+| `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
 
 ## Pragmas for internal testing
 

@@ -449,8 +449,10 @@ class ObjectPointerVisitor;
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
   V(toString, "toString")                                                      \
+  V(vm_prefer_inline, "vm:prefer-inline")                                      \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
+  V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_trace_entrypoints, "vm:testing.unsafe.trace-entrypoints-fn")
 

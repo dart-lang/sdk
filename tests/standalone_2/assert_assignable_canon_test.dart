@@ -2,20 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--enable-inlining-annotations --optimization-counter-threshold=10 --no-background-compilation
-
-const AlwaysInline = "AlwaysInline";
-const NeverInline = "NeverInline";
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 abstract class A<T extends A<T>> {
-  @AlwaysInline
+  @pragma('vm:prefer-inline')
   f(x) => new R<T>(x);
 }
 
 class B extends A<B> {}
 
 class R<T> {
-  @AlwaysInline
+  @pragma('vm:prefer-inline')
   R(T field);
 }
 
@@ -26,7 +23,7 @@ class D extends C {}
 // f will be inlined and T=B will be forwarded to AssertAssignable in the
 // R. However B will be wrapped in the TypeRef which breaks runtime TypeCheck
 // function (Instance::IsInstanceOf does not work for TypeRefs).
-@NeverInline
+@pragma('vm:never-inline')
 f(o) => new B().f(o);
 
 main() {
