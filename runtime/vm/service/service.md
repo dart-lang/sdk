@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.23
+# Dart VM Service Protocol 3.24
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.23_ of the Dart VM Service Protocol. This
+This document describes of _version 3.24_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -3091,11 +3091,14 @@ class VM extends Response {
   // Word length on target architecture (e.g. 32, 64).
   int architectureBits;
 
-  // The CPU we are generating code for.
-  string targetCPU;
-
   // The CPU we are actually running on.
   string hostCPU;
+
+  // The operating system we are running on.
+  string operatingSystem;
+
+  // The CPU we are generating code for.
+  string targetCPU;
 
   // The Dart VM version string.
   string version;
@@ -3143,5 +3146,6 @@ version | comments
 3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
 3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
 3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
+3.24 | Add `operatingSystem` property to `VM` object.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

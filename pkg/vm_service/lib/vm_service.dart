@@ -17,7 +17,7 @@ import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '3.23.0';
+const String vmServiceVersion = '3.24.0';
 
 /// @optional
 const String optional = 'optional';
@@ -5321,11 +5321,14 @@ class VM extends Response {
   /// Word length on target architecture (e.g. 32, 64).
   int architectureBits;
 
-  /// The CPU we are generating code for.
-  String targetCPU;
-
   /// The CPU we are actually running on.
   String hostCPU;
+
+  /// The operating system we are running on.
+  String operatingSystem;
+
+  /// The CPU we are generating code for.
+  String targetCPU;
 
   /// The Dart VM version string.
   String version;
@@ -5346,8 +5349,9 @@ class VM extends Response {
   VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     name = json['name'];
     architectureBits = json['architectureBits'];
-    targetCPU = json['targetCPU'];
     hostCPU = json['hostCPU'];
+    operatingSystem = json['operatingSystem'];
+    targetCPU = json['targetCPU'];
     version = json['version'];
     pid = json['pid'];
     startTime = json['startTime'];
@@ -5362,8 +5366,9 @@ class VM extends Response {
     json.addAll({
       'name': name,
       'architectureBits': architectureBits,
-      'targetCPU': targetCPU,
       'hostCPU': hostCPU,
+      'operatingSystem': operatingSystem,
+      'targetCPU': targetCPU,
       'version': version,
       'pid': pid,
       'startTime': startTime,

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--vm-name=Walter
 
+import 'dart:io';
+
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -16,6 +18,7 @@ var tests = <VMTest>[
     expect(result['architectureBits'], isPositive);
     expect(result['targetCPU'], new isInstanceOf<String>());
     expect(result['hostCPU'], new isInstanceOf<String>());
+    expect(result['operatingSystem'], Platform.operatingSystem);
     expect(result['version'], new isInstanceOf<String>());
     expect(result['pid'], new isInstanceOf<int>());
     expect(result['startTime'], isPositive);

@@ -4584,8 +4584,9 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
     return;
   }
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
-  jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
+  jsobj.AddProperty("operatingSystem", OS::Name());
+  jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("_nativeZoneMemoryUsage",

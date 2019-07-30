@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+- support service protocol version 3.24
+
 ## 1.0.0+1
 - Updated description and homepage.
 

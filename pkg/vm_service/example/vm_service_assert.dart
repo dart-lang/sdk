@@ -994,8 +994,9 @@ vms.VM assertVM(vms.VM obj) {
   assertString(obj.type);
   assertString(obj.name);
   assertInt(obj.architectureBits);
-  assertString(obj.targetCPU);
   assertString(obj.hostCPU);
+  assertString(obj.operatingSystem);
+  assertString(obj.targetCPU);
   assertString(obj.version);
   assertInt(obj.pid);
   assertInt(obj.startTime);
