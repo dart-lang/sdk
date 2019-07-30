@@ -90,11 +90,11 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpRoundTrip) {
   CheckDeserializedSExpParts(round_trip);
   EXPECT(sexp->Equals(round_trip));
 
-  const char* old_serialization = buf.Steal();
+  char* const old_serialization = buf.Steal();
   round_trip->SerializeTo(zone, &buf, "", 9999);
-  const char* new_serialization = buf.buf();
+  char* const new_serialization = buf.buf();
   EXPECT_STREQ(old_serialization, new_serialization);
-  delete old_serialization;
+  free(old_serialization);
 }
 
 ISOLATE_UNIT_TEST_CASE(DeserializeSExpMapsJoined) {
