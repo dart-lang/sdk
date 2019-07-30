@@ -305,6 +305,8 @@ num j = "str";
 /\/ [cfe] Second error.
 /\/[error line 9,column 8,length 7]
 /\/ [cfe] Third.
+/\/[error line 10,column 9]
+/\/ [cfe] No length.
 """, [
     StaticError(
         line: 123,
@@ -318,7 +320,8 @@ num j = "str";
         length: 78,
         code: "CompileTimeErrorCode.SECOND",
         message: "Second error."),
-    StaticError(line: 9, column: 8, length: 7, message: "Third.")
+    StaticError(line: 9, column: 8, length: 7, message: "Third."),
+    StaticError(line: 10, column: 9, message: "No length.")
   ]);
 
   // Multi-line error message.

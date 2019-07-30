@@ -434,6 +434,55 @@ class BrowserCommandOutput extends CommandOutput
 }
 
 class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
+  static void parseErrors(String stderr, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    List<String> splitMachineError(String line) {
+      var field = StringBuffer();
+      var result = <String>[];
+      var escaped = false;
+      for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (!escaped && c == '\\') {
+          escaped = true;
+          continue;
+        }
+        escaped = false;
+        if (c == '|') {
+          result.add(field.toString());
+          field = StringBuffer();
+          continue;
+        }
+        field.write(c);
+      }
+      result.add(field.toString());
+      return result;
+    }
+
+    for (var line in stderr.split("\n")) {
+      if (line.isEmpty) continue;
+
+      var fields = splitMachineError(line);
+
+      // Lines without enough fields are other output we don't care about.
+      if (fields.length >= 8) {
+        var severity = fields[0];
+        var errorCode = "${fields[1]}.${fields[2]}";
+        var line = int.parse(fields[4]);
+        var column = int.parse(fields[5]);
+        var length = int.parse(fields[6]);
+
+        var error = StaticError(
+            line: line, column: column, length: length, code: errorCode);
+
+        if (severity == 'ERROR') {
+          errors.add(error);
+        } else if (severity == 'WARNING') {
+          warnings?.add(error);
+        }
+      }
+    }
+  }
+
   AnalysisCommandOutput(
       Command command,
       int exitCode,
@@ -544,51 +593,11 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   ///     FOO BAR FOO|BAR FOO\BAZ
   @override
   void _parseErrors() {
-    List<String> splitMachineError(String line) {
-      var field = StringBuffer();
-      var result = <String>[];
-      var escaped = false;
-      for (var i = 0; i < line.length; i++) {
-        var c = line[i];
-        if (!escaped && c == '\\') {
-          escaped = true;
-          continue;
-        }
-        escaped = false;
-        if (c == '|') {
-          result.add(field.toString());
-          field = StringBuffer();
-          continue;
-        }
-        field.write(c);
-      }
-      result.add(field.toString());
-      return result;
-    }
-
-    for (var line in decodeUtf8(stderr).split("\n")) {
-      if (line.isEmpty) continue;
-
-      var fields = splitMachineError(line);
-
-      // Lines without enough fields are other output we don't care about.
-      if (fields.length >= 8) {
-        var severity = fields[0];
-        var errorCode = "${fields[1]}.${fields[2]}";
-        var line = int.parse(fields[4]);
-        var column = int.parse(fields[5]);
-        var length = int.parse(fields[6]);
-
-        var error = StaticError(
-            line: line, column: column, length: length, code: errorCode);
-
-        if (severity == 'ERROR') {
-          addError(error);
-        } else if (severity == 'WARNING') {
-          addWarning(error);
-        }
-      }
-    }
+    var errors = <StaticError>[];
+    var warnings = <StaticError>[];
+    parseErrors(decodeUtf8(stderr), errors, warnings);
+    errors.forEach(addError);
+    warnings.forEach(addWarning);
   }
 }
 
@@ -1046,6 +1055,16 @@ class ScriptCommandOutput extends CommandOutput {
 
 class FastaCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
+  static void parseErrors(String stdout, List<StaticError> errors,
+      [List<StaticError> warnings]) {
+    for (var match in _errorRegexp.allMatches(stdout)) {
+      var line = int.parse(match.group(2));
+      var column = int.parse(match.group(3));
+      var message = match.group(4);
+      errors.add(StaticError(line: line, column: column, message: message));
+    }
+  }
+
   /// Matches the first line of a Fasta error message. Fasta prints errors to
   /// stdout that look like:
   ///
@@ -1072,12 +1091,9 @@ class FastaCommandOutput extends CompilationCommandOutput
 
   @override
   void _parseErrors() {
-    for (var match in _errorRegexp.allMatches(decodeUtf8(stdout))) {
-      var line = int.parse(match.group(2));
-      var column = int.parse(match.group(3));
-      var message = match.group(4);
-      addError(StaticError(line: line, column: column, message: message));
-    }
+    var errors = <StaticError>[];
+    parseErrors(decodeUtf8(stdout), errors);
+    errors.forEach(addError);
   }
 }
 

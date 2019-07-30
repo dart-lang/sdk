@@ -31,6 +31,12 @@ const testPackages = [
   "unittest"
 ];
 
+/// Gets the file extension for a shell script on the host OS.
+String get shellScriptExtension => Platform.isWindows ? '.bat' : '';
+
+/// Gets the file extension for an executable binary on the host OS.
+String get executableExtension => Platform.isWindows ? '.exe' : '';
+
 class DebugLogger {
   static IOSink _sink;
 

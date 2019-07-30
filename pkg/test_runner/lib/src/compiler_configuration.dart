@@ -112,8 +112,6 @@ abstract class CompilerConfiguration {
 
   bool get hasCompiler => true;
 
-  String get executableScriptSuffix => Platform.isWindows ? '.bat' : '';
-
   List<Uri> bootstrapDependencies() => const <Uri>[];
 
   CommandArtifact computeCompilationArtifact(
@@ -369,7 +367,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    var suffix = executableScriptSuffix;
+    var suffix = shellScriptExtension;
 
     if (_isHostChecked) {
       if (_useSdk) {
@@ -496,7 +494,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var dir = _useSdk ? "${_configuration.buildDirectory}/dart-sdk" : "sdk";
-    return "$dir/bin/dartdevc$executableScriptSuffix";
+    return "$dir/bin/dartdevc$shellScriptExtension";
   }
 
   List<String> computeCompilerArguments(
@@ -931,7 +929,6 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
   String computeCompilerPath() {
     var prefix = 'sdk/bin';
-    var suffix = executableScriptSuffix;
     if (_isHostChecked) {
       if (_useSdk) {
         throw "--host-checked and --use-sdk cannot be used together";
@@ -939,12 +936,12 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       // The script dartanalyzer_developer is not included in the
       // shipped SDK, that is the script is not installed in
       // "$buildDir/dart-sdk/bin/"
-      return '$prefix/dartanalyzer_developer$suffix';
+      return '$prefix/dartanalyzer_developer$shellScriptExtension';
     }
     if (_useSdk) {
       prefix = '${_configuration.buildDirectory}/dart-sdk/bin';
     }
-    return '$prefix/dartanalyzer$suffix';
+    return '$prefix/dartanalyzer$shellScriptExtension';
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -984,11 +981,11 @@ class CompareAnalyzerCfeCompilerConfiguration extends CompilerConfiguration {
   int get timeoutMultiplier => 4;
 
   String computeCompilerPath() {
-    String suffix = executableScriptSuffix;
     if (_useSdk) {
       throw "--use-sdk cannot be used with compiler compare_analyzer_cfe";
     }
-    return 'pkg/analyzer_fe_comparison/bin/compare_sdk_tests$suffix';
+    return 'pkg/analyzer_fe_comparison/bin/'
+        'compare_sdk_tests$shellScriptExtension';
   }
 
   CommandArtifact computeCompilationArtifact(String tempDir,
@@ -1053,8 +1050,6 @@ abstract class VMKernelCompilerMixin {
 
   bool get _useEnableAsserts;
 
-  String get executableScriptSuffix;
-
   List<Uri> bootstrapDependencies();
 
   String tempKernelFile(String tempDir) =>
@@ -1063,7 +1058,7 @@ abstract class VMKernelCompilerMixin {
   Command computeCompileToKernelCommand(String tempDir, List<String> arguments,
       Map<String, String> environmentOverrides) {
     final pkgVmDir = Platform.script.resolve('../../../pkg/vm').toFilePath();
-    final genKernel = '$pkgVmDir/tool/gen_kernel$executableScriptSuffix';
+    final genKernel = '$pkgVmDir/tool/gen_kernel$shellScriptExtension';
 
     final String useAbiVersion = arguments.firstWhere(
         (arg) => arg.startsWith('--use-abi-version='),

@@ -10,6 +10,7 @@ void main() {
   testFlags();
   testCompareTo();
   testDescribeDifferences();
+  testSimplify();
 }
 
 void testFlags() {
@@ -300,6 +301,106 @@ void testDescribeDifferences() {
       StaticError(line: 2, column: 3, length: 4, message: "Error message."));
 }
 
+void testSimplify() {
+  // Merges errors if one has only a code and the only a message.
+  expectSimplify([
+    StaticError(line: 1, column: 2, length: 3, code: "Weird.ERROR"),
+    StaticError(line: 1, column: 2, length: 3, message: "Message.")
+  ], [
+    StaticError(
+        line: 1, column: 2, length: 3, code: "Weird.ERROR", message: "Message.")
+  ]);
+
+  // Merges if length is null.
+  expectSimplify([
+    StaticError(line: 1, column: 1, code: "A.ERR"),
+    StaticError(line: 1, column: 1, length: 3, message: "A."),
+    StaticError(line: 2, column: 1, length: 4, code: "B.ERR"),
+    StaticError(line: 2, column: 1, message: "B."),
+    StaticError(line: 3, column: 1, code: "C.ERR"),
+    StaticError(line: 3, column: 1, message: "C."),
+  ], [
+    StaticError(line: 1, column: 1, length: 3, code: "A.ERR", message: "A."),
+    StaticError(line: 2, column: 1, length: 4, code: "B.ERR", message: "B."),
+    StaticError(line: 3, column: 1, code: "C.ERR", message: "C."),
+  ]);
+
+  // Merges multiple errors with no length with errors that have length.
+  expectSimplify([
+    StaticError(line: 1, column: 2, length: 3, code: "ERROR.A"),
+    StaticError(line: 1, column: 4, length: 3, code: "ERROR.C"),
+    StaticError(line: 1, column: 2, length: 5, code: "ERROR.B"),
+    StaticError(line: 1, column: 2, message: "One."),
+    StaticError(line: 1, column: 4, message: "Three."),
+    StaticError(line: 1, column: 2, message: "Two."),
+  ], [
+    StaticError(
+        line: 1, column: 2, length: 3, code: "ERROR.A", message: "One."),
+    StaticError(
+        line: 1, column: 2, length: 5, code: "ERROR.B", message: "Two."),
+    StaticError(
+        line: 1, column: 4, length: 3, code: "ERROR.C", message: "Three."),
+  ]);
+
+  // Merges even if not adjacent in input array.
+  expectSimplify([
+    StaticError(line: 1, column: 2, length: 3, code: "Some.ERROR"),
+    StaticError(line: 10, column: 2, length: 3, code: "Other.ERROR"),
+    StaticError(line: 1, column: 2, length: 3, message: "Message.")
+  ], [
+    StaticError(
+        line: 1, column: 2, length: 3, code: "Some.ERROR", message: "Message."),
+    StaticError(line: 10, column: 2, length: 3, code: "Other.ERROR")
+  ]);
+
+  // Does not merge if positions differ.
+  expectSimplify([
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 2, column: 1, length: 1, message: "A."),
+  ], [
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 2, column: 1, length: 1, message: "A."),
+  ]);
+  expectSimplify([
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 1, column: 2, length: 1, message: "A."),
+  ], [
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 1, column: 2, length: 1, message: "A."),
+  ]);
+  expectSimplify([
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 1, column: 1, length: 2, message: "A."),
+  ], [
+    StaticError(line: 1, column: 1, length: 1, code: "A.ERR"),
+    StaticError(line: 1, column: 1, length: 2, message: "A."),
+  ]);
+
+  // Does not merge if it would lose code or message.
+  expectSimplify([
+    StaticError(line: 1, column: 1, length: 1, code: "ERR.ONE"),
+    StaticError(line: 1, column: 1, length: 1, code: "ERR.TWO"),
+    StaticError(line: 2, column: 1, length: 1, message: "One."),
+    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+  ], [
+    StaticError(line: 1, column: 1, length: 1, code: "ERR.ONE"),
+    StaticError(line: 1, column: 1, length: 1, code: "ERR.TWO"),
+    StaticError(line: 2, column: 1, length: 1, message: "One."),
+    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+  ]);
+
+  // Orders output.
+  expectSimplify([
+    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+    StaticError(line: 3, column: 1, length: 1, message: "Three."),
+    StaticError(line: 1, column: 1, length: 1, message: "One."),
+  ], [
+    StaticError(line: 1, column: 1, length: 1, message: "One."),
+    StaticError(line: 2, column: 1, length: 1, message: "Two."),
+    StaticError(line: 3, column: 1, length: 1, message: "Three."),
+  ]);
+}
+
 void expectNoDifferences(StaticError expectedError, StaticError actualError) {
   var actualLines = expectedError.describeDifferences(actualError);
   if (actualLines != null) {
@@ -319,4 +420,10 @@ void expectDifferences(StaticError expectedError, StaticError actualError,
     Expect.fail("Got no differences, but expected:\n$expectedDifferences");
   }
   Expect.listEquals(expectedLines, actualLines);
+}
+
+void expectSimplify(List<StaticError> input, List<StaticError> expected) {
+  var actual = StaticError.simplify(input);
+  Expect.listEquals(expected.map((error) => error.toString()).toList(),
+      actual.map((error) => error.toString()).toList());
 }

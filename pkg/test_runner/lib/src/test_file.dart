@@ -57,6 +57,56 @@ List<String> _parseOption(String filePath, String contents, String name,
 class StaticError implements Comparable<StaticError> {
   static const _unspecified = "unspecified";
 
+  /// Collapses overlapping [errors] into a shorter list of errors where
+  /// possible.
+  ///
+  /// Two errors on the same location can be collapsed if one has an error code
+  /// but no message and the other has a message but no code.
+  static List<StaticError> simplify(List<StaticError> errors) {
+    var result = errors.toList();
+    result.sort();
+
+    for (var i = 0; i < result.length - 1; i++) {
+      var a = result[i];
+
+      // Look for a later error we can merge with this one. Usually, it will be
+      // adjacent to this one, but if there are multiple errors with no length
+      // on the same location, those will all be next to each other and their
+      // merge targets will come later. This happens when CFE reports multiple
+      // errors at the same location (messages but no length) and analyzer does
+      // too (codes and lengths but no messages).
+      for (var j = i + 1; j < result.length; j++) {
+        var b = result[j];
+
+        // Position must be the same. If the position is different, we can
+        // stop looking because all same-position errors will be adjacent.
+        if (a.line != b.line) break;
+        if (a.column != b.column) break;
+
+        // If they both have lengths that are different, we can't discard that
+        // information.
+        if (a.length != null && b.length != null && a.length != b.length) {
+          continue;
+        }
+
+        // Can't discard content.
+        if (a.code != null && b.code != null) continue;
+        if (a.message != null && b.message != null) continue;
+
+        result[i] = StaticError(
+            line: a.line,
+            column: a.column,
+            length: a.length ?? b.length,
+            code: a.code ?? b.code,
+            message: a.message ?? b.message);
+        result.removeAt(j);
+        break;
+      }
+    }
+
+    return result;
+  }
+
   /// The one-based line number of the beginning of the error's location.
   final int line;
 
@@ -76,6 +126,18 @@ class StaticError implements Comparable<StaticError> {
   /// be reported by the CFE.
   final String message;
 
+  /// The zero-based index of the first line in the [TestFile] containing the
+  /// marker comments that define this error.
+  ///
+  /// If this error was not parsed from a file, this may be `null`.
+  final int markerStartLine;
+
+  /// The zero-based index of the last line in the [TestFile] containing the
+  /// marker comments that define this error, inclusive.
+  ///
+  /// If this error was not parsed from a file, this may be `null`.
+  final int markerEndLine;
+
   /// Creates a new StaticError at the given location with the given expected
   /// error code and message.
   ///
@@ -85,7 +147,14 @@ class StaticError implements Comparable<StaticError> {
   /// code or message be the special string "unspecified". When an unspecified
   /// error is tested, a front end is expected to report *some* error on that
   /// error's line, but it can be any location, error code, or message.
-  StaticError({this.line, this.column, this.length, this.code, this.message}) {
+  StaticError(
+      {this.line,
+      this.column,
+      this.length,
+      this.code,
+      this.message,
+      this.markerStartLine,
+      this.markerEndLine}) {
     // Must have a location.
     assert(line != null);
     assert(column != null);
@@ -118,11 +187,12 @@ class StaticError implements Comparable<StaticError> {
   @override
   int compareTo(StaticError other) {
     if (line != other.line) return line.compareTo(other.line);
-    if (this.column != other.column) return column.compareTo(other.column);
+    if (column != other.column) return column.compareTo(other.column);
 
-    var thisLength = length ?? 0;
-    var otherLength = other.length ?? 0;
-    if (thisLength != otherLength) return thisLength.compareTo(otherLength);
+    // Sort no length after all other lengths.
+    if (length == null && other.length != null) return 1;
+    if (length != null && other.length == null) return -1;
+    if (length != other.length) return length.compareTo(other.length);
 
     var thisCode = code ?? "";
     var otherCode = other.code ?? "";
@@ -425,7 +495,7 @@ class TestFile extends _TestFileBase {
 
     List<StaticError> errorExpectations;
     try {
-      errorExpectations = _ErrorExpectationParser(contents).parse();
+      errorExpectations = ErrorExpectationParser.parse(contents);
     } on FormatException catch (error) {
       throw FormatException(
           "Invalid error expectation syntax in $filePath:\n$error");
@@ -531,7 +601,7 @@ class TestFile extends _TestFileBase {
           bool hasStaticWarning,
           bool hasSyntaxError}) =>
       _MultitestFile(
-          this, path, multitestKey, _ErrorExpectationParser(contents).parse(),
+          this, path, multitestKey, ErrorExpectationParser.parse(contents),
           hasCompileError: hasCompileError ?? false,
           hasRuntimeError: hasRuntimeError ?? false,
           hasStaticWarning: hasStaticWarning ?? false,
@@ -611,7 +681,10 @@ class _MultitestFile extends _TestFileBase implements TestFile {
           "Can't derive a test from one already derived from a multitest.");
 }
 
-class _ErrorExpectationParser {
+class ErrorExpectationParser {
+  static List<StaticError> parse(String source) =>
+      ErrorExpectationParser._(source)._parse();
+
   /// Marks the location of an expected error, like so:
   ///
   ///     int i = "s";
@@ -621,12 +694,18 @@ class _ErrorExpectationParser {
   /// carets.
   static final _caretLocationRegExp = RegExp(r"^\s*//\s*(\^+)\s*$");
 
-  /// Matches an explicit error location, like:
+  /// Matches an explicit error location with a length, like:
   ///
   ///     // [error line 1, column 17, length 3]
-  static final _explicitLocationRegExp =
+  static final _explicitLocationAndLengthRegExp =
       RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*,\s*"
           r"length\s+(\d+)\s*\]\s*$");
+
+  /// Matches an explicit error location without a length, like:
+  ///
+  ///     // [error line 1, column 17]
+  static final _explicitLocationRegExp =
+      RegExp(r"^\s*//\s*\[\s*error line\s+(\d+)\s*,\s*column\s+(\d+)\s*\]\s*$");
 
   /// An analyzer error expectation starts with `// [analyzer]`.
   static final _analyzerErrorRegExp = RegExp(r"^\s*// \[analyzer\]\s*(.*)");
@@ -638,8 +717,8 @@ class _ErrorExpectationParser {
   /// The first line of a CFE error expectation starts with `// [cfe]`.
   static final _cfeErrorRegExp = RegExp(r"^\s*// \[cfe\]\s*(.*)");
 
-  /// Any line-comment-only lines after the first line of a CFE error message are
-  /// part of it.
+  /// Any line-comment-only lines after the first line of a CFE error message
+  /// are part of it.
   static final _errorMessageRestRegExp = RegExp(r"^\s*//\s*(.*)");
 
   /// Matches the multitest marker and yields the preceding content.
@@ -652,9 +731,9 @@ class _ErrorExpectationParser {
   // One-based index of the last line that wasn't part of an error expectation.
   int _lastRealLine = -1;
 
-  _ErrorExpectationParser(String source) : _lines = source.split("\n");
+  ErrorExpectationParser._(String source) : _lines = source.split("\n");
 
-  List<StaticError> parse() {
+  List<StaticError> _parse() {
     while (!_isAtEnd) {
       var sourceLine = _peek(0);
 
@@ -672,12 +751,20 @@ class _ErrorExpectationParser {
         continue;
       }
 
-      match = _explicitLocationRegExp.firstMatch(sourceLine);
+      match = _explicitLocationAndLengthRegExp.firstMatch(sourceLine);
       if (match != null) {
         _parseErrorDetails(
             line: int.parse(match.group(1)),
             column: int.parse(match.group(2)),
             length: int.parse(match.group(3)));
+        _advance();
+        continue;
+      }
+
+      match = _explicitLocationRegExp.firstMatch(sourceLine);
+      if (match != null) {
+        _parseErrorDetails(
+            line: int.parse(match.group(1)), column: int.parse(match.group(2)));
         _advance();
         continue;
       }
@@ -693,6 +780,8 @@ class _ErrorExpectationParser {
   void _parseErrorDetails({int line, int column, int length}) {
     String code;
     String message;
+
+    var startLine = _currentLine;
 
     // Look for an error code line.
     if (!_isAtEnd) {
@@ -721,6 +810,7 @@ class _ErrorExpectationParser {
 
           // A location line shouldn't be treated as a message.
           if (_caretLocationRegExp.hasMatch(nextLine)) break;
+          if (_explicitLocationAndLengthRegExp.hasMatch(nextLine)) break;
           if (_explicitLocationRegExp.hasMatch(nextLine)) break;
 
           // Don't let users arbitrarily order the error code and message.
@@ -748,7 +838,9 @@ class _ErrorExpectationParser {
         column: column,
         length: length,
         code: code,
-        message: message));
+        message: message,
+        markerStartLine: startLine,
+        markerEndLine: _currentLine));
   }
 
   bool get _isAtEnd => _currentLine >= _lines.length;
