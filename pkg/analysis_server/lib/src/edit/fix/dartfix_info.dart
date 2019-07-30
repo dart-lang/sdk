@@ -49,22 +49,6 @@ a message is displayed and the class is not converted to a mixin.''',
     isRequired: true,
   ),
   //
-  // Fixes enabled by default
-  //
-  const DartFixInfo(
-    'double-to-int',
-    '''
-Find double literals ending in .0 and remove the .0
-wherever double context can be inferred.
-
-For example, this
-  const double myDouble = 8.0;
-
-will be converted to
-  const double myDouble = 8;''',
-    BasicFixLintAssistTask.preferIntLiterals,
-  ),
-  //
   // Pedantic lint fixes.
   //
   const DartFixInfo(
@@ -118,8 +102,22 @@ will be converted to
     isDefault: false,
   ),
   //
-  // Fixes that may be explicitly enabled
+  // Other fixes
   //
+  const DartFixInfo(
+    'double-to-int',
+    '''
+Find double literals ending in .0 and remove the .0
+wherever double context can be inferred.
+
+For example, this
+  const double myDouble = 8.0;
+
+will be converted to
+  const double myDouble = 8;''',
+    BasicFixLintAssistTask.preferIntLiterals,
+    isDefault: false,
+  ),
   const DartFixInfo(
     'use-spread-collections',
     '''

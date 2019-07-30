@@ -32,6 +32,10 @@ main() {
 
     await driver.start([
       if (_debug) '-v',
+      '--fix',
+      'double-to-int',
+      '--fix',
+      'use-mixin',
       exampleDir.path,
     ], testContext: testContext, testLogger: testLogger);
     if (_debug) {

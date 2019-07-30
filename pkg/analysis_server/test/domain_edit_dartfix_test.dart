@@ -124,7 +124,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert no suggestions now that source has been excluded
-    final result = await performFix();
+    final result = await performFix(includedFixes: ['double-to-int']);
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
   }
@@ -297,7 +297,8 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['double-to-int']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -314,7 +315,8 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert dartfix suggestions
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['double-to-int']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -327,8 +329,7 @@ const double myDouble = 42;
     // Add analysis options to enable ui as code
     addTestFile('f({a: 1}) { }');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-equal-for-default-values']);
+    EditDartfixResult result = await performFix();
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
     expect(result.hasErrors, isFalse);
@@ -372,7 +373,8 @@ f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
 const double myDouble = 42.0;
     ''');
     createProject();
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['double-to-int']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
     expectEdits(result.edits, '''
