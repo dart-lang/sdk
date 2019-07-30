@@ -3000,7 +3000,7 @@ void Isolate::DecrementSpawnCount() {
 void Isolate::WaitForOutstandingSpawns() {
   MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
-    ml.Wait();
+    ml.WaitWithSafepointCheck(Thread::Current());
   }
 }
 
