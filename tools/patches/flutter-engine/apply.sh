@@ -70,17 +70,19 @@ if [ $need_runhooks = true ]; then
     # them and comparing resulting hashes.
     # Note: tag^0 forces rev-parse to return commit hash rather then the hash of
     # the tag object itself.
-    pushd ${dependency_path} > /dev/null
-    if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
-      echo "${dependency_path} requires update to match DEPS file"
-      if [ "$git_cache" != "" ]; then
-        echo "--- Forcing update of the git_cache ${git_cache}"
-        git cache fetch -c ${git_cache} --all -v
+    if [ -e ${dependency_path} ]; then
+      pushd ${dependency_path} > /dev/null
+      if [ $(git rev-parse HEAD) != $(git rev-parse ${dependency_tag_or_hash}^0) ]; then
+        echo "${dependency_path} requires update to match DEPS file"
+        if [ "$git_cache" != "" ]; then
+          echo "--- Forcing update of the git_cache ${git_cache}"
+          git cache fetch -c ${git_cache} --all -v
+        fi
+        git fetch origin
+        git checkout ${dependency_tag_or_hash}
       fi
-      git fetch origin
-      git checkout ${dependency_tag_or_hash}
+      popd > /dev/null
     fi
-    popd > /dev/null
   done
   gclient.py runhooks
 fi
