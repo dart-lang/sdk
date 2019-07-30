@@ -200,9 +200,11 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
+  visitor->set_gc_root_type("class table");
   for (intptr_t i = 0; i < top_; i++) {
     visitor->VisitPointer(reinterpret_cast<RawObject**>(&(table_[i].class_)));
   }
+  visitor->clear_gc_root_type();
 }
 
 void ClassTable::CopySizesFromClassObjects() {

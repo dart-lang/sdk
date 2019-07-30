@@ -2163,10 +2163,12 @@ static bool PrintRetainingPath(Thread* thread,
                                JSONStream* js) {
   ObjectGraph graph(thread);
   Array& path = Array::Handle(Array::New(limit * 2));
-  intptr_t length = graph.RetainingPath(obj, path);
+  auto result = graph.RetainingPath(obj, path);
+  intptr_t length = result.length;
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "RetainingPath");
   jsobj.AddProperty("length", length);
+  jsobj.AddProperty("gcRootType", result.gc_root_type);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
   Smi& slot_offset = Smi::Handle();
@@ -2175,6 +2177,7 @@ static bool PrintRetainingPath(Thread* thread,
   LinkedHashMap& map = LinkedHashMap::Handle();
   Array& map_data = Array::Handle();
   Field& field = Field::Handle();
+  String& name = String::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
     JSONObject jselement(&elements);
@@ -2184,7 +2187,6 @@ static bool PrintRetainingPath(Thread* thread,
     // or instance field.
     if (i > 0) {
       slot_offset ^= path.At((i * 2) - 1);
-      jselement.AddProperty("offset", slot_offset.Value());
       if (element.IsArray() || element.IsGrowableObjectArray()) {
         intptr_t element_index =
             slot_offset.Value() - (Array::element_offset(0) >> kWordSizeLog2);
@@ -2209,7 +2211,10 @@ static bool PrintRetainingPath(Thread* thread,
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
           field ^= element_field_map.At(offset);
-          jselement.AddProperty("parentField", field);
+          // TODO(bkonyi): check for mapping between C++ name and Dart name (V8
+          // snapshot writer?)
+          name ^= field.name();
+          jselement.AddProperty("parentField", name.ToCString());
         }
       } else {
         intptr_t element_index = slot_offset.Value();
@@ -4945,7 +4950,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
-  { "_getInboundReferences", GetInboundReferences,
+  { "getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
   { "getInstances", GetInstances,
     get_instances_params },
@@ -4971,7 +4976,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
-  { "_getRetainingPath", GetRetainingPath,
+  { "getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
   { "getScripts", GetScripts,
     get_scripts_params },

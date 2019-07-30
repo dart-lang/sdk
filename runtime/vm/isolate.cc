@@ -2106,14 +2106,12 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in the class table.
   class_table()->VisitObjectPointers(visitor);
 
-  // Visit objects in per isolate stubs.
-  StubCode::VisitObjectPointers(visitor);
-
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != nullptr) {
     api_state()->VisitObjectPointers(visitor);
   }
 
+  visitor->clear_gc_root_type();
   // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&default_tag_));
@@ -2174,6 +2172,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
 void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
                                  ValidationPolicy validate_frames) {
+  visitor->set_gc_root_type("stack");
   // Visit objects in all threads (e.g., Dart stack, handles in zones).
   thread_registry()->VisitObjectPointers(this, visitor, validate_frames);
 
@@ -2182,6 +2181,7 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
   if (mutator_thread_ != nullptr) {
     mutator_thread_->VisitObjectPointers(visitor, validate_frames);
   }
+  visitor->clear_gc_root_type();
 }
 
 void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {

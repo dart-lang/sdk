@@ -93,7 +93,7 @@ class RetainingPathElement extends CustomElement implements Renderable {
       elements.add(_createItem(item, first));
       first = false;
     }
-    elements.add(_createGCRootItem());
+    elements.add(_createGCRootItem(_path.gcRootType));
     return elements;
   }
 
@@ -126,9 +126,9 @@ class RetainingPathElement extends CustomElement implements Renderable {
       ..children = content;
   }
 
-  Element _createGCRootItem() {
+  Element _createGCRootItem(String gcRootType) {
     return new DivElement()
       ..classes = ['indent']
-      ..text = 'retained by a GC root';
+      ..text = 'retained by a GC root ($gcRootType)';
   }
 }

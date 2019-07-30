@@ -36,7 +36,6 @@ class StubCode : public AllStatic {
   static void Init();
 
   static void Cleanup();
-  static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Returns true if stub code has been initialized.
   static bool HasBeenInitialized();

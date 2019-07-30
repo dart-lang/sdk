@@ -47,7 +47,8 @@ var tests = <IsolateTest>[
       'targetId': obj['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['gcRootType'], 'user global');
     expect(result['elements'].length, equals(2));
     expect(result['elements'][1]['value']['name'], equals('globalObject'));
   },
@@ -60,13 +61,13 @@ var tests = <IsolateTest>[
     };
     bool caughtException;
     try {
-      await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+      await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
       expect(false, isTrue, reason: 'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.data['details'],
-          "_getRetainingPath expects the \'limit\' parameter");
+          "getRetainingPath expects the \'limit\' parameter");
     }
     expect(caughtException, isTrue);
   },
@@ -78,10 +79,11 @@ var tests = <IsolateTest>[
       'targetId': target1['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['gcRootType'], 'user global');
     expect(result['elements'].length, equals(3));
-    expect(result['elements'][1]['parentField']['name'], equals('x'));
+    expect(result['elements'][1]['parentField'], equals('x'));
     expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
 
@@ -92,10 +94,11 @@ var tests = <IsolateTest>[
       'targetId': target2['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['gcRootType'], 'user global');
     expect(result['elements'].length, equals(3));
-    expect(result['elements'][1]['parentField']['name'], equals('y'));
+    expect(result['elements'][1]['parentField'], equals('y'));
     expect(result['elements'][2]['value']['name'], equals('globalObject'));
   },
 
@@ -106,8 +109,9 @@ var tests = <IsolateTest>[
       'targetId': target3['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['gcRootType'], 'user global');
     expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentListIndex'], equals(12));
     expect(result['elements'][2]['value']['name'], equals('globalList'));
@@ -120,8 +124,9 @@ var tests = <IsolateTest>[
       'targetId': target4['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
+    expect(result['gcRootType'], 'user global');
     expect(result['elements'].length, equals(3));
     expect(
         result['elements'][1]['parentMapKey']['valueAsString'], equals('key'));
@@ -135,13 +140,25 @@ var tests = <IsolateTest>[
       'targetId': target5['id'],
       'limit': 100,
     };
-    var result = await isolate.invokeRpcNoUpgrade('_getRetainingPath', params);
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
     expect(result['type'], equals('RetainingPath'));
     expect(result['elements'].length, equals(3));
     expect(result['elements'][1]['parentMapKey']['class']['name'],
         equals('_TestClass'));
     expect(result['elements'][2]['value']['name'], equals('globalMap2'));
-  }
+  },
+
+  // object store
+  (Isolate isolate) async {
+    var obj = await eval(isolate, 'true');
+    var params = {
+      'targetId': obj['id'],
+      'limit': 100,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getRetainingPath', params);
+    expect(result['gcRootType'], 'object store');
+    expect(result['elements'].length, 0);
+  },
 ];
 
 main(args) async => runIsolateTests(args, tests, testeeBefore: warmup);

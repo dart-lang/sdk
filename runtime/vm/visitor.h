@@ -20,7 +20,8 @@ class RawTypedDataView;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate) : isolate_(isolate) {}
+  explicit ObjectPointerVisitor(Isolate* isolate)
+      : isolate_(isolate), gc_root_type_("unknown") {}
   virtual ~ObjectPointerVisitor() {}
 
   Isolate* isolate() const { return isolate_; }
@@ -44,8 +45,18 @@ class ObjectPointerVisitor {
 
   void VisitPointer(RawObject** p) { VisitPointers(p, p); }
 
+  const char* gc_root_type() const { return gc_root_type_; }
+  void set_gc_root_type(const char* gc_root_type) {
+    gc_root_type_ = gc_root_type;
+  }
+
+  void clear_gc_root_type() { gc_root_type_ = "unknown"; }
+
+  virtual bool visit_weak_persistent_handles() const { return false; }
+
  private:
   Isolate* isolate_;
+  const char* gc_root_type_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

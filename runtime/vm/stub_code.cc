@@ -97,8 +97,6 @@ void StubCode::Cleanup() {
 
 #undef STUB_CODE_CLEANUP
 
-void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
-
 bool StubCode::HasBeenInitialized() {
   // Use AsynchronousGapMarker as canary.
   return entries_[kAsynchronousGapMarkerIndex] != nullptr;

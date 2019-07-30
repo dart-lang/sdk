@@ -6,6 +6,8 @@ part of models;
 
 abstract class RetainingPath {
   Iterable<RetainingPathItem> get elements;
+
+  String get gcRootType;
 }
 
 abstract class RetainingPathItem {

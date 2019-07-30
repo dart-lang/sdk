@@ -1110,11 +1110,13 @@ class InboundReference implements M.InboundReference {
 
 class RetainingPath implements M.RetainingPath {
   final Iterable<RetainingPathItem> elements;
+  final String gcRootType;
 
   RetainingPath(ServiceMap map)
       : this.elements = map['elements']
             .map<RetainingPathItem>((rmap) => new RetainingPathItem(rmap))
-            .toList();
+            .toList(),
+        this.gcRootType = map['gcRootType'];
 }
 
 class RetainingPathItem implements M.RetainingPathItem {
@@ -1887,7 +1889,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('_getRetainingPath', params);
+    return invokeRpc('getRetainingPath', params);
   }
 
   Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
@@ -1895,7 +1897,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       'targetId': target.id,
       'limit': limit.toString(),
     };
-    return invokeRpc('_getInboundReferences', params);
+    return invokeRpc('getInboundReferences', params);
   }
 
   Future<ServiceObject> getTypeArgumentsList(bool onlyWithInstantiations) {
