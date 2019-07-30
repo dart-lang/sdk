@@ -43,24 +43,6 @@ String name(E e) {
     ]);
   }
 
-  test_ambiguousExport() async {
-    newFile("/test/lib/lib1.dart", content: r'''
-library lib1;
-class N {}
-''');
-    newFile("/test/lib/lib2.dart", content: r'''
-library lib2;
-class N {}
-''');
-    await assertErrorsInCode(r'''
-library L;
-export 'lib1.dart';
-export 'lib2.dart';
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXPORT, 31, 19),
-    ]);
-  }
-
   test_annotationWithNotClass() async {
     await assertErrorsInCode('''
 class Property {
