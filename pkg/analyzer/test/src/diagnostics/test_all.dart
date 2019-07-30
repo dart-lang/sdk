@@ -62,6 +62,8 @@ import 'extension_declares_abstract_method_test.dart'
 import 'extension_declares_constructor_test.dart'
     as extension_declares_constructor;
 import 'extension_declares_field_test.dart' as extension_declares_field;
+import 'extension_declares_member_of_object_test.dart'
+    as extension_declares_member_of_object;
 import 'extension_override_access_to_static_member_test.dart'
     as extension_override_access_to_static_member;
 import 'extension_override_argument_not_assignable_test.dart'
@@ -294,6 +296,7 @@ main() {
     extension_declares_abstract_method.main();
     extension_declares_constructor.main();
     extension_declares_field.main();
+    extension_declares_member_of_object.main();
     extension_override_access_to_static_member.main();
     extension_override_argument_not_assignable.main();
     extra_positional_arguments.main();

@@ -728,6 +728,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _enclosingExtension = node.declaredElement;
+    super.visitExtensionDeclaration(node);
+    _enclosingExtension = null;
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     NodeList<Expression> arguments = node.argumentList.arguments;
     int argCount = arguments.length;
@@ -813,13 +820,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkUseOfCovariantInParameters(node);
     _checkUseOfDefaultValuesInParameters(node);
     super.visitFormalParameterList(node);
-  }
-
-  @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _enclosingExtension = node.declaredElement;
-    super.visitExtensionDeclaration(node);
-    _enclosingExtension = null;
   }
 
   @override
@@ -1105,6 +1105,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForWrongNumberOfParametersForOperator(node);
         _checkForNonVoidReturnTypeForOperator(node);
       }
+      _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
       _checkForImplicitDynamicReturn(node, node.declaredElement);
@@ -3307,6 +3308,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT.contains(typeName.type);
+  }
+
+  void _checkForExtensionDeclaresMemberOfObject(MethodDeclaration node) {
+    if (_enclosingExtension == null) return;
+
+    var name = node.name.name;
+    if (name == '==' ||
+        name == 'hashCode' ||
+        name == 'toString' ||
+        name == 'runtimeType' ||
+        name == 'noSuchMethod') {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT,
+        node.name,
+      );
+    }
   }
 
   /**

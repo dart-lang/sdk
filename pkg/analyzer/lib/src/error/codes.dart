@@ -1299,6 +1299,16 @@ class CompileTimeErrorCode extends ErrorCode {
   /**
    * No parameters.
    */
+  static const CompileTimeErrorCode EXTENSION_DECLARES_MEMBER_OF_OBJECT =
+      const CompileTimeErrorCode(
+          'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
+          "Extensions can't declare members with the same name as a member "
+              "declared by 'Object'.",
+          correction: "Try specifying a different name for the member.");
+
+  /**
+   * No parameters.
+   */
   static const CompileTimeErrorCode EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER =
       const CompileTimeErrorCode(
           'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
