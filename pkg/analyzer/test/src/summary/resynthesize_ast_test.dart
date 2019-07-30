@@ -43,6 +43,13 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @failingTest // See dartbug.com/33441
   test_const_map_inferredType() => super.test_const_map_inferredType();
 
+  @FailingTest(
+      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
+          "instance method 'getGetter' with matching arguments.")
+  test_const_reference_staticMethod_ofExtension() async {
+    await super.test_const_reference_staticMethod_ofExtension();
+  }
+
   @failingTest // See dartbug.com/33441
   test_const_set_inferredType() => super.test_const_set_inferredType();
 
@@ -74,5 +81,12 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @failingTest
   test_syntheticFunctionType_inGenericClass() async {
     await super.test_syntheticFunctionType_inGenericClass();
+  }
+
+  @FailingTest(
+      reason: "NoSuchMethodError: Class 'ExtensionElementForLink' has no "
+          "instance method 'getGetter' with matching arguments.")
+  test_variable_initializer_staticMethod_ofExtension() async {
+    await super.test_variable_initializer_staticMethod_ofExtension();
   }
 }

@@ -122,6 +122,13 @@ class FindElement {
       findIn(mixin.fields);
     }
 
+    for (var extension in unitElement.extensions) {
+      if (of != null && extension.name != of) {
+        continue;
+      }
+      findIn(extension.fields);
+    }
+
     if (result != null) {
       return result;
     }

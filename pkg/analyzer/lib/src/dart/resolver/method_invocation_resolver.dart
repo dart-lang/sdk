@@ -94,6 +94,15 @@ class MethodInvocationResolver {
       }
     }
 
+    if (receiver is Identifier) {
+      var receiverElement = receiver.staticElement;
+      if (receiverElement is ExtensionElement) {
+        _resolveExtensionMember(
+            node, receiver, receiverElement, nameNode, name);
+        return;
+      }
+    }
+
     if (receiver is SuperExpression) {
       _resolveReceiverSuper(node, receiver, nameNode, name);
       return;
@@ -342,6 +351,24 @@ class MethodInvocationResolver {
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
     return;
+  }
+
+  void _resolveExtensionMember(MethodInvocation node, Identifier receiver,
+      ExtensionElement extension, SimpleIdentifier nameNode, String name) {
+    ExecutableElement element =
+        extension.getMethod(name) ?? extension.getGetter(name);
+    if (element is ExecutableElement) {
+      if (!element.isStatic) {
+        _resolver.errorReporter.reportErrorForNode(
+            StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+            nameNode,
+            [name]);
+      }
+      nameNode.staticElement = element;
+      _setResolution(node, _getCalleeType(node, element));
+    } else {
+      _reportUndefinedFunction(node, receiver);
+    }
   }
 
   void _resolveExtensionOverride(MethodInvocation node,

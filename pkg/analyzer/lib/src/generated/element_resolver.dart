@@ -1658,50 +1658,67 @@ class ElementResolver extends SimpleAstVisitor<void> {
   void _resolvePropertyAccess(
       Expression target, SimpleIdentifier propertyName, bool isCascaded) {
     DartType staticType = _getStaticType(target);
-    Element staticElement = null;
+    Element staticElement;
+    if (target is Identifier && target.staticElement is ExtensionElement) {
+      ExtensionElement extension = target.staticElement;
+      String memberName = propertyName.name;
+      if (propertyName.inSetterContext()) {
+        staticElement = extension.getSetter(memberName);
+      }
+      staticElement ??= extension.getGetter(memberName);
+      staticElement ??= extension.getMethod(memberName);
+      if (staticElement is ExecutableElement && !staticElement.isStatic) {
+        _resolver.errorReporter.reportErrorForNode(
+            StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+            propertyName,
+            [memberName]);
+      }
+    }
     //
     // If this property access is of the form 'C.m' where 'C' is a class,
     // then we don't call resolveProperty(...) which walks up the class
     // hierarchy, instead we just look for the member in the type only.  This
     // does not apply to conditional property accesses (i.e. 'C?.m').
     //
-    ClassElement typeReference = getTypeReference(target);
-    if (typeReference != null) {
-      if (isCascaded) {
-        typeReference = _typeType.element;
-      }
-      staticElement = _resolveElement(typeReference, propertyName);
-    } else {
-      if (target is SuperExpression) {
-        if (staticType is InterfaceTypeImpl) {
-          staticElement = staticType.lookUpInheritedMember(
-              propertyName.name, _definingLibrary,
-              setter: propertyName.inSetterContext(),
-              concrete: true,
-              forSuperInvocation: true);
-          // We were not able to find the concrete dispatch target.
-          // But we would like to give the user at least some resolution.
-          // So, we retry without the "concrete" requirement.
-          if (staticElement == null) {
+    if (staticElement == null) {
+      ClassElement typeReference = getTypeReference(target);
+      if (typeReference != null) {
+        if (isCascaded) {
+          typeReference = _typeType.element;
+        }
+        staticElement = _resolveElement(typeReference, propertyName);
+      } else {
+        if (target is SuperExpression) {
+          if (staticType is InterfaceTypeImpl) {
             staticElement = staticType.lookUpInheritedMember(
                 propertyName.name, _definingLibrary,
-                setter: propertyName.inSetterContext(), concrete: false);
-            if (staticElement != null) {
-              ClassElementImpl receiverSuperClass =
-                  AbstractClassElementImpl.getImpl(
-                staticType.element.supertype.element,
-              );
-              if (!receiverSuperClass.hasNoSuchMethod) {
-                _resolver.errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
-                    propertyName,
-                    [staticElement.kind.displayName, propertyName.name]);
+                setter: propertyName.inSetterContext(),
+                concrete: true,
+                forSuperInvocation: true);
+            // We were not able to find the concrete dispatch target.
+            // But we would like to give the user at least some resolution.
+            // So, we retry without the "concrete" requirement.
+            if (staticElement == null) {
+              staticElement = staticType.lookUpInheritedMember(
+                  propertyName.name, _definingLibrary,
+                  setter: propertyName.inSetterContext(), concrete: false);
+              if (staticElement != null) {
+                ClassElementImpl receiverSuperClass =
+                    AbstractClassElementImpl.getImpl(
+                  staticType.element.supertype.element,
+                );
+                if (!receiverSuperClass.hasNoSuchMethod) {
+                  _resolver.errorReporter.reportErrorForNode(
+                      CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
+                      propertyName,
+                      [staticElement.kind.displayName, propertyName.name]);
+                }
               }
             }
           }
+        } else {
+          staticElement = _resolveProperty(target, staticType, propertyName);
         }
-      } else {
-        staticElement = _resolveProperty(target, staticType, propertyName);
       }
     }
     // May be part of annotation, record property element only if exists.

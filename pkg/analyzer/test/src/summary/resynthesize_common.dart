@@ -19,7 +19,6 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
-import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../util/element_type_matchers.dart';
 import 'element_text.dart';
@@ -3671,7 +3670,6 @@ const int Function(int, String) V =
 ''');
   }
 
-  @FailingTest(reason: 'Resolution is not implemented yet for extensions')
   test_const_reference_staticMethod_ofExtension() async {
     featureSet = enableExtensionMethods;
     var library = await checkLibrary('''
@@ -10948,7 +10946,6 @@ final int v;
 ''');
   }
 
-  @FailingTest(reason: 'Resolution is not implemented yet for extensions')
   test_variable_initializer_staticMethod_ofExtension() async {
     featureSet = enableExtensionMethods;
     var library = await checkLibrary('''

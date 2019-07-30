@@ -207,6 +207,8 @@ import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
+import 'static_access_to_instance_member_test.dart'
+    as static_access_to_instance_member;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
@@ -390,6 +392,7 @@ main() {
     sdk_version_set_literal.main();
     sdk_version_ui_as_code.main();
     set_element_type_not_assignable.main();
+    static_access_to_instance_member.main();
     subtype_of_sealed_class.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
