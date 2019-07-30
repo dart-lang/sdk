@@ -503,7 +503,16 @@
             "-ndartkb-mixed-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm mixed mode co19 tests",
+          "arguments": [
+            "-ndartkb-mixed-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         },
         {
           "name": "vm bytecode compiler tests",
@@ -511,7 +520,16 @@
             "-ndartkb-compile-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm bytecode compiler co19 tests",
+          "arguments": [
+            "-ndartkb-compile-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         },
         {
           "name": "vm interpreter tests",
@@ -519,7 +537,16 @@
             "-ndartkb-interpret-linux-${mode}-${arch}"
           ],
           "fileset": "vm-kernel",
-          "shards": 10
+          "shards": 4
+        },
+        {
+          "name": "vm interpreter co19 tests",
+          "arguments": [
+            "-ndartkb-interpret-linux-${mode}-${arch}",
+            "co19_2"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 4
         }
       ]
     },
