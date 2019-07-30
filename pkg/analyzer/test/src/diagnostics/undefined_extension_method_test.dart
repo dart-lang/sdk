@@ -42,6 +42,13 @@ f() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
     ]);
+    var invocation = findNode.methodInvocation('m();');
+    assertMethodInvocation(
+      invocation,
+      null,
+      'dynamic',
+      expectedType: 'dynamic',
+    );
   }
 
   test_operator_defined() async {
@@ -64,5 +71,9 @@ f() {
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD, 40, 1),
     ]);
+    var binaryExpression = findNode.binary('+ 1');
+    assertElementNull(binaryExpression);
+    assertInvokeTypeNull(binaryExpression);
+    assertTypeDynamic(binaryExpression);
   }
 }

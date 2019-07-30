@@ -273,6 +273,11 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
+  void assertInvokeTypeNull(BinaryExpression node) {
+    DartType actual = node.staticInvokeType;
+    expect(actual, isNull);
+  }
+
   void assertMember(
       Expression node, String expectedDefiningType, Element expectedBase) {
     Member actual = getNodeElement(node);

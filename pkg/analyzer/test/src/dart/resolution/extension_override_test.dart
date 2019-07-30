@@ -504,8 +504,12 @@ void f(p.A a) {
 
   void validateInvocation() {
     MethodInvocation invocation = extensionOverride.parent as MethodInvocation;
-    Element resolvedElement = invocation.methodName.staticElement;
-    expect(resolvedElement, extension.getMethod('m'));
+
+    assertMethodInvocation(
+      invocation,
+      extension.getMethod('m'),
+      'void Function()',
+    );
 
     NodeList<Expression> arguments = invocation.argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {

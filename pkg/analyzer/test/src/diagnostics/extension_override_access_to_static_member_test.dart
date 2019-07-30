@@ -63,6 +63,12 @@ void f() {
       error(CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER, 77,
           5),
     ]);
+    var invocation = findNode.methodInvocation('empty();');
+    assertMethodInvocation(
+      invocation,
+      findElement.method('empty'),
+      'String Function()',
+    );
   }
 
   test_setter() async {
