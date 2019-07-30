@@ -4379,10 +4379,16 @@ class HIsTest extends HInstruction {
 /// Type cast or type check using Rti form of type expression.
 class HAsCheck extends HCheck {
   final AbstractValueWithPrecision checkedType;
+  final DartType checkedTypeExpression;
   final bool isTypeError;
 
-  HAsCheck(HInstruction checked, HInstruction rti, this.checkedType,
-      this.isTypeError, AbstractValue instructionType)
+  HAsCheck(
+      HInstruction checked,
+      HInstruction rti,
+      this.checkedType,
+      this.checkedTypeExpression,
+      this.isTypeError,
+      AbstractValue instructionType)
       : assert(isTypeError != null),
         super([rti, checked], instructionType);
 

@@ -3362,6 +3362,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.checkedInput);
     js.Expression second = pop();
 
+    _registry.registerTypeUse(TypeUse.isCheck(node.checkedTypeExpression));
+
     FieldEntity field = node.isTypeError
         ? _commonElements.rtiCheckField
         : _commonElements.rtiAsField;

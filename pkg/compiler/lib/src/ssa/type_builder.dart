@@ -481,7 +481,7 @@ abstract class TypeBuilder {
     AbstractValue instructionType = _abstractValueDomain.intersection(
         original.instructionType, checkedType.abstractValue);
     return HAsCheck(
-        original, reifiedType, checkedType, isTypeError, instructionType)
+        original, reifiedType, checkedType, type, isTypeError, instructionType)
       ..sourceInformation = sourceInformation;
   }
 }
