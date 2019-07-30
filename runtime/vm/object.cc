@@ -7295,7 +7295,6 @@ RawFunction* Function::New(const String& name,
   result.set_is_redirecting(false);
   result.set_is_generated_body(false);
   result.set_has_pragma(false);
-  result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
   result.set_is_no_such_method_forwarder(false);
   NOT_IN_PRECOMPILED(result.set_state_bits(0));
@@ -12530,8 +12529,6 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
-  INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
-  INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
   all_libs.Clear();

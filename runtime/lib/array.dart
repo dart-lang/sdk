@@ -7,6 +7,7 @@
 @pragma("vm:entry-point")
 class _List<E> extends FixedLengthListBase<E> {
   @pragma("vm:exact-result-type", _List)
+  @pragma("vm:prefer-inline")
   factory _List(length) native "List_allocate";
 
   E operator [](int index) native "List_getIndexed";
@@ -18,8 +19,10 @@ class _List<E> extends FixedLengthListBase<E> {
   void _setIndexed(int index, E value) native "List_setIndexed";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "List_getLength";
 
+  @pragma("vm:prefer-inline")
   List _slice(int start, int count, bool needsTypeArgument) {
     if (count <= 64) {
       final result = needsTypeArgument ? new _List<E>(count) : new _List(count);
@@ -100,6 +103,7 @@ class _List<E> extends FixedLengthListBase<E> {
 
   // Iterable interface.
 
+  @pragma("vm:prefer-inline")
   void forEach(f(E element)) {
     final length = this.length;
     for (int i = 0; i < length; i++) {
@@ -107,6 +111,7 @@ class _List<E> extends FixedLengthListBase<E> {
     }
   }
 
+  @pragma("vm:prefer-inline")
   Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
   }
@@ -161,6 +166,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
   E operator [](int index) native "List_getIndexed";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:prefer-inline")
   int get length native "List_getLength";
 
   List<E> sublist(int start, [int end]) {
@@ -178,6 +184,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
 
   // Collection interface.
 
+  @pragma("vm:prefer-inline")
   void forEach(f(E element)) {
     final length = this.length;
     for (int i = 0; i < length; i++) {
@@ -185,6 +192,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
     }
   }
 
+  @pragma("vm:prefer-inline")
   Iterator<E> get iterator {
     return new _FixedSizeArrayIterator<E>(this);
   }
@@ -237,6 +245,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
 
   E get current => _current;
 
+  @pragma("vm:prefer-inline")
   bool moveNext() {
     if (_index >= _length) {
       _current = null;

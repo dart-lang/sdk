@@ -509,14 +509,16 @@ static bool IsSmallLeaf(FlowGraph* graph) {
       } else if (current->IsStaticCall()) {
         const Function& function = current->AsStaticCall()->function();
         const intptr_t inl_size = function.optimized_instruction_count();
+        const bool always_inline =
+            FlowGraphInliner::FunctionHasPreferInlinePragma(function);
         // Accept a static call is always inlined in some way and add the
         // cached size to the total instruction count. A reasonable guess
         // is made if the count has not been collected yet (listed methods
         // are never very large).
-        if (!function.always_inline() && !function.IsRecognized()) {
+        if (!always_inline && !function.IsRecognized()) {
           return false;
         }
-        if (!function.always_inline()) {
+        if (!always_inline) {
           static constexpr intptr_t kAvgListedMethodSize = 20;
           instruction_count +=
               (inl_size == 0 ? kAvgListedMethodSize : inl_size);
@@ -863,6 +865,11 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
+      TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
+      return false;
+    }
+
     // Don't inline any intrinsified functions in precompiled mode
     // to reduce code size and make sure we use the intrinsic code.
     if (FLAG_precompiled_mode && function.is_intrinsic() &&
@@ -898,11 +905,6 @@ class CallSiteInliner : public ValueObject {
       TRACE_INLINING(THR_Print("     Bailout: deoptimization threshold\n"));
       PRINT_INLINING_TREE("Deoptimization threshold exceeded",
                           &call_data->caller, &function, call_data->call);
-      return false;
-    }
-
-    if (FlowGraphInliner::FunctionHasNeverInlinePragma(function)) {
-      TRACE_INLINING(THR_Print("     Bailout: vm:never-inline pragma\n"));
       return false;
     }
 
@@ -2302,7 +2304,7 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
       return true;
     }
   }
-  return MethodRecognizer::AlwaysInline(function);
+  return false;
 }
 
 int FlowGraphInliner::Inline() {

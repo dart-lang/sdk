@@ -2587,8 +2587,6 @@ void Obfuscator::InitializeRenamingMap(Isolate* isolate) {
     PreventRenaming(#class_name);                                              \
     PreventRenaming(#function_name);                                           \
   } while (0);
-  INLINE_WHITE_LIST(PREVENT_RENAMING)
-  INLINE_BLACK_LIST(PREVENT_RENAMING)
   POLYMORPHIC_TARGET_LIST(PREVENT_RENAMING)
 #undef PREVENT_RENAMING
 

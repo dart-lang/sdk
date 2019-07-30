@@ -542,6 +542,7 @@ class _BigIntImpl implements BigInt {
   /// Does *not* clear digits below ds.
   ///
   /// Note: This function may be intrinsified.
+  @pragma("vm:never-inline")
   static void _lsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     assert(xUsed > 0);
@@ -617,6 +618,7 @@ class _BigIntImpl implements BigInt {
   /// resultDigits[0..resultUsed-1] = xDigits[0..xUsed-1] >> n.
   ///
   /// Note: This function may be intrinsified.
+  @pragma("vm:never-inline")
   static void _rsh(
       Uint32List xDigits, int xUsed, int n, Uint32List resultDigits) {
     assert(xUsed > 0);
@@ -744,6 +746,7 @@ class _BigIntImpl implements BigInt {
   /// used >= otherUsed > 0.
   ///
   /// Note: This function may be intrinsified.
+  @pragma("vm:never-inline")
   static void _absAdd(Uint32List digits, int used, Uint32List otherDigits,
       int otherUsed, Uint32List resultDigits) {
     assert(used >= otherUsed && otherUsed > 0);
@@ -765,6 +768,7 @@ class _BigIntImpl implements BigInt {
   /// used >= otherUsed > 0.
   ///
   /// Note: This function may be intrinsified.
+  @pragma("vm:never-inline")
   static void _absSub(Uint32List digits, int used, Uint32List otherDigits,
       int otherUsed, Uint32List resultDigits) {
     assert(used >= otherUsed && otherUsed > 0);
@@ -1094,6 +1098,7 @@ class _BigIntImpl implements BigInt {
   /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
   /// process digit pairs at even indices and returns 2.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:never-inline")
   static int _mulAdd(
       Uint32List xDigits,
       int xIndex,
@@ -1145,6 +1150,7 @@ class _BigIntImpl implements BigInt {
   /// Note: This function may be intrinsified. Intrinsics on 64-bit platforms
   /// process digit pairs at even indices and returns 2.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:never-inline")
   static int _sqrAdd(
       Uint32List xDigits, int i, Uint32List acculumatorDigits, int used) {
     int x = xDigits[i];
@@ -1266,6 +1272,7 @@ class _BigIntImpl implements BigInt {
   /// args[_divisorLowTopDigit.._divisorTopDigit]`.
   /// Returns 2.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:never-inline")
   static int _estimateQuotientDigit(Uint32List args, Uint32List digits, int i) {
     // Verify that digit pairs are accessible for 64-bit processing.
     assert(digits.length >= 4);
@@ -2606,6 +2613,7 @@ class _BigIntMontgomeryReduction implements _BigIntReduction {
   //     args[_rhoDigit.._rhoHighDigit] * digits[i..i+1] mod _digitBase^2.
   //   Returns 2.
   @pragma("vm:exact-result-type", "dart:core#_Smi")
+  @pragma("vm:never-inline")
   static int _mulMod(Uint32List args, Uint32List digits, int i) {
     var rhol = args[_rhoDigit] & _BigIntImpl._halfDigitMask;
     var rhoh = args[_rhoDigit] >> _BigIntImpl._halfDigitBits;

@@ -14,6 +14,7 @@ import "dart:typed_data" show Uint32List;
 /// There are no parts of this patch library.
 
 @patch
+@pragma("vm:prefer-inline")
 T min<T extends num>(T a, T b) {
   // These partially redundant type checks improve code quality for dart2js.
   // Most of the improvement is at call sites from the inferred non-null num
@@ -43,6 +44,7 @@ T min<T extends num>(T a, T b) {
 }
 
 @patch
+@pragma("vm:prefer-inline")
 T max<T extends num>(T a, T b) {
   // These partially redundant type checks improve code quality for dart2js.
   // Most of the improvement is at call sites from the inferred non-null num
@@ -76,6 +78,7 @@ T max<T extends num>(T a, T b) {
 // If [x] is an [int] and [exponent] is a non-negative [int], the result is
 // an [int], otherwise the result is a [double].
 @patch
+@pragma("vm:prefer-inline")
 num pow(num x, num exponent) {
   if ((x is int) && (exponent is int) && (exponent >= 0)) {
     return _intPow(x, exponent);
@@ -127,31 +130,41 @@ int _intPow(int base, int exponent) {
 
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double sin(num radians) => _sin(radians.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double cos(num radians) => _cos(radians.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double tan(num radians) => _tan(radians.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double acos(num x) => _acos(x.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double asin(num x) => _asin(x.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double atan(num x) => _atan(x.toDouble());
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:never-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
 @patch
+@pragma("vm:prefer-inline")
 double exp(num x) => _exp(x.toDouble());
 @patch
+@pragma("vm:prefer-inline")
 double log(num x) => _log(x.toDouble());
 
 double _atan2(double a, double b) native "Math_atan2";
