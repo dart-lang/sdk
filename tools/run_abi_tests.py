@@ -5,6 +5,7 @@
 # Runs tests with old ABI versions and check if the results differ from the
 # current results.
 
+import argparse
 import json
 import os
 import subprocess
@@ -16,6 +17,15 @@ import utils
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 outDir = os.path.join(scriptDir, '..', 'out', 'ReleaseX64')
 abiDir = os.path.join(outDir, 'dart-sdk', 'lib', '_internal', 'abiversions')
+
+
+# Parse command line args to flags.
+def parseArgs():
+  parser = argparse.ArgumentParser('Runs test.py on all supported ABI versions')
+  parser.add_argument(
+      '--output-directory', default=os.path.join(outDir, 'logs'), metavar='DIR',
+      dest='logDir', help='Directory to output restuls.json and logs.json to.')
+  return parser.parse_args()
 
 
 # Info about a running test.
@@ -154,13 +164,12 @@ def makeLog(diffs, results, logRecords):
 
 
 # Diff the results of all the tests and create the merged result and log files.
-def diffAllResults(tests):
+def diffAllResults(tests, flags):
   allResults = readAllTestFiles(tests, lambda test: test.resultFile)
   allLogs = readAllTestFiles(tests, lambda test: test.logFile)
-  logDir = os.path.join(outDir, 'logs')
-  makeDirs(logDir)
-  resultFileName = os.path.join(logDir, 'results.json')
-  logFileName = os.path.join(logDir, 'logs.json')
+  makeDirs(flags.logDir)
+  resultFileName = os.path.join(flags.logDir, 'results.json')
+  logFileName = os.path.join(flags.logDir, 'logs.json')
   with open(resultFileName, 'w') as resultFile:
     with open(logFileName, 'w') as logFile:
       for name, results in allResults.items():
@@ -169,12 +178,14 @@ def diffAllResults(tests):
         if diffs:
           logRecords = allLogs[name] if name in allLogs else []
           logFile.write(json.dumps(makeLog(diffs, results, logRecords)) + '\n')
+  print('Log files emitted to %s and %s' % (resultFileName, logFileName))
 
 
 def main():
+  flags = parseArgs()
   tests = buildAllTests()
   runAllTests(tests)
-  diffAllResults(tests)
+  diffAllResults(tests, flags)
   return 0
 
 
