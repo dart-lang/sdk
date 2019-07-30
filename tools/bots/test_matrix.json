@@ -161,6 +161,7 @@
       "out/DebugX64/",
       "out/DebugSIMARM/",
       "out/DebugSIMARM64/",
+      "out/DebugSIMARM_X64/",
       "out/DebugSIMDBC64/",
       "out/DebugAndroidARM/",
       "out/DebugAndroidARM64/",
@@ -168,6 +169,7 @@
       "out/ReleaseX64/",
       "out/ReleaseSIMARM/",
       "out/ReleaseSIMARM64/",
+      "out/ReleaseSIMARM_X64/",
       "out/ReleaseSIMDBC64/",
       "out/ReleaseAndroidARM/",
       "out/ReleaseAndroidARM64/",
@@ -176,15 +178,21 @@
       "out/ProductX64/",
       "out/ProductSIMARM/",
       "out/ProductSIMARM64/",
+      "out/ProductSIMARM_X64/",
       "out/ProductSIMDBC64/",
       "out/ProductAndroidARM/",
       "out/ProductAndroidARM64/",
       "xcodebuild/DebugIA32/",
+      "xcodebuild/DebugSIMARM/",
+      "xcodebuild/DebugSIMARM64/",
+      "xcodebuild/DebugSIMARM_X64/",
       "xcodebuild/DebugSIMDBC64/",
       "xcodebuild/DebugX64/",
       "xcodebuild/ProductX64/",
       "xcodebuild/ReleaseIA32/",
+      "xcodebuild/ReleaseSIMARM/",
       "xcodebuild/ReleaseSIMARM64/",
+      "xcodebuild/ReleaseSIMARM_X64/",
       "xcodebuild/ReleaseSIMDBC64/",
       "xcodebuild/ReleaseX64/",
       "samples/",
@@ -335,6 +343,11 @@
     }},
     "dartkp-(win|mac)-(debug|product|release)-(simarm|simarm64)": {
       "options": {
+        "use-blobs": true
+    }},
+    "dartkp-(linux|win|mac)-(debug|product|release)-(simarm|simarm64)-crossword": {
+      "options": {
+        "builder-tag": "crossword",
         "use-blobs": true
     }},
     "dartkp-win-(product|release)-x64": {
@@ -2235,6 +2248,63 @@
           "name": "run tests",
           "script": "tools/run_abi_tests.py",
           "testRunner": true
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-kernel-precomp-mac-debug-simarm_x64",
+        "vm-kernel-precomp-mac-release-simarm_x64"
+      ],
+      "meta": {
+        "description": "This configuration runs tests for the simarm_x64 architecture."
+      },
+      "steps": [
+        {
+          "name": "configure dart for simarm_x64",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "configure dart for simarm",
+          "script": "tools/gn.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "--bytecode"
+          ]
+        },
+        {
+          "name": "build dart for simarm_x64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm_x64",
+            "gen_snapshot"
+          ]
+        },
+        {
+          "name": "build dart for simarm",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=${mode}",
+            "--arch=simarm",
+            "dart_precompiled_runtime",
+            "vm_platform"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-ndartkp-${system}-${mode}-simarm-crossword",
+            "--gen-snapshot=${build_root}/gen_snapshot"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
         }
       ]
     }
