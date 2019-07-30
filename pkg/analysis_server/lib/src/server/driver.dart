@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:ffi' as ffi;
 import 'dart:io';
 import 'dart:math';
 
@@ -400,7 +401,10 @@ class Driver implements ServerStarter {
       return null;
     }
 
-    if (analysisServerOptions.completionModelFolder != null) {
+    if (analysisServerOptions.completionModelFolder != null &&
+        ffi.sizeOf<ffi.IntPtr>() != 4) {
+      // Start completion model isolate if this is a 64 bit system and
+      // analysis server was configured to load a language model on disk.
       CompletionRanking.instance =
           CompletionRanking(analysisServerOptions.completionModelFolder);
       CompletionRanking.instance.start().catchError(() {
