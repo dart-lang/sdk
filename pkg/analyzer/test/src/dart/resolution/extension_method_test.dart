@@ -553,7 +553,8 @@ f() {
 }
 ''');
     var identifier = findNode.simple('a;');
-    expect(identifier.staticElement, isNotNull);
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(identifier, import.extension_('E').getGetter('a'));
     assertType(identifier, 'int');
   }
 
@@ -570,7 +571,7 @@ f() {
 }
 ''');
     var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.field('a').getter);
+    assertElement(identifier, findElement.getter('a'));
     assertType(identifier, 'int');
   }
 
@@ -590,7 +591,8 @@ f() {
 }
 ''');
     var identifier = findNode.simple('a;');
-    expect(identifier.staticElement, isNotNull);
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(identifier, import.extension_('E').getGetter('a'));
     assertType(identifier, 'int');
   }
 
@@ -627,7 +629,8 @@ f() {
 }
 ''');
     var invocation = findNode.methodInvocation('E.a()');
-    expect(invocation.methodName.staticElement, isNotNull);
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(invocation, import.extension_('E').getMethod('a'));
     assertInvokeType(invocation, 'void Function()');
   }
 
@@ -664,7 +667,8 @@ f() {
 }
 ''');
     var identifier = findNode.simple('a =');
-    expect(identifier.staticElement, isNotNull);
+    var import = findElement.importFind('package:test/lib.dart');
+    assertElement(identifier, import.extension_('E').getSetter('a'));
   }
 
   test_static_setter_local() async {
@@ -901,7 +905,7 @@ extension E on C {
 }
 ''');
     var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.field('a').getter);
+    assertElement(identifier, findElement.getter('a'));
     assertType(identifier, 'int');
   }
 
@@ -915,7 +919,7 @@ extension E on C {
 }
 ''');
     var identifier = findNode.simple('a;');
-    assertElement(identifier, findElement.field('a').getter);
+    assertElement(identifier, findElement.getter('a'));
     assertType(identifier, 'int');
   }
 
