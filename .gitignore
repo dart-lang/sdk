@@ -22,6 +22,11 @@
 /*.vcxproj.user
 *.stamp
 
+# LLVM prebuilts
+/third_party/llvm/include
+/third_party/llvm/lib
+/third_party/llvm/.versions
+
 # Gyp generated files
 *.xcodeproj
 *.intermediate
@@ -98,3 +103,4 @@ editor/util/testing/mac/Samples.suite/Results
 /outline.dill
 /generated/
 /crash_logs/
+/build/config/gclient_args.gni
