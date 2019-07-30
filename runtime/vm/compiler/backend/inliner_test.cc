@@ -134,4 +134,64 @@ ISOLATE_UNIT_TEST_CASE(Inliner_PolyInliningRedefinition) {
   EXPECT(current->AsRedefinition()->Type()->ToCid() == kDynamicCid);
 }
 
+ISOLATE_UNIT_TEST_CASE(Inliner_TypedData_Regress7551) {
+  const char* kScript = R"(
+    import 'dart:typed_data';
+
+    setValue(Int32List list, int value) {
+      list[0] = value;
+    }
+
+    main() {
+      final list = Int32List(10);
+      setValue(list, 0x1122334455);
+    }
+  )";
+
+  const auto& root_library = Library::Handle(LoadTestScript(kScript));
+  const auto& function =
+      Function::Handle(GetFunction(root_library, "setValue"));
+
+  Invoke(root_library, "main");
+
+  TestPipeline pipeline(function, CompilerPass::kJIT);
+  FlowGraph* flow_graph = pipeline.RunPasses({
+      CompilerPass::kComputeSSA,
+      CompilerPass::kApplyICData,
+      CompilerPass::kTryOptimizePatterns,
+      CompilerPass::kSetOuterInliningId,
+      CompilerPass::kTypePropagation,
+      CompilerPass::kApplyClassIds,
+      CompilerPass::kInlining,
+  });
+
+  auto entry = flow_graph->graph_entry()->normal_entry();
+
+  EXPECT(entry->initial_definitions()->length() == 2);
+  EXPECT(entry->initial_definitions()->At(0)->IsParameter());
+  EXPECT(entry->initial_definitions()->At(1)->IsParameter());
+  ParameterInstr* list_param =
+      entry->initial_definitions()->At(0)->AsParameter();
+  ParameterInstr* value_param =
+      entry->initial_definitions()->At(1)->AsParameter();
+
+  ILMatcher cursor(flow_graph, entry);
+
+  CheckArrayBoundInstr* bounds_check_instr = nullptr;
+  UnboxInt32Instr* unbox_instr = nullptr;
+  StoreIndexedInstr* store_instr = nullptr;
+
+  RELEASE_ASSERT(cursor.TryMatch({
+      {kMoveGlob},
+      {kMatchAndMoveCheckArrayBound, &bounds_check_instr},
+      {kMatchAndMoveUnboxInt32, &unbox_instr},
+      {kMatchAndMoveStoreIndexed, &store_instr},
+  }));
+
+  RELEASE_ASSERT(unbox_instr->InputAt(0)->definition() == value_param);
+  RELEASE_ASSERT(store_instr->InputAt(0)->definition() == list_param);
+  RELEASE_ASSERT(store_instr->InputAt(2)->definition() == unbox_instr);
+  RELEASE_ASSERT(unbox_instr->is_truncating());
+}
+
 }  // namespace dart
