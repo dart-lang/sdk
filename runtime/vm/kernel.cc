@@ -304,8 +304,8 @@ static void CollectBytecodeFunctionTokenPositions(
       object = pool.ObjectAt(i);
       if (object.IsFunction()) {
         closure ^= object.raw();
-        if ((closure.kind() == RawFunction::kClosureFunction) &&
-            (closure.IsLocalFunction())) {
+        if (closure.kind() == RawFunction::kClosureFunction &&
+            closure.IsLocalFunction()) {
           bytecode = closure.bytecode();
           ASSERT(!bytecode.IsNull());
           if (bytecode.HasSourcePositions()) {

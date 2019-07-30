@@ -554,8 +554,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       object = pool.ObjectAt(i);
       if (object.IsFunction()) {
         closure ^= object.raw();
-        if ((closure.kind() == RawFunction::kClosureFunction) &&
-            (closure.IsLocalFunction())) {
+        if (closure.kind() == RawFunction::kClosureFunction &&
+            closure.IsLocalFunction()) {
           VisitFunction(jsarr, closure);
         }
       }
