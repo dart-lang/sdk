@@ -1343,7 +1343,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
       const Class& cls = Class::CheckedHandle(Z, ReadObject());
       String& name = String::CheckedHandle(Z, ReadObject());
       if ((flags & kFlagIsField) != 0) {
-        RawField* field = cls.LookupFieldAllowPrivate(name);
+        RawField* field = cls.LookupField(name);
         NoSafepointScope no_safepoint_scope(thread_);
         if (field == Field::null()) {
           FATAL2("Unable to find field %s in %s", name.ToCString(),
@@ -1359,7 +1359,7 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.raw() == scoped_function_class_.raw()) {
           return scoped_function_.raw();
         }
-        RawFunction* function = cls.LookupFunctionAllowPrivate(name);
+        RawFunction* function = cls.LookupFunction(name);
         {
           // To verify that it's OK to hold raw function pointer at this point.
           NoSafepointScope no_safepoint_scope(thread_);
@@ -1369,9 +1369,10 @@ RawObject* BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           if (Field::IsGetterName(name)) {
             String& method_name =
                 String::Handle(Z, Field::NameFromGetter(name));
-            function = cls.LookupFunctionAllowPrivate(method_name);
+            function = cls.LookupFunction(method_name);
             if (function != Function::null()) {
-              function = Function::Handle(Z, function).GetMethodExtractor(name);
+              function =
+                  Function::Handle(Z, function).CreateMethodExtractor(name);
               if (function != Function::null()) {
                 return function;
               }
