@@ -86,7 +86,10 @@ class Expect : public DynamicAssertionHelper {
   void GreaterEqual(const E& left, const A& right);
 
   template <typename T>
-  T NotNull(const T p);
+  void NotNull(const T p);
+
+  template <typename T>
+  void Null(const T p);
 #endif
 
   static bool failed() { return failed_; }
@@ -214,10 +217,15 @@ void Expect::GreaterEqual(const E& left, const A& right) {
 }
 
 template <typename T>
-T Expect::NotNull(const T p) {
-  if (p != NULL) return p;
+void Expect::NotNull(const T p) {
+  if (p != NULL) return;
   Fail("expected: not NULL, found NULL");
-  return NULL;
+}
+
+template <typename T>
+void Expect::Null(const T p) {
+  if (p == nullptr) return;
+  Fail("expected: nullptr, found not null pointer");
 }
 #endif
 
@@ -323,6 +331,8 @@ T Expect::NotNull(const T p) {
   dart::Expect(__FILE__, __LINE__).GreaterEqual((left), (right))
 
 #define EXPECT_NOTNULL(ptr) dart::Expect(__FILE__, __LINE__).NotNull((ptr))
+
+#define EXPECT_NULLPTR(ptr) dart::Expect(__FILE__, __LINE__).Null((ptr))
 
 #define FAIL(error) dart::Expect(__FILE__, __LINE__).Fail("%s", error)
 

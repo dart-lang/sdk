@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/compiler/backend/flow_graph.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 #include "vm/compiler/backend/il_serializer.h"
 
-#include "vm/compiler/aot/precompiler.h"
+#include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
-#include "vm/compiler/backend/range_analysis.h"
 #include "vm/os.h"
-#include "vm/parser.h"
 
 namespace dart {
 
@@ -55,48 +52,47 @@ void FlowGraphSerializer::SerializeToBuffer(Zone* zone,
 }
 
 void FlowGraphSerializer::AddBool(SExpList* sexp, bool b) {
-  sexp->Add(new (zone()) SExpAtom(b ? "true" : "false"));
+  sexp->Add(new (zone()) SExpBool(b));
 }
 
 void FlowGraphSerializer::AddInteger(SExpList* sexp, intptr_t i) {
-  sexp->Add(new (zone()) SExpAtom(OS::SCreate(zone(), "%" Pd "", i)));
+  sexp->Add(new (zone()) SExpInteger(i));
 }
 
 void FlowGraphSerializer::AddString(SExpList* sexp, const char* cstr) {
-  sexp->Add(new (zone()) SExpAtom(cstr, /*is_symbol=*/false));
+  sexp->Add(new (zone()) SExpString(cstr));
 }
 
 void FlowGraphSerializer::AddSymbol(SExpList* sexp, const char* cstr) {
-  sexp->Add(new (zone()) SExpAtom(cstr, /*is_symbol=*/true));
+  sexp->Add(new (zone()) SExpSymbol(cstr));
 }
 
 void FlowGraphSerializer::AddExtraBool(SExpList* sexp,
                                        const char* label,
                                        bool b) {
-  sexp->AddExtra(label, new (zone()) SExpAtom(b ? "true" : "false"));
+  sexp->AddExtra(label, new (zone()) SExpBool(b));
 }
 
 void FlowGraphSerializer::AddExtraInteger(SExpList* sexp,
                                           const char* label,
                                           intptr_t i) {
-  sexp->AddExtra(label,
-                 new (zone()) SExpAtom(OS::SCreate(zone(), "%" Pd "", i)));
+  sexp->AddExtra(label, new (zone()) SExpInteger(i));
 }
 
 void FlowGraphSerializer::AddExtraString(SExpList* sexp,
                                          const char* label,
                                          const char* cstr) {
-  sexp->AddExtra(label, new (zone()) SExpAtom(cstr, /*is_symbol=*/false));
+  sexp->AddExtra(label, new (zone()) SExpString(cstr));
 }
 
 void FlowGraphSerializer::AddExtraSymbol(SExpList* sexp,
                                          const char* label,
                                          const char* cstr) {
-  sexp->AddExtra(label, new (zone()) SExpAtom(cstr, /*is_symbol=*/true));
+  sexp->AddExtra(label, new (zone()) SExpSymbol(cstr));
 }
 
 SExpression* FlowGraphSerializer::BlockIdToSExp(intptr_t block_id) {
-  return new (zone()) SExpAtom(OS::SCreate(zone(), "B%" Pd "", block_id));
+  return new (zone()) SExpSymbol(OS::SCreate(zone(), "B%" Pd "", block_id));
 }
 
 void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
@@ -147,13 +143,14 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
 SExpression* FlowGraphSerializer::CanonicalNameToSExp(const Object& obj) {
   TextBuffer b(100);
   SerializeCanonicalName(&b, obj);
-  return new (zone()) SExpAtom(OS::SCreate(zone(), "%s", b.buf()));
+  return new (zone()) SExpSymbol(OS::SCreate(zone(), "%s", b.buf()));
 }
 
 SExpression* FlowGraphSerializer::BlockEntryToSExp(const char* entry_name,
                                                    BlockEntryInstr* entry) {
   auto sexp = new (zone()) SExpList(zone());
-  sexp->Add(new (zone()) SExpAtom(OS::SCreate(zone(), "%s-entry", entry_name)));
+  const auto tag_cstr = OS::SCreate(zone(), "%s-entry", entry_name);
+  sexp->Add(new (zone()) SExpSymbol(tag_cstr));
   sexp->Add(BlockIdToSExp(entry->block_id()));
   if (auto with_defs = entry->AsBlockEntryWithInitialDefs()) {
     auto initial_defs = with_defs->initial_definitions();
@@ -200,17 +197,18 @@ SExpression* FlowGraphSerializer::UseToSExp(const Definition* definition) {
   ASSERT(definition->HasSSATemp() || definition->HasTemp());
   if (definition->HasSSATemp()) {
     const intptr_t temp_index = definition->ssa_temp_index();
+    const auto name_cstr = OS::SCreate(zone(), "v%" Pd "", temp_index);
     if (definition->HasPairRepresentation()) {
       auto sexp = new (zone()) SExpList(zone());
-      AddSymbol(sexp, OS::SCreate(zone(), "v%" Pd "", temp_index));
+      AddSymbol(sexp, name_cstr);
       AddSymbol(sexp, OS::SCreate(zone(), "v%" Pd "", temp_index + 1));
       return sexp;
     } else {
-      return new (zone()) SExpAtom(OS::SCreate(zone(), "v%" Pd "", temp_index));
+      return new (zone()) SExpSymbol(name_cstr);
     }
   } else if (definition->HasTemp()) {
     const intptr_t temp_index = definition->temp_index();
-    return new (zone()) SExpAtom(OS::SCreate(zone(), "t%" Pd "", temp_index));
+    return new (zone()) SExpSymbol(OS::SCreate(zone(), "t%" Pd "", temp_index));
   } else {
     UNREACHABLE();
   }
@@ -337,10 +335,16 @@ SExpression* FlowGraphSerializer::TypeArgumentsToSExp(const TypeArguments& ta) {
 
 SExpression* FlowGraphSerializer::DartValueToSExp(const Object& dartval) {
   if (dartval.IsString()) {
-    return new (zone()) SExpAtom(dartval.ToCString(), /*is_symbol=*/false);
+    return new (zone()) SExpString(dartval.ToCString());
   }
-  if (dartval.IsSmi() || dartval.IsBool() || dartval.IsNull()) {
-    return new (zone()) SExpAtom(dartval.ToCString());
+  if (dartval.IsSmi()) {
+    return new (zone()) SExpInteger(Smi::Cast(dartval).Value());
+  }
+  if (dartval.IsBool()) {
+    return new (zone()) SExpBool(Bool::Cast(dartval).value());
+  }
+  if (dartval.IsNull()) {
+    return new (zone()) SExpSymbol("null");
   }
   if (dartval.IsField()) {
     return FieldToSExp(Field::Cast(dartval));
@@ -813,122 +817,6 @@ SExpression* Environment::ToSExpression(FlowGraphSerializer* s) const {
     sexp->Add(outer_->ToSExpression(s));
   }
   return sexp;
-}
-
-void SExpAtom::SerializeToLine(TextBuffer* buffer) const {
-  if (IsSymbol()) {
-    buffer->AddString(cstr_);
-  } else {
-    buffer->AddChar('"');
-    buffer->AddEscapedString(cstr_);
-    buffer->AddChar('"');
-  }
-}
-
-void SExpList::Add(SExpression* sexp) {
-  contents_.Add(sexp);
-}
-
-void SExpList::AddExtra(const char* label, SExpression* value) {
-  ASSERT(!extra_info_.HasKey(label));
-  extra_info_.Insert({label, value});
-}
-
-const char* const SExpList::kElemIndent = " ";
-const char* const SExpList::kExtraIndent = "  ";
-
-void SExpList::SerializeTo(Zone* zone,
-                           TextBuffer* buffer,
-                           const char* indent,
-                           intptr_t width) const {
-  const intptr_t indent_width = strlen(indent);
-  intptr_t remaining = width - indent_width;
-  TextBuffer single_line(width);
-
-  const char* sub_indent = OS::SCreate(zone, "%s%s", indent, kElemIndent);
-  const intptr_t sub_indent_width = indent_width + strlen(kElemIndent);
-
-  buffer->AddChar('(');
-  for (intptr_t i = 0; i < contents_.length(); i++) {
-    const intptr_t leading = i == 0 ? 0 : 1;
-    const auto elem = contents_.At(i);
-    elem->SerializeToLine(&single_line);
-    if ((leading + single_line.length()) < remaining) {
-      if (leading != 0) {
-        buffer->AddChar(' ');
-      }
-      buffer->AddString(single_line.buf());
-      remaining -= leading + single_line.length();
-    } else {
-      remaining = 0;
-      buffer->AddChar('\n');
-      buffer->AddString(sub_indent);
-      const intptr_t used = width - sub_indent_width;
-      if ((single_line.length() < used) || elem->IsAtom()) {
-        buffer->AddString(single_line.buf());
-        remaining = used - single_line.length();
-      } else {
-        elem->SerializeTo(zone, buffer, sub_indent, width);
-      }
-    }
-    single_line.Clear();
-  }
-
-  if (!extra_info_.IsEmpty()) {
-    SerializeExtraInfoToLine(&single_line);
-    if (single_line.length() < remaining - 1) {
-      buffer->Printf(" %s", single_line.buf());
-    } else {
-      buffer->Printf("\n%s", sub_indent);
-      const intptr_t used = width - sub_indent_width;
-      if (single_line.length() < used) {
-        buffer->AddString(single_line.buf());
-      } else {
-        SerializeExtraInfoTo(zone, buffer, sub_indent, width);
-      }
-    }
-  }
-  buffer->AddChar(')');
-}
-
-void SExpList::SerializeToLine(TextBuffer* buffer) const {
-  buffer->AddChar('(');
-  for (intptr_t i = 0; i < contents_.length(); i++) {
-    if (i != 0) buffer->AddChar(' ');
-    contents_.At(i)->SerializeToLine(buffer);
-  }
-  if (!extra_info_.IsEmpty()) {
-    buffer->AddChar(' ');
-    SerializeExtraInfoToLine(buffer);
-  }
-  buffer->AddChar(')');
-}
-
-void SExpList::SerializeExtraInfoTo(Zone* zone,
-                                    TextBuffer* buffer,
-                                    const char* indent,
-                                    intptr_t width) const {
-  const char* sub_indent = OS::SCreate(zone, "%s%s", indent, kExtraIndent);
-
-  buffer->AddChar('{');
-  auto it = extra_info_.GetIterator();
-  while (auto kv = it.Next()) {
-    buffer->Printf("\n%s%s ", sub_indent, kv->key);
-    kv->value->SerializeToLine(buffer);
-    buffer->AddChar(',');
-  }
-  buffer->Printf("\n%s}", indent);
-}
-
-void SExpList::SerializeExtraInfoToLine(TextBuffer* buffer) const {
-  buffer->AddString("{");
-  auto it = extra_info_.GetIterator();
-  while (auto kv = it.Next()) {
-    buffer->Printf(" %s ", kv->key);
-    kv->value->SerializeToLine(buffer);
-    buffer->AddChar(',');
-  }
-  buffer->AddString(" }");
 }
 
 }  // namespace dart
