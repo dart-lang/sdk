@@ -128,7 +128,9 @@ visitCompilationUnit(CompilationUnitElement unit) {
 
 void visitClass(ClassElement classElement) {
   // Classes that cause too many false divergences.
-  if (classElement.name == 'ProcessInfo' || classElement.name == 'Platform') {
+  if (classElement.name == 'ProcessInfo' ||
+      classElement.name == 'Platform' ||
+      classElement.name.startsWith('FileSystem')) {
     return;
   }
   // Every class element contains elements for the members, viz. `methods` visits
@@ -253,10 +255,7 @@ void addToTable(String ret, String name, String proto) {
     return;
   }
   // Avoid some obvious false divergences.
-  if (name == 'pid' ||
-      name == 'hashCode' ||
-      name == 'Platform.executable' ||
-      name == 'Platform.resolvedExecutable') {
+  if (name == 'pid' || name == 'hashCode' || name == 'exitCode') {
     return;
   }
   // Restrict parameters for a few hardcoded cases,
