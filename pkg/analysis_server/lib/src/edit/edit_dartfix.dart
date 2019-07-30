@@ -45,7 +45,8 @@ class EditDartFix
         if (info != null) {
           fixInfo.add(info);
         } else {
-          // TODO(danrubel): Report unknown fix to the user
+          return new Response.invalidParameter(
+              request, 'includedFixes', 'Unknown fix: $key');
         }
       }
     }
@@ -58,7 +59,8 @@ class EditDartFix
         if (info != null) {
           fixInfo.remove(info);
         } else {
-          // TODO(danrubel): Report unknown fix to the user
+          return new Response.invalidParameter(
+              request, 'excludedFixes', 'Unknown fix: $key');
         }
       }
     }

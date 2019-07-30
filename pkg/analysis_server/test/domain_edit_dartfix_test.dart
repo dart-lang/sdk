@@ -49,15 +49,22 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   Future<EditDartfixResult> performFix({List<String> includedFixes}) async {
+    var response = await performFixRaw(includedFixes: includedFixes);
+    expect(response.error, isNull);
+    return EditDartfixResult.fromResponse(response);
+  }
+
+  Future<Response> performFixRaw(
+      {List<String> includedFixes, List<String> excludedFixes}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
+    params.excludedFixes = excludedFixes;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
     final response = await new EditDartFix(server, request).compute();
     expect(response.id, id);
-
-    return EditDartfixResult.fromResponse(response);
+    return response;
   }
 
   @override
@@ -91,6 +98,16 @@ f(bool b) {
   return ['a', if (b) 'c' else 'd', 'e'];
 }
 ''');
+  }
+
+  test_dartfix_excludedFix_invalid() async {
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+    createProject();
+
+    final result = await performFixRaw(excludedFixes: ['not-a-fix']);
+    expect(result.error, isNotNull);
   }
 
   test_dartfix_excludedSource() async {
@@ -129,6 +146,16 @@ main() {
   print(new A<String>.from([]));
 }
     ''');
+  }
+
+  test_dartfix_includedFix_invalid() async {
+    addTestFile('''
+const double myDouble = 42.0;
+    ''');
+    createProject();
+
+    final result = await performFixRaw(includedFixes: ['not-a-fix']);
+    expect(result.error, isNotNull);
   }
 
   test_dartfix_map_for_elements() async {
