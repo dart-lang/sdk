@@ -131,9 +131,9 @@ abstract class VmServiceBase implements VmServiceConst {
       }
 
       @Override
-      public void received(Version response) {
-        int major = response.getMajor();
-        int minor = response.getMinor();
+      public void received(Version version) {
+        int major = version.getMajor();
+        int minor = version.getMinor();
         if (major != VmService.versionMajor || minor != VmService.versionMinor) {
           if (major == 2 || major == 3) {
             Logging.getLogger().logInformation(
@@ -146,9 +146,13 @@ abstract class VmServiceBase implements VmServiceConst {
             errMsg[0] = msg;
           }
         }
+
+        vmService.runtimeVersion = version;
+
         latch.countDown();
       }
     });
+
     try {
       if (!latch.await(5, TimeUnit.SECONDS)) {
         throw new IOException("Failed to determine protocol version");
@@ -206,6 +210,8 @@ abstract class VmServiceBase implements VmServiceConst {
    */
   RequestSink requestSink;
 
+  Version runtimeVersion;
+
   /**
    * Add a listener to receive {@link Event}s from the VM.
    */
@@ -232,6 +238,13 @@ abstract class VmServiceBase implements VmServiceConst {
    */
   public void removeServiceRunner(String service) {
     remoteServiceRunners.remove(service);
+  }
+
+  /**
+   * Return the VM service protocol version supported by the current debug connection.
+   */
+  public Version getRuntimeVersion() {
+    return runtimeVersion;
   }
 
   /**
