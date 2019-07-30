@@ -336,7 +336,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_cascaded() {
     // always -> 1
-    // LUB(LUB(1, 2), 3) -> 4
+    // subst(subst(1, 2), 3) -> 4
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -350,7 +350,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_inner() {
     // always -> 1
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -362,7 +362,7 @@ class NullabilityNodeTest {
   }
 
   test_propagation_downstream_through_substitution_neither() {
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
@@ -374,7 +374,7 @@ class NullabilityNodeTest {
 
   test_propagation_downstream_through_substitution_outer() {
     // always -> 2
-    // LUB(1, 2) -> 3
+    // subst(1, 2) -> 3
     var n1 = newNode(1);
     var n2 = newNode(2);
     var n3 = newNode(3);
