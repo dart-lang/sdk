@@ -29,14 +29,13 @@ import '../kernel/kernel_builder.dart'
         Declaration,
         KernelFieldBuilder,
         FunctionBuilder,
-        KernelInvalidTypeBuilder,
+        InvalidTypeBuilder,
         KernelLibraryBuilder,
         NamedTypeBuilder,
-        TypeBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
         Scope,
+        TypeBuilder,
         TypeVariableBuilder,
         compareProcedures;
 
@@ -55,8 +54,7 @@ Class initializeClass(
   cls ??= new Class(
       name: name,
       typeParameters:
-          KernelTypeVariableBuilder.kernelTypeParametersFromBuilders(
-              typeVariables));
+          TypeVariableBuilder.kernelTypeParametersFromBuilders(typeVariables));
   cls.fileUri ??= parent.fileUri;
   if (cls.startFileOffset == TreeNode.noOffset) {
     cls.startFileOffset = startCharOffset;
@@ -258,7 +256,7 @@ class SourceClassBuilder extends ClassBuilder
     }
     if (message != null) {
       return new NamedTypeBuilder(supertype.name, null)
-        ..bind(new KernelInvalidTypeBuilder(supertype.name,
+        ..bind(new InvalidTypeBuilder(supertype.name,
             message.withLocation(fileUri, charOffset, noLength)));
     }
     return supertype;

@@ -28,7 +28,7 @@ import '../kernel/kernel_builder.dart'
         ClassBuilder,
         FormalParameterBuilder,
         NamedTypeBuilder,
-        KernelTypeVariableBuilder,
+        TypeVariableBuilder,
         LibraryBuilder,
         TypeBuilder,
         VoidTypeBuilder;
@@ -84,7 +84,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
     // implementation of [visitTypeParameterType] is suffient.
-    List<KernelTypeVariableBuilder> typeVariables = null;
+    List<TypeVariableBuilder> typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<FormalParameterBuilder> formals = new List<FormalParameterBuilder>(
@@ -115,7 +115,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
     Library kernelLibrary = kernelClass.enclosingLibrary;
     LibraryBuilder library = loader.builders[kernelLibrary.importUri];
     return new NamedTypeBuilder(parameter.name, null)
-      ..bind(new KernelTypeVariableBuilder.fromKernel(parameter, library));
+      ..bind(new TypeVariableBuilder.fromKernel(parameter, library));
   }
 
   TypeBuilder visitTypedefType(TypedefType node) {

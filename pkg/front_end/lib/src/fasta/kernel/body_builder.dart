@@ -1167,11 +1167,11 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Expression parseSingleExpression(
       Parser parser, Token token, FunctionNode parameters) {
-    List<KernelTypeVariableBuilder> typeParameterBuilders;
+    List<TypeVariableBuilder> typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
-      typeParameterBuilders ??= <KernelTypeVariableBuilder>[];
-      typeParameterBuilders.add(
-          new KernelTypeVariableBuilder.fromKernel(typeParameter, library));
+      typeParameterBuilders ??= <TypeVariableBuilder>[];
+      typeParameterBuilders
+          .add(new TypeVariableBuilder.fromKernel(typeParameter, library));
     }
     enterFunctionTypeScope(typeParameterBuilders);
 
@@ -2799,7 +2799,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             message, offset, lengthOfSpan(beginToken, suffix), uri);
         push(new UnresolvedType(
             new NamedTypeBuilder(name, null)
-              ..bind(new KernelInvalidTypeBuilder(
+              ..bind(new InvalidTypeBuilder(
                   name,
                   message.withLocation(
                       uri, offset, lengthOfSpan(beginToken, suffix)))),
@@ -2819,7 +2819,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       library.addProblem(
           name.message, name.charOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilder(name.name, null)
-        ..bind(new KernelInvalidTypeBuilder(
+        ..bind(new InvalidTypeBuilder(
             name.name,
             name.message.withLocation(
                 name.fileUri, name.charOffset, name.name.length)));
@@ -2835,15 +2835,15 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginFunctionType");
   }
 
-  void enterFunctionTypeScope(List<KernelTypeVariableBuilder> typeVariables) {
+  void enterFunctionTypeScope(List<TypeVariableBuilder> typeVariables) {
     debugEvent("enterFunctionTypeScope");
     enterLocalScope(null,
         scope.createNestedScope("function-type scope", isModifiable: true));
     if (typeVariables != null) {
       ScopeBuilder scopeBuilder = new ScopeBuilder(scope);
-      for (KernelTypeVariableBuilder builder in typeVariables) {
+      for (TypeVariableBuilder builder in typeVariables) {
         String name = builder.name;
-        KernelTypeVariableBuilder existing = scopeBuilder[name];
+        TypeVariableBuilder existing = scopeBuilder[name];
         if (existing == null) {
           scopeBuilder.addMember(name, builder);
         } else {
@@ -2859,7 +2859,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     reportErrorIfNullableType(questionMark);
     FormalParameters formals = pop();
     UnresolvedType returnType = pop();
-    List<KernelTypeVariableBuilder> typeVariables = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     UnresolvedType type = formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();
     push(type);
@@ -3087,7 +3087,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     FormalParameters formals = pop();
     UnresolvedType returnType = pop();
-    List<KernelTypeVariableBuilder> typeVariables = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     reportErrorIfNullableType(question);
     UnresolvedType type = formals.toFunctionType(returnType, typeVariables);
     exitLocalScope();
@@ -4050,7 +4050,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     functionNestingLevel--;
     inCatchBlock = pop();
     switchScope = pop();
-    List<KernelTypeVariableBuilder> typeVariables = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     exitLocalScope();
     push(typeVariables ?? NullValue.TypeVariables);
   }
@@ -4064,7 +4064,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void beginNamedFunctionExpression(Token token) {
     debugEvent("beginNamedFunctionExpression");
-    List<KernelTypeVariableBuilder> typeVariables = pop();
+    List<TypeVariableBuilder> typeVariables = pop();
     // Create an additional scope in which the named function expression is
     // declared.
     enterLocalScope("named function");
@@ -4087,7 +4087,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     UnresolvedType returnType = pop();
     bool hasImplicitReturnType = returnType == null;
     exitFunction();
-    List<KernelTypeVariableBuilder> typeParameters = pop();
+    List<TypeVariableBuilder> typeParameters = pop();
     List<Expression> annotations;
     if (!isFunctionExpression) {
       annotations = pop(); // Metadata.
@@ -4173,7 +4173,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     exitLocalScope();
     FormalParameters formals = pop();
     exitFunction();
-    List<KernelTypeVariableBuilder> typeParameters = pop();
+    List<TypeVariableBuilder> typeParameters = pop();
     FunctionNode function = formals.buildFunctionNode(
         library, null, typeParameters, asyncModifier, body, token.charOffset)
       ..fileOffset = beginToken.charOffset;
@@ -4815,8 +4815,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("beginTypeVariable");
     Identifier name = pop();
     List<Expression> annotations = pop();
-    KernelTypeVariableBuilder variable = new KernelTypeVariableBuilder(
-        name.name, library, name.charOffset, null);
+    TypeVariableBuilder variable =
+        new TypeVariableBuilder(name.name, library, name.charOffset, null);
     if (annotations != null) {
       inferAnnotations(annotations);
       for (Expression annotation in annotations) {
@@ -4830,8 +4830,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleTypeVariablesDefined(Token token, int count) {
     debugEvent("handleTypeVariablesDefined");
     assert(count > 0);
-    List<KernelTypeVariableBuilder> typeVariables =
-        const FixedNullableList<KernelTypeVariableBuilder>().pop(stack, count);
+    List<TypeVariableBuilder> typeVariables =
+        const FixedNullableList<TypeVariableBuilder>().pop(stack, count);
     enterFunctionTypeScope(typeVariables);
     push(typeVariables);
   }
@@ -4841,9 +4841,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     debugEvent("TypeVariable");
     UnresolvedType bound = pop();
     // Peek to leave type parameters on top of stack.
-    List<KernelTypeVariableBuilder> typeVariables = peek();
+    List<TypeVariableBuilder> typeVariables = peek();
 
-    KernelTypeVariableBuilder variable = typeVariables[index];
+    TypeVariableBuilder variable = typeVariables[index];
     variable.bound = bound?.builder;
   }
 
@@ -4851,7 +4851,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void endTypeVariables(Token beginToken, Token endToken) {
     debugEvent("TypeVariables");
     // Peek to leave type parameters on top of stack.
-    List<KernelTypeVariableBuilder> typeVariables = peek();
+    List<TypeVariableBuilder> typeVariables = peek();
 
     if (!legacyMode) {
       List<TypeBuilder> calculatedBounds = calculateBounds(
@@ -4887,13 +4887,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   List<TypeParameter> typeVariableBuildersToKernel(
-      List<KernelTypeVariableBuilder> typeVariableBuilders) {
+      List<TypeVariableBuilder> typeVariableBuilders) {
     if (typeVariableBuilders == null) return null;
     List<TypeParameter> typeParameters = new List<TypeParameter>.filled(
         typeVariableBuilders.length, null,
         growable: true);
     int i = 0;
-    for (KernelTypeVariableBuilder builder in typeVariableBuilders) {
+    for (TypeVariableBuilder builder in typeVariableBuilders) {
       typeParameters[i++] = builder.target;
     }
     return typeParameters;
@@ -5225,7 +5225,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       addProblem(message.messageObject, message.charOffset, message.length);
       return new UnresolvedType(
           new NamedTypeBuilder(typeParameter.name, null)
-            ..bind(new KernelInvalidTypeBuilder(typeParameter.name, message)),
+            ..bind(new InvalidTypeBuilder(typeParameter.name, message)),
           unresolved.charOffset,
           unresolved.fileUri);
     }
@@ -5640,7 +5640,7 @@ class FormalParameters {
   FunctionNode buildFunctionNode(
       KernelLibraryBuilder library,
       UnresolvedType returnType,
-      List<KernelTypeVariableBuilder> typeParameters,
+      List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,
       Statement body,
       int fileEndOffset) {
@@ -5672,7 +5672,7 @@ class FormalParameters {
   }
 
   UnresolvedType toFunctionType(UnresolvedType returnType,
-      [List<KernelTypeVariableBuilder> typeParameters]) {
+      [List<TypeVariableBuilder> typeParameters]) {
     return new UnresolvedType(
         new FunctionTypeBuilder(
             returnType?.builder, typeParameters, parameters),

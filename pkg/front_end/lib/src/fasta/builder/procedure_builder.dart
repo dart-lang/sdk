@@ -68,7 +68,6 @@ import '../kernel/kernel_builder.dart'
         FormalParameterBuilder,
         KernelLibraryBuilder,
         KernelMetadataBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder,
@@ -281,7 +280,7 @@ abstract class FunctionBuilder extends MemberBuilder {
       }
     }
     if (typeVariables != null) {
-      for (KernelTypeVariableBuilder t in typeVariables) {
+      for (TypeVariableBuilder t in typeVariables) {
         TypeParameter parameter = t.parameter;
         result.typeParameters.add(parameter);
         if (needsCheckVisitor != null) {

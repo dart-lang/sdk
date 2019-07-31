@@ -24,7 +24,6 @@ import '../problems.dart' show unsupported;
 import '../kernel/kernel_builder.dart'
     show
         FormalParameterBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         TypeBuilder,
         TypeVariableBuilder;
@@ -98,7 +97,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     List<TypeParameter> typeParameters;
     if (typeVariables != null) {
       typeParameters = <TypeParameter>[];
-      for (KernelTypeVariableBuilder t in typeVariables) {
+      for (TypeVariableBuilder t in typeVariables) {
         typeParameters.add(t.parameter);
       }
     }

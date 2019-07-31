@@ -113,7 +113,7 @@ import 'kernel_builder.dart'
         AccessErrorBuilder,
         Declaration,
         ClassBuilder,
-        KernelInvalidTypeBuilder,
+        InvalidTypeBuilder,
         NamedTypeBuilder,
         TypeBuilder,
         UnresolvedType;
@@ -1655,9 +1655,8 @@ class DeferredAccessGenerator extends Generator {
     TypeBuilder type =
         suffixGenerator.buildTypeWithResolvedArguments(arguments);
     LocatedMessage message;
-    if (type is NamedTypeBuilder &&
-        type.declaration is KernelInvalidTypeBuilder) {
-      KernelInvalidTypeBuilder declaration = type.declaration;
+    if (type is NamedTypeBuilder && type.declaration is InvalidTypeBuilder) {
+      InvalidTypeBuilder declaration = type.declaration;
       message = declaration.message;
     } else {
       int charOffset = offsetForToken(prefixGenerator.token);
@@ -1806,8 +1805,8 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   Expression get expression {
     if (super.expression == null) {
       int offset = offsetForToken(token);
-      if (declaration is KernelInvalidTypeBuilder) {
-        KernelInvalidTypeBuilder declaration = this.declaration;
+      if (declaration is InvalidTypeBuilder) {
+        InvalidTypeBuilder declaration = this.declaration;
         _helper.addProblemErrorIfConst(
             declaration.message.messageObject, offset, token.length);
         super.expression = _helper.wrapSyntheticExpression(

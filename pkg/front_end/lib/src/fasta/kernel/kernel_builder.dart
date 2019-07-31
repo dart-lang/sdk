@@ -21,21 +21,13 @@ export 'class_hierarchy_builder.dart'
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 
-export 'kernel_enum_builder.dart' show KernelEnumBuilder;
-
 export 'kernel_field_builder.dart' show KernelFieldBuilder;
-
-export 'kernel_invalid_type_builder.dart' show KernelInvalidTypeBuilder;
 
 export 'kernel_library_builder.dart' show KernelLibraryBuilder;
 
 export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
 
 export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;
-
-export 'kernel_type_alias_builder.dart' show KernelTypeAliasBuilder;
-
-export 'kernel_type_variable_builder.dart' show KernelTypeVariableBuilder;
 
 export 'kernel_variable_builder.dart' show KernelVariableBuilder;
 

@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show DartType, Typedef;
 
 import '../kernel/kernel_builder.dart'
     show
-        KernelTypeAliasBuilder,
+        TypeAliasBuilder,
         FunctionTypeBuilder,
         TypeBuilder,
         LibraryBuilder,
@@ -18,7 +18,7 @@ import '../problems.dart' show unimplemented;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
 
-class DillTypeAliasBuilder extends KernelTypeAliasBuilder {
+class DillTypeAliasBuilder extends TypeAliasBuilder {
   DillTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
       : super(null, typedef.name, null, null, parent, typedef.fileOffset,
             typedef);

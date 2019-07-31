@@ -40,7 +40,7 @@ import '../ignored_parser_errors.dart' show isIgnoredParserError;
 import '../kernel/body_builder.dart' show BodyBuilder;
 
 import '../kernel/kernel_builder.dart'
-    show FormalParameterBuilder, KernelTypeAliasBuilder, TypeBuilder;
+    show FormalParameterBuilder, TypeAliasBuilder, TypeBuilder;
 
 import '../parser.dart' show Assert, MemberKind, Parser, optional;
 
@@ -249,7 +249,7 @@ class DietListener extends StackListener {
 
     Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
-    if (typedefBuilder is KernelTypeAliasBuilder) {
+    if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
       if (type is FunctionTypeBuilder) {
         List<FormalParameterBuilder> formals = type.formals;

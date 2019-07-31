@@ -130,23 +130,21 @@ import 'kernel_builder.dart'
         ImplicitFieldType,
         InvalidTypeBuilder,
         ConstructorBuilder,
-        KernelEnumBuilder,
+        EnumBuilder,
+        FunctionBuilder,
+        TypeAliasBuilder,
         KernelFieldBuilder,
-        KernelTypeAliasBuilder,
-        KernelInvalidTypeBuilder,
         KernelMetadataBuilder,
         MixinApplicationBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         RedirectingFactoryBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         LoadLibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
         NameIterator,
         PrefixBuilder,
-        FunctionBuilder,
         QualifiedName,
         Scope,
         TypeBuilder,
@@ -173,8 +171,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
 
   final List<FunctionBuilder> nativeMethods = <FunctionBuilder>[];
 
-  final List<KernelTypeVariableBuilder> boundlessTypeVariables =
-      <KernelTypeVariableBuilder>[];
+  final List<TypeVariableBuilder> boundlessTypeVariables =
+      <TypeVariableBuilder>[];
 
   // A list of alternating forwarders and the procedures they were generated
   // for.  Note that it may not include a forwarder-origin pair in cases when
@@ -552,7 +550,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       /// from [typeVariableNames] is referenced in [type].
       bool usesTypeVariables(TypeBuilder type) {
         if (type is NamedTypeBuilder) {
-          if (type.declaration is KernelTypeVariableBuilder) {
+          if (type.declaration is TypeVariableBuilder) {
             return typeVariableNames.contains(type.declaration.name);
           }
 
@@ -924,15 +922,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    KernelEnumBuilder builder = new KernelEnumBuilder(
-        metadataCollector,
-        metadata,
-        name,
-        enumConstantInfos,
-        this,
-        startCharOffset,
-        charOffset,
-        charEndOffset);
+    EnumBuilder builder = new EnumBuilder(metadataCollector, metadata, name,
+        enumConstantInfos, this, startCharOffset, charOffset, charEndOffset);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.target, documentationComment);
@@ -945,7 +936,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       List<TypeVariableBuilder> typeVariables,
       FunctionTypeBuilder type,
       int charOffset) {
-    KernelTypeAliasBuilder typedef = new KernelTypeAliasBuilder(
+    TypeAliasBuilder typedef = new TypeAliasBuilder(
         metadata, name, typeVariables, type, this, charOffset);
     loader.target.metadataCollector
         ?.setDocumentationComment(typedef.target, documentationComment);
@@ -988,9 +979,9 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
     return formal;
   }
 
-  KernelTypeVariableBuilder addTypeVariable(
+  TypeVariableBuilder addTypeVariable(
       String name, TypeBuilder bound, int charOffset) {
-    var builder = new KernelTypeVariableBuilder(name, this, charOffset, bound);
+    var builder = new TypeVariableBuilder(name, this, charOffset, bound);
     boundlessTypeVariables.add(builder);
     return builder;
   }
@@ -1011,9 +1002,9 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
       member = declaration.build(this)..isStatic = true;
-    } else if (declaration is KernelTypeAliasBuilder) {
+    } else if (declaration is TypeAliasBuilder) {
       typedef = declaration.build(this);
-    } else if (declaration is KernelEnumBuilder) {
+    } else if (declaration is EnumBuilder) {
       cls = declaration.build(this, coreLibrary);
     } else if (declaration is PrefixBuilder) {
       // Ignored. Kernel doesn't represent prefixes.
@@ -1247,7 +1238,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
     // We report the error lazily (setting suppressMessage to false) because the
     // spec 18.1 states that 'It is not an error if N is introduced by two or
     // more imports but never referred to.'
-    return new KernelInvalidTypeBuilder(
+    return new InvalidTypeBuilder(
         name, message.withLocation(fileUri, charOffset, name.length),
         suppressMessage: false);
   }
@@ -1329,8 +1320,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       List<TypeVariableBuilder> original, DeclarationBuilder declaration) {
     List<TypeBuilder> newTypes = <TypeBuilder>[];
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
-    for (KernelTypeVariableBuilder variable in original) {
-      var newVariable = new KernelTypeVariableBuilder(variable.name, this,
+    for (TypeVariableBuilder variable in original) {
+      var newVariable = new TypeVariableBuilder(variable.name, this,
           variable.charOffset, variable.bound?.clone(newTypes));
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
@@ -1343,7 +1334,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
 
   int finishTypeVariables(ClassBuilder object, TypeBuilder dynamicType) {
     int count = boundlessTypeVariables.length;
-    for (KernelTypeVariableBuilder builder in boundlessTypeVariables) {
+    for (TypeVariableBuilder builder in boundlessTypeVariables) {
       builder.finish(this, object, dynamicType);
     }
     boundlessTypeVariables.clear();
@@ -1427,7 +1418,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
                 member.typeVariables, legacyMode || issues.isNotEmpty);
           }
         });
-      } else if (declaration is KernelTypeAliasBuilder) {
+      } else if (declaration is TypeAliasBuilder) {
         List<Object> issues = legacyMode
             ? const <Object>[]
             : getNonSimplicityIssuesForDeclaration(declaration,

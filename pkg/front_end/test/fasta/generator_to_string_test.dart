@@ -33,7 +33,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
     show
         KernelLibraryBuilder,
-        KernelTypeVariableBuilder,
+        TypeVariableBuilder,
         LoadLibraryBuilder,
         PrefixBuilder,
         TypeDeclarationBuilder,
@@ -91,7 +91,7 @@ main() {
         new PrefixBuilder("myPrefix", false, libraryBuilder, -1, -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration =
-        new KernelTypeVariableBuilder.fromKernel(
+        new TypeVariableBuilder.fromKernel(
             new TypeParameter("T"), libraryBuilder);
     VariableDeclaration variable = new VariableDeclaration(null);
 

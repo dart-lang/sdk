@@ -42,7 +42,7 @@ import 'builder.dart'
 import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
-        KernelInvalidTypeBuilder,
+        InvalidTypeBuilder,
         LibraryBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
@@ -180,11 +180,11 @@ class NamedTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
-  KernelInvalidTypeBuilder buildInvalidType(LocatedMessage message,
+  InvalidTypeBuilder buildInvalidType(LocatedMessage message,
       {List<LocatedMessage> context}) {
     // TODO(ahe): Consider if it makes sense to pass a QualifiedName to
-    // KernelInvalidTypeBuilder?
-    return new KernelInvalidTypeBuilder(
+    // InvalidTypeBuilder?
+    return new InvalidTypeBuilder(
         flattenName(name, message.charOffset, message.uri), message,
         context: context);
   }
@@ -211,7 +211,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildSupertype(library, arguments);
-    } else if (declaration is KernelInvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,
@@ -229,7 +229,7 @@ class NamedTypeBuilder extends TypeBuilder {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is ClassBuilder) {
       return declaration.buildMixedInType(library, arguments);
-    } else if (declaration is KernelInvalidTypeBuilder) {
+    } else if (declaration is InvalidTypeBuilder) {
       library.addProblem(
           declaration.message.messageObject,
           declaration.message.charOffset,

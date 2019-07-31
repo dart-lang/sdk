@@ -36,7 +36,6 @@ import '../kernel/kernel_builder.dart'
         Declaration,
         DynamicTypeBuilder,
         InvalidTypeBuilder,
-        KernelInvalidTypeBuilder,
         LibraryBuilder,
         Scope;
 
@@ -216,7 +215,7 @@ class DillLibraryBuilder extends LibraryBuilder {
     if (builder.parent == this) return builder;
     Message message = templateDuplicatedDeclaration.withArguments(name);
     addProblem(message, charOffset, name.length, fileUri);
-    return new KernelInvalidTypeBuilder(
+    return new InvalidTypeBuilder(
         name, message.withLocation(fileUri, charOffset, name.length));
   }
 
@@ -251,8 +250,7 @@ class DillLibraryBuilder extends LibraryBuilder {
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
           addProblem(message, -1, noLength, null);
-          declaration =
-              new KernelInvalidTypeBuilder(name, message.withoutLocation());
+          declaration = new InvalidTypeBuilder(name, message.withoutLocation());
       }
       exportScopeBuilder.addMember(name, declaration);
     });

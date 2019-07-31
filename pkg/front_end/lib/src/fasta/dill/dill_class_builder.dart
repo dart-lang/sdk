@@ -13,7 +13,6 @@ import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
         TypeBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
         Scope,
@@ -153,8 +152,7 @@ List<TypeVariableBuilder> computeTypeVariableBuilders(
   List<TypeVariableBuilder> result =
       new List.filled(typeParameters.length, null);
   for (int i = 0; i < result.length; i++) {
-    result[i] =
-        new KernelTypeVariableBuilder.fromKernel(typeParameters[i], library);
+    result[i] = new TypeVariableBuilder.fromKernel(typeParameters[i], library);
   }
   return result;
 }

@@ -27,11 +27,9 @@ import 'kernel_builder.dart'
     show
         ClassBuilder,
         FormalParameterBuilder,
-        TypeAliasBuilder,
         FunctionTypeBuilder,
-        KernelTypeAliasBuilder,
-        KernelTypeVariableBuilder,
         NamedTypeBuilder,
+        TypeAliasBuilder,
         TypeBuilder,
         TypeDeclarationBuilder,
         TypeVariableBuilder;
@@ -56,10 +54,10 @@ export 'package:kernel/src/bounds_checks.dart' show Variance;
 // variables.  For that case if the type has its declaration set to null and its
 // name matches that of the variable, it's interpreted as an occurrence of a
 // type variable.
-int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
+int computeVariance(TypeVariableBuilder variable, TypeBuilder type) {
   if (type is NamedTypeBuilder) {
     TypeDeclarationBuilder declaration = type.declaration;
-    if (declaration == null || declaration is KernelTypeVariableBuilder) {
+    if (declaration == null || declaration is TypeVariableBuilder) {
       if (type.name == variable.name) {
         return Variance.covariant;
       } else {
@@ -74,7 +72,7 @@ int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
           }
         }
         return result;
-      } else if (declaration is KernelTypeAliasBuilder) {
+      } else if (declaration is TypeAliasBuilder) {
         int result = Variance.unrelated;
         if (type.arguments != null) {
           for (int i = 0; i < type.arguments.length; ++i) {
@@ -96,7 +94,7 @@ int computeVariance(KernelTypeVariableBuilder variable, TypeBuilder type) {
           Variance.meet(result, computeVariance(variable, type.returnType));
     }
     if (type.typeVariables != null) {
-      for (KernelTypeVariableBuilder typeVariable in type.typeVariables) {
+      for (TypeVariableBuilder typeVariable in type.typeVariables) {
         // If [variable] is referenced in the bound at all, it makes the
         // variance of [variable] in the entire type invariant.  The invocation
         // of [computeVariance] below is made to simply figure out if [variable]
@@ -127,7 +125,7 @@ TypeBuilder substituteRange(
     Map<TypeVariableBuilder, TypeBuilder> lowerSubstitution,
     {bool isCovariant = true}) {
   if (type is NamedTypeBuilder) {
-    if (type.declaration is KernelTypeVariableBuilder) {
+    if (type.declaration is TypeVariableBuilder) {
       if (isCovariant) {
         return upperSubstitution[type.declaration] ?? type;
       }
@@ -153,10 +151,9 @@ TypeBuilder substituteRange(
   }
 
   if (type is FunctionTypeBuilder) {
-    List<KernelTypeVariableBuilder> variables;
+    List<TypeVariableBuilder> variables;
     if (type.typeVariables != null) {
-      variables =
-          new List<KernelTypeVariableBuilder>(type.typeVariables.length);
+      variables = new List<TypeVariableBuilder>(type.typeVariables.length);
     }
     List<FormalParameterBuilder> formals;
     if (type.formals != null) {
@@ -167,12 +164,12 @@ TypeBuilder substituteRange(
 
     if (type.typeVariables != null) {
       for (int i = 0; i < variables.length; i++) {
-        KernelTypeVariableBuilder variable = type.typeVariables[i];
+        TypeVariableBuilder variable = type.typeVariables[i];
         TypeBuilder bound = substituteRange(
             variable.bound, upperSubstitution, lowerSubstitution,
             isCovariant: isCovariant);
         if (bound != variable.bound) {
-          variables[i] = new KernelTypeVariableBuilder(
+          variables[i] = new TypeVariableBuilder(
               variable.name, variable.parent, variable.charOffset, bound);
           changed = true;
         } else {

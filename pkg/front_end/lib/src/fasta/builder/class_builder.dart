@@ -112,7 +112,6 @@ import '../kernel/kernel_builder.dart'
         KernelLibraryBuilder,
         KernelMetadataBuilder,
         NamedTypeBuilder,
-        KernelTypeVariableBuilder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -1496,7 +1495,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
         ]);
       } else if (typeVariables != null) {
         int count = 0;
-        for (KernelTypeVariableBuilder t in patch.typeVariables) {
+        for (TypeVariableBuilder t in patch.typeVariables) {
           typeVariables[count++].applyPatch(t);
         }
       }
