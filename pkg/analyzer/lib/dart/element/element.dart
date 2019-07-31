@@ -1661,7 +1661,9 @@ abstract class TypeDefiningElement implements Element {
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeParameterElement implements TypeDefiningElement {
   /// Return the type representing the bound associated with this parameter, or
-  /// `null` if this parameter does not have an explicit bound.
+  /// `null` if this parameter does not have an explicit bound. Being able to
+  /// distinguish between an implicit and explicit bound is needed by the
+  /// instantiate to bounds algorithm.
   DartType get bound;
 
   @override
