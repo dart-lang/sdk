@@ -705,6 +705,13 @@ class MethodInvocationResolver {
 
     if (type is InterfaceType) {
       var call = _inheritance.getMember(type, _nameCall);
+      if (call == null) {
+        var extension = _extensionMemberResolver.findExtension(
+            type, _nameCall.name, node.methodName);
+        if (extension != null) {
+          call = extension.getMethod(_nameCall.name);
+        }
+      }
       if (call != null && call.kind == ElementKind.METHOD) {
         type = call.type;
       }

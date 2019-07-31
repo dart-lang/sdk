@@ -911,6 +911,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForNullableDereference(functionExpression) &&
         !_checkForUseOfVoidResult(functionExpression) &&
         !_checkForUseOfNever(functionExpression) &&
+        node.staticElement == null &&
         !_isFunctionType(expressionType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,

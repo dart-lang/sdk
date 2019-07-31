@@ -168,7 +168,6 @@ f(C c) {
     assertInvokeType(invocation, 'int Function(int)');
   }
 
-  @failingTest
   test_instance_call_fromExtension() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -215,6 +214,22 @@ f(C c) {
 ''');
     var assignment = findNode.assignment('+=');
     assertElement(assignment, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_call_fromExtension_int() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int call(int x) => 0;
+}
+
+f() {
+  1(2);
+}
+''');
+    var invocation = findNode.functionExpressionInvocation('1(2)');
+    expect(invocation.staticInvokeType.element,
+        same(findElement.method('call', of: 'E')));
+    assertInvokeType(invocation, 'int Function(int)');
   }
 
   test_instance_getter_methodInvocation() async {
@@ -874,7 +889,6 @@ f() {
 /// by code internal to (within) the extension declaration.
 @reflectiveTest
 class ExtensionMethodsInternalReferenceTest extends BaseExtensionMethodsTest {
-  @failingTest
   test_instance_call() async {
     await assertNoErrorsInCode('''
 class C {}

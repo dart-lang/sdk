@@ -420,7 +420,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     node.staticInvokeType = staticInvokeType;
 
     List<ParameterElement> parameters =
-        _computeCorrespondingParameters(node.argumentList, staticInvokeType);
+        _computeCorrespondingParameters(node, staticInvokeType);
     if (parameters != null) {
       node.argumentList.correspondingStaticParameters = parameters;
     }
@@ -999,10 +999,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * arguments, or `null` if no correspondence could be computed.
    */
   List<ParameterElement> _computeCorrespondingParameters(
-      ArgumentList argumentList, DartType type) {
+      FunctionExpressionInvocation invocation, DartType type) {
+    ArgumentList argumentList = invocation.argumentList;
     if (type is InterfaceType) {
-      MethodElement callMethod =
-          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
+      MethodElement callMethod = invocation.staticElement;
       if (callMethod != null) {
         return _resolveArgumentsToFunction(false, argumentList, callMethod);
       }
@@ -1083,16 +1083,17 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /**
    * Check for a generic method & apply type arguments if any were passed.
    */
-  DartType _instantiateGenericMethod(
-      DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
+  DartType _instantiateGenericMethod(DartType invokeType,
+      TypeArgumentList typeArguments, FunctionExpressionInvocation invocation) {
     DartType parameterizableType;
     List<TypeParameterElement> parameters;
     if (invokeType is FunctionType) {
       parameterizableType = invokeType;
       parameters = invokeType.typeFormals;
     } else if (invokeType is InterfaceType) {
-      MethodElement callMethod = invokeType.lookUpMethod(
-          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+      MethodElement callMethod =
+          _lookUpCallMethod(invokeType, invocation.function);
+      invocation.staticElement = callMethod;
       parameterizableType = callMethod?.type;
       parameters = (parameterizableType as FunctionType)?.typeFormals;
     }
@@ -1102,7 +1103,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (arguments != null && arguments.length != parameters.length) {
         _resolver.errorReporter.reportErrorForNode(
             StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD,
-            node,
+            invocation,
             [parameterizableType, parameters.length, arguments?.length ?? 0]);
         // Wrong number of type arguments. Ignore them.
         arguments = null;
@@ -1211,7 +1212,25 @@ class ElementResolver extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Look up the getter with the given [name] in the given [type]. Return
+   * Return the element representing the `call` method that is defined for the
+   * given [type]. If there are multiple `call` methods defined by extensions,
+   * use the given [node] to report the error.
+   */
+  MethodElement _lookUpCallMethod(InterfaceType type, Expression node) {
+    MethodElement callMethod = type.lookUpMethod(
+        FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+    if (callMethod == null) {
+      var extension = _extensionMemberResolver.findExtension(
+          type, FunctionElement.CALL_METHOD_NAME, node);
+      if (extension != null) {
+        callMethod = extension.getMethod(FunctionElement.CALL_METHOD_NAME);
+      }
+    }
+    return callMethod;
+  }
+
+  /**
+   * Look up the getter with the given [getterName] in the given [type]. Return
    * the element representing the getter that was found, or `null` if there is
    * no getter with the given name. The [target] is the target of the
    * invocation, or `null` if there is no target.
