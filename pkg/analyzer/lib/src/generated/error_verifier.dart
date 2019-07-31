@@ -6423,8 +6423,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     Queue<ClassElement> superclasses =
         Queue.of(classElement.mixins.map((i) => i.element))
-          ..addAll(classElement.superclassConstraints.map((i) => i.element))
-          ..add(classElement.supertype?.element);
+          ..addAll(classElement.superclassConstraints.map((i) => i.element));
+    if (classElement.supertype != null) {
+      superclasses.add(classElement.supertype.element);
+    }
     return superclasses.any(
         (parent) => parent.lookUpConcreteMethod(name, parent.library) != null);
   }
