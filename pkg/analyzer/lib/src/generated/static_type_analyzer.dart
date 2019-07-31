@@ -186,6 +186,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
               'element', listTypeParam, ParameterKind.POSITIONAL);
       parameters = new List.filled(elementTypes.length, syntheticParamElement);
     }
+    if (_strictInference && parameters.isEmpty && contextType == null) {
+      // We cannot infer the type of a collection literal with no elements, and
+      // no context type. If there are any elements, inference has not failed,
+      // as the types of those elements are considered resolved.
+      _resolver.errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL, node, ['List']);
+    }
     InterfaceType inferred = ts.inferGenericFunctionOrType<InterfaceType>(
         _typeProvider.listType, parameters, elementTypes, contextType,
         downwards: downwards,
@@ -636,7 +643,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     TypeArgumentList typeArguments = node.typeArguments;
 
-    // If we have explicit arguments, use them
+    // If we have explicit arguments, use them.
     if (typeArguments != null) {
       DartType staticType = _dynamicType;
       NodeList<TypeAnnotation> arguments = typeArguments.arguments;
@@ -972,6 +979,17 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       assert(literalType.element == _typeProvider.setType.element);
       (node as SetOrMapLiteralImpl).becomeSet();
+    }
+    if (_strictInference &&
+        node.elements.isEmpty &&
+        InferenceContext.getContext(node) == null) {
+      // We cannot infer the type of a collection literal with no elements, and
+      // no context type. If there are any elements, inference has not failed,
+      // as the types of those elements are considered resolved.
+      _resolver.errorReporter.reportErrorForNode(
+          HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+          node,
+          [node.isMap ? 'Map' : 'Set']);
     }
     // TODO(brianwilkerson) Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
