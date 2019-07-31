@@ -2,7 +2,7 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(core::Object a, core::bool b) → void
+static method test(core::Object* a, core::bool* b) → void
   ;
 static method main() → dynamic
   ;

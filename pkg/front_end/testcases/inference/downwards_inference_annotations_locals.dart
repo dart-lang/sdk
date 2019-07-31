@@ -10,10 +10,10 @@ class Foo {
 }
 
 void test() {
-  @Foo(/*@typeArgs=String*/ const [])
-  var /*@type=dynamic*/ x;
+  @Foo(/*@ typeArgs=String* */ const [])
+  var /*@ type=dynamic */ x;
 
-  @Foo(/*@typeArgs=String*/ const [])
+  @Foo(/*@ typeArgs=String* */ const [])
   void f() {}
 }
 

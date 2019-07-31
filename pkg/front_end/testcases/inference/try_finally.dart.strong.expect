@@ -2,13 +2,13 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method test(() → void f) → void {
+static method test(() →* void f) → void {
   try {
-    core::int x = 0;
+    core::int* x = 0;
     f.call();
   }
   finally {
-    core::int x = 0;
+    core::int* x = 0;
   }
 }
 static method main() → dynamic {}

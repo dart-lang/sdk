@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static final field dynamic f = (core::bool b) → dynamic => (core::int i) → dynamic => <dynamic, dynamic>{i: b};
-  synthetic constructor •() → self::C
+  static final field dynamic f = (core::bool* b) → dynamic => (core::int* i) → dynamic => <dynamic, dynamic>{i: b};
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }

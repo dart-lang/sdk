@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class UnusedClass extends core::Object {
-  constructor •() → self::UnusedClass
+  constructor •() → self::UnusedClass*
     : super core::Object::•() {
     core::print("Unused");
   }
 }
 abstract class UsedAsBaseClass extends core::Object {
-  synthetic constructor •() → self::UsedAsBaseClass
+  synthetic constructor •() → self::UsedAsBaseClass*
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -23,7 +23,7 @@ abstract class UsedAsBaseClass extends core::Object {
   }
 }
 class UsedAsInterface extends core::Object {
-  synthetic constructor •() → self::UsedAsInterface
+  synthetic constructor •() → self::UsedAsInterface*
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -31,7 +31,7 @@ class UsedAsInterface extends core::Object {
   }
 }
 class InstantiatedButMethodsUnused extends core::Object {
-  synthetic constructor •() → self::InstantiatedButMethodsUnused
+  synthetic constructor •() → self::InstantiatedButMethodsUnused*
     : super core::Object::•()
     ;
   method usedInSubclass() → void {
@@ -39,7 +39,7 @@ class InstantiatedButMethodsUnused extends core::Object {
   }
 }
 class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  synthetic constructor •() → self::ClassA
+  synthetic constructor •() → self::ClassA*
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {
@@ -47,7 +47,7 @@ class ClassA extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
   }
 }
 class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, self::InstantiatedButMethodsUnused {
-  synthetic constructor •() → self::ClassB
+  synthetic constructor •() → self::ClassB*
     : super self::UsedAsBaseClass::•()
     ;
   method usedInSubclass() → void {
@@ -56,16 +56,16 @@ class ClassB extends self::UsedAsBaseClass implements self::UsedAsInterface, sel
   }
   method calledFromSubclass() → void {}
 }
-static method baseClassCall(self::UsedAsBaseClass object) → void {
+static method baseClassCall(self::UsedAsBaseClass* object) → void {
   object.{self::UsedAsBaseClass::usedInSubclass}();
 }
-static method interfaceCall(self::UsedAsInterface object) → void {
+static method interfaceCall(self::UsedAsInterface* object) → void {
   object.{self::UsedAsInterface::usedInSubclass}();
 }
-static method exactCallA(self::ClassA object) → void {
+static method exactCallA(self::ClassA* object) → void {
   object.{self::ClassA::usedInSubclass}();
 }
-static method exactCallB(self::ClassB object) → void {
+static method exactCallB(self::ClassB* object) → void {
   object.{self::ClassB::usedInSubclass}();
 }
 static method unusedTopLevel() → dynamic {
@@ -74,11 +74,11 @@ static method unusedTopLevel() → dynamic {
 static method usedTopLevel() → dynamic {}
 static method main() → dynamic {
   self::usedTopLevel();
-  self::ClassA a = new self::ClassA::•();
+  self::ClassA* a = new self::ClassA::•();
   self::exactCallA(a);
   self::baseClassCall(a);
   self::interfaceCall(a);
-  self::ClassB b = new self::ClassB::•();
+  self::ClassB* b = new self::ClassB::•();
   self::exactCallB(b);
   self::baseClassCall(b);
   self::interfaceCall(b);

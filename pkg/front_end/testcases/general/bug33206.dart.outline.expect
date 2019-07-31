@@ -8,24 +8,24 @@ import "dart:async";
 class X extends core::Object {
   final field dynamic x;
   final field dynamic y;
-  constructor •(dynamic x, dynamic y) → self::X
+  constructor •(dynamic x, dynamic y) → self::X*
     ;
-  method toString() → core::String
+  method toString() → core::String*
     ;
 }
 class Y extends core::Object {
-  synthetic constructor •() → self::Y
+  synthetic constructor •() → self::Y*
     ;
   method f(dynamic _) → dynamic
     ;
 }
-static method f1() → asy::Future<core::List<core::Object>>
+static method f1() → asy::Future<core::List<core::Object*>*>*
   ;
-static method f2() → core::List<core::Object>
+static method f2() → core::List<core::Object*>*
   ;
-static method f3() → asy::Future<core::Object>
+static method f3() → asy::Future<core::Object*>*
   ;
-static method foo() → asy::Future<self::X>
+static method foo() → asy::Future<self::X*>*
   ;
-static method main() → asy::Future<void>
+static method main() → asy::Future<void>*
   ;

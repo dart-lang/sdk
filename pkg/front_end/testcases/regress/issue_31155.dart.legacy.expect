@@ -28,19 +28,19 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  field dynamic f = core::Map<dynamic, dynamic>.<(self::A);
+  field dynamic f = core::Map<dynamic, dynamic>*.<(self::A*);
   field dynamic B = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   operator >() → dynamic {}

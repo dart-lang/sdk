@@ -8,12 +8,12 @@ import "org-dartlang-testcase:///infer_statics_transitively.dart";
 import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
 
 class A extends core::Object {
-  static final field core::int a2 = inf::b1;
-  synthetic constructor •() → self::A
+  static final field core::int* a2 = inf::b1;
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
-static final field core::int a1 = test::m2;
+static final field core::int* a1 = test::m2;
 static method main() → dynamic {}
 
 library test;
@@ -23,10 +23,10 @@ import "infer_statics_transitively_a.dart" as self;
 
 import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
 
-static final field core::int m1 = self::a1;
-static final field core::int m2 = self::A::a2;
+static final field core::int* m1 = self::a1;
+static final field core::int* m2 = self::A::a2;
 static method foo() → dynamic {
-  core::int i;
+  core::int* i;
   i = test::m1;
 }
 static method main() → dynamic {}
@@ -35,7 +35,7 @@ library;
 import self as inf;
 import "dart:core" as core;
 
-static final field core::int b1 = 2;
+static final field core::int* b1 = 2;
 static method main() → dynamic {
   inf::b1;
 }

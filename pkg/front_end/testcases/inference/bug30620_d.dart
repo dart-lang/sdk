@@ -6,7 +6,7 @@
 library test;
 
 String foo(obj) => obj is String
-    ? /*@promotedType=String*/ obj
+    ? /*@ promotedType=String* */ obj
         . /*@target=String::toUpperCase*/ toUpperCase()
     : null;
 

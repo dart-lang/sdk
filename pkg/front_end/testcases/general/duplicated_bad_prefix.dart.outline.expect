@@ -24,17 +24,17 @@ import "org-dartlang-testcase:///duplicated_bad_prefix_lib1.dart" as dupe;
 import "org-dartlang-testcase:///duplicated_bad_prefix_lib2.dart" as dupe;
 
 class Dupe#1 extends core::Object {
-  synthetic constructor •() → self::Dupe#1
+  synthetic constructor •() → self::Dupe#1*
     ;
 }
 class Dupe extends core::Object {
-  synthetic constructor •() → self::Dupe
+  synthetic constructor •() → self::Dupe*
     ;
 }
 class C extends core::Object {
   field invalid-type b;
   field invalid-type d;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
 }
 static method main() → dynamic
@@ -45,7 +45,7 @@ import self as self2;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self2::C
+  synthetic constructor •() → self2::C*
     ;
 }
 
@@ -54,6 +54,6 @@ import self as self3;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self3::C
+  synthetic constructor •() → self3::C*
     ;
 }

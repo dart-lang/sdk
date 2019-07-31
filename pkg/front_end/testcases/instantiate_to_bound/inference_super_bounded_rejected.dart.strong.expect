@@ -14,10 +14,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class B<T extends core::Comparable<self::B::T> = core::Comparable<dynamic>> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T>
+class B<T extends core::Comparable<self::B::T>* = core::Comparable<dynamic>*> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
 }
-static field self::B<core::Comparable<dynamic>> y = new self::B::•<core::Comparable<dynamic>>();
+static field self::B<core::Comparable<dynamic>*>* y = new self::B::•<core::Comparable<dynamic>*>();
 static method main() → dynamic {}

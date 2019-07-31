@@ -6,11 +6,11 @@ import "dart:async" as asy;
 import "dart:async";
 
 class Node extends core::Object {
-  final field core::List<self::Node> nested;
-  final field core::String name;
-  constructor •(core::String name, [core::List<self::Node> nested = #C1]) → self::Node
+  final field core::List<self::Node*>* nested;
+  final field core::String* name;
+  constructor •(core::String* name, [core::List<self::Node*>* nested = #C1]) → self::Node*
     : self::Node::name = name, self::Node::nested = nested, super core::Object::•() {}
-  method toString() → core::String
+  method toString() → core::String*
     return "<${this.{self::Node::name}}:[${let final dynamic #t1 = this.{self::Node::nested} in #t1.==(null) ? null : #t1.join(", ")}]>";
   method toSimpleString() → dynamic {
     dynamic tmp = let final dynamic #t2 = this.{self::Node::nested} in #t2.==(null) ? null : #t2.map((dynamic child) → dynamic => child.toSimpleString());
@@ -18,9 +18,9 @@ class Node extends core::Object {
   }
 }
 static method main() → void async {
-  core::String expected = "1 2 3 4 5 6 7 8 9 10";
-  self::Node node = new self::Node::•("1", <dynamic>[new self::Node::•("2", <dynamic>[]), await asy::Future::value<dynamic>(new self::Node::•("3", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("4", <dynamic>[new self::Node::•("5", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("6", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("7", <dynamic>[]))])), await asy::Future::value<dynamic>(new self::Node::•("8", <dynamic>[])), await asy::Future::value<dynamic>(new self::Node::•("9", <dynamic>[]))])]))])), await asy::Future::value<dynamic>(new self::Node::•("10", <dynamic>[]))]);
-  core::String actual = node.toSimpleString();
+  core::String* expected = "1 2 3 4 5 6 7 8 9 10";
+  self::Node* node = new self::Node::•("1", <dynamic>[new self::Node::•("2", <dynamic>[]), await asy::Future::value<dynamic>(new self::Node::•("3", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("4", <dynamic>[new self::Node::•("5", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("6", <dynamic>[await asy::Future::value<dynamic>(new self::Node::•("7", <dynamic>[]))])), await asy::Future::value<dynamic>(new self::Node::•("8", <dynamic>[])), await asy::Future::value<dynamic>(new self::Node::•("9", <dynamic>[]))])]))])), await asy::Future::value<dynamic>(new self::Node::•("10", <dynamic>[]))]);
+  core::String* actual = node.toSimpleString();
   core::print(actual);
   if(!actual.==(expected)) {
     throw "Expected '${expected}' but got '${actual}'";

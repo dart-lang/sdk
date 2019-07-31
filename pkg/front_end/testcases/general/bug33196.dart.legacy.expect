@@ -9,6 +9,6 @@ static method main() → dynamic {
   dynamic result = self::returnsString();
   core::print(result.runtimeType);
 }
-static method returnsString() → asy::FutureOr<core::String> async {
+static method returnsString() → asy::FutureOr<core::String*>* async {
   return "oh no";
 }

@@ -23,15 +23,15 @@ abstract class C {
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
     /*@target=C::assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertBOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertCOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     /*@target=C::assertDOf*/ assertDOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertEOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   }
 }
 
@@ -41,13 +41,13 @@ abstract class G<T> {
 
   method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
     /*@target=G::assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     this. /*@target=G::assertAOf*/ assertAOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     this. /*@target=G::assertDOf*/ assertDOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
     assertEOf(
-        /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+        /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   }
 }
 
@@ -57,27 +57,27 @@ AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf => null;
 test() {
   AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
   assertAOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   assertBOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   assertCOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   C.assertBOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   C.assertCOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 
   C c;
   c. /*@target=C::assertAOf*/ assertAOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   c. /*@target=C::assertDOf*/ assertDOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 
   G<int> g;
   g. /*@target=G::assertAOf*/ assertAOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
   g. /*@target=G::assertDOf*/ assertDOf(
-      /*@typeArgs=(DartType) -> void*/ [_isInt, _isString]);
+      /*@ typeArgs=(DartType*) ->* void */ [_isInt, _isString]);
 }
 
 main() {}

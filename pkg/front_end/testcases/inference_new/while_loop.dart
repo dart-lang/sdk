@@ -8,8 +8,8 @@ library test;
 T f<T>() => null;
 
 void test() {
-  while (/*@typeArgs=bool*/ f()) {
-    var /*@type=int*/ x = 0;
+  while (/*@ typeArgs=bool* */ f()) {
+    var /*@ type=int* */ x = 0;
   }
 }
 

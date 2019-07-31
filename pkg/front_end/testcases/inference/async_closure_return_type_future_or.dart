@@ -8,8 +8,8 @@ library test;
 import 'dart:async';
 
 FutureOr<int> futureOrInt = null;
-var f = /*@returnType=FutureOr<int>*/ () => futureOrInt;
-var g = /*@returnType=Future<int>*/ () async => futureOrInt;
+var f = /*@ returnType=FutureOr<int*>* */ () => futureOrInt;
+var g = /*@ returnType=Future<int*>* */ () async => futureOrInt;
 
 main() {
   f;

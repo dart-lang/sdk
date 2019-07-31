@@ -6,6 +6,6 @@
 library test;
 
 main() {
-  var /*@type=int*/ a = 0;
-  var /*@type=int*/ b = a;
+  var /*@ type=int* */ a = 0;
+  var /*@ type=int* */ b = a;
 }

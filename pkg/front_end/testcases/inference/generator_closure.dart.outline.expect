@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method foo(() → asy::Stream<core::int> values) → void
+static method foo(() →* asy::Stream<core::int*>* values) → void
   ;
 static method main() → void
   ;

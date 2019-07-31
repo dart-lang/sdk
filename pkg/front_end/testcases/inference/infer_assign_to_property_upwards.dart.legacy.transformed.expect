@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class Test1 extends core::Object {
-  field core::int prop = null;
-  synthetic constructor •() → self::Test1
+  field core::int* prop = null;
+  synthetic constructor •() → self::Test1*
     : super core::Object::•()
     ;
-  static method test(self::Test1 t) → void {
+  static method test(self::Test1* t) → void {
     dynamic v1 = t.prop = self::getInt();
     dynamic v4 = let final dynamic #t1 = t in let final dynamic #t2 = #t1.prop in #t2.==(null) ? #t1.prop = self::getInt() : #t2;
     dynamic v7 = let final dynamic #t3 = t in #t3.prop = #t3.prop.+(self::getInt());
@@ -16,11 +16,11 @@ class Test1 extends core::Object {
   }
 }
 class Test2 extends core::Object {
-  field core::num prop = null;
-  synthetic constructor •() → self::Test2
+  field core::num* prop = null;
+  synthetic constructor •() → self::Test2*
     : super core::Object::•()
     ;
-  static method test(self::Test2 t) → void {
+  static method test(self::Test2* t) → void {
     dynamic v1 = t.prop = self::getInt();
     dynamic v2 = t.prop = self::getNum();
     dynamic v3 = t.prop = self::getDouble();
@@ -35,11 +35,11 @@ class Test2 extends core::Object {
   }
 }
 class Test3 extends core::Object {
-  field core::double prop = null;
-  synthetic constructor •() → self::Test3
+  field core::double* prop = null;
+  synthetic constructor •() → self::Test3*
     : super core::Object::•()
     ;
-  static method test3(self::Test3 t) → void {
+  static method test3(self::Test3* t) → void {
     dynamic v3 = t.prop = self::getDouble();
     dynamic v6 = let final dynamic #t21 = t in let final dynamic #t22 = #t21.prop in #t22.==(null) ? #t21.prop = self::getDouble() : #t22;
     dynamic v7 = let final dynamic #t23 = t in #t23.prop = #t23.prop.+(self::getInt());
@@ -49,10 +49,10 @@ class Test3 extends core::Object {
     dynamic v11 = let final dynamic #t27 = t in let final dynamic #t28 = #t27.prop in let final dynamic #t29 = #t27.prop = #t28.+(1) in #t28;
   }
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   return 0;
-static method getNum() → core::num
+static method getNum() → core::num*
   return 0;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   return 0.0;
 static method main() → dynamic {}

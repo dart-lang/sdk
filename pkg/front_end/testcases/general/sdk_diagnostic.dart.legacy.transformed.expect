@@ -26,19 +26,19 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C extends core::Iterable<core::Object> {
-  synthetic constructor •() → self::C
+class C extends core::Iterable<core::Object*> {
+  synthetic constructor •() → self::C*
     : super core::Iterable::•()
     ;
 }
 static method test() → dynamic {
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(<core::Symbol, dynamic>{#C4: "fisk"})));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: "fisk"})));
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = #print
-  #C2 = <core::Type>[]
+  #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
   #C4 = #incorrectArgument
 }

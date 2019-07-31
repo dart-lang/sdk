@@ -6,10 +6,10 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class ImplicitScopeTest extends core::Object {
-  synthetic constructor •() → self::ImplicitScopeTest
+  synthetic constructor •() → self::ImplicitScopeTest*
     : super core::Object::•()
     ;
-  static method alwaysTrue() → core::bool {
+  static method alwaysTrue() → core::bool* {
     return 1.+(1).==(2);
   }
   static method testMain() → dynamic {
@@ -29,7 +29,7 @@ class ImplicitScopeTest extends core::Object {
     }
     exp::Expect::equals("foo", a);
     exp::Expect::equals(null, b);
-    for (core::int i = 0; i.<(10); i = i.+(1)) {
+    for (core::int* i = 0; i.<(10); i = i.+(1)) {
       dynamic a = "bar";
       dynamic b = "baz";
     }

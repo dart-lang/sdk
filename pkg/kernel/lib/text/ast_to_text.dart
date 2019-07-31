@@ -817,7 +817,10 @@ class Printer extends Visitor<Null> {
       writeSymbol('}');
     }
     writeSymbol(')');
-    writeSpaced('→');
+    ensureSpace();
+    write('→');
+    writeNullability(node.nullability);
+    writeSpace();
     writeType(node.returnType);
   }
 
@@ -1946,6 +1949,22 @@ class Printer extends Visitor<Null> {
     endLine(': ${node.runtimeType}');
   }
 
+  writeNullability(Nullability nullability) {
+    switch (nullability) {
+      case Nullability.legacy:
+        writeSymbol('*');
+        state = WORD; // Disallow a word immediately after the '*'.
+        break;
+      case Nullability.nullable:
+        writeSymbol('?'); // Disallow a word immediately after the '?'.
+        break;
+      case Nullability.neither:
+      case Nullability.nonNullable:
+        // Do nothing.
+        break;
+    }
+  }
+
   visitInvalidType(InvalidType node) {
     writeWord('invalid-type');
   }
@@ -1966,6 +1985,7 @@ class Printer extends Visitor<Null> {
       writeSymbol('>');
       state = WORD; // Disallow a word immediately after the '>'.
     }
+    writeNullability(node.nullability);
   }
 
   visitFunctionType(FunctionType node) {
@@ -1981,6 +2001,7 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameterType(TypeParameterType node) {
     writeTypeParameterReference(node.parameter);
+    writeNullability(node.nullability);
     if (node.promotedBound != null) {
       writeSpace();
       writeWord('extends');

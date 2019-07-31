@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
-class B<T extends self::A = self::A> extends core::Object {
-  synthetic constructor •() → self::B<self::B::T>
+class B<T extends self::A* = self::A*> extends core::Object {
+  synthetic constructor •() → self::B<self::B::T*>*
     : super core::Object::•()
     ;
 }
-static field self::B<self::A> v = null;
+static field self::B<self::A*>* v = null;
 static method main() → dynamic {
   self::v;
 }

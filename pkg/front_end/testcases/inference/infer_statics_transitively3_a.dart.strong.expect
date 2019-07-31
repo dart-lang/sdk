@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class A extends core::Object {
   static const field dynamic a3 = #C1;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
-static const field core::int a1 = #C2;
-static const field core::int a2 = #C3;
+static const field core::int* a1 = #C2;
+static const field core::int* a2 = #C3;
 static method main() → dynamic {}
 
 constants  {

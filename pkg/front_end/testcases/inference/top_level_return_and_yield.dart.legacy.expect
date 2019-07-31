@@ -5,23 +5,23 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-typedef IntToInt = (core::int) → core::int;
-static method a() → (core::int) → core::int {
+typedef IntToInt = (core::int*) →* core::int*;
+static method a() → (core::int*) →* core::int* {
   return (dynamic x) → dynamic => x;
 }
-static method b() → asy::Future<(core::int) → core::int> async {
+static method b() → asy::Future<(core::int*) →* core::int*>* async {
   return (dynamic x) → dynamic => x;
 }
-static method c() → core::Iterable<(core::int) → core::int> sync* {
+static method c() → core::Iterable<(core::int*) →* core::int*>* sync* {
   yield(dynamic x) → dynamic => x;
 }
-static method d() → core::Iterable<(core::int) → core::int> sync* {
+static method d() → core::Iterable<(core::int*) →* core::int*>* sync* {
   yield*<dynamic>[(dynamic x) → dynamic => x];
 }
-static method e() → asy::Stream<(core::int) → core::int> async* {
+static method e() → asy::Stream<(core::int*) →* core::int*>* async* {
   yield(dynamic x) → dynamic => x;
 }
-static method f() → asy::Stream<(core::int) → core::int> async* {
+static method f() → asy::Stream<(core::int*) →* core::int*>* async* {
   yield* asy::Stream::fromIterable<dynamic>(<dynamic>[(dynamic x) → dynamic => x]);
 }
 static method main() → dynamic {}

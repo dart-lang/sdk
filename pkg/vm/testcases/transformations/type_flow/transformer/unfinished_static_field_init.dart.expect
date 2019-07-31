@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
@@ -13,7 +13,7 @@ static method good() → dynamic
   return new self::A::•();
 static method bad() → dynamic
   return throw "No return!";
-static method main(core::List<core::String> args) → dynamic {
+static method main(core::List<core::String*>* args) → dynamic {
   core::print([@vm.inferred-type.metadata=#lib::A?] self::static_field_good);
   core::print([@vm.inferred-type.metadata=dart.core::Null?] self::static_field_bad);
 }

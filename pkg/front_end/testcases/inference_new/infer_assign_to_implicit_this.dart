@@ -22,20 +22,20 @@ class Test {
   B member;
 
   void test() {
-    /*@target=Test::member*/ member = /*@typeArgs=B*/ f();
-    /*@target=Test::member*/ member ??= /*@typeArgs=B*/ f();
-    /*@target=Test::member*/ member += /*@typeArgs=dynamic*/ f();
-    /*@target=Test::member*/ member *= /*@typeArgs=dynamic*/ f();
-    /*@target=Test::member*/ member &= /*@typeArgs=dynamic*/ f();
+    /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+    /*@target=Test::member*/ member ??= /*@ typeArgs=B* */ f();
+    /*@target=Test::member*/ member += /*@ typeArgs=dynamic */ f();
+    /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
+    /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
     -- /*@target=Test::member*/ member;
     /*@target=Test::member*/ member--;
-    var /*@type=B*/ v1 = /*@target=Test::member*/ member = /*@typeArgs=B*/ f();
-    var /*@type=B*/ v2 = /*@target=Test::member*/ member ??= /*@typeArgs=B*/ f();
-    var /*@type=A*/ v3 = /*@target=Test::member*/ member += /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v4 = /*@target=Test::member*/ member *= /*@typeArgs=dynamic*/ f();
-    var /*@type=C*/ v5 = /*@target=Test::member*/ member &= /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v6 = -- /*@target=Test::member*/ member;
-    var /*@type=B*/ v7 = /*@target=Test::member*/ member--;
+    var /*@ type=B* */ v1 = /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 = /*@target=Test::member*/ member ??= /*@ typeArgs=B* */ f();
+    var /*@ type=A* */ v3 = /*@target=Test::member*/ member += /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v4 = /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
+    var /*@ type=C* */ v5 = /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v6 = -- /*@target=Test::member*/ member;
+    var /*@ type=B* */ v7 = /*@target=Test::member*/ member--;
   }
 }
 

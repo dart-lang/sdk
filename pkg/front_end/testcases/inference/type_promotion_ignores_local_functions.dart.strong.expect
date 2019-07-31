@@ -2,11 +2,11 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef FunctionReturningInt = () → core::int;
+typedef FunctionReturningInt = () →* core::int*;
 static method main() → dynamic {
-  function f() → core::num
+  function f() → core::num*
     return 0;
-  if(f is () → core::int) {
+  if(f is () →* core::int*) {
     f;
   }
 }

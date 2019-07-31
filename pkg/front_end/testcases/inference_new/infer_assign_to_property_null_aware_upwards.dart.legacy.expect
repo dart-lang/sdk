@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 class Test1 extends core::Object {
-  field core::int prop = null;
-  synthetic constructor •() → self::Test1
+  field core::int* prop = null;
+  synthetic constructor •() → self::Test1*
     : super core::Object::•()
     ;
-  static method test(self::Test1 t) → void {
+  static method test(self::Test1* t) → void {
     dynamic v1 = let final dynamic #t1 = t in #t1.==(null) ? null : #t1.prop = self::getInt();
     dynamic v2 = let final dynamic #t2 = t in #t2.==(null) ? null : #t2.prop = self::getNum();
     dynamic v4 = let final dynamic #t3 = t in #t3.==(null) ? null : let final dynamic #t4 = #t3.prop in #t4.==(null) ? #t3.prop = self::getInt() : #t4;
@@ -19,11 +19,11 @@ class Test1 extends core::Object {
   }
 }
 class Test2 extends core::Object {
-  field core::num prop = null;
-  synthetic constructor •() → self::Test2
+  field core::num* prop = null;
+  synthetic constructor •() → self::Test2*
     : super core::Object::•()
     ;
-  static method test(self::Test2 t) → void {
+  static method test(self::Test2* t) → void {
     dynamic v1 = let final dynamic #t13 = t in #t13.==(null) ? null : #t13.prop = self::getInt();
     dynamic v2 = let final dynamic #t14 = t in #t14.==(null) ? null : #t14.prop = self::getNum();
     dynamic v3 = let final dynamic #t15 = t in #t15.==(null) ? null : #t15.prop = self::getDouble();
@@ -38,11 +38,11 @@ class Test2 extends core::Object {
   }
 }
 class Test3 extends core::Object {
-  field core::double prop = null;
-  synthetic constructor •() → self::Test3
+  field core::double* prop = null;
+  synthetic constructor •() → self::Test3*
     : super core::Object::•()
     ;
-  static method test3(self::Test3 t) → void {
+  static method test3(self::Test3* t) → void {
     dynamic v2 = let final dynamic #t29 = t in #t29.==(null) ? null : #t29.prop = self::getNum();
     dynamic v3 = let final dynamic #t30 = t in #t30.==(null) ? null : #t30.prop = self::getDouble();
     dynamic v5 = let final dynamic #t31 = t in #t31.==(null) ? null : let final dynamic #t32 = #t31.prop in #t32.==(null) ? #t31.prop = self::getNum() : #t32;
@@ -54,10 +54,10 @@ class Test3 extends core::Object {
     dynamic v11 = let final dynamic #t39 = t in #t39.==(null) ? null : let final dynamic #t40 = #t39.prop in let final dynamic #t41 = #t39.prop = #t40.+(1) in #t40;
   }
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   return 0;
-static method getNum() → core::num
+static method getNum() → core::num*
   return 0;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   return 0.0;
 static method main() → dynamic {}

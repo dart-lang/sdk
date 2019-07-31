@@ -6,12 +6,12 @@ import "dart:core" as core;
 import "dart:async";
 
 static method test() → dynamic {
-  asy::Future<core::int> base;
+  asy::Future<core::int*>* base;
   dynamic f = base.then((dynamic x) → dynamic {
     return x.==(0);
   });
   dynamic g = base.then((dynamic x) → dynamic => x.==(0));
-  asy::Future<core::bool> b = f;
+  asy::Future<core::bool*>* b = f;
   b = g;
 }
 static method main() → dynamic {}

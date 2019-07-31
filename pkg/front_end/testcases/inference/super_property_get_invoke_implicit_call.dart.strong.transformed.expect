@@ -3,24 +3,24 @@ import self as self;
 import "dart:core" as core;
 
 class CallableClass extends core::Object {
-  synthetic constructor •() → self::CallableClass
+  synthetic constructor •() → self::CallableClass*
     : super core::Object::•()
     ;
-  method call() → core::int
+  method call() → core::int*
     return 0;
 }
 class C extends core::Object {
-  field self::CallableClass f = new self::CallableClass::•();
-  synthetic constructor •() → self::C
+  field self::CallableClass* f = new self::CallableClass::•();
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
 class D extends self::C {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   method g() → void {
-    core::int y = super.{self::C::f}.{self::CallableClass::call}();
+    core::int* y = super.{self::C::f}.{self::CallableClass::call}();
   }
 }
 static method main() → dynamic {}

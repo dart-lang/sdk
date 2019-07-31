@@ -7,5 +7,5 @@ import "dart:async";
 
 static method main() → dynamic
   ;
-static method returnsString() → asy::FutureOr<core::String>
+static method returnsString() → asy::FutureOr<core::String*>*
   ;

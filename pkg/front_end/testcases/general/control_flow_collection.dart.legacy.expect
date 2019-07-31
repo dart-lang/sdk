@@ -102,9 +102,9 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  final dynamic aList = <core::int>[1];
-  final dynamic aSet = <core::int>{1};
-  final dynamic aMap = <core::int, core::int>{1: 1};
+  final dynamic aList = <core::int*>[1];
+  final dynamic aSet = <core::int*>{1};
+  final dynamic aMap = <core::int*, core::int*>{1: 1};
   core::print(aList);
   core::print(aSet);
   core::print(aMap);

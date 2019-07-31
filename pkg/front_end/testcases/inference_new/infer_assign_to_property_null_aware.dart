@@ -22,25 +22,25 @@ class Test {
   B member;
 
   static void test(Test t) {
-    t?. /*@target=Test::member*/ member = /*@typeArgs=B*/ f();
-    t?. /*@target=Test::member*/ member ??= /*@typeArgs=B*/ f();
-    t?. /*@target=Test::member*/ member += /*@typeArgs=dynamic*/ f();
-    t?. /*@target=Test::member*/ member *= /*@typeArgs=dynamic*/ f();
-    t?. /*@target=Test::member*/ member &= /*@typeArgs=dynamic*/ f();
+    t?. /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+    t?. /*@target=Test::member*/ member ??= /*@ typeArgs=B* */ f();
+    t?. /*@target=Test::member*/ member += /*@ typeArgs=dynamic */ f();
+    t?. /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
+    t?. /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
     --t?. /*@target=Test::member*/ member;
     t?. /*@target=Test::member*/ member--;
-    var /*@type=B*/ v1 =
-        t?. /*@target=Test::member*/ member = /*@typeArgs=B*/ f();
-    var /*@type=B*/ v2 =
-        t?. /*@target=Test::member*/ member ??= /*@typeArgs=B*/ f();
-    var /*@type=A*/ v3 =
-        t?. /*@target=Test::member*/ member += /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v4 =
-        t?. /*@target=Test::member*/ member *= /*@typeArgs=dynamic*/ f();
-    var /*@type=C*/ v5 =
-        t?. /*@target=Test::member*/ member &= /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v6 = --t?. /*@target=Test::member*/ member;
-    var /*@type=B*/ v7 = t?. /*@target=Test::member*/ member--;
+    var /*@ type=B* */ v1 =
+        t?. /*@target=Test::member*/ member = /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 =
+        t?. /*@target=Test::member*/ member ??= /*@ typeArgs=B* */ f();
+    var /*@ type=A* */ v3 =
+        t?. /*@target=Test::member*/ member += /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v4 =
+        t?. /*@target=Test::member*/ member *= /*@ typeArgs=dynamic */ f();
+    var /*@ type=C* */ v5 =
+        t?. /*@target=Test::member*/ member &= /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v6 = --t?. /*@target=Test::member*/ member;
+    var /*@ type=B* */ v7 = t?. /*@target=Test::member*/ member--;
   }
 }
 

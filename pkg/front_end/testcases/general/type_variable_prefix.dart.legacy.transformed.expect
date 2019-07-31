@@ -11,14 +11,14 @@ import "dart:core" as core;
 
 import "dart:core" as T;
 
-class C<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
   method method() → invalid-type
     return "Hello, World!";
 }
 static method main() → dynamic {
-  core::String s = new self::C::•<dynamic>().method();
+  core::String* s = new self::C::•<dynamic>().method();
   core::print(s);
 }

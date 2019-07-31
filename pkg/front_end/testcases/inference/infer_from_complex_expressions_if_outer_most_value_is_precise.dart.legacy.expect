@@ -14,21 +14,21 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::int x = null;
-  synthetic constructor •() → self::A
+  field core::int* x = null;
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  operator +(dynamic other) → self::B
+  operator +(dynamic other) → self::B*
     return null;
 }
 class B extends self::A {
-  constructor •(dynamic ignore) → self::B
+  constructor •(dynamic ignore) → self::B*
     : super self::A::•()
     ;
 }
 static field dynamic a = new self::A::•();
-static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4))));
-static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)))];
+static field dynamic b = new self::B::•(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))));
+static field dynamic c1 = <dynamic>[throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 33, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)))];
 static field dynamic c2 = #C3;
 static field dynamic d = <dynamic, dynamic>{"a": "b"};
 static field dynamic e = let final dynamic #t1 = new self::A::•() in let final dynamic #t2 = #t1.x = 3 in #t1;
@@ -36,7 +36,7 @@ static field dynamic f = 2.+(3);
 static field dynamic g = 3.unary-();
 static field dynamic h = new self::A::•().+(3);
 static field dynamic i = new self::A::•().unary-();
-static field dynamic j = null as self::B;
+static field dynamic j = null as self::B*;
 static method test1() → dynamic {
   self::a = "hi";
   self::a = new self::B::•(3);
@@ -65,7 +65,7 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = #x
-  #C2 = <core::Type>[]
+  #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
 }

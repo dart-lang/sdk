@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () → core::int;
+typedef F = () →* core::int*;
 static method main() → dynamic {
-  dynamic v = <() → core::int>[() → dynamic {
+  dynamic v = <() →* core::int*>[() → dynamic {
     return 1;
   }];
 }

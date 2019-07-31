@@ -7,9 +7,9 @@ library test;
 
 class C {
   static var x = 'x';
-  var y = /*@typeArgs=String, Map<String, String>*/ {
-    'a': /*@typeArgs=String, String*/ {'b': 'c'},
-    'd': /*@typeArgs=String, String*/ {'e': x}
+  var y = /*@ typeArgs=String*, Map<String*, String*>* */ {
+    'a': /*@ typeArgs=String*, String* */ {'b': 'c'},
+    'd': /*@ typeArgs=String*, String* */ {'e': x}
   };
 }
 

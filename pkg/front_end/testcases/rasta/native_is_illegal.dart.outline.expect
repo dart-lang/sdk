@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class Bar extends core::Object {
-  external get x() → self::Bar;
-  external set x(self::Bar value) → void;
+  external get x() → self::Bar*;
+  external set x(self::Bar* value) → void;
   external method f() → dynamic;
-  external static factory •() → self::Bar;
+  external static factory •() → self::Bar*;
 }
 external static method foo() → dynamic;

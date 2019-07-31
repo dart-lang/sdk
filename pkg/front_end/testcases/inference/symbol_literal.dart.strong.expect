@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → void {
-  core::Symbol x = #C1;
+  core::Symbol* x = #C1;
 }
 static method main() → dynamic {}
 

@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "dart:async";
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
 }
 static method foo() → dynamic

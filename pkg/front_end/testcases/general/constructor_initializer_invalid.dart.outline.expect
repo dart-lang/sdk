@@ -20,18 +20,18 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  field core::int f;
-  constructor •() → self::C1
+  field core::int* f;
+  constructor •() → self::C1*
     ;
 }
 class C2 extends core::Object {
-  field core::int f;
-  constructor •() → self::C2
+  field core::int* f;
+  constructor •() → self::C2*
     ;
 }
 class C3 extends core::Object {
-  field core::int f;
-  constructor •() → self::C3
+  field core::int* f;
+  constructor •() → self::C3*
     ;
 }
 static method main() → dynamic

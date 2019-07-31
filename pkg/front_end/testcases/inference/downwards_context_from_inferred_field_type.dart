@@ -10,7 +10,7 @@ abstract class A {
 }
 
 class B implements A {
-  final foo = /*@typeArgs=String*/ const [];
+  final foo = /*@ typeArgs=String* */ const [];
 }
 
 void main() {}

@@ -31,7 +31,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field dynamic superField = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   method superMethod() → dynamic {}
@@ -44,7 +44,7 @@ class C extends core::Object {
 }
 class D extends self::C {
   field dynamic field = null;
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   set setterOnly(dynamic _) → void {}
@@ -82,7 +82,7 @@ class D extends self::C {
 }
 class E extends self::D {
   field dynamic missingField = null;
-  synthetic constructor •() → self::E
+  synthetic constructor •() → self::E*
     : super self::D::•()
     ;
   method missingMethod() → void {}

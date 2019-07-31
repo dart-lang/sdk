@@ -3,40 +3,40 @@ import self as self;
 import "dart:core" as core;
 
 class Index extends core::Object {
-  synthetic constructor •() → self::Index
+  synthetic constructor •() → self::Index*
     : super core::Object::•()
     ;
 }
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
-  operator +(self::C v) → self::A
+  operator +(self::C* v) → self::A*
     return null;
-  operator -(core::int i) → self::B
+  operator -(core::int* i) → self::B*
     return null;
-  operator *(self::B v) → self::B
+  operator *(self::B* v) → self::B*
     return null;
-  operator &(self::A v) → self::C
+  operator &(self::A* v) → self::C*
     return null;
 }
 class C extends self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super self::B::•()
     ;
 }
 class Test extends core::Object {
-  synthetic constructor •() → self::Test
+  synthetic constructor •() → self::Test*
     : super core::Object::•()
     ;
-  operator [](self::Index i) → self::B
+  operator [](self::Index* i) → self::B*
     return null;
-  operator []=(self::Index i, self::B v) → void {}
+  operator []=(self::Index* i, self::B* v) → void {}
   method test() → void {
     this.[]=(self::f<dynamic>(), self::f<dynamic>());
     let final dynamic #t1 = self::f<dynamic>() in this.[](#t1).==(null) ? let final dynamic #t2 = self::f<dynamic>() in let final dynamic #t3 = this.[]=(#t1, #t2) in #t2 : null;
@@ -53,6 +53,6 @@ class Test extends core::Object {
     dynamic v7 = let final dynamic #t27 = self::f<dynamic>() in let final dynamic #t28 = this.[](#t27) in let final dynamic #t29 = this.[]=(#t27, #t28.-(1)) in #t28;
   }
 }
-static method f<T extends core::Object = dynamic>() → self::f::T
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
 static method main() → dynamic {}

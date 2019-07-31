@@ -3,50 +3,50 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
   method instanceMethod() → dynamic
     ;
 }
 abstract class ExternalValue extends core::Object {
-  synthetic constructor •() → self::ExternalValue
+  synthetic constructor •() → self::ExternalValue*
     ;
 }
 abstract class Bar extends core::Object {
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     ;
-  abstract method externalInstanceMethod() → self::ExternalValue;
+  abstract method externalInstanceMethod() → self::ExternalValue*;
 }
 class Box extends core::Object {
   field dynamic field;
-  synthetic constructor •() → self::Box
+  synthetic constructor •() → self::Box*
     ;
 }
 class FinalBox extends core::Object {
   final field dynamic finalField;
-  constructor •(dynamic finalField) → self::FinalBox
+  constructor •(dynamic finalField) → self::FinalBox*
     ;
 }
 class SubFinalBox extends self::FinalBox {
-  constructor •(dynamic value) → self::SubFinalBox
+  constructor •(dynamic value) → self::SubFinalBox*
     ;
 }
 class DynamicReceiver1 extends core::Object {
-  synthetic constructor •() → self::DynamicReceiver1
+  synthetic constructor •() → self::DynamicReceiver1*
     ;
   method dynamicallyCalled(dynamic x) → dynamic
     ;
 }
 class DynamicReceiver2 extends core::Object {
-  synthetic constructor •() → self::DynamicReceiver2
+  synthetic constructor •() → self::DynamicReceiver2*
     ;
   method dynamicallyCalled(dynamic x) → dynamic
     ;
 }
 static method staticMethod() → dynamic
   ;
-external static abstract method externalStatic() → core::bool;
-external static abstract method createBar() → self::Bar;
+external static abstract method externalStatic() → core::bool*;
+external static abstract method createBar() → self::Bar*;
 static method stringArgument(dynamic x) → dynamic
   ;
 static method intArgument(dynamic x) → dynamic

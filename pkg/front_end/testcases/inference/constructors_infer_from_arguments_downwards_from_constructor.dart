@@ -10,11 +10,11 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(/*@typeArgs=int*/ [123]);
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C(/*@ typeArgs=int* */ [123]);
   C<int> y = x;
 
-  var /*@type=C<dynamic>*/ a = new C<dynamic>(/*@typeArgs=dynamic*/ [123]);
+  var /*@ type=C<dynamic>* */ a = new C<dynamic>(/*@ typeArgs=dynamic */ [123]);
 
   // This one however works.
-  var /*@type=C<Object>*/ b = new C<Object>(/*@typeArgs=Object*/ [123]);
+  var /*@ type=C<Object*>* */ b = new C<Object>(/*@ typeArgs=Object* */ [123]);
 }

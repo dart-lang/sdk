@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///infer_from_variables_in_non_cycle_imports_with_
 
 class B extends core::Object {
   static field dynamic y = inf::A::x;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
@@ -23,7 +23,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   static field dynamic x = 2;
-  synthetic constructor •() → inf::A
+  synthetic constructor •() → inf::A*
     : super core::Object::•()
     ;
 }

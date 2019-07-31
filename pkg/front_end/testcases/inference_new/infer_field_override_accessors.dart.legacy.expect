@@ -11,23 +11,23 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  abstract get x() → self::A;
-  abstract set x(self::B value) → void;
-  abstract get y() → self::B;
-  abstract set y(self::A value) → void;
+  abstract get x() → self::A*;
+  abstract set x(self::B* value) → void;
+  abstract get y() → self::B*;
+  abstract set y(self::A* value) → void;
 }
 abstract class B extends self::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
 }
 class C extends self::B {
-  field self::A x = null;
+  field self::A* x = null;
   field invalid-type y = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super self::B::•()
     ;
 }

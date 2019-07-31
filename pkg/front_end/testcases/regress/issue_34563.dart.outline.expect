@@ -22,7 +22,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class M1 extends core::Object {
-  get m() → core::int
+  get m() → core::int*
     ;
 }
 abstract class M2 extends core::Object {
@@ -30,17 +30,17 @@ abstract class M2 extends core::Object {
 abstract class M3 extends core::Object {
 }
 class C1 extends core::Object {
-  synthetic constructor •() → self::C1
+  synthetic constructor •() → self::C1*
     ;
-  get c() → core::int
+  get c() → core::int*
     ;
 }
 class C2 extends core::Object {
-  synthetic constructor •() → self::C2
+  synthetic constructor •() → self::C2*
     ;
 }
 class C3 extends core::Object {
-  synthetic constructor •() → self::C3
+  synthetic constructor •() → self::C3*
     ;
 }
 static method main() → dynamic

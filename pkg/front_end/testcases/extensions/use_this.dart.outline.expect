@@ -60,15 +60,15 @@ import self as self;
 import "dart:core" as core;
 
 class A1 extends core::Object {
-  synthetic constructor •() → self::A1
+  synthetic constructor •() → self::A1*
     ;
 }
-class B1<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::B1<self::B1::T>
+class B1<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::B1<self::B1::T*>*
     ;
 }
 static field invalid-type A2;
-static method B2<T extends core::Object = dynamic>() → invalid-type
+static method B2<T extends core::Object* = dynamic>() → invalid-type
   ;
 static method main() → dynamic
   ;

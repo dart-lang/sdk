@@ -11,11 +11,11 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  constructor •() → self::Foo
+  constructor •() → self::Foo*
     ;
 }
 class Bar extends self::Foo {
-  static factory •() → self::Bar
+  static factory •() → self::Bar*
     ;
 }
 static method main() → dynamic

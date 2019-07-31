@@ -2,9 +2,9 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () → void;
+typedef F = () →* void;
 class Foo extends core::Object {
-  const constructor •(core::List<core::String> l) → self::Foo
+  const constructor •(core::List<core::String*>* l) → self::Foo*
     ;
 }
 static method main() → dynamic

@@ -2,6 +2,6 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-typedef F = () → void;
-static final field core::Type x = () → void;
+typedef F = () →* void;
+static final field core::Type* x = () →* void;
 static method main() → dynamic {}

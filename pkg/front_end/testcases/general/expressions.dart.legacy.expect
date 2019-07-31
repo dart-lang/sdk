@@ -16,7 +16,7 @@ static method caller(dynamic f) → dynamic {
   f.call();
 }
 static method main() → dynamic {
-  core::int i = 0;
+  core::int* i = 0;
   core::print(i.==(1) ? "bad" : "good");
   core::print("${i}");
   core::print("'${i}'");
@@ -28,7 +28,7 @@ static method main() → dynamic {
   try {
     throw "fisk";
   }
-  on core::String catch(final core::String e, final core::StackTrace s) {
+  on core::String* catch(final core::String* e, final core::StackTrace* s) {
     core::print(e);
     if(!s.==(null))
       core::print(s);
@@ -49,7 +49,7 @@ static method main() → dynamic {
   core::print(let final dynamic #t3 = i in let final dynamic #t4 = i = #t3.+(1) in #t3);
   core::print(new core::Object::•());
   core::print(#C2);
-  core::print(core::List::•<core::String>(2).runtimeType);
+  core::print(core::List::•<core::String*>(2).runtimeType);
   self::foo(fisk: "Blorp gulp");
   function f() → dynamic {
     core::print("f was called");
@@ -72,14 +72,14 @@ static method main() → dynamic {
   self::caller(({dynamic x = #C1}) → dynamic {
     core::print("<anon> was called with ${x}");
   });
-  core::print(core::int.toString());
-  core::print(core::int);
-  core::print(let final dynamic #t5 = core::int in let final dynamic #t6 = #t5.toString() in #t5);
+  core::print(core::int*.toString());
+  core::print(core::int*);
+  core::print(let final dynamic #t5 = core::int* in let final dynamic #t6 = #t5.toString() in #t5);
   try {
-    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 32, #C4, #C5, core::Map::unmodifiable<core::Symbol, dynamic>(#C6))));
+    core::print(throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C3, 32, #C4, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))));
     throw "Shouldn't work";
   }
-  on core::NoSuchMethodError catch(final core::NoSuchMethodError e) {
+  on core::NoSuchMethodError* catch(final core::NoSuchMethodError* e) {
     core::print("As expected: ${e}");
   }
   core::print(core::int::parse("42"));
@@ -89,7 +89,7 @@ constants  {
   #C1 = null
   #C2 = core::Object {}
   #C3 = #int.toString
-  #C4 = <core::Type>[]
+  #C4 = <core::Type*>[]
   #C5 = <dynamic>[]
-  #C6 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C5}
+  #C6 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C5}
 }

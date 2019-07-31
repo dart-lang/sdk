@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
-  operator +(core::String s) → dynamic
+  operator +(core::String* s) → dynamic
     ;
   operator [](dynamic i) → dynamic
     ;
@@ -13,9 +13,9 @@ class A extends core::Object {
     ;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
-  operator +(core::String s) → dynamic
+  operator +(core::String* s) → dynamic
     ;
   operator [](dynamic i) → dynamic
     ;
@@ -23,7 +23,7 @@ class B extends self::A {
     ;
 }
 class Autobianchi extends core::Object {
-  synthetic constructor •() → self::Autobianchi
+  synthetic constructor •() → self::Autobianchi*
     ;
   method g() → dynamic
     ;

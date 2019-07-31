@@ -6,10 +6,10 @@ import "issue_34291_lib.dart" as iss;
 import "org-dartlang-testcase:///issue_34291_lib.dart" as lib;
 
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
 }
-static method foo() → iss::A
+static method foo() → iss::A*
   ;
 static method main() → dynamic
   ;
@@ -19,6 +19,6 @@ import self as iss;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → iss::A
+  synthetic constructor •() → iss::A*
     ;
 }

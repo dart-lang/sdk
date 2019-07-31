@@ -7,7 +7,7 @@ library test;
 
 void test(Object a, bool b) {
   if (b && a is int) {
-    print(/*@promotedType=int*/ a);
+    print(/*@ promotedType=int* */ a);
   }
 }
 

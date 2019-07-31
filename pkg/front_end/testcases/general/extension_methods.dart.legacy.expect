@@ -55,10 +55,10 @@ import "package:expect/expect.dart" as exp;
 import "package:expect/expect.dart";
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  get one() → core::int
+  get one() → core::int*
     return 1;
 }
 static field invalid-type E;

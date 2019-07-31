@@ -6,24 +6,24 @@ import "private_module.dart" as pri;
 import "org-dartlang-testcase:///private_module.dart";
 
 abstract class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
-  method noSuchMethod(core::Invocation invocation) → dynamic
+  method noSuchMethod(core::Invocation* invocation) → dynamic
     ;
 }
 class Bar extends self::Foo implements pri::Fisk {
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     ;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 class Baz extends self::Foo implements pri::Fisk {
-  synthetic constructor •() → self::Baz
+  synthetic constructor •() → self::Baz*
     ;
   method _hest() → dynamic
     ;
   no-such-method-forwarder method /* from org-dartlang-testcase:///private_module.dart */ _hest() → void
-    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+    return this.{self::Foo::noSuchMethod}(new core::_InvocationMirror::_withType(#_hest, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{})));
 }
 static method main() → dynamic
   ;
@@ -33,7 +33,7 @@ import self as pri;
 import "dart:core" as core;
 
 abstract class Fisk extends core::Object {
-  synthetic constructor •() → pri::Fisk
+  synthetic constructor •() → pri::Fisk*
     ;
   abstract method _hest() → void;
 }

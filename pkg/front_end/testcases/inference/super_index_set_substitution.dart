@@ -18,7 +18,7 @@ class C<U> extends B<Future<U>> {
   void h() {
     // Note: the index is inferred with an empty context due to issue 31336.
     super /*@target=B::[]=*/ [
-        /*@typeArgs=dynamic*/ f()] = /*@typeArgs=List<Future<C::U>>*/ f();
+        /*@ typeArgs=dynamic */ f()] = /*@ typeArgs=List<Future<C::U*>*>* */ f();
   }
 }
 

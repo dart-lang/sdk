@@ -7,9 +7,9 @@ import "package:expect/expect.dart";
 
 class Foo extends core::Object {
   final field dynamic value;
-  constructor •(dynamic value) → self::Foo
+  constructor •(dynamic value) → self::Foo*
     ;
-  static factory fac(dynamic value) → self::Foo
+  static factory fac(dynamic value) → self::Foo*
     ;
 }
 static field dynamic list;

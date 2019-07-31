@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  final field core::int x;
-  constructor •() → self::A
+  final field core::int* x;
+  constructor •() → self::A*
     ;
 }

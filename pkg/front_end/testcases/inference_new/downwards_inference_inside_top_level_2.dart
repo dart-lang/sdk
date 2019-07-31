@@ -9,6 +9,6 @@ class A<T> {
   A(T x);
 }
 
-var t2 = /*@typeArgs=A<int>*/ [new /*@typeArgs=int*/ A(2)];
+var t2 = /*@ typeArgs=A<int*>* */ [new /*@ typeArgs=int* */ A(2)];
 
 main() {}

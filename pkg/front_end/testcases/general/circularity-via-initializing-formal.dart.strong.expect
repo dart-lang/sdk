@@ -11,10 +11,10 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  field self::C f = new self::C::_circular(null);
-  constructor _circular(self::C f) → self::C
+  field self::C* f = new self::C::_circular(null);
+  constructor _circular(self::C* f) → self::C*
     : self::C::f = f, super core::Object::•()
     ;
 }
-static field self::C x = new self::C::_circular(null);
+static field self::C* x = new self::C::_circular(null);
 static method main() → dynamic {}

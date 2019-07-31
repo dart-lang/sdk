@@ -39,11 +39,11 @@ void main() {
     });
     test('List', () async {
       await expectNotNull(
-          'main() { print([42, null]); }', '<dart.core::int>[42, null], 42');
+          'main() { print([42, null]); }', '<dart.core::int*>[42, null], 42');
     });
     test('Map', () async {
       await expectNotNull('main() { print({"x": null}); }',
-          '<dart.core::String, dart.core::Null>{"x": null}, "x"');
+          '<dart.core::String*, dart.core::Null*>{"x": null}, "x"');
     });
 
     test('Symbol', () async {
@@ -51,7 +51,7 @@ void main() {
     });
 
     test('Type', () async {
-      await expectNotNull('main() { print(Object); }', 'dart.core::Object');
+      await expectNotNull('main() { print(Object); }', 'dart.core::Object*');
     });
   });
 
@@ -61,12 +61,12 @@ void main() {
 
   test('is', () async {
     await expectNotNull('main() { 42 is int; null is int; }',
-        '42 is dart.core::int, 42, null is dart.core::int');
+        '42 is dart.core::int*, 42, null is dart.core::int*');
   });
 
   test('as', () async {
     await expectNotNull(
-        'main() { 42 as int; null as int; }', '42 as dart.core::int, 42');
+        'main() { 42 as int; null as int; }', '42 as dart.core::int*, 42');
   });
 
   test('constructor', () async {
@@ -248,8 +248,8 @@ void main() {
   });
 
   test('function expression', () async {
-    await expectNotNull(
-        'main() { () => null; f() {}; f; }', '() → dart.core::Null => null, f');
+    await expectNotNull('main() { () => null; f() {}; f; }',
+        '() → dart.core::Null* => null, f');
   });
 
   test('cascades (kernel let)', () async {
@@ -390,7 +390,8 @@ void main() {
       await expectNotNull('''main() {
         var x = () => 42;
         var y = (() => x = null);
-      }''', '() → dart.core::int => 42, 42, () → dart.core::Null => x = null');
+      }''',
+          '() → dart.core::int* => 42, 42, () → dart.core::Null* => x = null');
     });
     test('do not depend on unrelated variables', () async {
       await expectNotNull('''main() {

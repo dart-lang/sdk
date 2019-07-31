@@ -24,23 +24,23 @@ class Base {
 
 class Test extends Base {
   void test() {
-    super. /*@target=Base::member*/ member = /*@typeArgs=B*/ f();
-    super. /*@target=Base::member*/ member ??= /*@typeArgs=B*/ f();
-    super. /*@target=Base::member*/ member += /*@typeArgs=dynamic*/ f();
-    super. /*@target=Base::member*/ member *= /*@typeArgs=dynamic*/ f();
-    super. /*@target=Base::member*/ member &= /*@typeArgs=dynamic*/ f();
+    super. /*@target=Base::member*/ member = /*@ typeArgs=B* */ f();
+    super. /*@target=Base::member*/ member ??= /*@ typeArgs=B* */ f();
+    super. /*@target=Base::member*/ member += /*@ typeArgs=dynamic */ f();
+    super. /*@target=Base::member*/ member *= /*@ typeArgs=dynamic */ f();
+    super. /*@target=Base::member*/ member &= /*@ typeArgs=dynamic */ f();
     --super. /*@target=Base::member*/ member;
     super. /*@target=Base::member*/ member--;
-    var /*@type=B*/ v1 =
-        super. /*@target=Base::member*/ member = /*@typeArgs=B*/ f();
-    var /*@type=B*/ v2 =
-        super. /*@target=Base::member*/ member ??= /*@typeArgs=B*/ f();
-    var /*@type=B*/ v4 =
-        super. /*@target=Base::member*/ member *= /*@typeArgs=dynamic*/ f();
-    var /*@type=C*/ v5 =
-        super. /*@target=Base::member*/ member &= /*@typeArgs=dynamic*/ f();
-    var /*@type=B*/ v6 = --super. /*@target=Base::member*/ member;
-    var /*@type=B*/ v7 = super. /*@target=Base::member*/ member--;
+    var /*@ type=B* */ v1 =
+        super. /*@target=Base::member*/ member = /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v2 =
+        super. /*@target=Base::member*/ member ??= /*@ typeArgs=B* */ f();
+    var /*@ type=B* */ v4 =
+        super. /*@target=Base::member*/ member *= /*@ typeArgs=dynamic */ f();
+    var /*@ type=C* */ v5 =
+        super. /*@target=Base::member*/ member &= /*@ typeArgs=dynamic */ f();
+    var /*@ type=B* */ v6 = --super. /*@target=Base::member*/ member;
+    var /*@ type=B* */ v7 = super. /*@target=Base::member*/ member--;
   }
 }
 

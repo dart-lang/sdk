@@ -34,23 +34,23 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  const synthetic constructor •() → self::C
+  const synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
 }
 class D extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::D::•];
-  static factory •() → self::D
+  static factory •() → self::D*
     let dynamic #redirecting_factory = "Missing" in invalid-expression;
 }
 static method main() → void {

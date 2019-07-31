@@ -33,7 +33,7 @@ static method bar() → dynamic async {
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   await for (var x in []) {
-                      ^" in <dynamic>[] as{TypeError} asy::Stream<dynamic>) {
+                      ^" in <dynamic>[] as{TypeError} asy::Stream<dynamic>*) {
     yield x;
     yield* x;
   }
@@ -47,10 +47,10 @@ static method main() → dynamic {
     void x = core::print("Hello from do-while!");
   }
   while (false)
-  for (core::String s in <core::String>["Hello from for-in!"]) {
+  for (core::String* s in <core::String*>["Hello from for-in!"]) {
     core::print(s);
   }
-  for (core::String s in <core::String>["Hello from for-in without block!"])
+  for (core::String* s in <core::String*>["Hello from for-in without block!"])
     core::print(s);
   dynamic s;
   for (final dynamic #t2 in <dynamic>["Hello from for-in without decl!"]) {
@@ -74,7 +74,7 @@ static method main() → dynamic {
     core::print(e);
   }
   self::foo();
-  core::bool done = false;
+  core::bool* done = false;
   while (!done) {
     done = true;
     core::print("Hello from while!");
@@ -149,7 +149,7 @@ static method main() → dynamic {
         continue #L11;
       }
   }
-  core::int i = 0;
+  core::int* i = 0;
   #L13:
   do
     #L14:

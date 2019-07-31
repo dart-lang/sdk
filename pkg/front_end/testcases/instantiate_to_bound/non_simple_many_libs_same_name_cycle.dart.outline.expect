@@ -5,8 +5,8 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle_lib.dart" as lib;
 
-class Hest<TypeX extends non::Hest<dynamic> = dynamic> extends core::Object {
-  synthetic constructor •() → self::Hest<self::Hest::TypeX>
+class Hest<TypeX extends non::Hest<dynamic>* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Hest<self::Hest::TypeX*>*
     ;
 }
 static method main() → dynamic
@@ -19,7 +19,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle.dart" as lib;
 
-class Hest<TypeY extends self::Hest<dynamic> = dynamic> extends core::Object {
-  synthetic constructor •() → non::Hest<non::Hest::TypeY>
+class Hest<TypeY extends self::Hest<dynamic>* = dynamic> extends core::Object {
+  synthetic constructor •() → non::Hest<non::Hest::TypeY*>*
     ;
 }

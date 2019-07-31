@@ -3,28 +3,28 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  method call() → core::int
+  method call() → core::int*
     return 0;
 }
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-  get call() → self::A
+  get call() → self::A*
     return new self::A::•();
 }
 class D extends core::Object {
-  field self::A fieldA = new self::A::•();
-  field self::B fieldB = new self::B::•();
-  synthetic constructor •() → self::D
+  field self::A* fieldA = new self::A::•();
+  field self::B* fieldB = new self::B::•();
+  synthetic constructor •() → self::D*
     : super core::Object::•()
     ;
-  get getA() → self::A
+  get getA() → self::A*
     return new self::A::•();
-  get getB() → self::B
+  get getB() → self::B*
     return new self::B::•();
 }
 static method test() → dynamic {

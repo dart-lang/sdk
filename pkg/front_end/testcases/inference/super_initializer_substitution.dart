@@ -12,7 +12,7 @@ class B<T> {
 }
 
 class C<U> extends B<List<U>> {
-  C() : super(/*@typeArgs=List<C::U>*/ f());
+  C() : super(/*@ typeArgs=List<C::U*>* */ f());
 }
 
 main() {}

@@ -8,7 +8,7 @@ library test;
 f() {
   List<int> o;
   o. /*@target=Iterable::forEach*/ forEach(
-      /*@returnType=int*/ (/*@type=int*/ i) {
+      /*@ returnType=int* */ (/*@ type=int* */ i) {
     return i /*@target=num::+*/ + 1;
   });
 }

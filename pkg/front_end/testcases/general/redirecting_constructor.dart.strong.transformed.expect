@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class A extends core::Object {
   static field dynamic _redirecting# = <dynamic>[self::A::fisk];
-  constructor •() → self::A
+  constructor •() → self::A*
     : super core::Object::•()
     ;
-  static factory fisk() → self::A
+  static factory fisk() → self::A*
     let<BottomType> #redirecting_factory = self::B::• in invalid-expression;
 }
 class B extends self::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
 }

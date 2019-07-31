@@ -11,7 +11,7 @@ T id<T>(T x) => x;
 
 test() async {
   Future<String> f;
-  String s = await /*@typeArgs=FutureOr<String>*/ id(f);
+  String s = await /*@ typeArgs=FutureOr<String*>* */ id(f);
 }
 
 main() {}

@@ -26,8 +26,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C extends core::Iterable<core::Object> {
-  synthetic constructor •() → self::C
+class C extends core::Iterable<core::Object*> {
+  synthetic constructor •() → self::C*
     : super core::Iterable::•()
     ;
 }

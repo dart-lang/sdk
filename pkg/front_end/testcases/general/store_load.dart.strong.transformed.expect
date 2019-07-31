@@ -4,32 +4,32 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic _field = null;
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
 }
 class FooValue extends core::Object {
-  synthetic constructor •() → self::FooValue
+  synthetic constructor •() → self::FooValue*
     : super core::Object::•()
     ;
 }
 class Bar extends core::Object {
   field dynamic _field = null;
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     : super core::Object::•()
     ;
 }
 class BarValue extends core::Object {
-  synthetic constructor •() → self::BarValue
+  synthetic constructor •() → self::BarValue*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  self::Foo foo = new self::Foo::•();
+  self::Foo* foo = new self::Foo::•();
   foo.{self::Foo::_field} = new self::FooValue::•();
   dynamic fooValue = foo.{self::Foo::_field};
   core::print(fooValue);
-  self::Bar bar = new self::Bar::•();
+  self::Bar* bar = new self::Bar::•();
   bar.{self::Bar::_field} = new self::BarValue::•();
   dynamic barValue = bar.{self::Bar::_field};
   core::print(barValue);

@@ -4,14 +4,14 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic field = null;
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
 }
 static method identity(dynamic x) → dynamic
   return x;
 static method use(dynamic x) → void {}
-static method main(core::List<core::String> args) → dynamic {
+static method main(core::List<core::String*>* args) → dynamic {
   dynamic foo = self::identity(new self::Foo::•());
   if(args.length.>(1)) {
     foo.field = "string";

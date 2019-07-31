@@ -19,130 +19,130 @@ abstract class Base<T, U> {
 
 abstract class Test1 extends Base<int, int> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=int*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=int* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=int* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=int* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=int* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test2 extends Base<int, num> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=int*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=num*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=double*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=int* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=num* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=int* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=double* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=int* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=int* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test3 extends Base<int, double> {
   void test() {
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=num*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=int*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=double*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=int*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=int*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=num* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=int* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=double* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=int* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=int* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test4 extends Base<num, int> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=num*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=num*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=num*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=num*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=num* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=num* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=num* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=num* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test5 extends Base<num, num> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=num*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=num*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=num*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=num*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=num*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=num* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=num* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=num* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=num* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=num* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=num* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test6 extends Base<num, double> {
   void test() {
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=num*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=num*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=num*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=num*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=num*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=num*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=num* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=num* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=num* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=num* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=num* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=num* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test7 extends Base<double, int> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=num*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=num* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=double* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=double* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=double* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=double* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test8 extends Base<double, num> {
   void test() {
-    var /*@type=int*/ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=double*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=double*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=int* */ v1 = super /*@target=Base::[]=*/ ['x'] = getInt();
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=num* */ v4 = super /*@target=Base::[]=*/ ['x'] ??= getInt();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=double* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=double* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=double* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=double* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=double* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=double* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 
 abstract class Test9 extends Base<double, double> {
   void test() {
-    var /*@type=num*/ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
-    var /*@type=double*/ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
-    var /*@type=num*/ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
-    var /*@type=double*/ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
-    var /*@type=double*/ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
-    var /*@type=double*/ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
-    var /*@type=double*/ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
-    var /*@type=double*/ v10 = ++super /*@target=Base::[]=*/ ['x'];
-    var /*@type=double*/ v11 = super /*@target=Base::[]=*/ ['x']++;
+    var /*@ type=num* */ v2 = super /*@target=Base::[]=*/ ['x'] = getNum();
+    var /*@ type=double* */ v3 = super /*@target=Base::[]=*/ ['x'] = getDouble();
+    var /*@ type=num* */ v5 = super /*@target=Base::[]=*/ ['x'] ??= getNum();
+    var /*@ type=double* */ v6 = super /*@target=Base::[]=*/ ['x'] ??= getDouble();
+    var /*@ type=double* */ v7 = super /*@target=Base::[]=*/ ['x'] += getInt();
+    var /*@ type=double* */ v8 = super /*@target=Base::[]=*/ ['x'] += getNum();
+    var /*@ type=double* */ v9 = super /*@target=Base::[]=*/ ['x'] += getDouble();
+    var /*@ type=double* */ v10 = ++super /*@target=Base::[]=*/ ['x'];
+    var /*@ type=double* */ v11 = super /*@target=Base::[]=*/ ['x']++;
   }
 }
 

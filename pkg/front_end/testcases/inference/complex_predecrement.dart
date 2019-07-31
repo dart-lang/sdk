@@ -6,6 +6,6 @@
 library test;
 
 main() {
-  var /*@type=List<int>*/ foo = /*@typeArgs=int*/ [1, 2, 3];
+  var /*@ type=List<int*>* */ foo = /*@ typeArgs=int* */ [1, 2, 3];
   print(--foo /*@target=List::[]=*/ [0]);
 }

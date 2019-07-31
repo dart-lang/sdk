@@ -9,7 +9,7 @@ T f<T>() => null;
 
 class C implements B {
   final x;
-  C() : x = /*@typeArgs=int*/ f();
+  C() : x = /*@ typeArgs=int* */ f();
 }
 
 abstract class B {

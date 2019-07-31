@@ -25,20 +25,20 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  method m<T extends core::Object = dynamic>(self::C::m::T x) → self::C::m::T
+  method m<T extends core::Object* = dynamic>(self::C::m::T* x) → self::C::m::T*
     return x;
 }
 class D extends self::C {
-  synthetic constructor •() → self::D
+  synthetic constructor •() → self::D*
     : super self::C::•()
     ;
   method m(dynamic x) → dynamic
     return x;
 }
 static method main() → dynamic {
-  core::int y = new self::D::•().{self::D::m}<core::int>(42) as{TypeError} core::int;
+  core::int* y = new self::D::•().{self::D::m}<core::int*>(42) as{TypeError} core::int*;
   core::print(y);
 }

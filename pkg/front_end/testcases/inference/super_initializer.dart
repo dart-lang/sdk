@@ -8,7 +8,7 @@ library test;
 T f<T>() => null;
 
 class C extends B {
-  C() : super(/*@typeArgs=int*/ f());
+  C() : super(/*@ typeArgs=int* */ f());
 }
 
 class B {

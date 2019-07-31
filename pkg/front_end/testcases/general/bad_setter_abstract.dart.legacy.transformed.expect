@@ -44,7 +44,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void {
@@ -65,7 +65,7 @@ class A extends core::Object {
   }
 }
 abstract class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
   set a(dynamic #synthetic) → void {
@@ -102,7 +102,7 @@ set c(x, y);
   }
 }
 static method main() → dynamic {
-  core::bool threw;
+  core::bool* threw;
   try {
     threw = true;
     new self::A::•().a = null;
@@ -151,7 +151,7 @@ static method main() → dynamic {
     throw new core::AbstractClassInstantiationError::•("B");
     threw = false;
   }
-  on core::AbstractClassInstantiationError catch(final core::AbstractClassInstantiationError _) {
+  on core::AbstractClassInstantiationError* catch(final core::AbstractClassInstantiationError* _) {
   }
   if(!threw) {
     throw "Expected an error above.";

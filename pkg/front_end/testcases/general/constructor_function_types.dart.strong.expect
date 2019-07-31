@@ -3,22 +3,22 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •() → self::A
+  constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  constructor •(core::int x, core::double y, core::String s) → self::B
+  constructor •(core::int* x, core::double* y, core::String* s) → self::B*
     : super core::Object::•()
     ;
 }
-class C<T extends core::Object = dynamic> extends core::Object {
-  constructor •() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::T*>*
     : super core::Object::•()
     ;
 }
-class D<T extends core::Object = dynamic, S extends core::Object = dynamic> extends core::Object {
-  constructor •(self::D::T x, self::D::S y) → self::D<self::D::T, self::D::S>
+class D<T extends core::Object* = dynamic, S extends core::Object* = dynamic> extends core::Object {
+  constructor •(self::D::T* x, self::D::S* y) → self::D<self::D::T*, self::D::S*>*
     : super core::Object::•()
     ;
 }
@@ -26,5 +26,5 @@ static method main() → void {
   new self::A::•();
   new self::B::•(0, 3.14, "foo");
   new self::C::•<dynamic>();
-  new self::D::•<core::Object, core::int>(null, 3);
+  new self::D::•<core::Object*, core::int*>(null, 3);
 }

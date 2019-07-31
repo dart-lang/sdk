@@ -187,8 +187,8 @@ ConstantPool {
 }
 ]library #lib from "#lib" as #lib {
 
-  static method foo1(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo1(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     #L1:
     switch(x) {
       #L2:
@@ -212,8 +212,8 @@ ConstantPool {
     }
     return y;
   }
-  static method foo2(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo2(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     #L5:
     switch(x) {
       #L6:
@@ -240,8 +240,8 @@ ConstantPool {
     }
     return y;
   }
-  static method foo3(dart.core::int x) → dart.core::int {
-    dart.core::int y;
+  static method foo3(dart.core::int* x) → dart.core::int* {
+    dart.core::int* y;
     switch(x) {
       #L9:
       case #C1:

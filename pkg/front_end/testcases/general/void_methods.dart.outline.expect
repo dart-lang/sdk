@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  field core::List<dynamic> list;
-  synthetic constructor •() → self::Foo
+  field core::List<dynamic>* list;
+  synthetic constructor •() → self::Foo*
     ;
   set first(dynamic x) → void
     ;

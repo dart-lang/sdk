@@ -7,10 +7,10 @@ library test;
 
 void _mergeSort<T>(
     T Function(T) list, int compare(T a, T b), T Function(T) target) {
-  /*@typeArgs=_mergeSort::T*/ _mergeSort(list, compare, target);
-  /*@typeArgs=_mergeSort::T*/ _mergeSort(list, compare, list);
-  /*@typeArgs=_mergeSort::T*/ _mergeSort(target, compare, target);
-  /*@typeArgs=_mergeSort::T*/ _mergeSort(target, compare, list);
+  /*@ typeArgs=_mergeSort::T* */ _mergeSort(list, compare, target);
+  /*@ typeArgs=_mergeSort::T* */ _mergeSort(list, compare, list);
+  /*@ typeArgs=_mergeSort::T* */ _mergeSort(target, compare, target);
+  /*@ typeArgs=_mergeSort::T* */ _mergeSort(target, compare, list);
 }
 
 main() {}

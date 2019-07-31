@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic {
-  core::Object x;
-  core::Function f;
+  core::Object* x;
+  core::Function* f;
   x.call();
   x.call(3);
   f.call(5, 2);

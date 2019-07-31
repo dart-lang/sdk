@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Fisk extends core::Object {
-  synthetic constructor •() → self::Fisk
+  synthetic constructor •() → self::Fisk*
     ;
   abstract method _hest() → void;
 }

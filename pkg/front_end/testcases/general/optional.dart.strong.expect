@@ -31,7 +31,7 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
   method method(dynamic x, [dynamic y = #C1, dynamic z = #C1]) → dynamic {
@@ -39,46 +39,46 @@ class Foo extends core::Object {
   }
 }
 abstract class External extends core::Object {
-  synthetic constructor •() → self::External
+  synthetic constructor •() → self::External*
     : super core::Object::•()
     ;
-  abstract method externalMethod(core::int x, [core::int y = #C1, core::int z = #C1]) → core::String;
-  abstract method listen(self::Listener listener) → void;
+  abstract method externalMethod(core::int* x, [core::int* y = #C1, core::int* z = #C1]) → core::String*;
+  abstract method listen(self::Listener* listener) → void;
 }
 abstract class Listener extends core::Object {
-  synthetic constructor •() → self::Listener
+  synthetic constructor •() → self::Listener*
     : super core::Object::•()
     ;
-  abstract method event(core::String input, [core::int x = #C1, core::int y = #C1]) → void;
+  abstract method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void;
 }
 class TestListener extends self::Listener {
-  synthetic constructor •() → self::TestListener
+  synthetic constructor •() → self::TestListener*
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = #C1, core::int y = #C1]) → void {}
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1]) → void {}
 }
 class ExtendedListener extends self::Listener {
-  synthetic constructor •() → self::ExtendedListener
+  synthetic constructor •() → self::ExtendedListener*
     : super self::Listener::•()
     ;
-  method event(core::String input, [core::int x = #C1, core::int y = #C1, dynamic z = #C1]) → void {}
+  method event(core::String* input, [core::int* x = #C1, core::int* y = #C1, dynamic z = #C1]) → void {}
 }
 class InvalidListener extends core::Object {
-  synthetic constructor •() → self::InvalidListener
+  synthetic constructor •() → self::InvalidListener*
     : super core::Object::•()
     ;
   method event(dynamic input, [dynamic x = #C1]) → void {}
 }
-external static abstract method createExternal() → self::External;
+external static abstract method createExternal() → self::External*;
 static method main() → dynamic {
-  self::Foo foo = new self::Foo::•();
+  self::Foo* foo = new self::Foo::•();
   dynamic string1 = foo.{self::Foo::method}(1);
   dynamic string2 = foo.{self::Foo::method}(1, 2);
   dynamic string3 = foo.{self::Foo::method}(1, 2, 3);
-  self::External extern = self::createExternal();
-  core::String string4 = extern.{self::External::externalMethod}(1);
-  core::String string5 = extern.{self::External::externalMethod}(1, 2);
-  core::String string6 = extern.{self::External::externalMethod}(1, 2, 3);
+  self::External* extern = self::createExternal();
+  core::String* string4 = extern.{self::External::externalMethod}(1);
+  core::String* string5 = extern.{self::External::externalMethod}(1, 2);
+  core::String* string6 = extern.{self::External::externalMethod}(1, 2, 3);
   extern.{self::External::listen}(new self::TestListener::•());
   extern.{self::External::listen}(new self::ExtendedListener::•());
   extern.{self::External::listen}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/optional.dart:47:21: Error: The argument type 'InvalidListener' can't be assigned to the parameter type 'Listener'.
@@ -86,11 +86,11 @@ static method main() → dynamic {
  - 'Listener' is from 'pkg/front_end/testcases/general/optional.dart'.
 Try changing the type of the parameter, or casting the argument to 'Listener'.
   extern.listen(new InvalidListener());
-                    ^" in new self::InvalidListener::•() as{TypeError} self::Listener);
+                    ^" in new self::InvalidListener::•() as{TypeError} self::Listener*);
   dynamic nothing1 = foo.{self::Foo::method}();
   dynamic nothing2 = foo.{self::Foo::method}(1, 2, 3, 4);
-  core::String nothing3 = extern.{self::External::externalMethod}();
-  core::String nothing4 = extern.{self::External::externalMethod}(1, 2, 3, 4);
+  core::String* nothing3 = extern.{self::External::externalMethod}();
+  core::String* nothing4 = extern.{self::External::externalMethod}(1, 2, 3, 4);
 }
 
 constants  {

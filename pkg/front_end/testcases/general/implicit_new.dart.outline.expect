@@ -5,19 +5,19 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///implicit_new.dart" as prefix;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
   operator +(dynamic other) → dynamic
     ;
 }
 class Bar extends core::Object {
-  constructor named() → self::Bar
+  constructor named() → self::Bar*
     ;
   operator +(dynamic other) → dynamic
     ;
 }
 class IndexTester extends core::Object {
-  synthetic constructor •() → self::IndexTester
+  synthetic constructor •() → self::IndexTester*
     ;
   operator [](dynamic _) → dynamic
     ;

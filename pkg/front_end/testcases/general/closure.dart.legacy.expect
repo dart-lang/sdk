@@ -4,12 +4,12 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic _field = new self::Bar::•();
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
 }
 class Bar extends core::Object {
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     : super core::Object::•()
     ;
 }

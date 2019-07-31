@@ -3,9 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   get x() → dynamic
-    return "${self::C}".{core::String::hashCode};
+    return "${self::C*}".{core::String::hashCode};
 }

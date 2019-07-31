@@ -16,21 +16,21 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///implicit_new.dart" as prefix;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : super core::Object::•()
     ;
   operator +(dynamic other) → dynamic
     return null;
 }
 class Bar extends core::Object {
-  constructor named() → self::Bar
+  constructor named() → self::Bar*
     : super core::Object::•()
     ;
   operator +(dynamic other) → dynamic
     return null;
 }
 class IndexTester extends core::Object {
-  synthetic constructor •() → self::IndexTester
+  synthetic constructor •() → self::IndexTester*
     : super core::Object::•()
     ;
   operator [](dynamic _) → dynamic
@@ -38,8 +38,8 @@ class IndexTester extends core::Object {
   operator []=(dynamic _a, dynamic _b) → void {}
 }
 static method testNSM() → dynamic {
-  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
-  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+  dynamic y = throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
+  throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 32, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 static method f(dynamic x) → dynamic
   return x;
@@ -73,7 +73,7 @@ static method main() → dynamic {
 
 constants  {
   #C1 = #Bar
-  #C2 = <core::Type>[]
+  #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
 }

@@ -11,5 +11,5 @@ class C<T> {
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C.named(<int>[]);
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C.named(<int>[]);
 }

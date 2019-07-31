@@ -6,7 +6,7 @@
 library test;
 
 class C {
-  static final f = /*@returnType=bool*/ (bool b) => b;
+  static final f = /*@ returnType=bool* */ (bool b) => b;
 }
 
 main() {}

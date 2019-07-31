@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-  operator +(dynamic other) → core::int
+  operator +(dynamic other) → core::int*
     return 1;
-  operator -(dynamic other) → core::double
+  operator -(dynamic other) → core::double*
     return 2.0;
 }
 static field dynamic v_add = new self::A::•().+("foo");

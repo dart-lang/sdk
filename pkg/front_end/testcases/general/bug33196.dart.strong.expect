@@ -6,9 +6,9 @@ import "dart:core" as core;
 import "dart:async";
 
 static method main() → dynamic {
-  asy::FutureOr<core::String> result = self::returnsString();
+  asy::FutureOr<core::String*>* result = self::returnsString();
   core::print(result.{core::Object::runtimeType});
 }
-static method returnsString() → asy::FutureOr<core::String> async {
+static method returnsString() → asy::FutureOr<core::String*>* async {
   return "oh no";
 }

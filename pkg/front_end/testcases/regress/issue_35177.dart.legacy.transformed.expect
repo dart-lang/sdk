@@ -3,6 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  () → dynamic f;
-  f.call().call<core::int>();
+  () →* dynamic f;
+  f.call().call<core::int*>();
 }

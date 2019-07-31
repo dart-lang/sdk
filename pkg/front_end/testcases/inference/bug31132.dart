@@ -12,7 +12,7 @@ class C extends B {
 }
 
 void test(B x) {
-  var /*@type=C*/ y = x is C ? /*@promotedType=C*/ x : new C();
+  var /*@ type=C* */ y = x is C ? /*@ promotedType=C* */ x : new C();
   print(y. /*@target=C::z*/ z);
 }
 

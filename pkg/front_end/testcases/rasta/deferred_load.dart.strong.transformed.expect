@@ -8,7 +8,7 @@ static method main() → dynamic {
   #C1;
   LoadLibrary(lib);
 }
-static method __loadLibrary_lib() → asy::Future<dynamic>
+static method __loadLibrary_lib() → asy::Future<dynamic>*
   return LoadLibrary(lib);
 
 library deferred_lib;

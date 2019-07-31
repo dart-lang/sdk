@@ -15,9 +15,9 @@ C c = new C();
 var field_ref = c. /*@target=C::field*/ field;
 var getter_ref = c. /*@target=C::getter*/ getter;
 var function_ref = c. /*@target=C::function*/ function;
-var field_ref_list = /*@typeArgs=int*/ [c. /*@target=C::field*/ field];
-var getter_ref_list = /*@typeArgs=int*/ [c. /*@target=C::getter*/ getter];
-var function_ref_list = /*@typeArgs=() -> int*/ [
+var field_ref_list = /*@ typeArgs=int* */ [c. /*@target=C::field*/ field];
+var getter_ref_list = /*@ typeArgs=int* */ [c. /*@target=C::getter*/ getter];
+var function_ref_list = /*@ typeArgs=() ->* int* */ [
   c. /*@target=C::function*/ function
 ];
 

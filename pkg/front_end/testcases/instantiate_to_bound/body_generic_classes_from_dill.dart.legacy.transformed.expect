@@ -6,13 +6,13 @@ import "dart:collection" as col;
 import "dart:collection";
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
   method foo() → dynamic {
-    col::LinkedListEntry<dynamic> bar;
+    col::LinkedListEntry<dynamic>* bar;
   }
 }
 static method main() → dynamic {
-  col::LinkedListEntry<dynamic> bar;
+  col::LinkedListEntry<dynamic>* bar;
 }

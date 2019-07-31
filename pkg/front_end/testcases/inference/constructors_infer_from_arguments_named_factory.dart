@@ -10,12 +10,12 @@ class C<T> {
   C();
 
   factory C.named(T t) {
-    var /*@type=C<C::named::T>*/ x = new C<T>();
+    var /*@ type=C<C::named::T*>* */ x = new C<T>();
     x. /*@target=C::t*/ t = t;
     return x;
   }
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C.named(42);
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C.named(42);
 }

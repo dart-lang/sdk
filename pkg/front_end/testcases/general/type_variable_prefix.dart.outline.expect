@@ -11,8 +11,8 @@ import "dart:core" as core;
 
 import "dart:core" as T;
 
-class C<T extends core::Object = dynamic> extends core::Object {
-  synthetic constructor •() → self::C<self::C::T>
+class C<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T*>*
     ;
   method method() → invalid-type
     ;

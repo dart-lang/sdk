@@ -14,7 +14,7 @@ import self as self2;
 import "dart:core" as core;
 
 class ImportedClass extends core::Object {
-  constructor •(core::int a) → self2::ImportedClass
+  constructor •(core::int* a) → self2::ImportedClass*
     ;
 }
 
@@ -23,6 +23,6 @@ import self as self3;
 import "dart:core" as core;
 
 class ImportedClass extends core::Object {
-  constructor •(core::String a) → self3::ImportedClass
+  constructor •(core::String* a) → self3::ImportedClass*
     ;
 }

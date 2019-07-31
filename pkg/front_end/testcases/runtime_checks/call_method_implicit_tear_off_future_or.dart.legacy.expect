@@ -6,11 +6,11 @@ import "dart:async" as asy;
 import "dart:async";
 
 class C extends core::Object {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
   method call() → void {}
 }
 static method main() → dynamic {
-  asy::FutureOr<() → void> x = new self::C::•();
+  asy::FutureOr<() →* void>* x = new self::C::•();
 }

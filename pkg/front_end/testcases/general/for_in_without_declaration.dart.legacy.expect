@@ -58,22 +58,22 @@ import self as self;
 import "dart:core" as core;
 
 class Super extends core::Object {
-  field core::int superInstanceField = null;
+  field core::int* superInstanceField = null;
   field dynamic untypedSuperInstanceField = null;
-  synthetic constructor •() → self::Super
+  synthetic constructor •() → self::Super*
     : super core::Object::•()
     ;
 }
 class C extends self::Super {
-  field core::int instanceField = null;
+  field core::int* instanceField = null;
   field dynamic untypedInstanceField = null;
-  static field core::double staticField = null;
+  static field core::double* staticField = null;
   static field dynamic untypedStaticField = null;
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     : super self::Super::•()
     ;
   method m() → dynamic {
-    core::String local;
+    core::String* local;
     dynamic untypedLocal;
     for (final dynamic #t1 in <dynamic>[]) {
       local = #t1;
@@ -105,7 +105,7 @@ class C extends self::Super {
     for (final dynamic #t10 in <dynamic>[]) {
       super.{self::Super::untypedSuperInstanceField} = #t10;
     }
-    self::C c = new self::C::•();
+    self::C* c = new self::C::•();
     for (final dynamic #t11 in <dynamic>[]) {
       c.instanceField = #t11;
     }
@@ -136,7 +136,7 @@ class C extends self::Super {
       invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";
-      for (final dynamic #t17 in <core::int>[]) {
+      for (final dynamic #t17 in <core::int*>[]) {
         invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:41:10: Error: A for-in loop can't have more than one loop variable.
     for (var x, y in <int>[]) {
          ^^^";
@@ -147,17 +147,17 @@ class C extends self::Super {
       }
     }
     for (final dynamic #t18 in <dynamic>[]) {
-      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t18]), core::Map::unmodifiable<core::Symbol, dynamic>(#C4)));
+      throw new core::NoSuchMethodError::withInvocation(null, new core::_InvocationMirror::_withType(#C1, 34, #C2, core::List::unmodifiable<dynamic>(<dynamic>[#t18]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
     }
   }
 }
-static field core::bool topLevelField;
+static field core::bool* topLevelField;
 static field dynamic untypedTopLevelField;
 static method main() → dynamic {}
 
 constants  {
   #C1 = #constant
-  #C2 = <core::Type>[]
+  #C2 = <core::Type*>[]
   #C3 = <dynamic>[]
-  #C4 = core::_ImmutableMap<core::Symbol, dynamic> {_kvPairs:#C3}
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
 }

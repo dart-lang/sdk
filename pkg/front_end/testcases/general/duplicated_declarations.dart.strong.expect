@@ -366,21 +366,21 @@ import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
 import "org-dartlang-testcase:///duplicated_declarations_lib.dart" as Typedef;
 
 part duplicated_declarations_part.dart;
-typedef Typedef = () → void;
-typedef OldTypedef = () → void;
+typedef Typedef = () →* void;
+typedef OldTypedef = () →* void;
 class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#4
+  constructor _() → self::C#4*
     : super core::Object::•()
     ;
 }
 class C#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  constructor _() → self::C#3
+  constructor _() → self::C#3*
     : super core::Object::•()
     ;
 }
 class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  field core::String field = null;
-  constructor •(dynamic a) → self::C#2
+  field core::String* field = null;
+  constructor •(dynamic a) → self::C#2*
     : super core::Object::•()
     ;
   method m() → dynamic {
@@ -395,13 +395,13 @@ class C#2 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
                 ^";
 }
 class C#1 extends core::Object {
-  constructor _() → self::C#1
+  constructor _() → self::C#1*
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  field core::String field = null;
-  constructor •(dynamic a) → self::C
+  field core::String* field = null;
+  constructor •(dynamic a) → self::C*
     : super core::Object::•()
     ;
   method m() → dynamic {
@@ -416,7 +416,7 @@ class C extends core::Object {
                 ^";
 }
 class Sub extends core::Object {
-  constructor •() → self::Sub
+  constructor •() → self::Sub*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:66:16: Error: Too many positional arguments: 0 allowed, but 1 found.
 Try removing the extra positional arguments.
   Sub() : super(null);
@@ -426,82 +426,82 @@ Try removing the extra positional arguments.
     return super.m();
 }
 class Enum#4 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::Enum#4> values = #C4;
-  static const field self::Enum#4 a = #C3;
-  const constructor •(core::int index, core::String _name) → self::Enum#4
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Enum#4*>* values = #C4;
+  static const field self::Enum#4* a = #C3;
+  const constructor •(core::int* index, core::String* _name) → self::Enum#4*
     : self::Enum#4::index = index, self::Enum#4::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::Enum#4::_name};
 }
 class Enum#3 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::Enum#3> values = #C12;
-  static const field self::Enum#3 a = #C5;
-  static const field self::Enum#3 b = #C8;
-  static const field self::Enum#3 c = #C11;
-  const constructor •(core::int index, core::String _name) → self::Enum#3
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Enum#3*>* values = #C12;
+  static const field self::Enum#3* a = #C5;
+  static const field self::Enum#3* b = #C8;
+  static const field self::Enum#3* c = #C11;
+  const constructor •(core::int* index, core::String* _name) → self::Enum#3*
     : self::Enum#3::index = index, self::Enum#3::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::Enum#3::_name};
 }
 class Enum#2 extends core::Object { // from org-dartlang-testcase:///duplicated_declarations_part.dart
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::Enum#2> values = #C17;
-  static const field self::Enum#2 Enum = #C14;
-  static const field self::Enum#2 a = #C15;
-  static const field self::Enum#2 b = #C16;
-  const constructor •(core::int index, core::String _name) → self::Enum#2
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Enum#2*>* values = #C17;
+  static const field self::Enum#2* Enum = #C14;
+  static const field self::Enum#2* a = #C15;
+  static const field self::Enum#2* b = #C16;
+  const constructor •(core::int* index, core::String* _name) → self::Enum#2*
     : self::Enum#2::index = index, self::Enum#2::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::Enum#2::_name};
 }
 class Enum#1 extends core::Object {
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::Enum#1> values = #C21;
-  static const field self::Enum#1 a = #C18;
-  static const field self::Enum#1 b = #C19;
-  static const field self::Enum#1 c = #C20;
-  const constructor •(core::int index, core::String _name) → self::Enum#1
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Enum#1*>* values = #C21;
+  static const field self::Enum#1* a = #C18;
+  static const field self::Enum#1* b = #C19;
+  static const field self::Enum#1* c = #C20;
+  const constructor •(core::int* index, core::String* _name) → self::Enum#1*
     : self::Enum#1::index = index, self::Enum#1::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::Enum#1::_name};
 }
 class Enum extends core::Object {
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::Enum> values = #C25;
-  static const field self::Enum Enum = #C22;
-  static const field self::Enum a = #C23;
-  static const field self::Enum b = #C24;
-  const constructor •(core::int index, core::String _name) → self::Enum
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::Enum*>* values = #C25;
+  static const field self::Enum* Enum = #C22;
+  static const field self::Enum* a = #C23;
+  static const field self::Enum* b = #C24;
+  const constructor •(core::int* index, core::String* _name) → self::Enum*
     : self::Enum::index = index, self::Enum::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::Enum::_name};
 }
 class AnotherEnum extends core::Object {
-  final field core::int index;
-  final field core::String _name;
-  static const field core::List<self::AnotherEnum> values = #C32;
-  static const field self::AnotherEnum a = #C27;
-  static const field self::AnotherEnum b = #C29;
-  static const field self::AnotherEnum c = #C31;
-  const constructor •(core::int index, core::String _name) → self::AnotherEnum
+  final field core::int* index;
+  final field core::String* _name;
+  static const field core::List<self::AnotherEnum*>* values = #C32;
+  static const field self::AnotherEnum* a = #C27;
+  static const field self::AnotherEnum* b = #C29;
+  static const field self::AnotherEnum* c = #C31;
+  const constructor •(core::int* index, core::String* _name) → self::AnotherEnum*
     : self::AnotherEnum::index = index, self::AnotherEnum::_name = _name, super core::Object::•()
     ;
-  method toString() → core::String
+  method toString() → core::String*
     return this.{=self::AnotherEnum::_name};
 }
-static field core::String field;
+static field core::String* field;
 static method main() → dynamic {
   "1st";
 }
@@ -517,7 +517,7 @@ static method foo() → dynamic {
   ^".s();
 }
 static method useAnotherEnum() → dynamic {
-  <core::String, core::Object>{"AnotherEnum.a": #C27, "AnotherEnum.b": #C29, "AnotherEnum.c": #C31, "AnotherEnum._name": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:102:38: Error: Can't use '_name' because it is declared more than once.
+  <core::String*, core::Object*>{"AnotherEnum.a": #C27, "AnotherEnum.b": #C29, "AnotherEnum.c": #C31, "AnotherEnum._name": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:102:38: Error: Can't use '_name' because it is declared more than once.
     \"AnotherEnum._name\": AnotherEnum._name,
                                      ^^^^^", "AnotherEnum.index": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:103:38: Error: Can't use 'index' because it is declared more than once.
     \"AnotherEnum.index\": AnotherEnum.index,
@@ -536,7 +536,7 @@ constants  {
   #C1 = 0
   #C2 = "Enum.a"
   #C3 = self::Enum#4 {index:#C1, _name:#C2}
-  #C4 = <self::Enum#4>[#C3]
+  #C4 = <self::Enum#4*>[#C3]
   #C5 = self::Enum#3 {index:#C1, _name:#C2}
   #C6 = 1
   #C7 = "Enum.b"
@@ -544,25 +544,25 @@ constants  {
   #C9 = 2
   #C10 = "Enum.c"
   #C11 = self::Enum#3 {index:#C9, _name:#C10}
-  #C12 = <self::Enum#3>[#C5, #C8, #C11]
+  #C12 = <self::Enum#3*>[#C5, #C8, #C11]
   #C13 = "Enum.Enum"
   #C14 = self::Enum#2 {index:#C1, _name:#C13}
   #C15 = self::Enum#2 {index:#C6, _name:#C2}
   #C16 = self::Enum#2 {index:#C9, _name:#C7}
-  #C17 = <self::Enum#2>[#C14, #C15, #C16]
+  #C17 = <self::Enum#2*>[#C14, #C15, #C16]
   #C18 = self::Enum#1 {index:#C1, _name:#C2}
   #C19 = self::Enum#1 {index:#C6, _name:#C7}
   #C20 = self::Enum#1 {index:#C9, _name:#C10}
-  #C21 = <self::Enum#1>[#C18, #C19, #C20]
+  #C21 = <self::Enum#1*>[#C18, #C19, #C20]
   #C22 = self::Enum {index:#C1, _name:#C13}
   #C23 = self::Enum {index:#C6, _name:#C2}
   #C24 = self::Enum {index:#C9, _name:#C7}
-  #C25 = <self::Enum>[#C22, #C23, #C24]
+  #C25 = <self::Enum*>[#C22, #C23, #C24]
   #C26 = "AnotherEnum.a"
   #C27 = self::AnotherEnum {index:#C1, _name:#C26}
   #C28 = "AnotherEnum.b"
   #C29 = self::AnotherEnum {index:#C6, _name:#C28}
   #C30 = "AnotherEnum.c"
   #C31 = self::AnotherEnum {index:#C9, _name:#C30}
-  #C32 = <self::AnotherEnum>[#C27, #C29, #C31]
+  #C32 = <self::AnotherEnum*>[#C27, #C29, #C31]
 }

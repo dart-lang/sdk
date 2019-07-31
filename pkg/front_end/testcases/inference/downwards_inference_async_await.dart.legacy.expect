@@ -5,8 +5,8 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method main() → asy::Future<dynamic> async {
+static method main() → asy::Future<dynamic>* async {
   dynamic d;
-  core::List<core::int> l0 = await<dynamic>[d];
-  core::List<core::int> l1 = await asy::Future::value<dynamic>(<dynamic>[d]);
+  core::List<core::int*>* l0 = await<dynamic>[d];
+  core::List<core::int*>* l1 = await asy::Future::value<dynamic>(<dynamic>[d]);
 }

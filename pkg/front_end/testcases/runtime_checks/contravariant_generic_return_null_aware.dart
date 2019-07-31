@@ -15,18 +15,18 @@ class C<T> {
 }
 
 void g1(C<num> c) {
-  var x = c?.f1 /*@checkReturn=(num) -> void*/ ();
+  var x = c?.f1 /*@ checkReturn=(num*) ->* void */ ();
   print('hello');
   x(1.5);
 }
 
 void g2(C<num> c) {
-  F<int> x = c?.f1 /*@checkReturn=(num) -> void*/ ();
+  F<int> x = c?.f1 /*@ checkReturn=(num*) ->* void */ ();
   x(1);
 }
 
 void g3(C<num> c) {
-  var x = c?.f2 /*@checkReturn=List<(num) -> void>*/ ();
+  var x = c?.f2 /*@ checkReturn=List<(num*) ->* void>* */ ();
 }
 
 void main() {}

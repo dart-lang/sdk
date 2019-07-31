@@ -10,22 +10,22 @@ import self as self;
 import "dart:core" as core;
 
 class NoUnnamedConstuctor extends core::Object {
-  constructor _() → self::NoUnnamedConstuctor
+  constructor _() → self::NoUnnamedConstuctor*
     : super core::Object::•()
     ;
 }
 class MixMeIn extends core::Object {
-  synthetic constructor •() → self::MixMeIn
+  synthetic constructor •() → self::MixMeIn*
     : super core::Object::•()
     ;
 }
 abstract class _Foo&NoUnnamedConstuctor&MixMeIn extends self::NoUnnamedConstuctor implements self::MixMeIn {
-  synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn
+  synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
     : super self::NoUnnamedConstuctor::_()
     ;
 }
 class Foo extends self::_Foo&NoUnnamedConstuctor&MixMeIn {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     : invalid-initializer
     ;
 }

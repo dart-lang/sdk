@@ -50,7 +50,7 @@ import self as self;
 import "dart:core" as core;
 
 class Callable extends core::Object {
-  synthetic constructor •() → self::Callable
+  synthetic constructor •() → self::Callable*
     : super core::Object::•()
     ;
   method call(dynamic x) → dynamic {
@@ -58,24 +58,24 @@ class Callable extends core::Object {
   }
 }
 class CallableGetter extends core::Object {
-  synthetic constructor •() → self::CallableGetter
+  synthetic constructor •() → self::CallableGetter*
     : super core::Object::•()
     ;
   get call() → dynamic
     return new self::Callable::•();
 }
 static method main() → dynamic {
-  (dynamic) → dynamic closure = (dynamic x) → dynamic => x;
+  (dynamic) →* dynamic closure = (dynamic x) → dynamic => x;
   dynamic int1 = closure.call(1);
   dynamic int2 = closure.call(1);
   dynamic int3 = closure.call.call(1);
   dynamic int4 = closure.call.call.call(1);
-  self::Callable callable = new self::Callable::•();
+  self::Callable* callable = new self::Callable::•();
   dynamic string1 = callable.{self::Callable::call}(1);
   dynamic string2 = callable.{self::Callable::call}(1);
   dynamic string3 = callable.{self::Callable::call}.call(1);
   dynamic string4 = callable.{self::Callable::call}.call.call(1);
-  self::CallableGetter callableGetter = new self::CallableGetter::•();
+  self::CallableGetter* callableGetter = new self::CallableGetter::•();
   dynamic string5 = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/call.dart:29:31: Error: Cannot invoke an instance of 'CallableGetter' because it declares 'call' to be something other than a method.
  - 'CallableGetter' is from 'pkg/front_end/testcases/general/call.dart'.
 Try changing 'call' to a method or explicitly invoke 'call'.

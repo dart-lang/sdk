@@ -31,6 +31,6 @@ static method g() → dynamic sync*
 g() sync* => dummy;
              ^";
 static method h() → dynamic sync* {
-  (() → core::String => "return").call();
+  (() → core::String* => "return").call();
 }
 static method main() → dynamic {}

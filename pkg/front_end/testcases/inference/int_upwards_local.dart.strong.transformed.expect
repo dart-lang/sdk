@@ -3,5 +3,5 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::int x = 1;
+  core::int* x = 1;
 }

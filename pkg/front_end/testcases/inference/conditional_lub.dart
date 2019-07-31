@@ -11,5 +11,5 @@ double y = 0.0;
 var z = b ? x : y;
 
 main() {
-  var /*@type=num*/ z = b ? x : y;
+  var /*@ type=num* */ z = b ? x : y;
 }

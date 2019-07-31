@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic async {
-  core::Object o;
+  core::Object* o;
   for (dynamic x in o) {
   }
   await for (dynamic x in o) {
   }
-  core::int y;
+  core::int* y;
   for (final dynamic #t1 in o) {
     y = #t1;
   }

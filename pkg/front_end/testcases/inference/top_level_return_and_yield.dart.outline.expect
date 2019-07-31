@@ -5,18 +5,18 @@ import "dart:async" as asy;
 
 import "dart:async";
 
-typedef IntToInt = (core::int) → core::int;
-static method a() → (core::int) → core::int
+typedef IntToInt = (core::int*) →* core::int*;
+static method a() → (core::int*) →* core::int*
   ;
-static method b() → asy::Future<(core::int) → core::int>
+static method b() → asy::Future<(core::int*) →* core::int*>*
   ;
-static method c() → core::Iterable<(core::int) → core::int>
+static method c() → core::Iterable<(core::int*) →* core::int*>*
   ;
-static method d() → core::Iterable<(core::int) → core::int>
+static method d() → core::Iterable<(core::int*) →* core::int*>*
   ;
-static method e() → asy::Stream<(core::int) → core::int>
+static method e() → asy::Stream<(core::int*) →* core::int*>*
   ;
-static method f() → asy::Stream<(core::int) → core::int>
+static method f() → asy::Stream<(core::int*) →* core::int*>*
   ;
 static method main() → dynamic
   ;

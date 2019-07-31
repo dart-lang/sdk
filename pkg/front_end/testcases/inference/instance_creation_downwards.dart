@@ -12,6 +12,6 @@ class A<T> {
 class B<T> {}
 
 main() {
-  var /*@type=A<dynamic>*/ x =
-      new /*@typeArgs=dynamic*/ A(new /*@typeArgs=List<dynamic>*/ B());
+  var /*@ type=A<dynamic>* */ x =
+      new /*@ typeArgs=dynamic */ A(new /*@ typeArgs=List<dynamic>* */ B());
 }

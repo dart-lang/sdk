@@ -1025,23 +1025,23 @@ ConstantPool {
     try {
       dart.core::print("danger!");
     }
-    on dart.core::TypeError catch(no-exception-var) {
+    on dart.core::TypeError* catch(no-exception-var) {
       dart.core::print("caught type error");
     }
-    on dart.core::AssertionError catch(final dart.core::AssertionError e) {
+    on dart.core::AssertionError* catch(final dart.core::AssertionError* e) {
       dart.core::print("caught assertion error ${e}");
     }
-    on dart.core::Error catch(final dart.core::Error e, final dart.core::StackTrace st) {
+    on dart.core::Error* catch(final dart.core::Error* e, final dart.core::StackTrace* st) {
       dart.core::print("caught error ${e} ${st}");
     }
-    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
       dart.core::print("caught something ${e} ${st}");
     }
   }
   static method testTryCatch3() → dynamic {
-    dart.core::int x = 1;
+    dart.core::int* x = 1;
     try {
-      dart.core::int y = 2;
+      dart.core::int* y = 2;
       function foo() → void {
         try {
           dart.core::print("danger foo");
@@ -1051,23 +1051,23 @@ ConstantPool {
           y = 3;
         }
       }
-      [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
+      [@vm.call-site-attributes.metadata=receiverType:() →* void] foo.call();
       dart.core::print(y);
     }
-    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
       dart.core::print("caught ${e} ${st}");
       function bar() → void {
         try {
           dart.core::print("danger bar");
         }
-        on dart.core::Error catch(final dart.core::Error e) {
+        on dart.core::Error* catch(final dart.core::Error* e) {
           dart.core::print("error ${e}, captured stack trace: ${st}");
         }
       }
       return bar;
     }
   }
-  static method testRethrow(dart.core::bool cond) → dynamic {
+  static method testRethrow(dart.core::bool* cond) → dynamic {
     try {
       try {
         dart.core::print("try 1 > try 2");
@@ -1084,14 +1084,14 @@ ConstantPool {
         }
       }
     }
-    on dynamic catch(final dynamic e, final dart.core::StackTrace st) {
+    on dynamic catch(final dynamic e, final dart.core::StackTrace* st) {
       dart.core::print("catch 1");
       dart.core::print(st);
     }
   }
   static method testTryFinally1() → dynamic {
     #L1:
-    for (dart.core::int i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
+    for (dart.core::int* i = 0; i.{dart.core::num::<}(10); i = i.{dart.core::num::+}(1)) {
       try {
         if(i.{dart.core::num::>}(5)) {
           break #L1;
@@ -1102,7 +1102,7 @@ ConstantPool {
       }
     }
   }
-  static method testTryFinally2(dart.core::int x) → dynamic {
+  static method testTryFinally2(dart.core::int* x) → dynamic {
     #L2:
     switch(x) {
       #L3:
@@ -1110,14 +1110,14 @@ ConstantPool {
         {
           try {
             dart.core::print("before try 1");
-            dart.core::int y = 3;
+            dart.core::int* y = 3;
             try {
               dart.core::print("try");
               function foo() → void {
                 dart.core::print(x);
                 dart.core::print(y);
               }
-              [@vm.call-site-attributes.metadata=receiverType:() → void] foo.call();
+              [@vm.call-site-attributes.metadata=receiverType:() →* void] foo.call();
               continue #L4;
             }
             finally {
@@ -1139,10 +1139,10 @@ ConstantPool {
     }
   }
   static method testTryFinally3() → dynamic {
-    dart.core::int x = 11;
+    dart.core::int* x = 11;
     dynamic y;
     try {
-      y = () → dart.core::int {
+      y = () → dart.core::int* {
         dart.core::print(x);
         try {
           dart.core::print("try 1");

@@ -11,10 +11,10 @@ void add(int x) {}
 add2(int y) {}
 test() {
   Future<int> f;
-  var /*@type=Future<void>*/ a =
-      f. /*@typeArgs=void*/ /*@target=Future::then*/ then(add);
-  var /*@type=Future<dynamic>*/ b =
-      f. /*@typeArgs=dynamic*/ /*@target=Future::then*/ then(add2);
+  var /*@ type=Future<void>* */ a =
+      f. /*@ typeArgs=void */ /*@target=Future::then*/ then(add);
+  var /*@ type=Future<dynamic>* */ b =
+      f. /*@ typeArgs=dynamic */ /*@target=Future::then*/ then(add2);
 }
 
 main() {}

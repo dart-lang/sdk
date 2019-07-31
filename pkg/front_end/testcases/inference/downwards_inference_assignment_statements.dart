@@ -7,8 +7,8 @@ library test;
 
 void test() {
   List<int> l;
-  l = /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"];
-  l = (l = /*@typeArgs=int*/ [1]);
+  l = /*@ typeArgs=int* */ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"];
+  l = (l = /*@ typeArgs=int* */ [1]);
 }
 
 main() {}

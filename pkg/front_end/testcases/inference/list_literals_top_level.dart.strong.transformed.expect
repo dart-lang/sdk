@@ -20,26 +20,26 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static field core::List<core::int> x1 = <core::int>[1, 2, 3];
-static field core::List<core::num> x2 = <core::num>[1, 2.0, 3];
+static field core::List<core::int*>* x1 = <core::int*>[1, 2, 3];
+static field core::List<core::num*>* x2 = <core::num*>[1, 2.0, 3];
 static method test1() → dynamic {
   self::x1.{core::List::add}(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:10:72: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
 Try changing the type of the parameter, or casting the argument to 'int'.
   x1. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                       ^" in "hi" as{TypeError} core::int);
+                                                                       ^" in "hi" as{TypeError} core::int*);
   self::x1.{core::List::add}(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:11:72: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
 Try changing the type of the parameter, or casting the argument to 'int'.
   x1. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
-                                                                       ^" in 4.0 as{TypeError} core::int);
+                                                                       ^" in 4.0 as{TypeError} core::int*);
   self::x1.{core::List::add}(4);
-  core::List<core::num> y = self::x1;
+  core::List<core::num*>* y = self::x1;
 }
 static method test2() → dynamic {
   self::x2.{core::List::add}(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:18:72: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
 Try changing the type of the parameter, or casting the argument to 'num'.
   x2. /*@target=List::add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                       ^" in "hi" as{TypeError} core::num);
+                                                                       ^" in "hi" as{TypeError} core::num*);
   self::x2.{core::List::add}(4.0);
-  core::List<core::int> y = self::x2 as{TypeError} core::List<core::int>;
+  core::List<core::int*>* y = self::x2 as{TypeError} core::List<core::int*>*;
 }
 static method main() → dynamic {}

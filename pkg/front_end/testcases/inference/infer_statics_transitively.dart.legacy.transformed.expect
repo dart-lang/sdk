@@ -8,7 +8,7 @@ import "org-dartlang-testcase:///infer_statics_transitively_a.dart";
 static final field dynamic m1 = inf::a1;
 static final field dynamic m2 = inf::A::a2;
 static method foo() → dynamic {
-  core::int i;
+  core::int* i;
   i = self::m1;
 }
 static method main() → dynamic {}
@@ -24,7 +24,7 @@ import "org-dartlang-testcase:///infer_statics_transitively_b.dart";
 
 class A extends core::Object {
   static final field dynamic a2 = inf2::b1;
-  synthetic constructor •() → inf::A
+  synthetic constructor •() → inf::A*
     : super core::Object::•()
     ;
 }

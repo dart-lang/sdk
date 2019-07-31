@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Test1 extends core::Object {
-  field core::int t = null;
-  synthetic constructor •() → self::Test1
+  field core::int* t = null;
+  synthetic constructor •() → self::Test1*
     : super core::Object::•()
     ;
   method test() → void {
@@ -16,8 +16,8 @@ class Test1 extends core::Object {
   }
 }
 class Test2 extends core::Object {
-  field core::num t = null;
-  synthetic constructor •() → self::Test2
+  field core::num* t = null;
+  synthetic constructor •() → self::Test2*
     : super core::Object::•()
     ;
   method test() → void {
@@ -35,8 +35,8 @@ class Test2 extends core::Object {
   }
 }
 class Test3 extends core::Object {
-  field core::double t = null;
-  synthetic constructor •() → self::Test3
+  field core::double* t = null;
+  synthetic constructor •() → self::Test3*
     : super core::Object::•()
     ;
   method test3() → void {
@@ -49,10 +49,10 @@ class Test3 extends core::Object {
     dynamic v11 = let final dynamic #t10 = this.{self::Test3::t} in let final dynamic #t11 = this.{self::Test3::t} = #t10.+(1) in #t10;
   }
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   return 0;
-static method getNum() → core::num
+static method getNum() → core::num*
   return 0;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   return 0.0;
 static method main() → dynamic {}

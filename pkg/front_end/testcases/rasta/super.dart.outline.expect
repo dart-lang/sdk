@@ -18,7 +18,7 @@ class A extends core::Object {
   field dynamic c;
   field dynamic d;
   final field dynamic f;
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
   get e() → dynamic
     ;
@@ -38,7 +38,7 @@ class A extends core::Object {
     ;
   operator unary-() → dynamic
     ;
-  operator ==(dynamic other) → core::bool
+  operator ==(dynamic other) → core::bool*
     ;
   method m() → void
     ;
@@ -49,7 +49,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   final field dynamic d;
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
   get b() → dynamic
     ;
@@ -59,7 +59,7 @@ class B extends self::A {
     ;
 }
 class C extends self::B {
-  synthetic constructor •() → self::C
+  synthetic constructor •() → self::C*
     ;
   method test() → dynamic
     ;

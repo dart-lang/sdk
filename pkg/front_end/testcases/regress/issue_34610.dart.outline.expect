@@ -33,7 +33,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
   get A() → dynamic
     ;
@@ -43,13 +43,13 @@ class A extends core::Object {
     ;
 }
 class B extends core::Object {
-  constructor named() → self::B
+  constructor named() → self::B*
     ;
   get bar() → dynamic
     ;
 }
 class C extends core::Object {
-  constructor named() → self::C
+  constructor named() → self::C*
     ;
   get bar() → dynamic
     ;

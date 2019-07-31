@@ -19,7 +19,7 @@ static method test() → dynamic {
   function f5() → dynamic async* {
     yield 42;
   }
-  function f6() → core::num
+  function f6() → core::num*
     return 42;
   function f7() → dynamic
     return f7.call();

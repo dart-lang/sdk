@@ -5,7 +5,7 @@ import "infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles.dart";
 
 class B extends test::A {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super test::A::•()
     ;
 }
@@ -27,25 +27,25 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///infer_type_regardless_of_declaration_order_or_cycles_b.dart";
 
 class C extends self::B {
-  synthetic constructor •() → test::C
+  synthetic constructor •() → test::C*
     : super self::B::•()
     ;
-  get x() → core::int
+  get x() → core::int*
     return null;
 }
 class A extends core::Object {
-  synthetic constructor •() → test::A
+  synthetic constructor •() → test::A*
     : super core::Object::•()
     ;
-  get x() → core::int
+  get x() → core::int*
     return 0;
 }
 static method foo() → dynamic {
-  core::int y = new test::C::•().{test::C::x};
-  core::String z = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+  core::int* y = new test::C::•().{test::C::x};
+  core::String* z = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:69: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the left hand side, or casting the right hand side to 'String'.
   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C::x*/ x;
-                                                                    ^" in new test::C::•().{test::C::x} as{TypeError} core::String;
+                                                                    ^" in new test::C::•().{test::C::x} as{TypeError} core::String*;
 }
 static method main() → dynamic {
   test::foo();

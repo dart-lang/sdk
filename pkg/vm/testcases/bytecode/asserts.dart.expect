@@ -86,11 +86,11 @@ ConstantPool {
 }
 ]library #lib from "#lib" as #lib {
 
-  static method test1(dart.core::bool condition) → void {
+  static method test1(dart.core::bool* condition) → void {
     assert(condition);
   }
-  static method test2(() → dart.core::bool condition, () → dart.core::String message) → void {
-    assert([@vm.call-site-attributes.metadata=receiverType:() → dart.core::bool] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() → dart.core::String] message.call());
+  static method test2(() →* dart.core::bool* condition, () →* dart.core::String* message) → void {
+    assert([@vm.call-site-attributes.metadata=receiverType:() →* dart.core::bool*] condition.call(), [@vm.call-site-attributes.metadata=receiverType:() →* dart.core::String*] message.call());
   }
   static method main() → dynamic {}
 }

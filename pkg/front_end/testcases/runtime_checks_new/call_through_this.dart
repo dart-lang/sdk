@@ -31,7 +31,7 @@ class E extends C<num> {
 }
 
 test() {
-  var x = new D().g4 /*@checkReturn=(int) -> dynamic*/ () as F<Object>;
+  var x = new D().g4 /*@ checkReturn=(int*) ->* dynamic */ () as F<Object>;
   x('hi');
   new E().g1(1.5);
 }

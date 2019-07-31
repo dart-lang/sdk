@@ -9,5 +9,5 @@ library;
 import self as self;
 
 static method main() → dynamic {
-  <dynamic>[let final () → dynamic f = () → dynamic {} in f];
+  <dynamic>[let final () →* dynamic f = () → dynamic {} in f];
 }

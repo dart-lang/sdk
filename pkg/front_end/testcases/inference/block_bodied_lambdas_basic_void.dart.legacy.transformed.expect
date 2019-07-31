@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 static method f() → dynamic {
-  core::List<core::int> o;
+  core::List<core::int*>* o;
   o.where((dynamic i) → dynamic {
     return i.==(0);
   });

@@ -6,8 +6,8 @@
 library test;
 
 main() {
-  var /*@type=double*/ v = (/*@returnType=double*/ (/*@type=dynamic*/ x) =>
-      1.0)(/*@returnType=int*/ () {
+  var /*@ type=double* */ v = (/*@ returnType=double* */ (/*@ type=dynamic */ x) =>
+      1.0)(/*@ returnType=int* */ () {
     return 1;
   });
 }

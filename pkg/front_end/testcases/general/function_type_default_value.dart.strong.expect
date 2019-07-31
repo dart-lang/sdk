@@ -20,5 +20,5 @@ library;
 //
 import self as self;
 
-static field () → void x;
+static field () →* void x;
 static method main() → dynamic {}

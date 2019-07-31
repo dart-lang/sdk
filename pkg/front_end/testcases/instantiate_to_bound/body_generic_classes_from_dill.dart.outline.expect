@@ -5,7 +5,7 @@ import "dart:core" as core;
 import "dart:collection";
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
   method foo() → dynamic
     ;

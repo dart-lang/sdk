@@ -9,7 +9,7 @@ class Foo {
   const Foo(List<String> l);
 }
 
-@Foo(/*@typeArgs=String*/ const [])
+@Foo(/*@ typeArgs=String* */ const [])
 typedef void F();
 
 main() {}

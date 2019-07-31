@@ -13,21 +13,21 @@ import "dart:core" as core;
 import "dart:core" as core;
 
 class A extends core::Object implements core::Function {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
-  operator ==(dynamic other) → core::bool
+  operator ==(dynamic other) → core::bool*
     ;
 }
 class B extends core::Object implements self::Function {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     ;
-  operator ==(invalid-type other) → core::bool
+  operator ==(invalid-type other) → core::bool*
     ;
 }
 class Function extends core::Object {
-  synthetic constructor •() → self::Function
+  synthetic constructor •() → self::Function*
     ;
-  operator ==(core::Object other) → core::bool
+  operator ==(core::Object* other) → core::bool*
     ;
 }
 static method main() → dynamic

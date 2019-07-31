@@ -61,7 +61,7 @@ import self as iss;
 import "dart:core" as core;
 
 class xxx extends core::Object {
-  synthetic constructor •() → iss::xxx
+  synthetic constructor •() → iss::xxx*
     ;
 }
 static field invalid-type XXX;

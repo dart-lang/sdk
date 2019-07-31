@@ -12,7 +12,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///issue_34291_lib.dart" as lib;
 
 class B extends core::Object {
-  synthetic constructor •() → self::B
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
@@ -24,7 +24,7 @@ import self as self2;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self2::A
+  synthetic constructor •() → self2::A*
     : super core::Object::•()
     ;
 }

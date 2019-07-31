@@ -4,7 +4,7 @@ import "deferred_lib.dart" as def;
 
 import "org-dartlang-testcase:///deferred_lib.dart" deferred as d;
 
-static method bad(def::C x) → dynamic
+static method bad(def::C* x) → dynamic
   ;
 static method main() → dynamic
   ;
@@ -14,10 +14,10 @@ import self as def;
 import "dart:core" as core;
 
 class C extends core::Object {
-  static field core::int y;
-  synthetic constructor •() → def::C
+  static field core::int* y;
+  synthetic constructor •() → def::C*
     ;
-  static method m() → core::int
+  static method m() → core::int*
     ;
 }
 static field dynamic x;

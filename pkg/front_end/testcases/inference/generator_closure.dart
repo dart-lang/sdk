@@ -10,7 +10,7 @@ import 'dart:async';
 void foo(Stream<int> Function() values) {}
 
 void main() {
-  foo(/*@returnType=Stream<int>*/ () async* {
+  foo(/*@ returnType=Stream<int*>* */ () async* {
     yield 0;
     yield 1;
   });

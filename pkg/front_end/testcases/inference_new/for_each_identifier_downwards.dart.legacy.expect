@@ -3,18 +3,18 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class C extends core::Object {
-  field self::A aField = null;
-  synthetic constructor •() → self::C
+  field self::A* aField = null;
+  synthetic constructor •() → self::C*
     : super core::Object::•()
     ;
-  set aSetter(self::A value) → void {}
+  set aSetter(self::A* value) → void {}
   method test() → void {
-    self::A aLocal;
+    self::A* aLocal;
     for (final dynamic #t1 in self::f<dynamic>()) {
       aLocal = #t1;
     }
@@ -32,8 +32,8 @@ class C extends core::Object {
     }
   }
 }
-static field self::A aTopLevel;
-static method f<T extends core::Object = dynamic>() → self::f::T
+static field self::A* aTopLevel;
+static method f<T extends core::Object* = dynamic>() → self::f::T*
   return null;
-static set aTopLevelSetter(self::A value) → void {}
+static set aTopLevelSetter(self::A* value) → void {}
 static method main() → dynamic {}

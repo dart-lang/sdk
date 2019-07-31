@@ -185,26 +185,26 @@ main() {
   c.field1;
   c.field2;
   try {
-    c. /*@checkReturn=(num) -> void*/ field3;
+    c. /*@ checkReturn=(num*) ->* void */ field3;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(num) -> num*/ field4;
+    c. /*@ checkReturn=(num*) ->* num* */ field4;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   c.field5;
   try {
-    c. /*@checkReturn=(() -> num) -> void*/ field6;
+    c. /*@ checkReturn=(() ->* num*) ->* void */ field6;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(() -> num) -> num*/ field7;
+    c. /*@ checkReturn=(() ->* num*) ->* num* */ field7;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -212,37 +212,37 @@ main() {
   c.field8;
   c.field9;
   try {
-    c. /*@checkReturn=((num) -> num) -> void*/ field10;
+    c. /*@ checkReturn=((num*) ->* num*) ->* void */ field10;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=((num) -> num) -> num*/ field11;
+    c. /*@ checkReturn=((num*) ->* num*) ->* num* */ field11;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>() -> S*/ field12;
+    c. /*@ checkReturn=<S extends num* = dynamic>() ->* S */ field12;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> void*/ field13;
+    c. /*@ checkReturn=<S extends num* = dynamic>(S) ->* void */ field13;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> S*/ field14;
+    c. /*@ checkReturn=<S extends num* = dynamic>(S) ->* S */ field14;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(<S extends num = dynamic>() -> S) -> void*/ field15;
+    c. /*@ checkReturn=(<S extends num* = dynamic>() ->* S) ->* void */ field15;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -251,26 +251,26 @@ main() {
   c.getter1;
   c.getter2;
   try {
-    c. /*@checkReturn=(num) -> void*/ getter3;
+    c. /*@ checkReturn=(num*) ->* void */ getter3;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(num) -> num*/ getter4;
+    c. /*@ checkReturn=(num*) ->* num* */ getter4;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   c.getter5;
   try {
-    c. /*@checkReturn=(() -> num) -> void*/ getter6;
+    c. /*@ checkReturn=(() ->* num*) ->* void */ getter6;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(() -> num) -> num*/ getter7;
+    c. /*@ checkReturn=(() ->* num*) ->* num* */ getter7;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
@@ -278,37 +278,37 @@ main() {
   c.getter8;
   c.getter9;
   try {
-    c. /*@checkReturn=((num) -> num) -> void*/ getter10;
+    c. /*@ checkReturn=((num*) ->* num*) ->* void */ getter10;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=((num) -> num) -> num*/ getter11;
+    c. /*@ checkReturn=((num*) ->* num*) ->* num* */ getter11;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>() -> S*/ getter12;
+    c. /*@ checkReturn=<S extends num* = dynamic>() ->* S */ getter12;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> void*/ getter13;
+    c. /*@ checkReturn=<S extends num* = dynamic>(S) ->* void */ getter13;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=<S extends num = dynamic>(S) -> S*/ getter14;
+    c. /*@ checkReturn=<S extends num* = dynamic>(S) ->* S */ getter14;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);
   }
   try {
-    c. /*@checkReturn=(<S extends num = dynamic>() -> S) -> void*/ getter15;
+    c. /*@ checkReturn=(<S extends num* = dynamic>() ->* S) ->* void */ getter15;
     throw 'TypeError expected';
   } on TypeError catch (e) {
     print(e);

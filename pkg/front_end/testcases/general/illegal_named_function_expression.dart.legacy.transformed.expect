@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  dynamic x = let final <T extends core::Object = dynamic>(T) → void f = <T extends core::Object = dynamic>(T t) → void {} in f;
+  dynamic x = let final <T extends core::Object* = dynamic>(T*) →* void f = <T extends core::Object* = dynamic>(T* t) → void {} in f;
   core::print(x.runtimeType);
-  core::print(let final <T extends core::Object = dynamic>(T) → void g = <T extends core::Object = dynamic>(T t) → void {} in g);
+  core::print(let final <T extends core::Object* = dynamic>(T*) →* void g = <T extends core::Object* = dynamic>(T* t) → void {} in g);
 }

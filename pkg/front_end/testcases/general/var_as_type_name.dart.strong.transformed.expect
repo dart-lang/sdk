@@ -18,12 +18,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field core::Map<core::String, invalid-type> m = null;
-  synthetic constructor •() → self::A
+  field core::Map<core::String*, invalid-type>* m = null;
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {
-  self::A a = new self::A::•();
+  self::A* a = new self::A::•();
   a.{self::A::m} = null;
 }

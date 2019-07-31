@@ -7,7 +7,7 @@ library test;
 
 T run<T>(T f()) {
   print("running");
-  var /*@type=run::T*/ t = f();
+  var /*@ type=run::T* */ t = f();
   print("done running");
   return t;
 }
@@ -23,8 +23,8 @@ main() {
     print("running");
   }
 
-  var /*@type=dynamic*/ x = run<dynamic>(printRunning);
-  var /*@type=void*/ y = /*info:USE_OF_VOID_RESULT*/ /*@typeArgs=void*/ run(
+  var /*@ type=dynamic */ x = run<dynamic>(printRunning);
+  var /*@ type=void */ y = /*info:USE_OF_VOID_RESULT*/ /*@ typeArgs=void */ run(
       printRunning);
   x = 123;
   x = 'hi';

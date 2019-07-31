@@ -3,12 +3,12 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  synthetic constructor •() → self::A
+  synthetic constructor •() → self::A*
     ;
-  operator +(core::int i) → core::String
+  operator +(core::int* i) → core::String*
     ;
 }
-static method test(core::int i, core::String s, self::A a) → dynamic
+static method test(core::int* i, core::String* s, self::A* a) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  final field core::String foo;
-  constructor •(core::String foo) → self::A
+  final field core::String* foo;
+  constructor •(core::String* foo) → self::A*
     : self::A::foo = foo, super core::Object::•()
     ;
-  operator ==(core::Object other) → core::bool {
-    if(other is self::A && other{self::A}.{self::A::foo}.{core::String::==}(this.{self::A::foo})) {
-      if(other{self::A}.{self::A::foo}.{core::String::==}(this.{self::A::foo})) {
+  operator ==(core::Object* other) → core::bool* {
+    if(other is self::A* && other{self::A*}.{self::A::foo}.{core::String::==}(this.{self::A::foo})) {
+      if(other{self::A*}.{self::A::foo}.{core::String::==}(this.{self::A::foo})) {
       }
     }
     return true;

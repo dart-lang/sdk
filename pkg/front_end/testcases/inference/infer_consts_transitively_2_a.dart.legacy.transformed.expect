@@ -17,7 +17,7 @@ import "org-dartlang-testcase:///infer_consts_transitively_2_a.dart";
 static const field dynamic m1 = #C1;
 static const field dynamic m2 = #C1;
 static method foo() → dynamic {
-  core::int i;
+  core::int* i;
   i = #C1;
 }
 static method main() → dynamic {}

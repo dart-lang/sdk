@@ -30,16 +30,16 @@ import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
-  constructor a() → self::C
+  constructor a() → self::C*
     : super core::Object::•()
     ;
-  constructor b() → self::C
+  constructor b() → self::C*
     : super core::Object::•()
     ;
-  constructor c() → self::C
+  constructor c() → self::C*
     : super core::Object::•()
     ;
-  constructor d() → self::C
+  constructor d() → self::C*
     : super core::Object::•()
     ;
 }

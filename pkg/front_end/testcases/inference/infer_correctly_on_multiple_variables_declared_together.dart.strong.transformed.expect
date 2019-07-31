@@ -22,40 +22,40 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field dynamic x = null;
-  field core::int y = 2;
-  field core::String z = "hi";
-  synthetic constructor •() → self::A
+  field core::int* y = 2;
+  field core::String* z = "hi";
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends core::Object implements self::A {
   field dynamic x = 2;
-  field core::int y = 3;
-  field core::String z = null;
-  field core::int w = 2;
-  synthetic constructor •() → self::B
+  field core::int* y = 3;
+  field core::String* z = null;
+  field core::int* w = 2;
+  synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
 }
 static method foo() → dynamic {
-  core::String s;
-  core::int i;
-  s = new self::B::•().{self::B::x} as{TypeError} core::String;
+  core::String* s;
+  core::int* i;
+  s = new self::B::•().{self::B::x} as{TypeError} core::String*;
   s = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:21:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the left hand side, or casting the right hand side to 'String'.
   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::y*/ y;
-                                                             ^" in new self::B::•().{self::B::y} as{TypeError} core::String;
+                                                             ^" in new self::B::•().{self::B::y} as{TypeError} core::String*;
   s = new self::B::•().{self::B::z};
   s = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:23:62: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
 Try changing the type of the left hand side, or casting the right hand side to 'String'.
   s = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::w*/ w;
-                                                             ^" in new self::B::•().{self::B::w} as{TypeError} core::String;
-  i = new self::B::•().{self::B::x} as{TypeError} core::int;
+                                                             ^" in new self::B::•().{self::B::w} as{TypeError} core::String*;
+  i = new self::B::•().{self::B::x} as{TypeError} core::int*;
   i = new self::B::•().{self::B::y};
   i = let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/inference/infer_correctly_on_multiple_variables_declared_together.dart:27:62: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 Try changing the type of the left hand side, or casting the right hand side to 'int'.
   i = /*error:INVALID_ASSIGNMENT*/ new B(). /*@target=B::z*/ z;
-                                                             ^" in new self::B::•().{self::B::z} as{TypeError} core::int;
+                                                             ^" in new self::B::•().{self::B::z} as{TypeError} core::int*;
   i = new self::B::•().{self::B::w};
 }
 static method main() → dynamic {}

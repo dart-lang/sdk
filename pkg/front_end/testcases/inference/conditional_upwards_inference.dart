@@ -11,9 +11,9 @@ class C<T> {
 
 main() {
   bool b = false;
-  List<int> l1 = /*@typeArgs=int*/ [1];
-  List<int> l2 = /*@typeArgs=int*/ [2];
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(l1);
-  var /*@type=C<int>*/ y = new /*@typeArgs=int*/ C(l2);
-  var /*@type=C<int>*/ z = new /*@typeArgs=int*/ C(b ? l1 : l2);
+  List<int> l1 = /*@ typeArgs=int* */ [1];
+  List<int> l2 = /*@ typeArgs=int* */ [2];
+  var /*@ type=C<int*>* */ x = new /*@ typeArgs=int* */ C(l1);
+  var /*@ type=C<int*>* */ y = new /*@ typeArgs=int* */ C(l2);
+  var /*@ type=C<int*>* */ z = new /*@ typeArgs=int* */ C(b ? l1 : l2);
 }

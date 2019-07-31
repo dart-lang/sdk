@@ -21,12 +21,12 @@ import self as self;
 import "dart:core" as core;
 
 class Constant extends core::Object {
-  const constructor •() → self::Constant
+  const constructor •() → self::Constant*
     : super core::Object::•()
     ;
 }
 class NotConstant extends core::Object {
-  synthetic constructor •() → self::NotConstant
+  synthetic constructor •() → self::NotConstant*
     : super core::Object::•()
     ;
 }

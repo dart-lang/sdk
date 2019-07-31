@@ -3,24 +3,24 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  synthetic constructor •() → self::Foo
+  synthetic constructor •() → self::Foo*
     ;
 }
 class Bar extends self::Foo {
-  synthetic constructor •() → self::Bar
+  synthetic constructor •() → self::Bar*
     ;
 }
 class Base extends core::Object {
-  synthetic constructor •() → self::Base
+  synthetic constructor •() → self::Base*
     ;
-  method method() → self::Foo
+  method method() → self::Foo*
     ;
 }
 class Sub extends self::Base {
-  synthetic constructor •() → self::Sub
+  synthetic constructor •() → self::Sub*
     ;
-  method method() → self::Foo
+  method method() → self::Foo*
     ;
 }
-static method main(core::List<core::String> args) → dynamic
+static method main(core::List<core::String*>* args) → dynamic
   ;

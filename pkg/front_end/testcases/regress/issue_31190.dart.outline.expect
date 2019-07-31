@@ -14,9 +14,9 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Typed<T extends core::Object = dynamic> extends core::Object {
+class Typed<T extends core::Object* = dynamic> extends core::Object {
   field invalid-type v;
-  synthetic constructor •() → self::Typed<self::Typed::T>
+  synthetic constructor •() → self::Typed<self::Typed::T*>*
     ;
 }
 static method main() → dynamic

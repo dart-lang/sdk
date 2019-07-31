@@ -24,24 +24,24 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  field core::int f = null;
-  constructor •() → self::C1
+  field core::int* f = null;
+  constructor •() → self::C1*
     : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:5:26: Error: This couldn't be parsed.
 class C1 { int f; C1() : ; }
                          ^"
     ;
 }
 class C2 extends core::Object {
-  field core::int f;
-  constructor •() → self::C2
+  field core::int* f;
+  constructor •() → self::C2*
     : self::C2::f = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:6:27: Error: This couldn't be parsed.
 class C2 { int f; C2() : f; }
                           ^", super core::Object::•()
     ;
 }
 class C3 extends core::Object {
-  field core::int f = null;
-  constructor •() → self::C3
+  field core::int* f = null;
+  constructor •() → self::C3*
     : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/constructor_initializer_invalid.dart:7:26: Error: This couldn't be parsed.
 class C3 { int f; C3() : f++; }
                          ^"

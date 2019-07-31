@@ -3,11 +3,11 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Test1 extends core::Object {
-  synthetic constructor •() → self::Test1
+  synthetic constructor •() → self::Test1*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t1 = "x" in let final dynamic #t2 = self::getInt() in let final dynamic #t3 = this.[]=(#t1, #t2) in #t2;
     dynamic v2 = let final dynamic #t4 = "x" in let final dynamic #t5 = self::getNum() in let final dynamic #t6 = this.[]=(#t4, #t5) in #t5;
@@ -20,11 +20,11 @@ abstract class Test1 extends core::Object {
   }
 }
 abstract class Test2 extends core::Object {
-  synthetic constructor •() → self::Test2
+  synthetic constructor •() → self::Test2*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t27 = "x" in let final dynamic #t28 = self::getInt() in let final dynamic #t29 = this.[]=(#t27, #t28) in #t28;
     dynamic v2 = let final dynamic #t30 = "x" in let final dynamic #t31 = self::getNum() in let final dynamic #t32 = this.[]=(#t30, #t31) in #t31;
@@ -40,11 +40,11 @@ abstract class Test2 extends core::Object {
   }
 }
 abstract class Test3 extends core::Object {
-  synthetic constructor •() → self::Test3
+  synthetic constructor •() → self::Test3*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::int;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::int*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void {
     dynamic v2 = let final dynamic #t63 = "x" in let final dynamic #t64 = self::getNum() in let final dynamic #t65 = this.[]=(#t63, #t64) in #t64;
     dynamic v3 = let final dynamic #t66 = "x" in let final dynamic #t67 = self::getDouble() in let final dynamic #t68 = this.[]=(#t66, #t67) in #t67;
@@ -58,11 +58,11 @@ abstract class Test3 extends core::Object {
   }
 }
 abstract class Test4 extends core::Object {
-  synthetic constructor •() → self::Test4
+  synthetic constructor •() → self::Test4*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t92 = "x" in let final dynamic #t93 = self::getInt() in let final dynamic #t94 = this.[]=(#t92, #t93) in #t93;
     dynamic v2 = let final dynamic #t95 = "x" in let final dynamic #t96 = self::getNum() in let final dynamic #t97 = this.[]=(#t95, #t96) in #t96;
@@ -75,11 +75,11 @@ abstract class Test4 extends core::Object {
   }
 }
 abstract class Test5 extends core::Object {
-  synthetic constructor •() → self::Test5
+  synthetic constructor •() → self::Test5*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t118 = "x" in let final dynamic #t119 = self::getInt() in let final dynamic #t120 = this.[]=(#t118, #t119) in #t119;
     dynamic v2 = let final dynamic #t121 = "x" in let final dynamic #t122 = self::getNum() in let final dynamic #t123 = this.[]=(#t121, #t122) in #t122;
@@ -95,11 +95,11 @@ abstract class Test5 extends core::Object {
   }
 }
 abstract class Test6 extends core::Object {
-  synthetic constructor •() → self::Test6
+  synthetic constructor •() → self::Test6*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::num;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::num*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void {
     dynamic v2 = let final dynamic #t154 = "x" in let final dynamic #t155 = self::getNum() in let final dynamic #t156 = this.[]=(#t154, #t155) in #t155;
     dynamic v3 = let final dynamic #t157 = "x" in let final dynamic #t158 = self::getDouble() in let final dynamic #t159 = this.[]=(#t157, #t158) in #t158;
@@ -113,11 +113,11 @@ abstract class Test6 extends core::Object {
   }
 }
 abstract class Test7 extends core::Object {
-  synthetic constructor •() → self::Test7
+  synthetic constructor •() → self::Test7*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::int v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::int* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t183 = "x" in let final dynamic #t184 = self::getInt() in let final dynamic #t185 = this.[]=(#t183, #t184) in #t184;
     dynamic v2 = let final dynamic #t186 = "x" in let final dynamic #t187 = self::getNum() in let final dynamic #t188 = this.[]=(#t186, #t187) in #t187;
@@ -130,11 +130,11 @@ abstract class Test7 extends core::Object {
   }
 }
 abstract class Test8 extends core::Object {
-  synthetic constructor •() → self::Test8
+  synthetic constructor •() → self::Test8*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::num v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::num* v) → void;
   method test() → void {
     dynamic v1 = let final dynamic #t209 = "x" in let final dynamic #t210 = self::getInt() in let final dynamic #t211 = this.[]=(#t209, #t210) in #t210;
     dynamic v2 = let final dynamic #t212 = "x" in let final dynamic #t213 = self::getNum() in let final dynamic #t214 = this.[]=(#t212, #t213) in #t213;
@@ -150,11 +150,11 @@ abstract class Test8 extends core::Object {
   }
 }
 abstract class Test9 extends core::Object {
-  synthetic constructor •() → self::Test9
+  synthetic constructor •() → self::Test9*
     : super core::Object::•()
     ;
-  abstract operator [](core::String s) → core::double;
-  abstract operator []=(core::String s, core::double v) → void;
+  abstract operator [](core::String* s) → core::double*;
+  abstract operator []=(core::String* s, core::double* v) → void;
   method test() → void {
     dynamic v2 = let final dynamic #t245 = "x" in let final dynamic #t246 = self::getNum() in let final dynamic #t247 = this.[]=(#t245, #t246) in #t246;
     dynamic v3 = let final dynamic #t248 = "x" in let final dynamic #t249 = self::getDouble() in let final dynamic #t250 = this.[]=(#t248, #t249) in #t249;
@@ -167,10 +167,10 @@ abstract class Test9 extends core::Object {
     dynamic v11 = let final dynamic #t271 = "x" in let final dynamic #t272 = this.[](#t271) in let final dynamic #t273 = this.[]=(#t271, #t272.+(1)) in #t272;
   }
 }
-static method getInt() → core::int
+static method getInt() → core::int*
   return 0;
-static method getNum() → core::num
+static method getNum() → core::num*
   return 0;
-static method getDouble() → core::double
+static method getDouble() → core::double*
   return 0.0;
 static method main() → dynamic {}

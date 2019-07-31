@@ -12,15 +12,15 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field invalid-type x = (() → invalid-type => new self::B::•().{self::B::x}) as{TypeError} invalid-type;
-  field () → invalid-type y = () → invalid-type => new self::B::•().{self::B::x};
-  synthetic constructor •() → self::A
+  field () →* invalid-type y = () → invalid-type => new self::B::•().{self::B::x};
+  synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
 }
 class B extends self::A {
   field invalid-type x = null;
-  field () → invalid-type y = null;
-  synthetic constructor •() → self::B
+  field () →* invalid-type y = null;
+  synthetic constructor •() → self::B*
     : super self::A::•()
     ;
 }
