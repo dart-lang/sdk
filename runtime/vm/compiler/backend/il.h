@@ -1295,6 +1295,7 @@ class BlockEntryInstr : public Instruction {
 
   TO_S_EXPRESSION_SUPPORT
   ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
+  ADD_EXTRA_INFO_TO_S_EXPRESSION_SUPPORT
 
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index, intptr_t deopt_id)
@@ -4148,6 +4149,7 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;
@@ -4281,6 +4283,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   PRINT_OPERANDS_TO_SUPPORT
+  ADD_OPERANDS_TO_S_EXPRESSION_SUPPORT
 
  private:
   const LocalVariable& local_;

@@ -5,6 +5,7 @@
 #include "vm/compiler/backend/il_deserializer.h"
 #include "vm/compiler/backend/il_serializer.h"
 
+#include <cmath>
 #include "platform/assert.h"
 #include "vm/unit_test.h"
 
@@ -77,6 +78,76 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExp) {
     auto val = sexp->AsList()->ExtraLookupValue("foo");
     EXPECT(val->IsString());
     EXPECT_STREQ("123\\", val->AsString()->value());
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(DeserializeSExpNumbers) {
+  Zone* const zone = Thread::Current()->zone();
+
+  // Negative integers are handled.
+  {
+    const char* const cstr = "(-4 -50 -1414243)";
+    SExpParser parser(zone, cstr, strlen(cstr));
+    SExpression* const sexp = parser.Parse();
+    EXPECT_NOTNULL(sexp);
+    EXPECT(sexp->IsList());
+    auto list = sexp->AsList();
+    EXPECT_EQ(3, list->Length());
+    EXPECT_EQ(0, list->ExtraLength());
+    for (intptr_t i = 0; i < list->Length(); i++) {
+      EXPECT(list->At(i)->IsInteger());
+      EXPECT(list->At(i)->AsInteger()->value() < 0);
+    }
+  }
+
+  // Various decimal/exponent Doubles are appropriately handled.
+  {
+    const char* const cstr = "(1.05 0.05 .03 1e100 1e-100)";
+    SExpParser parser(zone, cstr, strlen(cstr));
+    SExpression* const sexp = parser.Parse();
+    EXPECT_NOTNULL(sexp);
+    EXPECT(sexp->IsList());
+    auto list = sexp->AsList();
+    EXPECT_EQ(5, list->Length());
+    EXPECT_EQ(0, list->ExtraLength());
+    EXPECT(list->At(0)->IsDouble());
+    double val = list->At(0)->AsDouble()->value();
+    EXPECT(val > 1.04 && val < 1.06);
+    EXPECT(list->At(1)->IsDouble());
+    val = list->At(1)->AsDouble()->value();
+    EXPECT(val > 0.04 && val < 0.06);
+    EXPECT(list->At(2)->IsDouble());
+    val = list->At(2)->AsDouble()->value();
+    EXPECT(val > 0.02 && val < 0.04);
+    EXPECT(list->At(3)->IsDouble());
+    val = list->At(3)->AsDouble()->value();
+    EXPECT(val > 0.9e100 && val < 1.1e100);
+    EXPECT(list->At(4)->IsDouble());
+    val = list->At(4)->AsDouble()->value();
+    EXPECT(val > 0.9e-100 && val < 1.1e-100);
+  }
+
+  // Special Double symbols are appropriately handled.
+  {
+    const char* const cstr = "(NaN Infinity -Infinity)";
+    SExpParser parser(zone, cstr, strlen(cstr));
+    SExpression* const sexp = parser.Parse();
+    EXPECT_NOTNULL(sexp);
+    EXPECT(sexp->IsList());
+    auto list = sexp->AsList();
+    EXPECT_EQ(3, list->Length());
+    EXPECT_EQ(0, list->ExtraLength());
+    EXPECT(list->At(0)->IsDouble());
+    double val = list->At(0)->AsDouble()->value();
+    EXPECT(isnan(val));
+    EXPECT(list->At(1)->IsDouble());
+    val = list->At(1)->AsDouble()->value();
+    EXPECT(val > 0.0);
+    EXPECT(isinf(val));
+    EXPECT(list->At(2)->IsDouble());
+    val = list->At(2)->AsDouble()->value();
+    EXPECT(val < 0.0);
+    EXPECT(isinf(val));
   }
 }
 

@@ -8,9 +8,19 @@
 
 #include <ctype.h>
 #include "platform/utils.h"
+#include "vm/double_conversion.h"
 #include "vm/object.h"
 
 namespace dart {
+
+const char* const SExpParser::kBoolTrueSymbol = "true";
+const char* const SExpParser::kBoolFalseSymbol = "false";
+char const SExpParser::kDoubleExponentChar =
+    DoubleToStringConstants::kExponentChar;
+const char* const SExpParser::kDoubleInfinitySymbol =
+    DoubleToStringConstants::kInfinitySymbol;
+const char* const SExpParser::kDoubleNaNSymbol =
+    DoubleToStringConstants::kNaNSymbol;
 
 const char* const SExpParser::ErrorStrings::kOpenString =
     "unterminated quoted string starting at position %" Pd "";
@@ -153,7 +163,8 @@ SExpression* SExpParser::Parse() {
         break;
       }
       case kBoolean:
-      case kNumber:
+      case kInteger:
+      case kDouble:
       case kQuotedString: {
         auto sexp = TokenToSExpression(token);
         // TokenToSExpression has already set the error info, so just return.
@@ -190,15 +201,25 @@ SExpression* SExpParser::TokenToSExpression(Token* token) {
   switch (token->type()) {
     case kSymbol:
       return new (zone_) SExpSymbol(token->ToCString(zone_), start_pos);
-    case kNumber: {
+    case kInteger: {
       const char* cstr = token->ToCString(zone_);
       int64_t val;
       if (!OS::StringToInt64(cstr, &val)) return nullptr;
       return new (zone_) SExpInteger(val, start_pos);
     }
     case kBoolean: {
-      const char* cstr = token->ToCString(zone_);
-      return new (zone_) SExpBool(strcmp(cstr, "true") == 0, start_pos);
+      const bool is_true =
+          strncmp(token->cstr(), kBoolTrueSymbol, token->length()) == 0;
+      ASSERT(is_true ||
+             strncmp(token->cstr(), kBoolFalseSymbol, token->length()) == 0);
+      return new (zone_) SExpBool(is_true, start_pos);
+    }
+    case kDouble: {
+      double val;
+      if (!CStringToDouble(token->cstr(), token->length(), &val)) {
+        return nullptr;
+      }
+      return new (zone_) SExpDouble(val, start_pos);
     }
     case kQuotedString: {
       const char* const cstr = token->cstr();
@@ -322,27 +343,69 @@ SExpParser::Token* SExpParser::GetNextToken() {
     default:
       break;
   }
-  if (isdigit(*start)) {
-    intptr_t len = 1;
-    while (start_pos + len < buffer_size_) {
-      if (!isdigit(start[len])) break;
-      len++;
+  intptr_t len = 0;
+  // Start number detection after possible negation sign.
+  if (start[len] == '-') {
+    len++;
+    if ((start_pos + len) >= buffer_size_) {
+      cur_pos_ = start_pos + len;
+      return new (zone_) Token(kSymbol, start, len);
     }
-    cur_pos_ = start_pos + len;
-    return new (zone_) Token(kNumber, start, len);
   }
-  intptr_t len = 1;
-  while (start_pos + len < buffer_size_) {
+  // Keep the currently detected token type. Start off by assuming we have
+  // an integer, then fall back to doubles if we see parts appropriate for
+  // those but not integers, and fall back to symbols otherwise.
+  TokenType type = kInteger;
+  bool saw_exponent = false;
+  while ((start_pos + len) < buffer_size_) {
+    // Both numbers and symbols cannot contain these values, so we are at the
+    // end of whichever one we're in.
     if (!IsSymbolContinue(start[len])) break;
+    if (type == kInteger && start[len] == '.') {
+      type = kDouble;
+      len++;
+      continue;
+    }
+    if (type != kSymbol && !saw_exponent && start[len] == kDoubleExponentChar) {
+      saw_exponent = true;
+      type = kDouble;
+      len++;
+      // Skip past negation in exponent if any.
+      if ((start_pos + len) < buffer_size_ && start[len] == '-') len++;
+      continue;
+    }
+    // If we find a character that can't appear in a number, then fall back
+    // to symbol-ness.
+    if (!isdigit(start[len])) type = kSymbol;
     len++;
   }
   cur_pos_ = start_pos + len;
-  if (len == 4 && strncmp(start, "true", 4) == 0) {
-    return new (zone_) Token(kBoolean, start, len);
-  } else if (len == 5 && strncmp(start, "false", 5) == 0) {
-    return new (zone_) Token(kBoolean, start, len);
+  // Skip special symbol detection if we don't have a symbol.
+  if (type != kSymbol) return new (zone_) Token(type, start, len);
+  // Check for special symbols used for booleans and certain Double values.
+  switch (len) {
+    case 3:
+      if (strncmp(start, kDoubleNaNSymbol, len) == 0) type = kDouble;
+      break;
+    case 4:
+      if (strncmp(start, kBoolTrueSymbol, len) == 0) type = kBoolean;
+      break;
+    case 5:
+      if (strncmp(start, kBoolFalseSymbol, len) == 0) type = kBoolean;
+      break;
+    case 8:
+      if (strncmp(start, kDoubleInfinitySymbol, len) == 0) type = kDouble;
+      break;
+    case 9:
+      if (start[0] == '-' &&
+          strncmp(start + 1, kDoubleInfinitySymbol, len - 1) == 0) {
+        type = kDouble;
+      }
+      break;
+    default:
+      break;
   }
-  return new (zone_) Token(kSymbol, start, len);
+  return new (zone_) Token(type, start, len);
 }
 
 bool SExpParser::IsSymbolContinue(char c) {

@@ -28,6 +28,13 @@ class SExpParser : public ValueObject {
         cur_label_stack_(zone, 2),
         error_message_(nullptr) {}
 
+  // Constants used in serializing and deserializing S-expressions.
+  static const char* const kBoolTrueSymbol;
+  static const char* const kBoolFalseSymbol;
+  static char const kDoubleExponentChar;
+  static const char* const kDoubleInfinitySymbol;
+  static const char* const kDoubleNaNSymbol;
+
   struct ErrorStrings : AllStatic {
     static const char* const kOpenString;
     static const char* const kBadUnicodeEscape;
@@ -59,7 +66,8 @@ class SExpParser : public ValueObject {
   M(LeftCurly)                                                                 \
   M(RightCurly)                                                                \
   M(QuotedString)                                                              \
-  M(Number)                                                                    \
+  M(Integer)                                                                   \
+  M(Double)                                                                    \
   M(Boolean)                                                                   \
   M(Symbol)
 

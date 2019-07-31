@@ -7,6 +7,7 @@
 #include "vm/compiler/backend/sexpression.h"
 
 #include "vm/compiler/backend/il_deserializer.h"
+#include "vm/double_conversion.h"
 
 namespace dart {
 
@@ -23,7 +24,21 @@ bool SExpBool::Equals(SExpression* sexp) const {
 }
 
 void SExpBool::SerializeToLine(TextBuffer* buffer) const {
-  buffer->AddString(value() ? "true" : "false");
+  buffer->AddString(value() ? SExpParser::kBoolTrueSymbol
+                            : SExpParser::kBoolFalseSymbol);
+}
+
+bool SExpDouble::Equals(SExpression* sexp) const {
+  if (!sexp->IsDouble()) return false;
+  return this->value() == sexp->AsDouble()->value();
+}
+
+void SExpDouble::SerializeToLine(TextBuffer* buffer) const {
+  // Use existing Dart serialization for Doubles.
+  const intptr_t kBufSize = 128;
+  char strbuf[kBufSize];
+  DoubleToCString(value(), strbuf, kBufSize);
+  buffer->Printf("%s", strbuf);
 }
 
 bool SExpInteger::Equals(SExpression* sexp) const {
