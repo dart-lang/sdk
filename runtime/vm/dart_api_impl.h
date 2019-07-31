@@ -302,13 +302,6 @@ class Api : AllStatic {
 #if defined(TARGET_ARCH_DBC) && !defined(ARCH_IS_64_BIT)
     // TODO(36809): Support SimDBC32.
     return false;
-#elif defined(TARGET_ARCH_DBC) && !defined(HOST_ARCH_X64)
-    // TODO(35773): Support ia32, arm64, and arm.
-    return false;
-#elif defined(TARGET_ARCH_DBC) && defined(HOST_ARCH_X64) &&                    \
-    defined(HOST_OS_WINDOWS)
-    // TODO(35773): Support x64 Windows.
-    return false;
 #elif defined(TARGET_ARCH_ARM) &&                                              \
     !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
     // TODO(36309): Support hardfp calling convention.

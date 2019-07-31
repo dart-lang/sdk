@@ -24,12 +24,12 @@ group("default") {
 }
 
 group("most") {
+  import("runtime/runtime_args.gni")
   if (targetting_fuchsia) {
     # Fuchsia has run_vm_tests marked testonly.
     testonly = true
   }
   deps = [
-    ":analysis_server",
     ":create_sdk",
     ":dart2js",
     ":dartanalyzer",
@@ -37,6 +37,9 @@ group("most") {
     ":runtime",
     ":samples",
   ]
+  if (dart_target_arch != "arm") {
+    deps += [ ":analysis_server" ]
+  }
 }
 
 group("runtime") {
