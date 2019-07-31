@@ -16,12 +16,18 @@ Type typeOf<T>() => T;
 
 Type fooOf<T>() => typeOf<Foo<T>>();
 
+typedef funcType = Function(String);
+
+void func(Object o) {}
+
 void main() {
   var f1 = Foo<Bar>();
   var t1 = typeOf<Foo<Bar>>();
   Expect.equals(f1.type(), t1);
   var s1 = fooOf<Bar>();
   Expect.equals(t1, s1);
+
+  Expect.isTrue(func is funcType);
 
   dart.hotRestart();
 
@@ -31,4 +37,6 @@ void main() {
   Expect.equals(f2.type(), t2);
   var s2 = fooOf<Bar>();
   Expect.equals(t2, s2);
+
+  Expect.isTrue(func is funcType);
 }

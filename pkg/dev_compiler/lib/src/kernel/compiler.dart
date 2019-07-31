@@ -493,7 +493,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// declarations are assumed to be available before we start execution.
   /// See [startTopLevel].
   void _declareBeforeUse(Class c) {
-    if (c != null && _emittingClassExtends) _emitClass(c);
+    if (c != null && _emittingClassExtends) {
+      _emitClass(c);
+    }
   }
 
   js_ast.Statement _emitClassDeclaration(Class c) {
@@ -2059,11 +2061,26 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): it'd be nice to avoid this special case.
       var lazyFields = <Field>[];
       var savedUri = _currentUri;
+
+      // Helper functions to test if a constructor invocation is internal and
+      // should be eagerly evaluated.
+      var isInternalConstructor = (ConstructorInvocation node) {
+        var type = node.getStaticType(_types) as InterfaceType;
+        var library = type.classNode.enclosingLibrary;
+        return isSdkInternalRuntime(library);
+      };
       for (var field in fields) {
         var init = field.initializer;
         if (init == null ||
             init is BasicLiteral ||
+            init is ConstructorInvocation && isInternalConstructor(init) ||
             init is StaticInvocation && isInlineJS(init.target)) {
+          if (init is ConstructorInvocation) {
+            // This is an eagerly executed constructor invocation.  We need to
+            // ensure the class is emitted before this statement.
+            var type = init.getStaticType(_types) as InterfaceType;
+            _emitClass(type.classNode);
+          }
           _currentUri = field.fileUri;
           moduleItems.add(js.statement('# = #;', [
             _emitTopLevelName(field),
@@ -5448,11 +5465,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitPartialInstantiationConstant(
-      PartialInstantiationConstant node) =>
-    runtimeCall('gbind(#, #)', [
-      visitConstant(node.tearOffConstant),
-      node.types.map(_emitType).toList()
-    ]);
+          PartialInstantiationConstant node) =>
+      runtimeCall('gbind(#, #)', [
+        visitConstant(node.tearOffConstant),
+        node.types.map(_emitType).toList()
+      ]);
 
   @override
   js_ast.Expression visitUnevaluatedConstant(UnevaluatedConstant node) =>
