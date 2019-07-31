@@ -170,7 +170,11 @@ DART_EXPORT bool Dart_InvokeVMServiceMethod(uint8_t* request_json,
     Dart_CloseNativePort(port);
 
     if (error != nullptr) {
-      *error = strdup("Was unable to post message to isolate.");
+      if (ServiceIsolate::Port() == ILLEGAL_PORT) {
+        *error = strdup("No service isolate port was found.");
+      } else {
+        *error = strdup("Was unable to post message to service isolate.");
+      }
     }
     return false;
   }
