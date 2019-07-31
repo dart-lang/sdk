@@ -10,7 +10,6 @@ import 'class_test.dart' as class_resolution;
 import 'comment_test.dart' as comment;
 import 'constant_test.dart' as constant;
 import 'constructor_test.dart' as constructor;
-import 'definite_assignment_test.dart' as definite_assignment;
 import 'enum_test.dart' as enum_resolution;
 import 'export_test.dart' as export_;
 import 'extension_method_test.dart' as extension_method;
@@ -47,7 +46,6 @@ main() {
     comment.main();
     constant.main();
     constructor.main();
-    definite_assignment.main();
     enum_resolution.main();
     export_.main();
     extension_method.main();

@@ -234,11 +234,19 @@ class FlowAnalysisHelper {
 
     var element = node.staticElement;
     if (element is LocalVariableElement) {
-      if (element.isLate) return false;
-
       var typeSystem = _typeOperations.typeSystem;
       if (typeSystem.isPotentiallyNonNullable(element.type)) {
-        return !flow.isAssigned(element);
+        var isUnassigned = !flow.isAssigned(element);
+        if (isUnassigned) {
+          result.unassignedNodes.add(node);
+        }
+        // Note: in principle we could make this slightly more performant by
+        // checking element.isLate earlier, but we would lose the ability to
+        // test the flow analysis mechanism using late variables.  And it seems
+        // unlikely that the `late` modifier will be used often enough for it to
+        // make a significant difference.
+        if (element.isLate) return false;
+        return isUnassigned;
       }
     }
 
@@ -322,6 +330,10 @@ class FlowAnalysisResult {
   /// The list of [FunctionBody]s that don't complete, for example because
   /// there is a `return` statement at the end of the function body block.
   final List<FunctionBody> functionBodiesThatDontComplete = [];
+
+  /// The list of [Expression]s representing variable accesses that occur before
+  /// the corresponding variable has been definitely assigned.
+  final List<AstNode> unassignedNodes = [];
 
   void putIntoNode(AstNode node) {
     node.setProperty(_astKey, this);
