@@ -38,7 +38,6 @@ import 'optional_const_test.dart' as optional_const;
 import 'property_access_test.dart' as property_access;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'type_inference/test_all.dart' as type_inference;
-import 'type_promotion_test.dart' as type_promotion;
 
 main() {
   defineReflectiveSuite(() {
@@ -72,7 +71,6 @@ main() {
     optional_const.main();
     property_access.main();
     top_type_inference.main();
-    type_promotion.main();
     type_inference.main();
   }, name: 'resolution');
 }
