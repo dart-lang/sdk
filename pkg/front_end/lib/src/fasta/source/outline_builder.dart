@@ -1027,13 +1027,17 @@ class OutlineBuilder extends StackListener {
 
   @override
   void handleNonNullAssertExpression(Token bang) {
-    reportNonNullAssertExpressionNotEnabled(bang);
+    if (!library.loader.target.enableNonNullable) {
+      reportNonNullAssertExpressionNotEnabled(bang);
+    }
   }
 
   @override
   void handleType(Token beginToken, Token questionMark) {
     debugEvent("Type");
-    reportErrorIfNullableType(questionMark);
+    if (!library.loader.target.enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
     List<TypeBuilder> arguments = pop();
     int charOffset = pop();
     Object name = pop();
@@ -1067,7 +1071,9 @@ class OutlineBuilder extends StackListener {
   void beginFormalParameter(Token token, MemberKind kind, Token requiredToken,
       Token covariantToken, Token varFinalOrConst) {
     // TODO(danrubel): handle required token
-    reportNonNullableModifierError(requiredToken);
+    if (!library.loader.target.enableNonNullable) {
+      reportNonNullableModifierError(requiredToken);
+    }
     push((covariantToken != null ? covariantMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
@@ -1265,7 +1271,9 @@ class OutlineBuilder extends StackListener {
   @override
   void endFunctionType(Token functionToken, Token questionMark) {
     debugEvent("FunctionType");
-    reportErrorIfNullableType(questionMark);
+    if (!library.loader.target.enableNonNullable) {
+      reportErrorIfNullableType(questionMark);
+    }
     List<FormalParameterBuilder> formals = pop();
     pop(); // formals offset
     TypeBuilder returnType = pop();
@@ -1281,7 +1289,9 @@ class OutlineBuilder extends StackListener {
     int formalsOffset = pop();
     TypeBuilder returnType = pop();
     List<TypeVariableBuilder> typeVariables = pop();
-    reportErrorIfNullableType(question);
+    if (!library.loader.target.enableNonNullable) {
+      reportErrorIfNullableType(question);
+    }
     push(library.addFunctionType(
         returnType, typeVariables, formals, formalsOffset));
   }
@@ -1351,7 +1361,9 @@ class OutlineBuilder extends StackListener {
       Token endToken) {
     debugEvent("endTopLevelFields");
     // TODO(danrubel): handle NNBD 'late' modifier
-    reportNonNullableModifierError(lateToken);
+    if (!library.loader.target.enableNonNullable) {
+      reportNonNullableModifierError(lateToken);
+    }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = nullIfParserRecovery(pop());
     int modifiers = (staticToken != null ? staticMask : 0) |
@@ -1370,7 +1382,9 @@ class OutlineBuilder extends StackListener {
       Token varFinalOrConst, int count, Token beginToken, Token endToken) {
     debugEvent("Fields");
     // TODO(danrubel): handle NNBD 'late' modifier
-    reportNonNullableModifierError(lateToken);
+    if (!library.loader.target.enableNonNullable) {
+      reportNonNullableModifierError(lateToken);
+    }
     List<FieldInfo> fieldInfos = popFieldInfos(count);
     TypeBuilder type = pop();
     int modifiers = (staticToken != null ? staticMask : 0) |
