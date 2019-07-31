@@ -147,6 +147,12 @@ class AbstractAnalysisTest with ResourceProviderMixin {
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
+  void doAllDeclarationsTrackerWork() {
+    while (server.declarationsTracker.hasWork) {
+      server.declarationsTracker.doWork();
+    }
+  }
+
   /**
    * Returns the offset of [search] in [testCode].
    * Fails if not found.
