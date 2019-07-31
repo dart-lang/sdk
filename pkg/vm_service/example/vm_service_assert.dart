@@ -634,6 +634,19 @@ vms.Isolate assertIsolate(vms.Isolate obj) {
   return obj;
 }
 
+vms.InboundReferences assertInboundReferences(vms.InboundReferences obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertInboundReferences(obj.references);
+  return obj;
+}
+
+vms.InboundReference assertInboundReference(vms.InboundReference obj) {
+  assertNotNull(obj);
+  assertObjRef(obj.source);
+  return obj;
+}
+
 vms.InstanceSet assertInstanceSet(vms.InstanceSet obj) {
   assertNotNull(obj);
   assertString(obj.type);
@@ -801,6 +814,21 @@ vms.ReloadReport assertReloadReport(vms.ReloadReport obj) {
   assertNotNull(obj);
   assertString(obj.type);
   assertBool(obj.success);
+  return obj;
+}
+
+vms.RetainingObject assertRetainingObject(vms.RetainingObject obj) {
+  assertNotNull(obj);
+  assertObjRef(obj.value);
+  return obj;
+}
+
+vms.RetainingPath assertRetainingPath(vms.RetainingPath obj) {
+  assertNotNull(obj);
+  assertString(obj.type);
+  assertInt(obj.length);
+  assertString(obj.gcRootType);
+  assertRetainingObjects(obj.elements);
   return obj;
 }
 

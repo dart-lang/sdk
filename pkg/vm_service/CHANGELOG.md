@@ -1,7 +1,14 @@
 # Changelog
 
+## 1.1.0
+- Support service protocol version 3.25:
+  - Added `getInboundReferences`, `getRetainingPath` methods
+  - Added `InboundReferences`, `InboundReference`, `RetainingPath`, and
+    `RetainingObject` objects
+
 ## 1.0.1
-- support service protocol version 3.24
+- Support service protocol version 3.24:
+  - Added `operatingSystem` property to `VM` object
 
 ## 1.0.0+1
 - Updated description and homepage.

@@ -17,7 +17,7 @@ import 'src/service_extension_registry.dart';
 
 export 'src/service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '3.24.0';
+const String vmServiceVersion = '3.25.0';
 
 /// @optional
 const String optional = 'optional';
@@ -117,6 +117,8 @@ Map<String, Function> _typeFactories = {
   'Instance': Instance.parse,
   '@Isolate': IsolateRef.parse,
   'Isolate': Isolate.parse,
+  'InboundReferences': InboundReferences.parse,
+  'InboundReference': InboundReference.parse,
   'InstanceSet': InstanceSet.parse,
   '@Library': LibraryRef.parse,
   'Library': Library.parse,
@@ -130,6 +132,8 @@ Map<String, Function> _typeFactories = {
   '@Object': ObjRef.parse,
   'Object': Obj.parse,
   'ReloadReport': ReloadReport.parse,
+  'RetainingObject': RetainingObject.parse,
+  'RetainingPath': RetainingPath.parse,
   'Response': Response.parse,
   'Sentinel': Sentinel.parse,
   '@Script': ScriptRef.parse,
@@ -163,11 +167,13 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'getAllocationProfile': const ['AllocationProfile'],
   'getFlagList': const ['FlagList'],
+  'getInboundReferences': const ['InboundReferences', 'Sentinel'],
   'getInstances': const ['InstanceSet'],
   'getIsolate': const ['Isolate', 'Sentinel'],
   'getMemoryUsage': const ['MemoryUsage', 'Sentinel'],
   'getScripts': const ['ScriptList'],
   'getObject': const ['Obj', 'Sentinel'],
+  'getRetainingPath': const ['RetainingPath'],
   'getStack': const ['Stack'],
   'getSourceReport': const ['SourceReport'],
   'getVersion': const ['Version'],
@@ -409,8 +415,43 @@ abstract class VmServiceInterface {
   /// See [FlagList].
   Future<FlagList> getFlagList();
 
+  /// Returns a set of inbound references to the object specified by `targetId`.
+  /// Up to `limit` references will be returned.
+  ///
+  /// The order of the references is undefined (i.e., not related to allocation
+  /// order) and unstable (i.e., multiple invocations of this method against the
+  /// same object can give different answers even if no Dart code has executed
+  /// between the invocations).
+  ///
+  /// The references may include multiple `objectId`s that designate the same
+  /// object.
+  ///
+  /// The references may include objects that are unreachable but have not yet
+  /// been garbage collected.
+  ///
+  /// If `targetId` is a temporary id which has expired, then the `Expired`
+  /// [Sentinel] is returned.
+  ///
+  /// If `targetId` refers to an object which has been collected by the VM's
+  /// garbage collector, then the `Collected` [Sentinel] is returned.
+  ///
+  /// See [InboundReferences].
+  ///
+  /// The return value can be one of [InboundReferences] or [Sentinel].
+  Future<dynamic> getInboundReferences(
+      String isolateId, String targetId, int limit);
+
   /// The `getInstances` RPC is used to retrieve a set of instances which are of
-  /// a specific type.
+  /// a specific class. This does not include instances of subclasses of the
+  /// given class.
+  ///
+  /// The order of the instances is undefined (i.e., not related to allocation
+  /// order) and unstable (i.e., multiple invocations of this method against the
+  /// same class can give different answers even if no Dart code has executed
+  /// between the invocations).
+  ///
+  /// The set of instances may include objects that are unreachable but have not
+  /// yet been garbage collected.
   ///
   /// `objectId` is the ID of the `Class` to retrieve instances for. `objectId`
   /// must be the ID of a `Class`, otherwise an error is returned.
@@ -476,6 +517,27 @@ abstract class VmServiceInterface {
     int offset,
     int count,
   });
+
+  /// The `getRetainingPath` RPC is used to lookup a path from an object
+  /// specified by `targetId` to a GC root (i.e., the object which is preventing
+  /// this object from being garbage collected).
+  ///
+  /// If `targetId` refers to a heap object which has been collected by the VM's
+  /// garbage collector, then the `Collected` [Sentinel] is returned.
+  ///
+  /// If `targetId` refers to a non-heap object which has been deleted, then the
+  /// `Collected` [Sentinel] is returned.
+  ///
+  /// If the object handle has not expired and the object has not been
+  /// collected, then an [RetainingPath] will be returned.
+  ///
+  /// The `limit` parameter specifies the maximum path length to be reported as
+  /// part of the retaining path. If a path is longer than `limit`, it will be
+  /// truncated at the root end of the path.
+  ///
+  /// See [RetainingPath].
+  Future<RetainingPath> getRetainingPath(
+      String isolateId, String targetId, int limit);
 
   /// The `getStack` RPC is used to retrieve the current execution stack and
   /// message queue for an isolate. The isolate does not need to be paused.
@@ -888,6 +950,13 @@ class VmServerConnection {
         case 'getFlagList':
           response = await _serviceImplementation.getFlagList();
           break;
+        case 'getInboundReferences':
+          response = await _serviceImplementation.getInboundReferences(
+            params['isolateId'],
+            params['targetId'],
+            params['limit'],
+          );
+          break;
         case 'getInstances':
           response = await _serviceImplementation.getInstances(
             params['isolateId'],
@@ -916,6 +985,13 @@ class VmServerConnection {
             params['objectId'],
             offset: params['offset'],
             count: params['count'],
+          );
+          break;
+        case 'getRetainingPath':
+          response = await _serviceImplementation.getRetainingPath(
+            params['isolateId'],
+            params['targetId'],
+            params['limit'],
           );
           break;
         case 'getStack':
@@ -1281,6 +1357,13 @@ class VmService implements VmServiceInterface {
   Future<FlagList> getFlagList() => _call('getFlagList');
 
   @override
+  Future<dynamic> getInboundReferences(
+      String isolateId, String targetId, int limit) {
+    return _call('getInboundReferences',
+        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
+  }
+
+  @override
   Future<InstanceSet> getInstances(
       String isolateId, String objectId, int limit) {
     return _call('getInstances',
@@ -1317,6 +1400,13 @@ class VmService implements VmServiceInterface {
       m['count'] = count;
     }
     return _call('getObject', m);
+  }
+
+  @override
+  Future<RetainingPath> getRetainingPath(
+      String isolateId, String targetId, int limit) {
+    return _call('getRetainingPath',
+        {'isolateId': isolateId, 'targetId': targetId, 'limit': limit});
   }
 
   @override
@@ -3920,6 +4010,75 @@ class Isolate extends Response {
   String toString() => '[Isolate]';
 }
 
+/// See [getInboundReferences].
+class InboundReferences extends Response {
+  static InboundReferences parse(Map<String, dynamic> json) =>
+      json == null ? null : new InboundReferences._fromJson(json);
+
+  /// An array of inbound references to an object.
+  List<InboundReference> references;
+
+  InboundReferences();
+
+  InboundReferences._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json) {
+    references = new List<InboundReference>.from(
+        createServiceObject(json['references'], const ['InboundReference']));
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'InboundReferences';
+    json.addAll({
+      'references': references.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() =>
+      '[InboundReferences type: ${type}, references: ${references}]';
+}
+
+/// See [getInboundReferences].
+class InboundReference {
+  static InboundReference parse(Map<String, dynamic> json) =>
+      json == null ? null : new InboundReference._fromJson(json);
+
+  /// The object holding the inbound reference.
+  ObjRef source;
+
+  /// If source is a List, parentListIndex is the index of the inbound
+  /// reference.
+  @optional
+  int parentListIndex;
+
+  /// If source is a field of an object, parentField is the field containing the
+  /// inbound reference.
+  @optional
+  FieldRef parentField;
+
+  InboundReference();
+
+  InboundReference._fromJson(Map<String, dynamic> json) {
+    source = createServiceObject(json['source'], const ['ObjRef']);
+    parentListIndex = json['parentListIndex'];
+    parentField = createServiceObject(json['parentField'], const ['FieldRef']);
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'source': source.toJson(),
+    });
+    _setIfNotNull(json, 'parentListIndex', parentListIndex);
+    _setIfNotNull(json, 'parentField', parentField?.toJson());
+    return json;
+  }
+
+  String toString() => '[InboundReference source: ${source}]';
+}
+
 /// See [getInstances].
 class InstanceSet extends Response {
   static InstanceSet parse(Map<String, dynamic> json) =>
@@ -4505,6 +4664,91 @@ class ReloadReport extends Response {
   }
 
   String toString() => '[ReloadReport type: ${type}, success: ${success}]';
+}
+
+/// See [RetainingPath].
+class RetainingObject {
+  static RetainingObject parse(Map<String, dynamic> json) =>
+      json == null ? null : new RetainingObject._fromJson(json);
+
+  /// An object that is part of a retaining path.
+  ObjRef value;
+
+  /// The offset of the retaining object in a containing list.
+  @optional
+  int parentListIndex;
+
+  /// The key mapping to the retaining object in a containing map.
+  @optional
+  ObjRef parentMapKey;
+
+  /// The name of the field containing the retaining object within an object.
+  @optional
+  String parentField;
+
+  RetainingObject();
+
+  RetainingObject._fromJson(Map<String, dynamic> json) {
+    value = createServiceObject(json['value'], const ['ObjRef']);
+    parentListIndex = json['parentListIndex'];
+    parentMapKey = createServiceObject(json['parentMapKey'], const ['ObjRef']);
+    parentField = json['parentField'];
+  }
+
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json.addAll({
+      'value': value.toJson(),
+    });
+    _setIfNotNull(json, 'parentListIndex', parentListIndex);
+    _setIfNotNull(json, 'parentMapKey', parentMapKey?.toJson());
+    _setIfNotNull(json, 'parentField', parentField);
+    return json;
+  }
+
+  String toString() => '[RetainingObject value: ${value}]';
+}
+
+/// See [getRetainingPath].
+class RetainingPath extends Response {
+  static RetainingPath parse(Map<String, dynamic> json) =>
+      json == null ? null : new RetainingPath._fromJson(json);
+
+  /// The length of the retaining path.
+  int length;
+
+  /// The type of GC root which is holding a reference to the specified object.
+  /// Possible values include:  * class table  * local handle  * persistent
+  /// handle  * stack  * user global  * weak persistent handle  * unknown
+  String gcRootType;
+
+  /// The chain of objects which make up the retaining path.
+  List<RetainingObject> elements;
+
+  RetainingPath();
+
+  RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    length = json['length'];
+    gcRootType = json['gcRootType'];
+    elements = new List<RetainingObject>.from(
+        createServiceObject(json['elements'], const ['RetainingObject']));
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'RetainingPath';
+    json.addAll({
+      'length': length,
+      'gcRootType': gcRootType,
+      'elements': elements.map((f) => f.toJson()).toList(),
+    });
+    return json;
+  }
+
+  String toString() => '[RetainingPath ' //
+      'type: ${type}, length: ${length}, gcRootType: ${gcRootType}, ' //
+      'elements: ${elements}]';
 }
 
 /// Every non-error response returned by the Service Protocol extends

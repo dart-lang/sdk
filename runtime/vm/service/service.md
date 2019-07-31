@@ -662,9 +662,9 @@ _limit_ references will be returned.
 
 The order of the references is undefined (i.e., not related to allocation order)
 and unstable (i.e., multiple invocations of this method against the same object
-can give different answers even no Dart code has executed between the invocations).
+can give different answers even if no Dart code has executed between the invocations).
 
-The references may include multiple objectIds that designate the same object.
+The references may include multiple `objectId`s that designate the same object.
 
 The references may include objects that are unreachable but have not yet been garbage collected.
 
@@ -691,7 +691,7 @@ class.
 
 The order of the instances is undefined (i.e., not related to allocation order)
 and unstable (i.e., multiple invocations of this method against the same class
-can give different answers even no Dart code has executed between the
+can give different answers even if no Dart code has executed between the
 invocations).
 
 The set of instances may include objects that are unreachable but have not yet
