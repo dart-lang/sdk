@@ -474,10 +474,6 @@ void test(C<int> c) {
     // propagate to a field in the class, and thence (via return values of other
     // methods) to most users of the class.  Whereas if we add nullability at
     // the call site it's possible that other call sites won't need it.
-    //
-    // TODO(paulberry): possible improvement: detect that since C uses T in a
-    // contravariant way, and deduce that test should change to
-    // `void test(C<int?> c)`
     var expected = '''
 class C<T> {
   void f(T t) {}
@@ -485,7 +481,7 @@ class C<T> {
 void g(C<int?> c, int? i) {
   c.f(i);
 }
-void test(C<int> c) {
+void test(C<int?> c) {
   g(c, null);
 }
 ''';
@@ -524,14 +520,11 @@ void test(List<int> x) {
   f(x, null);
 }
 ''';
-    // TODO(paulberry): possible improvement: detect that since add uses T in
-    // a contravariant way, and deduce that test should change to
-    // `void test(List<int?> x)`
     var expected = '''
 void f(List<int?> x, int? i) {
   x.add(i);
 }
-void test(List<int> x) {
+void test(List<int?> x) {
   f(x, null);
 }
 ''';
@@ -1041,6 +1034,40 @@ int? g(int? i) => i;
 int? test(int? i) => f(g, i);
 main() {
   test(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  test_generic_exact_propagation() async {
+    var content = '''
+class C<T> {
+  List<T> values;
+  C() : values = <T>[];
+  void add(T t) => values.add(t);
+  T operator[](int i) => values[i];
+}
+void f() {
+  C<int> x = new C<int>();
+  g(x);
+}
+void g(C<int> y) {
+  y.add(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  List<T> values;
+  C() : values = <T>[];
+  void add(T t) => values.add(t);
+  T operator[](int i) => values[i];
+}
+void f() {
+  C<int?> x = new C<int?>();
+  g(x);
+}
+void g(C<int?> y) {
+  y.add(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
