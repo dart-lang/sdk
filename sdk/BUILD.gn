@@ -85,6 +85,11 @@ declare_args() {
 # ......mirrors/
 # ......typed_data/
 # ......api_readme.md
+# ....model/
+# ......lexeme/
+# ........idx2word.json
+# ........model.tflite
+# ........word2idx.json
 
 # Scripts that go under bin/
 _platform_sdk_scripts = [
@@ -287,6 +292,19 @@ if (is_win) {
         source = "../third_party/7zip"
         dest = "$root_out_dir/dart-sdk/lib/_internal/pub/asset/7zip"
         ignore_patterns = ".svn"
+      } ]
+}
+
+if (target_cpu == "x64") {
+  copy_tree_specs += [ {
+        target = "copy_language_model"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../pkg/analysis_server/language_model"
+        dest = "$root_out_dir/dart-sdk/model"
+        ignore_patterns = "{}"
       } ]
 }
 
@@ -961,6 +979,9 @@ group("create_common_sdk") {
   ]
   if (is_win) {
     public_deps += [ ":copy_7zip" ]
+  }
+  if (target_cpu == "x64") {
+    public_deps += [ ":copy_language_model" ]
   }
 }
 
