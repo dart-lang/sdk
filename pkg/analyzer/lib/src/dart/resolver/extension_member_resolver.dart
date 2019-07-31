@@ -135,7 +135,7 @@ class ExtensionMemberResolver {
     /// Return `true` if the [elementName] matches the target [name], taking
     /// into account the `=` on the end of the names of setters.
     bool matchesName(String elementName) {
-      if (elementName.endsWith('=')) {
+      if (elementName.endsWith('=') && !name.endsWith('=')) {
         elementName = elementName.substring(0, elementName.length - 1);
       }
       return elementName == name;

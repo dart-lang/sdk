@@ -187,6 +187,36 @@ f(C c) {
     assertInvokeType(invocation, 'int Function(int)');
   }
 
+  test_instance_compoundAssignment_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  C operator +(int i) => this;
+}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c += 2;
+}
+''');
+    var assignment = findNode.assignment('+=');
+    assertElement(assignment, findElement.method('+', of: 'C'));
+  }
+
+  test_instance_compoundAssignment_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  C operator +(int i) => this;
+}
+f(C c) {
+  c += 2;
+}
+''');
+    var assignment = findNode.assignment('+=');
+    assertElement(assignment, findElement.method('+', of: 'E'));
+  }
+
   test_instance_getter_methodInvocation() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -479,7 +509,23 @@ f(C c) {
     ]);
   }
 
-  test_instance_operator_binary() async {
+  test_instance_operator_binary_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator +(int i) {}
+}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c + 2;
+}
+''');
+    var binary = findNode.binary('+ ');
+    assertElement(binary, findElement.method('+', of: 'C'));
+  }
+
+  test_instance_operator_binary_fromExtension() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -493,7 +539,143 @@ f(C c) {
     assertElement(binary, findElement.method('+', of: 'E'));
   }
 
-  test_instance_operator_unary() async {
+  test_instance_operator_index_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator [](int index) {}
+}
+extension E on C {
+  void operator [](int index) {}
+}
+f(C c) {
+  c[2];
+}
+''');
+    var index = findNode.index('c[2]');
+    assertElement(index, findElement.method('[]', of: 'C'));
+  }
+
+  test_instance_operator_index_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator [](int index) {}
+}
+f(C c) {
+  c[2];
+}
+''');
+    var index = findNode.index('c[2]');
+    assertElement(index, findElement.method('[]', of: 'E'));
+  }
+
+  test_instance_operator_indexEquals_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator []=(int index, int value) {}
+}
+extension E on C {
+  void operator []=(int index, int value) {}
+}
+f(C c) {
+  c[2] = 1;
+}
+''');
+    var index = findNode.index('c[2]');
+    assertElement(index, findElement.method('[]=', of: 'C'));
+  }
+
+  test_instance_operator_indexEquals_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator []=(int index, int value) {}
+}
+f(C c) {
+  c[2] = 3;
+}
+''');
+    var index = findNode.index('c[2]');
+    assertElement(index, findElement.method('[]=', of: 'E'));
+  }
+
+  test_instance_operator_postfix_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator +(int i) {}
+}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    assertElement(postfix, findElement.method('+', of: 'C'));
+  }
+
+  test_instance_operator_postfix_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  c++;
+}
+''');
+    var postfix = findNode.postfix('++');
+    assertElement(postfix, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_prefix_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator +(int i) {}
+}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  ++c;
+}
+''');
+    var prefix = findNode.prefix('++');
+    assertElement(prefix, findElement.method('+', of: 'C'));
+  }
+
+  test_instance_operator_prefix_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator +(int i) {}
+}
+f(C c) {
+  ++c;
+}
+''');
+    var prefix = findNode.prefix('++');
+    assertElement(prefix, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_unary_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator -() {}
+}
+extension E on C {
+  void operator -() {}
+}
+f(C c) {
+  -c;
+}
+''');
+    var prefix = findNode.prefix('-c');
+    assertElement(prefix, findElement.method('unary-', of: 'C'));
+  }
+
+  test_instance_operator_unary_fromExtension() async {
     await assertNoErrorsInCode('''
 class C {}
 extension E on C {
@@ -818,6 +1000,58 @@ extension E on C {
 ''');
     var binary = findNode.binary('+ ');
     assertElement(binary, findElement.method('+', of: 'E'));
+  }
+
+  test_instance_operator_index_fromThis_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator [](int index) {}
+}
+extension E on C {
+  void operator [](int index) {}
+  void b() { this[2]; }
+}
+''');
+    var index = findNode.index('this[2]');
+    assertElement(index, findElement.method('[]', of: 'C'));
+  }
+
+  test_instance_operator_index_fromThis_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator [](int index) {}
+  void b() { this[2]; }
+}
+''');
+    var index = findNode.index('this[2]');
+    assertElement(index, findElement.method('[]', of: 'E'));
+  }
+
+  test_instance_operator_indexEquals_fromThis_fromExtendedType() async {
+    await assertNoErrorsInCode('''
+class C {
+  void operator []=(int index, int value) {}
+}
+extension E on C {
+  void operator []=(int index, int value) {}
+  void b() { this[2] = 1; }
+}
+''');
+    var index = findNode.index('this[2]');
+    assertElement(index, findElement.method('[]=', of: 'C'));
+  }
+
+  test_instance_operator_indexEquals_fromThis_fromExtension() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E on C {
+  void operator []=(int index, int value) {}
+  void b() { this[2] = 3; }
+}
+''');
+    var index = findNode.index('this[2]');
+    assertElement(index, findElement.method('[]=', of: 'E'));
   }
 
   test_instance_operator_unary_fromThis_fromExtendedType() async {
