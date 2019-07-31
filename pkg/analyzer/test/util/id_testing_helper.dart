@@ -8,6 +8,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Annotation;
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -135,6 +136,12 @@ Future<bool> runTestForConfig<T>(
   scheduler.start();
   var result = await driver
       .getResult(resourceProvider.convertPath(testData.entryPoint.path));
+  var errors =
+      result.errors.where((e) => e.severity == Severity.error).toList();
+  if (errors.isNotEmpty) {
+    onFailure('Errors found:\n  ${errors.join('\n  ')}');
+    return true;
+  }
   Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
   Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
 
