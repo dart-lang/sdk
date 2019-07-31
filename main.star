@@ -537,13 +537,19 @@ dart_vm_extra_builder("vm-kernel-precomp-linux-release-simarm64",
 dart_vm_extra_builder("vm-kernel-precomp-linux-release-x64",
                         category="vm|kernel-precomp|r")
 dart_vm_extra_builder("vm-kernel-precomp-bare-linux-release-x64",
-                        category="vm|kernel-precomp|br")
+                        category="vm|kernel-precomp|b")
 dart_vm_extra_builder("vm-kernel-precomp-bare-linux-release-simarm",
-                        category="vm|kernel-precomp|bra32")
+                        category="vm|kernel-precomp|b32")
 dart_vm_extra_builder("vm-kernel-precomp-bare-linux-release-simarm64",
-                        category="vm|kernel-precomp|bra64")
+                        category="vm|kernel-precomp|b64")
 dart_vm_extra_builder("vm-kernel-precomp-obfuscate-linux-release-x64",
                         category="vm|kernel-precomp|o")
+dart_vm_extra_builder("vm-kernel-precomp-mac-debug-simarm_x64",
+                        category="vm|kernel-precomp|ad",
+                        dimensions=mac())
+dart_vm_extra_builder("vm-kernel-precomp-mac-release-simarm_x64",
+                        category="vm|kernel-precomp|ar",
+                        dimensions=mac())
 dart_vm_extra_builder("vm-kernel-precomp-mac-release-simarm64",
                         category="vm|kernel-precomp|ma",
                         dimensions=mac())
