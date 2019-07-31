@@ -8,7 +8,7 @@ executable("codegen") {
   ]
 
   deps = [
-    "//third_party/llvm:LLVMAsmPrinter",
-    "//third_party/llvm:LLVMIRReader",
+    "../../../third_party/llvm:LLVMAsmPrinter",
+    "../../../third_party/llvm:LLVMIRReader",
   ]
 }

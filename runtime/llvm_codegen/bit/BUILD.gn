@@ -9,10 +9,10 @@ executable("bit") {
   root_dir = rebase_path(root_out_dir)
   defines = [ "LIT_BINARY_DIR=\"$root_dir\"" ]
   deps = [
-    "//third_party/llvm:LLVMSupport",
+    "../../../third_party/llvm:LLVMSupport",
   ]
   data_deps = [
-    "//runtime/llvm_codegen/codegen",
+    "../codegen",
   ]
 }
 
@@ -22,7 +22,7 @@ source_set("test") {
   ]
 
   deps = [
-    "//third_party/llvm:LLVMSupport",
+    "../../../third_party/llvm:LLVMSupport",
   ]
 
   include_dirs = [ "//runtime" ]
