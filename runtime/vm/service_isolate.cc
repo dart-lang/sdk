@@ -185,6 +185,7 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.values = request_array;
   request.value.as_array.length = ARRAY_SIZE(request_array);
 
+  ServiceIsolate::WaitForLoadPort();
   return Dart_PostCObject(ServiceIsolate::Port(), &request);
 }
 
