@@ -7,7 +7,10 @@
   only if they represent the same type as defined by the spec.
 * Deprecated the `isMoreSpecificThan(DartType)` method of `DartType`.
   Deprecated the `isMoreSpecificThan(DartType)` method of `TypeSystem`.
+  Deprecated the `isSupertypeOf(DartType)` method of `TypeSystem`.
   Use `TypeSystem.isSubtypeOf(DartType)` instead.
+* Deprecated methods `flattenFutures`, `isAssignableTo` of `DartType`.
+  Use `TypeSystem.flatten()` and `TypeSystem.isAssignableTo` instead.
 * Deprecated InheritanceManager2, and replaced with InheritanceManager3.
   InheritanceManager3 returns ExecutableElements, not FunctionType(s).
 * Added the optional parameter `path` to `parseString`.

@@ -895,7 +895,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         if (contextType is FunctionType) {
           returnType = contextType.returnType;
           flattenedType = body.isAsynchronous
-              ? returnType.flattenFutures(_typeSystem)
+              ? _typeSystem.flatten(returnType)
               : returnType;
         }
       }

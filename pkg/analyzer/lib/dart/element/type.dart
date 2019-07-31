@@ -117,11 +117,13 @@ abstract class DartType {
   ///     and for all R, if T << Future<R> then S << R.  Then flatten(T) = S.
   ///
   ///     In any other circumstance, flatten(T) = T.
+  @Deprecated('Use TypeSystem.flatten() instead.')
   DartType flattenFutures(TypeSystem typeSystem);
 
   /// Return `true` if this type is assignable to the given [type]. A type
   /// <i>T</i> may be assigned to a type <i>S</i>, written <i>T</i> &hArr;
   /// <i>S</i>, iff either <i>T</i> <: <i>S</i> or <i>S</i> <: <i>T</i>.
+  @Deprecated('Use TypeSystem.isAssignableTo() instead.')
   bool isAssignableTo(DartType type);
 
   /// Indicates whether `this` represents a type that is equivalent to `dest`.
@@ -145,6 +147,7 @@ abstract class DartType {
   /// Return `true` if this type is a supertype of the given [type]. A type
   /// <i>S</i> is a supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff
   /// <i>T</i> is a subtype of <i>S</i>.
+  @Deprecated('Use TypeSystem.isSubtypeOf() instead.')
   bool isSupertypeOf(DartType type);
 
   /// If this type is a [TypeParameterType], returns its bound if it has one, or

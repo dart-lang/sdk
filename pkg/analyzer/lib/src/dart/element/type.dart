@@ -828,6 +828,7 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return FunctionTypeImpl.relate(
         typeSystem.instantiateToBounds(this),
         typeSystem.instantiateToBounds(type),
+        // ignore: deprecated_member_use_from_same_package
         (DartType t, DartType s) => t.isAssignableTo(s));
   }
 

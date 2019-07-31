@@ -1257,7 +1257,9 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(t.isSubtypeOf(s), isTrue);
     expect(s.isSubtypeOf(t), isFalse);
     // assignable iff subtype
+    // ignore: deprecated_member_use_from_same_package
     expect(t.isAssignableTo(s), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(s.isAssignableTo(t), isFalse);
   }
 
@@ -2796,7 +2798,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement("B", classA.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeB = classB.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeA), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeB), isTrue);
   }
 
@@ -2804,7 +2808,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
     DartType dynamicType = DynamicTypeImpl.instance;
+    // ignore: deprecated_member_use_from_same_package
     expect(dynamicType.isSupertypeOf(typeA), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(dynamicType), isTrue);
   }
 
@@ -2814,7 +2820,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classC = ElementFactory.classElement("C", classB.type);
     InterfaceType typeA = classA.type;
     InterfaceType typeC = classC.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
   }
 
@@ -2827,9 +2835,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.type;
     InterfaceType typeC = classC.type;
     classC.interfaces = <InterfaceType>[typeB];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
   }
 
@@ -2847,9 +2859,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.type;
     InterfaceType typeC = classC.type;
     classC.mixins = <InterfaceType>[typeB];
+    // ignore: deprecated_member_use_from_same_package
     expect(typeB.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeC), isTrue);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeC.isSupertypeOf(typeA), isFalse);
   }
 
@@ -2857,13 +2873,16 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
     InterfaceType typeObject = classA.supertype;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeObject), isFalse);
+    // ignore: deprecated_member_use_from_same_package
     expect(typeObject.isSupertypeOf(typeA), isTrue);
   }
 
   void test_isSupertypeOf_self() {
     ClassElement classA = ElementFactory.classElement2("A");
     InterfaceType typeA = classA.type;
+    // ignore: deprecated_member_use_from_same_package
     expect(typeA.isSupertypeOf(typeA), isTrue);
   }
 
