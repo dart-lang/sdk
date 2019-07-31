@@ -755,6 +755,17 @@ class HintCode extends ErrorCode {
       correction: "Try updating the SDK constraints.");
 
   /**
+   * The for, if or spread element is being used in a const context that is
+   * expected to run on versions of the SDK that did not support them.
+   */
+  static const HintCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT = const HintCode(
+      'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
+      "The for, if and spread elements were not supported in const contexts "
+          "until version 2.5.0, but this code is required to be able to run on "
+          "earlier versions.",
+      correction: "Try updating the SDK constraints.");
+
+  /**
    * When "strict-raw-types" is enabled, raw types must be inferred via the
    * context type, or have type arguments.
    */

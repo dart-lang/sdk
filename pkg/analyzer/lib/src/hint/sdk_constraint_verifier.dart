@@ -72,14 +72,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_2_2 =>
       new VersionRange(max: Version.parse('2.2.2'), includeMax: false);
 
-  /// Return a range covering every version up to, but not including, 2.3.2.
-  VersionRange get before_2_3_2 =>
-      new VersionRange(max: Version.parse('2.3.2'), includeMax: false);
+  /// Return a range covering every version up to, but not including, 2.5.0.
+  VersionRange get before_2_5_0 =>
+      new VersionRange(max: Version.parse('2.5.0'), includeMax: false);
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
-      !before_2_3_2.intersect(_versionConstraint).isEmpty;
+      !before_2_5_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
@@ -149,6 +149,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitForElement(ForElement node) {
     _validateUiAsCode(node);
+    _validateUiAsCodeInConstContext(node);
     bool wasInUiAsCode = _inUiAsCode;
     _inUiAsCode = true;
     super.visitForElement(node);
@@ -163,6 +164,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitIfElement(IfElement node) {
     _validateUiAsCode(node);
+    _validateUiAsCodeInConstContext(node);
     bool wasInUiAsCode = _inUiAsCode;
     _inUiAsCode = true;
     super.visitIfElement(node);
@@ -232,6 +234,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitSpreadElement(SpreadElement node) {
     _validateUiAsCode(node);
+    _validateUiAsCodeInConstContext(node);
     bool wasInUiAsCode = _inUiAsCode;
     _inUiAsCode = true;
     super.visitSpreadElement(node);
@@ -244,6 +247,18 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void _validateUiAsCode(AstNode node) {
     if (checkUiAsCode && !_inUiAsCode) {
       _errorReporter.reportErrorForNode(HintCode.SDK_VERSION_UI_AS_CODE, node);
+    }
+  }
+
+  /// Given that the [node] is only valid when the ui-as-code feature is
+  /// enabled in a const context, check that the code will not be executed with
+  /// a version of the SDK that does not support the feature.
+  void _validateUiAsCodeInConstContext(AstNode node) {
+    if (checkConstantUpdate2018 &&
+        !_inUiAsCode &&
+        node.thisOrAncestorOfType<TypedLiteral>().isConst) {
+      _errorReporter.reportErrorForNode(
+          HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }
   }
 }

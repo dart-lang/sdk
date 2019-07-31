@@ -207,6 +207,8 @@ import 'sdk_version_is_expression_in_const_context_test.dart'
 import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
+import 'sdk_version_ui_as_code_in_const_context_test.dart'
+    as sdk_version_ui_as_code_in_const_context;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'static_access_to_instance_member_test.dart'
@@ -394,6 +396,7 @@ main() {
     sdk_version_never.main();
     sdk_version_set_literal.main();
     sdk_version_ui_as_code.main();
+    sdk_version_ui_as_code_in_const_context.main();
     set_element_type_not_assignable.main();
     static_access_to_instance_member.main();
     subtype_of_sealed_class.main();

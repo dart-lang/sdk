@@ -371,6 +371,7 @@ const List<ErrorCode> errorCodeValues = const [
   HintCode.SDK_VERSION_NEVER,
   HintCode.SDK_VERSION_SET_LITERAL,
   HintCode.SDK_VERSION_UI_AS_CODE,
+  HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   HintCode.STRICT_RAW_TYPE,
   HintCode.STRICT_RAW_TYPE_IN_AS,
   HintCode.STRICT_RAW_TYPE_IN_IS,

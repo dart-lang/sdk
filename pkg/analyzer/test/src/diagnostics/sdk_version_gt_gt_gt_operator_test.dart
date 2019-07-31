@@ -24,7 +24,7 @@ class SdkVersionGtGtGtOperatorTest extends SdkConstraintVerifierTest {
   test_const_equals() {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when triple_shift is enabled by default.
-    verifyVersion('2.3.2', '''
+    verifyVersion('2.5.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 13, 3),
@@ -43,7 +43,7 @@ const a = 42 >>> 3;
   }
 
   test_declaration_equals() {
-    verifyVersion('2.3.2', '''
+    verifyVersion('2.5.0', '''
 class A {
   A operator >>>(A a) => this;
 }
@@ -63,7 +63,7 @@ class A {
   test_nonConst_equals() {
     // TODO(brianwilkerson) Add '>>>' to MockSdk and remove the code
     //  UNDEFINED_OPERATOR when constant update is enabled by default.
-    verifyVersion('2.3.2', '''
+    verifyVersion('2.5.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 11, 3),

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,30 +11,33 @@ import 'sdk_constraint_verifier_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SdkVersionIsExpressionInConstContextTest);
+    defineReflectiveTests(SdkVersionUiAsCodeInConstContextTest);
   });
 }
 
 @reflectiveTest
-class SdkVersionIsExpressionInConstContextTest
-    extends SdkConstraintVerifierTest {
+class SdkVersionUiAsCodeInConstContextTest extends SdkConstraintVerifierTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..enabledExperiments = [EnableString.constant_update_2018];
 
-  test_equals() {
-    verifyVersion('2.5.0', '''
-const dynamic a = 2;
-const c = a is int;
+  test_equals() async {
+    await verifyVersion('2.5.0', '''
+const zero = [...const [0]];
 ''');
   }
 
-  test_lessThan() {
-    verifyVersion('2.2.0', '''
-const dynamic a = 2;
-const c = a is int;
+  test_greaterThan() async {
+    await verifyVersion('2.5.2', '''
+const zero = [...const [0]];
+''');
+  }
+
+  test_lessThan() async {
+    await verifyVersion('2.4.0', '''
+const zero = [if (0 < 1) 0];
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, 31, 8),
+      error(HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, 14, 12),
     ]);
   }
 }
