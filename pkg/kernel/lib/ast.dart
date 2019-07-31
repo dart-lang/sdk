@@ -5220,6 +5220,28 @@ final Map<TypeParameter, int> _temporaryHashCodeTable = <TypeParameter, int>{};
 /// is the same as the [TypeParameter]'s bound.  This allows one to detect
 /// whether the bound has been promoted.
 class TypeParameterType extends DartType {
+  /// Declared by the programmer on the type.
+  final Nullability declaredNullability;
+
+  /// Actual nullability of the type, calculated from its parts.
+  ///
+  /// [nullability] is calculated from [declaredNullability] and the
+  /// nullabilities of [promotedBound] and the bound of [parameter].
+  ///
+  /// For example, in the following program [declaredNullability] both `x` and
+  /// `y` is [Nullability.nullable], because it's copied from that of `bar`.
+  /// However, despite [nullability] of `x` is [Nullability.nullable],
+  /// [nullability] of `y` is [Nullability.nonNullable] because of its
+  /// [promotedBound].
+  ///
+  ///     class A<T extends Object?> {
+  ///       foo(T? bar) {
+  ///         var x = bar;
+  ///         if (bar is int) {
+  ///           var y = bar;
+  ///         }
+  ///       }
+  ///     }
   final Nullability nullability;
 
   TypeParameter parameter;
@@ -5231,9 +5253,9 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, Nullability nullability])
+      [this.promotedBound, this.declaredNullability])
       : this.nullability =
-            getNullability(parameter, promotedBound, nullability);
+            getNullability(parameter, promotedBound, declaredNullability);
 
   accept(DartTypeVisitor v) => v.visitTypeParameterType(this);
   accept1(DartTypeVisitor1 v, arg) => v.visitTypeParameterType(this, arg);
@@ -5255,7 +5277,7 @@ class TypeParameterType extends DartType {
   /// [TypeParameterType] to compute the value of
   /// [TypeParameterType.nullability] from the arguments passed to the constructor.
   static Nullability getNullability(TypeParameter parameter,
-      DartType promotedBound, Nullability nullability) {
+      DartType promotedBound, Nullability declaredNullability) {
     // If promotedBound is null, getNullability returns the nullability of
     // either T or T? where T is parameter and the presence of '?' is determined
     // by nullability.
@@ -5273,7 +5295,7 @@ class TypeParameterType extends DartType {
     // If the nullability is explicitly nullable, that is, if the type parameter
     // type is followed by '?' in the code, the nullability of the type is
     // 'nullable.'
-    if (nullability == Nullability.nullable) {
+    if (declaredNullability == Nullability.nullable) {
       lhsNullability = Nullability.nullable;
     } else {
       // If the bound is nullable, both nullable and non-nullable types can be
