@@ -2470,10 +2470,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
 
   const intptr_t flags = reader_.ReadUInt();
   if (((flags & kUsesDartMirrorsFlag) != 0) && !FLAG_enable_mirrors) {
-    H.ReportError("import of dart:mirrors with --enable-mirrors=false");
+    H.ReportError(
+        "import of dart:mirrors is not supported in the current Dart runtime");
   }
   if (((flags & kUsesDartFfiFlag) != 0) && !Api::IsFfiEnabled()) {
-    H.ReportError("import of dart:ffi with --enable-ffi=false");
+    H.ReportError(
+        "import of dart:ffi is not supported in the current Dart runtime");
   }
 
   auto& name = String::CheckedHandle(Z, ReadObject());
