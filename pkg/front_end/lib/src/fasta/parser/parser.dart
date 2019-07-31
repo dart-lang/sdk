@@ -2101,7 +2101,7 @@ class Parser {
       }
     }
     TypeInfo typeInfo = computeType(onKeyword, true);
-    token = typeInfo.ensureTypeNotVoid(onKeyword, this);
+    token = typeInfo.ensureTypeOrVoid(onKeyword, this);
     if (!optional('{', token.next)) {
       // Recovery
       Token next = token.next;

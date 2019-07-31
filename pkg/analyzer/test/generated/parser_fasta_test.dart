@@ -1697,6 +1697,16 @@ class ExtensionMethodsParserTest_Fasta extends FastaParserTestCase {
     expect((extension.extendedType as NamedType).name.name, 'C');
     expect(extension.members, hasLength(0));
   }
+
+  void test_void_type() {
+    var unit = parseCompilationUnit('extension E on void { }');
+    expect(unit.declarations, hasLength(1));
+    var extension = unit.declarations[0] as ExtensionDeclaration;
+    expect(extension.name.name, 'E');
+    expect(extension.onKeyword.lexeme, 'on');
+    expect((extension.extendedType as NamedType).name.name, 'void');
+    expect(extension.members, hasLength(0));
+  }
 }
 
 /**
