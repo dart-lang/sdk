@@ -56,7 +56,7 @@ abstract class Forest {
 
   List<Expression> argumentsPositional(Arguments arguments);
 
-  List argumentsTypeArguments(Arguments arguments);
+  List<DartType> argumentsTypeArguments(Arguments arguments);
 
   void argumentsSetTypeArguments(Arguments arguments, List<DartType> types);
 

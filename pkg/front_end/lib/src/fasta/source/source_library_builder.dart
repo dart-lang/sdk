@@ -82,7 +82,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
 
   final SourceLoader loader;
 
-  final DeclarationBuilder<TypeBuilder> libraryDeclaration;
+  final DeclarationBuilder libraryDeclaration;
 
   final List<ConstructorReferenceBuilder> constructorReferences =
       <ConstructorReferenceBuilder>[];
@@ -100,7 +100,8 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
 
   final Uri fileUri;
 
-  final List<List> implementationBuilders = <List<List>>[];
+  final List<ImplementationInfo> implementationBuilders =
+      <ImplementationInfo>[];
 
   final List<Object> accessors = <Object>[];
 
@@ -120,7 +121,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   /// declaration (class, method, and so on), we don't have enough information
   /// to create a builder and this object records its members and types until,
   /// for example, [addClass] is called.
-  DeclarationBuilder<TypeBuilder> currentDeclaration;
+  DeclarationBuilder currentDeclaration;
 
   bool canAddImplementationBuilders = false;
 
@@ -129,10 +130,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   Message accessProblem;
 
   SourceLibraryBuilder(SourceLoader loader, Uri fileUri, Scope scope)
-      : this.fromScopes(
-            loader,
-            fileUri,
-            new DeclarationBuilder<TypeBuilder>.library(),
+      : this.fromScopes(loader, fileUri, new DeclarationBuilder.library(),
             scope ?? new Scope.top());
 
   SourceLibraryBuilder.fromScopes(
@@ -147,7 +145,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   @override
   bool get isPart => partOfName != null || partOfUri != null;
 
-  List<UnresolvedType<TypeBuilder>> get types => libraryDeclaration.types;
+  List<UnresolvedType> get types => libraryDeclaration.types;
 
   @override
   bool get isSynthetic => accessProblem != null;
@@ -159,8 +157,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
       TypeBuilder supertype, List<TypeBuilder> mixins, int charOffset);
 
   TypeBuilder addType(TypeBuilder type, int charOffset) {
-    currentDeclaration
-        .addType(new UnresolvedType<TypeBuilder>(type, charOffset, fileUri));
+    currentDeclaration.addType(new UnresolvedType(type, charOffset, fileUri));
     return type;
   }
 
@@ -178,14 +175,14 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
     currentDeclaration = currentDeclaration.createNested(name, hasMembers);
   }
 
-  DeclarationBuilder<TypeBuilder> endNestedDeclaration(String name) {
+  DeclarationBuilder endNestedDeclaration(String name) {
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
             currentDeclaration.name == "operator" ||
             identical(name, "<syntax-error>"),
         "${name} != ${currentDeclaration.name}");
-    DeclarationBuilder<TypeBuilder> previous = currentDeclaration;
+    DeclarationBuilder previous = currentDeclaration;
     currentDeclaration = currentDeclaration.parent;
     return previous;
   }
@@ -633,10 +630,10 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
     while (iterator.moveNext()) {
       buildBuilder(iterator.current, coreLibrary);
     }
-    for (List list in implementationBuilders) {
-      String name = list[0];
-      Declaration declaration = list[1];
-      int charOffset = list[2];
+    for (ImplementationInfo info in implementationBuilders) {
+      String name = info.name;
+      Declaration declaration = info.declaration;
+      int charOffset = info.charOffset;
       addBuilder(name, declaration, charOffset);
       buildBuilder(declaration, coreLibrary);
     }
@@ -667,7 +664,8 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   void addImplementationBuilder(
       String name, Declaration declaration, int charOffset) {
     assert(canAddImplementationBuilders, "$uri");
-    implementationBuilders.add([name, declaration, charOffset]);
+    implementationBuilders
+        .add(new ImplementationInfo(name, declaration, charOffset));
   }
 
   void validatePart(SourceLibraryBuilder library, Set<Uri> usedParts) {
@@ -878,7 +876,7 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   /// when done.
   int resolveTypes() {
     int typeCount = types.length;
-    for (UnresolvedType<TypeBuilder> t in types) {
+    for (UnresolvedType t in types) {
       t.resolveIn(scope, this);
       if (!loader.target.legacyMode) {
         t.checkType(this);
@@ -947,8 +945,8 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
 
 /// Unlike [Scope], this scope is used during construction of builders to
 /// ensure types and members are added to and resolved in the correct location.
-class DeclarationBuilder<T extends TypeBuilder> {
-  final DeclarationBuilder<T> parent;
+class DeclarationBuilder {
+  final DeclarationBuilder parent;
 
   final Map<String, Declaration> members;
 
@@ -956,7 +954,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
 
   final Map<String, Declaration> setters;
 
-  final List<UnresolvedType<T>> types = <UnresolvedType<T>>[];
+  final List<UnresolvedType> types = <UnresolvedType>[];
 
   String name;
 
@@ -978,7 +976,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
             "<library>", -1, null);
 
   DeclarationBuilder createNested(String name, bool hasMembers) {
-    return new DeclarationBuilder<T>(
+    return new DeclarationBuilder(
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
@@ -987,7 +985,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
         this);
   }
 
-  void addType(UnresolvedType<T> type) {
+  void addType(UnresolvedType type) {
     types.add(type);
   }
 
@@ -1002,7 +1000,7 @@ class DeclarationBuilder<T extends TypeBuilder> {
       }
     }
     Scope scope;
-    for (UnresolvedType<T> type in types) {
+    for (UnresolvedType type in types) {
       Object nameOrQualified = type.builder.name;
       String name = nameOrQualified is QualifiedName
           ? nameOrQualified.qualifier
@@ -1057,4 +1055,12 @@ class FieldInfo {
 
   const FieldInfo(this.name, this.charOffset, this.initializerToken,
       this.beforeLast, this.charEndOffset);
+}
+
+class ImplementationInfo {
+  final String name;
+  final Declaration declaration;
+  final int charOffset;
+
+  const ImplementationInfo(this.name, this.declaration, this.charOffset);
 }

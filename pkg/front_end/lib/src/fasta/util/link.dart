@@ -43,12 +43,12 @@ class Link<T> implements Iterable<T> {
 
   /// Invokes `fn` for every item in the linked list and returns the results
   /// in a [List].
-  List mapToList(dynamic fn(T item), {bool growable: true}) {
-    List result;
+  List<E> mapToList<E>(E fn(T item), {bool growable: true}) {
+    List<E> result;
     if (!growable) {
-      result = new List(slowLength());
+      result = new List<E>(slowLength());
     } else {
-      result = new List();
+      result = new List<E>();
       result.length = slowLength();
     }
     int i = 0;

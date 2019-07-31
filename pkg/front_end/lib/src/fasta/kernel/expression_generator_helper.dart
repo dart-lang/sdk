@@ -22,8 +22,7 @@ import 'constness.dart' show Constness;
 
 import 'forest.dart' show Forest;
 
-import 'kernel_builder.dart'
-    show Declaration, TypeBuilder, PrefixBuilder, UnresolvedType;
+import 'kernel_builder.dart' show Declaration, PrefixBuilder, UnresolvedType;
 
 import 'kernel_ast_api.dart'
     show
@@ -120,12 +119,12 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Token nameLastToken,
       Arguments arguments,
       String name,
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       int charOffset,
       Constness constness);
 
-  UnresolvedType<TypeBuilder> validateTypeUse(
-      UnresolvedType<TypeBuilder> unresolved, bool nonInstanceAccessIsError);
+  UnresolvedType validateTypeUse(
+      UnresolvedType unresolved, bool nonInstanceAccessIsError);
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
@@ -143,11 +142,10 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   Expression evaluateArgumentsBefore(
       Arguments arguments, Expression expression);
 
-  DartType buildDartType(UnresolvedType<TypeBuilder> unresolvedType,
+  DartType buildDartType(UnresolvedType unresolvedType,
       {bool nonInstanceAccessIsError});
 
-  List<DartType> buildDartTypeArguments(
-      List<UnresolvedType<TypeBuilder>> unresolvedTypes);
+  List<DartType> buildDartTypeArguments(List<UnresolvedType> unresolvedTypes);
 
   void reportDuplicatedDeclaration(
       Declaration existing, String name, int charOffset);

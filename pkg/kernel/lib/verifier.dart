@@ -43,7 +43,7 @@ enum TypedefState { Done, BeingChecked }
 /// Checks that a kernel component is well-formed.
 ///
 /// This does not include any kind of type checking.
-class VerifyingVisitor extends RecursiveVisitor {
+class VerifyingVisitor extends RecursiveVisitor<void> {
   final Set<Class> classes = new Set<Class>();
   final Set<Typedef> typedefs = new Set<Typedef>();
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();

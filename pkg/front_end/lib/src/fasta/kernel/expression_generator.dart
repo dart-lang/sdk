@@ -445,8 +445,7 @@ abstract class Generator {
   ///
   /// The type arguments have not been resolved and should be resolved to
   /// create a [TypeBuilder] for a valid type.
-  TypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<TypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.library.addProblem(
@@ -461,7 +460,7 @@ abstract class Generator {
   }
 
   Expression invokeConstructor(
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -1650,8 +1649,7 @@ class DeferredAccessGenerator extends Generator {
   String get _debugName => "DeferredAccessGenerator";
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<TypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     String name = "${prefixGenerator._plainNameForRead}."
         "${suffixGenerator._plainNameForRead}";
     TypeBuilder type =
@@ -1665,8 +1663,7 @@ class DeferredAccessGenerator extends Generator {
       int charOffset = offsetForToken(prefixGenerator.token);
       message = templateDeferredTypeAnnotation
           .withArguments(
-              _helper.buildDartType(
-                  new UnresolvedType<TypeBuilder>(type, charOffset, _uri)),
+              _helper.buildDartType(new UnresolvedType(type, charOffset, _uri)),
               prefixGenerator._plainNameForRead)
           .withLocation(
               _uri, charOffset, lengthOfSpan(prefixGenerator.token, token));
@@ -1688,7 +1685,7 @@ class DeferredAccessGenerator extends Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -1740,8 +1737,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   String get _debugName => "TypeUseGenerator";
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<TypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     if (declaration.isExtension) {
       // Extension declarations cannot be used as types.
       return super.buildTypeWithResolvedArguments(arguments);
@@ -1781,7 +1777,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -1822,7 +1818,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
       } else {
         super.expression = _forest.literalType(
             _helper.buildDartType(
-                new UnresolvedType<TypeBuilder>(
+                new UnresolvedType(
                     buildTypeWithResolvedArguments(null), offset, _uri),
                 nonInstanceAccessIsError: true),
             token);
@@ -2062,7 +2058,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
 
   @override
   Expression invokeConstructor(
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,
@@ -2526,8 +2522,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   }
 
   @override
-  TypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<TypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     Template<Message Function(String, String)> template = isUnresolved
         ? templateUnresolvedPrefixInTypeAnnotation
         : templateNotAPrefixInTypeAnnotation;
@@ -2624,8 +2619,7 @@ class ParserErrorGenerator extends Generator {
     return buildProblem();
   }
 
-  TypeBuilder buildTypeWithResolvedArguments(
-      List<UnresolvedType<TypeBuilder>> arguments) {
+  TypeBuilder buildTypeWithResolvedArguments(List<UnresolvedType> arguments) {
     NamedTypeBuilder result = new NamedTypeBuilder(token.lexeme, null);
     _helper.library.addProblem(message, offsetForToken(token), noLength, _uri);
     result.bind(result.buildInvalidType(
@@ -2638,7 +2632,7 @@ class ParserErrorGenerator extends Generator {
   }
 
   Expression invokeConstructor(
-      List<UnresolvedType<TypeBuilder>> typeArguments,
+      List<UnresolvedType> typeArguments,
       String name,
       Arguments arguments,
       Token nameToken,

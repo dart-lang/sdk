@@ -859,7 +859,7 @@ Constructor defaultSuperConstructor(Class cls) {
 
 class KernelDiagnosticReporter
     extends DiagnosticReporter<Message, LocatedMessage> {
-  final Loader<Library> loader;
+  final Loader loader;
 
   KernelDiagnosticReporter(this.loader);
 

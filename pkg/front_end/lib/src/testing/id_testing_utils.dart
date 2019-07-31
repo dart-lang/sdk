@@ -81,7 +81,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
   });
 }
 
-DeclarationBuilder<TypeBuilder> lookupLibraryDeclarationBuilder(
+DeclarationBuilder lookupLibraryDeclarationBuilder(
     CompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
@@ -94,9 +94,9 @@ DeclarationBuilder<TypeBuilder> lookupLibraryDeclarationBuilder(
 
 ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
     {bool required: true}) {
-  DeclarationBuilder<TypeBuilder> libraryBuilder =
-      lookupLibraryDeclarationBuilder(compilerResult, cls.enclosingLibrary,
-          required: required);
+  DeclarationBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+      compilerResult, cls.enclosingLibrary,
+      required: required);
   ClassBuilder clsBuilder = libraryBuilder.members[cls.name];
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
@@ -121,9 +121,8 @@ MemberBuilder lookupMemberBuilder(CompilerResult compilerResult, Member member,
       }
     }
   } else {
-    DeclarationBuilder<TypeBuilder> libraryBuilder =
-        lookupLibraryDeclarationBuilder(
-            compilerResult, member.enclosingLibrary);
+    DeclarationBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+        compilerResult, member.enclosingLibrary);
     if (member is Procedure && member.isSetter) {
       memberBuilder = libraryBuilder.members[member.name.name];
     } else {

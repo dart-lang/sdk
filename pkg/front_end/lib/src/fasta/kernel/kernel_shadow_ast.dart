@@ -1279,7 +1279,7 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept(ExpressionVisitor v) {
+  accept(ExpressionVisitor<dynamic> v) {
     // This is designed to throw an exception during serialization. It can also
     // lead to exceptions during transformations, but we have to accept a
     // [Transformer] as this is used to implement `replaceChild`.
@@ -1288,12 +1288,12 @@ class SyntheticExpressionJudgment extends Let implements ExpressionJudgment {
   }
 
   @override
-  accept1(ExpressionVisitor1 v, arg) {
+  accept1(ExpressionVisitor1<dynamic, dynamic> v, arg) {
     unsupported("accept1", fileOffset, getFileUri(this));
   }
 
   @override
-  visitChildren(Visitor v) {
+  visitChildren(Visitor<dynamic> v) {
     unsupported("visitChildren", fileOffset, getFileUri(this));
   }
 }

@@ -45,7 +45,7 @@ class Code<T> {
 }
 
 class Message {
-  final Code code;
+  final Code<dynamic> code;
 
   final String message;
 
@@ -80,7 +80,7 @@ class MessageCode extends Code<Null> implements Message {
 
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
-  Code get code => this;
+  Code<dynamic> get code => this;
 
   @override
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
@@ -114,7 +114,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
   const LocatedMessage(
       this.uri, this.charOffset, this.length, this.messageObject);
 
-  Code get code => messageObject.code;
+  Code<dynamic> get code => messageObject.code;
 
   String get message => messageObject.message;
 
@@ -154,7 +154,7 @@ class FormattedMessage implements DiagnosticMessage {
   const FormattedMessage(this.locatedMessage, this.formatted, this.line,
       this.column, this.severity, this.relatedInformation);
 
-  Code get code => locatedMessage.code;
+  Code<dynamic> get code => locatedMessage.code;
 
   String get message => locatedMessage.message;
 

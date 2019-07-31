@@ -276,8 +276,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int endOffset,
       int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    DeclarationBuilder<TypeBuilder> declaration =
-        endNestedDeclaration(className)..resolveTypes(typeVariables, this);
+    DeclarationBuilder declaration = endNestedDeclaration(className)
+      ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
     Map<String, MemberBuilder> constructors = declaration.constructors;
@@ -396,8 +396,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int nameOffset,
       int endOffset) {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    DeclarationBuilder<TypeBuilder> declaration =
-        endNestedDeclaration(extensionName)..resolveTypes(typeVariables, this);
+    DeclarationBuilder declaration = endNestedDeclaration(extensionName)
+      ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
     Map<String, MemberBuilder> constructors = declaration.constructors;
@@ -622,8 +622,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
               }
             }
             for (TypeBuilder newType in newTypes) {
-              currentDeclaration
-                  .addType(new UnresolvedType<TypeBuilder>(newType, -1, null));
+              currentDeclaration.addType(new UnresolvedType(newType, -1, null));
             }
 
             DeclarationBuilder mixinDeclaration =
@@ -845,7 +844,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
     TypeBuilder returnType = addNamedType(
         currentDeclaration.parent.name, <TypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
-    DeclarationBuilder<TypeBuilder> factoryDeclaration =
+    DeclarationBuilder factoryDeclaration =
         endNestedDeclaration("#factory_method");
 
     // Prepare the simple procedure name.
@@ -900,7 +899,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
         procedure.target, documentationComment);
     metadataCollector?.setConstructorNameOffset(procedure.target, name);
 
-    DeclarationBuilder<TypeBuilder> savedDeclaration = currentDeclaration;
+    DeclarationBuilder savedDeclaration = currentDeclaration;
     currentDeclaration = factoryDeclaration;
     for (TypeVariableBuilder tv in procedure.typeVariables) {
       NamedTypeBuilder t = procedure.returnType;
@@ -1337,7 +1336,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       boundlessTypeVariables.add(newVariable);
     }
     for (TypeBuilder newType in newTypes) {
-      declaration.addType(new UnresolvedType<TypeBuilder>(newType, -1, null));
+      declaration.addType(new UnresolvedType(newType, -1, null));
     }
     return copy;
   }

@@ -48,7 +48,7 @@ List<LocatedMessage> verifyComponent(Component component,
 }
 
 class FastaVerifyingVisitor extends VerifyingVisitor
-    implements TypeSchemaVisitor {
+    implements TypeSchemaVisitor<void> {
   final List<LocatedMessage> errors = <LocatedMessage>[];
 
   Uri fileUri;

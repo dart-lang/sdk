@@ -7,8 +7,8 @@ library fasta.unresolved_type;
 import 'builder.dart' show LibraryBuilder, Scope, TypeBuilder;
 
 /// A wrapper around a type that is yet to be resolved.
-class UnresolvedType<T extends TypeBuilder> {
-  final T builder;
+class UnresolvedType {
+  final TypeBuilder builder;
   final int charOffset;
   final Uri fileUri;
 

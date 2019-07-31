@@ -517,7 +517,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  Future loadEnsureLoadedComponents(
+  Future<void> loadEnsureLoadedComponents(
       List<LibraryBuilder> reusedLibraries) async {
     if (modulesToLoad != null) {
       bool loadedAnything = false;

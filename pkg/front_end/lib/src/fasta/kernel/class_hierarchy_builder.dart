@@ -12,7 +12,6 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         InterfaceType,
         InvalidType,
-        Library,
         Member,
         Name,
         Procedure,
@@ -199,7 +198,7 @@ class ClassHierarchyBuilder {
 
   final ClassBuilder objectClass;
 
-  final Loader<Library> loader;
+  final Loader loader;
 
   final Class objectKernelClass;
 

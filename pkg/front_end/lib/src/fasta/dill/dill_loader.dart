@@ -26,7 +26,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 
 import 'dill_target.dart' show DillTarget;
 
-class DillLoader extends Loader<Library> {
+class DillLoader extends Loader {
   DillLoader(TargetImplementation target) : super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>

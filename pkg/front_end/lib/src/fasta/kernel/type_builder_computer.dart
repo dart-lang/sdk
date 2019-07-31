@@ -38,7 +38,7 @@ import '../loader.dart' show Loader;
 import '../parser.dart' show FormalParameterKind;
 
 class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
-  final Loader<Library> loader;
+  final Loader loader;
 
   const TypeBuilderComputer(this.loader);
 
