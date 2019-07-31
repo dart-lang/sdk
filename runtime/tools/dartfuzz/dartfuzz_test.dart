@@ -18,6 +18,9 @@ const timeout = 60; // in seconds
 // Exit code of running a test.
 enum ResultCode { success, timeout, error }
 
+// Status of divergence report.
+enum ReportStatus { reported, ignored, rerun, no_divergence }
+
 /// Result of running a test.
 class TestResult {
   const TestResult(this.code, this.output);
@@ -50,7 +53,7 @@ abstract class TestRunner {
 
   // Factory.
   static TestRunner getTestRunner(String mode, String top, String tmp,
-      Map<String, String> env, Random rand) {
+      Map<String, String> env, String fileName, Random rand) {
     String prefix = mode.substring(0, 3).toUpperCase();
     String tag = getTag(mode);
     // Prepare extra flags.
@@ -106,13 +109,16 @@ abstract class TestRunner {
     }
     // Construct runner.
     if (mode.startsWith('jit')) {
-      return new TestRunnerJIT(prefix, tag, top, tmp, env, extraFlags);
+      return new TestRunnerJIT(
+          prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('aot')) {
-      return new TestRunnerAOT(prefix, tag, top, tmp, env, extraFlags);
+      return new TestRunnerAOT(
+          prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('kbc')) {
-      return new TestRunnerKBC(prefix, tag, top, tmp, env, extraFlags);
+      return new TestRunnerKBC(
+          prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('djs')) {
-      return new TestRunnerDJS(prefix, tag, top, tmp, env);
+      return new TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
     }
     throw ('unknown runner in mode: $mode');
   }
@@ -138,10 +144,9 @@ abstract class TestRunner {
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
   TestRunnerJIT(String prefix, String tag, String top, String tmp, this.env,
-      List<String> extraFlags) {
+      this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
-    fileName = '$tmp/fuzz.dart';
     cmd = [dart, "--deterministic"] + extraFlags + [fileName];
   }
 
@@ -159,11 +164,10 @@ class TestRunnerJIT implements TestRunner {
 /// Concrete test runner of Dart AOT.
 class TestRunnerAOT implements TestRunner {
   TestRunnerAOT(String prefix, String tag, String top, String tmp,
-      Map<String, String> e, List<String> extraFlags) {
+      Map<String, String> e, this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     precompiler = '$top/pkg/vm/tool/precompiler2';
     dart = '$top/pkg/vm/tool/dart_precompiled_runtime2';
-    fileName = '$tmp/fuzz.dart';
     snapshot = '$tmp/snapshot';
     env = Map<String, String>.from(e);
     env['DART_CONFIGURATION'] = tag;
@@ -189,13 +193,12 @@ class TestRunnerAOT implements TestRunner {
 /// Concrete test runner of bytecode.
 class TestRunnerKBC implements TestRunner {
   TestRunnerKBC(String prefix, String tag, String top, String tmp, this.env,
-      List<String> extraFlags) {
+      this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     generate = '$top/pkg/vm/tool/gen_kernel';
     platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
     dill = '$tmp/out.dill';
     dart = '$top/out/$tag/dart';
-    fileName = '$tmp/fuzz.dart';
     cmd = [dart] + extraFlags + [dill];
   }
 
@@ -220,10 +223,10 @@ class TestRunnerKBC implements TestRunner {
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerDJS implements TestRunner {
-  TestRunnerDJS(String prefix, String tag, String top, String tmp, this.env) {
+  TestRunnerDJS(String prefix, String tag, String top, String tmp, this.env,
+      this.fileName) {
     description = '$prefix-$tag';
     dart2js = '$top/sdk/bin/dart2js';
-    fileName = '$tmp/fuzz.dart';
     js = '$tmp/out.js';
   }
 
@@ -245,7 +248,7 @@ class TestRunnerDJS implements TestRunner {
 /// Class to run fuzz testing.
 class DartFuzzTest {
   DartFuzzTest(this.env, this.repeat, this.time, this.trueDivergence,
-      this.showStats, this.top, this.mode1, this.mode2);
+      this.showStats, this.top, this.mode1, this.mode2, this.rerun);
 
   int run() {
     setup();
@@ -281,8 +284,10 @@ class DartFuzzTest {
     rand = new Random();
     tmpDir = Directory.systemTemp.createTempSync('dart_fuzz');
     fileName = '${tmpDir.path}/fuzz.dart';
-    runner1 = TestRunner.getTestRunner(mode1, top, tmpDir.path, env, rand);
-    runner2 = TestRunner.getTestRunner(mode2, top, tmpDir.path, env, rand);
+    runner1 =
+        TestRunner.getTestRunner(mode1, top, tmpDir.path, env, fileName, rand);
+    runner2 =
+        TestRunner.getTestRunner(mode2, top, tmpDir.path, env, fileName, rand);
     fp = samePrecision(mode1, mode2);
     isolate = 'Isolate (${tmpDir.path}) ${fp ? "" : "NO-"}FP : '
         '${runner1.description} - ${runner2.description}';
@@ -337,10 +342,18 @@ class DartFuzzTest {
   void runTest() {
     TestResult result1 = runner1.run();
     TestResult result2 = runner2.run();
-    checkDivergence(result1, result2);
+    if (checkDivergence(result1, result2) == ReportStatus.rerun && rerun) {
+      print("\nCommencing re-run .... \n");
+      numDivergences--;
+      result1 = runner1.run();
+      result2 = runner2.run();
+      if (checkDivergence(result1, result2) == ReportStatus.no_divergence) {
+        print("\nNo error on re-run\n");
+      }
+    }
   }
 
-  void checkDivergence(TestResult result1, TestResult result2) {
+  ReportStatus checkDivergence(TestResult result1, TestResult result2) {
     if (result1.code == result2.code) {
       // No divergence in result code.
       switch (result1.code) {
@@ -350,6 +363,7 @@ class DartFuzzTest {
             numSuccess++;
           } else {
             reportDivergence(result1, result2);
+            return ReportStatus.reported;
           }
           break;
         case ResultCode.timeout:
@@ -369,11 +383,13 @@ class DartFuzzTest {
         if (result1.code == ResultCode.timeout ||
             result2.code == ResultCode.timeout) {
           numTimeOut++;
-          return;
+          return ReportStatus.ignored;
         }
       }
       reportDivergence(result1, result2);
+      return ReportStatus.rerun;
     }
+    return ReportStatus.no_divergence;
   }
 
   String generateReport(TestResult result1, TestResult result2) {
@@ -414,6 +430,7 @@ class DartFuzzTest {
   final String top;
   final String mode1;
   final String mode2;
+  final bool rerun;
 
   // Test.
   Random rand;
@@ -441,8 +458,16 @@ class DartFuzzTest {
 
 /// Class to start fuzz testing session.
 class DartFuzzTestSession {
-  DartFuzzTestSession(this.isolates, this.repeat, this.time,
-      this.trueDivergence, this.showStats, String tp, this.mode1, this.mode2)
+  DartFuzzTestSession(
+      this.isolates,
+      this.repeat,
+      this.time,
+      this.trueDivergence,
+      this.showStats,
+      String tp,
+      this.mode1,
+      this.mode2,
+      this.rerun)
       : top = getTop(tp) {}
 
   start() async {
@@ -493,7 +518,8 @@ class DartFuzzTestSession {
           session.showStats,
           session.top,
           m1,
-          m2);
+          m2,
+          session.rerun);
       divergences = fuzz.run();
     } catch (e) {
       print('Isolate: $e');
@@ -535,6 +561,7 @@ class DartFuzzTestSession {
   final int time;
   final bool trueDivergence;
   final bool showStats;
+  final bool rerun;
   final String top;
   final String mode1;
   final String mode2;
@@ -596,6 +623,10 @@ main(List<String> arguments) {
     ..addOption('dart-top', help: 'explicit value for \$DART_TOP')
     ..addOption('mode1', help: 'execution mode 1')
     ..addOption('mode2', help: 'execution mode 2')
+    ..addFlag('rerun',
+        negatable: true,
+        help: 're-run if test only diverges on return code (not in the output)',
+        defaultsTo: true)
     // Undocumented options for cluster runs.
     ..addOption('shards',
         help: 'number of shards used in cluster run', defaultsTo: '1')
@@ -621,7 +652,8 @@ main(List<String> arguments) {
             results['show-stats'],
             results['dart-top'],
             results['mode1'],
-            results['mode2'])
+            results['mode2'],
+            results['rerun'])
         .start();
   } catch (e) {
     print('Usage: dart dartfuzz_test.dart [OPTIONS]\n${parser.usage}\n$e');

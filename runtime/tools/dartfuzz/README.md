@@ -37,6 +37,7 @@ To start a fuzz testing session, run
                             [--true_divergence]
                             [--mode1 MODE]
                             [--mode2 MODE]
+                            [--[no-]rerun]
 
 where
 
@@ -62,6 +63,11 @@ where
         kbc-mix-[debug-]x64 = Dart KBC (mixed-mode bytecode)
         kbc-cmp-[debug-]x64 = Dart KBC (compiled bytecode)
         djs-x64             = dart2js + Node.JS
+    --[no-]rerun       : re-run a testcase if there is only a divergence in
+                         the return codes (not in the output);
+                         if the second run produces no divergence the previous
+                         one will be ignored (true by default)
+
 
 If no modes are given, a random JIT and/or AOT combination is used.
 
