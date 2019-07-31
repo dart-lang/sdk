@@ -296,13 +296,19 @@ void _completeOnAsyncReturn(Completer completer, Object value) {
 
 /// Returns a [StackTrace] object containing the synchronous prefix for this
 /// asynchronous method.
+//
+// This method is recognized. It performs a runtime call if
+// FLAG_causal_async_stacks is enabled or returns `null` otherwise.
+@pragma("vm:prefer-inline")
 Object _asyncStackTraceHelper(Function async_op)
     native "StackTrace_asyncStackTraceHelper";
 
+// This method is asm intrinsified.
 @pragma("vm:entry-point", "call")
 void _clearAsyncThreadStackTrace()
     native "StackTrace_clearAsyncThreadStackTrace";
 
+// This method is asm intrinsified.
 @pragma("vm:entry-point", "call")
 void _setAsyncThreadStackTrace(StackTrace stackTrace)
     native "StackTrace_setAsyncThreadStackTrace";

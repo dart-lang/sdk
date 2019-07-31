@@ -12524,6 +12524,7 @@ void Library::CheckFunctionFingerprints() {
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
   CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS2);
 
+  all_libs.Add(&Library::ZoneHandle(Library::AsyncLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));

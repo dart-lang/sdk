@@ -1040,6 +1040,13 @@ RawTypedData* BytecodeReaderHelper::NativeEntry(const Function& function,
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
       break;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+      // If causal async stacks are disabled the interpreter.cc will handle this
+      // native call specially.
+      if (!FLAG_causal_async_stacks) {
+        break;
+      }
+      FALL_THROUGH;
     default:
       kind = MethodRecognizer::kUnknown;
   }

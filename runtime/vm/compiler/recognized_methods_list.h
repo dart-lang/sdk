@@ -141,6 +141,7 @@ namespace dart {
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 0x558481c2)   \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 0x5aa9888d)   \
   V(::, _classRangeCheck, ClassRangeCheck, 0x2ae76b84)                         \
+  V(::, _asyncStackTraceHelper, AsyncStackTraceHelper, 0)                      \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).

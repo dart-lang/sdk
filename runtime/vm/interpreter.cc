@@ -2124,6 +2124,9 @@ SwitchDispatch:
       case MethodRecognizer::kClassIDgetID: {
         SP[0] = InterpreterHelpers::GetClassIdAsSmi(SP[0]);
       } break;
+      case MethodRecognizer::kAsyncStackTraceHelper: {
+        SP[0] = Object::null();
+      } break;
       case MethodRecognizer::kGrowableArrayCapacity: {
         RawGrowableObjectArray* instance =
             reinterpret_cast<RawGrowableObjectArray*>(SP[0]);

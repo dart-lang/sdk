@@ -108,7 +108,10 @@ DEFINE_NATIVE_ENTRY(StackTrace_current, 0, 0) {
 
 DEFINE_NATIVE_ENTRY(StackTrace_asyncStackTraceHelper, 0, 1) {
   if (!FLAG_causal_async_stacks) {
-    return Object::null();
+    // If causal async stacks are not enabled we should recognize this method
+    // and never call to the NOP runtime.
+    // See kernel_to_il.cc/bytecode_reader.cc/interpreter.cc.
+    UNREACHABLE();
   }
 #if !defined(PRODUCT)
   GET_NATIVE_ARGUMENT(Closure, async_op, arguments->NativeArgAt(0));

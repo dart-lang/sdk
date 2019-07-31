@@ -3056,6 +3056,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
   Fragment instructions;
   LocalVariable* instance_variable = NULL;
 
+  const bool special_case_nop_async_stack_trace_helper =
+      !FLAG_causal_async_stacks &&
+      target.recognized_kind() == MethodRecognizer::kAsyncStackTraceHelper;
+
   const bool special_case_unchecked_cast =
       klass.IsTopLevel() && (klass.library() == Library::InternalLibrary()) &&
       (target.name() == Symbols::UnsafeCast().raw());
@@ -3064,8 +3068,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
       klass.IsTopLevel() && (klass.library() == Library::CoreLibrary()) &&
       (target.name() == Symbols::Identical().raw());
 
-  const bool special_case =
-      special_case_identical || special_case_unchecked_cast;
+  const bool special_case = special_case_identical ||
+                            special_case_unchecked_cast ||
+                            special_case_nop_async_stack_trace_helper;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]
   // can appear, but the thing we're calling is not a static method, but a
@@ -3130,6 +3135,10 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(bool is_const,
     ASSERT(argument_count == 2);
     instructions +=
         StrictCompare(position, Token::kEQ_STRICT, /*number_check=*/true);
+  } else if (special_case_nop_async_stack_trace_helper) {
+    ASSERT(argument_count == 1);
+    instructions += Drop();
+    instructions += NullConstant();
   } else if (special_case_unchecked_cast) {
     // Simply do nothing: the result value is already pushed on the stack.
   } else {
