@@ -1207,6 +1207,20 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     }
   }
 
+  void test_listLiteral_invalid_assert() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    parseExpression('n=<.["\$assert',
+        errors: [
+          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 3, 1),
+          expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 4, 1),
+          expectedError(ParserErrorCode.MISSING_IDENTIFIER, 7, 6),
+          expectedError(ParserErrorCode.EXPECTED_STRING_LITERAL, 7, 6),
+          expectedError(ScannerErrorCode.EXPECTED_TOKEN, 7, 1),
+          expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 12, 1),
+        ],
+        expectedEndOffset: 7);
+  }
+
   void test_listLiteral_spread_disabled() {
     ListLiteral list =
         parseExpression('[1, ...[2]]', featureSet: beforeUiAsCode, errors: [
@@ -1225,6 +1239,28 @@ class ExpressionParserTest_Fasta extends FastaParserTestCase
     expect(list.elements, hasLength(1));
     IntegerLiteral first = list.elements[0];
     expect(first.value, 1);
+  }
+
+  void test_lt_dot_bracket_quote() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    ListLiteral list = parseExpression('<.["', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 1),
+      expectedError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 3, 1),
+      expectedError(ScannerErrorCode.EXPECTED_TOKEN, 4, 1),
+    ]);
+    expect(list.elements, hasLength(1));
+    StringLiteral first = list.elements[0];
+    expect(first.length, 1);
+  }
+
+  void test_lt_dot_listLiteral() {
+    // https://github.com/dart-lang/sdk/issues/37674
+    ListLiteral list = parseExpression('<.[]', errors: [
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 1, 1),
+      expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 2, 2),
+    ]);
+    expect(list.elements, hasLength(0));
   }
 
   void test_mapLiteral() {
