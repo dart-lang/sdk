@@ -56,8 +56,9 @@ abstract class DataExtractor<T> extends Visitor with DataRegistry<T> {
 
   DataExtractor(this.actualMap);
 
-  void computeForLibrary(Library library) {
-    LibraryId id = new LibraryId(library.importUri);
+  void computeForLibrary(Library library, {bool useFileUri: false}) {
+    LibraryId id =
+        new LibraryId(useFileUri ? library.fileUri : library.importUri);
     T value = computeLibraryValue(id, library);
     registerValue(library.fileUri, null, id, value, library);
   }

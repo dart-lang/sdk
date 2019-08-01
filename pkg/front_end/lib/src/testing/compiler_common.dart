@@ -16,7 +16,8 @@ import '../api_prototype/front_end.dart'
         kernelForProgramInternal,
         summaryFor;
 
-import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
+import '../api_prototype/memory_file_system.dart'
+    show MemoryFileSystem, MemoryFileSystemEntity;
 
 import '../compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
@@ -85,7 +86,7 @@ Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,
 ///   contain either source files (value is [String]) or .dill files (value
 ///   is [List<int>]).
 ///
-///   * define an empty .packages file
+///   * define an empty .packages file (if one isn't defined in sources)
 ///
 ///   * specify the location of the sdk summaries.
 Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
@@ -100,7 +101,9 @@ Future<Null> setup(CompilerOptions options, Map<String, dynamic> sources,
       entity.writeAsBytesSync(data);
     }
   });
-  fs.entityForUri(toTestUri('.packages')).writeAsStringSync('');
+  MemoryFileSystemEntity dotPackagesFile =
+      fs.entityForUri(toTestUri('.packages'));
+  if (!await dotPackagesFile.exists()) dotPackagesFile.writeAsStringSync('');
   fs
       .entityForUri(invalidCoreLibsSpecUri)
       .writeAsStringSync(_invalidLibrariesSpec);

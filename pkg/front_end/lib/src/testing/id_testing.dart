@@ -184,14 +184,35 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 
 /// Creates a [TestData] object for the annotated test in [testFile].
 ///
+/// If [testFile] is a file, use that directly. If it's a directory include
+/// everything in that directory.
+///
 /// If [testLibDirectory] is not `null`, files in [testLibDirectory] with the
 /// [testFile] name as a prefix are included.
-TestData computeTestData(File testFile, Directory testLibDirectory,
+TestData computeTestData(FileSystemEntity testFile, Directory testLibDirectory,
     {Iterable<String> supportedMarkers,
     Uri createUriForFileName(String fileName, {bool isLib}),
     void onFailure(String message)}) {
   Uri entryPoint = createUriForFileName('main.dart', isLib: false);
-  String annotatedCode = new File.fromUri(testFile.uri).readAsStringSync();
+
+  File mainTestFile;
+  Map<String, File> additionalFiles;
+  if (testFile is File) {
+    mainTestFile = testFile;
+  } else if (testFile is Directory) {
+    additionalFiles = new Map<String, File>();
+    for (FileSystemEntity entry in testFile.listSync(recursive: true)) {
+      if (entry is! File) continue;
+      if (entry.uri.pathSegments.last == "main.dart") {
+        mainTestFile = entry;
+      } else {
+        additionalFiles[entry.uri.path.substring(testFile.uri.path.length)] =
+            entry;
+      }
+    }
+  }
+
+  String annotatedCode = new File.fromUri(mainTestFile.uri).readAsStringSync();
   Map<Uri, AnnotatedCode> code = {
     entryPoint:
         new AnnotatedCode.fromText(annotatedCode, commentStart, commentEnd)
@@ -208,24 +229,34 @@ TestData computeTestData(File testFile, Directory testLibDirectory,
   };
 
   List<String> libFileNames;
+
+  addSupportingFile(String libFileName, File libEntity, bool isLib) {
+    libFileNames ??= [];
+    libFileNames.add(libFileName);
+    Uri libFileUri = createUriForFileName(libFileName, isLib: isLib);
+    String libCode = libEntity.readAsStringSync();
+    AnnotatedCode annotatedLibCode =
+        new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
+    memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
+    code[libFileUri] = annotatedLibCode;
+    computeExpectedMap(libFileUri, libFileName, annotatedLibCode, expectedMaps,
+        onFailure: onFailure);
+  }
+
   if (testLibDirectory != null) {
     String name = testFile.uri.pathSegments.last;
     String filePrefix = name.substring(0, name.lastIndexOf('.'));
     for (FileSystemEntity libEntity in testLibDirectory.listSync()) {
       String libFileName = libEntity.uri.pathSegments.last;
       if (libFileName.startsWith(filePrefix)) {
-        libFileNames ??= [];
-        libFileNames.add(libFileName);
-        Uri libFileUri = createUriForFileName(libFileName, isLib: true);
-        String libCode = new File.fromUri(libEntity.uri).readAsStringSync();
-        AnnotatedCode annotatedLibCode =
-            new AnnotatedCode.fromText(libCode, commentStart, commentEnd);
-        memorySourceFiles[libFileUri.path] = annotatedLibCode.sourceCode;
-        code[libFileUri] = annotatedLibCode;
-        computeExpectedMap(
-            libFileUri, libFileName, annotatedLibCode, expectedMaps,
-            onFailure: onFailure);
+        addSupportingFile(libFileName, libEntity, true);
       }
+    }
+  }
+  if (additionalFiles != null) {
+    for (MapEntry<String, File> additionalFileData in additionalFiles.entries) {
+      addSupportingFile(
+          additionalFileData.key, additionalFileData.value, false);
     }
   }
 
@@ -613,12 +644,13 @@ Future runTests(Directory dataDir,
     }
     print('----------------------------------------------------------------');
 
-    TestData testData = computeTestData(entity, libDirectory,
+    TestData testData = computeTestData(
+        entity, entity is File ? libDirectory : null,
         supportedMarkers: supportedMarkers,
         createUriForFileName: createUriForFileName,
         onFailure: onFailure);
     print('Test file: ${testData.testFileUri}');
-    if (testData.libFileNames != null) {
+    if (!succinct && testData.libFileNames != null) {
       print('Supporting libraries:');
       for (String libFileName in testData.libFileNames) {
         print('    - libs/$libFileName');

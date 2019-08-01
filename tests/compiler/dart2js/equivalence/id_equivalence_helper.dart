@@ -11,8 +11,11 @@ import 'package:compiler/src/common_elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/kernel/element_map_impl.dart';
+import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/testing/id_testing.dart';
+import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/memory_compiler.dart';
 import '../equivalence/id_equivalence.dart';
@@ -144,6 +147,14 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
     Iterable<Id> globalIds: const <Id>[]}) async {
   OutputCollector outputCollector = new OutputCollector();
   DiagnosticCollector diagnosticCollector = new DiagnosticCollector();
+  Uri packageConfig;
+  Uri wantedPackageConfig = createUriForFileName(".packages", isLib: false);
+  for (String key in memorySourceFiles.keys) {
+    if (key == wantedPackageConfig.path) {
+      packageConfig = wantedPackageConfig;
+      break;
+    }
+  }
   CompilationResult result = await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
@@ -153,7 +164,8 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
       beforeRun: (compiler) {
         compiler.stopAfterTypeInference =
             options.contains(stopAfterTypeInference);
-      });
+      },
+      packageConfig: packageConfig);
   if (!result.isSuccess) {
     if (skipFailedCompilations) return null;
     Expect.isTrue(
@@ -249,10 +261,22 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
             library.canonicalUri.scheme == 'package');
   }
 
+  ir.Library getIrLibrary(LibraryEntity library) {
+    KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
+    KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
+    LibraryEntity kLibrary =
+        elementMap.elementEnvironment.lookupLibrary(library.canonicalUri);
+    return elementMap.getLibraryNode(kLibrary);
+  }
+
   for (LibraryEntity library in elementEnvironment.libraries) {
-    if (excludeLibrary(library)) continue;
+    if (excludeLibrary(library) &&
+        !memorySourceFiles.containsKey(getIrLibrary(library).fileUri.path)) {
+      continue;
+    }
+
     dataComputer.computeLibraryData(
-        compiler, library, actualMapForUri(library.canonicalUri),
+        compiler, library, actualMapForUri(getIrLibrary(library).fileUri),
         verbose: verbose);
     elementEnvironment.forEachClass(library, (ClassEntity cls) {
       processClass(cls, actualMapFor(cls));
@@ -260,7 +284,9 @@ Future<CompiledData<T>> computeData<T>(Uri entryPoint,
   }
 
   for (MemberEntity member in closedWorld.processedMembers) {
-    if (excludeLibrary(member.library)) continue;
+    if (excludeLibrary(member.library) &&
+        !memorySourceFiles
+            .containsKey(getIrLibrary(member.library).fileUri.path)) continue;
     processMember(member, actualMapFor(member));
   }
 
@@ -447,16 +473,20 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       onTest: onTest,
       libDirectory: libDirectory,
       supportedMarkers: supportedMarkers,
-      createUriForFileName: (String fileName, {bool isLib}) {
-    String commonTestPath = 'sdk/tests/compiler';
-    if (isLib) {
-      return Uri.parse('memory:$commonTestPath/libs/$fileName');
-    } else {
-      // Pretend this is a dart2js_native test to allow use of 'native'
-      // keyword and import of private libraries.
-      return Uri.parse('memory:$commonTestPath/dart2js_native/$fileName');
-    }
-  }, onFailure: Expect.fail, runTest: checkTest);
+      createUriForFileName: createUriForFileName,
+      onFailure: Expect.fail,
+      runTest: checkTest);
+}
+
+Uri createUriForFileName(String fileName, {bool isLib}) {
+  String commonTestPath = 'sdk/tests/compiler';
+  if (isLib) {
+    return Uri.parse('memory:$commonTestPath/libs/$fileName');
+  } else {
+    // Pretend this is a dart2js_native test to allow use of 'native'
+    // keyword and import of private libraries.
+    return Uri.parse('memory:$commonTestPath/dart2js_native/$fileName');
+  }
 }
 
 Future<bool> runTestForConfiguration<T>(TestConfig testConfiguration,

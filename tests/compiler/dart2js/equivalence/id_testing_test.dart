@@ -61,7 +61,7 @@ class IdTestingDataComputer extends DataComputer<String> {
     KernelToElementMapImpl elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
     new IdTestingDataExtractor(compiler.reporter, actualMap, elementMap)
-        .computeForLibrary(node);
+        .computeForLibrary(node, useFileUri: true);
   }
 
   @override

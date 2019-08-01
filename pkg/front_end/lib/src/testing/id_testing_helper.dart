@@ -306,7 +306,10 @@ Future<bool> runTestForConfig<T>(
   }
 
   for (Library library in component.libraries) {
-    if (excludeLibrary(library)) continue;
+    if (excludeLibrary(library) &&
+        !testData.memorySourceFiles.containsKey(library.fileUri.path)) {
+      continue;
+    }
     dataComputer.computeLibraryData(
         compilerResult, library, actualMapFor(library));
     for (Class cls in library.classes) {
@@ -379,7 +382,6 @@ Future<bool> runTestForConfig<T>(
 
   CfeCompiledData compiledData = new CfeCompiledData<T>(
       compilerResult, testData.testFileUri, actualMaps, globalData);
-
   return checkCode(config.name, testData.testFileUri, testData.code,
       memberAnnotations, compiledData, dataComputer.dataValidator,
       fatalErrors: fatalErrors, succinct: succinct, onFailure: onFailure);
