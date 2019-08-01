@@ -347,7 +347,8 @@ class Dart2jsCompiledData<T> extends CompiledData<T> {
   }
 
   @override
-  void reportError(Uri uri, int offset, String message) {
+  void reportError(Uri uri, int offset, String message,
+      {bool succinct: false}) {
     compiler.reporter.reportErrorMessage(
         computeSourceSpanFromUriOffset(uri, offset),
         MessageKind.GENERIC,
@@ -407,7 +408,10 @@ Future checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
   dataComputer.setup();
 
   Future<bool> checkTest(TestData testData,
-      {bool testAfterFailures, bool verbose, bool printCode}) async {
+      {bool testAfterFailures,
+      bool verbose,
+      bool succinct,
+      bool printCode}) async {
     bool hasFailures = false;
     String name = testData.name;
     List<String> testOptions = options.toList();

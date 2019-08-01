@@ -137,9 +137,11 @@ class CfeCompiledData<T> extends CompiledData<T> {
   }
 
   @override
-  void reportError(Uri uri, int offset, String message) {
+  void reportError(Uri uri, int offset, String message,
+      {bool succinct: false}) {
     printMessageInLocation(
-        compilerResult.component.uriToSource, uri, offset, message);
+        compilerResult.component.uriToSource, uri, offset, message,
+        succinct: succinct);
   }
 }
 
@@ -170,10 +172,11 @@ void onFailure(String message) => throw new StateError(message);
 RunTestFunction runTestFor<T>(
     DataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
   return (TestData testData,
-      {bool testAfterFailures, bool verbose, bool printCode}) {
+      {bool testAfterFailures, bool verbose, bool succinct, bool printCode}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         verbose: verbose,
+        succinct: succinct,
         printCode: printCode,
         onFailure: onFailure);
   };
@@ -186,6 +189,7 @@ Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
     List<TestConfig> testedConfigs,
     {bool testAfterFailures,
     bool verbose,
+    bool succinct,
     bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
@@ -196,6 +200,7 @@ Future<bool> runTest<T>(TestData testData, DataComputer<T> dataComputer,
         fatalErrors: !testAfterFailures,
         onFailure: onFailure,
         verbose: verbose,
+        succinct: succinct,
         printCode: printCode)) {
       hasFailures = true;
     }
@@ -210,6 +215,7 @@ Future<bool> runTestForConfig<T>(
     TestData testData, DataComputer<T> dataComputer, TestConfig config,
     {bool fatalErrors,
     bool verbose,
+    bool succinct,
     bool printCode,
     bool forUserLibrariesOnly: true,
     Iterable<Id> globalIds: const <Id>[],
@@ -223,7 +229,7 @@ Future<bool> runTestForConfig<T>(
     if (message is FormattedMessage && message.severity == Severity.error) {
       errors.add(message);
     }
-    printDiagnosticMessage(message, print);
+    if (!succinct) printDiagnosticMessage(message, print);
   };
   options.debugDump = printCode;
   options.experimentalFlags.addAll(config.experimentalFlags);
@@ -376,11 +382,12 @@ Future<bool> runTestForConfig<T>(
 
   return checkCode(config.name, testData.testFileUri, testData.code,
       memberAnnotations, compiledData, dataComputer.dataValidator,
-      fatalErrors: fatalErrors, onFailure: onFailure);
+      fatalErrors: fatalErrors, succinct: succinct, onFailure: onFailure);
 }
 
 void printMessageInLocation(
-    Map<Uri, Source> uriToSource, Uri uri, int offset, String message) {
+    Map<Uri, Source> uriToSource, Uri uri, int offset, String message,
+    {bool succinct: false}) {
   if (uri == null) {
     print(message);
   } else {
@@ -391,8 +398,10 @@ void printMessageInLocation(
       if (offset != null) {
         Location location = source.getLocation(uri, offset);
         print('$location: $message');
-        print(source.getTextLine(location.line));
-        print(' ' * (location.column - 1) + '^');
+        if (!succinct) {
+          print(source.getTextLine(location.line));
+          print(' ' * (location.column - 1) + '^');
+        }
       } else {
         print('$uri: $message');
       }
