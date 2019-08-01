@@ -728,6 +728,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
     case MethodRecognizer::kLinkedHashMap_setDeletedKeys:
       return true;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+      return !FLAG_causal_async_stacks;
     default:
       return false;
   }
@@ -1009,6 +1011,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += StoreInstanceField(TokenPosition::kNoSource,
                                  Slot::LinkedHashMap_deleted_keys(),
                                  kNoStoreBarrier);
+      body += NullConstant();
+      break;
+    case MethodRecognizer::kAsyncStackTraceHelper:
+      ASSERT(!FLAG_causal_async_stacks);
       body += NullConstant();
       break;
     default: {
