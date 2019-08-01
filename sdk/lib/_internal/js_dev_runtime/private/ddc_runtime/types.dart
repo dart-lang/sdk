@@ -342,16 +342,16 @@ class FunctionType extends AbstractFunctionType {
   List metadata = [];
   String _stringValue;
 
-  /**
-   * Construct a function type.
-   *
-   * We eagerly normalize the argument types to avoid having to deal with
-   * this logic in multiple places.
-   *
-   * This code does best effort canonicalization.  It does not guarantee
-   * that all instances will share.
-   *
-   */
+  /// Construct a function type.
+  ///
+  /// We eagerly normalize the argument types to avoid having to deal with this
+  /// logic in multiple places.
+  ///
+  /// This code does best effort canonicalization.  It does not guarantee that
+  /// all instances will share.
+  ///
+  /// Note: Generic function subtype checks assume types have been canonicalized
+  /// when testing if type bounds are equal.
   static FunctionType create(returnType, List args, extra) {
     // Note that if extra is ever passed as an empty array
     // or an empty map, we can end up with semantically
@@ -516,12 +516,15 @@ class GenericFunctionType extends AbstractFunctionType {
     return _typeFormals = _typeFormalsFromFunction(_instantiateTypeParts);
   }
 
+  /// `true` if there are bounds on any of the generic type parameters.
+  get hasTypeBounds => _instantiateTypeBounds != null;
+
   /// Checks that [typeArgs] satisfies the upper bounds of the [typeFormals],
   /// and throws a [TypeError] if they do not.
   void checkBounds(List typeArgs) {
     // If we don't have explicit type parameter bounds, the bounds default to
     // a top type, so there's nothing to check here.
-    if (_instantiateTypeBounds == null) return;
+    if (!hasTypeBounds) return;
 
     var bounds = instantiateTypeBounds(typeArgs);
     var typeFormals = this.typeFormals;
@@ -537,8 +540,7 @@ class GenericFunctionType extends AbstractFunctionType {
   }
 
   List instantiateTypeBounds(List typeArgs) {
-    var boundsFn = _instantiateTypeBounds;
-    if (boundsFn == null) {
+    if (!hasTypeBounds) {
       // The Dart 1 spec says omitted type parameters have an upper bound of
       // Object. However Dart 2 uses `dynamic` for the purpose of instantiate to
       // bounds, so we use that here.
@@ -546,7 +548,7 @@ class GenericFunctionType extends AbstractFunctionType {
     }
     // Bounds can be recursive or depend on other type parameters, so we need to
     // apply type arguments and return the resulting bounds.
-    return JS('List', '#.apply(null, #)', boundsFn, typeArgs);
+    return JS('List', '#.apply(null, #)', _instantiateTypeBounds, typeArgs);
   }
 
   toString() {
@@ -948,24 +950,23 @@ bool _isSubtype(t1, t2) => JS('', '''(() => {
     // rather it uses JS function parameters to ensure correct binding.
     let fresh = $t2.typeFormals;
 
-    // TODO(nshahan) Remove this variance check. The types should be equal
-    // according to the spec and to match other backends.
-
-    // Check the bounds of the type parameters of g1 and g2.
-    // given a type parameter `T1 extends U1` from g1, and a type parameter
-    // `T2 extends U2` from g2, we must ensure that:
-    //
-    //      U2 <: U1
-    //
-    // (Note the reversal of direction -- type formal bounds are contravariant,
-    // similar to the function's formal parameter types).
-    //
-    let t1Bounds = $t1.instantiateTypeBounds(fresh);
-    let t2Bounds = $t2.instantiateTypeBounds(fresh);
-    // TODO(jmesserly): we could optimize for the common case of no bounds.
-    for (let i = 0; i < formalCount; i++) {
-      if (!$_isSubtype(t2Bounds[i], t1Bounds[i])) {
-        return false;
+    // Without type bounds all will instantiate to dynamic. Only need to check
+    // further if at least one of the functions has type bounds.
+    if ($t1.hasTypeBounds || $t2.hasTypeBounds) {
+      // Check the bounds of the type parameters of g1 and g2.
+      // given a type parameter `T1 extends U1` from g1, and a type parameter
+      // `T2 extends U2` from g2, we must ensure that:
+      //
+      //      U2 == U1
+      //
+      // (Note there is no variance in the type bounds of type parameters of
+      // generic functions).
+      let t1Bounds = $t1.instantiateTypeBounds(fresh);
+      let t2Bounds = $t2.instantiateTypeBounds(fresh);
+      for (let i = 0; i < formalCount; i++) {
+        if (t2Bounds[i] != t1Bounds[i]) {
+          return false;
+        }
       }
     }
 
