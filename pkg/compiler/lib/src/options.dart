@@ -470,6 +470,7 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingExperiment) {
       // TODO(sra): Set flags implied by '--benchmarking-x'. Initially this will
       // be --experiment-new-rti, and later NNBD.
+      experimentNewRti = true;
     }
 
     if (optimizationLevel != null) {
