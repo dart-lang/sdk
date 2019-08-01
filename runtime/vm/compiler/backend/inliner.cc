@@ -635,6 +635,11 @@ static void ReplaceParameterStubs(Zone* zone,
       }
       redefinition->InsertAfter(callee_entry);
       defn = redefinition;
+      // Since the redefinition does not dominate the callee entry, replace
+      // uses of the receiver argument in this entry with the redefined value.
+      callee_entry->ReplaceInEnvironment(
+          call_data->parameter_stubs->At(first_arg_stub_index + i),
+          actual->definition());
     } else if (actual != NULL) {
       defn = actual->definition();
     }

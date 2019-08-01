@@ -169,16 +169,8 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
           new_branch->comparison()->SetDeoptId(*comparison);
           // The phi can be used in the branch's environment.  Rename such
           // uses.
-          for (Environment::DeepIterator it(new_branch->env()); !it.Done();
-               it.Advance()) {
-            Value* use = it.CurrentValue();
-            if (use->definition() == phi) {
-              Definition* replacement = phi->InputAt(i)->definition();
-              use->RemoveFromUseList();
-              use->set_definition(replacement);
-              replacement->AddEnvUse(use);
-            }
-          }
+          Definition* replacement = phi->InputAt(i)->definition();
+          new_branch->ReplaceInEnvironment(phi, replacement);
         }
 
         new_branch->InsertBefore(old_goto);

@@ -830,6 +830,7 @@ class Instruction : public ZoneAllocated {
   Environment* env() const { return env_; }
   void SetEnvironment(Environment* deopt_env);
   void RemoveEnvironment();
+  void ReplaceInEnvironment(Definition* current, Definition* replacement);
 
   intptr_t lifetime_position() const { return lifetime_position_; }
   void set_lifetime_position(intptr_t pos) { lifetime_position_ = pos; }
