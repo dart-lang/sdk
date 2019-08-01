@@ -831,7 +831,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       staticType = staticElement.type;
     }
 
-    staticType = _inferGenericInstantiationFromContext(node, staticType);
+    staticType = _inferTearOff(node, node.identifier, staticType);
     if (!_inferObjectAccess(node, staticType, prefixedIdentifier)) {
       _recordStaticType(prefixedIdentifier, staticType);
       _recordStaticType(node, staticType);
@@ -924,7 +924,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         _nonNullableEnabled) {
       staticType = _typeSystem.makeNullable(staticType);
     }
-    staticType = _inferGenericInstantiationFromContext(node, staticType);
+    staticType = _inferTearOff(node, node.propertyName, staticType);
 
     if (!_inferObjectAccess(node, staticType, propertyName)) {
       _recordStaticType(propertyName, staticType);
@@ -1074,7 +1074,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       staticType = _dynamicType;
     }
-    staticType = _inferGenericInstantiationFromContext(node, staticType);
+    staticType = _inferTearOff(node, node, staticType);
     _recordStaticType(node, staticType);
   }
 
@@ -1568,23 +1568,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   /**
-   * Given an uninstantiated generic function type, try to infer the
-   * instantiated generic function type from the surrounding context.
-   */
-  DartType _inferGenericInstantiationFromContext(AstNode node, DartType type) {
-    TypeSystem ts = _typeSystem;
-    var context = InferenceContext.getContext(node);
-    if (context is FunctionType &&
-        type is FunctionType &&
-        ts is Dart2TypeSystem) {
-      // TODO(scheglov) Also store type arguments for identifiers.
-      return ts.inferFunctionTypeInstantiation(context, type,
-          errorReporter: _resolver.errorReporter, errorNode: node);
-    }
-    return type;
-  }
-
-  /**
    * Given a possibly generic invocation like `o.m(args)` or `(f)(args)` try to
    * infer the instantiated generic function type.
    *
@@ -1927,6 +1910,36 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return _typeProvider.dynamicType;
     }
+  }
+
+  /**
+   * Given an uninstantiated generic function type, referenced by the
+   * [identifier] in the tear-off [expression], try to infer the instantiated
+   * generic function type from the surrounding context.
+   */
+  DartType _inferTearOff(
+    Expression expression,
+    SimpleIdentifier identifier,
+    DartType tearOffType,
+  ) {
+    TypeSystem ts = _typeSystem;
+    var context = InferenceContext.getContext(expression);
+    if (context is FunctionType &&
+        tearOffType is FunctionType &&
+        ts is Dart2TypeSystem) {
+      var typeArguments = ts.inferFunctionTypeInstantiation(
+        context,
+        tearOffType,
+        errorReporter: _resolver.errorReporter,
+        errorNode: expression,
+      );
+      (identifier as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
+          typeArguments;
+      if (typeArguments.isNotEmpty) {
+        return tearOffType.instantiate(typeArguments);
+      }
+    }
+    return tearOffType;
   }
 
   /**

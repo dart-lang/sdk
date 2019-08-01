@@ -202,18 +202,18 @@ class Dart2TypeSystem extends TypeSystem {
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
-   * This is similar to [inferGenericFunctionOrType], but the return type is also
-   * considered as part of the solution.
+   * This is similar to [inferGenericFunctionOrType2], but the return type is
+   * also considered as part of the solution.
    *
    * If this function is called with a [contextType] that is also
    * uninstantiated, or a [fnType] that is already instantiated, it will have
-   * no effect and return [fnType].
+   * no effect and return `null`.
    */
-  FunctionType inferFunctionTypeInstantiation(
+  List<DartType> inferFunctionTypeInstantiation(
       FunctionType contextType, FunctionType fnType,
       {ErrorReporter errorReporter, AstNode errorNode}) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
-      return fnType;
+      return const <DartType>[];
     }
 
     // Create a TypeSystem that will allow certain type parameters to be
@@ -224,12 +224,11 @@ class Dart2TypeSystem extends TypeSystem {
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
-    var inferredTypes = inferrer.infer(
+    return inferrer.infer(
       fnType.typeFormals,
       errorReporter: errorReporter,
       errorNode: errorNode,
     );
-    return fnType.instantiate(inferredTypes);
   }
 
   /// Infers a generic type, function, method, or list/map literal

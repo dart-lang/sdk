@@ -8902,6 +8902,9 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /// getter context.
   AuxiliaryElements auxiliaryElements = null;
 
+  @override
+  List<DartType> tearOffTypeArgumentTypes;
+
   /// Initialize a newly created identifier.
   SimpleIdentifierImpl(this.token);
 

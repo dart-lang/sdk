@@ -2999,7 +2999,7 @@ class CodeGenerator extends Object
   @override
   js_ast.Expression visitSimpleIdentifier(SimpleIdentifier node,
       [PrefixedIdentifier prefix]) {
-    var typeArgs = _getTypeArgs(node.staticElement, node.staticType);
+    var typeArgs = _emitFunctionTypeArguments(node.tearOffTypeArgumentTypes);
     var simpleId = _emitSimpleIdentifier(node, prefix)
       ..sourceInformation = _nodeSpan(node);
     if (prefix != null &&
@@ -3991,57 +3991,18 @@ class CodeGenerator extends Object
     if (function is Identifier && !_reifyGeneric(function.staticElement)) {
       return null;
     }
-    return _emitFunctionTypeArguments(
-        node, function.staticType, node.staticInvokeType, node.typeArguments);
+    if (node.typeArgumentTypes.isEmpty) {
+      return null;
+    }
+    return _emitFunctionTypeArguments(node.typeArgumentTypes);
   }
 
-  /// If `g` is a generic function type, and `f` is an instantiation of it,
-  /// then this will return the type arguments to apply, otherwise null.
+  /// If has [typeArguments], emit them, otherwise return `null`.
   List<js_ast.Expression> _emitFunctionTypeArguments(
-      AstNode node, DartType g, DartType f,
-      [TypeArgumentList typeArgs]) {
-    if (node is InvocationExpression) {
-      if (g is! FunctionType && typeArgs == null) {
-        return null;
-      }
-      var typeArguments = node.typeArgumentTypes;
-      return typeArguments.map(_emitType).toList(growable: false);
-    }
-
-    if (g is FunctionType &&
-        g.typeFormals.isNotEmpty &&
-        f is FunctionType &&
-        f.typeFormals.isEmpty) {
-      var typeArguments = _recoverTypeArguments(g, f);
-      return typeArguments.map(_emitType).toList(growable: false);
-    }
-
-    return null;
-  }
-
-  /// Given a generic function type [g] and an instantiated function type [f],
-  /// find a list of type arguments TArgs such that `g<TArgs> == f`,
-  /// and return TArgs.
-  ///
-  /// This function must be called with type [f] that was instantiated from [g].
-  Iterable<DartType> _recoverTypeArguments(FunctionType g, FunctionType f) {
-    // TODO(jmesserly): this design is a bit unfortunate. It would be nice if
-    // resolution could simply create a synthetic type argument list.
-    assert(g.typeFormals.isNotEmpty && f.typeFormals.isEmpty);
-    assert(g.typeFormals.length <= f.typeArguments.length);
-
-    // Instantiation in Analyzer works like this:
-    // Given:
-    //     {U/T} <S> T -> S
-    // Where {U/T} represents the typeArguments (U) and typeParameters (T) list,
-    // and <S> represents the typeFormals.
-    //
-    // Now instantiate([V]), and the result should be:
-    //     {U/T, V/S} T -> S.
-    //
-    // Therefore, we can recover the typeArguments from our instantiated
-    // function.
-    return f.typeArguments.skip(f.typeArguments.length - g.typeFormals.length);
+      List<DartType> typeArguments) {
+    if (typeArguments == null) return null;
+    if (typeArguments.isEmpty) return null;
+    return typeArguments.map(_emitType).toList(growable: false);
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -5260,23 +5221,9 @@ class CodeGenerator extends Object
     }
   }
 
-  List<js_ast.Expression> _getTypeArgs(Element member, DartType instantiated) {
-    DartType type;
-    if (member is ExecutableElement) {
-      type = member.type;
-    } else if (member is VariableElement) {
-      type = member.type;
-    }
-
-    // TODO(jmesserly): handle explicitly passed type args.
-    if (type == null) return null;
-    return _emitFunctionTypeArguments(null, type, instantiated);
-  }
-
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   js_ast.Expression _emitPropertyGet(
       Expression receiver, SimpleIdentifier memberId, Expression accessNode) {
-    var resultType = accessNode.staticType;
     var accessor = memberId.staticElement;
     var memberName = memberId.name;
     var receiverType = getStaticType(receiver);
@@ -5329,7 +5276,9 @@ class CodeGenerator extends Object
       result = _emitTargetAccess(jsTarget, jsName, accessor, memberId);
     }
 
-    var typeArgs = _getTypeArgs(accessor, resultType);
+    var typeArgs = _emitFunctionTypeArguments(
+      memberId.tearOffTypeArgumentTypes,
+    );
     return typeArgs == null
         ? result
         : runtimeCall('gbind(#, #)', [result, typeArgs]);

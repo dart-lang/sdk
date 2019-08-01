@@ -6386,6 +6386,8 @@ class ResolutionCopier implements AstVisitor<bool> {
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       toNode.auxiliaryElements = node.auxiliaryElements;
+      (toNode as SimpleIdentifierImpl).tearOffTypeArgumentTypes =
+          node.tearOffTypeArgumentTypes;
       return true;
     }
     return false;

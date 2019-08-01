@@ -4647,6 +4647,18 @@ abstract class SimpleIdentifier implements Identifier {
   /// information to the given [element].
   void set staticElement(Element element);
 
+  /// If the identifier is a tear-off, return the inferred type arguments
+  /// applied to the function type of the element to produce its [staticType].
+  ///
+  /// Return an empty list if the function type does not have type parameters.
+  ///
+  /// Return an empty list if the context type has type parameters.
+  ///
+  /// Return `null` if not a tear-off.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  List<DartType> get tearOffTypeArgumentTypes;
+
   /// Return the token representing the identifier.
   Token get token;
 
