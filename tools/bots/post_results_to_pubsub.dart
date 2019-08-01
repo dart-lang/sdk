@@ -21,9 +21,10 @@ ${parser.usage}''');
   exit(1);
 }
 
-// Pubsub messages must be < 10MB long. This lower limit lets us add
-// a full record at the end.
-const messageLengthLimit = 9000000;
+// Pubsub messages must be < 10MB long.  Because the JSON we send is
+// Base64 encoded, and we add a final record after checking the size,
+// the limit must be less than 3/4 of 10MB.
+const messageLengthLimit = 7000000;
 const postUrl =
     'https://pubsub.googleapis.com/v1/projects/dart-ci/topics/results:publish';
 
