@@ -341,10 +341,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * for-in statement appears inside a synchronous function.
    */
   static const CompileTimeErrorCode ASYNC_FOR_IN_WRONG_CONTEXT =
-      const CompileTimeErrorCode(
-          'ASYNC_FOR_IN_WRONG_CONTEXT',
-          "The asynchronous for-in can only be used in an asynchronous "
-              "function.",
+      const CompileTimeErrorCode('ASYNC_FOR_IN_WRONG_CONTEXT',
+          "The async for-in can only be used in an async function.",
           correction:
               "Try marking the function body with either 'async' or 'async*', "
               "or removing the 'await' before the for loop.");
@@ -356,7 +354,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode AWAIT_IN_WRONG_CONTEXT =
       const CompileTimeErrorCode('AWAIT_IN_WRONG_CONTEXT',
-          "The await expression can only be used in an asynchronous function.",
+          "The await expression can only be used in an async function.",
           correction:
               "Try marking the function body with either 'async' or 'async*'.");
 
