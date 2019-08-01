@@ -319,11 +319,9 @@ class ConstantsTransformer extends Transformer {
     return constantEvaluator.withNewEnvironment(() {
       if (node.isConst) {
         transformAnnotations(node.annotations, node);
-        if (node.initializer != null) {
-          node.initializer =
-              evaluateAndTransformWithContext(node, node.initializer)
-                ..parent = node;
-        }
+        node.initializer =
+            evaluateAndTransformWithContext(node, node.initializer)
+              ..parent = node;
 
         // If this constant is inlined, remove it.
         if (!keepFields && shouldInline(node.initializer)) {
@@ -348,14 +346,12 @@ class ConstantsTransformer extends Transformer {
   visitStaticGet(StaticGet node) {
     final Member target = node.target;
     if (target is Field && target.isConst) {
-      if (target.initializer != null) {
-        // Make sure the initializer is evaluated first.
-        target.initializer =
-            evaluateAndTransformWithContext(target, target.initializer)
-              ..parent = target;
-        if (shouldInline(target.initializer)) {
-          return evaluateAndTransformWithContext(node, node);
-        }
+      // Make sure the initializer is evaluated first.
+      target.initializer =
+          evaluateAndTransformWithContext(target, target.initializer)
+            ..parent = target;
+      if (shouldInline(target.initializer)) {
+        return evaluateAndTransformWithContext(node, node);
       }
     } else if (target is Procedure && target.kind == ProcedureKind.Method) {
       return evaluateAndTransformWithContext(node, node);
@@ -674,7 +670,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   /// @throws _AbortDueToError or _AbortDueToInvalidExpression if expression
   /// can't be evaluated.
   Constant _evaluateSubexpression(Expression node) {
-    if (node == null) return nullConstant;
     bool wasUnevaluated = seenUnevaluatedChild;
     seenUnevaluatedChild = false;
     Constant result;
@@ -697,6 +692,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
     seenUnevaluatedChild = wasUnevaluated || result is UnevaluatedConstant;
     return result;
+  }
+
+  Constant _evaluateNullableSubexpression(Expression node) {
+    if (node == null) return nullConstant;
+    return _evaluateSubexpression(node);
   }
 
   Constant runInsideContext(TreeNode node, Constant fun()) {
@@ -1091,12 +1091,12 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
               function.positionalParameters[i];
           final Constant value = (i < positionalArguments.length)
               ? positionalArguments[i]
-              : _evaluateSubexpression(parameter.initializer);
+              : _evaluateNullableSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }
         for (final VariableDeclaration parameter in function.namedParameters) {
           final Constant value = namedArguments[parameter.name] ??
-              _evaluateSubexpression(parameter.initializer);
+              _evaluateNullableSubexpression(parameter.initializer);
           env.addVariableValue(parameter, value);
         }
 
@@ -1104,7 +1104,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
         for (final Field field in klass.fields) {
           if (!field.isStatic) {
             instanceBuilder.setFieldValue(
-                field, _evaluateSubexpression(field.initializer));
+                field, _evaluateNullableSubexpression(field.initializer));
           }
         }
         for (final Initializer init in constructor.initializers) {
