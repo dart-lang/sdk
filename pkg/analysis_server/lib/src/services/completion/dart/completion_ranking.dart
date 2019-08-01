@@ -4,21 +4,21 @@
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:math';
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_ranking_internal.dart';
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/dart/language_model.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/token.dart';
 
-// Minimum probability to prioritize model-only suggestion.
-const double _MODEL_RELEVANCE_CUTOFF = 0.5;
-// Maximum [AvailableSuggestionSet] relevance to account for.
-const int _MAX_BASE_RELEVANCE = 9;
-// Number of lookback tokens.
+/// Number of lookback tokens.
 const int _LOOKBACK = 100;
+
+/// Maximum [AvailableSuggestionSet] relevance to account for.
+const int _MAX_BASE_RELEVANCE = 9;
+
+/// Minimum probability to prioritize model-only suggestion.
+const double _MODEL_RELEVANCE_CUTOFF = 0.5;
 
 /// Prediction service run by the model isolate.
 void entrypoint(SendPort sendPort) {
@@ -41,26 +41,27 @@ void entrypoint(SendPort sendPort) {
 }
 
 class CompletionRanking {
-  // Singleton instance.
+  /// Singleton instance.
   static CompletionRanking instance;
 
-  // Filesystem location of model files.
+  /// Filesystem location of model files.
   final String _directory;
 
-  // Isolate in which to make tflite model predictions.
-  Isolate _isolate;
-
-  // Port to communicate from main to model isolate.
+  /// Port to communicate from main to model isolate.
   SendPort _write;
 
   CompletionRanking(this._directory);
 
-  /// Spins up the model isolate and tells it to load the tflite model.
-  Future<void> start() async {
+  /// Send an RPC to the isolate worker and wait for it to respond.
+  Future<Map<String, Map<String, double>>> makeRequest(
+      String method, List<String> args) async {
     final port = ReceivePort();
-    this._isolate = await Isolate.spawn(entrypoint, port.sendPort);
-    this._write = await port.first;
-    await makeRequest('load', [_directory]);
+    _write.send({
+      'method': method,
+      'args': args,
+      'port': port.sendPort,
+    });
+    return await port.first;
   }
 
   /// Makes a next-token prediction starting at the completion request
@@ -177,15 +178,11 @@ class CompletionRanking {
     return suggestions;
   }
 
-  /// Send an RPC to the isolate worker and wait for it to respond.
-  Future<Map<String, Map<String, double>>> makeRequest(
-      String method, List<String> args) async {
+  /// Spins up the model isolate and tells it to load the tflite model.
+  Future<void> start() async {
     final port = ReceivePort();
-    _write.send({
-      'method': method,
-      'args': args,
-      'port': port.sendPort,
-    });
-    return await port.first;
+    await Isolate.spawn(entrypoint, port.sendPort);
+    this._write = await port.first;
+    await makeRequest('load', [_directory]);
   }
 }

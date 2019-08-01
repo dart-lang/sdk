@@ -3,14 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:analysis_server/src/services/completion/dart/completion_ranking.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-
-final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
-    '..', '..', '..', 'language_model', 'lexeme');
 
 void main() {
   CompletionRanking ranking;
@@ -27,6 +23,9 @@ void main() {
     expect(response['data']['length'], greaterThan(0.95));
   });
 }
+
+final directory = path.join(File.fromUri(Platform.script).parent.path, '..',
+    '..', '..', '..', 'language_model', 'lexeme');
 
 /// Tokenizes the input string.
 ///
