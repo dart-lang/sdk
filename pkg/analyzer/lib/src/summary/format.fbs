@@ -20,6 +20,8 @@ enum AvailableDeclarationKind : byte {
 
   ENUM_CONSTANT,
 
+  EXTENSION,
+
   FUNCTION,
 
   FUNCTION_TYPE_ALIAS,

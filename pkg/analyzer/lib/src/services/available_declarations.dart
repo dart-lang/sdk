@@ -103,6 +103,7 @@ enum DeclarationKind {
   CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
+  EXTENSION,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,
@@ -158,6 +159,11 @@ class DeclarationsContext {
   /// Return the combined information about all of the dartdoc directives in
   /// this context.
   DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
+
+  /// The set of features that are globally enabled for this context.
+  FeatureSet get featureSet {
+    return _analysisContext.analysisOptions.contextFeatures;
+  }
 
   /// Return libraries that are available to the file with the given [path].
   ///
@@ -908,6 +914,8 @@ class _DeclarationStorage {
         return DeclarationKind.ENUM;
       case idl.AvailableDeclarationKind.ENUM_CONSTANT:
         return DeclarationKind.ENUM_CONSTANT;
+      case idl.AvailableDeclarationKind.EXTENSION:
+        return DeclarationKind.EXTENSION;
       case idl.AvailableDeclarationKind.FUNCTION:
         return DeclarationKind.FUNCTION;
       case idl.AvailableDeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -937,6 +945,8 @@ class _DeclarationStorage {
         return idl.AvailableDeclarationKind.ENUM;
       case DeclarationKind.ENUM_CONSTANT:
         return idl.AvailableDeclarationKind.ENUM_CONSTANT;
+      case DeclarationKind.EXTENSION:
+        return idl.AvailableDeclarationKind.EXTENSION;
       case DeclarationKind.FUNCTION:
         return idl.AvailableDeclarationKind.FUNCTION;
       case DeclarationKind.FUNCTION_TYPE_ALIAS:
@@ -1037,7 +1047,7 @@ class _ExportCombinator {
 
 class _File {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 11;
+  static const int DATA_VERSION = 12;
 
   /// The next value for [id].
   static int _nextId = 0;
@@ -1121,7 +1131,7 @@ class _File {
     if (bytes == null) {
       content ??= _readContent(resource);
 
-      CompilationUnit unit = _parse(content);
+      CompilationUnit unit = _parse(context.featureSet, content);
       _buildFileDeclarations(unit);
       _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);
@@ -1381,6 +1391,14 @@ class _File {
             kind: DeclarationKind.ENUM_CONSTANT,
             name: constant.name,
             parent: enumDeclaration,
+          );
+        }
+      } else if (node is ExtensionDeclaration) {
+        if (node.name != null) {
+          addDeclaration(
+            isDeprecated: isDeprecated,
+            kind: DeclarationKind.EXTENSION,
+            name: node.name,
           );
         }
       } else if (node is FunctionDeclaration) {
@@ -1690,13 +1708,11 @@ class _File {
     return false;
   }
 
-  static CompilationUnit _parse(String content) {
+  static CompilationUnit _parse(FeatureSet featureSet, String content) {
     var errorListener = AnalysisErrorListener.NULL_LISTENER;
     var source = StringSource(content, '');
 
     var reader = new CharSequenceReader(content);
-    // TODO(paulberry): figure out the appropriate FeatureSet to use here
-    var featureSet = FeatureSet.fromEnableFlags([]);
     var scanner = new Scanner(null, reader, errorListener)
       ..configureFeatures(featureSet);
     var token = scanner.tokenize();

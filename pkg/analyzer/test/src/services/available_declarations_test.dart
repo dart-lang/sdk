@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -32,6 +33,10 @@ class AbstractContextTest with ResourceProviderMixin {
   AnalysisContextCollection analysisContextCollection;
 
   AnalysisContext testAnalysisContext;
+
+  /// The file system specific `/home/test/analysis_options.yaml` path.
+  String get analysisOptionsPath =>
+      convertPath('/home/test/analysis_options.yaml');
 
   void addDotPackagesDependency(String path, String name, String rootPath) {
     var packagesFile = getFile(path);
@@ -70,6 +75,23 @@ class AbstractContextTest with ResourceProviderMixin {
 
     var testPath = convertPath('/home/test');
     testAnalysisContext = getContext(testPath);
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({List<String> experiments}) {
+    var buffer = StringBuffer();
+    if (experiments != null) {
+      buffer.writeln('analyzer:');
+      buffer.writeln('  enable-experiment:');
+      for (var experiment in experiments) {
+        buffer.writeln('    - $experiment');
+      }
+    }
+    newFile(analysisOptionsPath, content: buffer.toString());
+
+    if (analysisContextCollection != null) {
+      createAnalysisContexts();
+    }
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -1355,6 +1377,47 @@ enum MyEnum {
       docSummary: 'aaa',
       docComplete: 'aaa\n\nbbb bbb',
       relevanceTags: ['package:test/test.dart::MyEnum'],
+    );
+  }
+
+  test_EXTENSION() async {
+    createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
+    newFile('/home/test/lib/test.dart', content: r'''
+extension A on String {}
+
+extension on String {}
+
+@deprecated
+extension B on String {}
+
+/// aaa
+///
+/// bbb bbb
+/// ccc ccc
+extension C on String {}
+''');
+
+    tracker.addContext(testAnalysisContext);
+    await _doAllTrackerWork();
+
+    var library = _getLibrary('package:test/test.dart');
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'A'),
+      'A',
+      DeclarationKind.EXTENSION,
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'B'),
+      'B',
+      DeclarationKind.EXTENSION,
+      isDeprecated: true,
+    );
+    _assertDeclaration(
+      _getDeclaration(library.declarations, 'C'),
+      'C',
+      DeclarationKind.EXTENSION,
+      docSummary: 'aaa',
+      docComplete: 'aaa\n\nbbb bbb\nccc ccc',
     );
   }
 

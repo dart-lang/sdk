@@ -376,6 +376,7 @@ enum AvailableDeclarationKind {
   CONSTRUCTOR,
   ENUM,
   ENUM_CONSTANT,
+  EXTENSION,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,

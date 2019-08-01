@@ -140,6 +140,8 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.ENUM;
     case DeclarationKind.ENUM_CONSTANT:
       return protocol.ElementKind.ENUM_CONSTANT;
+    case DeclarationKind.EXTENSION:
+      return protocol.ElementKind.EXTENSION;
     case DeclarationKind.FUNCTION:
       return protocol.ElementKind.FUNCTION;
     case DeclarationKind.FUNCTION_TYPE_ALIAS:
