@@ -296,7 +296,8 @@ if (is_win) {
 }
 
 if (target_cpu == "x64") {
-  copy_tree_specs += [ {
+  copy_tree_specs += [
+      {
         target = "copy_language_model"
         visibility = [ ":create_common_sdk" ]
         deps = [
@@ -305,7 +306,18 @@ if (target_cpu == "x64") {
         source = "../pkg/analysis_server/language_model"
         dest = "$root_out_dir/dart-sdk/model"
         ignore_patterns = "{}"
-      } ]
+      },
+      {
+        target = "copy_libtensorflowlite_c"
+        visibility = [ ":create_common_sdk" ]
+        deps = [
+          ":copy_libraries",
+        ]
+        source = "../third_party/pkg/tflite_native/lib/src/blobs"
+        dest = "$root_out_dir/dart-sdk/bin/snapshots"
+        ignore_patterns = "{}"
+      }
+   ]
 }
 
 # This generates targets for everything in copy_tree_specs. The targets have the
@@ -981,7 +993,10 @@ group("create_common_sdk") {
     public_deps += [ ":copy_7zip" ]
   }
   if (target_cpu == "x64") {
-    public_deps += [ ":copy_language_model" ]
+    public_deps += [
+      ":copy_language_model",
+      ":copy_libtensorflowlite_c",
+    ]
   }
 }
 
