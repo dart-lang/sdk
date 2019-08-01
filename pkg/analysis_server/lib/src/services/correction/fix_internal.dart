@@ -2476,7 +2476,7 @@ class FixProcessor {
     }
     // Find new top-level declarations.
     {
-      var declarations = await context.getTopLevelDeclarations(name);
+      var declarations = context.getTopLevelDeclarations(name);
       for (var declaration in declarations) {
         // Check the kind.
         if (!kinds2.contains(declaration.kind)) {

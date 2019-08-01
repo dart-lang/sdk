@@ -406,7 +406,7 @@ class DeclarationsContext {
 
     for (var path in analysisDriver.knownFiles) {
       if (_knownPathSet.add(path)) {
-        if (!path.contains(r'/lib/src/')) {
+        if (!path.contains(r'/lib/src/') && !path.contains(r'\lib\src\')) {
           _knownPathList.add(path);
           _tracker._addFile(this, path);
         }
