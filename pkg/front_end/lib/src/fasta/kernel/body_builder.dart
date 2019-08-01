@@ -63,7 +63,7 @@ import '../source/scope_listener.dart'
         ParserRecovery,
         ScopeListener;
 
-import '../source/stack_listener.dart' show ValueKind;
+import '../source/value_kinds.dart';
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
@@ -1377,8 +1377,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     assert(checkState(beginToken, [
       ValueKind.ArgumentsOrNull,
       ValueKind.TypeArgumentsOrNull,
-      ValueKind
-          .ExpressionOrGeneratorOrIdentifierOrParserRecoveryOrProblemBuilder,
+      unionOfKinds([
+        ValueKind.Expression,
+        ValueKind.Generator,
+        ValueKind.Identifier,
+        ValueKind.ParserRecovery,
+        ValueKind.ProblemBuilder
+      ])
     ]));
     debugEvent("Send");
     Arguments arguments = pop();

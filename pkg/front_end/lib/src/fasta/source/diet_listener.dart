@@ -52,13 +52,9 @@ import '../type_inference/type_inference_engine.dart' show TypeInferenceEngine;
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'stack_listener.dart'
-    show
-        FixedNullableList,
-        NullValue,
-        ParserRecovery,
-        StackListener,
-        ValueKind,
-        valueKinds;
+    show FixedNullableList, NullValue, ParserRecovery, StackListener;
+
+import '../source/value_kinds.dart';
 
 import '../quote.dart' show unescapeString;
 
@@ -104,7 +100,7 @@ class DietListener extends StackListener {
 
   @override
   void endMetadataStar(int count) {
-    assert(checkState(null, valueKinds(ValueKind.Token, count)));
+    assert(checkState(null, repeatedKinds(ValueKind.Token, count)));
     debugEvent("MetadataStar");
     if (count > 0) {
       discard(count - 1);

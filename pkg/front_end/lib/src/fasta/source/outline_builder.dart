@@ -89,7 +89,9 @@ import '../scanner.dart' show Token;
 import 'source_library_builder.dart' show FieldInfo, SourceLibraryBuilder;
 
 import 'stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery, StackListener, ValueKind;
+    show FixedNullableList, NullValue, ParserRecovery, StackListener;
+
+import 'value_kinds.dart';
 
 enum MethodBody {
   Abstract,

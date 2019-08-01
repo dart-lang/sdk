@@ -5,9 +5,7 @@
 library fasta.stack_listener;
 
 import 'package:kernel/ast.dart'
-    show Arguments, AsyncMarker, Expression, FunctionNode, TreeNode;
-
-import '../builder/builder.dart';
+    show AsyncMarker, Expression, FunctionNode, TreeNode;
 
 import '../fasta_codes.dart'
     show
@@ -17,8 +15,6 @@ import '../fasta_codes.dart'
         codeCatchSyntaxExtraParameters,
         codeNativeClauseShouldBeAnnotation,
         templateInternalProblemStackNotEmpty;
-
-import '../kernel/expression_generator.dart';
 
 import '../parser.dart'
     show Listener, MemberKind, Parser, lengthOfSpan, offsetForToken;
@@ -32,7 +28,7 @@ import '../quote.dart' show unescapeString;
 
 import '../scanner.dart' show Token;
 
-import '../scope.dart';
+import 'value_kinds.dart';
 
 enum NullValue {
   Arguments,
@@ -80,35 +76,6 @@ enum NullValue {
   WithClause,
 }
 
-/// Enum values used for checking the expected top of the stack in
-/// `StackListener.checkState`.
-enum ValueKind {
-  ArgumentsOrNull,
-  ExpressionOrGenerator,
-  ExpressionOrGeneratorOrIdentifier,
-  ExpressionOrGeneratorOrIdentifierOrParserRecovery,
-  ExpressionOrGeneratorOrIdentifierOrParserRecoveryOrProblemBuilder,
-  GeneratorOrIdentifier,
-  Identifier,
-  Integer,
-  Name,
-  NameOrNull,
-  NameOrParserRecovery,
-  NameOrParserRecoveryOrNull,
-  MetadataListOrNull,
-  Token,
-  TokenOrNull,
-  TypeArgumentsOrNull,
-  TypeBuilder,
-  TypeVariableListOrNull,
-}
-
-/// Helper method for creating a list of [ValueKind]s of the given length
-/// [count].
-List<ValueKind> valueKinds(ValueKind kind, int count) {
-  return new List.generate(count, (_) => kind);
-}
-
 abstract class StackListener extends Listener {
   final Stack stack = new Stack();
 
@@ -121,59 +88,7 @@ abstract class StackListener extends Listener {
   /// content.
   bool checkState(Token token, List<ValueKind> kinds) {
     bool checkValue(ValueKind kind, Object value) {
-      switch (kind) {
-        case ValueKind.ArgumentsOrNull:
-          return value == NullValue.Arguments || value is Arguments;
-        case ValueKind.ExpressionOrGenerator:
-          return value is Expression || value is Generator;
-        case ValueKind.ExpressionOrGeneratorOrIdentifier:
-          return value is Expression ||
-              value is Generator ||
-              value is Identifier;
-        case ValueKind.ExpressionOrGeneratorOrIdentifierOrParserRecovery:
-          return value is Expression ||
-              value is Generator ||
-              value is Identifier ||
-              value is ParserRecovery;
-        case ValueKind
-            .ExpressionOrGeneratorOrIdentifierOrParserRecoveryOrProblemBuilder:
-          return value is Expression ||
-              value is Generator ||
-              value is Identifier ||
-              value is ParserRecovery ||
-              value is ProblemBuilder;
-        case ValueKind.GeneratorOrIdentifier:
-          return value is Generator || value is Identifier;
-        case ValueKind.Identifier:
-          return value is Identifier;
-        case ValueKind.Integer:
-          return value is int;
-        case ValueKind.Name:
-          return value is String;
-        case ValueKind.NameOrNull:
-          return value == NullValue.Name || value is String;
-        case ValueKind.NameOrParserRecovery:
-          return value is String || value is ParserRecovery;
-        case ValueKind.NameOrParserRecoveryOrNull:
-          return value == NullValue.Name ||
-              value is String ||
-              value is ParserRecovery;
-        case ValueKind.MetadataListOrNull:
-          return value == NullValue.Metadata || value is List<MetadataBuilder>;
-        case ValueKind.Token:
-          return value is Token;
-        case ValueKind.TokenOrNull:
-          return value == NullValue.Token || value is Token;
-        case ValueKind.TypeArgumentsOrNull:
-          return value == NullValue.TypeArguments ||
-              value is List<UnresolvedType>;
-        case ValueKind.TypeBuilder:
-          return value is TypeBuilder;
-        case ValueKind.TypeVariableListOrNull:
-          return value == NullValue.TypeVariables ||
-              value is List<TypeVariableBuilder>;
-      }
-      return false;
+      return kind.check(value);
     }
 
     bool success = true;
