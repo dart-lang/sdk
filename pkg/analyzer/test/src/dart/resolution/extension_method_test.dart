@@ -734,6 +734,21 @@ f(C c) {
     assertElement(access, findElement.setter('a'));
   }
 
+  test_instance_tearoff() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+}
+
+f(C c) => c.a;
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
   test_static_field_importedWithPrefix() async {
     newFile('/test/lib/lib.dart', content: '''
 class C {}
@@ -882,6 +897,21 @@ f() {
 ''');
     var identifier = findNode.simple('a =');
     assertElement(identifier, findElement.setter('a'));
+  }
+
+  test_static_tearoff() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+}
+
+f() => E.a;
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
   }
 }
 
@@ -1143,6 +1173,34 @@ extension E on C {
     assertElement(access, findElement.setter('a', of: 'E'));
   }
 
+  test_instance_tearoff_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+  get b => a;
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
+  test_instance_tearoff_fromThis() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+  get c => this.a;
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
   test_static_field_fromInstance() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -1253,5 +1311,33 @@ extension E on C {
 ''');
     var identifier = findNode.simple('a =');
     assertElement(identifier, findElement.setter('a'));
+  }
+
+  test_static_tearoff_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+  get b => a;
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
+  test_static_tearoff_fromStatic() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  static void a(int x) {}
+  static get c => a;
+}
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
   }
 }

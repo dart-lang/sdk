@@ -708,32 +708,33 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
       ExtensionElement element = target.extensionName.staticElement;
       SimpleIdentifier propertyName = node.propertyName;
-      PropertyAccessorElement member;
+      String memberName = propertyName.name;
+      ExecutableElement member;
       if (propertyName.inSetterContext()) {
-        member = element.getSetter(propertyName.name);
+        member = element.getSetter(memberName);
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
               propertyName,
-              [propertyName.name, element.name]);
+              [memberName, element.name]);
         }
         if (propertyName.inGetterContext()) {
-          PropertyAccessorElement getter = element.getGetter(propertyName.name);
+          PropertyAccessorElement getter = element.getGetter(memberName);
           if (getter == null) {
             _resolver.errorReporter.reportErrorForNode(
                 CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
                 propertyName,
-                [propertyName.name, element.name]);
+                [memberName, element.name]);
           }
           propertyName.auxiliaryElements = AuxiliaryElements(getter, null);
         }
       } else if (propertyName.inGetterContext()) {
-        member = element.getGetter(propertyName.name);
+        member = element.getGetter(memberName) ?? element.getMethod(memberName);
         if (member == null) {
           _resolver.errorReporter.reportErrorForNode(
               CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
               propertyName,
-              [propertyName.name, element.name]);
+              [memberName, element.name]);
         }
       }
       if (member != null && member.isStatic) {

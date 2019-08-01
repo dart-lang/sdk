@@ -508,6 +508,21 @@ void f(p.A a) {
     validatePropertyAccess();
   }
 
+  test_tearoff() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  void a(int x) {}
+}
+
+f(C c) => E(c).a;
+''');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.method('a'));
+    assertType(identifier, 'void Function(int)');
+  }
+
   void validateBinaryExpression() {
     BinaryExpression binary = extensionOverride.parent as BinaryExpression;
     Element resolvedElement = binary.staticElement;
