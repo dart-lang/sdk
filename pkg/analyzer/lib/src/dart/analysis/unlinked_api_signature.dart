@@ -11,13 +11,13 @@ import 'package:analyzer/src/summary/api_signature.dart';
 ///
 /// If API signatures of two units are different, they may have different APIs.
 List<int> computeUnlinkedApiSignature(CompilationUnit unit) {
-  var computer = new _UnitApiSignatureComputer();
+  var computer = _UnitApiSignatureComputer();
   computer.compute(unit);
   return computer.signature.toByteList();
 }
 
 class _UnitApiSignatureComputer {
-  final signature = new ApiSignature();
+  final ApiSignature signature = ApiSignature();
 
   void addClassOrMixin(ClassOrMixinDeclaration node) {
     addTokens(node.beginToken, node.leftBracket);
@@ -49,6 +49,7 @@ class _UnitApiSignatureComputer {
           member.beginToken,
           (member.parameters ?? member.name).endToken,
         );
+        signature.addBool(member.body is EmptyFunctionBody);
       } else {
         addNode(member);
       }
