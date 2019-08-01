@@ -82,7 +82,7 @@ extension E on A {}
     await assertNoErrorsInCode('''
 extension E on int Function(int) {}
 ''');
-    var extendedType = findNode.typeAnnotation('int ');
+    var extendedType = findNode.typeAnnotation('Function');
     assertType(extendedType, 'int Function(int)');
   }
 
@@ -186,6 +186,22 @@ f(C c) {
     assertInvokeType(invocation, 'int Function(int)');
   }
 
+  test_instance_call_fromExtension_int() async {
+    await assertNoErrorsInCode('''
+extension E on int {
+  int call(int x) => 0;
+}
+
+f() {
+  1(2);
+}
+''');
+    var invocation = findNode.functionExpressionInvocation('1(2)');
+    expect(invocation.staticInvokeType.element,
+        same(findElement.method('call', of: 'E')));
+    assertInvokeType(invocation, 'int Function(int)');
+  }
+
   test_instance_compoundAssignment_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
@@ -214,22 +230,6 @@ f(C c) {
 ''');
     var assignment = findNode.assignment('+=');
     assertElement(assignment, findElement.method('+', of: 'E'));
-  }
-
-  test_instance_call_fromExtension_int() async {
-    await assertNoErrorsInCode('''
-extension E on int {
-  int call(int x) => 0;
-}
-
-f() {
-  1(2);
-}
-''');
-    var invocation = findNode.functionExpressionInvocation('1(2)');
-    expect(invocation.staticInvokeType.element,
-        same(findElement.method('call', of: 'E')));
-    assertInvokeType(invocation, 'int Function(int)');
   }
 
   test_instance_getter_methodInvocation() async {

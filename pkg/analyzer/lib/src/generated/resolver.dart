@@ -3820,6 +3820,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       DartType extendedType = node.declaredElement.extendedType;
       if (extendedType is InterfaceType) {
+        // TODO(brianwilkerson) Handle other cases.
         typeAnalyzer.thisType = extendedType;
       }
       super.visitExtensionDeclaration(node);
@@ -5368,8 +5369,8 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
         if (extendedType is InterfaceType) {
           nameScope = new ClassScope(nameScope, extendedType.element);
         } else if (extendedType is FunctionType) {
-          // TODO(brianwilkerson) Figure out what, if anything, to do here.
-          throw UnsupportedError('Extension of function type');
+          nameScope =
+              new ClassScope(nameScope, typeProvider.functionType.element);
         }
         nameScope = ExtensionScope(nameScope, extensionElement);
         visitExtensionMembersInScope(node);
