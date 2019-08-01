@@ -1808,15 +1808,17 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
 
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  // We must wait for any outstanding spawn calls to complete before
-  // running the shutdown callback.
-  isolate->WaitForOutstandingSpawns();
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
     StartIsolateScope start_scope(isolate);
     Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
+
+    // We must wait for any outstanding spawn calls to complete before
+    // running the shutdown callback.
+    isolate->WaitForOutstandingSpawns();
+
     StackZone zone(thread);
     HandleScope handle_scope(thread);
 #if defined(DEBUG)
@@ -2998,9 +3000,11 @@ void Isolate::DecrementSpawnCount() {
 }
 
 void Isolate::WaitForOutstandingSpawns() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
   MonitorLocker ml(&spawn_count_monitor_);
   while (spawn_count_ > 0) {
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
 }
 

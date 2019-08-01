@@ -381,7 +381,6 @@ class RunServiceTask : public ThreadPool::Task {
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
-    I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -389,6 +388,7 @@ class RunServiceTask : public ThreadPool::Task {
       StartIsolateScope start_scope(I);
       Thread* T = Thread::Current();
       ASSERT(I == T->isolate());
+      I->WaitForOutstandingSpawns();
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);

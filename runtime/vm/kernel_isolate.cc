@@ -134,7 +134,6 @@ class RunKernelTask : public ThreadPool::Task {
       OS::PrintErr(DART_KERNEL_ISOLATE_NAME ": ShutdownIsolate\n");
     }
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
-    I->WaitForOutstandingSpawns();
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -142,6 +141,7 @@ class RunKernelTask : public ThreadPool::Task {
       StartIsolateScope start_scope(I);
       Thread* T = Thread::Current();
       ASSERT(I == T->isolate());
+      I->WaitForOutstandingSpawns();
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);

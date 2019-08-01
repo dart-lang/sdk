@@ -9,10 +9,6 @@ LanguageFeatures/Set-literals/syntax_compatibility_A01_t02: RuntimeError
 LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
 LibTest/isolate/Isolate/pause_A01_t01: Skip # Issue 37699
 LibTest/isolate/Isolate/pause_A01_t02: Skip # Issue 37699
-LibTest/isolate/ReceivePort/firstWhere_A01_t01: Skip # Issue 37679
-LibTest/isolate/ReceivePort/firstWhere_A02_t01: Skip # Issue 37679
-LibTest/isolate/ReceivePort/transform_A01_t01: Skip # Issue 37679
-LibTest/isolate/ReceivePort/transform_A01_t02: Skip # Issue 37679
 
 [ $compiler == dartkp ]
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError
