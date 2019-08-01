@@ -30,7 +30,7 @@ namespace dart {
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
-  const String& constructor_name = Symbols::Dot();
+  const String& constructor_name = Symbols::DotUnder();
 
   const Object& result = Object::Handle(DartLibraryCalls::InstanceCreate(
       mirrors_lib, mirror_class_name, constructor_name, constructor_arguments));

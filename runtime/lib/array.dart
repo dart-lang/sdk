@@ -96,7 +96,7 @@ class _List<E> extends FixedLengthListBase<E> {
     end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return <E>[];
-    var result = new _GrowableList<E>.withData(_slice(start, length, false));
+    var result = new _GrowableList<E>._withData(_slice(start, length, false));
     result._setLength(length);
     return result;
   }
@@ -137,11 +137,11 @@ class _List<E> extends FixedLengthListBase<E> {
     if (length > 0) {
       var result = _slice(0, length, !growable);
       if (growable) {
-        result = new _GrowableList<E>.withData(result).._setLength(length);
+        result = new _GrowableList<E>._withData(result).._setLength(length);
       }
       return result;
     }
-    // _GrowableList.withData must not be called with empty list.
+    // _GrowableList._withData must not be called with empty list.
     return growable ? <E>[] : new List<E>(0);
   }
 }
@@ -177,7 +177,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<E>.withData(list);
+    var result = new _GrowableList<E>._withData(list);
     result._setLength(length);
     return result;
   }
@@ -221,7 +221,7 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
         list[i] = this[i];
       }
       if (!growable) return list;
-      var result = new _GrowableList<E>.withData(list);
+      var result = new _GrowableList<E>._withData(list);
       result._setLength(length);
       return result;
     }

@@ -174,7 +174,7 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 0x3a59e7f4)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 0x2017fcf6)               \
   V(_Double, .fromInteger, DoubleFromInteger, 0x6d234f4b)                      \
-  V(_GrowableList, .withData, GrowableArray_Allocate, 0x28b2138e)              \
+  V(_GrowableList, ._withData, GrowableArray_Allocate, 0x28b2138e)             \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 0x380184b1)                   \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, 0x79b8f955)       \
   V(Object, ==, ObjectEquals, 0x7b32a55a)                                      \
@@ -402,7 +402,7 @@ namespace dart {
 //  result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(_ListFactory, _List, ., kArrayCid, 0x2121902f)                             \
-  V(_GrowableListWithData, _GrowableList, .withData, kGrowableObjectArrayCid,  \
+  V(_GrowableListWithData, _GrowableList, ._withData, kGrowableObjectArrayCid, \
     0x28b2138e)                                                                \
   V(_GrowableListFactory, _GrowableList, ., kGrowableObjectArrayCid,           \
     0x3eed680b)                                                                \

@@ -85,14 +85,14 @@ class _GrowableList<T> extends ListBase<T> {
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<T>.withData(list);
+    var result = new _GrowableList<T>._withData(list);
     result._setLength(length);
     return result;
   }
 
   factory _GrowableList(int length) {
     var data = _allocateData(length);
-    var result = new _GrowableList<T>.withData(data);
+    var result = new _GrowableList<T>._withData(data);
     if (length > 0) {
       result._setLength(length);
     }
@@ -101,11 +101,11 @@ class _GrowableList<T> extends ListBase<T> {
 
   factory _GrowableList.withCapacity(int capacity) {
     var data = _allocateData(capacity);
-    return new _GrowableList<T>.withData(data);
+    return new _GrowableList<T>._withData(data);
   }
 
   @pragma("vm:exact-result-type", _GrowableList)
-  factory _GrowableList.withData(_List data) native "GrowableList_allocate";
+  factory _GrowableList._withData(_List data) native "GrowableList_allocate";
 
   @pragma("vm:exact-result-type", "dart:core#_Smi")
   @pragma("vm:prefer-inline")
@@ -381,7 +381,7 @@ class _GrowableList<T> extends ListBase<T> {
         list[i] = this[i];
       }
       if (!growable) return list;
-      var result = new _GrowableList<T>.withData(list);
+      var result = new _GrowableList<T>._withData(list);
       result._setLength(length);
       return result;
     }

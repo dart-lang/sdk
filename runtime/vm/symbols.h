@@ -94,6 +94,7 @@ class ObjectPointerVisitor;
   V(DefaultLabel, ":L")                                                        \
   V(DotCreate, "._create")                                                     \
   V(DotRange, ".range")                                                        \
+  V(DotUnder, "._")                                                            \
   V(DotValue, ".value")                                                        \
   V(DotWithType, "._withType")                                                 \
   V(Double, "double")                                                          \
@@ -330,7 +331,7 @@ class ObjectPointerVisitor;
   V(_Float64x2List, "_Float64x2List")                                          \
   V(_GrowableList, "_GrowableList")                                            \
   V(_GrowableListFactory, "_GrowableList.")                                    \
-  V(_GrowableListWithData, "_GrowableList.withData")                           \
+  V(_GrowableListWithData, "_GrowableList._withData")                          \
   V(_ImmutableList, "_ImmutableList")                                          \
   V(_Int16ArrayFactory, "Int16List.")                                          \
   V(_Int16ArrayView, "_Int16ArrayView")                                        \

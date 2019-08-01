@@ -91,7 +91,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
       var address = it.current;
       var socket = new _NativeSynchronousSocket();
       socket.localAddress = address;
-      var result = socket.nativeCreateConnectSync(address._in_addr, port);
+      var result = socket._nativeCreateConnectSync(address._in_addr, port);
       if (result is OSError) {
         // Keep first error, if present.
         if (error == null) {
@@ -117,7 +117,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   }
 
   InternetAddress get address => localAddress;
-  int get available => nativeAvailable();
+  int get available => _nativeAvailable();
 
   int get port {
     if (localPort != 0) {
@@ -126,7 +126,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (isClosed) {
       throw const SocketException.closed();
     }
-    var result = nativeGetPort();
+    var result = _nativeGetPort();
     if (result is OSError) {
       throw result;
     }
@@ -137,7 +137,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (isClosed) {
       throw const SocketException.closed();
     }
-    var result = nativeGetRemotePeer();
+    var result = _nativeGetRemotePeer();
     if (result is OSError) {
       throw result;
     }
@@ -149,7 +149,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (isClosed) {
       throw const SocketException.closed();
     }
-    var result = nativeGetRemotePeer();
+    var result = _nativeGetRemotePeer();
     if (result is OSError) {
       throw result;
     }
@@ -158,7 +158,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
 
   void closeSync() {
     if (!isClosed) {
-      nativeCloseSync();
+      _nativeCloseSync();
       _SocketResourceInfo.SocketClosed(resourceInfo);
       isClosed = true;
     }
@@ -209,7 +209,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (end == start) {
       return 0;
     }
-    var result = nativeReadInto(buffer, start, (end - start));
+    var result = _nativeReadInto(buffer, start, (end - start));
     if (result is OSError) {
       throw new SocketException("readIntoSync failed", osError: result);
     }
@@ -229,7 +229,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (len == 0) {
       return null;
     }
-    var result = nativeRead(len);
+    var result = _nativeRead(len);
     if (result is OSError) {
       throw result;
     }
@@ -275,7 +275,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (isClosedWrite) {
       closeSync();
     } else {
-      nativeShutdownRead();
+      _nativeShutdownRead();
     }
     isClosedRead = true;
   }
@@ -287,7 +287,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (isClosedRead) {
       closeSync();
     } else {
-      nativeShutdownWrite();
+      _nativeShutdownWrite();
     }
     isClosedWrite = true;
   }
@@ -313,7 +313,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
 
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, start, end);
-    var result = nativeWrite(bufferAndStart.buffer, bufferAndStart.start,
+    var result = _nativeWrite(bufferAndStart.buffer, bufferAndStart.start,
         end - (start - bufferAndStart.start));
     if (result is OSError) {
       throw new SocketException("writeFromSync failed", osError: result);
@@ -333,17 +333,17 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   // Native method declarations.
   static _nativeLookupRequest(host, int type)
       native "SynchronousSocket_LookupRequest";
-  nativeCreateConnectSync(host, int port)
+  _nativeCreateConnectSync(host, int port)
       native "SynchronousSocket_CreateConnectSync";
-  nativeAvailable() native "SynchronousSocket_Available";
-  nativeCloseSync() native "SynchronousSocket_CloseSync";
-  int nativeGetPort() native "SynchronousSocket_GetPort";
-  List nativeGetRemotePeer() native "SynchronousSocket_GetRemotePeer";
-  nativeRead(int len) native "SynchronousSocket_Read";
-  nativeReadInto(List<int> buffer, int offset, int bytes)
+  _nativeAvailable() native "SynchronousSocket_Available";
+  _nativeCloseSync() native "SynchronousSocket_CloseSync";
+  int _nativeGetPort() native "SynchronousSocket_GetPort";
+  List _nativeGetRemotePeer() native "SynchronousSocket_GetRemotePeer";
+  _nativeRead(int len) native "SynchronousSocket_Read";
+  _nativeReadInto(List<int> buffer, int offset, int bytes)
       native "SynchronousSocket_ReadList";
-  nativeShutdownRead() native "SynchronousSocket_ShutdownRead";
-  nativeShutdownWrite() native "SynchronousSocket_ShutdownWrite";
-  nativeWrite(List<int> buffer, int offset, int bytes)
+  _nativeShutdownRead() native "SynchronousSocket_ShutdownRead";
+  _nativeShutdownWrite() native "SynchronousSocket_ShutdownWrite";
+  _nativeWrite(List<int> buffer, int offset, int bytes)
       native "SynchronousSocket_WriteList";
 }

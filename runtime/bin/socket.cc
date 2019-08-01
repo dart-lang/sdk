@@ -1106,6 +1106,10 @@ Socket* Socket::GetSocketIdNativeField(Dart_Handle socket_obj) {
     Dart_PropagateError(err);
   }
   Socket* socket = reinterpret_cast<Socket*>(id);
+  if (socket == NULL) {
+    Dart_PropagateError(Dart_NewUnhandledExceptionError(
+        DartUtils::NewInternalError("No native peer")));
+  }
   return socket;
 }
 

@@ -70,7 +70,7 @@ class List<E> {
     if (elements.isEmpty) {
       return new _GrowableList<E>(0);
     }
-    var result = new _GrowableList<E>.withData(elements);
+    var result = new _GrowableList<E>._withData(elements);
     result._setLength(elements.length);
     return result;
   }

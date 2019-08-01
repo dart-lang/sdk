@@ -42,6 +42,10 @@ static File* GetFile(Dart_NativeArguments args) {
   Dart_Handle result = Dart_GetNativeInstanceField(
       dart_this, kFileNativeFieldIndex, reinterpret_cast<intptr_t*>(&file));
   ASSERT(!Dart_IsError(result));
+  if (file == NULL) {
+    Dart_PropagateError(Dart_NewUnhandledExceptionError(
+        DartUtils::NewInternalError("No native peer")));
+  }
   return file;
 }
 

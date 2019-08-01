@@ -4325,9 +4325,8 @@ TEST_CASE(DartAPI_SetField_FunnyValue) {
 
   // Pass a non-instance handle.
   result = Dart_SetField(lib, name, lib);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_SetField expects argument 'value' to be of type Instance.",
-               Dart_GetError(result));
+  EXPECT_ERROR(
+      result, "Dart_SetField expects argument 'value' to be of type Instance.");
 
   // Pass an error handle.  The error is contagious.
   result = Dart_SetField(lib, name, Api::NewError("myerror"));
@@ -6017,15 +6016,13 @@ TEST_CASE(DartAPI_LookupLibrary) {
   EXPECT_VALID(result);
 
   result = Dart_LookupLibrary(Dart_Null());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LookupLibrary expects argument 'url' to be non-null.",
-               Dart_GetError(result));
+  EXPECT_ERROR(result,
+               "Dart_LookupLibrary expects argument 'url' to be non-null.");
 
   result = Dart_LookupLibrary(Dart_True());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LookupLibrary expects argument 'url' to be of type String.",
-      Dart_GetError(result));
+  EXPECT_ERROR(
+      result,
+      "Dart_LookupLibrary expects argument 'url' to be of type String.");
 
   result = Dart_LookupLibrary(Dart_NewApiError("incoming error"));
   EXPECT(Dart_IsError(result));
@@ -6033,9 +6030,7 @@ TEST_CASE(DartAPI_LookupLibrary) {
 
   url = NewString("noodles.dart");
   result = Dart_LookupLibrary(url);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LookupLibrary: library 'noodles.dart' not found.",
-               Dart_GetError(result));
+  EXPECT_ERROR(result, "Dart_LookupLibrary: library 'noodles.dart' not found.");
 }
 
 TEST_CASE(DartAPI_LibraryUrl) {
@@ -6045,15 +6040,13 @@ TEST_CASE(DartAPI_LibraryUrl) {
   EXPECT_VALID(lib);
 
   Dart_Handle result = Dart_LibraryUrl(Dart_Null());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Dart_LibraryUrl expects argument 'library' to be non-null.",
-               Dart_GetError(result));
+  EXPECT_ERROR(result,
+               "Dart_LibraryUrl expects argument 'library' to be non-null.");
 
   result = Dart_LibraryUrl(Dart_True());
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_LibraryUrl expects argument 'library' to be of type Library.",
-      Dart_GetError(result));
+  EXPECT_ERROR(
+      result,
+      "Dart_LibraryUrl expects argument 'library' to be of type Library.");
 
   result = Dart_LibraryUrl(error);
   EXPECT(Dart_IsError(result));
@@ -6115,17 +6108,14 @@ TEST_CASE(DartAPI_SetNativeResolver) {
   EXPECT_VALID(type);
 
   result = Dart_SetNativeResolver(Dart_Null(), &MyNativeResolver1, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_SetNativeResolver expects argument 'library' to be non-null.",
-      Dart_GetError(result));
+  EXPECT_ERROR(
+      result,
+      "Dart_SetNativeResolver expects argument 'library' to be non-null.");
 
   result = Dart_SetNativeResolver(Dart_True(), &MyNativeResolver1, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ(
-      "Dart_SetNativeResolver expects argument 'library' to be of "
-      "type Library.",
-      Dart_GetError(result));
+  EXPECT_ERROR(result,
+               "Dart_SetNativeResolver expects argument 'library' to be of "
+               "type Library.");
 
   result = Dart_SetNativeResolver(error, &MyNativeResolver1, NULL);
   EXPECT(Dart_IsError(result));
