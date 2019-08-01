@@ -32,7 +32,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
-      Compile(DevCompilerRunner(this, debugging())),
+      Compile(DevCompilerRunner(this, debugging: debugging())),
       const StepWithD8(),
       CheckSteps(debugging()),
     ];
@@ -46,7 +46,7 @@ class DevCompilerRunner implements CompilerRunner {
   final WithCompilerState context;
   final bool debugging;
 
-  const DevCompilerRunner(this.context, [this.debugging = false]);
+  const DevCompilerRunner(this.context, {this.debugging = false});
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
@@ -96,9 +96,9 @@ class DevCompilerRunner implements CompilerRunner {
           sdkJsFile, outputFile, jsContent, outputFilename, outDir);
     }
 
-    var inputFileName = inputFile.pathSegments.last;
-    var inputFileNameNoExt =
-        inputFileName.substring(0, inputFileName.lastIndexOf("."));
+    var inputPath = inputFile.path;
+    inputPath = inputPath.substring(0, inputPath.lastIndexOf("."));
+    var inputFileNameNoExt = pathToJSIdentifier(inputPath);
     File.fromUri(outWrapperFile).writeAsStringSync(
         getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
   }

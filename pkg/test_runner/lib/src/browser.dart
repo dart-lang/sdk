@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as p;
 import 'configuration.dart' show Compiler;
 import 'utils.dart';
 
@@ -31,6 +32,22 @@ String dart2jsHtml(String title, String scriptPath) {
   </script>
 </body>
 </html>""";
+}
+
+/// Transforms a path to a valid JS identifier.
+///
+/// This logic must be synchronized with [pathToJSIdentifier] in DDC at:
+/// pkg/dev_compiler/lib/src/compiler/module_builder.dart
+String pathToJSIdentifier(String path) {
+  path = p.normalize(path);
+  if (path.startsWith('/') || path.startsWith('\\')) {
+    path = path.substring(1, path.length);
+  }
+  return _toJSIdentifier(path
+      .replaceAll('\\', '__')
+      .replaceAll('/', '__')
+      .replaceAll('..', '__')
+      .replaceAll('-', '_'));
 }
 
 /// Escape [name] to make it into a valid identifier.
@@ -122,11 +139,15 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// Generates the HTML template file needed to load and run a dartdevc test in
 /// the browser.
 ///
-/// The [testName] is the short name of the test without any subdirectory path
-/// or extension, like "math_test". The [testJSDir] is the relative path to the
-/// build directory where the dartdevc-generated JS file is stored.
-String dartdevcHtml(String testName, String testJSDir, Compiler compiler) {
-  var testId = _toJSIdentifier(testName);
+/// [testName] is the short name of the test without any subdirectory path
+/// or extension, like "math_test". [testNameAlias] is the alias of the
+/// test variable used for import/export (usually relative to its module root).
+/// [testJSDir] is the relative path to the build directory where the
+/// dartdevc-generated JS file is stored.
+String dartdevcHtml(String testName, String testNameAlias, String testJSDir,
+    Compiler compiler) {
+  var testId = pathToJSIdentifier(testName);
+  var testIdAlias = pathToJSIdentifier(testNameAlias);
   var isKernel = compiler == Compiler.dartdevk;
   var sdkPath = isKernel ? 'kernel/amd/dart_sdk' : 'js/amd/dart_sdk';
   var pkgDir = isKernel ? 'pkg_kernel' : 'pkg';
@@ -229,7 +250,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     // Some callbacks are not scheduled with timers/microtasks, so they don't
     // go through our async tracking (e.g. DOM events). For those tests, check
     // if the result of calling `main()` is a Future, and if so, wait for it.
-    let result = $testId.$testId.main();
+    let result = $testId.$testIdAlias.main();
     if (sdk.async.Future.is(result)) {
       sdk.dart.addAsyncCallback();
       result.whenComplete(sdk.dart.removeAsyncCallback);

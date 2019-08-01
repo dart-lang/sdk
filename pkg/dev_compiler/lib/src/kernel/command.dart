@@ -149,8 +149,8 @@ Future<CompilerResult> _compile(List<String> args,
           'then --multi-root-output-path must be explicitly provided.');
       return CompilerResult(64);
     }
-    multiRootOutputPath = _longestPrefixingPath(
-        sourcePathToUri(p.absolute(outPaths.first)), multiRootPaths);
+    var jsOutputUri = sourcePathToUri(p.absolute(outPaths.first));
+    multiRootOutputPath = _longestPrefixingPath(jsOutputUri, multiRootPaths);
   }
 
   var fileSystem = MultiRootFileSystem(

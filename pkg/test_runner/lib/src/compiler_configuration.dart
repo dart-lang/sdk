@@ -552,11 +552,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     }
     args.addAll(sharedOptions);
     args.addAll(_configuration.sharedOptions);
-    if (!useKernel) {
-      // TODO(jmesserly): library-root needs to be removed.
-      args.addAll(
-          ["--library-root", Path(inputFile).directoryPath.toNativePath()]);
-    }
 
     args.addAll([
       "--ignore-unrecognized-flags",

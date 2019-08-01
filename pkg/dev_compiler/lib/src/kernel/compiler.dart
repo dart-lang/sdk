@@ -14,6 +14,7 @@ import 'package:kernel/library_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:source_span/source_span.dart' show SourceLocation;
+import 'package:path/path.dart' as p;
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/js_utils.dart' as js_ast;
@@ -345,21 +346,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (uri.scheme == 'dart') {
       return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
+    return pathToJSIdentifier(p.withoutExtension(uri.pathSegments.last));
+  }
 
-    // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
+  @override
+  String jsLibraryAlias(Library library) {
+    var uri = library.importUri.normalizePath();
+    if (uri.scheme == 'dart') return null;
+
     Iterable<String> segments;
     if (uri.scheme == 'package') {
       // Strip the package name.
-      // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-      // E.g., "foo/bar.dart" and "foo__bar.dart" would collide.
       segments = uri.pathSegments.skip(1);
     } else {
-      // TODO(jmesserly): this is not unique typically.
-      segments = [uri.pathSegments.last];
+      segments = uri.pathSegments;
     }
 
-    var qualifiedPath = segments.map((p) => p == '..' ? '' : p).join('__');
-    return pathToJSIdentifier(qualifiedPath);
+    var qualifiedPath = pathToJSIdentifier(p.withoutExtension(segments.join('/')));
+    return qualifiedPath == jsLibraryName(library) ? null : qualifiedPath;
   }
 
   @override

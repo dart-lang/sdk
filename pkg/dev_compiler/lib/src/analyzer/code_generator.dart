@@ -418,32 +418,25 @@ class CodeGenerator extends Object
     return name;
   }
 
-  /// Choose a canonical name from the [library] element.
-  ///
-  /// This never uses the library's name (the identifier in the `library`
-  /// declaration) as it doesn't have any meaningful rules enforced.
   @override
   String jsLibraryName(LibraryElement library) {
-    var uri = library.source.uri;
+    var uri = library.source.uri.normalizePath();
     if (uri.scheme == 'dart') {
       return isSdkInternalRuntime(library) ? 'dart' : uri.path;
     }
-    // TODO(vsm): This is not necessarily unique if '__' appears in a file name.
-    var encodedSeparator = '__';
-    String qualifiedPath;
+    Iterable<String> segments;
     if (uri.scheme == 'package') {
       // Strip the package name.
-      // TODO(vsm): This is not unique if an escaped '/'appears in a filename.
-      // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
-      qualifiedPath = uri.pathSegments.skip(1).join(encodedSeparator);
+      segments = uri.pathSegments.skip(1);
     } else {
-      qualifiedPath = p
-          .relative(uri.toFilePath(), from: _libraryRoot)
-          .replaceAll(p.separator, encodedSeparator)
-          .replaceAll('..', encodedSeparator);
+      segments = p.split(p.relative(uri.toFilePath(), from: _libraryRoot));
     }
-    return pathToJSIdentifier(qualifiedPath);
+    return pathToJSIdentifier(p.withoutExtension(segments.join('/')));
   }
+
+  // TODO(markzipan): Analyzer libraries are non-aliased.
+  @override
+  String jsLibraryAlias(LibraryElement library) => null;
 
   /// Debugger friendly name for a Dart Library.
   @override

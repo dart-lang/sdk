@@ -96,11 +96,18 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   FunctionNode get currentFunction;
 
   /// Choose a canonical name from the [library] element.
+  @protected
+  String jsLibraryName(Library library);
+
+  /// Choose a module-unique name from the [library] element.
+  ///
+  /// Returns null if no alias exists or there are multiple output paths
+  /// (e.g., when compiling the Dart SDK).
   ///
   /// This never uses the library's name (the identifier in the `library`
   /// declaration) as it doesn't have any meaningful rules enforced.
   @protected
-  String jsLibraryName(Library library);
+  String jsLibraryAlias(Library library);
 
   /// Debugger friendly name for a Dart [library].
   @protected
@@ -384,12 +391,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
         _libraries[library] = runtimeModule;
         continue;
       }
-      var id = js_ast.TemporaryId(jsLibraryName(library));
-      _libraries[library] = id;
+      var libraryId = js_ast.TemporaryId(jsLibraryName(library));
+      _libraries[library] = libraryId;
+      var alias = jsLibraryAlias(library);
+      var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
       items.add(js.statement(
-          'const # = Object.create(#.library)', [id, runtimeModule]));
-      exports.add(js_ast.NameSpecifier(id));
+          'const # = Object.create(#.library)', [libraryId, runtimeModule]));
+      exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
 
     // dart:_runtime has a magic module that holds extension method symbols.
@@ -426,9 +435,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   @protected
   js_ast.Identifier emitLibraryName(Library library) {
     // It's either one of the libraries in this module, or it's an import.
+    var libraryId = js_ast.TemporaryId(jsLibraryName(library));
     return _libraries[library] ??
-        _imports.putIfAbsent(
-            library, () => js_ast.TemporaryId(jsLibraryName(library)));
+        _imports.putIfAbsent(library, () => libraryId);
   }
 
   /// Emits imports and extension methods into [items].
@@ -454,8 +463,14 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       //     import {foo} from 'foo';         // if no rename needed
       //     import {foo as foo$} from 'foo'; // if rename was needed
       //
-      var imports =
-          libraries.map((l) => js_ast.NameSpecifier(_imports[l])).toList();
+      var imports = libraries.map((library) {
+        var alias = jsLibraryAlias(library);
+        if (alias != null) {
+          var aliasId = js_ast.TemporaryId(alias);
+          return js_ast.NameSpecifier(aliasId, asName: _imports[library]);
+        }
+        return js_ast.NameSpecifier(_imports[library]);
+      }).toList();
       if (module == coreModuleName) {
         imports.add(js_ast.NameSpecifier(runtimeModule));
         imports.add(js_ast.NameSpecifier(extensionSymbolsModule));

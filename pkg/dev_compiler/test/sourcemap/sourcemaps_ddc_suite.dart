@@ -24,7 +24,7 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
   @override
   List<Step> get steps => _steps ??= <Step>[
         const Setup(),
-        Compile(DevCompilerRunner(environment.containsKey("debug"))),
+        Compile(DevCompilerRunner(debugging: environment.containsKey("debug"))),
         const StepWithD8(),
         CheckSteps(environment.containsKey("debug")),
       ];
@@ -35,8 +35,9 @@ class SourceMapContext extends ChainContextWithCleanupHelper {
 
 class DevCompilerRunner implements CompilerRunner {
   final bool debugging;
+  final bool absoluteRoot;
 
-  const DevCompilerRunner([this.debugging = false]);
+  const DevCompilerRunner({this.debugging = false, this.absoluteRoot = true});
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
@@ -54,7 +55,7 @@ class DevCompilerRunner implements CompilerRunner {
       "--modules=es6",
       "--dart-sdk-summary=${ddcSdkSummary.path}",
       "--library-root",
-      outDir.toFilePath(),
+      absoluteRoot ? "/" : outDir.toFilePath(),
       "-o",
       outputFile.toFilePath(),
       inputFile.toFilePath()
@@ -77,9 +78,11 @@ class DevCompilerRunner implements CompilerRunner {
           sdkJsFile, outputFile, jsContent, outputFilename, outDir);
     }
 
-    var inputFileName = inputFile.pathSegments.last;
-    var inputFileNameNoExt =
-        inputFileName.substring(0, inputFileName.lastIndexOf("."));
+    var inputFileName =
+        absoluteRoot ? inputFile.path : inputFile.pathSegments.last;
+    inputFileName = inputFileName.split(":").last;
+    var inputFileNameNoExt = pathToJSIdentifier(
+        inputFileName.substring(0, inputFileName.lastIndexOf(".")));
     File.fromUri(outWrapperFile).writeAsStringSync(
         getWrapperContent(jsSdkPath, inputFileNameNoExt, outputFilename));
   }
