@@ -50,7 +50,12 @@ class ExtensionsDataComputer extends DataComputer<Features> {
       CompilerResult compiler, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
-      features.addElement(Tags.errors, error.message);
+      if (error.message.contains(',')) {
+        // TODO(johnniwinther): Support escaping of , in Features.
+        features.addElement(Tags.errors, error.code);
+      } else {
+        features.addElement(Tags.errors, error.message);
+      }
     }
     return features;
   }

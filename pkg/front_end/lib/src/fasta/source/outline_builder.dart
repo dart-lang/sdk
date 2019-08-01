@@ -608,7 +608,7 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token nameToken) {
-    assert(checkState(
+    assert(checkState(extensionKeyword,
         [ValueKind.TypeVariableListOrNull, ValueKind.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
     library.beginNestedDeclaration("extension");
@@ -629,7 +629,7 @@ class OutlineBuilder extends StackListener {
   @override
   void endExtensionDeclaration(
       Token extensionKeyword, Token onKeyword, Token endToken) {
-    assert(checkState([
+    assert(checkState(extensionKeyword, [
       ValueKind.TypeBuilder,
       ValueKind.TypeVariableListOrNull,
       ValueKind.Integer,

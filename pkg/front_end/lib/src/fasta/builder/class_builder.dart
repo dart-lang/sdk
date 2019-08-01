@@ -1699,6 +1699,105 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
 
     return substitutionMap;
   }
+
+  /// Looks up the member by [name] on the class built by this class builder.
+  ///
+  /// If [isSetter] is `false`, only fields, methods, and getters with that name
+  /// will be found.  If [isSetter] is `true`, only non-final fields and setters
+  /// will be found.
+  ///
+  /// If [isSuper] is `false`, the member is found among the interface members
+  /// the class built by this class builder. If [isSuper] is `true`, the member
+  /// is found among the class members of the superclass.
+  ///
+  /// If this class builder is a patch, interface members declared in this
+  /// patch are searched before searching the interface members in the origin
+  /// class.
+  Member lookupInstanceMember(ClassHierarchy hierarchy, Name name,
+      {bool isSetter: false, bool isSuper: false}) {
+    Class instanceClass = cls;
+    if (isPatch) {
+      assert(identical(instanceClass, origin.cls),
+          "Found ${origin.cls} expected $instanceClass");
+      if (isSuper) {
+        // The super class is only correctly found through the origin class.
+        instanceClass = origin.cls;
+      } else {
+        Member member =
+            hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+        if (member?.parent == instanceClass) {
+          // Only if the member is found in the patch can we use it.
+          return member;
+        } else {
+          // Otherwise, we need to keep searching in the origin class.
+          instanceClass = origin.cls;
+        }
+      }
+    }
+
+    if (isSuper) {
+      instanceClass = instanceClass.superclass;
+      if (instanceClass == null) return null;
+    }
+    Member target = isSuper
+        ? hierarchy.getDispatchTarget(instanceClass, name, setter: isSetter)
+        : hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+    if (isSuper && target == null) {
+      if (cls.isMixinDeclaration ||
+          (library.loader.target.backendTarget.enableSuperMixins &&
+              this.isAbstract)) {
+        target =
+            hierarchy.getInterfaceMember(instanceClass, name, setter: isSetter);
+      }
+    }
+    return target;
+  }
+
+  /// Looks up the constructor by [name] on the the class built by this class
+  /// builder.
+  ///
+  /// If [isSuper] is `true`, constructors in the superclass are searched.
+  Constructor lookupConstructor(Name name, {bool isSuper: false}) {
+    Class instanceClass = cls;
+    if (isSuper) {
+      instanceClass = instanceClass.superclass;
+    }
+    if (instanceClass != null) {
+      for (Constructor constructor in instanceClass.constructors) {
+        if (constructor.name == name) return constructor;
+      }
+    }
+
+    /// Performs a similar lookup to [lookupConstructor], but using a slower
+    /// implementation.
+    Constructor lookupConstructorWithPatches(Name name, bool isSuper) {
+      ClassBuilder builder = this.origin;
+
+      ClassBuilder getSuperclass(ClassBuilder builder) {
+        // This way of computing the superclass is slower than using the kernel
+        // objects directly.
+        Object supertype = builder.supertype;
+        if (supertype is NamedTypeBuilder) {
+          Object builder = supertype.declaration;
+          if (builder is ClassBuilder) return builder;
+        }
+        return null;
+      }
+
+      if (isSuper) {
+        builder = getSuperclass(builder)?.origin;
+      }
+      if (builder != null) {
+        Class target = builder.target;
+        for (Constructor constructor in target.constructors) {
+          if (constructor.name == name) return constructor;
+        }
+      }
+      return null;
+    }
+
+    return lookupConstructorWithPatches(name, isSuper);
+  }
 }
 
 class ConstructorRedirection {

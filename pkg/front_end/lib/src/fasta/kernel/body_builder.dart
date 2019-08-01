@@ -63,6 +63,8 @@ import '../source/scope_listener.dart'
         ParserRecovery,
         ScopeListener;
 
+import '../source/stack_listener.dart' show ValueKind;
+
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 
 import '../type_inference/type_promotion.dart'
@@ -90,6 +92,7 @@ import 'expression_generator.dart'
         ParenthesizedExpressionGenerator,
         ParserErrorGenerator,
         PrefixUseGenerator,
+        PropertyAccessGenerator,
         ReadOnlyAccessGenerator,
         SendAccessGenerator,
         StaticAccessGenerator,
@@ -1371,6 +1374,12 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void handleSend(Token beginToken, Token endToken) {
+    assert(checkState(beginToken, [
+      ValueKind.ArgumentsOrNull,
+      ValueKind.TypeArgumentsOrNull,
+      ValueKind
+          .ExpressionOrGeneratorOrIdentifierOrParserRecoveryOrProblemBuilder,
+    ]));
     debugEvent("Send");
     Arguments arguments = pop();
     List<UnresolvedType> typeArguments = pop();
@@ -1698,82 +1707,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   Member lookupInstanceMember(Name name,
       {bool isSetter: false, bool isSuper: false}) {
-    Class cls = classBuilder.cls;
-    if (classBuilder.isPatch) {
-      if (isSuper) {
-        // The super class is only correctly found through the origin class.
-        cls = classBuilder.origin.cls;
-      } else {
-        Member member =
-            hierarchy.getInterfaceMember(cls, name, setter: isSetter);
-        if (member?.parent == cls) {
-          // Only if the member is found in the patch can we use it.
-          return member;
-        } else {
-          // Otherwise, we need to keep searching in the origin class.
-          cls = classBuilder.origin.cls;
-        }
-      }
-    }
-
-    if (isSuper) {
-      cls = cls.superclass;
-      if (cls == null) return null;
-    }
-    Member target = isSuper
-        ? hierarchy.getDispatchTarget(cls, name, setter: isSetter)
-        : hierarchy.getInterfaceMember(cls, name, setter: isSetter);
-    if (isSuper && target == null) {
-      if (classBuilder.cls.isMixinDeclaration ||
-          (library.loader.target.backendTarget.enableSuperMixins &&
-              classBuilder.isAbstract)) {
-        target = hierarchy.getInterfaceMember(cls, name, setter: isSetter);
-      }
-    }
-    return target;
+    return classBuilder.lookupInstanceMember(hierarchy, name,
+        isSetter: isSetter, isSuper: isSuper);
   }
 
   @override
   Constructor lookupConstructor(Name name, {bool isSuper}) {
-    Class cls = classBuilder.cls;
-    if (isSuper) {
-      cls = cls.superclass;
-    }
-    if (cls != null) {
-      for (Constructor constructor in cls.constructors) {
-        if (constructor.name == name) return constructor;
-      }
-    }
-
-    /// Performs a similar lookup to [lookupConstructor], but using a slower
-    /// implementation.
-    Constructor lookupConstructorWithPatches(Name name, bool isSuper) {
-      ClassBuilder builder = classBuilder.origin;
-
-      ClassBuilder getSuperclass(ClassBuilder builder) {
-        // This way of computing the superclass is slower than using the kernel
-        // objects directly.
-        Object supertype = builder.supertype;
-        if (supertype is NamedTypeBuilder) {
-          Object builder = supertype.declaration;
-          if (builder is ClassBuilder) return builder;
-        }
-        return null;
-      }
-
-      if (isSuper) {
-        builder = getSuperclass(builder)?.origin;
-      }
-      if (builder != null) {
-        Class target = builder.target;
-        for (Constructor constructor in target.constructors) {
-          if (constructor.name == name) return constructor;
-        }
-      }
-      return null;
-    }
-
-    return lookupConstructorWithPatches(name, isSuper);
+    return classBuilder.lookupConstructor(name, isSuper: isSuper);
   }
 
   @override
@@ -1818,6 +1758,25 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
+  /// Helper method to create a [VariableGet] of the [variable] using
+  /// [charOffset] as the file offset.
+  VariableGet _createVariableGet(VariableDeclaration variable, int charOffset) {
+    Object fact =
+        typePromoter?.getFactForAccess(variable, functionNestingLevel);
+    Object scope = typePromoter?.currentScope;
+    return new VariableGetJudgment(variable, fact, scope)
+      ..fileOffset = charOffset;
+  }
+
+  /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
+  /// using [token] and [charOffset] for offset information and [name]
+  /// for `ExpressionGenerator._plainNameForRead`.
+  ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
+      VariableDeclaration variable, Token token, int charOffset, String name) {
+    return new ReadOnlyAccessGenerator(
+        this, token, _createVariableGet(variable, charOffset), name);
+  }
+
   /// Look up [name] in [scope] using [token] as location information (both to
   /// report problems and as the file offset in the generated kernel code).
   /// [isQualified] should be true if [name] is a qualified access (which
@@ -1856,8 +1815,19 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (constantContext != ConstantContext.none || member.isField) {
           return new UnresolvedNameGenerator(this, token, n);
         }
-        return new ThisPropertyAccessGenerator(this, token, n,
-            lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
+        if (extensionThis != null) {
+          return PropertyAccessGenerator.make(
+              this,
+              token,
+              _createVariableGet(extensionThis, charOffset),
+              n,
+              null,
+              null,
+              false);
+        } else {
+          return new ThisPropertyAccessGenerator(this, token, n,
+              lookupInstanceMember(n), lookupInstanceMember(n, isSetter: true));
+        }
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
           member?.name == "_getMainClosure") {
@@ -1879,15 +1849,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // [ProcedureBuilder.computeFormalParameterInitializerScope]. If that
       // wasn't the case, we could always use [VariableUseGenerator].
       if (declaration.isFinal) {
-        Object fact = typePromoter?.getFactForAccess(
-            declaration.target, functionNestingLevel);
-        Object scope = typePromoter?.currentScope;
-        return new ReadOnlyAccessGenerator(
-            this,
-            token,
-            new VariableGetJudgment(declaration.target, fact, scope)
-              ..fileOffset = charOffset,
-            name);
+        return _createReadOnlyVariableAccess(
+            declaration.target, token, charOffset, name);
       } else {
         return new VariableUseGenerator(this, token, declaration.target);
       }
@@ -3995,8 +3958,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isInstanceContext) {
-      push(new ThisAccessGenerator(
-          this, token, inInitializer, inFieldInitializer, extensionThis));
+      if (extensionThis != null) {
+        push(_createReadOnlyVariableAccess(
+            extensionThis, token, offsetForToken(token), 'this'));
+      } else {
+        push(new ThisAccessGenerator(
+            this, token, inInitializer, inFieldInitializer));
+      }
     } else {
       push(new IncompleteErrorGenerator(
           this, token, fasta.messageThisAsIdentifier));
@@ -4006,11 +3974,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   @override
   void handleSuperExpression(Token token, IdentifierContext context) {
     debugEvent("SuperExpression");
-    if (context.isScopeReference && isInstanceContext) {
+    if (context.isScopeReference &&
+        isInstanceContext &&
+        extensionThis == null) {
       Member member = this.member.target;
       member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(
-          this, token, inInitializer, inFieldInitializer, extensionThis,
+          this, token, inInitializer, inFieldInitializer,
           isSuper: true));
     } else {
       push(new IncompleteErrorGenerator(

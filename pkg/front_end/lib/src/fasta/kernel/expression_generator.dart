@@ -1909,6 +1909,33 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
   }
 }
 
+/// [ReadOnlyAccessGenerator] represents the subexpression whose prefix is the
+/// name of final local variable, final parameter, or catch clause variable or
+/// `this` in an instance method in an extension declaration.
+///
+/// For instance:
+///
+///   method(final a) {
+///     final b = null;
+///     a;         // a ReadOnlyAccessGenerator is created for `a`.
+///     a[];       // a ReadOnlyAccessGenerator is created for `a`.
+///     b();       // a ReadOnlyAccessGenerator is created for `b`.
+///     b.c = a.d; // a ReadOnlyAccessGenerator is created for `a` and `b`.
+///
+///     try {
+///     } catch (a) {
+///       a;       // a ReadOnlyAccessGenerator is created for `a`.
+///     }
+///   }
+///
+///   extension on Foo {
+///     method() {
+///       this;         // a ReadOnlyAccessGenerator is created for `this`.
+///       this.a;       // a ReadOnlyAccessGenerator is created for `this`.
+///       this.b();     // a ReadOnlyAccessGenerator is created for `this`.
+///     }
+///   }
+///
 class ReadOnlyAccessGenerator extends Generator {
   @override
   final String _plainNameForRead;
@@ -2659,6 +2686,9 @@ class ParserErrorGenerator extends Generator {
 ///     }
 ///   }
 ///
+/// If this `this` occurs in an instance member on an extension declaration,
+/// a [ReadOnlyAccessGenerator] is created instead.
+///
 class ThisAccessGenerator extends Generator {
   /// `true` if this access is in an initializer list.
   ///
@@ -2686,12 +2716,8 @@ class ThisAccessGenerator extends Generator {
   /// `true` if this subexpression represents a `super` prefix.
   final bool isSuper;
 
-  /// If non-null, this subexpression represents a `this` prefix in an
-  /// extension declaration member.
-  final VariableDeclaration extensionThis;
-
   ThisAccessGenerator(ExpressionGeneratorHelper helper, Token token,
-      this.isInitializer, this.inFieldInitializer, this.extensionThis,
+      this.isInitializer, this.inFieldInitializer,
       {this.isSuper: false})
       : super(helper, token);
 
@@ -2706,12 +2732,6 @@ class ThisAccessGenerator extends Generator {
     if (!isSuper) {
       if (inFieldInitializer) {
         return buildFieldInitializerError(null);
-      } else if (extensionThis != null) {
-        var fact = _helper.typePromoter
-            ?.getFactForAccess(extensionThis, _helper.functionNestingLevel);
-        var scope = _helper.typePromoter?.currentScope;
-        return new VariableGetJudgment(extensionThis, fact, scope)
-          ..fileOffset = offsetForToken(token);
       } else {
         return _forest.thisExpression(token);
       }
@@ -2881,8 +2901,6 @@ class ThisAccessGenerator extends Generator {
     sink.write(inFieldInitializer);
     sink.write(", isSuper: ");
     sink.write(isSuper);
-    sink.write(", extensionThis: ");
-    sink.write(extensionThis);
   }
 }
 

@@ -2505,6 +2505,7 @@ ThisAsIdentifier:
   template: "Expected identifier, but got 'this'."
   analyzerCode: INVALID_REFERENCE_TO_THIS
 
+# TODO(johnniwinther): Confusing message, it should probably mention that `super` is not available.
 SuperAsIdentifier:
   template: "Expected identifier, but got 'super'."
   analyzerCode: SUPER_AS_EXPRESSION
