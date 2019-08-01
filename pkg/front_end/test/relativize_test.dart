@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-import 'package:compiler/src/util/uri_extras.dart';
+import 'package:front_end/src/fasta/util/relativize.dart';
 
 void testRelativize() {
   void c(String expected, String base, String path, bool isWindows) {
@@ -15,7 +15,7 @@ void testRelativize() {
     }
 
     test(Uri base, Uri uri) {
-      String r = relativize(base, uri, isWindows);
+      String r = relativizeUri(base, uri, isWindows);
       Uri resolved = base.resolve(r);
       Expect.equals(uri.scheme.toLowerCase(), resolved.scheme.toLowerCase());
       if (isWindows) {

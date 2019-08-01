@@ -6,6 +6,8 @@ library deferred_load;
 
 import 'dart:collection' show Queue;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+
 import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'common_elements.dart'
@@ -26,7 +28,6 @@ import 'options.dart';
 import 'universe/use.dart';
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
-import 'util/uri_extras.dart' as uri_extras;
 import 'util/util.dart' show makeUnique;
 import 'world.dart' show KClosedWorld;
 
@@ -972,7 +973,7 @@ class ImportDescription {
   ImportDescription(
       ImportEntity import, LibraryEntity importingLibrary, Uri mainLibraryUri)
       : this.internal(
-            uri_extras.relativize(
+            fe.relativizeUri(
                 mainLibraryUri, importingLibrary.canonicalUri, false),
             import.name,
             importingLibrary);

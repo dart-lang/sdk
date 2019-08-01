@@ -4,9 +4,9 @@
 
 library dart2js.source_map_builder;
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:kernel/ast.dart' show Location;
 import '../../compiler_new.dart' show CompilerOutput, OutputSink, OutputType;
-import '../util/uri_extras.dart' show relativize;
 import '../util/util.dart';
 import 'location_provider.dart';
 import 'code_output.dart' show SourceLocationsProvider, SourceLocations;
@@ -122,15 +122,15 @@ class SourceMapBuilder {
     buffer.write('  "version": 3,\n');
     buffer.write('  "engine": "$version",\n');
     if (sourceMapUri != null && targetFileUri != null) {
-      buffer.write(
-          '  "file": "${relativize(sourceMapUri, targetFileUri, false)}",\n');
+      buffer.write('  "file": '
+          '"${fe.relativizeUri(sourceMapUri, targetFileUri, false)}",\n');
     }
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
     Iterable<String> relativeSourceUriList = const <String>[];
     if (sourceMapUri != null) {
       relativeSourceUriList =
-          uriMap.elements.map((u) => relativize(sourceMapUri, u, false));
+          uriMap.elements.map((u) => fe.relativizeUri(sourceMapUri, u, false));
     }
     printStringListOn(relativeSourceUriList, buffer);
     buffer.write(',\n');
@@ -255,7 +255,7 @@ class SourceMapBuilder {
   /// make it point to the source map file in [sourceMapUri].
   static String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
     if (sourceMapUri != null && fileUri != null) {
-      String sourceMapFileName = relativize(fileUri, sourceMapUri, false);
+      String sourceMapFileName = fe.relativizeUri(fileUri, sourceMapUri, false);
       return '''
 
 //# sourceMappingURL=$sourceMapFileName

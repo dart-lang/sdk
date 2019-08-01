@@ -6233,7 +6233,7 @@ TEST_CASE(DartAPI_ImportLibrary3) {
   lib = TestCase::LoadTestScriptWithDFE(sourcefiles_count, sourcefiles, NULL,
                                         true);
   EXPECT_ERROR(lib,
-               "Compilation failed file:///test-lib:4:10:"
+               "Compilation failed /test-lib:4:10:"
                " Error: Setter not found: 'foo'");
   return;
 

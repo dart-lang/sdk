@@ -90,7 +90,8 @@
 // TODO(sigmund): move this file to a shared package.
 import 'dart:convert' show jsonDecode, jsonEncode;
 
-import '../fasta/util/relativize.dart';
+import '../fasta/util/relativize.dart' show relativizeUri;
+import '../fasta/resolve_input_uri.dart' show isWindows;
 
 /// Contents from a single library specification file.
 ///
@@ -202,7 +203,7 @@ class LibrariesSpecification {
   Map toJsonMap(Uri outputUri) {
     var result = {};
     var dir = outputUri.resolve('.');
-    String pathFor(Uri uri) => relativizeUri(uri, base: dir);
+    String pathFor(Uri uri) => relativizeUri(dir, uri, isWindows);
     _targets.forEach((targetName, target) {
       var libraries = {};
       target._libraries.forEach((name, lib) {

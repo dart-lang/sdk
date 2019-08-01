@@ -4,7 +4,7 @@
 
 library dart2js.diagnostics.code_location;
 
-import '../util/uri_extras.dart' as uri_extras show relativize;
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 /// [CodeLocation] divides uris into different classes.
 ///
@@ -47,7 +47,7 @@ class SchemeLocation implements CodeLocation {
 
   @override
   String relativize(Uri baseUri) {
-    return uri_extras.relativize(baseUri, uri, false);
+    return fe.relativizeUri(baseUri, uri, false);
   }
 }
 
@@ -82,7 +82,7 @@ class UriLocation implements CodeLocation {
 
   @override
   String relativize(Uri baseUri) {
-    return uri_extras.relativize(baseUri, uri, false);
+    return fe.relativizeUri(baseUri, uri, false);
   }
 }
 

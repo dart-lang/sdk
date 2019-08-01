@@ -1700,7 +1700,7 @@ TEST_CASE(IsolateReload_TearOff_Parameter_Count_Mismatch) {
 
   const char* error;
   error =
-      "file:///test-lib:8:12: Error: Too few positional"
+      "/test-lib:8:12: Error: Too few positional"
       " arguments: 1 required, 0 given.\n"
       "  return f1();";
   EXPECT_ERROR(error_handle, error);

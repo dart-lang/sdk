@@ -17,6 +17,8 @@ import 'kernel/type_labeler.dart';
 
 import 'severity.dart' show Severity;
 
+import 'resolve_input_uri.dart' show isWindows;
+
 import 'util/relativize.dart' as util show relativizeUri;
 
 part 'fasta_codes_generated.dart';
@@ -251,7 +253,7 @@ String relativizeUri(Uri uri) {
   // (otherwise, we might get an `UNUSED_IMPORT` warning).
   //
   // 2. We can change `base` argument here if needed.
-  return util.relativizeUri(uri, base: Uri.base);
+  return uri == null ? null : util.relativizeUri(Uri.base, uri, isWindows);
 }
 
 typedef SummaryTemplate = Message Function(int, int, num, num, num);

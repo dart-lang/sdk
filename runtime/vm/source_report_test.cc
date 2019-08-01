@@ -259,7 +259,7 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
       "\"error\":{\"type\":\"@Error\",\"_vmType\":\"LanguageError\","
       "\"kind\":\"LanguageError\",\"id\":\"objects\\/0\","
       "\"message\":\"'file:\\/\\/\\/test-lib': error: "
-      "file:\\/\\/\\/test-lib:3:26: "
+      "\\/test-lib:3:26: "
       "Error: This couldn't be parsed.\\n"
       "  helper1() { helper0()+ }\\n                         ^\"}},"
 
