@@ -28,9 +28,6 @@ extern const uint8_t kDartCoreIsolateSnapshotInstructions[];
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
 
-// Defined in vm/os_thread_win.cc
-extern bool private_flag_windows_run_tls_destructors;
-
 // Snapshot pieces when we link in a snapshot.
 #if defined(DART_NO_SNAPSHOT)
 #error "run_vm_tests must be built with a snapshot"

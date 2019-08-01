@@ -22,10 +22,6 @@
 
 
 namespace dart {
-
-// Defined in vm/os_thread_win.cc
-extern bool private_flag_windows_run_tls_destructors;
-
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
@@ -81,10 +77,9 @@ class PlatformWin {
           ExceptionInfo->ExceptionRecord->ExceptionAddress);
       Dart_DumpNativeStackTrace(ExceptionInfo->ContextRecord);
       Console::RestoreConfig();
-      // TODO(zra): Remove once VM shuts down cleanly.
-      ::dart::private_flag_windows_run_tls_destructors = false;
       // Note: we want to abort(...) here instead of exiting because exiting
       // would not cause WER to generate a minidump.
+      Dart_PrepareToAbort();
       abort();
     }
     return EXCEPTION_CONTINUE_SEARCH;
@@ -291,12 +286,11 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 void Platform::Exit(int exit_code) {
-  // TODO(zra): Remove once VM shuts down cleanly.
-  ::dart::private_flag_windows_run_tls_destructors = false;
   // Restore the console's output code page
   Console::RestoreConfig();
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
+  Dart_PrepareToAbort();
   ::ExitProcess(exit_code);
 }
 

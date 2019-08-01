@@ -149,6 +149,7 @@ const char* Platform::ResolveExecutablePath() {
 
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
+  Dart_PrepareToAbort();
   exit(exit_code);
 }
 

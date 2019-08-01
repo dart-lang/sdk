@@ -344,6 +344,7 @@ void OS::Cleanup() {}
 void OS::PrepareToAbort() {}
 
 void OS::Abort() {
+  PrepareToAbort();
   abort();
 }
 

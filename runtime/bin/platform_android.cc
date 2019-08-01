@@ -33,6 +33,7 @@ static void segv_handler(int signal, siginfo_t* siginfo, void* context) {
       strsignal(siginfo->si_signo), siginfo->si_signo, siginfo->si_code,
       siginfo->si_addr);
   Dart_DumpNativeStackTrace(context);
+  Dart_PrepareToAbort();
   abort();
 }
 
@@ -156,6 +157,7 @@ const char* Platform::ResolveExecutablePath() {
 
 void Platform::Exit(int exit_code) {
   Console::RestoreConfig();
+  Dart_PrepareToAbort();
   exit(exit_code);
 }
 
