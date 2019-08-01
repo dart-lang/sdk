@@ -409,6 +409,27 @@ void main() {
       }''', '1, dart.core::identical(x, 1), 1, y');
     });
   });
+  group('functions parameters in SDK', () {
+    setUp(() {
+      // Using annotations here to test how the parameter is detected when
+      // compiling functions from the SDK.
+      // A regression test for: https://github.com/dart-lang/sdk/issues/37700
+      useAnnotations = true;
+    });
+    tearDown(() {
+      useAnnotations = false;
+    });
+    test('optional with default value', () async {
+      await expectNotNull('''
+        f(x, [y = 1]) { x; y; }
+      ''', '1');
+    });
+    test('named with default value', () async {
+      await expectNotNull('''
+        f(x, {y = 1}) { x; y; }
+      ''', '1');
+    });
+  });
 
   group('notNull', () {
     setUp(() {

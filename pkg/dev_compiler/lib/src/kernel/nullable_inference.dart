@@ -356,13 +356,17 @@ class _NullableVariableInference extends RecursiveVisitor<void> {
       }
     }
     var initializer = node.initializer;
-    if (initializer != null) {
-      var savedVariable = _variableAssignedTo;
-      _variableAssignedTo = node;
+    // A Variable declaration with a FunctionNode as a parent is a function
+    // parameter so we can't trust the initializer as a nullable check.
+    if (node.parent is! FunctionNode) {
+      if (initializer != null) {
+        var savedVariable = _variableAssignedTo;
+        _variableAssignedTo = node;
 
-      if (!_nullInference.isNullable(initializer)) _notNullLocals.add(node);
+        if (!_nullInference.isNullable(initializer)) _notNullLocals.add(node);
 
-      _variableAssignedTo = savedVariable;
+        _variableAssignedTo = savedVariable;
+      }
     }
     initializer?.accept(this);
   }
