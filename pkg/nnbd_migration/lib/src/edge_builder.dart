@@ -929,7 +929,7 @@ $stackTrace''');
     }
     // TODO(paulberry): generalize this.
     if ((_isSimple(source) || destination.type.isObject) &&
-        _isSimple(destination)) {
+        (_isSimple(destination) || source.type.isDartCoreNull)) {
       // Ok; nothing further to do.
     } else if (source.type is InterfaceType &&
         destination.type is InterfaceType &&

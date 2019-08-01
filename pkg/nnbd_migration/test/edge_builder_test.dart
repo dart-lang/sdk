@@ -92,6 +92,16 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
   }
 
+  test_assign_null_to_generic_type() async {
+    await analyze('''
+main() {
+  List<int> x = null;
+}
+''');
+    // TODO(paulberry): edge should be hard.
+    assertEdge(always, decoratedTypeAnnotation('List').node, hard: false);
+  }
+
   test_assignmentExpression_field() async {
     await analyze('''
 class C {
