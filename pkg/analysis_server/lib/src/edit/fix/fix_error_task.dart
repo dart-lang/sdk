@@ -13,15 +13,31 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 
-/// A task for fixing a particular error
-class FixErrorTask {
-  static void fixNamedConstructorTypeArgs(
-      DartFixRegistrar registrar, DartFixListener listener) {
-    registrar.registerErrorTask(
-        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
-        new FixErrorTask(listener));
+/// A processor used by [EditDartFix] to manage [FixErrorTask]s.
+mixin FixErrorProcessor {
+  /// A mapping from [ErrorCode] to the fix that should be applied.
+  final errorTaskMap = <ErrorCode, FixErrorTask>{};
+
+  Future<bool> processErrors(ResolvedUnitResult result) async {
+    bool foundError = false;
+    for (AnalysisError error in result.errors) {
+      final task = errorTaskMap[error.errorCode];
+      if (task != null) {
+        await task.fixError(result, error);
+      } else if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
+        foundError = true;
+      }
+    }
+    return foundError;
   }
 
+  void registerErrorTask(ErrorCode errorCode, FixErrorTask task) {
+    errorTaskMap[errorCode] = task;
+  }
+}
+
+/// A task for fixing a particular error
+class FixErrorTask {
   final DartFixListener listener;
 
   FixErrorTask(this.listener);
@@ -45,31 +61,11 @@ class FixErrorTask {
       listener.addRecommendation('Could not fix "${error.message}"', location);
     }
   }
-}
 
-/// A processor used by [EditDartFix] to manage [FixErrorTask]s.
-mixin FixErrorProcessor {
-  /// A mapping from [ErrorCode] to the fix that should be applied.
-  final errorTaskMap = <ErrorCode, FixErrorTask>{};
-
-  Future<bool> processErrors(ResolvedUnitResult result) async {
-    bool foundError = false;
-    for (AnalysisError error in result.errors) {
-      final task = errorTaskMap[error.errorCode];
-      if (task != null) {
-        await task.fixError(result, error);
-      } else if (error.errorCode.type == ErrorType.SYNTACTIC_ERROR) {
-        foundError = true;
-      }
-    }
-    return foundError;
-  }
-
-  Future<bool> fixError(ResolvedUnitResult result, AnalysisError error) async {
-    return true;
-  }
-
-  void registerErrorTask(ErrorCode errorCode, FixErrorTask task) {
-    errorTaskMap[errorCode] = task;
+  static void fixNamedConstructorTypeArgs(
+      DartFixRegistrar registrar, DartFixListener listener) {
+    registrar.registerErrorTask(
+        StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+        new FixErrorTask(listener));
   }
 }

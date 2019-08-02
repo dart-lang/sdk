@@ -346,7 +346,7 @@ var m =
         await performFix(includedFixes: ['map-for-elements']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to a 'for' element", 10, 73);
+        result.suggestions[0], "Convert to a 'for' element", 10, 3);
     expectEdits(result.edits, '''
 var m =
   { for (var i in [1, 2, 3]) i : i * 2 };
@@ -362,7 +362,7 @@ f(bool b) => ['a', b ? 'c' : 'd', 'e'];
         await performFix(includedFixes: ['collection-if-elements']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to an 'if' element", 19, 13);
+        result.suggestions[0], "Convert to an 'if' element", 19, 1);
     expectEdits(result.edits, '''
 f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
     ''');
@@ -380,6 +380,18 @@ const double myDouble = 42.0;
     expectEdits(result.edits, '''
 const double myDouble = 42;
     ''');
+  }
+
+  test_dartfix_preferIsEmpty() async {
+    addTestFile('main(List<String> args) { if (args.length == 0) { } }');
+    createProject();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['prefer-is-empty']);
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 30, 16);
+    expect(result.hasErrors, isFalse);
+    expectEdits(
+        result.edits, 'main(List<String> args) { if (args.isEmpty) { } }');
   }
 
   test_dartfix_preferMixin() async {
