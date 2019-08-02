@@ -24,6 +24,20 @@ class SafepointOperationScope : public ThreadStackResource {
   DISALLOW_COPY_AND_ASSIGN(SafepointOperationScope);
 };
 
+// A stack based scope that can be used to perform an operation after getting
+// all threads to a safepoint. At the end of the operation all the threads are
+// resumed. Allocations in the scope will force heap growth.
+class ForceGrowthSafepointOperationScope : public ThreadStackResource {
+ public:
+  explicit ForceGrowthSafepointOperationScope(Thread* T);
+  ~ForceGrowthSafepointOperationScope();
+
+ private:
+  bool current_growth_controller_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(ForceGrowthSafepointOperationScope);
+};
+
 // Implements handling of safepoint operations for all threads in an
 // IsolateGroup.
 class SafepointHandler {
@@ -94,6 +108,7 @@ class SafepointHandler {
   friend class Isolate;
   friend class IsolateGroup;
   friend class SafepointOperationScope;
+  friend class ForceGrowthSafepointOperationScope;
   friend class HeapIterationScope;
 };
 

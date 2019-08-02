@@ -179,21 +179,23 @@ void Heap::AllocateExternal(intptr_t cid, intptr_t size, Space space) {
   if (space == kNew) {
     isolate()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(cid, size);
-    if (new_space_.ExternalInWords() > (4 * new_space_.CapacityInWords())) {
-      // Attempt to free some external allocation by a scavenge. (If the total
-      // remains above the limit, next external alloc will trigger another.)
-      CollectGarbage(kScavenge, kExternal);
-      // Promotion may have pushed old space over its limit.
-      if (old_space_.NeedsGarbageCollection()) {
-        CollectGarbage(kMarkSweep, kExternal);
-      }
+    if (new_space_.ExternalInWords() <= (4 * new_space_.CapacityInWords())) {
+      return;
     }
+    // Attempt to free some external allocation by a scavenge. (If the total
+    // remains above the limit, next external alloc will trigger another.)
+    CollectGarbage(kScavenge, kExternal);
+    // Promotion may have pushed old space over its limit. Fall through for old
+    // space GC check.
   } else {
     ASSERT(space == kOld);
     old_space_.AllocateExternal(cid, size);
-    if (old_space_.NeedsGarbageCollection()) {
-      CollectMostGarbage(kExternal);
-    }
+  }
+
+  if (old_space_.NeedsGarbageCollection()) {
+    CollectGarbage(kMarkSweep, kExternal);
+  } else {
+    CheckStartConcurrentMarking(Thread::Current(), kExternal);
   }
 }
 
@@ -1061,13 +1063,13 @@ Heap::Space Heap::SpaceForExternal(intptr_t size) const {
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : ThreadStackResource(Thread::Current()) {
-  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  Heap* heap = isolate()->heap();
   current_growth_controller_state_ = heap->GrowthControlState();
   heap->DisableGrowthControl();
 }
 
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  Heap* heap = isolate()->heap();
   heap->SetGrowthControlState(current_growth_controller_state_);
 }
 

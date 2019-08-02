@@ -678,10 +678,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // executable).
           {
             CheckIfBackgroundCompilerIsBeingStopped(optimized());
-            SafepointOperationScope safepoint_scope(thread());
-            // Do not Garbage collect during this stage and instead allow the
-            // heap to grow.
-            NoHeapGrowthControlScope no_growth_control;
+            ForceGrowthSafepointOperationScope safepoint_scope(thread());
             CheckIfBackgroundCompilerIsBeingStopped(optimized());
             *result =
                 FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
@@ -1314,21 +1311,14 @@ void BackgroundCompiler::Run() {
 
 void BackgroundCompiler::Compile(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  // TODO(srdjan): Checking different strategy for collecting garbage
-  // accumulated by background compiler.
-  if (isolate_->heap()->NeedsGarbageCollection()) {
-    isolate_->heap()->CollectMostGarbage();
+  MonitorLocker ml(&queue_monitor_);
+  ASSERT(running_);
+  if (function_queue()->ContainsObj(function)) {
+    return;
   }
-  {
-    MonitorLocker ml(&queue_monitor_);
-    ASSERT(running_);
-    if (function_queue()->ContainsObj(function)) {
-      return;
-    }
-    QueueElement* elem = new QueueElement(function);
-    function_queue()->Add(elem);
-    ml.Notify();
-  }
+  QueueElement* elem = new QueueElement(function);
+  function_queue()->Add(elem);
+  ml.Notify();
 }
 
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {

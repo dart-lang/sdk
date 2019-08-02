@@ -4,6 +4,7 @@
 
 #include "vm/heap/safepoint.h"
 
+#include "vm/heap/heap.h"
 #include "vm/thread.h"
 #include "vm/thread_registry.h"
 
@@ -35,6 +36,50 @@ SafepointOperationScope::~SafepointOperationScope() {
   SafepointHandler* handler = I->safepoint_handler();
   ASSERT(handler != NULL);
   handler->ResumeThreads(T);
+}
+
+ForceGrowthSafepointOperationScope::ForceGrowthSafepointOperationScope(
+    Thread* T)
+    : ThreadStackResource(T) {
+  ASSERT(T != NULL);
+  Isolate* I = T->isolate();
+  ASSERT(I != NULL);
+
+  Heap* heap = I->heap();
+  current_growth_controller_state_ = heap->GrowthControlState();
+  heap->DisableGrowthControl();
+
+  SafepointHandler* handler = I->group()->safepoint_handler();
+  ASSERT(handler != NULL);
+
+  // Signal all threads to get to a safepoint and wait for them to
+  // get to a safepoint.
+  handler->SafepointThreads(T);
+}
+
+ForceGrowthSafepointOperationScope::~ForceGrowthSafepointOperationScope() {
+  Thread* T = thread();
+  ASSERT(T != NULL);
+  Isolate* I = T->isolate();
+  ASSERT(I != NULL);
+
+  // Resume all threads which are blocked for the safepoint operation.
+  SafepointHandler* handler = I->safepoint_handler();
+  ASSERT(handler != NULL);
+  handler->ResumeThreads(T);
+
+  Heap* heap = I->heap();
+  heap->SetGrowthControlState(current_growth_controller_state_);
+
+  if (current_growth_controller_state_) {
+    ASSERT(T->CanCollectGarbage());
+    // Check if we passed the growth limit during the scope.
+    if (heap->old_space()->NeedsGarbageCollection()) {
+      heap->CollectGarbage(Heap::kMarkSweep, Heap::kOldSpace);
+    } else {
+      heap->CheckStartConcurrentMarking(T, Heap::kOldSpace);
+    }
+  }
 }
 
 SafepointHandler::SafepointHandler(IsolateGroup* isolate_group)

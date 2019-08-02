@@ -1550,16 +1550,16 @@ TEST_CASE(DartAPI_MalformedStringToUTF8) {
 class GCTestHelper : public AllStatic {
  public:
   static void CollectNewSpace() {
-    Isolate::Current()->heap()->new_space()->Scavenge();
+    Thread* thread = Thread::Current();
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->heap()->new_space()->Scavenge();
   }
 
   static void WaitForGCTasks() {
     Thread* thread = Thread::Current();
-    PageSpace* old_space = thread->isolate()->heap()->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.WaitWithSafepointCheck(thread);
-    }
+    ASSERT(thread->execution_state() == Thread::kThreadInVM);
+    thread->heap()->WaitForMarkerTasks(thread);
+    thread->heap()->WaitForSweeperTasks(thread);
   }
 };
 
@@ -3391,8 +3391,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForGCTasks();
-    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
 }
 
@@ -3403,7 +3403,11 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
   Dart_Handle live = AllocateOldString("live");
   EXPECT_VALID(live);
   Dart_WeakPersistentHandle weak = NULL;
-  EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    EXPECT_EQ(0, isolate->heap()->ExternalInWords(Heap::kOld));
+  }
   const intptr_t kSmallExternalSize = 1 * KB;
   {
     Dart_EnterScope();
@@ -3414,14 +3418,22 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOldspaceGC) {
     EXPECT_VALID(AsHandle(weak));
     Dart_ExitScope();
   }
-  EXPECT_EQ(kSmallExternalSize,
-            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    EXPECT_EQ(kSmallExternalSize,
+              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  }
   // Large enough to trigger GC in old space. Not actually allocated.
   const intptr_t kHugeExternalSize = (kWordSize == 4) ? 513 * MB : 1025 * MB;
   Dart_NewWeakPersistentHandle(live, NULL, kHugeExternalSize, NopCallback);
-  // Expect small garbage to be collected.
-  EXPECT_EQ(kHugeExternalSize,
-            isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
+    // Expect small garbage to be collected.
+    EXPECT_EQ(kHugeExternalSize,
+              isolate->heap()->ExternalInWords(Heap::kOld) * kWordSize);
+  }
   Dart_ExitScope();
 }
 
@@ -3456,6 +3468,7 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSizeOddReferents) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    GCTestHelper::WaitForGCTasks();  // Finalize GC for accurate live size.
     EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   }
 }
