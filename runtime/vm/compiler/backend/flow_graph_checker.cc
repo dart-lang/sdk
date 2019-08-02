@@ -21,6 +21,8 @@ DEFINE_FLAG(int,
             "Definition count threshold for extensive instruction checks");
 
 // Returns true for the "optimized out" and "null" constant.
+// Such constants reside outside the IR in the sense that
+// succ/pred/block links are not maintained.
 static bool IsSpecialConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
     return c->value().raw() == Symbols::OptimizedOut().raw() ||
@@ -311,7 +313,7 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     ASSERT(instruction->InputAt(use->use_index()) == use);
   }
   // Make sure each use appears in the graph and is properly dominated
-  // by the defintion (note that the proper dominance relation on the
+  // by the definition (note that the proper dominance relation on the
   // input values of Phis is checked by the Phi visitor below).
   if (instruction->IsPhi()) {
     ASSERT(instruction->AsPhi()->is_alive());
@@ -327,8 +329,7 @@ void FlowGraphChecker::VisitDefUse(Definition* def,
     // Others are fully linked into graph.
     ASSERT(IsControlFlow(instruction) || instruction->next() != nullptr);
     ASSERT(instruction->previous() != nullptr);
-    ASSERT(is_env ||  // TODO(dartbug.com/36899)
-           DefDominatesUse(def, instruction));
+    ASSERT(!def->HasSSATemp() || DefDominatesUse(def, instruction));
   }
 }
 
