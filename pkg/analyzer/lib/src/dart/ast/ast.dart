@@ -3952,6 +3952,12 @@ class ExtensionOverrideImpl extends ExpressionImpl
   /// arguments were provided.
   TypeArgumentListImpl _typeArguments;
 
+  @override
+  List<DartType> typeArgumentTypes;
+
+  @override
+  DartType extendedType;
+
   ExtensionOverrideImpl(IdentifierImpl extensionName,
       TypeArgumentListImpl typeArguments, ArgumentListImpl argumentList) {
     _extensionName = _becomeParentOf(extensionName);
@@ -3976,7 +3982,7 @@ class ExtensionOverrideImpl extends ExpressionImpl
     ..add(_argumentList);
 
   @override
-  Token get endToken => _argumentList?.endToken;
+  Token get endToken => _argumentList.endToken;
 
   @override
   Identifier get extensionName => _extensionName;
@@ -3989,16 +3995,14 @@ class ExtensionOverrideImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
+  ExtensionElement get staticElement => extensionName.staticElement;
+
+  @override
   TypeArgumentList get typeArguments => _typeArguments;
 
   void set typeArguments(TypeArgumentList typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments as TypeArgumentListImpl);
   }
-
-  @override
-  // TODO(brianwilkerson) Either implement this getter or remove it if it isn't
-  //  needed.
-  List<DartType> get typeArgumentTypes => null;
 
   @override
   E accept<E>(AstVisitor<E> visitor) {

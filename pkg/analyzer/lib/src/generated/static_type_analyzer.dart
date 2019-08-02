@@ -477,6 +477,43 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    var element = node.staticElement;
+    var typeParameters = element.typeParameters;
+
+    List<DartType> typeArgumentTypes;
+    if (node.typeArguments != null) {
+      var arguments = node.typeArguments.arguments;
+      if (arguments.length == typeParameters.length) {
+        typeArgumentTypes = arguments.map((a) => a.type).toList();
+      } else {
+        // TODO(scheglov) Report an error.
+        typeArgumentTypes = List.filled(typeParameters.length, _dynamicType);
+      }
+    } else {
+      var arguments = node.argumentList.arguments;
+      if (arguments.length == 1) {
+        var inferrer =
+            GenericInferrer(_typeProvider, _typeSystem, typeParameters);
+        inferrer.constrainArgument(
+          arguments[0].staticType,
+          element.extendedType,
+          'extendedType',
+        );
+        typeArgumentTypes = inferrer.infer(typeParameters);
+      } else {
+        typeArgumentTypes = List.filled(typeParameters.length, _dynamicType);
+      }
+    }
+
+    var nodeImpl = node as ExtensionOverrideImpl;
+    nodeImpl.typeArgumentTypes = typeArgumentTypes;
+    nodeImpl.extendedType =
+        Substitution.fromPairs(typeParameters, typeArgumentTypes)
+            .substituteType(element.extendedType);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression function = node.functionExpression;
     ExecutableElementImpl functionElement =

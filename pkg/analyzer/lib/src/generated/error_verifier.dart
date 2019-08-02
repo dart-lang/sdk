@@ -739,10 +739,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     NodeList<Expression> arguments = node.argumentList.arguments;
     int argCount = arguments.length;
     if (argCount == 1) {
-      DartType extendedType =
-          (node.extensionName.staticElement as ExtensionElement).extendedType;
-      _checkForAssignableExpression(arguments[0], extendedType,
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE);
+      _checkForAssignableExpression(
+        arguments[0],
+        node.extendedType,
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+      );
     } else {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,

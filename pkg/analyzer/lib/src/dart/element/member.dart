@@ -273,12 +273,15 @@ class FieldMember extends VariableMember implements FieldElement {
   FieldElement get baseElement => super.baseElement as FieldElement;
 
   @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
+  Element get enclosingElement => baseElement.enclosingElement;
 
   @override
   PropertyAccessorElement get getter {
-    var definingType = _substitution.substituteType(enclosingElement.type);
-    return PropertyAccessorMember.from(baseElement.getter, definingType);
+    var baseGetter = baseElement.getter;
+    if (baseGetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseGetter, substitution);
   }
 
   @override
@@ -300,8 +303,11 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   PropertyAccessorElement get setter {
-    var definingType = _substitution.substituteType(enclosingElement.type);
-    return PropertyAccessorMember.from(baseElement.setter, definingType);
+    var baseSetter = baseElement.setter;
+    if (baseSetter == null) {
+      return null;
+    }
+    return PropertyAccessorMember(baseSetter, substitution);
   }
 
   @override
@@ -631,7 +637,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   MethodElement get baseElement => super.baseElement as MethodElement;
 
   @override
-  ClassElement get enclosingElement => baseElement.enclosingElement;
+  Element get enclosingElement => baseElement.enclosingElement;
 
   @override
   T accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);

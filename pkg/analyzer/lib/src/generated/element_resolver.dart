@@ -19,7 +19,9 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -744,6 +746,16 @@ class ElementResolver extends SimpleAstVisitor<void> {
             CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
             propertyName);
       }
+
+      // TODO(scheglov) Improve from() instead.
+      if (element.typeParameters.isNotEmpty) {
+        var substitution = Substitution.fromPairs(
+          element.typeParameters,
+          target.typeArgumentTypes,
+        );
+        member = ExecutableMember.from2(member, substitution);
+      }
+
       propertyName.staticElement = member;
       return;
     }

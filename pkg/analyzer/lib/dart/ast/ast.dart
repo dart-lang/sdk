@@ -2156,8 +2156,19 @@ abstract class ExtensionOverride implements Expression {
   /// contain a single argument, which evaluates to the object being extended.
   ArgumentList get argumentList;
 
+  /// Return the actual type extended by this override, produced by applying
+  /// [typeArgumentTypes] to the generic type extended by the extension.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  DartType get extendedType;
+
   /// Return the name of the extension being selected.
   Identifier get extensionName;
+
+  /// Return the forced extension element.
+  ///
+  /// Return `null` if the AST structure has not been resolved.
+  ExtensionElement get staticElement;
 
   /// Return the type arguments to be applied to the extension, or `null` if no
   /// type arguments were provided.

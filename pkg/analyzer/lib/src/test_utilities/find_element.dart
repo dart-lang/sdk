@@ -87,6 +87,15 @@ class FindElement {
     throw StateError('Not found: $targetUri');
   }
 
+  ExtensionElement extension_(String name) {
+    for (var extension_ in unitElement.extensions) {
+      if (extension_.name == name) {
+        return extension_;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
   FieldElement field(String name, {String of}) {
     FieldElement result;
 
