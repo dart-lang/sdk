@@ -196,7 +196,6 @@ class NullabilityMigrationAdapter implements NullabilityMigrationListener {
 
   @override
   void addFix(SingleNullabilityFix fix) {
-    // TODO(danrubel): Update the description based upon the [fix.kind]
-    listener.addSuggestion(fix.kind.appliedMessage, fix.location);
+    listener.addSuggestion(fix.description.appliedMessage, fix.location);
   }
 }
