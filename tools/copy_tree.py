@@ -59,41 +59,50 @@ def ValidateArgs(args):
 
 
 def CopyTree(src, dst, ignore=None):
-  names = os.listdir(src)
-  if ignore is not None:
-    ignored_names = ignore(src, names)
-  else:
-    ignored_names = set()
+  # Recusive helper method to collect errors but keep processing.
+  def copy_tree(src, dst, ignore, errors):
+    names = os.listdir(src)
+    if ignore is not None:
+      ignored_names = ignore(src, names)
+    else:
+      ignored_names = set()
 
-  if not os.path.exists(dst):
-    os.makedirs(dst)
-  errors = []
-  for name in names:
-    if name in ignored_names:
-      continue
-    srcname = os.path.join(src, name)
-    dstname = os.path.join(dst, name)
+    if not os.path.exists(dst):
+      os.makedirs(dst)
+    for name in names:
+      if name in ignored_names:
+        continue
+      srcname = os.path.join(src, name)
+      dstname = os.path.join(dst, name)
+      try:
+        if os.path.isdir(srcname):
+          copy_tree(srcname, dstname, ignore, errors)
+        else:
+          shutil.copy(srcname, dstname)
+      except (IOError, os.error) as why:
+        errors.append((srcname, dstname, str(why)))
     try:
-      if os.path.isdir(srcname):
-        CopyTree(srcname, dstname, ignore)
-      else:
-        shutil.copy(srcname, dstname)
-    except (IOError, os.error) as why:
-      errors.append((srcname, dstname, str(why)))
-    # catch the Error from the recursive CopyTree so that we can
-    # continue with other files
-    except Exception as err:
-      errors.extend(err.args[0])
-  try:
-    shutil.copystat(src, dst)
-  except WindowsError:
-    # can't copy file access times on Windows
-    pass
-  except OSError as why:
-    errors.extend((src, dst, str(why)))
-  if errors:
-    raise Error(errors)
+      shutil.copystat(src, dst)
+    except WindowsError:
+      # Can't copy file access times on Windows.
+      pass
+    except OSError as why:
+      errors.append((src, dst, str(why)))
 
+  # Format errors from file copies.
+  def format_error(error):
+    if len(error) == 1:
+      return "Error: {msg}".format(msg=str(error[0]))
+    return "From: {src}\nTo:   {dst}\n{msg}" \
+      .format(src=error[0], dst=error[1], msg=error[2])
+
+  errors = []
+  copy_tree(src,dst,ignore, errors)
+  if errors:
+    failures = "\n\n".join(format_error(error) for error in errors)
+    parts = ("Some file copies failed:", "="*78, failures)
+    msg = '\n'.join(parts)
+    raise RuntimeError(msg)
 
 def ListTree(src, ignore=None):
   names = os.listdir(src)
