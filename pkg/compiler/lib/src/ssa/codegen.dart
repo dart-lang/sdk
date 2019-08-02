@@ -704,6 +704,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is HTypeConversion ||
           instruction is HPrimitiveCheck ||
           instruction is HAsCheck ||
+          instruction is HAsCheckSimple ||
           instruction is HBoolConversion) {
         String inputName = variableNames.getName(instruction.checkedInput);
         if (variableNames.getName(instruction) == inputName) {
@@ -3370,6 +3371,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Name name = _namer.instanceFieldPropertyName(field);
 
     push(js.js('#.#(#)', [first, name, second]).withSourceInformation(
+        node.sourceInformation));
+  }
+
+  @override
+  visitAsCheckSimple(HAsCheckSimple node) {
+    use(node.checkedInput);
+    MemberEntity method = node.method;
+    _registry.registerStaticUse(
+        StaticUse.staticInvoke(method, CallStructure.ONE_ARG));
+    js.Expression methodAccess = _emitter.staticFunctionAccess(method);
+    push(js.js(r'#(#)', [methodAccess, pop()]).withSourceInformation(
         node.sourceInformation));
   }
 

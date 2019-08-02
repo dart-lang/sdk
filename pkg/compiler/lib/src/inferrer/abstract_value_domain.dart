@@ -71,6 +71,10 @@ class AbstractValueWithPrecision {
   final bool isPrecise;
 
   const AbstractValueWithPrecision(this.abstractValue, this.isPrecise);
+
+  @override
+  String toString() =>
+      'AbstractValueWithPrecision($abstractValue, isPrecise: $isPrecise)';
 }
 
 /// A system that implements an abstraction over runtime values.

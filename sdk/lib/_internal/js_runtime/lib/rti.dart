@@ -456,10 +456,8 @@ _generalAsCheckImplementation(object) {
   Rti testRti = _castToRti(JS('', 'this'));
   Rti objectRti = instanceOrFunctionType(object, testRti);
   if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
-  var message = "${Error.safeToString(object)}:"
-      " type '${_rtiToString(objectRti, null)}'"
-      " is not a subtype of type '${_rtiToString(testRti, null)}'";
-  throw new _CastError.fromMessage('CastError: $message');
+  var message = _Error.compose(object, objectRti, _rtiToString(testRti, null));
+  throw _CastError.fromMessage(message);
 }
 
 /// Called from generated code.
@@ -470,10 +468,8 @@ _generalTypeCheckImplementation(object) {
   Rti testRti = _castToRti(JS('', 'this'));
   Rti objectRti = instanceOrFunctionType(object, testRti);
   if (isSubtype(_theUniverse(), objectRti, testRti)) return object;
-  var message = "${Error.safeToString(object)}:"
-      " type '${_rtiToString(objectRti, null)}'"
-      " is not a subtype of type '${_rtiToString(testRti, null)}'";
-  throw new _TypeError.fromMessage('TypeError: $message');
+  var message = _Error.compose(object, objectRti, _rtiToString(testRti, null));
+  throw _TypeError.fromMessage(message);
 }
 
 /// Called from generated code.
@@ -482,23 +478,154 @@ checkTypeBound(Rti type, Rti bound, variable) {
   var message = "Type '${_rtiToString(type, null)}'"
       " is not a subtype of type '${_rtiToString(bound, null)}'"
       " of '${_Utils.asString(variable)}'";
-  throw _TypeError.fromMessage('TypeError: $message');
+  throw _TypeError.fromMessage(message);
 }
 
-class _CastError extends Error implements CastError {
-  final String message;
-  _CastError.fromMessage(this.message);
+/// Base class to _CastError and _TypeError.
+class _Error extends Error {
+  final String _message;
+  _Error(this._message);
+
+  static String compose(object, objectRti, checkedTypeDescription) {
+    String objectDescription = Error.safeToString(object);
+    objectRti ??= instanceType(object);
+    String objectTypeDescription = _rtiToString(objectRti, null);
+    return "${objectDescription}:"
+        " type '${objectTypeDescription}'"
+        " is not a subtype of type '${checkedTypeDescription}'";
+  }
 
   @override
-  String toString() => message;
+  String toString() => _message;
 }
 
-class _TypeError extends Error implements TypeError {
-  final String message;
-  _TypeError.fromMessage(this.message);
+class _CastError extends _Error implements CastError {
+  _CastError.fromMessage(String message) : super('CastError: $message');
+
+  factory _CastError.forType(object, String type) {
+    return _CastError.fromMessage(_Error.compose(object, null, type));
+  }
+}
+
+class _TypeError extends _Error implements TypeError {
+  _TypeError.fromMessage(String message) : super('TypeError: $message');
+
+  factory _TypeError.forType(object, String type) {
+    return _TypeError.fromMessage(_Error.compose(object, null, type));
+  }
 
   @override
-  String toString() => message;
+  String get message => _message;
+}
+
+// Specializations.
+//
+// Specializations can be placed on Rti objects as the _as, _check and _is
+// 'methods'. They can also be called directly called from generated code.
+
+/// Specialization for 'is bool'.
+/// Called from generated code.
+bool _isBool(object) {
+  return true == object || false == object;
+}
+
+/// Specialization for 'as bool?'.
+/// Called from generated code.
+bool /*?*/ _asBoolNullable(object) {
+  if (object is bool) return object;
+  if (object == null) return object;
+  throw _CastError.forType(object, 'bool');
+}
+
+/// Specialization for check on 'bool?'.
+/// Called from generated code.
+bool /*?*/ _checkBoolNullable(object) {
+  if (object is bool) return object;
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'bool');
+}
+
+/// Specialization for 'as double?'.
+/// Called from generated code.
+double /*?*/ _asDoubleNullable(object) {
+  if (object is double) return object;
+  if (object == null) return object;
+  throw _CastError.forType(object, 'double');
+}
+
+/// Specialization for check on 'double?'.
+/// Called from generated code.
+double /*?*/ _checkDoubleNullable(object) {
+  if (object is double) return object;
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'double');
+}
+
+/// Specialization for 'is int'.
+/// Called from generated code.
+bool _isInt(object) {
+  return JS('bool', 'typeof # == "number"', object) &&
+      JS('bool', 'Math.floor(#) === #', object, object);
+}
+
+/// Specialization for 'as int?'.
+/// Called from generated code.
+int /*?*/ _asIntNullable(object) {
+  if (object is int) return object;
+  if (object == null) return object;
+  throw _CastError.forType(object, 'int');
+}
+
+/// Specialization for check on 'int?'.
+/// Called from generated code.
+int /*?*/ _checkIntNullable(object) {
+  if (object is int) return object;
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'int');
+}
+
+/// Specialization for 'is num' and 'is double'.
+/// Called from generated code.
+bool _isNum(object) {
+  return JS('bool', 'typeof # == "number"', object);
+}
+
+/// Specialization for 'as num?'.
+/// Called from generated code.
+num /*?*/ _asNumNullable(object) {
+  if (object is num) return object;
+  if (object == null) return object;
+  throw _CastError.forType(object, 'num');
+}
+
+/// Specialization for check on 'num?'.
+/// Called from generated code.
+num /*?*/ _checkNumNullable(object) {
+  if (object is num) return object;
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'num');
+}
+
+/// Specialization for 'is String'.
+/// Called from generated code.
+bool _isString(object) {
+  return JS('bool', 'typeof # == "string"', object);
+}
+
+/// Specialization for 'as String?'.
+/// Called from generated code.
+String /*?*/ _asStringNullable(object) {
+  if (object is String) return object;
+  if (object == null) return object;
+  throw _CastError.forType(object, 'String');
+}
+
+/// Specialization for check on 'String?'.
+/// Called from generated code.
+String /*?*/ _checkStringNullable(object) {
+  if (object is String) return object;
+  if (object == null) return object;
+  throw _TypeError.forType(object, 'String');
 }
 
 String _rtiToString(Rti rti, List<String> genericContext) {

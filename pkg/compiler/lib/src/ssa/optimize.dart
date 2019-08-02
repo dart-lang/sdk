@@ -19,6 +19,7 @@ import '../js_backend/backend.dart' show CodegenInputs;
 import '../js_backend/native_data.dart' show NativeData;
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../js_backend/specialized_checks.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../universe/selector.dart' show Selector;
@@ -1858,6 +1859,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   @override
   HInstruction visitAsCheck(HAsCheck node) {
+    if (node.isRedundant(_closedWorld)) return node.checkedInput;
+
+    // See if this check can be lowered to a simple one.
+    HInstruction typeInput = node.typeInput;
+    if (typeInput is HLoadType) {
+      DartType dartType = typeInput.typeExpression;
+      MemberEntity specializedCheck = SpecializedChecks.findAsCheck(
+          dartType, node.isTypeError, _closedWorld.commonElements);
+      if (specializedCheck != null) {
+        AbstractValueWithPrecision checkedType =
+            _abstractValueDomain.createFromStaticType(dartType);
+        return HAsCheckSimple(node.checkedInput, dartType, checkedType,
+            node.isTypeError, specializedCheck, node.instructionType);
+      }
+    }
+    return node;
+  }
+
+  @override
+  HInstruction visitAsCheckSimple(HAsCheckSimple node) {
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
   }

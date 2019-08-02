@@ -496,6 +496,21 @@ abstract class CommonElements {
   FunctionEntity get generalAsCheckImplementation;
   FunctionEntity get generalTypeCheckImplementation;
 
+  FunctionEntity get specializedIsBool;
+  FunctionEntity get specializedAsBoolNullable;
+  FunctionEntity get specializedCheckBoolNullable;
+  FunctionEntity get specializedAsDoubleNullable;
+  FunctionEntity get specializedCheckDoubleNullable;
+  FunctionEntity get specializedIsInt;
+  FunctionEntity get specializedAsIntNullable;
+  FunctionEntity get specializedCheckIntNullable;
+  FunctionEntity get specializedIsNum;
+  FunctionEntity get specializedAsNumNullable;
+  FunctionEntity get specializedCheckNumNullable;
+  FunctionEntity get specializedIsString;
+  FunctionEntity get specializedAsStringNullable;
+  FunctionEntity get specializedCheckStringNullable;
+
   // From dart:_internal
 
   ClassEntity get symbolImplementationClass;
@@ -1891,6 +1906,58 @@ class CommonElementsImpl
   FunctionEntity get generalTypeCheckImplementation =>
       _generalTypeCheckImplementation ??=
           _findRtiFunction('_generalTypeCheckImplementation');
+
+  @override
+  FunctionEntity get specializedIsBool => _findRtiFunction('_isBool');
+
+  @override
+  FunctionEntity get specializedAsBoolNullable =>
+      _findRtiFunction('_asBoolNullable');
+
+  @override
+  FunctionEntity get specializedCheckBoolNullable =>
+      _findRtiFunction('_checkBoolNullable');
+
+  @override
+  FunctionEntity get specializedAsDoubleNullable =>
+      _findRtiFunction('_asDoubleNullable');
+
+  @override
+  FunctionEntity get specializedCheckDoubleNullable =>
+      _findRtiFunction('_checkDoubleNullable');
+
+  @override
+  FunctionEntity get specializedIsInt => _findRtiFunction('_isInt');
+
+  @override
+  FunctionEntity get specializedAsIntNullable =>
+      _findRtiFunction('_asIntNullable');
+
+  @override
+  FunctionEntity get specializedCheckIntNullable =>
+      _findRtiFunction('_checkIntNullable');
+
+  @override
+  FunctionEntity get specializedIsNum => _findRtiFunction('_isNum');
+
+  @override
+  FunctionEntity get specializedAsNumNullable =>
+      _findRtiFunction('_asNumNullable');
+
+  @override
+  FunctionEntity get specializedCheckNumNullable =>
+      _findRtiFunction('_checkNumNullable');
+
+  @override
+  FunctionEntity get specializedIsString => _findRtiFunction('_isString');
+
+  @override
+  FunctionEntity get specializedAsStringNullable =>
+      _findRtiFunction('_asStringNullable');
+
+  @override
+  FunctionEntity get specializedCheckStringNullable =>
+      _findRtiFunction('_checkStringNullable');
 
   // From dart:_internal
 
