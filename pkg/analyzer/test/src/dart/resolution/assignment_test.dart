@@ -35,7 +35,7 @@ main() {
     assertType(assignment, 'num'); // num + int = num
 
     IndexExpression indexed = assignment.leftHandSide;
-    assertMember(indexed, 'List<num>', listElement.getMethod('[]='));
+    assertMember(indexed, listElement.getMethod('[]='), {'E': 'num'});
     assertType(indexed, 'num');
 
     SimpleIdentifier xRef = indexed.target;
@@ -170,7 +170,11 @@ main() {
     assertType(assignment, 'double');
 
     IndexExpression indexed = assignment.leftHandSide;
-    assertMember(indexed, 'Map<int, double>', mapElement.getMethod('[]='));
+    assertMember(
+      indexed,
+      mapElement.getMethod('[]='),
+      {'K': 'int', 'V': 'double'},
+    );
     assertType(indexed, 'double');
   }
 
@@ -266,7 +270,7 @@ main() {
     assertType(assignment, 'int');
 
     IndexExpression indexed = assignment.leftHandSide;
-    assertMember(indexed, 'List<int>', listElement.getMethod('[]='));
+    assertMember(indexed, listElement.getMethod('[]='), {'E': 'int'});
     assertType(indexed, 'int');
 
     var xRef = indexed.target;

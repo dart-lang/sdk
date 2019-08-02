@@ -2185,12 +2185,11 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   void test_getMethod_parameterized_doesNotUseTypeParameter() {
     //
-    // class A<E> { void m() {} }
+    // class A<E> { B m() {} }
     // class B {}
     //
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     InterfaceType typeB = ElementFactory.classElement2("B").type;
-    DartType typeE = classA.type.typeArguments[0];
     String methodName = "m";
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeB, []);
@@ -2205,7 +2204,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, [same(typeI)]);
   }
 
@@ -2254,7 +2253,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeParameters, isEmpty);
     expect(methodType.typeArguments, [same(typeI)]);
     expect(methodType.returnType, same(typeI));
     List<DartType> parameterTypes = methodType.normalParameterTypes;

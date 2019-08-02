@@ -1235,6 +1235,9 @@ class MockParameterElement
   Element enclosingElement;
 
   @override
+  final bool isCovariant;
+
+  @override
   final String name;
 
   @override
@@ -1244,7 +1247,9 @@ class MockParameterElement
   final DartType type;
 
   MockParameterElement(this.name,
-      {this.parameterKind: ParameterKind.REQUIRED, this.type});
+      {this.parameterKind: ParameterKind.REQUIRED,
+      this.type,
+      this.isCovariant = false});
 
   @override
   get displayName => name;

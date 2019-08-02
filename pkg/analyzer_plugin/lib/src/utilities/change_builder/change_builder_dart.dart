@@ -1019,6 +1019,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return;
     }
 
+    // TODO(scheglov) We should use "methodBeingCopied" to verify that
+    // we really are just copying this type parameter.
+    if (element is TypeParameterElement) {
+      return;
+    }
+
     ImportElement import = dartFileEditBuilder._getImportElement(element);
     if (import != null) {
       if (import.prefix != null) {

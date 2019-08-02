@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -97,9 +98,8 @@ Element _getKnownElement(Expression expression) {
   return null;
 }
 
-/// Looks up the declaration that matches [member] in [type] and returns it's
-/// declared type.
-FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
+/// Looks up the declaration that matches [member] in [type].
+ExecutableElement _getMember(InterfaceType type, ExecutableElement member) {
   if (member.isPrivate && type.element.library != member.library) {
     return null;
   }
@@ -112,7 +112,7 @@ FunctionType _getMemberType(InterfaceType type, ExecutableElement member) {
       ? (member.isGetter ? type.getGetter(name) : type.getSetter(name))
       : type.getMethod(name);
   if (baseMember == null || baseMember.isStatic) return null;
-  return baseMember.type;
+  return baseMember;
 }
 
 /// Checks the body of functions and properties.
@@ -1577,24 +1577,36 @@ class _OverrideChecker {
   ///   of `D.g`.
   void _findCovariantChecksForMember(ExecutableElement member,
       InterfaceType unsafeSupertype, Set<Element> covariantChecks) {
-    var f2 = _getMemberType(unsafeSupertype, member);
+    var f2 = _getMember(unsafeSupertype, member);
     if (f2 == null) return;
-    var f1 = member.type;
+    var f1 = member;
 
     // Find parameter or type formal checks that we need to ensure `f2 <: f1`.
     //
     // The static type system allows this subtyping, but it is not sound without
     // these runtime checks.
-    var fresh = FunctionTypeImpl.relateTypeFormals(f1, f2, (b2, b1, p2, p1) {
-      if (!rules.isSubtypeOf(b2, b1)) covariantChecks.add(p1);
-      return true;
-    });
+    var fresh = FunctionTypeImpl.relateTypeFormals2(
+      f1.typeParameters,
+      f2.typeParameters,
+      (b2, b1, p2, p1) {
+        if (!rules.isSubtypeOf(b2, b1)) {
+          covariantChecks.add(p1);
+        }
+        return true;
+      },
+    );
+
     if (fresh != null) {
-      f1 = f1.instantiate(fresh);
-      f2 = f2.instantiate(fresh);
+      var subst1 = Substitution.fromPairs(f1.typeParameters, fresh);
+      var subst2 = Substitution.fromPairs(f2.typeParameters, fresh);
+      f1 = ExecutableMember.from2(f1, subst1);
+      f2 = ExecutableMember.from2(f2, subst2);
     }
+
     FunctionTypeImpl.relateParameters(f1.parameters, f2.parameters, (p1, p2) {
-      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) covariantChecks.add(p1);
+      if (!rules.isOverrideSubtypeOfParameter(p1, p2)) {
+        covariantChecks.add(p1);
+      }
       return true;
     });
   }

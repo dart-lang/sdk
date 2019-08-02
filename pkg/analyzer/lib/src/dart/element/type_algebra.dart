@@ -89,10 +89,31 @@ abstract class Substitution {
 
   const Substitution();
 
+  /// Return the substitution as a single map.
+  ///
+  /// Throw [StateError] if this is not possible.
+  Map<TypeParameterElement, DartType> get asMap {
+    throw StateError('$runtimeType cannot be represented as a Map.');
+  }
+
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound);
 
   DartType substituteType(DartType type, {bool contravariant: false}) {
     return new _TopSubstitutor(this, contravariant).visit(type);
+  }
+
+  /// Substitutes both variables from [first] and [second], favoring those from
+  /// [first] if they overlap.
+  ///
+  /// Neither substitution is applied to the results of the other, so this does
+  /// *not* correspond to a sequence of two substitutions. For example,
+  /// combining `{T -> List<G>}` with `{G -> String}` does not correspond to
+  /// `{T -> List<String>}` because the result from substituting `T` is not
+  /// searched for occurrences of `G`.
+  static Substitution combine(Substitution first, Substitution second) {
+    if (first == _NullSubstitution.instance) return second;
+    if (second == _NullSubstitution.instance) return first;
+    return new _CombinedSubstitution(first, second);
   }
 
   /// Substitutes the type parameters on the class of [type] with the
@@ -151,6 +172,19 @@ abstract class Substitution {
   }
 }
 
+class _CombinedSubstitution extends Substitution {
+  final Substitution first;
+  final Substitution second;
+
+  _CombinedSubstitution(this.first, this.second);
+
+  @override
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+    return first.getSubstitute(parameter, upperBound) ??
+        second.getSubstitute(parameter, upperBound);
+  }
+}
+
 class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameterElement, DartType> substitution = {};
 
@@ -178,9 +212,17 @@ class _MapSubstitution extends Substitution {
 
   _MapSubstitution(this.upper, this.lower);
 
+  @override
+  Map<TypeParameterElement, DartType> get asMap {
+    return upper;
+  }
+
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return upperBound ? upper[parameter] : lower[parameter];
   }
+
+  @override
+  String toString() => '_MapSubstitution($upper, $lower)';
 }
 
 class _NullSubstitution extends Substitution {
@@ -188,12 +230,18 @@ class _NullSubstitution extends Substitution {
 
   const _NullSubstitution();
 
+  @override
+  Map<TypeParameterElement, DartType> get asMap => const {};
+
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return new TypeParameterTypeImpl(parameter);
   }
 
   @override
   DartType substituteType(DartType type, {bool contravariant: false}) => type;
+
+  @override
+  String toString() => "Substitution.empty";
 }
 
 class _TopSubstitutor extends _TypeSubstitutor {
@@ -307,12 +355,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return ParameterElementImpl.synthetic(
-        parameter.name,
-        type,
-        // ignore: deprecated_member_use_from_same_package
-        parameter.parameterKind,
-      );
+      return _parameterElement(parameter, type);
     }).toList();
 
     inner.invertVariance();
@@ -349,12 +392,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
     var parameters = type.parameters.map((parameter) {
       var type = inner.visit(parameter.type);
-      return ParameterElementImpl.synthetic(
-        parameter.name,
-        type,
-        // ignore: deprecated_member_use_from_same_package
-        parameter.parameterKind,
-      );
+      return _parameterElement(parameter, type);
     }).toList();
 
     inner.invertVariance();
@@ -412,4 +450,18 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
 
   @override
   DartType visitVoidType(VoidType type) => type;
+
+  static ParameterElementImpl _parameterElement(
+    ParameterElement parameter,
+    DartType type,
+  ) {
+    var result = ParameterElementImpl.synthetic(
+      parameter.name,
+      type,
+      // ignore: deprecated_member_use_from_same_package
+      parameter.parameterKind,
+    );
+    result.isExplicitlyCovariant = parameter.isCovariant;
+    return result;
+  }
 }

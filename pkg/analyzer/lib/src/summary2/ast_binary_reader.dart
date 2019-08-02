@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -85,21 +86,18 @@ class AstBinaryReader {
 
   Element _elementOfComponents(
     int rawElementIndex,
-    LinkedNodeType definingTypeNode,
+    LinkedNodeTypeSubstitution substitutionNode,
   ) {
     var element = _getElement(rawElementIndex);
-    if (definingTypeNode == null) return element;
+    if (substitutionNode == null) return element;
 
-    var definingType = _readType(definingTypeNode);
-    if (element is ConstructorElement) {
-      return ConstructorMember.from(element, definingType);
-    } else if (element is MethodElement) {
-      return MethodMember.from(element, definingType);
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember.from(element, definingType);
-    } else {
-      throw UnimplementedError('(${element.runtimeType}) $element');
-    }
+    var typeParameters = substitutionNode.typeParameters
+        .map<TypeParameterElement>(_getElement)
+        .toList();
+    var typeArguments = substitutionNode.typeArguments.map(_readType).toList();
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+
+    return ExecutableMember.from2(element, substitution);
   }
 
   T _getElement<T extends Element>(int index) {
@@ -126,7 +124,7 @@ class AstBinaryReader {
       _readNode(data.annotation_arguments),
     )..element = _elementOfComponents(
         data.annotation_element,
-        data.annotation_elementType,
+        data.annotation_substitution,
       );
   }
 
@@ -177,7 +175,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.assignmentExpression_element,
-        data.assignmentExpression_elementType,
+        data.assignmentExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -197,7 +195,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.binaryExpression_element,
-        data.binaryExpression_elementType,
+        data.binaryExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -437,7 +435,7 @@ class AstBinaryReader {
       _readNode(data.constructorName_name),
     )..staticElement = _elementOfComponents(
         data.constructorName_element,
-        data.constructorName_elementType,
+        data.constructorName_substitution,
       );
   }
 
@@ -985,7 +983,7 @@ class AstBinaryReader {
           AstBinaryFlags.hasPeriod(data.flags) ? _Tokens.PERIOD_PERIOD : null
       ..staticElement = _elementOfComponents(
         data.indexExpression_element,
-        data.indexExpression_elementType,
+        data.indexExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1262,7 +1260,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.postfixExpression_element,
-        data.postfixExpression_elementType,
+        data.postfixExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1282,7 +1280,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.prefixExpression_element,
-        data.prefixExpression_elementType,
+        data.prefixExpression_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1305,7 +1303,7 @@ class AstBinaryReader {
       _readNode(data.redirectingConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
         data.redirectingConstructorInvocation_element,
-        data.redirectingConstructorInvocation_elementType,
+        data.redirectingConstructorInvocation_substitution,
       );
   }
 
@@ -1383,7 +1381,7 @@ class AstBinaryReader {
     )
       ..staticElement = _elementOfComponents(
         data.simpleIdentifier_element,
-        data.simpleIdentifier_elementType,
+        data.simpleIdentifier_substitution,
       )
       ..staticType = _readType(data.expression_type);
   }
@@ -1417,7 +1415,7 @@ class AstBinaryReader {
       _readNode(data.superConstructorInvocation_arguments),
     )..staticElement = _elementOfComponents(
         data.superConstructorInvocation_element,
-        data.superConstructorInvocation_elementType,
+        data.superConstructorInvocation_substitution,
       );
   }
 

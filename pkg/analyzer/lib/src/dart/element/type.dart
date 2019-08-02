@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -1164,6 +1165,14 @@ abstract class FunctionTypeImpl extends TypeImpl implements FunctionType {
           TypeParameterElement formal2, TypeParameterElement formal1)) {
     List<TypeParameterElement> params1 = f1.typeFormals;
     List<TypeParameterElement> params2 = f2.typeFormals;
+    return relateTypeFormals2(params1, params2, relation);
+  }
+
+  static List<DartType> relateTypeFormals2(
+      List<TypeParameterElement> params1,
+      List<TypeParameterElement> params2,
+      bool relation(DartType bound2, DartType bound1,
+          TypeParameterElement formal2, TypeParameterElement formal1)) {
     int count = params1.length;
     if (params2.length != count) {
       return null;
@@ -3299,6 +3308,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
   @override
   List<ParameterElement> get parameters {
+    var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+
     List<ParameterElement> baseParameters = this.baseParameters;
     // no parameters, quick return
     int parameterCount = baseParameters.length;
@@ -3322,7 +3333,8 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
       if (parameter is FieldFormalParameterElement) {
         // TODO(jmesserly): this seems like it won't handle pruning correctly.
-        specializedParams[i] = new FieldFormalParameterMember(parameter, this);
+        specializedParams[i] =
+            new FieldFormalParameterMember(parameter, substitution);
         continue;
       }
       var baseType = parameter.type as TypeImpl;
@@ -3336,7 +3348,7 @@ class _FunctionTypeImplLazy extends FunctionTypeImpl {
 
       specializedParams[i] = identical(type, baseType)
           ? parameter
-          : new ParameterMember(parameter, this, type);
+          : new ParameterMember(parameter, substitution, type);
     }
     return specializedParams;
   }
@@ -3622,7 +3634,8 @@ class _FunctionTypeImplStrict extends FunctionTypeImpl {
           p.name,
           newType,
           // ignore: deprecated_member_use_from_same_package
-          p.parameterKind);
+          p.parameterKind)
+        ..isExplicitlyCovariant = p.isCovariant;
     }
 
     return new _FunctionTypeImplStrict._(

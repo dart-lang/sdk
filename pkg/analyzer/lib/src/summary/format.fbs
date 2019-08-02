@@ -1916,7 +1916,7 @@ table LinkedNode {
 
   variantField_17:uint (id: 17);
 
-  variantField_23:LinkedNodeType (id: 23);
+  variantField_38:LinkedNodeTypeSubstitution (id: 38);
 
   variantField_8:LinkedNode (id: 8);
 
@@ -1974,6 +1974,8 @@ table LinkedNode {
 
   variantField_32:TopLevelInferenceError (id: 32);
 
+  variantField_23:LinkedNodeType (id: 23);
+
   variantField_11:LinkedNode (id: 11);
 
   variantField_22:string (id: 22);
@@ -2010,6 +2012,13 @@ table LinkedNodeReferences {
   name:[string] (id: 1);
 
   parent:[uint] (id: 0);
+}
+
+/// Information about a type substitution.
+table LinkedNodeTypeSubstitution {
+  typeParameters:[uint] (id: 0);
+
+  typeArguments:[LinkedNodeType] (id: 1);
 }
 
 /// Information about a Dart type.

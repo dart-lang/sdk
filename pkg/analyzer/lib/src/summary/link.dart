@@ -208,7 +208,7 @@ EntityRefBuilder _createLinkedType(
     result.reference = compilationUnit.addRawReference('*bottom*');
     return result;
   } else if (type is TypeParameterType) {
-    TypeParameterElementImpl element = type.element;
+    TypeParameterElement element = type.element;
     var deBruijnIndex = typeParameterContext?.computeDeBruijnIndex(element);
     if (deBruijnIndex != null) {
       result.paramReference = deBruijnIndex;

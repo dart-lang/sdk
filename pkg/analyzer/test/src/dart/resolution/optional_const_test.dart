@@ -36,6 +36,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'num'},
     );
   }
 
@@ -46,6 +47,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('B'),
       'B<num>',
       expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'num'},
     );
   }
 
@@ -57,6 +59,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       'B<num>',
       constructorName: 'named',
       expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'num'},
       expectedPrefix: _importOfA()?.prefix,
     );
   }
@@ -68,6 +71,7 @@ mixin OptionalConstMixin implements ResolutionTest {
       libraryA.getType('B'),
       'B<num>',
       expectedConstructorMember: true,
+      expectedSubstitution: {'T': 'num'},
       expectedPrefix: _importOfA()?.prefix,
     );
   }

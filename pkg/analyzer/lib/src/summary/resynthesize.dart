@@ -577,7 +577,7 @@ mixin UnitResynthesizerMixin implements UnitResynthesizer {
       element = infoElement.unnamedConstructor;
     }
     if (element != null && info.hasTypeParameters) {
-      return new ConstructorMember(element, classType);
+      return ConstructorMember.from(element, classType);
     }
     return element;
   }

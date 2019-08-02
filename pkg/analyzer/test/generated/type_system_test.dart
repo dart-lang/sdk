@@ -871,12 +871,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var cOfB = c.type.instantiate([b.type]);
     // B b;
     // cOfB.m(b); // infer <B>
-    expect(_inferCall(cOfB.getMethod('m').type, [b.type]), [b.type, b.type]);
+    expect(_inferCall2(cOfB.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall(cOfA.getMethod('m').type, [b.type]), [a.type, b.type]);
+    expect(_inferCall2(cOfA.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall(cOfObject.getMethod('m').type, [b.type]),
-        [objectType, b.type]);
+    expect(_inferCall2(cOfObject.getMethod('m').type, [b.type]).toString(),
+        'B Function(B)');
   }
 
   void test_boundedByOuterClassSubstituted() {
@@ -909,12 +911,14 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // List<B> b;
     var listOfB = listType.instantiate([b.type]);
     // cOfB.m(b); // infer <B>
-    expect(_inferCall(cOfB.getMethod('m').type, [listOfB]), [b.type, listOfB]);
+    expect(_inferCall2(cOfB.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
     // cOfA.m(b); // infer <B>
-    expect(_inferCall(cOfA.getMethod('m').type, [listOfB]), [a.type, listOfB]);
+    expect(_inferCall2(cOfA.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
     // cOfObject.m(b); // infer <B>
-    expect(_inferCall(cOfObject.getMethod('m').type, [listOfB]),
-        [objectType, listOfB]);
+    expect(_inferCall2(cOfObject.getMethod('m').type, [listOfB]).toString(),
+        'List<B> Function(List<B>)');
   }
 
   void test_boundedRecursively() {
@@ -1102,6 +1106,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments,
       {DartType returnType, bool expectError: false}) {
+    FunctionType inferred = _inferCall2(ft, arguments,
+        returnType: returnType, expectError: expectError);
+    return inferred?.typeArguments;
+  }
+
+  FunctionType _inferCall2(FunctionTypeImpl ft, List<DartType> arguments,
+      {DartType returnType, bool expectError: false}) {
     var listener = new RecordingErrorListener();
 
     var reporter = new ErrorReporter(
@@ -1121,7 +1132,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     } else {
       expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
     }
-    return inferred?.typeArguments;
+    return inferred;
   }
 }
 
