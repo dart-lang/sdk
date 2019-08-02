@@ -6,7 +6,6 @@ import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_lint_task.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
