@@ -29,6 +29,18 @@ abstract class RecipeEncoder {
 
   jsAst.Literal encodeGroundRecipe(ModularEmitter emitter, TypeRecipe recipe);
 
+  /// Return the recipe with type variables replaced with <any>. This is a hack
+  /// until DartType contains <any> and the parameter stub emitter is replaced
+  /// with an SSA path.
+  // TODO(33422): Remove need for this.
+  jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
+      ModularEmitter emitter, DartType dartType);
+
+  /// Converts a recipe into a fragment of code that accesses the evaluated
+  /// recipe.
+  // TODO(33422): Remove need for this by pushing stubs through SSA.
+  jsAst.Expression evaluateRecipe(ModularEmitter emitter, jsAst.Literal recipe);
+
   // TODO(sra): Still need a $signature function when the function type is a
   // function of closed type variables. See if the $signature method can always
   // be generated through SSA in those cases.
@@ -59,6 +71,21 @@ class RecipeEncoderImpl implements RecipeEncoder {
   }
 
   @override
+  jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
+      ModularEmitter emitter, DartType dartType) {
+    return _RecipeGenerator(this, emitter, null, TypeExpressionRecipe(dartType),
+            hackTypeVariablesToAny: true)
+        .run();
+  }
+
+  @override
+  jsAst.Expression evaluateRecipe(
+      ModularEmitter emitter, jsAst.Literal recipe) {
+    return js('#(#)',
+        [emitter.staticFunctionAccess(commonElements.findType), recipe]);
+  }
+
+  @override
   jsAst.Expression encodeSignature(ModularNamer namer, ModularEmitter emitter,
       DartType type, jsAst.Expression this_) {
     // TODO(sra): These inputs (referenced to quell lints) are used by the old
@@ -75,6 +102,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final ModularEmitter _emitter;
   final TypeEnvironmentStructure _environment;
   final TypeRecipe _recipe;
+  final bool hackTypeVariablesToAny;
 
   final List<FunctionTypeVariable> functionTypeVariables = [];
 
@@ -83,7 +111,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final List<int> _codes = [];
 
   _RecipeGenerator(
-      this._encoder, this._emitter, this._environment, this._recipe);
+      this._encoder, this._emitter, this._environment, this._recipe,
+      {this.hackTypeVariablesToAny = false});
 
   JClosedWorld get _closedWorld => _encoder._closedWorld;
   NativeBasicData get _nativeData => _encoder._nativeData;
@@ -180,6 +209,12 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(TypeVariableType type, _) {
+    if (hackTypeVariablesToAny) {
+      // Emit 'any' type.
+      _emitExtensionOp(Recipe.pushAnyExtension);
+      return;
+    }
+
     TypeEnvironmentStructure environment = _environment;
     if (environment is SingletonTypeEnvironmentStructure) {
       if (type == environment.variable) {

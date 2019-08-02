@@ -130,6 +130,7 @@ class CodeEmitterTask extends CompilerTask {
           closedWorld.interceptorData,
           typeTestRegistry.rtiChecks,
           codegenInputs.rtiEncoder,
+          codegenInputs.rtiRecipeEncoder,
           codegenWorld.oneShotInterceptorData,
           _backendStrategy.customElementsCodegenAnalysis,
           _backendStrategy.generatedCode,

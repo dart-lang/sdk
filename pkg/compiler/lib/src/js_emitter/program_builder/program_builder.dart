@@ -28,6 +28,7 @@ import '../../js_backend/namer.dart' show Namer, StringBackedName;
 import '../../js_backend/native_data.dart';
 import '../../js_backend/runtime_types.dart'
     show RuntimeTypesChecks, RuntimeTypesEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
@@ -70,6 +71,7 @@ class ProgramBuilder {
   final InterceptorData _interceptorData;
   final RuntimeTypesChecks _rtiChecks;
   final RuntimeTypesEncoder _rtiEncoder;
+  final RecipeEncoder _rtiRecipeEncoder;
   final OneShotInterceptorData _oneShotInterceptorData;
   final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
   final Map<MemberEntity, js.Expression> _generatedCode;
@@ -112,6 +114,7 @@ class ProgramBuilder {
       this._interceptorData,
       this._rtiChecks,
       this._rtiEncoder,
+      this._rtiRecipeEncoder,
       this._oneShotInterceptorData,
       this._customElementsCodegenAnalysis,
       this._generatedCode,
@@ -972,6 +975,7 @@ class ProgramBuilder {
         _task.nativeEmitter,
         _namer,
         _rtiEncoder,
+        _options.experimentNewRti ? _rtiRecipeEncoder : null,
         _nativeData,
         _interceptorData,
         _codegenWorld,
