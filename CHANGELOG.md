@@ -1,3 +1,9 @@
+# 0.1.96
+
+* fixed false positives in `unnecessary_parens`
+* various changes to migrate to preferred analyzer APIs
+* rule test fixes
+
 # 0.1.95
 
 * improvements to `unsafe_html` error reporting
