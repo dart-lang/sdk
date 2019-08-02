@@ -924,6 +924,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
       isExternal: node.externalKeyword != null,
       isGenerator: node.body?.isGenerator ?? false,
       isGet: node.isGetter,
+      isNative: node.body is NativeFunctionBody,
       isOperator: node.operatorKeyword != null,
       isSet: node.isSetter,
       isStatic: node.isStatic,

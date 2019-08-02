@@ -1108,6 +1108,15 @@ class AstBinaryReader {
   }
 
   MethodDeclaration _read_methodDeclaration(LinkedNode data) {
+    FunctionBody body;
+    if (AstBinaryFlags.isNative(data.flags)) {
+      body = AstTestFactory.nativeFunctionBody('');
+    } else if (AstBinaryFlags.isAbstract(data.flags)) {
+      body = AstTestFactory.emptyFunctionBody();
+    } else {
+      body = AstTestFactory.blockFunctionBody(AstTestFactory.block());
+    }
+
     var node = astFactory.methodDeclaration(
       _readDocumentationComment(data),
       _readNodeListLazy(data.annotatedNode_metadata),
@@ -1124,9 +1133,7 @@ class AstBinaryReader {
       _declaredIdentifier(data),
       _readNode(data.methodDeclaration_typeParameters),
       _readNodeLazy(data.methodDeclaration_formalParameters),
-      AstBinaryFlags.isAbstract(data.flags)
-          ? AstTestFactory.emptyFunctionBody()
-          : AstTestFactory.blockFunctionBody(AstTestFactory.block()),
+      body,
     );
     LazyMethodDeclaration.setData(node, data);
     return node;

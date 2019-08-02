@@ -1107,6 +1107,19 @@ class C {
 ''');
   }
 
+  test_class_getter_native() async {
+    var library = await checkLibrary('''
+class C {
+  int get x() native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external int get x;
+}
+''');
+  }
+
   test_class_getter_static() async {
     var library = await checkLibrary('class C { static int get x => null; }');
     checkElementText(library, r'''
@@ -1217,6 +1230,19 @@ class A {
 }
 class B extends A {
   void A() {}
+}
+''');
+  }
+
+  test_class_method_native() async {
+    var library = await checkLibrary('''
+class C {
+  int m() native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external int m() {}
 }
 ''');
   }
@@ -1617,6 +1643,19 @@ class C {
     checkElementText(library, r'''
 class C {
   void set x(dynamic a, dynamic b) {}
+}
+''');
+  }
+
+  test_class_setter_native() async {
+    var library = await checkLibrary('''
+class C {
+  void set x(int value) native;
+}
+''');
+    checkElementText(library, r'''
+class C {
+  external void set x(int value);
 }
 ''');
   }
