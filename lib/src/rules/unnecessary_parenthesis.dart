@@ -115,7 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // The parens cannot be removed because then the curly brackets are not
       // interpreted as a set-or-map literal.
       if (parent is PropertyAccess || parent is MethodInvocation) {
-        Expression target = (parent as dynamic).target;
+        var target = (parent as dynamic).target;
         if (target == node &&
             node.expression is SetOrMapLiteral &&
             parent.parent is ExpressionStatement) return;
