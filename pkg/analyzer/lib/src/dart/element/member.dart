@@ -794,12 +794,8 @@ class ParameterMember extends VariableMember
   @override
   E getAncestor<E extends Element>(Predicate<Element> predicate) {
     Element element = baseElement.getAncestor(predicate);
-    if (element is ConstructorElement) {
-      return ConstructorMember(element, _substitution) as E;
-    } else if (element is MethodElement) {
-      return MethodMember(element, _substitution) as E;
-    } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(element, _substitution) as E;
+    if (element is ExecutableElement) {
+      return ExecutableMember.from2(element, _substitution) as E;
     }
     return element as E;
   }
