@@ -1368,7 +1368,12 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (elementType.containsFreeTypeVariables) {
       // Type must be computed in the entry function, where the type variables
       // are in scope, and passed to the body function.
-      inputs.add(_typeBuilder.analyzeTypeArgument(elementType, function));
+      if (options.experimentNewRti) {
+        inputs
+            .add(_typeBuilder.analyzeTypeArgumentNewRti(elementType, function));
+      } else {
+        inputs.add(_typeBuilder.analyzeTypeArgument(elementType, function));
+      }
     } else {
       // Types with no type variables can be emitted as part of the generator,
       // avoiding an extra argument.

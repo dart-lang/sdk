@@ -20,6 +20,7 @@ import '../js_backend/namer.dart' show ModularNamer, ModularNamerImpl;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
+import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse;
@@ -141,47 +142,30 @@ class SsaFunctionCompiler implements FunctionCompiler {
             name);
         break;
       case AsyncMarker.SYNC_STAR:
-        rewriter = new SyncStarRewriter(_reporter, element,
-            endOfIteration:
-                emitter.staticFunctionAccess(commonElements.endOfIteration),
-            iterableFactory: emitter
-                .staticFunctionAccess(commonElements.syncStarIterableFactory),
-            iterableFactoryTypeArguments:
-                _fetchItemType(codegen, emitter, asyncTypeParameter),
-            yieldStarExpression:
-                emitter.staticFunctionAccess(commonElements.yieldStar),
-            uncaughtErrorExpression: emitter
-                .staticFunctionAccess(commonElements.syncStarUncaughtError),
-            safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            bodyName: namer.deriveAsyncBodyName(name));
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.syncStarIterableFactory,
-            const CallStructure.unnamed(1, 1), [
-          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
-        ]));
+        rewriter = _makeSyncStarRewriter(
+            codegen,
+            commonElements,
+            elementEnvironment,
+            registry,
+            namer,
+            emitter,
+            element,
+            code,
+            asyncTypeParameter,
+            name);
         break;
       case AsyncMarker.ASYNC_STAR:
-        rewriter = new AsyncStarRewriter(_reporter, element,
-            asyncStarHelper:
-                emitter.staticFunctionAccess(commonElements.asyncStarHelper),
-            streamOfController:
-                emitter.staticFunctionAccess(commonElements.streamOfController),
-            wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
-            newController: emitter.staticFunctionAccess(
-                commonElements.asyncStarStreamControllerFactory),
-            newControllerTypeArguments:
-                _fetchItemType(codegen, emitter, asyncTypeParameter),
-            safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
-            yieldExpression:
-                emitter.staticFunctionAccess(commonElements.yieldSingle),
-            yieldStarExpression:
-                emitter.staticFunctionAccess(commonElements.yieldStar),
-            bodyName: namer.deriveAsyncBodyName(name));
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            commonElements.asyncStarStreamControllerFactory,
-            const CallStructure.unnamed(1, 1), [
-          elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)
-        ]));
+        rewriter = _makeAsyncStarRewriter(
+            codegen,
+            commonElements,
+            elementEnvironment,
+            registry,
+            namer,
+            emitter,
+            element,
+            code,
+            asyncTypeParameter,
+            name);
         break;
     }
     return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
@@ -199,6 +183,24 @@ class SsaFunctionCompiler implements FunctionCompiler {
     return <js.Expression>[ast];
   }
 
+  List<js.Expression> _fetchItemTypeNewRti(
+      CodegenInputs codegen,
+      CommonElements commonElements,
+      CodegenRegistry registry,
+      ModularEmitter emitter,
+      DartType type) {
+    if (type == null) return null;
+
+    FunctionEntity helperElement = commonElements.findType;
+    registry.registerStaticUse(
+        new StaticUse.staticInvoke(helperElement, CallStructure.ONE_ARG));
+    js.Expression recipe = codegen.rtiRecipeEncoder
+        .encodeGroundRecipe(emitter, TypeExpressionRecipe(type));
+    js.Expression helper = emitter.staticFunctionAccess(helperElement);
+    var ast = js.js(r'#(#)', [helper, recipe]);
+    return <js.Expression>[ast];
+  }
+
   AsyncRewriter _makeAsyncRewriter(
       CodegenInputs codegen,
       CommonElements commonElements,
@@ -213,8 +215,10 @@ class SsaFunctionCompiler implements FunctionCompiler {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    List<js.Expression> itemTypeExpression =
-        _fetchItemType(codegen, emitter, elementType);
+    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+        ? _fetchItemTypeNewRti(
+            codegen, commonElements, registry, emitter, elementType)
+        : _fetchItemType(codegen, emitter, elementType);
 
     AsyncRewriter rewriter = new AsyncRewriter(_reporter, element,
         asyncStart: emitter.staticFunctionAccess(startFunction),
@@ -233,6 +237,83 @@ class SsaFunctionCompiler implements FunctionCompiler {
     registry.registerStaticUse(new StaticUse.staticInvoke(
         completerFactory,
         const CallStructure.unnamed(0, 1),
+        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
+
+    return rewriter;
+  }
+
+  SyncStarRewriter _makeSyncStarRewriter(
+      CodegenInputs codegen,
+      CommonElements commonElements,
+      JElementEnvironment elementEnvironment,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter,
+      FunctionEntity element,
+      js.Expression code,
+      DartType asyncTypeParameter,
+      js.Name name) {
+    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+        ? _fetchItemTypeNewRti(
+            codegen, commonElements, registry, emitter, asyncTypeParameter)
+        : _fetchItemType(codegen, emitter, asyncTypeParameter);
+
+    SyncStarRewriter rewriter = new SyncStarRewriter(_reporter, element,
+        endOfIteration:
+            emitter.staticFunctionAccess(commonElements.endOfIteration),
+        iterableFactory: emitter
+            .staticFunctionAccess(commonElements.syncStarIterableFactory),
+        iterableFactoryTypeArguments: itemTypeExpression,
+        yieldStarExpression:
+            emitter.staticFunctionAccess(commonElements.yieldStar),
+        uncaughtErrorExpression:
+            emitter.staticFunctionAccess(commonElements.syncStarUncaughtError),
+        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+        bodyName: namer.deriveAsyncBodyName(name));
+
+    registry.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.syncStarIterableFactory,
+        const CallStructure.unnamed(1, 1),
+        [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
+
+    return rewriter;
+  }
+
+  AsyncStarRewriter _makeAsyncStarRewriter(
+      CodegenInputs codegen,
+      CommonElements commonElements,
+      JElementEnvironment elementEnvironment,
+      CodegenRegistry registry,
+      ModularNamer namer,
+      ModularEmitter emitter,
+      FunctionEntity element,
+      js.Expression code,
+      DartType asyncTypeParameter,
+      js.Name name) {
+    List<js.Expression> itemTypeExpression = _options.experimentNewRti
+        ? _fetchItemTypeNewRti(
+            codegen, commonElements, registry, emitter, asyncTypeParameter)
+        : _fetchItemType(codegen, emitter, asyncTypeParameter);
+
+    AsyncStarRewriter rewriter = new AsyncStarRewriter(_reporter, element,
+        asyncStarHelper:
+            emitter.staticFunctionAccess(commonElements.asyncStarHelper),
+        streamOfController:
+            emitter.staticFunctionAccess(commonElements.streamOfController),
+        wrapBody: emitter.staticFunctionAccess(commonElements.wrapBody),
+        newController: emitter.staticFunctionAccess(
+            commonElements.asyncStarStreamControllerFactory),
+        newControllerTypeArguments: itemTypeExpression,
+        safeVariableName: namer.safeVariablePrefixForAsyncRewrite,
+        yieldExpression:
+            emitter.staticFunctionAccess(commonElements.yieldSingle),
+        yieldStarExpression:
+            emitter.staticFunctionAccess(commonElements.yieldStar),
+        bodyName: namer.deriveAsyncBodyName(name));
+
+    registry.registerStaticUse(new StaticUse.staticInvoke(
+        commonElements.asyncStarStreamControllerFactory,
+        const CallStructure.unnamed(1, 1),
         [elementEnvironment.getFunctionAsyncOrSyncStarElementType(element)]));
 
     return rewriter;
