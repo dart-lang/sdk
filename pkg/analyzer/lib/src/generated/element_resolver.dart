@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
@@ -699,7 +700,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     Expression target = node.realTarget;
-    if (target is SuperExpression && !_isSuperInValidContext(target)) {
+    if (target is SuperExpression &&
+        SuperContext.of(target) != SuperContext.valid) {
       return;
     } else if (target is ExtensionOverride) {
       if (node.isCascaded) {
@@ -937,9 +939,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperExpression(SuperExpression node) {
-    if (!_isSuperInValidContext(node)) {
+    var context = SuperContext.of(node);
+    if (context == SuperContext.static) {
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, node);
+    } else if (context == SuperContext.extension) {
+      _resolver.errorReporter
+          .reportErrorForNode(CompileTimeErrorCode.SUPER_IN_EXTENSION, node);
     }
     super.visitSuperExpression(node);
   }
@@ -1949,24 +1955,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (parent is ConstructorDeclaration) {
       return identical(parent.returnType, identifier) &&
           parent.factoryKeyword != null;
-    }
-    return false;
-  }
-
-  /**
-   * Return `true` if the given 'super' [expression] is used in a valid context.
-   */
-  static bool _isSuperInValidContext(SuperExpression expression) {
-    for (AstNode node = expression; node != null; node = node.parent) {
-      if (node is CompilationUnit) {
-        return false;
-      } else if (node is ConstructorDeclaration) {
-        return node.factoryKeyword == null;
-      } else if (node is ConstructorFieldInitializer) {
-        return false;
-      } else if (node is MethodDeclaration) {
-        return !node.isStatic;
-      }
     }
     return false;
   }

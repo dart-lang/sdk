@@ -3203,6 +3203,15 @@ class CompileTimeErrorCode extends ErrorCode {
           correction: "Try renaming one of the prefixes.");
 
   /**
+   * No parameters.
+   */
+  static const CompileTimeErrorCode SUPER_IN_EXTENSION =
+      const CompileTimeErrorCode(
+          'SUPER_IN_EXTENSION',
+          "You can't reference 'super' in an extension because extensions do "
+              "not have a superclass.");
+
+  /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a

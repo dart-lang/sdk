@@ -206,14 +206,15 @@ import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
 import 'sdk_version_never_test.dart' as sdk_version_never;
 import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
-import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'sdk_version_ui_as_code_in_const_context_test.dart'
     as sdk_version_ui_as_code_in_const_context;
+import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'set_element_type_not_assignable_test.dart'
     as set_element_type_not_assignable;
 import 'static_access_to_instance_member_test.dart'
     as static_access_to_instance_member;
 import 'subtype_of_sealed_class_test.dart' as subtype_of_sealed_class;
+import 'super_in_extension_test.dart' as super_in_extension;
 import 'top_level_instance_getter_test.dart' as top_level_instance_getter;
 import 'top_level_instance_method_test.dart' as top_level_instance_method;
 import 'type_check_is_not_null_test.dart' as type_check_is_not_null;
@@ -400,6 +401,7 @@ main() {
     set_element_type_not_assignable.main();
     static_access_to_instance_member.main();
     subtype_of_sealed_class.main();
+    super_in_extension.main();
     top_level_instance_getter.main();
     top_level_instance_method.main();
     type_check_is_not_null.main();

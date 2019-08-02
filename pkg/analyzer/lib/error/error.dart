@@ -288,6 +288,7 @@ const List<ErrorCode> errorCodeValues = const [
   CompileTimeErrorCode.RETURN_IN_GENERATOR,
   CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
   CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
+  CompileTimeErrorCode.SUPER_IN_EXTENSION,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
