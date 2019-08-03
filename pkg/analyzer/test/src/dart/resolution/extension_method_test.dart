@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -253,20 +252,6 @@ f(C c) {
     );
   }
 
-  test_instance_getter_noMatch() async {
-    await assertErrorsInCode(r'''
-class C {}
-
-extension E on C {}
-
-f(C c) {
-  c.a;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 46, 1),
-    ]);
-  }
-
   test_instance_getter_oneMatch() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -341,42 +326,6 @@ f(Core2 c) {
     assertInvokeType(invocation, 'void Function()');
   }
 
-  test_instance_method_noMatch() async {
-    await assertErrorsInCode(r'''
-class C {}
-
-extension E on C {
-  void a() {}
-}
-
-f(C c) {
-  c.c();
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 61, 1),
-    ]);
-  }
-
-  test_instance_method_noMostSpecificExtension() async {
-    await assertErrorsInCode('''
-class A {}
-
-extension A1_Ext on A {
-  void a() {}
-}
-
-extension A2_Ext on A {
-  void a() {}
-}
-
-f(A a) {
-  a.a();
-}
-''', [
-      error(CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS, 107, 1),
-    ]);
-  }
-
   test_instance_method_oneMatch() async {
     await assertNoErrorsInCode('''
 class B {}
@@ -392,41 +341,6 @@ f(B b) {
     var invocation = findNode.methodInvocation('b.a()');
     assertElement(invocation, findElement.method('a'));
     assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_privateExtension() async {
-    newFile('/test/lib/lib.dart', content: '''
-class B {}
-
-extension _ on B {
-  void a() {}
-}
-''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-
-f(B b) {
-  b.a();
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
-    ]);
-  }
-
-  test_instance_method_resolvesToStatic() async {
-    await assertErrorsInCode('''
-class C {}
-
-extension E on C {
-  static void a() {}
-}
-
-f(C c) {
-  c.a();
-}
-''', [
-      error(CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER, 68, 1),
-    ]);
   }
 
   test_instance_method_specificSubtypeMatchLocal() async {
@@ -503,25 +417,6 @@ f(Core2 c) {
     var invocation = findNode.methodInvocation('c.a()');
     assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
     assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_unnamedExtension() async {
-    newFile('/test/lib/lib.dart', content: '''
-class C {}
-
-extension on C {
-  void a() {}
-}
-''');
-    await assertErrorsInCode(r'''
-import 'lib.dart';
-
-f(C c) {
-  c.a();
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_METHOD, 33, 1),
-    ]);
   }
 
   test_instance_operator_binary_fromExtendedType() async {
@@ -702,20 +597,6 @@ f(C c) {
 ''');
     var prefix = findNode.prefix('-c');
     assertElement(prefix, findElement.method('unary-', of: 'E'));
-  }
-
-  test_instance_setter_noMatch() async {
-    await assertErrorsInCode(r'''
-class C {}
-
-extension E on C {}
-
-f(C c) {
-  c.a = 1;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_SETTER, 46, 1),
-    ]);
   }
 
   test_instance_setter_oneMatch() async {
