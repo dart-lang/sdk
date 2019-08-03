@@ -150,7 +150,7 @@ List extractKeys(victim) {
 /// example).
 String unmangleGlobalNameIfPreservedAnyways(String name) {
   var names = JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES);
-  return JsCache.fetch(names, name);
+  return JS('String|Null', '#', JsCache.fetch(names, name));
 }
 
 String unmangleAllIdentifiersIfPreservedAnyways(String str) {
