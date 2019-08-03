@@ -978,12 +978,6 @@ class KernelBytecode {
   DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
       case KernelBytecode::kAllocate:
-      case KernelBytecode::kPopLocal:
-      case KernelBytecode::kPopLocal_Wide:
-      case KernelBytecode::kStoreContextVar:
-      case KernelBytecode::kStoreContextVar_Wide:
-      case KernelBytecode::kStoreLocal:
-      case KernelBytecode::kStoreLocal_Wide:
       case KernelBytecode::kStoreStaticTOS:
       case KernelBytecode::kStoreStaticTOS_Wide:
       case KernelBytecode::kDebugCheck:

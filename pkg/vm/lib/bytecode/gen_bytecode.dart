@@ -3158,11 +3158,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     final v = node.variable;
     final bool hasResult = !isExpressionWithoutResult(node);
 
+    _genPushContextIfCaptured(v);
+
+    _generateNode(node.value);
+
+    if (options.emitDebuggerStops && _variableSetNeedsDebugCheck(node.value)) {
+      asm.emitDebugCheck();
+    }
+
     if (locals.isCaptured(v)) {
-      _genPushContextForVariable(v);
-
-      _generateNode(node.value);
-
       final int temp = locals.tempIndexInFrame(node);
       if (hasResult) {
         asm.emitStoreLocal(temp);
@@ -3174,8 +3178,6 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         asm.emitPush(temp);
       }
     } else {
-      _generateNode(node.value);
-
       final int localIndex = locals.getVarIndexInFrame(v);
       if (hasResult) {
         asm.emitStoreLocal(localIndex);
@@ -3184,6 +3186,13 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       }
     }
   }
+
+  bool _variableSetNeedsDebugCheck(Expression rhs) =>
+      rhs is BasicLiteral ||
+      rhs is ConstantExpression ||
+      rhs is StaticGet ||
+      rhs is FunctionExpression ||
+      rhs is VariableGet;
 
   void _genFutureNull() {
     asm.emitPushNull();
