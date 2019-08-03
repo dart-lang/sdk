@@ -2270,6 +2270,8 @@ class AvailableDeclarationBuilder extends Object
     with _AvailableDeclarationMixin
     implements idl.AvailableDeclaration {
   List<AvailableDeclarationBuilder> _children;
+  int _codeLength;
+  int _codeOffset;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2298,6 +2300,22 @@ class AvailableDeclarationBuilder extends Object
 
   set children(List<AvailableDeclarationBuilder> value) {
     this._children = value;
+  }
+
+  @override
+  int get codeLength => _codeLength ??= 0;
+
+  set codeLength(int value) {
+    assert(value == null || value >= 0);
+    this._codeLength = value;
+  }
+
+  @override
+  int get codeOffset => _codeOffset ??= 0;
+
+  set codeOffset(int value) {
+    assert(value == null || value >= 0);
+    this._codeOffset = value;
   }
 
   @override
@@ -2464,6 +2482,8 @@ class AvailableDeclarationBuilder extends Object
 
   AvailableDeclarationBuilder(
       {List<AvailableDeclarationBuilder> children,
+      int codeLength,
+      int codeOffset,
       String defaultArgumentListString,
       List<int> defaultArgumentListTextRanges,
       String docComplete,
@@ -2486,6 +2506,8 @@ class AvailableDeclarationBuilder extends Object
       String returnType,
       String typeParameters})
       : _children = children,
+        _codeLength = codeLength,
+        _codeOffset = codeOffset,
         _defaultArgumentListString = defaultArgumentListString,
         _defaultArgumentListTextRanges = defaultArgumentListTextRanges,
         _docComplete = docComplete,
@@ -2523,6 +2545,8 @@ class AvailableDeclarationBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addInt(this._codeLength ?? 0);
+    signature.addInt(this._codeOffset ?? 0);
     signature.addString(this._defaultArgumentListString ?? '');
     if (this._defaultArgumentListTextRanges == null) {
       signature.addInt(0);
@@ -2634,68 +2658,74 @@ class AvailableDeclarationBuilder extends Object
     if (offset_children != null) {
       fbBuilder.addOffset(0, offset_children);
     }
+    if (_codeLength != null && _codeLength != 0) {
+      fbBuilder.addUint32(1, _codeLength);
+    }
+    if (_codeOffset != null && _codeOffset != 0) {
+      fbBuilder.addUint32(2, _codeOffset);
+    }
     if (offset_defaultArgumentListString != null) {
-      fbBuilder.addOffset(1, offset_defaultArgumentListString);
+      fbBuilder.addOffset(3, offset_defaultArgumentListString);
     }
     if (offset_defaultArgumentListTextRanges != null) {
-      fbBuilder.addOffset(2, offset_defaultArgumentListTextRanges);
+      fbBuilder.addOffset(4, offset_defaultArgumentListTextRanges);
     }
     if (offset_docComplete != null) {
-      fbBuilder.addOffset(3, offset_docComplete);
+      fbBuilder.addOffset(5, offset_docComplete);
     }
     if (offset_docSummary != null) {
-      fbBuilder.addOffset(4, offset_docSummary);
+      fbBuilder.addOffset(6, offset_docSummary);
     }
     if (_fieldMask != null && _fieldMask != 0) {
-      fbBuilder.addUint32(5, _fieldMask);
+      fbBuilder.addUint32(7, _fieldMask);
     }
     if (_isAbstract == true) {
-      fbBuilder.addBool(6, true);
-    }
-    if (_isConst == true) {
-      fbBuilder.addBool(7, true);
-    }
-    if (_isDeprecated == true) {
       fbBuilder.addBool(8, true);
     }
-    if (_isFinal == true) {
+    if (_isConst == true) {
       fbBuilder.addBool(9, true);
     }
+    if (_isDeprecated == true) {
+      fbBuilder.addBool(10, true);
+    }
+    if (_isFinal == true) {
+      fbBuilder.addBool(11, true);
+    }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(10, _kind.index);
+      fbBuilder.addUint8(12, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(11, _locationOffset);
+      fbBuilder.addUint32(13, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(12, _locationStartColumn);
+      fbBuilder.addUint32(14, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(13, _locationStartLine);
+      fbBuilder.addUint32(15, _locationStartLine);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(14, offset_name);
+      fbBuilder.addOffset(16, offset_name);
     }
     if (offset_parameterNames != null) {
-      fbBuilder.addOffset(15, offset_parameterNames);
+      fbBuilder.addOffset(17, offset_parameterNames);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(16, offset_parameters);
+      fbBuilder.addOffset(18, offset_parameters);
     }
     if (offset_parameterTypes != null) {
-      fbBuilder.addOffset(17, offset_parameterTypes);
+      fbBuilder.addOffset(19, offset_parameterTypes);
     }
     if (offset_relevanceTags != null) {
-      fbBuilder.addOffset(18, offset_relevanceTags);
+      fbBuilder.addOffset(20, offset_relevanceTags);
     }
     if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(19, _requiredParameterCount);
+      fbBuilder.addUint32(21, _requiredParameterCount);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(20, offset_returnType);
+      fbBuilder.addOffset(22, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(21, offset_typeParameters);
+      fbBuilder.addOffset(23, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2719,6 +2749,8 @@ class _AvailableDeclarationImpl extends Object
   _AvailableDeclarationImpl(this._bc, this._bcOffset);
 
   List<idl.AvailableDeclaration> _children;
+  int _codeLength;
+  int _codeOffset;
   String _defaultArgumentListString;
   List<int> _defaultArgumentListTextRanges;
   String _docComplete;
@@ -2750,139 +2782,152 @@ class _AvailableDeclarationImpl extends Object
   }
 
   @override
+  int get codeLength {
+    _codeLength ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _codeLength;
+  }
+
+  @override
+  int get codeOffset {
+    _codeOffset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
+    return _codeOffset;
+  }
+
+  @override
   String get defaultArgumentListString {
     _defaultArgumentListString ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
     return _defaultArgumentListString;
   }
 
   @override
   List<int> get defaultArgumentListTextRanges {
     _defaultArgumentListTextRanges ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 4, const <int>[]);
     return _defaultArgumentListTextRanges;
   }
 
   @override
   String get docComplete {
-    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    _docComplete ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 5, '');
     return _docComplete;
   }
 
   @override
   String get docSummary {
-    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    _docSummary ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 6, '');
     return _docSummary;
   }
 
   @override
   int get fieldMask {
-    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 5, 0);
+    _fieldMask ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 7, 0);
     return _fieldMask;
   }
 
   @override
   bool get isAbstract {
-    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 6, false);
+    _isAbstract ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
     return _isAbstract;
   }
 
   @override
   bool get isConst {
-    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 7, false);
+    _isConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
     return _isConst;
   }
 
   @override
   bool get isDeprecated {
-    _isDeprecated ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 8, false);
+    _isDeprecated ??=
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 10, false);
     return _isDeprecated;
   }
 
   @override
   bool get isFinal {
-    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 9, false);
+    _isFinal ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 11, false);
     return _isFinal;
   }
 
   @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 10, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 12, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 11, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 12, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _locationStartLine;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 14, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
     return _name;
   }
 
   @override
   List<String> get parameterNames {
     _parameterNames ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 15, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
     return _parameterNames;
   }
 
   @override
   String get parameters {
-    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
+    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 18, '');
     return _parameters;
   }
 
   @override
   List<String> get parameterTypes {
     _parameterTypes ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 19, const <String>[]);
     return _parameterTypes;
   }
 
   @override
   List<String> get relevanceTags {
     _relevanceTags ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 18, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 20, const <String>[]);
     return _relevanceTags;
   }
 
   @override
   int get requiredParameterCount {
     _requiredParameterCount ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 19, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 21, 0);
     return _requiredParameterCount;
   }
 
   @override
   String get returnType {
-    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 20, '');
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 22, '');
     return _returnType;
   }
 
   @override
   String get typeParameters {
     _typeParameters ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 21, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 23, '');
     return _typeParameters;
   }
 }
@@ -2893,6 +2938,8 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     Map<String, Object> _result = <String, Object>{};
     if (children.isNotEmpty)
       _result["children"] = children.map((_value) => _value.toJson()).toList();
+    if (codeLength != 0) _result["codeLength"] = codeLength;
+    if (codeOffset != 0) _result["codeOffset"] = codeOffset;
     if (defaultArgumentListString != '')
       _result["defaultArgumentListString"] = defaultArgumentListString;
     if (defaultArgumentListTextRanges.isNotEmpty)
@@ -2926,6 +2973,8 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
   @override
   Map<String, Object> toMap() => {
         "children": children,
+        "codeLength": codeLength,
+        "codeOffset": codeOffset,
         "defaultArgumentListString": defaultArgumentListString,
         "defaultArgumentListTextRanges": defaultArgumentListTextRanges,
         "docComplete": docComplete,
@@ -2961,6 +3010,7 @@ class AvailableFileBuilder extends Object
   List<AvailableFileExportBuilder> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
+  List<int> _lineStarts;
   List<String> _parts;
 
   @override
@@ -3006,6 +3056,15 @@ class AvailableFileBuilder extends Object
   }
 
   @override
+  List<int> get lineStarts => _lineStarts ??= <int>[];
+
+  /// Offsets of the first character of each line in the source code.
+  set lineStarts(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._lineStarts = value;
+  }
+
+  @override
   List<String> get parts => _parts ??= <String>[];
 
   /// URIs of `part` directives.
@@ -3019,12 +3078,14 @@ class AvailableFileBuilder extends Object
       List<AvailableFileExportBuilder> exports,
       bool isLibrary,
       bool isLibraryDeprecated,
+      List<int> lineStarts,
       List<String> parts})
       : _declarations = declarations,
         _directiveInfo = directiveInfo,
         _exports = exports,
         _isLibrary = isLibrary,
         _isLibraryDeprecated = isLibraryDeprecated,
+        _lineStarts = lineStarts,
         _parts = parts;
 
   /// Flush [informative] data recursively.
@@ -3032,6 +3093,7 @@ class AvailableFileBuilder extends Object
     _declarations?.forEach((b) => b.flushInformative());
     _directiveInfo?.flushInformative();
     _exports?.forEach((b) => b.flushInformative());
+    _lineStarts = null;
   }
 
   /// Accumulate non-[informative] data into [signature].
@@ -3044,6 +3106,8 @@ class AvailableFileBuilder extends Object
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._directiveInfo != null);
+    this._directiveInfo?.collectApiSignature(signature);
     if (this._exports == null) {
       signature.addInt(0);
     } else {
@@ -3062,8 +3126,6 @@ class AvailableFileBuilder extends Object
         signature.addString(x);
       }
     }
-    signature.addBool(this._directiveInfo != null);
-    this._directiveInfo?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -3075,6 +3137,7 @@ class AvailableFileBuilder extends Object
     fb.Offset offset_declarations;
     fb.Offset offset_directiveInfo;
     fb.Offset offset_exports;
+    fb.Offset offset_lineStarts;
     fb.Offset offset_parts;
     if (!(_declarations == null || _declarations.isEmpty)) {
       offset_declarations = fbBuilder
@@ -3087,6 +3150,9 @@ class AvailableFileBuilder extends Object
       offset_exports = fbBuilder
           .writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
     }
+    if (!(_lineStarts == null || _lineStarts.isEmpty)) {
+      offset_lineStarts = fbBuilder.writeListUint32(_lineStarts);
+    }
     if (!(_parts == null || _parts.isEmpty)) {
       offset_parts = fbBuilder
           .writeList(_parts.map((b) => fbBuilder.writeString(b)).toList());
@@ -3096,19 +3162,22 @@ class AvailableFileBuilder extends Object
       fbBuilder.addOffset(0, offset_declarations);
     }
     if (offset_directiveInfo != null) {
-      fbBuilder.addOffset(5, offset_directiveInfo);
+      fbBuilder.addOffset(1, offset_directiveInfo);
     }
     if (offset_exports != null) {
-      fbBuilder.addOffset(1, offset_exports);
+      fbBuilder.addOffset(2, offset_exports);
     }
     if (_isLibrary == true) {
-      fbBuilder.addBool(2, true);
-    }
-    if (_isLibraryDeprecated == true) {
       fbBuilder.addBool(3, true);
     }
+    if (_isLibraryDeprecated == true) {
+      fbBuilder.addBool(4, true);
+    }
+    if (offset_lineStarts != null) {
+      fbBuilder.addOffset(5, offset_lineStarts);
+    }
     if (offset_parts != null) {
-      fbBuilder.addOffset(4, offset_parts);
+      fbBuilder.addOffset(6, offset_parts);
     }
     return fbBuilder.endTable();
   }
@@ -3140,6 +3209,7 @@ class _AvailableFileImpl extends Object
   List<idl.AvailableFileExport> _exports;
   bool _isLibrary;
   bool _isLibraryDeprecated;
+  List<int> _lineStarts;
   List<String> _parts;
 
   @override
@@ -3153,7 +3223,7 @@ class _AvailableFileImpl extends Object
   @override
   idl.DirectiveInfo get directiveInfo {
     _directiveInfo ??=
-        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 5, null);
+        const _DirectiveInfoReader().vTableGet(_bc, _bcOffset, 1, null);
     return _directiveInfo;
   }
 
@@ -3161,27 +3231,34 @@ class _AvailableFileImpl extends Object
   List<idl.AvailableFileExport> get exports {
     _exports ??= const fb.ListReader<idl.AvailableFileExport>(
             const _AvailableFileExportReader())
-        .vTableGet(_bc, _bcOffset, 1, const <idl.AvailableFileExport>[]);
+        .vTableGet(_bc, _bcOffset, 2, const <idl.AvailableFileExport>[]);
     return _exports;
   }
 
   @override
   bool get isLibrary {
-    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 2, false);
+    _isLibrary ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
     return _isLibrary;
   }
 
   @override
   bool get isLibraryDeprecated {
     _isLibraryDeprecated ??=
-        const fb.BoolReader().vTableGet(_bc, _bcOffset, 3, false);
+        const fb.BoolReader().vTableGet(_bc, _bcOffset, 4, false);
     return _isLibraryDeprecated;
+  }
+
+  @override
+  List<int> get lineStarts {
+    _lineStarts ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 5, const <int>[]);
+    return _lineStarts;
   }
 
   @override
   List<String> get parts {
     _parts ??= const fb.ListReader<String>(const fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 4, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 6, const <String>[]);
     return _parts;
   }
 }
@@ -3200,6 +3277,7 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
     if (isLibrary != false) _result["isLibrary"] = isLibrary;
     if (isLibraryDeprecated != false)
       _result["isLibraryDeprecated"] = isLibraryDeprecated;
+    if (lineStarts.isNotEmpty) _result["lineStarts"] = lineStarts;
     if (parts.isNotEmpty) _result["parts"] = parts;
     return _result;
   }
@@ -3211,6 +3289,7 @@ abstract class _AvailableFileMixin implements idl.AvailableFile {
         "exports": exports,
         "isLibrary": isLibrary,
         "isLibraryDeprecated": isLibraryDeprecated,
+        "lineStarts": lineStarts,
         "parts": parts,
       };
 
@@ -4926,8 +5005,8 @@ class LinkedNodeBuilder extends Object
   LinkedNodeBuilder _variantField_6;
   LinkedNodeBuilder _variantField_7;
   int _variantField_17;
-  LinkedNodeTypeSubstitutionBuilder _variantField_38;
   LinkedNodeBuilder _variantField_8;
+  LinkedNodeTypeSubstitutionBuilder _variantField_38;
   int _variantField_15;
   idl.UnlinkedTokenType _variantField_28;
   bool _variantField_27;
@@ -6769,121 +6848,6 @@ class LinkedNodeBuilder extends Object
   }
 
   @override
-  LinkedNodeTypeSubstitutionBuilder get annotation_substitution {
-    assert(kind == idl.LinkedNodeKind.annotation);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get assignmentExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.assignmentExpression);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get binaryExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get constructorName_substitution {
-    assert(kind == idl.LinkedNodeKind.constructorName);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get indexExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.indexExpression);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get postfixExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.postfixExpression);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get prefixExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.prefixExpression);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder
-      get redirectingConstructorInvocation_substitution {
-    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder get simpleIdentifier_substitution {
-    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
-    return _variantField_38;
-  }
-
-  @override
-  LinkedNodeTypeSubstitutionBuilder
-      get superConstructorInvocation_substitution {
-    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
-    return _variantField_38;
-  }
-
-  set annotation_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.annotation);
-    _variantField_38 = value;
-  }
-
-  set assignmentExpression_substitution(
-      LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.assignmentExpression);
-    _variantField_38 = value;
-  }
-
-  set binaryExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_38 = value;
-  }
-
-  set constructorName_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.constructorName);
-    _variantField_38 = value;
-  }
-
-  set indexExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.indexExpression);
-    _variantField_38 = value;
-  }
-
-  set postfixExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.postfixExpression);
-    _variantField_38 = value;
-  }
-
-  set prefixExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.prefixExpression);
-    _variantField_38 = value;
-  }
-
-  set redirectingConstructorInvocation_substitution(
-      LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-    _variantField_38 = value;
-  }
-
-  set simpleIdentifier_substitution(LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
-    _variantField_38 = value;
-  }
-
-  set superConstructorInvocation_substitution(
-      LinkedNodeTypeSubstitutionBuilder value) {
-    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
-    _variantField_38 = value;
-  }
-
-  @override
   LinkedNodeBuilder get annotation_name {
     assert(kind == idl.LinkedNodeKind.annotation);
     return _variantField_8;
@@ -7057,6 +7021,121 @@ class LinkedNodeBuilder extends Object
   set methodDeclaration_returnType(LinkedNodeBuilder value) {
     assert(kind == idl.LinkedNodeKind.methodDeclaration);
     _variantField_8 = value;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get annotation_substitution {
+    assert(kind == idl.LinkedNodeKind.annotation);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get assignmentExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.assignmentExpression);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get binaryExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get constructorName_substitution {
+    assert(kind == idl.LinkedNodeKind.constructorName);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get indexExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get postfixExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.postfixExpression);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get prefixExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.prefixExpression);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder
+      get redirectingConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder get simpleIdentifier_substitution {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    return _variantField_38;
+  }
+
+  @override
+  LinkedNodeTypeSubstitutionBuilder
+      get superConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
+    return _variantField_38;
+  }
+
+  set annotation_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.annotation);
+    _variantField_38 = value;
+  }
+
+  set assignmentExpression_substitution(
+      LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.assignmentExpression);
+    _variantField_38 = value;
+  }
+
+  set binaryExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_38 = value;
+  }
+
+  set constructorName_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.constructorName);
+    _variantField_38 = value;
+  }
+
+  set indexExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
+    _variantField_38 = value;
+  }
+
+  set postfixExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.postfixExpression);
+    _variantField_38 = value;
+  }
+
+  set prefixExpression_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.prefixExpression);
+    _variantField_38 = value;
+  }
+
+  set redirectingConstructorInvocation_substitution(
+      LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+    _variantField_38 = value;
+  }
+
+  set simpleIdentifier_substitution(LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    _variantField_38 = value;
+  }
+
+  set superConstructorInvocation_substitution(
+      LinkedNodeTypeSubstitutionBuilder value) {
+    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
+    _variantField_38 = value;
   }
 
   @override
@@ -7949,14 +8028,14 @@ class LinkedNodeBuilder extends Object
     LinkedNodeBuilder annotation_arguments,
     LinkedNodeBuilder annotation_constructorName,
     int annotation_element,
-    LinkedNodeTypeSubstitutionBuilder annotation_substitution,
     LinkedNodeBuilder annotation_name,
+    LinkedNodeTypeSubstitutionBuilder annotation_substitution,
   })  : _kind = idl.LinkedNodeKind.annotation,
         _variantField_6 = annotation_arguments,
         _variantField_7 = annotation_constructorName,
         _variantField_17 = annotation_element,
-        _variantField_38 = annotation_substitution,
-        _variantField_8 = annotation_name;
+        _variantField_8 = annotation_name,
+        _variantField_38 = annotation_substitution;
 
   LinkedNodeBuilder.argumentList({
     List<LinkedNodeBuilder> argumentList_arguments,
@@ -9021,8 +9100,8 @@ class LinkedNodeBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.annotation) {
       annotation_arguments?.flushInformative();
       annotation_constructorName?.flushInformative();
-      annotation_substitution?.flushInformative();
       annotation_name?.flushInformative();
+      annotation_substitution?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.argumentList) {
       argumentList_arguments?.forEach((b) => b.flushInformative());
     } else if (kind == idl.LinkedNodeKind.asExpression) {
@@ -11046,8 +11125,8 @@ class LinkedNodeBuilder extends Object
     fb.Offset offset_variantField_4;
     fb.Offset offset_variantField_6;
     fb.Offset offset_variantField_7;
-    fb.Offset offset_variantField_38;
     fb.Offset offset_variantField_8;
+    fb.Offset offset_variantField_38;
     fb.Offset offset_variantField_9;
     fb.Offset offset_variantField_12;
     fb.Offset offset_variantField_5;
@@ -11083,11 +11162,11 @@ class LinkedNodeBuilder extends Object
     if (_variantField_7 != null) {
       offset_variantField_7 = _variantField_7.finish(fbBuilder);
     }
-    if (_variantField_38 != null) {
-      offset_variantField_38 = _variantField_38.finish(fbBuilder);
-    }
     if (_variantField_8 != null) {
       offset_variantField_8 = _variantField_8.finish(fbBuilder);
+    }
+    if (_variantField_38 != null) {
+      offset_variantField_38 = _variantField_38.finish(fbBuilder);
     }
     if (_variantField_9 != null) {
       offset_variantField_9 = _variantField_9.finish(fbBuilder);
@@ -11166,11 +11245,11 @@ class LinkedNodeBuilder extends Object
     if (_variantField_17 != null && _variantField_17 != 0) {
       fbBuilder.addUint32(17, _variantField_17);
     }
-    if (offset_variantField_38 != null) {
-      fbBuilder.addOffset(38, offset_variantField_38);
-    }
     if (offset_variantField_8 != null) {
       fbBuilder.addOffset(8, offset_variantField_8);
+    }
+    if (offset_variantField_38 != null) {
+      fbBuilder.addOffset(38, offset_variantField_38);
     }
     if (_variantField_15 != null && _variantField_15 != 0) {
       fbBuilder.addUint32(15, _variantField_15);
@@ -11296,8 +11375,8 @@ class _LinkedNodeImpl extends Object
   idl.LinkedNode _variantField_6;
   idl.LinkedNode _variantField_7;
   int _variantField_17;
-  idl.LinkedNodeTypeSubstitution _variantField_38;
   idl.LinkedNode _variantField_8;
+  idl.LinkedNodeTypeSubstitution _variantField_38;
   int _variantField_15;
   idl.UnlinkedTokenType _variantField_28;
   bool _variantField_27;
@@ -12653,87 +12732,6 @@ class _LinkedNodeImpl extends Object
   }
 
   @override
-  idl.LinkedNodeTypeSubstitution get annotation_substitution {
-    assert(kind == idl.LinkedNodeKind.annotation);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get assignmentExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.assignmentExpression);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get binaryExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.binaryExpression);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get constructorName_substitution {
-    assert(kind == idl.LinkedNodeKind.constructorName);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get indexExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.indexExpression);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get postfixExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.postfixExpression);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get prefixExpression_substitution {
-    assert(kind == idl.LinkedNodeKind.prefixExpression);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution
-      get redirectingConstructorInvocation_substitution {
-    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get simpleIdentifier_substitution {
-    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
-  idl.LinkedNodeTypeSubstitution get superConstructorInvocation_substitution {
-    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
-    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
-        .vTableGet(_bc, _bcOffset, 38, null);
-    return _variantField_38;
-  }
-
-  @override
   idl.LinkedNode get annotation_name {
     assert(kind == idl.LinkedNodeKind.annotation);
     _variantField_8 ??=
@@ -12859,6 +12857,87 @@ class _LinkedNodeImpl extends Object
     _variantField_8 ??=
         const _LinkedNodeReader().vTableGet(_bc, _bcOffset, 8, null);
     return _variantField_8;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get annotation_substitution {
+    assert(kind == idl.LinkedNodeKind.annotation);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get assignmentExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.assignmentExpression);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get binaryExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.binaryExpression);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get constructorName_substitution {
+    assert(kind == idl.LinkedNodeKind.constructorName);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get indexExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.indexExpression);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get postfixExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.postfixExpression);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get prefixExpression_substitution {
+    assert(kind == idl.LinkedNodeKind.prefixExpression);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution
+      get redirectingConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.redirectingConstructorInvocation);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get simpleIdentifier_substitution {
+    assert(kind == idl.LinkedNodeKind.simpleIdentifier);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
+  }
+
+  @override
+  idl.LinkedNodeTypeSubstitution get superConstructorInvocation_substitution {
+    assert(kind == idl.LinkedNodeKind.superConstructorInvocation);
+    _variantField_38 ??= const _LinkedNodeTypeSubstitutionReader()
+        .vTableGet(_bc, _bcOffset, 38, null);
+    return _variantField_38;
   }
 
   @override
@@ -13492,10 +13571,10 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             annotation_constructorName.toJson();
       if (annotation_element != 0)
         _result["annotation_element"] = annotation_element;
-      if (annotation_substitution != null)
-        _result["annotation_substitution"] = annotation_substitution.toJson();
       if (annotation_name != null)
         _result["annotation_name"] = annotation_name.toJson();
+      if (annotation_substitution != null)
+        _result["annotation_substitution"] = annotation_substitution.toJson();
     }
     if (kind == idl.LinkedNodeKind.argumentList) {
       if (argumentList_arguments.isNotEmpty)
@@ -14658,8 +14737,8 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         "annotation_arguments": annotation_arguments,
         "annotation_constructorName": annotation_constructorName,
         "annotation_element": annotation_element,
-        "annotation_substitution": annotation_substitution,
         "annotation_name": annotation_name,
+        "annotation_substitution": annotation_substitution,
         "flags": flags,
         "kind": kind,
         "name": name,
@@ -16379,138 +16458,6 @@ abstract class _LinkedNodeReferencesMixin implements idl.LinkedNodeReferences {
   String toString() => convert.json.encode(toJson());
 }
 
-class LinkedNodeTypeSubstitutionBuilder extends Object
-    with _LinkedNodeTypeSubstitutionMixin
-    implements idl.LinkedNodeTypeSubstitution {
-  List<int> _typeParameters;
-  List<LinkedNodeTypeBuilder> _typeArguments;
-
-  @override
-  List<int> get typeParameters => _typeParameters ??= <int>[];
-
-  set typeParameters(List<int> value) {
-    assert(value == null || value.every((e) => e >= 0));
-    this._typeParameters = value;
-  }
-
-  @override
-  List<LinkedNodeTypeBuilder> get typeArguments =>
-      _typeArguments ??= <LinkedNodeTypeBuilder>[];
-
-  set typeArguments(List<LinkedNodeTypeBuilder> value) {
-    this._typeArguments = value;
-  }
-
-  LinkedNodeTypeSubstitutionBuilder(
-      {List<int> typeParameters, List<LinkedNodeTypeBuilder> typeArguments})
-      : _typeParameters = typeParameters,
-        _typeArguments = typeArguments;
-
-  /// Flush [informative] data recursively.
-  void flushInformative() {
-    _typeArguments?.forEach((b) => b.flushInformative());
-  }
-
-  /// Accumulate non-[informative] data into [signature].
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._typeParameters == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._typeParameters.length);
-      for (var x in this._typeParameters) {
-        signature.addInt(x);
-      }
-    }
-    if (this._typeArguments == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._typeArguments.length);
-      for (var x in this._typeArguments) {
-        x?.collectApiSignature(signature);
-      }
-    }
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_typeParameters;
-    fb.Offset offset_typeArguments;
-    if (!(_typeParameters == null || _typeParameters.isEmpty)) {
-      offset_typeParameters = fbBuilder.writeListUint32(_typeParameters);
-    }
-    if (!(_typeArguments == null || _typeArguments.isEmpty)) {
-      offset_typeArguments = fbBuilder
-          .writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
-    }
-    fbBuilder.startTable();
-    if (offset_typeParameters != null) {
-      fbBuilder.addOffset(0, offset_typeParameters);
-    }
-    if (offset_typeArguments != null) {
-      fbBuilder.addOffset(1, offset_typeArguments);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _LinkedNodeTypeSubstitutionReader
-    extends fb.TableReader<_LinkedNodeTypeSubstitutionImpl> {
-  const _LinkedNodeTypeSubstitutionReader();
-
-  @override
-  _LinkedNodeTypeSubstitutionImpl createObject(
-          fb.BufferContext bc, int offset) =>
-      new _LinkedNodeTypeSubstitutionImpl(bc, offset);
-}
-
-class _LinkedNodeTypeSubstitutionImpl extends Object
-    with _LinkedNodeTypeSubstitutionMixin
-    implements idl.LinkedNodeTypeSubstitution {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _LinkedNodeTypeSubstitutionImpl(this._bc, this._bcOffset);
-
-  List<int> _typeParameters;
-  List<idl.LinkedNodeType> _typeArguments;
-
-  @override
-  List<int> get typeParameters {
-    _typeParameters ??=
-        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
-    return _typeParameters;
-  }
-
-  @override
-  List<idl.LinkedNodeType> get typeArguments {
-    _typeArguments ??=
-        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
-            .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeType>[]);
-    return _typeArguments;
-  }
-}
-
-abstract class _LinkedNodeTypeSubstitutionMixin
-    implements idl.LinkedNodeTypeSubstitution {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters;
-    if (typeArguments.isNotEmpty)
-      _result["typeArguments"] =
-          typeArguments.map((_value) => _value.toJson()).toList();
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-        "typeParameters": typeParameters,
-        "typeArguments": typeArguments,
-      };
-
-  @override
-  String toString() => convert.json.encode(toJson());
-}
-
 class LinkedNodeTypeBuilder extends Object
     with _LinkedNodeTypeMixin
     implements idl.LinkedNodeType {
@@ -17057,6 +17004,138 @@ abstract class _LinkedNodeTypeFormalParameterMixin
         "kind": kind,
         "name": name,
         "type": type,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class LinkedNodeTypeSubstitutionBuilder extends Object
+    with _LinkedNodeTypeSubstitutionMixin
+    implements idl.LinkedNodeTypeSubstitution {
+  List<LinkedNodeTypeBuilder> _typeArguments;
+  List<int> _typeParameters;
+
+  @override
+  List<LinkedNodeTypeBuilder> get typeArguments =>
+      _typeArguments ??= <LinkedNodeTypeBuilder>[];
+
+  set typeArguments(List<LinkedNodeTypeBuilder> value) {
+    this._typeArguments = value;
+  }
+
+  @override
+  List<int> get typeParameters => _typeParameters ??= <int>[];
+
+  set typeParameters(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._typeParameters = value;
+  }
+
+  LinkedNodeTypeSubstitutionBuilder(
+      {List<LinkedNodeTypeBuilder> typeArguments, List<int> typeParameters})
+      : _typeArguments = typeArguments,
+        _typeParameters = typeParameters;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _typeArguments?.forEach((b) => b.flushInformative());
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._typeParameters == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeParameters.length);
+      for (var x in this._typeParameters) {
+        signature.addInt(x);
+      }
+    }
+    if (this._typeArguments == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._typeArguments.length);
+      for (var x in this._typeArguments) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_typeArguments;
+    fb.Offset offset_typeParameters;
+    if (!(_typeArguments == null || _typeArguments.isEmpty)) {
+      offset_typeArguments = fbBuilder
+          .writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_typeParameters == null || _typeParameters.isEmpty)) {
+      offset_typeParameters = fbBuilder.writeListUint32(_typeParameters);
+    }
+    fbBuilder.startTable();
+    if (offset_typeArguments != null) {
+      fbBuilder.addOffset(1, offset_typeArguments);
+    }
+    if (offset_typeParameters != null) {
+      fbBuilder.addOffset(0, offset_typeParameters);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _LinkedNodeTypeSubstitutionReader
+    extends fb.TableReader<_LinkedNodeTypeSubstitutionImpl> {
+  const _LinkedNodeTypeSubstitutionReader();
+
+  @override
+  _LinkedNodeTypeSubstitutionImpl createObject(
+          fb.BufferContext bc, int offset) =>
+      new _LinkedNodeTypeSubstitutionImpl(bc, offset);
+}
+
+class _LinkedNodeTypeSubstitutionImpl extends Object
+    with _LinkedNodeTypeSubstitutionMixin
+    implements idl.LinkedNodeTypeSubstitution {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _LinkedNodeTypeSubstitutionImpl(this._bc, this._bcOffset);
+
+  List<idl.LinkedNodeType> _typeArguments;
+  List<int> _typeParameters;
+
+  @override
+  List<idl.LinkedNodeType> get typeArguments {
+    _typeArguments ??=
+        const fb.ListReader<idl.LinkedNodeType>(const _LinkedNodeTypeReader())
+            .vTableGet(_bc, _bcOffset, 1, const <idl.LinkedNodeType>[]);
+    return _typeArguments;
+  }
+
+  @override
+  List<int> get typeParameters {
+    _typeParameters ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    return _typeParameters;
+  }
+}
+
+abstract class _LinkedNodeTypeSubstitutionMixin
+    implements idl.LinkedNodeTypeSubstitution {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (typeArguments.isNotEmpty)
+      _result["typeArguments"] =
+          typeArguments.map((_value) => _value.toJson()).toList();
+    if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "typeArguments": typeArguments,
+        "typeParameters": typeParameters,
       };
 
   @override

@@ -22,12 +22,12 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
+import 'package:analysis_server/src/search/workspace_symbols.dart' as server
+    show DeclarationKind;
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
-import 'package:analyzer/src/dart/analysis/search.dart' as server
-    show DeclarationKind;
 import 'package:analyzer/src/generated/source.dart' as server;
 import 'package:analyzer/src/services/available_declarations.dart';
 import 'package:analyzer/src/services/available_declarations.dart' as dec;

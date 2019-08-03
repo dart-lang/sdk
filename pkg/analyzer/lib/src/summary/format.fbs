@@ -22,11 +22,15 @@ enum AvailableDeclarationKind : byte {
 
   EXTENSION,
 
+  FIELD,
+
   FUNCTION,
 
   FUNCTION_TYPE_ALIAS,
 
   GETTER,
+
+  METHOD,
 
   MIXIN,
 
@@ -1598,54 +1602,58 @@ table AnalysisDriverUnlinkedUnit {
 table AvailableDeclaration {
   children:[AvailableDeclaration] (id: 0);
 
-  defaultArgumentListString:string (id: 1);
+  codeLength:uint (id: 1);
 
-  defaultArgumentListTextRanges:[uint] (id: 2);
+  codeOffset:uint (id: 2);
 
-  docComplete:string (id: 3);
+  defaultArgumentListString:string (id: 3);
 
-  docSummary:string (id: 4);
+  defaultArgumentListTextRanges:[uint] (id: 4);
 
-  fieldMask:uint (id: 5);
+  docComplete:string (id: 5);
 
-  isAbstract:bool (id: 6);
+  docSummary:string (id: 6);
 
-  isConst:bool (id: 7);
+  fieldMask:uint (id: 7);
 
-  isDeprecated:bool (id: 8);
+  isAbstract:bool (id: 8);
 
-  isFinal:bool (id: 9);
+  isConst:bool (id: 9);
+
+  isDeprecated:bool (id: 10);
+
+  isFinal:bool (id: 11);
 
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 10);
+  kind:AvailableDeclarationKind (id: 12);
 
-  locationOffset:uint (id: 11);
+  locationOffset:uint (id: 13);
 
-  locationStartColumn:uint (id: 12);
+  locationStartColumn:uint (id: 14);
 
-  locationStartLine:uint (id: 13);
+  locationStartLine:uint (id: 15);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 14);
+  name:string (id: 16);
 
-  parameterNames:[string] (id: 15);
+  parameterNames:[string] (id: 17);
 
-  parameters:string (id: 16);
+  parameters:string (id: 18);
 
-  parameterTypes:[string] (id: 17);
+  parameterTypes:[string] (id: 19);
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 18);
+  relevanceTags:[string] (id: 20);
 
-  requiredParameterCount:uint (id: 19);
+  requiredParameterCount:uint (id: 21);
 
-  returnType:string (id: 20);
+  returnType:string (id: 22);
 
-  typeParameters:string (id: 21);
+  typeParameters:string (id: 23);
 }
 
 /// Information about an available, even if not yet imported file.
@@ -1654,19 +1662,22 @@ table AvailableFile {
   declarations:[AvailableDeclaration] (id: 0);
 
   /// The Dartdoc directives in the file.
-  directiveInfo:DirectiveInfo (id: 5);
+  directiveInfo:DirectiveInfo (id: 1);
 
   /// Exports directives of the file.
-  exports:[AvailableFileExport] (id: 1);
+  exports:[AvailableFileExport] (id: 2);
 
   /// Is `true` if this file is a library.
-  isLibrary:bool (id: 2);
+  isLibrary:bool (id: 3);
 
   /// Is `true` if this file is a library, and it is deprecated.
-  isLibraryDeprecated:bool (id: 3);
+  isLibraryDeprecated:bool (id: 4);
+
+  /// Offsets of the first character of each line in the source code.
+  lineStarts:[uint] (id: 5);
 
   /// URIs of `part` directives.
-  parts:[string] (id: 4);
+  parts:[string] (id: 6);
 }
 
 /// Information about an export directive.
@@ -1916,9 +1927,9 @@ table LinkedNode {
 
   variantField_17:uint (id: 17);
 
-  variantField_38:LinkedNodeTypeSubstitution (id: 38);
-
   variantField_8:LinkedNode (id: 8);
+
+  variantField_38:LinkedNodeTypeSubstitution (id: 38);
 
   variantField_15:uint (id: 15);
 
@@ -2014,13 +2025,6 @@ table LinkedNodeReferences {
   parent:[uint] (id: 0);
 }
 
-/// Information about a type substitution.
-table LinkedNodeTypeSubstitution {
-  typeParameters:[uint] (id: 0);
-
-  typeArguments:[LinkedNodeType] (id: 1);
-}
-
 /// Information about a Dart type.
 table LinkedNodeType {
   functionFormalParameters:[LinkedNodeTypeFormalParameter] (id: 0);
@@ -2055,6 +2059,13 @@ table LinkedNodeTypeFormalParameter {
   name:string (id: 1);
 
   type:LinkedNodeType (id: 2);
+}
+
+/// Information about a type substitution.
+table LinkedNodeTypeSubstitution {
+  typeArguments:[LinkedNodeType] (id: 1);
+
+  typeParameters:[uint] (id: 0);
 }
 
 /// Information about a type parameter in a function type.

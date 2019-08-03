@@ -142,12 +142,16 @@ protocol.ElementKind protocolElementKind(DeclarationKind kind) {
       return protocol.ElementKind.ENUM_CONSTANT;
     case DeclarationKind.EXTENSION:
       return protocol.ElementKind.EXTENSION;
+    case DeclarationKind.FIELD:
+      return protocol.ElementKind.FIELD;
     case DeclarationKind.FUNCTION:
       return protocol.ElementKind.FUNCTION;
     case DeclarationKind.FUNCTION_TYPE_ALIAS:
       return protocol.ElementKind.FUNCTION_TYPE_ALIAS;
     case DeclarationKind.GETTER:
       return protocol.ElementKind.GETTER;
+    case DeclarationKind.METHOD:
+      return protocol.ElementKind.METHOD;
     case DeclarationKind.MIXIN:
       return protocol.ElementKind.MIXIN;
     case DeclarationKind.SETTER:

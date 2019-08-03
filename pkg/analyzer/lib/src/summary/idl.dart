@@ -299,73 +299,79 @@ abstract class AvailableDeclaration extends base.SummaryClass {
   List<AvailableDeclaration> get children;
 
   @Id(1)
-  String get defaultArgumentListString;
+  int get codeLength;
 
   @Id(2)
-  List<int> get defaultArgumentListTextRanges;
+  int get codeOffset;
 
   @Id(3)
-  String get docComplete;
+  String get defaultArgumentListString;
 
   @Id(4)
-  String get docSummary;
+  List<int> get defaultArgumentListTextRanges;
 
   @Id(5)
-  int get fieldMask;
+  String get docComplete;
 
   @Id(6)
-  bool get isAbstract;
+  String get docSummary;
 
   @Id(7)
-  bool get isConst;
+  int get fieldMask;
 
   @Id(8)
-  bool get isDeprecated;
+  bool get isAbstract;
 
   @Id(9)
+  bool get isConst;
+
+  @Id(10)
+  bool get isDeprecated;
+
+  @Id(11)
   bool get isFinal;
 
   /// The kind of the declaration.
-  @Id(10)
+  @Id(12)
   AvailableDeclarationKind get kind;
 
-  @Id(11)
+  @Id(13)
   int get locationOffset;
 
-  @Id(12)
+  @Id(14)
   int get locationStartColumn;
 
-  @Id(13)
+  @Id(15)
   int get locationStartLine;
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  @Id(14)
+  @Id(16)
   String get name;
 
-  @Id(15)
+  @Id(17)
   List<String> get parameterNames;
 
-  @Id(16)
+  @Id(18)
   String get parameters;
 
-  @Id(17)
+  @Id(19)
   List<String> get parameterTypes;
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  @Id(18)
+  @Id(20)
   List<String> get relevanceTags;
 
-  @Id(19)
+  @Id(21)
   int get requiredParameterCount;
 
-  @Id(20)
+  @Id(22)
   String get returnType;
 
-  @Id(21)
+  @Id(23)
   String get typeParameters;
 }
 
@@ -377,9 +383,11 @@ enum AvailableDeclarationKind {
   ENUM,
   ENUM_CONSTANT,
   EXTENSION,
+  FIELD,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
   GETTER,
+  METHOD,
   MIXIN,
   SETTER,
   VARIABLE
@@ -396,23 +404,28 @@ abstract class AvailableFile extends base.SummaryClass {
   List<AvailableDeclaration> get declarations;
 
   /// The Dartdoc directives in the file.
-  @Id(5)
+  @Id(1)
   DirectiveInfo get directiveInfo;
 
   /// Exports directives of the file.
-  @Id(1)
+  @Id(2)
   List<AvailableFileExport> get exports;
 
   /// Is `true` if this file is a library.
-  @Id(2)
+  @Id(3)
   bool get isLibrary;
 
   /// Is `true` if this file is a library, and it is deprecated.
-  @Id(3)
+  @Id(4)
   bool get isLibraryDeprecated;
 
+  /// Offsets of the first character of each line in the source code.
+  @informative
+  @Id(5)
+  List<int> get lineStarts;
+
   /// URIs of `part` directives.
-  @Id(4)
+  @Id(6)
   List<String> get parts;
 }
 
@@ -881,11 +894,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(17, variant: LinkedNodeKind.annotation)
   int get annotation_element;
 
-  @VariantId(38, variant: LinkedNodeKind.annotation)
-  LinkedNodeTypeSubstitution get annotation_substitution;
-
   @VariantId(8, variant: LinkedNodeKind.annotation)
   LinkedNode get annotation_name;
+
+  @VariantId(38, variant: LinkedNodeKind.annotation)
+  LinkedNodeTypeSubstitution get annotation_substitution;
 
   @VariantId(2, variant: LinkedNodeKind.argumentList)
   List<LinkedNode> get argumentList_arguments;
@@ -911,9 +924,6 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.assignmentExpression)
   int get assignmentExpression_element;
 
-  @VariantId(38, variant: LinkedNodeKind.assignmentExpression)
-  LinkedNodeTypeSubstitution get assignmentExpression_substitution;
-
   @VariantId(6, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_leftHandSide;
 
@@ -923,14 +933,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(7, variant: LinkedNodeKind.assignmentExpression)
   LinkedNode get assignmentExpression_rightHandSide;
 
+  @VariantId(38, variant: LinkedNodeKind.assignmentExpression)
+  LinkedNodeTypeSubstitution get assignmentExpression_substitution;
+
   @VariantId(6, variant: LinkedNodeKind.awaitExpression)
   LinkedNode get awaitExpression_expression;
 
   @VariantId(15, variant: LinkedNodeKind.binaryExpression)
   int get binaryExpression_element;
-
-  @VariantId(38, variant: LinkedNodeKind.binaryExpression)
-  LinkedNodeTypeSubstitution get binaryExpression_substitution;
 
   @VariantId(24, variant: LinkedNodeKind.binaryExpression)
   LinkedNodeType get binaryExpression_invokeType;
@@ -943,6 +953,9 @@ abstract class LinkedNode extends base.SummaryClass {
 
   @VariantId(7, variant: LinkedNodeKind.binaryExpression)
   LinkedNode get binaryExpression_rightOperand;
+
+  @VariantId(38, variant: LinkedNodeKind.binaryExpression)
+  LinkedNodeTypeSubstitution get binaryExpression_substitution;
 
   @VariantId(2, variant: LinkedNodeKind.block)
   List<LinkedNode> get block_statements;
@@ -1079,11 +1092,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.constructorName)
   int get constructorName_element;
 
-  @VariantId(38, variant: LinkedNodeKind.constructorName)
-  LinkedNodeTypeSubstitution get constructorName_substitution;
-
   @VariantId(6, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_name;
+
+  @VariantId(38, variant: LinkedNodeKind.constructorName)
+  LinkedNodeTypeSubstitution get constructorName_substitution;
 
   @VariantId(7, variant: LinkedNodeKind.constructorName)
   LinkedNode get constructorName_type;
@@ -1323,11 +1336,11 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.indexExpression)
   int get indexExpression_element;
 
-  @VariantId(38, variant: LinkedNodeKind.indexExpression)
-  LinkedNodeTypeSubstitution get indexExpression_substitution;
-
   @VariantId(6, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_index;
+
+  @VariantId(38, variant: LinkedNodeKind.indexExpression)
+  LinkedNodeTypeSubstitution get indexExpression_substitution;
 
   @VariantId(7, variant: LinkedNodeKind.indexExpression)
   LinkedNode get indexExpression_target;
@@ -1530,14 +1543,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.postfixExpression)
   int get postfixExpression_element;
 
-  @VariantId(38, variant: LinkedNodeKind.postfixExpression)
-  LinkedNodeTypeSubstitution get postfixExpression_substitution;
-
   @VariantId(6, variant: LinkedNodeKind.postfixExpression)
   LinkedNode get postfixExpression_operand;
 
   @VariantId(28, variant: LinkedNodeKind.postfixExpression)
   UnlinkedTokenType get postfixExpression_operator;
+
+  @VariantId(38, variant: LinkedNodeKind.postfixExpression)
+  LinkedNodeTypeSubstitution get postfixExpression_substitution;
 
   @VariantId(6, variant: LinkedNodeKind.prefixedIdentifier)
   LinkedNode get prefixedIdentifier_identifier;
@@ -1548,14 +1561,14 @@ abstract class LinkedNode extends base.SummaryClass {
   @VariantId(15, variant: LinkedNodeKind.prefixExpression)
   int get prefixExpression_element;
 
-  @VariantId(38, variant: LinkedNodeKind.prefixExpression)
-  LinkedNodeTypeSubstitution get prefixExpression_substitution;
-
   @VariantId(6, variant: LinkedNodeKind.prefixExpression)
   LinkedNode get prefixExpression_operand;
 
   @VariantId(28, variant: LinkedNodeKind.prefixExpression)
   UnlinkedTokenType get prefixExpression_operator;
+
+  @VariantId(38, variant: LinkedNodeKind.prefixExpression)
+  LinkedNodeTypeSubstitution get prefixExpression_substitution;
 
   @VariantId(28, variant: LinkedNodeKind.propertyAccess)
   UnlinkedTokenType get propertyAccess_operator;
@@ -1931,15 +1944,6 @@ abstract class LinkedNodeReferences extends base.SummaryClass {
   List<int> get parent;
 }
 
-/// Information about a type substitution.
-abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
-  @Id(0)
-  List<int> get typeParameters;
-
-  @Id(1)
-  List<LinkedNodeType> get typeArguments;
-}
-
 /// Information about a Dart type.
 abstract class LinkedNodeType extends base.SummaryClass {
   @Id(0)
@@ -1998,6 +2002,15 @@ enum LinkedNodeTypeKind {
   interface,
   typeParameter,
   void_
+}
+
+/// Information about a type substitution.
+abstract class LinkedNodeTypeSubstitution extends base.SummaryClass {
+  @Id(1)
+  List<LinkedNodeType> get typeArguments;
+
+  @Id(0)
+  List<int> get typeParameters;
 }
 
 /// Information about a type parameter in a function type.

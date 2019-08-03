@@ -12,7 +12,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
-import 'package:analyzer/src/dart/analysis/search.dart' as search;
+import 'package:analysis_server/src/search/workspace_symbols.dart' as search;
 
 class WorkspaceSymbolHandler
     extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
@@ -50,17 +50,13 @@ class WorkspaceSymbolHandler
     // huge numbers on large projects.
     var remainingResults = 500;
 
-    final declarations = <search.Declaration>[];
-    final filePathsHashSet = new LinkedHashSet<String>();
-    for (var driver in server.driverMap.values) {
-      final driverResults = await driver.search
-          .declarations(regex, remainingResults, filePathsHashSet);
-      if (token.isCancellationRequested) {
-        return cancelled();
-      }
-      declarations.addAll(driverResults);
-      remainingResults -= driverResults.length;
-    }
+    final filePathsHashSet = LinkedHashSet<String>();
+    final tracker = server.declarationsTracker;
+    final declarations = search.WorkspaceSymbols(tracker).declarations(
+      regex,
+      remainingResults,
+      filePathsHashSet,
+    );
 
     // Convert the file paths to something we can quickly index into since
     // we'll be looking things up by index a lot.
