@@ -6012,6 +6012,19 @@ extension E on int {
 ''');
   }
 
+  test_extension_field_inferredType_const() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary('''
+extension E on int {
+  static const x = 0;
+}''');
+    checkElementText(library, r'''
+extension E on int {
+  static const int x = 0;
+}
+''');
+  }
+
   test_field_covariant() async {
     var library = await checkLibrary('''
 class C {

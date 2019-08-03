@@ -274,9 +274,10 @@ class _InitializerInference {
     for (var builder in _linker.builders.values) {
       _library = builder.element;
       for (var unit in _library.units) {
+        unit.extensions.forEach(_addExtensionElementFields);
+        unit.mixins.forEach(_addClassElementFields);
         unit.types.forEach(_addClassConstructorFieldFormals);
         unit.types.forEach(_addClassElementFields);
-        unit.mixins.forEach(_addClassElementFields);
 
         _scope = builder.scope;
         for (var element in unit.topLevelVariables) {
@@ -309,6 +310,14 @@ class _InitializerInference {
     var node = _getLinkedNode(class_);
     _scope = LinkingNodeContext.get(node).scope;
     for (var element in class_.fields) {
+      _addVariableNode(element);
+    }
+  }
+
+  void _addExtensionElementFields(ExtensionElement extension_) {
+    var node = _getLinkedNode(extension_);
+    _scope = LinkingNodeContext.get(node).scope;
+    for (var element in extension_.fields) {
       _addVariableNode(element);
     }
   }

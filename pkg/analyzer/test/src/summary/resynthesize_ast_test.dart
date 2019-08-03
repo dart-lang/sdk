@@ -65,6 +65,13 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
     await super.test_defaultValue_refersToGenericClass();
   }
 
+  @FailingTest(
+    reason: 'Inference for extension fields is not implemented in summary1.',
+  )
+  test_extension_field_inferredType_const() async {
+    await super.test_extension_field_inferredType_const();
+  }
+
   @override
   @failingTest
   test_infer_generic_typedef_complex() async {
