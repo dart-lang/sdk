@@ -10,7 +10,7 @@ library vm.bytecode.dbc;
 /// Before bumping current bytecode version format, make sure that
 /// all users have switched to a VM which is able to consume new
 /// version of bytecode.
-const int currentBytecodeFormatVersion = 17;
+const int currentBytecodeFormatVersion = 18;
 
 enum Opcode {
   kUnusedOpcode000,
@@ -216,8 +216,8 @@ enum Opcode {
   kInterfaceCall_Wide,
   kUnused23, // Reserved for InterfaceCall1
   kUnused24, // Reserved for InterfaceCall1_Wide
-  kUnused25, // Reserved for InterfaceCall2
-  kUnused26, // Reserved for InterfaceCall2_Wide
+  kInstantiatedInterfaceCall,
+  kInstantiatedInterfaceCall_Wide,
   kUncheckedClosureCall,
   kUncheckedClosureCall_Wide,
   kUncheckedInterfaceCall,
@@ -438,6 +438,8 @@ const Map<Opcode, Format> BytecodeFormats = const {
       Encoding.kT, const [Operand.tgt, Operand.none, Operand.none]),
   Opcode.kInterfaceCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
+  Opcode.kInstantiatedInterfaceCall: const Format(
+      Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kDynamicCall: const Format(
       Encoding.kDF, const [Operand.lit, Operand.imm, Operand.none]),
   Opcode.kNativeCall: const Format(
@@ -607,6 +609,7 @@ bool isCall(Opcode opcode) {
   switch (opcode) {
     case Opcode.kDirectCall:
     case Opcode.kInterfaceCall:
+    case Opcode.kInstantiatedInterfaceCall:
     case Opcode.kUncheckedClosureCall:
     case Opcode.kUncheckedInterfaceCall:
     case Opcode.kDynamicCall:

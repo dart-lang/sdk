@@ -843,7 +843,8 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
 }
 
 void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
-    bool is_unchecked_call) {
+    bool is_unchecked_call,
+    bool is_instantiated_call) {
   if (is_generating_interpreter()) {
     UNIMPLEMENTED();  // TODO(alexmarkov): interpreter
   }
@@ -887,16 +888,34 @@ void BytecodeFlowGraphBuilder::BuildInterfaceCallCommon(
     call->set_entry_kind(Code::EntryKind::kUnchecked);
   }
 
+  if (is_instantiated_call) {
+    const AbstractType& static_receiver_type =
+        AbstractType::Cast(ConstantAt(DecodeOperandD(), 2).value());
+    call->set_receivers_static_type(&static_receiver_type);
+  } else {
+    const Class& owner = Class::Handle(Z, interface_target.Owner());
+    const AbstractType& type =
+        AbstractType::ZoneHandle(Z, owner.DeclarationType());
+    call->set_receivers_static_type(&type);
+  }
+
   code_ <<= call;
   B->Push(call);
 }
 
 void BytecodeFlowGraphBuilder::BuildInterfaceCall() {
-  BuildInterfaceCallCommon(/*is_unchecked_call=*/false);
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false,
+                           /*is_instantiated_call=*/false);
+}
+
+void BytecodeFlowGraphBuilder::BuildInstantiatedInterfaceCall() {
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/false,
+                           /*is_instantiated_call=*/true);
 }
 
 void BytecodeFlowGraphBuilder::BuildUncheckedInterfaceCall() {
-  BuildInterfaceCallCommon(/*is_unchecked_call=*/true);
+  BuildInterfaceCallCommon(/*is_unchecked_call=*/true,
+                           /*is_instantiated_call=*/false);
 }
 
 void BytecodeFlowGraphBuilder::BuildUncheckedClosureCall() {

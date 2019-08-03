@@ -717,6 +717,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kObjectRef,
     kDirectCall,
     kInterfaceCall,
+    kInstantiatedInterfaceCall,
   };
 
   enum InvocationKind {
@@ -882,6 +883,26 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         ++i;
         ASSERT(i < obj_count);
         // The second entry is used for arguments descriptor.
+        obj = ReadObject();
+      } break;
+      case ConstantPoolTag::kInstantiatedInterfaceCall: {
+        elem = ReadObject();
+        ASSERT(elem.IsFunction());
+        // InstantiatedInterfaceCall constant occupies 3 entries:
+        // 1) Interface target.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, elem);
+        ++i;
+        ASSERT(i < obj_count);
+        // 2) Arguments descriptor.
+        obj = ReadObject();
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // 3) Static receiver type.
         obj = ReadObject();
       } break;
       default:
