@@ -22,7 +22,27 @@ class InvalidUseOfCovariantInExtensionTest extends DriverResolutionTest {
     ..contextFeatures = new FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
-  test_instance() async {
+  test_optional_named() async {
+    await assertErrorsInCode('''
+extension E on String {
+  void foo({covariant int a}) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),
+    ]);
+  }
+
+  test_optional_positional() async {
+    await assertErrorsInCode('''
+extension E on String {
+  void foo([covariant int a]) {}
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION, 36, 9),
+    ]);
+  }
+
+  test_required_positional() async {
     await assertErrorsInCode('''
 extension E on String {
   void foo(covariant int a) {}

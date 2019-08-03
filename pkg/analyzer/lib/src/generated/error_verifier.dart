@@ -6145,6 +6145,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       FormalParameter parameter = parameters[i];
+      if (parameter is DefaultFormalParameter) {
+        parameter = (parameter as DefaultFormalParameter).parameter;
+      }
       Token keyword = parameter.covariantKeyword;
       if (keyword != null) {
         if (_enclosingExtension != null) {
