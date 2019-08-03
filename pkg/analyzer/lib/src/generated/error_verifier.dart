@@ -17,7 +17,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -27,14 +26,13 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
-import 'package:analyzer/src/error/pending_error.dart';
+import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
 
 /**
@@ -307,6 +305,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
+  final RequiredParametersVerifier _requiredParametersVerifier;
+
   /**
    * Initialize a newly created error verifier.
    *
@@ -328,7 +328,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       : _errorReporter = errorReporter,
         _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =
-            new _UninstantiatedBoundChecker(errorReporter) {
+            new _UninstantiatedBoundChecker(errorReporter),
+        _requiredParametersVerifier =
+            RequiredParametersVerifier(errorReporter) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -922,8 +924,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
     _checkForImplicitDynamicInvoke(node);
     _checkForNullableDereference(functionExpression);
-    _checkForMissingRequiredParam(
-        node.staticInvokeType, node.argumentList, node);
+    _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
 
@@ -1031,8 +1032,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         _checkForConstOrNewWithAbstractClass(node, typeName, type);
         _checkForConstOrNewWithEnum(node, typeName, type);
         _checkForConstOrNewWithMixin(node, typeName, type);
-        _checkForMissingRequiredParam(
-            node.staticElement?.type, node.argumentList, node.constructorName);
+        _requiredParametersVerifier.visitInstanceCreationExpression(node);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -1134,8 +1134,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkTypeArguments(node);
     _checkForImplicitDynamicInvoke(node);
     _checkForNullableDereference(methodName);
-    _checkForMissingRequiredParam(
-        node.staticInvokeType, node.argumentList, node.methodName);
+    _requiredParametersVerifier.visitMethodInvocation(node);
     if (node.operator?.type != TokenType.QUESTION_PERIOD &&
         methodName.name != 'toString' &&
         methodName.name != 'noSuchMethod') {
@@ -1259,11 +1258,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    DartType type =
-        resolutionMap.staticElementForConstructorReference(node)?.type;
-    if (type != null) {
-      _checkForMissingRequiredParam(type, node.argumentList, node);
-    }
+    _requiredParametersVerifier.visitRedirectingConstructorInvocation(node);
     _isInConstructorInitializer = true;
     try {
       super.visitRedirectingConstructorInvocation(node);
@@ -1366,11 +1361,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    DartType type =
-        resolutionMap.staticElementForConstructorReference(node)?.type;
-    if (type != null) {
-      _checkForMissingRequiredParam(type, node.argumentList, node);
-    }
+    _requiredParametersVerifier.visitSuperConstructorInvocation(node);
     _isInConstructorInitializer = true;
     try {
       super.visitSuperConstructorInvocation(node);
@@ -4256,24 +4247,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _checkForMissingRequiredParam(
-      DartType type, ArgumentList argumentList, AstNode node) {
-    if (type is FunctionType) {
-      for (ParameterElement parameter in type.parameters) {
-        if (parameter.isRequiredNamed) {
-          String parameterName = parameter.name;
-          if (!RequiredConstantsComputer._containsNamedExpression(
-              argumentList, parameterName)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT,
-                node,
-                [parameterName]);
-          }
-        }
-      }
-    }
-  }
-
   /**
    * Verify that the given function [body] does not contain return statements
    * that both have and do not have return values.
@@ -6750,118 +6723,6 @@ class HiddenElements {
    */
   void _initializeElements(Block block) {
     _elements.addAll(BlockScope.elementsInBlock(block));
-  }
-}
-
-/**
- * A class used to compute a list of the constants whose value needs to be
- * computed before errors can be computed by the [VerifyUnitTask].
- */
-class RequiredConstantsComputer extends RecursiveAstVisitor {
-  /**
-   * The source with which any pending errors will be associated.
-   */
-  final Source source;
-
-  /**
-   * A list of the pending errors that were computed.
-   */
-  final List<PendingError> pendingErrors = <PendingError>[];
-
-  /**
-   * A list of the constants whose value needs to be computed before the pending
-   * errors can be used to compute an analysis error.
-   */
-  final List<ConstantEvaluationTarget> requiredConstants =
-      <ConstantEvaluationTarget>[];
-
-  /**
-   * Initialize a newly created computer to compute required constants within
-   * the given [source].
-   */
-  RequiredConstantsComputer(this.source);
-
-  @override
-  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkForMissingRequiredParam(
-        node.staticInvokeType, node.argumentList, node);
-    return super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
-  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    DartType type = node.constructorName.type.type;
-    if (type is InterfaceType) {
-      _checkForMissingRequiredParam(
-          resolutionMap.staticElementForConstructorReference(node)?.type,
-          node.argumentList,
-          node.constructorName);
-    }
-    return super.visitInstanceCreationExpression(node);
-  }
-
-  @override
-  Object visitMethodInvocation(MethodInvocation node) {
-    _checkForMissingRequiredParam(
-        node.staticInvokeType, node.argumentList, node.methodName);
-    return super.visitMethodInvocation(node);
-  }
-
-  @override
-  Object visitRedirectingConstructorInvocation(
-      RedirectingConstructorInvocation node) {
-    DartType type =
-        resolutionMap.staticElementForConstructorReference(node)?.type;
-    if (type != null) {
-      _checkForMissingRequiredParam(type, node.argumentList, node);
-    }
-    return super.visitRedirectingConstructorInvocation(node);
-  }
-
-  @override
-  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    DartType type =
-        resolutionMap.staticElementForConstructorReference(node)?.type;
-    if (type != null) {
-      _checkForMissingRequiredParam(type, node.argumentList, node);
-    }
-    return super.visitSuperConstructorInvocation(node);
-  }
-
-  void _checkForMissingRequiredParam(
-      DartType type, ArgumentList argumentList, AstNode node) {
-    if (type is FunctionType) {
-      for (ParameterElement parameter in type.parameters) {
-        if (parameter.isOptionalNamed) {
-          ElementAnnotationImpl annotation = _getRequiredAnnotation(parameter);
-          if (annotation != null) {
-            String parameterName = parameter.name;
-            if (!_containsNamedExpression(argumentList, parameterName)) {
-              requiredConstants.add(annotation);
-              pendingErrors.add(new PendingMissingRequiredParameterError(
-                  source, parameterName, node, annotation));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
-      .metadata
-      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
-
-  static bool _containsNamedExpression(ArgumentList args, String name) {
-    NodeList<Expression> arguments = args.arguments;
-    for (int i = arguments.length - 1; i >= 0; i--) {
-      Expression expression = arguments[i];
-      if (expression is NamedExpression) {
-        if (expression.name.label.name == name) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 }
 
