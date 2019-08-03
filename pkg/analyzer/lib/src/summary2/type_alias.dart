@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary2/lazy_ast.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -27,10 +29,26 @@ class TypeAliasSelfReferenceFinder {
               node,
               finder.hasSelfReference,
             );
+            if (finder.hasSelfReference) {
+              _sanitizeGenericTypeAlias(node);
+            }
           }
         }
       }
     }
+  }
+
+  void _sanitizeGenericTypeAlias(GenericTypeAlias node) {
+    var typeParameterList = node.typeParameters;
+    if (typeParameterList != null) {
+      for (var typeParameter in typeParameterList.typeParameters) {
+        typeParameter.bound = null;
+      }
+    }
+    node.functionType.returnType = null;
+    node.functionType.parameters.parameters.clear();
+    (node.functionType as GenericFunctionTypeImpl).type =
+        FunctionTypeImpl.synthetic(DynamicTypeImpl.instance, [], []);
   }
 }
 

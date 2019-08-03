@@ -6632,6 +6632,21 @@ typedef F2<V2> = V2 Function();
 ''');
   }
 
+  test_genericTypeAlias_recursive() async {
+    var library = await checkLibrary('''
+typedef F<X extends F> = Function(F);
+''');
+    if (isAstBasedSummary) {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<X> = dynamic Function();
+''');
+    } else {
+      checkElementText(library, r'''
+notSimplyBounded typedef F<X extends dynamic Function(...)> = dynamic Function(dynamic Function(...) );
+''');
+    }
+  }
+
   test_getter_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0
