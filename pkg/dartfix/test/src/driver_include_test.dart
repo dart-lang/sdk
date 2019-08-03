@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-const _debug = false;
+const _debug = true;
 
 main() {
   File exampleFile;
@@ -21,21 +21,27 @@ main() {
 
     final driver = Driver();
     final testContext = TestContext();
-    final testLogger = TestLogger();
+    final testLogger = TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
-    await driver.start(['--fix', 'use-mixin', exampleDir.path],
-        testContext: testContext, testLogger: testLogger);
-    if (_debug) {
-      print(testLogger.stderrBuffer.toString());
-      print(testLogger.stdoutBuffer.toString());
-      print('--- original example');
-      print(exampleSource);
+    try {
+      await driver.start([
+        if (_debug) '-v',
+        '--fix',
+        'double-to-int',
+        exampleDir.path,
+      ], testContext: testContext, testLogger: testLogger);
+    } finally {
+      if (_debug) {
+        print(testLogger.stderrBuffer.toString());
+        print(testLogger.stdoutBuffer.toString());
+        print('--- original example');
+        print(exampleSource);
+      }
     }
 
     final suggestions = driver.result.suggestions;
     expect(suggestions, hasLength(1));
-    expectHasSuggestion(suggestions, 'Convert MyMixin to a mixin');
-    expectDoesNotHaveSuggestion(suggestions, 'Replace a double literal');
-  });
+    expectHasSuggestion(suggestions, 'Convert to an int literal');
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }

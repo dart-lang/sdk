@@ -1,5 +1,5 @@
-// This file contains code that is modified by running dartfix.
-// After running dartfix, this content matches a file in the "fixed" directory.
+// This file contains code that has been modified by running dartfix.
+// See example.dart for the original unmodified code.
 
 // ignore_for_file: prefer_is_empty
 
@@ -10,7 +10,7 @@ const double myDouble = 4.0;
 
 // This class is used as a mixin but does not use the new mixin syntax.
 // Running dartfix converts this class to use the new syntax.
-class MyMixin {
+mixin MyMixin {
   final someValue = myDouble;
 }
 

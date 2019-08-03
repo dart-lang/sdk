@@ -72,10 +72,7 @@ class Options {
       ..addMultiOption(excludeFixOption,
           help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
       ..addFlag(requiredOption,
-          abbr: 'r',
-          help: 'Apply required fixes.',
-          defaultsTo: false,
-          negatable: false)
+          help: 'Apply required fixes.', defaultsTo: false, negatable: false)
       ..addSeparator('Modifying files:')
       ..addFlag(overwriteOption,
           abbr: 'w',
@@ -113,7 +110,7 @@ class Options {
       logger ??= Logger.standard(ansi: Ansi(Ansi.terminalSupportsAnsi));
       logger.stderr(e.message);
       _showUsage(parser, logger);
-      context.exit(15);
+      context.exit(17);
     }
 
     Options options = Options._fromArgs(context, results);
@@ -142,18 +139,18 @@ class Options {
     String sdkPath = options.sdkPath;
     if (sdkPath == null) {
       logger.stderr('No Dart SDK found.');
-      context.exit(15);
+      context.exit(18);
     }
 
     if (!context.exists(sdkPath)) {
       logger.stderr('Invalid Dart SDK path: $sdkPath');
-      context.exit(15);
+      context.exit(19);
     }
 
     // Check for files and/or directories to analyze.
     if (options.targets == null || options.targets.isEmpty) {
       logger.stderr('Expected at least one file or directory to analyze.');
-      context.exit(15);
+      context.exit(20);
     }
 
     // Normalize and verify paths
@@ -166,7 +163,7 @@ class Options {
         } else {
           logger.stderr('Expected directory, but found: $target');
         }
-        context.exit(15);
+        context.exit(21);
       }
     }
 

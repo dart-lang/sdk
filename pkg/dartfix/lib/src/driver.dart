@@ -229,7 +229,7 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
     }
 
     if (!await startServer(options)) {
-      context.exit(15);
+      context.exit(16);
     }
 
     if (!checkIfSelectedOptionsAreSupported(options)) {

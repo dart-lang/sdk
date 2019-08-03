@@ -96,7 +96,7 @@ main() {
 
   test('invalid option', () {
     parse(['--foo'],
-        errorOut: 'Could not find an option named "foo"', exitCode: 15);
+        errorOut: 'Could not find an option named "foo"', exitCode: 17);
   });
 
   test('invalid option no logger', () {
@@ -104,13 +104,13 @@ main() {
       Options.parse(['--foo'], context, null);
       fail('Expected exception');
     } on TestExit catch (e) {
-      expect(e.code, 15, reason: 'exit code');
+      expect(e.code, 17, reason: 'exit code');
     }
   });
 
   test('invalid target', () {
     parse(['foo.dart'],
-        errorOut: 'Expected directory, but found', exitCode: 15);
+        errorOut: 'Expected directory, but found', exitCode: 21);
   });
 
   test('overwrite', () {

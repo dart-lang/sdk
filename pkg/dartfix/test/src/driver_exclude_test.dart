@@ -24,13 +24,13 @@ main() {
     final testLogger = TestLogger(debug: _debug);
     String exampleSource = await exampleFile.readAsString();
 
-    var args = ['--excludeFix', 'use-mixin', exampleDir.path];
-    if (_debug) {
-      args.add('-v');
-    }
     try {
-      await driver.start(args,
-          testContext: testContext, testLogger: testLogger);
+      await driver.start([
+        if (_debug) '-v',
+        '--excludeFix',
+        'use-mixin',
+        exampleDir.path,
+      ], testContext: testContext, testLogger: testLogger);
     } finally {
       if (_debug) {
         print(testLogger.stderrBuffer.toString());
@@ -41,8 +41,6 @@ main() {
     }
 
     final suggestions = driver.result.suggestions;
-    expect(suggestions, hasLength(1));
-    expectDoesNotHaveSuggestion(suggestions, 'Convert MyMixin to a mixin');
-    expectHasSuggestion(suggestions, 'Convert to an int literal');
-  });
+    expect(suggestions, hasLength(0));
+  }, timeout: const Timeout(Duration(minutes: 3)));
 }
