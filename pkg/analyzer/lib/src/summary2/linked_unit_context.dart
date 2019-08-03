@@ -302,7 +302,7 @@ class LinkedUnitContext {
     return node.constants;
   }
 
-  TypeName getExtendedType(ExtensionDeclaration node) {
+  TypeAnnotation getExtendedType(ExtensionDeclaration node) {
     LazyExtensionDeclaration.readExtendedType(_astReader, node);
     return node.extendedType;
   }
