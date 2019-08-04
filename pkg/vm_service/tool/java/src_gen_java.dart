@@ -50,7 +50,11 @@ class JavaGenerator {
   /// The java source directory into which files are generated.
   final String srcDirPath;
 
+  Set<String> _generatedPaths = new Set();
+
   JavaGenerator(this.srcDirPath);
+
+  Iterable<String> get allWrittenFiles => _generatedPaths;
 
   /// Generate a Java class/interface in the given package
   void writeType(String typeName, WriteType write) {
@@ -61,6 +65,7 @@ class JavaGenerator {
     if (!pkgDir.existsSync()) pkgDir.createSync(recursive: true);
     var classFilePath = join(pkgDirPath, '${classNameFor(typeName)}.java');
     var classFile = new File(classFilePath);
+    _generatedPaths.add(classFilePath);
     classFile.writeAsStringSync(classWriter.toSource());
   }
 }

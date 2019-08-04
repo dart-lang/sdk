@@ -17,20 +17,11 @@ final bool _stampPubspecVersion = false;
 /// Parse the 'service.md' into a model and generate both Dart and Java
 /// libraries.
 main(List<String> args) async {
-  bool generateJava = false;
-  if (args.length != 0) {
-    if ((args.length == 1) && (args.first == '--generate-java')) {
-      generateJava = true;
-    } else {
-      print('Invalid options: $args. Usage: dart generate [--generate-java].');
-      return;
-    }
-  }
   String appDirPath = dirname(Platform.script.toFilePath());
 
   // Parse service.md into a model.
-  var file =
-      new File(join(appDirPath, '../../../runtime/vm/service/service.md'));
+  var file = new File(
+      normalize(join(appDirPath, '../../../runtime/vm/service/service.md')));
   var document = new Document();
   StringBuffer buf = new StringBuffer(file.readAsStringSync());
   var nodes = document.parseLines(buf.toString().split('\n'));
@@ -38,15 +29,14 @@ main(List<String> args) async {
   print('Service protocol version ${ApiParseUtil.parseVersionString(nodes)}.');
 
   // Generate code from the model.
+  print('');
+
   await _generateDart(appDirPath, nodes);
-  if (generateJava) {
-    await _generateJava(appDirPath, nodes);
-  }
+  await _generateJava(appDirPath, nodes);
   await _generateAsserts(appDirPath, nodes);
 }
 
 _generateDart(String appDirPath, List<Node> nodes) async {
-  print('');
   var outDirPath = normalize(join(appDirPath, '..', 'lib'));
   var outDir = new Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -71,13 +61,25 @@ _generateDart(String appDirPath, List<Node> nodes) async {
 }
 
 _generateJava(String appDirPath, List<Node> nodes) async {
-  print('');
-  var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src', 'gen'));
-  assert(new Directory(srcDirPath).existsSync());
+  var srcDirPath = normalize(join(appDirPath, '..', 'java', 'src'));
   var generator = new java.JavaGenerator(srcDirPath);
   java.api = new java.Api();
   java.api.parse(nodes);
   java.api.generate(generator);
+
+  // We generate files into the java/src/ folder; ensure the generated files
+  // aren't committed to git (but manually maintained files in the same
+  // directory are).
+  List<String> generatedPaths = generator.allWrittenFiles
+      .map((path) => relative(path, from: 'java'))
+      .toList();
+  generatedPaths.sort();
+  File gitignoreFile = new File(join(appDirPath, '..', 'java', '.gitignore'));
+  gitignoreFile.writeAsStringSync('''
+# This is a generated file.
+
+${generatedPaths.join('\n')}
+''');
 
   // Generate a version file.
   Version version = ApiParseUtil.parseVersionSemVer(nodes);
@@ -88,7 +90,6 @@ _generateJava(String appDirPath, List<Node> nodes) async {
 }
 
 _generateAsserts(String appDirPath, List<Node> nodes) async {
-  print('');
   var outDirPath = normalize(join(appDirPath, '..', 'example'));
   var outDir = new Directory(outDirPath);
   if (!outDir.existsSync()) outDir.createSync(recursive: true);
