@@ -52,7 +52,7 @@ import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoder, RecipeEncoderImpl, RulesetEncoder;
+    show RecipeEncoder, RecipeEncoderImpl, Ruleset, RulesetEncoder;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
 import '../../world.dart';

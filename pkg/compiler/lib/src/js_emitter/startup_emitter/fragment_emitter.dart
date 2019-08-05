@@ -1942,15 +1942,17 @@ class FragmentEmitter {
   js.Statement emitTypeRules(Fragment fragment) {
     if (!_options.experimentNewRti) return js.EmptyStatement();
 
-    Map<InterfaceType, Iterable<InterfaceType>> ruleset = {};
+    Ruleset ruleset = Ruleset.empty();
     Iterable<Class> classes =
         fragment.libraries.expand((Library library) => library.classes);
     classes.forEach((Class cls) {
       if (cls.classChecksNewRti == null) return;
       InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
-      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
-          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
-      ruleset[targetType] = supertypes;
+      List<InterfaceType> supertypes = cls.classChecksNewRti.checks
+          .map((TypeCheck check) =>
+              _dartTypes.asInstanceOf(targetType, check.cls))
+          .toList();
+      ruleset.add(targetType, supertypes);
     });
 
     FunctionEntity method = _closedWorld.commonElements.rtiAddRulesMethod;

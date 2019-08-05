@@ -416,6 +416,23 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 }
 
+class _RulesetEntry {
+  final InterfaceType _targetType;
+  List<InterfaceType> _supertypes;
+
+  _RulesetEntry(this._targetType, this._supertypes);
+}
+
+class Ruleset {
+  List<_RulesetEntry> _entries;
+
+  Ruleset(this._entries);
+  Ruleset.empty() : this([]);
+
+  void add(InterfaceType targetType, Iterable<InterfaceType> supertypes) =>
+      _entries.add(_RulesetEntry(targetType, supertypes));
+}
+
 class RulesetEncoder {
   final DartTypes _dartTypes;
   final ModularEmitter _emitter;
@@ -436,34 +453,40 @@ class RulesetEncoder {
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
+  void _preprocessEntry(_RulesetEntry entry) =>
+      entry._supertypes.removeWhere(_isObject);
+
+  void _preprocessRuleset(Ruleset ruleset) {
+    ruleset._entries.forEach(_preprocessEntry);
+    ruleset._entries.removeWhere((_RulesetEntry entry) =>
+        _isObject(entry._targetType) || entry._supertypes.isEmpty);
+  }
+
   // TODO(fishythefish): Common substring elimination.
 
   /// Produces a string readable by `JSON.parse()`.
-  jsAst.StringConcatenation encodeRuleset(
-          Map<InterfaceType, Iterable<InterfaceType>> ruleset) =>
+  jsAst.StringConcatenation encodeRuleset(Ruleset ruleset) {
+    _preprocessRuleset(ruleset);
+    return _encodeRuleset(ruleset);
+  }
+
+  jsAst.StringConcatenation _encodeRuleset(Ruleset ruleset) =>
       js.concatenateStrings([
         _quote,
         _leftBrace,
-        ...js.joinLiterals(
-            ruleset.entries
-                .where((entry) => !_isObject(entry.key))
-                .map((entry) => _encodeRule(entry.key, entry.value)),
-            _comma),
+        ...js.joinLiterals(ruleset._entries.map(_encodeEntry), _comma),
         _rightBrace,
         _quote,
       ]);
 
-  jsAst.StringConcatenation _encodeRule(
-          InterfaceType targetType, Iterable<InterfaceType> supertypes) =>
+  jsAst.StringConcatenation _encodeEntry(_RulesetEntry entry) =>
       js.concatenateStrings([
-        js.quoteName(_emitter.typeAccessNewRti(targetType.element)),
+        js.quoteName(_emitter.typeAccessNewRti(entry._targetType.element)),
         _colon,
         _leftBrace,
         ...js.joinLiterals(
-            supertypes
-                .where((InterfaceType supertype) => !_isObject(supertype))
-                .map((InterfaceType supertype) =>
-                    _encodeSupertype(targetType, supertype)),
+            entry._supertypes.map((InterfaceType supertype) =>
+                _encodeSupertype(entry._targetType, supertype)),
             _comma),
         _rightBrace,
       ]);
