@@ -146,7 +146,7 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(NameIndex klass) {
 }
 
 LibraryIndex::LibraryIndex(const ExternalTypedData& kernel_data,
-                           int32_t binary_version)
+                           uint32_t binary_version)
     : reader_(kernel_data), binary_version_(binary_version) {
   intptr_t data_size = reader_.size();
 
@@ -194,7 +194,8 @@ KernelLoader::KernelLoader(Program* program,
       patch_classes_(Array::ZoneHandle(zone_)),
       active_class_(),
       library_kernel_offset_(-1),  // Set to the correct value in LoadLibrary
-      correction_offset_(-1),      // Set to the correct value in LoadLibrary
+      kernel_binary_version_(program->binary_version()),
+      correction_offset_(-1),  // Set to the correct value in LoadLibrary
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(KernelProgramInfo::ZoneHandle(zone_)),
@@ -418,7 +419,8 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 
   kernel_program_info_ = KernelProgramInfo::New(
       offsets, data, names, metadata_payloads, metadata_mappings,
-      constants_table, scripts, libraries_cache, classes_cache);
+      constants_table, scripts, libraries_cache, classes_cache,
+      program_->binary_version());
 
   H.InitFromKernelProgramInfo(kernel_program_info_);
 
@@ -435,13 +437,15 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
 
 KernelLoader::KernelLoader(const Script& script,
                            const ExternalTypedData& kernel_data,
-                           intptr_t data_program_offset)
+                           intptr_t data_program_offset,
+                           uint32_t kernel_binary_version)
     : program_(NULL),
       thread_(Thread::Current()),
       zone_(thread_->zone()),
       isolate_(thread_->isolate()),
       patch_classes_(Array::ZoneHandle(zone_)),
       library_kernel_offset_(data_program_offset),
+      kernel_binary_version_(kernel_binary_version),
       correction_offset_(0),
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
@@ -932,9 +936,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       intptr_t library_end = library_offset(i + 1);
       library_kernel_data_ =
           helper_.reader_.ExternalDataFromTo(kernel_offset, library_end);
-
-      LibraryIndex library_index(library_kernel_data_,
-                                 program_->binary_version());
+      LibraryIndex library_index(library_kernel_data_, kernel_binary_version_);
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
     }
@@ -1018,7 +1020,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
 
-  LibraryIndex library_index(library_kernel_data_, program_->binary_version());
+  LibraryIndex library_index(library_kernel_data_, kernel_binary_version_);
   intptr_t class_count = library_index.class_count();
 
   library_helper.ReadUntilIncluding(LibraryHelper::kName);
@@ -1310,11 +1312,14 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         Z, LookupLibrary(dependency_helper.target_library_canonical_name_));
     if (!FLAG_enable_mirrors &&
         target_library.url() == Symbols::DartMirrors().raw()) {
-      H.ReportError("import of dart:mirrors is not supported in the current Dart runtime");
+      H.ReportError(
+          "import of dart:mirrors is not supported in the current Dart "
+          "runtime");
     }
     if (!Api::IsFfiEnabled() &&
         target_library.url() == Symbols::DartFfi().raw()) {
-      H.ReportError("import of dart:ffi is not supported in the current Dart runtime");
+      H.ReportError(
+          "import of dart:ffi is not supported in the current Dart runtime");
     }
     String& prefix = H.DartSymbolPlain(dependency_helper.name_index_);
     ns = Namespace::New(target_library, show_names, hide_names);
@@ -1711,9 +1716,12 @@ void KernelLoader::FinishLoading(const Class& klass) {
   const intptr_t library_kernel_offset = library.kernel_offset();
   ASSERT(library_kernel_offset > 0);
 
-  KernelLoader kernel_loader(script, library_kernel_data,
-                             library_kernel_offset);
-  LibraryIndex library_index(library_kernel_data, /*binary_version=*/-1);
+  const KernelProgramInfo& info =
+      KernelProgramInfo::Handle(zone, script.kernel_program_info());
+
+  KernelLoader kernel_loader(script, library_kernel_data, library_kernel_offset,
+                             info.kernel_binary_version());
+  LibraryIndex library_index(library_kernel_data, info.kernel_binary_version());
 
   if (klass.IsTopLevel()) {
     ASSERT(klass.raw() == toplevel_class.raw());

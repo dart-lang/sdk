@@ -82,10 +82,8 @@ class Mapping {
 class LibraryIndex {
  public:
   // |kernel_data| is the kernel data for one library alone.
-  // binary_version can be -1 in which case some parts of the index might not
-  // be read.
   explicit LibraryIndex(const ExternalTypedData& kernel_data,
-                        int32_t binary_version);
+                        uint32_t binary_version);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -118,7 +116,7 @@ class LibraryIndex {
 
  private:
   Reader reader_;
-  int32_t binary_version_;
+  uint32_t binary_version_;
   intptr_t source_references_offset_;
   intptr_t class_index_offset_;
   intptr_t class_count_;
@@ -262,7 +260,8 @@ class KernelLoader : public ValueObject {
  private:
   KernelLoader(const Script& script,
                const ExternalTypedData& kernel_data,
-               intptr_t data_program_offset);
+               intptr_t data_program_offset,
+               uint32_t kernel_binary_version);
 
   void InitializeFields(
       DirectChainedHashMap<UriToSourceTableTrait>* uri_to_source_table);
@@ -402,6 +401,7 @@ class KernelLoader : public ValueObject {
   // This is the offset of the current library within
   // the whole kernel program.
   intptr_t library_kernel_offset_;
+  uint32_t kernel_binary_version_;
   // This is the offset by which offsets, which are set relative
   // to their library's kernel data, have to be corrected.
   intptr_t correction_offset_;

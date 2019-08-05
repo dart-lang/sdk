@@ -12164,7 +12164,8 @@ RawKernelProgramInfo* KernelProgramInfo::New(
     const ExternalTypedData& constants_table,
     const Array& scripts,
     const Array& libraries_cache,
-    const Array& classes_cache) {
+    const Array& classes_cache,
+    const uint32_t binary_version) {
   const KernelProgramInfo& info =
       KernelProgramInfo::Handle(KernelProgramInfo::New());
   info.StorePointer(&info.raw_ptr()->string_offsets_, string_offsets.raw());
@@ -12178,6 +12179,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
   info.StorePointer(&info.raw_ptr()->constants_table_, constants_table.raw());
   info.StorePointer(&info.raw_ptr()->libraries_cache_, libraries_cache.raw());
   info.StorePointer(&info.raw_ptr()->classes_cache_, classes_cache.raw());
+  info.set_kernel_binary_version(binary_version);
   return info.raw();
 }
 
@@ -12197,6 +12199,10 @@ void KernelProgramInfo::set_scripts(const Array& scripts) const {
 
 void KernelProgramInfo::set_constants(const Array& constants) const {
   StorePointer(&raw_ptr()->constants_, constants.raw());
+}
+
+void KernelProgramInfo::set_kernel_binary_version(uint32_t version) const {
+  StoreNonPointer(&raw_ptr()->kernel_binary_version_, version);
 }
 
 void KernelProgramInfo::set_constants_table(
