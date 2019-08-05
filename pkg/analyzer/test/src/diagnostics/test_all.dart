@@ -140,12 +140,21 @@ import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
 import 'missing_required_param_test.dart' as missing_required_param;
 import 'missing_return_test.dart' as missing_return;
+import 'mixed_return_types_test.dart' as mixed_return_types;
 import 'mixin_of_non_class_test.dart' as mixin_of_non_class;
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_super_class_constraint_non_interface_test.dart'
     as mixin_super_class_constraint_non_interface;
 import 'must_be_immutable_test.dart' as must_be_immutable;
 import 'must_call_super_test.dart' as must_call_super;
+import 'new_with_abstract_class_test.dart' as new_with_abstract_class;
+import 'new_with_invalid_type_parameters_test.dart'
+    as new_with_invalid_type_parameters;
+import 'new_with_non_type_test.dart' as new_with_non_type;
+import 'new_with_undefined_constructor_test.dart'
+    as new_with_undefined_constructor;
+import 'non_abstract_class_inherits_abstract_member_test.dart'
+    as non_abstract_class_inherits_abstract_member;
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
@@ -167,8 +176,14 @@ import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_spread_expression_from_deferred_library_test.dart'
     as non_constant_spread_expression_from_deferred_library;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
+import 'non_void_return_for_operator_test.dart' as non_void_return_for_operator;
+import 'non_void_return_for_setter_test.dart' as non_void_return_for_setter;
+import 'not_a_type_test.dart' as not_a_type;
 import 'not_assigned_potentially_non_nullable_local_variable_test.dart'
     as not_assigned_potentially_non_nullable_local_variable;
+import 'not_enough_required_arguments_test.dart'
+    as not_enough_required_arguments;
 import 'not_initialized_non_nullable_instance_field_test.dart'
     as not_initialized_non_nullable_instance_field;
 import 'not_initialized_non_nullable_variable_test.dart'
@@ -198,6 +213,15 @@ import 'override_on_non_overriding_method_test.dart'
     as override_on_non_overriding_method;
 import 'override_on_non_overriding_setter_test.dart'
     as override_on_non_overriding_setter;
+import 'part_of_different_library_test.dart' as part_of_different_library;
+import 'redirect_to_invalid_function_type_test.dart'
+    as redirect_to_invalid_function_type;
+import 'redirect_to_invalid_return_type_test.dart'
+    as redirect_to_invalid_return_type;
+import 'redirect_to_missing_constructor_test.dart'
+    as redirect_to_missing_constructor;
+import 'redirect_to_non_class_test.dart' as redirect_to_non_class;
+import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
 import 'sdk_version_async_exported_from_core_test.dart'
@@ -356,11 +380,17 @@ main() {
     missing_js_lib_annotation.main();
     missing_required_param.main();
     missing_return.main();
+    mixed_return_types.main();
     mixin_of_non_class.main();
     mixin_on_sealed_class.main();
     mixin_super_class_constraint_non_interface.main();
     must_be_immutable.main();
     must_call_super.main();
+    new_with_abstract_class.main();
+    new_with_invalid_type_parameters.main();
+    new_with_non_type.main();
+    new_with_undefined_constructor.main();
+    non_abstract_class_inherits_abstract_member.main();
     non_bool_condition.main();
     non_bool_negation_expression.main();
     non_bool_operand.main();
@@ -376,7 +406,12 @@ main() {
     non_constant_set_element_from_deferred_library.main();
     non_constant_spread_expression_from_deferred_library.main();
     non_null_opt_out.main();
+    non_type_in_catch_clause.main();
+    non_void_return_for_operator.main();
+    non_void_return_for_setter.main();
+    not_a_type.main();
     not_assigned_potentially_non_nullable_local_variable.main();
+    not_enough_required_arguments.main();
     not_initialized_non_nullable_instance_field.main();
     not_initialized_non_nullable_variable.main();
     not_iterable_spread.main();
@@ -395,6 +430,12 @@ main() {
     override_on_non_overriding_getter.main();
     override_on_non_overriding_method.main();
     override_on_non_overriding_setter.main();
+    part_of_different_library.main();
+    redirect_to_invalid_function_type.main();
+    redirect_to_invalid_return_type.main();
+    redirect_to_missing_constructor.main();
+    redirect_to_non_class.main();
+    return_without_value.main();
     sdk_version_as_expression_in_const_context.main();
     sdk_version_async_exported_from_core.main();
     sdk_version_bool_operator.main();
