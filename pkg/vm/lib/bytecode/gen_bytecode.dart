@@ -539,7 +539,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         flags |= FunctionDeclaration.isNoSuchMethodForwarderFlag;
       }
     }
-    if (member.isAbstract) {
+    if (member.isAbstract && !_hasCode(member)) {
       flags |= FunctionDeclaration.isAbstractFlag;
     }
     if (member.isConst) {
@@ -712,11 +712,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       return;
     }
     try {
-      bool hasCode = false;
-      start(node);
+      final bool hasCode = _hasCode(node);
+      start(node, hasCode);
       if (node is Field) {
-        if (hasInitializerCode(node)) {
-          hasCode = true;
+        if (hasCode) {
           if (node.isConst) {
             _genPushConstExpr(node.initializer);
           } else {
@@ -726,8 +725,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
         }
       } else if ((node is Procedure && !node.isRedirectingFactoryConstructor) ||
           (node is Constructor)) {
-        if (!node.isAbstract) {
-          hasCode = true;
+        if (hasCode) {
           if (node is Constructor) {
             _genConstructorInitializers(node);
           }
@@ -762,6 +760,24 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       hasErrors = true;
       end(node, false);
     }
+  }
+
+  bool _hasCode(Member member) {
+    if (member is Procedure && member.isRedirectingFactoryConstructor) {
+      return false;
+    }
+    // Front-end might set abstract flag on static external procedures,
+    // but they can be called and should have a body.
+    if (member is Procedure && member.isStatic && member.isExternal) {
+      return true;
+    }
+    if (member.isAbstract) {
+      return false;
+    }
+    if (member is Field) {
+      return hasInitializerCode(member);
+    }
+    return true;
   }
 
   bool hasInitializerCode(Field field) =>
@@ -1346,7 +1362,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     asm.emitInterfaceCall(cpIndex, 4);
   }
 
-  void start(Member node) {
+  void start(Member node, bool hasCode) {
     enclosingClass = node.enclosingClass;
     enclosingMember = node;
     enclosingFunction = node.function;
@@ -1384,7 +1400,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       functionTypeParametersSet = functionTypeParameters.toSet();
     }
     constantEvaluator.env = new EvaluationEnvironment();
-    if (node.isAbstract || node is Field && !hasInitializerCode(node)) {
+    if (!hasCode) {
       return;
     }
 
