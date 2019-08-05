@@ -349,8 +349,7 @@ Rti instanceType(object) {
     // prototype of Closure class?
     var closureClassConstructor = JS_BUILTIN(
         'depends:none;effects:none;', JsBuiltin.dartClosureConstructor);
-    if (closureClassConstructor != null &&
-        _Utils.instanceOf(object, closureClassConstructor)) {
+    if (_Utils.instanceOf(object, closureClassConstructor)) {
       return _instanceTypeFromConstructor(closureClassConstructor);
     }
 

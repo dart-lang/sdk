@@ -4536,6 +4536,11 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
       case JsBuiltin.dartClosureConstructor:
         ClassEntity closureClass = closedWorld.commonElements.closureClass;
+        // TODO(sra): Should add a dependency on the constructor used as a
+        // token.
+        registry
+            // ignore:deprecated_member_use_from_same_package
+            .registerInstantiatedClass(closureClass);
         return js.js
             .expressionTemplateYielding(_emitter.typeAccess(closureClass));
 
