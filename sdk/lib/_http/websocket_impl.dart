@@ -1069,7 +1069,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       List<int> expectedAccept = sha1.close();
       List<int> receivedAccept = _CryptoUtils.base64StringToBytes(accept);
       if (expectedAccept.length != receivedAccept.length) {
-        error("Reasponse header 'Sec-WebSocket-Accept' is the wrong length");
+        error("Response header 'Sec-WebSocket-Accept' is the wrong length");
       }
       for (int i = 0; i < expectedAccept.length; i++) {
         if (expectedAccept[i] != receivedAccept[i]) {
