@@ -203,6 +203,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   DartType build(LibraryBuilder library) {
+    assert(declaration != null, "Declaration has not been resolved on $this.");
     return declaration.buildType(library, arguments);
   }
 

@@ -112,7 +112,7 @@ import '../severity.dart' show Severity;
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../source/source_library_builder.dart'
-    show DeclarationBuilder, SourceLibraryBuilder;
+    show DeclarationBuilder, DeclarationKind, SourceLibraryBuilder;
 
 import '../type_inference/type_inferrer.dart' show TypeInferrerImpl;
 
@@ -281,8 +281,63 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int nameOffset,
       int endOffset,
       int supertypeOffset) {
+    _addClass(
+        DeclarationKind.classDeclaration,
+        documentationComment,
+        metadata,
+        modifiers,
+        className,
+        typeVariables,
+        supertype,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endOffset,
+        supertypeOffset);
+  }
+
+  void addMixinDeclaration(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String className,
+      List<TypeVariableBuilder> typeVariables,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset) {
+    _addClass(
+        DeclarationKind.mixinDeclaration,
+        documentationComment,
+        metadata,
+        modifiers,
+        className,
+        typeVariables,
+        supertype,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endOffset,
+        supertypeOffset);
+  }
+
+  void _addClass(
+      DeclarationKind kind,
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String className,
+      List<TypeVariableBuilder> typeVariables,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
-    DeclarationBuilder declaration = endNestedDeclaration(className)
+    DeclarationBuilder declaration = endNestedDeclaration(kind, className)
       ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
@@ -402,7 +457,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int nameOffset,
       int endOffset) {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    DeclarationBuilder declaration = endNestedDeclaration(extensionName)
+    DeclarationBuilder declaration = endNestedDeclaration(
+        DeclarationKind.extensionDeclaration, extensionName)
       ..resolveTypes(typeVariables, this);
     assert(declaration.parent == libraryDeclaration);
     Map<String, MemberBuilder> members = declaration.members;
@@ -611,7 +667,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
           // Otherwise, we pass the fresh type variables to the mixin
           // application in the same order as they're declared on the subclass.
           if (isGeneric) {
-            this.beginNestedDeclaration("mixin application");
+            this.beginNestedDeclaration(
+                DeclarationKind.unnamedMixinApplication, "mixin application");
 
             applicationTypeVariables =
                 copyTypeVariables(typeVariables, currentDeclaration);
@@ -631,8 +688,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
               currentDeclaration.addType(new UnresolvedType(newType, -1, null));
             }
 
-            DeclarationBuilder mixinDeclaration =
-                this.endNestedDeclaration("mixin application");
+            DeclarationBuilder mixinDeclaration = this.endNestedDeclaration(
+                DeclarationKind.unnamedMixinApplication, "mixin application");
             mixinDeclaration.resolveTypes(applicationTypeVariables, this);
 
             applicationTypeArguments = <TypeBuilder>[];
@@ -704,7 +761,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
       int charOffset,
       int charEndOffset) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
-    endNestedDeclaration(name).resolveTypes(typeVariables, this);
+    endNestedDeclaration(DeclarationKind.namedMixinApplication, name)
+        .resolveTypes(typeVariables, this);
     NamedTypeBuilder supertype = applyMixins(mixinApplication, startCharOffset,
         charOffset, charEndOffset, name, false,
         documentationComment: documentationComment,
@@ -851,7 +909,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
         currentDeclaration.parent.name, <TypeBuilder>[], charOffset);
     // Nested declaration began in `OutlineBuilder.beginFactoryMethod`.
     DeclarationBuilder factoryDeclaration =
-        endNestedDeclaration("#factory_method");
+        endNestedDeclaration(DeclarationKind.factoryMethod, "#factory_method");
 
     // Prepare the simple procedure name.
     String procedureName;
@@ -871,7 +929,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
           returnType,
           procedureName,
           copyTypeVariables(
-              currentDeclaration.typeVariables ?? <TypeVariableBuilder>[],
+              currentDeclaration.typeVariables ?? const <TypeVariableBuilder>[],
               factoryDeclaration),
           formals,
           this,
@@ -888,7 +946,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
           returnType,
           procedureName,
           copyTypeVariables(
-              currentDeclaration.typeVariables ?? <TypeVariableBuilder>[],
+              currentDeclaration.typeVariables ?? const <TypeVariableBuilder>[],
               factoryDeclaration),
           formals,
           ProcedureKind.Factory,
@@ -950,7 +1008,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
         ?.setDocumentationComment(typedef.target, documentationComment);
     checkTypeVariables(typeVariables, typedef);
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
-    endNestedDeclaration("#typedef").resolveTypes(typeVariables, this);
+    endNestedDeclaration(DeclarationKind.typedef, "#typedef")
+        .resolveTypes(typeVariables, this);
     addBuilder(name, typedef, charOffset);
   }
 
@@ -963,7 +1022,8 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
     checkTypeVariables(typeVariables, null);
     // Nested declaration began in `OutlineBuilder.beginFunctionType` or
     // `OutlineBuilder.beginFunctionTypedFormalParameter`.
-    endNestedDeclaration("#function_type").resolveTypes(typeVariables, this);
+    endNestedDeclaration(DeclarationKind.functionType, "#function_type")
+        .resolveTypes(typeVariables, this);
     return addType(builder, charOffset);
   }
 

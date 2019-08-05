@@ -173,11 +173,17 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
     return ref;
   }
 
-  void beginNestedDeclaration(String name, {bool hasMembers: true}) {
-    currentDeclaration = currentDeclaration.createNested(name, hasMembers);
+  void beginNestedDeclaration(DeclarationKind kind, String name,
+      {bool hasMembers: true}) {
+    currentDeclaration =
+        currentDeclaration.createNested(kind, name, hasMembers);
   }
 
-  DeclarationBuilder endNestedDeclaration(String name) {
+  DeclarationBuilder endNestedDeclaration(DeclarationKind kind, String name) {
+    assert(
+        currentDeclaration.kind == kind,
+        "Unexpected declaration. "
+        "Trying to end a ${currentDeclaration.kind} as a $kind.");
     assert(
         (name?.startsWith(currentDeclaration.name) ??
                 (name == currentDeclaration.name)) ||
@@ -363,6 +369,19 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   }
 
   void addClass(
+      String documentationComment,
+      List<MetadataBuilder> metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder> typeVariables,
+      TypeBuilder supertype,
+      List<TypeBuilder> interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset,
+      int supertypeOffset);
+
+  void addMixinDeclaration(
       String documentationComment,
       List<MetadataBuilder> metadata,
       int modifiers,
@@ -945,9 +964,26 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
   int finalizeInitializingFormals();
 }
 
+enum DeclarationKind {
+  library,
+  classOrNamedMixinApplication,
+  classDeclaration,
+  mixinDeclaration,
+  unnamedMixinApplication,
+  namedMixinApplication,
+  extensionDeclaration,
+  typedef,
+  staticOrInstanceMethodOrConstructor,
+  topLevelMethod,
+  factoryMethod,
+  functionType,
+}
+
 /// Unlike [Scope], this scope is used during construction of builders to
 /// ensure types and members are added to and resolved in the correct location.
 class DeclarationBuilder {
+  DeclarationKind _kind;
+
   final DeclarationBuilder parent;
 
   final Map<String, Declaration> members;
@@ -958,33 +994,140 @@ class DeclarationBuilder {
 
   final List<UnresolvedType> types = <UnresolvedType>[];
 
-  String name;
+  // TODO(johnniwinther): Stop using [_name] for determining the declaration
+  // kind.
+  String _name;
 
-  // Offset of name token, updated by the outline builder along
-  // with the name as the current declaration changes.
-  int charOffset;
+  /// Offset of name token, updated by the outline builder along
+  /// with the name as the current declaration changes.
+  int _charOffset;
 
-  List<TypeVariableBuilder> typeVariables;
+  List<TypeVariableBuilder> _typeVariables;
+
+  /// The type of `this` in instance methods declared in extension declarations.
+  ///
+  /// Instance methods declared in extension declarations methods are extended
+  /// with a synthesized parameter of this type.
+  TypeBuilder _extensionThisType;
 
   bool hasConstConstructor = false;
 
-  DeclarationBuilder(this.members, this.setters, this.constructors, this.name,
-      this.charOffset, this.parent) {
-    assert(name != null);
+  DeclarationBuilder(this._kind, this.members, this.setters, this.constructors,
+      this._name, this._charOffset, this.parent) {
+    assert(_name != null);
   }
 
   DeclarationBuilder.library()
-      : this(<String, Declaration>{}, <String, Declaration>{}, null,
-            "<library>", -1, null);
+      : this(DeclarationKind.library, <String, Declaration>{},
+            <String, Declaration>{}, null, "<library>", -1, null);
 
-  DeclarationBuilder createNested(String name, bool hasMembers) {
+  DeclarationBuilder createNested(
+      DeclarationKind kind, String name, bool hasMembers) {
     return new DeclarationBuilder(
+        kind,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         hasMembers ? <String, MemberBuilder>{} : null,
         name,
         -1,
         this);
+  }
+
+  /// Registers the this declaration as a class declaration with the given
+  /// [name] and [typeVariables] located [charOffset].
+  void registerClassDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder> typeVariables) {
+    assert(_kind == DeclarationKind.classOrNamedMixinApplication,
+        "Unexpected declaration kind: $_kind");
+    _kind = DeclarationKind.classDeclaration;
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers the this declaration as a named mixin application with the given
+  /// [name] and [typeVariables] located [charOffset].
+  void registerNamedMixinApplication(
+      String name, int charOffset, List<TypeVariableBuilder> typeVariables) {
+    assert(_kind == DeclarationKind.classOrNamedMixinApplication,
+        "Unexpected declaration kind: $_kind");
+    _kind = DeclarationKind.namedMixinApplication;
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers the this declaration as a mixin declaration with the given
+  /// [name] and [typeVariables] located [charOffset].
+  void registerMixinDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder> typeVariables) {
+    // TODO(johnniwinther): Avoid using 'classOrNamedMixinApplication' for mixin
+    // declaration. These are syntactically distinct so we don't need the
+    // transition.
+    assert(_kind == DeclarationKind.classOrNamedMixinApplication,
+        "Unexpected declaration kind: $_kind");
+    _kind = DeclarationKind.mixinDeclaration;
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers the this declaration as an extension declaration with the given
+  /// [name] and [typeVariables] located [charOffset].
+  void registerExtensionDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder> typeVariables) {
+    assert(_kind == DeclarationKind.extensionDeclaration,
+        "Unexpected declaration kind: $_kind");
+    _name = name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers the 'extension this type' of this extension declaration.
+  ///
+  /// See [extensionThisType] for terminology.
+  void registerExtensionThisType(TypeBuilder type) {
+    assert(_kind == DeclarationKind.extensionDeclaration,
+        "DeclarationBuilder.registerExtensionThisType is not supported $_kind");
+    assert(_extensionThisType == null,
+        "Extension this type has already been set.");
+    _extensionThisType = type;
+  }
+
+  /// Returns what kind of declaration this [DeclarationBuilder] is creating.
+  ///
+  /// This information is transient for some declarations. In particular
+  /// classes and named mixin applications are initially created with the kind
+  /// [DeclarationKind.classOrNamedMixinApplication] before a call to either
+  /// [registerClassDeclaration] or [registerNamedMixinApplication] sets the
+  /// value to its actual kind.
+  // TODO(johnniwinther): Avoid the transition currently used on mixin
+  // declarations.
+  DeclarationKind get kind => _kind;
+
+  String get name => _name;
+
+  int get charOffset => _charOffset;
+
+  List<TypeVariableBuilder> get typeVariables => _typeVariables;
+
+  /// Returns the 'extension this type' of this extension declaration.
+  ///
+  /// The 'extension this type' is the type mentioned in the on-clause of the
+  /// extension declaration. For instance `B` in this extension declaration:
+  ///
+  ///     extension A on B {
+  ///       B method() => this;
+  ///     }
+  ///
+  /// The 'extension this type' is the type if `this` expression in instance
+  /// methods declared in extension declarations.
+  TypeBuilder get extensionThisType {
+    assert(kind == DeclarationKind.extensionDeclaration,
+        "DeclarationBuilder.extensionThisType not supported on $kind.");
+    assert(_extensionThisType != null,
+        "DeclarationBuilder.extensionThisType has not been set on $this.");
+    return _extensionThisType;
   }
 
   void addType(UnresolvedType type) {
@@ -1045,7 +1188,7 @@ class DeclarationBuilder {
   }
 
   @override
-  String toString() => 'DeclarationBuilder(${hashCode}:name=$name)';
+  String toString() => 'DeclarationBuilder(${hashCode}:kind=$kind,name=$name)';
 }
 
 class FieldInfo {
