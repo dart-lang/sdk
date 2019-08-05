@@ -8,6 +8,10 @@
 
 import "package:expect/expect.dart";
 
+void checkStaticType<T>(T x) {
+  Expect.type<T>(x);
+}
+
 main() {
   Object object = <int>[];
   List<Object> list = <int>[];
@@ -33,50 +37,50 @@ main() {
   Expect.equals(0, object.e6);
   Expect.equals(6, list.e6);
   Expect.equals(6, numList.e6);
-  Expect.staticType<List<num>>(numList.list6);
+  checkStaticType<List<num>>(numList.list6);
 
   Expect.equals(0, object.e7);
   Expect.equals(7, list.e7);
   Expect.equals(7, numList.e7);
-  Expect.staticType<List<num>>(numList.list7);
+  checkStaticType<List<num>>(numList.list7);
 
   Expect.equals(10, object.e10);
   Expect.equals(10, numList.e10);
-  Expect.staticType<List<Object>>(object.list10);
-  Expect.staticType<List<List<num>>>(numList.list10);
+  checkStaticType<List<Object>>(object.list10);
+  checkStaticType<List<List<num>>>(numList.list10);
 
   Expect.equals(11, object.e11);
   Expect.equals(11, numList.e11);
-  Expect.staticType<List<Object>>(object.list11);
-  Expect.staticType<List<List<num>>>(numList.list11);
+  checkStaticType<List<Object>>(object.list11);
+  checkStaticType<List<List<num>>>(numList.list11);
 
   Expect.equals(0, object.e14);
   Expect.equals(14, numPair.e14);
   Expect.type<List<num>>(numPair.list14);
-  Expect.staticType<List<num>>(numPair.list14);
+  checkStaticType<List<num>>(numPair.list14);
 
   Expect.equals(0, object.e16);
   Expect.equals(16, numPair.e16);
   Expect.type<Map<int, double>>(numPair.map16);
-  Expect.staticType<Map<int, double>>(numPair.map16);
+  checkStaticType<Map<int, double>>(numPair.map16);
 
   Expect.equals(0, object.e17);
   Expect.equals(0, list.e17);
   Expect.equals(17, numList.e17);
   Expect.type<List<num>>(numList.list17);
-  Expect.staticType<List<num>>(numList.list17);
+  checkStaticType<List<num>>(numList.list17);
 
   Expect.equals(0, object.e19);
   Expect.equals(0, superRec.e19);
   Expect.equals(19, recs.e19);
   Expect.type<RecSolution>(recs.list19);
-  Expect.staticType<RecSolution>(recs.list19);
+  checkStaticType<RecSolution>(recs.list19);
 
   Expect.equals(0, object.e20);
   Expect.equals(0, superRec.e20);
   Expect.equals(20, recs.e20);
   Expect.type<RecSolution>(recs.list20);
-  Expect.staticType<RecSolution>(recs.list20);
+  checkStaticType<RecSolution>(recs.list20);
 }
 
 extension on Object {

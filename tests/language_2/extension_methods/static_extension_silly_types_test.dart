@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 void main() {
   M m = C();
   Object o = Object();
-  Function fn = () => null;
+  Function fun = () => null;
   f() => 0;
   String f1(int x) => "$x";
   String f2([int x = 0, int y = 0]) => "${x + y}";
@@ -34,7 +34,7 @@ void main() {
   Expect.equals(3, n.d);
   // `on Function` matches any function type and Function itself.
   Expect.equals(4, f.f);
-  Expect.equals(4, fn.f);
+  Expect.equals(4, fun.f);
   Expect.equals(4, f1.f);
   Expect.equals(4, f2.f);
   // `on <function type>` matches those functions.
