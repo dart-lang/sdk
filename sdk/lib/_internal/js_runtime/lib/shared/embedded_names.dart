@@ -325,6 +325,9 @@ enum JsGetName {
 
   /// String representation of the type of the function class.
   FUNCTION_CLASS_TYPE_NAME,
+
+  /// Property name for Rti._is field.
+  RTI_FIELD_IS,
 }
 
 enum JsBuiltin {

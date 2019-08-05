@@ -2602,6 +2602,8 @@ abstract class ModularNamer {
         return runtimeTypeName(_commonElements.functionClass);
       case JsGetName.FUTURE_CLASS_TYPE_NAME:
         return runtimeTypeName(_commonElements.futureClass);
+      case JsGetName.RTI_FIELD_IS:
+        return instanceFieldPropertyName(_commonElements.rtiIsField);
       default:
         throw failedAt(spannable, 'Error: Namer has no name for "$name".');
     }
