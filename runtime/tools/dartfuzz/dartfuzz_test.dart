@@ -15,17 +15,15 @@ const debug = false;
 const sigkill = 9;
 const timeout = 60; // in seconds
 
-// Exit code of running a test.
-enum ResultCode { success, timeout, error }
-
 // Status of divergence report.
 enum ReportStatus { reported, ignored, rerun, no_divergence }
 
 /// Result of running a test.
 class TestResult {
-  const TestResult(this.code, this.output);
-  final ResultCode code;
+  const TestResult(this.output, this.stderr, this.exitCode);
   final String output;
+  final String stderr;
+  final int exitCode;
 }
 
 /// Command runner.
@@ -37,13 +35,7 @@ TestResult runCommand(List<String> cmd, Map<String, String> env) {
     print('\nrunning $cmd yields:\n'
         '${res.exitCode}\n${res.stdout}\n${res.stderr}\n');
   }
-  if (res.exitCode == -sigkill) {
-    return new TestResult(ResultCode.timeout, res.stdout);
-  } else if (res.exitCode != 0) {
-    return new TestResult(
-        ResultCode.error, '${res.exitCode}\n${res.stdout}\n${res.stderr}\n');
-  }
-  return new TestResult(ResultCode.success, res.stdout);
+  return TestResult(res.stdout, res.stderr, res.exitCode);
 }
 
 /// Abstraction for running one test in a particular mode.
@@ -176,7 +168,7 @@ class TestRunnerAOT implements TestRunner {
 
   TestResult run() {
     TestResult result = runCommand([precompiler, fileName, snapshot], env);
-    if (result.code != ResultCode.success) {
+    if (result.exitCode != 0) {
       return result;
     }
     return runCommand([dart, snapshot], env);
@@ -205,7 +197,7 @@ class TestRunnerKBC implements TestRunner {
   TestResult run() {
     TestResult result = runCommand(
         [generate, '--gen-bytecode', platform, '-o', dill, fileName], env);
-    if (result.code != ResultCode.success) {
+    if (result.exitCode != 0) {
       return result;
     }
     return runCommand(cmd, env);
@@ -232,7 +224,7 @@ class TestRunnerDJS implements TestRunner {
 
   TestResult run() {
     TestResult result = runCommand([dart2js, fileName, '-o', js], env);
-    if (result.code != ResultCode.success) {
+    if (result.exitCode != 0) {
       return result;
     }
     return runCommand(['nodejs', js], env);
@@ -354,10 +346,10 @@ class DartFuzzTest {
   }
 
   ReportStatus checkDivergence(TestResult result1, TestResult result2) {
-    if (result1.code == result2.code) {
+    if (result1.exitCode == result2.exitCode) {
       // No divergence in result code.
-      switch (result1.code) {
-        case ResultCode.success:
+      switch (result1.exitCode) {
+        case 0:
           // Both were successful, inspect output.
           if (result1.output == result2.output) {
             numSuccess++;
@@ -366,11 +358,11 @@ class DartFuzzTest {
             return ReportStatus.reported;
           }
           break;
-        case ResultCode.timeout:
+        case -sigkill:
           // Both had a time out.
           numTimeOut++;
           break;
-        case ResultCode.error:
+        default:
           // Both had an error.
           numNotRun++;
           break;
@@ -380,23 +372,27 @@ class DartFuzzTest {
       if (trueDivergence) {
         // When only true divergences are requested, any divergence
         // with at least one time out is treated as a regular time out.
-        if (result1.code == ResultCode.timeout ||
-            result2.code == ResultCode.timeout) {
+        if (result1.exitCode == -sigkill || result2.exitCode == -sigkill) {
           numTimeOut++;
           return ReportStatus.ignored;
         }
       }
       reportDivergence(result1, result2);
-      return ReportStatus.rerun;
+      // Exit codes outside [-255,255] are not due to Dart VM exits.
+      if (result1.exitCode.abs() > 255 || result2.exitCode.abs() > 255) {
+        return ReportStatus.rerun;
+      } else {
+        return ReportStatus.reported;
+      }
     }
     return ReportStatus.no_divergence;
   }
 
   String generateReport(TestResult result1, TestResult result2) {
-    if (result1.code == result2.code) {
+    if (result1.exitCode == result2.exitCode) {
       return "output";
     } else {
-      return "${result1.code} vs ${result2.code}";
+      return "${result1.exitCode} vs ${result2.exitCode}";
     }
   }
 
@@ -404,7 +400,7 @@ class DartFuzzTest {
     numDivergences++;
     String report = generateReport(result1, result2);
     print('\n${isolate}: !DIVERGENCE! $version:$seed (${report})');
-    if (result1.code == result2.code) {
+    if (result1.exitCode == result2.exitCode) {
       // Only report the actual output divergence details when requested,
       // since this output may be lengthy and should be reproducable anyway.
       if (showStats) {
@@ -412,11 +408,13 @@ class DartFuzzTest {
       }
     } else {
       // For any other divergence, always report what went wrong.
-      if (result1.code != ResultCode.success) {
-        print('\nfail1:\n${result1.output}\n');
+      if (result1.exitCode != 0) {
+        print(
+            '\nfail1:\n${result1.exitCode}\n${result1.output}\n${result1.stderr}\n');
       }
-      if (result2.code != ResultCode.success) {
-        print('\nfail2:\n${result2.output}\n');
+      if (result2.exitCode != 0) {
+        print(
+            '\nfail2:\n${result2.exitCode}\n${result2.output}\n${result2.stderr}\n');
       }
     }
   }
