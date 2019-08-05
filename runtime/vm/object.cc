@@ -3075,6 +3075,8 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
 
   forwarder.set_name(mangled_name);
   forwarder.set_is_native(false);
+  // TODO(dartbug.com/37737): Currently, we intentionally keep the recognized
+  // kind when creating the dynamic invocation forwarder.
   forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
   forwarder.set_is_debuggable(false);
 
