@@ -68,6 +68,13 @@ class ResynthesizeAstStrongTest extends ResynthesizeTestStrategyTwoPhase
   @FailingTest(
     reason: 'Inference for extension fields is not implemented in summary1.',
   )
+  test_duplicateDeclaration_extension() async {
+    await super.test_duplicateDeclaration_extension();
+  }
+
+  @FailingTest(
+    reason: 'Inference for extension fields is not implemented in summary1.',
+  )
   test_extension_field_inferredType_const() async {
     await super.test_extension_field_inferredType_const();
   }

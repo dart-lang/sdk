@@ -5498,6 +5498,165 @@ class C<T> {
     }
   }
 
+  test_duplicateDeclaration_class() async {
+    var library = await checkLibrary(r'''
+class A {}
+class A {
+  var x;
+}
+class A {
+  var y = 0;
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class A {
+  dynamic x;
+}
+class A {
+  int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_classTypeAlias() async {
+    var library = await checkLibrary(r'''
+class A {}
+class B {}
+class X = A with M;
+class X = B with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+class A {
+}
+class B {
+}
+class alias X extends A with M {
+  synthetic X() = A;
+}
+class alias X extends B with M {
+  synthetic X() = B;
+}
+mixin M on Object {
+}
+''');
+  }
+
+  test_duplicateDeclaration_enum() async {
+    var library = await checkLibrary(r'''
+enum E {a, b}
+enum E {c, d, e}
+''');
+    checkElementText(library, r'''
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E a;
+  static const E b;
+  String toString() {}
+}
+enum E {
+  synthetic final int index;
+  synthetic static const List<E> values;
+  static const E c;
+  static const E d;
+  static const E e;
+  String toString() {}
+}
+''');
+  }
+
+  test_duplicateDeclaration_extension() async {
+    featureSet = enableExtensionMethods;
+    var library = await checkLibrary(r'''
+class A {}
+extension E on A {}
+extension E on A {
+  static var x;
+}
+extension E on A {
+  static var y = 0;
+}
+''');
+    checkElementText(library, r'''
+class A {
+}
+extension E on A {
+}
+extension E on A {
+  static dynamic x;
+}
+extension E on A {
+  static int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_function() async {
+    var library = await checkLibrary(r'''
+void f() {}
+void f(int a) {}
+void f([int b, double c]) {}
+''');
+    checkElementText(library, r'''
+void f() {}
+void f(int a) {}
+void f([int b], [double c]) {}
+''');
+  }
+
+  test_duplicateDeclaration_functionTypeAlias() async {
+    var library = await checkLibrary(r'''
+typedef void F();
+typedef void F(int a);
+typedef void F([int b, double c]);
+''');
+    checkElementText(library, r'''
+typedef F = void Function();
+typedef F = void Function(int a);
+typedef F = void Function([int b], [double c]);
+''');
+  }
+
+  test_duplicateDeclaration_mixin() async {
+    var library = await checkLibrary(r'''
+mixin A {}
+mixin A {
+  var x;
+}
+mixin A {
+  var y = 0;
+}
+''');
+    checkElementText(library, r'''
+mixin A on Object {
+}
+mixin A on Object {
+  dynamic x;
+}
+mixin A on Object {
+  int y;
+}
+''');
+  }
+
+  test_duplicateDeclaration_topLevelVariable() async {
+    var library = await checkLibrary(r'''
+bool x;
+var x;
+var x = 1;
+var x = 2.3;
+''');
+    checkElementText(library, r'''
+bool x;
+dynamic x;
+int x;
+double x;
+''');
+  }
+
   test_enum_documented() async {
     var library = await checkLibrary('''
 // Extra comment so doc comment offset != 0

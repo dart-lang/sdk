@@ -105,17 +105,17 @@ class SourceLibraryBuilder {
         if (node is ast.ClassDeclaration) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.ClassTypeAlias) {
           var name = node.name.name;
           var reference = classRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.EnumDeclaration) {
           var name = node.name.name;
           var reference = enumRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.ExtensionDeclaration) {
           var name = node.name?.name;
@@ -123,7 +123,7 @@ class SourceLibraryBuilder {
           LazyExtensionDeclaration.get(node).setRefName(refName);
 
           var reference = extensionRef.getChild(refName);
-          reference.node = node;
+          reference.node ??= node;
 
           if (name != null) {
             localScope.declare(name, reference);
@@ -141,7 +141,7 @@ class SourceLibraryBuilder {
           }
 
           var reference = containerRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
 
           if (node.isSetter) {
             localScope.declare('$name=', reference);
@@ -151,7 +151,7 @@ class SourceLibraryBuilder {
         } else if (node is ast.FunctionTypeAlias) {
           var name = node.name.name;
           var reference = typeAliasRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
 
           localScope.declare(name, reference);
         } else if (node is ast.GenericTypeAlias) {
@@ -163,14 +163,14 @@ class SourceLibraryBuilder {
         } else if (node is ast.MixinDeclaration) {
           var name = node.name.name;
           var reference = mixinRef.getChild(name);
-          reference.node = node;
+          reference.node ??= node;
           localScope.declare(name, reference);
         } else if (node is ast.TopLevelVariableDeclaration) {
           for (var variable in node.variables.variables) {
             var name = variable.name.name;
 
             var reference = variableRef.getChild(name);
-            reference.node = node;
+            reference.node ??= node;
 
             var getter = getterRef.getChild(name);
             localScope.declare(name, getter);
