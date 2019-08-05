@@ -109,26 +109,20 @@ class CompletionRanking {
     List<MapEntry> entries = probability.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    // If completion is requested inside of quotes, since static analysis does
-    // not suggest string literals, only return completion suggestions from
-    // model which are string literal.
     if (testInsideQuotes(request)) {
-      return entries
+      // If completion is requested inside of quotes, remove any suggestions
+      // which are not string literal.
+      entries = entries
           .where((MapEntry entry) =>
               isStringLiteral(entry.key) && isNotWhitespace(entry.key))
-          .map<CompletionSuggestion>((MapEntry entry) =>
-              createCompletionSuggestion(
-                  entry.key.replaceAll("'", ''), featureSet, low--))
           .toList();
-    }
-
-    // If analysis server thinks this is a declaration context,
-    // remove all of the model-suggested literals.
-    // TODO(lambdabaa): Ask Brian for help leveraging
-    //     SimpleIdentifier#inDeclarationContext.
-    if (request.opType.includeVarNameSuggestions &&
+    } else if (request.opType.includeVarNameSuggestions &&
         suggestions.every((CompletionSuggestion suggestion) =>
             suggestion.kind == CompletionSuggestionKind.IDENTIFIER)) {
+      // If analysis server thinks this is a declaration context,
+      // remove all of the model-suggested literals.
+      // TODO(lambdabaa): Ask Brian for help leveraging
+      //     SimpleIdentifier#inDeclarationContext.
       entries.retainWhere((MapEntry entry) => !isLiteral(entry.key));
     }
 
