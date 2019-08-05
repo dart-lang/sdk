@@ -9,7 +9,13 @@ import '../builder/builder.dart' show Declaration;
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
 import '../parser.dart'
-    show Assert, IdentifierContext, FormalParameterKind, Listener, MemberKind;
+    show
+        Assert,
+        ClassKind,
+        FormalParameterKind,
+        IdentifierContext,
+        Listener,
+        MemberKind;
 
 import '../problems.dart' as problems show unhandled;
 
@@ -307,7 +313,8 @@ class TypePromotionLookAheadListener extends Listener {
   }
 
   @override
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+  void endClassOrMixinBody(
+      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody", beginToken);
     state.checkEmpty(endToken);
   }

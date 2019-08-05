@@ -24,6 +24,8 @@ export 'parser/identifier_context.dart' show IdentifierContext;
 
 export 'parser/listener.dart' show Listener;
 
+export 'parser/class_kind.dart' show ClassKind;
+
 export 'parser/member_kind.dart' show MemberKind;
 
 export 'parser/parser.dart' show Parser;

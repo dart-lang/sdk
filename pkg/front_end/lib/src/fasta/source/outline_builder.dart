@@ -73,6 +73,7 @@ import '../operator.dart'
 import '../parser.dart'
     show
         Assert,
+        ClassKind,
         FormalParameterKind,
         IdentifierContext,
         lengthOfSpan,
@@ -465,7 +466,12 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void beginClassOrMixinBody(Token token) {
+  void beginClassOrMixinBody(ClassKind kind, Token token) {
+    if (kind == ClassKind.Extension) {
+      assert(checkState(token, [ValueKind.TypeBuilder]));
+      TypeBuilder extensionThisType = peek();
+      library.currentDeclaration.registerExtensionThisType(extensionThisType);
+    }
     debugEvent("beginClassOrMixinBody");
     // Resolve unresolved types from the class header (i.e., superclass, mixins,
     // and implemented types) before adding members from the class body which
@@ -1707,7 +1713,8 @@ class OutlineBuilder extends StackListener {
   }
 
   @override
-  void endClassOrMixinBody(int memberCount, Token beginToken, Token endToken) {
+  void endClassOrMixinBody(
+      ClassKind kind, int memberCount, Token beginToken, Token endToken) {
     debugEvent("ClassOrMixinBody");
   }
 

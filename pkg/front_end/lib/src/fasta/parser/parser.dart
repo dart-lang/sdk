@@ -53,6 +53,8 @@ import 'assert.dart' show Assert;
 
 import 'async_modifier.dart' show AsyncModifier;
 
+import 'class_kind.dart' show ClassKind;
+
 import 'directive_context.dart';
 
 import 'formal_parameter_kind.dart'
@@ -1792,7 +1794,7 @@ class Parser {
       token = parseClassHeaderRecovery(start, begin, classKeyword);
       ensureBlock(token, null, 'class declaration');
     }
-    token = parseClassOrMixinBody(token);
+    token = parseClassOrMixinBody(ClassKind.Class, token);
     listener.endClassDeclaration(begin, token);
     return token;
   }
@@ -1958,7 +1960,7 @@ class Parser {
       token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
       ensureBlock(token, null, 'mixin declaration');
     }
-    token = parseClassOrMixinBody(token);
+    token = parseClassOrMixinBody(ClassKind.Mixin, token);
     listener.endMixinDeclaration(mixinKeyword, token);
     return token;
   }
@@ -2127,7 +2129,7 @@ class Parser {
       ensureBlock(token, null, 'extension declaration');
     }
     // TODO(danrubel): Do not allow fields or constructors
-    token = parseClassOrMixinBody(token);
+    token = parseClassOrMixinBody(ClassKind.Extension, token);
     listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
@@ -2895,10 +2897,10 @@ class Parser {
   ///   '{' classMember* '}'
   /// ;
   /// ```
-  Token parseClassOrMixinBody(Token token) {
+  Token parseClassOrMixinBody(ClassKind kind, Token token) {
     Token begin = token = token.next;
     assert(optional('{', token));
-    listener.beginClassOrMixinBody(token);
+    listener.beginClassOrMixinBody(kind, token);
     int count = 0;
     while (notEofOrValue('}', token.next)) {
       token = parseClassOrMixinMemberImpl(token);
@@ -2906,7 +2908,7 @@ class Parser {
     }
     token = token.next;
     assert(optional('}', token));
-    listener.endClassOrMixinBody(count, begin, token);
+    listener.endClassOrMixinBody(kind, count, begin, token);
     return token;
   }
 
