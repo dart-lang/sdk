@@ -519,6 +519,9 @@ void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
       PrintICDataHelper(f, *ic_data(), FlowGraphPrinter::kPrintAll);
     }
   }
+  if (result_type() != nullptr) {
+    f->Print(", result_type = %s", result_type()->ToCString());
+  }
 }
 
 void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
@@ -584,6 +587,9 @@ void StaticCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   if (function().recognized_kind() != MethodRecognizer::kUnknown) {
     f->Print(", recognized_kind = %s",
              MethodRecognizer::KindToCString(function().recognized_kind()));
+  }
+  if (result_type() != nullptr) {
+    f->Print(", result_type = %s", result_type()->ToCString());
   }
 }
 

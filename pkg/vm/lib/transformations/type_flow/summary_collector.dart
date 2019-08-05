@@ -469,7 +469,16 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       if (function.body == null) {
         Type type = _nativeCodeOracle.handleNativeProcedure(
             member, _entryPointsListener);
-        _returnValue.values.add(type);
+        if (type is! ConcreteType) {
+          // Runtime type could be more precise than static type, so
+          // calculate intersection.
+          final runtimeType = _translator.translate(function.returnType);
+          final typeCheck = new TypeCheck(type, runtimeType, function, type);
+          _summary.add(typeCheck);
+          _returnValue.values.add(typeCheck);
+        } else {
+          _returnValue.values.add(type);
+        }
       } else {
         _visit(function.body);
 
