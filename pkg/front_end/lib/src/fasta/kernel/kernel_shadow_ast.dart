@@ -57,6 +57,8 @@ import '../problems.dart' show getFileUri, unhandled, unsupported;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 
 import '../type_inference/type_inference_engine.dart'
@@ -93,8 +95,6 @@ import 'collections.dart'
 import 'expression_generator.dart' show makeLet;
 
 import 'implicit_type_argument.dart' show ImplicitTypeArgument;
-
-import 'kernel_builder.dart' show KernelLibraryBuilder;
 
 part "inference_visitor.dart";
 part "inferred_type_visitor.dart";
@@ -1340,13 +1340,13 @@ class ShadowTypeInferenceEngine extends TypeInferenceEngine {
 
   @override
   ShadowTypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
     return new TypeInferrer(this, uri, false, thisType, library);
   }
 
   @override
   ShadowTypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library) {
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library) {
     return new TypeInferrer(this, uri, true, thisType, library);
   }
 }
@@ -1358,7 +1358,7 @@ class ShadowTypeInferrer extends TypeInferrerImpl {
   final typePromoter;
 
   ShadowTypeInferrer.private(ShadowTypeInferenceEngine engine, Uri uri,
-      bool topLevel, InterfaceType thisType, KernelLibraryBuilder library)
+      bool topLevel, InterfaceType thisType, SourceLibraryBuilder library)
       : typePromoter = new TypePromoter(engine.typeSchemaEnvironment),
         super.private(engine, uri, topLevel, thisType, library);
 

@@ -24,13 +24,14 @@ import '../kernel/kernel_builder.dart'
     show
         FunctionTypeBuilder,
         FormalParameterBuilder,
-        KernelLibraryBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder,
         TypeVariableBuilder;
 
 import '../problems.dart' show unhandled;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart'
     show
@@ -65,7 +66,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
 
   LibraryBuilder get parent => super.parent;
 
-  Typedef build(KernelLibraryBuilder libraryBuilder) {
+  Typedef build(SourceLibraryBuilder libraryBuilder) {
     target..type ??= buildThisType(libraryBuilder);
 
     TypeBuilder type = this.type;
@@ -160,7 +161,7 @@ class TypeAliasBuilder extends TypeDeclarationBuilder {
       for (int i = 0; i < result.length; ++i) {
         result[i] = typeVariables[i].defaultType.build(library);
       }
-      if (library is KernelLibraryBuilder) {
+      if (library is SourceLibraryBuilder) {
         library.inferredTypes.addAll(result);
       }
       return result;

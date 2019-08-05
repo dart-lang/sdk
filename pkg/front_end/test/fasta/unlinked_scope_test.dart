@@ -24,7 +24,7 @@ import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/kernel/body_builder.dart' show BodyBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_builder.dart'
-    show KernelLibraryBuilder, ProcedureBuilder;
+    show ProcedureBuilder;
 
 import 'package:front_end/src/fasta/kernel/kernel_target.dart'
     show KernelTarget;
@@ -38,9 +38,12 @@ import 'package:front_end/src/fasta/scanner.dart' show Token, scanString;
 
 import 'package:front_end/src/fasta/scope.dart' show Scope;
 
+import 'package:front_end/src/fasta/source/source_library_builder.dart'
+    show SourceLibraryBuilder;
+
 DiagnosticMessageHandler handler;
 
-class MockLibraryBuilder extends KernelLibraryBuilder {
+class MockLibraryBuilder extends SourceLibraryBuilder {
   MockLibraryBuilder(Uri uri)
       : super(
             uri,

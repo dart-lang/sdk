@@ -20,6 +20,8 @@ import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
@@ -37,7 +39,6 @@ import 'kernel_builder.dart'
         Declaration,
         FieldBuilder,
         ImplicitFieldType,
-        KernelLibraryBuilder,
         KernelMetadataBuilder,
         TypeBuilder,
         LibraryBuilder,
@@ -72,7 +73,7 @@ class KernelFieldBuilder extends FieldBuilder {
         (hasInitializer || isInstanceMember);
   }
 
-  Field build(KernelLibraryBuilder library) {
+  Field build(SourceLibraryBuilder library) {
     field.name ??= new Name(name, library.target);
     if (type != null) {
       field.type = type.build(library);
@@ -146,7 +147,7 @@ class KernelFieldBuilder extends FieldBuilder {
 
   @override
   void inferType() {
-    KernelLibraryBuilder library = this.library;
+    SourceLibraryBuilder library = this.library;
     if (field.type is! ImplicitFieldType) {
       // We have already inferred a type.
       return;

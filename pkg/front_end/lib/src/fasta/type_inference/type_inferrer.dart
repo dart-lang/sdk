@@ -98,8 +98,6 @@ import '../fasta_codes.dart'
 
 import '../kernel/expression_generator.dart' show buildIsNull;
 
-import '../kernel/kernel_builder.dart' show KernelLibraryBuilder;
-
 import '../kernel/kernel_shadow_ast.dart'
     show
         ExpressionJudgment,
@@ -114,6 +112,8 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 import '../names.dart' show callName, unaryMinusName;
 
 import '../problems.dart' show internalProblem, unexpected, unhandled;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'inference_helper.dart' show InferenceHelper;
 
@@ -451,9 +451,9 @@ abstract class TypeInferrer {
       Uri uri,
       bool topLevel,
       InterfaceType thisType,
-      KernelLibraryBuilder library) = ShadowTypeInferrer.private;
+      SourceLibraryBuilder library) = ShadowTypeInferrer.private;
 
-  KernelLibraryBuilder get library;
+  SourceLibraryBuilder get library;
 
   /// Gets the [TypePromoter] that can be used to perform type promotion within
   /// this method body or initializer.
@@ -521,7 +521,7 @@ abstract class TypeInferrerImpl extends TypeInferrer {
   final InterfaceType thisType;
 
   @override
-  final KernelLibraryBuilder library;
+  final SourceLibraryBuilder library;
 
   final Map<TreeNode, DartType> inferredTypesMap = <TreeNode, DartType>{};
 

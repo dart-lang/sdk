@@ -25,6 +25,8 @@ import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -35,7 +37,6 @@ import '../kernel/kernel_builder.dart'
         Declaration,
         ConstructorBuilder,
         KernelFieldBuilder,
-        KernelLibraryBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder;
@@ -92,7 +93,7 @@ class FormalParameterBuilder extends ModifierBuilder {
   VariableDeclaration get target => declaration;
 
   VariableDeclaration build(
-      KernelLibraryBuilder library, int functionNestingLevel) {
+      SourceLibraryBuilder library, int functionNestingLevel) {
     if (declaration == null) {
       declaration = new VariableDeclarationJudgment(name, functionNestingLevel,
           type: type?.build(library),

@@ -74,8 +74,6 @@ import 'hybrid_file_system.dart' show HybridFileSystem;
 
 import 'kernel/kernel_builder.dart' show ClassHierarchyBuilder;
 
-import 'kernel/kernel_library_builder.dart' show KernelLibraryBuilder;
-
 import 'kernel/kernel_shadow_ast.dart' show VariableDeclarationJudgment;
 
 import 'kernel/kernel_target.dart' show KernelTarget;
@@ -854,7 +852,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (!isLegalIdentifier(name)) return null;
       }
 
-      KernelLibraryBuilder debugLibrary = new KernelLibraryBuilder(
+      SourceLibraryBuilder debugLibrary = new SourceLibraryBuilder(
         libraryUri,
         debugExprUri,
         userCode.loader,

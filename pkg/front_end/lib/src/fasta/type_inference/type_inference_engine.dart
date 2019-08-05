@@ -24,11 +24,9 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import '../../base/instrumentation.dart' show Instrumentation;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassHierarchyBuilder,
-        ImplicitFieldType,
-        LibraryBuilder,
-        KernelLibraryBuilder;
+    show ClassHierarchyBuilder, ImplicitFieldType, LibraryBuilder;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'type_inferrer.dart' show TypeInferrer;
 
@@ -144,12 +142,12 @@ abstract class TypeInferenceEngine {
   /// Creates a type inferrer for use inside of a method body declared in a file
   /// with the given [uri].
   TypeInferrer createLocalTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
 
   /// Creates a [TypeInferrer] object which is ready to perform type inference
   /// on the given [field].
   TypeInferrer createTopLevelTypeInferrer(
-      Uri uri, InterfaceType thisType, KernelLibraryBuilder library);
+      Uri uri, InterfaceType thisType, SourceLibraryBuilder library);
 
   /// Performs the third phase of top level inference, which is to visit all
   /// constructors still needing inference and infer the types of their

@@ -85,7 +85,7 @@ DeclarationBuilder lookupLibraryDeclarationBuilder(
     CompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
-  KernelLibraryBuilder builder = loader.builders[library.importUri];
+  SourceLibraryBuilder builder = loader.builders[library.importUri];
   if (builder == null && required) {
     throw new ArgumentError("DeclarationBuilder for $library not found.");
   }

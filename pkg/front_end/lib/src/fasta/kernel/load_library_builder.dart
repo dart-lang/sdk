@@ -17,13 +17,15 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         ReturnStatement;
 
-import 'kernel_builder.dart' show Declaration, KernelLibraryBuilder;
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import 'kernel_builder.dart' show Declaration;
 
 import 'forest.dart' show Forest;
 
 /// Builder to represent the `deferLibrary.loadLibrary` calls and tear-offs.
 class LoadLibraryBuilder extends Declaration {
-  final KernelLibraryBuilder parent;
+  final SourceLibraryBuilder parent;
 
   final LibraryDependency importDependency;
 

@@ -8,12 +8,13 @@ import 'package:kernel/ast.dart' show Annotatable, Class, Library;
 
 import 'body_builder.dart' show BodyBuilder;
 
-import 'kernel_builder.dart'
-    show ClassBuilder, KernelLibraryBuilder, MetadataBuilder, MemberBuilder;
+import 'kernel_builder.dart' show ClassBuilder, MetadataBuilder, MemberBuilder;
 
 import '../scanner.dart' show Token;
 
 import '../scope.dart' show Scope;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class KernelMetadataBuilder extends MetadataBuilder {
   final Token beginToken;
@@ -25,7 +26,7 @@ class KernelMetadataBuilder extends MetadataBuilder {
   static void buildAnnotations(
       Annotatable parent,
       List<MetadataBuilder> metadata,
-      KernelLibraryBuilder library,
+      SourceLibraryBuilder library,
       ClassBuilder classBuilder,
       MemberBuilder member) {
     if (metadata == null) return;

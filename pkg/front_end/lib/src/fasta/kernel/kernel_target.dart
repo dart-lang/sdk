@@ -76,6 +76,8 @@ import '../scope.dart' show AmbiguousBuilder;
 
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../target_implementation.dart' show TargetImplementation;
@@ -90,7 +92,6 @@ import 'kernel_builder.dart'
         Declaration,
         InvalidTypeBuilder,
         KernelFieldBuilder,
-        KernelLibraryBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         LibraryBuilder,
@@ -197,14 +198,14 @@ class KernelTarget extends TargetImplementation {
 
   @override
   LibraryBuilder createLibraryBuilder(
-      Uri uri, Uri fileUri, KernelLibraryBuilder origin) {
+      Uri uri, Uri fileUri, SourceLibraryBuilder origin) {
     if (dillTarget.isLoaded) {
       var builder = dillTarget.loader.builders[uri];
       if (builder != null) {
         return builder;
       }
     }
-    return new KernelLibraryBuilder(uri, fileUri, loader, origin);
+    return new SourceLibraryBuilder(uri, fileUri, loader, origin);
   }
 
   /// Returns classes defined in libraries in [loader].
@@ -817,11 +818,11 @@ class KernelTarget extends TargetImplementation {
   }
 
   @override
-  void readPatchFiles(KernelLibraryBuilder library) {
+  void readPatchFiles(SourceLibraryBuilder library) {
     assert(library.uri.scheme == "dart");
     List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
     if (patches != null) {
-      KernelLibraryBuilder first;
+      SourceLibraryBuilder first;
       for (Uri patch in patches) {
         if (first == null) {
           first = library.loader.read(patch, -1,
@@ -829,7 +830,7 @@ class KernelTarget extends TargetImplementation {
         } else {
           // If there's more than one patch file, it's interpreted as a part of
           // the patch library.
-          KernelLibraryBuilder part = library.loader.read(patch, -1,
+          SourceLibraryBuilder part = library.loader.read(patch, -1,
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
           first.partOffsets.add(-1);

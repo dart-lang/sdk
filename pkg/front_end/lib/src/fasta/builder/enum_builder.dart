@@ -53,7 +53,6 @@ import '../kernel/kernel_builder.dart'
         ClassBuilder,
         ConstructorBuilder,
         KernelFieldBuilder,
-        KernelLibraryBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         TypeBuilder,
@@ -63,6 +62,8 @@ import '../kernel/kernel_builder.dart'
         Scope;
 
 import '../kernel/metadata_collector.dart';
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class EnumBuilder extends SourceClassBuilder {
   final List<EnumConstantInfo> enumConstantInfos;
@@ -99,7 +100,7 @@ class EnumBuilder extends SourceClassBuilder {
       List<MetadataBuilder> metadata,
       String name,
       List<EnumConstantInfo> enumConstantInfos,
-      KernelLibraryBuilder parent,
+      SourceLibraryBuilder parent,
       int startCharOffset,
       int charOffset,
       int charEndOffset) {
@@ -259,7 +260,7 @@ class EnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  Class build(KernelLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
+  Class build(SourceLibraryBuilder libraryBuilder, LibraryBuilder coreLibrary) {
     cls.isEnum = true;
     intType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     stringType.resolveIn(

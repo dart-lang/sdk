@@ -23,8 +23,6 @@ export 'implicit_field_type.dart' show ImplicitFieldType;
 
 export 'kernel_field_builder.dart' show KernelFieldBuilder;
 
-export 'kernel_library_builder.dart' show KernelLibraryBuilder;
-
 export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
 
 export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;

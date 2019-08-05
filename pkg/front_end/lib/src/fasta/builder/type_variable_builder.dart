@@ -12,12 +12,9 @@ import 'package:kernel/ast.dart'
 import '../fasta_codes.dart' show templateTypeArgumentsOnTypeVariable;
 
 import '../kernel/kernel_builder.dart'
-    show
-        ClassBuilder,
-        KernelLibraryBuilder,
-        NamedTypeBuilder,
-        LibraryBuilder,
-        TypeBuilder;
+    show ClassBuilder, NamedTypeBuilder, LibraryBuilder, TypeBuilder;
+
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 class TypeVariableBuilder extends TypeDeclarationBuilder {
   TypeBuilder bound;
@@ -29,7 +26,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
   TypeVariableBuilder actualOrigin;
 
   TypeVariableBuilder(
-      String name, KernelLibraryBuilder compilationUnit, int charOffset,
+      String name, SourceLibraryBuilder compilationUnit, int charOffset,
       {this.bound, bool synthesizeTypeParameterName: false})
       : actualParameter = new TypeParameter(
             synthesizeTypeParameterName ? '#$name' : name, null)

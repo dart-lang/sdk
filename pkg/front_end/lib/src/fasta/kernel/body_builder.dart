@@ -63,6 +63,8 @@ import '../source/scope_listener.dart'
         ParserRecovery,
         ScopeListener;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/value_kinds.dart';
 
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
@@ -145,7 +147,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   // TODO(ahe): Rename [library] to 'part'.
   @override
-  final KernelLibraryBuilder library;
+  final SourceLibraryBuilder library;
 
   final ModifierBuilder member;
 
@@ -303,7 +305,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         legacyMode = library.legacyMode,
         super(enclosingScope);
 
-  BodyBuilder.withParents(KernelFieldBuilder field, KernelLibraryBuilder part,
+  BodyBuilder.withParents(KernelFieldBuilder field, SourceLibraryBuilder part,
       ClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
             part,
@@ -326,7 +328,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             typeInferrer);
 
   BodyBuilder.forOutlineExpression(
-      KernelLibraryBuilder library,
+      SourceLibraryBuilder library,
       ClassBuilder classBuilder,
       ModifierBuilder member,
       Scope scope,
@@ -5629,7 +5631,7 @@ class FormalParameters {
   }
 
   FunctionNode buildFunctionNode(
-      KernelLibraryBuilder library,
+      SourceLibraryBuilder library,
       UnresolvedType returnType,
       List<TypeVariableBuilder> typeParameters,
       AsyncMarker asyncModifier,

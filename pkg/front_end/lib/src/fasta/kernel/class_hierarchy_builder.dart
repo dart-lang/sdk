@@ -57,6 +57,8 @@ import '../problems.dart' show unhandled;
 
 import '../scope.dart' show Scope;
 
+import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
 import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/standard_bounds.dart' show StandardBounds;
@@ -79,7 +81,6 @@ import 'kernel_builder.dart'
         ImplicitFieldType,
         ClassBuilder,
         KernelFieldBuilder,
-        KernelLibraryBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         LibraryBuilder,
@@ -339,7 +340,7 @@ class ClassHierarchyBuilder {
   }
 
   Member getCombinedMemberSignatureKernel(Class cls, Name name, bool isSetter,
-      int charOffset, KernelLibraryBuilder library) {
+      int charOffset, SourceLibraryBuilder library) {
     Declaration declaration =
         getNodeFromKernelClass(cls).getInterfaceMember(name, isSetter);
     if (declaration?.isStatic ?? true) return null;
@@ -935,7 +936,7 @@ class ClassHierarchyNodeBuilder {
           a.hadTypesInferred = true;
         }
         if (inheritedType is ImplicitFieldType) {
-          KernelLibraryBuilder library = cls.library;
+          SourceLibraryBuilder library = cls.library;
           (library.implicitlyTypedFields ??= <KernelFieldBuilder>[]).add(a);
         }
         a.target.type = inheritedType;
@@ -2243,7 +2244,7 @@ class InterfaceConflict extends DelayedMember {
     if (combinedMemberSignatureResult != null) {
       return combinedMemberSignatureResult;
     }
-    if (parent.library is! KernelLibraryBuilder) {
+    if (parent.library is! SourceLibraryBuilder) {
       return combinedMemberSignatureResult = declarations.first.target;
     }
     DartType thisType = parent.cls.thisType;
@@ -2328,7 +2329,7 @@ class InterfaceConflict extends DelayedMember {
               .finalize();
       if (parent.cls == stub.enclosingClass) {
         parent.cls.addMember(stub);
-        KernelLibraryBuilder library = parent.library;
+        SourceLibraryBuilder library = parent.library;
         if (bestSoFar.target is Procedure) {
           library.forwardersOrigins..add(stub)..add(bestSoFar.target);
         }
