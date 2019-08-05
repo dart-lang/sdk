@@ -21,14 +21,13 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  */
 class ConstructorMember extends ExecutableMember implements ConstructorElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], and applied [substitution]. If [type] is passed, it
-   * represents the full type of the member, and will take precedence over
-   * the [substitution].
+   * Initialize a newly created element to represent a constructor, based on
+   * the [baseElement], and applied [substitution].
    */
-  ConstructorMember(ConstructorElement baseElement, Substitution substitution,
-      [FunctionType type])
-      : super(baseElement, substitution, type);
+  ConstructorMember(
+    ConstructorElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
@@ -74,7 +73,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (type != null) {
       buffer.write(type.returnType);
       buffer.write(' ');
@@ -114,9 +113,10 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
       // TODO(brianwilkerson) We need to understand when this can happen.
       return constructor;
     }
-    var substitution = Substitution.fromInterfaceType(definingType);
-    FunctionType substitutedType = substitution.substituteType(baseType);
-    return new ConstructorMember(constructor, substitution, substitutedType);
+    return ConstructorMember(
+      constructor,
+      Substitution.fromInterfaceType(definingType),
+    );
   }
 }
 
@@ -130,13 +130,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   /**
    * Initialize a newly created element to represent a callable element (like a
    * method or function or property), based on the [baseElement], and applied
-   * [substitution]. If [type] is passed, it represents the full type of the
-   * member, and will take precedence over the [substitution].
+   * [substitution].
    */
-  ExecutableMember(ExecutableElement baseElement, Substitution substitution,
-      [FunctionType type])
-      : _type = type,
-        super(baseElement, substitution);
+  ExecutableMember(
+    ExecutableElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
@@ -183,12 +182,17 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   FunctionType get type {
-    return _type ??= _substitution.substituteType(baseElement.type);
+    if (_type != null) return _type;
+
+    return _type = _substitution.substituteType(baseElement.type);
   }
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(baseElement.typeParameters, _substitution);
+    return TypeParameterMember.from2(
+      baseElement.typeParameters,
+      _substitution,
+    );
   }
 
   @override
@@ -199,31 +203,43 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     safelyVisitChildren(parameters, visitor);
   }
 
-  static ExecutableMember from2(
+  static ExecutableElement from2(
     ExecutableElement element,
-    Substitution substitution,
+    MapSubstitution substitution,
   ) {
-    Substitution combinedSubstitution;
+    var combined = substitution;
     if (element is ExecutableMember) {
       ExecutableMember member = element;
       element = member.baseElement;
-      combinedSubstitution = Substitution.combine(
-        member.substitution,
-        substitution,
-      );
-    } else {
-      combinedSubstitution = substitution;
+      var map = <TypeParameterElement, DartType>{};
+      map.addAll(member._substitution.map);
+      map.addAll(substitution.map);
+      combined = Substitution.fromMap(map);
     }
 
     if (element is ConstructorElement) {
-      return ConstructorMember(element, combinedSubstitution);
+      return ConstructorMember(element, combined);
     } else if (element is MethodElement) {
-      return MethodMember(element, combinedSubstitution);
+      return MethodMember(element, combined);
     } else if (element is PropertyAccessorElement) {
-      return PropertyAccessorMember(element, combinedSubstitution);
+      return PropertyAccessorMember(element, combined);
     } else {
       throw UnimplementedError('(${element.runtimeType}) $element');
     }
+  }
+
+  static ExecutableElement from3(
+    ExecutableElement element,
+    List<TypeParameterElement> typeParameters,
+    List<DartType> typeArguments,
+  ) {
+    if (typeParameters.isEmpty) {
+      return element;
+    }
+    return from2(
+      element,
+      Substitution.fromPairs(typeParameters, typeArguments),
+    );
   }
 }
 
@@ -235,13 +251,12 @@ class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   /**
    * Initialize a newly created element to represent a field formal parameter,
-   * based on the [baseElement], with applied [substitution]. If [type]
-   * is passed it will be used as the substituted type for this member.
+   * based on the [baseElement], with applied [substitution].
    */
   FieldFormalParameterMember(
-      FieldFormalParameterElement baseElement, Substitution substitution,
-      [DartType type])
-      : super(baseElement, substitution, type);
+    FieldFormalParameterElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   FieldElement get field {
@@ -266,8 +281,10 @@ class FieldMember extends VariableMember implements FieldElement {
    * Initialize a newly created element to represent a field, based on the
    * [baseElement], with applied [substitution].
    */
-  FieldMember(FieldElement baseElement, Substitution substitution)
-      : super(baseElement, substitution);
+  FieldMember(
+    FieldElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   FieldElement get baseElement => super.baseElement as FieldElement;
@@ -281,7 +298,7 @@ class FieldMember extends VariableMember implements FieldElement {
     if (baseGetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseGetter, substitution);
+    return PropertyAccessorMember(baseGetter, _substitution);
   }
 
   @override
@@ -307,7 +324,7 @@ class FieldMember extends VariableMember implements FieldElement {
     if (baseSetter == null) {
       return null;
     }
-    return PropertyAccessorMember(baseSetter, substitution);
+    return PropertyAccessorMember(baseSetter, _substitution);
   }
 
   @override
@@ -331,76 +348,10 @@ class FieldMember extends VariableMember implements FieldElement {
     if (field == null || definingType.typeArguments.isEmpty) {
       return field;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    var substitution = Substitution.fromInterfaceType(definingType);
-    return new FieldMember(field, substitution);
-  }
-}
-
-/**
- * Deprecated: this type is no longer used. Use
- * [MethodInvocation.staticInvokeType] to get the instantiated type of a generic
- * method invocation.
- *
- * An element of a generic function, where the type parameters are known.
- */
-// TODO(jmesserly): the term "function member" is a bit weird, but it allows
-// a certain consistency.
-@deprecated
-class FunctionMember extends ExecutableMember implements FunctionElement {
-  /**
-   * Initialize a newly created element to represent a function, based on the
-   * [baseElement], with the corresponding function [type].
-   */
-  @deprecated
-  FunctionMember(FunctionElement baseElement, [DartType type])
-      : super(baseElement, null, type);
-
-  @override
-  FunctionElement get baseElement => super.baseElement as FunctionElement;
-
-  @override
-  Element get enclosingElement => baseElement.enclosingElement;
-
-  @override
-  bool get isEntryPoint => baseElement.isEntryPoint;
-
-  @override
-  SourceRange get visibleRange => baseElement.visibleRange;
-
-  @override
-  T accept<T>(ElementVisitor<T> visitor) => visitor.visitFunctionElement(this);
-
-  @deprecated
-  @override
-  FunctionDeclaration computeNode() => baseElement.computeNode();
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(baseElement.displayName);
-    (type as FunctionTypeImpl).appendTo(buffer, new Set.identity());
-    return buffer.toString();
-  }
-
-  /**
-   * If the given [method]'s type is different when any type parameters from the
-   * defining type's declaration are replaced with the actual type arguments
-   * from the [definingType], create a method member representing the given
-   * method. Return the member that was created, or the base method if no member
-   * was created.
-   */
-  static MethodElement from(
-      MethodElement method, ParameterizedType definingType) {
-    if (method == null || definingType.typeArguments.isEmpty) {
-      return method;
-    }
-    FunctionType baseType = method.type;
-    var substitution = Substitution.fromInterfaceType(definingType);
-    FunctionType substitutedType = substitution.substituteType(baseType);
-    return new MethodMember(method, substitution, substitutedType);
+    return FieldMember(
+      field,
+      Substitution.fromInterfaceType(definingType),
+    );
   }
 }
 
@@ -417,11 +368,11 @@ abstract class Member implements Element {
   /**
    * The substitution for type parameters referenced in the base element.
    */
-  final Substitution _substitution;
+  final MapSubstitution _substitution;
 
   /**
    * Initialize a newly created element to represent a member, based on the
-   * [baseElement], and applied [substitution].
+   * [baseElement], and applied [_substitution].
    */
   Member(this._baseElement, this._substitution);
 
@@ -553,7 +504,7 @@ abstract class Member implements Element {
   /**
    * The substitution for type parameters referenced in the base element.
    */
-  Substitution get substitution => _substitution;
+  MapSubstitution get substitution => _substitution;
 
   @deprecated
   @override
@@ -579,17 +530,6 @@ abstract class Member implements Element {
       _baseElement.isAccessibleIn(library);
 
   /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  @deprecated
-  void safelyVisitChild(Element child, ElementVisitor visitor) {
-    // TODO(brianwilkerson) Make this private
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
-
-  /**
    * Use the given [visitor] to visit all of the [children].
    */
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
@@ -605,6 +545,7 @@ abstract class Member implements Element {
    * Return the type that results from replacing the type parameters in the
    * given [type] with the type arguments associated with this member.
    */
+  @Deprecated("Used only by 'getReifiedType', which is deprecated")
   DartType substituteFor(DartType type) {
     if (type == null) {
       return null;
@@ -625,13 +566,12 @@ abstract class Member implements Element {
 class MethodMember extends ExecutableMember implements MethodElement {
   /**
    * Initialize a newly created element to represent a method, based on the
-   * [baseElement], with applied [substitution]. If [type] is passed, it
-   * represents the full type of the member, and will take precedence over
-   * the [substitution].
+   * [baseElement], with applied [substitution].
    */
-  MethodMember(MethodElement baseElement, Substitution substitution,
-      [DartType type])
-      : super(baseElement, substitution, type);
+  MethodMember(
+    MethodElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   MethodElement get baseElement => super.baseElement as MethodElement;
@@ -657,7 +597,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
-    StringBuffer buffer = new StringBuffer();
+    StringBuffer buffer = StringBuffer();
     if (type != null) {
       buffer.write(type.returnType);
       buffer.write(' ');
@@ -727,11 +667,11 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (method == null || definingType.typeArguments.isEmpty) {
       return method;
     }
-    FunctionType baseType = method.type;
 
-    var substitution = Substitution.fromInterfaceType(definingType);
-    FunctionType substitutedType = substitution.substituteType(baseType);
-    return new MethodMember(method, substitution, substitutedType);
+    return MethodMember(
+      method,
+      Substitution.fromInterfaceType(definingType),
+    );
   }
 }
 
@@ -747,9 +687,11 @@ class ParameterMember extends VariableMember
    * [baseElement], with applied [substitution]. If [type] is passed it will
    * represent the already substituted type.
    */
-  ParameterMember(ParameterElement baseElement, Substitution substitution,
-      [DartType type])
-      : super._(baseElement, substitution, type);
+  ParameterMember(
+    ParameterElement baseElement,
+    MapSubstitution substitution, [
+    DartType type,
+  ]) : super._(baseElement, substitution, type);
 
   @override
   ParameterElement get baseElement => super.baseElement as ParameterElement;
@@ -784,7 +726,10 @@ class ParameterMember extends VariableMember
 
   @override
   List<TypeParameterElement> get typeParameters {
-    return TypeParameterMember.from2(baseElement.typeParameters, _substitution);
+    return TypeParameterMember.from2(
+      baseElement.typeParameters,
+      _substitution,
+    );
   }
 
   @override
@@ -842,8 +787,9 @@ class PropertyAccessorMember extends ExecutableMember
    * [baseElement], with applied [substitution].
    */
   PropertyAccessorMember(
-      PropertyAccessorElement baseElement, Substitution substitution)
-      : super(baseElement, substitution);
+    PropertyAccessorElement baseElement,
+    MapSubstitution substitution,
+  ) : super(baseElement, substitution);
 
   @override
   PropertyAccessorElement get baseElement =>
@@ -893,7 +839,7 @@ class PropertyAccessorMember extends ExecutableMember
     List<ParameterElement> parameters = this.parameters;
     FunctionType type = this.type;
 
-    StringBuffer builder = new StringBuffer();
+    StringBuffer builder = StringBuffer();
     if (type != null) {
       builder.write(type.returnType);
       builder.write(' ');
@@ -930,11 +876,11 @@ class PropertyAccessorMember extends ExecutableMember
     if (accessor == null || definingType.typeArguments.isEmpty) {
       return accessor;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    var substitution = Substitution.fromInterfaceType(definingType);
-    return new PropertyAccessorMember(accessor, substitution);
+
+    return PropertyAccessorMember(
+      accessor,
+      Substitution.fromInterfaceType(definingType),
+    );
   }
 }
 
@@ -957,10 +903,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   DartType _bound;
   DartType _type;
 
-  TypeParameterMember(
-      TypeParameterElement baseElement, Substitution substitution, this._bound)
+  TypeParameterMember(TypeParameterElement baseElement,
+      MapSubstitution substitution, this._bound)
       : super(baseElement, substitution) {
-    _type = new TypeParameterTypeImpl(this);
+    _type = TypeParameterTypeImpl(this);
   }
 
   @override
@@ -1020,7 +966,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
 
   static List<TypeParameterElement> from2(
     List<TypeParameterElement> formals,
-    Substitution substitution,
+    MapSubstitution substitution,
   ) {
     // Create type formals with specialized bounds.
     // For example `<U extends T>` where T comes from an outer scope.
@@ -1031,7 +977,7 @@ class TypeParameterMember extends Member implements TypeParameterElement {
       DartType bound = formal?.bound;
       if (bound != null) {
         bound = substitution.substituteType(bound);
-        var member = new TypeParameterMember(formal, substitution, bound);
+        var member = TypeParameterMember(formal, substitution, bound);
         newElements[i] = member;
       }
       newTypes[i] = newElements[i].type;
@@ -1057,22 +1003,23 @@ class TypeParameterMember extends Member implements TypeParameterElement {
  * type parameters are known.
  */
 abstract class VariableMember extends Member implements VariableElement {
-  @override
-  final DartType type;
+  DartType _type;
 
   /**
    * Initialize a newly created element to represent a variable, based on the
-   * [baseElement], wit applied [substitution].
+   * [baseElement], with applied [substitution].
    */
-  VariableMember(VariableElement baseElement, Substitution substitution,
-      [DartType type])
-      : type = type ?? substitution.substituteType(baseElement.type),
+  VariableMember(
+    VariableElement baseElement,
+    MapSubstitution substitution, [
+    DartType type,
+  ])  : _type = type,
         super(baseElement, substitution);
 
   // TODO(jmesserly): this is temporary to allow the ParameterMember subclass.
   // Apparently mixins don't work with optional params.
-  VariableMember._(
-      VariableElement baseElement, Substitution substitution, DartType type)
+  VariableMember._(VariableElement baseElement, MapSubstitution substitution,
+      [DartType type])
       : this(baseElement, substitution, type);
 
   @override
@@ -1090,7 +1037,7 @@ abstract class VariableMember extends Member implements VariableElement {
     // Elements within this element should have type parameters substituted,
     // just like this element.
     //
-    throw new UnsupportedError('initializer');
+    throw UnsupportedError('initializer');
     //    return getBaseElement().getInitializer();
   }
 
@@ -1115,6 +1062,13 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isStatic => baseElement.isStatic;
+
+  @override
+  DartType get type {
+    if (_type != null) return _type;
+
+    return _type = _substitution.substituteType(baseElement.type);
+  }
 
   @override
   DartObject computeConstantValue() => baseElement.computeConstantValue();

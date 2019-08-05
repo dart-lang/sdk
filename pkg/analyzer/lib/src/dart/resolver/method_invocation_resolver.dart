@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -390,11 +389,11 @@ class MethodInvocationResolver {
       return;
     }
 
-    var substitution = Substitution.fromPairs(
+    member = ExecutableMember.from3(
+      member,
       element.typeParameters,
       override.typeArgumentTypes,
     );
-    member = ExecutableMember.from2(member, substitution);
 
     if (member is ExecutableElement && member.isStatic) {
       _resolver.errorReporter.reportErrorForNode(

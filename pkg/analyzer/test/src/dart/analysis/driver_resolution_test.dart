@@ -115,7 +115,7 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest {
   ) {
     expect(actual.baseElement, same(expectedBase));
 
-    var actualMapString = actual.substitution.asMap.map(
+    var actualMapString = actual.substitution.map.map(
       (k, v) => MapEntry(k.name, '$v'),
     );
     expect(actualMapString, expectedSubstitution);
