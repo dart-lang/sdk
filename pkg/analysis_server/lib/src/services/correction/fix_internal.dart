@@ -479,6 +479,7 @@ class FixProcessor {
       await _addFix_createFunction_forFunctionType();
       await _addFix_createMixin();
       await _addFix_importLibrary_withType();
+      await _addFix_importLibrary_withFunction();
       await _addFix_importLibrary_withTopLevelVariable();
       await _addFix_createLocalVariable();
     }
@@ -2511,18 +2512,22 @@ class FixProcessor {
   Future<void> _addFix_importLibrary_withFunction() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-      MethodInvocation invocation = node.parent as MethodInvocation;
-      if (invocation.realTarget == null && invocation.methodName == node) {
-        String name = (node as SimpleIdentifier).name;
-        await _addFix_importLibrary_withElement(name, const [
-          ElementKind.FUNCTION,
-          ElementKind.TOP_LEVEL_VARIABLE
-        ], const [
-          TopLevelDeclarationKind.function,
-          TopLevelDeclarationKind.variable
-        ]);
+    if (node is SimpleIdentifier) {
+      if (node.parent is MethodInvocation) {
+        MethodInvocation invocation = node.parent as MethodInvocation;
+        if (invocation.realTarget != null || invocation.methodName != node) {
+          return;
+        }
       }
+
+      String name = (node as SimpleIdentifier).name;
+      await _addFix_importLibrary_withElement(name, const [
+        ElementKind.FUNCTION,
+        ElementKind.TOP_LEVEL_VARIABLE
+      ], const [
+        TopLevelDeclarationKind.function,
+        TopLevelDeclarationKind.variable
+      ]);
     }
   }
 

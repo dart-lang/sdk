@@ -386,6 +386,41 @@ main() {
 ''');
   }
 
+  test_withFunction_identifier() async {
+    addSource('/home/test/lib/lib.dart', '''
+library lib;
+myFunction() {}
+''');
+    await resolveTestUnit('''
+main() {
+  myFunction;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+main() {
+  myFunction;
+}
+''');
+  }
+
+  test_withFunction_functionTopLevelVariableIdentifier() async {
+    addSource('/home/test/lib/lib.dart', 'var myFunction = () {};');
+    await resolveTestUnit('''
+main() {
+  myFunction;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+main() {
+  myFunction;
+}
+''');
+  }
+
   @failingTest
   test_withFunction_nonFunctionType() async {
     addSource('/home/test/lib/lib.dart', 'int zero = 0;');
