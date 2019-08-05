@@ -3075,7 +3075,6 @@ RawFunction* Function::CreateDynamicInvocationForwarder(
 
   forwarder.set_name(mangled_name);
   forwarder.set_is_native(false);
-  forwarder.set_recognized_kind(MethodRecognizer::kUnknown);
   forwarder.set_kind(RawFunction::kDynamicInvocationForwarder);
   forwarder.set_is_debuggable(false);
 
