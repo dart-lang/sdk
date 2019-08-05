@@ -536,12 +536,24 @@ class MethodInvocationResolver {
       return _reportInvocationOfNonFunction(node);
     }
 
+    InterfaceType receiverType;
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (enclosingClass == null) {
-      return _reportUndefinedFunction(node, node.methodName);
+      if (_resolver.enclosingExtension == null) {
+        return _reportUndefinedFunction(node, node.methodName);
+      }
+      var extendedType = _resolver.enclosingExtension.extendedType;
+      if (extendedType is InterfaceType) {
+        receiverType = extendedType;
+      } else if (extendedType is FunctionType) {
+        receiverType = _resolver.typeProvider.functionType;
+      } else {
+        return _reportUndefinedFunction(node, node.methodName);
+      }
+      enclosingClass = receiverType.element;
+    } else {
+      receiverType = enclosingClass.type;
     }
-
-    var receiverType = enclosingClass.type;
     var target = _inheritance.getMember(receiverType, _currentName);
 
     if (target != null) {
@@ -560,6 +572,18 @@ class MethodInvocationResolver {
         [receiverType.displayName],
       );
       return;
+    }
+
+    var extension =
+        _extensionMemberResolver.findExtension(receiverType, name, nameNode);
+    if (extension != null) {
+      var target = extension.getMethod(name);
+      if (target != null) {
+        nameNode.staticElement = target;
+        var calleeType = _getCalleeType(node, target);
+        _setResolution(node, calleeType);
+        return;
+      }
     }
 
     return _reportUndefinedMethod(node, name, enclosingClass);
@@ -767,22 +791,6 @@ class MethodInvocationResolver {
       }
     }
     return null;
-  }
-
-  /// Return `true` if the given 'super' [expression] is used in a valid context.
-  static bool _isSuperInValidContext(SuperExpression expression) {
-    for (AstNode node = expression; node != null; node = node.parent) {
-      if (node is CompilationUnit) {
-        return false;
-      } else if (node is ConstructorDeclaration) {
-        return node.factoryKeyword == null;
-      } else if (node is ConstructorFieldInitializer) {
-        return false;
-      } else if (node is MethodDeclaration) {
-        return !node.isStatic;
-      }
-    }
-    return false;
   }
 
   /// As an experiment for using synthetic [FunctionType]s, we replace some

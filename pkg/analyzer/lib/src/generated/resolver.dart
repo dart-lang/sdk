@@ -5103,6 +5103,10 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
   /// or `null` if we are not in the scope of a class.
   ClassElement enclosingClass;
 
+  /// The element representing the extension containing the AST nodes being
+  /// visited, or `null` if we are not in the scope of an extension.
+  ExtensionElement enclosingExtension;
+
   /// Initialize a newly created visitor to resolve the nodes in a compilation
   /// unit.
   ///
@@ -5363,17 +5367,23 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<void> {
             new CaughtException(new AnalysisException(), null));
         super.visitExtensionDeclaration(node);
       } else {
-        nameScope = new TypeParameterScope(nameScope, extensionElement);
-        visitExtensionDeclarationInScope(node);
-        DartType extendedType = extensionElement.extendedType;
-        if (extendedType is InterfaceType) {
-          nameScope = new ClassScope(nameScope, extendedType.element);
-        } else if (extendedType is FunctionType) {
-          nameScope =
-              new ClassScope(nameScope, typeProvider.functionType.element);
+        ExtensionElement outerExtension = enclosingExtension;
+        try {
+          enclosingExtension = extensionElement;
+          nameScope = new TypeParameterScope(nameScope, extensionElement);
+          visitExtensionDeclarationInScope(node);
+          DartType extendedType = extensionElement.extendedType;
+          if (extendedType is InterfaceType) {
+            nameScope = new ClassScope(nameScope, extendedType.element);
+          } else if (extendedType is FunctionType) {
+            nameScope =
+                new ClassScope(nameScope, typeProvider.functionType.element);
+          }
+          nameScope = ExtensionScope(nameScope, extensionElement);
+          visitExtensionMembersInScope(node);
+        } finally {
+          enclosingExtension = outerExtension;
         }
-        nameScope = ExtensionScope(nameScope, extensionElement);
-        visitExtensionMembersInScope(node);
       }
     } finally {
       nameScope = outerScope;

@@ -1872,22 +1872,40 @@ class ElementResolver extends SimpleAstVisitor<void> {
           new SyntheticIdentifier('${identifier.name}=', identifier);
       element = _resolver.nameScope.lookup(setterId, _definingLibrary);
     }
-    ClassElement enclosingClass = _resolver.enclosingClass;
-    if (element == null && enclosingClass != null) {
-      InterfaceType enclosingType = enclosingClass.type;
-      if (element == null &&
-          (identifier.inSetterContext() ||
-              identifier.parent is CommentReference)) {
-        element =
-            _lookUpSetter(null, enclosingType, identifier.name, identifier);
+    if (element == null) {
+      InterfaceType enclosingType;
+      ClassElement enclosingClass = _resolver.enclosingClass;
+      if (enclosingClass == null) {
+        var enclosingExtension = _resolver.enclosingExtension;
+        if (enclosingExtension == null) {
+          return null;
+        }
+        DartType extendedType = enclosingExtension.extendedType;
+        if (extendedType is InterfaceType) {
+          enclosingType = extendedType;
+        } else if (extendedType is FunctionType) {
+          enclosingType = _resolver.typeProvider.functionType;
+        } else {
+          return null;
+        }
+      } else {
+        enclosingType = enclosingClass.type;
       }
-      if (element == null && identifier.inGetterContext()) {
-        element =
-            _lookUpGetter(null, enclosingType, identifier.name, identifier);
-      }
-      if (element == null) {
-        element =
-            _lookUpMethod(null, enclosingType, identifier.name, identifier);
+      if (enclosingType != null) {
+        if (element == null &&
+            (identifier.inSetterContext() ||
+                identifier.parent is CommentReference)) {
+          element =
+              _lookUpSetter(null, enclosingType, identifier.name, identifier);
+        }
+        if (element == null && identifier.inGetterContext()) {
+          element =
+              _lookUpGetter(null, enclosingType, identifier.name, identifier);
+        }
+        if (element == null) {
+          element =
+              _lookUpMethod(null, enclosingType, identifier.name, identifier);
+        }
       }
     }
     return element;

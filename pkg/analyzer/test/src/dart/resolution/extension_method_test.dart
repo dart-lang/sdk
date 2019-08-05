@@ -231,6 +231,56 @@ f(C c) {
     assertElement(assignment, findElement.method('+', of: 'E'));
   }
 
+  test_instance_getter_fromDifferentExtension_withoutTarget() async {
+    await assertNoErrorsInCode('''
+class C {}
+extension E1 on C {
+  int get a => 1;
+}
+extension E2 on C {
+  void m() {
+    a;
+  }
+}
+''');
+    var access = findNode.simple('a;');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
+  test_instance_getter_fromExtendedType_withoutTarget() async {
+    await assertNoErrorsInCode('''
+class C {
+  void m() {
+    a;
+  }
+}
+extension E on C {
+  int get a => 1;
+}
+''');
+    var access = findNode.simple('a;');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
+  test_instance_getter_fromInstance() async {
+    await assertNoErrorsInCode('''
+class C {}
+
+extension E on C {
+  int get a => 1;
+}
+
+f(C c) {
+  c.a;
+}
+''');
+    var access = findNode.prefixed('c.a');
+    assertElement(access, findElement.getter('a'));
+    assertType(access, 'int');
+  }
+
   test_instance_getter_methodInvocation() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -252,23 +302,6 @@ f(C c) {
     );
   }
 
-  test_instance_getter_oneMatch() async {
-    await assertNoErrorsInCode('''
-class C {}
-
-extension E on C {
-  int get a => 1;
-}
-
-f(C c) {
-  c.a;
-}
-''');
-    var access = findNode.prefixed('c.a');
-    assertElement(access, findElement.getter('a'));
-    assertType(access, 'int');
-  }
-
   test_instance_getter_specificSubtypeMatchLocal() async {
     await assertNoErrorsInCode('''
 class A {}
@@ -288,6 +321,56 @@ f(B b) {
     var access = findNode.prefixed('b.a');
     assertElement(access, findElement.getter('a', of: 'B_Ext'));
     assertType(access, 'int');
+  }
+
+  test_instance_method_fromDifferentExtension_withoutTarget() async {
+    await assertNoErrorsInCode('''
+class B {}
+extension E1 on B {
+  void a() {}
+}
+extension E2 on B {
+  void m() {
+    a();
+  }
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromExtendedType_withoutTarget() async {
+    await assertNoErrorsInCode('''
+class B {
+  void m() {
+    a();
+  }
+}
+extension E on B {
+  void a() {}
+}
+''');
+    var invocation = findNode.methodInvocation('a();');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromInstance() async {
+    await assertNoErrorsInCode('''
+class B {}
+
+extension A on B {
+  void a() {}
+}
+
+f(B b) {
+  b.a();
+}
+''');
+    var invocation = findNode.methodInvocation('b.a()');
+    assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
   }
 
   test_instance_method_moreSpecificThanPlatform() async {
@@ -323,23 +406,6 @@ f(Core2 c) {
 ''');
     var invocation = findNode.methodInvocation('c.a()');
     assertElement(invocation, findElement.method('a', of: 'Core2_Ext'));
-    assertInvokeType(invocation, 'void Function()');
-  }
-
-  test_instance_method_oneMatch() async {
-    await assertNoErrorsInCode('''
-class B {}
-
-extension A on B {
-  void a() {}
-}
-
-f(B b) {
-  b.a();
-}
-''');
-    var invocation = findNode.methodInvocation('b.a()');
-    assertElement(invocation, findElement.method('a'));
     assertInvokeType(invocation, 'void Function()');
   }
 
