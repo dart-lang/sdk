@@ -540,11 +540,27 @@ IsolateTest checkRecordedStops(
       expectedStops = removeAdjacentDuplicates(expectedStops);
     }
 
-    int end = recordStops.length < expectedStops.length
-        ? recordStops.length
-        : expectedStops.length;
-    for (int i = 0; i < end; ++i) {
-      expect(recordStops[i], expectedStops[i]);
+    // Single stepping in interpreted bytecode may record extra stops.
+    // Allow the extra ones as long as the expected ones are recorded.
+    int i = 0;
+    int j = 0;
+    while (i < recordStops.length && j < expectedStops.length) {
+      if (recordStops[i] != expectedStops[j]) {
+        // Check if recordStops[i] is an extra stop.
+        int k = i + 1;
+        while (k < recordStops.length && recordStops[k] != expectedStops[j]) {
+          k++;
+        }
+        if (k < recordStops.length) {
+          // Allow and ignore extra recorded stops from i to k-1.
+          i = k;
+        } else {
+          // This will report an error.
+          expect(recordStops[i], expectedStops[j]);
+        }
+      }
+      i++;
+      j++;
     }
 
     expect(recordStops.length >= expectedStops.length, true,

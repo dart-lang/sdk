@@ -768,28 +768,16 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
   OS::Abort();
 }
 
-// Calculate the context level at the current bytecode pc or code deopt id
-// of the frame.
+// Calculate the context level at the current pc of the frame.
 intptr_t ActivationFrame::ContextLevel() {
   ASSERT(live_frame_);
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
-    ASSERT(IsInterpreted() || !code_.is_optimized());
-    if (function().is_declared_in_bytecode()) {
+    if (IsInterpreted()) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      // Although this activation frame may not have bytecode, its code was
-      // compiled from bytecode.
-      if (!IsInterpreted()) {
-        // TODO(regis): If this frame was compiled from bytecode, pc_ does not
-        // reflect a bytecode pc. How do we map to one? We should generate new
-        // LocalVarDescriptors for code compiled from bytecode so that they
-        // provide deopt_id to context level mapping.
-        UNIMPLEMENTED();
-      }
-      ASSERT(function().HasBytecode());
       Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
-      Bytecode& bytecode = Bytecode::Handle(zone, function().bytecode());
+      const auto& bytecode = Bytecode::Handle(zone, function_.bytecode());
       if (!bytecode.HasLocalVariablesInfo()) {
         PrintDescriptorsError("Missing local variables info");
       }
@@ -1656,11 +1644,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
       TokenPosition visible_end_token_pos;
       VariableAt(v, &var_name, &declaration_token_pos, &visible_start_token_pos,
                  &visible_end_token_pos, &var_value);
-      if ((var_name.raw() != Symbols::AsyncOperation().raw()) &&
-          (var_name.raw() != Symbols::AsyncCompleter().raw()) &&
-          (var_name.raw() != Symbols::ControllerStream().raw()) &&
-          (var_name.raw() != Symbols::AwaitJumpVar().raw()) &&
-          (var_name.raw() != Symbols::AsyncStackTraceVar().raw())) {
+      if (!IsSyntheticVariableName(var_name)) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
         var_name = String::ScrubName(var_name);
@@ -2999,11 +2983,11 @@ TokenPosition Debugger::ResolveBreakpointPos(bool in_bytecode,
           // Token is not in the target range.
           continue;
         }
-        if (iter.PcOffset() < debug_check_pc_offset) {
-          // No breakpoints in prologue.
-          continue;
-        }
         pc_offset = iter.PcOffset();
+        if (pc_offset < debug_check_pc_offset) {
+          // No breakpoints in prologue.
+          pc_offset = debug_check_pc_offset;
+        }
       }
       if (pc_offset != kUwordMax) {
         uword pc = bytecode.GetDebugCheckedOpcodeReturnAddress(pc_offset,
@@ -3158,12 +3142,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
             // e.g. in the case of duplicated bytecode in finally clauses.
             break;
           }
-          if (iter.PcOffset() < debug_check_pc_offset) {
-            // No breakpoints in prologue.
-            continue;
-          }
           if (iter.TokenPos() == loc->token_pos_) {
             pc_offset = iter.PcOffset();
+            if (pc_offset < debug_check_pc_offset) {
+              // No breakpoints in prologue.
+              pc_offset = debug_check_pc_offset;
+            }
           }
         }
         if (pc_offset != kUwordMax) {
@@ -4491,9 +4475,10 @@ RawError* Debugger::PauseStepping() {
 
   if (FLAG_verbose_debug) {
     OS::PrintErr(
-        ">>> single step break at %s:%" Pd " (func %s token %s address %#" Px
-        " offset %#" Px ")\n",
+        ">>> single step break at %s:%" Pd ":%" Pd
+        " (func %s token %s address %#" Px " offset %#" Px ")\n",
         String::Handle(frame->SourceUrl()).ToCString(), frame->LineNumber(),
+        frame->ColumnNumber(),
         String::Handle(frame->QualifiedFunctionName()).ToCString(),
         frame->TokenPos().ToCString(), frame->pc(),
         frame->pc() - (frame->IsInterpreted() ? frame->bytecode().PayloadStart()

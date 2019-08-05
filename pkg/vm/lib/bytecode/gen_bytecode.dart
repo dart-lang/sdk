@@ -1419,6 +1419,7 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
     _recordSourcePosition(position);
     _genPrologue(node, node.function);
     _setupInitialContext(node.function);
+    _emitFirstDebugCheck(node.function);
     if (node is Procedure && node.isInstanceMember) {
       _checkArguments(node.function);
     }
@@ -1696,12 +1697,15 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       function.positionalParameters.forEach(_copyParamIfCaptured);
       locals.sortedNamedParameters.forEach(_copyParamIfCaptured);
     }
+  }
 
+  void _emitFirstDebugCheck(FunctionNode function) {
     if (options.emitDebuggerStops) {
       // DebugCheck instruction should be emitted after parameter variables
       // are declared and copied into context.
       // The debugger expects the source position to correspond to the
       // declaration position of the last parameter, if any, or of the function.
+      // The DebugCheck must be encountered each time an async op is reentered.
       if (options.emitSourcePositions && function != null) {
         var pos = TreeNode.noOffset;
         if (function.namedParameters.isNotEmpty) {
@@ -2077,9 +2081,10 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       continuationSwitchVar = locals.scratchVarIndexInFrame;
       _genSyncYieldingPrologue(
           function, continuationSwitchLabel, continuationSwitchVar);
+    } else {
+      _setupInitialContext(function);
+      _emitFirstDebugCheck(function);
     }
-
-    _setupInitialContext(function);
     _checkArguments(function);
 
     _generateNode(function.body);
@@ -2189,13 +2194,37 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
 
   void _genSyncYieldingPrologue(FunctionNode function, Label continuationLabel,
       int switchVarIndexInFrame) {
+    Label debugCheckLabel = new Label();
+
     // switch_var = :await_jump_var
     _genLoadVar(locals.awaitJumpVar);
     asm.emitStoreLocal(switchVarIndexInFrame);
 
-    // if (switch_var != 0) goto continuationLabel
     _genPushInt(0);
-    asm.emitJumpIfNeStrict(continuationLabel);
+
+    if (options.emitDebuggerStops) {
+      // if (switch_var != 0) goto debugCheckLabel
+      asm.emitJumpIfNeStrict(debugCheckLabel);
+
+      _setupInitialContext(function);
+
+      asm.bind(debugCheckLabel);
+      // The debugger may set a breakpoint on this DebugCheck opcode and it
+      // expects to hit it on the first entry to the async op, as well as on
+      // each subsequent reentry.
+      _emitFirstDebugCheck(function);
+
+      _genLoadVar(locals.awaitJumpVar);
+
+      // if (switch_var != 0) goto continuationLabel
+      _genPushInt(0);
+      asm.emitJumpIfNeStrict(continuationLabel);
+    } else {
+      // if (switch_var != 0) goto continuationLabel
+      asm.emitJumpIfNeStrict(continuationLabel);
+
+      _setupInitialContext(function);
+    }
 
     // Proceed to normal entry.
   }
@@ -2381,6 +2410,9 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
   /// the last finally block.
   void _generateNonLocalControlTransfer(
       TreeNode from, TreeNode to, GenerateContinuation continuation) {
+    if (options.emitDebuggerStops) {
+      asm.emitDebugCheck(); // Before context is unwound.
+    }
     List<TryFinally> tryFinallyBlocks = _getEnclosingTryFinallyBlocks(from, to);
     _addFinallyBlocks(tryFinallyBlocks, continuation);
   }
@@ -3819,6 +3851,16 @@ class BytecodeGenerator extends RecursiveVisitor<Null> {
       } else {
         asm.emitPushNull();
       }
+
+      if (options.emitDebuggerStops) {
+        final savedSourcePosition = asm.currentSourcePosition;
+        if (node.fileEqualsOffset != TreeNode.noOffset) {
+          _recordSourcePosition(node.fileEqualsOffset);
+        }
+        asm.emitDebugCheck();
+        asm.currentSourcePosition = savedSourcePosition;
+      }
+
       if (options.emitLocalVarInfo && !asm.isUnreachable && node.name != null) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }

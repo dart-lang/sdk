@@ -288,7 +288,6 @@ class BytecodeAssembler {
   }
 
   void emitJump(Label label) {
-    emitSourcePosition();
     _emitJumpInstruction(Opcode.kJump, label);
     isUnreachable = true;
   }

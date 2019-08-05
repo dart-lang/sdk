@@ -2688,7 +2688,6 @@ SwitchDispatch:
 
   {
     BYTECODE(Jump, T);
-    DEBUG_CHECK;
     LOAD_JUMP_TARGET();
     DISPATCH();
   }
