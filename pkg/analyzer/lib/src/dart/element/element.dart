@@ -1370,9 +1370,9 @@ class ClassElementImpl extends AbstractClassElementImpl
 
       accessorElement.variable = field;
       if (isGetter) {
-        field.getter = accessorElement;
+        field.getter ??= accessorElement;
       } else {
-        field.setter = accessorElement;
+        field.setter ??= accessorElement;
       }
     }
 

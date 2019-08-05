@@ -74,6 +74,15 @@ f({a: ({b = 0}) {}}) {}
 ''');
   }
 
+  test_fuzz_06() async {
+    await _assertCanBeAnalyzed(r'''
+class C {
+  int f;
+  set f() {}
+}
+''');
+  }
+
   test_genericFunction_asTypeArgument_ofUnresolvedClass() async {
     await _assertCanBeAnalyzed(r'''
 C<int Function()> c;
