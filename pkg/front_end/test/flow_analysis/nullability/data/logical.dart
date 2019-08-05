@@ -9,11 +9,3 @@ void logicalAnd(int? x) {
 void logicalOr(int? x) {
   x == null || /*nonNullable*/ x.isEven;
 }
-
-void logicalAnd_leftFalse(int x) {
-  false && /*unreachable*/ (x == 1);
-}
-
-void logicalOr_leftTrue(int x) {
-  true || /*unreachable*/ (x == 1);
-}

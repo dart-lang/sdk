@@ -6,10 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
@@ -19,15 +16,15 @@ import 'package:test/test.dart';
 import '../util/id_testing_helper.dart';
 
 main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
-      '../../../front_end/test/flow_analysis/nullability_and_reachability/data'));
+  Directory dataDir = new Directory.fromUri(Platform.script
+      .resolve('../../../front_end/test/flow_analysis/reachability/data'));
   await runTests(dataDir,
       args: args,
       supportedMarkers: sharedMarkers,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest:
-          runTestFor(const _FlowAnalysisDataComputer(), [analyzerNnbdConfig]));
+          runTestFor(const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
 }
 
 class FlowTestBase {
@@ -37,7 +34,7 @@ class FlowTestBase {
   Future<void> trackCode(String code) async {
     if (await checkTests(
         code,
-        const _FlowAnalysisDataComputer(),
+        const _ReachabilityDataComputer(),
         FeatureSet.forTesting(
             sdkVersion: '2.2.2', additionalFeatures: [Feature.non_nullable]))) {
       fail('Failure(s)');
@@ -45,76 +42,68 @@ class FlowTestBase {
   }
 }
 
-class _FlowAnalysisDataComputer extends DataComputer<Set<_FlowAssertion>> {
-  const _FlowAnalysisDataComputer();
+enum _ReachabilityAssertion {
+  doesNotComplete,
+  unreachable,
+}
+
+class _ReachabilityDataComputer
+    extends DataComputer<Set<_ReachabilityAssertion>> {
+  const _ReachabilityDataComputer();
 
   @override
-  DataInterpreter<Set<_FlowAssertion>> get dataValidator =>
-      const _FlowAnalysisDataInterpreter();
+  DataInterpreter<Set<_ReachabilityAssertion>> get dataValidator =>
+      const _ReachabilityDataInterpreter();
 
   @override
   void computeUnitData(TestingData testingData, CompilationUnit unit,
-      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap) {
+      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap) {
     var flowResult =
         testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
-    _FlowAnalysisDataExtractor(unit.declaredElement.source.uri, actualMap,
-            flowResult, unit.declaredElement.context.typeSystem)
+    _ReachabilityDataExtractor(
+            unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);
   }
 }
 
-class _FlowAnalysisDataExtractor extends AstDataExtractor<Set<_FlowAssertion>> {
+class _ReachabilityDataExtractor
+    extends AstDataExtractor<Set<_ReachabilityAssertion>> {
   final FlowAnalysisResult _flowResult;
 
-  final TypeSystem _typeSystem;
-
-  _FlowAnalysisDataExtractor(
+  _ReachabilityDataExtractor(
       Uri uri,
-      Map<Id, ActualData<Set<_FlowAssertion>>> actualMap,
-      this._flowResult,
-      this._typeSystem)
+      Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
+      this._flowResult)
       : super(uri, actualMap);
 
   @override
-  Set<_FlowAssertion> computeNodeValue(Id id, AstNode node) {
-    Set<_FlowAssertion> result = {};
-    if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.staticElement;
-      if (element is LocalVariableElement || element is ParameterElement) {
-        TypeImpl promotedType = node.staticType;
-        TypeImpl declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != declaredType;
-        if (isPromoted &&
-            _typeSystem.isNullable(declaredType) &&
-            !_typeSystem.isNullable(promotedType)) {
-          result.add(_FlowAssertion.nonNullable);
-        }
-      }
-    }
+  Set<_ReachabilityAssertion> computeNodeValue(Id id, AstNode node) {
+    Set<_ReachabilityAssertion> result = {};
     if (_flowResult.unreachableNodes.contains(node)) {
-      result.add(_FlowAssertion.unreachable);
+      result.add(_ReachabilityAssertion.unreachable);
     }
     if (node is FunctionDeclaration) {
       var body = node.functionExpression.body;
       if (body != null &&
           _flowResult.functionBodiesThatDontComplete.contains(body)) {
-        result.add(_FlowAssertion.doesNotComplete);
+        result.add(_ReachabilityAssertion.doesNotComplete);
       }
     }
     return result.isEmpty ? null : result;
   }
 }
 
-class _FlowAnalysisDataInterpreter
-    implements DataInterpreter<Set<_FlowAssertion>> {
-  const _FlowAnalysisDataInterpreter();
+class _ReachabilityDataInterpreter
+    implements DataInterpreter<Set<_ReachabilityAssertion>> {
+  const _ReachabilityDataInterpreter();
 
   @override
-  String getText(Set<_FlowAssertion> actualData) =>
+  String getText(Set<_ReachabilityAssertion> actualData) =>
       _sortedRepresentation(_toStrings(actualData));
 
   @override
-  String isAsExpected(Set<_FlowAssertion> actualData, String expectedData) {
+  String isAsExpected(
+      Set<_ReachabilityAssertion> actualData, String expectedData) {
     var actualStrings = _toStrings(actualData);
     var actualSorted = _sortedRepresentation(actualStrings);
     var expectedSorted = _sortedRepresentation(expectedData?.split(','));
@@ -126,7 +115,7 @@ class _FlowAnalysisDataInterpreter
   }
 
   @override
-  bool isEmpty(Set<_FlowAssertion> actualData) => actualData.isEmpty;
+  bool isEmpty(Set<_ReachabilityAssertion> actualData) => actualData.isEmpty;
 
   String _sortedRepresentation(Iterable<String> values) {
     var list = values == null || values.isEmpty ? ['none'] : values.toList();
@@ -134,14 +123,7 @@ class _FlowAnalysisDataInterpreter
     return list.join(',');
   }
 
-  List<String> _toStrings(Set<_FlowAssertion> actualData) => actualData
+  List<String> _toStrings(Set<_ReachabilityAssertion> actualData) => actualData
       .map((flowAssertion) => flowAssertion.toString().split('.')[1])
       .toList();
-}
-
-enum _FlowAssertion {
-  doesNotComplete,
-  nonNullable,
-  nullable,
-  unreachable,
 }
