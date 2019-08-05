@@ -4235,8 +4235,16 @@
       <value>
         <code>ENUM</code>
         <p>
-          The editor for choosing an items of an enumeration, see the
+          The editor for choosing an item of an enumeration, see the
           <tt>enumItems</tt> field of <tt>FlutterWidgetPropertyEditor</tt>.
+        </p>
+      </value>
+      <value>
+        <code>ENUM_LIKE</code>
+        <p>
+          The editor for either choosing a pre-defined item from a list of
+          provided static field references (like <tt>ENUM</tt>), or specifying
+          a free-form expression.
         </p>
       </value>
       <value>
@@ -4272,6 +4280,12 @@
       </field>
       <field name="enumValue" optional="true">
         <ref>FlutterWidgetPropertyValueEnumItem</ref>
+      </field>
+      <field name="expression" optional="true">
+        <ref>String</ref>
+        <p>
+          A free-form expression, which will be used as the value as is.
+        </p>
       </field>
     </object>
   </type>

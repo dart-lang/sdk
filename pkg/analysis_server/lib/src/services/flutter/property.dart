@@ -119,7 +119,9 @@ class PropertyDescription {
 
     await changeBuilder.addFileEdit(resolvedUnit.path, (builder) {
       _changeCode(builder, (builder) {
-        if (enumClassElement != null) {
+        if (value.expression != null) {
+          builder.write(value.expression);
+        } else if (enumClassElement != null) {
           builder.writeReference(enumClassElement);
           builder.write('.');
           builder.write(enumValue.name);

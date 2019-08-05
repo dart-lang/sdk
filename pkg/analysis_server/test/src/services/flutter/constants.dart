@@ -4,7 +4,7 @@
 
 final alignmentEditor = '''
 "editor": {
-    "kind": "ENUM",
+    "kind": "ENUM_LIKE",
     "enumItems": $alignmentEnumItems
   }''';
 

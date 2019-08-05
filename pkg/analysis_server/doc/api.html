@@ -4082,8 +4082,15 @@ a:focus, a:hover {
       </dd><dt class="value">ENUM</dt><dd>
         
         <p>
-          The editor for choosing an items of an enumeration, see the
+          The editor for choosing an item of an enumeration, see the
           <tt>enumItems</tt> field of <tt>FlutterWidgetPropertyEditor</tt>.
+        </p>
+      </dd><dt class="value">ENUM_LIKE</dt><dd>
+        
+        <p>
+          The editor for either choosing a pre-defined item from a list of
+          provided static field references (like <tt>ENUM</tt>), or specifying
+          a free-form expression.
         </p>
       </dd><dt class="value">INT</dt><dd>
         
@@ -4110,6 +4117,11 @@ a:focus, a:hover {
         
       </dd><dt class="field"><b>enumValue: <a href="#type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem</a><span style="color:#999999"> (optional)</span></b></dt><dd>
         
+      </dd><dt class="field"><b>expression: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          A free-form expression, which will be used as the value as is.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_FlutterWidgetPropertyValueEnumItem">FlutterWidgetPropertyValueEnumItem: object</a></dt><dd>
     <p>
       An item of an enumeration in a general sense - actual <tt>enum</tt>

@@ -26,10 +26,16 @@ public class FlutterWidgetPropertyEditorKind {
   public static final String DOUBLE = "DOUBLE";
 
   /**
-   * The editor for choosing an items of an enumeration, see the enumItems field of
+   * The editor for choosing an item of an enumeration, see the enumItems field of
    * FlutterWidgetPropertyEditor.
    */
   public static final String ENUM = "ENUM";
+
+  /**
+   * The editor for either choosing a pre-defined item from a list of provided static field
+   * references (like ENUM), or specifying a free-form expression.
+   */
+  public static final String ENUM_LIKE = "ENUM_LIKE";
 
   /**
    * The editor for a property of type int.

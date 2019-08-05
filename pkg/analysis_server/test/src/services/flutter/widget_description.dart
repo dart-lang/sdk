@@ -100,11 +100,13 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
     expect(id, isNotNull);
 
     Object editor = json['editor'];
-    if (editor is Map<String, dynamic> && editor['kind'] == 'ENUM') {
-      Object items = editor['enumItems'];
-      if (items is List<Map<String, dynamic>>) {
-        for (var item in items) {
-          item.remove('documentation');
+    if (editor is Map<String, dynamic>) {
+      if (editor['kind'] == 'ENUM' || editor['kind'] == 'ENUM_LIKE') {
+        Object items = editor['enumItems'];
+        if (items is List<Map<String, dynamic>>) {
+          for (var item in items) {
+            item.remove('documentation');
+          }
         }
       }
     }

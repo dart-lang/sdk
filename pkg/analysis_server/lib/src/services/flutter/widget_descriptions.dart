@@ -452,7 +452,7 @@ class _WidgetDescriptionComputer {
           _enumItemsForStaticFields(_classAlignmentDirectional),
         );
         return protocol.FlutterWidgetPropertyEditor(
-          protocol.FlutterWidgetPropertyEditorKind.ENUM,
+          protocol.FlutterWidgetPropertyEditorKind.ENUM_LIKE,
           enumItems: items,
         );
       }

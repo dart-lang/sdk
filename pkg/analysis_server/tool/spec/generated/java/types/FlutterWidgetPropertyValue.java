@@ -46,14 +46,20 @@ public class FlutterWidgetPropertyValue {
   private final FlutterWidgetPropertyValueEnumItem enumValue;
 
   /**
+   * A free-form expression, which will be used as the value as is.
+   */
+  private final String expression;
+
+  /**
    * Constructor for {@link FlutterWidgetPropertyValue}.
    */
-  public FlutterWidgetPropertyValue(Boolean boolValue, Double doubleValue, Integer intValue, String stringValue, FlutterWidgetPropertyValueEnumItem enumValue) {
+  public FlutterWidgetPropertyValue(Boolean boolValue, Double doubleValue, Integer intValue, String stringValue, FlutterWidgetPropertyValueEnumItem enumValue, String expression) {
     this.boolValue = boolValue;
     this.doubleValue = doubleValue;
     this.intValue = intValue;
     this.stringValue = stringValue;
     this.enumValue = enumValue;
+    this.expression = expression;
   }
 
   @Override
@@ -65,7 +71,8 @@ public class FlutterWidgetPropertyValue {
         ObjectUtilities.equals(other.doubleValue, doubleValue) &&
         ObjectUtilities.equals(other.intValue, intValue) &&
         ObjectUtilities.equals(other.stringValue, stringValue) &&
-        ObjectUtilities.equals(other.enumValue, enumValue);
+        ObjectUtilities.equals(other.enumValue, enumValue) &&
+        ObjectUtilities.equals(other.expression, expression);
     }
     return false;
   }
@@ -76,7 +83,8 @@ public class FlutterWidgetPropertyValue {
     Integer intValue = jsonObject.get("intValue") == null ? null : jsonObject.get("intValue").getAsInt();
     String stringValue = jsonObject.get("stringValue") == null ? null : jsonObject.get("stringValue").getAsString();
     FlutterWidgetPropertyValueEnumItem enumValue = jsonObject.get("enumValue") == null ? null : FlutterWidgetPropertyValueEnumItem.fromJson(jsonObject.get("enumValue").getAsJsonObject());
-    return new FlutterWidgetPropertyValue(boolValue, doubleValue, intValue, stringValue, enumValue);
+    String expression = jsonObject.get("expression") == null ? null : jsonObject.get("expression").getAsString();
+    return new FlutterWidgetPropertyValue(boolValue, doubleValue, intValue, stringValue, enumValue, expression);
   }
 
   public static List<FlutterWidgetPropertyValue> fromJsonArray(JsonArray jsonArray) {
@@ -103,6 +111,13 @@ public class FlutterWidgetPropertyValue {
     return enumValue;
   }
 
+  /**
+   * A free-form expression, which will be used as the value as is.
+   */
+  public String getExpression() {
+    return expression;
+  }
+
   public Integer getIntValue() {
     return intValue;
   }
@@ -119,6 +134,7 @@ public class FlutterWidgetPropertyValue {
     builder.append(intValue);
     builder.append(stringValue);
     builder.append(enumValue);
+    builder.append(expression);
     return builder.toHashCode();
   }
 
@@ -139,6 +155,9 @@ public class FlutterWidgetPropertyValue {
     if (enumValue != null) {
       jsonObject.add("enumValue", enumValue.toJson());
     }
+    if (expression != null) {
+      jsonObject.addProperty("expression", expression);
+    }
     return jsonObject;
   }
 
@@ -155,7 +174,9 @@ public class FlutterWidgetPropertyValue {
     builder.append("stringValue=");
     builder.append(stringValue + ", ");
     builder.append("enumValue=");
-    builder.append(enumValue);
+    builder.append(enumValue + ", ");
+    builder.append("expression=");
+    builder.append(expression);
     builder.append("]");
     return builder.toString();
   }

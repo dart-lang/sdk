@@ -297,6 +297,30 @@ void main() {
 
 @reflectiveTest
 class SetPropertyValueSelfTest extends WidgetDescriptionBase {
+  test_expression() async {
+    await resolveTestUnit('''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', maxLines: 1);
+}
+''');
+    var property = await getWidgetProperty('Text(', 'maxLines');
+
+    var result = await descriptions.setPropertyValue(
+      property.id,
+      protocol.FlutterWidgetPropertyValue(expression: '1 + 2'),
+    );
+
+    assertExpectedChange(result, r'''
+import 'package:flutter/material.dart';
+
+void main() {
+  Text('', maxLines: 1 + 2);
+}
+''');
+  }
+
   test_format_dontFormatOther() async {
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
