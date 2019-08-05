@@ -5560,6 +5560,9 @@ class TypeProviderForLink extends TypeProviderBase {
   InterfaceType get typeType =>
       _typeType ??= _buildInterfaceType(_linker.coreLibrary, 'Type');
 
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
+
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {
     return library.getContainedName(name).buildType((int i) {

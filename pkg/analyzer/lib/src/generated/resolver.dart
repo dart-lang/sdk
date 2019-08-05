@@ -6752,6 +6752,9 @@ abstract class TypeProvider {
   /// Return the type representing the built-in type 'Type'.
   InterfaceType get typeType;
 
+  /// Return the type representing the built-in type `void`.
+  VoidType get voidType;
+
   /// Return 'true' if [id] is the name of a getter on
   /// the Object type.
   bool isObjectGetter(String id);
@@ -6988,6 +6991,9 @@ class TypeProviderImpl extends TypeProviderBase {
 
   @override
   InterfaceType get typeType => _typeType;
+
+  @override
+  VoidType get voidType => VoidTypeImpl.instance;
 
   /// Return the type with the given [typeName] from the given [namespace], or
   /// `null` if there is no class with the given name.
