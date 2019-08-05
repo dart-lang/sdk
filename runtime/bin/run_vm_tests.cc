@@ -13,6 +13,7 @@
 #include "bin/snapshot_utils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/vmservice_impl.h"
 #include "platform/assert.h"
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
@@ -102,6 +103,56 @@ static void PrintUsage() {
     return nullptr;                                                            \
   }
 
+static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
+                                                 const char* package_root,
+                                                 const char* packages_config,
+                                                 Dart_IsolateFlags* flags,
+                                                 char** error) {
+  ASSERT(script_uri != nullptr);
+  Dart_Isolate isolate = nullptr;
+  auto isolate_group_data = new bin::IsolateGroupData(
+      script_uri, package_root, packages_config, /*app_snapshot=*/nullptr,
+      /*isolate_run_app_snapshot=*/false);
+
+  const uint8_t* kernel_buffer = nullptr;
+  intptr_t kernel_buffer_size = 0;
+
+  bin::dfe.Init();
+  bin::dfe.LoadPlatform(&kernel_buffer, &kernel_buffer_size);
+  RELEASE_ASSERT(kernel_buffer != nullptr);
+
+  flags->load_vmservice_library = true;
+  isolate_group_data->SetKernelBufferUnowned(
+      const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
+  isolate = Dart_CreateIsolateGroupFromKernel(
+      script_uri, DART_VM_SERVICE_ISOLATE_NAME, kernel_buffer,
+      kernel_buffer_size, flags, isolate_group_data, /*isolate_data=*/nullptr,
+      error);
+  if (isolate == nullptr) {
+    delete isolate_group_data;
+    return nullptr;
+  }
+
+  Dart_EnterScope();
+
+  Dart_Handle result =
+      Dart_SetLibraryTagHandler(bin::Loader::LibraryTagHandler);
+  CHECK_RESULT(result);
+
+  // Load embedder specific bits and return.
+  if (!bin::VmService::Setup("127.0.0.1", 0,
+                             /*dev_mode=*/false, /*auth_disabled=*/true,
+                             /*trace_loading=*/false, /*deterministic=*/true)) {
+    *error = strdup(bin::VmService::GetErrorMessage());
+    return nullptr;
+  }
+  result = Dart_SetEnvironmentCallback(bin::DartUtils::EnvironmentCallback);
+  CHECK_RESULT(result);
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+  return isolate;
+}
+
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           const char* package_root,
@@ -110,11 +161,9 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           void* data,
                                           char** error) {
   ASSERT(script_uri != nullptr);
-  const bool is_service_isolate =
-      strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0;
-  if (is_service_isolate) {
-    // We don't need service isolate for VM tests.
-    return nullptr;
+  if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
+    return CreateAndSetupServiceIsolate(script_uri, package_root,
+                                        packages_config, flags, error);
   }
   const bool is_kernel_isolate =
       strcmp(script_uri, DART_KERNEL_ISOLATE_NAME) == 0;

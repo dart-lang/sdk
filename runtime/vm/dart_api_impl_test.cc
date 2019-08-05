@@ -7936,6 +7936,66 @@ TEST_CASE(DartAPI_InvokeImportedFunction) {
       "NoSuchMethodError: No top-level method 'getCurrentTag' declared.");
 }
 
+TEST_CASE(DartAPI_InvokeVMServiceMethod) {
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer),
+           R"({
+               "jsonrpc": 2.0,
+               "id": "foo",
+               "method": "getVM",
+               "params": { }
+              })");
+  uint8_t* response_json = nullptr;
+  intptr_t response_json_length = 0;
+  char* error = nullptr;
+  const bool success = Dart_InvokeVMServiceMethod(
+      reinterpret_cast<uint8_t*>(buffer), strlen(buffer), &response_json,
+      &response_json_length, &error);
+  EXPECT(success);
+  EXPECT(error == nullptr);
+
+  Dart_Handle bytes = Dart_NewExternalTypedDataWithFinalizer(
+      Dart_TypedData_kUint8, response_json, response_json_length, response_json,
+      response_json_length,
+      [](void* ignored, Dart_WeakPersistentHandle handle, void* peer) {
+        free(peer);
+      });
+  EXPECT_VALID(bytes);
+
+  // We don't have a C++ JSON decoder so we'll invoke dart to validate the
+  // result.
+  const char* kScript =
+      R"(
+        import 'dart:convert';
+        import 'dart:typed_data';
+        bool validate(bool condition) {
+          if (!condition) {
+            throw 'Failed to validate InvokeVMServiceMethod() response.';
+          }
+        }
+        bool validateResult(Uint8List bytes) {
+          final map = json.decode(utf8.decode(bytes));
+          validate(map['jsonrpc'] == '2.0');
+          validate(map['id'] == 'foo');
+          validate(map['result']['name'] == 'vm');
+          validate(map['result']['type'] == 'VM');
+          validate(map['result'].containsKey('architectureBits'));
+          validate(map['result'].containsKey('pid'));
+          validate(map['result'].containsKey('startTime'));
+          validate(map['result'].containsKey('hostCPU'));
+          validate(map['result'].containsKey('targetCPU'));
+          validate(map['result'].containsKey('version'));
+          return true;
+        }
+      )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("validateResult"), 1, &bytes);
+  EXPECT(Dart_IsBoolean(result));
+  EXPECT(result == Dart_True());
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

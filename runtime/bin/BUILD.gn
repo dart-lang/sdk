@@ -2,7 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 import("../../build/config/gclient_args.gni")
 import("../../build/dart/dart_action.gni")
 import("../runtime_args.gni")
@@ -931,6 +930,7 @@ executable("run_vm_tests") {
   include_dirs = [
     "..",
     "$target_gen_dir",
+    "//third_party",
   ]
   defines = [ "TESTING" ]
 
@@ -958,9 +958,15 @@ executable("run_vm_tests") {
               "dfe.h",
               "error_exit.cc",
               "error_exit.h",
+              "gzip.cc",
+              "gzip.h",
+              "loader.cc",
+              "loader.h",
               "run_vm_tests.cc",
               "snapshot_utils.cc",
               "snapshot_utils.h",
+              "vmservice_impl.cc",
+              "vmservice_impl.h",
             ] + builtin_impl_tests + vm_tests + compiler_tests + heap_tests
 
   if (!is_win) {

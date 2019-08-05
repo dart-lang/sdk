@@ -77,13 +77,17 @@ DFE::DFE()
     (defined(DART_PRECOMPILER) && defined(TARGET_ARCH_X64))
   kernel_service_dill_ = nullptr;
   kernel_service_dill_size_ = 0;
+#else
+  kernel_service_dill_ = kKernelServiceDill;
+  kernel_service_dill_size_ = kKernelServiceDillSize;
+#endif
+
+#if defined(EXCLUDE_CFE_AND_KERNEL_PLATFORM)
   platform_strong_dill_for_compilation_ = nullptr;
   platform_strong_dill_for_compilation_size_ = 0;
   platform_strong_dill_for_execution_ = nullptr;
   platform_strong_dill_for_execution_size_ = 0;
 #else
-  kernel_service_dill_ = kKernelServiceDill;
-  kernel_service_dill_size_ = kKernelServiceDillSize;
   platform_strong_dill_for_compilation_ = kPlatformStrongDill;
   platform_strong_dill_for_compilation_size_ = kPlatformStrongDillSize;
   platform_strong_dill_for_execution_ = kPlatformStrongDill;

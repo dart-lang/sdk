@@ -143,6 +143,10 @@ Dart_Port ServiceIsolate::Port() {
 
 Dart_Port ServiceIsolate::WaitForLoadPort() {
   VMTagScope tagScope(Thread::Current(), VMTag::kLoadWaitTagId);
+  return WaitForLoadPortInternal();
+}
+
+Dart_Port ServiceIsolate::WaitForLoadPortInternal() {
   MonitorLocker ml(monitor_);
   while (state_ == kStarting && (load_port_ == ILLEGAL_PORT)) {
     ml.Wait();
@@ -185,7 +189,7 @@ bool ServiceIsolate::SendServiceRpc(uint8_t* request_json,
   request.value.as_array.values = request_array;
   request.value.as_array.length = ARRAY_SIZE(request_array);
 
-  ServiceIsolate::WaitForLoadPort();
+  ServiceIsolate::WaitForLoadPortInternal();
   return Dart_PostCObject(ServiceIsolate::Port(), &request);
 }
 

@@ -57,6 +57,9 @@ class ServiceIsolate : public AllStatic {
  private:
   static void KillServiceIsolate();
 
+  // Does not need a current thread.
+  static Dart_Port WaitForLoadPortInternal();
+
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
