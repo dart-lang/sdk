@@ -288,7 +288,12 @@ class KernelLoader : public ValueObject {
     reader.set_offset(library_offset(index));
 
     // Start reading library.
+    // Note that this needs to be keep in sync with LibraryHelper.
     reader.ReadFlags();
+    if (program_->binary_version() >= 27) {
+      reader.ReadUInt();  // Read major language version.
+      reader.ReadUInt();  // Read minor language version.
+    }
     return reader.ReadCanonicalNameReference();
   }
 

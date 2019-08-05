@@ -655,7 +655,7 @@ void KernelLoader::LoadNativeExtensionLibraries() {
     } else {
       helper_.SetOffset(library.kernel_offset());
 
-      LibraryHelper library_helper(&helper_);
+      LibraryHelper library_helper(&helper_, kernel_binary_version_);
       library_helper.ReadUntilExcluding(LibraryHelper::kAnnotations);
 
       const intptr_t annotation_count = helper_.ReadListLength();
@@ -925,7 +925,7 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
   for (intptr_t i = 0; i < length; i++) {
     intptr_t kernel_offset = library_offset(i);
     helper_.SetOffset(kernel_offset);
-    LibraryHelper library_helper(&helper_);
+    LibraryHelper library_helper(&helper_, kernel_binary_version_);
     library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
     lib = LookupLibraryOrNull(library_helper.canonical_name_);
     if (!lib.IsNull() && !lib.is_dart_scheme()) {
@@ -994,7 +994,7 @@ RawLibrary* KernelLoader::LoadLibrary(intptr_t index) {
   // offset.
   helper_.SetOffset(library_kernel_offset_);
 
-  LibraryHelper library_helper(&helper_);
+  LibraryHelper library_helper(&helper_, kernel_binary_version_);
   library_helper.ReadUntilIncluding(LibraryHelper::kCanonicalName);
   if (!FLAG_precompiled_mode && !I->should_load_vmservice()) {
     StringIndex lib_name_index =

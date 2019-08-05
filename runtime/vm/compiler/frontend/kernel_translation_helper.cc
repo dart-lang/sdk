@@ -1305,8 +1305,18 @@ void LibraryHelper::ReadUntilExcluding(Field field) {
 
   // Ordered with fall-through.
   switch (next_read_) {
+    // Note that this (up to canonical name) needs to be kept in sync with
+    // "library_canonical_name" (currently in "kernel_loader.h").
     case kFlags: {
       flags_ = helper_->ReadFlags();
+      if (++next_read_ == field) return;
+      FALL_THROUGH;
+    }
+    case kLanguageVersion: {
+      if (binary_version_ >= 27) {
+        helper_->ReadUInt();  // Read major language version.
+        helper_->ReadUInt();  // Read minor language version.
+      }
       if (++next_read_ == field) return;
       FALL_THROUGH;
     }

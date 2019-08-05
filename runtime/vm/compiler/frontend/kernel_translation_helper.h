@@ -715,6 +715,7 @@ class LibraryHelper {
  public:
   enum Field {
     kFlags,
+    kLanguageVersion /* from binary version 27 */,
     kCanonicalName,
     kName,
     kSourceUriIndex,
@@ -739,8 +740,8 @@ class LibraryHelper {
     kSynthetic = 1 << 1,
   };
 
-  explicit LibraryHelper(KernelReaderHelper* helper)
-      : helper_(helper), next_read_(kFlags) {}
+  explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
+      : helper_(helper), binary_version_(binary_version), next_read_(kFlags) {}
 
   void ReadUntilIncluding(Field field) {
     ReadUntilExcluding(static_cast<Field>(static_cast<int>(field) + 1));
@@ -761,6 +762,7 @@ class LibraryHelper {
 
  private:
   KernelReaderHelper* helper_;
+  uint32_t binary_version_;
   intptr_t next_read_;
 
   DISALLOW_COPY_AND_ASSIGN(LibraryHelper);

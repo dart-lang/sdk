@@ -820,6 +820,15 @@ class BinaryBuilder {
     int flags = readByte();
     bool isExternal = (flags & Library.ExternalFlag) != 0;
     _isReadingLibraryImplementation = !isExternal;
+
+    // TODO(jensj): Eventually, language version should always be set.
+    int languageVersionMajor = readUInt();
+    int languageVersionMinor = readUInt();
+    if (languageVersionMajor == 0 || languageVersionMinor == 0) {
+      languageVersionMajor = null;
+      languageVersionMinor = null;
+    }
+
     var canonicalName = readCanonicalNameReference();
     Reference reference = canonicalName.getReference();
     Library library = reference.node;
@@ -842,6 +851,8 @@ class BinaryBuilder {
 
     if (shouldWriteData) {
       library.flags = flags;
+      library.languageVersionMajor = languageVersionMajor;
+      library.languageVersionMinor = languageVersionMinor;
       library.name = name;
       library.fileUri = fileUri;
       library.problemsAsJson = problemsAsJson;
