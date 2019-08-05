@@ -28,6 +28,7 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -262,6 +263,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// to be discarded or `null` if there are multiple or this is unknown.
   void Function(String) onCurrentSessionAboutToBeDiscarded;
 
+  /// If testing data is being retained, a pointer to the object that is
+  /// retaining the testing data.  Otherwise `null`.
+  final TestingData testingData;
+
   /// Create a new instance of [AnalysisDriver].
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -277,10 +282,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this._analysisOptions,
       {this.disableChangesAndCacheAllResults: false,
       this.enableIndex: false,
-      SummaryDataStore externalSummaries})
+      SummaryDataStore externalSummaries,
+      bool retainDataForTesting: false})
       : _logger = logger,
         _sourceFactory = sourceFactory.clone(),
-        _externalSummaries = externalSummaries {
+        _externalSummaries = externalSummaries,
+        testingData = retainDataForTesting ? TestingData() : null {
     _createNewSession(null);
     _onResults = _resultController.stream.asBroadcastStream();
     _testView = new AnalysisDriverTestView(this);
@@ -1247,7 +1254,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
             libraryContext.elementFactory,
             libraryContext.inheritanceManager,
             library,
-            _resourceProvider);
+            _resourceProvider,
+            testingData: testingData);
         Map<FileState, UnitAnalysisResult> results = analyzer.analyze();
 
         List<int> bytes;
@@ -1314,7 +1322,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory,
           libraryContext.inheritanceManager,
           library,
-          _resourceProvider);
+          _resourceProvider,
+          testingData: testingData);
       Map<FileState, UnitAnalysisResult> unitResults = analyzer.analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
 

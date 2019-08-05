@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
@@ -34,8 +35,8 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
       const _TypePromotionDataInterpreter();
 
   @override
-  void computeUnitData(
-      CompilationUnit unit, Map<Id, ActualData<DartType>> actualMap) {
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
+      Map<Id, ActualData<DartType>> actualMap) {
     _TypePromotionDataExtractor(unit.declaredElement.source.uri, actualMap)
         .run(unit);
   }

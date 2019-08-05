@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
@@ -133,7 +134,8 @@ Future<bool> runTestForConfig<T>(
         new PackageMapUriResolver(resourceProvider, packageMap),
         new ResourceUriResolver(resourceProvider)
       ], null, resourceProvider),
-      analysisOptions);
+      analysisOptions,
+      retainDataForTesting: true);
   scheduler.start();
   var result = await driver
       .getResult(resourceProvider.convertPath(testData.entryPoint.path));
@@ -150,7 +152,8 @@ Future<bool> runTestForConfig<T>(
     return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
   }
 
-  dataComputer.computeUnitData(result.unit, actualMapFor(testData.entryPoint));
+  dataComputer.computeUnitData(
+      driver.testingData, result.unit, actualMapFor(testData.entryPoint));
   var compiledData = AnalyzerCompiledData<T>(
       testData.code, testData.entryPoint, actualMaps, globalData);
   return checkCode(config.name, testData.testFileUri, testData.code,
@@ -215,7 +218,8 @@ abstract class DataComputer<T> {
   ///
   /// Fills [actualMap] with the data and [sourceSpanMap] with the source spans
   /// for the data origin.
-  void computeUnitData(CompilationUnit unit, Map<Id, ActualData<T>> actualMap);
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
+      Map<Id, ActualData<T>> actualMap);
 }
 
 class TestConfig {

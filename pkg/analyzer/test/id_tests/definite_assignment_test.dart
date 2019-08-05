@@ -4,9 +4,10 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 import 'package:front_end/src/testing/id.dart' show ActualData, Id;
 import 'package:front_end/src/testing/id_testing.dart';
@@ -33,9 +34,10 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
       const _DefiniteAssignmentDataInterpreter();
 
   @override
-  void computeUnitData(
-      CompilationUnit unit, Map<Id, ActualData<String>> actualMap) {
-    var flowResult = FlowAnalysisResult.getFromNode(unit);
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
+      Map<Id, ActualData<String>> actualMap) {
+    var flowResult =
+        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
     _DefiniteAssignmentDataExtractor(
             unit.declaredElement.source.uri, actualMap, flowResult)
         .run(unit);

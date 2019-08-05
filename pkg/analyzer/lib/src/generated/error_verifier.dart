@@ -298,10 +298,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   /// fixed.
   final bool disableConflictingGenericsCheck;
 
-  /// If running with [_isNonNullable], the result of the flow analysis of the
-  /// unit being verified by this visitor.
-  final FlowAnalysisResult flowAnalysisResult;
-
   /// The features enabled in the unit currently being checked for errors.
   FeatureSet _featureSet;
 
@@ -323,8 +319,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       this._typeProvider,
       InheritanceManagerBase inheritanceManager,
       bool enableSuperMixins,
-      {this.disableConflictingGenericsCheck: false,
-      this.flowAnalysisResult})
+      {this.disableConflictingGenericsCheck: false})
       : _errorReporter = errorReporter,
         _inheritanceManager = inheritanceManager.asInheritanceManager3,
         _uninstantiatedBoundChecker =

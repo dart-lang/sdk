@@ -8,6 +8,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -52,9 +53,10 @@ class _FlowAnalysisDataComputer extends DataComputer<Set<_FlowAssertion>> {
       const _FlowAnalysisDataInterpreter();
 
   @override
-  void computeUnitData(CompilationUnit unit,
+  void computeUnitData(TestingData testingData, CompilationUnit unit,
       Map<Id, ActualData<Set<_FlowAssertion>>> actualMap) {
-    var flowResult = FlowAnalysisResult.getFromNode(unit);
+    var flowResult =
+        testingData.uriToFlowAnalysisResult[unit.declaredElement.source.uri];
     _FlowAnalysisDataExtractor(unit.declaredElement.source.uri, actualMap,
             flowResult, unit.declaredElement.context.typeSystem)
         .run(unit);
