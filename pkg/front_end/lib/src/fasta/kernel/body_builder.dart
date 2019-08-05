@@ -305,7 +305,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         legacyMode = library.legacyMode,
         super(enclosingScope);
 
-  BodyBuilder.withParents(KernelFieldBuilder field, SourceLibraryBuilder part,
+  BodyBuilder.withParents(FieldBuilder field, SourceLibraryBuilder part,
       ClassBuilder classBuilder, TypeInferrer typeInferrer)
       : this(
             part,
@@ -320,7 +320,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             field.fileUri,
             typeInferrer);
 
-  BodyBuilder.forField(KernelFieldBuilder field, TypeInferrer typeInferrer)
+  BodyBuilder.forField(FieldBuilder field, TypeInferrer typeInferrer)
       : this.withParents(
             field,
             field.parent is ClassBuilder ? field.parent.parent : field.parent,
@@ -490,8 +490,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
     LocatedMessage context = scope.declare(
         variable.name,
-        new KernelVariableBuilder(
-            variable, member ?? classBuilder ?? library, uri),
+        new VariableBuilder(variable, member ?? classBuilder ?? library, uri),
         uri);
     if (context != null) {
       // This case is different from the above error. In this case, the problem
@@ -612,7 +611,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   void finishFields() {
     debugEvent("finishFields");
     int count = pop();
-    List<KernelFieldBuilder> fields = <KernelFieldBuilder>[];
+    List<FieldBuilder> fields = <FieldBuilder>[];
     for (int i = 0; i < count; i++) {
       Expression initializer = pop();
       Identifier identifier = pop();
@@ -623,7 +622,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       } else {
         declaration = library.getLocalMember(name);
       }
-      KernelFieldBuilder field;
+      FieldBuilder field;
       if (declaration.isField && declaration.next == null) {
         field = declaration;
       } else {
@@ -5062,7 +5061,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                 ..fileOffset = fieldNameOffset)
             ..fileOffset = fieldNameOffset)
         ..fileOffset = fieldNameOffset;
-    } else if (builder is KernelFieldBuilder && builder.isInstanceMember) {
+    } else if (builder is FieldBuilder && builder.isInstanceMember) {
       initializedFields ??= <String, int>{};
       if (initializedFields.containsKey(name)) {
         return buildDuplicatedInitializer(builder.field, expression, name,
@@ -5366,7 +5365,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   Expression wrapInDeferredCheck(
-      Expression expression, KernelPrefixBuilder prefix, int charOffset) {
+      Expression expression, PrefixBuilder prefix, int charOffset) {
     VariableDeclaration check = new VariableDeclaration.forValue(
         forest.checkLibraryIsLoaded(prefix.dependency))
       ..fileOffset = charOffset;

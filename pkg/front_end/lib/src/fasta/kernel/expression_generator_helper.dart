@@ -39,11 +39,7 @@ import 'kernel_ast_api.dart'
         TypeParameter;
 
 import 'kernel_builder.dart'
-    show
-        KernelPrefixBuilder,
-        LibraryBuilder,
-        PrefixBuilder,
-        TypeDeclarationBuilder;
+    show PrefixBuilder, LibraryBuilder, TypeDeclarationBuilder;
 
 abstract class ExpressionGeneratorHelper implements InferenceHelper {
   LibraryBuilder get library;
@@ -101,7 +97,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   StaticGet makeStaticGet(Member readTarget, Token token);
 
   Expression wrapInDeferredCheck(
-      Expression expression, KernelPrefixBuilder prefix, int charOffset);
+      Expression expression, PrefixBuilder prefix, int charOffset);
 
   bool isIdentical(Member member);
 

@@ -67,7 +67,6 @@ import '../kernel/kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         FormalParameterBuilder,
-        KernelMetadataBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder,
@@ -370,7 +369,7 @@ abstract class FunctionBuilder extends MemberBuilder {
 
   @override
   void buildOutlineExpressions(LibraryBuilder library) {
-    KernelMetadataBuilder.buildAnnotations(
+    MetadataBuilder.buildAnnotations(
         target, metadata, library, isClassMember ? parent : null, this);
 
     if (formals != null) {

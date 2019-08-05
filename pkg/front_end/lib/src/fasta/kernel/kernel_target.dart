@@ -91,7 +91,7 @@ import 'kernel_builder.dart'
         ClassBuilder,
         Declaration,
         InvalidTypeBuilder,
-        KernelFieldBuilder,
+        FieldBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         LibraryBuilder,
@@ -685,7 +685,7 @@ class KernelTarget extends TargetImplementation {
           if (formal.isFieldFormal) {
             Declaration fieldBuilder = builder.scope.local[formal.name] ??
                 builder.origin.scope.local[formal.name];
-            if (fieldBuilder is KernelFieldBuilder) {
+            if (fieldBuilder is FieldBuilder) {
               myInitializedFields.add(fieldBuilder.field);
             }
           }

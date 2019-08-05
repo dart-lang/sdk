@@ -161,8 +161,7 @@ import '../kernel/kernel_builder.dart'
         EnumBuilder,
         FunctionBuilder,
         TypeAliasBuilder,
-        KernelFieldBuilder,
-        KernelMetadataBuilder,
+        FieldBuilder,
         MixinApplicationBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
@@ -309,7 +308,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   List<FormalParameterBuilder> untypedInitializingFormals;
 
-  List<KernelFieldBuilder> implicitlyTypedFields;
+  List<FieldBuilder> implicitlyTypedFields;
 
   SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
       SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
@@ -930,7 +929,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
       target.problemsAsJson ??= <String>[];
       target.problemsAsJson.addAll(part.target.problemsAsJson);
     }
-    List<KernelFieldBuilder> partImplicitlyTypedFields =
+    List<FieldBuilder> partImplicitlyTypedFields =
         part.takeImplicitlyTypedFields();
     if (partImplicitlyTypedFields != null) {
       if (implicitlyTypedFields == null) {
@@ -1643,13 +1642,13 @@ class SourceLibraryBuilder extends LibraryBuilder {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
-    KernelFieldBuilder field = new KernelFieldBuilder(
+    FieldBuilder field = new FieldBuilder(
         metadata, type, name, modifiers, this, charOffset, charEndOffset);
     field.constInitializerToken = constInitializerToken;
     addBuilder(name, field, charOffset);
     if (!legacyMode && type == null && initializerToken != null) {
       field.target.type = new ImplicitFieldType(field, initializerToken);
-      (implicitlyTypedFields ??= <KernelFieldBuilder>[]).add(field);
+      (implicitlyTypedFields ??= <FieldBuilder>[]).add(field);
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(field.target, documentationComment);
@@ -1909,7 +1908,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   @override
   void buildOutlineExpressions() {
-    KernelMetadataBuilder.buildAnnotations(library, metadata, this, null, null);
+    MetadataBuilder.buildAnnotations(library, metadata, this, null, null);
   }
 
   void buildBuilder(Declaration declaration, LibraryBuilder coreLibrary) {
@@ -1918,7 +1917,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     Typedef typedef;
     if (declaration is SourceClassBuilder) {
       cls = declaration.build(this, coreLibrary);
-    } else if (declaration is KernelFieldBuilder) {
+    } else if (declaration is FieldBuilder) {
       member = declaration.build(this)..isStatic = true;
     } else if (declaration is ProcedureBuilder) {
       member = declaration.build(this)..isStatic = true;
@@ -2739,7 +2738,7 @@ class SourceLibraryBuilder extends LibraryBuilder {
     Iterator<Declaration> iterator = this.iterator;
     while (iterator.moveNext()) {
       Declaration declaration = iterator.current;
-      if (declaration is KernelFieldBuilder) {
+      if (declaration is FieldBuilder) {
         checkBoundsInField(declaration.target, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(
@@ -2762,8 +2761,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
   }
 
   @override
-  List<KernelFieldBuilder> takeImplicitlyTypedFields() {
-    List<KernelFieldBuilder> result = implicitlyTypedFields;
+  List<FieldBuilder> takeImplicitlyTypedFields() {
+    List<FieldBuilder> result = implicitlyTypedFields;
     implicitlyTypedFields = null;
     return result;
   }

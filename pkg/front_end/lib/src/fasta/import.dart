@@ -8,9 +8,9 @@ import 'package:kernel/ast.dart' show LibraryDependency;
 
 import 'builder/builder.dart' show Declaration, LibraryBuilder;
 
-import 'kernel/kernel_builder.dart' show toKernelCombinators;
+import 'builder/prefix_builder.dart' show PrefixBuilder;
 
-import 'kernel/kernel_prefix_builder.dart' show KernelPrefixBuilder;
+import 'kernel/kernel_builder.dart' show toKernelCombinators;
 
 import 'combinator.dart' show Combinator;
 
@@ -23,7 +23,7 @@ class Import {
   /// The library being imported.
   final LibraryBuilder imported;
 
-  final KernelPrefixBuilder prefixBuilder;
+  final PrefixBuilder prefixBuilder;
 
   final bool deferred;
 
@@ -88,7 +88,7 @@ class Import {
   }
 }
 
-KernelPrefixBuilder createPrefixBuilder(
+PrefixBuilder createPrefixBuilder(
     String prefix,
     LibraryBuilder importer,
     LibraryBuilder imported,
@@ -104,6 +104,6 @@ KernelPrefixBuilder createPrefixBuilder(
         combinators: toKernelCombinators(combinators))
       ..fileOffset = charOffset;
   }
-  return new KernelPrefixBuilder(
+  return new PrefixBuilder(
       prefix, deferred, importer, dependency, prefixCharOffset, importIndex);
 }

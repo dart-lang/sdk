@@ -27,7 +27,7 @@ import '../kernel/kernel_builder.dart'
         ClassBuilder,
         ConstructorReferenceBuilder,
         Declaration,
-        KernelFieldBuilder,
+        FieldBuilder,
         FunctionBuilder,
         InvalidTypeBuilder,
         NamedTypeBuilder,
@@ -121,7 +121,7 @@ class SourceClassBuilder extends ClassBuilder
             unexpected(fullNameForErrors, declaration.parent?.fullNameForErrors,
                 charOffset, fileUri);
           }
-        } else if (declaration is KernelFieldBuilder) {
+        } else if (declaration is FieldBuilder) {
           // TODO(ahe): It would be nice to have a common interface for the
           // build method to avoid duplicating these two cases.
           Member field = declaration.build(library);

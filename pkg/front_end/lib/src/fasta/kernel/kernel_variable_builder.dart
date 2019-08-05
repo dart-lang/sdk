@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' show VariableDeclaration;
 
 import 'kernel_builder.dart' show Declaration;
 
-class KernelVariableBuilder extends Declaration {
+class VariableBuilder extends Declaration {
   @override
   final Declaration parent;
 
@@ -17,7 +17,7 @@ class KernelVariableBuilder extends Declaration {
 
   final VariableDeclaration variable;
 
-  KernelVariableBuilder(this.variable, this.parent, this.fileUri);
+  VariableBuilder(this.variable, this.parent, this.fileUri);
 
   @override
   int get charOffset => variable.fileOffset;

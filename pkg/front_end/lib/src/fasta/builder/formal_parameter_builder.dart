@@ -36,7 +36,7 @@ import '../kernel/kernel_builder.dart'
         ClassBuilder,
         Declaration,
         ConstructorBuilder,
-        KernelFieldBuilder,
+        FieldBuilder,
         LibraryBuilder,
         MetadataBuilder,
         TypeBuilder;
@@ -133,7 +133,7 @@ class FormalParameterBuilder extends ModifierBuilder {
     Object cls = parent.parent;
     if (cls is ClassBuilder) {
       Declaration field = cls.scope.lookup(name, charOffset, fileUri);
-      if (field is KernelFieldBuilder) {
+      if (field is FieldBuilder) {
         target.type = field.target.type;
       }
     }

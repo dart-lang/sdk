@@ -21,13 +21,7 @@ export 'class_hierarchy_builder.dart'
 
 export 'implicit_field_type.dart' show ImplicitFieldType;
 
-export 'kernel_field_builder.dart' show KernelFieldBuilder;
-
-export 'kernel_metadata_builder.dart' show KernelMetadataBuilder;
-
-export 'kernel_prefix_builder.dart' show KernelPrefixBuilder;
-
-export 'kernel_variable_builder.dart' show KernelVariableBuilder;
+export 'kernel_variable_builder.dart' show VariableBuilder;
 
 export 'load_library_builder.dart' show LoadLibraryBuilder;
 

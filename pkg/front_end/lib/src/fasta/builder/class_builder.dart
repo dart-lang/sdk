@@ -109,7 +109,6 @@ import '../kernel/kernel_builder.dart'
         ConstructorReferenceBuilder,
         Declaration,
         FunctionBuilder,
-        KernelMetadataBuilder,
         NamedTypeBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -210,7 +209,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
       member.buildOutlineExpressions(library);
     }
 
-    KernelMetadataBuilder.buildAnnotations(
+    MetadataBuilder.buildAnnotations(
         isPatch ? origin.target : cls, metadata, library, this, null);
     constructors.forEach(build);
     scope.forEach(build);

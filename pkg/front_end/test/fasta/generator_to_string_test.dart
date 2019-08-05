@@ -90,7 +90,7 @@ main() {
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder =
-        new PrefixBuilder("myPrefix", false, libraryBuilder, -1, -1);
+        new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
     String assignmentOperator = "+=";
     TypeDeclarationBuilder declaration = new TypeVariableBuilder.fromKernel(
         new TypeParameter("T"), libraryBuilder);

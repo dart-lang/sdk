@@ -6,6 +6,12 @@ library fasta.prefix_builder;
 
 import 'builder.dart' show Declaration, LibraryBuilder, Scope;
 
+import 'package:kernel/ast.dart' show LibraryDependency;
+
+import '../builder/builder.dart' show LibraryBuilder;
+
+import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
+
 class PrefixBuilder extends Declaration {
   final String name;
 
@@ -20,8 +26,18 @@ class PrefixBuilder extends Declaration {
 
   final int importIndex;
 
-  PrefixBuilder(
-      this.name, this.deferred, this.parent, this.charOffset, this.importIndex);
+  final LibraryDependency dependency;
+
+  LoadLibraryBuilder loadLibraryBuilder;
+
+  PrefixBuilder(this.name, this.deferred, this.parent, this.dependency,
+      this.charOffset, this.importIndex) {
+    if (deferred) {
+      loadLibraryBuilder =
+          new LoadLibraryBuilder(parent, dependency, charOffset);
+      addToExportScope('loadLibrary', loadLibraryBuilder, charOffset);
+    }
+  }
 
   Uri get fileUri => parent.fileUri;
 

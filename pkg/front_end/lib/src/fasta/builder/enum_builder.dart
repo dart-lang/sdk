@@ -52,7 +52,7 @@ import '../kernel/kernel_builder.dart'
         FormalParameterBuilder,
         ClassBuilder,
         ConstructorBuilder,
-        KernelFieldBuilder,
+        FieldBuilder,
         NamedTypeBuilder,
         ProcedureBuilder,
         TypeBuilder,
@@ -128,9 +128,9 @@ class EnumBuilder extends SourceClassBuilder {
     ///   String toString() => _name;
     /// }
 
-    members["index"] = new KernelFieldBuilder(null, intType, "index",
+    members["index"] = new FieldBuilder(null, intType, "index",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    members["_name"] = new KernelFieldBuilder(null, stringType, "_name",
+    members["_name"] = new FieldBuilder(null, stringType, "_name",
         finalMask | hasInitializerMask, parent, charOffset, charOffset);
     ConstructorBuilder constructorBuilder = new ConstructorBuilder(
         null,
@@ -150,7 +150,7 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charEndOffset);
     constructors[""] = constructorBuilder;
-    KernelFieldBuilder valuesBuilder = new KernelFieldBuilder(
+    FieldBuilder valuesBuilder = new FieldBuilder(
         null,
         listType,
         "values",
@@ -209,7 +209,7 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
-        KernelFieldBuilder fieldBuilder = new KernelFieldBuilder(
+        FieldBuilder fieldBuilder = new FieldBuilder(
             metadata,
             selfType,
             name,
@@ -269,9 +269,9 @@ class EnumBuilder extends SourceClassBuilder {
         coreLibrary.scope, charOffset, fileUri, libraryBuilder);
     listType.resolveIn(coreLibrary.scope, charOffset, fileUri, libraryBuilder);
 
-    KernelFieldBuilder indexFieldBuilder = firstMemberNamed("index");
+    FieldBuilder indexFieldBuilder = firstMemberNamed("index");
     Field indexField = indexFieldBuilder.build(libraryBuilder);
-    KernelFieldBuilder nameFieldBuilder = firstMemberNamed("_name");
+    FieldBuilder nameFieldBuilder = firstMemberNamed("_name");
     Field nameField = nameFieldBuilder.build(libraryBuilder);
     ProcedureBuilder toStringBuilder = firstMemberNamed("toString");
     toStringBuilder.body = new ReturnStatement(
@@ -282,13 +282,13 @@ class EnumBuilder extends SourceClassBuilder {
         if (enumConstantInfo != null) {
           Declaration declaration = firstMemberNamed(enumConstantInfo.name);
           if (declaration.isField) {
-            KernelFieldBuilder field = declaration;
+            FieldBuilder field = declaration;
             values.add(new StaticGet(field.build(libraryBuilder)));
           }
         }
       }
     }
-    KernelFieldBuilder valuesBuilder = firstMemberNamed("values");
+    FieldBuilder valuesBuilder = firstMemberNamed("values");
     valuesBuilder.build(libraryBuilder);
     valuesBuilder.initializer =
         new ListLiteral(values, typeArgument: cls.rawType, isConst: true);
@@ -325,7 +325,7 @@ class EnumBuilder extends SourceClassBuilder {
         if (enumConstantInfo != null) {
           String constant = enumConstantInfo.name;
           Declaration declaration = firstMemberNamed(constant);
-          KernelFieldBuilder field;
+          FieldBuilder field;
           if (declaration.isField) {
             field = declaration;
           } else {
