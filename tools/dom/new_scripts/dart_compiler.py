@@ -26,7 +26,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """Compile an .idl file to Blink C++ bindings (.h and .cpp files) for Dart:HTML.
 
 Design doc: http://www.chromium.org/developers/design-documents/idl-compiler
@@ -40,7 +39,6 @@ import cPickle as pickle
 from idl_reader import IdlReader
 from utilities import write_file
 
-
 # TODO(terry): Temporary whitelist of IDL files to skip code generating. e.g.,
 #              adding 'Animation.idl' to this list will skip that IDL file.
 SKIP_IDL_FILES = ['']
@@ -48,8 +46,9 @@ SKIP_IDL_FILES = ['']
 
 def parse_options():
     parser = OptionParser()
-    parser.add_option('--idl-attributes-file',
-                      help="location of bindings/IDLExtendedAttributes.txt")
+    parser.add_option(
+        '--idl-attributes-file',
+        help="location of bindings/IDLExtendedAttributes.txt")
     parser.add_option('--output-directory')
     parser.add_option('--interfaces-info-file')
     parser.add_option('--write-file-only-if-changed', type='int')
@@ -59,9 +58,12 @@ def parse_options():
     options, args = parser.parse_args()
     if options.output_directory is None:
         parser.error('Must specify output directory using --output-directory.')
-    options.write_file_only_if_changed = bool(options.write_file_only_if_changed)
+    options.write_file_only_if_changed = bool(
+        options.write_file_only_if_changed)
     if len(args) != 1:
-        parser.error('Must specify exactly 1 input file as argument, but %d given.' % len(args))
+        parser.error(
+            'Must specify exactly 1 input file as argument, but %d given.' %
+            len(args))
     idl_filename = os.path.realpath(args[0])
     return options, idl_filename
 
@@ -82,8 +84,11 @@ class IdlCompiler(object):
     """
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, output_directory, code_generator=None,
-                 interfaces_info=None, interfaces_info_filename='',
+    def __init__(self,
+                 output_directory,
+                 code_generator=None,
+                 interfaces_info=None,
+                 interfaces_info_filename='',
                  only_if_changed=False):
         """
         Args:

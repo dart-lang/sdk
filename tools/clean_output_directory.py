@@ -11,17 +11,19 @@ import sys
 import subprocess
 import utils
 
+
 def Main():
-  build_root = utils.GetBuildRoot(utils.GuessOS())
-  print 'Deleting %s' % build_root
-  if sys.platform != 'win32':
-    shutil.rmtree(build_root, ignore_errors=True)
-  else:
-    # Intentionally ignore return value since a directory might be in use.
-    subprocess.call(['rmdir', '/Q', '/S', build_root],
-                    env=os.environ.copy(),
-                    shell=True)
-  return 0
+    build_root = utils.GetBuildRoot(utils.GuessOS())
+    print 'Deleting %s' % build_root
+    if sys.platform != 'win32':
+        shutil.rmtree(build_root, ignore_errors=True)
+    else:
+        # Intentionally ignore return value since a directory might be in use.
+        subprocess.call(['rmdir', '/Q', '/S', build_root],
+                        env=os.environ.copy(),
+                        shell=True)
+    return 0
+
 
 if __name__ == '__main__':
-  sys.exit(Main())
+    sys.exit(Main())

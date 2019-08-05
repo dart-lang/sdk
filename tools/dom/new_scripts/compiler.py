@@ -26,7 +26,6 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 """Compile an .idl file to Dart bindings (.h and .cpp files).
 
 Design doc: ??????
@@ -37,8 +36,8 @@ import os
 import sys
 
 dart_script_path = os.path.dirname(os.path.abspath(__file__))
-script_path = os.path.join(os.path.dirname(os.path.dirname(dart_script_path)),
-                          'scripts')
+script_path = os.path.join(
+    os.path.dirname(os.path.dirname(dart_script_path)), 'scripts')
 sys.path.extend([script_path])
 
 from dart_compiler import IdlCompiler
@@ -58,7 +57,8 @@ def parse_options():
     options, args = parser.parse_args()
     if options.output_directory is None:
         parser.error('Must specify output directory using --output-directory.')
-    options.write_file_only_if_changed = bool(options.write_file_only_if_changed)
+    options.write_file_only_if_changed = bool(
+        options.write_file_only_if_changed)
     options.generate_global = bool(options.generate_global)
     if len(args) != 1:
         # parser.error('Must specify exactly 1 input file as argument, but %d given.' % len(args))
@@ -74,13 +74,15 @@ def idl_filename_to_interface_name(idl_filename):
 
 
 class IdlCompilerDart(IdlCompiler):
+
     def __init__(self, *args, **kwargs):
         IdlCompiler.__init__(self, *args, **kwargs)
 
         interfaces_info = self.interfaces_info
         self.output_directory = self.output_directory
 
-        self.code_generator = CodeGeneratorDart(interfaces_info, self.output_directory)
+        self.code_generator = CodeGeneratorDart(interfaces_info,
+                                                self.output_directory)
 
     def compile_file(self, idl_filename):
         interface_name = idl_filename_to_interface_name(idl_filename)
@@ -88,26 +90,32 @@ class IdlCompilerDart(IdlCompiler):
                                        'Dart%s.h' % interface_name)
         cpp_filename = os.path.join(self.output_directory,
                                     'Dart%s.cpp' % interface_name)
-        return self.compile_and_write(idl_filename, (header_filename, cpp_filename))
+        return self.compile_and_write(idl_filename,
+                                      (header_filename, cpp_filename))
 
     def generate_global(self):
-        global_header_filename = os.path.join(self.output_directory, 'DartWebkitClassIds.h')
-        global_cpp_filename = os.path.join(self.output_directory, 'DartWebkitClassIds.cpp')
-        self.generate_global_and_write((global_header_filename, global_cpp_filename))
+        global_header_filename = os.path.join(self.output_directory,
+                                              'DartWebkitClassIds.h')
+        global_cpp_filename = os.path.join(self.output_directory,
+                                           'DartWebkitClassIds.cpp')
+        self.generate_global_and_write((global_header_filename,
+                                        global_cpp_filename))
 
 
 def main():
     options, idl_filename = parse_options()
 
     if options.generate_global:
-        idl_compiler = IdlCompilerDart(options.output_directory,
-                                       interfaces_info_filename=options.interfaces_info_file,
-                                       only_if_changed=options.write_file_only_if_changed)
+        idl_compiler = IdlCompilerDart(
+            options.output_directory,
+            interfaces_info_filename=options.interfaces_info_file,
+            only_if_changed=options.write_file_only_if_changed)
         idl_compiler.generate_global()
     else:
-        idl_compiler = IdlCompilerDart(options.output_directory,
-                                       interfaces_info_filename=options.interfaces_info_file,
-                                       only_if_changed=options.write_file_only_if_changed)
+        idl_compiler = IdlCompilerDart(
+            options.output_directory,
+            interfaces_info_filename=options.interfaces_info_file,
+            only_if_changed=options.write_file_only_if_changed)
         idl_compiler.compile_file(idl_filename)
 
 
