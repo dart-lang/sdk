@@ -493,12 +493,13 @@ public interface AnalysisServer {
    * @param includedFixes A list of names indicating which fixes should be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
+   * @param includePedanticFixes A flag indicating that "pedantic" fixes should be applied.
    * @param includeRequiredFixes A flag indicating that "required" fixes should be applied.
    * @param excludedFixes A list of names indicating which fixes should not be applied. If a name is
    *         specified that does not match the name of a known fix, an error of type UNKNOWN_FIX will
    *         be generated.
    */
-  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includeRequiredFixes, List<String> excludedFixes, DartfixConsumer consumer);
+  public void edit_dartfix(List<String> included, List<String> includedFixes, boolean includePedanticFixes, boolean includeRequiredFixes, List<String> excludedFixes, DartfixConsumer consumer);
 
   /**
    * {@code edit.format}

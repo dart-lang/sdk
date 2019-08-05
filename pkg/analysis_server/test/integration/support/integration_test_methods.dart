@@ -1744,6 +1744,10 @@ abstract class IntegrationTestMixin {
    *   If a name is specified that does not match the name of a known fix, an
    *   error of type UNKNOWN_FIX will be generated.
    *
+   * includePedanticFixes: bool (optional)
+   *
+   *   A flag indicating that "pedantic" fixes should be applied.
+   *
    * includeRequiredFixes: bool (optional)
    *
    *   A flag indicating that "required" fixes should be applied.
@@ -1786,10 +1790,12 @@ abstract class IntegrationTestMixin {
    */
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,
+      bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes}) async {
     var params = new EditDartfixParams(included,
             includedFixes: includedFixes,
+            includePedanticFixes: includePedanticFixes,
             includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes)
         .toJson();

@@ -6,7 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-const String PROTOCOL_VERSION = '1.27.1';
+const String PROTOCOL_VERSION = '1.27.2';
 
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES = 'analysis.analyzedFiles';
 const String ANALYSIS_NOTIFICATION_ANALYZED_FILES_DIRECTORIES = 'directories';
@@ -168,6 +168,8 @@ const String EDIT_REQUEST_DARTFIX = 'edit.dartfix';
 const String EDIT_REQUEST_DARTFIX_EXCLUDED_FIXES = 'excludedFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDED = 'included';
 const String EDIT_REQUEST_DARTFIX_INCLUDED_FIXES = 'includedFixes';
+const String EDIT_REQUEST_DARTFIX_INCLUDE_PEDANTIC_FIXES =
+    'includePedanticFixes';
 const String EDIT_REQUEST_DARTFIX_INCLUDE_REQUIRED_FIXES =
     'includeRequiredFixes';
 const String EDIT_REQUEST_FORMAT = 'edit.format';

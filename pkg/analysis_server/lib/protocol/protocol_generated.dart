@@ -8023,6 +8023,7 @@ class DiagnosticGetServerPortResult implements ResponseResult {
  * {
  *   "included": List<FilePath>
  *   "includedFixes": optional List<String>
+ *   "includePedanticFixes": optional bool
  *   "includeRequiredFixes": optional bool
  *   "excludedFixes": optional List<String>
  * }
@@ -8033,6 +8034,8 @@ class EditDartfixParams implements RequestParams {
   List<String> _included;
 
   List<String> _includedFixes;
+
+  bool _includePedanticFixes;
 
   bool _includeRequiredFixes;
 
@@ -8084,6 +8087,18 @@ class EditDartfixParams implements RequestParams {
   }
 
   /**
+   * A flag indicating that "pedantic" fixes should be applied.
+   */
+  bool get includePedanticFixes => _includePedanticFixes;
+
+  /**
+   * A flag indicating that "pedantic" fixes should be applied.
+   */
+  void set includePedanticFixes(bool value) {
+    this._includePedanticFixes = value;
+  }
+
+  /**
    * A flag indicating that "required" fixes should be applied.
    */
   bool get includeRequiredFixes => _includeRequiredFixes;
@@ -8115,10 +8130,12 @@ class EditDartfixParams implements RequestParams {
 
   EditDartfixParams(List<String> included,
       {List<String> includedFixes,
+      bool includePedanticFixes,
       bool includeRequiredFixes,
       List<String> excludedFixes}) {
     this.included = included;
     this.includedFixes = includedFixes;
+    this.includePedanticFixes = includePedanticFixes;
     this.includeRequiredFixes = includeRequiredFixes;
     this.excludedFixes = excludedFixes;
   }
@@ -8141,6 +8158,11 @@ class EditDartfixParams implements RequestParams {
         includedFixes = jsonDecoder.decodeList(jsonPath + ".includedFixes",
             json["includedFixes"], jsonDecoder.decodeString);
       }
+      bool includePedanticFixes;
+      if (json.containsKey("includePedanticFixes")) {
+        includePedanticFixes = jsonDecoder.decodeBool(
+            jsonPath + ".includePedanticFixes", json["includePedanticFixes"]);
+      }
       bool includeRequiredFixes;
       if (json.containsKey("includeRequiredFixes")) {
         includeRequiredFixes = jsonDecoder.decodeBool(
@@ -8153,6 +8175,7 @@ class EditDartfixParams implements RequestParams {
       }
       return new EditDartfixParams(included,
           includedFixes: includedFixes,
+          includePedanticFixes: includePedanticFixes,
           includeRequiredFixes: includeRequiredFixes,
           excludedFixes: excludedFixes);
     } else {
@@ -8171,6 +8194,9 @@ class EditDartfixParams implements RequestParams {
     result["included"] = included;
     if (includedFixes != null) {
       result["includedFixes"] = includedFixes;
+    }
+    if (includePedanticFixes != null) {
+      result["includePedanticFixes"] = includePedanticFixes;
     }
     if (includeRequiredFixes != null) {
       result["includeRequiredFixes"] = includeRequiredFixes;
@@ -8196,6 +8222,7 @@ class EditDartfixParams implements RequestParams {
               included, other.included, (String a, String b) => a == b) &&
           listEqual(includedFixes, other.includedFixes,
               (String a, String b) => a == b) &&
+          includePedanticFixes == other.includePedanticFixes &&
           includeRequiredFixes == other.includeRequiredFixes &&
           listEqual(excludedFixes, other.excludedFixes,
               (String a, String b) => a == b);
@@ -8208,6 +8235,7 @@ class EditDartfixParams implements RequestParams {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, included.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedFixes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includePedanticFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
     return JenkinsSmiHash.finish(hash);

@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.27.1</version>
+  <version>1.27.2</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -2199,6 +2199,12 @@
         <p>
           If a name is specified that does not match the name of a known fix,
           an error of type <tt>UNKNOWN_FIX</tt> will be generated.
+        </p>
+      </field>
+      <field name="includePedanticFixes" optional="true">
+        <ref>bool</ref>
+        <p>
+          A flag indicating that "pedantic" fixes should be applied.
         </p>
       </field>
       <field name="includeRequiredFixes" optional="true">
