@@ -72,6 +72,8 @@ import 'extension_override_access_to_static_member_test.dart'
     as extension_override_access_to_static_member;
 import 'extension_override_argument_not_assignable_test.dart'
     as extension_override_argument_not_assignable;
+import 'extension_override_without_access_test.dart'
+    as extension_override_without_access;
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'field_initialized_in_initializer_and_declaration_test.dart'
     as field_initialized_in_initializer_and_declaration;
@@ -333,6 +335,7 @@ main() {
     extension_declares_member_of_object.main();
     extension_override_access_to_static_member.main();
     extension_override_argument_not_assignable.main();
+    extension_override_without_access.main();
     extra_positional_arguments.main();
     field_initialized_in_initializer_and_declaration.main();
     field_initializer_not_assignable.main();

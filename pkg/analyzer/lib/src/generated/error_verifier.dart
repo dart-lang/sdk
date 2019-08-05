@@ -751,6 +751,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
           node.argumentList);
     }
+    if (!_isExtensionOverrideInValidContext(node)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, node);
+    }
     super.visitExtensionOverride(node);
   }
 
@@ -6466,6 +6470,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return element.name == "List" && element.library.isDartCore;
+  }
+
+  /// Return `true` if the extension override [node] is being used as a target
+  /// of an operation that might be accessing an instance member.
+  bool _isExtensionOverrideInValidContext(ExtensionOverride node) {
+    AstNode parent = node.parent;
+    if ((parent is PropertyAccess && parent.target == node) ||
+        (parent is MethodInvocation && parent.target == node) ||
+        (parent is FunctionExpressionInvocation && parent.function == node) ||
+        (parent is BinaryExpression && parent.leftOperand == node) ||
+        (parent is IndexExpression && parent.target == node) ||
+        parent is PrefixExpression) {
+      return true;
+    }
+    return false;
   }
 
   bool _isFunctionType(DartType type) {
