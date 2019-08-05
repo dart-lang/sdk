@@ -60,6 +60,7 @@ import '../modifier.dart'
         covariantMask,
         extensionDeclarationMask,
         externalMask,
+        finalMask,
         mixinDeclarationMask,
         staticMask;
 
@@ -88,7 +89,7 @@ import '../quote.dart' show unescapeString;
 import '../scanner.dart' show Token;
 
 import 'source_library_builder.dart'
-    show DeclarationKind, FieldInfo, SourceLibraryBuilder;
+    show DeclarationBuilder, DeclarationKind, FieldInfo, SourceLibraryBuilder;
 
 import 'stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery, StackListener;
@@ -623,7 +624,7 @@ class OutlineBuilder extends StackListener {
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     String name = nameToken?.lexeme ??
         // Synthesized name used internally.
-        'extension-${unnamedExtensionCounter++}';
+        'extension#${unnamedExtensionCounter++}';
     push(name);
     push(offset);
     push(typeVariables ?? NullValue.TypeVariables);
@@ -821,12 +822,29 @@ class OutlineBuilder extends StackListener {
   @override
   void endMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
+    assert(checkState(beginToken, [ValueKind.MethodBody]));
     debugEvent("Method");
     MethodBody bodyKind = pop();
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
       pop();
     }
+    assert(checkState(beginToken, [
+      ValueKind.FormalsOrNull,
+      ValueKind.Integer, // formals offset
+      ValueKind.TypeVariableListOrNull,
+      ValueKind.Integer, // name offset
+      unionOfKinds([
+        ValueKind.Name,
+        ValueKind.QualifiedName,
+        ValueKind.Operator,
+        ValueKind.ParserRecovery,
+      ]),
+      ValueKind.TypeBuilderOrNull,
+      ValueKind.ModifiersOrNull,
+      ValueKind.Integer, // var/final/const offset
+      ValueKind.MetadataListOrNull,
+    ]));
     List<FormalParameterBuilder> formals = pop();
     int formalsOffset = pop();
     List<TypeVariableBuilder> typeVariables = pop();
@@ -900,19 +918,62 @@ class OutlineBuilder extends StackListener {
     int varFinalOrConstOffset = pop();
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
-    library
-        .endNestedDeclaration(
-            DeclarationKind.staticOrInstanceMethodOrConstructor, "#method")
-        .resolveTypes(typeVariables, library);
+
+    DeclarationBuilder declarationBuilder = library.endNestedDeclaration(
+        DeclarationKind.staticOrInstanceMethodOrConstructor, "#method");
     if (name is ParserRecovery) {
+      declarationBuilder.resolveTypes(typeVariables, library);
       nativeMethodName = null;
       inConstructor = false;
+      declarationBuilder.resolveTypes(typeVariables, library);
       return;
     }
+
     String constructorName =
         kind == ProcedureKind.Getter || kind == ProcedureKind.Setter
             ? null
             : library.computeAndValidateConstructorName(name, charOffset);
+    if (constructorName == null &&
+        (modifiers & staticMask) == 0 &&
+        library.currentDeclaration.kind ==
+            DeclarationKind.extensionDeclaration) {
+      DeclarationBuilder extension = library.currentDeclaration;
+      Map<TypeVariableBuilder, TypeBuilder> substitution;
+      if (extension.typeVariables != null) {
+        // We synthesize the names of the generated [TypeParameter]s, i.e.
+        // rename 'T' to '#T'. We cannot do it on the builders because their
+        // names are used to create the scope.
+        // TODO(johnniwinther): Handle shadowing of extension type variables.
+        List<TypeVariableBuilder> synthesizedTypeVariables = library
+            .copyTypeVariables(extension.typeVariables, declarationBuilder,
+                synthesizeTypeParameterNames: true);
+        substitution = {};
+        for (int i = 0; i < synthesizedTypeVariables.length; i++) {
+          substitution[extension.typeVariables[i]] =
+              new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                  synthesizedTypeVariables[i]);
+        }
+        if (typeVariables != null) {
+          typeVariables = synthesizedTypeVariables..addAll(typeVariables);
+        } else {
+          typeVariables = synthesizedTypeVariables;
+        }
+      }
+      List<FormalParameterBuilder> synthesizedFormals = [];
+      TypeBuilder thisType = extension.extensionThisType;
+      if (substitution != null) {
+        thisType = thisType.subst(substitution);
+        declarationBuilder.addType(new UnresolvedType(thisType, -1, null));
+      }
+      synthesizedFormals.add(new FormalParameterBuilder(
+          null, finalMask, thisType, "#this", null, charOffset));
+      if (formals != null) {
+        synthesizedFormals.addAll(formals);
+      }
+      formals = synthesizedFormals;
+    }
+
+    declarationBuilder.resolveTypes(typeVariables, library);
     if (constructorName != null) {
       if (isConst && bodyKind != MethodBody.Abstract) {
         addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);

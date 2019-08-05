@@ -15,6 +15,14 @@ class A2 extends core::Object {
     core::print(o);
     return #this;
   }
+  method method3<T extends core::Object* = dynamic>(final self::A1* #this = #C1, [self::A2::method3::T* o = #C1]) → self::A1* {
+    core::print(o);
+    return #this;
+  }
+  method method4<T extends core::Object* = dynamic>(final self::A1* #this = #C1, {self::A2::method4::T* o = #C1}) → self::A1* {
+    core::print(o);
+    return #this;
+  }
 }
 class B1<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B1<self::B1::T*>*
@@ -31,3 +39,7 @@ class B2<T extends core::Object* = dynamic> extends core::Object {
   }
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

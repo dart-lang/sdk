@@ -8,8 +8,10 @@
 
 expression/eval: TextSerializationFailure # Was: Pass
 expression/main: TextSerializationFailure # Was: Pass
+extensions/instance_members: TextSerializationFailure
 extensions/implicit_this: TextSerializationFailure
 extensions/explicit_this: TextSerializationFailure
+extensions/type_variables: TextSerializationFailure
 extensions/use_this: TextSerializationFailure
 general/abstract_members: TypeCheckError
 general/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure

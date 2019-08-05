@@ -1049,7 +1049,7 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
 
   TypeVariableBuilder addTypeVariable(
       String name, TypeBuilder bound, int charOffset) {
-    var builder = new TypeVariableBuilder(name, this, charOffset, bound);
+    var builder = new TypeVariableBuilder(name, this, charOffset, bound: bound);
     boundlessTypeVariables.add(builder);
     return builder;
   }
@@ -1385,12 +1385,15 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
   }
 
   List<TypeVariableBuilder> copyTypeVariables(
-      List<TypeVariableBuilder> original, DeclarationBuilder declaration) {
+      List<TypeVariableBuilder> original, DeclarationBuilder declaration,
+      {bool synthesizeTypeParameterNames: false}) {
     List<TypeBuilder> newTypes = <TypeBuilder>[];
     List<TypeVariableBuilder> copy = <TypeVariableBuilder>[];
     for (TypeVariableBuilder variable in original) {
-      var newVariable = new TypeVariableBuilder(variable.name, this,
-          variable.charOffset, variable.bound?.clone(newTypes));
+      var newVariable = new TypeVariableBuilder(
+          variable.name, this, variable.charOffset,
+          bound: variable.bound?.clone(newTypes),
+          synthesizeTypeParameterName: synthesizeTypeParameterNames);
       copy.add(newVariable);
       boundlessTypeVariables.add(newVariable);
     }

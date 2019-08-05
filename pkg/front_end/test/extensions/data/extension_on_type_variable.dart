@@ -12,14 +12,15 @@
  cls-type-params=[T]
 */
 extension GeneralGeneric<T> on T {
-  // TODO(johnniwinther): Use this when synthetic type parameters are added to
-  // instance methods.
   /*member: GeneralGeneric.method:
    builder-name=method,
+   builder-params=[#this],
+   builder-type-params=[T],
    member-name=method,
-   member-params=[this]
+   member-params=[#this],
+   member-type-params=[#T]
   */
-  void method() {}
+  T method() => this;
 }
 
 main() {

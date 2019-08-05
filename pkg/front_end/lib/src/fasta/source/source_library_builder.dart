@@ -919,8 +919,17 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
     return count;
   }
 
+  /// Creates a copy of [original] into the scope of [declaration].
+  ///
+  /// This is used for adding copies of class type parameters to factory
+  /// methods and unnamed mixin applications, and for adding copies of
+  /// extension type parameters to extension instance methods.
+  ///
+  /// If [synthesizeTypeParameterNames] is `true` the names of the
+  /// [TypeParameter] are prefix with '#' to indicate that their synthesized.
   List<TypeVariableBuilder> copyTypeVariables(
-      List<TypeVariableBuilder> original, DeclarationBuilder declaration);
+      List<TypeVariableBuilder> original, DeclarationBuilder declaration,
+      {bool synthesizeTypeParameterNames: false});
 
   @override
   String get fullNameForErrors {

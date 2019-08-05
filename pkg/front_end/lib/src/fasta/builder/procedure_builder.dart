@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart'
     show AsyncMarker, ProcedureKind, VariableDeclaration;
 
 import 'package:kernel/type_algebra.dart' show containsTypeVariable, substitute;
+import 'package:kernel/type_algebra.dart';
 
 import 'builder.dart'
     show
@@ -116,6 +117,11 @@ abstract class FunctionBuilder extends MemberBuilder {
 
   final List<FormalParameterBuilder> formals;
 
+  /// If this procedure is an instance member declared in an extension
+  /// declaration, [extensionThis] holds the synthetically added `this`
+  /// parameter.
+  VariableDeclaration extensionThis;
+
   FunctionBuilder(
       this.metadata,
       this.modifiers,
@@ -217,11 +223,6 @@ abstract class FunctionBuilder extends MemberBuilder {
 
   FunctionNode function;
 
-  /// If this procedure is an instance member declared in an extension
-  /// declaration, [extensionThis] holds the synthetically added `this`
-  /// parameter.
-  VariableDeclaration extensionThis;
-
   Statement actualBody;
 
   FunctionBuilder get actualOrigin;
@@ -291,19 +292,6 @@ abstract class FunctionBuilder extends MemberBuilder {
       }
       setParents(result.typeParameters, result);
     }
-
-    if (parent is ClassBuilder) {
-      ClassBuilder cls = parent;
-      if (cls.isExtension && isInstanceMember) {
-        DartType thisType = cls.onTypes.first.build(library);
-        extensionThis = new VariableDeclarationJudgment("this", 0,
-            type: thisType, isFinal: true)
-          ..fileOffset = charOffset
-          ..parent = result;
-        result.positionalParameters.add(extensionThis);
-        result.requiredParameterCount++;
-      }
-    }
     if (formals != null) {
       for (FormalParameterBuilder formal in formals) {
         VariableDeclaration parameter = formal.build(library, 0);
@@ -368,6 +356,12 @@ abstract class FunctionBuilder extends MemberBuilder {
         if (containsTypeVariable(result.returnType, set)) {
           result.returnType = removeTypeVariables(result.returnType);
         }
+      }
+    }
+    if (parent is ClassBuilder) {
+      ClassBuilder cls = parent;
+      if (cls.isExtension && isInstanceMember) {
+        extensionThis = result.positionalParameters.first;
       }
     }
     return function = result;

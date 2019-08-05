@@ -761,7 +761,7 @@ class DietListener extends StackListener {
     debugEvent("beginExtensionDeclaration");
     String name = nameToken?.lexeme ??
         // Synthesized name used internally.
-        'extension-${unnamedExtensionCounter++}';
+        'extension#${unnamedExtensionCounter++}';
     push(name);
     push(extensionKeyword);
   }

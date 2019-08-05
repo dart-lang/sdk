@@ -4807,7 +4807,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Identifier name = pop();
     List<Expression> annotations = pop();
     TypeVariableBuilder variable =
-        new TypeVariableBuilder(name.name, library, name.charOffset, null);
+        new TypeVariableBuilder(name.name, library, name.charOffset);
     if (annotations != null) {
       inferAnnotations(annotations);
       for (Expression annotation in annotations) {

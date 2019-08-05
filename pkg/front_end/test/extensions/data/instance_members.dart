@@ -14,8 +14,9 @@ class A1 {}
 extension A2 on A1 {
   /*member: A2.method1:
      builder-name=method1,
+     builder-params=[#this],
      member-name=method1,
-     member-params=[this]
+     member-params=[#this]
   */
   A1 method1() {
     return this;
@@ -23,10 +24,10 @@ extension A2 on A1 {
 
   /*member: A2.method2:
      builder-name=method2,
-     builder-params=[o],
+     builder-params=[#this,o],
      builder-type-params=[T],
      member-name=method2,
-     member-params=[this,o],
+     member-params=[#this,o],
      member-type-params=[T]
   */
   A1 method2<T>(T o) {
@@ -36,10 +37,11 @@ extension A2 on A1 {
 
   /*member: A2.method3:
      builder-name=method3,
+     builder-params=[#this],
      builder-pos-params=[o],
      builder-type-params=[T],
      member-name=method3,
-     member-params=[this],
+     member-params=[#this],
      member-pos-params=[o],
      member-type-params=[T]
   */
@@ -50,10 +52,11 @@ extension A2 on A1 {
 
   /*member: A2.method4:
      builder-name=method4,
+     builder-params=[#this],
      builder-named-params=[o],
      builder-type-params=[T],
      member-name=method4,
-     member-params=[this],
+     member-params=[#this],
      member-named-params=[o],
      member-type-params=[T]
   */
@@ -77,8 +80,11 @@ class B1<T> {}
 extension B2<T> on B1<T> {
   /*member: B2.method1:
      builder-name=method1,
+     builder-params=[#this],
+     builder-type-params=[T],
      member-name=method1,
-     member-params=[this]
+     member-params=[#this],
+     member-type-params=[#T]
   */
   B1<T> method1() {
     return this;
@@ -86,11 +92,11 @@ extension B2<T> on B1<T> {
 
   /*member: B2.method2:
      builder-name=method2,
-     builder-params=[o],
-     builder-type-params=[S],
+     builder-params=[#this,o],
+     builder-type-params=[T,S],
      member-name=method2,
-     member-params=[this,o],
-     member-type-params=[S]
+     member-params=[#this,o],
+     member-type-params=[#T,S]
   */
   B1<T> method2<S>(S o) {
     print(o);

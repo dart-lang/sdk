@@ -16,8 +16,9 @@ class A1 {
 extension A2 on A1 {
   /*member: A2.method2:
    builder-name=method2,
+   builder-params=[#this],
    member-name=method2,
-   member-params=[this]
+   member-params=[#this]
   */
   method2() {
     /*error: errors=[SuperAsIdentifier]*/ super.method1();

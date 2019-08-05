@@ -170,7 +170,8 @@ TypeBuilder substituteRange(
             isCovariant: isCovariant);
         if (bound != variable.bound) {
           variables[i] = new TypeVariableBuilder(
-              variable.name, variable.parent, variable.charOffset, bound);
+              variable.name, variable.parent, variable.charOffset,
+              bound: bound);
           changed = true;
         } else {
           variables[i] = variable;

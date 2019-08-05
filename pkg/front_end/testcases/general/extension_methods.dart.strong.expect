@@ -22,7 +22,7 @@ class C extends core::Object {
     return 1;
 }
 class E extends core::Object {
-  get two(final self::C* this) → core::int*
+  get two(final self::C* #this) → core::int*
     return 2;
 }
 static method main() → dynamic {

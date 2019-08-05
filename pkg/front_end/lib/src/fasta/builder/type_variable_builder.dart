@@ -30,12 +30,10 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
 
   TypeVariableBuilder(
       String name, KernelLibraryBuilder compilationUnit, int charOffset,
-      [this.bound, TypeParameter actual])
-      // TODO(32378): We would like to use '??' here instead, but in conjuction
-      // with '..', it crashes Dart2JS.
-      : actualParameter = actual != null
-            ? (actual..fileOffset = charOffset)
-            : (new TypeParameter(name, null)..fileOffset = charOffset),
+      {this.bound, bool synthesizeTypeParameterName: false})
+      : actualParameter = new TypeParameter(
+            synthesizeTypeParameterName ? '#$name' : name, null)
+          ..fileOffset = charOffset,
         super(null, 0, name, compilationUnit, charOffset);
 
   TypeVariableBuilder.fromKernel(
@@ -118,8 +116,8 @@ class TypeVariableBuilder extends TypeDeclarationBuilder {
     // TODO(dmitryas): Figure out if using [charOffset] here is a good idea.
     // An alternative is to use the offset of the node the cloned type variable
     // is declared on.
-    return new TypeVariableBuilder(
-        name, parent, charOffset, bound.clone(newTypes));
+    return new TypeVariableBuilder(name, parent, charOffset,
+        bound: bound.clone(newTypes));
   }
 
   @override

@@ -10,12 +10,12 @@ class A1 extends core::Object {
   method method1() → void {}
 }
 class A2 extends core::Object {
-  method method2(final self::A1* this) → void
-    return this.{self::A1::method1}();
-  method method3(final self::A1* this) → core::Object*
-    return this.{self::A1::field};
-  method method4(final self::A1* this, core::Object* o) → void {
-    this.{self::A1::field} = o;
+  method method2(final self::A1* #this) → void
+    return #this.{self::A1::method1}();
+  method method3(final self::A1* #this) → core::Object*
+    return #this.{self::A1::field};
+  method method4(final self::A1* #this, core::Object* o) → void {
+    #this.{self::A1::field} = o;
   }
 }
 static method main() → dynamic {}

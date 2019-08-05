@@ -17,23 +17,25 @@ class A1 {
 extension A2 on A1 {
   /*member: A2.method2:
    builder-name=method2,
+   builder-params=[#this],
    member-name=method2,
-   member-params=[this]
+   member-params=[#this]
   */
   void method2() => method1();
 
   /*member: A2.method3:
    builder-name=method3,
+   builder-params=[#this],
    member-name=method3,
-   member-params=[this]
+   member-params=[#this]
   */
   Object method3() => field;
 
   /*member: A2.method4:
    builder-name=method4,
-   builder-params=[o],
+   builder-params=[#this,o],
    member-name=method4,
-   member-params=[this,o]
+   member-params=[#this,o]
   */
   void method4(Object o) {
     field = o;
