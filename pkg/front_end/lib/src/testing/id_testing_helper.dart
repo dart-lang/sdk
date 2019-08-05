@@ -63,7 +63,7 @@ abstract class DataComputer<T> {
   /// Fills [actualMap] with the data.
   void computeMemberData(CompilerResult compilerResult, Member member,
       Map<Id, ActualData<T>> actualMap,
-      {bool verbose});
+      {bool verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///

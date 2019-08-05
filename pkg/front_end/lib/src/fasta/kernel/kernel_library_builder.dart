@@ -221,6 +221,14 @@ class KernelLibraryBuilder extends SourceLibraryBuilder {
 
   Uri get uri => library.importUri;
 
+  void setLanguageVersion(int major, int minor) {
+    if (library.languageVersionMajor != null) {
+      return;
+    }
+    library.languageVersionMajor = major;
+    library.languageVersionMinor = minor;
+  }
+
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
         "dynamic", new DynamicTypeBuilder(const DynamicType(), this, -1), -1);

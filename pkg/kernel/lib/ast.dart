@@ -284,6 +284,9 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
+  int languageVersionMajor;
+  int languageVersionMinor;
+
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
 

@@ -163,6 +163,8 @@ abstract class SourceLibraryBuilder extends LibraryBuilder {
 
   TypeBuilder addVoidType(int charOffset);
 
+  void setLanguageVersion(int major, int minor);
+
   ConstructorReferenceBuilder addConstructorReference(Object name,
       List<TypeBuilder> typeArguments, String suffix, int charOffset) {
     ConstructorReferenceBuilder ref = new ConstructorReferenceBuilder(

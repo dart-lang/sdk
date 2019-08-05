@@ -104,7 +104,13 @@ import '../parser.dart' show Parser, lengthForToken, offsetForToken;
 import '../problems.dart' show internalProblem;
 
 import '../scanner.dart'
-    show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
+    show
+        ErrorToken,
+        LanguageVersionToken,
+        ScannerConfiguration,
+        ScannerResult,
+        Token,
+        scan;
 
 import 'diet_listener.dart' show DietListener;
 
@@ -203,7 +209,13 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: target.enableTripleShift,
             enableExtensionMethods: target.enableExtensionMethods,
-            enableNonNullable: target.enableNonNullable));
+            enableNonNullable: target.enableNonNullable),
+        languageVersionChanged: (_, LanguageVersionToken version) {
+      // TODO(jensj): What if we have several? What if it is unsupported?
+      // What if the language version was already set via packages and this is
+      // higher? Etc
+      library.setLanguageVersion(version.major, version.minor);
+    });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
