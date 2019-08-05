@@ -525,7 +525,7 @@ dart_vm_extra_builder("cross-vm-linux-release-arm64",
 # vm|kernel-precomp
 dart_vm_extra_builder("vm-kernel-precomp-android-release-arm",
                         category="vm|kernel-precomp|and",
-                        properties={"shard_timeout": 5400})  # 1.5h
+                        properties={"shard_timeout": 5400}) # 1.5h
 dart_vm_extra_builder("vm-kernel-precomp-linux-debug-x64",
                         category="vm|kernel-precomp|d")
 dart_vm_extra_builder("vm-kernel-precomp-linux-product-x64",
@@ -546,7 +546,8 @@ dart_vm_extra_builder("vm-kernel-precomp-obfuscate-linux-release-x64",
                         category="vm|kernel-precomp|o")
 dart_vm_extra_builder("vm-kernel-precomp-mac-debug-simarm_x64",
                         category="vm|kernel-precomp|ad",
-                        dimensions=mac())
+                        dimensions=mac(),
+                        properties={"shard_timeout": 5400}) # 1.5h
 dart_vm_extra_builder("vm-kernel-precomp-mac-release-simarm_x64",
                         category="vm|kernel-precomp|ar",
                         dimensions=mac())
