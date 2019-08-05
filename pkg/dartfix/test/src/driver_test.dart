@@ -106,13 +106,14 @@ main() {
   );
 }
 
-String replaceLeadingComment(String source) {
-  final out = StringBuffer('''
+String replaceLeadingComment(String source) => source.replaceAll(
+    '''
+// This file contains code that is modified by running dartfix.
+// After running dartfix, this content matches a file in the "fixed" directory.
+'''
+        .trim(),
+    '''
 // This file contains code that has been modified by running dartfix.
 // See example.dart for the original unmodified code.
   '''
-      .trim());
-  final pattern = 'this content matches a file in the "fixed" directory.';
-  out.write(source.substring(source.indexOf(pattern) + pattern.length));
-  return out.toString();
-}
+        .trim());

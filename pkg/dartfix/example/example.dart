@@ -1,7 +1,9 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // This file contains code that is modified by running dartfix.
 // After running dartfix, this content matches a file in the "fixed" directory.
-
-// ignore_for_file: prefer_is_empty
 
 // Dart will automatically convert int literals to doubles.
 // Running dartfix converts this double literal to an int

@@ -62,6 +62,7 @@ For example, this
 will be converted to
   [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);''',
     BasicFixLintErrorTask.nullClosures,
+    isPedantic: true,
   ),
   const DartFixInfo(
     'prefer-equal-for-default-values',
@@ -74,6 +75,7 @@ For example, this
 will be converted to
   f({a = 1}) { }''',
     BasicFixLintErrorTask.preferEqualForDefaultValues,
+    isPedantic: true,
   ),
   const DartFixInfo(
     'prefer-is-empty',
@@ -87,6 +89,7 @@ will be converted to
   if (lunchBox.isEmpty) return 'so hungry...';''',
     BasicFixLintErrorTask.preferIsEmpty,
     isDefault: false,
+    isPedantic: true,
   ),
   const DartFixInfo(
     'prefer-is-not-empty',
@@ -100,6 +103,7 @@ will be converted to
   if (words.isNotEmpty) return words.join(' ');''',
     BasicFixLintErrorTask.preferIsNotEmpty,
     isDefault: false,
+    isPedantic: true,
   ),
   //
   // Other fixes
@@ -180,11 +184,18 @@ class DartFixInfo {
   final String key;
   final String description;
   final bool isDefault;
+  final bool isPedantic;
   final bool isRequired;
   final void Function(DartFixRegistrar dartfix, DartFixListener listener) setup;
 
-  const DartFixInfo(this.key, this.description, this.setup,
-      {this.isDefault = true, this.isRequired = false});
+  const DartFixInfo(
+    this.key,
+    this.description,
+    this.setup, {
+    this.isDefault = true,
+    this.isRequired = false,
+    this.isPedantic = false,
+  });
 
   DartFix asDartFix() =>
       new DartFix(key, description: description, isRequired: isRequired);

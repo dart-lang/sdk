@@ -80,6 +80,13 @@ class Driver {
   /// server being run and return `true` if they are.
   /// Display an error message and return `false` if not.
   bool checkIfSelectedOptionsAreSupported(Options options) {
+    if (handler.serverProtocolVersion.compareTo(Version(1, 27, 2)) >= 0) {
+      return true;
+    }
+    if (options.pedanticFixes) {
+      _unsupportedOption(pedanticOption);
+      return false;
+    }
     if (handler.serverProtocolVersion.compareTo(Version(1, 22, 2)) >= 0) {
       return true;
     }
@@ -117,6 +124,9 @@ class Driver {
     }
     if (options.requiredFixes) {
       params.includeRequiredFixes = true;
+    }
+    if (options.pedanticFixes) {
+      params.includePedanticFixes = true;
     }
     Map<String, dynamic> json =
         await server.send(EDIT_REQUEST_DARTFIX, params.toJson());

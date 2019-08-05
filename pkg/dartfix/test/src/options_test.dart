@@ -28,6 +28,7 @@ main() {
     List<String> excludeFixes = const <String>[],
     bool showHelp = false,
     String normalOut,
+    bool pedanticFixes = false,
     bool requiredFixes = false,
     bool overwrite = false,
     String serverSnapshot,
@@ -52,6 +53,7 @@ main() {
       expect(actualExitCode, isNull, reason: 'exit code');
     }
     expect(options.force, force);
+    expect(options.pedanticFixes, pedanticFixes);
     expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
@@ -115,6 +117,10 @@ main() {
 
   test('overwrite', () {
     parse(['--overwrite', 'foo'], overwrite: true, targetSuffixes: ['foo']);
+  });
+
+  test('pedantic fixes', () {
+    parse(['--pedantic', 'foo'], pedanticFixes: true);
   });
 
   test('required fixes', () {

@@ -40,6 +40,13 @@ class EditDartFix
     if (params.includeRequiredFixes == true) {
       fixInfo.addAll(allFixes.where((i) => i.isRequired));
     }
+    if (params.includePedanticFixes == true) {
+      for (var fix in allFixes) {
+        if (fix.isPedantic && !fixInfo.contains(fix)) {
+          fixInfo.add(fix);
+        }
+      }
+    }
     if (params.includedFixes != null) {
       for (String key in params.includedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);

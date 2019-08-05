@@ -12,14 +12,14 @@ const double myDouble = 4.0;
 
 // This class is used as a mixin but does not use the new mixin syntax.
 // Running dartfix converts this class to use the new syntax.
-mixin MyMixin {
+class MyMixin {
   final someValue = myDouble;
 }
 
 class MyClass with MyMixin {}
 
 main(List<String> args) {
-  if (args.length == 0) {
+  if (args.isEmpty) {
     print('myDouble = ${MyClass().someValue}');
   }
 }

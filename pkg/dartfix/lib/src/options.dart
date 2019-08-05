@@ -13,6 +13,7 @@ const forceOption = 'force';
 const includeFixOption = 'fix';
 const excludeFixOption = 'excludeFix';
 const overwriteOption = 'overwrite';
+const pedanticOption = 'pedantic';
 const requiredOption = 'required';
 
 const _binaryName = 'dartfix';
@@ -32,6 +33,7 @@ class Options {
   final String sdkPath;
   final String serverSnapshot;
 
+  final bool pedanticFixes;
   final bool requiredFixes;
   final List<String> includeFixes;
   final List<String> excludeFixes;
@@ -47,6 +49,7 @@ class Options {
         includeFixes = (results[includeFixOption] as List ?? []).cast<String>(),
         excludeFixes = (results[excludeFixOption] as List ?? []).cast<String>(),
         overwrite = results[overwriteOption] as bool,
+        pedanticFixes = results[pedanticOption] as bool,
         requiredFixes = results[requiredOption] as bool,
         sdkPath = _getSdkPath(),
         serverSnapshot = results[_serverSnapshot],
@@ -71,6 +74,8 @@ class Options {
           help: 'Include a specific fix.', valueHelp: 'name-of-fix')
       ..addMultiOption(excludeFixOption,
           help: 'Exclude a specific fix.', valueHelp: 'name-of-fix')
+      ..addFlag(pedanticOption,
+          help: 'Apply pedantic fixes.', defaultsTo: false, negatable: false)
       ..addFlag(requiredOption,
           help: 'Apply required fixes.', defaultsTo: false, negatable: false)
       ..addSeparator('Modifying files:')

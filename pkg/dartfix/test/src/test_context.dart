@@ -79,7 +79,8 @@ void expectHasSuggestion(
       return;
     }
   }
-  fail('Failed to find suggestion containing: $expectedText');
+  fail('Failed to find suggestion containing: $expectedText\n'
+      'in ${suggestions.map((s) => s.description).toList()}');
 }
 
 void expectDoesNotHaveSuggestion(

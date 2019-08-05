@@ -48,18 +48,23 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
     }
   }
 
-  Future<EditDartfixResult> performFix({List<String> includedFixes}) async {
-    var response = await performFixRaw(includedFixes: includedFixes);
+  Future<EditDartfixResult> performFix(
+      {List<String> includedFixes, bool pedantic}) async {
+    var response =
+        await performFixRaw(includedFixes: includedFixes, pedantic: pedantic);
     expect(response.error, isNull);
     return EditDartfixResult.fromResponse(response);
   }
 
   Future<Response> performFixRaw(
-      {List<String> includedFixes, List<String> excludedFixes}) async {
+      {List<String> includedFixes,
+      List<String> excludedFixes,
+      bool pedantic}) async {
     final id = nextRequestId;
     final params = new EditDartfixParams([projectPath]);
     params.includedFixes = includedFixes;
     params.excludedFixes = excludedFixes;
+    params.includePedanticFixes = pedantic;
     final request = new Request(id, 'edit.dartfix', params.toJson());
 
     final response = await new EditDartFix(server, request).compute();
@@ -323,6 +328,16 @@ const double myDouble = 42.0;
 part of lib2;
 const double myDouble = 42;
     ''');
+  }
+
+  test_dartfix_pedantic() async {
+    addTestFile('main(List args) { if (args.length == 0) { } }');
+    createProject();
+    EditDartfixResult result = await performFix(pedantic: true);
+    expect(result.suggestions, hasLength(1));
+    expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 22, 16);
+    expect(result.hasErrors, isFalse);
+    expectEdits(result.edits, 'main(List args) { if (args.isEmpty) { } }');
   }
 
   test_dartfix_preferEqualForDefaultValues() async {
