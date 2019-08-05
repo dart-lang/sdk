@@ -17,7 +17,7 @@ CodeObserver** CodeObservers::observers_ = NULL;
 
 class ExternalCodeObserverAdapter : public CodeObserver {
  public:
-  explicit ExternalCodeObserverAdapter(Dart_CodeObserver* delegate)
+  explicit ExternalCodeObserverAdapter(Dart_CodeObserver delegate)
       : delegate_(delegate) {}
 
   virtual bool IsActive() const { return true; }
@@ -28,15 +28,15 @@ class ExternalCodeObserverAdapter : public CodeObserver {
                       uword size,
                       bool optimized,
                       const CodeComments* comments) {
-    return delegate_->on_new_code(delegate_, name, base, size);
+    return delegate_.on_new_code(&delegate_, name, base, size);
   }
 
  private:
-  Dart_CodeObserver* delegate_;
+  Dart_CodeObserver delegate_;
 };
 
-void CodeObservers::RegisterExternal(Dart_CodeObserver* observer) {
-  if (observer != nullptr) Register(new ExternalCodeObserverAdapter(observer));
+void CodeObservers::RegisterExternal(Dart_CodeObserver observer) {
+  Register(new ExternalCodeObserverAdapter(observer));
 }
 
 void CodeObservers::Register(CodeObserver* observer) {

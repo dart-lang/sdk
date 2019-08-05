@@ -200,7 +200,9 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   set_entropy_source_callback(entropy_source);
   OS::Init();
   NOT_IN_PRODUCT(CodeObservers::Init());
-  NOT_IN_PRODUCT(CodeObservers::RegisterExternal(observer));
+  if (observer != nullptr) {
+    NOT_IN_PRODUCT(CodeObservers::RegisterExternal(*observer));
+  }
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
   VirtualMemory::Init();
   OSThread::Init();

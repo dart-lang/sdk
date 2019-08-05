@@ -57,7 +57,7 @@ class CodeObservers : public AllStatic {
  public:
   static void Init();
 
-  static void RegisterExternal(Dart_CodeObserver* observer);
+  static void RegisterExternal(Dart_CodeObserver observer);
 
   static void Register(CodeObserver* observer);
 
