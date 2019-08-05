@@ -108,6 +108,15 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
                                                  const char* packages_config,
                                                  Dart_IsolateFlags* flags,
                                                  char** error) {
+  // We only enable the vm-service for this particular test.
+  // The vm-service seems to have some shutdown race which would cause other
+  // vm/cc tests to randomly time out due to inability to shut service-isolate
+  // down.
+  // Issue(https://dartbug.com/37741):
+  if (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") != 0) {
+    return nullptr;
+  }
+
   ASSERT(script_uri != nullptr);
   Dart_Isolate isolate = nullptr;
   auto isolate_group_data = new bin::IsolateGroupData(
