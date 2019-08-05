@@ -110,7 +110,7 @@ true_continue(bool c) {
     if (c) continue;
     v = 0;
   }
-  v;
+  /*unassigned*/ v;
 }
 
 true_noBreak(bool c) {
@@ -118,7 +118,6 @@ true_noBreak(bool c) {
   while (true) {
     // No assignment, but not break.
     // So, we don't exit the loop.
-    // So, all variables are assigned.
   }
-  v;
+  /*unassigned*/ v;
 }

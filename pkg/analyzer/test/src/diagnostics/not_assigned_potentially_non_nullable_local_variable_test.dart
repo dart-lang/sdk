@@ -1397,6 +1397,11 @@ void f(bool b) {
 }
 ''', [
       error(HintCode.DEAD_CODE, 81, 2),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          81,
+          1),
     ]);
   }
 
@@ -1407,12 +1412,16 @@ void f() {
   while (true) {
     // No assignment, but no break.
     // So, we don't exit the loop.
-    // So, all variables are assigned.
   }
   v;
 }
 ''', [
-      error(HintCode.DEAD_CODE, 153, 2),
+      error(HintCode.DEAD_CODE, 114, 2),
+      error(
+          CompileTimeErrorCode
+              .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
+          114,
+          1),
     ]);
   }
 
