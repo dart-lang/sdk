@@ -65,9 +65,9 @@
       },
       "ffi": {
         "patches": [
-          "../../runtime/lib/ffi_patch.dart",
           "../../runtime/lib/ffi_dynamic_library_patch.dart",
-          "../../runtime/lib/ffi_native_type_patch.dart"
+          "../../runtime/lib/ffi_native_type_patch.dart",
+          "../../runtime/lib/ffi_patch.dart"
         ],
         "uri": "ffi/ffi.dart"
       },

@@ -388,7 +388,6 @@ namespace dart {
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
-  V(Ffi_asExternalTypedData, 2)                                                \
   V(TransferableTypedData_factory, 2)                                          \
   V(TransferableTypedData_materialize, 1)
 
