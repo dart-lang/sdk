@@ -203,6 +203,25 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
   }
 
+  test_generic_to_generic_downcast() {
+    var t1 = list(list(object()));
+    var t2 = myListOfList(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    // Let A, B, and C be nullability nodes such that:
+    // - t2 is MyListOfList<Object?A>
+    var a = t2.typeArguments[0].node;
+    // - t1 is List<List<Object?B>>
+    var b = t1.typeArguments[0].typeArguments[0].node;
+    // - the supertype of MyListOfList<T> is List<List<T?C>>
+    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    // Then there should be an edge from b to substitute(a, c)
+    var substitutionNode = graph.getDownstreamEdges(b).single.destinationNode
+        as NullabilityNodeForSubstitution;
+    expect(substitutionNode.innerNode, same(a));
+    expect(substitutionNode.outerNode, same(c));
+  }
+
   test_generic_to_generic_same_element() {
     var t1 = list(object());
     var t2 = list(object());

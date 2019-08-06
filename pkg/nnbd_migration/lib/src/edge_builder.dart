@@ -1486,7 +1486,20 @@ mixin _AssignmentChecker {
         }
       } else if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
         // Implicit downcast assignment.
-        throw UnimplementedError('Implicit downcast');
+        // TODO(paulberry): the migration tool should insert a cast.
+        var rewrittenDestination = _decoratedClassHierarchy.asInstanceOf(
+            destination, sourceType.element);
+        assert(rewrittenDestination.typeArguments.length ==
+            source.typeArguments.length);
+        for (int i = 0; i < rewrittenDestination.typeArguments.length; i++) {
+          _checkAssignment(origin,
+              source: source.typeArguments[i],
+              destination: rewrittenDestination.typeArguments[i],
+              hard: false);
+        }
+      } else {
+        // This should never arise for correct code; if it does arise, recover
+        // from the error by just not creating any additional edges.
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
       _checkAssignment(origin,
