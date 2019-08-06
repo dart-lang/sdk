@@ -1429,7 +1429,7 @@ mixin _AssignmentChecker {
       _checkAssignment(origin,
           source: source.returnType,
           destination: destination.returnType,
-          hard: hard);
+          hard: false);
       if (source.typeArguments.isNotEmpty ||
           destination.typeArguments.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');
@@ -1442,14 +1442,14 @@ mixin _AssignmentChecker {
         _checkAssignment(origin,
             source: destination.positionalParameters[i],
             destination: source.positionalParameters[i],
-            hard: hard);
+            hard: false);
       }
       for (var entry in destination.namedParameters.entries) {
         // Note: source and destination are swapped due to contravariance.
         _checkAssignment(origin,
             source: entry.value,
             destination: source.namedParameters[entry.key],
-            hard: hard);
+            hard: false);
       }
     } else if (destination.type.isDynamic || source.type.isDynamic) {
       // ok; nothing further to do.

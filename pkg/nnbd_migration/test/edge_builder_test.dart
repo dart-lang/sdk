@@ -137,7 +137,7 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
-        hard: true);
+        hard: false);
   }
 
   void test_function_type_named_to_no_parameter() {
@@ -153,7 +153,7 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: true);
+        hard: false);
   }
 
   void test_function_type_positional_to_no_parameter() {
@@ -169,7 +169,7 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: true);
+        hard: false);
   }
 
   void test_function_type_required_parameter() {
@@ -185,7 +185,7 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     var t1 = function(object());
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node, hard: true);
+    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
   }
 
   test_generic_to_dynamic() {
@@ -1256,13 +1256,13 @@ class C {
     var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
-        hard: true);
+        hard: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
-        hard: true);
+        hard: false);
     assertEdge(fieldType.namedParameters['j'].node,
         ctorParamType.namedParameters['j'].node,
-        hard: true);
+        hard: false);
   }
 
   test_fieldFormalParameter_typed() async {
@@ -2656,7 +2656,7 @@ int/*1*/ Function() f(int/*2*/ Function() x) => x;
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int2.node, int1.node, hard: true);
+    assertEdge(int2.node, int1.node, hard: false);
   }
 
   test_return_implicit_null() async {
