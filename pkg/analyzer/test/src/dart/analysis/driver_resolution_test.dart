@@ -5439,13 +5439,9 @@ class C<T, U> {
     }
   }
 
-  @FailingTest(
-      reason: 'This test started failing, because we probably assign '
-          'corresponding parameter elements from FunctionType, which became '
-          'pure in this CL. We should clean this up by using MethodMember '
-          'parameters instead.')
   test_methodInvocation_instanceMethod_genericClass_genericMethod() async {
-    addTestFile(r'''
+    try {
+      addTestFile(r'''
 main() {
   new C<int>().m(1, 2.3);
 }
@@ -5453,26 +5449,40 @@ class C<T> {
   Map<T, U> m<U>(T a, U b) => null;
 }
 ''');
-    await resolveTestFile();
-    MethodElement mElement = findElement.method('m');
+      await resolveTestFile();
+      MethodElement mElement = findElement.method('m');
 
-    {
-      var invocation = findNode.methodInvocation('m(1, 2.3)');
-      List<Expression> arguments = invocation.argumentList.arguments;
+      {
+        var invocation = findNode.methodInvocation('m(1, 2.3)');
+        List<Expression> arguments = invocation.argumentList.arguments;
 
-      var invokeTypeStr = 'Map<int, double> Function(int, double)';
-      assertType(invocation, 'Map<int, double>');
-      assertInvokeType(invocation, invokeTypeStr);
+        var invokeTypeStr = 'Map<int, double> Function(int, double)';
+        assertType(invocation, 'Map<int, double>');
+        assertInvokeType(invocation, invokeTypeStr);
 
-      assertMember(invocation.methodName, mElement, {'T': 'int'});
-      assertType(invocation.methodName, 'Map<int, U> Function<U>(int, U)');
+        assertMember(invocation.methodName, mElement, {'T': 'int'});
+        assertType(invocation.methodName, 'Map<int, U> Function<U>(int, U)');
 
+        if (AnalysisDriver.useSummary2) {
+          _assertArgumentToParameter2(arguments[0], 'int');
+          _assertArgumentToParameter2(arguments[1], 'double');
+        } else {
+          _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
+          _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
+        }
+      }
+      if (!AnalysisDriver.useSummary2) {
+        throw 'Test passed - expected to fail.';
+      }
+    } on String {
+      rethrow;
+    } catch (_) {
+      // This test started failing in summary1, because we assign
+      // corresponding parameter elements from FunctionType, which became
+      // structural, and does not know its element anymore.
+      // We should fix this up by using MethodMember parameters instead.
       if (AnalysisDriver.useSummary2) {
-        _assertArgumentToParameter2(arguments[0], 'int');
-        _assertArgumentToParameter2(arguments[1], 'double');
-      } else {
-        _assertArgumentToParameter(arguments[0], mElement.parameters[0]);
-        _assertArgumentToParameter(arguments[1], mElement.parameters[1]);
+        rethrow;
       }
     }
   }

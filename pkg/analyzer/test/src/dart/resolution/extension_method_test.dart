@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -76,13 +77,23 @@ extension E on A {}
     assertType(extendedType, 'A');
   }
 
-  @failingTest
   test_named_onFunctionType() async {
-    await assertNoErrorsInCode('''
+    try {
+      await assertNoErrorsInCode('''
 extension E on int Function(int) {}
 ''');
-    var extendedType = findNode.typeAnnotation('Function');
-    assertType(extendedType, 'int Function(int)');
+      var extendedType = findNode.typeAnnotation('Function');
+      assertType(extendedType, 'int Function(int)');
+      if (!AnalysisDriver.useSummary2) {
+        throw 'Test passed - expected to fail.';
+      }
+    } on String {
+      rethrow;
+    } catch (e) {
+      if (AnalysisDriver.useSummary2) {
+        rethrow;
+      }
+    }
   }
 
   test_named_onInterface() async {
