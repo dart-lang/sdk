@@ -10,6 +10,7 @@ import 'package:args/args.dart';
 import 'package:glob/glob.dart';
 
 import 'package:test_runner/src/command_output.dart';
+import 'package:test_runner/src/path.dart';
 import 'package:test_runner/src/test_file.dart';
 import 'package:test_runner/src/update_errors.dart';
 import 'package:test_runner/src/utils.dart';
@@ -131,18 +132,19 @@ Future<void> _processFile(File file,
     bool insertCfe}) async {
   stdout.write("${file.path}...");
   var source = file.readAsStringSync();
+  var testFile = TestFile.parse(Path("."), file.path, source);
 
   var errors = <StaticError>[];
   if (insertAnalyzer) {
     stdout.write("\r${file.path} (Running analyzer...)");
-    errors.addAll(await _runAnalyzer(file.path));
+    errors.addAll(await _runAnalyzer(file.path, testFile.sharedOptions));
   }
 
   if (insertCfe) {
     // Clear the previous line.
     stdout.write("\r${file.path}                      ");
     stdout.write("\r${file.path} (Running CFE...)");
-    errors.addAll(await _runCfe(file.path));
+    errors.addAll(await _runCfe(file.path, testFile.sharedOptions));
   }
 
   errors = StaticError.simplify(errors);
@@ -160,24 +162,32 @@ Future<void> _processFile(File file,
 }
 
 /// Invoke analyzer on [path] and gather all static errors it reports.
-Future<List<StaticError>> _runAnalyzer(String path) async {
+Future<List<StaticError>> _runAnalyzer(
+    String path, List<String> options) async {
   // TODO(rnystrom): Running the analyzer command line each time is very slow.
   // Either import the analyzer as a library, or at least invoke it in a batch
   // mode.
-  var result = await Process.run(
-      "sdk/bin/dartanalyzer$shellScriptExtension", ["--format=machine", path]);
+  var result = await Process.run("sdk/bin/dartanalyzer$shellScriptExtension", [
+    ...options,
+    "--format=machine",
+    path,
+  ]);
   var errors = <StaticError>[];
   AnalysisCommandOutput.parseErrors(result.stderr as String, errors);
   return errors;
 }
 
 /// Invoke CFE on [path] and gather all static errors it reports.
-Future<List<StaticError>> _runCfe(String path) async {
+Future<List<StaticError>> _runCfe(String path, List<String> options) async {
   // TODO(rnystrom): Running the CFE command line each time is slow and wastes
   // time generating code, which we don't care about. Import it as a library or
   // at least run it in batch mode.
-  var result = await Process.run("sdk/bin/dart",
-      ["pkg/front_end/tool/_fasta/compile.dart", "--verify", path]);
+  var result = await Process.run("sdk/bin/dart", [
+    "pkg/front_end/tool/_fasta/compile.dart",
+    ...options,
+    "--verify",
+    path,
+  ]);
 
   var errors = <StaticError>[];
   FastaCommandOutput.parseErrors(result.stdout as String, errors);
