@@ -148,6 +148,8 @@ class Rti {
   /// - Class part of a type environment inside a generic class, or `null` for
   ///   type tuple.
   /// - Return type of a function type.
+  /// - Underlying function type for a generic function.
+  /// - de Bruijn index for a generic function parameter.
   dynamic _primary;
 
   static Object _getPrimary(Rti rti) => rti._primary;
@@ -161,7 +163,7 @@ class Rti {
   /// - The type arguments from enclosing functions and closures for a
   ///   kindBinding.
   /// - The [_FunctionParameters] of a function type.
-  /// - TBD for kindGenericFunction.
+  /// - The type parameter bounds of a generic function.
   dynamic _rest;
 
   static Object _getRest(Rti rti) => rti._rest;
@@ -204,6 +206,21 @@ class Rti {
   static _FunctionParameters _getFunctionParameters(Rti rti) {
     assert(_getKind(rti) == kindFunction);
     return JS('_FunctionParameters', '#', _getRest(rti));
+  }
+
+  static Rti _getGenericFunctionBase(Rti rti) {
+    assert(_getKind(rti) == kindGenericFunction);
+    return _castToRti(_getPrimary(rti));
+  }
+
+  static JSArray _getGenericFunctionBounds(Rti rti) {
+    assert(_getKind(rti) == kindGenericFunction);
+    return JS('JSUnmodifiableArray', '#', _getRest(rti));
+  }
+
+  static int _getGenericFunctionParameterIndex(Rti rti) {
+    assert(_getKind(rti) == kindGenericFunctionParameter);
+    return _Utils.asInt(_getPrimary(rti));
   }
 
   /// On [Rti]s that are type environments*, derived types are cached on the
@@ -262,7 +279,7 @@ class _FunctionParameters {
 
   Object _requiredPositional;
   static JSArray _getRequiredPositional(_FunctionParameters parameters) =>
-      JS('JSArray', '#', parameters._requiredPositional);
+      JS('JSUnmodifiableArray', '#', parameters._requiredPositional);
   static void _setRequiredPositional(
       _FunctionParameters parameters, Object requiredPositional) {
     parameters._requiredPositional = requiredPositional;
@@ -270,7 +287,7 @@ class _FunctionParameters {
 
   Object _optionalPositional;
   static JSArray _getOptionalPositional(_FunctionParameters parameters) =>
-      JS('JSArray', '#', parameters._optionalPositional);
+      JS('JSUnmodifiableArray', '#', parameters._optionalPositional);
   static void _setOptionalPositional(
       _FunctionParameters parameters, Object optionalPositional) {
     parameters._optionalPositional = optionalPositional;
@@ -287,7 +304,7 @@ class _FunctionParameters {
   /// Invariant: These pairs are sorted by name in lexicographically ascending order.
   Object _optionalNamed;
   static JSArray _getOptionalNamed(_FunctionParameters parameters) =>
-      JS('JSArray', '#', parameters._optionalNamed);
+      JS('JSUnmodifiableArray', '#', parameters._optionalNamed);
   static void _setOptionalNamed(
       _FunctionParameters parameters, Object optionalNamed) {
     parameters._optionalNamed = optionalNamed;
