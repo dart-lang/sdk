@@ -61,6 +61,19 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   bool get isSynthetic => false;
 
+  /// Set the langauge version to a specific non-null major and minor version.
+  ///
+  /// If the language version has previously been explicitly set set (i.e. with
+  /// [explicit] set to true(), any subsequent call )(explicit or not) should be
+  /// ignored.
+  /// Multiple calls with [explicit] set to false should be allowed though.
+  ///
+  /// The main idea is that the .packages file specifies a default language
+  /// version, but that the library can have source code that speicies another
+  /// one which should be supported, but specifying several in code should not
+  /// change anything.
+  void setLanguageVersion(int major, int minor, {bool explicit});
+
   @override
   Declaration get parent => null;
 

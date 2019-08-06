@@ -403,7 +403,7 @@ class ProcessedOptions {
       ticker.logMs("Started building UriTranslator");
       var libraries = await _computeLibrarySpecification();
       ticker.logMs("Read libraries file");
-      var packages = await _getPackages();
+      Packages packages = await _getPackages();
       ticker.logMs("Read packages file");
       _uriTranslator = new UriTranslator(libraries, packages);
     }

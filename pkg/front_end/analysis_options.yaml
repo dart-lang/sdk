@@ -11,6 +11,7 @@ analyzer:
     - test/flow_analysis/type_promotion/data/**
     - testcases/**
     - test/id_testing/data/**
+    - test/language_versioning/data/**
   errors:
     # Allow having TODOs in the code
     todo: ignore

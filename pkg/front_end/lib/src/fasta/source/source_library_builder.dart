@@ -355,10 +355,11 @@ class SourceLibraryBuilder extends LibraryBuilder {
     return type;
   }
 
-  void setLanguageVersion(int major, int minor) {
+  @override
+  void setLanguageVersion(int major, int minor, {bool explicit}) {
     if (languageVersionExplicitlySet) return;
     library.setLanguageVersion(major, minor);
-    languageVersionExplicitlySet = true;
+    if (explicit) languageVersionExplicitlySet = true;
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,

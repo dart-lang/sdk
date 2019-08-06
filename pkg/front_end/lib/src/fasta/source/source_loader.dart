@@ -214,7 +214,7 @@ class SourceLoader extends Loader {
       // TODO(jensj): What if we have several? What if it is unsupported?
       // What if the language version was already set via packages and this is
       // higher? Etc
-      library.setLanguageVersion(version.major, version.minor);
+      library.setLanguageVersion(version.major, version.minor, explicit: true);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {

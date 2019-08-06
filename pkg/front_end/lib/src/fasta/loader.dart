@@ -104,6 +104,7 @@ abstract class Loader {
               fileUri.scheme == "dart-ext")) {
         fileUri = null;
       }
+      String packageFragment;
       if (fileUri == null) {
         switch (uri.scheme) {
           case "package":
@@ -112,6 +113,7 @@ abstract class Loader {
                 new Uri(
                     scheme: untranslatableUriScheme,
                     path: Uri.encodeComponent("$uri"));
+            packageFragment = target.uriTranslator.getPackageFragment(uri);
             break;
 
           default:
@@ -119,8 +121,44 @@ abstract class Loader {
             break;
         }
       }
+      bool hasValidPackageSpecifiedLanguageVersion = false;
+      int packageSpecifiedLanguageVersionMajor;
+      int packageSpecifiedLanguageVersionMinor;
+      if (packageFragment != null) {
+        List<String> properties = packageFragment.split("&");
+        for (int i = 0; i < properties.length; ++i) {
+          String property = properties[i];
+          if (property.startsWith("dart=")) {
+            String langaugeVersionString = property.substring(5);
+
+            // Verify that the version is x.y[whatever]
+            List<String> dotSeparatedParts = langaugeVersionString.split(".");
+            if (dotSeparatedParts.length >= 2) {
+              packageSpecifiedLanguageVersionMajor =
+                  int.tryParse(dotSeparatedParts[0]);
+              packageSpecifiedLanguageVersionMinor =
+                  int.tryParse(dotSeparatedParts[1]);
+              if (packageSpecifiedLanguageVersionMajor != null &&
+                  packageSpecifiedLanguageVersionMinor != null) {
+                hasValidPackageSpecifiedLanguageVersion = true;
+              }
+            }
+
+            if (!hasValidPackageSpecifiedLanguageVersion) {
+              // TODO(jensj): Issue error here.
+            }
+
+            break;
+          }
+        }
+      }
       LibraryBuilder library =
           target.createLibraryBuilder(uri, fileUri, origin);
+      if (hasValidPackageSpecifiedLanguageVersion) {
+        library.setLanguageVersion(packageSpecifiedLanguageVersionMajor,
+            packageSpecifiedLanguageVersionMinor,
+            explicit: false);
+      }
       if (uri.scheme == "dart" && uri.path == "core") {
         coreLibrary = library;
       }
