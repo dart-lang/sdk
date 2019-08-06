@@ -310,6 +310,8 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   List<FieldBuilder> implicitlyTypedFields;
 
+  bool languageVersionExplicitlySet = false;
+
   SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
       SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder.library(),
@@ -354,11 +356,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
   }
 
   void setLanguageVersion(int major, int minor) {
-    if (library.languageVersionMajor != null) {
-      return;
-    }
-    library.languageVersionMajor = major;
-    library.languageVersionMinor = minor;
+    if (languageVersionExplicitlySet) return;
+    library.setLanguageVersion(major, minor);
+    languageVersionExplicitlySet = true;
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,

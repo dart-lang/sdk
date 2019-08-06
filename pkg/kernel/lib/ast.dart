@@ -284,8 +284,23 @@ class Library extends NamedNode
   /// The URI of the source file this library was loaded from.
   Uri fileUri;
 
-  int languageVersionMajor;
-  int languageVersionMinor;
+  // TODO(jensj): Do we have a better option than this?
+  static int defaultLangaugeVersionMajor = 2;
+  static int defaultLangaugeVersionMinor = 4;
+
+  int _languageVersionMajor;
+  int _languageVersionMinor;
+  int get languageVersionMajor =>
+      _languageVersionMajor ?? defaultLangaugeVersionMajor;
+  int get languageVersionMinor =>
+      _languageVersionMinor ?? defaultLangaugeVersionMinor;
+  void setLanguageVersion(int languageVersionMajor, int languageVersionMinor) {
+    if (languageVersionMajor == null || languageVersionMinor == null) {
+      throw new StateError("Trying to set langauge version 'null'");
+    }
+    _languageVersionMajor = languageVersionMajor;
+    _languageVersionMinor = languageVersionMinor;
+  }
 
   static const int ExternalFlag = 1 << 0;
   static const int SyntheticFlag = 1 << 1;
