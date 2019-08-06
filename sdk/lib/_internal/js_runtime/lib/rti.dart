@@ -656,6 +656,110 @@ String /*?*/ _checkStringNullable(object) {
   throw _TypeError.forType(object, 'String');
 }
 
+String _rtiArrayToString(Object array, List<String> genericContext) {
+  String s = '', sep = '';
+  for (int i = 0; i < _Utils.arrayLength(array); i++) {
+    s += sep +
+        _rtiToString(_castToRti(_Utils.arrayAt(array, i)), genericContext);
+    sep = ', ';
+  }
+  return s;
+}
+
+String _functionRtiToString(Rti functionType, List<String> genericContext,
+    {Object bounds = null}) {
+  String typeParametersText = '';
+  int outerContextLength;
+
+  if (bounds != null) {
+    int boundsLength = _Utils.arrayLength(bounds);
+    if (genericContext == null) {
+      genericContext = <String>[];
+    } else {
+      outerContextLength = genericContext.length;
+    }
+    int offset = genericContext.length;
+    for (int i = boundsLength; i > 0; i--) {
+      genericContext.add('T${offset + i}');
+    }
+
+    String typeSep = '';
+    typeParametersText = '<';
+    for (int i = 0; i < boundsLength; i++) {
+      typeParametersText += typeSep;
+      typeParametersText += genericContext[genericContext.length - 1 - i];
+      Rti boundRti = _castToRti(_Utils.arrayAt(bounds, i));
+      if (!isTopType(boundRti)) {
+        typeParametersText +=
+            ' extends ' + _rtiToString(boundRti, genericContext);
+      }
+      typeSep = ', ';
+    }
+    typeParametersText += '>';
+  }
+
+  // TODO(fishythefish): Support required named parameters.
+  var returnType = Rti._getReturnType(functionType);
+  var parameters = Rti._getFunctionParameters(functionType);
+  var requiredPositional =
+      _FunctionParameters._getRequiredPositional(parameters);
+  int requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+  var optionalPositional =
+      _FunctionParameters._getOptionalPositional(parameters);
+  int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+  var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
+  int optionalNamedLength = _Utils.arrayLength(optionalNamed);
+  assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+
+  String returnTypeText = _rtiToString(returnType, genericContext);
+
+  String argumentsText = '';
+  String sep = '';
+  for (int i = 0; i < requiredPositionalLength; i++) {
+    argumentsText += sep +
+        _rtiToString(
+            _castToRti(_Utils.arrayAt(requiredPositional, i)), genericContext);
+    sep = ', ';
+  }
+
+  if (optionalPositionalLength > 0) {
+    argumentsText += sep + '[';
+    sep = '';
+    for (int i = 0; i < optionalPositionalLength; i++) {
+      argumentsText += sep +
+          _rtiToString(_castToRti(_Utils.arrayAt(optionalPositional, i)),
+              genericContext);
+      sep = ', ';
+    }
+    argumentsText += ']';
+  }
+
+  if (optionalNamedLength > 0) {
+    argumentsText += sep + '{';
+    sep = '';
+    for (int i = 0; i < optionalNamedLength; i += 2) {
+      argumentsText += sep +
+          _Utils.asString(_Utils.arrayAt(optionalNamed, i)) +
+          ': ' +
+          _rtiToString(
+              _castToRti(_Utils.arrayAt(optionalNamed, i + 1)), genericContext);
+      sep = ', ';
+    }
+    argumentsText += '}';
+  }
+
+  if (outerContextLength != null) {
+    // Pop all of the generic type parameters.
+    JS('', '#.length = #', genericContext, outerContextLength);
+  }
+
+  // TODO(fishythefish): Below is the same format as the VM. Change to:
+  //
+  //     return '${returnTypeText} Function${typeParametersText}(${argumentsText})';
+  //
+  return '${typeParametersText}(${argumentsText}) => ${returnTypeText}';
+}
+
 String _rtiToString(Rti rti, List<String> genericContext) {
   int kind = Rti._getKind(rti);
 
@@ -669,67 +773,25 @@ String _rtiToString(Rti rti, List<String> genericContext) {
     name = _unminifyOrTag(name);
     var arguments = Rti._getInterfaceTypeArguments(rti);
     if (arguments.length != 0) {
-      name += '<';
-      for (int i = 0; i < arguments.length; i++) {
-        if (i > 0) name += ', ';
-        name += _rtiToString(_castToRti(arguments[i]), genericContext);
-      }
-      name += '>';
+      name += '<' + _rtiArrayToString(arguments, genericContext) + '>';
     }
     return name;
   }
 
   if (kind == Rti.kindFunction) {
-    // TODO(fishythefish): Support required named parameters.
-    Rti returnType = Rti._getReturnType(rti);
-    var parameters = Rti._getFunctionParameters(rti);
-    var requiredPositional =
-        _FunctionParameters._getRequiredPositional(parameters);
-    var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
-    var optionalPositional =
-        _FunctionParameters._getOptionalPositional(parameters);
-    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
-    var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-    var optionalNamedLength = _Utils.arrayLength(optionalNamed);
-    assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+    return _functionRtiToString(rti, genericContext);
+  }
 
-    String s = _rtiToString(returnType, genericContext) + '(';
-    String sep = '';
-    for (int i = 0; i < requiredPositionalLength; i++) {
-      s += sep +
-          _rtiToString(_castToRti(_Utils.arrayAt(requiredPositional, i)),
-              genericContext);
-      sep = ', ';
-    }
+  if (kind == Rti.kindGenericFunction) {
+    Rti baseFunctionType = Rti._getGenericFunctionBase(rti);
+    Object bounds = Rti._getGenericFunctionBounds(rti);
+    return _functionRtiToString(baseFunctionType, genericContext,
+        bounds: bounds);
+  }
 
-    if (optionalPositionalLength > 0) {
-      s += sep + '[';
-      sep = '';
-      for (int i = 0; i < optionalPositionalLength; i++) {
-        s += sep +
-            _rtiToString(_castToRti(_Utils.arrayAt(optionalPositional, i)),
-                genericContext);
-        sep = ', ';
-      }
-      s += ']';
-    }
-
-    if (optionalNamedLength > 0) {
-      s += sep + '{';
-      sep = '';
-      for (int i = 0; i < optionalNamedLength; i += 2) {
-        s += sep +
-            _Utils.asString(_Utils.arrayAt(optionalNamed, i)) +
-            ': ' +
-            _rtiToString(_castToRti(_Utils.arrayAt(optionalNamed, i + 1)),
-                genericContext);
-        sep = ', ';
-      }
-      s += '}';
-    }
-
-    s += ')';
-    return s;
+  if (kind == Rti.kindGenericFunctionParameter) {
+    int index = Rti._getGenericFunctionParameterIndex(rti);
+    return genericContext[genericContext.length - 1 - index];
   }
 
   return '?';
@@ -741,27 +803,27 @@ String _unminifyOrTag(String rawClassName) {
   return JS_GET_FLAG('MINIFIED') ? 'minified:$rawClassName' : rawClassName;
 }
 
-String _rtiToDebugString(Rti rti) {
-  String arrayToString(Object array) {
-    String s = '[', sep = '';
-    for (int i = 0; i < _Utils.arrayLength(array); i++) {
-      s += sep + _rtiToDebugString(_castToRti(_Utils.arrayAt(array, i)));
-      sep = ', ';
-    }
-    return s + ']';
+String _rtiArrayToDebugString(Object array) {
+  String s = '[', sep = '';
+  for (int i = 0; i < _Utils.arrayLength(array); i++) {
+    s += sep + _rtiToDebugString(_castToRti(_Utils.arrayAt(array, i)));
+    sep = ', ';
   }
+  return s + ']';
+}
 
+String _rtiToDebugString(Rti rti) {
   String functionParametersToString(_FunctionParameters parameters) {
     // TODO(fishythefish): Support required named parameters.
     String s = '(', sep = '';
     var requiredPositional =
         _FunctionParameters._getRequiredPositional(parameters);
-    var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+    int requiredPositionalLength = _Utils.arrayLength(requiredPositional);
     var optionalPositional =
         _FunctionParameters._getOptionalPositional(parameters);
-    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+    int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
     var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-    var optionalNamedLength = _Utils.arrayLength(optionalNamed);
+    int optionalNamedLength = _Utils.arrayLength(optionalNamed);
     assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
 
     for (int i = 0; i < requiredPositionalLength; i++) {
@@ -811,20 +873,31 @@ String _rtiToDebugString(Rti rti) {
     if (_Utils.arrayLength(arguments) == 0) {
       return 'interface("$name")';
     } else {
-      return 'interface("$name", ${arrayToString(arguments)})';
+      return 'interface("$name", ${_rtiArrayToDebugString(arguments)})';
     }
   }
 
   if (kind == Rti.kindBinding) {
     var base = Rti._getBindingBase(rti);
     var arguments = Rti._getBindingArguments(rti);
-    return 'binding(${_rtiToDebugString(base)}, ${arrayToString(arguments)})';
+    return 'binding(${_rtiToDebugString(base)}, ${_rtiArrayToDebugString(arguments)})';
   }
 
   if (kind == Rti.kindFunction) {
     var returnType = Rti._getReturnType(rti);
     var parameters = Rti._getFunctionParameters(rti);
     return 'function(${_rtiToDebugString(returnType)}, ${functionParametersToString(parameters)})';
+  }
+
+  if (kind == Rti.kindGenericFunction) {
+    Rti baseFunctionType = Rti._getGenericFunctionBase(rti);
+    Object bounds = Rti._getGenericFunctionBounds(rti);
+    return 'genericFunction(${_rtiToDebugString(baseFunctionType)}, ${_rtiArrayToDebugString(bounds)})';
+  }
+
+  if (kind == Rti.kindGenericFunctionParameter) {
+    int index = Rti._getGenericFunctionParameterIndex(rti);
+    return 'genericFunctionParameter($index)';
   }
 
   return 'other(kind=$kind)';
