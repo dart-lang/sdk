@@ -242,6 +242,22 @@ f(C c) {
     assertElement(assignment, findElement.method('+', of: 'E'));
   }
 
+  test_instance_getter_fromDifferentExtension_usingBounds() async {
+    await assertNoErrorsInCode('''
+class B {}
+extension E1 on B {
+  int get g => 0;
+}
+extension E2<T extends B> on T {
+  void a() {
+    g;
+  }
+}
+''');
+    var identifier = findNode.simple('g;');
+    assertElement(identifier, findElement.getter('g'));
+  }
+
   test_instance_getter_fromDifferentExtension_withoutTarget() async {
     await assertNoErrorsInCode('''
 class C {}
@@ -254,9 +270,24 @@ extension E2 on C {
   }
 }
 ''');
-    var access = findNode.simple('a;');
-    assertElement(access, findElement.getter('a'));
-    assertType(access, 'int');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.getter('a'));
+    assertType(identifier, 'int');
+  }
+
+  test_instance_getter_fromExtendedType_usingBounds() async {
+    await assertNoErrorsInCode('''
+class B {
+  int get g => 0;
+}
+extension E<T extends B> on T {
+  void a() {
+    g;
+  }
+}
+''');
+    var identifier = findNode.simple('g;');
+    assertElement(identifier, findElement.getter('g'));
   }
 
   test_instance_getter_fromExtendedType_withoutTarget() async {
@@ -270,9 +301,9 @@ extension E on C {
   int get a => 1;
 }
 ''');
-    var access = findNode.simple('a;');
-    assertElement(access, findElement.getter('a'));
-    assertType(access, 'int');
+    var identifier = findNode.simple('a;');
+    assertElement(identifier, findElement.getter('a'));
+    assertType(identifier, 'int');
   }
 
   test_instance_getter_fromInstance() async {
@@ -355,6 +386,23 @@ f(C c) {
     assertType(access, 'int');
   }
 
+  test_instance_method_fromDifferentExtension_usingBounds() async {
+    await assertNoErrorsInCode('''
+class B {}
+extension E1 on B {
+  void m() {}
+}
+extension E2<T extends B> on T {
+  void a() {
+    m();
+  }
+}
+''');
+    var invocation = findNode.methodInvocation('m();');
+    assertElement(invocation, findElement.method('m'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
   test_instance_method_fromDifferentExtension_withoutTarget() async {
     await assertNoErrorsInCode('''
 class B {}
@@ -369,6 +417,22 @@ extension E2 on B {
 ''');
     var invocation = findNode.methodInvocation('a();');
     assertElement(invocation, findElement.method('a'));
+    assertInvokeType(invocation, 'void Function()');
+  }
+
+  test_instance_method_fromExtendedType_usingBounds() async {
+    await assertNoErrorsInCode('''
+class B {
+  void m() {}
+}
+extension E<T extends B> on T {
+  void a() {
+    m();
+  }
+}
+''');
+    var invocation = findNode.methodInvocation('m();');
+    assertElement(invocation, findElement.method('m'));
     assertInvokeType(invocation, 'void Function()');
   }
 

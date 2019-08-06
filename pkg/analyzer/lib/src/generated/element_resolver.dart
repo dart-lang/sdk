@@ -1903,7 +1903,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
         if (enclosingExtension == null) {
           return null;
         }
-        DartType extendedType = enclosingExtension.extendedType;
+        DartType extendedType =
+            _resolveTypeParameter(enclosingExtension.extendedType);
         if (extendedType is InterfaceType) {
           enclosingType = extendedType;
         } else if (extendedType is FunctionType) {

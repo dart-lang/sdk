@@ -574,7 +574,8 @@ class MethodInvocationResolver {
       if (_resolver.enclosingExtension == null) {
         return _reportUndefinedFunction(node, node.methodName);
       }
-      var extendedType = _resolver.enclosingExtension.extendedType;
+      var extendedType =
+          _resolveTypeParameter(_resolver.enclosingExtension.extendedType);
       if (extendedType is InterfaceType) {
         receiverType = extendedType;
       } else if (extendedType is FunctionType) {
