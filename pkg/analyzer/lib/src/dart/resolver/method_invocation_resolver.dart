@@ -348,6 +348,7 @@ class MethodInvocationResolver {
     var extensions = _extensionResolver.getApplicableExtensions(
       receiverType,
       name,
+      ElementKind.METHOD,
     );
 
     if (extensions.isEmpty) {
@@ -605,8 +606,8 @@ class MethodInvocationResolver {
       return;
     }
 
-    var extension =
-        _extensionResolver.findExtension(receiverType, name, nameNode);
+    var extension = _extensionResolver.findExtension(
+        receiverType, name, nameNode, ElementKind.METHOD);
     if (extension != null) {
       var target = extension.getMethod(name);
       if (target != null) {
@@ -771,7 +772,7 @@ class MethodInvocationResolver {
       var call = _inheritance.getMember(type, _nameCall);
       if (call == null) {
         var extension = _extensionResolver.findExtension(
-            type, _nameCall.name, node.methodName);
+            type, _nameCall.name, node.methodName, ElementKind.METHOD);
         if (extension != null) {
           call = extension.getMethod(_nameCall.name);
         }

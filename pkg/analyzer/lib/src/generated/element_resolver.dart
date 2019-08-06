@@ -21,7 +21,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1257,7 +1256,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
     if (callMethod == null) {
       var extension = _extensionMemberResolver.findExtension(
-          type, FunctionElement.CALL_METHOD_NAME, node);
+          type, FunctionElement.CALL_METHOD_NAME, node, ElementKind.METHOD);
       if (extension != null) {
         callMethod = extension.getMethod(FunctionElement.CALL_METHOD_NAME);
       }
@@ -1280,8 +1279,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (getter != null) {
         return getter;
       }
-      var extension =
-          _extensionMemberResolver.findExtension(type, name, nameNode);
+      var extension = _extensionMemberResolver.findExtension(
+          type, name, nameNode, ElementKind.GETTER);
       if (extension != null) {
         var member = extension.getGetter(name);
         return _inferExtensionArgumentTypes(type, extension, member);
@@ -1319,8 +1318,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (method != null) {
         return method;
       }
-      var extension =
-          _extensionMemberResolver.findExtension(type, name, nameNode);
+      var extension = _extensionMemberResolver.findExtension(
+          type, name, nameNode, ElementKind.METHOD);
       if (extension != null) {
         var member = extension.getMethod(name);
         return _inferExtensionArgumentTypes(type, extension, member);
@@ -1344,8 +1343,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (setter != null) {
         return setter;
       }
-      var extension =
-          _extensionMemberResolver.findExtension(type, name, nameNode);
+      var extension = _extensionMemberResolver.findExtension(
+          type, name, nameNode, ElementKind.SETTER);
       if (extension != null) {
         var member = extension.getSetter(name);
         return _inferExtensionArgumentTypes(type, extension, member);
@@ -1604,8 +1603,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
 
       if (invokeElement == null && leftType is InterfaceType) {
-        ExtensionElement extension =
-            _extensionMemberResolver.findExtension(leftType, methodName, node);
+        ExtensionElement extension = _extensionMemberResolver.findExtension(
+            leftType, methodName, node, ElementKind.METHOD);
         if (extension != null) {
           invokeElement = extension.getMethod(methodName);
         }

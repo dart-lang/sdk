@@ -106,8 +106,8 @@ class ExtensionMemberResolver {
   /// Return an extension for this [type] that matches the given [name] in the
   /// current scope; if the match is ambiguous, report an error.
   ExtensionElement findExtension(
-      InterfaceType type, String name, Expression target) {
-    var extensions = getApplicableExtensions(type, name);
+      InterfaceType type, String name, Expression target, ElementKind kind) {
+    var extensions = getApplicableExtensions(type, name, kind);
     if (extensions.length == 1) {
       return extensions[0];
     }
@@ -133,7 +133,8 @@ class ExtensionMemberResolver {
 
   /// Return extensions for this [type] that match the given [name] in the
   /// current scope.
-  List<ExtensionElement> getApplicableExtensions(DartType type, String name) {
+  List<ExtensionElement> getApplicableExtensions(
+      DartType type, String name, ElementKind kind) {
     final List<ExtensionElement> extensions = [];
 
     /// Return `true` if the [elementName] matches the target [name], taking
@@ -148,16 +149,35 @@ class ExtensionMemberResolver {
     /// Add the given [extension] to the list of [extensions] if it defined a
     /// member whose name matches the target [name].
     void checkExtension(ExtensionElement extension) {
-      for (var accessor in extension.accessors) {
-        if (matchesName(accessor.name)) {
-          extensions.add(extension);
-          return;
+      if (kind == ElementKind.GETTER) {
+        for (var accessor in extension.accessors) {
+          if (accessor.isGetter && matchesName(accessor.name)) {
+            extensions.add(extension);
+            return;
+          }
         }
-      }
-      for (var method in extension.methods) {
-        if (matchesName(method.name)) {
-          extensions.add(extension);
-          return;
+      } else if (kind == ElementKind.SETTER) {
+        for (var accessor in extension.accessors) {
+          if (accessor.isSetter && matchesName(accessor.name)) {
+            extensions.add(extension);
+            return;
+          }
+        }
+      } else if (kind == ElementKind.METHOD) {
+        for (var method in extension.methods) {
+          if (matchesName(method.name)) {
+            extensions.add(extension);
+            return;
+          }
+        }
+        // Check for a getter that matches a function type.
+        for (var accessor in extension.accessors) {
+          if (accessor.type is FunctionType &&
+              accessor.isGetter &&
+              matchesName(accessor.name)) {
+            extensions.add(extension);
+            return;
+          }
         }
       }
     }
