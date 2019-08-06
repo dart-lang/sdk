@@ -1077,6 +1077,9 @@ class _Universe {
   static String _canonicalRecipeOfFutureOr(Rti baseType) =>
       Rti._getCanonicalRecipe(baseType) + Recipe.wrapFutureOrString;
 
+  static String _canonicalRecipeOfGenericFunctionParameter(int index) =>
+      '$index' + Recipe.genericFunctionTypeParameterIndexString;
+
   static Rti _lookupDynamicRti(universe) {
     return _lookupTerminalRti(
         universe, Rti.kindDynamic, _canonicalRecipeOfDynamic());
@@ -1122,6 +1125,23 @@ class _Universe {
     var rti = Rti.allocate();
     Rti._setKind(rti, Rti.kindFutureOr);
     Rti._setPrimary(rti, baseType);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
+    return _finishRti(universe, rti);
+  }
+
+  static Rti _lookupGenericFunctionParameterRti(universe, int index) {
+    String canonicalRecipe = _canonicalRecipeOfGenericFunctionParameter(index);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, canonicalRecipe);
+    if (probe != null) return _castToRti(probe);
+    return _createGenericFunctionParameterRti(universe, index, canonicalRecipe);
+  }
+
+  static Rti _createGenericFunctionParameterRti(
+      universe, int index, String canonicalRecipe) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindGenericFunctionParameter);
+    Rti._setPrimary(rti, index);
     Rti._setCanonicalRecipe(rti, canonicalRecipe);
     return _finishRti(universe, rti);
   }
@@ -1229,12 +1249,12 @@ class _Universe {
       _FunctionParameters parameters) {
     var requiredPositional =
         _FunctionParameters._getRequiredPositional(parameters);
-    var requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+    int requiredPositionalLength = _Utils.arrayLength(requiredPositional);
     var optionalPositional =
         _FunctionParameters._getOptionalPositional(parameters);
-    var optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+    int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
     var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-    var optionalNamedLength = _Utils.arrayLength(optionalNamed);
+    int optionalNamedLength = _Utils.arrayLength(optionalNamed);
     assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
 
     String recipe = Recipe.startFunctionArgumentsString +
@@ -1274,6 +1294,32 @@ class _Universe {
     Rti._setKind(rti, Rti.kindFunction);
     Rti._setPrimary(rti, returnType);
     Rti._setRest(rti, parameters);
+    Rti._setCanonicalRecipe(rti, canonicalRecipe);
+    return _finishRti(universe, rti);
+  }
+
+  static String _canonicalRecipeOfGenericFunction(
+          Rti baseFunctionType, Object bounds) =>
+      Rti._getCanonicalRecipe(baseFunctionType) +
+      Recipe.startTypeArgumentsString +
+      _canonicalRecipeJoin(bounds) +
+      Recipe.endTypeArgumentsString;
+
+  static Rti _lookupGenericFunctionRti(
+      Object universe, Rti baseFunctionType, Object bounds) {
+    String key = _canonicalRecipeOfGenericFunction(baseFunctionType, bounds);
+    var cache = evalCache(universe);
+    var probe = _cacheGet(cache, key);
+    if (probe != null) return _castToRti(probe);
+    return _createGenericFunctionRti(universe, baseFunctionType, bounds, key);
+  }
+
+  static Rti _createGenericFunctionRti(Object universe, Rti baseFunctionType,
+      Object bounds, String canonicalRecipe) {
+    var rti = Rti.allocate();
+    Rti._setKind(rti, Rti.kindGenericFunction);
+    Rti._setPrimary(rti, baseFunctionType);
+    Rti._setRest(rti, bounds);
     Rti._setCanonicalRecipe(rti, canonicalRecipe);
     return _finishRti(universe, rti);
   }
