@@ -300,6 +300,8 @@ class DecoratedType {
       return '$returnType Function$formals($args)$trailing';
     } else if (type is DynamicTypeImpl) {
       return 'dynamic';
+    } else if (type.isBottom) {
+      return 'Never$trailing';
     } else {
       throw '$type'; // TODO(paulberry)
     }

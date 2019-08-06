@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -26,6 +27,11 @@ class DecoratedTypeTest extends AbstractSingleUnitTest {
   void setUp() {
     NullabilityNode.clearDebugNames();
     super.setUp();
+  }
+
+  test_toString_bottom() async {
+    var decoratedType = DecoratedType(BottomTypeImpl.instance, _node(1));
+    expect(decoratedType.toString(), 'Never?(type(1))');
   }
 
   test_toString_interface_type_argument() async {
