@@ -18,3 +18,8 @@ enum MainAxisAlignment {
   spaceAround,
   spaceEvenly,
 }
+
+enum MainAxisSize {
+  min,
+  max,
+}

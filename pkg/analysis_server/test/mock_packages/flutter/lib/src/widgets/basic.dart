@@ -75,7 +75,12 @@ class ClipRect extends SingleChildRenderObjectWidget {
 class Column extends Flex {
   Column({
     Key key,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+    TextDirection textDirection,
+    VerticalDirection verticalDirection = VerticalDirection.down,
+    TextBaseline textBaseline,
     List<Widget> children = const <Widget>[],
   });
 }
@@ -108,6 +113,12 @@ class Padding extends SingleChildRenderObjectWidget {
 class Row extends Flex {
   Row({
     Key key,
+    MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,
+    MainAxisSize mainAxisSize = MainAxisSize.max,
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,
+    TextDirection textDirection,
+    VerticalDirection verticalDirection = VerticalDirection.down,
+    TextBaseline textBaseline,
     List<Widget> children = const <Widget>[],
   });
 }
