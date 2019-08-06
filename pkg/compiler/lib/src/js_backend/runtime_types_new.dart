@@ -36,6 +36,13 @@ abstract class RecipeEncoder {
   jsAst.Literal encodeRecipeWithVariablesReplaceByAny(
       ModularEmitter emitter, DartType dartType);
 
+  /// Returns a [jsAst.Literal] representing [supertypeArgument] to be evaluated
+  /// against a [FullTypeEnvironmentStructure] representing [declaringType]. Any
+  /// [TypeVariableType]s appearing in [supertypeArgument] which are declared by
+  /// [declaringType] are always encoded as indices.
+  jsAst.Literal encodeDirectSupertypeRecipe(ModularEmitter emitter,
+      InterfaceType declaringType, DartType supertypeArgument);
+
   /// Converts a recipe into a fragment of code that accesses the evaluated
   /// recipe.
   // TODO(33422): Remove need for this by pushing stubs through SSA.
@@ -79,6 +86,18 @@ class RecipeEncoderImpl implements RecipeEncoder {
   }
 
   @override
+  jsAst.Literal encodeDirectSupertypeRecipe(ModularEmitter emitter,
+      InterfaceType declaringType, DartType supertypeArgument) {
+    return _RecipeGenerator(
+            this,
+            emitter,
+            FullTypeEnvironmentStructure(classType: declaringType),
+            TypeExpressionRecipe(supertypeArgument),
+            indexTypeVariablesOnDeclaringClass: true)
+        .run();
+  }
+
+  @override
   jsAst.Expression evaluateRecipe(
       ModularEmitter emitter, jsAst.Literal recipe) {
     return js('#(#)',
@@ -102,6 +121,7 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   final ModularEmitter _emitter;
   final TypeEnvironmentStructure _environment;
   final TypeRecipe _recipe;
+  final bool indexTypeVariablesOnDeclaringClass;
   final bool hackTypeVariablesToAny;
 
   final List<FunctionTypeVariable> functionTypeVariables = [];
@@ -112,7 +132,8 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 
   _RecipeGenerator(
       this._encoder, this._emitter, this._environment, this._recipe,
-      {this.hackTypeVariablesToAny = false});
+      {this.indexTypeVariablesOnDeclaringClass = false,
+      this.hackTypeVariablesToAny = false});
 
   JClosedWorld get _closedWorld => _encoder._closedWorld;
   NativeBasicData get _nativeData => _encoder._nativeData;
@@ -250,6 +271,15 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   int /*?*/ _indexIntoClassTypeVariables(TypeVariableType variable) {
     TypeVariableEntity element = variable.element;
     ClassEntity cls = element.typeDeclaration;
+
+    if (indexTypeVariablesOnDeclaringClass) {
+      TypeEnvironmentStructure environment = _environment;
+      if (environment is FullTypeEnvironmentStructure) {
+        if (identical(environment.classType.element, cls)) {
+          return element.index;
+        }
+      }
+    }
 
     // TODO(sra): We might be in a context where the class type variable has an
     // index, even though in the general case it is not at a specific index.
@@ -541,10 +571,7 @@ class RulesetEncoder {
       ]);
 
   jsAst.Literal _encodeSupertypeArgument(
-      InterfaceType targetType, DartType supertypeArgument) {
-    TypeEnvironmentStructure environment =
-        FullTypeEnvironmentStructure(classType: targetType);
-    TypeRecipe recipe = TypeExpressionRecipe(supertypeArgument);
-    return _recipeEncoder.encodeRecipe(_emitter, environment, recipe);
-  }
+          InterfaceType targetType, DartType supertypeArgument) =>
+      _recipeEncoder.encodeDirectSupertypeRecipe(
+          _emitter, targetType, supertypeArgument);
 }
