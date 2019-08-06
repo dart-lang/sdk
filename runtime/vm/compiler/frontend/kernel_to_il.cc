@@ -506,14 +506,6 @@ Fragment FlowGraphBuilder::StaticCall(TokenPosition position,
   return Fragment(call);
 }
 
-Fragment FlowGraphBuilder::StringInterpolate(TokenPosition position) {
-  Value* array = Pop();
-  StringInterpolateInstr* interpolate =
-      new (Z) StringInterpolateInstr(array, position, GetNextDeoptId());
-  Push(interpolate);
-  return Fragment(interpolate);
-}
-
 Fragment FlowGraphBuilder::StringInterpolateSingle(TokenPosition position) {
   const int kTypeArgsLen = 0;
   const int kNumberOfArguments = 1;

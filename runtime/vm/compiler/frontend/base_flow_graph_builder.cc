@@ -985,6 +985,14 @@ Fragment BaseFlowGraphBuilder::ClosureCall(TokenPosition position,
   return Fragment(call);
 }
 
+Fragment BaseFlowGraphBuilder::StringInterpolate(TokenPosition position) {
+  Value* array = Pop();
+  StringInterpolateInstr* interpolate =
+      new (Z) StringInterpolateInstr(array, position, GetNextDeoptId());
+  Push(interpolate);
+  return Fragment(interpolate);
+}
+
 }  // namespace kernel
 }  // namespace dart
 

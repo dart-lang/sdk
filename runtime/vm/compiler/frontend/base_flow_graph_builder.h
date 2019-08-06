@@ -357,6 +357,10 @@ class BaseFlowGraphBuilder {
                        const Array& argument_names,
                        bool use_unchecked_entry = false);
 
+  // Builds StringInterpolate instruction, an equivalent of
+  // _StringBase._interpolate call.
+  Fragment StringInterpolate(TokenPosition position);
+
  protected:
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
 

@@ -819,6 +819,12 @@ void BytecodeFlowGraphBuilder::BuildDirectCall() {
     return;
   }
 
+  if (target.recognized_kind() == MethodRecognizer::kStringBaseInterpolate) {
+    ASSERT(argc == 1);
+    code_ += B->StringInterpolate(position_);
+    return;
+  }
+
   const Array& arg_desc_array =
       Array::Cast(ConstantAt(DecodeOperandD(), 1).value());
   const ArgumentsDescriptor arg_desc(arg_desc_array);
