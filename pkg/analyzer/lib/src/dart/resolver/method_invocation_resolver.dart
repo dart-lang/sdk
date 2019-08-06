@@ -49,7 +49,7 @@ class MethodInvocationResolver {
 
   /// Helper for extension method resolution.
   //todo(pq): consider sharing instance with element_resolver
-  final ExtensionMemberResolver _extensionMemberResolver;
+  final ExtensionMemberResolver _extensionResolver;
 
   MethodInvocationResolver(this._resolver)
       : _typeType = _resolver.typeProvider.typeType,
@@ -57,7 +57,7 @@ class MethodInvocationResolver {
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
-        _extensionMemberResolver = ExtensionMemberResolver(_resolver);
+        _extensionResolver = ExtensionMemberResolver(_resolver);
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
@@ -336,23 +336,74 @@ class MethodInvocationResolver {
     return null;
   }
 
-  void _resolveExtension(MethodInvocation node, ExtensionElement extension,
-      SimpleIdentifier nameNode, String name) {
+  /// If there is an extension matching the [receiverType] and defining a
+  /// member with the given [name], resolve to the corresponding extension
+  /// method and return `true`. Otherwise return `false`.
+  bool _resolveExtension(
+    MethodInvocation node,
+    DartType receiverType,
+    SimpleIdentifier nameNode,
+    String name,
+  ) {
+    var extensions = _extensionResolver.getApplicableExtensions(
+      receiverType,
+      name,
+    );
+
+    if (extensions.isEmpty) {
+      return false;
+    }
+
+    ExtensionElement extension;
+    if (extensions.length == 1) {
+      extension = extensions[0];
+    } else {
+      extension = _extensionResolver.chooseMostSpecificExtension(
+        extensions,
+        receiverType,
+      );
+      if (extension == null) {
+        _setDynamicResolution(node);
+        _resolver.errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
+          nameNode,
+          [
+            name,
+            extensions[0].name,
+            extensions[1].name,
+          ],
+        );
+        return true;
+      }
+    }
+
     ExecutableElement member = extension.getMethod(name) ??
         extension.getGetter(name) ??
         extension.getSetter(name);
+
     if (member.isStatic) {
       _setDynamicResolution(node);
       _resolver.errorReporter.reportErrorForNode(
         CompileTimeErrorCode.ACCESS_STATIC_EXTENSION_MEMBER,
         nameNode,
       );
-      return;
+      return true;
     }
+
+    var typeArguments = _extensionResolver.inferTypeArguments(
+      extension,
+      receiverType,
+    );
+    member = ExecutableMember.from3(
+      member,
+      extension.typeParameters,
+      typeArguments,
+    );
+
     nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
     _setResolution(node, calleeType);
-    return;
+    return true;
   }
 
   void _resolveExtensionMember(MethodInvocation node, Identifier receiver,
@@ -460,29 +511,9 @@ class MethodInvocationResolver {
     }
 
     // Look for an applicable extension.
-    List<ExtensionElement> extensions =
-        _extensionMemberResolver.getApplicableExtensions(receiverType, name);
-
-    if (extensions.length == 1) {
-      return _resolveExtension(node, extensions[0], nameNode, name);
-    } else if (extensions.length > 1) {
-      var extension = _extensionMemberResolver.chooseMostSpecificExtension(
-          extensions, receiverType);
-      if (extension == null) {
-        _setDynamicResolution(node);
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
-          nameNode,
-          [
-            name,
-            extensions[0].name,
-            extensions[1].name,
-          ],
-        );
-        return;
-      } else {
-        return _resolveExtension(node, extension, nameNode, name);
-      }
+    {
+      var success = _resolveExtension(node, receiverType, nameNode, name);
+      if (success) return;
     }
 
     // The interface of the receiver does not have an instance member.
@@ -575,7 +606,7 @@ class MethodInvocationResolver {
     }
 
     var extension =
-        _extensionMemberResolver.findExtension(receiverType, name, nameNode);
+        _extensionResolver.findExtension(receiverType, name, nameNode);
     if (extension != null) {
       var target = extension.getMethod(name);
       if (target != null) {
@@ -739,7 +770,7 @@ class MethodInvocationResolver {
     if (type is InterfaceType) {
       var call = _inheritance.getMember(type, _nameCall);
       if (call == null) {
-        var extension = _extensionMemberResolver.findExtension(
+        var extension = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName);
         if (extension != null) {
           call = extension.getMethod(_nameCall.name);

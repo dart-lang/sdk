@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -481,30 +482,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var element = node.staticElement;
     var typeParameters = element.typeParameters;
 
-    List<DartType> typeArgumentTypes;
-    if (node.typeArguments != null) {
-      var arguments = node.typeArguments.arguments;
-      if (arguments.length == typeParameters.length) {
-        typeArgumentTypes = arguments.map((a) => a.type).toList();
-      } else {
-        // TODO(scheglov) Report an error.
-        typeArgumentTypes = List.filled(typeParameters.length, _dynamicType);
-      }
-    } else {
-      var arguments = node.argumentList.arguments;
-      if (arguments.length == 1) {
-        var inferrer =
-            GenericInferrer(_typeProvider, _typeSystem, typeParameters);
-        inferrer.constrainArgument(
-          arguments[0].staticType,
-          element.extendedType,
-          'extendedType',
-        );
-        typeArgumentTypes = inferrer.infer(typeParameters);
-      } else {
-        typeArgumentTypes = List.filled(typeParameters.length, _dynamicType);
-      }
+    DartType targetType;
+    var arguments = node.argumentList.arguments;
+    if (arguments.length == 1) {
+      targetType = arguments[0].staticType;
     }
+
+    var extensionResolver = ExtensionMemberResolver(_resolver);
+    var typeArgumentTypes = extensionResolver.inferTypeArguments(
+      element,
+      targetType,
+      typeArguments: node.typeArguments,
+    );
 
     var nodeImpl = node as ExtensionOverrideImpl;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;

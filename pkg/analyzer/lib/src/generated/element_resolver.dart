@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1095,6 +1096,26 @@ class ElementResolver extends SimpleAstVisitor<void> {
     return _resolveTypeParameter(type);
   }
 
+  ExecutableElement _inferExtensionArgumentTypes(
+    DartType receiverType,
+    ExtensionElement extension,
+    ExecutableElement member,
+  ) {
+    if (member == null) {
+      return null;
+    }
+
+    var typeArguments = _extensionMemberResolver.inferTypeArguments(
+      extension,
+      receiverType,
+    );
+    return ExecutableMember.from3(
+      member,
+      extension.typeParameters,
+      typeArguments,
+    );
+  }
+
   /**
    * Check for a generic method & apply type arguments if any were passed.
    */
@@ -1262,7 +1283,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension =
           _extensionMemberResolver.findExtension(type, name, nameNode);
       if (extension != null) {
-        return extension.getGetter(name);
+        var member = extension.getGetter(name);
+        return _inferExtensionArgumentTypes(type, extension, member);
       }
     }
     return null;
@@ -1300,7 +1322,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension =
           _extensionMemberResolver.findExtension(type, name, nameNode);
       if (extension != null) {
-        return extension.getMethod(name);
+        var member = extension.getMethod(name);
+        return _inferExtensionArgumentTypes(type, extension, member);
       }
     }
     return null;
@@ -1324,7 +1347,8 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension =
           _extensionMemberResolver.findExtension(type, name, nameNode);
       if (extension != null) {
-        return extension.getSetter(name);
+        var member = extension.getSetter(name);
+        return _inferExtensionArgumentTypes(type, extension, member);
       }
     }
     return null;

@@ -14,7 +14,11 @@ class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
   ExtensionMemberResolver(this._resolver);
 
+  DartType get _dynamicType => _typeProvider.dynamicType;
+
   Scope get _nameScope => _resolver.nameScope;
+
+  TypeProvider get _typeProvider => _resolver.typeProvider;
 
   TypeSystem get _typeSystem => _resolver.typeSystem;
 
@@ -166,6 +170,49 @@ class ExtensionMemberResolver {
       }
     }
     return extensions;
+  }
+
+  /// Given the generic [extension] element, and the [receiverType] to which
+  /// this extension is applied, infer the type arguments that correspond to
+  /// the extension type parameters.
+  ///
+  /// If the extension is used in [ExtensionOverride], the [typeArguments] of
+  /// the override are provided, and take precedence over inference.
+  List<DartType> inferTypeArguments(
+    ExtensionElement extension,
+    DartType receiverType, {
+    TypeArgumentList typeArguments,
+  }) {
+    var typeParameters = extension.typeParameters;
+    if (typeParameters.isEmpty) {
+      return const <DartType>[];
+    }
+
+    if (typeArguments != null) {
+      var arguments = typeArguments.arguments;
+      if (arguments.length == typeParameters.length) {
+        return arguments.map((a) => a.type).toList();
+      } else {
+        // TODO(scheglov) Report an error.
+        return List.filled(typeParameters.length, _dynamicType);
+      }
+    } else {
+      if (receiverType != null) {
+        var inferrer = GenericInferrer(
+          _typeProvider,
+          _typeSystem,
+          typeParameters,
+        );
+        inferrer.constrainArgument(
+          receiverType,
+          extension.extendedType,
+          'extendedType',
+        );
+        return inferrer.infer(typeParameters);
+      } else {
+        return List.filled(typeParameters.length, _dynamicType);
+      }
+    }
   }
 
   /// Ask the type system to instantiate the given type to its bounds.
