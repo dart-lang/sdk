@@ -284,8 +284,23 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assertEdge(t.node, always, hard: false);
   }
 
+  void test_typeParam_to_complex() {
+    var bound = list(object());
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
+    var t1 = typeParameterType(t);
+    var t2 = list(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(bound.node, t2.node, hard: false);
+    assertEdge(bound.typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false);
+  }
+
   void test_typeParam_to_object() {
-    var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+    var bound = object();
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
     var t1 = typeParameterType(t);
     var t2 = object();
     assign(t1, t2);
@@ -385,6 +400,22 @@ main() {
 ''');
     // TODO(paulberry): edge should be hard.
     assertEdge(always, decoratedTypeAnnotation('List').node, hard: false);
+  }
+
+  test_assign_type_parameter_to_bound() async {
+    await analyze('''
+class C<T extends List<int>> {
+  List<int> f(T x) => x;
+}
+''');
+    var boundType = decoratedTypeAnnotation('List<int>>');
+    var returnType = decoratedTypeAnnotation('List<int> f');
+    var tType = decoratedTypeAnnotation('T x');
+    assertEdge(tType.node, returnType.node, hard: true);
+    assertEdge(boundType.node, returnType.node, hard: false);
+    assertEdge(
+        boundType.typeArguments[0].node, returnType.typeArguments[0].node,
+        hard: false);
   }
 
   test_assignmentExpression_field() async {

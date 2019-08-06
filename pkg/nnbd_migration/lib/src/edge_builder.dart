@@ -32,6 +32,10 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 
   final NullabilityGraph _graph;
 
+  /// Tests should fill in this map with the bounds of any type parameters being
+  /// tested.
+  final Map<TypeParameterElement, DecoratedType> bounds = {};
+
   @override
   final DecoratedClassHierarchy _decoratedClassHierarchy;
 
@@ -51,6 +55,12 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
       {bool hard = false}) {
     _graph.connect(source, destination, origin, hard: hard);
+  }
+
+  @override
+  DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
+    return bounds[(type.type as TypeParameterType).element] ??
+        (throw StateError('Unknown bound for $type'));
   }
 }
 
@@ -1069,6 +1079,14 @@ $stackTrace''');
     }
   }
 
+  @override
+  DecoratedType _getTypeParameterTypeBound(DecoratedType type) {
+    // TODO(paulberry): once we've wired up flow analysis, return promoted
+    // bounds if applicable.
+    return _variables
+        .decoratedElementType((type.type as TypeParameterType).element);
+  }
+
   /// Creates the necessary constraint(s) for an assignment of the given
   /// [expression] to a destination whose type is [destinationType].
   DecoratedType _handleAssignment(
@@ -1444,18 +1462,13 @@ mixin _AssignmentChecker {
         // No further edges need to be created, since type parameter types
         // aren't made up of other types.
       } else {
-        // TODO(paulberry): the correct behavior here would be to do a
-        // substitution so that we replace sourceType with the type parameter's
-        // bound and then continue with the comparison.  But most of the time
-        // that will result in a no-op, because the destination type is an
-        // interface type with no type parameters, so no edges need to be
-        // generated.  So for now we just verify that we're in the easy case.
-        if (!(destinationType is InterfaceType &&
-            destinationType.typeArguments.isEmpty)) {
-          throw UnimplementedError(
-              'Handle assignment from type parameter to complex type '
-              '$destinationType');
-        }
+        // Effectively this is an assignment from the type parameter's bound to
+        // the destination type.
+        _checkAssignment(origin,
+            source: _getTypeParameterTypeBound(source),
+            destination: destination,
+            hard: false);
+        return;
       }
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
@@ -1511,6 +1524,9 @@ mixin _AssignmentChecker {
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
       {bool hard = false});
+
+  /// Given a [type] representing a type parameter, retrieves the type's bound.
+  DecoratedType _getTypeParameterTypeBound(DecoratedType type);
 }
 
 /// Information about a binary expression whose boolean value could possibly
