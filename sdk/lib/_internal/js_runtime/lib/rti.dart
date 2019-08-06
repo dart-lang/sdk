@@ -943,14 +943,29 @@ class _Universe {
     String key = Rti._getCanonicalRecipe(rti);
     _cacheSet(evalCache(universe), key, rti);
 
-    // Set up methods to type tests.
-    // TODO(sra): Install specializations.
-    Rti._setAsCheckFunction(
-        rti, RAW_DART_FUNCTION_REF(_generalAsCheckImplementation));
-    Rti._setTypeCheckFunction(
-        rti, RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation));
-    Rti._setIsTestFunction(
-        rti, RAW_DART_FUNCTION_REF(_generalIsTestImplementation));
+    // Set up methods to perform type tests.
+
+    // TODO(sra): Find better way to install specializations. Perhaps the
+    // installed version should replace itself with the specialization.
+    var checkFn = RAW_DART_FUNCTION_REF(_generalTypeCheckImplementation);
+    var asFn = RAW_DART_FUNCTION_REF(_generalAsCheckImplementation);
+    var isFn = RAW_DART_FUNCTION_REF(_generalIsTestImplementation);
+
+    if (JS_GET_NAME(JsGetName.INT_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isInt);
+    } else if (JS_GET_NAME(JsGetName.DOUBLE_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isNum);
+    } else if (JS_GET_NAME(JsGetName.NUM_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isNum);
+    } else if (JS_GET_NAME(JsGetName.STRING_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isString);
+    } else if (JS_GET_NAME(JsGetName.BOOL_RECIPE) == key) {
+      isFn = RAW_DART_FUNCTION_REF(_isBool);
+    }
+
+    Rti._setAsCheckFunction(rti, asFn);
+    Rti._setTypeCheckFunction(rti, checkFn);
+    Rti._setIsTestFunction(rti, isFn);
     return rti;
   }
 
