@@ -342,14 +342,50 @@ class C {
 ''');
   }
 
-  test_class_method_body_async_to_sync() {
-    assertSameSignature(r'''
+  test_class_method_body_async_to_asyncStar() {
+    assertNotSameSignature(r'''
 class C {
-  Future foo() async {}
+  foo() async {}
 }
 ''', r'''
 class C {
-  Future foo() {}
+  foo() async* {}
+}
+''');
+  }
+
+  test_class_method_body_async_to_sync() {
+    assertNotSameSignature(r'''
+class C {
+  foo() async {}
+}
+''', r'''
+class C {
+  foo() {}
+}
+''');
+  }
+
+  test_class_method_body_asyncStar_to_async() {
+    assertNotSameSignature(r'''
+class C {
+  foo() async* {}
+}
+''', r'''
+class C {
+  foo() async {}
+}
+''');
+  }
+
+  test_class_method_body_asyncStar_to_syncStar() {
+    assertNotSameSignature(r'''
+class C {
+  foo() async* {}
+}
+''', r'''
+class C {
+  foo() sync* {}
 }
 ''');
   }
@@ -447,13 +483,37 @@ class C {
   }
 
   test_class_method_body_sync_to_async() {
-    assertSameSignature(r'''
+    assertNotSameSignature(r'''
 class C {
-  Future foo() {}
+  foo() {}
 }
 ''', r'''
 class C {
-  Future foo() async {}
+  foo() async {}
+}
+''');
+  }
+
+  test_class_method_body_sync_to_syncStar() {
+    assertNotSameSignature(r'''
+class C {
+  foo() sync* {}
+}
+''', r'''
+class C {
+  foo() {}
+}
+''');
+  }
+
+  test_class_method_body_syncStar_to_sync() {
+    assertNotSameSignature(r'''
+class C {
+  foo() sync* {}
+}
+''', r'''
+class C {
+  foo() {}
 }
 ''');
   }
@@ -730,10 +790,10 @@ void foo() {}
   }
 
   test_function_body_async_to_sync() {
-    assertSameSignature(r'''
-Future foo() async {}
+    assertNotSameSignature(r'''
+foo() async {}
 ''', r'''
-Future foo() {}
+foo() {}
 ''');
   }
 
@@ -768,10 +828,18 @@ int foo() => 2;
   }
 
   test_function_body_sync_to_async() {
-    assertSameSignature(r'''
-Future foo() {}
+    assertNotSameSignature(r'''
+foo() {}
 ''', r'''
-Future foo() async {}
+foo() async {}
+''');
+  }
+
+  test_function_body_sync_to_syncStar() {
+    assertNotSameSignature(r'''
+foo() {}
+''', r'''
+foo() sync* {}
 ''');
   }
 
