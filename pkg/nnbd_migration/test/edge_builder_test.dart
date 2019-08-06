@@ -4,9 +4,17 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
+import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -16,8 +24,251 @@ import 'migration_visitor_test_base.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AssignmentCheckerTest);
     defineReflectiveTests(EdgeBuilderTest);
   });
+}
+
+@reflectiveTest
+class AssignmentCheckerTest extends Object with EdgeTester {
+  static const EdgeOrigin origin = const _TestEdgeOrigin();
+
+  ClassElement _myListOfListClass;
+
+  DecoratedType _myListOfListSupertype;
+
+  final TypeProvider typeProvider;
+
+  final NullabilityGraphForTesting graph;
+
+  final AssignmentCheckerForTesting checker;
+
+  int offset = 0;
+
+  factory AssignmentCheckerTest() {
+    var typeProvider = TestTypeProvider();
+    var graph = NullabilityGraphForTesting();
+    var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
+    var checker = AssignmentCheckerForTesting(graph, decoratedClassHierarchy);
+    var assignmentCheckerTest =
+        AssignmentCheckerTest._(typeProvider, graph, checker);
+    decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;
+    return assignmentCheckerTest;
+  }
+
+  AssignmentCheckerTest._(this.typeProvider, this.graph, this.checker);
+
+  NullabilityNode get always => graph.always;
+
+  DecoratedType get bottom => DecoratedType(typeProvider.bottomType, never);
+
+  DecoratedType get dynamic_ => DecoratedType(typeProvider.dynamicType, always);
+
+  NullabilityNode get never => graph.never;
+
+  DecoratedType get null_ => DecoratedType(typeProvider.nullType, always);
+
+  DecoratedType get void_ => DecoratedType(typeProvider.voidType, always);
+
+  void assign(DecoratedType source, DecoratedType destination,
+      {bool hard = false}) {
+    checker.checkAssignment(origin,
+        source: source, destination: destination, hard: hard);
+  }
+
+  DecoratedType function(DecoratedType returnType,
+      {List<DecoratedType> required = const [],
+      List<DecoratedType> positional = const [],
+      Map<String, DecoratedType> named = const {}}) {
+    int i = 0;
+    var parameters = required
+        .map((t) => ParameterElementImpl.synthetic(
+            'p${i++}', t.type, ParameterKind.REQUIRED))
+        .toList();
+    parameters.addAll(positional.map((t) => ParameterElementImpl.synthetic(
+        'p${i++}', t.type, ParameterKind.POSITIONAL)));
+    parameters.addAll(named.entries.map((e) => ParameterElementImpl.synthetic(
+        e.key, e.value.type, ParameterKind.NAMED)));
+    return DecoratedType(
+        FunctionTypeImpl.synthetic(returnType.type, const [], parameters),
+        NullabilityNode.forTypeAnnotation(offset++),
+        returnType: returnType,
+        positionalParameters: required.toList()..addAll(positional),
+        namedParameters: named);
+  }
+
+  DecoratedType list(DecoratedType elementType) => DecoratedType(
+      typeProvider.listType.instantiate([elementType.type]),
+      NullabilityNode.forTypeAnnotation(offset++),
+      typeArguments: [elementType]);
+
+  DecoratedType myListOfList(DecoratedType elementType) {
+    if (_myListOfListClass == null) {
+      var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+      _myListOfListSupertype = list(list(typeParameterType(t)));
+      _myListOfListClass = ClassElementImpl('MyListOfList', 0)
+        ..typeParameters = [t]
+        ..supertype = _myListOfListSupertype.type as InterfaceType;
+    }
+    return DecoratedType(
+        InterfaceTypeImpl(_myListOfListClass)
+          ..typeArguments = [elementType.type],
+        NullabilityNode.forTypeAnnotation(offset++),
+        typeArguments: [elementType]);
+  }
+
+  DecoratedType object() => DecoratedType(
+      typeProvider.objectType, NullabilityNode.forTypeAnnotation(offset++));
+
+  void test_bottom_to_simple() {
+    var t = object();
+    assign(bottom, t);
+    assertEdge(never, t.node, hard: false);
+  }
+
+  void test_dynamic_to_dynamic() {
+    assign(dynamic_, dynamic_);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_named_parameter() {
+    var t1 = function(dynamic_, named: {'x': object()});
+    var t2 = function(dynamic_, named: {'x': object()});
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
+        hard: true);
+  }
+
+  void test_function_type_named_to_no_parameter() {
+    var t1 = function(dynamic_, named: {'x': object()});
+    var t2 = function(dynamic_);
+    assign(t1, t2);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_positional_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_, positional: [object()]);
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: true);
+  }
+
+  void test_function_type_positional_to_no_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_);
+    assign(t1, t2);
+    // Note: no assertions to do; just need to make sure there wasn't a crash.
+  }
+
+  void test_function_type_positional_to_required_parameter() {
+    var t1 = function(dynamic_, positional: [object()]);
+    var t2 = function(dynamic_, required: [object()]);
+    assign(t1, t2, hard: true);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: true);
+  }
+
+  void test_function_type_required_parameter() {
+    var t1 = function(dynamic_, required: [object()]);
+    var t2 = function(dynamic_, required: [object()]);
+    assign(t1, t2);
+    // Note: t1 and t2 are swapped due to contravariance.
+    assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
+        hard: false);
+  }
+
+  void test_function_type_return_type() {
+    var t1 = function(object());
+    var t2 = function(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.returnType.node, t2.returnType.node, hard: true);
+  }
+
+  test_generic_to_dynamic() {
+    var t = list(object());
+    assign(t, dynamic_);
+    assertEdge(t.node, always, hard: false);
+    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  test_generic_to_generic_same_element() {
+    var t1 = list(object());
+    var t2 = list(object());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
+  test_generic_to_object() {
+    var t1 = list(object());
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+    expect(graph.getDownstreamEdges(t1.typeArguments[0].node), isEmpty);
+  }
+
+  void test_null_to_generic() {
+    var t = list(object());
+    assign(null_, t);
+    assertEdge(always, t.node, hard: false);
+    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
+
+  void test_null_to_simple() {
+    var t = object();
+    assign(null_, t);
+    assertEdge(always, t.node, hard: false);
+  }
+
+  test_simple_to_dynamic() {
+    var t = object();
+    assign(t, dynamic_);
+    assertEdge(t.node, always, hard: false);
+  }
+
+  test_simple_to_simple() {
+    var t1 = object();
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  test_simple_to_simple_hard() {
+    var t1 = object();
+    var t2 = object();
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+  }
+
+  test_simple_to_void() {
+    var t = object();
+    assign(t, void_);
+    assertEdge(t.node, always, hard: false);
+  }
+
+  void test_typeParam_to_object() {
+    var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+    var t1 = typeParameterType(t);
+    var t2 = object();
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  void test_typeParam_to_typeParam() {
+    var t = TypeParameterElementImpl.synthetic('T')..bound = object().type;
+    var t1 = typeParameterType(t);
+    var t2 = typeParameterType(t);
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+  }
+
+  DecoratedType typeParameterType(TypeParameterElement typeParameter) =>
+      DecoratedType(
+          typeParameter.type, NullabilityNode.forTypeAnnotation(offset++));
 }
 
 @reflectiveTest
@@ -2863,4 +3114,18 @@ void f(int i) {
         decoratedTypeAnnotation('int j').node,
         hard: true);
   }
+}
+
+class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
+  AssignmentCheckerTest assignmentCheckerTest;
+
+  @override
+  DecoratedType getDecoratedSupertype(
+      ClassElement class_, ClassElement superclass) {
+    throw UnimplementedError('TODO(paulberry)');
+  }
+}
+
+class _TestEdgeOrigin extends EdgeOrigin {
+  const _TestEdgeOrigin();
 }

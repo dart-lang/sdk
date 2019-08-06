@@ -19,7 +19,9 @@ class AlwaysNullableTypeOrigin extends EdgeOriginWithLocation {
 /// Common interface for classes providing information about how an edge came
 /// to be; that is, what was found in the source code that led the migration
 /// tool to create the edge.
-abstract class EdgeOrigin {}
+abstract class EdgeOrigin {
+  const EdgeOrigin();
+}
 
 /// Common base class for edge origins that are associated with a single
 /// location in the source code.
