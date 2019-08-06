@@ -1948,10 +1948,8 @@ class FragmentEmitter {
     classes.forEach((Class cls) {
       if (cls.classChecksNewRti == null) return;
       InterfaceType targetType = _elementEnvironment.getThisType(cls.element);
-      List<InterfaceType> supertypes = cls.classChecksNewRti.checks
-          .map((TypeCheck check) =>
-              _dartTypes.asInstanceOf(targetType, check.cls))
-          .toList();
+      Iterable<InterfaceType> supertypes = cls.classChecksNewRti.checks.map(
+          (TypeCheck check) => _dartTypes.asInstanceOf(targetType, check.cls));
       ruleset.add(targetType, supertypes);
     });
 

@@ -449,8 +449,12 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
 class _RulesetEntry {
   final InterfaceType _targetType;
   List<InterfaceType> _supertypes;
+  Map<TypeVariableType, DartType> _typeVariables = {};
 
-  _RulesetEntry(this._targetType, this._supertypes);
+  _RulesetEntry(this._targetType, Iterable<InterfaceType> supertypes)
+      : _supertypes = supertypes.toList();
+
+  bool get isEmpty => _supertypes.isEmpty && _typeVariables.isEmpty;
 }
 
 class Ruleset {
@@ -483,13 +487,30 @@ class RulesetEncoder {
 
   bool _isObject(InterfaceType type) => identical(type.element, _objectClass);
 
-  void _preprocessEntry(_RulesetEntry entry) =>
-      entry._supertypes.removeWhere(_isObject);
+  void _preprocessSupertype(_RulesetEntry entry, InterfaceType supertype) {
+    InterfaceType thisSupertype = _dartTypes.getThisType(supertype.element);
+    List<DartType> typeVariables = thisSupertype.typeArguments;
+    List<DartType> supertypeArguments = supertype.typeArguments;
+    int length = typeVariables.length;
+    assert(supertypeArguments.length == length);
+    for (int i = 0; i < length; i++) {
+      entry._typeVariables[typeVariables[i]] = supertypeArguments[i];
+    }
+  }
+
+  void _preprocessEntry(_RulesetEntry entry) {
+    entry._supertypes.removeWhere(_isObject);
+    entry._supertypes.forEach(
+        (InterfaceType supertype) => _preprocessSupertype(entry, supertype));
+    entry._supertypes.removeWhere(
+        (InterfaceType supertype) => identical(entry._targetType, supertype));
+  }
 
   void _preprocessRuleset(Ruleset ruleset) {
+    ruleset._entries
+        .removeWhere((_RulesetEntry entry) => _isObject(entry._targetType));
     ruleset._entries.forEach(_preprocessEntry);
-    ruleset._entries.removeWhere((_RulesetEntry entry) =>
-        _isObject(entry._targetType) || entry._supertypes.isEmpty);
+    ruleset._entries.removeWhere((_RulesetEntry entry) => entry.isEmpty);
   }
 
   // TODO(fishythefish): Common substring elimination.
@@ -514,21 +535,16 @@ class RulesetEncoder {
         js.quoteName(_emitter.typeAccessNewRti(entry._targetType.element)),
         _colon,
         _leftBrace,
-        ...js.joinLiterals(
-            entry._supertypes.map((InterfaceType supertype) =>
-                _encodeSupertype(entry._targetType, supertype)),
-            _comma),
+        ...js.joinLiterals([
+          ...entry._supertypes.map((InterfaceType supertype) =>
+              _encodeSupertype(entry._targetType, supertype)),
+          ...entry._typeVariables.entries.map((mapEntry) => _encodeTypeVariable(
+              entry._targetType, mapEntry.key, mapEntry.value))
+        ], _comma),
         _rightBrace,
       ]);
 
   jsAst.StringConcatenation _encodeSupertype(
-          InterfaceType targetType, InterfaceType supertype) =>
-      js.concatenateStrings(js.joinLiterals([
-        _encodeSupertypeInterface(targetType, supertype),
-        ..._encodeSupertypeTypeVariables(targetType, supertype),
-      ], _comma));
-
-  jsAst.StringConcatenation _encodeSupertypeInterface(
           InterfaceType targetType, InterfaceType supertype) =>
       js.concatenateStrings([
         js.quoteName(_emitter.typeAccessNewRti(supertype.element)),
@@ -541,29 +557,8 @@ class RulesetEncoder {
         _rightBracket,
       ]);
 
-  List<jsAst.StringConcatenation> _encodeSupertypeTypeVariables(
-      InterfaceType targetType, InterfaceType supertype) {
-    InterfaceType thisSupertype = _dartTypes.getThisType(supertype.element);
-    List<DartType> typeVariables = thisSupertype.typeArguments;
-    List<DartType> supertypeArguments = supertype.typeArguments;
-    int length = typeVariables.length;
-    assert(supertypeArguments.length == length);
-    List<jsAst.StringConcatenation> result = List(length);
-    for (int i = 0; i < length; i++) {
-      DartType typeVariable = typeVariables[i];
-      assert(typeVariable.isTypeVariable);
-      typeVariable.forEachTypeVariable((TypeVariableType typeVariable) {
-        result[i] = _encodeSupertypeTypeVariable(
-            targetType, typeVariable, supertypeArguments[i]);
-      });
-    }
-    return result;
-  }
-
-  jsAst.StringConcatenation _encodeSupertypeTypeVariable(
-          InterfaceType targetType,
-          TypeVariableType typeVariable,
-          DartType supertypeArgument) =>
+  jsAst.StringConcatenation _encodeTypeVariable(InterfaceType targetType,
+          TypeVariableType typeVariable, DartType supertypeArgument) =>
       js.concatenateStrings([
         js.quoteName(_emitter.typeVariableAccessNewRti(typeVariable.element)),
         _colon,
