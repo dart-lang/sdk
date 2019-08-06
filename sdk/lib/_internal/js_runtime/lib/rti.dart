@@ -1503,6 +1503,11 @@ class _Parser {
                 toType(universe(parser), environment(parser), pop(stack)));
             break;
 
+          case Recipe.genericFunctionTypeParameterIndex:
+            push(stack,
+                toGenericFunctionParameter(universe(parser), pop(stack)));
+            break;
+
           case Recipe.pushDynamic:
             push(stack, _Universe._lookupDynamicRti(universe(parser)));
             break;
@@ -1615,7 +1620,16 @@ class _Parser {
       push(stack, _Universe._lookupInterfaceRti(universe, name, arguments));
     } else {
       Rti base = toType(universe, environment(parser), head);
-      push(stack, _Universe._lookupBindingRti(universe, base, arguments));
+      switch (Rti._getKind(base)) {
+        case Rti.kindFunction:
+          push(stack,
+              _Universe._lookupGenericFunctionRti(universe, base, arguments));
+          break;
+
+        default:
+          push(stack, _Universe._lookupBindingRti(universe, base, arguments));
+          break;
+      }
     }
   }
 
@@ -1757,6 +1771,12 @@ class _Parser {
       return _castToRti(_Utils.arrayAt(typeArguments, index - 1));
     }
     throw AssertionError('Bad index $index for $environment');
+  }
+
+  static Rti toGenericFunctionParameter(Object universe, Object item) {
+    assert(_Utils.isNum(item));
+    return _Universe._lookupGenericFunctionParameterRti(
+        universe, _Utils.asInt(item));
   }
 }
 
