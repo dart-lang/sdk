@@ -5321,12 +5321,14 @@ LoadIndexedInstr::LoadIndexedInstr(Value* array,
                                    intptr_t class_id,
                                    AlignmentType alignment,
                                    intptr_t deopt_id,
-                                   TokenPosition token_pos)
+                                   TokenPosition token_pos,
+                                   CompileType* result_type)
     : TemplateDefinition(deopt_id),
       index_scale_(index_scale),
       class_id_(class_id),
       alignment_(StrengthenAlignment(class_id, alignment)),
-      token_pos_(token_pos) {
+      token_pos_(token_pos),
+      result_type_(result_type) {
   SetInputAt(0, array);
   SetInputAt(1, index);
 }

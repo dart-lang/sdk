@@ -1634,6 +1634,57 @@ CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 
+CompileType LoadIndexedInstr::ComputeType() const {
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      if (result_type_ != nullptr) {
+        // The original call knew something.
+        return *result_type_;
+      }
+      return CompileType::Dynamic();
+
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return CompileType::FromCid(kDoubleCid);
+
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
+
+    case kTypedDataInt32x4ArrayCid:
+      return CompileType::FromCid(kInt32x4Cid);
+
+    case kTypedDataFloat64x2ArrayCid:
+      return CompileType::FromCid(kFloat64x2Cid);
+
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
+
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+      return CompileType::FromCid(kSmiCid);
+#endif
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+      return CompileType::Int();
+
+    default:
+      UNIMPLEMENTED();
+      return CompileType::Dynamic();
+  }
+}
+
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

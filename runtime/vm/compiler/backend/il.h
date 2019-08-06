@@ -4750,7 +4750,8 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    intptr_t class_id,
                    AlignmentType alignment,
                    intptr_t deopt_id,
-                   TokenPosition token_pos);
+                   TokenPosition token_pos,
+                   CompileType* result_type = nullptr);
 
   TokenPosition token_pos() const { return token_pos_; }
 
@@ -4790,6 +4791,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   const intptr_t class_id_;
   const AlignmentType alignment_;
   const TokenPosition token_pos_;
+  CompileType* result_type_;  // derived from call
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };

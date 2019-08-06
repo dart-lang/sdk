@@ -127,6 +127,16 @@ static ConstantInstr* GetDefaultValue(intptr_t i,
   return new ConstantInstr(parsed_function.DefaultParameterValueAt(i));
 }
 
+// Helper to get result type from call (or nullptr otherwise).
+static CompileType* ResultType(Definition* call) {
+  if (auto static_call = call->AsStaticCall()) {
+    return static_call->result_type();
+  } else if (auto instance_call = call->AsInstanceCall()) {
+    return instance_call->result_type();
+  }
+  return nullptr;
+}
+
 // Pair of an argument name and its value.
 struct NamedArgument {
   String* name;
@@ -2442,7 +2452,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
 
 static bool InlineGetIndexed(FlowGraph* flow_graph,
                              MethodRecognizer::Kind kind,
-                             Instruction* call,
+                             Definition* call,
                              Definition* receiver,
                              GraphEntryInstr* graph_entry,
                              FunctionEntryInstr** entry,
@@ -2471,9 +2481,9 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
 
   // Array load and return.
   intptr_t index_scale = compiler::target::Instance::ElementSizeFor(array_cid);
-  LoadIndexedInstr* load = new (Z)
-      LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index), index_scale,
-                       array_cid, kAlignedAccess, deopt_id, call->token_pos());
+  LoadIndexedInstr* load = new (Z) LoadIndexedInstr(
+      new (Z) Value(array), new (Z) Value(index), index_scale, array_cid,
+      kAlignedAccess, deopt_id, call->token_pos(), ResultType(call));
 
   *last = load;
   cursor = flow_graph->AppendTo(cursor, load,
@@ -2911,19 +2921,8 @@ static void PrepareInlineByteArrayBaseOp(FlowGraph* flow_graph,
   }
 }
 
-static LoadIndexedInstr* NewLoad(FlowGraph* flow_graph,
-                                 Instruction* call,
-                                 Definition* array,
-                                 Definition* index,
-                                 intptr_t view_cid) {
-  return new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
-                                  1,  // Index scale
-                                  view_cid, kUnalignedAccess, DeoptId::kNone,
-                                  call->token_pos());
-}
-
 static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
-                                    Instruction* call,
+                                    Definition* call,
                                     Definition* receiver,
                                     intptr_t array_cid,
                                     intptr_t view_cid,
@@ -2969,15 +2968,16 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                &cursor);
 
   // Fill out the generated template with loads.
-  {
-    // Load from either external or internal.
-    LoadIndexedInstr* load = NewLoad(flow_graph, call, array, index, view_cid);
-    flow_graph->AppendTo(
-        cursor, load,
-        call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
-        FlowGraph::kValue);
-    cursor = *last = load;
-  }
+  // Load from either external or internal.
+  LoadIndexedInstr* load =
+      new (Z) LoadIndexedInstr(new (Z) Value(array), new (Z) Value(index),
+                               1,  // Index scale
+                               view_cid, kUnalignedAccess, DeoptId::kNone,
+                               call->token_pos(), ResultType(call));
+  flow_graph->AppendTo(
+      cursor, load, call->deopt_id() != DeoptId::kNone ? call->env() : nullptr,
+      FlowGraph::kValue);
+  cursor = *last = load;
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new (Z) FloatToDoubleInstr(new (Z) Value((*last)->AsDefinition()),
