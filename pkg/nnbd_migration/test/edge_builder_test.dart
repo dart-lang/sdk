@@ -49,7 +49,8 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraphForTesting();
     var decoratedClassHierarchy = _DecoratedClassHierarchyForTesting();
-    var checker = AssignmentCheckerForTesting(graph, decoratedClassHierarchy);
+    var checker = AssignmentCheckerForTesting(
+        Dart2TypeSystem(typeProvider), graph, decoratedClassHierarchy);
     var assignmentCheckerTest =
         AssignmentCheckerTest._(typeProvider, graph, checker);
     decoratedClassHierarchy.assignmentCheckerTest = assignmentCheckerTest;
@@ -119,6 +120,13 @@ class AssignmentCheckerTest extends Object with EdgeTester {
 
   DecoratedType object() => DecoratedType(
       typeProvider.objectType, NullabilityNode.forTypeAnnotation(offset++));
+
+  void test_bottom_to_generic() {
+    var t = list(object());
+    assign(bottom, t);
+    assertEdge(never, t.node, hard: false);
+    expect(graph.getUpstreamEdges(t.typeArguments[0].node), isEmpty);
+  }
 
   void test_bottom_to_simple() {
     var t = object();
@@ -203,12 +211,38 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
   }
 
+  test_generic_to_generic_upcast() {
+    var t1 = myListOfList(object());
+    var t2 = list(list(object()));
+    assign(t1, t2);
+    assertEdge(t1.node, t2.node, hard: false);
+    // Let A, B, and C be nullability nodes such that:
+    // - t1 is MyListOfList<Object?A>
+    var a = t1.typeArguments[0].node;
+    // - t2 is List<List<Object?B>>
+    var b = t2.typeArguments[0].typeArguments[0].node;
+    // - the supertype of MyListOfList<T> is List<List<T?C>>
+    var c = _myListOfListSupertype.typeArguments[0].typeArguments[0].node;
+    // Then there should be an edge from substitute(a, c) to b.
+    var substitutionNode = graph.getUpstreamEdges(b).single.primarySource
+        as NullabilityNodeForSubstitution;
+    expect(substitutionNode.innerNode, same(a));
+    expect(substitutionNode.outerNode, same(c));
+  }
+
   test_generic_to_object() {
     var t1 = list(object());
     var t2 = object();
     assign(t1, t2);
     assertEdge(t1.node, t2.node, hard: false);
     expect(graph.getDownstreamEdges(t1.typeArguments[0].node), isEmpty);
+  }
+
+  test_generic_to_void() {
+    var t = list(object());
+    assign(t, void_);
+    assertEdge(t.node, always, hard: false);
+    expect(graph.getDownstreamEdges(t.typeArguments[0].node), isEmpty);
   }
 
   void test_null_to_generic() {
@@ -3118,6 +3152,21 @@ void f(int i) {
 
 class _DecoratedClassHierarchyForTesting implements DecoratedClassHierarchy {
   AssignmentCheckerTest assignmentCheckerTest;
+
+  @override
+  DecoratedType asInstanceOf(DecoratedType type, ClassElement superclass) {
+    var class_ = (type.type as InterfaceType).element;
+    if (class_ == superclass) return type;
+    if (superclass.name == 'Object') {
+      return DecoratedType(superclass.type, type.node);
+    }
+    if (class_.name == 'MyListOfList' && superclass.name == 'List') {
+      return assignmentCheckerTest._myListOfListSupertype
+          .substitute({class_.typeParameters[0]: type.typeArguments[0]});
+    }
+    throw UnimplementedError(
+        'TODO(paulberry): asInstanceOf($type, $superclass)');
+  }
 
   @override
   DecoratedType getDecoratedSupertype(

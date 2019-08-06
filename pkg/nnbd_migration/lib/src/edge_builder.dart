@@ -27,12 +27,16 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// more easily unit tested.
 @visibleForTesting
 class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
+  @override
+  final TypeSystem _typeSystem;
+
   final NullabilityGraph _graph;
 
   @override
   final DecoratedClassHierarchy _decoratedClassHierarchy;
 
-  AssignmentCheckerForTesting(this._graph, this._decoratedClassHierarchy);
+  AssignmentCheckerForTesting(
+      this._typeSystem, this._graph, this._decoratedClassHierarchy);
 
   void checkAssignment(EdgeOrigin origin,
       {@required DecoratedType source,
@@ -59,6 +63,8 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
 /// don't visit expressions, `null` will be returned.
 class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     with _AssignmentChecker {
+  final TypeSystem _typeSystem;
+
   final InheritanceManager3 _inheritanceManager;
 
   /// The repository of constraint variables and decorated types (from a
@@ -114,10 +120,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   NullabilityNode _lastConditionalNode;
 
-  EdgeBuilder(TypeProvider typeProvider, TypeSystem typeSystem, this._variables,
+  EdgeBuilder(TypeProvider typeProvider, this._typeSystem, this._variables,
       this._graph, this._source, this.listener)
       : _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph),
-        _inheritanceManager = InheritanceManager3(typeSystem),
+        _inheritanceManager = InheritanceManager3(_typeSystem),
         _notNullType = DecoratedType(typeProvider.objectType, _graph.never),
         _nonNullableBoolType =
             DecoratedType(typeProvider.boolType, _graph.never),
@@ -286,7 +292,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // TODO(paulberry): substitute if necessary
       assert(calleeType.positionalParameters.length > 0); // TODO(paulberry)
       _handleAssignment(node.rightOperand, calleeType.positionalParameters[0]);
-      return calleeType.returnType;
+      return _fixNumericTypes(calleeType.returnType, node.staticType);
     } else {
       // TODO(paulberry)
       node.leftOperand.accept(this);
@@ -696,7 +702,7 @@ $stackTrace''');
       }
       var calleeType = getOrComputeElementType(callee);
       // TODO(paulberry): substitute if necessary
-      return calleeType.returnType;
+      return _fixNumericTypes(calleeType.returnType, node.staticType);
     }
     _unimplemented(
         node, 'Postfix expression with operator ${node.operator.lexeme}');
@@ -733,7 +739,7 @@ $stackTrace''');
       }
       var calleeType = getOrComputeElementType(callee);
       // TODO(paulberry): substitute if necessary
-      return calleeType.returnType;
+      return _fixNumericTypes(calleeType.returnType, node.staticType);
     } else {
       var callee = node.staticElement;
       var calleeType = getOrComputeElementType(callee, targetType: targetType);
@@ -1049,6 +1055,18 @@ $stackTrace''');
       _unimplemented(astNode, 'LUB/GLB with type parameter types');
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
+  }
+
+  DecoratedType _fixNumericTypes(
+      DecoratedType decoratedType, DartType undecoratedType) {
+    if (decoratedType.type.isDartCoreNum && undecoratedType.isDartCoreInt) {
+      // In a few cases the type computed by normal method lookup is `num`,
+      // but special rules kick in to cause the type to be `int` instead.  If
+      // that is the case, we need to fix up the decorated type.
+      return DecoratedType(undecoratedType, decoratedType.node);
+    } else {
+      return decoratedType;
+    }
   }
 
   /// Creates the necessary constraint(s) for an assignment of the given
@@ -1402,6 +1420,8 @@ $stackTrace''');
 mixin _AssignmentChecker {
   DecoratedClassHierarchy get _decoratedClassHierarchy;
 
+  TypeSystem get _typeSystem;
+
   /// Creates the necessary constraint(s) for an assignment from [source] to
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
@@ -1410,22 +1430,52 @@ mixin _AssignmentChecker {
       @required DecoratedType destination,
       @required bool hard}) {
     _connect(source.node, destination.node, origin, hard: hard);
-    // TODO(paulberry): generalize this.
-    if ((_isSimple(source) || destination.type.isObject) &&
-        (_isSimple(destination) || source.type.isDartCoreNull)) {
-      // Ok; nothing further to do.
-    } else if (source.type is InterfaceType &&
-        destination.type is InterfaceType &&
-        source.type.element == destination.type.element) {
-      assert(source.typeArguments.length == destination.typeArguments.length);
-      for (int i = 0; i < source.typeArguments.length; i++) {
-        _checkAssignment(origin,
-            source: source.typeArguments[i],
-            destination: destination.typeArguments[i],
-            hard: false);
+    var sourceType = source.type;
+    var destinationType = destination.type;
+    if (sourceType.isBottom || sourceType.isDartCoreNull) {
+      // No further edges need to be created, since all types are trivially
+      // supertypes of bottom (and of Null, in the pre-migration world).
+    } else if (destinationType.isDynamic || destinationType.isVoid) {
+      // No further edges need to be created, since all types are trivially
+      // subtypes of dynamic (and of void, since void is treated as equivalent
+      // to dynamic for subtyping purposes).
+    } else if (sourceType is TypeParameterType) {
+      if (destinationType is TypeParameterType) {
+        // No further edges need to be created, since type parameter types
+        // aren't made up of other types.
+      } else {
+        // TODO(paulberry): the correct behavior here would be to do a
+        // substitution so that we replace sourceType with the type parameter's
+        // bound and then continue with the comparison.  But most of the time
+        // that will result in a no-op, because the destination type is an
+        // interface type with no type parameters, so no edges need to be
+        // generated.  So for now we just verify that we're in the easy case.
+        if (!(destinationType is InterfaceType &&
+            destinationType.typeArguments.isEmpty)) {
+          throw UnimplementedError(
+              'Handle assignment from type parameter to complex type '
+              '$destinationType');
+        }
       }
-    } else if (source.type is FunctionType &&
-        destination.type is FunctionType) {
+    } else if (sourceType is InterfaceType &&
+        destinationType is InterfaceType) {
+      if (_typeSystem.isSubtypeOf(sourceType, destinationType)) {
+        // Ordinary (upcast) assignment.  No cast necessary.
+        var rewrittenSource = _decoratedClassHierarchy.asInstanceOf(
+            source, destinationType.element);
+        assert(rewrittenSource.typeArguments.length ==
+            destination.typeArguments.length);
+        for (int i = 0; i < rewrittenSource.typeArguments.length; i++) {
+          _checkAssignment(origin,
+              source: rewrittenSource.typeArguments[i],
+              destination: destination.typeArguments[i],
+              hard: false);
+        }
+      } else if (_typeSystem.isSubtypeOf(destinationType, sourceType)) {
+        // Implicit downcast assignment.
+        throw UnimplementedError('Implicit downcast');
+      }
+    } else if (sourceType is FunctionType && destinationType is FunctionType) {
       _checkAssignment(origin,
           source: source.returnType,
           destination: destination.returnType,
@@ -1451,7 +1501,7 @@ mixin _AssignmentChecker {
             destination: source.namedParameters[entry.key],
             hard: false);
       }
-    } else if (destination.type.isDynamic || source.type.isDynamic) {
+    } else if (destinationType.isDynamic || sourceType.isDynamic) {
       // ok; nothing further to do.
     } else {
       throw '$destination <= $source'; // TODO(paulberry)
@@ -1461,20 +1511,6 @@ mixin _AssignmentChecker {
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
       {bool hard = false});
-
-  /// Double checks that [type] is sufficiently simple for this naive prototype
-  /// implementation.
-  ///
-  /// TODO(paulberry): get rid of this method and put the correct logic into the
-  /// call sites.
-  bool _isSimple(DecoratedType type) {
-    if (type.type.isBottom) return true;
-    if (type.type.isVoid) return true;
-    if (type.type is TypeParameterType) return true;
-    if (type.type is! InterfaceType) return false;
-    if ((type.type as InterfaceType).typeParameters.isNotEmpty) return false;
-    return true;
-  }
 }
 
 /// Information about a binary expression whose boolean value could possibly

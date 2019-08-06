@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,6 +27,25 @@ class DecoratedClassHierarchyTest extends MigrationVisitorTestBase {
     var unit = await super.analyze(code);
     _hierarchy = DecoratedClassHierarchy(variables, graph);
     return unit;
+  }
+
+  test_asInstanceOf_complex() async {
+    await analyze('''
+class Base<T> {}
+class Derived<U> extends Base<List<U>> {}
+Derived<int> x;
+''');
+    var decoratedType = decoratedTypeAnnotation('Derived<int>');
+    var asInstanceOfBase =
+        _hierarchy.asInstanceOf(decoratedType, findElement.class_('Base'));
+    expect(asInstanceOfBase.type.toString(), 'Base<List<int>>');
+    expect(asInstanceOfBase.node, same(decoratedType.node));
+    var listOfUType = decoratedTypeAnnotation('List<U>');
+    expect(asInstanceOfBase.typeArguments[0].node, same(listOfUType.node));
+    var substitution = asInstanceOfBase.typeArguments[0].typeArguments[0].node
+        as NullabilityNodeForSubstitution;
+    expect(substitution.innerNode, same(decoratedType.typeArguments[0].node));
+    expect(substitution.outerNode, same(listOfUType.typeArguments[0].node));
   }
 
   test_getDecoratedSupertype_complex() async {
