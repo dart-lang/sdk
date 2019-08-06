@@ -53,9 +53,9 @@ void main() {
   sameType(pairInstance4.argDynList4, pair.argDynList4);
   sameType(pairInstance4.selfList4, pair.selfList4);
 
-  Expect.type<List<num>>(E4(numList).argList4);
-  sameType(numListInstance.argDynList4, E4(numList).argDynList4);
-  sameType(numListInstance.selfList4, E4(numList).selfList4);
+  Expect.type<List<num>>(E4(pair).argList4);
+  sameType(pairInstance4.argDynList4, E4(pair).argDynList4);
+  sameType(pairInstance4.selfList4, E4(pair).selfList4);
 
   List<int> intList = <int>[1];
   var intListInstance5 = C5<int>(intList);

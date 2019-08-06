@@ -82,7 +82,7 @@ main() {
   Expect.equals("general generic(non-null)", named.generalGenericName);
   Expect.equals("general generic(null)", namedNull.generalGenericName);
   Expect.type<List<Named>>(named.generalList);
-  Expect.type<List<Named>>(namedNull.generalNullList);
+  Expect.type<List<Named>>(namedNull.generalList);
 
   // Unnamed Generic.
   UnnamedGeneric<num> unnamedGeneric = UnnamedGeneric<int>();
@@ -92,8 +92,8 @@ main() {
   Expect.equals("unnamed generic(null)", unnamedGeneric.name);
   Expect.type<List<num>>(unnamedGeneric.list);
   Expect.notType<List<int>>(unnamedGeneric.list);
-  Expect.type<List<num>>(unnamedGenericNull.nullList);
-  Expect.notType<List<int>>(unnamedGenericNull.nullList);
+  Expect.type<List<num>>(unnamedGenericNull.list);
+  Expect.notType<List<int>>(unnamedGenericNull.list);
 
   Expect.equals("general(non-null)", unnamedGeneric.generalName);
   Expect.equals("general(null)", unnamedGenericNull.generalName);
@@ -111,8 +111,8 @@ main() {
   Expect.equals("named generic(null)", namedGenericNull.name);
   Expect.type<List<num>>(namedGeneric.list);
   Expect.notType<List<int>>(namedGeneric.list);
-  Expect.type<List<num>>(namedGenericNull.nullList);
-  Expect.notType<List<int>>(namedGenericNull.nullList);
+  Expect.type<List<num>>(namedGenericNull.list);
+  Expect.notType<List<int>>(namedGenericNull.list);
 
   Expect.equals("general(non-null)", namedGeneric.generalName);
   Expect.equals("general(null)", namedGenericNull.generalName);
