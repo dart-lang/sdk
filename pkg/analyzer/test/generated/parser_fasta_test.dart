@@ -2764,6 +2764,18 @@ main() {
     parseCompilationUnit('f() { var x = new Foo()!; }');
   }
 
+  void test_nullCheckOnIndex() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj![arg]; }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as IndexExpression;
+    var target = expression.target as PostfixExpression;
+    expect(target.operand.toSource(), 'obj');
+    expect(target.operator.lexeme, '!');
+  }
+
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
@@ -2803,6 +2815,18 @@ main() {
   void test_nullCheckOnNull() {
     // Issues like this should be caught during later analysis
     parseCompilationUnit('f() { var x = null!; }');
+  }
+
+  void test_nullCheckOnSend() {
+    // https://github.com/dart-lang/sdk/issues/37708
+    var unit = parseCompilationUnit('f() { obj!(arg); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var expression = statement.expression as FunctionExpressionInvocation;
+    var target = expression.function as PostfixExpression;
+    expect(target.operand.toSource(), 'obj');
+    expect(target.operator.lexeme, '!');
   }
 
   void test_nullCheckOnSymbol() {
