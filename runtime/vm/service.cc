@@ -2656,11 +2656,12 @@ static bool BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         klass_name = cls.UserVisibleName();
       }
       library_uri = Library::Handle(zone, cls.library()).url();
-      isStatic = !cls.IsTopLevel();
+      isStatic = true;
     } else {
       const Class& method_cls = Class::Handle(zone, frame->function().origin());
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
+      isStatic = false;
     }
   } else {
     // building scope in the context of a given object
@@ -2810,7 +2811,9 @@ static bool CompileExpression(Thread* thread, JSONStream* js) {
     return true;
   }
 
-  bool is_static = BoolParameter::Parse(js->LookupParam("isStatic"), false);
+  const char* klass = js->LookupParam("klass");
+  bool is_static =
+      BoolParameter::Parse(js->LookupParam("isStatic"), (klass == nullptr));
 
   const GrowableObjectArray& params =
       GrowableObjectArray::Handle(thread->zone(), GrowableObjectArray::New());

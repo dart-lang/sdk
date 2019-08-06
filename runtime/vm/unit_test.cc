@@ -680,7 +680,7 @@ Dart_Handle TestCase::EvaluateExpression(const Library& lib,
         KernelIsolate::CompileExpressionToKernel(
             expr.ToCString(), param_names, Array::empty_array(),
             String::Handle(lib.url()).ToCString(), /* klass=*/nullptr,
-            /* is_static= */ false);
+            /* is_static= */ true);
     if (compilation_result.status != Dart_KernelCompilationStatus_Ok) {
       return Api::NewError("%s", compilation_result.error);
     }

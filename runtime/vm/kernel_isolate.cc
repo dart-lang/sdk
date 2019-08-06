@@ -892,6 +892,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileExpressionToKernel(
 
   TransitionVMToNative transition(Thread::Current());
   KernelCompilationRequest request;
+  ASSERT(is_static || (klass != nullptr));
   return request.SendAndWaitForResponse(kernel_port, expression, definitions,
                                         type_definitions, library_url, klass,
                                         is_static, experimental_flags_);
