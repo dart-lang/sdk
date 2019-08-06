@@ -143,6 +143,7 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
         directiveKeywordOffset: node.keyword.offset,
       ),
     );
+    node.combinators.accept(this);
   }
 
   @override
@@ -262,6 +263,17 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.hideCombinator(
+        combinatorEnd: node.end,
+        combinatorKeywordOffset: node.offset,
+      ),
+    );
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     setData(
       node,
@@ -270,6 +282,7 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
         importDirective_prefixOffset: node.prefix?.offset ?? 0,
       ),
     );
+    node.combinators.accept(this);
   }
 
   @override
@@ -330,6 +343,17 @@ class _SetInformativeId extends SimpleAstVisitor<void> {
       node,
       UnlinkedInformativeDataBuilder.partDirective(
         directiveKeywordOffset: node.keyword.offset,
+      ),
+    );
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    setData(
+      node,
+      UnlinkedInformativeDataBuilder.showCombinator(
+        combinatorEnd: node.end,
+        combinatorKeywordOffset: node.offset,
       ),
     );
   }

@@ -2826,6 +2826,10 @@ table UnlinkedInformativeData {
 
   variantField_3:uint (id: 3);
 
+  variantField_9:uint (id: 9);
+
+  variantField_8:uint (id: 8);
+
   /// Offsets of the first character of each line in the source code.
   variantField_7:[uint] (id: 7);
 
@@ -2836,8 +2840,6 @@ table UnlinkedInformativeData {
   variantField_1:uint (id: 1);
 
   variantField_4:[string] (id: 4);
-
-  variantField_8:uint (id: 8);
 
   /// The kind of the node.
   kind:LinkedNodeKind (id: 0);

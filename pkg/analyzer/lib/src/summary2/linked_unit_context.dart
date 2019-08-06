@@ -205,6 +205,10 @@ class LinkedUnitContext {
     throw UnimplementedError('${node.runtimeType}');
   }
 
+  int getCombinatorEnd(ShowCombinator node) {
+    return LazyCombinator.getEnd(this, node);
+  }
+
   List<ConstructorInitializer> getConstructorInitializers(
     ConstructorDeclaration node,
   ) {

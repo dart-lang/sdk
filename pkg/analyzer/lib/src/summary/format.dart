@@ -7775,12 +7775,14 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
         kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.hideCombinator ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.libraryDirective ||
         kind == idl.LinkedNodeKind.methodDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration ||
         kind == idl.LinkedNodeKind.partDirective ||
         kind == idl.LinkedNodeKind.partOfDirective ||
+        kind == idl.LinkedNodeKind.showCombinator ||
         kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.topLevelVariableDeclaration ||
         kind == idl.LinkedNodeKind.typeParameter ||
@@ -7806,12 +7808,14 @@ class LinkedNodeBuilder extends Object
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
         kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.hideCombinator ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.libraryDirective ||
         kind == idl.LinkedNodeKind.methodDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration ||
         kind == idl.LinkedNodeKind.partDirective ||
         kind == idl.LinkedNodeKind.partOfDirective ||
+        kind == idl.LinkedNodeKind.showCombinator ||
         kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.topLevelVariableDeclaration ||
         kind == idl.LinkedNodeKind.typeParameter ||
@@ -8569,8 +8573,10 @@ class LinkedNodeBuilder extends Object
         _variantField_31 = simplyBoundable_isSimplyBounded;
 
   LinkedNodeBuilder.hideCombinator({
+    int informativeId,
     List<String> names,
   })  : _kind = idl.LinkedNodeKind.hideCombinator,
+        _variantField_36 = informativeId,
         _variantField_34 = names;
 
   LinkedNodeBuilder.ifElement({
@@ -8894,8 +8900,10 @@ class LinkedNodeBuilder extends Object
         _variantField_25 = expression_type;
 
   LinkedNodeBuilder.showCombinator({
+    int informativeId,
     List<String> names,
   })  : _kind = idl.LinkedNodeKind.showCombinator,
+        _variantField_36 = informativeId,
         _variantField_34 = names;
 
   LinkedNodeBuilder.simpleFormalParameter({
@@ -9315,6 +9323,7 @@ class LinkedNodeBuilder extends Object
       genericTypeAlias_functionType?.flushInformative();
       informativeId = null;
     } else if (kind == idl.LinkedNodeKind.hideCombinator) {
+      informativeId = null;
     } else if (kind == idl.LinkedNodeKind.ifElement) {
       ifMixin_condition?.flushInformative();
       ifElement_thenElement?.flushInformative();
@@ -9441,6 +9450,7 @@ class LinkedNodeBuilder extends Object
       setOrMapLiteral_elements?.forEach((b) => b.flushInformative());
       expression_type?.flushInformative();
     } else if (kind == idl.LinkedNodeKind.showCombinator) {
+      informativeId = null;
     } else if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
       actualType?.flushInformative();
       normalFormalParameter_metadata?.forEach((b) => b.flushInformative());
@@ -13394,12 +13404,14 @@ class _LinkedNodeImpl extends Object
         kind == idl.LinkedNodeKind.functionTypedFormalParameter ||
         kind == idl.LinkedNodeKind.functionTypeAlias ||
         kind == idl.LinkedNodeKind.genericTypeAlias ||
+        kind == idl.LinkedNodeKind.hideCombinator ||
         kind == idl.LinkedNodeKind.importDirective ||
         kind == idl.LinkedNodeKind.libraryDirective ||
         kind == idl.LinkedNodeKind.methodDeclaration ||
         kind == idl.LinkedNodeKind.mixinDeclaration ||
         kind == idl.LinkedNodeKind.partDirective ||
         kind == idl.LinkedNodeKind.partOfDirective ||
+        kind == idl.LinkedNodeKind.showCombinator ||
         kind == idl.LinkedNodeKind.simpleFormalParameter ||
         kind == idl.LinkedNodeKind.topLevelVariableDeclaration ||
         kind == idl.LinkedNodeKind.typeParameter ||
@@ -14163,6 +14175,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
             simplyBoundable_isSimplyBounded;
     }
     if (kind == idl.LinkedNodeKind.hideCombinator) {
+      if (informativeId != 0) _result["informativeId"] = informativeId;
       if (names.isNotEmpty) _result["names"] = names;
     }
     if (kind == idl.LinkedNodeKind.ifElement) {
@@ -14512,6 +14525,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
         _result["expression_type"] = expression_type.toJson();
     }
     if (kind == idl.LinkedNodeKind.showCombinator) {
+      if (informativeId != 0) _result["informativeId"] = informativeId;
       if (names.isNotEmpty) _result["names"] = names;
     }
     if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
@@ -15343,6 +15357,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (kind == idl.LinkedNodeKind.hideCombinator) {
       return {
         "flags": flags,
+        "informativeId": informativeId,
         "kind": kind,
         "names": names,
         "name": name,
@@ -15717,6 +15732,7 @@ abstract class _LinkedNodeMixin implements idl.LinkedNode {
     if (kind == idl.LinkedNodeKind.showCombinator) {
       return {
         "flags": flags,
+        "informativeId": informativeId,
         "kind": kind,
         "names": names,
         "name": name,
@@ -23577,12 +23593,13 @@ class UnlinkedInformativeDataBuilder extends Object
     implements idl.UnlinkedInformativeData {
   int _variantField_2;
   int _variantField_3;
+  int _variantField_9;
+  int _variantField_8;
   List<int> _variantField_7;
   int _variantField_6;
   int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
-  int _variantField_8;
   idl.LinkedNodeKind _kind;
 
   @override
@@ -23671,6 +23688,46 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.variableDeclaration);
     assert(value == null || value >= 0);
     _variantField_3 = value;
+  }
+
+  @override
+  int get combinatorEnd {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    return _variantField_9 ??= 0;
+  }
+
+  set combinatorEnd(int value) {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    assert(value == null || value >= 0);
+    _variantField_9 = value;
+  }
+
+  @override
+  int get combinatorKeywordOffset {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    return _variantField_8 ??= 0;
+  }
+
+  @override
+  int get importDirective_prefixOffset {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    return _variantField_8 ??= 0;
+  }
+
+  set combinatorKeywordOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    assert(value == null || value >= 0);
+    _variantField_8 = value;
+  }
+
+  set importDirective_prefixOffset(int value) {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    assert(value == null || value >= 0);
+    _variantField_8 = value;
   }
 
   @override
@@ -23807,18 +23864,6 @@ class UnlinkedInformativeDataBuilder extends Object
         kind == idl.LinkedNodeKind.mixinDeclaration ||
         kind == idl.LinkedNodeKind.topLevelVariableDeclaration);
     _variantField_4 = value;
-  }
-
-  @override
-  int get importDirective_prefixOffset {
-    assert(kind == idl.LinkedNodeKind.importDirective);
-    return _variantField_8 ??= 0;
-  }
-
-  set importDirective_prefixOffset(int value) {
-    assert(kind == idl.LinkedNodeKind.importDirective);
-    assert(value == null || value >= 0);
-    _variantField_8 = value;
   }
 
   @override
@@ -23972,12 +24017,19 @@ class UnlinkedInformativeDataBuilder extends Object
         _variantField_1 = nameOffset,
         _variantField_4 = documentationComment_tokens;
 
+  UnlinkedInformativeDataBuilder.hideCombinator({
+    int combinatorEnd,
+    int combinatorKeywordOffset,
+  })  : _kind = idl.LinkedNodeKind.hideCombinator,
+        _variantField_9 = combinatorEnd,
+        _variantField_8 = combinatorKeywordOffset;
+
   UnlinkedInformativeDataBuilder.importDirective({
-    int directiveKeywordOffset,
     int importDirective_prefixOffset,
+    int directiveKeywordOffset,
   })  : _kind = idl.LinkedNodeKind.importDirective,
-        _variantField_1 = directiveKeywordOffset,
-        _variantField_8 = importDirective_prefixOffset;
+        _variantField_8 = importDirective_prefixOffset,
+        _variantField_1 = directiveKeywordOffset;
 
   UnlinkedInformativeDataBuilder.libraryDirective({
     int directiveKeywordOffset,
@@ -24017,6 +24069,13 @@ class UnlinkedInformativeDataBuilder extends Object
     int directiveKeywordOffset,
   })  : _kind = idl.LinkedNodeKind.partOfDirective,
         _variantField_1 = directiveKeywordOffset;
+
+  UnlinkedInformativeDataBuilder.showCombinator({
+    int combinatorEnd,
+    int combinatorKeywordOffset,
+  })  : _kind = idl.LinkedNodeKind.showCombinator,
+        _variantField_9 = combinatorEnd,
+        _variantField_8 = combinatorKeywordOffset;
 
   UnlinkedInformativeDataBuilder.simpleFormalParameter({
     int codeLength,
@@ -24067,12 +24126,14 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.functionTypeAlias) {
     } else if (kind == idl.LinkedNodeKind.functionTypedFormalParameter) {
     } else if (kind == idl.LinkedNodeKind.genericTypeAlias) {
+    } else if (kind == idl.LinkedNodeKind.hideCombinator) {
     } else if (kind == idl.LinkedNodeKind.importDirective) {
     } else if (kind == idl.LinkedNodeKind.libraryDirective) {
     } else if (kind == idl.LinkedNodeKind.methodDeclaration) {
     } else if (kind == idl.LinkedNodeKind.mixinDeclaration) {
     } else if (kind == idl.LinkedNodeKind.partDirective) {
     } else if (kind == idl.LinkedNodeKind.partOfDirective) {
+    } else if (kind == idl.LinkedNodeKind.showCombinator) {
     } else if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
     } else if (kind == idl.LinkedNodeKind.topLevelVariableDeclaration) {
     } else if (kind == idl.LinkedNodeKind.typeParameter) {
@@ -24237,6 +24298,10 @@ class UnlinkedInformativeDataBuilder extends Object
           signature.addString(x);
         }
       }
+    } else if (kind == idl.LinkedNodeKind.hideCombinator) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.combinatorKeywordOffset ?? 0);
+      signature.addInt(this.combinatorEnd ?? 0);
     } else if (kind == idl.LinkedNodeKind.importDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.directiveKeywordOffset ?? 0);
@@ -24284,6 +24349,10 @@ class UnlinkedInformativeDataBuilder extends Object
     } else if (kind == idl.LinkedNodeKind.partOfDirective) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.directiveKeywordOffset ?? 0);
+    } else if (kind == idl.LinkedNodeKind.showCombinator) {
+      signature.addInt(this.kind == null ? 0 : this.kind.index);
+      signature.addInt(this.combinatorKeywordOffset ?? 0);
+      signature.addInt(this.combinatorEnd ?? 0);
     } else if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
       signature.addInt(this.kind == null ? 0 : this.kind.index);
       signature.addInt(this.nameOffset ?? 0);
@@ -24329,6 +24398,12 @@ class UnlinkedInformativeDataBuilder extends Object
     if (_variantField_3 != null && _variantField_3 != 0) {
       fbBuilder.addUint32(3, _variantField_3);
     }
+    if (_variantField_9 != null && _variantField_9 != 0) {
+      fbBuilder.addUint32(9, _variantField_9);
+    }
+    if (_variantField_8 != null && _variantField_8 != 0) {
+      fbBuilder.addUint32(8, _variantField_8);
+    }
     if (offset_variantField_7 != null) {
       fbBuilder.addOffset(7, offset_variantField_7);
     }
@@ -24343,9 +24418,6 @@ class UnlinkedInformativeDataBuilder extends Object
     }
     if (offset_variantField_4 != null) {
       fbBuilder.addOffset(4, offset_variantField_4);
-    }
-    if (_variantField_8 != null && _variantField_8 != 0) {
-      fbBuilder.addUint32(8, _variantField_8);
     }
     if (_kind != null && _kind != idl.LinkedNodeKind.adjacentStrings) {
       fbBuilder.addUint8(0, _kind.index);
@@ -24373,12 +24445,13 @@ class _UnlinkedInformativeDataImpl extends Object
 
   int _variantField_2;
   int _variantField_3;
+  int _variantField_9;
+  int _variantField_8;
   List<int> _variantField_7;
   int _variantField_6;
   int _variantField_5;
   int _variantField_1;
   List<String> _variantField_4;
-  int _variantField_8;
   idl.LinkedNodeKind _kind;
 
   @override
@@ -24425,6 +24498,29 @@ class _UnlinkedInformativeDataImpl extends Object
         kind == idl.LinkedNodeKind.variableDeclaration);
     _variantField_3 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 3, 0);
     return _variantField_3;
+  }
+
+  @override
+  int get combinatorEnd {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    _variantField_9 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 9, 0);
+    return _variantField_9;
+  }
+
+  @override
+  int get combinatorKeywordOffset {
+    assert(kind == idl.LinkedNodeKind.hideCombinator ||
+        kind == idl.LinkedNodeKind.showCombinator);
+    _variantField_8 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    return _variantField_8;
+  }
+
+  @override
+  int get importDirective_prefixOffset {
+    assert(kind == idl.LinkedNodeKind.importDirective);
+    _variantField_8 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
+    return _variantField_8;
   }
 
   @override
@@ -24501,13 +24597,6 @@ class _UnlinkedInformativeDataImpl extends Object
     _variantField_4 ??= const fb.ListReader<String>(const fb.StringReader())
         .vTableGet(_bc, _bcOffset, 4, const <String>[]);
     return _variantField_4;
-  }
-
-  @override
-  int get importDirective_prefixOffset {
-    assert(kind == idl.LinkedNodeKind.importDirective);
-    _variantField_8 ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 8, 0);
-    return _variantField_8;
   }
 
   @override
@@ -24620,11 +24709,16 @@ abstract class _UnlinkedInformativeDataMixin
       if (documentationComment_tokens.isNotEmpty)
         _result["documentationComment_tokens"] = documentationComment_tokens;
     }
+    if (kind == idl.LinkedNodeKind.hideCombinator) {
+      if (combinatorEnd != 0) _result["combinatorEnd"] = combinatorEnd;
+      if (combinatorKeywordOffset != 0)
+        _result["combinatorKeywordOffset"] = combinatorKeywordOffset;
+    }
     if (kind == idl.LinkedNodeKind.importDirective) {
-      if (directiveKeywordOffset != 0)
-        _result["directiveKeywordOffset"] = directiveKeywordOffset;
       if (importDirective_prefixOffset != 0)
         _result["importDirective_prefixOffset"] = importDirective_prefixOffset;
+      if (directiveKeywordOffset != 0)
+        _result["directiveKeywordOffset"] = directiveKeywordOffset;
     }
     if (kind == idl.LinkedNodeKind.libraryDirective) {
       if (directiveKeywordOffset != 0)
@@ -24653,6 +24747,11 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.partOfDirective) {
       if (directiveKeywordOffset != 0)
         _result["directiveKeywordOffset"] = directiveKeywordOffset;
+    }
+    if (kind == idl.LinkedNodeKind.showCombinator) {
+      if (combinatorEnd != 0) _result["combinatorEnd"] = combinatorEnd;
+      if (combinatorKeywordOffset != 0)
+        _result["combinatorKeywordOffset"] = combinatorKeywordOffset;
     }
     if (kind == idl.LinkedNodeKind.simpleFormalParameter) {
       if (codeLength != 0) _result["codeLength"] = codeLength;
@@ -24804,10 +24903,17 @@ abstract class _UnlinkedInformativeDataMixin
         "kind": kind,
       };
     }
+    if (kind == idl.LinkedNodeKind.hideCombinator) {
+      return {
+        "combinatorEnd": combinatorEnd,
+        "combinatorKeywordOffset": combinatorKeywordOffset,
+        "kind": kind,
+      };
+    }
     if (kind == idl.LinkedNodeKind.importDirective) {
       return {
-        "directiveKeywordOffset": directiveKeywordOffset,
         "importDirective_prefixOffset": importDirective_prefixOffset,
+        "directiveKeywordOffset": directiveKeywordOffset,
         "kind": kind,
       };
     }
@@ -24845,6 +24951,13 @@ abstract class _UnlinkedInformativeDataMixin
     if (kind == idl.LinkedNodeKind.partOfDirective) {
       return {
         "directiveKeywordOffset": directiveKeywordOffset,
+        "kind": kind,
+      };
+    }
+    if (kind == idl.LinkedNodeKind.showCombinator) {
+      return {
+        "combinatorEnd": combinatorEnd,
+        "combinatorKeywordOffset": combinatorKeywordOffset,
         "kind": kind,
       };
     }

@@ -9879,6 +9879,9 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   @override
   int get end {
+    if (linkedNode != null) {
+      return linkedContext.getCombinatorEnd(linkedNode);
+    }
     if (_unlinkedCombinator != null) {
       return _unlinkedCombinator.end;
     }

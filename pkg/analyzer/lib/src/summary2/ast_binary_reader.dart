@@ -66,6 +66,15 @@ class AstBinaryReader {
     return _readType(data);
   }
 
+  Token _combinatorKeyword(LinkedNode data, Keyword keyword, Token def) {
+    var informativeData = _unitContext.getInformativeData(data);
+    if (informativeData != null) {
+      return TokenFactory.tokenFromKeyword(keyword)
+        ..offset = informativeData.combinatorKeywordOffset;
+    }
+    return def;
+  }
+
   SimpleIdentifier _declaredIdentifier(LinkedNode data) {
     var informativeData = _unitContext.getInformativeData(data);
     var offset = informativeData?.nameOffset ?? 0;
@@ -898,10 +907,12 @@ class AstBinaryReader {
   }
 
   HideCombinator _read_hideCombinator(LinkedNode data) {
-    return astFactory.hideCombinator(
-      _Tokens.HIDE,
+    var node = astFactory.hideCombinator(
+      _combinatorKeyword(data, Keyword.HIDE, _Tokens.HIDE),
       data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
+    LazyCombinator(node, data);
+    return node;
   }
 
   IfElement _read_ifElement(LinkedNode data) {
@@ -1351,10 +1362,12 @@ class AstBinaryReader {
   }
 
   ShowCombinator _read_showCombinator(LinkedNode data) {
-    return astFactory.showCombinator(
-      _Tokens.SHOW,
+    var node = astFactory.showCombinator(
+      _combinatorKeyword(data, Keyword.SHOW, _Tokens.SHOW),
       data.names.map((name) => AstTestFactory.identifier3(name)).toList(),
     );
+    LazyCombinator(node, data);
+    return node;
   }
 
   SimpleFormalParameter _read_simpleFormalParameter(LinkedNode data) {

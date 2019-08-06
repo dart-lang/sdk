@@ -736,6 +736,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.hideCombinator(
       names: node.hiddenNames.map((id) => id.name).toList(),
     );
+    _storeInformativeId(builder, node);
     return builder;
   }
 
@@ -1138,6 +1139,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<LinkedNodeBuilder> {
     var builder = LinkedNodeBuilder.showCombinator(
       names: node.shownNames.map((id) => id.name).toList(),
     );
+    _storeInformativeId(builder, node);
     return builder;
   }
 

@@ -329,6 +329,32 @@ class LazyClassTypeAlias {
   }
 }
 
+class LazyCombinator {
+  static const _key = 'lazyAst';
+
+  final LinkedNode data;
+
+  LazyCombinator(Combinator node, this.data) {
+    node.setProperty(_key, this);
+  }
+
+  static LazyCombinator get(Combinator node) {
+    return node.getProperty(_key);
+  }
+
+  static int getEnd(
+    LinkedUnitContext context,
+    Combinator node,
+  ) {
+    var lazy = get(node);
+    if (lazy != null) {
+      var informativeData = context.getInformativeData(lazy.data);
+      return informativeData?.combinatorEnd ?? 0;
+    }
+    return node.end;
+  }
+}
+
 class LazyCompilationUnit {
   static const _key = 'lazyAst';
 

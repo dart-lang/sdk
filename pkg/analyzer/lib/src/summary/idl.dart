@@ -1362,12 +1362,14 @@ abstract class LinkedNode extends base.SummaryClass {
     LinkedNodeKind.functionTypedFormalParameter,
     LinkedNodeKind.functionTypeAlias,
     LinkedNodeKind.genericTypeAlias,
+    LinkedNodeKind.hideCombinator,
     LinkedNodeKind.importDirective,
     LinkedNodeKind.libraryDirective,
     LinkedNodeKind.methodDeclaration,
     LinkedNodeKind.mixinDeclaration,
     LinkedNodeKind.partDirective,
     LinkedNodeKind.partOfDirective,
+    LinkedNodeKind.showCombinator,
     LinkedNodeKind.simpleFormalParameter,
     LinkedNodeKind.topLevelVariableDeclaration,
     LinkedNodeKind.typeParameter,
@@ -3678,6 +3680,18 @@ abstract class UnlinkedInformativeData extends base.SummaryClass {
     LinkedNodeKind.variableDeclaration,
   ])
   int get codeOffset;
+
+  @VariantId(9, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+  ])
+  int get combinatorEnd;
+
+  @VariantId(8, variantList: [
+    LinkedNodeKind.hideCombinator,
+    LinkedNodeKind.showCombinator,
+  ])
+  int get combinatorKeywordOffset;
 
   /// Offsets of the first character of each line in the source code.
   @VariantId(7, variant: LinkedNodeKind.compilationUnit)
