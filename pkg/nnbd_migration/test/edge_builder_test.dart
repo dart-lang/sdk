@@ -134,6 +134,19 @@ class AssignmentCheckerTest extends Object with EdgeTester {
     assertEdge(never, t.node, hard: false);
   }
 
+  void test_complex_to_typeParam() {
+    var bound = list(object());
+    var t = TypeParameterElementImpl.synthetic('T')..bound = bound.type;
+    checker.bounds[t] = bound;
+    var t1 = list(object());
+    var t2 = typeParameterType(t);
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertNoEdge(t1.node, bound.node);
+    assertEdge(t1.typeArguments[0].node, bound.typeArguments[0].node,
+        hard: false);
+  }
+
   void test_dynamic_to_dynamic() {
     assign(dynamic_, dynamic_);
     // Note: no assertions to do; just need to make sure there wasn't a crash.
@@ -409,6 +422,22 @@ void f(int i) {
 ''');
 
     assertEdge(decoratedTypeAnnotation('int i').node, never, hard: true);
+  }
+
+  test_assign_bound_to_type_parameter() async {
+    await analyze('''
+class C<T extends List<int>> {
+  T f(List<int> x) => x;
+}
+''');
+    var boundType = decoratedTypeAnnotation('List<int>>');
+    var parameterType = decoratedTypeAnnotation('List<int> x');
+    var tType = decoratedTypeAnnotation('T f');
+    assertEdge(parameterType.node, tType.node, hard: true);
+    assertNoEdge(parameterType.node, boundType.node);
+    assertEdge(
+        parameterType.typeArguments[0].node, boundType.typeArguments[0].node,
+        hard: false);
   }
 
   test_assign_null_to_generic_type() async {

@@ -1438,6 +1438,8 @@ $stackTrace''');
 mixin _AssignmentChecker {
   DecoratedClassHierarchy get _decoratedClassHierarchy;
 
+  NullabilityGraph get _graph;
+
   TypeSystem get _typeSystem;
 
   /// Creates the necessary constraint(s) for an assignment from [source] to
@@ -1470,6 +1472,14 @@ mixin _AssignmentChecker {
             hard: false);
         return;
       }
+    } else if (destinationType is TypeParameterType) {
+      // Effectively this is a downcast assignment from the source type to the
+      // type parameter's bound.
+      _checkAssignment(origin,
+          source: source,
+          destination:
+              _getTypeParameterTypeBound(destination).withNode(_graph.always),
+          hard: false);
     } else if (sourceType is InterfaceType &&
         destinationType is InterfaceType) {
       if (_typeSystem.isSubtypeOf(sourceType, destinationType)) {
