@@ -84,6 +84,7 @@ class Dart2jsTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<ir.Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 

@@ -795,6 +795,7 @@ class KernelTarget extends TargetImplementation {
         loader.coreTypes,
         loader.hierarchy,
         loader.libraries,
+        environmentDefines,
         new KernelDiagnosticReporter(loader),
         logger: (String msg) => ticker.logMs(msg));
   }

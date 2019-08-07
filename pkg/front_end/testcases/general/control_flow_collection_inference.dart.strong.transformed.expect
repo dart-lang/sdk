@@ -2194,11 +2194,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                     ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L2:
             while (true) {
-              dynamic #t399 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t399 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t400 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current};
@@ -2222,11 +2221,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L3:
             while (true) {
-              dynamic #t404 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t404 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t405 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current};
@@ -2252,11 +2250,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                    ^" in "not stream" as{TypeError} asy::Stream<dynamic>*;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L4:
             while (true) {
-              dynamic #t409 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t409 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t410 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic i = :for-iterator.{asy::_StreamIterator::current};
@@ -2285,11 +2282,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                                                 ^" in "int" as{TypeError} core::int*]);
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L5:
             while (true) {
-              dynamic #t415 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t415 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t416 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current};
@@ -2316,11 +2312,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                                                ^" in "int" as{TypeError} core::int*]);
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L6:
             while (true) {
-              dynamic #t421 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t421 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t422 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current};
@@ -2349,11 +2344,10 @@ Try changing the type of the left hand side, or casting the right hand side to '
                                                                ^" in "int" as{TypeError} core::int*]);
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::int*>* :for-iterator = new asy::_StreamIterator::•<core::int*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L7:
             while (true) {
-              dynamic #t427 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t427 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t428 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 core::int* i = :for-iterator.{asy::_StreamIterator::current};

@@ -470,11 +470,12 @@ class TestVmTarget extends VmTarget {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     if (enabled) {
-      super.performModularTransformationsOnLibraries(
-          component, coreTypes, hierarchy, libraries, diagnosticReporter,
+      super.performModularTransformationsOnLibraries(component, coreTypes,
+          hierarchy, libraries, environmentDefines, diagnosticReporter,
           logger: logger);
     }
   }

@@ -35,11 +35,10 @@ class Bar<T extends asy::Stream<core::String*>* = dynamic> extends core::Object 
             dynamic :stream = t;
             asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-            const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
             try
               #L2:
               while (true) {
-                dynamic #t1 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+                dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream);
                 [yield] let dynamic #t2 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
                 if(:result) {
                   dynamic i = :for-iterator.{asy::_StreamIterator::current};
@@ -94,11 +93,10 @@ class Baz<T extends core::Object* = dynamic, E extends asy::Stream<self::Baz::T*
             dynamic :stream = t;
             asy::_asyncStarListenHelper(:stream, :async_op);
             asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-            const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
             try
               #L4:
               while (true) {
-                dynamic #t4 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+                dynamic #t4 = asy::_asyncStarMoveNextHelper(:stream);
                 [yield] let dynamic #t5 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
                 if(:result) {
                   dynamic i = :for-iterator.{asy::_StreamIterator::current};
@@ -155,11 +153,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = myStream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L6:
             while (true) {
-              dynamic #t7 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t7 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t8 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic x = :for-iterator.{asy::_StreamIterator::current};
@@ -180,11 +177,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = myStream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L7:
             while (true) {
-              dynamic #t10 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t10 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t11 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic x = :for-iterator.{asy::_StreamIterator::current};
@@ -205,11 +201,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = myStream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::String*>* :for-iterator = new asy::_StreamIterator::•<core::String*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L8:
             while (true) {
-              dynamic #t13 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t13 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t14 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 core::String* x = :for-iterator.{asy::_StreamIterator::current};
@@ -231,11 +226,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = myStream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L9:
             while (true) {
-              dynamic #t16 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t16 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t17 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 final dynamic #t18 = :for-iterator.{asy::_StreamIterator::current};
@@ -258,11 +252,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = stream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo*>* :for-iterator = new asy::_StreamIterator::•<self::Foo*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L10:
             while (true) {
-              dynamic #t20 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t20 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t21 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 self::Foo* x = :for-iterator.{asy::_StreamIterator::current};
@@ -284,11 +277,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = stream2;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::Foo*>* :for-iterator = new asy::_StreamIterator::•<self::Foo*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L11:
             while (true) {
-              dynamic #t23 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t23 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t24 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 self::Foo* x = :for-iterator.{asy::_StreamIterator::current};
@@ -310,11 +302,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = map;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L12:
             while (true) {
-              dynamic #t26 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t26 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t27 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 dynamic x = :for-iterator.{asy::_StreamIterator::current};

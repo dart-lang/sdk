@@ -149,6 +149,9 @@ abstract class Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      // TODO(askesc): Consider how to generally pass compiler options to
+      // transformations.
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)});
 
@@ -264,6 +267,7 @@ class NoneTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {}
 

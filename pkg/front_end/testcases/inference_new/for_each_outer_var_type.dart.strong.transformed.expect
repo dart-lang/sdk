@@ -60,11 +60,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = stream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L2:
             while (true) {
-              dynamic #t2 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 final self::A* #t4 = :for-iterator.{asy::_StreamIterator::current};
@@ -88,11 +87,10 @@ static method test() → dynamic /* originally async */ {
           dynamic :stream = stream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L3:
             while (true) {
-              dynamic #t7 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t7 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t8 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 final self::A* #t9 = :for-iterator.{asy::_StreamIterator::current};
@@ -120,11 +118,10 @@ Try changing the type of the variable.
           dynamic :stream = stream;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L4:
             while (true) {
-              dynamic #t13 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t13 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t14 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 final self::A* #t15 = :for-iterator.{asy::_StreamIterator::current};
@@ -152,11 +149,10 @@ Try changing the type of the variable.
           dynamic :stream = self::f<asy::Stream<self::A*>*>();
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<self::A*>* :for-iterator = new asy::_StreamIterator::•<self::A*>(:stream);
-          const core::bool* :product-mode = const core::bool::fromEnvironment("dart.vm.product");
           try
             #L5:
             while (true) {
-              dynamic #t19 = :product-mode ?{dynamic} null : asy::_asyncStarMoveNextHelper(:stream);
+              dynamic #t19 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t20 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(:result) {
                 final self::A* #t21 = :for-iterator.{asy::_StreamIterator::current};

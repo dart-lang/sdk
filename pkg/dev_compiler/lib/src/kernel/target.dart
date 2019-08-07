@@ -100,6 +100,7 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       List<Library> libraries,
+      Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       {void logger(String msg)}) {
     this.hierarchy = hierarchy;
