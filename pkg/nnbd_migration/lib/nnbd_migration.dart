@@ -48,7 +48,7 @@ class NullabilityFixDescription {
   /// nullable.
   factory NullabilityFixDescription.makeTypeNullable(String type) =>
       NullabilityFixDescription._(
-        appliedMessage: 'Changed type ${type} to be nullable',
+        appliedMessage: 'Changed type $type to be nullable',
       );
 
   const NullabilityFixDescription._({@required this.appliedMessage});
