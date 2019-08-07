@@ -7,11 +7,11 @@ import 'package:test/test.dart';
 
 main() {
   group('API', () {
-    test('conditionNotEqNull promotes true branch', () {
+    test('conditionEqNull(notEqual: true) promotes true branch', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      h.flow.conditionNotEqNull(expr, x);
+      h.flow.conditionEqNull(expr, x, notEqual: true);
       h.flow.ifStatement_thenBegin(expr);
       expect(h.flow.promotedType(x).type, 'int');
       h.flow.ifStatement_elseBegin();
@@ -20,11 +20,11 @@ main() {
       h.flow.finish();
     });
 
-    test('conditionEqNull promotes false branch', () {
+    test('conditionEqNull(notEqual: false) promotes false branch', () {
       var h = _Harness();
       var x = h.addAssignedVar('x', 'int?');
       var expr = _Expression();
-      h.flow.conditionEqNull(expr, x);
+      h.flow.conditionEqNull(expr, x, notEqual: false);
       h.flow.ifStatement_thenBegin(expr);
       expect(h.flow.promotedType(x), isNull);
       h.flow.ifStatement_elseBegin();

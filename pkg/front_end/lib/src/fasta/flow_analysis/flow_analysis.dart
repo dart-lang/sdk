@@ -187,28 +187,24 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _current = trueCondition;
   }
 
-  /// The [binaryExpression] checks that the [variable] is equal to `null`.
-  void conditionEqNull(Expression binaryExpression, Variable variable) {
+  /// The [binaryExpression] checks that the [variable] is, or is not, equal to
+  /// `null`.
+  void conditionEqNull(Expression binaryExpression, Variable variable,
+      {bool notEqual: false}) {
     _variableReferenced(variable);
     if (functionBody.isPotentiallyMutatedInClosure(variable)) {
       return;
     }
 
     _condition = binaryExpression;
-    _conditionTrue = _current;
-    _conditionFalse = _current.markNonNullable(typeOperations, variable);
-  }
-
-  /// The [binaryExpression] checks that the [variable] is not equal to `null`.
-  void conditionNotEqNull(Expression binaryExpression, Variable variable) {
-    _variableReferenced(variable);
-    if (functionBody.isPotentiallyMutatedInClosure(variable)) {
-      return;
+    var currentPromoted = _current.markNonNullable(typeOperations, variable);
+    if (notEqual) {
+      _conditionTrue = currentPromoted;
+      _conditionFalse = _current;
+    } else {
+      _conditionTrue = _current;
+      _conditionFalse = currentPromoted;
     }
-
-    _condition = binaryExpression;
-    _conditionTrue = _current.markNonNullable(typeOperations, variable);
-    _conditionFalse = _current;
   }
 
   void doStatement_bodyBegin(

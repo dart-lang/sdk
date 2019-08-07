@@ -3449,16 +3449,12 @@ class ResolverVisitor extends ScopedVisitor {
       flow?.logicalOr_end(node, right);
 
       node.accept(elementResolver);
-    } else if (operator == TokenType.BANG_EQ) {
+    } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
       left.accept(this);
       right.accept(this);
       node.accept(elementResolver);
-      _flowAnalysis?.binaryExpression_bangEq(node, left, right);
-    } else if (operator == TokenType.EQ_EQ) {
-      left.accept(this);
-      right.accept(this);
-      node.accept(elementResolver);
-      _flowAnalysis?.binaryExpression_eqEq(node, left, right);
+      _flowAnalysis?.binaryExpression_equal(node, left, right,
+          notEqual: operator == TokenType.BANG_EQ);
     } else {
       if (operator == TokenType.QUESTION_QUESTION) {
         InferenceContext.setTypeFromNode(left, node);

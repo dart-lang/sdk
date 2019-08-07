@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
+import 'package:meta/meta.dart';
 
 class AnalyzerFunctionBodyAccess
     implements FunctionBodyAccess<VariableElement> {
@@ -104,49 +105,23 @@ class FlowAnalysisHelper {
     flow.write(localElement);
   }
 
-  void binaryExpression_bangEq(
-    BinaryExpression node,
-    Expression left,
-    Expression right,
-  ) {
+  void binaryExpression_equal(
+      BinaryExpression node, Expression left, Expression right,
+      {@required bool notEqual}) {
     if (flow == null) return;
 
     if (right is NullLiteral) {
       if (left is SimpleIdentifier) {
         var element = left.staticElement;
         if (element is VariableElement) {
-          flow.conditionNotEqNull(node, element);
+          flow.conditionEqNull(node, element, notEqual: notEqual);
         }
       }
     } else if (left is NullLiteral) {
       if (right is SimpleIdentifier) {
         var element = right.staticElement;
         if (element is VariableElement) {
-          flow.conditionNotEqNull(node, element);
-        }
-      }
-    }
-  }
-
-  void binaryExpression_eqEq(
-    BinaryExpression node,
-    Expression left,
-    Expression right,
-  ) {
-    if (flow == null) return;
-
-    if (right is NullLiteral) {
-      if (left is SimpleIdentifier) {
-        var element = left.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element);
-        }
-      }
-    } else if (left is NullLiteral) {
-      if (right is SimpleIdentifier) {
-        var element = right.staticElement;
-        if (element is VariableElement) {
-          flow.conditionEqNull(node, element);
+          flow.conditionEqNull(node, element, notEqual: notEqual);
         }
       }
     }
