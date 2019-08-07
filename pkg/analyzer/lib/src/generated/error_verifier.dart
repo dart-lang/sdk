@@ -731,28 +731,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    NodeList<Expression> arguments = node.argumentList.arguments;
-    int argCount = arguments.length;
-    if (argCount == 1) {
-      _checkForAssignableExpression(
-        arguments[0],
-        node.extendedType,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
-      );
-    } else {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
-          node.argumentList);
-    }
-    if (!_isExtensionOverrideInValidContext(node)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, node);
-    }
-    super.visitExtensionOverride(node);
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _isInStaticVariableDeclaration = node.isStatic;
     _isInInstanceVariableDeclaration = !_isInStaticVariableDeclaration;
@@ -6464,21 +6442,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return element.name == "List" && element.library.isDartCore;
-  }
-
-  /// Return `true` if the extension override [node] is being used as a target
-  /// of an operation that might be accessing an instance member.
-  bool _isExtensionOverrideInValidContext(ExtensionOverride node) {
-    AstNode parent = node.parent;
-    if ((parent is PropertyAccess && parent.target == node) ||
-        (parent is MethodInvocation && parent.target == node) ||
-        (parent is FunctionExpressionInvocation && parent.function == node) ||
-        (parent is BinaryExpression && parent.leftOperand == node) ||
-        (parent is IndexExpression && parent.target == node) ||
-        parent is PrefixExpression) {
-      return true;
-    }
-    return false;
   }
 
   bool _isFunctionType(DartType type) {

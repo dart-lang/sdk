@@ -23,7 +23,7 @@ class ExtensionOverrideWithoutAccessTest extends DriverResolutionTest {
         sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
 
   test_binaryExpression() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   int operator +(int x) => x;
@@ -49,7 +49,7 @@ f(C c) {
   }
 
   test_expressionStatement() async {
-    assertErrorsInCode('''
+    await assertErrorsInCode('''
 class C {}
 extension E on C {
   void m() {}
@@ -58,10 +58,11 @@ f(C c) {
   E(c);
 }
 ''', [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS, 57, 4)]);
+    assertTypeDynamic(findNode.extensionOverride('E(c)'));
   }
 
   test_getter() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   int get g => 0;
@@ -73,7 +74,7 @@ f(C c) {
   }
 
   test_indexExpression_get() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   int operator [](int i) => 4;
@@ -85,7 +86,7 @@ f(C c) {
   }
 
   test_indexExpression_set() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   void operator []=(int i, int v) {}
@@ -97,7 +98,7 @@ f(C c) {
   }
 
   test_methodInvocation() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   void m() {}
@@ -109,7 +110,7 @@ f(C c) {
   }
 
   test_prefixExpression() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   int operator -() => 7;
@@ -121,7 +122,7 @@ f(C c) {
   }
 
   test_setter() async {
-    assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 class C {}
 extension E on C {
   set s(int x) {}

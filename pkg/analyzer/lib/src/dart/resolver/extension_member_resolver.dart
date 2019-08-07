@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -15,9 +16,12 @@ import 'package:analyzer/src/generated/type_system.dart';
 
 class ExtensionMemberResolver {
   final ResolverVisitor _resolver;
+
   ExtensionMemberResolver(this._resolver);
 
   DartType get _dynamicType => _typeProvider.dynamicType;
+
+  ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   Scope get _nameScope => _resolver.nameScope;
 
@@ -48,7 +52,7 @@ class ExtensionMemberResolver {
       return extension;
     }
 
-    _resolver.errorReporter.reportErrorForNode(
+    _errorReporter.reportErrorForNode(
       CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
       target,
       [
@@ -61,24 +65,51 @@ class ExtensionMemberResolver {
   }
 
   void resolveOverride(ExtensionOverride node) {
+    var nodeImpl = node as ExtensionOverrideImpl;
     var element = node.staticElement;
     var typeParameters = element.typeParameters;
 
-    DartType receiverType;
-    var arguments = node.argumentList.arguments;
-    if (arguments.length == 1) {
-      receiverType = arguments[0].staticType;
+    if (!_isValidContext(node)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+        node,
+      );
+      nodeImpl.staticType = _dynamicType;
     }
-    // TODO(scheglov) Test when not exactly 1 argument.
 
-    var typeArgumentTypes =
-        _inferTypeArguments(element, receiverType, node.typeArguments);
+    var arguments = node.argumentList.arguments;
+    if (arguments.length != 1) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+        node.argumentList,
+      );
+      nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
+      nodeImpl.extendedType = _dynamicType;
+      return;
+    }
 
-    var nodeImpl = node as ExtensionOverrideImpl;
+    var receiverExpression = arguments[0];
+    var receiverType = receiverExpression.staticType;
+
+    var typeArgumentTypes = _inferTypeArguments(
+      element,
+      receiverType,
+      node.typeArguments,
+    );
+
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
-    nodeImpl.extendedType =
-        Substitution.fromPairs(typeParameters, typeArgumentTypes)
-            .substituteType(element.extendedType);
+    nodeImpl.extendedType = Substitution.fromPairs(
+      typeParameters,
+      typeArgumentTypes,
+    ).substituteType(element.extendedType);
+
+    if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+        receiverExpression,
+        [receiverType, node.extendedType],
+      );
+    }
   }
 
   /// Return the most specific extension or `null` if no single one can be
@@ -259,7 +290,7 @@ class ExtensionMemberResolver {
         return arguments.map((a) => a.type).toList();
       } else {
         // TODO(scheglov) Report an error.
-        return List.filled(typeParameters.length, _dynamicType);
+        return _listOfDynamic(typeParameters);
       }
     } else {
       if (receiverType != null) {
@@ -275,7 +306,7 @@ class ExtensionMemberResolver {
         );
         return inferrer.infer(typeParameters);
       } else {
-        return List.filled(typeParameters.length, _dynamicType);
+        return _listOfDynamic(typeParameters);
       }
     }
   }
@@ -341,6 +372,22 @@ class ExtensionMemberResolver {
   /// Ask the type system for a subtype check.
   bool _isSubtypeOf(DartType type1, DartType type2) =>
       _typeSystem.isSubtypeOf(type1, type2);
+
+  List<DartType> _listOfDynamic(List<TypeParameterElement> parameters) {
+    return List<DartType>.filled(parameters.length, _dynamicType);
+  }
+
+  /// Return `true` if the extension override [node] is being used as a target
+  /// of an operation that might be accessing an instance member.
+  static bool _isValidContext(ExtensionOverride node) {
+    AstNode parent = node.parent;
+    return parent is BinaryExpression && parent.leftOperand == node ||
+        parent is FunctionExpressionInvocation && parent.function == node ||
+        parent is IndexExpression && parent.target == node ||
+        parent is MethodInvocation && parent.target == node ||
+        parent is PrefixExpression ||
+        parent is PropertyAccess && parent.target == node;
+  }
 }
 
 class InstantiatedExtension {
