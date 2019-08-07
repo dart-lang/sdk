@@ -249,6 +249,16 @@ class JsonDecoder extends Converter<String, Object> {}
       _MockSdkLibrary('dart:io', '/lib/io/io.dart', '''
 library dart.io;
 
+abstract class Directory implements FileSystemEntity {
+  factory Directory(String path) => null;
+
+  Future<bool> exists() async => true;
+  bool existsSync() => true;
+
+  Future<FileStat> stat() async => null;
+  FileStat statSync() => null;
+}
+
 abstract class File implements FileSystemEntity {
   factory File(String path) => null;
 
