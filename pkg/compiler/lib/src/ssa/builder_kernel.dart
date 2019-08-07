@@ -1426,6 +1426,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     if (block.id != 1) return false;
     for (HInstruction node = block.first; node != null; node = node.next) {
       if (node is HGoto) continue;
+      if (node is HLoadType) continue; // Orphaned if check is redundant.
       return false;
     }
     return true;

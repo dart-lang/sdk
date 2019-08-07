@@ -85,6 +85,9 @@ abstract class TypeBuilder {
     if (other is HTypeConversion && other.isRedundant(builder.closedWorld)) {
       return original;
     }
+    if (other is HAsCheck && other.isRedundant(builder.closedWorld)) {
+      return original;
+    }
     return other;
   }
 
