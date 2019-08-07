@@ -140,6 +140,7 @@ def pickOne(d):
 def diffResults(results):
     outResult = pickOne(results)
     exp = results[None]['result'] if None in results else None
+    outResult['configuration'] = 'vm-dartkb-linux-release-x64-abi'
     outResult['expected'] = exp
     outResult['result'] = exp
     outResult['matches'] = True
@@ -162,7 +163,7 @@ def makeLog(diffs, results, logRecords):
     logs = ["%s: %s" % (str(v), l['log']) for v, l in logRecords.items()]
     return {
         'name': result['name'],
-        'configuration': result['configuration'],
+        'configuration': 'vm-dartkb-linux-release-x64-abi',
         'result': result['result'],
         'log': '\n\n\n'.join([repr(diffs)] + logs),
     }
