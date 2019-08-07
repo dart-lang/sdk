@@ -37,6 +37,7 @@ void runTests() {
   testNull();
   testFutureOr();
   testFunctions();
+  testGenericFunctions();
 }
 
 void testInterfaces() {
@@ -128,6 +129,20 @@ void testFunctions() {
   strictSubtype('~({bar:int,foo:double})', '~({bar:int})');
   strictSubtype('~({bar:int,foo:double})', '~({foo:double})');
   strictSubtype('~({bar:num,baz:num,foo:num})', '~({baz:int,foo:double})');
+}
+
+void testGenericFunctions() {
+  equivalent('~()<int>', '~()<int>');
+  unrelated('~()<int>', '~()<double>');
+  unrelated('~()<int>', '~()<int,int>');
+  unrelated('~()<int>', '~()<num>');
+  unrelated('~()<int,double>', '~()<double,int>');
+  strictSubtype('List<0^>()<int>', 'Iterable<0^>()<int>');
+  strictSubtype('~(Iterable<0^>)<int>', '~(List<0^>)<int>');
+
+  equivalent('~()<@>', '~()<~>');
+  equivalent('~()<List<@/>>', '~()<List<~/>>');
+  unrelated('~()<List<int/>>', '~()<List<num/>>');
 }
 
 String reason(String s, String t) => "$s <: $t";
