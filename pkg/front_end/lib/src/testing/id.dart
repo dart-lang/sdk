@@ -34,6 +34,9 @@ enum IdKind {
   /// certain offset. This is used in [NodeId].
   moveNext,
 
+  /// Id used for the implicit as expression inserted by the compiler.
+  implicitAs,
+
   /// Id used for the statement at certain offset. This is used in [NodeId].
   stmt,
 
@@ -96,6 +99,8 @@ class IdValue {
         return '$currentPrefix$value';
       case IdKind.moveNext:
         return '$moveNextPrefix$value';
+      case IdKind.implicitAs:
+        return '$implicitAsPrefix$value';
       case IdKind.stmt:
         return '$stmtPrefix$value';
       case IdKind.error:
@@ -113,6 +118,7 @@ class IdValue {
   static const String iteratorPrefix = "iterator: ";
   static const String currentPrefix = "current: ";
   static const String moveNextPrefix = "moveNext: ";
+  static const String implicitAsPrefix = "as: ";
   static const String stmtPrefix = "stmt: ";
   static const String errorPrefix = "error: ";
 
@@ -159,6 +165,9 @@ class IdValue {
     } else if (text.startsWith(moveNextPrefix)) {
       id = new NodeId(offset, IdKind.moveNext);
       expected = text.substring(moveNextPrefix.length);
+    } else if (text.startsWith(implicitAsPrefix)) {
+      id = new NodeId(offset, IdKind.implicitAs);
+      expected = text.substring(implicitAsPrefix.length);
     } else if (text.startsWith(stmtPrefix)) {
       id = new NodeId(offset, IdKind.stmt);
       expected = text.substring(stmtPrefix.length);
@@ -340,17 +349,19 @@ abstract class DataRegistry<T> {
   ///
   /// Checks for duplicate data for [id].
   void registerValue(Uri uri, int offset, Id id, T value, Object object) {
-    if (actualMap.containsKey(id)) {
-      ActualData<T> existingData = actualMap[id];
-      report(uri, offset, "Duplicate id ${id}, value=$value, object=$object");
-      report(
-          uri,
-          offset,
-          "Duplicate id ${id}, value=${existingData.value}, "
-          "object=${existingData.object}");
-      fail("Duplicate id $id.");
-    }
     if (value != null) {
+      if (actualMap.containsKey(id)) {
+        // TODO(johnniwinther): Maybe let the test supply a way to merge
+        // multiple data on the same id?
+        ActualData<T> existingData = actualMap[id];
+        report(uri, offset, "Duplicate id ${id}, value=$value, object=$object");
+        report(
+            uri,
+            offset,
+            "Duplicate id ${id}, value=${existingData.value}, "
+            "object=${existingData.object}");
+        fail("Duplicate id $id.");
+      }
       actualMap[id] = new ActualData<T>(id, value, uri, offset, object);
     }
   }

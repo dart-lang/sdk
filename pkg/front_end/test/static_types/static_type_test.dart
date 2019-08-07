@@ -51,6 +51,10 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     if (node is Expression) {
       DartType type = node.getStaticType(_environment);
       return typeToText(type);
+    } else if (node is Arguments) {
+      if (node.types.isNotEmpty) {
+        return '<${node.types.map(typeToText).join(',')}>';
+      }
     }
     return null;
   }
