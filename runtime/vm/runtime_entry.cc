@@ -1121,6 +1121,11 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
   if (caller_function.unoptimized_code() != caller_code.raw()) {
     return;
   }
+#if !defined(PRODUCT)
+  // Skip functions that contain breakpoints or when debugger is in single
+  // stepping mode.
+  if (Debugger::IsDebugging(thread, caller_function)) return;
+#endif
 
   intptr_t num_checks = ic_data.NumberOfChecks();
 
