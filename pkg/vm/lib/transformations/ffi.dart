@@ -97,7 +97,9 @@ class FfiTransformer extends Transformer {
 
   final Class intClass;
   final Class doubleClass;
-  final Constructor pragmaConstructor;
+  final Class pragmaClass;
+  final Field pragmaName;
+  final Field pragmaOptions;
 
   final Library ffiLibrary;
   final Class nativeFunctionClass;
@@ -123,7 +125,9 @@ class FfiTransformer extends Transformer {
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,
-        pragmaConstructor = coreTypes.pragmaConstructor,
+        pragmaClass = coreTypes.pragmaClass,
+        pragmaName = coreTypes.pragmaName,
+        pragmaOptions = coreTypes.pragmaOptions,
         ffiLibrary = index.getLibrary('dart:ffi'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         pointerClass = index.getClass('dart:ffi', 'Pointer'),

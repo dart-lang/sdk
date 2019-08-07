@@ -410,8 +410,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   }
 
   void _makeEntryPoint(Annotatable node) {
-    node.addAnnotation(ConstructorInvocation(
-        pragmaConstructor, Arguments([StringLiteral("vm:entry-point")])));
+    node.addAnnotation(ConstantExpression(
+        InstanceConstant(pragmaClass.reference, [], {
+          pragmaName.reference: StringConstant("vm:entry-point"),
+          pragmaOptions.reference: NullConstant()
+        }),
+        InterfaceType(pragmaClass, [])));
   }
 
   NativeType _getFieldType(Class c) {
