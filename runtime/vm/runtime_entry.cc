@@ -1139,6 +1139,12 @@ static void TrySwitchInstanceCall(const ICData& ic_data,
       return;
     }
 
+    // Avoid forcing foreground compilation if target function is still
+    // interpreted.
+    if (FLAG_enable_interpreter && !target_function.HasCode()) {
+      return;
+    }
+
     const Array& data = Array::Handle(zone, ic_data.entries());
     const Code& target = Code::Handle(zone, target_function.EnsureHasCode());
     CodePatcher::PatchInstanceCallAt(caller_frame->pc(), caller_code, data,
