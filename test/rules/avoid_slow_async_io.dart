@@ -89,3 +89,23 @@ Future<Null> some_FileSystemEntity_typeSync2() async {
   String path = '/path/to/my/file/entity';
   if (FileSystemEntity.typeSync(path, followLinks: true) == null) {} // OK
 }
+
+Future<Null> some_Directory_exists() async {
+  var dir = Directory('/path/to/my/dir');
+  if (await dir.exists()) print('exists'); // LINT
+}
+
+Future<Null> some_Directory_existsSync() async {
+  var dir = Directory('/path/to/my/dir');
+  if (dir.existsSync()) print('before'); // OK
+}
+
+Future<Null> some_Directory_stat() async {
+  var dir = Directory('/path/to/my/file');
+  if (await dir.stat() == null) print('stat'); // LINT
+}
+
+Future<Null> some_Directory_statSync() async {
+  var dir = Directory('/path/to/my/dir');
+  if (dir.statSync() == null) print('stat'); // OK
+}
