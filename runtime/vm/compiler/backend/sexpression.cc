@@ -48,7 +48,7 @@ bool SExpInteger::Equals(SExpression* sexp) const {
 }
 
 void SExpInteger::SerializeToLine(TextBuffer* buffer) const {
-  buffer->Printf("%" Pd "", value());
+  buffer->Printf("%" Pd64 "", value());
 }
 
 bool SExpString::Equals(SExpression* sexp) const {

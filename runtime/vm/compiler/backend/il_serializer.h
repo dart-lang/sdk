@@ -42,17 +42,27 @@ class FlowGraphSerializer : ValueObject {
   // Methods for serializing Dart values. If the argument
   // value is the null object, the null pointer is returned.
   SExpression* AbstractTypeToSExp(const AbstractType& typ);
+  SExpression* ArrayToSExp(const Array& arr);
   SExpression* ClassToSExp(const Class& cls);
+  SExpression* ClosureToSExp(const Closure& c);
   SExpression* CodeToSExp(const Code& c);
   SExpression* FieldToSExp(const Field& f);
   SExpression* FunctionToSExp(const Function& f);
   SExpression* InstanceToSExp(const Instance& obj);
   SExpression* TypeArgumentsToSExp(const TypeArguments& ta);
 
-  // A method for serializing a Dart value of arbitrary type.
-  // Unlike the type-specific methods, this returns the symbol
-  // "null" for the null object.
+  // A method for serializing a Dart value of arbitrary type. Unlike the
+  // type-specific methods, this returns the symbol "null" for the null object.
   SExpression* ObjectToSExp(const Object& obj);
+
+  // A wrapper method for ObjectToSExp that first checks and sees if
+  // the provided value is in the constant pool. If it is, then it
+  // returns a reference to the constant definition via UseToSExp.
+  SExpression* DartValueToSExp(const Object& obj);
+
+  // A wrapper method for TypeArgumentsToSExp that also returns nullptr if the
+  // type arguments are empty and checks against the constant pool.
+  SExpression* NonEmptyTypeArgumentsToSExp(const TypeArguments& ta);
 
   // Methods for serializing IL-specific values.
   SExpression* LocalVariableToSExp(const LocalVariable& v);
@@ -72,13 +82,19 @@ class FlowGraphSerializer : ValueObject {
   FlowGraphSerializer(Zone* zone, const FlowGraph* flow_graph)
       : flow_graph_(ASSERT_NOTNULL(flow_graph)),
         zone_(zone),
-        tmp_type_(AbstractType::Handle(zone_)),
-        tmp_class_(Class::Handle(zone_)),
-        tmp_function_(Function::Handle(zone_)),
-        tmp_library_(Library::Handle(zone_)),
-        tmp_object_(Object::Handle(zone_)),
-        tmp_type_args_(TypeArguments::Handle(zone_)),
-        tmp_string_(String::Handle(zone_)) {}
+        tmp_string_(String::Handle(zone_)),
+        closure_function_(Function::Handle(zone_)),
+        closure_type_args_(TypeArguments::Handle(zone_)),
+        code_owner_(Object::Handle(zone_)),
+        function_type_args_(TypeArguments::Handle(zone_)),
+        instance_field_(Field::Handle(zone_)),
+        instance_type_args_(TypeArguments::Handle(zone_)),
+        serialize_library_(Library::Handle(zone_)),
+        serialize_owner_(Class::Handle(zone_)),
+        serialize_parent_(Function::Handle(zone_)),
+        type_arguments_elem_(AbstractType::Handle(zone_)),
+        type_class_(Class::Handle(zone_)),
+        type_ref_type_(AbstractType::Handle(zone_)) {}
 
   static const char* const initial_indent;
 
@@ -91,14 +107,32 @@ class FlowGraphSerializer : ValueObject {
   const FlowGraph* const flow_graph_;
   Zone* const zone_;
 
-  // Handles for temporary use.
-  AbstractType& tmp_type_;
-  Class& tmp_class_;
-  Function& tmp_function_;
-  Library& tmp_library_;
-  Object& tmp_object_;
-  TypeArguments& tmp_type_args_;
+  // Handles used across functions, where the contained value is used
+  // immediately and does not need to live across calls to other serializer
+  // functions.
   String& tmp_string_;
+
+  // Handles for use within a single function in the following cases:
+  //
+  // * The function is guaranteed to not be re-entered during execution.
+  // * The contained value is not live across any possible re-entry.
+  //
+  // Generally, the most likely source of possible re-entry is calling
+  // DartValueToSExp with a sub-element of type Object, but any call to a
+  // FlowGraphSerializer method that may eventually enter one of the methods
+  // listed below should be examined with care.
+  Function& closure_function_;         // ClosureToSExp
+  TypeArguments& closure_type_args_;   // ClosureToSExp
+  Object& code_owner_;                 // CodeToSExp
+  TypeArguments& function_type_args_;  // FunctionToSExp
+  Field& instance_field_;              // InstanceToSExp
+  TypeArguments& instance_type_args_;  // InstanceToSExp
+  Library& serialize_library_;         // SerializeCanonicalName
+  Class& serialize_owner_;             // SerializeCanonicalName
+  Function& serialize_parent_;         // SerializeCanonicalName
+  AbstractType& type_arguments_elem_;  // TypeArgumentsToSExp
+  Class& type_class_;                  // AbstractTypeToSExp
+  AbstractType& type_ref_type_;        // AbstractTypeToSExp
 };
 
 }  // namespace dart

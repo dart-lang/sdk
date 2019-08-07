@@ -18,7 +18,7 @@ namespace dart {
 #define FOR_EACH_S_EXPRESSION_ATOM(M)                                          \
   M(Bool, bool)                                                                \
   M(Double, double)                                                            \
-  M(Integer, intptr_t)                                                         \
+  M(Integer, int64_t)                                                          \
   M(String, const char*)                                                       \
   M(Symbol, const char*)
 

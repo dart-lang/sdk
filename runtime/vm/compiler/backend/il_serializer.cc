@@ -105,22 +105,32 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
     const char* function_name = tmp_string_.ToCString();
     // If this function is an inner closure then the parent points to its
     // containing function, which will also be part of the canonical name.
-    if (function.parent_function() != Function::null()) {
-      tmp_function_ = function.parent_function();
-      SerializeCanonicalName(b, tmp_function_);
+    //
+    // We retrieve the owner before retrieving the parent function, as the
+    // inner closure chain may be arbitrarily deep and serialize_parent_ is
+    // passed in on recursive calls. When it is, then changing serialize_parent_
+    // to the parent function also changes the contents of obj and thus we'd
+    // no longer be able to retrieve the child function or its owner.
+    //
+    // This does mean that serialize_owner_ gets overwritten for each recursive
+    // call until we reach the end of the chain, but we only use its contents at
+    // the end of the chain anyway.
+    serialize_owner_ = function.Owner();
+    serialize_parent_ = function.parent_function();
+    if (!serialize_parent_.IsNull()) {
+      SerializeCanonicalName(b, serialize_parent_);
     } else {
-      tmp_class_ = function.Owner();
-      ASSERT(!tmp_class_.IsNull());
-      SerializeCanonicalName(b, tmp_class_);
+      ASSERT(!serialize_owner_.IsNull());
+      SerializeCanonicalName(b, serialize_owner_);
     }
     b->Printf(":%s", function_name);
   } else if (obj.IsClass()) {
     const auto& cls = Class::Cast(obj);
     tmp_string_ = cls.ScrubbedName();
     const char* class_name = tmp_string_.ToCString();
-    tmp_library_ = cls.library();
-    if (!tmp_library_.IsNull()) {
-      SerializeCanonicalName(b, tmp_library_);
+    serialize_library_ = cls.library();
+    if (!serialize_library_.IsNull()) {
+      SerializeCanonicalName(b, serialize_library_);
     }
     b->Printf(":%s", class_name);
   } else if (obj.IsLibrary()) {
@@ -133,9 +143,9 @@ void FlowGraphSerializer::SerializeCanonicalName(TextBuffer* b,
     const auto& field = Field::Cast(obj);
     tmp_string_ = field.UserVisibleName();
     const char* field_name = tmp_string_.ToCString();
-    tmp_class_ = field.Owner();
-    ASSERT(!tmp_class_.IsNull());
-    SerializeCanonicalName(b, tmp_class_);
+    serialize_owner_ = field.Owner();
+    ASSERT(!serialize_owner_.IsNull());
+    SerializeCanonicalName(b, serialize_owner_);
     b->Printf(".%s", field_name);
   } else {
     UNREACHABLE();
@@ -265,6 +275,10 @@ SExpression* FlowGraphSerializer::ClassToSExp(const Class& cls) {
   AddInteger(sexp, cls.id());
   if (FLAG_verbose_flow_graph_serialization) {
     sexp->AddExtra("name", CanonicalNameToSExp(cls));
+    // Currently, AbstractTypeToSExp assumes that serializing a class cannot
+    // re-enter it. If we make that possible by serializing parts of a class
+    // that can contain AbstractTypes, especially types that are not type
+    // parameters or type references, fix AbstractTypeToSExp appropriately.
   }
   return sexp;
 }
@@ -301,13 +315,10 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   if (t.IsTypeRef()) {
     const auto& ref = TypeRef::Cast(t);
     AddSymbol(sexp, "TypeRef");
-    // If tmp_type_ was passed into the call, this will change t's contents, but
-    // this is safe because we don't need any more info from the TypeRef object
-    // and no caller uses the contents of tmp_type_ after calling this function.
-    tmp_type_ = ref.type();
-    AddExtraInteger(sexp, "hash", tmp_type_.Hash());
+    type_ref_type_ = ref.type();
+    AddExtraInteger(sexp, "hash", type_ref_type_.Hash());
     if (FLAG_verbose_flow_graph_serialization) {
-      AddExtraString(sexp, "type", tmp_type_.ToCString());
+      AddExtraString(sexp, "type", type_ref_type_.ToCString());
     }
     return sexp;
   }
@@ -315,8 +326,10 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
   AddSymbol(sexp, "Type");
   const auto& typ = Type::Cast(t);
   if (typ.HasTypeClass()) {
-    tmp_class_ = typ.type_class();
-    sexp->Add(ClassToSExp(tmp_class_));
+    type_class_ = typ.type_class();
+    // This avoids re-entry as long as serializing a class doesn't involve
+    // serializing concrete (non-parameter, non-reference) types.
+    sexp->Add(DartValueToSExp(type_class_));
     if (typ.IsRecursive()) {
       AddExtraInteger(sexp, "hash", typ.Hash());
     }
@@ -324,8 +337,8 @@ SExpression* FlowGraphSerializer::AbstractTypeToSExp(const AbstractType& t) {
     // classes, we may call back into this function in the middle of printing
     // the TypeArguments and so we must allocate a fresh handle here.
     const auto& args = TypeArguments::Handle(zone(), typ.arguments());
-    if (!args.IsNull() && args.Length() > 0) {
-      sexp->AddExtra("type_args", TypeArgumentsToSExp(args));
+    if (auto const args_sexp = NonEmptyTypeArgumentsToSExp(args)) {
+      sexp->AddExtra("type_args", args_sexp);
     }
   } else {
     // TODO(dartbug.com/36882): Actually structure non-class types instead of
@@ -346,18 +359,18 @@ SExpression* FlowGraphSerializer::CodeToSExp(const Code& code) {
     }
     return sexp;
   }
-  tmp_object_ = code.owner();
-  if (!tmp_object_.IsNull() && FLAG_verbose_flow_graph_serialization) {
-    if (tmp_object_.IsClass()) {
+  code_owner_ = code.owner();
+  if (!code_owner_.IsNull() && FLAG_verbose_flow_graph_serialization) {
+    if (code_owner_.IsClass()) {
       AddExtraSymbol(sexp, "kind", "allocate");
-    } else if (tmp_object_.IsAbstractType()) {
+    } else if (code_owner_.IsAbstractType()) {
       AddExtraSymbol(sexp, "kind", "type_test");
     } else {
-      ASSERT(tmp_object_.IsFunction());
+      ASSERT(code_owner_.IsFunction());
       AddExtraSymbol(sexp, "kind", "function");
     }
   }
-  sexp->Add(ObjectToSExp(tmp_object_));
+  sexp->Add(DartValueToSExp(code_owner_));
   return sexp;
 }
 
@@ -366,25 +379,56 @@ SExpression* FlowGraphSerializer::TypeArgumentsToSExp(const TypeArguments& ta) {
   auto sexp = new (zone()) SExpList(zone());
   AddSymbol(sexp, "TypeArguments");
   for (intptr_t i = 0; i < ta.Length(); i++) {
-    // Currently, reusing this handle is ok because the only place where we
-    // might reenter TypeArguments (in SerializeAbstractType) doesn't need the
-    // old contents of the handle after calling SerializeTypeArguments. If that
-    // changes, then this will need to change also.
-    tmp_type_ = ta.TypeAt(i);
-    sexp->Add(AbstractTypeToSExp(tmp_type_));
+    type_arguments_elem_ = ta.TypeAt(i);
+    sexp->Add(DartValueToSExp(type_arguments_elem_));
   }
   return sexp;
 }
 
 SExpression* FlowGraphSerializer::InstanceToSExp(const Instance& inst) {
   if (inst.IsNull()) return nullptr;
+
+  // Since InstanceToSExp may use ObjectToSExp (via DartValueToSExp) for field
+  // values that aren't entries in the constant pool, and ObjectToSExp may
+  // re-enter InstanceToSExp, allocate fresh handles here for the argument to
+  // DartValueToSExp and other handles that are live across the call.
+  const auto& instance_class = Class::Handle(zone(), inst.clazz());
+  const auto& instance_fields_array =
+      Array::Handle(zone(), instance_class.fields());
+  auto& instance_field_value = Object::Handle(zone());
+
   auto const sexp = new (zone()) SExpList(zone());
   AddSymbol(sexp, "Instance");
-  tmp_class_ = inst.clazz();
-  AddInteger(sexp, tmp_class_.id());
+  AddInteger(sexp, instance_class.id());
+  auto const fields = new (zone()) SExpList(zone());
+  AddSymbol(fields, "Fields");
+  for (intptr_t i = 0; i < instance_fields_array.Length(); i++) {
+    instance_field_ = Field::RawCast(instance_fields_array.At(i));
+    // We don't need to serialize static fields, since they're shared by
+    // all instances.
+    if (instance_field_.is_static()) continue;
+    // We should only be getting const instances, which means that we
+    // should only see final instance fields.
+    ASSERT(instance_field_.is_final());
+    tmp_string_ = instance_field_.UserVisibleName();
+    auto const label = tmp_string_.ToCString();
+    instance_field_value = inst.GetField(instance_field_);
+    fields->AddExtra(label, DartValueToSExp(instance_field_value));
+  }
+  if (fields->ExtraLength() != 0 || FLAG_verbose_flow_graph_serialization) {
+    sexp->Add(fields);
+  }
+  if (instance_class.IsGeneric()) {
+    instance_type_args_ = inst.GetTypeArguments();
+    if (auto const args = NonEmptyTypeArgumentsToSExp(instance_type_args_)) {
+      sexp->AddExtra("type_args", args);
+    }
+  }
   if (FLAG_verbose_flow_graph_serialization) {
     AddExtraInteger(sexp, "size", inst.InstanceSize());
-    if (auto const cls = ClassToSExp(tmp_class_)) {
+    // We know the following won't call back into InstanceToSExp because we're
+    // providing it a class.
+    if (auto const cls = DartValueToSExp(instance_class)) {
       sexp->AddExtra("class", cls);
     }
   }
@@ -409,9 +453,49 @@ SExpression* FlowGraphSerializer::FunctionToSExp(const Function& func) {
   if (FLAG_verbose_flow_graph_serialization) {
     AddExtraSymbol(sexp, "kind", Function::KindToCString(func.kind()));
   }
-  tmp_type_args_ = func.type_parameters();
-  if (auto const ta_sexp = TypeArgumentsToSExp(tmp_type_args_)) {
-    sexp->AddExtra("type_params", ta_sexp);
+  function_type_args_ = func.type_parameters();
+  if (auto const ta_sexp = NonEmptyTypeArgumentsToSExp(function_type_args_)) {
+    sexp->AddExtra("type_args", ta_sexp);
+  }
+  return sexp;
+}
+
+SExpression* FlowGraphSerializer::ArrayToSExp(const Array& arr) {
+  if (arr.IsNull()) return nullptr;
+  // We should only be getting immutable lists when serializing Dart values
+  // in flow graphs.
+  ASSERT(arr.IsImmutable());
+  auto sexp = new (zone()) SExpList(zone());
+  AddSymbol(sexp, "ImmutableList");
+  // We allocate a new Object handle to use for the calls to DartValueToSExp
+  // in case any Array elements contain non-constant-pool, non-empty Arrays.
+  auto& array_elem = Object::Handle(zone());
+  for (intptr_t i = 0; i < arr.Length(); i++) {
+    array_elem = arr.At(i);
+    sexp->Add(DartValueToSExp(array_elem));
+  }
+  return sexp;
+}
+
+SExpression* FlowGraphSerializer::ClosureToSExp(const Closure& c) {
+  if (c.IsNull()) return nullptr;
+  auto sexp = new (zone()) SExpList(zone());
+  AddSymbol(sexp, "Closure");
+  closure_function_ = c.function();
+  if (auto const func = FunctionToSExp(closure_function_)) {
+    sexp->Add(func);
+  }
+  closure_type_args_ = c.function_type_arguments();
+  if (auto const type_args = NonEmptyTypeArgumentsToSExp(closure_type_args_)) {
+    sexp->AddExtra("func_type_args", type_args);
+  }
+  closure_type_args_ = c.instantiator_type_arguments();
+  if (auto const type_args = NonEmptyTypeArgumentsToSExp(closure_type_args_)) {
+    sexp->AddExtra("inst_type_args", type_args);
+  }
+  closure_type_args_ = c.delayed_type_arguments();
+  if (auto const type_args = NonEmptyTypeArgumentsToSExp(closure_type_args_)) {
+    sexp->AddExtra("delayed_type_args", type_args);
   }
   return sexp;
 }
@@ -425,6 +509,9 @@ SExpression* FlowGraphSerializer::ObjectToSExp(const Object& dartval) {
   }
   if (dartval.IsSmi()) {
     return new (zone()) SExpInteger(Smi::Cast(dartval).Value());
+  }
+  if (dartval.IsMint()) {
+    return new (zone()) SExpInteger(Mint::Cast(dartval).value());
   }
   if (dartval.IsBool()) {
     return new (zone()) SExpBool(Bool::Cast(dartval).value());
@@ -445,21 +532,33 @@ SExpression* FlowGraphSerializer::ObjectToSExp(const Object& dartval) {
     return CodeToSExp(Code::Cast(dartval));
   }
   if (dartval.IsArray()) {
-    const Array& arr = Array::Cast(dartval);
-    auto sexp = new (zone()) SExpList(zone());
-    AddSymbol(sexp, "Array");
-    auto& elem = Object::Handle(zone());
-    for (intptr_t i = 0; i < arr.Length(); i++) {
-      elem = arr.At(i);
-      sexp->Add(ObjectToSExp(elem));
-    }
-    return sexp;
+    return ArrayToSExp(Array::Cast(dartval));
   }
   if (dartval.IsFunction()) {
     return FunctionToSExp(Function::Cast(dartval));
   }
+  if (dartval.IsClosure()) {
+    return ClosureToSExp(Closure::Cast(dartval));
+  }
+  if (dartval.IsAbstractType()) {
+    return AbstractTypeToSExp(AbstractType::Cast(dartval));
+  }
   ASSERT(dartval.IsInstance());
   return InstanceToSExp(Instance::Cast(dartval));
+}
+
+SExpression* FlowGraphSerializer::DartValueToSExp(const Object& obj) {
+  if (auto const def = flow_graph()->GetExistingConstant(obj)) {
+    ASSERT(def->IsDefinition());
+    return UseToSExp(def->AsDefinition());
+  }
+  return ObjectToSExp(obj);
+}
+
+SExpression* FlowGraphSerializer::NonEmptyTypeArgumentsToSExp(
+    const TypeArguments& ta) {
+  if (ta.IsNull() || ta.Length() == 0) return nullptr;
+  return DartValueToSExp(ta);
 }
 
 SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
@@ -473,6 +572,7 @@ SExpression* FlowGraphSerializer::ConstantPoolToSExp(GraphEntryInstr* start) {
     auto elem = new (zone()) SExpList(zone());
     AddSymbol(elem, "def");
     elem->Add(UseToSExp(value->AsDefinition()));
+    // Use ObjectToSExp here, not DartValueToSExp!
     elem->Add(ObjectToSExp(value->value()));
     if (ShouldSerializeType(value->AsDefinition()->Type())) {
       auto const val = value->AsDefinition()->Type()->ToSExpression(this);
@@ -570,7 +670,7 @@ SExpression* Definition::ToSExpression(FlowGraphSerializer* s) const {
 
 void ConstantInstr::AddOperandsToSExpression(SExpList* sexp,
                                              FlowGraphSerializer* s) const {
-  sexp->Add(s->ObjectToSExp(value()));
+  sexp->Add(s->DartValueToSExp(value()));
 }
 
 void BranchInstr::AddOperandsToSExpression(SExpList* sexp,
@@ -633,7 +733,7 @@ SExpression* FlowGraphSerializer::SlotToSExp(const Slot& slot) {
   if (FLAG_verbose_flow_graph_serialization) {
     AddExtraSymbol(sexp, "kind", SlotKindToCString(slot.kind()));
     if (slot.IsDartField()) {
-      sexp->AddExtra("field", FieldToSExp(slot.field()));
+      sexp->AddExtra("field", DartValueToSExp(slot.field()));
     } else {
       AddExtraString(sexp, "name", slot.Name());
     }
@@ -702,7 +802,7 @@ void GotoInstr::AddOperandsToSExpression(SExpList* sexp,
 
 void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                              FlowGraphSerializer* s) const {
-  if (auto const code = s->CodeToSExp(code_)) {
+  if (auto const code = s->DartValueToSExp(code_)) {
     sexp->Add(code);
   }
   Instruction::AddOperandsToSExpression(sexp, s);
@@ -710,7 +810,7 @@ void TailCallInstr::AddOperandsToSExpression(SExpList* sexp,
 
 void NativeCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  if (auto const func = s->FunctionToSExp(function())) {
+  if (auto const func = s->DartValueToSExp(function())) {
     sexp->Add(func);
   }
 }
@@ -739,14 +839,14 @@ void TemplateDartCall<1l>::AddExtraInfoToSExpression(
 
 void StaticCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                FlowGraphSerializer* s) const {
-  if (auto const func = s->FunctionToSExp(function())) {
+  if (auto const func = s->DartValueToSExp(function())) {
     sexp->Add(func);
   }
 }
 
 void InstanceCallInstr::AddOperandsToSExpression(SExpList* sexp,
                                                  FlowGraphSerializer* s) const {
-  if (auto const target = s->FunctionToSExp(interface_target())) {
+  if (auto const target = s->DartValueToSExp(interface_target())) {
     sexp->Add(target);
   }
 }
@@ -775,7 +875,7 @@ void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
         s->AddInteger(range, ti->cid_end);
         elem->Add(range);
       }
-      if (auto const target = s->FunctionToSExp(*ti->target)) {
+      if (auto const target = s->DartValueToSExp(*ti->target)) {
         elem->Add(target);
       }
       elem_list->Add(elem);
@@ -787,7 +887,7 @@ void PolymorphicInstanceCallInstr::AddExtraInfoToSExpression(
 void AllocateObjectInstr::AddOperandsToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
-  if (auto const sexp_cls = s->ClassToSExp(cls())) {
+  if (auto const sexp_cls = s->DartValueToSExp(cls())) {
     sexp->Add(sexp_cls);
   }
 }
@@ -800,7 +900,7 @@ void AllocateObjectInstr::AddExtraInfoToSExpression(
   if (ArgumentCount() > 0 || FLAG_verbose_flow_graph_serialization) {
     s->AddExtraInteger(sexp, "args_len", ArgumentCount());
   }
-  if (auto const closure = s->FunctionToSExp(closure_function())) {
+  if (auto const closure = s->DartValueToSExp(closure_function())) {
     sexp->AddExtra("closure_function", closure);
   }
 }
@@ -919,7 +1019,7 @@ void CompileType::AddExtraInfoToSExpression(SExpList* sexp,
   if (cid_ == kIllegalCid || cid_ == kDynamicCid ||
       FLAG_verbose_flow_graph_serialization) {
     if (type_ != nullptr) {
-      sexp->AddExtra("type", s->AbstractTypeToSExp(*type_));
+      sexp->AddExtra("type", s->DartValueToSExp(*type_));
     } else {
       s->AddExtraString(sexp, "name", ToCString());
     }
