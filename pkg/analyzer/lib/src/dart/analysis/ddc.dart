@@ -134,7 +134,10 @@ class DevCompilerResynthesizerBuilder {
     var inputLibraries = <summary2.LinkInputLibrary>[];
 
     var sourceToUnit = _fileCrawler.sourceToUnit;
-    for (var librarySource in _fileCrawler.librarySources) {
+    var librarySourcesToLink = <Source>[]
+      ..addAll(_fileCrawler.librarySources)
+      ..addAll(_fileCrawler._invalidLibrarySources);
+    for (var librarySource in librarySourcesToLink) {
       var libraryUriStr = '${librarySource.uri}';
       var unit = sourceToUnit[librarySource];
 
@@ -267,6 +270,18 @@ class _SourceCrawler {
   /// we only visit a given source once.
   var _knownSources = Set<Uri>();
 
+  /// The set of URIs that expected to be libraries.
+  ///
+  /// Some of the might turn out to have `part of` directive, and so reported
+  /// later. However we still must be able to provide some element for them
+  /// when requested via `import` or `export` directives.
+  final Set<Uri> _expectedLibraryUris = Set<Uri>();
+
+  /// The list of sources with URIs that [_expectedLibraryUris], but turned
+  /// out to be parts. We still add them into summaries, but don't resolve
+  /// them as units.
+  final List<Source> _invalidLibrarySources = [];
+
   final Map<Source, UnlinkedUnitBuilder> sourceToUnlinkedUnit = {};
   final Map<String, UnlinkedUnitBuilder> uriToUnlinkedUnit = {};
   final Map<Source, CompilationUnit> sourceToUnit = {};
@@ -321,10 +336,13 @@ class _SourceCrawler {
     uriToUnlinkedUnit[uriStr] = unlinkedUnit;
     sourceToUnlinkedUnit[source] = unlinkedUnit;
 
-    void enqueueSource(String relativeUri) {
+    void enqueueSource(String relativeUri, bool shouldBeLibrary) {
       var sourceUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
       if (_knownSources.add(sourceUri)) {
         _pendingSource.add(sourceUri);
+        if (shouldBeLibrary) {
+          _expectedLibraryUris.add(sourceUri);
+        }
       }
     }
 
@@ -332,12 +350,13 @@ class _SourceCrawler {
     var isPart = false;
     for (var directive in unit.directives) {
       if (directive is UriBasedDirective) {
-        enqueueSource(directive.uri.stringValue);
-        // Handle conditional imports.
         if (directive is NamespaceDirective) {
+          enqueueSource(directive.uri.stringValue, true);
           for (var config in directive.configurations) {
-            enqueueSource(config.uri.stringValue);
+            enqueueSource(config.uri.stringValue, true);
           }
+        } else {
+          enqueueSource(directive.uri.stringValue, false);
         }
       } else if (directive is PartOfDirective) {
         isPart = true;
@@ -348,6 +367,8 @@ class _SourceCrawler {
     if (!isPart) {
       libraryUris.add(uriStr);
       librarySources.add(source);
+    } else if (_expectedLibraryUris.contains(uri)) {
+      _invalidLibrarySources.add(source);
     }
   }
 }
