@@ -16,6 +16,8 @@ const _details = r'''
 **AVOID** using the following asynchronous file I/O methods because they are
 much slower than their synchronous counterparts.
 
+* `Directory.exists`
+* `Directory.stat`
 * `File.lastModified`
 * `File.exists`
 * `File.stat`
@@ -51,7 +53,12 @@ Future<Null> someFunction() async {
 const List<String> _fileMethodNames = <String>[
   'lastModified',
   'exists',
-  'stat'
+  'stat',
+];
+
+const List<String> _dirMethodNames = <String>[
+  'exists',
+  'stat',
 ];
 
 const List<String> _fileSystemEntityMethodNames = <String>[
@@ -85,7 +92,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.argumentList.arguments.isEmpty) {
-      _checkFileMethods(node);
+      DartType type = node.target?.staticType;
+      _checkFileMethods(node, type);
+      _checkDirectoryMethods(node, type);
       return;
     } else {
       _checkFileSystemEntityMethods(node);
@@ -93,10 +102,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkFileMethods(MethodInvocation node) {
-    DartType type = node.target?.staticType;
+  void _checkFileMethods(MethodInvocation node, DartType type) {
     if (DartTypeUtilities.extendsClass(type, 'File', 'dart.io')) {
       if (_fileMethodNames.contains(node.methodName?.name)) {
+        rule.reportLint(node);
+      }
+    }
+  }
+
+  void _checkDirectoryMethods(MethodInvocation node, DartType type) {
+    if (DartTypeUtilities.extendsClass(type, 'Directory', 'dart.io')) {
+      if (_dirMethodNames.contains(node.methodName?.name)) {
         rule.reportLint(node);
       }
     }
