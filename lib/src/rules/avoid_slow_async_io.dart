@@ -53,12 +53,12 @@ Future<Null> someFunction() async {
 const List<String> _fileMethodNames = <String>[
   'lastModified',
   'exists',
-  'stat'
+  'stat',
 ];
 
 const List<String> _dirMethodNames = <String>[
   'exists',
-  'stat'
+  'stat',
 ];
 
 const List<String> _fileSystemEntityMethodNames = <String>[
