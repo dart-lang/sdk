@@ -1,7 +1,7 @@
 {
   "global": {
-    "chrome": "65",
-    "firefox": "61"
+    "chrome": "76",
+    "firefox": "67"
   },
   "branches": [
     "analyzer-stable",
