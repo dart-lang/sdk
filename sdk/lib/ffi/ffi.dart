@@ -6,6 +6,8 @@
 /// {@nodoc}
 library dart.ffi;
 
+import 'dart:typed_data' show TypedData;
+
 part "native_type.dart";
 part "annotations.dart";
 part "dynamic_library.dart";
@@ -90,6 +92,35 @@ class Pointer<T extends NativeType> extends NativeType {
   ///
   /// Note that this zeros out the address.
   external void free();
+
+  /// Creates an *external* typed data array backed by this pointer.
+  ///
+  /// The typed data array returned is only valid for as long as the backing
+  /// [Pointer]. Accessing any element of the type data array after this
+  /// [Pointer] has been [Pointer.free()]d will cause undefined behavior.
+  ///
+  /// Since [Pointer]s do not know their length, the size of the typed data is
+  /// controlled by `count`, in units of the size of the native type for this
+  /// [Pointer] (similarly to [Pointer.allocate]).
+  ///
+  /// The kind of TypedData produced depends on the native type:
+  ///
+  ///   Pointer<Int8> -> Int8List
+  ///   Pointer<Uint8> -> Uint8List
+  ///   etc. up to Int64/Uint64
+  ///   Pointer<IntPtr> -> Int32List/Int64List depending on platform word size
+  ///   Pointer<Float> -> Float32List
+  ///   Pointer<Double> -> Float64List
+  ///
+  /// Creation of a [Uint8ClampedList] is not supported. Creation of a typed
+  /// data from a [Pointer] to any other native type is not supported.
+  ///
+  /// The pointer must be aligned to a multiple of the native type's size.
+  //
+  // TODO(37773): Use extension methods to articulate more precise return types.
+  // We should still keep this member though as a generic way to access a
+  // Pointer of unknown type.
+  external TypedData asExternalTypedData({int count: 1});
 
   /// Equality for Pointers only depends on their address.
   bool operator ==(other) {

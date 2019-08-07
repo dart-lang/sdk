@@ -568,7 +568,11 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
 
   Class& native_function_class =
       Class::Handle(isolate->class_table()->At(kFfiNativeFunctionCid));
-  native_function_class.EnsureIsFinalized(Thread::Current());
+  const auto& error =
+      Error::Handle(native_function_class.EnsureIsFinalized(Thread::Current()));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
 
   Type& native_function_type = Type::Handle(
       Type::New(native_function_class, type_args, TokenPosition::kNoSource));
@@ -606,6 +610,90 @@ DEFINE_NATIVE_ENTRY(Ffi_fromFunction, 1, 2) {
       native_function_type,
       CompileNativeCallback(native_signature, func, exceptional_return));
 #endif
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_asExternalTypedData, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Pointer, pointer, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, count, arguments->NativeArgAt(1));
+  const auto& pointer_type_arg = AbstractType::Handle(pointer.type_argument());
+  const classid_t type_cid = pointer_type_arg.type_class_id();
+  classid_t cid = 0;
+
+  switch (type_cid) {
+    case kFfiInt8Cid:
+      cid = kExternalTypedDataInt8ArrayCid;
+      break;
+    case kFfiUint8Cid:
+      cid = kExternalTypedDataUint8ArrayCid;
+      break;
+    case kFfiInt16Cid:
+      cid = kExternalTypedDataInt16ArrayCid;
+      break;
+    case kFfiUint16Cid:
+      cid = kExternalTypedDataUint16ArrayCid;
+      break;
+    case kFfiInt32Cid:
+      cid = kExternalTypedDataInt32ArrayCid;
+      break;
+    case kFfiUint32Cid:
+      cid = kExternalTypedDataUint32ArrayCid;
+      break;
+    case kFfiInt64Cid:
+      cid = kExternalTypedDataInt64ArrayCid;
+      break;
+    case kFfiUint64Cid:
+      cid = kExternalTypedDataUint64ArrayCid;
+      break;
+    case kFfiIntPtrCid:
+      cid = kWordSize == 4 ? kExternalTypedDataInt32ArrayCid
+                           : kExternalTypedDataInt64ArrayCid;
+      break;
+    case kFfiFloatCid:
+      cid = kExternalTypedDataFloat32ArrayCid;
+      break;
+    case kFfiDoubleCid:
+      cid = kExternalTypedDataFloat64ArrayCid;
+      break;
+    default: {
+      const String& error = String::Handle(
+          String::NewFormatted("Cannot create a TypedData from a Pointer to %s",
+                               pointer_type_arg.ToCString()));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
+  }
+
+  const intptr_t element_count = count.AsInt64Value();
+
+  if (element_count < 0 ||
+      element_count > ExternalTypedData::MaxElements(cid)) {
+    const String& error = String::Handle(
+        String::NewFormatted("Count must be in the range [0, %" Pd "].",
+                             ExternalTypedData::MaxElements(cid)));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  // The address must be aligned by the element size.
+  const intptr_t element_size = ExternalTypedData::ElementSizeFor(cid);
+  if (!Utils::IsAligned(pointer.NativeAddress(), element_size)) {
+    const String& error = String::Handle(
+        String::NewFormatted("Pointer address must be aligned to a multiple of"
+                             "the element size (%" Pd ").",
+                             element_size));
+    Exceptions::ThrowArgumentError(error);
+  }
+
+  const auto& typed_data_class =
+      Class::Handle(zone, isolate->class_table()->At(cid));
+  const auto& error = Error::Handle(
+      zone, typed_data_class.EnsureIsFinalized(Thread::Current()));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+
+  return ExternalTypedData::New(
+      cid, reinterpret_cast<uint8_t*>(pointer.NativeAddress()), element_count,
+      Heap::kNew);
 }
 
 #if defined(TARGET_ARCH_DBC)
