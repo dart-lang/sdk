@@ -12,6 +12,32 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:front_end/src/fasta/flow_analysis/flow_analysis.dart';
 
+class AnalyzerFunctionBodyAccess
+    implements FunctionBodyAccess<VariableElement> {
+  final FunctionBody node;
+
+  AnalyzerFunctionBodyAccess(this.node);
+
+  @override
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    return node.isPotentiallyMutatedInClosure(variable);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    return node.isPotentiallyMutatedInScope(variable);
+  }
+}
+
+class AnalyzerNodeOperations implements NodeOperations<Expression> {
+  const AnalyzerNodeOperations();
+
+  @override
+  Expression unwrapParenthesized(Expression node) {
+    return node.unParenthesized;
+  }
+}
+
 /// The helper for performing flow analysis during resolution.
 ///
 /// It contains related precomputed data, result, and non-trivial pieces of
@@ -43,7 +69,7 @@ class FlowAnalysisHelper {
     node.accept(_AssignedVariablesVisitor(assignedVariables));
 
     return FlowAnalysisHelper._(
-        _NodeOperations(),
+        const AnalyzerNodeOperations(),
         _TypeSystemTypeOperations(typeSystem),
         assignedVariables,
         retainDataForTesting ? FlowAnalysisResult() : null);
@@ -135,7 +161,7 @@ class FlowAnalysisHelper {
       flow = FlowAnalysis<Statement, Expression, VariableElement, DartType>(
         _nodeOperations,
         _typeOperations,
-        _FunctionBodyAccess(node),
+        AnalyzerFunctionBodyAccess(node),
       );
     }
 
@@ -429,22 +455,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _FunctionBodyAccess implements FunctionBodyAccess<VariableElement> {
-  final FunctionBody node;
-
-  _FunctionBodyAccess(this.node);
-
-  @override
-  bool isPotentiallyMutatedInClosure(VariableElement variable) {
-    return node.isPotentiallyMutatedInClosure(variable);
-  }
-
-  @override
-  bool isPotentiallyMutatedInScope(VariableElement variable) {
-    return node.isPotentiallyMutatedInScope(variable);
-  }
-}
-
 /// The flow analysis based implementation of [LocalVariableTypeProvider].
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
@@ -456,13 +466,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
     var variable = node.staticElement as VariableElement;
     var promotedType = _manager.flow?.promotedType(variable);
     return promotedType ?? variable.type;
-  }
-}
-
-class _NodeOperations implements NodeOperations<Expression> {
-  @override
-  Expression unwrapParenthesized(Expression node) {
-    return node.unParenthesized;
   }
 }
 
