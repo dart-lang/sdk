@@ -965,13 +965,29 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  RawPcDescriptors::Kind::kOther, locs());
   __ movq(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), TMP);
 
-  // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(target_address, FPREG);
+  if (CanExecuteGeneratedCodeInSafepoint()) {
+    // Update information in the thread object and enter a safepoint.
+    __ TransitionGeneratedToNative(target_address, FPREG);
 
-  __ CallCFunction(target_address);
+    __ CallCFunction(target_address);
 
-  // Update information in the thread object and leave the safepoint.
-  __ TransitionNativeToGenerated();
+    // Update information in the thread object and leave the safepoint.
+    __ TransitionNativeToGenerated();
+  } else {
+    // We cannot trust that this code will be executable within a safepoint.
+    // Therefore we delegate the responsibility of entering/exiting the
+    // safepoint to a stub which in the VM isolate's heap, which will never lose
+    // execute permission.
+    __ movq(TMP,
+            compiler::Address(
+                THR, compiler::target::Thread::
+                         call_native_through_safepoint_entry_point_offset()));
+
+    // Calls RBX within a safepoint.
+    ASSERT(saved_fp == RBX);
+    __ movq(RBX, target_address);
+    __ call(TMP);
+  }
 
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);

@@ -953,8 +953,24 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(tmp);
   __ movl(compiler::Address(FPREG, kSavedCallerPcSlotFromFp * kWordSize), tmp);
 
-  __ TransitionGeneratedToNative(branch, FPREG, tmp);
-  __ call(branch);
+  if (CanExecuteGeneratedCodeInSafepoint()) {
+    __ TransitionGeneratedToNative(branch, FPREG, tmp);
+    __ call(branch);
+    __ TransitionNativeToGenerated(tmp);
+  } else {
+    // We cannot trust that this code will be executable within a safepoint.
+    // Therefore we delegate the responsibility of entering/exiting the
+    // safepoint to a stub which in the VM isolate's heap, which will never lose
+    // execute permission.
+    __ movl(tmp,
+            compiler::Address(
+                THR, compiler::target::Thread::
+                         call_native_through_safepoint_entry_point_offset()));
+
+    // Calls EAX within a safepoint and clobbers EBX.
+    ASSERT(tmp == EBX && branch == EAX);
+    __ call(tmp);
+  }
 
   // The x86 calling convention requires floating point values to be returned on
   // the "floating-point stack" (aka. register ST0). We don't use the
@@ -967,8 +983,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ fstps(compiler::Address(SPREG, -kFloatSize));
     __ movss(XMM0, compiler::Address(SPREG, -kFloatSize));
   }
-
-  __ TransitionNativeToGenerated(tmp);
 
   // Leave dummy exit frame.
   __ LeaveFrame();
@@ -5610,7 +5624,7 @@ static void EmitShiftInt64ByConstant(FlowGraphCompiler* compiler,
   switch (op_kind) {
     case Token::kSHR: {
       if (shift > 31) {
-        __ movl(left_lo, left_hi);        // Shift by 32.
+        __ movl(left_lo, left_hi);                  // Shift by 32.
         __ sarl(left_hi, compiler::Immediate(31));  // Sign extend left hi.
         if (shift > 32) {
           __ sarl(left_lo, compiler::Immediate(shift > 63 ? 31 : shift - 32));
@@ -5658,9 +5672,9 @@ static void EmitShiftInt64ByECX(FlowGraphCompiler* compiler,
 
       __ Bind(&large_shift);
       // No need to subtract 32 from CL, only 5 bits used by sarl.
-      __ movl(left_lo, left_hi);        // Shift by 32.
+      __ movl(left_lo, left_hi);                  // Shift by 32.
       __ sarl(left_hi, compiler::Immediate(31));  // Sign extend left hi.
-      __ sarl(left_lo, ECX);            // Shift count: CL % 32.
+      __ sarl(left_lo, ECX);                      // Shift count: CL % 32.
       break;
     }
     case Token::kSHL: {

@@ -162,6 +162,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ movl(Address(THR, target::Thread::execution_state_offset()),
+          Immediate(target::Thread::vm_execution_state()));
+
   __ movl(EAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ call(EAX);
   __ LeaveFrame();
@@ -170,6 +177,26 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ addl(SPREG, Immediate(8));
   __ popal();
   __ ret();
+}
+
+// Calls a native function inside a safepoint.
+//
+// On entry:
+//   Stack: set up for native call
+//   EAX: target to call
+//
+// On exit:
+//   Stack: preserved
+//   EBX: clobbered (even though it's normally callee-saved)
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  __ popl(EBX);
+
+  __ TransitionGeneratedToNative(EAX, FPREG, ECX /*volatile*/);
+  __ call(EAX);
+  __ TransitionNativeToGenerated(ECX /*volatile*/);
+
+  __ jmp(EBX);
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {

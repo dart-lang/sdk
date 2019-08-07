@@ -912,20 +912,35 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ StoreToOffset(temp, FPREG, kSavedCallerPcSlotFromFp * kWordSize);
 
-  // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(branch, FPREG, temp);
+  if (CanExecuteGeneratedCodeInSafepoint()) {
+    // Update information in the thread object and enter a safepoint.
+    __ TransitionGeneratedToNative(branch, FPREG, temp);
 
-  // We are entering runtime code, so the C stack pointer must be restored from
-  // the stack limit to the top of the stack.
-  __ mov(CSP, SP);
+    // We are entering runtime code, so the C stack pointer must be restored
+    // from the stack limit to the top of the stack.
+    __ mov(CSP, SP);
 
-  __ blr(branch);
+    __ blr(branch);
 
-  // Restore the Dart stack pointer.
-  __ mov(SP, CSP);
+    // Restore the Dart stack pointer.
+    __ mov(SP, CSP);
 
-  // Update information in the thread object and leave the safepoint.
-  __ TransitionNativeToGenerated(temp);
+    // Update information in the thread object and leave the safepoint.
+    __ TransitionNativeToGenerated(temp);
+  } else {
+    // We cannot trust that this code will be executable within a safepoint.
+    // Therefore we delegate the responsibility of entering/exiting the
+    // safepoint to a stub which in the VM isolate's heap, which will never lose
+    // execute permission.
+    __ ldr(TMP,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
+
+    // Calls R8 and clobbers R19 (along with volatile registers).
+    ASSERT(branch == R8 && temp == R19);
+    __ blr(TMP);
+  }
 
   // Refresh write barrier mask.
   __ ldr(BARRIER_MASK,

@@ -57,6 +57,10 @@ static void Unmap(zx_handle_t vmar, uword start, uword end) {
   }
 }
 
+bool VirtualMemory::DualMappingEnabled() {
+  return FLAG_dual_map_code;
+}
+
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                                               intptr_t alignment,
                                               bool is_executable,

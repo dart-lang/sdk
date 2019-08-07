@@ -4,6 +4,8 @@
 //
 // VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas
 // VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas
+// VMOptions=--deterministic --optimization-counter-threshold=500 --enable-testing-pragmas --no-dual-map-code --write-protect-code
+// VMOptions=--deterministic --optimization-counter-threshold=-1 --enable-testing-pragmas --no-dual-map-code --write-protect-code
 //
 // Dart test program for stress-testing boxing and GC in return paths from FFI
 // trampolines.
@@ -25,6 +27,7 @@ main() async {
   testBoxPointer();
   testAllocateInNative();
   testRegress37069();
+  testWriteProtection();
 }
 
 typedef NativeNullaryOp64 = ffi.Int64 Function();
@@ -105,4 +108,12 @@ final regress37069 = ffiTestFunctions
 // directly.
 void testRegress37069() {
   regress37069(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+}
+
+final unprotectCode = ffiTestFunctions
+    .lookupFunction<NativeNullaryOp32, NullaryOp>("UnprotectCode");
+
+void testWriteProtection() {
+  int result = unprotectCode();
+  Expect.equals(result, 0);
 }

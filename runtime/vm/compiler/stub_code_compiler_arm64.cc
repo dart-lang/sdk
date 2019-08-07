@@ -236,6 +236,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ ReserveAlignedFrameSpace(0);
 
   __ mov(CSP, SP);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ LoadImmediate(R0, target::Thread::vm_execution_state());
+  __ str(R0, Address(THR, target::Thread::execution_state_offset()));
+
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ blr(R0);
   __ mov(SP, CALLEE_SAVED_TEMP);
@@ -243,6 +250,40 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
   __ PopRegisters(all_registers);
   __ LeaveFrame();
   __ Ret();
+}
+
+// Calls native code within a safepoint.
+//
+// On entry:
+//   R8: target to call
+//   Stack: set up for native call (SP), aligned, CSP < SP
+//
+// On exit:
+//   R19: clobbered, although normally callee-saved
+//   Stack: preserved, CSP == SP
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  COMPILE_ASSERT((1 << R19) & kAbiPreservedCpuRegs);
+
+  __ mov(R19, LR);
+  __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/);
+  __ mov(CSP, SP);
+
+#if defined(DEBUG)
+  // Check CSP alignment.
+  __ andi(R10 /*volatile*/, SP,
+          Immediate(~(OS::ActivationFrameAlignment() - 1)));
+  __ cmp(R10, Operand(SP));
+  Label done;
+  __ b(&done, EQ);
+  __ Breakpoint();
+  __ Bind(&done);
+#endif
+
+  __ blr(R8);
+  __ mov(SP, CSP);
+  __ TransitionNativeToGenerated(R9);
+  __ ret(R19);
 }
 
 void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
@@ -3279,7 +3320,7 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ CallRuntime(kUnlinkedCallRuntimeEntry, 3);
   __ Drop(2);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R5);  // result = IC
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3322,7 +3363,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ Drop(1);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R5);  // result = IC
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3346,7 +3387,7 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ Drop(1);
   __ Pop(CODE_REG);  // result = stub
-  __ Pop(R5);  // result = IC
+  __ Pop(R5);        // result = IC
 
   __ Pop(R0);  // Restore receiver.
   __ LeaveStubFrame();

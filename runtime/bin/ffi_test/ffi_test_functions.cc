@@ -14,6 +14,9 @@
 #include <psapi.h>
 #else
 #include <unistd.h>
+
+// Only OK to use here because this is test code.
+#include <thread>
 #endif
 
 #include <setjmp.h>
@@ -25,6 +28,14 @@
 #include "include/dart_native_api.h"
 
 namespace dart {
+
+#define CHECK(X)                                                               \
+  if (!(X)) {                                                                  \
+    fprintf(stderr, "%s\n", "Check failed: " #X);                              \
+    return 1;                                                                  \
+  }
+
+#define CHECK_EQ(X, Y) CHECK((X) == (Y))
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.
@@ -481,30 +492,30 @@ DART_EXPORT float InventFloatValue() {
 // Functions for stress-testing.
 
 DART_EXPORT int64_t MinInt64() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x8000000000000000;
 }
 
 DART_EXPORT int64_t MinInt32() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x80000000;
 }
 
 DART_EXPORT double SmallDouble() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   return 0x80000000 * -1.0;
 }
 
 // Requires boxing on 32-bit and 64-bit systems, even if the top 32-bits are
 // truncated.
 DART_EXPORT void* LargePointer() {
-  Dart_ExecuteInternalCommand("gc-on-next-allocation");
+  Dart_ExecuteInternalCommand("gc-on-next-allocation", nullptr);
   uint64_t origin = 0x8100000082000000;
   return reinterpret_cast<void*>(origin);
 }
 
 DART_EXPORT void TriggerGC(uint64_t count) {
-  Dart_ExecuteInternalCommand("gc-now");
+  Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
 
 // Triggers GC. Has 11 dummy arguments as unboxed odd integers which should be
@@ -520,19 +531,56 @@ DART_EXPORT void Regress37069(uint64_t a,
                               uint64_t i,
                               uint64_t j,
                               uint64_t k) {
-  Dart_ExecuteInternalCommand("gc-now");
+  Dart_ExecuteInternalCommand("gc-now", nullptr);
 }
+
+#if !defined(HOST_OS_WINDOWS) && !defined(TARGET_ARCH_DBC)
+DART_EXPORT void* UnprotectCodeOtherThread(void* isolate,
+                                           std::condition_variable* var,
+                                           std::mutex* mut) {
+  std::function<void()> callback = [&]() {
+    mut->lock();
+    var->notify_all();
+    mut->unlock();
+
+    // Wait for mutator thread to continue (and block) before leaving the
+    // safepoint.
+    while (Dart_ExecuteInternalCommand("is-mutator-in-native", isolate) !=
+           nullptr) {
+      usleep(10 * 1000 /*10 ms*/);
+    }
+  };
+
+  struct {
+    void* isolate;
+    std::function<void()>* callback;
+  } args = {.isolate = isolate, .callback = &callback};
+
+  Dart_ExecuteInternalCommand("run-in-safepoint-and-rw-code", &args);
+  return nullptr;
+}
+
+DART_EXPORT int UnprotectCode() {
+  std::mutex mutex;
+  std::condition_variable cvar;
+  std::unique_lock<std::mutex> lock(mutex);  // locks the mutex
+  std::thread helper(UnprotectCodeOtherThread, Dart_CurrentIsolate(), &cvar,
+                     &mutex);
+
+  helper.detach();
+  cvar.wait(lock);
+
+  return 0;
+}
+#else
+// Our version of VSC++ doesn't support std::thread yet.
+DART_EXPORT int UnprotectCode() {
+  return 0;
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for callbacks.
-
-#define CHECK(X)                                                               \
-  if (!(X)) {                                                                  \
-    fprintf(stderr, "%s\n", "Check failed: " #X);                              \
-    return 1;                                                                  \
-  }
-
-#define CHECK_EQ(X, Y) CHECK((X) == (Y))
 
 // Sanity test.
 DART_EXPORT int TestSimpleAddition(int (*add)(int, int)) {

@@ -660,6 +660,7 @@ class Thread : public AllStatic {
   static uword safepoint_state_acquired();
 
   static word execution_state_offset();
+  static uword vm_execution_state();
   static uword native_execution_state();
   static uword generated_execution_state();
   static word stack_overflow_flags_offset();
@@ -695,6 +696,8 @@ class Thread : public AllStatic {
   static word deoptimize_stub_offset();
   static word enter_safepoint_stub_offset();
   static word exit_safepoint_stub_offset();
+  static word call_native_through_safepoint_stub_offset();
+  static word call_native_through_safepoint_entry_point_offset();
 #endif  // !defined(TARGET_ARCH_DBC)
 
   static word no_scope_native_wrapper_entry_point_offset();

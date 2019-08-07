@@ -4400,6 +4400,15 @@ class FfiCallInstr : public Definition {
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
   virtual Representation representation() const;
 
+  // Returns true if we can assume generated code will be executable during a
+  // safepoint.
+  //
+  // TODO(#37739): This should be true when dual-mapping is enabled as well, but
+  // there are some bugs where it still switches code protections currently.
+  static bool CanExecuteGeneratedCodeInSafepoint() {
+    return FLAG_precompiled_mode;
+  }
+
   PRINT_OPERANDS_TO_SUPPORT
 
  private:

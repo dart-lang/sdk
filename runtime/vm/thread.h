@@ -123,7 +123,9 @@ class Zone;
   V(RawCode*, lazy_specialize_type_test_stub_,                                 \
     StubCode::LazySpecializeTypeTest().raw(), NULL)                            \
   V(RawCode*, enter_safepoint_stub_, StubCode::EnterSafepoint().raw(), NULL)   \
-  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)
+  V(RawCode*, exit_safepoint_stub_, StubCode::ExitSafepoint().raw(), NULL)     \
+  V(RawCode*, call_native_through_safepoint_stub_,                             \
+    StubCode::CallNativeThroughSafepoint().raw(), NULL)
 
 #endif
 
@@ -168,7 +170,9 @@ class Zone;
     0)                                                                         \
   V(uword, optimize_entry_, StubCode::OptimizeFunction().EntryPoint(), 0)      \
   V(uword, deoptimize_entry_, StubCode::Deoptimize().EntryPoint(), 0)          \
-  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0)
+  V(uword, verify_callback_entry_, StubCode::VerifyCallback().EntryPoint(), 0) \
+  V(uword, call_native_through_safepoint_entry_point_,                         \
+    StubCode::CallNativeThroughSafepoint().EntryPoint(), 0)
 #endif
 
 #define CACHED_ADDRESSES_LIST(V)                                               \

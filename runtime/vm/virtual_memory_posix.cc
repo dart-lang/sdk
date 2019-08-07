@@ -83,6 +83,10 @@ void VirtualMemory::Init() {
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
 }
 
+bool VirtualMemory::DualMappingEnabled() {
+  return FLAG_dual_map_code;
+}
+
 static void unmap(uword start, uword end) {
   ASSERT(start <= end);
   uword size = end - start;

@@ -3012,7 +3012,8 @@ extern "C" void DFLRT_ExitSafepoint(NativeArguments __unusable_) {
   CHECK_STACK_ALIGNMENT;
   Thread* thread = Thread::Current();
   ASSERT(thread->top_exit_frame_info() != 0);
-  ASSERT(thread->execution_state() == Thread::kThreadInNative);
+
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->ExitSafepoint();
 }
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepoint, 0, false, &DFLRT_ExitSafepoint);

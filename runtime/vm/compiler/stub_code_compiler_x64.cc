@@ -223,6 +223,13 @@ void StubCodeCompiler::GenerateExitSafepointStub(Assembler* assembler) {
 
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
+
+  // Set the execution state to VM while waiting for the safepoint to end.
+  // This isn't strictly necessary but enables tests to check that we're not
+  // in native code anymore. See tests/ffi/function_gc_test.dart for example.
+  __ movq(Address(THR, target::Thread::execution_state_offset()),
+          Immediate(target::Thread::vm_execution_state()));
+
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
   __ LeaveFrame();
@@ -242,6 +249,29 @@ void StubCodeCompiler::GenerateVerifyCallbackStub(Assembler* assembler) {
           Address(THR, kVerifyCallbackIsolateRuntimeEntry.OffsetFromThread()));
   __ CallCFunction(RAX);
   __ LeaveFrame();
+  __ ret();
+}
+
+// Calls native code within a safepoint.
+//
+// On entry:
+//   Stack: arguments set up and aligned for native call, excl. shadow space
+//   RBX = target address to call
+//
+// On exit:
+//   Stack pointer lowered by shadow space
+//   RBX, R12 clobbered
+void StubCodeCompiler::GenerateCallNativeThroughSafepointStub(
+    Assembler* assembler) {
+  __ TransitionGeneratedToNative(RBX, FPREG);
+
+  __ popq(R12);
+  __ CallCFunction(RBX);
+
+  __ TransitionNativeToGenerated();
+
+  // Faster than jmp because it doesn't confuse the branch predictor.
+  __ pushq(R12);
   __ ret();
 }
 
@@ -3284,7 +3314,7 @@ void StubCodeCompiler::GenerateUnlinkedCallStub(Assembler* assembler) {
   __ popq(RBX);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3326,7 +3356,7 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ CallRuntime(kSingleTargetMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();
@@ -3350,7 +3380,7 @@ void StubCodeCompiler::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 2);
   __ popq(RBX);
   __ popq(CODE_REG);  // result = stub
-  __ popq(RBX);  // result = IC
+  __ popq(RBX);       // result = IC
 
   __ popq(RDX);  // Restore receiver.
   __ LeaveStubFrame();

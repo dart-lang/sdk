@@ -1036,13 +1036,28 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  RawPcDescriptors::Kind::kOther, locs());
 
   // Update information in the thread object and enter a safepoint.
-  __ TransitionGeneratedToNative(branch, FPREG, saved_fp,
-                                 locs()->temp(1).reg());
+  const Register tmp = locs()->temp(1).reg();
+  if (CanExecuteGeneratedCodeInSafepoint()) {
+    __ TransitionGeneratedToNative(branch, FPREG, saved_fp, tmp);
 
-  __ blx(branch);
+    __ blx(branch);
 
-  // Update information in the thread object and leave the safepoint.
-  __ TransitionNativeToGenerated(saved_fp, locs()->temp(1).reg());
+    // Update information in the thread object and leave the safepoint.
+    __ TransitionNativeToGenerated(saved_fp, tmp);
+  } else {
+    // We cannot trust that this code will be executable within a safepoint.
+    // Therefore we delegate the responsibility of entering/exiting the
+    // safepoint to a stub which in the VM isolate's heap, which will never lose
+    // execute permission.
+    __ ldr(TMP,
+           compiler::Address(
+               THR, compiler::target::Thread::
+                        call_native_through_safepoint_entry_point_offset()));
+
+    // Calls R8 in a safepoint and clobbers NOTFP and R4.
+    ASSERT(branch == R8 && tmp == NOTFP && locs()->temp(2).reg() == R4);
+    __ blx(TMP);
+  }
 
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
