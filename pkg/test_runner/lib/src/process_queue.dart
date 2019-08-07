@@ -682,6 +682,7 @@ class CommandExecutorImpl implements CommandExecutor {
         [
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart_precompiled_runtime',
+          '--android-log-to-stderr'
         ]..addAll(arguments),
         timeout: timeoutDuration));
 
@@ -741,6 +742,7 @@ class CommandExecutorImpl implements CommandExecutor {
         [
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
               '$devicedir/dart',
+          '--android-log-to-stderr'
         ]..addAll(arguments),
         timeout: timeoutDuration));
 
