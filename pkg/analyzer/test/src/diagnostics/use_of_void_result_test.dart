@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -13,6 +14,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseOfVoidResultTest);
+    defineReflectiveTests(UseOfVoidResultWithExtensionMethodsTest);
     defineReflectiveTests(UseOfVoidResultTest_NonNullable);
   });
 }
@@ -565,5 +567,26 @@ g() {
   f()!;
 }
 ''', [ExpectedError(StaticWarningCode.USE_OF_VOID_RESULT, 23, 4)]);
+  }
+}
+
+@reflectiveTest
+class UseOfVoidResultWithExtensionMethodsTest extends UseOfVoidResultTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
+
+  test_useOfVoidReturnInExtensionMethod() async {
+    await assertErrorsInCode('''
+extension on void {
+  testVoid() {
+    // No access on void. Static type of `this` is void!
+    this.toString();
+  }
+}
+''', [
+      error(StaticWarningCode.USE_OF_VOID_RESULT, 96, 4),
+    ]);
   }
 }

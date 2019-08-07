@@ -195,6 +195,26 @@ f(C c) {
 /// by code external to the extension declaration.
 @reflectiveTest
 class ExtensionMethodsExternalReferenceTest extends BaseExtensionMethodsTest {
+  /// Corresponds to: extension_member_resolution_t07
+  test_dynamicInvocation() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+class C extends A {
+  String method(int i) => "$i";
+  noSuchMethod(Invocation i) { }
+}
+
+extension E<T extends A> on T {
+  String method(int i, String s) => '';
+}
+
+main() {
+  dynamic c = new C();
+  c.method(42, "-42");
+}
+''');
+  }
+
   test_instance_call_fromExtendedType() async {
     await assertNoErrorsInCode('''
 class C {
@@ -1013,6 +1033,35 @@ f() => E.a;
     var identifier = findNode.simple('a;');
     assertElement(identifier, findElement.method('a'));
     assertType(identifier, 'void Function(int)');
+  }
+
+  test_thisAccessOnDynamic() async {
+    await assertNoErrorsInCode('''
+extension on dynamic {
+  int get d => 3;
+
+  void testDynamic() {
+    // Static type of `this` is dynamic, allows dynamic invocation.
+    this.arglebargle();
+  }
+}
+''');
+  }
+
+  test_thisAccessOnFunction() async {
+    await assertNoErrorsInCode('''
+extension on Function {
+  int get f => 4;
+
+  void testFunction() {
+    // Static type of `this` is Function. Allows any dynamic invocation.
+    this();
+    this(1);
+    this(x: 1);
+    // No function can have both optional positional and named parameters.
+  }
+}
+''');
   }
 }
 

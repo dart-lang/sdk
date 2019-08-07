@@ -69,7 +69,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * The type representing the class containing the nodes being analyzed,
    * or `null` if the nodes are not within a class.
    */
-  InterfaceType thisType;
+  DartType thisType;
 
   /**
    * The object providing promoted or declared types of variables.

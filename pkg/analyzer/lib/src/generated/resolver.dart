@@ -3815,10 +3815,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     try {
       DartType extendedType = node.declaredElement.extendedType;
-      if (extendedType is InterfaceType) {
-        // TODO(brianwilkerson) Handle other cases.
-        typeAnalyzer.thisType = extendedType;
-      }
+      typeAnalyzer.thisType = typeSystem.resolveToBound(extendedType);
       super.visitExtensionDeclaration(node);
       node.accept(elementResolver);
       node.accept(typeAnalyzer);
