@@ -1095,26 +1095,6 @@ class ElementResolver extends SimpleAstVisitor<void> {
     return _resolveTypeParameter(type);
   }
 
-  ExecutableElement _inferExtensionArgumentTypes(
-    DartType receiverType,
-    ExtensionElement extension,
-    ExecutableElement member,
-  ) {
-    if (member == null) {
-      return null;
-    }
-
-    var typeArguments = _extensionMemberResolver.inferTypeArguments(
-      extension,
-      receiverType,
-    );
-    return ExecutableMember.from3(
-      member,
-      extension.typeParameters,
-      typeArguments,
-    );
-  }
-
   /**
    * Check for a generic method & apply type arguments if any were passed.
    */
@@ -1252,16 +1232,26 @@ class ElementResolver extends SimpleAstVisitor<void> {
    * use the given [node] to report the error.
    */
   MethodElement _lookUpCallMethod(InterfaceType type, Expression node) {
-    MethodElement callMethod = type.lookUpMethod(
-        FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-    if (callMethod == null) {
-      var extension = _extensionMemberResolver.findExtension(
-          type, FunctionElement.CALL_METHOD_NAME, node, ElementKind.METHOD);
-      if (extension != null) {
-        callMethod = extension.getMethod(FunctionElement.CALL_METHOD_NAME);
-      }
+    var callMethod = type.lookUpMethod(
+      FunctionElement.CALL_METHOD_NAME,
+      _resolver.definingLibrary,
+    );
+    if (callMethod != null) {
+      return callMethod;
     }
-    return callMethod;
+
+    var extension = _extensionMemberResolver.findExtension(
+      type,
+      FunctionElement.CALL_METHOD_NAME,
+      node,
+      ElementKind.METHOD,
+    );
+    var instantiatedMember = extension?.instantiatedMember;
+    if (instantiatedMember is MethodElement) {
+      return instantiatedMember;
+    }
+
+    return null;
   }
 
   /**
@@ -1282,8 +1272,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.GETTER);
       if (extension != null) {
-        var member = extension.getGetter(name);
-        return _inferExtensionArgumentTypes(type, extension, member);
+        return extension.instantiatedMember;
       }
     }
     return null;
@@ -1321,8 +1310,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.METHOD);
       if (extension != null) {
-        var member = extension.getMethod(name);
-        return _inferExtensionArgumentTypes(type, extension, member);
+        return extension.instantiatedMember;
       }
     }
     return null;
@@ -1346,8 +1334,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       var extension = _extensionMemberResolver.findExtension(
           type, name, nameNode, ElementKind.SETTER);
       if (extension != null) {
-        var member = extension.getSetter(name);
-        return _inferExtensionArgumentTypes(type, extension, member);
+        return extension.instantiatedMember;
       }
     }
     return null;
@@ -1603,10 +1590,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
 
       if (invokeElement == null && leftType is InterfaceType) {
-        ExtensionElement extension = _extensionMemberResolver.findExtension(
+        var extension = _extensionMemberResolver.findExtension(
             leftType, methodName, node, ElementKind.METHOD);
         if (extension != null) {
-          invokeElement = extension.getMethod(methodName);
+          invokeElement = extension.instantiatedMember;
         }
       }
 

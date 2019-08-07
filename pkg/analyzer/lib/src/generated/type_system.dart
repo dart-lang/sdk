@@ -1285,6 +1285,7 @@ class GenericInferrer {
       {bool considerExtendsClause: true,
       ErrorReporter errorReporter,
       AstNode errorNode,
+      bool failAtError: false,
       bool downwardsInferPhase: false}) {
     var fnTypeParams = TypeParameterTypeImpl.getTypes(typeFormals);
 
@@ -1340,6 +1341,7 @@ class GenericInferrer {
       }
 
       if (!success) {
+        if (failAtError) return null;
         errorReporter?.reportErrorForNode(
             StrongModeCode.COULD_NOT_INFER,
             errorNode,
@@ -1352,6 +1354,7 @@ class GenericInferrer {
       }
 
       if (inferred is FunctionType && inferred.typeFormals.isNotEmpty) {
+        if (failAtError) return null;
         errorReporter
             ?.reportErrorForNode(StrongModeCode.COULD_NOT_INFER, errorNode, [
           typeParam,
@@ -1380,6 +1383,7 @@ class GenericInferrer {
     // Report any errors from instantiateToBounds.
     for (int i = 0; i < hasError.length; i++) {
       if (hasError[i]) {
+        if (failAtError) return null;
         TypeParameterType typeParam = fnTypeParams[i];
         var typeParamBound =
             typeParam.bound.substitute2(inferredTypes, fnTypeParams);
@@ -2992,7 +2996,8 @@ class _TypeConstraintFromArgument extends _TypeConstraintOrigin {
     // However in summary code it doesn't look like the AST node with span is
     // available.
     String prefix;
-    if ((genericType.name == "List" || genericType.name == "Map") &&
+    if (genericType != null &&
+        (genericType.name == "List" || genericType.name == "Map") &&
         genericType?.element?.library?.isDartCore == true) {
       // This will become:
       //     "List element"

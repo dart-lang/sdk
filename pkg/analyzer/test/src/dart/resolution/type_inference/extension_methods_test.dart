@@ -70,6 +70,32 @@ void f(A<int> a) {
     assertType(invocation, 'Map<int, double>');
   }
 
+  test_implicit_method_onTypeParameter() async {
+    await assertNoErrorsInCode('''
+extension E<T> on T {
+  Map<T, U> foo<U>(U value) => <T, U>{};
+}
+
+main(String a) {
+  a.foo(0);
+}
+''');
+    // TODO(scheglov) We need to instantiate "foo" fully.
+    var invocation = findNode.methodInvocation('foo(0)');
+    assertMember(
+      invocation,
+      findElement.method('foo', of: 'E'),
+      {'T': 'String'},
+    );
+//    assertMember(
+//      invocation,
+//      findElement.method('foo', of: 'E'),
+//      {'T': 'int', 'U': 'double'},
+//    );
+    assertInvokeType(invocation, 'Map<String, int> Function(int)');
+    assertType(invocation, 'Map<String, int>');
+  }
+
   test_implicit_method_tearOff() async {
     await assertNoErrorsInCode('''
 class A<T> {}

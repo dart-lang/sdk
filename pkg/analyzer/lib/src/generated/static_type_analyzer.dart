@@ -479,27 +479,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    var element = node.staticElement;
-    var typeParameters = element.typeParameters;
-
-    DartType targetType;
-    var arguments = node.argumentList.arguments;
-    if (arguments.length == 1) {
-      targetType = arguments[0].staticType;
-    }
-
     var extensionResolver = ExtensionMemberResolver(_resolver);
-    var typeArgumentTypes = extensionResolver.inferTypeArguments(
-      element,
-      targetType,
-      typeArguments: node.typeArguments,
-    );
-
-    var nodeImpl = node as ExtensionOverrideImpl;
-    nodeImpl.typeArgumentTypes = typeArgumentTypes;
-    nodeImpl.extendedType =
-        Substitution.fromPairs(typeParameters, typeArgumentTypes)
-            .substituteType(element.extendedType);
+    extensionResolver.resolveOverride(node);
   }
 
   @override

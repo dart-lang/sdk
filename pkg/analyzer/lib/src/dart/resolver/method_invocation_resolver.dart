@@ -345,42 +345,19 @@ class MethodInvocationResolver {
     SimpleIdentifier nameNode,
     String name,
   ) {
-    var extensions = _extensionResolver.getApplicableExtensions(
+    var extension = _extensionResolver.findExtension(
       receiverType,
       name,
+      nameNode,
       ElementKind.METHOD,
     );
 
-    if (extensions.isEmpty) {
+    if (extension == null) {
+      _setDynamicResolution(node);
       return false;
     }
 
-    ExtensionElement extension;
-    if (extensions.length == 1) {
-      extension = extensions[0];
-    } else {
-      extension = _extensionResolver.chooseMostSpecificExtension(
-        extensions,
-        receiverType,
-      );
-      if (extension == null) {
-        _setDynamicResolution(node);
-        _resolver.errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.AMBIGUOUS_EXTENSION_METHOD_ACCESS,
-          nameNode,
-          [
-            name,
-            extensions[0].name,
-            extensions[1].name,
-          ],
-        );
-        return true;
-      }
-    }
-
-    ExecutableElement member = extension.getMethod(name) ??
-        extension.getGetter(name) ??
-        extension.getSetter(name);
+    ExecutableElement member = extension.instantiatedMember;
 
     if (member.isStatic) {
       _setDynamicResolution(node);
@@ -390,16 +367,6 @@ class MethodInvocationResolver {
       );
       return true;
     }
-
-    var typeArguments = _extensionResolver.inferTypeArguments(
-      extension,
-      receiverType,
-    );
-    member = ExecutableMember.from3(
-      member,
-      extension.typeParameters,
-      typeArguments,
-    );
 
     nameNode.staticElement = member;
     var calleeType = _getCalleeType(node, member);
@@ -610,7 +577,7 @@ class MethodInvocationResolver {
     var extension = _extensionResolver.findExtension(
         receiverType, name, nameNode, ElementKind.METHOD);
     if (extension != null) {
-      var target = extension.getMethod(name);
+      var target = extension.instantiatedMember;
       if (target != null) {
         nameNode.staticElement = target;
         var calleeType = _getCalleeType(node, target);
@@ -775,7 +742,7 @@ class MethodInvocationResolver {
         var extension = _extensionResolver.findExtension(
             type, _nameCall.name, node.methodName, ElementKind.METHOD);
         if (extension != null) {
-          call = extension.getMethod(_nameCall.name);
+          call = extension.instantiatedMember;
         }
       }
       if (call != null && call.kind == ElementKind.METHOD) {
