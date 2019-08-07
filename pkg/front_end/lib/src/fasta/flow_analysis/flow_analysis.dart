@@ -301,8 +301,11 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     _stack.add(_current);
 
     Set<Variable> notPromoted = null;
-    for (var variable in _current.promoted.keys) {
-      if (functionBody.isPotentiallyMutatedInScope(variable)) {
+    for (var entry in _current.promoted.entries) {
+      var variable = entry.key;
+      var promotedType = entry.value;
+      if (promotedType != null &&
+          functionBody.isPotentiallyMutatedInScope(variable)) {
         notPromoted ??= Set<Variable>.identity();
         notPromoted.add(variable);
       }
@@ -644,19 +647,18 @@ class FlowModel<Variable, Type> {
   /// the control flow.
   final _VariableSet<Variable> notAssigned;
 
-  /// For each variable whose type is promoted at this point in the control
-  /// flow, the promoted type.  Variables whose type is not promoted are not
-  /// present in the map.
+  /// For each variable being tracked by flow analysis, the variable's promoted
+  /// type, or `null` if the variable's type is not promoted.
   ///
   /// Flow analysis has no awareness of scope, so variables that are out of
-  /// scope are retained in the map until such time as their promotions would
-  /// have been lost, if their scope had extended to the entire function being
-  /// analyzed.  So, for example, if a variable is declared and then promoted
-  /// inside the `then` branch of an `if` statement, and the `else` branch of
-  /// the `if` statement ends in a `return` statement, then the promotion
-  /// remains in the map after the `if` statement ends.  This should not have
-  /// any effect on analysis results for error-free code, because it is an error
-  /// to refer to a variable that is no longer in scope.
+  /// scope are retained in the map until such time as their declaration no
+  /// longer dominates the control flow.  So, for example, if a variable is
+  /// declared and then promoted inside the `then` branch of an `if` statement,
+  /// and the `else` branch of the `if` statement ends in a `return` statement,
+  /// then the variable remains in the map after the `if` statement ends, even
+  /// though the variable is not in scope anymore.  This should not have any
+  /// effect on analysis results for error-free code, because it is an error to
+  /// refer to a variable that is no longer in scope.
   final Map<Variable, Type> promoted;
 
   /// Creates a state object with the given [reachable] status.  All variables
@@ -680,15 +682,13 @@ class FlowModel<Variable, Type> {
   /// the point of declaration.
   FlowModel<Variable, Type> add(Variable variable, {bool assigned: false}) {
     var newNotAssigned = assigned ? notAssigned : notAssigned.add(variable);
-
-    if (identical(newNotAssigned, notAssigned)) {
-      return this;
-    }
+    var newPromoted = Map<Variable, Type>.from(promoted);
+    newPromoted[variable] = null;
 
     return FlowModel<Variable, Type>._(
       reachable,
       newNotAssigned,
-      promoted,
+      newPromoted,
     );
   }
 
@@ -818,10 +818,10 @@ class FlowModel<Variable, Type> {
 
     var newPromoted = <Variable, Type>{};
     bool promotedMatchesThis = true;
-    bool promotedMatchesOther = true;
-    for (var variable in Set<Variable>.from(promoted.keys)
-      ..addAll(other.promoted.keys)) {
-      var thisType = promoted[variable];
+    bool promotedMatchesOther = other.promoted.length == promoted.length;
+    for (var entry in promoted.entries) {
+      var variable = entry.key;
+      var thisType = entry.value;
       var otherType = other.promoted[variable];
       if (!unsafe.contains(variable)) {
         if (otherType != null &&
@@ -844,6 +844,7 @@ class FlowModel<Variable, Type> {
           promotedMatchesOther = false;
         }
       } else {
+        newPromoted[variable] = null;
         if (promotedMatchesOther && otherType != null) {
           promotedMatchesOther = false;
         }
@@ -912,16 +913,10 @@ class FlowModel<Variable, Type> {
   /// immutable.
   Map<Variable, Type> _removePromoted(
       Map<Variable, Type> map, Variable variable) {
-    if (map.isEmpty) return const {};
+    if (map[variable] == null) return map;
 
-    var result = <Variable, Type>{};
-    for (var key in map.keys) {
-      if (!identical(key, variable)) {
-        result[key] = map[key];
-      }
-    }
-
-    if (result.isEmpty) return const {};
+    var result = Map<Variable, Type>.from(map);
+    result[variable] = null;
     return result;
   }
 
@@ -936,11 +931,14 @@ class FlowModel<Variable, Type> {
 
     var result = <Variable, Type>{};
     var noChanges = true;
-    for (var key in map.keys) {
-      if (variables.contains(key)) {
+    for (var entry in map.entries) {
+      var variable = entry.key;
+      var promotedType = entry.value;
+      if (variables.contains(variable) && promotedType != null) {
+        result[variable] = null;
         noChanges = false;
       } else {
-        result[key] = map[key];
+        result[variable] = promotedType;
       }
     }
 
@@ -996,12 +994,21 @@ class FlowModel<Variable, Type> {
     var result = <Variable, Type>{};
     var alwaysFirst = true;
     var alwaysSecond = true;
-    for (var variable in first.keys) {
-      var firstType = first[variable];
-      var secondType = second[variable];
-      if (secondType != null) {
+    for (var entry in first.entries) {
+      var variable = entry.key;
+      if (!second.containsKey(variable)) {
+        alwaysFirst = false;
+      } else {
+        var firstType = entry.value;
+        var secondType = second[variable];
         if (identical(firstType, secondType)) {
           result[variable] = firstType;
+        } else if (firstType == null) {
+          result[variable] = null;
+          alwaysSecond = false;
+        } else if (secondType == null) {
+          result[variable] = null;
+          alwaysFirst = false;
         } else if (typeOperations.isSubtypeOf(firstType, secondType)) {
           result[variable] = secondType;
           alwaysFirst = false;
@@ -1009,11 +1016,10 @@ class FlowModel<Variable, Type> {
           result[variable] = firstType;
           alwaysSecond = false;
         } else {
+          result[variable] = null;
           alwaysFirst = false;
           alwaysSecond = false;
         }
-      } else {
-        alwaysFirst = false;
       }
     }
 
@@ -1060,7 +1066,12 @@ class FlowModel<Variable, Type> {
     for (var entry in p1.entries) {
       var p1Value = entry.value;
       var p2Value = p2[entry.key];
-      if (!typeOperations.isSameType(p1Value, p2Value)) return false;
+      if (p1Value == null) {
+        if (p2Value != null) return false;
+      } else {
+        if (p2Value == null) return false;
+        if (!typeOperations.isSameType(p1Value, p2Value)) return false;
+      }
     }
     return true;
   }

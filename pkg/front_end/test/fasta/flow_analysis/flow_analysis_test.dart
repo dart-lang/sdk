@@ -159,7 +159,7 @@ main() {
         var s2 = s1.add(intVar);
         expect(s2.notAssigned.contains(intVar), true);
         expect(s2.reachable, true);
-        expect(s2.promoted, same(s1.promoted));
+        expect(s2.promoted, {intVar: null});
       });
 
       test('unassigned', () {
@@ -167,14 +167,14 @@ main() {
         var s2 = s1.add(intVar, assigned: false);
         expect(s2.notAssigned.contains(intVar), true);
         expect(s2.reachable, true);
-        expect(s2.promoted, same(s1.promoted));
+        expect(s2.promoted, {intVar: null});
       });
 
       test('assigned', () {
         var s1 = FlowModel<_Var, _Type>(true);
         var s2 = s1.add(intVar, assigned: true);
         expect(s2.notAssigned.contains(intVar), false);
-        expect(s2, same(s1));
+        expect(s2.promoted, {intVar: null});
       });
     });
 
@@ -279,7 +279,7 @@ main() {
         var s2 = s1.write(h, emptySet, objectQVar);
         expect(s2.reachable, true);
         expect(s2.notAssigned, same(s1.notAssigned));
-        expect(s2.promoted, isEmpty);
+        expect(s2.promoted, {objectQVar: null});
       });
     });
 
@@ -345,7 +345,7 @@ main() {
         expect(s2.reachable, true);
         expect(s2.notAssigned, same(s1.notAssigned));
         _Type.allowComparisons(() {
-          expect(s2.promoted, {objectQVar: _Type('int')});
+          expect(s2.promoted, {objectQVar: _Type('int'), intQVar: null});
         });
       });
     });
@@ -392,7 +392,8 @@ main() {
           var result =
               s1.restrict(h, emptySet, s2, unsafe ? [x].toSet() : Set());
           if (expectedType == null) {
-            expect(result.promoted, isNot(contains(x)));
+            expect(result.promoted, contains(x));
+            expect(result.promoted[x], isNull);
           } else {
             expect(result.promoted[x].type, expectedType);
           }
@@ -410,6 +411,17 @@ main() {
         _check('int?', 'int', true, 'int?');
         _check('int', 'int?', true, 'int');
         _check('int', 'String', true, 'int');
+      });
+
+      test('variable present in one state but not the other', () {
+        var h = _Harness();
+        var x = _Var('x', _Type('Object?'));
+        var s0 = FlowModel<_Var, _Type>(true);
+        var s1 = s0.add(x, assigned: true);
+        expect(s0.restrict(h, emptySet, s1, {}), same(s0));
+        expect(s0.restrict(h, emptySet, s1, {x}), same(s0));
+        expect(s1.restrict(h, emptySet, s0, {}), same(s1));
+        expect(s1.restrict(h, emptySet, s0, {x}), same(s1));
       });
     });
   });
@@ -449,8 +461,8 @@ main() {
         var h = _Harness();
         var p1 = {x: intType};
         var p2 = {x: stringType};
-        expect(FlowModel.joinPromoted(h, p1, p2), same(emptyMap));
-        expect(FlowModel.joinPromoted(h, p2, p1), same(emptyMap));
+        expect(FlowModel.joinPromoted(h, p1, p2), {x: null});
+        expect(FlowModel.joinPromoted(h, p2, p1), {x: null});
       });
 
       test('sub-map', () {
