@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: languageVersion=2.5*/
+// If no language version is specified, and none if given in a .packages file,
+// we default to the most reason one. In the tests this is hard-coded to 2.4.
 
-import 'foo2.dart';
+/*library: languageVersion=2.4*/
 
 foo() {
   print("Hello from foo!");
-  foo2();
 }

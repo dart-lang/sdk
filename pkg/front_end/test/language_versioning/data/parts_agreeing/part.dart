@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: languageVersion=2.5*/
+// @dart = 2.5
 
-import 'foo2.dart';
+part of 'main.dart';
 
-foo() {
-  print("Hello from foo!");
-  foo2();
-}
+foo() {}

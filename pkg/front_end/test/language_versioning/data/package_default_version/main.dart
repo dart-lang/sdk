@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:foo/foo.dart';
-
 // Set version of this file (not technically in package) explicitly to test as
 // much as possibly separately.
 
 // @dart = 2.4
+
+import 'package:foo/foo.dart';
 
 /*library: languageVersion=2.4*/
 
