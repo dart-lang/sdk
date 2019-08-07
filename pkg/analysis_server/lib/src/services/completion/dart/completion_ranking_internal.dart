@@ -168,3 +168,14 @@ List<String> constructQuery(DartCompletionRequest request, int n) {
 
   return result.reversed.toList(growable: false);
 }
+
+/// Maps included relevance tags formatted as
+/// '${element.librarySource.uri}::${element.name}' to element.name.
+String elementNameFromRelevanceTag(String tag) {
+  final index = tag.lastIndexOf('::');
+  if (index == -1) {
+    return null;
+  }
+
+  return tag.substring(index + 2);
+}

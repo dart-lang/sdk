@@ -138,7 +138,8 @@ class CompletionRanking {
       List<IncludedSuggestionRelevanceTag> includedSuggestions;
       if (includedSuggestionRelevanceTags != null) {
         includedSuggestions = includedSuggestionRelevanceTags
-            .where((tag) => areCompletionsEquivalent(tag.tag, entry.key))
+            .where((tag) => areCompletionsEquivalent(
+                elementNameFromRelevanceTag(tag.tag), entry.key))
             .toList();
       } else {
         includedSuggestions = [];

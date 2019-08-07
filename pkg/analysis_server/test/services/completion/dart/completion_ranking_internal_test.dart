@@ -193,4 +193,10 @@ void main() {
     when(target.entity).thenReturn(two);
     expect(constructQuery(request, 100), equals(['class', 'Animal']));
   });
+
+  test('elementNameFromRelevanceTag', () {
+    final tag =
+        'package::flutter/src/widgets/preferred_size.dart::::PreferredSizeWidget';
+    expect(elementNameFromRelevanceTag(tag), equals('PreferredSizeWidget'));
+  });
 }
