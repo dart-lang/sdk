@@ -229,10 +229,27 @@ class CompletionTest extends AbstractLspAnalysisServerTest {
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
-    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));
+  }
+
+  test_parensNotInFilterTextInsertText() async {
+    final content = '''
+    class MyClass {}
+
+    main() {
+      MyClass a = new MyCla^
+    }
+    ''';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+    expect(res.any((c) => c.label == 'MyClass()'), isTrue);
+    final item = res.singleWhere((c) => c.label == 'MyClass()');
+    expect(item.filterText, equals('MyClass'));
+    expect(item.insertText, equals('MyClass'));
   }
 
   test_suggestionSets() async {
@@ -768,7 +785,6 @@ main() {
     final item = res.singleWhere((c) => c.label == 'abcdefghij');
     expect(item.insertTextFormat,
         anyOf(equals(InsertTextFormat.PlainText), isNull));
-    // ignore: deprecated_member_use_from_same_package
     expect(item.insertText, anyOf(equals('abcdefghij'), isNull));
     final updated = applyTextEdits(withoutMarkers(content), [item.textEdit]);
     expect(updated, contains('a.abcdefghij'));

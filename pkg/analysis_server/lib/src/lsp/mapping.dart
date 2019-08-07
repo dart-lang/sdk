@@ -153,10 +153,12 @@ lsp.CompletionItem declarationToCompletionItem(
   int replacementOffset,
   int replacementLength,
 ) {
-  // Build display labels and text to insert. insertText may differ from label
-  // if the label includes things like (…).
+  // Build display labels and text to insert. insertText and filterText may
+  // differ from label (for ex. if the label includes things like (…)). If
+  // either are missing then label will be used by the client.
   String label;
   String insertText;
+  String filterText;
   switch (declaration.kind) {
     case DeclarationKind.ENUM_CONSTANT:
       label = '${declaration.parent.name}.${declaration.name}';
@@ -167,11 +169,13 @@ lsp.CompletionItem declarationToCompletionItem(
         label += '.${declaration.name}';
       }
       insertText = label;
+      filterText = label;
       label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
       break;
     case DeclarationKind.FUNCTION:
       label = declaration.name;
       insertText = label;
+      filterText = label;
       label += declaration.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
       break;
     default:
@@ -206,8 +210,8 @@ lsp.CompletionItem declarationToCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     (1000000 - itemRelevance).toString(),
-    null, // filterText uses label if not set
-    insertText, // insertText uses label if not set
+    filterText != label ? filterText : null, // filterText uses label if not set
+    insertText != label ? insertText : null, // insertText uses label if not set
     null, // insertTextFormat (we always use plain text so can ommit this)
     null, // textEdit - added on during resolve
     null, // additionalTextEdits, used for adding imports, etc.
@@ -564,11 +568,12 @@ lsp.CompletionItem toCompletionItem(
   int replacementOffset,
   int replacementLength,
 ) {
-  // Build display labels and text to insert. insertText may differ from label
-  // if the label includes things like (…). If insertText is left as null then
-  // label is used.
+  // Build display labels and text to insert. insertText and filterText may
+  // differ from label (for ex. if the label includes things like (…)). If
+  // either are missing then label will be used by the client.
   String label;
   String insertText;
+  String filterText;
   if (suggestion.displayText != null) {
     label = suggestion.displayText;
     insertText = suggestion.completion;
@@ -580,6 +585,7 @@ lsp.CompletionItem toCompletionItem(
         label = suggestion.completion;
         // Label is the insert text plus the parens to indicate it's callable.
         insertText = label;
+        filterText = label;
         label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
         break;
       default:
@@ -613,7 +619,7 @@ lsp.CompletionItem toCompletionItem(
     //  10 -> 999990
     //   1 -> 999999
     (1000000 - suggestion.relevance).toString(),
-    null, // filterText uses label if not set
+    filterText != label ? filterText : null, // filterText uses label if not set
     insertText != label ? insertText : null, // insertText uses label if not set
     null, // insertTextFormat (we always use plain text so can ommit this)
     new lsp.TextEdit(
