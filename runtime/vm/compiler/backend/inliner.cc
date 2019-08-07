@@ -2632,12 +2632,13 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   const bool value_needs_unboxing =
       array_cid == kTypedDataInt8ArrayCid ||
       array_cid == kTypedDataInt16ArrayCid ||
+      array_cid == kTypedDataInt32ArrayCid ||
       array_cid == kTypedDataUint8ArrayCid ||
       array_cid == kTypedDataUint8ClampedArrayCid ||
       array_cid == kTypedDataUint16ArrayCid ||
+      array_cid == kTypedDataUint32ArrayCid ||
       array_cid == kExternalTypedDataUint8ArrayCid ||
-      array_cid == kExternalTypedDataUint8ClampedArrayCid ||
-      array_cid == kTypedDataUint32ArrayCid;
+      array_cid == kExternalTypedDataUint8ClampedArrayCid;
 
   if (value_check != NULL) {
     // No store barrier needed because checked value is a smi, an unboxed mint,
@@ -2657,7 +2658,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   } else if (value_needs_unboxing) {
     Representation representation = kNoRepresentation;
     switch (array_cid) {
-      case kUnboxedInt32:
+      case kTypedDataInt32ArrayCid:
         representation = kUnboxedInt32;
         break;
       case kTypedDataUint32ArrayCid:
