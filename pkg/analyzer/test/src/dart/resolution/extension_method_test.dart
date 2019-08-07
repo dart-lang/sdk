@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -151,6 +152,42 @@ extension on C {}
     var extendedType = findNode.typeAnnotation('C {}');
     assertElement(extendedType, findElement.class_('C'));
     assertType(extendedType, 'C');
+  }
+
+  test_visibility_hidden() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int a = 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart' hide E;
+
+f(C c) {
+  c.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+    ]);
+  }
+
+  test_visibility_notShown() async {
+    newFile('/test/lib/lib.dart', content: '''
+class C {}
+extension E on C {
+  int a = 1;
+}
+''');
+    await assertErrorsInCode('''
+import 'lib.dart' show C;
+
+f(C c) {
+  c.a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 40, 1),
+    ]);
   }
 }
 
