@@ -1983,10 +1983,12 @@ void KernelReaderHelper::SkipDartType() {
       SkipFunctionType(true);
       return;
     case kTypedefType:
+      ReadNullability();      // read nullability.
       ReadUInt();             // read index for canonical name.
       SkipListOfDartTypes();  // read list of types.
       return;
     case kTypeParameterType:
+      ReadNullability();       // read nullability.
       ReadUInt();              // read index for parameter.
       SkipOptionalDartType();  // read bound bound.
       return;
@@ -2007,6 +2009,7 @@ void KernelReaderHelper::SkipOptionalDartType() {
 }
 
 void KernelReaderHelper::SkipInterfaceType(bool simple) {
+  ReadNullability();  // read nullability.
   ReadUInt();  // read klass_name.
   if (!simple) {
     SkipListOfDartTypes();  // read list of types.
@@ -2014,6 +2017,8 @@ void KernelReaderHelper::SkipInterfaceType(bool simple) {
 }
 
 void KernelReaderHelper::SkipFunctionType(bool simple) {
+  ReadNullability();  // read nullability.
+
   if (!simple) {
     SkipTypeParametersList();  // read type_parameters.
     ReadUInt();                // read required parameter count.
@@ -2793,6 +2798,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
   // malformed iff `T` is malformed.
   //   => We therefore ignore errors in `A` or `B`.
 
+  helper_->ReadNullability();  // read nullability.
+
   NameIndex klass_name =
       helper_->ReadCanonicalNameReference();  // read klass_name.
 
@@ -2829,6 +2836,8 @@ void TypeTranslator::BuildFunctionType(bool simple) {
                                             ? *active_class_->enclosing
                                             : Function::Handle(Z),
                                         TokenPosition::kNoSource));
+
+  helper_->ReadNullability();  // read nullability.
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.
@@ -2920,6 +2929,7 @@ void TypeTranslator::BuildFunctionType(bool simple) {
 }
 
 void TypeTranslator::BuildTypeParameterType() {
+  helper_->ReadNullability();                      // read nullability.
   intptr_t parameter_index = helper_->ReadUInt();  // read parameter index.
   helper_->SkipOptionalDartType();                 // read bound.
 

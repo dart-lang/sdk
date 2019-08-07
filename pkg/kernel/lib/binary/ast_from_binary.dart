@@ -1961,8 +1961,9 @@ class BinaryBuilder {
     int tag = readByte();
     switch (tag) {
       case Tag.TypedefType:
-        return new TypedefType.byReference(
-            readTypedefReference(), readDartTypeList());
+        int nullabilityIndex = readByte();
+        return new TypedefType.byReference(readTypedefReference(),
+            readDartTypeList(), Nullability.values[nullabilityIndex]);
       case Tag.BottomType:
         return const BottomType();
       case Tag.InvalidType:
@@ -1972,13 +1973,16 @@ class BinaryBuilder {
       case Tag.VoidType:
         return const VoidType();
       case Tag.InterfaceType:
-        return new InterfaceType.byReference(
-            readClassReference(), readDartTypeList());
+        int nullabilityIndex = readByte();
+        return new InterfaceType.byReference(readClassReference(),
+            readDartTypeList(), Nullability.values[nullabilityIndex]);
       case Tag.SimpleInterfaceType:
-        return new InterfaceType.byReference(
-            readClassReference(), const <DartType>[]);
+        int nullabilityIndex = readByte();
+        return new InterfaceType.byReference(readClassReference(),
+            const <DartType>[], Nullability.values[nullabilityIndex]);
       case Tag.FunctionType:
         int typeParameterStackHeight = typeParameterStack.length;
+        int nullabilityIndex = readByte();
         var typeParameters = readAndPushTypeParameterList();
         var requiredParameterCount = readUInt();
         var totalParameterCount = readUInt();
@@ -1992,15 +1996,20 @@ class BinaryBuilder {
             typeParameters: typeParameters,
             requiredParameterCount: requiredParameterCount,
             namedParameters: named,
-            typedefType: typedefType);
+            typedefType: typedefType,
+            nullability: Nullability.values[nullabilityIndex]);
       case Tag.SimpleFunctionType:
+        int nullabilityIndex = readByte();
         var positional = readDartTypeList();
         var returnType = readDartType();
-        return new FunctionType(positional, returnType);
+        return new FunctionType(positional, returnType,
+            nullability: Nullability.values[nullabilityIndex]);
       case Tag.TypeParameterType:
+        int declaredNullabilityIndex = readByte();
         int index = readUInt();
         var bound = readDartTypeOption();
-        return new TypeParameterType(typeParameterStack[index], bound);
+        return new TypeParameterType(typeParameterStack[index], bound,
+            Nullability.values[declaredNullabilityIndex]);
       default:
         throw fail('unexpected dart type tag: $tag');
     }

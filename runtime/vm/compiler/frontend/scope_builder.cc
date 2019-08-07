@@ -1318,6 +1318,7 @@ void ScopeBuilder::VisitDartType() {
 }
 
 void ScopeBuilder::VisitInterfaceType(bool simple) {
+  helper_.ReadNullability();  // read nullability.
   helper_.ReadUInt();  // read klass_name.
   if (!simple) {
     intptr_t length = helper_.ReadListLength();  // read number of types.
@@ -1328,6 +1329,8 @@ void ScopeBuilder::VisitInterfaceType(bool simple) {
 }
 
 void ScopeBuilder::VisitFunctionType(bool simple) {
+  helper_.ReadNullability();  // read nullability.
+
   if (!simple) {
     intptr_t list_length =
         helper_.ReadListLength();  // read type_parameters list length.
@@ -1374,6 +1377,8 @@ void ScopeBuilder::VisitTypeParameterType() {
   while (function.IsClosureFunction()) {
     function = function.parent_function();
   }
+
+  helper_.ReadNullability();  // read nullability.
 
   // The index here is the index identifying the type parameter binding site
   // inside the DILL file, which uses a different indexing system than the VM

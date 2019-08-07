@@ -1082,6 +1082,7 @@ class KernelReaderHelper {
   TokenPosition ReadPosition(bool record = true);
   Tag ReadTag(uint8_t* payload = NULL);
   uint8_t ReadFlags() { return reader_.ReadFlags(); }
+  Nullability ReadNullability();
 
   intptr_t SourceTableSize();
   intptr_t GetOffsetForSourceInfo(intptr_t index);

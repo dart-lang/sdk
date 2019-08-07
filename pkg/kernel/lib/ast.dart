@@ -4819,12 +4819,6 @@ class _PublicName extends Name {
 
 /// Represents nullability of a type.
 enum Nullability {
-  /// Types in opt-out libraries are 'legacy' types.
-  ///
-  /// They are both subtypes and supertypes of the nullable and non-nullable
-  /// versions of the type.
-  legacy,
-
   /// Nullable types are marked with the '?' modifier.
   ///
   /// Null, dynamic, and void are nullable by default.
@@ -4849,7 +4843,13 @@ enum Nullability {
   ///       Object y = x;  // Compile-time error.
   ///     }
   ///   }
-  neither
+  neither,
+
+  /// Types in opt-out libraries are 'legacy' types.
+  ///
+  /// They are both subtypes and supertypes of the nullable and non-nullable
+  /// versions of the type.
+  legacy
 }
 
 /// A syntax-independent notion of a type.
@@ -5271,7 +5271,7 @@ class TypeParameterType extends DartType {
   DartType promotedBound;
 
   TypeParameterType(this.parameter,
-      [this.promotedBound, this.declaredNullability])
+      [this.promotedBound, this.declaredNullability = Nullability.legacy])
       : this.nullability =
             getNullability(parameter, promotedBound, declaredNullability);
 

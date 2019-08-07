@@ -1310,6 +1310,13 @@ Tag KernelReaderHelper::PeekTag(uint8_t* payload) {
   return reader_.PeekTag(payload);
 }
 
+Nullability KernelReaderHelper::ReadNullability() {
+  if (translation_helper_.info().kernel_binary_version() >= 28) {
+    return reader_.ReadNullability();
+  }
+  return kLegacy;
+}
+
 void StreamingFlowGraphBuilder::loop_depth_inc() {
   ++flow_graph_builder_->loop_depth_;
 }
