@@ -400,44 +400,6 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
     }
   }
 
-  @visibleForTesting
-  Map<Variable, Type> joinPromoted(
-    Map<Variable, Type> first,
-    Map<Variable, Type> second,
-  ) {
-    if (identical(first, second)) return first;
-    if (first.isEmpty || second.isEmpty) return const {};
-
-    var result = <Variable, Type>{};
-    var alwaysFirst = true;
-    var alwaysSecond = true;
-    for (var variable in first.keys) {
-      var firstType = first[variable];
-      var secondType = second[variable];
-      if (secondType != null) {
-        if (identical(firstType, secondType)) {
-          result[variable] = firstType;
-        } else if (typeOperations.isSubtypeOf(firstType, secondType)) {
-          result[variable] = secondType;
-          alwaysFirst = false;
-        } else if (typeOperations.isSubtypeOf(secondType, firstType)) {
-          result[variable] = firstType;
-          alwaysSecond = false;
-        } else {
-          alwaysFirst = false;
-          alwaysSecond = false;
-        }
-      } else {
-        alwaysFirst = false;
-      }
-    }
-
-    if (alwaysFirst) return first;
-    if (alwaysSecond && result.length == second.length) return second;
-    if (result.isEmpty) return const {};
-    return result;
-  }
-
   void logicalAnd_end(Expression andExpression, Expression rightOperand) {
     _conditionalEnd(rightOperand);
     // Tail of the stack: falseLeft, trueLeft, falseRight, trueRight
@@ -643,27 +605,8 @@ class FlowAnalysis<Statement, Expression, Variable, Type> {
   }
 
   State<Variable, Type> _join(
-    State<Variable, Type> first,
-    State<Variable, Type> second,
-  ) {
-    if (first == null) return second;
-    if (second == null) return first;
-
-    if (first.reachable && !second.reachable) return first;
-    if (!first.reachable && second.reachable) return second;
-
-    var newReachable = first.reachable || second.reachable;
-    var newNotAssigned = first.notAssigned.union(second.notAssigned);
-    var newPromoted = joinPromoted(first.promoted, second.promoted);
-
-    return State._identicalOrNew(
-      first,
-      second,
-      newReachable,
-      newNotAssigned,
-      newPromoted,
-    );
-  }
+          State<Variable, Type> first, State<Variable, Type> second) =>
+      State.join(typeOperations, first, second);
 
   /// If assertions are enabled, records that the given variable has been
   /// referenced.  The [finish] method will verify that all referenced variables
@@ -1015,6 +958,80 @@ class State<Variable, Type> {
     }
 
     if (noChanges) return map;
+    if (result.isEmpty) return const {};
+    return result;
+  }
+
+  /// Forms a new state to reflect a control flow path that might have come from
+  /// either `this` or the [other] state.
+  ///
+  /// The control flow path is considered reachable if either of the input
+  /// states is reachable.  Variables are considered definitely assigned if they
+  /// were definitely assigned in both of the input states.  Variable promotions
+  /// are kept only if they are common to both input states; if a variable is
+  /// promoted to one type in one state and a subtype in the other state, the
+  /// less specific type promotion is kept.
+  static State<Variable, Type> join<Variable, Type>(
+    TypeOperations<Variable, Type> typeOperations,
+    State<Variable, Type> first,
+    State<Variable, Type> second,
+  ) {
+    if (first == null) return second;
+    if (second == null) return first;
+
+    if (first.reachable && !second.reachable) return first;
+    if (!first.reachable && second.reachable) return second;
+
+    var newReachable = first.reachable || second.reachable;
+    var newNotAssigned = first.notAssigned.union(second.notAssigned);
+    var newPromoted =
+        State.joinPromoted(typeOperations, first.promoted, second.promoted);
+
+    return State._identicalOrNew(
+      first,
+      second,
+      newReachable,
+      newNotAssigned,
+      newPromoted,
+    );
+  }
+
+  /// Joins two "promoted" maps.  See [join] for details.
+  @visibleForTesting
+  static Map<Variable, Type> joinPromoted<Variable, Type>(
+    TypeOperations<Variable, Type> typeOperations,
+    Map<Variable, Type> first,
+    Map<Variable, Type> second,
+  ) {
+    if (identical(first, second)) return first;
+    if (first.isEmpty || second.isEmpty) return const {};
+
+    var result = <Variable, Type>{};
+    var alwaysFirst = true;
+    var alwaysSecond = true;
+    for (var variable in first.keys) {
+      var firstType = first[variable];
+      var secondType = second[variable];
+      if (secondType != null) {
+        if (identical(firstType, secondType)) {
+          result[variable] = firstType;
+        } else if (typeOperations.isSubtypeOf(firstType, secondType)) {
+          result[variable] = secondType;
+          alwaysFirst = false;
+        } else if (typeOperations.isSubtypeOf(secondType, firstType)) {
+          result[variable] = firstType;
+          alwaysSecond = false;
+        } else {
+          alwaysFirst = false;
+          alwaysSecond = false;
+        }
+      } else {
+        alwaysFirst = false;
+      }
+    }
+
+    if (alwaysFirst) return first;
+    if (alwaysSecond && result.length == second.length) return second;
     if (result.isEmpty) return const {};
     return result;
   }

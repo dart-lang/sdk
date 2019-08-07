@@ -424,58 +424,58 @@ main() {
       const emptyMap = <Null, Null>{};
 
       test('identical inputs', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p = {x: intType, y: stringType};
-        expect(flow.joinPromoted(p, p), same(p));
+        expect(State.joinPromoted(h, p, p), same(p));
       });
 
       test('one input empty', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intType, y: stringType};
         var p2 = <_Var, _Type>{};
-        expect(flow.joinPromoted(p1, p2), same(emptyMap));
-        expect(flow.joinPromoted(p2, p1), same(emptyMap));
+        expect(State.joinPromoted(h, p1, p2), same(emptyMap));
+        expect(State.joinPromoted(h, p2, p1), same(emptyMap));
       });
 
       test('related types', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intType};
         var p2 = {x: intQType};
-        expect(flow.joinPromoted(p1, p2), same(p2));
-        expect(flow.joinPromoted(p2, p1), same(p2));
+        expect(State.joinPromoted(h, p1, p2), same(p2));
+        expect(State.joinPromoted(h, p2, p1), same(p2));
       });
 
       test('unrelated types', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intType};
         var p2 = {x: stringType};
-        expect(flow.joinPromoted(p1, p2), same(emptyMap));
-        expect(flow.joinPromoted(p2, p1), same(emptyMap));
+        expect(State.joinPromoted(h, p1, p2), same(emptyMap));
+        expect(State.joinPromoted(h, p2, p1), same(emptyMap));
       });
 
       test('sub-map', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intType, y: stringType};
         var p2 = {x: intType};
-        expect(flow.joinPromoted(p1, p2), same(p2));
-        expect(flow.joinPromoted(p2, p1), same(p2));
+        expect(State.joinPromoted(h, p1, p2), same(p2));
+        expect(State.joinPromoted(h, p2, p1), same(p2));
       });
 
       test('sub-map with matched subtype', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intType, y: stringType};
         var p2 = {x: intQType};
-        expect(flow.joinPromoted(p1, p2), same(p2));
-        expect(flow.joinPromoted(p2, p1), same(p2));
+        expect(State.joinPromoted(h, p1, p2), same(p2));
+        expect(State.joinPromoted(h, p2, p1), same(p2));
       });
 
       test('sub-map with mismatched subtype', () {
-        var flow = _Harness().flow;
+        var h = _Harness();
         var p1 = {x: intQType, y: stringType};
         var p2 = {x: intType};
-        var join12 = flow.joinPromoted(p1, p2);
+        var join12 = State.joinPromoted(h, p1, p2);
         _Type.allowComparisons(() => expect(join12, {x: intQType}));
-        var join21 = flow.joinPromoted(p2, p1);
+        var join21 = State.joinPromoted(h, p2, p1);
         _Type.allowComparisons(() => expect(join21, {x: intQType}));
       });
     });
