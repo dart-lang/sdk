@@ -193,6 +193,16 @@ class Rti {
     return JS('JSUnmodifiableArray', '#', _getRest(rti));
   }
 
+  static Rti _getStarArgument(Rti rti) {
+    assert(_getKind(rti) == kindStar);
+    return _castToRti(_getPrimary(rti));
+  }
+
+  static Rti _getQuestionArgument(Rti rti) {
+    assert(_getKind(rti) == kindQuestion);
+    return _castToRti(_getPrimary(rti));
+  }
+
   static Rti _getFutureOrArgument(Rti rti) {
     assert(_getKind(rti) == kindFutureOr);
     return _castToRti(_getPrimary(rti));
@@ -741,10 +751,10 @@ String _functionRtiToString(Rti functionType, List<String> genericContext,
     sep = '';
     for (int i = 0; i < optionalNamedLength; i += 2) {
       argumentsText += sep +
-          _Utils.asString(_Utils.arrayAt(optionalNamed, i)) +
-          ': ' +
-          _rtiToString(
-              _castToRti(_Utils.arrayAt(optionalNamed, i + 1)), genericContext);
+          _rtiToString(_castToRti(_Utils.arrayAt(optionalNamed, i + 1)),
+              genericContext) +
+          ' ' +
+          _Utils.asString(_Utils.arrayAt(optionalNamed, i));
       sep = ', ';
     }
     argumentsText += '}';
@@ -769,6 +779,21 @@ String _rtiToString(Rti rti, List<String> genericContext) {
   if (kind == Rti.kindVoid) return 'void';
   if (kind == Rti.kindNever) return 'Never';
   if (kind == Rti.kindAny) return 'any';
+
+  if (kind == Rti.kindStar) {
+    Rti starArgument = Rti._getStarArgument(rti);
+    return '${_rtiToString(starArgument, genericContext)}*';
+  }
+
+  if (kind == Rti.kindQuestion) {
+    Rti questionArgument = Rti._getQuestionArgument(rti);
+    return '${_rtiToString(questionArgument, genericContext)}?';
+  }
+
+  if (kind == Rti.kindFutureOr) {
+    Rti futureOrArgument = Rti._getFutureOrArgument(rti);
+    return 'FutureOr<${_rtiToString(futureOrArgument, genericContext)}>';
+  }
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
@@ -814,60 +839,74 @@ String _rtiArrayToDebugString(Object array) {
   return s + ']';
 }
 
-String _rtiToDebugString(Rti rti) {
-  String functionParametersToString(_FunctionParameters parameters) {
-    // TODO(fishythefish): Support required named parameters.
-    String s = '(', sep = '';
-    var requiredPositional =
-        _FunctionParameters._getRequiredPositional(parameters);
-    int requiredPositionalLength = _Utils.arrayLength(requiredPositional);
-    var optionalPositional =
-        _FunctionParameters._getOptionalPositional(parameters);
-    int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
-    var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
-    int optionalNamedLength = _Utils.arrayLength(optionalNamed);
-    assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
+String functionParametersToString(_FunctionParameters parameters) {
+  // TODO(fishythefish): Support required named parameters.
+  String s = '(', sep = '';
+  var requiredPositional =
+      _FunctionParameters._getRequiredPositional(parameters);
+  int requiredPositionalLength = _Utils.arrayLength(requiredPositional);
+  var optionalPositional =
+      _FunctionParameters._getOptionalPositional(parameters);
+  int optionalPositionalLength = _Utils.arrayLength(optionalPositional);
+  var optionalNamed = _FunctionParameters._getOptionalNamed(parameters);
+  int optionalNamedLength = _Utils.arrayLength(optionalNamed);
+  assert(optionalPositionalLength == 0 || optionalNamedLength == 0);
 
-    for (int i = 0; i < requiredPositionalLength; i++) {
-      s += sep +
-          _rtiToDebugString(_castToRti(_Utils.arrayAt(requiredPositional, i)));
-      sep = ', ';
-    }
-
-    if (optionalPositionalLength > 0) {
-      s += sep + '[';
-      sep = '';
-      for (int i = 0; i < optionalPositionalLength; i++) {
-        s += sep +
-            _rtiToDebugString(
-                _castToRti(_Utils.arrayAt(optionalPositional, i)));
-        sep = ', ';
-      }
-      s += ']';
-    }
-
-    if (optionalNamedLength > 0) {
-      s += sep + '{';
-      sep = '';
-      for (int i = 0; i < optionalNamedLength; i += 2) {
-        s += sep +
-            _Utils.asString(_Utils.arrayAt(optionalNamed, i)) +
-            ': ' +
-            _rtiToDebugString(_castToRti(_Utils.arrayAt(optionalNamed, i + 1)));
-        sep = ', ';
-      }
-      s += '}';
-    }
-
-    return s + ')';
+  for (int i = 0; i < requiredPositionalLength; i++) {
+    s += sep +
+        _rtiToDebugString(_castToRti(_Utils.arrayAt(requiredPositional, i)));
+    sep = ', ';
   }
 
+  if (optionalPositionalLength > 0) {
+    s += sep + '[';
+    sep = '';
+    for (int i = 0; i < optionalPositionalLength; i++) {
+      s += sep +
+          _rtiToDebugString(_castToRti(_Utils.arrayAt(optionalPositional, i)));
+      sep = ', ';
+    }
+    s += ']';
+  }
+
+  if (optionalNamedLength > 0) {
+    s += sep + '{';
+    sep = '';
+    for (int i = 0; i < optionalNamedLength; i += 2) {
+      s += sep +
+          _rtiToDebugString(_castToRti(_Utils.arrayAt(optionalNamed, i + 1))) +
+          ' ' +
+          _Utils.asString(_Utils.arrayAt(optionalNamed, i));
+      sep = ', ';
+    }
+    s += '}';
+  }
+
+  return s + ')';
+}
+
+String _rtiToDebugString(Rti rti) {
   int kind = Rti._getKind(rti);
 
   if (kind == Rti.kindDynamic) return 'dynamic';
   if (kind == Rti.kindVoid) return 'void';
   if (kind == Rti.kindNever) return 'Never';
   if (kind == Rti.kindAny) return 'any';
+
+  if (kind == Rti.kindStar) {
+    Rti starArgument = Rti._getStarArgument(rti);
+    return 'star(${_rtiToDebugString(starArgument)})';
+  }
+
+  if (kind == Rti.kindQuestion) {
+    Rti questionArgument = Rti._getQuestionArgument(rti);
+    return 'question(${_rtiToDebugString(questionArgument)})';
+  }
+
+  if (kind == Rti.kindFutureOr) {
+    Rti futureOrArgument = Rti._getFutureOrArgument(rti);
+    return 'FutureOr(${_rtiToDebugString(futureOrArgument)})';
+  }
 
   if (kind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(rti);
