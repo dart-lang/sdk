@@ -1882,6 +1882,45 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (node.isRedundant(_closedWorld)) return node.checkedInput;
     return node;
   }
+
+  @override
+  HInstruction visitInstanceEnvironment(HInstanceEnvironment node) {
+    HInstruction instance = node.inputs.single;
+
+    // Store-forward instance types of created instances and constant instances.
+    //
+    // Forwarding the type might cause the instance (HCreate, constant etc) to
+    // become dead. This might cause us to lose track of that fact that there
+    // are type expressions from within the instance's class scope, so breaking
+    // the algorithm for generating the per-type runtime type information. The
+    // fix is to register the classes as created here in case the instance
+    // becomes dead.
+    //
+    // TODO(sra): It would be cleaner to track on HLoadType, HTypeEval, etc
+    // which class scope(s) they originated from. If the type expressions become
+    // dead, the references to the scope type variables become dead.
+
+    if (instance is HCreate) {
+      if (instance.hasRtiInput) {
+        instance.instantiatedTypes?.forEach(_registry.registerInstantiation);
+        return instance.inputs.last;
+      }
+      return node;
+    }
+
+    if (instance is HConstant) {
+      ConstantValue constantValue = instance.constant;
+      if (constantValue is ConstructedConstantValue) {
+        _registry.registerInstantiation(constantValue.type);
+        return HLoadType(constantValue.type, instance.instructionType);
+      }
+      return node;
+    }
+
+    // TODO(sra): Store-forward list literal types.
+
+    return node;
+  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
