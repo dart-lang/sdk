@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: languageVersion=2.5*/
+/*error: LanguageVersionTooHigh*/
+// @dart = 3.5
 
-import 'foo2.dart';
-import 'foo3.dart';
+// If no valid language version is specified, we default to the most reason one.
+// In the tests this is hard-coded to 2.8.
 
-foo() {
-  print("Hello from foo!");
-  foo2();
-  foo3();
-}
+/*library: languageVersion=2.8*/
+
+main() {}

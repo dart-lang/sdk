@@ -124,7 +124,8 @@ class DillLibraryBuilder extends LibraryBuilder {
   bool get isSynthetic => library.isSynthetic;
 
   @override
-  void setLanguageVersion(int major, int minor, {bool explicit}) {}
+  void setLanguageVersion(int major, int minor,
+      {int offset: 0, int length, bool explicit}) {}
 
   Uri get uri => library.importUri;
 

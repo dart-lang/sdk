@@ -129,6 +129,7 @@ import '../fasta_codes.dart'
         templateIncorrectTypeArgumentQualified,
         templateIncorrectTypeArgumentQualifiedInferred,
         templateIntersectionTypeAsTypeArgument,
+        templateLanguageVersionTooHigh,
         templateLoadLibraryHidesMember,
         templateLocalDefinitionHidesExport,
         templateLocalDefinitionHidesImport,
@@ -312,6 +313,9 @@ class SourceLibraryBuilder extends LibraryBuilder {
 
   bool languageVersionExplicitlySet = false;
 
+  bool postponedProblemsIssued = false;
+  List<PostponedProblem> postponedProblems;
+
   SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
       SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
       : this.fromScopes(loader, fileUri, new DeclarationBuilder.library(),
@@ -356,10 +360,26 @@ class SourceLibraryBuilder extends LibraryBuilder {
   }
 
   @override
-  void setLanguageVersion(int major, int minor, {bool explicit}) {
+  void setLanguageVersion(int major, int minor,
+      {int offset: 0, int length: noLength, bool explicit}) {
     if (languageVersionExplicitlySet) return;
-    library.setLanguageVersion(major, minor);
     if (explicit) languageVersionExplicitlySet = true;
+
+    // If no language version has been set, the default is used.
+    // If trying to set a langauge version that is higher than the "already-set"
+    // version it's an error.
+    if (major > library.languageVersionMajor ||
+        (major == library.languageVersionMajor &&
+            minor > library.languageVersionMinor)) {
+      addPostponedProblem(
+          templateLanguageVersionTooHigh.withArguments(
+              library.languageVersionMajor, library.languageVersionMinor),
+          offset,
+          length,
+          fileUri);
+      return;
+    }
+    library.setLanguageVersion(major, minor);
   }
 
   ConstructorReferenceBuilder addConstructorReference(Object name,
@@ -1103,6 +1123,33 @@ class SourceLibraryBuilder extends LibraryBuilder {
   TypeBuilder addVoidType(int charOffset) {
     return addNamedType("void", null, charOffset)
       ..bind(new VoidTypeBuilder(const VoidType(), this, charOffset));
+  }
+
+  /// Add a problem that might not be reported immediately.
+  ///
+  /// Problems will be issued after source information has been added.
+  /// Once the problems has been issued, adding a new "postponed" problem will
+  /// be issued immediately.
+  void addPostponedProblem(
+      Message message, int charOffset, int length, Uri fileUri) {
+    if (postponedProblemsIssued) {
+      addProblem(message, charOffset, length, fileUri);
+    } else {
+      postponedProblems ??= <PostponedProblem>[];
+      postponedProblems
+          .add(new PostponedProblem(message, charOffset, length, fileUri));
+    }
+  }
+
+  void issuePostponedProblems() {
+    postponedProblemsIssued = true;
+    if (postponedProblems == null) return;
+    for (int i = 0; i < postponedProblems.length; ++i) {
+      PostponedProblem postponedProblem = postponedProblems[i];
+      addProblem(postponedProblem.message, postponedProblem.charOffset,
+          postponedProblem.length, postponedProblem.fileUri);
+    }
+    postponedProblems = null;
   }
 
   @override
@@ -3026,3 +3073,12 @@ Uri computeLibraryUri(Declaration declaration) {
 }
 
 String extractName(name) => name is QualifiedName ? name.name : name;
+
+class PostponedProblem {
+  final Message message;
+  final int charOffset;
+  final int length;
+  final Uri fileUri;
+
+  PostponedProblem(this.message, this.charOffset, this.length, this.fileUri);
+}

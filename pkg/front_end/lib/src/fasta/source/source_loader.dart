@@ -214,7 +214,8 @@ class SourceLoader extends Loader {
       // TODO(jensj): What if we have several? What if it is unsupported?
       // What if the language version was already set via packages and this is
       // higher? Etc
-      library.setLanguageVersion(version.major, version.minor, explicit: true);
+      library.setLanguageVersion(version.major, version.minor,
+          offset: version.offset, length: version.length, explicit: true);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
@@ -236,6 +237,7 @@ class SourceLoader extends Loader {
       target.addSourceInformation(
           importUri, library.fileUri, result.lineStarts, source);
     }
+    library.issuePostponedProblems();
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*library: languageVersion=2.5*/
+// Set version of this file (not technically in package) explicitly to test as
+// much as possibly separately.
 
-import 'foo2.dart';
-import 'foo3.dart';
+// @dart = 2.4
 
-foo() {
-  print("Hello from foo!");
-  foo2();
-  foo3();
+import 'package:foo/foo.dart';
+
+/*library: languageVersion=2.4*/
+
+main() {
+  foo();
 }

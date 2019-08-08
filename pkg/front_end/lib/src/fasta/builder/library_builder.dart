@@ -64,15 +64,19 @@ abstract class LibraryBuilder extends ModifierBuilder {
   /// Set the langauge version to a specific non-null major and minor version.
   ///
   /// If the language version has previously been explicitly set set (i.e. with
-  /// [explicit] set to true(), any subsequent call )(explicit or not) should be
+  /// [explicit] set to true), any subsequent call (explicit or not) should be
   /// ignored.
   /// Multiple calls with [explicit] set to false should be allowed though.
   ///
   /// The main idea is that the .packages file specifies a default language
-  /// version, but that the library can have source code that speicies another
+  /// version, but that the library can have source code that specifies another
   /// one which should be supported, but specifying several in code should not
   /// change anything.
-  void setLanguageVersion(int major, int minor, {bool explicit});
+  ///
+  /// [offset] and [length] refers to the offset and length of the source code
+  /// specifying the language version.
+  void setLanguageVersion(int major, int minor,
+      {int offset: 0, int length, bool explicit});
 
   @override
   Declaration get parent => null;

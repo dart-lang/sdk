@@ -3613,3 +3613,8 @@ CombinedMemberSignatureFailed:
       }
 
       abstract class C implements I2, I1 {}
+
+LanguageVersionTooHigh:
+  template: "The specified language version is too high. The highest supported language version is #count.#count2."
+  script: >
+    // @dart = 100.200
