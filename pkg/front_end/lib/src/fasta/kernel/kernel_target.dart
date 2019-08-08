@@ -173,7 +173,11 @@ class KernelTarget extends TargetImplementation {
           String asString = "$entryPoint";
           packagesMap ??= uriTranslator.packages.asMap();
           for (String packageName in packagesMap.keys) {
-            String prefix = "${packagesMap[packageName]}";
+            Uri packageUri = packagesMap[packageName];
+            if (packageUri?.hasFragment == true) {
+              packageUri = packageUri.removeFragment();
+            }
+            String prefix = "${packageUri}";
             if (asString.startsWith(prefix)) {
               Uri reversed = Uri.parse(
                   "package:$packageName/${asString.substring(prefix.length)}");

@@ -510,6 +510,13 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
     Uri output =
         suite.fileSystem.currentDirectory.resolve("$dir/main.dart.dill");
 
+    // Setup .packages if it doesn't exist.
+    Uri dotPackagesUri =
+        suite.fileSystem.currentDirectory.resolve("$dir/.packages");
+    if (!await suite.fileSystem.entityForUri(dotPackagesUri).exists()) {
+      suite.fileSystem.entityForUri(dotPackagesUri).writeAsBytesSync([]);
+    }
+
     print("Compiling $main");
     List<DiagnosticMessage> messages = <DiagnosticMessage>[];
 
@@ -519,6 +526,7 @@ class Compile extends Step<Example, Null, MessageTestSuite> {
               .resolve("vm_platform_strong.dill")
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)
+          ..packagesFileUri = dotPackagesUri
           ..onDiagnostic = messages.add
           ..environmentDefines = const {},
         main,

@@ -6571,6 +6571,16 @@ Message _withArgumentsLabelNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionInvalidInDotPackages =
+    messageLanguageVersionInvalidInDotPackages;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode(
+    "LanguageVersionInvalidInDotPackages",
+    message:
+        r"""The language version is not specified correctly in the .packages file.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         int count,

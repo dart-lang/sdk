@@ -3618,3 +3618,10 @@ LanguageVersionTooHigh:
   template: "The specified language version is too high. The highest supported language version is #count.#count2."
   script: >
     // @dart = 100.200
+
+LanguageVersionInvalidInDotPackages:
+  template: "The language version is not specified correctly in the .packages file."
+  script:
+    main.dart: "import 'package:foo/foo.dart';"
+    lib/foo.dart: "// blah blah blah"
+    .packages: "foo:lib/#dart=arglebargle"

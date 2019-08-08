@@ -97,6 +97,7 @@ import '../fasta_codes.dart'
         messageGenericFunctionTypeInBound,
         messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageIncorrectTypeArgumentVariable,
+        messageLanguageVersionInvalidInDotPackages,
         messagePartExport,
         messagePartExportContext,
         messagePartInPart,
@@ -364,6 +365,12 @@ class SourceLibraryBuilder extends LibraryBuilder {
       {int offset: 0, int length: noLength, bool explicit}) {
     if (languageVersionExplicitlySet) return;
     if (explicit) languageVersionExplicitlySet = true;
+
+    if (major == null || minor == null) {
+      addPostponedProblem(
+          messageLanguageVersionInvalidInDotPackages, offset, length, fileUri);
+      return;
+    }
 
     // If no language version has been set, the default is used.
     // If trying to set a langauge version that is higher than the "already-set"
