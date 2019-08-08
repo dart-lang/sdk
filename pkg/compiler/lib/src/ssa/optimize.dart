@@ -634,24 +634,32 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return splitInstruction;
     }
 
-    // TODO(sra): Implement tagging with `JSArray<String>` for new rti.
-
     node.block.addBefore(node, splitInstruction);
 
-    HInstruction stringTypeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.COMPLETE,
-        _closedWorld.elementEnvironment.getThisType(commonElements.stringClass),
-        <HInstruction>[],
-        _abstractValueDomain.dynamicType);
-    node.block.addBefore(node, stringTypeInfo);
+    HInstruction typeInfo;
+    if (_options.experimentNewRti) {
+      typeInfo = HLoadType(
+          _closedWorld.elementEnvironment.createInterfaceType(
+              commonElements.jsArrayClass, [commonElements.stringType]),
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, typeInfo);
+    } else {
+      HInstruction stringTypeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.COMPLETE,
+          _closedWorld.elementEnvironment
+              .getThisType(commonElements.stringClass),
+          <HInstruction>[],
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, stringTypeInfo);
 
-    HInstruction typeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        _closedWorld.elementEnvironment
-            .getThisType(commonElements.jsArrayClass),
-        <HInstruction>[stringTypeInfo],
-        _abstractValueDomain.dynamicType);
-    node.block.addBefore(node, typeInfo);
+      typeInfo = new HTypeInfoExpression(
+          TypeInfoExpressionKind.INSTANCE,
+          _closedWorld.elementEnvironment
+              .getThisType(commonElements.jsArrayClass),
+          <HInstruction>[stringTypeInfo],
+          _abstractValueDomain.dynamicType);
+      node.block.addBefore(node, typeInfo);
+    }
 
     HInvokeStatic tagInstruction = new HInvokeStatic(
         commonElements.setRuntimeTypeInfo,
