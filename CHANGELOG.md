@@ -134,16 +134,16 @@ on a newer version of the analyzer package.
 
 ## 2.4.1 - 2019-08-07
 
-This is a patch version release which fixes a performance regression in JIT as
+This is a patch release that fixes a performance regression in JIT mode, as
 well as a potential crash of our AOT compiler.
 
 ### Dart VM
 
-* Working with `Int32List` could cause repeated deoptimizations leading to a big
-  performance regression in JIT mode. The Issue [37551][] was fixed.
+* Fixed a performance regression where usage of `Int32List` could trigger
+  repeated deoptimizations in JIT mode (Issue [37551][]).
 
-* Using a static getter with name `length` could cause a crash in our AOT
-  compiler. The Issue [35121][] was fixed.
+* Fixed a bug where usage of a static getter with name `length` could cause a
+  crash in our AOT compiler (Issue [35121][]).
 
 [37551]: https://github.com/dart-lang/sdk/issues/37551
 [35121]: https://github.com/dart-lang/sdk/issues/35121
