@@ -12,13 +12,22 @@
 
 import "package:expect/expect.dart";
 
-// Bring global members into scope
+/////////////////////////////////////////////////////////////////////////
+// Note: These imports may be deliberately unused.  They bring certain
+// names into scope, in order to test that certain resolution choices are
+// made even in the presence of other symbols.
+/////////////////////////////////////////////////////////////////////////
+
+// Do Not Delete.
+// Bring global members into scope.
 import "helpers/global_scope.dart";
 
-// Bring a class A with instance members into scope
+// Do Not Delete.
+// Bring a class A with instance members into scope.
 import "helpers/class_no_shadow.dart";
 
-// Bring an extension ExtraExt with no overlapping symbols into scope
+// Do Not Delete.
+// Bring an extension ExtraExt with no overlapping symbols into scope.
 import "helpers/extension_only.dart";
 
 const bool extensionValue = true;

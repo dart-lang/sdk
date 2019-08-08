@@ -13,10 +13,18 @@
 
 import "package:expect/expect.dart";
 
-// Bring global members into scope
+/////////////////////////////////////////////////////////////////////////
+// Note: These imports may be deliberately unused.  They bring certain
+// names into scope, in order to test that certain resolution choices are
+// made even in the presence of other symbols.
+/////////////////////////////////////////////////////////////////////////
+
+// Do Not Delete.
+// Bring global members into scope.
 import "helpers/global_scope.dart";
 
-// Bring a class AGlobal with instance members and global members into scope
+// Do Not Delete.
+// Bring a class AGlobal with instance members and global members into scope.
 import "helpers/class_shadow.dart";
 import "helpers/class_no_shadow.dart";
 
