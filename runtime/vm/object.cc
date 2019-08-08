@@ -80,6 +80,7 @@ DEFINE_FLAG(bool,
             false,
             "Remove script timestamps to allow for deterministic testing.");
 
+DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
@@ -14964,15 +14965,24 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
       // Check if a dual mapping exists.
       instrs = Instructions::RawCast(HeapPage::ToExecutable(instrs.raw()));
       uword exec_address = RawObject::ToAddr(instrs.raw());
-      if (exec_address != address) {
+      const bool use_dual_mapping = exec_address != address;
+      ASSERT(use_dual_mapping == FLAG_dual_map_code);
+
+      // When dual mapping is enabled the executable mapping is RX from the
+      // point of allocation and never changes protection.
+      // Yet the writable mapping is still turned back from RW to R.
+      if (use_dual_mapping) {
         VirtualMemory::Protect(reinterpret_cast<void*>(address),
                                instrs.raw()->HeapSize(),
                                VirtualMemory::kReadOnly);
         address = exec_address;
+      } else {
+        // If dual mapping is disabled and we write protect then we have to
+        // change the single mapping from RW -> RX.
+        VirtualMemory::Protect(reinterpret_cast<void*>(address),
+                               instrs.raw()->HeapSize(),
+                               VirtualMemory::kReadExecute);
       }
-      VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                             instrs.raw()->HeapSize(),
-                             VirtualMemory::kReadExecute);
     }
 
     // Hook up Code and Instructions objects.

@@ -164,6 +164,9 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   // When FLAG_write_protect_code is active, code memory (indicated by
   // is_executable = true) is allocated as non-executable and later
   // changed to executable via VirtualMemory::Protect.
+  //
+  // If FLAG_dual_map_code is active, the executable mapping will be mapped RX
+  // immediately and never changes protection until it is eventually unmapped.
   ASSERT(Utils::IsAligned(size, page_size_));
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(Utils::IsAligned(alignment, page_size_));
@@ -188,9 +191,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       close(fd);
       return NULL;
     }
+    // The mapping will be RX and stays that way until it will eventually be
+    // unmapped.
     MemoryRegion region(region_ptr, size);
-    // PROT_EXEC is added later via VirtualMemory::Protect.
-    const int alias_prot = PROT_READ;
+    const int alias_prot = PROT_READ | PROT_EXEC;
     void* alias_ptr =
         MapAligned(fd, alias_prot, size, alignment, allocated_size);
     close(fd);
