@@ -116,12 +116,14 @@ abstract class WindowBase implements EventTarget {
    *     var other = window.open('http://www.example.com', 'foo');
    *     // Closes other window, as it is script-closeable.
    *     other.close();
-   *     print(other.closed()); // 'true'
+   *     print(other.closed); // 'true'
    *
-   *     window.location('http://www.mysite.com', 'foo');
+   *     var newLocation = window.location
+   *         ..href = 'http://www.mysite.com';
+   *     window.location = newLocation;
    *     // Does not close this window, as the history has changed.
    *     window.close();
-   *     print(window.closed()); // 'false'
+   *     print(window.closed); // 'false'
    *
    * See also:
    *

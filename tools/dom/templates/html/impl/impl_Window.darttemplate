@@ -76,7 +76,7 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   // TODO: consider forcing users to do: window.location.assign('string').
   /**
    * Sets the window's location, which causes the browser to navigate to the new
-   * location. [value] may be a Location object or a String.
+   * location.
    */
   set location(value) {
     _location = value;
