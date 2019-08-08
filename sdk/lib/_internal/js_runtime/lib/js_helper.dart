@@ -60,7 +60,11 @@ import 'dart:_js_names'
         unmangleAllIdentifiersIfPreservedAnyways;
 
 import 'dart:_rti' as newRti
-    show createRuntimeType, getRuntimeType, getTypeFromTypesTable;
+    show
+        createRuntimeType,
+        evalInInstance,
+        getRuntimeType,
+        getTypeFromTypesTable;
 
 part 'annotations.dart';
 part 'constant_map.dart';
@@ -2039,8 +2043,12 @@ abstract class Closure implements Function {
       // The functions are called here to model the calls from JS forms below.
       // The types in the JS forms in the arguments are propagated in type
       // inference.
-      BoundClosure.receiverOf(JS('BoundClosure', '0'));
-      BoundClosure.selfOf(JS('BoundClosure', '0'));
+      var aBoundClosure = JS('BoundClosure', '0');
+      var aString = JS('String', '0');
+      BoundClosure.receiverOf(aBoundClosure);
+      BoundClosure.selfOf(aBoundClosure);
+      BoundClosure.evalRecipeIntercepted(aBoundClosure, aString);
+      BoundClosure.evalRecipe(aBoundClosure, aString);
       getType(JS('int', '0'));
     });
     // TODO(ahe): All the place below using \$ should be rewritten to go
@@ -2119,44 +2127,10 @@ abstract class Closure implements Function {
           propertyName);
     }
 
-    var signatureFunction;
-    if (JS('bool', 'typeof # == "number"', functionType)) {
-      // We cannot call [getType] here, since the types-metadata might not be
-      // set yet. This is, because fromTearOff might be called for constants
-      // when the program isn't completely set up yet.
-      //
-      // Note that we cannot just textually inline the call
-      // `getType(functionType)` since we cannot guarantee that the (then)
-      // captured variable `functionType` isn't reused.
-      signatureFunction = JS(
-          '',
-          '''(function(getType, t) {
-                    return function(){ return getType(t); };
-                })(#, #)''',
-          JS_GET_FLAG('USE_NEW_RTI')
-              ? RAW_DART_FUNCTION_REF(newRti.getTypeFromTypesTable)
-              : RAW_DART_FUNCTION_REF(getType),
-          functionType);
-    } else if (JS('bool', 'typeof # == "function"', functionType)) {
-      if (isStatic) {
-        signatureFunction = functionType;
-      } else {
-        var getReceiver = isIntercepted
-            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
-            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
-        signatureFunction = JS(
-            '',
-            'function(f,r){'
-                'return function(){'
-                'return f.apply({\$receiver:r(this)},arguments)'
-                '}'
-                '}(#,#)',
-            functionType,
-            getReceiver);
-      }
-    } else {
-      throw 'Error in reflectionInfo.';
-    }
+    var signatureFunction = JS_GET_FLAG('USE_NEW_RTI')
+        ? _computeSignatureFunctionNewRti(functionType, isStatic, isIntercepted)
+        : _computeSignatureFunctionLegacy(
+            functionType, isStatic, isIntercepted);
 
     JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
         signatureFunction);
@@ -2184,6 +2158,83 @@ abstract class Closure implements Function {
     JS('', '#.# = #.#', prototype, defValProperty, function, defValProperty);
 
     return constructor;
+  }
+
+  static _computeSignatureFunctionLegacy(
+      Object functionType, bool isStatic, bool isIntercepted) {
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      // We cannot call [getType] here, since the types-metadata might not be
+      // set yet. This is, because fromTearOff might be called for constants
+      // when the program isn't completely set up yet.
+      //
+      // Note that we cannot just textually inline the call
+      // `getType(functionType)` since we cannot guarantee that the (then)
+      // captured variable `functionType` isn't reused.
+      return JS(
+          '',
+          '''(function(getType, t) {
+                    return function(){ return getType(t); };
+                })(#, #)''',
+          RAW_DART_FUNCTION_REF(getType),
+          functionType);
+    }
+    if (JS('bool', 'typeof # == "function"', functionType)) {
+      if (isStatic) {
+        return functionType;
+      } else {
+        var getReceiver = isIntercepted
+            ? RAW_DART_FUNCTION_REF(BoundClosure.receiverOf)
+            : RAW_DART_FUNCTION_REF(BoundClosure.selfOf);
+        return JS(
+            '',
+            'function(f,r){'
+                'return function(){'
+                'return f.apply({\$receiver:r(this)},arguments)'
+                '}'
+                '}(#,#)',
+            functionType,
+            getReceiver);
+      }
+    }
+    throw 'Error in functionType of tearoff';
+  }
+
+  static _computeSignatureFunctionNewRti(
+      Object functionType, bool isStatic, bool isIntercepted) {
+    if (JS('bool', 'typeof # == "number"', functionType)) {
+      // Index into types table.
+      //
+      // We cannot call [getTypeFromTypesTable] here, since the types-metadata
+      // might not be set yet. This is, because fromTearOff might be called for
+      // constants when the program isn't completely set up yet. We also want to
+      // avoid creating lots of types at startup.
+      return JS(
+          '',
+          '''(function(getType, t) {
+                 return function(){ return getType(t); };
+             })(#, #)''',
+          RAW_DART_FUNCTION_REF(newRti.getTypeFromTypesTable),
+          functionType);
+    }
+    if (JS('bool', 'typeof # == "string"', functionType)) {
+      // A recipe to evaluate against the instance type.
+      if (isStatic) {
+        throw 'TODO: Recipe for static tearoff.';
+      }
+      var typeEvalMethod = isIntercepted
+          ? RAW_DART_FUNCTION_REF(BoundClosure.evalRecipeIntercepted)
+          : RAW_DART_FUNCTION_REF(BoundClosure.evalRecipe);
+      return JS(
+          '',
+          '    function(recipe, evalOnReceiver) {'
+              '  return function() {'
+              '    return evalOnReceiver(this, recipe);'
+              '  };'
+              '}(#,#)',
+          functionType,
+          typeEvalMethod);
+    }
+    throw 'Error in functionType of tearoff';
   }
 
   static cspForwardCall(
@@ -2529,6 +2580,14 @@ class BoundClosure extends TearOffClosure {
     // e.g. 'minified-property:' so that it can be unminified.
     return "Closure '$_name' of "
         "${Primitives.objectToHumanReadableString(receiver)}";
+  }
+
+  static evalRecipe(BoundClosure closure, String recipe) {
+    return newRti.evalInInstance(closure._self, recipe);
+  }
+
+  static evalRecipeIntercepted(BoundClosure closure, String recipe) {
+    return newRti.evalInInstance(closure._receiver, recipe);
   }
 
   @pragma('dart2js:noInline')

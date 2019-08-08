@@ -31,6 +31,8 @@ import '../../js_backend/runtime_types.dart'
 import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart' show JGeneratorBody, JSignatureMethod;
+import '../../js_model/type_recipe.dart'
+    show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
 import '../../options.dart';
 import '../../universe/codegen_world_builder.dart';
@@ -926,7 +928,8 @@ class ProgramBuilder {
     js.Expression functionType;
     if (canTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(memberType, outputUnit);
+      functionType =
+          _generateFunctionType(element.enclosingClass, memberType, outputUnit);
     }
 
     FunctionEntity method = element;
@@ -955,12 +958,22 @@ class ProgramBuilder {
         applyIndex: applyIndex);
   }
 
-  js.Expression _generateFunctionType(
+  js.Expression _generateFunctionType(ClassEntity /*?*/ enclosingClass,
       FunctionType type, OutputUnit outputUnit) {
     if (type.containsTypeVariables) {
-      js.Expression thisAccess = js.js(r'this.$receiver');
-      return _rtiEncoder.getSignatureEncoding(
-          _namer, _task.emitter, type, thisAccess);
+      if (_options.experimentNewRti) {
+        // TODO(sra): The recipe might reference class type variables. Collect
+        // these for the type metadata.
+        return _rtiRecipeEncoder.encodeRecipe(
+            _task.emitter,
+            FullTypeEnvironmentStructure(
+                classType: _elementEnvironment.getThisType(enclosingClass)),
+            TypeExpressionRecipe(type));
+      } else {
+        js.Expression thisAccess = js.js(r'this.$receiver');
+        return _rtiEncoder.getSignatureEncoding(
+            _namer, _task.emitter, type, thisAccess);
+      }
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
@@ -1180,7 +1193,7 @@ class ProgramBuilder {
     DartType type = _elementEnvironment.getFunctionType(element);
     if (needsTearOff) {
       OutputUnit outputUnit = _outputUnitData.outputUnitForMember(element);
-      functionType = _generateFunctionType(type, outputUnit);
+      functionType = _generateFunctionType(null, type, outputUnit);
     }
 
     FunctionEntity method = element;

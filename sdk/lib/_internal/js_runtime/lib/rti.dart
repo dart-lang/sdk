@@ -341,6 +341,11 @@ Rti findType(String recipe) {
   return _Universe.eval(_theUniverse(), recipe);
 }
 
+/// Evaluate a type recipe in the environment of an instance.
+Rti evalInInstance(instance, String recipe) {
+  return _rtiEval(instanceType(instance), recipe);
+}
+
 /// Returns the Rti type of [object]. Closures have both an interface type
 /// (Closures implement `Function`) and a structural function type. Uses
 /// [testRti] to choose the appropriate type.
