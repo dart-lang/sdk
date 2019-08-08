@@ -1588,10 +1588,6 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       final Member target = node.target;
       if (target is Field) {
         if (target.isConst) {
-          if (target.isInExternalLibrary && target.initializer == null) {
-            // The variable is unavailable due to separate compilation.
-            return unevaluated(node, new StaticGet(target));
-          }
           return runInsideContext(target, () {
             return _evaluateSubexpression(target.initializer);
           });
