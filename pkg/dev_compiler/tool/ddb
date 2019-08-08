@@ -66,10 +66,6 @@ void main(List<String> args) async {
     printUsage();
     exit(1);
   }
-  var entry = p.canonicalize(options.rest.first);
-  var libRoot = p.dirname(entry);
-  var basename = p.basenameWithoutExtension(entry);
-
   var debug = options['debug'] as bool;
   var kernel = options['kernel'] as bool;
   var summarizeText = options['summarize-text'] as bool;
@@ -77,6 +73,14 @@ void main(List<String> args) async {
   var experiments = options['enable-experiment'] as List;
   var summaries = options['summary'] as List;
   var port = int.parse(options['port'] as String);
+
+  var entry = p.canonicalize(options.rest.first);
+  var libRoot = p.dirname(entry);
+  var basename = p.basenameWithoutExtension(entry);
+  var libname = kernel
+      ? p.relative(p.withoutExtension(entry)).replaceAll('/', '__')
+      : basename;
+  libname = libname.replaceAll('-', '_');
 
   // By default (no `-d`), we use the `dartdevc` binary on the user's path to
   // compute the SDK we use for execution.  I.e., we assume that `dart` is
@@ -200,7 +204,7 @@ void main(List<String> args) async {
         function(sdk, app) {
     'use strict';
     sdk._debugger.registerDevtoolsFormatter();
-    app.$basename.main();
+    app.$libname.main();
   });
 </script>
 """;
@@ -225,7 +229,7 @@ void main(List<String> args) async {
     } catch(e) {
     }
     let sdk = require(\"dart_sdk\");
-    let main = require(\"./$basename\").$basename.main;
+    let main = require(\"./$basename\").$libname.main;
     try {
       sdk._isolate_helper.startRootIsolate(main, []);
     } catch(e) {
@@ -255,7 +259,7 @@ void main(List<String> args) async {
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
     import { $basename } from '$basename.js';
-    let main = $basename.main;
+    let main = $libname.main;
     try {
       _isolate_helper.startRootIsolate(() => {}, []);
       main();
