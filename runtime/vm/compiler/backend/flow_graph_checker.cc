@@ -349,23 +349,6 @@ void FlowGraphChecker::VisitConstant(ConstantInstr* constant) {
   // ASSERT(constant->GetBlock() == flow_graph_->graph_entry());
 }
 
-void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* instr) {
-  const Function& function = flow_graph_->function();
-
-  // Force-optimized functions may not have instance calls inside them because
-  // we do not reset ICData for these.
-  ASSERT(!function.ForceOptimize());
-}
-
-void FlowGraphChecker::VisitPolymorphicInstanceCall(
-    PolymorphicInstanceCallInstr* instr) {
-  const Function& function = flow_graph_->function();
-
-  // Force-optimized functions may not have instance calls inside them because
-  // we do not reset ICData for these.
-  ASSERT(!function.ForceOptimize());
-}
-
 void FlowGraphChecker::VisitPhi(PhiInstr* phi) {
   // Make sure the definition of each input value of a Phi dominates
   // the corresponding incoming edge, as defined by order.
@@ -391,6 +374,19 @@ void FlowGraphChecker::VisitBranch(BranchInstr* branch) {
 
 void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT(def->value()->definition() != def);
+}
+
+void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* instr) {
+  // Force-optimized functions may not have instance calls inside them because
+  // we do not reset ICData for these.
+  ASSERT(!flow_graph_->function().ForceOptimize());
+}
+
+void FlowGraphChecker::VisitPolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* instr) {
+  // Force-optimized functions may not have instance calls inside them because
+  // we do not reset ICData for these.
+  ASSERT(!flow_graph_->function().ForceOptimize());
 }
 
 // Main entry point of graph checker.
