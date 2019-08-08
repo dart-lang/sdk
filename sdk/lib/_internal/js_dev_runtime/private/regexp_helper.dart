@@ -48,7 +48,7 @@ class JSSyntaxRegExp implements RegExp {
   var _nativeAnchoredRegExp;
 
   String toString() =>
-      'RegExp/$pattern/' + JS('String', '#.flags', _nativeRegExp);
+      'RegExp/$pattern/' + JS<String>('!', '#.flags', _nativeRegExp);
 
   JSSyntaxRegExp(String source,
       {bool multiLine = false,
@@ -106,10 +106,10 @@ class JSSyntaxRegExp implements RegExp {
         u,
         s,
         g);
-    if (JS('bool', '# instanceof RegExp', regexp)) return regexp;
+    if (JS<bool>('!', '# instanceof RegExp', regexp)) return regexp;
     // The returned value is the JavaScript exception. Turn it into a
     // Dart exception.
-    String errorMessage = JS('String', r'String(#)', regexp);
+    String errorMessage = JS<String>('!', r'String(#)', regexp);
     throw FormatException("Illegal RegExp pattern: $source, $errorMessage");
   }
 
@@ -121,7 +121,7 @@ class JSSyntaxRegExp implements RegExp {
 
   @notNull
   bool hasMatch(@nullCheck String string) {
-    return JS('bool', r'#.test(#)', _nativeRegExp, string);
+    return JS<bool>('!', r'#.test(#)', _nativeRegExp, string);
   }
 
   String stringMatch(String string) {
@@ -202,7 +202,7 @@ class _MatchImplementation implements RegExpMatch {
     var groups = JS('Object', '#.groups', _match);
     if (groups != null) {
       var result = JS('String|Null', '#[#]', groups, name);
-      if (result != null || JS('bool', '# in #', name, groups)) {
+      if (result != null || JS<bool>('!', '# in #', name, groups)) {
         return result;
       }
     }

@@ -366,8 +366,8 @@ class NativeTypedData implements TypedData {
   }
 
   void _checkPosition(int position, int length, String name) {
-    if (JS('bool', '(# >>> 0) !== #', position, position) ||
-        JS('int', '#', position) > length) {
+    if (JS<bool>('!', '(# >>> 0) !== #', position, position) ||
+        JS<int>('!', '#', position) > length) {
       // 'int' guaranteed by above test.
       _invalidPosition(position, length, name);
     }
@@ -768,11 +768,11 @@ abstract class NativeTypedArray extends NativeTypedData
 
 abstract class NativeTypedArrayOfDouble extends NativeTypedArray
     with ListMixin<double>, FixedLengthListMixin<double> {
-  int get length => JS('int', '#.length', this);
+  int get length => JS<int>('!', '#.length', this);
 
   double operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('double', '#[#]', this, index);
+    return JS<double>('!', '#[#]', this, index);
   }
 
   void operator []=(int index, num value) {
@@ -793,7 +793,7 @@ abstract class NativeTypedArrayOfDouble extends NativeTypedArray
 abstract class NativeTypedArrayOfInt extends NativeTypedArray
     with ListMixin<int>, FixedLengthListMixin<int>
     implements List<int> {
-  int get length => JS('int', '#.length', this);
+  int get length => JS<int>('!', '#.length', this);
 
   // operator[]() is not here since different versions have different return
   // types
@@ -833,18 +833,19 @@ class NativeFloat32List extends NativeTypedArrayOfDouble
 
   Float32List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeFloat32List', '#.subarray(#, #)', this, start, end);
+    var source =
+        JS<NativeFloat32List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeFloat32List _create1(arg) =>
-      JS('NativeFloat32List', 'new Float32Array(#)', arg);
+      JS<NativeFloat32List>('!', 'new Float32Array(#)', arg);
 
   static NativeFloat32List _create2(arg1, arg2) =>
-      JS('NativeFloat32List', 'new Float32Array(#, #)', arg1, arg2);
+      JS<NativeFloat32List>('!', 'new Float32Array(#, #)', arg1, arg2);
 
   static NativeFloat32List _create3(arg1, arg2, arg3) =>
-      JS('NativeFloat32List', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeFloat32List>('!', 'new Float32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 @Native("Float64Array")
@@ -900,7 +901,7 @@ class NativeInt16List extends NativeTypedArrayOfInt implements Int16List {
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Int16List sublist(int start, [int end]) {
@@ -938,23 +939,23 @@ class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Int32List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeInt32List', '#.subarray(#, #)', this, start, end);
+    var source = JS<NativeInt32List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeInt32List _create1(arg) =>
-      JS('NativeInt32List', 'new Int32Array(#)', arg);
+      JS<NativeInt32List>('!', 'new Int32Array(#)', arg);
 
   static NativeInt32List _create2(arg1, arg2) =>
-      JS('NativeInt32List', 'new Int32Array(#, #)', arg1, arg2);
+      JS<NativeInt32List>('!', 'new Int32Array(#, #)', arg1, arg2);
 
   static NativeInt32List _create3(arg1, arg2, arg3) =>
-      JS('NativeInt32List', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeInt32List>('!', 'new Int32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 @Native("Int8Array")
@@ -976,23 +977,23 @@ class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Int8List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeInt8List', '#.subarray(#, #)', this, start, end);
+    var source = JS<NativeInt8List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeInt8List _create1(arg) =>
-      JS('NativeInt8List', 'new Int8Array(#)', arg);
+      JS<NativeInt8List>('!', 'new Int8Array(#)', arg);
 
   static NativeInt8List _create2(arg1, arg2) =>
-      JS('NativeInt8List', 'new Int8Array(#, #)', arg1, arg2);
+      JS<NativeInt8List>('!', 'new Int8Array(#, #)', arg1, arg2);
 
   static Int8List _create3(arg1, arg2, arg3) =>
-      JS('NativeInt8List', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeInt8List>('!', 'new Int8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 @Native("Uint16Array")
@@ -1014,23 +1015,24 @@ class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Uint16List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint16List', '#.subarray(#, #)', this, start, end);
+    var source =
+        JS<NativeUint16List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeUint16List _create1(arg) =>
-      JS('NativeUint16List', 'new Uint16Array(#)', arg);
+      JS<NativeUint16List>('!', 'new Uint16Array(#)', arg);
 
   static NativeUint16List _create2(arg1, arg2) =>
-      JS('NativeUint16List', 'new Uint16Array(#, #)', arg1, arg2);
+      JS<NativeUint16List>('!', 'new Uint16Array(#, #)', arg1, arg2);
 
   static NativeUint16List _create3(arg1, arg2, arg3) =>
-      JS('NativeUint16List', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeUint16List>('!', 'new Uint16Array(#, #, #)', arg1, arg2, arg3);
 }
 
 @Native("Uint32Array")
@@ -1052,23 +1054,24 @@ class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Uint32List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint32List', '#.subarray(#, #)', this, start, end);
+    var source =
+        JS<NativeUint32List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeUint32List _create1(arg) =>
-      JS('NativeUint32List', 'new Uint32Array(#)', arg);
+      JS<NativeUint32List>('!', 'new Uint32Array(#)', arg);
 
   static NativeUint32List _create2(arg1, arg2) =>
-      JS('NativeUint32List', 'new Uint32Array(#, #)', arg1, arg2);
+      JS<NativeUint32List>('!', 'new Uint32Array(#, #)', arg1, arg2);
 
   static NativeUint32List _create3(arg1, arg2, arg3) =>
-      JS('NativeUint32List', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeUint32List>('!', 'new Uint32Array(#, #, #)', arg1, arg2, arg3);
 }
 
 @Native("Uint8ClampedArray,CanvasPixelArray")
@@ -1089,25 +1092,26 @@ class NativeUint8ClampedList extends NativeTypedArrayOfInt
 
   Type get runtimeType => Uint8ClampedList;
 
-  int get length => JS('int', '#.length', this);
+  int get length => JS<int>('!', '#.length', this);
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Uint8ClampedList sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
     var source =
-        JS('NativeUint8ClampedList', '#.subarray(#, #)', this, start, end);
+        JS<NativeUint8ClampedList>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeUint8ClampedList _create1(arg) =>
-      JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#)', arg);
+      JS<NativeUint8ClampedList>('!', 'new Uint8ClampedArray(#)', arg);
 
   static NativeUint8ClampedList _create2(arg1, arg2) =>
-      JS('NativeUint8ClampedList', 'new Uint8ClampedArray(#, #)', arg1, arg2);
+      JS<NativeUint8ClampedList>(
+          '!', 'new Uint8ClampedArray(#, #)', arg1, arg2);
 
   static NativeUint8ClampedList _create3(arg1, arg2, arg3) => JS(
       'NativeUint8ClampedList',
@@ -1138,27 +1142,27 @@ class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
 
   Type get runtimeType => Uint8List;
 
-  int get length => JS('int', '#.length', this);
+  int get length => JS<int>('!', '#.length', this);
 
   int operator [](int index) {
     _checkValidIndex(index, this, this.length);
-    return JS('int', '#[#]', this, index);
+    return JS<int>('!', '#[#]', this, index);
   }
 
   Uint8List sublist(int start, [int end]) {
     end = _checkValidRange(start, end, this.length);
-    var source = JS('NativeUint8List', '#.subarray(#, #)', this, start, end);
+    var source = JS<NativeUint8List>('!', '#.subarray(#, #)', this, start, end);
     return _create1(source);
   }
 
   static NativeUint8List _create1(arg) =>
-      JS('NativeUint8List', 'new Uint8Array(#)', arg);
+      JS<NativeUint8List>('!', 'new Uint8Array(#)', arg);
 
   static NativeUint8List _create2(arg1, arg2) =>
-      JS('NativeUint8List', 'new Uint8Array(#, #)', arg1, arg2);
+      JS<NativeUint8List>('!', 'new Uint8Array(#, #)', arg1, arg2);
 
   static NativeUint8List _create3(arg1, arg2, arg3) =>
-      JS('NativeUint8List', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
+      JS<NativeUint8List>('!', 'new Uint8Array(#, #, #)', arg1, arg2, arg3);
 }
 
 /**
@@ -1867,14 +1871,14 @@ class NativeFloat64x2 implements Float64x2 {
 /// Checks that the value is a Uint32. If not, it's not valid as an array
 /// index or offset. Also ensures that the value is non-negative.
 bool _isInvalidArrayIndex(int index) {
-  return (JS('bool', '(# >>> 0 !== #)', index, index));
+  return (JS<bool>('!', '(# >>> 0 !== #)', index, index));
 }
 
 /// Checks that [index] is a valid index into [list] which has length [length].
 ///
 /// That is, [index] is an integer in the range `0..length - 1`.
 void _checkValidIndex(int index, List list, int length) {
-  if (_isInvalidArrayIndex(index) || JS('int', '#', index) >= length) {
+  if (_isInvalidArrayIndex(index) || JS<int>('!', '#', index) >= length) {
     throw diagnoseIndexError(list, index);
   }
 }

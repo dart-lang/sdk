@@ -44,7 +44,7 @@ var _devtoolsFormatter = JsonMLFormatter(DartFormatter());
 /// We truncate a toString() longer than [maxStringLength].
 int maxFormatterStringLength = 100;
 
-String _typeof(object) => JS('String', 'typeof #', object);
+String _typeof(object) => JS<String>('!', 'typeof #', object);
 
 List<String> getOwnPropertyNames(object) =>
     JSArray<String>.of(dart.getOwnPropertyNames(object));

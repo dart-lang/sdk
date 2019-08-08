@@ -37,10 +37,10 @@ int identityHashCode(Object object) {
   // for them to be equivalent to their computed hashCode function.
   int hash = JS('int|Null', r'#[#]', object, dart.identityHashCode_);
   if (hash == null) {
-    hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
+    hash = JS<int>('!', '(Math.random() * 0x3fffffff) | 0');
     JS('void', r'#[#] = #', object, dart.identityHashCode_, hash);
   }
-  return JS('int', '#', hash);
+  return JS<int>('!', '#', hash);
 }
 
 // Patch for Object implementation.
@@ -399,7 +399,7 @@ class List<E> {
   @patch
   factory List([@undefined int _length]) {
     dynamic list;
-    if (JS('bool', '# === void 0', _length)) {
+    if (JS<bool>('!', '# === void 0', _length)) {
       list = JS('', '[]');
     } else {
       int length = JS('!', '#', _length);
@@ -564,7 +564,7 @@ class RegExp {
 // Patch for 'identical' function.
 @patch
 bool identical(Object a, Object b) {
-  return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
+  return JS<bool>('!', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
 @patch

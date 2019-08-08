@@ -271,7 +271,7 @@ class _StackTrace implements StackTrace {
 
     var e = _jsError;
     String trace = '';
-    if (e != null && JS('bool', 'typeof # === "object"', e)) {
+    if (e != null && JS<bool>('!', 'typeof # === "object"', e)) {
       trace = e is NativeError ? e.dartStack() : JS<String>('', '#.stack', e);
       if (trace != null && stackTraceMapper != null) {
         trace = stackTraceMapper(trace);

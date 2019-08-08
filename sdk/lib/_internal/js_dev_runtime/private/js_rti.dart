@@ -18,7 +18,7 @@ getIndex(var array, int index) {
 /// Returns the length of the JavaScript array [array].
 int getLength(var array) {
   assert(isJsArray(array));
-  return JS('int', r'#.length', array);
+  return JS<int>('!', r'#.length', array);
 }
 
 /// Returns whether [value] is a JavaScript array.

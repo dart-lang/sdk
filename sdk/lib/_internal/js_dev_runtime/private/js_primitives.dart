@@ -18,26 +18,26 @@ import 'dart:_foreign_helper' show JS;
  * to print ends in this method.
  */
 void printString(String string) {
-  if (JS('bool', r'typeof dartPrint == "function"')) {
+  if (JS<bool>('!', r'typeof dartPrint == "function"')) {
     // Support overriding print from JavaScript.
     JS('void', r'dartPrint(#)', string);
     return;
   }
 
   // Inside browser or nodejs.
-  if (JS('bool', r'typeof console == "object"') &&
-      JS('bool', r'typeof console.log != "undefined"')) {
+  if (JS<bool>('!', r'typeof console == "object"') &&
+      JS<bool>('!', r'typeof console.log != "undefined"')) {
     JS('void', r'console.log(#)', string);
     return;
   }
 
   // Don't throw inside IE, the console is only defined if dev tools is open.
-  if (JS('bool', r'typeof window == "object"')) {
+  if (JS<bool>('!', r'typeof window == "object"')) {
     return;
   }
 
   // Running in d8, the V8 developer shell, or in Firefox' js-shell.
-  if (JS('bool', r'typeof print == "function"')) {
+  if (JS<bool>('!', r'typeof print == "function"')) {
     JS('void', r'print(#)', string);
     return;
   }

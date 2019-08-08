@@ -19,49 +19,49 @@ T max<T extends num>(@nullCheck T a, @nullCheck T b) =>
 
 @patch
 @notNull
-double sqrt(@nullCheck num x) => JS('num', r'Math.sqrt(#)', x);
+double sqrt(@nullCheck num x) => JS<num>('!', r'Math.sqrt(#)', x);
 
 @patch
 @notNull
-double sin(@nullCheck num radians) => JS('num', r'Math.sin(#)', radians);
+double sin(@nullCheck num radians) => JS<num>('!', r'Math.sin(#)', radians);
 
 @patch
 @notNull
-double cos(@nullCheck num radians) => JS('num', r'Math.cos(#)', radians);
+double cos(@nullCheck num radians) => JS<num>('!', r'Math.cos(#)', radians);
 
 @patch
 @notNull
-double tan(@nullCheck num radians) => JS('num', r'Math.tan(#)', radians);
+double tan(@nullCheck num radians) => JS<num>('!', r'Math.tan(#)', radians);
 
 @patch
 @notNull
-double acos(@nullCheck num x) => JS('num', r'Math.acos(#)', x);
+double acos(@nullCheck num x) => JS<num>('!', r'Math.acos(#)', x);
 
 @patch
 @notNull
-double asin(@nullCheck num x) => JS('num', r'Math.asin(#)', x);
+double asin(@nullCheck num x) => JS<num>('!', r'Math.asin(#)', x);
 
 @patch
 @notNull
-double atan(@nullCheck num x) => JS('num', r'Math.atan(#)', x);
+double atan(@nullCheck num x) => JS<num>('!', r'Math.atan(#)', x);
 
 @patch
 @notNull
 double atan2(@nullCheck num a, @nullCheck num b) =>
-    JS('num', r'Math.atan2(#, #)', a, b);
+    JS<num>('!', r'Math.atan2(#, #)', a, b);
 
 @patch
 @notNull
-double exp(@nullCheck num x) => JS('num', r'Math.exp(#)', x);
+double exp(@nullCheck num x) => JS<num>('!', r'Math.exp(#)', x);
 
 @patch
 @notNull
-double log(@nullCheck num x) => JS('num', r'Math.log(#)', x);
+double log(@nullCheck num x) => JS<num>('!', r'Math.log(#)', x);
 
 @patch
 @notNull
 num pow(@nullCheck num x, @nullCheck num exponent) =>
-    JS('num', r'Math.pow(#, #)', x, exponent);
+    JS<num>('!', r'Math.pow(#, #)', x, exponent);
 
 const int _POW2_32 = 0x100000000;
 

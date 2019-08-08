@@ -21,20 +21,20 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
   IdentityMap();
   IdentityMap.from(JSArray entries) {
     var map = _map;
-    for (int i = 0, n = JS('int', '#.length', entries); i < n; i += 2) {
+    for (int i = 0, n = JS<int>('!', '#.length', entries); i < n; i += 2) {
       JS('', '#.set(#[#], #[#])', map, entries, i, entries, i + 1);
     }
   }
 
-  int get length => JS('int', '#.size', _map);
-  bool get isEmpty => JS('bool', '#.size == 0', _map);
-  bool get isNotEmpty => JS('bool', '#.size != 0', _map);
+  int get length => JS<int>('!', '#.size', _map);
+  bool get isEmpty => JS<bool>('!', '#.size == 0', _map);
+  bool get isNotEmpty => JS<bool>('!', '#.size != 0', _map);
 
   Iterable<K> get keys => _JSMapIterable<K>(this, true);
   Iterable<V> get values => _JSMapIterable<V>(this, false);
 
   bool containsKey(Object key) {
-    return JS('bool', '#.has(#)', _map, key);
+    return JS<bool>('!', '#.has(#)', _map, key);
   }
 
   bool containsValue(Object value) {
@@ -63,13 +63,15 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
     var map = _map;
     int length = JS('!', '#.size', map);
     JS('', '#.set(#, #)', map, key, value);
-    if (length != JS('int', '#.size', map)) {
+    if (length != JS<int>('!', '#.size', map)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
   }
 
   V putIfAbsent(K key, V ifAbsent()) {
-    if (JS('bool', '#.has(#)', _map, key)) return JS('', '#.get(#)', _map, key);
+    if (JS<bool>('!', '#.has(#)', _map, key)) {
+      return JS('', '#.get(#)', _map, key);
+    }
     V value = ifAbsent();
     if (value == null) value = null; // coerce undefined to null.
     JS('', '#.set(#, #)', _map, key, value);
@@ -79,14 +81,14 @@ class IdentityMap<K, V> extends InternalMap<K, V> {
 
   V remove(Object key) {
     V value = JS('', '#.get(#)', _map, key);
-    if (JS('bool', '#.delete(#)', _map, key)) {
+    if (JS<bool>('!', '#.delete(#)', _map, key)) {
       _modifications = (_modifications + 1) & 0x3ffffff;
     }
     return value == null ? null : value; // coerce undefined to null.
   }
 
   void clear() {
-    if (JS('int', '#.size', _map) > 0) {
+    if (JS<int>('!', '#.size', _map) > 0) {
       JS('', '#.clear()', _map);
       _modifications = (_modifications + 1) & 0x3ffffff;
     }

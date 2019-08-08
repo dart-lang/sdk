@@ -40,23 +40,24 @@ class JSNumber extends Interceptor implements int, double {
   bool get isNegative => (this == 0) ? (1 / this) < 0 : this < 0;
 
   @notNull
-  bool get isNaN => JS('bool', r'isNaN(#)', this);
+  bool get isNaN => JS<bool>('!', r'isNaN(#)', this);
 
   @notNull
   bool get isInfinite {
-    return JS('bool', r'# == (1/0)', this) || JS('bool', r'# == (-1/0)', this);
+    return JS<bool>('!', r'# == (1/0)', this) ||
+        JS<bool>('!', r'# == (-1/0)', this);
   }
 
   @notNull
-  bool get isFinite => JS('bool', r'isFinite(#)', this);
+  bool get isFinite => JS<bool>('!', r'isFinite(#)', this);
 
   @notNull
   JSNumber remainder(@nullCheck num b) {
-    return JS('num', r'# % #', this, b);
+    return JS<num>('!', r'# % #', this, b);
   }
 
   @notNull
-  JSNumber abs() => JS('num', r'Math.abs(#)', this);
+  JSNumber abs() => JS<num>('!', r'Math.abs(#)', this);
 
   @notNull
   JSNumber get sign => this > 0 ? 1 : this < 0 ? -1 : this;
@@ -69,10 +70,11 @@ class JSNumber extends Interceptor implements int, double {
   @notNull
   int toInt() {
     if (this >= _MIN_INT32 && this <= _MAX_INT32) {
-      return JS('int', '# | 0', this);
+      return JS<int>('!', '# | 0', this);
     }
-    if (JS('bool', r'isFinite(#)', this)) {
-      return JS('int', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
+    if (JS<bool>('!', r'isFinite(#)', this)) {
+      return JS<int>(
+          '!', r'# + 0', truncateToDouble()); // Converts -0.0 to +0.0.
     }
     // This is either NaN, Infinity or -Infinity.
     throw UnsupportedError(JS("String", '"" + #', this));
@@ -92,33 +94,33 @@ class JSNumber extends Interceptor implements int, double {
     if (this > 0) {
       // This path excludes the special cases -0.0, NaN and -Infinity, leaving
       // only +Infinity, for which a direct test is faster than [isFinite].
-      if (JS('bool', r'# !== (1/0)', this)) {
-        return JS('int', r'Math.round(#)', this);
+      if (JS<bool>('!', r'# !== (1/0)', this)) {
+        return JS<int>('!', r'Math.round(#)', this);
       }
-    } else if (JS('bool', '# > (-1/0)', this)) {
+    } else if (JS<bool>('!', '# > (-1/0)', this)) {
       // This test excludes NaN and -Infinity, leaving only -0.0.
       //
       // Subtraction from zero rather than negation forces -0.0 to 0.0 so code
       // inside Math.round and code to handle result never sees -0.0, which on
       // some JavaScript VMs can be a slow path.
-      return JS('int', r'0 - Math.round(0 - #)', this);
+      return JS<int>('!', r'0 - Math.round(0 - #)', this);
     }
     // This is either NaN, Infinity or -Infinity.
     throw UnsupportedError(JS("String", '"" + #', this));
   }
 
   @notNull
-  double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
+  double ceilToDouble() => JS<num>('!', r'Math.ceil(#)', this);
 
   @notNull
-  double floorToDouble() => JS('num', r'Math.floor(#)', this);
+  double floorToDouble() => JS<num>('!', r'Math.floor(#)', this);
 
   @notNull
   double roundToDouble() {
     if (this < 0) {
-      return JS('num', r'-Math.round(-#)', this);
+      return JS<num>('!', r'-Math.round(-#)', this);
     } else {
-      return JS('num', r'Math.round(#)', this);
+      return JS<num>('!', r'Math.round(#)', this);
     }
   }
 
@@ -143,7 +145,7 @@ class JSNumber extends Interceptor implements int, double {
     if (fractionDigits < 0 || fractionDigits > 20) {
       throw RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
-    String result = JS('String', r'#.toFixed(#)', this, fractionDigits);
+    String result = JS<String>('!', r'#.toFixed(#)', this, fractionDigits);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
@@ -157,9 +159,9 @@ class JSNumber extends Interceptor implements int, double {
       if (_fractionDigits < 0 || _fractionDigits > 20) {
         throw RangeError.range(_fractionDigits, 0, 20, "fractionDigits");
       }
-      result = JS('String', r'#.toExponential(#)', this, _fractionDigits);
+      result = JS<String>('!', r'#.toExponential(#)', this, _fractionDigits);
     } else {
-      result = JS('String', r'#.toExponential()', this);
+      result = JS<String>('!', r'#.toExponential()', this);
     }
     if (this == 0 && isNegative) return "-$result";
     return result;
@@ -170,7 +172,7 @@ class JSNumber extends Interceptor implements int, double {
     if (precision < 1 || precision > 21) {
       throw RangeError.range(precision, 1, 21, "precision");
     }
-    String result = JS('String', r'#.toPrecision(#)', this, precision);
+    String result = JS<String>('!', r'#.toPrecision(#)', this, precision);
     if (this == 0 && isNegative) return "-$result";
     return result;
   }
@@ -180,7 +182,7 @@ class JSNumber extends Interceptor implements int, double {
     if (radix < 2 || radix > 36) {
       throw RangeError.range(radix, 2, 36, "radix");
     }
-    String result = JS('String', r'#.toString(#)', this, radix);
+    String result = JS<String>('!', r'#.toString(#)', this, radix);
     const int rightParenCode = 0x29;
     if (result.codeUnitAt(result.length - 1) != rightParenCode) {
       return result;
@@ -210,16 +212,16 @@ class JSNumber extends Interceptor implements int, double {
   // Note: if you change this, also change the function [S].
   @notNull
   String toString() {
-    if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
+    if (this == 0 && JS<bool>('!', '(1 / #) < 0', this)) {
       return '-0.0';
     } else {
-      return JS('String', r'"" + (#)', this);
+      return JS<String>('!', r'"" + (#)', this);
     }
   }
 
   @notNull
   int get hashCode {
-    int intValue = JS('int', '# | 0', this);
+    int intValue = JS<int>('!', '# | 0', this);
     // Fast exit for integers in signed 32-bit range. Masking converts -0.0 to 0
     // and ensures that result fits in JavaScript engine's Smi range.
     if (this == intValue) return 0x1FFFFFFF & intValue;
@@ -227,12 +229,12 @@ class JSNumber extends Interceptor implements int, double {
     // We would like to access the exponent and mantissa as integers but there
     // are no JavaScript operations that do this, so use log2-floor-pow-divide
     // to extract the values.
-    num absolute = JS('num', 'Math.abs(#)', this);
-    num lnAbsolute = JS('num', 'Math.log(#)', absolute);
+    num absolute = JS<num>('!', 'Math.abs(#)', this);
+    num lnAbsolute = JS<num>('!', 'Math.log(#)', absolute);
     num log2 = lnAbsolute / ln2;
     // Floor via '# | 0' converts NaN to zero so the final result is not NaN.
-    int floorLog2 = JS('int', '# | 0', log2);
-    num factor = JS('num', 'Math.pow(2, #)', floorLog2);
+    int floorLog2 = JS<int>('!', '# | 0', log2);
+    num factor = JS<num>('!', 'Math.pow(2, #)', floorLog2);
     num scaled = absolute < 1 ? absolute / factor : factor / absolute;
     // [scaled] is in the range [0.5, 1].
 
@@ -245,8 +247,8 @@ class JSNumber extends Interceptor implements int, double {
     // all over the mantissa into low positions.
     num rescaled1 = scaled * 0x20000000000000;
     num rescaled2 = scaled * 0x0C95A6C285A6C9;
-    int d1 = JS('int', '# | 0', rescaled1);
-    int d2 = JS('int', '# | 0', rescaled2);
+    int d1 = JS<int>('!', '# | 0', rescaled1);
+    int d2 = JS<int>('!', '# | 0', rescaled2);
     // Mix in exponent to distinguish e.g. 1.25 from 2.5.
     int d3 = floorLog2;
     int h = 0x1FFFFFFF & ((d1 + d2) * (601 * 997) + d3 * (1259));
@@ -254,49 +256,49 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  JSNumber operator -() => JS('num', r'-#', this);
+  JSNumber operator -() => JS<num>('!', r'-#', this);
 
   @notNull
   JSNumber operator +(@nullCheck num other) {
-    return JS('num', '# + #', this, other);
+    return JS<num>('!', '# + #', this, other);
   }
 
   @notNull
   JSNumber operator -(@nullCheck num other) {
-    return JS('num', '# - #', this, other);
+    return JS<num>('!', '# - #', this, other);
   }
 
   @notNull
   double operator /(@nullCheck num other) {
-    return JS('num', '# / #', this, other);
+    return JS<num>('!', '# / #', this, other);
   }
 
   @notNull
   JSNumber operator *(@nullCheck num other) {
-    return JS('num', '# * #', this, other);
+    return JS<num>('!', '# * #', this, other);
   }
 
   @notNull
   JSNumber operator %(@nullCheck num other) {
     // Euclidean Modulo.
-    num result = JS('num', r'# % #', this, other);
+    num result = JS<num>('!', r'# % #', this, other);
     if (result == 0) return (0 as JSNumber); // Make sure we don't return -0.0.
     if (result > 0) return result;
-    if (JS('num', '#', other) < 0) {
-      return result - JS('num', '#', other);
+    if (JS<num>('!', '#', other) < 0) {
+      return result - JS<num>('!', '#', other);
     } else {
-      return result + JS('num', '#', other);
+      return result + JS<num>('!', '#', other);
     }
   }
 
   @notNull
   bool _isInt32(@notNull num value) =>
-      JS('bool', '(# | 0) === #', value, value);
+      JS<bool>('!', '(# | 0) === #', value, value);
 
   @notNull
   int operator ~/(@nullCheck num other) {
     if (_isInt32(this) && _isInt32(other) && 0 != other && -1 != other) {
-      return JS('int', r'(# / #) | 0', this, other);
+      return JS<int>('!', r'(# / #) | 0', this, other);
     } else {
       return _tdivSlow(other);
     }
@@ -304,7 +306,7 @@ class JSNumber extends Interceptor implements int, double {
 
   @notNull
   int _tdivSlow(num other) {
-    return (JS('num', r'# / #', this, other)).toInt();
+    return (JS<num>('!', r'# / #', this, other)).toInt();
   }
 
   // TODO(ngeoffray): Move the bit operations below to [JSInt] and
@@ -322,31 +324,31 @@ class JSNumber extends Interceptor implements int, double {
   int _shlPositive(@notNull num other) {
     // JavaScript only looks at the last 5 bits of the shift-amount. Shifting
     // by 33 is hence equivalent to a shift by 1.
-    return JS('bool', r'# > 31', other)
+    return JS<bool>('!', r'# > 31', other)
         ? 0
-        : JS('int', r'(# << #) >>> 0', this, other);
+        : JS<int>('!', r'(# << #) >>> 0', this, other);
   }
 
   @notNull
   int operator >>(@nullCheck num other) {
-    if (JS('num', '#', other) < 0) throwArgumentErrorValue(other);
+    if (JS<num>('!', '#', other) < 0) throwArgumentErrorValue(other);
     return _shrOtherPositive(other);
   }
 
   @notNull
   int _shrOtherPositive(@notNull num other) {
-    return JS('num', '#', this) > 0
+    return JS<num>('!', '#', this) > 0
         ? _shrBothPositive(other)
         // For negative numbers we just clamp the shift-by amount.
         // `this` could be negative but not have its 31st bit set.
         // The ">>" would then shift in 0s instead of 1s. Therefore
         // we cannot simply return 0xFFFFFFFF.
-        : JS('int', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
+        : JS<int>('!', r'(# >> #) >>> 0', this, other > 31 ? 31 : other);
   }
 
   @notNull
   int _shrBothPositive(@notNull num other) {
-    return JS('bool', r'# > 31', other)
+    return JS<bool>('!', r'# > 31', other)
         // JavaScript only looks at the last 5 bits of the shift-amount. In JS
         // shifting by 33 is hence equivalent to a shift by 1. Shortcut the
         // computation when that happens.
@@ -354,42 +356,42 @@ class JSNumber extends Interceptor implements int, double {
         // Given that `this` is positive we must not use '>>'. Otherwise a
         // number that has the 31st bit set would be treated as negative and
         // shift in ones.
-        : JS('int', r'# >>> #', this, other);
+        : JS<int>('!', r'# >>> #', this, other);
   }
 
   @notNull
   int operator &(@nullCheck num other) {
-    return JS('int', r'(# & #) >>> 0', this, other);
+    return JS<int>('!', r'(# & #) >>> 0', this, other);
   }
 
   @notNull
   int operator |(@nullCheck num other) {
-    return JS('int', r'(# | #) >>> 0', this, other);
+    return JS<int>('!', r'(# | #) >>> 0', this, other);
   }
 
   @notNull
   int operator ^(@nullCheck num other) {
-    return JS('int', r'(# ^ #) >>> 0', this, other);
+    return JS<int>('!', r'(# ^ #) >>> 0', this, other);
   }
 
   @notNull
   bool operator <(@nullCheck num other) {
-    return JS('bool', '# < #', this, other);
+    return JS<bool>('!', '# < #', this, other);
   }
 
   @notNull
   bool operator >(@nullCheck num other) {
-    return JS('bool', '# > #', this, other);
+    return JS<bool>('!', '# > #', this, other);
   }
 
   @notNull
   bool operator <=(@nullCheck num other) {
-    return JS('bool', '# <= #', this, other);
+    return JS<bool>('!', '# <= #', this, other);
   }
 
   @notNull
   bool operator >=(@nullCheck num other) {
-    return JS('bool', '# >= #', this, other);
+    return JS<bool>('!', '# >= #', this, other);
   }
 
   // int members.
@@ -601,11 +603,13 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static int _shru(int value, int shift) =>
+      JS<int>('!', '# >>> #', value, shift);
   @notNull
-  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static int _shrs(int value, int shift) =>
+      JS<int>('!', '# >> #', value, shift);
   @notNull
-  static int _ors(int a, int b) => JS('int', '# | #', a, b);
+  static int _ors(int a, int b) => JS<int>('!', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   @notNull
@@ -619,5 +623,5 @@ class JSNumber extends Interceptor implements int, double {
   }
 
   @notNull
-  int operator ~() => JS('int', r'(~#) >>> 0', this);
+  int operator ~() => JS<int>('!', r'(~#) >>> 0', this);
 }

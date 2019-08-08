@@ -109,10 +109,10 @@ clearDynamicStats() {
 
 // We need to set this property while the sdk is only partially initialized
 // so we cannot use a regular Dart field.
-bool get _trackProfile => JS('bool', 'dart.__trackProfile');
+bool get _trackProfile => JS<bool>('!', 'dart.__trackProfile');
 
 trackCall(obj) {
-  if (JS('bool', '!#', _trackProfile)) return;
+  if (JS<bool>('!', '!#', _trackProfile)) return;
   int index = -1;
   _totalCallRecords++;
   if (_callMethodRecords.length == _callRecordSampleSize) {
@@ -122,7 +122,7 @@ trackCall(obj) {
     // appropriate probability randomly evicting one of the existing records.
     // Unfortunately we can't use the excellent Random.nextInt method defined
     // by Dart from within this library.
-    index = JS('int', 'Math.floor(Math.random() * #)', _totalCallRecords);
+    index = JS<int>('!', 'Math.floor(Math.random() * #)', _totalCallRecords);
     if (index >= _callMethodRecords.length) return; // don't sample
   }
   var record =

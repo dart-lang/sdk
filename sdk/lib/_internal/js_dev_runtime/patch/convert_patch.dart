@@ -36,7 +36,7 @@ _parseJson(String source, reviver(Object key, Object value)) {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
         'JSON.parse(#)', source);
   } catch (e) {
-    throw FormatException(JS('String', 'String(#)', e));
+    throw FormatException(JS<String>('!', 'String(#)', e));
   }
 
   if (reviver == null) {
@@ -55,16 +55,17 @@ _convertJsonToDart(json, reviver(Object key, Object value)) {
   assert(reviver != null);
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
-    if (JS('bool', '# == null', e) || JS('bool', 'typeof # != "object"', e)) {
+    if (JS<bool>('!', '# == null', e) ||
+        JS<bool>('!', 'typeof # != "object"', e)) {
       return e;
     }
 
     // This test is needed to avoid identifying '{"__proto__":[]}' as an Array.
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
-    if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
+    if (JS<bool>('!', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
       // In-place update of the elements since JS Array is a Dart List.
-      for (int i = 0; i < JS('int', '#.length', e); i++) {
+      for (int i = 0; i < JS<int>('!', '#.length', e); i++) {
         // Use JS indexing to avoid range checks.  We know this is the only
         // reference to the list, but the compiler will likely never be able to
         // tell that this instance of the list cannot have its length changed by
@@ -100,19 +101,19 @@ _convertJsonToDartLazy(object) {
   if (object == null) return null;
 
   // JavaScript string, number, bool already has the correct representation.
-  if (JS('bool', 'typeof # != "object"', object)) {
+  if (JS<bool>('!', 'typeof # != "object"', object)) {
     return object;
   }
 
   // This test is needed to avoid identifying '{"__proto__":[]}' as an array.
   // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
   // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
-  if (JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+  if (JS<bool>('!', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
     return _JsonMap(object);
   }
 
   // Update the elements in place since JS arrays are Dart lists.
-  for (int i = 0; i < JS('int', '#.length', object); i++) {
+  for (int i = 0; i < JS<int>('!', '#.length', object); i++) {
     // Use JS indexing to avoid range checks.  We know this is the only
     // reference to the list, but the compiler will likely never be able to
     // tell that this instance of the list cannot have its length changed by
@@ -319,14 +320,14 @@ class _JsonMap extends MapBase<String, dynamic> {
   // ------------------------------------------
 
   static bool _hasProperty(object, String key) =>
-      JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
+      JS<bool>('!', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
   static _getProperty(object, String key) => JS('', '#[#]', object, key);
   static _setProperty(object, String key, value) =>
       JS('', '#[#]=#', object, key, value);
   static List _getPropertyNames(object) =>
       JS('JSExtendableArray', 'Object.keys(#)', object);
   static bool _isUnprocessed(object) =>
-      JS('bool', 'typeof(#)=="undefined"', object);
+      JS<bool>('!', 'typeof(#)=="undefined"', object);
   static _newJavaScriptObject() => JS('=Object', 'Object.create(null)');
 }
 
@@ -402,9 +403,9 @@ class Utf8Decoder {
       bool allowMalformed, List<int> codeUnits, int start, int end) {
     // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
     // implemented by JavaScript's Uint8Array.
-    if (JS('bool', '# instanceof Uint8Array', codeUnits)) {
+    if (JS<bool>('!', '# instanceof Uint8Array', codeUnits)) {
       // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
-      NativeUint8List casted = JS('NativeUint8List', '#', codeUnits);
+      NativeUint8List casted = JS<NativeUint8List>('!', '#', codeUnits);
       return _convertInterceptedUint8List(allowMalformed, casted, start, end);
     }
   }
@@ -438,7 +439,7 @@ class Utf8Decoder {
     }
 
     return _useTextDecoderChecked(decoder,
-        JS('NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
+        JS<NativeUint8List>('!', '#.subarray(#, #)', codeUnits, start, end));
   }
 
   static String _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
@@ -451,7 +452,7 @@ class Utf8Decoder {
     // back on unintercepted decoder. The fallback will either succeed in
     // decoding, or report the problem better than TextDecoder.
     try {
-      return JS('String', '#.decode(#)', decoder, codeUnits);
+      return JS<String>('!', '#.decode(#)', decoder, codeUnits);
     } catch (e) {}
     return null;
   }
