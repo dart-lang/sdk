@@ -63,11 +63,9 @@ abstract class TestRunner {
       prefix += '-CMP';
       extraFlags += ['--use-bytecode-compiler'];
     }
-    // Every once in a while, go directly from source for kbc-*-x64.
+    // Every once in a while, go directly from source for kbc.
     bool kbcSrc = false;
-    if (mode.startsWith('kbc') &&
-        mode.endsWith('x64') &&
-        rand.nextInt(4) == 0) {
+    if (mode.startsWith('kbc') && rand.nextInt(4) == 0) {
       prefix += '-SRC';
       kbcSrc = true;
     }
@@ -593,12 +591,30 @@ class DartFuzzTestSession {
     'jit-arm64',
     'aot-debug-x64',
     'aot-x64',
+    'kbc-int-debug-ia32',
+    'kbc-cmp-debug-ia32',
+    'kbc-mix-debug-ia32',
     'kbc-int-debug-x64',
     'kbc-cmp-debug-x64',
     'kbc-mix-debug-x64',
+    'kbc-int-debug-arm32',
+    'kbc-cmp-debug-arm32',
+    'kbc-mix-debug-arm32',
+    'kbc-int-debug-arm64',
+    'kbc-cmp-debug-arm64',
+    'kbc-mix-debug-arm64',
+    'kbc-int-ia32',
+    'kbc-cmp-ia32',
+    'kbc-mix-ia32',
     'kbc-int-x64',
     'kbc-cmp-x64',
     'kbc-mix-x64',
+    'kbc-int-arm32',
+    'kbc-cmp-arm32',
+    'kbc-mix-arm32',
+    'kbc-int-arm64',
+    'kbc-cmp-arm64',
+    'kbc-mix-arm64',
   ];
 
   // Modes not used on cluster runs because they have outstanding issues.

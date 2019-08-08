@@ -50,26 +50,19 @@ where
     --dart-top        : sets DART_TOP explicitly through command line
     --mode1           : m1
     --mode2           : m2, and values one of
-        jit-[debug-]ia32    = Dart JIT (ia32)
-        jit-[debug-]x64     = Dart JIT (x64)
-        jit-[debug-]arm32   = Dart JIT (simarm)
-        jit-[debug-]arm64   = Dart JIT (simarm64)
-        jit-[debug-]dbc32   = Dart JIT (simdbc)
-        jit-[debug-]dbc64   = Dart JIT (simdbc64)
-        aot-[debug-]x64     = Dart AOT (x64)
-        aot-[debug-]arm32   = Dart AOT (simarm)
-        aot-[debug-]arm64   = Dart AOT (simarm64)
-        kbc-int-[debug-]x64 = Dart KBC (interpreted bytecode)
-        kbc-mix-[debug-]x64 = Dart KBC (mixed-mode bytecode)
-        kbc-cmp-[debug-]x64 = Dart KBC (compiled bytecode)
-        djs-x64             = dart2js + Node.JS
+        jit-[debug-][ia32|x64|arm32|arm64|dbc32|dbc64]   = Dart JIT
+        aot-[debug-][x64|arm32|arm64]                    = Dart AOT
+        kbc-[int|mix|cmp]-[debug-][ia32|x64|arm32|arm64] = Dart KBC
+                                                           (interpreted/
+                                                            mixed-mode/
+                                                            compiled bytecode)
+        djs-x64                                          = dart2js + Node.JS
     --[no-]rerun       : re-run a testcase if there is only a divergence in
-                         the return codes (not in the output);
+                         the return codes outside the range [-255,+255];
                          if the second run produces no divergence the previous
                          one will be ignored (true by default)
 
-
-If no modes are given, a random JIT and/or AOT combination is used.
+If no modes are given, a random combination is used.
 
 This fuzz testing tool must have access to the top of a Dart SDK
 development tree (DART_TOP) in which all proper binaries have been
