@@ -5898,22 +5898,6 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-CompileType BinaryUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
-}
-
-CompileType ShiftUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
-}
-
-CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
-}
-
-CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::FromCid(kSmiCid);
-}
-
 LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;

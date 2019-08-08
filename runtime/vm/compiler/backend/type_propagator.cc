@@ -661,6 +661,14 @@ CompileType CompileType::Int() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNonNullable);
 }
 
+CompileType CompileType::Int32() {
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
+  return FromCid(kSmiCid);
+#else
+  return Int();
+#endif
+}
+
 CompileType CompileType::NullableInt() {
   return FromAbstractType(Type::ZoneHandle(Type::IntType()), kNullable);
 }
@@ -1431,6 +1439,22 @@ CompileType LoadCodeUnitsInstr::ComputeType() const {
   }
 }
 
+CompileType BinaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
+CompileType UnaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int32();
+}
+
 CompileType BinaryInt32OpInstr::ComputeType() const {
   // TODO(vegorov): range analysis information shall be used here.
   return CompileType::Int();
@@ -1672,9 +1696,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64)
-      return CompileType::FromCid(kSmiCid);
-#endif
+      return CompileType::Int32();
+
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       return CompileType::Int();

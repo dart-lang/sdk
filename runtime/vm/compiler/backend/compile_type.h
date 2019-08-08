@@ -129,6 +129,9 @@ class CompileType : public ZoneAllocated {
   // Create non-nullable Int type.
   static CompileType Int();
 
+  // Create non-nullable 32-bit Int type (arch dependent).
+  static CompileType Int32();
+
   // Create nullable Int type.
   static CompileType NullableInt();
 

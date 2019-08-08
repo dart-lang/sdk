@@ -1365,22 +1365,6 @@ LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
   return result;
 }
 
-CompileType BinaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType ShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType SpeculativeShiftUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:
