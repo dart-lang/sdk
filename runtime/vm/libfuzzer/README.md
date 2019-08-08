@@ -61,4 +61,5 @@ Links
 * [Dart bugs found with fuzzing](https://github.com/dart-lang/sdk/issues?utf8=%E2%9C%93&q=label%3Adartfuzz+)
 * [DartFuzz](https://github.com/dart-lang/sdk/tree/master/runtime/tools/dartfuzz)
 * [DartLibFuzzer](https://github.com/dart-lang/sdk/tree/master/runtime/vm/libfuzzer)
+* [Dust](https://pub.dev/packages/dust)
 * [LibFuzzer](https://llvm.org/docs/LibFuzzer.html)
