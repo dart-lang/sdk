@@ -575,6 +575,7 @@ DART_EXPORT void* UnprotectCode() {
 DART_EXPORT void WaitForHelper(void* helper) {
   std::thread* thread = reinterpret_cast<std::thread*>(helper);
   thread->join();
+  delete thread;
 }
 #else
 // Our version of VSC++ doesn't support std::thread yet.
