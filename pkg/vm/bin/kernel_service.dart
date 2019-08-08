@@ -35,7 +35,8 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show Component, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
-import 'package:vm/bytecode/gen_bytecode.dart' show generateBytecode;
+import 'package:vm/bytecode/gen_bytecode.dart'
+    show createFreshComponentWithBytecode, generateBytecode;
 import 'package:vm/bytecode/options.dart' show BytecodeOptions;
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart' show runWithFrontEndCompilerContext;
@@ -148,7 +149,7 @@ abstract class Compiler {
 
   Future<Component> compile(Uri script) {
     return runWithPrintToStderr(() async {
-      final component = await compileInternal(script);
+      Component component = await compileInternal(script);
 
       if (options.bytecode && errors.isEmpty) {
         await runWithFrontEndCompilerContext(script, options, component, () {
@@ -173,6 +174,7 @@ abstract class Compiler {
                   emitInstanceFieldInitializers: true,
                   // Only needed when mirrors are available.
                   emitAnnotations: true));
+          component = createFreshComponentWithBytecode(component);
         });
       }
 
@@ -437,8 +439,7 @@ Future _processExpressionCompilationRequest(request) async {
       // shouldn't print those messages again here.
       result = new CompilationResult.errors(compiler.errors, null);
     } else {
-      final Component component =
-          createExpressionEvaluationComponent(procedure);
+      Component component = createExpressionEvaluationComponent(procedure);
       if (compiler.bytecode) {
         await runWithFrontEndCompilerContext(
             compiler.generator.entryPoint, compiler.options, component, () {
@@ -449,6 +450,7 @@ Future _processExpressionCompilationRequest(request) async {
                 enableAsserts: compiler.enableAsserts,
                 environmentDefines: compiler.options.environmentDefines,
               ));
+          component = createFreshComponentWithBytecode(component);
         });
       }
       result = new CompilationResult.ok(serializeComponent(component));
