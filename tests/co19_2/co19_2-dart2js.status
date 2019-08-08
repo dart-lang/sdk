@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $builder_tag != run_webgl_tests && $compiler == dart2js ]
-LayoutTests/fast/canvas/webgl*: Skip # Only run WebGL on special builders, issue 29961
-
 [ $compiler == dart2js && $runtime == d8 ]
 LayoutTests/*: SkipByDesign # d8 is not a browser
 LibTest/html/*: SkipByDesign # d8 is not a browser
@@ -33,8 +30,10 @@ LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation
 
 [ $compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk ]
 Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign
+LayoutTests/*: Skip # These tests are going to be removed.
 LibTest/io/*: SkipByDesign # dart:io not supported.
 LibTest/isolate/*: SkipByDesign # dart:isolate not supported.
+WebPlatformTest/*: Skip # These tests are going to be removed.
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
 Language/Classes/Constructors/Generative_Constructors/formal_parameter_t07: Skip # Times out
