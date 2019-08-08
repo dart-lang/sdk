@@ -19,8 +19,20 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   GatherUsedImportedElementsVisitor(this.library);
 
   @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _recordIfExtensionMember(node.staticElement);
+    return super.visitBinaryExpression(node);
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {
     _visitDirective(node);
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _recordIfExtensionMember(node.staticElement);
+    return super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -29,13 +41,31 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    _recordIfExtensionMember(node.staticElement);
+    return super.visitIndexExpression(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     _visitDirective(node);
   }
 
   @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _recordIfExtensionMember(node.staticElement);
+    return super.visitPrefixExpression(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _visitIdentifier(node, node.staticElement);
+  }
+
+  void _recordIfExtensionMember(Element element) {
+    if (element != null && element.enclosingElement is ExtensionElement) {
+      _recordUsedExtension(element.enclosingElement);
+    }
   }
 
   /// If the given [identifier] is prefixed with a [PrefixElement], fill the
@@ -61,43 +91,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     return false;
   }
 
-  /// Visit identifiers used by the given [directive].
-  void _visitDirective(Directive directive) {
-    directive.documentationComment?.accept(this);
-    directive.metadata.accept(this);
-  }
-
-  void _visitIdentifier(SimpleIdentifier identifier, Element element) {
-    if (element == null) {
-      return;
-    }
-    // If the element is multiply defined then call this method recursively for
-    // each of the conflicting elements.
-    if (element is MultiplyDefinedElement) {
-      List<Element> conflictingElements = element.conflictingElements;
-      int length = conflictingElements.length;
-      for (int i = 0; i < length; i++) {
-        Element elt = conflictingElements[i];
-        _visitIdentifier(identifier, elt);
-      }
-      return;
-    }
-
-    // Record `importPrefix.identifier` into 'prefixMap'.
-    if (_recordPrefixMap(identifier, element)) {
-      return;
-    }
-
-    if (element is PrefixElement) {
-      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
-      return;
-    } else if (element.enclosingElement is! CompilationUnitElement) {
-      // Identifiers that aren't a prefix element and whose enclosing element
-      // isn't a CompilationUnit are ignored- this covers the case the
-      // identifier is a relative-reference, a reference to an identifier not
-      // imported by this library.
-      return;
-    }
+  void _recordUsedElement(Element element) {
     // Ignore if an unknown library.
     LibraryElement containingLibrary = element.library;
     if (containingLibrary == null) {
@@ -109,6 +103,49 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     }
     // Remember the element.
     usedElements.elements.add(element);
+  }
+
+  void _recordUsedExtension(ExtensionElement extension) {
+    // Ignore if a local element.
+    if (library == extension.library) {
+      return;
+    }
+    // Remember the element.
+    usedElements.usedExtensions.add(extension);
+  }
+
+  /// Visit identifiers used by the given [directive].
+  void _visitDirective(Directive directive) {
+    directive.documentationComment?.accept(this);
+    directive.metadata.accept(this);
+  }
+
+  void _visitIdentifier(SimpleIdentifier identifier, Element element) {
+    if (element == null) {
+      return;
+    }
+    // Record `importPrefix.identifier` into 'prefixMap'.
+    if (_recordPrefixMap(identifier, element)) {
+      return;
+    }
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is CompilationUnitElement) {
+      _recordUsedElement(element);
+    } else if (enclosingElement is ExtensionElement) {
+      _recordUsedExtension(enclosingElement);
+      return;
+    } else if (element is PrefixElement) {
+      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
+    } else if (element is MultiplyDefinedElement) {
+      // If the element is multiply defined then call this method recursively
+      // for each of the conflicting elements.
+      List<Element> conflictingElements = element.conflictingElements;
+      int length = conflictingElements.length;
+      for (int i = 0; i < length; i++) {
+        Element elt = conflictingElements[i];
+        _visitIdentifier(identifier, elt);
+      }
+    }
   }
 }
 
@@ -381,6 +418,22 @@ class ImportsVerifier {
         }
       }
     }
+    // Process extension elements.
+    for (ExtensionElement extensionElement in usedElements.usedExtensions) {
+      // Stop if all the imports and shown names are known to be used.
+      if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
+        return;
+      }
+      // Find import directives using namespaces.
+      String name = extensionElement.name;
+      for (ImportDirective importDirective in _allImports) {
+        Namespace namespace = _computeNamespace(importDirective);
+        if (namespace?.get(name) == extensionElement) {
+          _unusedImports.remove(importDirective);
+          _removeFromUnusedShownNamesMap(extensionElement, importDirective);
+        }
+      }
+    }
   }
 
   /// Add duplicate shown and hidden names from [directive] into
@@ -492,11 +545,12 @@ class ImportsVerifier {
 /// A container with information about used imports prefixes and used imported
 /// elements.
 class UsedImportedElements {
-  /// The map of referenced [PrefixElement]s and the [Element]s that they
-  /// prefix.
-  final Map<PrefixElement, List<Element>> prefixMap =
-      new HashMap<PrefixElement, List<Element>>();
+  /// The map of referenced prefix elements and the elements that they prefix.
+  final Map<PrefixElement, List<Element>> prefixMap = {};
 
-  /// The set of referenced top-level [Element]s.
-  final Set<Element> elements = new HashSet<Element>();
+  /// The set of referenced top-level elements.
+  final Set<Element> elements = {};
+
+  /// The set of extensions defining members that are referenced.
+  final Set<ExtensionElement> usedExtensions = {};
 }
