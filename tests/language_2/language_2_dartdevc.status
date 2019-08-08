@@ -40,6 +40,7 @@ enum_syntax_test/06: MissingCompileTimeError
 execute_finally6_test: RuntimeError # Issue 29920
 expect_test: RuntimeError # Issue 29920
 export_private_test/01: MissingCompileTimeError # Issue 29920
+extension_methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
 f_bounded_quantification2_test: CompileTimeError # Issue 34583
 f_bounded_quantification3_test: RuntimeError # Issue 29920
 f_bounded_quantification4_test: CompileTimeError # Issue 34583

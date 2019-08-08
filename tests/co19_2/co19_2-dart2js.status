@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dartdevc ]
+LanguageFeatures/Extension-methods/*: SkipByDesign # Analyzer DDC is expected to be turned down before releasing extension methods.
+
 [ $compiler == dart2js && $runtime == d8 ]
 LayoutTests/*: SkipByDesign # d8 is not a browser
 LibTest/html/*: SkipByDesign # d8 is not a browser
