@@ -420,6 +420,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
+  DecoratedType visitDoStatement(DoStatement node) {
+    node.body.accept(this);
+    _handleAssignment(node.condition, _notNullType);
+    return null;
+  }
+
+  @override
   DecoratedType visitDoubleLiteral(DoubleLiteral node) {
     return DecoratedType(node.staticType, _graph.never);
   }

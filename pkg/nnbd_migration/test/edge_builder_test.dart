@@ -1335,6 +1335,17 @@ class C {
         hard: true);
   }
 
+  test_do_while_condition() async {
+    await analyze('''
+void f(bool b) {
+  do {} while (b);
+}
+''');
+
+    assertNullCheck(checkExpression('b);'),
+        assertEdge(decoratedTypeAnnotation('bool b').node, never, hard: true));
+  }
+
   test_doubleLiteral() async {
     await analyze('''
 double f() {
