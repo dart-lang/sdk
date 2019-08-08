@@ -48,7 +48,7 @@ import '../source/source_class_builder.dart' show SourceClassBuilder;
 
 import '../kernel/kernel_builder.dart'
     show
-        Declaration,
+        Builder,
         FormalParameterBuilder,
         ClassBuilder,
         ConstructorBuilder,
@@ -280,7 +280,7 @@ class EnumBuilder extends SourceClassBuilder {
     if (enumConstantInfos != null) {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {
         if (enumConstantInfo != null) {
-          Declaration declaration = firstMemberNamed(enumConstantInfo.name);
+          Builder declaration = firstMemberNamed(enumConstantInfo.name);
           if (declaration.isField) {
             FieldBuilder field = declaration;
             values.add(new StaticGet(field.build(libraryBuilder)));
@@ -324,7 +324,7 @@ class EnumBuilder extends SourceClassBuilder {
       for (EnumConstantInfo enumConstantInfo in enumConstantInfos) {
         if (enumConstantInfo != null) {
           String constant = enumConstantInfo.name;
-          Declaration declaration = firstMemberNamed(constant);
+          Builder declaration = firstMemberNamed(constant);
           FieldBuilder field;
           if (declaration.isField) {
             field = declaration;
@@ -344,7 +344,7 @@ class EnumBuilder extends SourceClassBuilder {
   }
 
   @override
-  Declaration findConstructorOrFactory(
+  Builder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder library) {
     return null;
   }

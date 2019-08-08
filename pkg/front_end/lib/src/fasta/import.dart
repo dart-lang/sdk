@@ -6,7 +6,7 @@ library fasta.import;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
-import 'builder/builder.dart' show Declaration, LibraryBuilder;
+import 'builder/builder.dart' show Builder, LibraryBuilder;
 
 import 'builder/prefix_builder.dart' show PrefixBuilder;
 
@@ -59,17 +59,17 @@ class Import {
 
   void finalizeImports(LibraryBuilder importer) {
     if (nativeImportPath != null) return;
-    void Function(String, Declaration) add;
+    void Function(String, Builder) add;
     if (prefixBuilder == null) {
-      add = (String name, Declaration member) {
+      add = (String name, Builder member) {
         importer.addToScope(name, member, charOffset, true);
       };
     } else {
-      add = (String name, Declaration member) {
+      add = (String name, Builder member) {
         prefixBuilder.addToExportScope(name, member, charOffset);
       };
     }
-    imported.exportScope.forEach((String name, Declaration member) {
+    imported.exportScope.forEach((String name, Builder member) {
       if (combinators != null) {
         for (Combinator combinator in combinators) {
           if (combinator.isShow && !combinator.names.contains(name)) return;
@@ -79,7 +79,7 @@ class Import {
       add(name, member);
     });
     if (prefixBuilder != null) {
-      Declaration existing =
+      Builder existing =
           importer.addBuilder(prefix, prefixBuilder, prefixCharOffset);
       if (existing == prefixBuilder) {
         importer.addToScope(prefix, prefixBuilder, prefixCharOffset, true);

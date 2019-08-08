@@ -81,7 +81,7 @@ Member lookupClassMember(Class cls, String memberName, {bool required: true}) {
   });
 }
 
-DeclarationBuilder lookupLibraryDeclarationBuilder(
+TypeParameterScopeBuilder lookupLibraryDeclarationBuilder(
     CompilerResult compilerResult, Library library,
     {bool required: true}) {
   SourceLoader loader = compilerResult.kernelTargetForTesting.loader;
@@ -94,7 +94,7 @@ DeclarationBuilder lookupLibraryDeclarationBuilder(
 
 ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
     {bool required: true}) {
-  DeclarationBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+  TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required);
   ClassBuilder clsBuilder = libraryBuilder.members[cls.name];
@@ -135,7 +135,7 @@ MemberBuilder lookupMemberBuilder(CompilerResult compilerResult, Member member,
         compilerResult, member.enclosingClass, member, member.name.name,
         required: required);
   } else {
-    DeclarationBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
+    TypeParameterScopeBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
         compilerResult, member.enclosingLibrary);
     if (member is Procedure && member.isSetter) {
       memberBuilder = libraryBuilder.members[member.name.name];

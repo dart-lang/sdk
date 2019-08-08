@@ -19,10 +19,10 @@ import '../modifier.dart'
         namedMixinApplicationMask,
         staticMask;
 
-import 'builder.dart' show Declaration;
+import 'builder.dart' show Builder;
 
-abstract class ModifierBuilder extends Declaration {
-  Declaration parent;
+abstract class ModifierBuilder extends Builder {
+  Builder parent;
 
   final int charOffset;
 

@@ -56,7 +56,7 @@ import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 import 'builder.dart'
     show
         ConstructorReferenceBuilder,
-        Declaration,
+        Builder,
         LibraryBuilder,
         MemberBuilder,
         MetadataBuilder,
@@ -107,7 +107,7 @@ import '../fasta_codes.dart'
 import '../kernel/kernel_builder.dart'
     show
         ConstructorReferenceBuilder,
-        Declaration,
+        Builder,
         FunctionBuilder,
         NamedTypeBuilder,
         LibraryBuilder,
@@ -204,7 +204,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   }
 
   void buildOutlineExpressions(LibraryBuilder library) {
-    void build(String ignore, Declaration declaration) {
+    void build(String ignore, Builder declaration) {
       MemberBuilder member = declaration;
       member.buildOutlineExpressions(library);
     }
@@ -244,7 +244,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
       // Copy keys to avoid concurrent modification error.
       List<String> names = constructors.keys.toList();
       for (String name in names) {
-        Declaration declaration = constructors[name];
+        Builder declaration = constructors[name];
         do {
           if (declaration.parent != this) {
             unexpected("$fileUri", "${declaration.parent.fileUri}", charOffset,
@@ -255,7 +255,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
             ConstructorReferenceBuilder redirectionTarget =
                 declaration.redirectionTarget;
             if (redirectionTarget != null) {
-              Declaration targetBuilder = redirectionTarget.target;
+              Builder targetBuilder = redirectionTarget.target;
               if (declaration.next == null) {
                 // Only the first one (that is, the last on in the linked list)
                 // is actually in the kernel tree. This call creates a StaticGet
@@ -324,13 +324,13 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   }
 
   /// Used to lookup a static member of this class.
-  Declaration findStaticBuilder(
+  Builder findStaticBuilder(
       String name, int charOffset, Uri fileUri, LibraryBuilder accessingLibrary,
       {bool isSetter: false}) {
     if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
       return null;
     }
-    Declaration declaration = isSetter
+    Builder declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
     if (declaration == null && isPatch) {
@@ -341,12 +341,12 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     return declaration;
   }
 
-  Declaration findConstructorOrFactory(
+  Builder findConstructorOrFactory(
       String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.origin != library.origin && name.startsWith("_")) {
       return null;
     }
-    Declaration declaration = constructors.lookup(name, charOffset, uri);
+    Builder declaration = constructors.lookup(name, charOffset, uri);
     if (declaration == null && isPatch) {
       return origin.findConstructorOrFactory(
           name, charOffset, uri, accessingLibrary);
@@ -354,7 +354,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     return declaration;
   }
 
-  void forEach(void f(String name, Declaration builder)) {
+  void forEach(void f(String name, Builder builder)) {
     scope.forEach(f);
   }
 
@@ -384,7 +384,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   /// For example, this method is convenient for use when building synthetic
   /// members, such as those of an enum.
   MemberBuilder firstMemberNamed(String name) {
-    Declaration declaration = getLocalMember(name);
+    Builder declaration = getLocalMember(name);
     while (declaration.next != null) {
       declaration = declaration.next;
     }
@@ -484,7 +484,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     ClassBuilder superClass;
     TypeBuilder superClassType = supertype;
     if (superClassType is NamedTypeBuilder) {
-      Declaration decl = superClassType.declaration;
+      Builder decl = superClassType.declaration;
       if (decl is ClassBuilder) {
         superClass = decl;
       }
@@ -497,7 +497,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     for (TypeBuilder type in interfaces) {
       if (type is NamedTypeBuilder) {
         int charOffset = -1; // TODO(ahe): Get offset from type.
-        Declaration decl = type.declaration;
+        Builder decl = type.declaration;
         if (decl is ClassBuilder) {
           ClassBuilder interface = decl;
           if (superClass == interface) {
@@ -1424,7 +1424,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
 
   void checkMixinDeclaration() {
     assert(cls.isMixinDeclaration);
-    for (Declaration constructory in constructors.local.values) {
+    for (Builder constructory in constructors.local.values) {
       if (!constructory.isSynthetic &&
           (constructory.isFactory || constructory.isConstructor)) {
         addProblem(
@@ -1463,24 +1463,24 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
   }
 
   @override
-  void applyPatch(Declaration patch) {
+  void applyPatch(Builder patch) {
     if (patch is ClassBuilder) {
       patch.actualOrigin = this;
       // TODO(ahe): Complain if `patch.supertype` isn't null.
-      scope.local.forEach((String name, Declaration member) {
-        Declaration memberPatch = patch.scope.local[name];
+      scope.local.forEach((String name, Builder member) {
+        Builder memberPatch = patch.scope.local[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      scope.setters.forEach((String name, Declaration member) {
-        Declaration memberPatch = patch.scope.setters[name];
+      scope.setters.forEach((String name, Builder member) {
+        Builder memberPatch = patch.scope.setters[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
       });
-      constructors.local.forEach((String name, Declaration member) {
-        Declaration memberPatch = patch.constructors.local[name];
+      constructors.local.forEach((String name, Builder member) {
+        Builder memberPatch = patch.constructors.local[name];
         if (memberPatch != null) {
           member.applyPatch(memberPatch);
         }
@@ -1640,7 +1640,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
     Map<String, MemberBuilder> constructors = this.constructors.local;
     Iterable<String> names = constructors.keys;
     for (String name in names) {
-      Declaration constructor = constructors[name];
+      Builder constructor = constructors[name];
       do {
         if (constructor is RedirectingFactoryBuilder) {
           checkRedirectingFactory(constructor, typeEnvironment);

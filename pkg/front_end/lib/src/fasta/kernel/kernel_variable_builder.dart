@@ -6,11 +6,11 @@ library fasta.kernel_variable_builder;
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
-import 'kernel_builder.dart' show Declaration;
+import 'kernel_builder.dart' show Builder;
 
-class VariableBuilder extends Declaration {
+class VariableBuilder extends Builder {
   @override
-  final Declaration parent;
+  final Builder parent;
 
   @override
   final Uri fileUri;

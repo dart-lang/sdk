@@ -11,7 +11,7 @@ import 'dart:collection' show Queue;
 import 'package:kernel/ast.dart' show Library;
 
 import 'builder/builder.dart'
-    show ClassBuilder, Declaration, LibraryBuilder, TypeBuilder;
+    show ClassBuilder, Builder, LibraryBuilder, TypeBuilder;
 
 import 'crash.dart' show firstSourceUri;
 
@@ -323,17 +323,17 @@ fileUri: ${contextMessage.uri}
     return formattedMessage;
   }
 
-  Declaration getAbstractClassInstantiationError() {
+  Builder getAbstractClassInstantiationError() {
     return target.getAbstractClassInstantiationError(this);
   }
 
-  Declaration getCompileTimeError() => target.getCompileTimeError(this);
+  Builder getCompileTimeError() => target.getCompileTimeError(this);
 
-  Declaration getDuplicatedFieldInitializerError() {
+  Builder getDuplicatedFieldInitializerError() {
     return target.getDuplicatedFieldInitializerError(this);
   }
 
-  Declaration getNativeAnnotation() => target.getNativeAnnotation(this);
+  Builder getNativeAnnotation() => target.getNativeAnnotation(this);
 
   ClassBuilder computeClassBuilderFromTargetClass(covariant Object cls);
 

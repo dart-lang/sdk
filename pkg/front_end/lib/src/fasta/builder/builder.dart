@@ -20,7 +20,7 @@ export 'class_builder.dart' show ClassBuilder;
 
 export 'constructor_reference_builder.dart' show ConstructorReferenceBuilder;
 
-export 'declaration.dart' show Declaration;
+export 'declaration.dart' show Builder;
 
 export 'dynamic_type_builder.dart' show DynamicTypeBuilder;
 

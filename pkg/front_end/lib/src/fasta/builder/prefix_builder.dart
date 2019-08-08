@@ -4,7 +4,7 @@
 
 library fasta.prefix_builder;
 
-import 'builder.dart' show Declaration, LibraryBuilder, Scope;
+import 'builder.dart' show Builder, LibraryBuilder, Scope;
 
 import 'package:kernel/ast.dart' show LibraryDependency;
 
@@ -12,7 +12,7 @@ import '../builder/builder.dart' show LibraryBuilder;
 
 import '../kernel/load_library_builder.dart' show LoadLibraryBuilder;
 
-class PrefixBuilder extends Declaration {
+class PrefixBuilder extends Builder {
   final String name;
 
   final Scope exportScope = new Scope.top();
@@ -41,14 +41,14 @@ class PrefixBuilder extends Declaration {
 
   Uri get fileUri => parent.fileUri;
 
-  Declaration lookup(String name, int charOffset, Uri fileUri) {
+  Builder lookup(String name, int charOffset, Uri fileUri) {
     return exportScope.lookup(name, charOffset, fileUri);
   }
 
-  void addToExportScope(String name, Declaration member, int charOffset) {
-    Map<String, Declaration> map =
+  void addToExportScope(String name, Builder member, int charOffset) {
+    Map<String, Builder> map =
         member.isSetter ? exportScope.setters : exportScope.local;
-    Declaration existing = map[name];
+    Builder existing = map[name];
     if (existing != null) {
       map[name] = parent.computeAmbiguousDeclaration(
           name, existing, member, charOffset,

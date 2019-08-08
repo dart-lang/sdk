@@ -7,12 +7,7 @@ library fasta.type_declaration_builder;
 import 'package:kernel/ast.dart' show DartType;
 
 import 'builder.dart'
-    show
-        Declaration,
-        LibraryBuilder,
-        MetadataBuilder,
-        ModifierBuilder,
-        TypeBuilder;
+    show Builder, LibraryBuilder, MetadataBuilder, ModifierBuilder, TypeBuilder;
 
 abstract class TypeDeclarationBuilder extends ModifierBuilder {
   final List<MetadataBuilder> metadata;
@@ -21,7 +16,7 @@ abstract class TypeDeclarationBuilder extends ModifierBuilder {
 
   final String name;
 
-  Declaration parent;
+  Builder parent;
 
   TypeDeclarationBuilder(
       this.metadata, this.modifiers, this.name, this.parent, int charOffset,

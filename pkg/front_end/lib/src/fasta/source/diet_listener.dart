@@ -243,7 +243,7 @@ class DietListener extends StackListener {
     checkEmpty(typedefKeyword.charOffset);
     if (name is ParserRecovery) return;
 
-    Declaration typedefBuilder = lookupBuilder(typedefKeyword, null, name);
+    Builder typedefBuilder = lookupBuilder(typedefKeyword, null, name);
     parseMetadata(typedefBuilder, metadata, typedefBuilder.target);
     if (typedefBuilder is TypeAliasBuilder) {
       TypeBuilder type = typedefBuilder.type;
@@ -672,7 +672,7 @@ class DietListener extends StackListener {
     checkEmpty(token.charOffset);
     if (names == null || currentClassIsParserRecovery) return;
 
-    Declaration declaration = lookupBuilder(token, null, names.first);
+    Builder declaration = lookupBuilder(token, null, names.first);
     // TODO(paulberry): don't re-parse the field if we've already parsed it
     // for type inference.
     parseFields(
@@ -860,9 +860,9 @@ class DietListener extends StackListener {
     listener.checkEmpty(token.charOffset);
   }
 
-  Declaration lookupBuilder(Token token, Token getOrSet, String name) {
+  Builder lookupBuilder(Token token, Token getOrSet, String name) {
     // TODO(ahe): Can I move this to Scope or ScopeBuilder?
-    Declaration declaration;
+    Builder declaration;
     if (currentClass != null) {
       if (uri != currentClass.fileUri) {
         unexpected("$uri", "${currentClass.fileUri}", currentClass.charOffset,
@@ -884,9 +884,9 @@ class DietListener extends StackListener {
     return declaration;
   }
 
-  Declaration lookupConstructor(Token token, Object nameOrQualified) {
+  Builder lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentClass != null);
-    Declaration declaration;
+    Builder declaration;
     String suffix;
     if (nameOrQualified is QualifiedName) {
       suffix = nameOrQualified.name;
@@ -899,12 +899,12 @@ class DietListener extends StackListener {
     return declaration;
   }
 
-  Declaration handleDuplicatedName(Declaration declaration, Token token) {
+  Builder handleDuplicatedName(Builder declaration, Token token) {
     int offset = token.charOffset;
     if (declaration?.next == null) {
       return declaration;
     } else {
-      Declaration nearestDeclaration;
+      Builder nearestDeclaration;
       int minDistance = -1;
       do {
         // Only look at declarations from this file (part).
@@ -928,7 +928,7 @@ class DietListener extends StackListener {
     }
   }
 
-  void checkBuilder(Token token, Declaration declaration, Object name) {
+  void checkBuilder(Token token, Builder declaration, Object name) {
     if (declaration == null) {
       internalProblem(templateInternalProblemNotFound.withArguments("$name"),
           token.charOffset, uri);

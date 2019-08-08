@@ -37,20 +37,20 @@ import "../type_inference/type_inference_engine.dart"
 import "../type_inference/type_inferrer.dart" show getNamedFormal;
 
 import "kernel_builder.dart"
-    show ClassHierarchyBuilder, Declaration, DelayedMember, ClassBuilder;
+    show ClassHierarchyBuilder, Builder, DelayedMember, ClassBuilder;
 
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
   final ClassBuilder parent;
 
-  final Declaration combinedMemberSignatureResult;
+  final Builder combinedMemberSignatureResult;
 
   final ProcedureKind kind;
 
   /// A list containing the directly implemented and directly inherited
   /// procedures of the class in question.
-  final List<Declaration> _candidates;
+  final List<Builder> _candidates;
 
   ForwardingNode(this.hierarchy, this.parent,
       this.combinedMemberSignatureResult, this._candidates, this.kind);
@@ -355,7 +355,7 @@ class ForwardingNode {
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.
   Member getCandidateAt(int i) {
-    Declaration candidate = _candidates[i];
+    Builder candidate = _candidates[i];
     assert(candidate is! DelayedMember);
     return candidate.target;
   }

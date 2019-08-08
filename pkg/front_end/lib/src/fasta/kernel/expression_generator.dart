@@ -111,7 +111,7 @@ import 'kernel_ast_api.dart'
 import 'kernel_builder.dart'
     show
         AccessErrorBuilder,
-        Declaration,
+        Builder,
         ClassBuilder,
         InvalidTypeBuilder,
         NamedTypeBuilder,
@@ -1451,7 +1451,7 @@ class StaticAccessGenerator extends Generator {
         super(helper, token);
 
   factory StaticAccessGenerator.fromBuilder(ExpressionGeneratorHelper helper,
-      Declaration declaration, Token token, Declaration builderSetter) {
+      Builder declaration, Token token, Builder builderSetter) {
     if (declaration is AccessErrorBuilder) {
       AccessErrorBuilder error = declaration;
       declaration = error.builder;
@@ -1851,7 +1851,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
 
     if (declaration is ClassBuilder) {
       ClassBuilder declaration = this.declaration;
-      Declaration member = declaration.findStaticBuilder(
+      Builder member = declaration.findStaticBuilder(
           name.name, offsetForToken(send.token), _uri, _helper.library);
 
       Generator generator;
@@ -1874,7 +1874,7 @@ class TypeUseGenerator extends ReadOnlyAccessGenerator {
         return _helper.buildProblem(
             member.message, member.charOffset, name.name.length);
       } else {
-        Declaration setter;
+        Builder setter;
         if (member.isSetter) {
           setter = member;
         } else if (member.isGetter) {

@@ -4,8 +4,7 @@
 
 library fasta.scope;
 
-import 'builder/builder.dart'
-    show Declaration, NameIterator, TypeVariableBuilder;
+import 'builder/builder.dart' show Builder, NameIterator, TypeVariableBuilder;
 
 import 'fasta_codes.dart'
     show
@@ -20,10 +19,10 @@ import 'problems.dart' show internalProblem, unsupported;
 
 class MutableScope {
   /// Names declared in this scope.
-  Map<String, Declaration> local;
+  Map<String, Builder> local;
 
   /// Setters declared in this scope.
-  Map<String, Declaration> setters;
+  Map<String, Builder> setters;
 
   /// The scope that this scope is nested within, or `null` if this is the top
   /// level scope.
@@ -44,32 +43,31 @@ class Scope extends MutableScope {
   /// succeed.
   final bool isModifiable;
 
-  Map<String, Declaration> labels;
+  Map<String, Builder> labels;
 
-  Map<String, Declaration> forwardDeclaredLabels;
+  Map<String, Builder> forwardDeclaredLabels;
 
   Map<String, int> usedNames;
 
-  Scope(Map<String, Declaration> local, Map<String, Declaration> setters,
-      Scope parent, String debugName, {this.isModifiable: true})
-      : super(local, setters = setters ?? const <String, Declaration>{}, parent,
+  Scope(Map<String, Builder> local, Map<String, Builder> setters, Scope parent,
+      String debugName, {this.isModifiable: true})
+      : super(local, setters = setters ?? const <String, Builder>{}, parent,
             debugName);
 
   Scope.top({bool isModifiable: false})
-      : this(<String, Declaration>{}, <String, Declaration>{}, null, "top",
+      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
             isModifiable: isModifiable);
 
   Scope.immutable()
-      : this(const <String, Declaration>{}, const <String, Declaration>{}, null,
+      : this(const <String, Builder>{}, const <String, Builder>{}, null,
             "immutable",
             isModifiable: false);
 
   Scope.nested(Scope parent, String debugName, {bool isModifiable: true})
-      : this(
-            <String, Declaration>{}, <String, Declaration>{}, parent, debugName,
+      : this(<String, Builder>{}, <String, Builder>{}, parent, debugName,
             isModifiable: isModifiable);
 
-  Iterator<Declaration> get iterator {
+  Iterator<Builder> get iterator {
     return new ScopeLocalDeclarationIterator(this);
   }
 
@@ -133,9 +131,9 @@ class Scope extends MutableScope {
     }
   }
 
-  Declaration lookupIn(String name, int charOffset, Uri fileUri,
-      Map<String, Declaration> map, bool isInstanceScope) {
-    Declaration builder = map[name];
+  Builder lookupIn(String name, int charOffset, Uri fileUri,
+      Map<String, Builder> map, bool isInstanceScope) {
+    Builder builder = map[name];
     if (builder == null) return null;
     if (builder.next != null) {
       return new AmbiguousBuilder(name.isEmpty ? classNameOrDebugName : name,
@@ -147,10 +145,10 @@ class Scope extends MutableScope {
     }
   }
 
-  Declaration lookup(String name, int charOffset, Uri fileUri,
+  Builder lookup(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
     recordUse(name, charOffset, fileUri);
-    Declaration builder =
+    Builder builder =
         lookupIn(name, charOffset, fileUri, local, isInstanceScope);
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
@@ -164,10 +162,10 @@ class Scope extends MutableScope {
     return builder ?? parent?.lookup(name, charOffset, fileUri);
   }
 
-  Declaration lookupSetter(String name, int charOffset, Uri fileUri,
+  Builder lookupSetter(String name, int charOffset, Uri fileUri,
       {bool isInstanceScope: true}) {
     recordUse(name, charOffset, fileUri);
-    Declaration builder =
+    Builder builder =
         lookupIn(name, charOffset, fileUri, setters, isInstanceScope);
     if (builder != null) return builder;
     builder = lookupIn(name, charOffset, fileUri, local, isInstanceScope);
@@ -183,9 +181,9 @@ class Scope extends MutableScope {
 
   bool hasLocalLabel(String name) => labels != null && labels.containsKey(name);
 
-  void declareLabel(String name, Declaration target) {
+  void declareLabel(String name, Builder target) {
     if (isModifiable) {
-      labels ??= <String, Declaration>{};
+      labels ??= <String, Builder>{};
       labels[name] = target;
     } else {
       internalProblem(
@@ -193,9 +191,9 @@ class Scope extends MutableScope {
     }
   }
 
-  void forwardDeclareLabel(String name, Declaration target) {
+  void forwardDeclareLabel(String name, Builder target) {
     declareLabel(name, target);
-    forwardDeclaredLabels ??= <String, Declaration>{};
+    forwardDeclaredLabels ??= <String, Builder>{};
     forwardDeclaredLabels[name] = target;
   }
 
@@ -208,11 +206,11 @@ class Scope extends MutableScope {
     return true;
   }
 
-  Map<String, Declaration> get unclaimedForwardDeclarations {
+  Map<String, Builder> get unclaimedForwardDeclarations {
     return forwardDeclaredLabels;
   }
 
-  Declaration lookupLabel(String name) {
+  Builder lookupLabel(String name) {
     return (labels == null ? null : labels[name]) ?? parent?.lookupLabel(name);
   }
 
@@ -222,7 +220,7 @@ class Scope extends MutableScope {
   /// that can be used as context for reporting a compile-time error about
   /// [name] being used before its declared. [fileUri] is used to bind the
   /// location of this message.
-  LocatedMessage declare(String name, Declaration builder, Uri fileUri) {
+  LocatedMessage declare(String name, Builder builder, Uri fileUri) {
     if (isModifiable) {
       if (usedNames?.containsKey(name) ?? false) {
         return templateDuplicatedNamePreviouslyUsedCause
@@ -239,12 +237,12 @@ class Scope extends MutableScope {
 
   void merge(
       Scope scope,
-      Declaration computeAmbiguousDeclaration(
-          String name, Declaration existing, Declaration member)) {
-    Map<String, Declaration> map = local;
+      Builder computeAmbiguousDeclaration(
+          String name, Builder existing, Builder member)) {
+    Map<String, Builder> map = local;
 
-    void mergeMember(String name, Declaration member) {
-      Declaration existing = map[name];
+    void mergeMember(String name, Builder member) {
+      Builder existing = map[name];
       if (existing != null) {
         if (existing != member) {
           member = computeAmbiguousDeclaration(name, existing, member);
@@ -258,7 +256,7 @@ class Scope extends MutableScope {
     scope.setters.forEach(mergeMember);
   }
 
-  void forEach(f(String name, Declaration member)) {
+  void forEach(f(String name, Builder member)) {
     local.forEach(f);
     setters.forEach(f);
   }
@@ -276,10 +274,10 @@ class Scope extends MutableScope {
     int nestingLevel = (parent?.writeOn(sink) ?? -1) + 1;
     String indent = "  " * nestingLevel;
     sink.writeln("$indent{");
-    local.forEach((String name, Declaration member) {
+    local.forEach((String name, Builder member) {
       sink.writeln("$indent  $name");
     });
-    setters.forEach((String name, Declaration member) {
+    setters.forEach((String name, Builder member) {
       sink.writeln("$indent  $name=");
     });
     return nestingLevel;
@@ -287,11 +285,11 @@ class Scope extends MutableScope {
 
   Scope computeMixinScope() {
     List<String> names = this.local.keys.toList();
-    Map<String, Declaration> local = <String, Declaration>{};
+    Map<String, Builder> local = <String, Builder>{};
     bool needsCopy = false;
     for (int i = 0; i < names.length; i++) {
       String name = names[i];
-      Declaration declaration = this.local[name];
+      Builder declaration = this.local[name];
       if (declaration.isStatic) {
         needsCopy = true;
       } else {
@@ -299,10 +297,10 @@ class Scope extends MutableScope {
       }
     }
     names = this.setters.keys.toList();
-    Map<String, Declaration> setters = <String, Declaration>{};
+    Map<String, Builder> setters = <String, Builder>{};
     for (int i = 0; i < names.length; i++) {
       String name = names[i];
-      Declaration declaration = this.setters[name];
+      Builder declaration = this.setters[name];
       if (declaration.isStatic) {
         needsCopy = true;
       } else {
@@ -321,21 +319,21 @@ class ScopeBuilder {
 
   ScopeBuilder(this.scope);
 
-  void addMember(String name, Declaration builder) {
+  void addMember(String name, Builder builder) {
     scope.local[name] = builder;
   }
 
-  void addSetter(String name, Declaration builder) {
+  void addSetter(String name, Builder builder) {
     scope.setters[name] = builder;
   }
 
-  Declaration operator [](String name) => scope.local[name];
+  Builder operator [](String name) => scope.local[name];
 }
 
-abstract class ProblemBuilder extends Declaration {
+abstract class ProblemBuilder extends Builder {
   final String name;
 
-  final Declaration builder;
+  final Builder builder;
 
   final int charOffset;
 
@@ -356,11 +354,10 @@ abstract class ProblemBuilder extends Declaration {
 /// Represents a [builder] that's being accessed incorrectly. For example, an
 /// attempt to write to a final field, or to read from a setter.
 class AccessErrorBuilder extends ProblemBuilder {
-  AccessErrorBuilder(
-      String name, Declaration builder, int charOffset, Uri fileUri)
+  AccessErrorBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  Declaration get parent => builder;
+  Builder get parent => builder;
 
   bool get isFinal => builder.isFinal;
 
@@ -386,18 +383,17 @@ class AccessErrorBuilder extends ProblemBuilder {
 }
 
 class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(
-      String name, Declaration builder, int charOffset, Uri fileUri)
+  AmbiguousBuilder(String name, Builder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
-  Declaration get parent => null;
+  Builder get parent => null;
 
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
   // TODO(ahe): Also provide context.
 
-  Declaration getFirstDeclaration() {
-    Declaration declaration = builder;
+  Builder getFirstDeclaration() {
+    Builder declaration = builder;
     while (declaration.next != null) {
       declaration = declaration.next;
     }
@@ -405,17 +401,17 @@ class AmbiguousBuilder extends ProblemBuilder {
   }
 }
 
-class ScopeLocalDeclarationIterator implements Iterator<Declaration> {
-  Iterator<Declaration> local;
-  final Iterator<Declaration> setters;
-  Declaration current;
+class ScopeLocalDeclarationIterator implements Iterator<Builder> {
+  Iterator<Builder> local;
+  final Iterator<Builder> setters;
+  Builder current;
 
   ScopeLocalDeclarationIterator(Scope scope)
       : local = scope.local.values.iterator,
         setters = scope.setters.values.iterator;
 
   bool moveNext() {
-    Declaration next = current?.next;
+    Builder next = current?.next;
     if (next != null) {
       current = next;
       return true;
@@ -450,7 +446,7 @@ class ScopeLocalDeclarationNameIterator extends ScopeLocalDeclarationIterator
         super(scope);
 
   bool moveNext() {
-    Declaration next = current?.next;
+    Builder next = current?.next;
     if (next != null) {
       current = next;
       return true;

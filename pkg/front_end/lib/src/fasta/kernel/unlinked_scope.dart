@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'kernel_builder.dart' show Declaration, Scope;
+import 'kernel_builder.dart' show Builder, Scope;
 
 /// Scope that returns an [UnlinkedDeclaration] if a name can't be resolved.
 /// This is intended to be used as the `enclosingScope` in `BodyBuilder` to
@@ -10,13 +10,13 @@ import 'kernel_builder.dart' show Declaration, Scope;
 class UnlinkedScope extends Scope {
   UnlinkedScope() : super.top(isModifiable: false);
 
-  Declaration lookupIn(String name, int charOffset, Uri fileUri,
-      Map<String, Declaration> map, bool isInstanceScope) {
+  Builder lookupIn(String name, int charOffset, Uri fileUri,
+      Map<String, Builder> map, bool isInstanceScope) {
     return new UnlinkedDeclaration(name, isInstanceScope, charOffset, fileUri);
   }
 }
 
-class UnlinkedDeclaration extends Declaration {
+class UnlinkedDeclaration extends Builder {
   final String name;
 
   final bool isInstanceScope;
@@ -31,7 +31,7 @@ class UnlinkedDeclaration extends Declaration {
       this.name, this.isInstanceScope, this.charOffset, this.fileUri);
 
   @override
-  Declaration get parent => null;
+  Builder get parent => null;
 
   @override
   String get fullNameForErrors => name;

@@ -89,7 +89,11 @@ import '../quote.dart' show unescapeString;
 import '../scanner.dart' show Token;
 
 import 'source_library_builder.dart'
-    show DeclarationBuilder, DeclarationKind, FieldInfo, SourceLibraryBuilder;
+    show
+        TypeParameterScopeBuilder,
+        TypeParameterScopeKind,
+        FieldInfo,
+        SourceLibraryBuilder;
 
 import 'stack_listener.dart'
     show FixedNullableList, NullValue, ParserRecovery, StackListener;
@@ -443,7 +447,8 @@ class OutlineBuilder extends StackListener {
   @override
   void beginClassOrNamedMixinApplication(Token token) {
     debugEvent("beginClassOrNamedMixinApplication");
-    library.beginNestedDeclaration(DeclarationKind.classOrNamedMixinApplication,
+    library.beginNestedDeclaration(
+        TypeParameterScopeKind.classOrNamedMixinApplication,
         "class or mixin application");
   }
 
@@ -452,8 +457,8 @@ class OutlineBuilder extends StackListener {
     debugEvent("beginClassDeclaration");
     List<TypeVariableBuilder> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
-    library.currentDeclaration
-        .registerClassDeclaration(name.lexeme, name.charOffset, typeVariables);
+    library.currentTypeParameterScopeBuilder
+        .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
   }
 
@@ -462,8 +467,8 @@ class OutlineBuilder extends StackListener {
     debugEvent("beginMixinDeclaration");
     List<TypeVariableBuilder> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
-    library.currentDeclaration
-        .registerMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
+    library.currentTypeParameterScopeBuilder
+        .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
   }
 
   @override
@@ -471,14 +476,15 @@ class OutlineBuilder extends StackListener {
     if (kind == ClassKind.Extension) {
       assert(checkState(token, [ValueKind.TypeBuilder]));
       TypeBuilder extensionThisType = peek();
-      library.currentDeclaration.registerExtensionThisType(extensionThisType);
+      library.currentTypeParameterScopeBuilder
+          .registerExtensionThisType(extensionThisType);
     }
     debugEvent("beginClassOrMixinBody");
     // Resolve unresolved types from the class header (i.e., superclass, mixins,
     // and implemented types) before adding members from the class body which
     // should not shadow these unresolved types.
-    library.currentDeclaration
-        .resolveTypes(library.currentDeclaration.typeVariables, library);
+    library.currentTypeParameterScopeBuilder.resolveTypes(
+        library.currentTypeParameterScopeBuilder.typeVariables, library);
   }
 
   @override
@@ -487,7 +493,7 @@ class OutlineBuilder extends StackListener {
     debugEvent("beginNamedMixinApplication");
     List<TypeVariableBuilder> typeVariables = pop();
     push(typeVariables ?? NullValue.TypeVariables);
-    library.currentDeclaration.registerNamedMixinApplication(
+    library.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
   }
@@ -547,7 +553,7 @@ class OutlineBuilder extends StackListener {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery) {
       library.endNestedDeclaration(
-          DeclarationKind.classDeclaration, "<syntax-error>");
+          TypeParameterScopeKind.classDeclaration, "<syntax-error>");
       return;
     }
 
@@ -585,7 +591,7 @@ class OutlineBuilder extends StackListener {
     checkEmpty(mixinToken.charOffset);
     if (name is ParserRecovery) {
       library.endNestedDeclaration(
-          DeclarationKind.mixinDeclaration, "<syntax-error>");
+          TypeParameterScopeKind.mixinDeclaration, "<syntax-error>");
       return;
     }
     int startOffset =
@@ -619,7 +625,7 @@ class OutlineBuilder extends StackListener {
         [ValueKind.TypeVariableListOrNull, ValueKind.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
     library.beginNestedDeclaration(
-        DeclarationKind.extensionDeclaration, "extension");
+        TypeParameterScopeKind.extensionDeclaration, "extension");
     List<TypeVariableBuilder> typeVariables = pop();
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
     String name = nameToken?.lexeme ??
@@ -628,8 +634,8 @@ class OutlineBuilder extends StackListener {
     push(name);
     push(offset);
     push(typeVariables ?? NullValue.TypeVariables);
-    library.currentDeclaration
-        .registerExtensionDeclaration(name, offset, typeVariables);
+    library.currentTypeParameterScopeBuilder
+        .markAsExtensionDeclaration(name, offset, typeVariables);
   }
 
   @override
@@ -679,7 +685,8 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginTopLevelMethod(Token lastConsumed, Token externalToken) {
-    library.beginNestedDeclaration(DeclarationKind.topLevelMethod, "#method",
+    library.beginNestedDeclaration(
+        TypeParameterScopeKind.topLevelMethod, "#method",
         hasMembers: false);
     push(externalToken != null ? externalMask : 0);
   }
@@ -712,7 +719,7 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     checkEmpty(beginToken.charOffset);
     library
-        .endNestedDeclaration(DeclarationKind.topLevelMethod, "#method")
+        .endNestedDeclaration(TypeParameterScopeKind.topLevelMethod, "#method")
         .resolveTypes(typeVariables, library);
     if (name is ParserRecovery) return;
     final int startCharOffset =
@@ -780,7 +787,8 @@ class OutlineBuilder extends StackListener {
   void beginMethod(Token externalToken, Token staticToken, Token covariantToken,
       Token varFinalOrConst, Token getOrSet, Token name) {
     inConstructor =
-        name?.lexeme == library.currentDeclaration.name && getOrSet == null;
+        name?.lexeme == library.currentTypeParameterScopeBuilder.name &&
+            getOrSet == null;
     List<Modifier> modifiers;
     if (externalToken != null) {
       modifiers ??= <Modifier>[];
@@ -815,7 +823,7 @@ class OutlineBuilder extends StackListener {
     push(varFinalOrConst?.charOffset ?? -1);
     push(modifiers ?? NullValue.Modifiers);
     library.beginNestedDeclaration(
-        DeclarationKind.staticOrInstanceMethodOrConstructor, "#method",
+        TypeParameterScopeKind.staticOrInstanceMethodOrConstructor, "#method",
         hasMembers: false);
   }
 
@@ -919,10 +927,9 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     String documentationComment = getDocumentationComment(beginToken);
 
-    DeclarationBuilder declarationBuilder = library.endNestedDeclaration(
-        DeclarationKind.staticOrInstanceMethodOrConstructor, "#method");
+    TypeParameterScopeBuilder declarationBuilder = library.endNestedDeclaration(
+        TypeParameterScopeKind.staticOrInstanceMethodOrConstructor, "#method");
     if (name is ParserRecovery) {
-      declarationBuilder.resolveTypes(typeVariables, library);
       nativeMethodName = null;
       inConstructor = false;
       declarationBuilder.resolveTypes(typeVariables, library);
@@ -935,9 +942,10 @@ class OutlineBuilder extends StackListener {
             : library.computeAndValidateConstructorName(name, charOffset);
     if (constructorName == null &&
         (modifiers & staticMask) == 0 &&
-        library.currentDeclaration.kind ==
-            DeclarationKind.extensionDeclaration) {
-      DeclarationBuilder extension = library.currentDeclaration;
+        library.currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionDeclaration) {
+      TypeParameterScopeBuilder extension =
+          library.currentTypeParameterScopeBuilder;
       Map<TypeVariableBuilder, TypeBuilder> substitution;
       if (extension.typeVariables != null) {
         // We synthesize the names of the generated [TypeParameter]s, i.e.
@@ -1059,7 +1067,7 @@ class OutlineBuilder extends StackListener {
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || mixinApplication is ParserRecovery) {
       library.endNestedDeclaration(
-          DeclarationKind.namedMixinApplication, "<syntax-error>");
+          TypeParameterScopeKind.namedMixinApplication, "<syntax-error>");
       return;
     }
 
@@ -1324,7 +1332,7 @@ class OutlineBuilder extends StackListener {
 
   @override
   void beginFunctionTypeAlias(Token token) {
-    library.beginNestedDeclaration(DeclarationKind.typedef, "#typedef",
+    library.beginNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef",
         hasMembers: false);
   }
 
@@ -1332,7 +1340,7 @@ class OutlineBuilder extends StackListener {
   void beginFunctionType(Token beginToken) {
     debugEvent("beginFunctionType");
     library.beginNestedDeclaration(
-        DeclarationKind.functionType, "#function_type",
+        TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
   }
 
@@ -1340,7 +1348,7 @@ class OutlineBuilder extends StackListener {
   void beginFunctionTypedFormalParameter(Token token) {
     debugEvent("beginFunctionTypedFormalParameter");
     library.beginNestedDeclaration(
-        DeclarationKind.functionType, "#function_type",
+        TypeParameterScopeKind.functionType, "#function_type",
         hasMembers: false);
   }
 
@@ -1392,11 +1400,12 @@ class OutlineBuilder extends StackListener {
       // `library.addFunctionType`.
       if (name is ParserRecovery) {
         pop(); // Metadata.
-        library.endNestedDeclaration(DeclarationKind.typedef, "<syntax-error>");
+        library.endNestedDeclaration(
+            TypeParameterScopeKind.typedef, "<syntax-error>");
         return;
       }
       library.beginNestedDeclaration(
-          DeclarationKind.functionType, "#function_type",
+          TypeParameterScopeKind.functionType, "#function_type",
           hasMembers: false);
       functionType =
           library.addFunctionType(returnType, null, formals, charOffset);
@@ -1408,7 +1417,7 @@ class OutlineBuilder extends StackListener {
       if (name is ParserRecovery) {
         pop(); // Metadata.
         library.endNestedDeclaration(
-            DeclarationKind.functionType, "<syntax-error>");
+            TypeParameterScopeKind.functionType, "<syntax-error>");
         return;
       }
       if (type is FunctionTypeBuilder) {
@@ -1633,7 +1642,7 @@ class OutlineBuilder extends StackListener {
       Token lastConsumed, Token externalToken, Token constToken) {
     inConstructor = true;
     library.beginNestedDeclaration(
-        DeclarationKind.factoryMethod, "#factory_method",
+        TypeParameterScopeKind.factoryMethod, "#factory_method",
         hasMembers: false);
     push((externalToken != null ? externalMask : 0) |
         (constToken != null ? constMask : 0));
@@ -1660,7 +1669,7 @@ class OutlineBuilder extends StackListener {
     List<MetadataBuilder> metadata = pop();
     if (name is ParserRecovery) {
       library.endNestedDeclaration(
-          DeclarationKind.factoryMethod, "<syntax-error>");
+          TypeParameterScopeKind.factoryMethod, "<syntax-error>");
       return;
     }
     String documentationComment = getDocumentationComment(beginToken);

@@ -32,12 +32,7 @@ import '../fasta_codes.dart'
 import '../problems.dart' show internalProblem, unhandled, unimplemented;
 
 import '../kernel/kernel_builder.dart'
-    show
-        Declaration,
-        DynamicTypeBuilder,
-        InvalidTypeBuilder,
-        LibraryBuilder,
-        Scope;
+    show Builder, DynamicTypeBuilder, InvalidTypeBuilder, LibraryBuilder, Scope;
 
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
@@ -52,22 +47,22 @@ import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
 class LazyLibraryScope extends Scope {
   DillLibraryBuilder libraryBuilder;
 
-  LazyLibraryScope(Map<String, Declaration> local,
-      Map<String, Declaration> setters, Scope parent, String debugName,
+  LazyLibraryScope(Map<String, Builder> local, Map<String, Builder> setters,
+      Scope parent, String debugName,
       {bool isModifiable: true})
       : super(local, setters, parent, debugName, isModifiable: isModifiable);
 
   LazyLibraryScope.top({bool isModifiable: false})
-      : this(<String, Declaration>{}, <String, Declaration>{}, null, "top",
+      : this(<String, Builder>{}, <String, Builder>{}, null, "top",
             isModifiable: isModifiable);
 
-  Map<String, Declaration> get local {
+  Map<String, Builder> get local {
     if (libraryBuilder == null) throw new StateError("No library builder.");
     libraryBuilder.ensureLoaded();
     return super.local;
   }
 
-  Map<String, Declaration> get setters {
+  Map<String, Builder> get setters {
     if (libraryBuilder == null) throw new StateError("No library builder.");
     libraryBuilder.ensureLoaded();
     return super.setters;
@@ -173,7 +168,7 @@ class DillLibraryBuilder extends LibraryBuilder {
   }
 
   @override
-  Declaration addBuilder(String name, Declaration declaration, int charOffset) {
+  Builder addBuilder(String name, Builder declaration, int charOffset) {
     if (name == null || name.isEmpty) return null;
     bool isSetter = declaration.isSetter;
     if (isSetter) {
@@ -201,14 +196,13 @@ class DillLibraryBuilder extends LibraryBuilder {
   }
 
   @override
-  void addToScope(
-      String name, Declaration member, int charOffset, bool isImport) {
+  void addToScope(String name, Builder member, int charOffset, bool isImport) {
     unimplemented("addToScope", charOffset, fileUri);
   }
 
   @override
-  Declaration computeAmbiguousDeclaration(
-      String name, Declaration builder, Declaration other, int charOffset,
+  Builder computeAmbiguousDeclaration(
+      String name, Builder builder, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false}) {
     if (builder == other) return builder;
     if (builder is InvalidTypeBuilder) return builder;
@@ -240,7 +234,7 @@ class DillLibraryBuilder extends LibraryBuilder {
     if (exportsAlreadyFinalized) return;
     exportsAlreadyFinalized = true;
     unserializableExports?.forEach((String name, String messageText) {
-      Declaration declaration;
+      Builder declaration;
       switch (name) {
         case "dynamic":
         case "void":
@@ -287,7 +281,7 @@ class DillLibraryBuilder extends LibraryBuilder {
             -1,
             fileUri);
       }
-      Declaration declaration;
+      Builder declaration;
       if (isSetter) {
         declaration = library.exportScope.setters[name];
         exportScopeBuilder.addSetter(name, declaration);

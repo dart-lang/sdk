@@ -28,7 +28,7 @@ import '../severity.dart' show Severity;
 import 'builder.dart'
     show
         ClassBuilder,
-        Declaration,
+        Builder,
         FieldBuilder,
         ModifierBuilder,
         NameIterator,
@@ -79,7 +79,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
       {int offset: 0, int length, bool explicit});
 
   @override
-  Declaration get parent => null;
+  Builder get parent => null;
 
   bool get isPart => false;
 
@@ -96,7 +96,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   Uri get uri;
 
-  Iterator<Declaration> get iterator {
+  Iterator<Builder> get iterator {
     return LibraryLocalDeclarationIterator(this);
   }
 
@@ -104,7 +104,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return new LibraryLocalDeclarationNameIterator(this);
   }
 
-  Declaration addBuilder(String name, Declaration declaration, int charOffset);
+  Builder addBuilder(String name, Builder declaration, int charOffset);
 
   void addExporter(
       LibraryBuilder exporter, List<Combinator> combinators, int charOffset) {
@@ -133,16 +133,15 @@ abstract class LibraryBuilder extends ModifierBuilder {
   }
 
   /// Returns true if the export scope was modified.
-  bool addToExportScope(String name, Declaration member,
-      [int charOffset = -1]) {
+  bool addToExportScope(String name, Builder member, [int charOffset = -1]) {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
-    Map<String, Declaration> map =
+    Map<String, Builder> map =
         member.isSetter ? exportScope.setters : exportScope.local;
-    Declaration existing = map[name];
+    Builder existing = map[name];
     if (existing == member) return false;
     if (existing != null) {
-      Declaration result = computeAmbiguousDeclaration(
+      Builder result = computeAmbiguousDeclaration(
           name, existing, member, charOffset,
           isExport: true);
       map[name] = result;
@@ -153,11 +152,10 @@ abstract class LibraryBuilder extends ModifierBuilder {
     return true;
   }
 
-  void addToScope(
-      String name, Declaration member, int charOffset, bool isImport);
+  void addToScope(String name, Builder member, int charOffset, bool isImport);
 
-  Declaration computeAmbiguousDeclaration(
-      String name, Declaration declaration, Declaration other, int charOffset,
+  Builder computeAmbiguousDeclaration(
+      String name, Builder declaration, Builder other, int charOffset,
       {bool isExport: false, bool isImport: false});
 
   int finishDeferredLoadTearoffs() => 0;
@@ -180,7 +178,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  Declaration getConstructor(String className,
+  Builder getConstructor(String className,
       {String constructorName, bool bypassLibraryPrivacy: false}) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
@@ -190,12 +188,12 @@ abstract class LibraryBuilder extends ModifierBuilder {
           -1,
           null);
     }
-    Declaration cls = (bypassLibraryPrivacy ? scope : exportScope)
+    Builder cls = (bypassLibraryPrivacy ? scope : exportScope)
         .lookup(className, -1, null);
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      Declaration constructor =
+      Builder constructor =
           cls.findConstructorOrFactory(constructorName, -1, null, this);
       if (constructor == null) {
         // Fall-through to internal error below.
@@ -235,7 +233,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
 
   /// Don't use for scope lookup. Only use when an element is known to exist
   /// (and not a setter).
-  Declaration getLocalMember(String name) {
+  Builder getLocalMember(String name) {
     return scope.local[name] ??
         internalProblem(
             templateInternalProblemNotFoundIn.withArguments(name, "$fileUri"),
@@ -243,7 +241,7 @@ abstract class LibraryBuilder extends ModifierBuilder {
             fileUri);
   }
 
-  Declaration lookup(String name, int charOffset, Uri fileUri) {
+  Builder lookup(String name, int charOffset, Uri fileUri) {
     return scope.lookup(name, charOffset, fileUri);
   }
 
@@ -260,14 +258,14 @@ abstract class LibraryBuilder extends ModifierBuilder {
   List<FieldBuilder> takeImplicitlyTypedFields() => null;
 }
 
-class LibraryLocalDeclarationIterator implements Iterator<Declaration> {
+class LibraryLocalDeclarationIterator implements Iterator<Builder> {
   final LibraryBuilder library;
-  final Iterator<Declaration> iterator;
+  final Iterator<Builder> iterator;
 
   LibraryLocalDeclarationIterator(this.library)
       : iterator = library.scope.iterator;
 
-  Declaration get current => iterator.current;
+  Builder get current => iterator.current;
 
   bool moveNext() {
     while (iterator.moveNext()) {
@@ -284,7 +282,7 @@ class LibraryLocalDeclarationNameIterator implements NameIterator {
   LibraryLocalDeclarationNameIterator(this.library)
       : iterator = library.scope.nameIterator;
 
-  Declaration get current => iterator.current;
+  Builder get current => iterator.current;
 
   String get name => iterator.name;
 

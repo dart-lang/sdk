@@ -438,7 +438,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Scope outerSwitchScope = pop();
     if (switchScope.unclaimedForwardDeclarations != null) {
       switchScope.unclaimedForwardDeclarations
-          .forEach((String name, Declaration declaration) {
+          .forEach((String name, Builder declaration) {
         if (outerSwitchScope == null) {
           JumpTarget target = declaration;
           for (Statement statement in target.users) {
@@ -476,7 +476,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   void declareVariable(VariableDeclaration variable, Scope scope) {
     String name = variable.name;
-    Declaration existing = scope.local[name];
+    Builder existing = scope.local[name];
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
       // `{ var x; var x; }`
@@ -616,7 +616,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Expression initializer = pop();
       Identifier identifier = pop();
       String name = identifier.name;
-      Declaration declaration;
+      Builder declaration;
       if (classBuilder != null) {
         declaration = classBuilder.getLocalMember(name);
       } else {
@@ -1795,7 +1795,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (token.isSynthetic) {
       return new ParserErrorGenerator(this, token, fasta.messageSyntheticToken);
     }
-    Declaration declaration = scope.lookup(name, charOffset, uri);
+    Builder declaration = scope.lookup(name, charOffset, uri);
     if (declaration is UnlinkedDeclaration) {
       return new UnlinkedGenerator(this, token, declaration);
     }
@@ -1893,7 +1893,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       if (declaration.hasProblem && declaration is! AccessErrorBuilder)
         return declaration;
-      Declaration setter;
+      Builder setter;
       if (declaration.isSetter) {
         setter = declaration;
       } else if (declaration.isGetter) {
@@ -3693,8 +3693,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         return buildProblem(fasta.messageEnumInstantiation,
             nameToken.charOffset, nameToken.length);
       }
-      Declaration b =
-          type.findConstructorOrFactory(name, charOffset, uri, library);
+      Builder b = type.findConstructorOrFactory(name, charOffset, uri, library);
       Member target = b?.target;
       if (b == null) {
         // Not found. Reported below.
@@ -4016,7 +4015,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       ..fileOffset = name.charOffset;
     // TODO(ahe): Why are we looking up in local scope, but declaring in parent
     // scope?
-    Declaration existing = scope.local[name.name];
+    Builder existing = scope.local[name.name];
     if (existing != null) {
       reportDuplicatedDeclaration(existing, name.name, name.charOffset);
     }
@@ -4754,7 +4753,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     if (hasTarget) {
       identifier = pop();
       name = identifier.name;
-      Declaration namedTarget = scope.lookupLabel(identifier.name);
+      Builder namedTarget = scope.lookupLabel(identifier.name);
       if (namedTarget != null && namedTarget is! JumpTarget) {
         Token labelToken = continueKeyword.next;
         push(problemInLoopOrSwitch = buildProblemStatement(
@@ -4974,8 +4973,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       [int charOffset = -1]) {
     addProblemErrorIfConst(message, charOffset, className.length);
     // TODO(ahe): The following doesn't make sense to Analyzer AST.
-    Declaration constructor =
-        library.loader.getAbstractClassInstantiationError();
+    Builder constructor = library.loader.getAbstractClassInstantiationError();
     Expression invocation = buildStaticInvocation(
         constructor.target,
         forest.arguments(<Expression>[
@@ -5048,7 +5046,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   Initializer buildFieldInitializer(bool isSynthetic, String name,
       int fieldNameOffset, int assignmentOffset, Expression expression,
       {DartType formalType}) {
-    Declaration builder =
+    Builder builder =
         classBuilder.scope.local[name] ?? classBuilder.origin.scope.local[name];
     if (builder?.next != null) {
       // Duplicated name, already reported.
@@ -5079,7 +5077,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
                   .withArguments(name)
                   .withLocation(uri, builder.charOffset, name.length)
             ]);
-        Declaration constructor =
+        Builder constructor =
             library.loader.getDuplicatedFieldInitializerError();
         Expression invocation = buildStaticInvocation(
             constructor.target,
@@ -5339,7 +5337,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   @override
   void reportDuplicatedDeclaration(
-      Declaration existing, String name, int charOffset) {
+      Builder existing, String name, int charOffset) {
     List<LocatedMessage> context = existing.isSynthetic
         ? null
         : <LocatedMessage>[
@@ -5485,7 +5483,7 @@ class Operator {
   String toString() => "operator($name)";
 }
 
-class JumpTarget extends Declaration {
+class JumpTarget extends Builder {
   final List<Statement> users = <Statement>[];
 
   final JumpTargetKind kind;
@@ -5555,7 +5553,7 @@ class JumpTarget extends Declaration {
   String get fullNameForErrors => "<jump-target>";
 }
 
-class LabelTarget extends Declaration implements JumpTarget {
+class LabelTarget extends Builder implements JumpTarget {
   @override
   final MemberBuilder parent;
 
@@ -5673,13 +5671,13 @@ class FormalParameters {
   }
 
   Scope computeFormalParameterScope(
-      Scope parent, Declaration declaration, ExpressionGeneratorHelper helper) {
+      Scope parent, Builder declaration, ExpressionGeneratorHelper helper) {
     if (parameters == null) return parent;
     assert(parameters.isNotEmpty);
-    Map<String, Declaration> local = <String, Declaration>{};
+    Map<String, Builder> local = <String, Builder>{};
 
     for (FormalParameterBuilder parameter in parameters) {
-      Declaration existing = local[parameter.name];
+      Builder existing = local[parameter.name];
       if (existing != null) {
         helper.reportDuplicatedDeclaration(
             existing, parameter.name, parameter.charOffset);
@@ -5724,7 +5722,7 @@ String debugName(String className, String name, [String prefix]) {
 String getNodeName(Object node) {
   if (node is Identifier) {
     return node.name;
-  } else if (node is Declaration) {
+  } else if (node is Builder) {
     return node.fullNameForErrors;
   } else if (node is QualifiedName) {
     return flattenName(node, node.charOffset, null);

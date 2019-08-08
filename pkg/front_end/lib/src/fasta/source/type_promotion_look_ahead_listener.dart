@@ -4,7 +4,7 @@
 
 library fasta.type_promotion_look_ahead_listener;
 
-import '../builder/builder.dart' show Declaration;
+import '../builder/builder.dart' show Builder;
 
 import '../messages.dart' show LocatedMessage, Message, MessageCode;
 
@@ -32,7 +32,7 @@ abstract class TypePromotionState {
 
   final List<Scope> scopes = <Scope>[new Scope.top(isModifiable: true)];
 
-  final List<Declaration> stack = <Declaration>[];
+  final List<Builder> stack = <Builder>[];
 
   TypePromotionState(this.uri);
 
@@ -63,19 +63,19 @@ abstract class TypePromotionState {
 
   void pushReference(Token token) {
     String name = token.lexeme;
-    Declaration declaration = currentScope.lookup(name, token.charOffset, uri);
+    Builder declaration = currentScope.lookup(name, token.charOffset, uri);
     stack.add(declaration);
   }
 
-  Declaration pop() => stack.removeLast();
+  Builder pop() => stack.removeLast();
 
-  void push(Declaration declaration) {
+  void push(Builder declaration) {
     stack.add(declaration);
   }
 
-  Declaration popPushNull(String name, Token token) {
+  Builder popPushNull(String name, Token token) {
     int last = stack.length - 1;
-    Declaration declaration = stack[last];
+    Builder declaration = stack[last];
     stack[last] = nullValue(name, token);
     return declaration;
   }
@@ -88,7 +88,7 @@ abstract class TypePromotionState {
     stack.add(nullValue(name, token));
   }
 
-  Declaration nullValue(String name, Token token) => null;
+  Builder nullValue(String name, Token token) => null;
 
   void report(LocatedMessage message, Severity severity,
       {List<LocatedMessage> context});
@@ -98,7 +98,7 @@ abstract class TypePromotionState {
   void checkEmpty(Token token) {}
 }
 
-class UnspecifiedDeclaration extends Declaration {
+class UnspecifiedDeclaration extends Builder {
   final String name;
 
   @override
@@ -110,7 +110,7 @@ class UnspecifiedDeclaration extends Declaration {
   UnspecifiedDeclaration(this.name, this.fileUri, this.charOffset);
 
   @override
-  Declaration get parent => null;
+  Builder get parent => null;
 
   @override
   String get fullNameForErrors => name;
@@ -119,7 +119,7 @@ class UnspecifiedDeclaration extends Declaration {
   String toString() => "UnspecifiedDeclaration($name)";
 }
 
-class NoArguments extends Declaration {
+class NoArguments extends Builder {
   NoArguments();
 
   @override
@@ -129,7 +129,7 @@ class NoArguments extends Declaration {
   int get charOffset => -1;
 
   @override
-  Declaration get parent => null;
+  Builder get parent => null;
 
   @override
   String get fullNameForErrors => "<<no arguments>>";
@@ -198,7 +198,7 @@ class TypePromotionLookAheadListener extends Listener {
   void handleAssignmentExpression(Token token) {
     debugEvent("AssignmentExpression", token);
     state.pop(); // Right-hand side.
-    Declaration lhs = state.popPushNull(token.lexeme, token);
+    Builder lhs = state.popPushNull(token.lexeme, token);
     if (lhs is UnspecifiedDeclaration) {
       state.registerWrite(lhs, token);
     }
@@ -850,7 +850,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleIsOperator(Token isOperator, Token not) {
     debugEvent("IsOperator", isOperator);
-    Declaration lhs = state.popPushNull(isOperator.lexeme, isOperator);
+    Builder lhs = state.popPushNull(isOperator.lexeme, isOperator);
     if (not == null && lhs is UnspecifiedDeclaration) {
       state.registerPromotionCandidate(lhs, isOperator);
     }
@@ -1173,7 +1173,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send", beginToken);
-    Declaration arguments = state.pop();
+    Builder arguments = state.pop();
     if (identical(arguments, noArgumentsSentinel)) {
       // Leave the receiver on the stack.
     } else {
@@ -1339,7 +1339,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleUnaryPostfixAssignmentExpression(Token token) {
     debugEvent("UnaryPostfixAssignmentExpression", token);
-    Declaration expr = state.popPushNull(token.lexeme, token);
+    Builder expr = state.popPushNull(token.lexeme, token);
     if (expr is UnspecifiedDeclaration) {
       state.registerWrite(expr, token);
     }
@@ -1348,7 +1348,7 @@ class TypePromotionLookAheadListener extends Listener {
   @override
   void handleUnaryPrefixAssignmentExpression(Token token) {
     debugEvent("UnaryPrefixAssignmentExpression", token);
-    Declaration expr = state.popPushNull(token.lexeme, token);
+    Builder expr = state.popPushNull(token.lexeme, token);
     if (expr is UnspecifiedDeclaration) {
       state.registerWrite(expr, token);
     }

@@ -15,7 +15,7 @@ import 'package:kernel/type_algebra.dart';
 
 import 'builder.dart'
     show
-        Declaration,
+        Builder,
         FormalParameterBuilder,
         LibraryBuilder,
         MemberBuilder,
@@ -65,7 +65,7 @@ import '../kernel/kernel_builder.dart'
     show
         ClassBuilder,
         ConstructorReferenceBuilder,
-        Declaration,
+        Builder,
         FormalParameterBuilder,
         LibraryBuilder,
         MetadataBuilder,
@@ -160,7 +160,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   /// Language Specifiction, 4th ed, section 9.2.
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
-    Map<String, Declaration> local = <String, Declaration>{};
+    Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals) {
       if (!isConstructor || !formal.isInitializingFormal) {
         local[formal.name] = formal;
@@ -187,7 +187,7 @@ abstract class FunctionBuilder extends MemberBuilder {
     // parameter initializer scope.
 
     if (formals == null) return parent;
-    Map<String, Declaration> local = <String, Declaration>{};
+    Map<String, Builder> local = <String, Builder>{};
     for (FormalParameterBuilder formal in formals) {
       local[formal.name] = formal.forFormalParameterInitializerScope();
     }
@@ -200,7 +200,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;
-    Map<String, Declaration> local = <String, Declaration>{};
+    Map<String, Builder> local = <String, Builder>{};
     for (TypeVariableBuilder variable in typeVariables) {
       local[variable.name] = variable;
     }
@@ -384,7 +384,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   }
 
   void becomeNative(Loader loader) {
-    Declaration constructor = loader.getNativeAnnotation();
+    Builder constructor = loader.getNativeAnnotation();
     Arguments arguments =
         new Arguments(<Expression>[new StringLiteral(nativeMethodName)]);
     Expression annotation;
@@ -411,7 +411,7 @@ abstract class FunctionBuilder extends MemberBuilder {
     return true;
   }
 
-  void reportPatchMismatch(Declaration patch) {
+  void reportPatchMismatch(Builder patch) {
     library.addProblem(messagePatchDeclarationMismatch, patch.charOffset,
         noLength, patch.fileUri, context: [
       messagePatchDeclarationOrigin.withLocation(fileUri, charOffset, noLength)
@@ -550,7 +550,7 @@ class ProcedureBuilder extends FunctionBuilder {
   }
 
   @override
-  void applyPatch(Declaration patch) {
+  void applyPatch(Builder patch) {
     if (patch is ProcedureBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;
@@ -763,7 +763,7 @@ class ConstructorBuilder extends FunctionBuilder {
   }
 
   @override
-  void applyPatch(Declaration patch) {
+  void applyPatch(Builder patch) {
     if (patch is ConstructorBuilder) {
       if (checkPatch(patch)) {
         patch.actualOrigin = this;

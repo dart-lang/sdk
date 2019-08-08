@@ -28,7 +28,7 @@ import '../severity.dart' show Severity;
 
 import 'builder.dart'
     show
-        Declaration,
+        Builder,
         Identifier,
         LibraryBuilder,
         PrefixBuilder,
@@ -73,11 +73,11 @@ class NamedTypeBuilder extends TypeBuilder {
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (declaration != null) return;
     final name = this.name;
-    Declaration member;
+    Builder member;
     if (name is QualifiedName) {
       Object qualifier = name.qualifier;
       String prefixName = flattenName(qualifier, charOffset, fileUri);
-      Declaration prefix = scope.lookup(prefixName, charOffset, fileUri);
+      Builder prefix = scope.lookup(prefixName, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
         member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
