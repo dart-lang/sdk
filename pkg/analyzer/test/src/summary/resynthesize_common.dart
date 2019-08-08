@@ -5826,8 +5826,9 @@ Exports:
   }
 
   test_export_configurations_useDefault() async {
-    declaredVariables =
-        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5850,8 +5851,10 @@ Exports:
   }
 
   test_export_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'true', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -5874,8 +5877,10 @@ Exports:
   }
 
   test_export_configurations_useSecond() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'false', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -6079,8 +6084,9 @@ Exports:
   }
 
   test_exportImport_configurations_useDefault() async {
-    declaredVariables =
-        new DeclaredVariables.fromMap({'dart.library.io': 'false'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -6103,8 +6109,10 @@ class B extends A {
   }
 
   test_exportImport_configurations_useFirst() async {
-    declaredVariables = new DeclaredVariables.fromMap(
-        {'dart.library.io': 'true', 'dart.library.html': 'true'});
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'false',
+    });
     addLibrarySource('/foo.dart', 'class A {}');
     addLibrarySource('/foo_io.dart', 'class A {}');
     addLibrarySource('/foo_html.dart', 'class A {}');
@@ -6124,6 +6132,32 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_io.dart');
+  }
+
+  test_exportImport_configurations_useSecond() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    addLibrarySource('/bar.dart', r'''
+export 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    var library = await checkLibrary(r'''
+import 'bar.dart';
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'bar.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_exports() async {
@@ -6956,6 +6990,78 @@ class B extends A {
 ''');
     var typeA = library.definingCompilationUnit.getType('B').supertype;
     expect(typeA.element.source.shortName, 'foo_io.dart');
+  }
+
+  test_import_configurations_useFirst_eqTrue() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'true',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_io.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_io.dart');
+  }
+
+  test_import_configurations_useSecond() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_html.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
+  }
+
+  test_import_configurations_useSecond_eqTrue() async {
+    declaredVariables = new DeclaredVariables.fromMap({
+      'dart.library.io': 'false',
+      'dart.library.html': 'true',
+    });
+    addLibrarySource('/foo.dart', 'class A {}');
+    addLibrarySource('/foo_io.dart', 'class A {}');
+    addLibrarySource('/foo_html.dart', 'class A {}');
+    var library = await checkLibrary(r'''
+import 'foo.dart'
+  if (dart.library.io == 'true') 'foo_io.dart'
+  if (dart.library.html == 'true') 'foo_html.dart';
+
+class B extends A {}
+''');
+    checkElementText(library, r'''
+import 'foo_html.dart';
+class B extends A {
+}
+''');
+    var typeA = library.definingCompilationUnit.getType('B').supertype;
+    expect(typeA.element.source.shortName, 'foo_html.dart');
   }
 
   test_import_deferred() async {

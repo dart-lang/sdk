@@ -307,8 +307,8 @@ class SourceLibraryBuilder {
   ) {
     for (var configuration in configurations) {
       var name = configuration.name.components.join('.');
-      var value = configuration.value ?? 'true';
-      if (linker.declaredVariables.get(name) == (value)) {
+      var value = configuration.value?.stringValue ?? 'true';
+      if (linker.declaredVariables.get(name) == value) {
         return configuration.uri.stringValue;
       }
     }
