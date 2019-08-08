@@ -22,9 +22,9 @@ class C extends core::Object {
     return 1;
 }
 class E extends core::Object {
-  get two(final self::C* #this) → core::int*
-    return 2;
 }
+method E|two(final self::C* #this) → core::int*
+  return 2;
 static method main() → dynamic {
   self::C* c = new self::C::•();
   core::num* result = c.{self::C::one}.{core::num::+}(invalid-expression "pkg/front_end/testcases/general/extension_methods.dart:19:26: Error: The getter 'two' isn't defined for the class 'C'.

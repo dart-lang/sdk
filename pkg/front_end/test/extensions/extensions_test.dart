@@ -137,15 +137,15 @@ class ExtensionsDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   Features computeMemberValue(Id id, Member member) {
-    if (member.enclosingClass == null) {
+    if (!(member is Procedure && member.isExtensionMethod)) {
       return null;
     }
-    ClassBuilder clsBuilder =
-        lookupClassBuilder(compilerResult, member.enclosingClass);
-    if (!clsBuilder.isExtension) {
-      return null;
-    }
-    MemberBuilder memberBuilder = lookupMemberBuilder(compilerResult, member);
+    String memberName = member.name.name;
+    String extensionName = memberName.substring(0, memberName.indexOf('|'));
+    memberName = memberName.substring(extensionName.length + 1);
+    Class cls = lookupClass(member.enclosingLibrary, extensionName);
+    MemberBuilder memberBuilder =
+        lookupClassMemberBuilder(compilerResult, cls, member, memberName);
     Features features = new Features();
     features[Tags.builderName] = memberBuilder.name;
     if (memberBuilder is FunctionBuilder) {

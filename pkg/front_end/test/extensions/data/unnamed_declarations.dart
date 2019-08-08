@@ -11,7 +11,15 @@ class A1 {}
  cls-name=extension#0,
  cls-supertype=Object
 */
-extension on A1 {}
+extension on A1 {
+  /*member: extension#0|method:
+     builder-name=method,
+     builder-params=[#this],
+     member-name=extension#0|method,
+     member-params=[#this]
+  */
+  method() {}
+}
 
 /*class: extension#1:
  builder-name=extension#1,
@@ -20,7 +28,15 @@ extension on A1 {}
  cls-name=extension#1,
  cls-supertype=Object
 */
-extension on A1 {}
+extension on A1 {
+  /*member: extension#1|method:
+     builder-name=method,
+     builder-params=[#this],
+     member-name=extension#1|method,
+     member-params=[#this]
+  */
+  method() {}
+}
 
 class B1<T> {}
 
@@ -33,7 +49,17 @@ class B1<T> {}
  cls-supertype=Object,
  cls-type-params=[T]
 */
-extension <T> on B1<T> {}
+extension <T> on B1<T> {
+  /*member: extension#2|method:
+     builder-name=method,
+     builder-params=[#this],
+     builder-type-params=[T],
+     member-name=extension#2|method,
+     member-params=[#this],
+     member-type-params=[#T]
+  */
+  method() {}
+}
 
 // TODO(johnniwinther): Remove class type parameters.
 /*class: extension#3:
@@ -43,7 +69,15 @@ extension <T> on B1<T> {}
  cls-name=extension#3,
  cls-supertype=Object
 */
-extension on B1<A1> {}
+extension on B1<A1> {
+  /*member: extension#3|method:
+     builder-name=method,
+     builder-params=[#this],
+     member-name=extension#3|method,
+     member-params=[#this]
+  */
+  method() {}
+}
 
 // TODO(johnniwinther): Remove class type parameters.
 /*class: extension#4:
@@ -55,6 +89,16 @@ extension on B1<A1> {}
  cls-supertype=Object,
  cls-type-params=[T extends A1]
 */
-extension <T extends A1> on B1<T> {}
+extension <T extends A1> on B1<T> {
+  /*member: extension#4|method:
+     builder-name=method,
+     builder-params=[#this],
+     builder-type-params=[T extends A1],
+     member-name=extension#4|method,
+     member-params=[#this],
+     member-type-params=[#T extends A1]
+  */
+  method() {}
+}
 
 main() {}

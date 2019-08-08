@@ -488,6 +488,15 @@ class ProcedureBuilder extends FunctionBuilder {
     return false;
   }
 
+  /// Returns `true` if this procedure is declared in an extension declaration.
+  bool get isExtensionMethod {
+    if (parent is ClassBuilder) {
+      ClassBuilder cls = parent;
+      return cls.isExtension;
+    }
+    return false;
+  }
+
   Procedure build(SourceLibraryBuilder library) {
     // TODO(ahe): I think we may call this twice on parts. Investigate.
     if (procedure.name == null) {
@@ -496,10 +505,18 @@ class ProcedureBuilder extends FunctionBuilder {
       procedure.function.fileOffset = charOpenParenOffset;
       procedure.function.fileEndOffset = procedure.fileEndOffset;
       procedure.isAbstract = isAbstract;
-      procedure.isStatic = isStatic;
       procedure.isExternal = isExternal;
       procedure.isConst = isConst;
-      procedure.name = new Name(name, library.target);
+      if (isExtensionMethod) {
+        ClassBuilder extension = parent;
+        procedure.isStatic = false;
+        procedure.isExtensionMethod = true;
+        procedure.kind = ProcedureKind.Method;
+        procedure.name = new Name('${extension.name}|${name}', library.target);
+      } else {
+        procedure.isStatic = isStatic;
+        procedure.name = new Name(name, library.target);
+      }
     }
     return procedure;
   }

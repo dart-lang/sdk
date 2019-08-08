@@ -12,19 +12,19 @@ class A1 {}
  cls-supertype=Object
 */
 extension A2 on A1 {
-  /*member: A2.method1:
+  /*member: A2|method1:
      builder-name=method1,
      builder-params=[o],
-     member-name=method1,
+     member-name=A2|method1,
      member-params=[o]
   */
   static A1 method1(A1 o) => o;
 
-  /*member: A2.method2:
+  /*member: A2|method2:
      builder-name=method2,
      builder-params=[o],
      builder-type-params=[T],
-     member-name=method2,
+     member-name=A2|method2,
      member-params=[o],
      member-type-params=[T]
   */
@@ -43,19 +43,19 @@ class B1<T> {}
  cls-type-params=[T]
 */
 extension B2<T> on B1<T> {
-  /*member: B2.method1:
+  /*member: B2|method1:
      builder-name=method1,
      builder-params=[o],
-     member-name=method1,
+     member-name=B2|method1,
      member-params=[o]
   */
   static B1 method1(B1 o) => o;
 
-  /*member: B2.method2:
+  /*member: B2|method2:
      builder-name=method2,
      builder-params=[o],
      builder-type-params=[S],
-     member-name=method2,
+     member-name=B2|method2,
      member-params=[o],
      member-type-params=[S]
   */

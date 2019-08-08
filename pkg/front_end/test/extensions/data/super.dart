@@ -14,10 +14,10 @@ class A1 {
  cls-supertype=Object
 */
 extension A2 on A1 {
-  /*member: A2.method2:
+  /*member: A2|method2:
    builder-name=method2,
    builder-params=[#this],
-   member-name=method2,
+   member-name=A2|method2,
    member-params=[#this]
   */
   method2() {

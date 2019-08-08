@@ -8,21 +8,6 @@ class A1 extends core::Object {
     ;
 }
 class A2 extends core::Object {
-  method method1(final self::A1* #this) → self::A1* {
-    return #this;
-  }
-  method method2<T extends core::Object* = dynamic>(final self::A1* #this, self::A2::method2::T* o) → self::A1* {
-    core::print(o);
-    return #this;
-  }
-  method method3<T extends core::Object* = dynamic>(final self::A1* #this = #C1, [self::A2::method3::T* o = #C1]) → self::A1* {
-    core::print(o);
-    return #this;
-  }
-  method method4<T extends core::Object* = dynamic>(final self::A1* #this = #C1, {self::A2::method4::T* o = #C1}) → self::A1* {
-    core::print(o);
-    return #this;
-  }
 }
 class B1<T extends core::Object* = dynamic> extends core::Object {
   synthetic constructor •() → self::B1<self::B1::T*>*
@@ -30,13 +15,28 @@ class B1<T extends core::Object* = dynamic> extends core::Object {
     ;
 }
 class B2<T extends core::Object* = dynamic> extends core::Object {
-  method method1<#T extends core::Object* = dynamic>(final self::B1<self::B2::method1::#T*>* #this) → self::B1<self::B2::method1::#T*>* {
-    return #this;
-  }
-  method method2<#T extends core::Object* = dynamic, S extends core::Object* = dynamic>(final self::B1<self::B2::method2::#T*>* #this, self::B2::method2::S* o) → self::B1<self::B2::method2::#T*>* {
-    core::print(o);
-    return #this;
-  }
+}
+method A2|method1(final self::A1* #this) → self::A1* {
+  return #this;
+}
+method A2|method2<T extends core::Object* = dynamic>(final self::A1* #this, self::A2|method2::T* o) → self::A1* {
+  core::print(o);
+  return #this;
+}
+method A2|method3<T extends core::Object* = dynamic>(final self::A1* #this = #C1, [self::A2|method3::T* o = #C1]) → self::A1* {
+  core::print(o);
+  return #this;
+}
+method A2|method4<T extends core::Object* = dynamic>(final self::A1* #this = #C1, {self::A2|method4::T* o = #C1}) → self::A1* {
+  core::print(o);
+  return #this;
+}
+method B2|method1<#T extends core::Object* = dynamic>(final self::B1<self::B2|method1::#T*>* #this) → self::B1<self::B2|method1::#T*>* {
+  return #this;
+}
+method B2|method2<#T extends core::Object* = dynamic, S extends core::Object* = dynamic>(final self::B1<self::B2|method2::#T*>* #this, self::B2|method2::S* o) → self::B1<self::B2|method2::#T*>* {
+  core::print(o);
+  return #this;
 }
 static method main() → dynamic {}
 

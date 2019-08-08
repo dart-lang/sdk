@@ -1649,6 +1649,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMethod: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1661,6 +1662,7 @@ class Procedure extends Member {
             isConst: isConst,
             isForwardingStub: isForwardingStub,
             isForwardingSemiStub: isForwardingSemiStub,
+            isExtensionMethod: isExtensionMethod,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -1676,6 +1678,7 @@ class Procedure extends Member {
       bool isConst: false,
       bool isForwardingStub: false,
       bool isForwardingSemiStub: false,
+      bool isExtensionMethod: false,
       int transformerFlags: 0,
       Uri fileUri,
       Reference reference,
@@ -1689,6 +1692,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isForwardingStub = isForwardingStub;
     this.isForwardingSemiStub = isForwardingSemiStub;
+    this.isExtensionMethod = isExtensionMethod;
     this.transformerFlags = transformerFlags;
   }
 
@@ -1701,6 +1705,7 @@ class Procedure extends Member {
   // TODO(29841): Remove this flag after the issue is resolved.
   static const int FlagRedirectingFactoryConstructor = 1 << 6;
   static const int FlagNoSuchMethodForwarder = 1 << 7;
+  static const int FlagExtensionMethod = 1 << 8;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -1736,6 +1741,18 @@ class Procedure extends Member {
   bool get isSyntheticForwarder => isForwardingStub && !isForwardingSemiStub;
 
   bool get isNoSuchMethodForwarder => flags & FlagNoSuchMethodForwarder != 0;
+
+  /// If `true` this procedure is compiled from a method declared in
+  /// an extension declaration.
+  ///
+  /// For instance `method1` and `method2` in:
+  ///
+  ///     extension A on B {
+  ///       B method1() => this;
+  ///       static B method2() => new B();
+  ///     }
+  ///
+  bool get isExtensionMethod => flags & FlagExtensionMethod != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -1774,6 +1791,11 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagNoSuchMethodForwarder)
         : (flags & ~FlagNoSuchMethodForwarder);
+  }
+
+  void set isExtensionMethod(bool value) {
+    flags =
+        value ? (flags | FlagExtensionMethod) : (flags & ~FlagExtensionMethod);
   }
 
   bool get isInstanceMember => !isStatic;

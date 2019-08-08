@@ -14,11 +14,11 @@ class A1<T> {}
  cls-type-params=[T]
 */
 extension A2<T> on A1<T> {
-  /*member: A2.method1:
+  /*member: A2|method1:
      builder-name=method1,
      builder-params=[#this],
      builder-type-params=[T,S extends T],
-     member-name=method1,
+     member-name=A2|method1,
      member-params=[#this],
      member-type-params=[#T,S extends #T]
   */
@@ -26,11 +26,11 @@ extension A2<T> on A1<T> {
     return this;
   }
 
-  /*member: A2.method2:
+  /*member: A2|method2:
      builder-name=method2,
      builder-params=[#this,o],
      builder-type-params=[T,S extends A1<T>],
-     member-name=method2,
+     member-name=A2|method2,
      member-params=[#this,o],
      member-type-params=[#T,S extends A1<#T>]
   */

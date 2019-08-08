@@ -12,11 +12,11 @@
  cls-type-params=[T]
 */
 extension GeneralGeneric<T> on T {
-  /*member: GeneralGeneric.method:
+  /*member: GeneralGeneric|method:
    builder-name=method,
    builder-params=[#this],
    builder-type-params=[T],
-   member-name=method,
+   member-name=GeneralGeneric|method,
    member-params=[#this],
    member-type-params=[#T]
   */

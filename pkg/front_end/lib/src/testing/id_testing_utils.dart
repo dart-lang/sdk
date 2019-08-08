@@ -104,22 +104,36 @@ ClassBuilder lookupClassBuilder(CompilerResult compilerResult, Class cls,
   return clsBuilder;
 }
 
+/// Look up the [MemberBuilder] for [member] through the [ClassBuilder] for
+/// [cls] using [memberName] as its name.
+MemberBuilder lookupClassMemberBuilder(
+    CompilerResult compilerResult, Class cls, Member member, String memberName,
+    {bool required: true}) {
+  ClassBuilder classBuilder =
+      lookupClassBuilder(compilerResult, cls, required: required);
+  MemberBuilder memberBuilder;
+  if (classBuilder != null) {
+    if (member is Constructor) {
+      memberBuilder = classBuilder.constructors.local[memberName];
+    } else if (member is Procedure && member.isSetter) {
+      memberBuilder = classBuilder.scope.setters[memberName];
+    } else {
+      memberBuilder = classBuilder.scope.local[memberName];
+    }
+  }
+  if (memberBuilder == null && required) {
+    throw new ArgumentError("MemberBuilder for $member not found.");
+  }
+  return memberBuilder;
+}
+
 MemberBuilder lookupMemberBuilder(CompilerResult compilerResult, Member member,
     {bool required: true}) {
   MemberBuilder memberBuilder;
   if (member.enclosingClass != null) {
-    ClassBuilder classBuilder = lookupClassBuilder(
-        compilerResult, member.enclosingClass,
+    memberBuilder = lookupClassMemberBuilder(
+        compilerResult, member.enclosingClass, member, member.name.name,
         required: required);
-    if (classBuilder != null) {
-      if (member is Constructor) {
-        memberBuilder = classBuilder.constructors.local[member.name.name];
-      } else if (member is Procedure && member.isSetter) {
-        memberBuilder = classBuilder.scope.setters[member.name.name];
-      } else {
-        memberBuilder = classBuilder.scope.local[member.name.name];
-      }
-    }
   } else {
     DeclarationBuilder libraryBuilder = lookupLibraryDeclarationBuilder(
         compilerResult, member.enclosingLibrary);
