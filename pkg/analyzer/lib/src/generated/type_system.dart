@@ -2633,31 +2633,7 @@ abstract class TypeSystem implements public.TypeSystem {
 
   @override
   DartType resolveToBound(DartType type) {
-    if (type is TypeParameterTypeImpl) {
-      var element = type.element;
-
-      var bound = element.bound as TypeImpl;
-      if (bound == null) {
-        return typeProvider.objectType;
-      }
-
-      NullabilitySuffix nullabilitySuffix = type.nullabilitySuffix;
-      NullabilitySuffix newNullabilitySuffix;
-      if (nullabilitySuffix == NullabilitySuffix.question ||
-          bound.nullabilitySuffix == NullabilitySuffix.question) {
-        newNullabilitySuffix = NullabilitySuffix.question;
-      } else if (nullabilitySuffix == NullabilitySuffix.star ||
-          bound.nullabilitySuffix == NullabilitySuffix.star) {
-        newNullabilitySuffix = NullabilitySuffix.star;
-      } else {
-        newNullabilitySuffix = NullabilitySuffix.none;
-      }
-
-      var resolved = resolveToBound(bound) as TypeImpl;
-      return resolved.withNullability(newNullabilitySuffix);
-    }
-
-    return type;
+    return instantiateToBounds(type);
   }
 
   /**
