@@ -48,8 +48,8 @@ abstract class TestRunner {
       Map<String, String> env, String fileName, Random rand) {
     String prefix = mode.substring(0, 3).toUpperCase();
     String tag = getTag(mode);
-    // Prepare extra flags.
     List<String> extraFlags = [];
+    // Required extra flags for kbc.
     if (mode.startsWith('kbc-int')) {
       prefix += '-INT';
       extraFlags += [
@@ -62,6 +62,14 @@ abstract class TestRunner {
     } else if (mode.startsWith('kbc-cmp')) {
       prefix += '-CMP';
       extraFlags += ['--use-bytecode-compiler'];
+    }
+    // Every once in a while, go directly from source for kbc-*-x64.
+    bool kbcSrc = false;
+    if (mode.startsWith('kbc') &&
+        mode.endsWith('x64') &&
+        rand.nextInt(4) == 0) {
+      prefix += '-SRC';
+      kbcSrc = true;
     }
     // Every once in a while, stress test JIT.
     if (mode.startsWith('jit') && rand.nextInt(4) == 0) {
@@ -108,7 +116,7 @@ abstract class TestRunner {
           prefix, tag, top, tmp, env, fileName, extraFlags);
     } else if (mode.startsWith('kbc')) {
       return new TestRunnerKBC(
-          prefix, tag, top, tmp, env, fileName, extraFlags);
+          prefix, tag, top, tmp, env, fileName, extraFlags, kbcSrc);
     } else if (mode.startsWith('djs')) {
       return new TestRunnerDJS(prefix, tag, top, tmp, env, fileName);
     }
@@ -185,20 +193,26 @@ class TestRunnerAOT implements TestRunner {
 /// Concrete test runner of bytecode.
 class TestRunnerKBC implements TestRunner {
   TestRunnerKBC(String prefix, String tag, String top, String tmp, this.env,
-      this.fileName, List<String> extraFlags) {
+      this.fileName, List<String> extraFlags, bool kbcSrc) {
     description = '$prefix-$tag';
-    generate = '$top/pkg/vm/tool/gen_kernel';
-    platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
-    dill = '$tmp/out.dill';
     dart = '$top/out/$tag/dart';
-    cmd = [dart] + extraFlags + [dill];
+    if (kbcSrc) {
+      cmd = [dart] + extraFlags + [fileName];
+    } else {
+      generate = '$top/pkg/vm/tool/gen_kernel';
+      platform = '--platform=$top/out/$tag/vm_platform_strong.dill';
+      dill = '$tmp/out.dill';
+      cmd = [dart] + extraFlags + [dill];
+    }
   }
 
   TestResult run() {
-    TestResult result = runCommand(
-        [generate, '--gen-bytecode', platform, '-o', dill, fileName], env);
-    if (result.exitCode != 0) {
-      return result;
+    if (generate != null) {
+      TestResult result = runCommand(
+          [generate, '--gen-bytecode', platform, '-o', dill, fileName], env);
+      if (result.exitCode != 0) {
+        return result;
+      }
     }
     return runCommand(cmd, env);
   }
