@@ -105,6 +105,7 @@ class VmTarget extends Target {
     logger?.call("Transformed async methods");
 
     listFactorySpecializer.transformLibraries(libraries, coreTypes);
+    logger?.call("Specialized list factories");
 
     callSiteAnnotator.transformLibraries(
         component, libraries, coreTypes, hierarchy);
