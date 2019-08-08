@@ -14,6 +14,8 @@
 * Deprecated InheritanceManager2, and replaced with InheritanceManager3.
   InheritanceManager3 returns ExecutableElements, not FunctionType(s).
 * Added the optional parameter `path` to `parseString`.
+* Changed `TypeSystem.resolveToBound(DartType)` implementation to do
+  what its documentation says.
 
 ## 0.37.0
 * Removed deprecated getter `DartType.isUndefined`.
