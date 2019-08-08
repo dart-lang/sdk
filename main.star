@@ -690,6 +690,8 @@ dart_ci_sandbox_builder("ddc-mac-release-chrome",
 dart_ci_sandbox_builder("ddc-win-release-chrome",
                         category="ddc|w",
                         dimensions=windows())
+dart_ci_sandbox_builder("ddk-linux-release-firefox",
+                        category="ddc|fl")
 
 # pkg
 dart_ci_sandbox_builder("pkg-linux-release", category="pkg|l", on_cq=True)
