@@ -3625,3 +3625,15 @@ LanguageVersionInvalidInDotPackages:
     main.dart: "import 'package:foo/foo.dart';"
     lib/foo.dart: "// blah blah blah"
     .packages: "foo:lib/#dart=arglebargle"
+
+LanguageVersionMismatchInPart:
+  template: "The language version override has to be the same in the library and its part(s)."
+  script:
+    main.dart: >
+      // @dart = 2.4
+
+      part 'part.dart';
+    part.dart: >
+      // @dart = 2.3
+
+      part of 'main.dart';

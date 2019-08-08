@@ -336,6 +336,8 @@ InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionInvalidInDotPackages/part_wrapped_script: Fail # Importing file in the (now) part.
+LanguageVersionMismatchInPart/analyzerCode: Fail
+LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.

@@ -6581,6 +6581,16 @@ const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode
         r"""The language version is not specified correctly in the .packages file.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeLanguageVersionMismatchInPart =
+    messageLanguageVersionMismatchInPart;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
+    "LanguageVersionMismatchInPart",
+    message:
+        r"""The language version override has to be the same in the library and its part(s).""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         int count,

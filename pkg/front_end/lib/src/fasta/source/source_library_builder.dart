@@ -98,6 +98,7 @@ import '../fasta_codes.dart'
         messageGenericFunctionTypeUsedAsActualTypeArgument,
         messageIncorrectTypeArgumentVariable,
         messageLanguageVersionInvalidInDotPackages,
+        messageLanguageVersionMismatchInPart,
         messagePartExport,
         messagePartExportContext,
         messagePartInPart,
@@ -901,6 +902,21 @@ class SourceLibraryBuilder extends LibraryBuilder {
       }
       return false;
     }
+
+    // Language versions have to match.
+    if ((this.languageVersionExplicitlySet !=
+            part.languageVersionExplicitlySet) ||
+        (this.library.languageVersionMajor !=
+                part.library.languageVersionMajor ||
+            this.library.languageVersionMinor !=
+                part.library.languageVersionMinor)) {
+      // This is an error, but the part is not removed from the list of
+      // parts, so that metadata annotations can be associated with it.
+      addProblem(
+          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri);
+      return false;
+    }
+
     part.validatePart(this, usedParts);
     NameIterator partDeclarations = part.nameIterator;
     while (partDeclarations.moveNext()) {
