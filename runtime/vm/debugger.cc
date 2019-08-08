@@ -1098,6 +1098,10 @@ void ActivationFrame::ExtractTokenPositionFromAsyncClosure() {
 }
 
 bool ActivationFrame::IsAsyncMachinery() const {
+  if (function_.IsNull()) {
+    ASSERT(IsInterpreted());  // This frame is a bytecode stub frame.
+    return false;
+  }
   Isolate* isolate = Isolate::Current();
   if (function_.raw() == isolate->object_store()->complete_on_async_return()) {
     // We are completing an async function's completer.

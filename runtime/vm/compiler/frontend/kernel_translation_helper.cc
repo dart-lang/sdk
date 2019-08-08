@@ -994,13 +994,11 @@ void FieldHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
-      end_position_ = helper_->ReadPosition(false);  // read end position.
-      helper_->RecordTokenPosition(end_position_);
+      end_position_ = helper_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
@@ -1056,18 +1054,15 @@ void ProcedureHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kStartPosition:
-      start_position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(start_position_);
+      start_position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
-      end_position_ = helper_->ReadPosition(false);  // read end position.
-      helper_->RecordTokenPosition(end_position_);
+      end_position_ = helper_->ReadPosition();  // read end position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kKind:
@@ -1132,17 +1127,14 @@ void ConstructorHelper::ReadUntilExcluding(Field field) {
       FALL_THROUGH;
     case kStartPosition:
       start_position_ = helper_->ReadPosition();  // read position.
-      helper_->RecordTokenPosition(start_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
       position_ = helper_->ReadPosition();  // read position.
-      helper_->RecordTokenPosition(position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
-      helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
@@ -1201,18 +1193,15 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kStartPosition:
-      start_position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(start_position_);
+      start_position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kPosition:
-      position_ = helper_->ReadPosition(false);  // read position.
-      helper_->RecordTokenPosition(position_);
+      position_ = helper_->ReadPosition();  // read position.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kEndPosition:
       end_position_ = helper_->ReadPosition();  // read end position.
-      helper_->RecordTokenPosition(end_position_);
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
@@ -2560,11 +2549,9 @@ void KernelReaderHelper::SkipLibraryTypedef() {
   SkipListOfVariableDeclarations();  // read named parameters.
 }
 
-TokenPosition KernelReaderHelper::ReadPosition(bool record) {
+TokenPosition KernelReaderHelper::ReadPosition() {
   TokenPosition position = reader_.ReadPosition();
-  if (record) {
-    RecordTokenPosition(position);
-  }
+  RecordTokenPosition(position);
   return position;
 }
 

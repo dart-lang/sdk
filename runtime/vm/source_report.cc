@@ -473,7 +473,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   Bytecode& bytecode = Bytecode::Handle(zone());
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+  if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+    // When the bytecode of a function is loaded, the function code is not null,
+    // but pointing to the stub to interpret the bytecode. The various Print
+    // functions below take code as an argument and know to process the bytecode
+    // if code is null.
+    code = Code::null();  // Ignore installed stub to interpret bytecode.
     bytecode = func.bytecode();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -493,7 +498,8 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
       }
       code = func.unoptimized_code();
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_enable_interpreter && code.IsNull() && func.HasBytecode()) {
+      if (FLAG_enable_interpreter && !func.HasCode() && func.HasBytecode()) {
+        code = Code::null();  // Ignore installed stub to interpret bytecode.
         bytecode = func.bytecode();
       }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -260,16 +260,20 @@ static void CollectKernelDataTokenPositions(
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
 
-static void CollectBytecodeTokenPositions(
+static void CollectTokenPosition(TokenPosition position,
+                                 GrowableArray<intptr_t>* token_positions) {
+  if (position.IsReal()) {
+    token_positions->Add(position.value());
+  }
+}
+
+static void CollectBytecodeSourceTokenPositions(
     const Bytecode& bytecode,
     Zone* zone,
     GrowableArray<intptr_t>* token_positions) {
   BytecodeSourcePositionsIterator iter(zone, bytecode);
   while (iter.MoveNext()) {
-    const TokenPosition pos = iter.TokenPos();
-    if (pos.IsReal()) {
-      token_positions->Add(pos.value());
-    }
+    CollectTokenPosition(iter.TokenPos(), token_positions);
   }
 }
 
@@ -279,6 +283,8 @@ static void CollectBytecodeFunctionTokenPositions(
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(function.is_declared_in_bytecode());
+  CollectTokenPosition(function.token_pos(), token_positions);
+  CollectTokenPosition(function.end_token_pos(), token_positions);
   if (!function.HasBytecode()) {
     const Object& result = Object::Handle(
         zone, BytecodeReader::ReadFunctionBytecode(thread, function));
@@ -291,7 +297,7 @@ static void CollectBytecodeFunctionTokenPositions(
     return;
   }
   if (bytecode.HasSourcePositions() && !function.IsLocalFunction()) {
-    CollectBytecodeTokenPositions(bytecode, zone, token_positions);
+    CollectBytecodeSourceTokenPositions(bytecode, zone, token_positions);
     // Find closure functions in the object pool.
     const ObjectPool& pool = ObjectPool::Handle(zone, bytecode.object_pool());
     Object& object = Object::Handle(zone);
@@ -306,11 +312,13 @@ static void CollectBytecodeFunctionTokenPositions(
         closure ^= object.raw();
         if (closure.kind() == RawFunction::kClosureFunction &&
             closure.IsLocalFunction()) {
+          CollectTokenPosition(closure.token_pos(), token_positions);
+          CollectTokenPosition(closure.end_token_pos(), token_positions);
           bytecode = closure.bytecode();
           ASSERT(!bytecode.IsNull());
-          if (bytecode.HasSourcePositions()) {
-            CollectBytecodeTokenPositions(bytecode, zone, token_positions);
-          }
+          ASSERT(bytecode.function() != Function::null());
+          ASSERT(bytecode.HasSourcePositions());
+          CollectBytecodeSourceTokenPositions(bytecode, zone, token_positions);
         }
       }
     }
@@ -318,6 +326,7 @@ static void CollectBytecodeFunctionTokenPositions(
 }
 
 void CollectTokenPositionsFor(const Script& interesting_script) {
+  ASSERT(interesting_script.url() != String::null());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   TranslationHelper helper(thread);
@@ -348,6 +357,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.raw()) {
           token_positions.Add(klass.token_pos().value());
+          token_positions.Add(klass.end_token_pos().value());
         }
         // If class is declared in bytecode, its members should be loaded
         // (via class finalization) before their token positions could be
@@ -363,7 +373,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           temp_array = klass.fields();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_field ^= temp_array.At(i);
-            // TODO(regis): Factorize field handling code.
             if (!temp_field.is_declared_in_bytecode() &&
                 temp_field.kernel_offset() <= 0) {
               // Skip artificially injected fields.
@@ -391,7 +400,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           temp_array = klass.functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
             temp_function ^= temp_array.At(i);
-            // TODO(regis): Factorize function handling code.
             entry_script = temp_function.script();
             if (entry_script.raw() != interesting_script.raw()) {
               continue;
@@ -429,7 +437,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.raw();
-        // TODO(regis): Factorize function handling code.
         entry_script = temp_function.script();
         if (entry_script.raw() != interesting_script.raw()) {
           continue;
@@ -447,7 +454,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
-        // TODO(regis): Factorize field handling code.
         if (!field.is_declared_in_bytecode() && field.kernel_offset() <= 0) {
           // Skip artificially injected fields.
           continue;
