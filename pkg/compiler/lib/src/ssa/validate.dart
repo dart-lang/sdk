@@ -133,14 +133,14 @@ class HValidator extends HInstructionVisitor {
     super.visitBasicBlock(block);
   }
 
-  /// Returns how often [instruction] is contained in [instructions].
-  static int countInstruction(
-      List<HInstruction> instructions, HInstruction instruction) {
+  /// Verifies [instruction] is contained in [instructions] [count] times.
+  static bool checkInstructionCount(
+      List<HInstruction> instructions, HInstruction instruction, int count) {
     int result = 0;
     for (int i = 0; i < instructions.length; i++) {
       if (identical(instructions[i], instruction)) result++;
     }
-    return result;
+    return result == count;
   }
 
   /// Returns true if the predicate returns true for every instruction in the
@@ -173,9 +173,9 @@ class HValidator extends HInstructionVisitor {
       return everyInstruction(instruction.inputs, (input, count) {
         if (inBasicBlock) {
           return input.isInBasicBlock() &&
-              countInstruction(input.usedBy, instruction) == count;
+              checkInstructionCount(input.usedBy, instruction, count);
         } else {
-          return countInstruction(input.usedBy, instruction) == 0;
+          return checkInstructionCount(input.usedBy, instruction, 0);
         }
       });
     }
@@ -185,7 +185,7 @@ class HValidator extends HInstructionVisitor {
       if (!instruction.isInBasicBlock()) return true;
       return everyInstruction(instruction.usedBy, (use, count) {
         return use.isInBasicBlock() &&
-            countInstruction(use.inputs, instruction) == count;
+            checkInstructionCount(use.inputs, instruction, count);
       });
     }
 
