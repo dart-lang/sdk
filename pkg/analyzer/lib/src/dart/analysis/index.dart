@@ -398,7 +398,8 @@ class _IndexAssembler {
       nameIdParameter = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
-    if (element?.enclosingElement is ClassElement) {
+    if (element?.enclosingElement is ClassElement ||
+        element?.enclosingElement is ExtensionElement) {
       nameIdClassMember = _getStringInfo(element.name);
       element = element.enclosingElement;
     }
