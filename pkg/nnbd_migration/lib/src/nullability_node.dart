@@ -112,9 +112,22 @@ class NullabilityGraph {
   /// couldn't be satisfied.
   final List<NullabilityEdge> _unsatisfiedEdges = [];
 
+  /// During and after nullability propagation, a list of all substitution nodes
+  /// that couldn't be satisfied.
+  final List<NullabilityNodeForSubstitution> _unsatisfiedSubstitutions = [];
+
   /// During execution of [_propagateDownstream], a list of all the substitution
   /// nodes that have not yet been resolved.
   List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
+
+  /// After calling [propagate], this getter may be queried to access the set of
+  /// edges that could not be satisfied.
+  Iterable<NullabilityEdge> get unsatisfiedEdges => _unsatisfiedEdges;
+
+  /// After calling [propagate], this getter may be queried to access the set of
+  /// substitution nodes that could not be satisfied.
+  Iterable<NullabilityNodeForSubstitution> get unsatisfiedSubstitutions =>
+      _unsatisfiedSubstitutions;
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
@@ -139,14 +152,11 @@ class NullabilityGraph {
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
-  ///
-  /// Returns a list of edges that couldn't be satisfied.
-  List<NullabilityEdge> propagate() {
+  void propagate() {
     if (_debugBeforePropagation) _debugDump();
     _propagateAlways();
     _propagateUpstream();
     _propagateDownstream();
-    return _unsatisfiedEdges;
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -269,12 +279,13 @@ class NullabilityGraph {
 
   void _resolvePendingSubstitution(
       NullabilityNodeForSubstitution substitutionNode) {
+    assert(substitutionNode._state.isNullable);
     // If both nodes pointed to by the substitution node are in the non-nullable
     // state, then no resolution is needed; the substitution node can’t be
     // satisfied.
     if (substitutionNode.innerNode._state == _NullabilityState.nonNullable &&
         substitutionNode.outerNode._state == _NullabilityState.nonNullable) {
-      // TODO(paulberry): should we report an error?
+      _unsatisfiedSubstitutions.add(substitutionNode);
       return;
     }
 

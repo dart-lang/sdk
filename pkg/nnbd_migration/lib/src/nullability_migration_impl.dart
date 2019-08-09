@@ -40,6 +40,13 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   void finish() {
     _graph.propagate();
+    if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
+      throw new UnimplementedError('Need to report unsatisfied substitutions');
+    }
+    // TODO(paulberry): it would be nice to report on unsatisfied edges as well,
+    // however, since every `!` we add has an unsatisfied edge associated with
+    // it, we can't report on every unsatisfied edge.  We need to figure out a
+    // way to report unsatisfied edges that isn't too overwhelming.
     broadcast(_variables, listener);
   }
 
