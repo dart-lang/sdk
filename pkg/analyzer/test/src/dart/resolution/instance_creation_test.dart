@@ -114,10 +114,14 @@ main() {
     assertInstanceCreation(
       creation,
       findElement.class_('Foo'),
+      // TODO(scheglov) Move type arguments
       'Foo<dynamic>',
+//      'Foo<int>',
       constructorName: 'bar',
       expectedConstructorMember: true,
+      // TODO(scheglov) Move type arguments
       expectedSubstitution: {'X': 'dynamic'},
+//      expectedSubstitution: {'X': 'int'},
     );
   }
 

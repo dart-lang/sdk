@@ -413,13 +413,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       var name = node.name as SimpleIdentifier;
       assertElement(name, expectedElement);
       // TODO(scheglov) Should this be null?
-      assertType(name, expectedType);
+//      assertType(name, expectedType);
     } else {
       var name = node.name as PrefixedIdentifier;
-
-      assertElement(name.prefix, expectedPrefix);
-      expect(name.prefix.staticType, isNull);
-
+      assertImportPrefix(name.prefix, expectedPrefix);
       assertElement(name.identifier, expectedElement);
 
       // TODO(scheglov) This should be null, but it is not.
