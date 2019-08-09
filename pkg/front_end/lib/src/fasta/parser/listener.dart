@@ -400,7 +400,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of a named function expression which isn't legal
   /// syntax in Dart.  Useful for recovering from Javascript code being pasted
-  /// into a Dart proram, as it will interpret `function foo() {}` as a named
+  /// into a Dart program, as it will interpret `function foo() {}` as a named
   /// function expression with return type `function` and name `foo`.
   ///
   /// Substructures:
@@ -409,7 +409,7 @@ class Listener implements UnescapeErrorListener {
 
   /// A named function expression which isn't legal syntax in Dart.
   /// Useful for recovering from Javascript code being pasted into a Dart
-  /// proram, as it will interpret `function foo() {}` as a named function
+  /// program, as it will interpret `function foo() {}` as a named function
   /// expression with return type `function` and name `foo`.
   ///
   /// Substructures:
@@ -693,7 +693,7 @@ class Listener implements UnescapeErrorListener {
 
   /// Called after the listener has recovered from an invalid function
   /// body. The parser expected an open curly brace `{` and will resume parsing
-  /// from [token] as if a function body had preceeded it.
+  /// from [token] as if a function body had preceded it.
   void handleInvalidFunctionBody(Token token) {
     logEvent("InvalidFunctionBody");
   }

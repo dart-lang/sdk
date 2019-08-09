@@ -1938,7 +1938,7 @@ abstract class MixinInferrer {
       // abstract class M<X0, ..., Xn> extends S0&S1<...>
       //
       // for a VM-style super mixin.  The type parameters of S0&S1 are the X0,
-      // ..., Xn that occured free in S0 and S1.  Treat S0 and S1 as separate
+      // ..., Xn that occurred free in S0 and S1.  Treat S0 and S1 as separate
       // supertype constraints by recursively calling this algorithm.
       //
       // In the Dart VM the mixin application classes themselves are all

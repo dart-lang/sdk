@@ -30,7 +30,7 @@
 ///      ]
 ///    },
 ///    {
-///      "name" : "small_chnage",
+///      "name" : "small_change",
 ///      "edits" : [
 ///        ["input1.dart", "green", "blue"]
 ///      ]

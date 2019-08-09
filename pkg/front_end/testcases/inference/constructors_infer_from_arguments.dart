@@ -21,7 +21,7 @@ test() {
   C<num> c_num = new /*@ typeArgs=num* */ C(123);
   C<num> c_num2 = (new /*@ typeArgs=num* */ C(456)).. /*@target=C::t*/ t = 1.0;
 
-  // Down't infer from explicit dynamic.
+  // Don't infer from explicit dynamic.
   var /*@ type=C<dynamic>* */ c_dynamic = new C<dynamic>(42);
   x. /*@target=C::t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
 }

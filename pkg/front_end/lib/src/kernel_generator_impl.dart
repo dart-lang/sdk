@@ -175,7 +175,7 @@ class CompilerResult {
 
   /// Dependencies traversed by the compiler. Used only for generating
   /// dependency .GN files in the dart-sdk build system.
-  /// Note this might be removed when we switch to compute depencencies without
+  /// Note this might be removed when we switch to compute dependencies without
   /// using the compiler itself.
   final List<Uri> deps;
 

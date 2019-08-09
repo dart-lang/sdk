@@ -592,11 +592,11 @@ class KernelTarget extends TargetImplementation {
         libraries.add(library.target);
       }
     }
-    Component plaformLibraries =
+    Component platformLibraries =
         backendTarget.configureComponent(new Component());
     // Add libraries directly to prevent that their parents are changed.
-    plaformLibraries.libraries.addAll(libraries);
-    loader.computeCoreTypes(plaformLibraries);
+    platformLibraries.libraries.addAll(libraries);
+    loader.computeCoreTypes(platformLibraries);
   }
 
   void finishAllConstructors(List<SourceClassBuilder> builders) {

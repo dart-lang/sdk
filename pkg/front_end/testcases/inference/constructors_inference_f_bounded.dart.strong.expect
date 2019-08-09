@@ -2,33 +2,33 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:114: Error: Inferred type argument 'Clonable<dynamic>' doesn't conform to the bound 'Clonable<T>' of the type variable 'T' on 'Pair'.
-//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:116: Error: Inferred type argument 'Cloneable<dynamic>' doesn't conform to the bound 'Cloneable<T>' of the type variable 'T' on 'Pair'.
+//  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Clonable<dynamic>*, Clonable<dynamic>* */ Pair
-//                                                                                                                  ^
+//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Cloneable<dynamic>*, Cloneable<dynamic>* */ Pair
+//                                                                                                                    ^
 // pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:12: Context: This is the type variable whose bound isn't conformed to.
-// class Pair<T extends Clonable<T>, U extends Clonable<U>> {
+// class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
 //            ^
 //
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:114: Error: Inferred type argument 'Clonable<dynamic>' doesn't conform to the bound 'Clonable<U>' of the type variable 'U' on 'Pair'.
-//  - 'Clonable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:22:116: Error: Inferred type argument 'Cloneable<dynamic>' doesn't conform to the bound 'Cloneable<U>' of the type variable 'U' on 'Pair'.
+//  - 'Cloneable' is from 'pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart'.
 // Try specifying type arguments explicitly so that they conform to the bounds.
-//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Clonable<dynamic>*, Clonable<dynamic>* */ Pair
-//                                                                                                                  ^
-// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:35: Context: This is the type variable whose bound isn't conformed to.
-// class Pair<T extends Clonable<T>, U extends Clonable<U>> {
-//                                   ^
+//       new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/ /*@ typeArgs=Cloneable<dynamic>*, Cloneable<dynamic>* */ Pair
+//                                                                                                                    ^
+// pkg/front_end/testcases/inference/constructors_inference_f_bounded.dart:10:36: Context: This is the type variable whose bound isn't conformed to.
+// class Pair<T extends Cloneable<T>, U extends Cloneable<U>> {
+//                                    ^
 //
 import self as self;
 import "dart:core" as core;
 
-class Clonable<T extends core::Object* = dynamic> extends core::Object {
-  synthetic constructor •() → self::Clonable<self::Clonable::T*>*
+class Cloneable<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::Cloneable<self::Cloneable::T*>*
     : super core::Object::•()
     ;
 }
-class Pair<T extends self::Clonable<self::Pair::T>* = self::Clonable<dynamic>*, U extends self::Clonable<self::Pair::U>* = self::Clonable<dynamic>*> extends core::Object {
+class Pair<T extends self::Cloneable<self::Pair::T>* = self::Cloneable<dynamic>*, U extends self::Cloneable<self::Pair::U>* = self::Cloneable<dynamic>*> extends core::Object {
   generic-covariant-impl field self::Pair::T* t;
   generic-covariant-impl field self::Pair::U* u;
   constructor •(self::Pair::T* t, self::Pair::U* u) → self::Pair<self::Pair::T*, self::Pair::U*>*
@@ -41,5 +41,5 @@ class Pair<T extends self::Clonable<self::Pair::T>* = self::Clonable<dynamic>*, 
     return new self::Pair::•<self::Pair::U*, self::Pair::T*>(this.{self::Pair::u}, this.{self::Pair::t});
 }
 static method main() → dynamic {
-  final self::Pair<self::Clonable<dynamic>*, self::Clonable<dynamic>*>* x = new self::Pair::_<self::Clonable<dynamic>*, self::Clonable<dynamic>*>();
+  final self::Pair<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>* x = new self::Pair::_<self::Cloneable<dynamic>*, self::Cloneable<dynamic>*>();
 }

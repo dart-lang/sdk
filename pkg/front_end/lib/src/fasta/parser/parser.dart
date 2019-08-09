@@ -585,7 +585,7 @@ class Parser {
         return parseTopLevelMemberImpl(start);
       } else if (identical(nextValue, '<')) {
         if (identical(value, 'extension')) {
-          // The neame in an extension declaration is optional:
+          // The name in an extension declaration is optional:
           // `extension<T> on ...`
           Token endGroup = keyword.next.endGroup;
           if (endGroup != null && optional('on', endGroup.next)) {
@@ -5882,7 +5882,7 @@ class Parser {
             //   } catch (E e, t) {
             // will recover to
             //   } on E catch (e, t) {
-            // with a detailed explaination for the user in the error
+            // with a detailed explanation for the user in the error
             // indicating what they should do to fix the code.
 
             // TODO(danrubel): Consider inserting synthetic identifier if

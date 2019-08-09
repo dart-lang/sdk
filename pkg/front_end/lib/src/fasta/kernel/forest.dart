@@ -155,7 +155,7 @@ abstract class Forest {
   /// Return a representation of a symbol literal defined by the [hash] and the
   /// single [component]. The component can be either an [Identifier] or an
   /// [Operator]. The [value] is the string value of the symbol.
-  Expression literalSymbolSingluar(String value, Token hash, Object component);
+  Expression literalSymbolSingular(String value, Token hash, Object component);
 
   Expression literalType(DartType type, Token location);
 

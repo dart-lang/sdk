@@ -70,7 +70,7 @@ Future<CompilerResult> kernelForProgramInternal(
 ///
 /// A build unit is a collection of libraries that are compiled together.
 /// Libraries in the build unit may depend on each other and may have
-/// dependencies to libraries in other build units. Unlinke library
+/// dependencies to libraries in other build units. Unlinked library
 /// dependencies, build unit dependencies must be acyclic.
 ///
 /// This API is intended for modular compilation. Dependencies to other build

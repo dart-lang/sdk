@@ -659,7 +659,7 @@ CovariantAndStatic:
 DuplicatedModifier:
   index: 70
   template: "The modifier '#lexeme' was already specified."
-  tip: "Try removing all but one occurence of the modifier."
+  tip: "Try removing all but one occurrence of the modifier."
   analyzerCode: ParserErrorCode.DUPLICATED_MODIFIER
   script:
     - "class C { const const m; }"
@@ -1301,7 +1301,7 @@ ConstructorWithWrongNameContext:
   severity: CONTEXT
 
 ConstructorCyclic:
-  template: "Redirecting constructers can't be cyclic."
+  template: "Redirecting constructors can't be cyclic."
   tip: "Try to have all constructors eventually redirect to a non-redirecting constructor."
   analyzerCode: RECURSIVE_CONSTRUCTOR_REDIRECT
   script:
@@ -1562,7 +1562,7 @@ FastaUsageLong:
 
         When specified, the compiler can be invoked with inputs using the custom
         URI scheme. The compiler can ignore the exact location of files on disk
-        and as a result to produce output that is independendent of the absolute
+        and as a result to produce output that is independent of the absolute
         location of files on disk. This is mostly useful for integrating with
         build systems.
 

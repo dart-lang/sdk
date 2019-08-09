@@ -113,7 +113,7 @@ class Scope extends MutableScope {
     return newScope;
   }
 
-  /// Create a special scope for use by labeled staments. This scope doesn't
+  /// Create a special scope for use by labeled statements. This scope doesn't
   /// introduce a new scope for local variables, only for labels. This deals
   /// with corner cases like this:
   ///
@@ -156,7 +156,7 @@ class Scope extends MutableScope {
       return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
-      // For static lookup, do not seach the parent scope.
+      // For static lookup, do not search the parent scope.
       return builder;
     }
     return builder ?? parent?.lookup(name, charOffset, fileUri);
@@ -173,7 +173,7 @@ class Scope extends MutableScope {
       return new AccessErrorBuilder(name, builder, charOffset, fileUri);
     }
     if (!isInstanceScope) {
-      // For static lookup, do not seach the parent scope.
+      // For static lookup, do not search the parent scope.
       return builder;
     }
     return builder ?? parent?.lookupSetter(name, charOffset, fileUri);

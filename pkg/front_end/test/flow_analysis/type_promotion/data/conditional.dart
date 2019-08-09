@@ -12,7 +12,7 @@ void conditional_else(bool b, Object x) {
   x;
 }
 
-void conditoinal_then(bool b, Object x) {
+void conditional_then(bool b, Object x) {
   b ? ((x is num) || (throw 1)) : 0;
   x;
 }

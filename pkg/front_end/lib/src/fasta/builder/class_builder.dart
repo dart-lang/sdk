@@ -1424,9 +1424,9 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
 
   void checkMixinDeclaration() {
     assert(cls.isMixinDeclaration);
-    for (Builder constructory in constructors.local.values) {
-      if (!constructory.isSynthetic &&
-          (constructory.isFactory || constructory.isConstructor)) {
+    for (Builder constructor in constructors.local.values) {
+      if (!constructor.isSynthetic &&
+          (constructor.isFactory || constructor.isConstructor)) {
         addProblem(
             templateIllegalMixinDueToConstructors
                 .withArguments(fullNameForErrors),
@@ -1436,7 +1436,7 @@ abstract class ClassBuilder extends TypeDeclarationBuilder {
               templateIllegalMixinDueToConstructorsCause
                   .withArguments(fullNameForErrors)
                   .withLocation(
-                      constructory.fileUri, constructory.charOffset, noLength)
+                      constructor.fileUri, constructor.charOffset, noLength)
             ]);
       }
     }

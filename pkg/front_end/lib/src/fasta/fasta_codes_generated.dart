@@ -1832,7 +1832,7 @@ const Code<Null> codeConstructorCyclic = messageConstructorCyclic;
 const MessageCode messageConstructorCyclic = const MessageCode(
     "ConstructorCyclic",
     analyzerCodes: <String>["RECURSIVE_CONSTRUCTOR_REDIRECT"],
-    message: r"""Redirecting constructers can't be cyclic.""",
+    message: r"""Redirecting constructors can't be cyclic.""",
     tip:
         r"""Try to have all constructors eventually redirect to a non-redirecting constructor.""");
 
@@ -2700,7 +2700,8 @@ Message _withArgumentsDuplicatedLibraryImportContext(String name) {
 const Template<Message Function(Token token)> templateDuplicatedModifier =
     const Template<Message Function(Token token)>(
         messageTemplate: r"""The modifier '#lexeme' was already specified.""",
-        tipTemplate: r"""Try removing all but one occurence of the modifier.""",
+        tipTemplate:
+            r"""Try removing all but one occurrence of the modifier.""",
         withArguments: _withArgumentsDuplicatedModifier);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2714,7 +2715,7 @@ Message _withArgumentsDuplicatedModifier(Token token) {
   String lexeme = token.lexeme;
   return new Message(codeDuplicatedModifier,
       message: """The modifier '${lexeme}' was already specified.""",
-      tip: """Try removing all but one occurence of the modifier.""",
+      tip: """Try removing all but one occurrence of the modifier.""",
       arguments: {'token': token});
 }
 
@@ -3615,7 +3616,7 @@ const MessageCode messageFastaUsageLong =
 
     When specified, the compiler can be invoked with inputs using the custom
     URI scheme. The compiler can ignore the exact location of files on disk
-    and as a result to produce output that is independendent of the absolute
+    and as a result to produce output that is independent of the absolute
     location of files on disk. This is mostly useful for integrating with
     build systems.
 

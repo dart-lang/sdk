@@ -66,7 +66,7 @@ Future<Component> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   return await kernelForComponent(inputs.map(toTestUri).toList(), options);
 }
 
-/// Generate a summary for a modular complation unit.
+/// Generate a summary for a modular compilation unit.
 ///
 /// Wraps [summaryFor] with some default testing options (see [setup]).
 Future<List<int>> summarize(List<String> inputs, Map<String, dynamic> sources,

@@ -1549,7 +1549,7 @@ class ClassHierarchyNodeBuilder {
   }
 
   void installNsmHandlers() {
-    // TOOD(ahe): Implement this.
+    // TODO(ahe): Implement this.
   }
 
   List<Builder> merge(

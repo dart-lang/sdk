@@ -39,6 +39,8 @@ import 'package:front_end/src/fasta/hybrid_file_system.dart'
 
 import "../../tool/_fasta/entry_points.dart" show BatchCompiler;
 
+import '../spell_checking_utils.dart' as spell;
+
 class MessageTestDescription extends TestDescription {
   @override
   final Uri uri;
@@ -94,13 +96,29 @@ class MessageTestSuite extends ChainContext {
       Severity severity;
       YamlNode badSeverity;
       YamlNode unnecessarySeverity;
+      YamlNode misspelledTemplate;
+      Set<String> misspelledTemplateWords;
+      YamlNode misspelledTip;
+      Set<String> misspelledTipWords;
 
       for (String key in message.keys) {
         YamlNode node = message.nodes[key];
         var value = node.value;
         switch (key) {
           case "template":
+            Set<String> misspelled = spell.spellcheckString(value);
+            if (misspelled != null) {
+              misspelledTemplate = node;
+              misspelledTemplateWords = misspelled;
+            }
+            break;
+
           case "tip":
+            Set<String> misspelled = spell.spellcheckString(value);
+            if (misspelled != null) {
+              misspelledTip = node;
+              misspelledTipWords = misspelled;
+            }
             break;
 
           case "severity":
@@ -244,12 +262,32 @@ class MessageTestSuite extends ChainContext {
               : null,
           location: unnecessarySeverity?.span?.start);
 
+      yield createDescription(
+          "misspelledTemplate",
+          null,
+          misspelledTemplate != null
+              ? "The template likely has the following spelling mistake(s) "
+                  "in it: ${misspelledTemplateWords.toList()}. "
+                  "If the word(s) look okay, update 'spell_checking_list.txt'."
+              : null,
+          location: misspelledTemplate?.span?.start);
+
+      yield createDescription(
+          "misspelledTip",
+          null,
+          misspelledTip != null
+              ? "The tip likely has the following spelling mistake(s) in "
+                  "it: ${misspelledTipWords.toList()}. "
+                  "If the word(s) look okay, update 'spell_checking_list.txt'."
+              : null,
+          location: misspelledTip?.span?.start);
+
       bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
           severity != Severity.internalProblem &&
           severity != Severity.ignored;
 
       yield createDescription(
-          "externalexample",
+          "externalExample",
           null,
           exampleAndAnalyzerCodeRequired &&
                   externalTest != null &&
@@ -453,7 +491,7 @@ class PartWrapExample extends Example {
     // TODO: Technically we should find a un-used name.
     if (scriptFiles.containsKey(mainFilename)) {
       throw "Framework failure: "
-          "Wanted to create wrapper file, but the file alread exists!";
+          "Wanted to create wrapper file, but the file already exists!";
     }
     scriptFiles[mainFilename] = new Uint8List.fromList(utf8.encode("""
       part "${example.mainFilename}";

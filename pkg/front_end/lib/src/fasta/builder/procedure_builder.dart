@@ -157,7 +157,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   bool get isFactory => identical(ProcedureKind.Factory, kind);
 
   /// This is the formal parameter scope as specified in the Dart Programming
-  /// Language Specifiction, 4th ed, section 9.2.
+  /// Language Specification, 4th ed, section 9.2.
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
     Map<String, Builder> local = <String, Builder>{};
@@ -196,7 +196,7 @@ abstract class FunctionBuilder extends MemberBuilder {
   }
 
   /// This scope doesn't correspond to any scope specified in the Dart
-  /// Programming Language Specifiction, 4th ed. It's an unspecified extension
+  /// Programming Language Specification, 4th ed. It's an unspecified extension
   /// to support generic methods.
   Scope computeTypeParameterScope(Scope parent) {
     if (typeVariables == null) return parent;

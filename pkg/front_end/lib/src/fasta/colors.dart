@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(ahe): Orignially copied from sdk/pkg/compiler/lib/src/colors.dart,
+// TODO(ahe): Originally copied from sdk/pkg/compiler/lib/src/colors.dart,
 // merge these two packages.
 library colors;
 

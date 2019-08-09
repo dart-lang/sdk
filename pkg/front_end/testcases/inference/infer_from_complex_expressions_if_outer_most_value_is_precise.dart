@@ -26,7 +26,7 @@ var e = new A().. /*@target=A::x*/ x = 3; // cascades
 var f =
     2 /*@target=num::+*/ + 3; // binary expressions are OK if the left operand
 // is from a library in a different strongest
-// conected component.
+// connected component.
 var g = /*@target=int::unary-*/ -3;
 var h = new A() /*@target=A::+*/ + 3;
 var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();

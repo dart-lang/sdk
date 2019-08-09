@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/constructor_cycle.dart:7:18: Error: Redirecting constructers can't be cyclic.
+// pkg/front_end/testcases/general/constructor_cycle.dart:7:18: Error: Redirecting constructors can't be cyclic.
 // Try to have all constructors eventually redirect to a non-redirecting constructor.
 //   A.bar() : this.foo();
 //                  ^^^
 //
-// pkg/front_end/testcases/general/constructor_cycle.dart:9:9: Error: Redirecting constructers can't be cyclic.
+// pkg/front_end/testcases/general/constructor_cycle.dart:9:9: Error: Redirecting constructors can't be cyclic.
 // Try to have all constructors eventually redirect to a non-redirecting constructor.
 //   A() : this();
 //         ^^^^

@@ -31,7 +31,7 @@ import "package:front_end/src/fasta/ticker.dart" show Ticker;
 
 import "kernel_type_parser.dart" show parseComponent;
 
-const String expectedHierachy = """
+const String expectedHierarchy = """
 Object:
   superclasses:
   interfaces:
@@ -119,8 +119,7 @@ class F implements D<int, bool>;""",
         final DillLoader loader = target.loader;
         loader.appendLibraries(component);
         await target.buildOutlines();
-        ClassBuilder objectClass =
-            loader.coreLibrary.getLocalMember("Object");
+        ClassBuilder objectClass = loader.coreLibrary.getLocalMember("Object");
         ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
             objectClass, loader, new CoreTypes(component));
         Library library = component.libraries.last;
@@ -128,6 +127,6 @@ class F implements D<int, bool>;""",
           hierarchy.getNodeFromKernelClass(cls);
         }
         Expect.stringEquals(
-            expectedHierachy, hierarchy.nodes.values.join("\n"));
+            expectedHierarchy, hierarchy.nodes.values.join("\n"));
       }));
 }

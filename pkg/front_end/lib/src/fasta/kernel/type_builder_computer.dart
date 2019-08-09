@@ -83,7 +83,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   TypeBuilder visitFunctionType(FunctionType node) {
     TypeBuilder returnType = node.returnType.accept(this);
     // We could compute the type variables here. However, the current
-    // implementation of [visitTypeParameterType] is suffient.
+    // implementation of [visitTypeParameterType] is sufficient.
     List<TypeVariableBuilder> typeVariables = null;
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;

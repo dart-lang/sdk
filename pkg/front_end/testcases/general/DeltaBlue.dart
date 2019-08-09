@@ -148,7 +148,7 @@ abstract class Constraint {
   /**
    * Normal constraints are not input constraints.  An input constraint
    * is one that depends on external state, such as the mouse, the
-   * keybord, a clock, or some arbitrary piece of imperative code.
+   * keyboard, a clock, or some arbitrary piece of imperative code.
    */
   bool isInput() => false;
 }
@@ -439,7 +439,7 @@ class Planner {
 
   /**
    * Attempt to satisfy the given constraint and, if successful,
-   * incrementally update the dataflow graph.  Details: If satifying
+   * incrementally update the dataflow graph.  Details: If satisfying
    * the constraint is successful, it may override a weaker constraint
    * on its output. The algorithm attempts to resatisfy that
    * constraint using some other method. This process is repeated

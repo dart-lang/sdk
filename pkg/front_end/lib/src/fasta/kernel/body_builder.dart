@@ -1000,7 +1000,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       // resolve anymore.  Note that in the case where the invocation's parent
       // was invalid, type inference won't reach the invocation node and won't
       // set its inferredType field.  If type inference is disabled, reach to
-      // the outtermost parent to check if the node is a dead code.
+      // the outermost parent to check if the node is a dead code.
       if (invocation.parent == null) continue;
       if (typeInferrer != null) {
         if (invocation is FactoryConstructorInvocationJudgment &&
@@ -2728,7 +2728,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         push(new ParserErrorGenerator(
             this, hashToken, fasta.messageSyntheticToken));
       } else {
-        push(forest.literalSymbolSingluar(
+        push(forest.literalSymbolSingular(
             symbolPartToString(part), hashToken, part));
       }
     } else {

@@ -1196,7 +1196,7 @@ class TypeInfoTest {
   }
 
   void test_computeType_identifierTypeArgRecovery() {
-    // TOOD(danrubel): dynamic, do, other keywords, malformed, recovery
+    // TODO(danrubel): dynamic, do, other keywords, malformed, recovery
     // <T>
 
     expectTypeParamOrArg(noTypeParamOrArg, 'G<int double> g');

@@ -27,7 +27,7 @@ class StringToken extends analyzer.SimpleToken implements analyzer.StringToken {
    */
   static const int LAZY_THRESHOLD = 4;
 
-  var /* String | LazySubtring */ valueOrLazySubstring;
+  var /* String | LazySubstring */ valueOrLazySubstring;
 
   /**
    * Creates a non-lazy string token. If [canonicalize] is true, the string

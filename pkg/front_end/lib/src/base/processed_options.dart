@@ -344,7 +344,7 @@ class ProcessedOptions {
     if (_inputSummariesComponents == null) {
       var uris = _raw.inputSummaries;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
+      // TODO(sigmund): throttle # of concurrent operations.
       var allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _inputSummariesComponents =
@@ -366,7 +366,7 @@ class ProcessedOptions {
     if (_linkedDependencies == null) {
       var uris = _raw.linkedDependencies;
       if (uris == null || uris.isEmpty) return const <Component>[];
-      // TODO(sigmund): throttle # of concurrent opreations.
+      // TODO(sigmund): throttle # of concurrent operations.
       var allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));
       _linkedDependencies =
@@ -462,7 +462,7 @@ class ProcessedOptions {
 
     var input = inputs.first;
 
-    // When compiling the SDK the input files are normaly `dart:` URIs.
+    // When compiling the SDK the input files are normally `dart:` URIs.
     if (input.scheme == 'dart') return _packages = Packages.noPackages;
 
     if (input.scheme == 'packages') {
@@ -562,7 +562,7 @@ class ProcessedOptions {
 
   /// Ensure [_sdkRoot], [_sdkSummary] and [_librarySpecUri] are initialized.
   ///
-  /// If they are not set explicitly, they are infered based on the default
+  /// If they are not set explicitly, they are inferred based on the default
   /// behavior described in [CompilerOptions].
   void _ensureSdkDefaults() {
     if (_computedSdkDefaults) return;

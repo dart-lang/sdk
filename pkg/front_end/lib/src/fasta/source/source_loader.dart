@@ -223,7 +223,7 @@ class SourceLoader extends Loader {
       Uri importUri = library.uri;
       if (library.isPatch) {
         // For patch files we create a "fake" import uri.
-        // We cannot use the import uri from the patched libarary because
+        // We cannot use the import uri from the patched library because
         // several different files would then have the same import uri,
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
@@ -435,7 +435,7 @@ class SourceLoader extends Loader {
   }
 
   void debugPrintExports() {
-    // TODO(sigmund): should be `covarint SourceLibraryBuilder`.
+    // TODO(sigmund): should be `covariant SourceLibraryBuilder`.
     builders.forEach((Uri uri, dynamic l) {
       SourceLibraryBuilder library = l;
       Set<Builder> members = new Set<Builder>();
@@ -576,7 +576,7 @@ class SourceLoader extends Loader {
   }
 
   /// Returns a list of all class builders declared in this loader.  As the
-  /// classes are sorted, any cycles in the hiearchy are reported as
+  /// classes are sorted, any cycles in the hierarchy are reported as
   /// errors. Recover by breaking the cycles. This means that the rest of the
   /// pipeline (including backends) can assume that there are no hierarchy
   /// cycles.
@@ -682,8 +682,8 @@ class SourceLoader extends Loader {
         var builder = mixedInType.declaration;
         if (builder is ClassBuilder) {
           isClassBuilder = true;
-          for (Builder constructory in builder.constructors.local.values) {
-            if (constructory.isConstructor && !constructory.isSynthetic) {
+          for (Builder constructor in builder.constructors.local.values) {
+            if (constructor.isConstructor && !constructor.isSynthetic) {
               cls.addProblem(
                   templateIllegalMixinDueToConstructors
                       .withArguments(builder.fullNameForErrors),
@@ -692,8 +692,8 @@ class SourceLoader extends Loader {
                   context: [
                     templateIllegalMixinDueToConstructorsCause
                         .withArguments(builder.fullNameForErrors)
-                        .withLocation(constructory.fileUri,
-                            constructory.charOffset, noLength)
+                        .withLocation(constructor.fileUri,
+                            constructor.charOffset, noLength)
                   ]);
             }
           }
@@ -1253,7 +1253,7 @@ class _UnmodifiableSet {
 }
 """;
 
-/// A minimal implementation of dart:_internel that is sufficient to create an
+/// A minimal implementation of dart:_internal that is sufficient to create an
 /// instance of [CoreTypes] and compile program.
 const String defaultDartInternalSource = """
 class Symbol {

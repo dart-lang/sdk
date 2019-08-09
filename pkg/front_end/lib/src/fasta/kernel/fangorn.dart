@@ -215,7 +215,7 @@ class Fangorn extends Forest {
   }
 
   @override
-  SymbolLiteralJudgment literalSymbolSingluar(String value, Token hash, _) {
+  SymbolLiteralJudgment literalSymbolSingular(String value, Token hash, _) {
     return new SymbolLiteralJudgment(value)..fileOffset = offsetForToken(hash);
   }
 

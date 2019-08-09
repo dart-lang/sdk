@@ -357,7 +357,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
         }
 
-        updateNeededDillLibraresWithHierarchy(
+        updateNeededDillLibrariesWithHierarchy(
             hierarchy, userCode.loader.builderHierarchy);
       }
 
@@ -439,7 +439,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// TODO(jensj): This could probably be a utility method somewhere instead
   /// (though handling of the case where all bets are off should probably still
   /// live locally).
-  void updateNeededDillLibraresWithHierarchy(
+  void updateNeededDillLibrariesWithHierarchy(
       ClassHierarchy hierarchy, ClassHierarchyBuilder builderHierarchy) {
     if (hierarchy is ClosedWorldClassHierarchy && !hierarchy.allBetsOff) {
       neededDillLibraries ??= new Set<Library>();

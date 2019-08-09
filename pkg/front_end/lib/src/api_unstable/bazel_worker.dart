@@ -130,7 +130,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
     // won't be able to link to it when loading more outlines.
     sdkComponent.adoptChildren();
 
-    // TODO(jensj): This is - at least currently - neccessary,
+    // TODO(jensj): This is - at least currently - necessary,
     // although it's not entirely obvious why.
     // It likely has to do with several outlines containing the same libraries.
     // Once that stops (and we check for it) we can probably remove this,

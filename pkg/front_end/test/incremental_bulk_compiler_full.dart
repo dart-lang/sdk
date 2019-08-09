@@ -126,7 +126,7 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
     if (bulkFailed || bulk2Failed) {
       if (bulkFailed != bulk2Failed) {
         throw "Bulk-compiler failed: $bulkFailed; "
-            "second bulk-comile failed: $bulk2Failed";
+            "second bulk-compile failed: $bulk2Failed";
       }
     } else {
       checkIsEqual(bulkSerialized, bulkSerialized2);

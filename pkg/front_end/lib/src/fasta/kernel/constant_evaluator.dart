@@ -6,8 +6,8 @@
 ///
 /// Even though it is expected that the frontend does not emit kernel AST which
 /// contains compile-time errors, this transformation still performs some
-/// valiation and throws a [ConstantEvaluationError] if there was a compile-time
-/// errors.
+/// validation and throws a [ConstantEvaluationError] if there was a
+/// compile-time errors.
 ///
 /// Due to the lack information which is is only available in the front-end,
 /// this validation is incomplete (e.g. whether an integer literal used the
@@ -1924,8 +1924,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   }
 
   List<DartType> evaluateDartTypes(TreeNode node, List<DartType> types) {
-    // TODO: Once the frontend gurantees that there are no free type variables
-    // left over after stubstitution, we can enable this shortcut again:
+    // TODO: Once the frontend guarantees that there are no free type variables
+    // left over after substitution, we can enable this shortcut again:
     // if (env.isEmpty) return types;
     return types.map((t) => evaluateDartType(node, t)).toList();
   }
