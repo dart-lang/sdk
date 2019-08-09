@@ -1877,14 +1877,6 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
 
   if (isNullType(s)) return true;
 
-  if (Rti._isFunctionType(t)) {
-    return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
-  }
-
-  if (Rti._isFunctionType(s)) {
-    return isFunctionType(t);
-  }
-
   if (isFutureOrType(t)) {
     // [t] is FutureOr<T>.
     Rti tTypeArgument = Rti._getFutureOrArgument(t);
@@ -1902,6 +1894,14 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
       return _isSubtypeOfInterface(
           universe, s, sEnv, futureClass, argumentsArray, tEnv);
     }
+  }
+
+  if (Rti._isFunctionType(t)) {
+    return _isFunctionSubtype(universe, s, sEnv, t, tEnv);
+  }
+
+  if (Rti._isFunctionType(s)) {
+    return isFunctionType(t);
   }
 
   assert(Rti._getKind(t) == Rti.kindInterface);
