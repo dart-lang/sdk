@@ -8,7 +8,6 @@
 
 a
 a0x
-struct<#name
 a1x
 a2x
 aa
@@ -960,6 +959,7 @@ directory
 dirname
 disable
 disabled
+disabling
 disagree
 disambiguate
 disambiguated
