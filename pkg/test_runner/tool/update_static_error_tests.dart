@@ -101,8 +101,17 @@ Future<void> main(List<String> args) async {
         parser, "Must provide a file path or glob for which tests to update.");
   }
 
-  var glob = Glob(results.rest.single, recursive: true);
-  for (var entry in glob.listSync(root: "tests")) {
+  var result = results.rest.single;
+  // Allow tests to be specified without the extension for compatibility with
+  // the regular test runner syntax.
+  if (!result.endsWith(".dart")) {
+    result += ".dart";
+  }
+  // Allow tests to be specified either relative to the "tests" directory
+  // or relative to the current directory.
+  var root = result.startsWith("tests") ? "." : "tests";
+  var glob = Glob(result, recursive: true);
+  for (var entry in glob.listSync(root: root)) {
     if (!entry.path.endsWith(".dart")) continue;
 
     if (entry is File) {
