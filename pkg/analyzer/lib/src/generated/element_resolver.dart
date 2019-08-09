@@ -116,9 +116,10 @@ class ElementResolver extends SimpleAstVisitor<void> {
   /// Whether constant evaluation errors should be reported during resolution.
   final bool reportConstEvaluationErrors;
 
-  final MethodInvocationResolver _methodInvocationResolver;
+  /// Helper for extension method resolution.
+  final ExtensionMemberResolver _extensionResolver;
 
-  final ExtensionMemberResolver _extensionMemberResolver;
+  final MethodInvocationResolver _methodInvocationResolver;
 
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
@@ -127,7 +128,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   ElementResolver(this._resolver, {this.reportConstEvaluationErrors: true})
       : _inheritance = _resolver.inheritance,
         _definingLibrary = _resolver.definingLibrary,
-        _extensionMemberResolver = ExtensionMemberResolver(_resolver),
+        _extensionResolver = _resolver.extensionResolver,
         _methodInvocationResolver = new MethodInvocationResolver(_resolver) {
     _dynamicType = _resolver.typeProvider.dynamicType;
     _typeType = _resolver.typeProvider.typeType;
@@ -1240,7 +1241,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       return callMethod;
     }
 
-    var result = _extensionMemberResolver.findExtension(
+    var result = _extensionResolver.findExtension(
       type,
       FunctionElement.CALL_METHOD_NAME,
       node,
@@ -1269,7 +1270,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (getter != null) {
         return getter;
       }
-      var result = _extensionMemberResolver.findExtension(
+      var result = _extensionResolver.findExtension(
           type, name, nameNode, ElementKind.GETTER);
       if (result.isSingle) {
         return result.element;
@@ -1307,7 +1308,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (method != null) {
         return method;
       }
-      var result = _extensionMemberResolver.findExtension(
+      var result = _extensionResolver.findExtension(
           type, name, nameNode, ElementKind.METHOD);
       if (result.isSingle) {
         return result.element;
@@ -1331,7 +1332,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (setter != null) {
         return setter;
       }
-      var result = _extensionMemberResolver.findExtension(
+      var result = _extensionResolver.findExtension(
           type, name, nameNode, ElementKind.SETTER);
       if (result.isSingle) {
         return result.element;
@@ -1590,7 +1591,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       }
 
       if (invokeElement == null && leftType is InterfaceType) {
-        var result = _extensionMemberResolver.findExtension(
+        var result = _extensionResolver.findExtension(
             leftType, methodName, node, ElementKind.METHOD);
         if (result.isSingle) {
           invokeElement = result.element;

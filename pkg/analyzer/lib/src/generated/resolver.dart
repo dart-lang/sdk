@@ -3051,6 +3051,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   final bool _uiAsCodeEnabled;
 
+  /// Helper for extension method resolution.
+  ExtensionMemberResolver extensionResolver;
+
   /// The object used to resolve the element associated with the current node.
   ElementResolver elementResolver;
 
@@ -3160,6 +3163,7 @@ class ResolverVisitor extends ScopedVisitor {
             nameScope: nameScope) {
     this.typeSystem = definingLibrary.context.typeSystem;
     this._promoteManager = TypePromotionManager(typeSystem);
+    this.extensionResolver = ExtensionMemberResolver(this);
     this.elementResolver = new ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors);
     bool strongModeHints = false;

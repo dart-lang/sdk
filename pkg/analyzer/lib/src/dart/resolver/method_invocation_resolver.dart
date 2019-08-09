@@ -42,15 +42,14 @@ class MethodInvocationResolver {
   /// The object providing promoted or declared types of variables.
   final LocalVariableTypeProvider _localVariableTypeProvider;
 
+  /// Helper for extension method resolution.
+  final ExtensionMemberResolver _extensionResolver;
+
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
 
   /// The [Name] object of the invocation being resolved by [resolve].
   Name _currentName;
-
-  /// Helper for extension method resolution.
-  //todo(pq): consider sharing instance with element_resolver
-  final ExtensionMemberResolver _extensionResolver;
 
   MethodInvocationResolver(this._resolver)
       : _typeType = _resolver.typeProvider.typeType,
@@ -58,7 +57,7 @@ class MethodInvocationResolver {
         _definingLibrary = _resolver.definingLibrary,
         _definingLibraryUri = _resolver.definingLibrary.source.uri,
         _localVariableTypeProvider = _resolver.localVariableTypeProvider,
-        _extensionResolver = ExtensionMemberResolver(_resolver);
+        _extensionResolver = _resolver.extensionResolver;
 
   /// The scope used to resolve identifiers.
   Scope get nameScope => _resolver.nameScope;
