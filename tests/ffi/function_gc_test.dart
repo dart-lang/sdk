@@ -115,7 +115,7 @@ final unprotectCode = ffiTestFunctions.lookupFunction<
     ffi.Pointer<ffi.Void> Function()>("UnprotectCode");
 final waitForHelper = ffiTestFunctions.lookupFunction<
     ffi.Void Function(ffi.Pointer<ffi.Void>),
-    void Function(ffi.Pointer<ffi.Void>)>("UnprotectCode");
+    void Function(ffi.Pointer<ffi.Void>)>("WaitForHelper");
 
 void testWriteProtection() {
   waitForHelper(unprotectCode());
