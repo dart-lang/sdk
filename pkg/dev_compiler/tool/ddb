@@ -258,7 +258,7 @@ void main(List<String> args) async {
 
     var runjs = '''
     import { dart, _isolate_helper } from '$sdkJsPath/dart_sdk.js';
-    import { $basename } from '$basename.js';
+    import { $libname } from '$basename.js';
     let main = $libname.main;
     try {
       _isolate_helper.startRootIsolate(() => {}, []);
