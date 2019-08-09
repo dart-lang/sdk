@@ -5,7 +5,9 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
@@ -26,7 +28,10 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
-  Variables(this._graph);
+  final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
+
+  Variables(this._graph)
+      : _alreadyMigratedCodeDecorator = AlreadyMigratedCodeDecorator(_graph);
 
   @override
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
@@ -169,12 +174,29 @@ class Variables implements VariableRecorder, VariableRepository {
     (_potentialModifications[source] ??= []).add(potentialModification);
   }
 
+  /// Creates a decorated type for the given [element], which should come from
+  /// an already-migrated library (or the SDK).
   DecoratedType _createDecoratedElementType(Element element) {
     if (_graph.isBeingMigrated(element.library.source)) {
       throw StateError('A decorated type for $element should have been stored '
           'by the NodeBuilder via recordDecoratedElementType');
     }
-    return DecoratedType.forElement(element, _graph);
+
+    DecoratedType decoratedType;
+    if (element is ExecutableElement) {
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
+    } else if (element is TopLevelVariableElement) {
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(element.type);
+    } else if (element is TypeParameterElement) {
+      // By convention, type parameter elements are decorated with the type of
+      // their bounds.
+      decoratedType = _alreadyMigratedCodeDecorator
+          .decorate(element.bound ?? DynamicTypeImpl.instance);
+    } else {
+      // TODO(paulberry)
+      throw UnimplementedError('Decorating ${element.runtimeType}');
+    }
+    return decoratedType;
   }
 
   /// Creates an entry [_decoratedDirectSupertypes] for an already-migrated
