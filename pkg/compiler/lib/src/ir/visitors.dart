@@ -36,6 +36,15 @@ class Stringifier extends ir.ExpressionVisitor<String> {
     }
     return sb.toString();
   }
+
+  @override
+  String visitConstantExpression(ir.ConstantExpression node) {
+    ir.Constant constant = node.constant;
+    if (constant is ir.StringConstant) {
+      return constant.value;
+    }
+    return null;
+  }
 }
 
 /// Visitor that converts a kernel constant expression into a

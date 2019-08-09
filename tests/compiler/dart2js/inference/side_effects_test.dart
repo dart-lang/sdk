@@ -21,7 +21,9 @@ main(List<String> args) {
     Directory dataDir =
         new Directory.fromUri(Platform.script.resolve('side_effects'));
     await checkTests(dataDir, const SideEffectsDataComputer(),
-        args: args, options: [stopAfterTypeInference]);
+        args: args,
+        options: [stopAfterTypeInference],
+        testedConfigs: allInternalConfigs);
   });
 }
 
